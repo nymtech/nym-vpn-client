@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPNmo</string>
 	<string name="settings">सेटिंग्स</string>
 	<string name="connected">कनेक्शन सफल हुआ</string>
 	<string name="disconnected">डिस्कनेक्टेड</string>
@@ -316,9 +315,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">आपके खाते का पासफ़्रेज़</string>
 	<string name="passphrase_description">🔒आपका मास्टर खाता पासफ्रेज़: 24 शब्द जो आपको किसी भी डिवाइस से आपका खाता एक्सेस करने की अनुमति देते हैं।</string>
+	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
+	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
 	<string name="passphrase_show">मेरा पासफ़्रेज़ दिखाएं</string>
 	<string name="passphrase_copy">पासफ़्रेज़ कॉपी करें</string>
 	<string name="passphrase_save">पासवर्ड मैनेजर में सेव करें</string>
+	<string name="passphrase_download">Download</string>
 	<string name="passphrase_lose">⚠️ यदि ये शब्द खो दिए तो = आपका खाता हमेशा के लिए खो जाएगा।</string>
 	<string name="passphrase_never">इन्हें किसी के साथ भी साझा न करें, जिसमें Nym सपोर्ट भी शामिल है।</string>
 	<string name="passphrase_saved">मैंने इन 24 शब्दों को सुरक्षित रूप से सहेजा है और कभी भी इन्हें साझा नहीं करूंगा</string>

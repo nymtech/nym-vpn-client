@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPN</string>
 	<string name="settings">Einstellungen</string>
 	<string name="connected">Verbunden</string>
 	<string name="disconnected">Getrennt</string>
@@ -317,9 +316,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Passwort deines Kontos</string>
 	<string name="passphrase_description">🔒Dein Hauptkonto Passphrase: 24 Wörter, mit denen du von jedem Gerät aus auf dein Konto zugreifen kannst.</string>
+	<string name="passphrase_description_first">:gesperrt:Dein Hauptkonto Passphrase:</string>
+	<string name="passphrase_description_last">24 Wörter, mit denen Sie von jedem Gerät aus auf Ihr Konto zugreifen können.</string>
 	<string name="passphrase_show">Meine Passphrase anzeigen</string>
 	<string name="passphrase_copy">Passwort kopieren</string>
 	<string name="passphrase_save">Im Passwort-Manager speichern</string>
+	<string name="passphrase_download">Download</string>
 	<string name="passphrase_lose">:Warnung: Verlieren Sie diese Wörter = verlieren Sie Ihr Konto für immer.</string>
 	<string name="passphrase_never">Teilen Sie sie niemals mit irgendjemandem, einschließlich Nym Support.</string>
 	<string name="passphrase_saved">Ich habe diese 24 Wörter sicher gespeichert und werde sie nie teilen</string>
