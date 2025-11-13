@@ -1,0 +1,104 @@
+{
+  "auto-connect": {
+    "title": "Auto-connect",
+    "desc": "Auto connect at app startup"
+  },
+  "ipv6-support": {
+    "title": "IPv6 traffic tunneling",
+    "desc": "Disable to only use IPv4"
+  },
+  "notifications": {
+    "title": "Desktop notifications"
+  },
+  "monitoring-alert": "You should restart the app and daemon service for the change to take effect.",
+  "support": {
+    "title": "Support & feedback",
+    "faq": "Check the FAQ",
+    "contact": "Contact support",
+    "telegram": "Chat on Telegram",
+    "github": "Open a GitHub issue",
+    "matrix": "Join us on Matrix",
+    "discord": "Join us on Discord"
+  },
+  "legal": {
+    "title": "Legal",
+    "policy": "Privacy statement",
+    "tos": "Terms of use",
+    "license": "License",
+    "licenses-rust": "Licenses (Rust)",
+    "licenses-js": "Licenses (JS)",
+    "emptyData": "No license data available"
+  },
+  "logs": {
+    "title": "Logs (stored locally)",
+    "desc": "Copy or delete logs",
+    "app": "App logs",
+    "daemon": "Daemon logs"
+  },
+  "anti-censorship": {
+    "title": "Anti-censorship",
+    "intro": "Enable these features if you're experiencing connection issues or NymVPN is blocked in your location.",
+    "quic": {
+      "label": "Enhanced connection (QUIC)",
+      "warning": "Changes will apply after reconnect",
+      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
+      "link": "How QUIC improves connections"
+    },
+    "stealth-api": {
+      "label": "Stealth API connect",
+      "warning": "Changes will apply after reconnect",
+      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
+      "link": "How the Stealth API connect mode works"
+    },
+    "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
+    "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
+  },
+  "faq": "FAQ",
+  "display-theme": "Display mode",
+  "logout-confirmation": {
+    "title": "Are you sure?",
+    "description": "You will need your access code to reconnect your device.",
+    "logging-out": "Logging out…"
+  },
+  "quit": "Quit NymVPN",
+  "login-button": "Connect device",
+  "info": {
+    "client-version": "App version",
+    "daemon-version": "Daemon version",
+    "network-name": "Network",
+    "account-id": "Account ID",
+    "device-id": "Device ID"
+  },
+  "autostart": {
+    "title": "Autostart",
+    "desc": "Launch NymVPN when system starts"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "Disconnect if the internet drops"
+  },
+  "privacy": {
+    "error-monitoring": {
+      "label": "Error & crash reports",
+      "sublabel": "Changes will apply after app and daemon restart.",
+      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
+      "link": "View Sentry Privacy Policy"
+    },
+    "network-stats": {
+      "label": "Anonymous network stats",
+      "sublabel": "Changes will apply after daemon restart.",
+      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
+      "link": "Learn exactly what's shared"
+    }
+  },
+  "account": {
+    "get-started": "Get started",
+    "syncing": "Syncing…",
+    "no-plan": "No active plan",
+    "bandwidth-exceeded": "Bandwidth exceeded",
+    "max-device-reached": "Max devices reached",
+    "status-inactive": "Account is inactive",
+    "requesting-zknyms": "Requesting ZkNyms",
+    "error": "Internal error"
+  }
+}

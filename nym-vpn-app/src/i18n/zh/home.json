@@ -19,11 +19,11 @@
   "select-node-title": "连接到",
   "privacy-mode": {
     "title": "匿名模式 （混合网络）",
-    "desc": "适用于付款、电子邮件和信息"
+    "desc": "为敏感活动提供最大程度的保护"
   },
   "fast-mode": {
-    "title": "快速 (WireGuard*)",
-    "desc": "适用于浏览、流媒体和共享"
+    "title": "快速（WireGuard）",
+    "desc": "适用于浏览、流媒体、下载"
   },
   "last-node-select": {
     "label": "最后一跳",
@@ -38,8 +38,8 @@
   },
   "modes-dialog": {
     "title": "模式选择",
-    "privacy-description": "通过 mixnet 通过 5 个服务器路由连接，享受最高级别的隐私保护。是安全处理付款、电子邮件和信息的完美选择。",
-    "fast-description": "通过双服务器连接体验最高速度。 该模式采用 AmneziaWG，这是一种抗审查版本的 WireGuard，是快速浏览、流媒体和文件共享的理想选择。",
+    "privacy-description": "通过带有混淆流量和时间混淆技术的5台服务器组成的混合网络路由（网速大约1-5Mbps）享受最高级别的隐私保护。该模式是安全处理付款、电子邮件和信息的完美选择。",
+    "fast-description": "通过两跳服务器连接体验高速浏览（250+Mbps）。 该模式采用 AmneziaWG，这是一种抗审查版本的 WireGuard。该模式是快速浏览、流媒体和文件下载的理想选择。",
     "link": "继续阅读"
   },
   "update-dialog": {

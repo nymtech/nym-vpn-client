@@ -50,8 +50,8 @@
       "content": "API isteklerini popüler ve izinli alan adlarının arkasına gizleyerek VPN engellemelerini aşar. Standart bağlantı denemeleri başarısız olduğunda NymVPN bunu otomatik olarak devreye alır.",
       "link": "Stealth API bağlantı modu nasıl çalışır"
     },
-    "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
-    "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
+    "snackbar-switch-on": "Geliştirilmiş bağlantı (QUIC protokolü), yeniden bağlandığınızda etkinleşecek.",
+    "snackbar-switch-off": "Geliştirilmiş bağlantı (QUIC protokolü), yeniden bağlandığınızda devre dışı kalacak."
   },
   "faq": "SSS",
   "display-theme": "Ekran modu",
@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "Bant genişliği aşıldı",
     "max-device-reached": "Maksimum cihaz sayısına ulaşıldı",
     "status-inactive": "Hesap pasif",
+    "requesting-zknyms": "Requesting ZkNyms",
     "error": "Dahili hata"
   }
 }

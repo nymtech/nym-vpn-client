@@ -1,0 +1,18 @@
+{
+  "vpn-tunnel-state": {
+    "connected": "VPN tunnel connected",
+    "disconnected": "VPN tunnel disconnected",
+    "error": "VPN tunnel failed: an error occurred",
+    "offline": "PC is offline"
+  },
+  "logout": {
+    "success": "Logout successfull",
+    "error": "An error occurred while logging out",
+    "from-state": "Cannot logout from VPN tunnel state: {{state}}"
+  },
+  "copied-to-clipboard": "Copied to clipboard",
+  "daemon-no-compat": "Daemon version is not compatible with the app version! Daemon version: {{version}}, expected: {{required}}. Please update either the app or the daemon.",
+  "daemon-not-connected": "No daemon connection, please contact our support team",
+  "streaming-optimized-label": "⏯️ Streaming-optimized servers now labelled",
+  "streaming-optimized-label-button": "Browse exit servers now"
+}

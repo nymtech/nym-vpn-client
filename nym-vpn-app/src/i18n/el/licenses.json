@@ -1,0 +1,10 @@
+{
+  "licenses": "licenses",
+  "license-texts": "license texts",
+  "name": "name",
+  "version": "version",
+  "authors": "authors",
+  "repository": "repository",
+  "language": "Programming language",
+  "no-data": "No license data"
+}

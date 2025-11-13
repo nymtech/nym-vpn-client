@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "La bande passante est dépassée",
     "max-device-reached": "Nombre maximum d'appareils atteint",
     "status-inactive": "Votre compte est inactif",
+    "requesting-zknyms": "Requête de ZkNyms",
     "error": "Erreur interne"
   }
 }

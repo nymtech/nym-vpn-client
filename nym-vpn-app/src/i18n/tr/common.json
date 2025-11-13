@@ -1,11 +1,11 @@
 {
   "vpn-modes": {
     "privacy": "Anonim",
-    "fast": "Hızlı"
+    "fast": "Hızlı (WireGuard)"
   },
   "connect": "Bağlan",
   "disconnect": "Bağlantıyı kes",
-  "first-hop-selection": "Giriş",
+  "first-hop-selection": "Giriş lokasyonu",
   "last-hop-selection": "Çıkış",
   "settings": "Ayarlar",
   "display-theme": "Panel",

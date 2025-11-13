@@ -98,6 +98,7 @@
     "bandwidth-exceeded": "Vượt quá giới hạn băng thông",
     "max-device-reached": "Đã đạt đến số lượng thiết bị tối đa",
     "status-inactive": "Tài khoản không hoạt động",
+    "requesting-zknyms": "Requesting ZkNyms",
     "error": "Lỗi nội bộ"
   }
 }
