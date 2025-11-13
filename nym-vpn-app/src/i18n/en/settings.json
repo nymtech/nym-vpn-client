@@ -75,7 +75,7 @@
   },
   "killswitch": {
     "title": "Killswitch",
-    "desc": "Disconnect if the internet drops"
+    "desc": "Always on to protect your data"
   },
   "privacy": {
     "error-monitoring": {
