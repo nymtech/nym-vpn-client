@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPN</string>
 	<string name="settings">أعدادات</string>
 	<string name="connected">متصل</string>
 	<string name="disconnected">انفصال</string>
@@ -317,9 +316,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">كلمة مرور حسابك</string>
 	<string name="passphrase_description">🔒عبارة مرور حسابك الرئيسي: 24 كلمة تسمح لك بالوصول إلى حسابك من أي جهاز.</string>
+	<string name="passphrase_description_first">🔒كلمة مرور حسابك الرئيسية:</string>
+	<string name="passphrase_description_last">24 كلمة تسمح لك بالوصول إلى حسابك من أي جهاز.</string>
 	<string name="passphrase_show">إظهار كلمة المرور الخاصة بي</string>
 	<string name="passphrase_copy">نسخ عبارة المرور</string>
 	<string name="passphrase_save">حفظ إلى مدير كلمة المرور</string>
+	<string name="passphrase_download">تنزيل</string>
 	<string name="passphrase_lose">⚠️ خسر هذه الكلمات = خسر حسابك للأبد.</string>
 	<string name="passphrase_never">لا تشاركهم أبدا مع أي شخص، بما في ذلك دعم نيم.</string>
 	<string name="passphrase_saved">لقد حفظت هذه الكلمات الـ 24 بشكل آمن ولن أشاركها أبدا</string>

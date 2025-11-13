@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">NymVPN</string>
 	<string name="settings">設定</string>
 	<string name="connected">接続済</string>
 	<string name="disconnected">接続解除済</string>
@@ -315,9 +314,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">あなたのアカウントのパスワード</string>
 	<string name="passphrase_description">🔒マスターアカウントのパスフレーズ: 24語の単語を使用すると、どのデバイスからでもアカウントにアクセスできます。</string>
+	<string name="passphrase_description_first">🔒マスターアカウントのパスフレーズ:</string>
+	<string name="passphrase_description_last">どのデバイスからでもアカウントにアクセスできる24単語です。</string>
 	<string name="passphrase_show">パスフレーズを表示</string>
 	<string name="passphrase_copy">パスフレーズをコピー</string>
 	<string name="passphrase_save">パスワードマネージャーに保存</string>
+	<string name="passphrase_download">ダウンロード</string>
 	<string name="passphrase_lose">⚠️これらの単語を失う=永遠にあなたのアカウントを失う。</string>
 	<string name="passphrase_never">Nym Supportを含む誰とも共有しないでください。</string>
 	<string name="passphrase_saved">私はこれらの24単語を安全に保存し、それらを共有することはありません</string>

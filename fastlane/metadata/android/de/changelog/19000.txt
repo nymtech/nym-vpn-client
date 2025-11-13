@@ -1,9 +1,9 @@
 Was ist neu:
-- Download-Button für Logs Bildschirm hinzugefügt
+- Download-Schaltfläche für den Protokollbildschirm hinzugefügt
 - Neuer Datenschutz & Datenbildschirm
 - Netzwerküberwachungsfluss eingeführt
 - Willkommensbildschirm hinzugefügt
-- Aktualisierte Benutzeroberfläche für Modals und SnackBar
+- Aktualisierte Benutzeroberfläche für Modalitäten und SnackBar
 - Verbesserungen im Datenspeicher
 - Reparaturen bei Hardware-Abstürzen auf bestimmten Geräten
 - Fehlerbehebung für den Absturz des Protokolllesers auf bestimmten Geräten

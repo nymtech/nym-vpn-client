@@ -1,4 +1,6 @@
+export { bn } from './bn';
 export { de } from './de';
+export { el } from './el';
 export { en } from './en';
 export { es } from './es';
 export { fr } from './fr';
@@ -10,4 +12,5 @@ export { ptPT } from './pt-PT';
 export { ru } from './ru';
 export { tr } from './tr';
 export { uk } from './uk';
+export { vi } from './vi';
 export { zhHans } from './zh-Hans';
