@@ -216,8 +216,8 @@ async fn main() -> Result<()> {
             let app_state = AppState::new(&db, &app_config, &cli, os, sentry_guard);
             app.manage(Mutex::new(app_state));
 
-            let pkg_info = app.package_info().clone();
-            let vpnd = VpndClient::new(&pkg_info);
+            let pkg_info = app.package_info();
+            let vpnd = VpndClient::new(pkg_info);
 
             app.manage(Mutex::new(fs_config));
             app.manage(vpnd.clone());

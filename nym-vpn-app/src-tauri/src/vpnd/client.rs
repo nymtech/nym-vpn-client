@@ -424,11 +424,11 @@ impl VpndClient {
             .into_iter()
             .filter_map(|gateway| {
                 Gateway::from_lib(gateway, gw_type)
-                    .inspect_err(|e| warn!("failed to parse gateway from proto: {e}"))
+                    .inspect_err(|e| warn!("failed to parse gateway from lib: {e}"))
                     .ok()
             })
             .collect();
-        debug!("parsed gateway count: {}", gateways.len());
+        debug!("parsed gateway #{}", gateways.len());
 
         Ok(gateways)
     }
