@@ -94,7 +94,7 @@ function NodeDetails() {
         icon
       ) : (
         <MsIcon
-          className="dark:text-king-nacho text-cheddar text-xl"
+          className="text-cheddar dark:text-king-nacho text-xl"
           icon="circle"
         />
       )}
@@ -171,7 +171,7 @@ function NodeDetails() {
         t('node-details.data.with-mixnet'),
         <MsIcon
           icon="visibility_off"
-          className="dark:text-malachite text-malachite-moss text-xl"
+          className="text-malachite-moss dark:text-malachite text-xl"
         />,
       ),
       key: 'privacy',
