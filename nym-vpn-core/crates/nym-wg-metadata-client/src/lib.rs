@@ -7,17 +7,15 @@ use nym_credentials_interface::CredentialSpendingData;
 use nym_gateway_directory::NodeIdentity;
 use nym_http_api_client::ReqwestClientBuilder;
 use nym_wireguard_private_metadata_client::WireguardMetadataApiClient;
-use nym_wireguard_private_metadata_shared::{Version, v1, v2};
+use nym_wireguard_private_metadata_shared::{AvailableBandwidth, Version, v1, v2};
 use tokio::sync::OnceCell;
 use url::Url;
 
 use error::Result;
 
 use crate::error::MetadataClientError;
-pub use crate::types::AvailableBandwidth;
 
 pub mod error;
-pub mod types;
 
 #[derive(Clone)]
 pub enum TunUpSendData {
