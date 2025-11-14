@@ -62,7 +62,7 @@ extension SupportViewModel {
         try? externalLinkManager.openExternalURL(urlString: urlString)
     }
 
-    func  displayResetVPNProfileDialog() {
+    func displayResetVPNProfileDialog() {
         isResetVPNProfileDisplayed = true
     }
 }
@@ -72,7 +72,7 @@ extension SupportViewModel {
 private extension SupportViewModel {
     func faqSectionViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .arrow,
+            accessory: .externalLink,
             title: "checkFAQ".localizedString,
             imageName: "faq",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
@@ -84,7 +84,7 @@ private extension SupportViewModel {
 
     func getInTouchSectionViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .arrow,
+            accessory: .externalLink,
             title: "settings.getInTouch".localizedString,
             imageName: "email",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
@@ -96,7 +96,7 @@ private extension SupportViewModel {
 
     func chatOnTelegramSectionViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .arrow,
+            accessory: .externalLink,
             title: "settings.chatOnTelegram".localizedString,
             imageName: "telegram",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
@@ -108,7 +108,7 @@ private extension SupportViewModel {
 
     func githubIssueViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .arrow,
+            accessory: .externalLink,
             title: "feedback.githubIssue".localizedString,
             imageName: "github",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
@@ -120,7 +120,7 @@ private extension SupportViewModel {
 
     func matrixSectionViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .arrow,
+            accessory: .externalLink,
             title: "joinMatrix".localizedString,
             imageName: "matrix",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
@@ -132,7 +132,7 @@ private extension SupportViewModel {
 
     func discordSectionViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .arrow,
+            accessory: .externalLink,
             title: "joinDiscord".localizedString,
             imageName: "discord",
             position: SettingsListItemPosition(isFirst: true, isLast: true),

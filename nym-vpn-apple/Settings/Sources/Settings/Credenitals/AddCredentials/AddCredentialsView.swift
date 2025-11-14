@@ -162,6 +162,7 @@ private extension AddCredentialsView {
                         login()
                     }
                 }
+                .redacted(reason: .privacy)
                 .submitLabel(.done)
                 .textStyle(NymTextStyle.Body.Large.regular)
                 .padding(16)

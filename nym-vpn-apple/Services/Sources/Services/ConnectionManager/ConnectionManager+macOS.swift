@@ -83,7 +83,8 @@ extension ConnectionManager {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newValue in
                 self?.connectionConfig?.enableBridges = newValue
-                self?.updateConnectionConfig()
+                guard let self, currentTunnelStatus == .connected, appSettings.shouldReconnect else { return }
+                updateConnectionConfig()
             }
             .store(in: &cancellables)
     }

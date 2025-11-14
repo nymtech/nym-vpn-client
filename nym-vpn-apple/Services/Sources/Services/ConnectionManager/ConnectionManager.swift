@@ -217,7 +217,8 @@ private extension ConnectionManager {
         appSettings.$shouldReconnectPublisher
             .removeDuplicates()
             .filter { $0 }
-            .sink { [weak self] _ in
+            .sink { [weak self] shouldReconnect in
+                guard shouldReconnect else { return }
                 self?.updateConnectionConfig()
                 self?.appSettings.shouldReconnect = false
             }

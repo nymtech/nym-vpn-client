@@ -20,10 +20,6 @@ import UIComponents
 
     @ObservedObject private var credentialsManager: CredentialsManager
     private var cancellables = Set<AnyCancellable>()
-    private var deviceIdentifier: String? {
-        guard let deviceIdentifier = credentialsManager.deviceIdentifier else { return nil }
-        return "settings.deviceId".localizedString + deviceIdentifier
-    }
 
     let settingsTitle = "settings".localizedString
 #if os(macOS)
@@ -165,7 +161,7 @@ private extension SettingsViewModel {
 
     func navigateToAccount() {
         impactGenerator.softImpact()
-        try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
+        path.append(SettingLink.accountAndDevices)
     }
 
     func navigateToPassphrase() {
@@ -216,6 +212,7 @@ private extension SettingsViewModel {
                     feedbackSection(),
                     killswitchSection(),
                     appearanceSection(),
+                    logsSection(),
                     legalSection()
                 ]
             )
@@ -242,10 +239,9 @@ private extension SettingsViewModel {
     func accountSection() -> SettingsSection {
         var viewModels = [
             SettingsListItemViewModel(
-                accessory: .externalLink,
+                accessory: .arrow,
                 title: "settings.account".localizedString,
-                subtitle: deviceIdentifier,
-                imageName: "person",
+                systemImageName: "person.crop.circle",
                 action: { [weak self] in
                     Task { @MainActor in
                         self?.navigateToAccount()
@@ -271,31 +267,20 @@ private extension SettingsViewModel {
     }
 
     func appearanceSection() -> SettingsSection {
-        var viewModels = [
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.appearance".localizedString,
-                imageName: "appearance",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToAppearance()
+        .theme(
+            viewModels: [
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "settings.appearance".localizedString,
+                    imageName: "appearance",
+                    action: { [weak self] in
+                        Task { @MainActor in
+                            self?.navigateToAppearance()
+                        }
                     }
-                }
-            )
-        ]
-        viewModels.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.privacyAndData".localizedString,
-                imageName: "privacy",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToPrivacyAndData()
-                    }
-                }
-            )
+                )
+            ]
         )
-        return .theme(viewModels: viewModels)
     }
 
     func feedbackSection() -> SettingsSection {
@@ -308,16 +293,6 @@ private extension SettingsViewModel {
                     action: { [weak self] in
                         Task { @MainActor in
                             self?.navigateToSupportAndFeedback()
-                        }
-                    }
-                ),
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "logs".localizedString,
-                    imageName: "logs",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToLogs()
                         }
                     }
                 )
@@ -342,7 +317,7 @@ private extension SettingsViewModel {
                 accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isIPv6TrafficEnabled)),
                 title: "settings.ipv6.title".localizedString,
                 subtitle: "settings.ipv6.subtitle".localizedString,
-                systemImageName: "key",
+                systemImageName: "powerplug.portrait",
                 action: {}
             )
         )
@@ -362,6 +337,33 @@ private extension SettingsViewModel {
             )
         }
         return .killSwitch(viewModels: viewModels)
+    }
+
+    func logsSection() -> SettingsSection {
+        .logs(
+            viewModels: [
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "logs".localizedString,
+                    imageName: "logs",
+                    action: { [weak self] in
+                        Task { @MainActor in
+                            self?.navigateToLogs()
+                        }
+                    }
+                ),
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "settings.privacyAndData".localizedString,
+                    systemImageName: "exclamationmark.shield",
+                    action: { [weak self] in
+                        Task { @MainActor in
+                            self?.navigateToPrivacyAndData()
+                        }
+                    }
+                )
+            ]
+        )
     }
 
     func legalSection() -> SettingsSection {
