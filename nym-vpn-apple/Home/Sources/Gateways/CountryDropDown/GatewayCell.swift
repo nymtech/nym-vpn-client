@@ -64,8 +64,6 @@ public struct GatewayCell: View {
                 QuicLabel()
             } else if shouldShowStreaming {
                 StreamingIcon()
-            } else {
-                lineSeparator()
             }
 
             infoButton()
@@ -170,13 +168,6 @@ private extension GatewayCell {
             .truncationMode(.middle)
             .foregroundStyle(NymColor.gray1)
             .textStyle(.Body.Small.regular)
-    }
-
-    func lineSeparator() -> some View {
-        Rectangle()
-            .foregroundColor(NymColor.gray2)
-            .frame(width: 1, height: 42)
-            .padding(0)
     }
 
     func infoButton() -> some View {

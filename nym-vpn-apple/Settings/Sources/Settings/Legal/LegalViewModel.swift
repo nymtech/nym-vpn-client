@@ -50,7 +50,7 @@ extension LegalViewModel {
 private extension LegalViewModel {
     func termsOfUseViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .arrow,
+            accessory: .externalLink,
             title: "legal.termsOfUse".localizedString,
             position: SettingsListItemPosition(isFirst: true, isLast: false),
             action: {
@@ -61,7 +61,7 @@ private extension LegalViewModel {
 
     func privacyPolicyViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .arrow,
+            accessory: .externalLink,
             title: "legal.privacyPolicy".localizedString,
             position: SettingsListItemPosition(isFirst: false, isLast: false),
             action: {
@@ -72,7 +72,7 @@ private extension LegalViewModel {
 
     func licencesViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .arrow,
+            accessory: .externalLink,
             title: "legal.licences".localizedString,
             position: SettingsListItemPosition(isFirst: false, isLast: true),
             action: {
