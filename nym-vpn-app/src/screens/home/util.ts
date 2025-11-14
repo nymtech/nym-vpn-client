@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useInAppNotify, useMainState } from '../../contexts';
-import { StateDispatch } from '../../types';
+import { StateDispatch, TunnelData, isWireguardData } from '../../types';
 import { kvSet } from '../../kvStore';
 
 export function useActionToast(action: 'node-select' | 'mode-select') {
@@ -49,3 +49,10 @@ export const setStreamOptimizedLabelSeen = (dispatch: StateDispatch) => {
   dispatch({ type: 'set-streaming-optimized-label-seen', seen: true });
   kvSet('streaming-optimized-label-seen', true);
 };
+
+export function isBridgeMode(data?: TunnelData | null) {
+  if (!data) {
+    return false;
+  }
+  return isWireguardData(data) && data.entryBridgeAddr;
+}
