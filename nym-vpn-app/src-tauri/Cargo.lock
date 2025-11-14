@@ -3573,7 +3573,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.19.0-hazelnut-rc1"
+version = "1.19.0-hazelnut-rc2"
 dependencies = [
  "anyhow",
  "build-info",
