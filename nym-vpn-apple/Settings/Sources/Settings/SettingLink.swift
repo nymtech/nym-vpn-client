@@ -1,6 +1,7 @@
 import Foundation
 
 public enum SettingLink: Hashable, Identifiable {
+    case accountAndDevices
     case addCredentials
     case createAccountWelcome
     case generatePassphrase

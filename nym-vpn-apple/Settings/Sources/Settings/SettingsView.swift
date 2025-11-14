@@ -7,7 +7,6 @@ import Theme
 
 public struct SettingsView: View {
     @StateObject private var viewModel: SettingsViewModel
-    @State private var displayCopiedOverlay = false
 
     public init(viewModel: SettingsViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -29,7 +28,6 @@ private extension SettingsView {
                 Spacer()
                     .frame(height: 24)
                 settingsList()
-                accountIdentifier()
             }
             .padding(.horizontal, 16)
             .scrollIndicators(.hidden)
@@ -94,46 +92,5 @@ private extension SettingsView {
                     }
                 )
         )
-    }
-
-    @ViewBuilder
-    func accountIdentifier() -> some View {
-        if let accountIdentifier = viewModel.accountIdentifier, !accountIdentifier.isEmpty {
-            HStack {
-                Text("\("settings.accountID".localizedString): \(accountIdentifier)")
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Medium.regular)
-                    .padding(.bottom, 16)
-                Spacer()
-            }
-            .onTapGesture {
-                viewModel.copyToPasteboard(text: accountIdentifier)
-
-                withAnimation {
-                    displayCopiedOverlay = true
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .seconds(3))
-                        displayCopiedOverlay = false
-                    }
-                }
-            }
-            .overlay {
-                if displayCopiedOverlay {
-                    HStack {
-                        Spacer()
-                        Text("settings.copiedToPasteboard".localizedString)
-                            .padding(8)
-                            .background(NymColor.elevation)
-                            .foregroundColor(NymColor.gray1)
-                            .cornerRadius(8)
-                            .transition(.opacity)
-                            .padding(.trailing, 16)
-                    }
-                    .animation(.easeInOut, value: displayCopiedOverlay)
-                }
-            }
-            Spacer()
-                .frame(height: 24)
-        }
     }
 }
