@@ -267,7 +267,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					}
 					LocationField(
 						value = appUiState.entryPointName,
-						label = stringResource(R.string.entry),
+						label = stringResource(R.string.entry_location),
 						countryCode = appUiState.entryPointCountry,
 						gatewayLocation = appUiState.entryPointLocation,
 						onClick = { navController.goFromRoot(Route.EntryLocation) },
@@ -276,7 +276,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					)
 					LocationField(
 						value = appUiState.exitPointName,
-						label = stringResource(R.string.exit),
+						label = stringResource(R.string.exit_location),
 						countryCode = appUiState.exitPointCountry,
 						gatewayLocation = appUiState.exitPointLocation,
 						onClick = {
