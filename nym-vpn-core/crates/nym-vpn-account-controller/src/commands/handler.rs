@@ -108,8 +108,7 @@ pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
         .vpn_api_client
         .register_account(&vpn_account, platform)
         .await?
-        .account_token
-        .ok_or(AccountCommandError::internal("no account token"))?;
+        .account_token;
 
     tracing::debug!("Account registered with API");
 

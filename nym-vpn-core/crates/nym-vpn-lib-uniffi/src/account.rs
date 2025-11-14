@@ -351,10 +351,7 @@ pub(crate) mod raw {
         let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
         let account_token = register_account_by_account_raw(&account, platform)
             .await?
-            .account_token
-            .ok_or(VpnError::FailedAccountRegistration {
-                details: "no account token provided".to_string(),
-            })?;
+            .account_token;
         Ok(RegisterAccountResponse { account_token })
     }
 
