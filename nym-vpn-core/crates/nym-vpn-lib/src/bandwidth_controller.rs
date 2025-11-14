@@ -64,19 +64,6 @@ pub enum SpecificGatewayError {
         source: Box<nym_bandwidth_controller::error::BandwidthControllerError>,
     },
 
-    #[error("failed to request upgrade mode token with the gateway: {gateway_id}")]
-    UpgradeModeTokenRequest {
-        gateway_id: String,
-        #[source]
-        source: Box<nym_bandwidth_controller::error::BandwidthControllerError>,
-    },
-
-    // **theoretically** this should never get thrown
-    #[error(
-        "failed to retrieve upgrade mode JWT from storage even though Account Controller reports the upgrade mode. gateway: {gateway_id}"
-    )]
-    UnavailableUpgradeModeToken { gateway_id: String },
-
     #[error("failed to top-up wireguard bandwidth with the gateway: {gateway_id}")]
     DeprecatedTopUpWireguard {
         gateway_id: String,
@@ -217,6 +204,25 @@ impl SpecificGatewayError {
             source: Box::new(source),
         }
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum UpgradeModeRecheckError {
+    #[error("failed to request upgrade mode token to use with the gateway: {gateway_id}")]
+    UpgradeModeTokenRequest {
+        gateway_id: String,
+        #[source]
+        source: Box<nym_bandwidth_controller::error::BandwidthControllerError>,
+    },
+
+    // **theoretically** this should never get thrown
+    #[error(
+        "failed to retrieve upgrade mode JWT from storage even though Account Controller reports the upgrade mode. gateway: {gateway_id}"
+    )]
+    UnavailableUpgradeModeToken { gateway_id: String },
+
+    #[error(transparent)]
+    GatewayQuery(#[from] SpecificGatewayError),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -674,7 +680,7 @@ impl BandwidthController {
     pub(crate) async fn request_upgrade_mode_recheck(
         &mut self,
         entry: bool,
-    ) -> Result<bool, SpecificGatewayError> {
+    ) -> Result<bool, UpgradeModeRecheckError> {
         let bw_client = if entry {
             &mut self.wg_entry_gateway_client
         } else {
@@ -685,12 +691,12 @@ impl BandwidthController {
             .ticket_provider
             .get_upgrade_mode_token()
             .await
-            .map_err(|source| SpecificGatewayError::UpgradeModeTokenRequest {
+            .map_err(|source| UpgradeModeRecheckError::UpgradeModeTokenRequest {
                 gateway_id: bw_client.gateway_id().to_string(),
                 source: Box::new(source),
             })?
         else {
-            return Err(SpecificGatewayError::UnavailableUpgradeModeToken {
+            return Err(UpgradeModeRecheckError::UnavailableUpgradeModeToken {
                 gateway_id: bw_client.gateway_id().to_string(),
             });
         };
