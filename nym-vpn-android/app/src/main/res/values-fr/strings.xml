@@ -316,7 +316,7 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Mot de passe de votre compte</string>
 	<string name="passphrase_description">🔒Votre phrase secrète principale : 24 mots qui vous permettent d\'accéder à votre compte depuis n\'importe quel appareil.</string>
-	<string name="passphrase_description_first">🔒Votre phrase de passe de compte maître:</string>
+	<string name="passphrase_description_first">🔒Votre phrase de passe de compte :</string>
 	<string name="passphrase_description_last">24 mots qui vous permettent d\'accéder à votre compte depuis n\'importe quel appareil.</string>
 	<string name="passphrase_show">Afficher ma phrase de passe</string>
 	<string name="passphrase_copy">Copier la phrase de passe</string>

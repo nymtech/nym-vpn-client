@@ -314,12 +314,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Фраза-ключ вашого акаунта</string>
 	<string name="passphrase_description">🔒Ваш головний пароль фразу: 24 слова, що дозволяють отримати доступ до вашого облікового запису з будь-якого пристрою.</string>
-	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
-	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">🔒Фраза-пароль вашого облікового запису:</string>
+	<string name="passphrase_description_last">24 слова, які дозволяють отримати доступ до вашого облікового запису з будь-якого пристрою.</string>
 	<string name="passphrase_show">Показати мою фразу-пароль</string>
 	<string name="passphrase_copy">Скопіювати фразу-пароль</string>
 	<string name="passphrase_save">Зберегти до менеджера паролів</string>
-	<string name="passphrase_download">Download</string>
+	<string name="passphrase_download">Завантажити</string>
 	<string name="passphrase_lose">⚠️ Втрата цих слів = втрата свого обліковий запис назавжди.</string>
 	<string name="passphrase_never">Ніколи не повідомляйте їх нікому, включаючи службу підтримки Nym.</string>
 	<string name="passphrase_saved">Я надійно зберіг ці 24 слова і ніколи нікому їх не розкажу.</string>
