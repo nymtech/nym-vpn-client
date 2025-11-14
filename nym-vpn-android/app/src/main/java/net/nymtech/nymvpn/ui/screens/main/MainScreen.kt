@@ -201,6 +201,24 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		showBanner = false
 	}
 
+	fun onEntryClick() {
+		when (uiState.connectionState) {
+			ConnectionState.Disconnected, ConnectionState.Offline -> navController.goFromRoot(Route.EntryLocation)
+			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
+			else -> snackbar.showMessage(context.getString(R.string.disabled_while_connected))
+		}
+	}
+	fun onExitClick() {
+		when (uiState.connectionState) {
+			ConnectionState.Disconnected, ConnectionState.Offline -> {
+				dismissStreamingBanner()
+				navController.goFromRoot(Route.ExitLocation)
+			}
+			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
+			else -> snackbar.showMessage(context.getString(R.string.disabled_while_connected))
+		}
+	}
+
 	LaunchedEffect(Unit) {
 		if (!appUiState.settings.isStreamingServerBannerDisplayed) {
 			showBanner = true
@@ -270,8 +288,8 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						label = stringResource(R.string.entry_location),
 						countryCode = appUiState.entryPointCountry,
 						gatewayLocation = appUiState.entryPointLocation,
-						onClick = { navController.goFromRoot(Route.EntryLocation) },
-						enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
+						onClick = { onEntryClick() },
+						enabled = true,
 						showQuicLabel = shouldShowQuic,
 					)
 					LocationField(
@@ -279,11 +297,8 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						label = stringResource(R.string.exit_location),
 						countryCode = appUiState.exitPointCountry,
 						gatewayLocation = appUiState.exitPointLocation,
-						onClick = {
-							dismissStreamingBanner()
-							navController.goFromRoot(Route.ExitLocation)
-						},
-						enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
+						onClick = { onExitClick() },
+						enabled = true,
 						showGatewayStreamIcon = appUiState.exitPointGateway?.asnKind == AsnKind.RESIDENTIAL,
 					)
 				}
