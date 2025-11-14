@@ -45,6 +45,7 @@ import GRPCManager
 #endif
 
     public func setup() {
+        setupPeriodicRefresh()
         setupEnvironmentChangeObserver()
         updateFeatureFlags()
     }
@@ -73,12 +74,23 @@ private extension FeatureFlagsManager {
             self?.updateFeatureFlags()
         }
     }
+
+    func setupPeriodicRefresh() {
+        Timer
+            .publish(every: 600, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.updateFeatureFlags()
+                }
+            }
+            .store(in: &cancellables)
+    }
 }
 
 private extension FeatureFlagsManager {
     func updateFeatureFlags() {
         Task {
-
 #if os(iOS)
             guard let flags = try? currentEnvironment().featureFlags else { return }
             Task { @MainActor in
