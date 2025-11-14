@@ -13,9 +13,7 @@ const HOSTNAME_RESOLUTION_TIMEOUT: Duration = Duration::from_secs(10);
 
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
-    let mut resolver = HickoryDnsResolver::default();
-    // Disable system resolver because it's typically blocked by firewall anyway.
-    resolver.disable_system_fallback();
+    let resolver = HickoryDnsResolver::default();
 
     let addrs =
         match tokio::time::timeout(HOSTNAME_RESOLUTION_TIMEOUT, resolver.resolve_str(hostname))

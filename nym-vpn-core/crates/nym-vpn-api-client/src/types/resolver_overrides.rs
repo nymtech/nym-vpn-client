@@ -3,10 +3,11 @@
 use std::{
     collections::{HashMap, HashSet},
     net::SocketAddr,
+    sync::Arc,
 };
 
 use itertools::{Either, Itertools};
-use tokio::task::JoinSet;
+use tokio::{sync::Semaphore, task::JoinSet};
 
 use nym_http_api_client::Url;
 use nym_network_defaults::ApiUrl;
@@ -19,6 +20,8 @@ pub struct ResolverOverrides {
 }
 
 impl ResolverOverrides {
+    const MAX_PARALLEL_RESOLUTIONS: usize = 8;
+
     /// Create a new set of resolver overrides from the provided URLs.
     /// Resolves all domains in parallel for faster startup and reconnection.
     pub async fn from_urls(urls: &[Url]) -> Result<Self, VpnApiClientError> {
@@ -33,6 +36,8 @@ impl ResolverOverrides {
             })
             .collect::<HashSet<_>>();
 
+        let semaphore = Arc::new(Semaphore::new(Self::MAX_PARALLEL_RESOLUTIONS));
+
         for url in urls_to_resolve {
             let Some(domain) = url.domain().map(|s| s.to_owned()) else {
                 tracing::warn!(
@@ -42,7 +47,12 @@ impl ResolverOverrides {
                 continue;
             };
 
+            let semaphore = semaphore.clone();
             join_set.spawn(async move {
+                let _permit = semaphore
+                    .acquire_owned()
+                    .await
+                    .expect("semaphore should not be closed");
                 let result = url_to_socket_addr(&url, Some((1, 1)))
                     .await
                     .inspect_err(|err| {
