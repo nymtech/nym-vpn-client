@@ -11,6 +11,9 @@ pub enum MetadataClientError {
     #[error(transparent)]
     NymWireguardMetadataClient(#[from] nym_wireguard_private_metadata_shared::error::MetadataError),
 
+    #[error("this version of metadata endpoint is not supported")]
+    UnsupportedMetadataEndpointVersion,
+
     #[error("Internal error: {0}")]
     Internal(String),
 }

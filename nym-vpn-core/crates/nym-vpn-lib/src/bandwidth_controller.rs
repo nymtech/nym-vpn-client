@@ -14,8 +14,11 @@ use nym_credentials_interface::TicketType;
 use nym_gateway_directory::Gateway;
 
 use crate::tunnel_state_machine::tunnel::SelectedGateways;
-use nym_wg_metadata_client::{MetadataClient, TunUpReceiver, error::MetadataClientError};
+use nym_vpn_account_controller::AccountCommandSender;
+use nym_wg_metadata_client::error::MetadataClientError;
+use nym_wg_metadata_client::{MetadataClient, TunUpReceiver};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
+use tracing::{debug, error, info, trace, warn};
 use url::Url;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
@@ -38,8 +41,17 @@ pub enum Error {
     #[error("nyxd client error")]
     Nyxd(#[from] CredentialNyxdClientError),
 
+    #[error("internal error: {0}")]
+    Internal(String),
+
     #[error("connection cancelled")]
     Cancelled,
+}
+
+impl Error {
+    pub fn internal(msg: impl Into<String>) -> Self {
+        Error::Internal(msg.into())
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -80,6 +92,19 @@ pub enum SpecificGatewayError {
         gateway_id: String,
         #[source]
         source: Box<MetadataClientError>,
+    },
+
+    #[error("failed to request upgrade mode state recheck with the gateway: {gateway_id}")]
+    DeprecatedUpgradeModeRecheck {
+        gateway_id: String,
+        source: Box<nym_authenticator_client::AuthenticationClientError>,
+    },
+
+    #[error("failed to request upgrade mode state recheck with the gateway: {gateway_id}")]
+    UpgradeModeRecheck {
+        gateway_id: String,
+        #[source]
+        source: Box<nym_wg_metadata_client::error::MetadataClientError>,
     },
 
     #[error("timed-out while communicating with gateway: {gateway_id}")]
@@ -152,6 +177,52 @@ impl SpecificGatewayError {
             source: Box::new(source),
         }
     }
+
+    pub fn from_deprecated_upgrade_mode_recheck_bandwidth(
+        gateway_id: String,
+        source: nym_authenticator_client::AuthenticationClientError,
+    ) -> Self {
+        if matches!(
+            source,
+            nym_authenticator_client::AuthenticationClientError::TimeoutWaitingForConnectResponse
+        ) {
+            return SpecificGatewayError::GatewayTimeout { gateway_id };
+        }
+
+        SpecificGatewayError::DeprecatedUpgradeModeRecheck {
+            gateway_id,
+            source: Box::new(source),
+        }
+    }
+
+    pub fn from_upgrade_mode_recheck_bandwidth(
+        gateway_id: String,
+        source: MetadataClientError,
+    ) -> Self {
+        SpecificGatewayError::UpgradeModeRecheck {
+            gateway_id,
+            source: Box::new(source),
+        }
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum UpgradeModeRecheckError {
+    #[error("failed to request upgrade mode token to use with the gateway: {gateway_id}")]
+    UpgradeModeTokenRequest {
+        gateway_id: String,
+        #[source]
+        source: Box<nym_bandwidth_controller::error::BandwidthControllerError>,
+    },
+
+    // **theoretically** this should never get thrown
+    #[error(
+        "failed to retrieve upgrade mode JWT from storage even though Account Controller reports the upgrade mode. gateway: {gateway_id}"
+    )]
+    UnavailableUpgradeModeToken { gateway_id: String },
+
+    #[error(transparent)]
+    GatewayQuery(#[from] SpecificGatewayError),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -161,6 +232,12 @@ pub enum CredentialNyxdClientError {
 
     #[error("Failed to connect using nyxd client")]
     FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub(crate) struct AvailableBandwidth {
+    pub(crate) bandwidth_bytes: i64,
+    pub(crate) upgrade_mode: Option<bool>,
 }
 
 pub(crate) struct DepletionRate {
@@ -277,25 +354,34 @@ impl TemporaryBandwidthClient {
         }
     }
 
-    pub(crate) async fn query_bandwidth(&mut self) -> Result<i64, SpecificGatewayError> {
+    pub(crate) async fn query_bandwidth(
+        &mut self,
+    ) -> Result<AvailableBandwidth, SpecificGatewayError> {
         match self {
-            TemporaryBandwidthClient::Deprecated(authenticator_client) => authenticator_client
-                .query_bandwidth()
-                .await
-                .map_err(|e| {
+            TemporaryBandwidthClient::Deprecated(authenticator_client) => {
+                let response = authenticator_client.query_bandwidth().await.map_err(|e| {
                     SpecificGatewayError::from_deprecated_query_bandwidth(
                         self.gateway_id().to_string(),
                         e,
                     )
-                })?
-                .ok_or({
-                    SpecificGatewayError::Internal {
+                })?;
+                let Some(bandwidth_bytes) = response.available_bandwidth_bytes else {
+                    return Err(SpecificGatewayError::Internal {
                         reason: "No such peer on the gateway".to_string(),
-                    }
-                }),
+                    });
+                };
+                Ok(AvailableBandwidth {
+                    bandwidth_bytes,
+                    upgrade_mode: response.current_upgrade_mode_status.into(),
+                })
+            }
             TemporaryBandwidthClient::Latest(metadata_client) => {
-                metadata_client.query_bandwidth().await.map_err(|e| {
+                let response = metadata_client.query_bandwidth().await.map_err(|e| {
                     SpecificGatewayError::from_query_bandwidth(self.gateway_id().to_string(), e)
+                })?;
+                Ok(AvailableBandwidth {
+                    bandwidth_bytes: response.bandwidth_bytes,
+                    upgrade_mode: response.upgrade_mode,
                 })
             }
         }
@@ -304,8 +390,8 @@ impl TemporaryBandwidthClient {
     pub(crate) async fn query_bandwidth_with_retries(
         &mut self,
         retries: usize,
-    ) -> Result<i64, SpecificGatewayError> {
-        let mut res = Ok(0);
+    ) -> Result<AvailableBandwidth, SpecificGatewayError> {
+        let mut res = Ok(AvailableBandwidth::default());
         for attempt in 0..retries + 1 {
             tracing::debug!(
                 "Attempt #{} to query bandwidth of gateway {}...",
@@ -338,27 +424,70 @@ impl TemporaryBandwidthClient {
         &mut self,
         credential: nym_credentials_interface::CredentialSpendingData,
         ticketbook_type: TicketType,
-    ) -> Result<i64, SpecificGatewayError> {
+    ) -> Result<AvailableBandwidth, SpecificGatewayError> {
         match self {
             TemporaryBandwidthClient::Deprecated(authenticator_client) => {
-                authenticator_client.top_up(credential).await.map_err(|e| {
+                let response = authenticator_client.top_up(credential).await.map_err(|e| {
                     SpecificGatewayError::from_deprecated_topup_wireguard(
                         self.gateway_id().to_string(),
                         ticketbook_type,
                         e,
                     )
+                })?;
+                Ok(AvailableBandwidth {
+                    bandwidth_bytes: response.remaining_bandwidth_bytes,
+                    upgrade_mode: response.current_upgrade_mode_status.into(),
                 })
             }
-            TemporaryBandwidthClient::Latest(metadata_client) => metadata_client
-                .topup_bandwidth(credential)
-                .await
-                .map_err(|e| {
-                    SpecificGatewayError::from_topup_wireguard(
-                        self.gateway_id().to_string(),
-                        ticketbook_type,
-                        e,
-                    )
-                }),
+            TemporaryBandwidthClient::Latest(metadata_client) => {
+                let response = metadata_client
+                    .topup_bandwidth(credential)
+                    .await
+                    .map_err(|e| {
+                        SpecificGatewayError::from_topup_wireguard(
+                            self.gateway_id().to_string(),
+                            ticketbook_type,
+                            e,
+                        )
+                    })?;
+                Ok(AvailableBandwidth {
+                    bandwidth_bytes: response.bandwidth_bytes,
+                    upgrade_mode: response.upgrade_mode,
+                })
+            }
+        }
+    }
+
+    pub(crate) async fn request_upgrade_mode_recheck(
+        &mut self,
+        // this argument will change in the future once we have different kinds of emergency credentials
+        upgrade_mode_jwt: String,
+    ) -> Result<bool, SpecificGatewayError> {
+        match self {
+            TemporaryBandwidthClient::Deprecated(authenticator_client) => {
+                let upgrade_mode_enabled = authenticator_client
+                    .check_upgrade_mode(upgrade_mode_jwt)
+                    .await
+                    .map_err(|err| {
+                        SpecificGatewayError::from_deprecated_upgrade_mode_recheck_bandwidth(
+                            self.gateway_id().to_string(),
+                            err,
+                        )
+                    })?;
+                Ok(upgrade_mode_enabled)
+            }
+            TemporaryBandwidthClient::Latest(metadata_client) => {
+                let upgrade_mode_enabled = metadata_client
+                    .check_upgrade_mode(upgrade_mode_jwt)
+                    .await
+                    .map_err(|err| {
+                        SpecificGatewayError::from_upgrade_mode_recheck_bandwidth(
+                            self.gateway_id().to_string(),
+                            err,
+                        )
+                    })?;
+                Ok(upgrade_mode_enabled)
+            }
         }
     }
 }
@@ -367,6 +496,7 @@ pub(crate) struct BandwidthController {
     ticket_provider: Box<dyn BandwidthTicketProvider>,
     wg_entry_gateway_client: TemporaryBandwidthClient,
     wg_exit_gateway_client: TemporaryBandwidthClient,
+    account_command_tx: AccountCommandSender,
     timeout_check_interval: IntervalStream,
     entry_depletion_rate: DepletionRate,
     exit_depletion_rate: DepletionRate,
@@ -374,6 +504,7 @@ pub(crate) struct BandwidthController {
     exit_previous_error_query: bool,
     shutdown_token: CancellationToken,
     successful_checks: u64,
+    upgrade_mode_enabled_on_last_check: bool,
 }
 
 impl BandwidthController {
@@ -381,6 +512,7 @@ impl BandwidthController {
         ticket_provider: Box<dyn BandwidthTicketProvider>,
         wg_entry_gateway_client: TemporaryBandwidthClient,
         wg_exit_gateway_client: TemporaryBandwidthClient,
+        account_command_tx: AccountCommandSender,
         shutdown_token: CancellationToken,
     ) -> Self {
         let timeout_check_interval =
@@ -390,6 +522,7 @@ impl BandwidthController {
             ticket_provider,
             wg_entry_gateway_client,
             wg_exit_gateway_client,
+            account_command_tx,
             timeout_check_interval,
             entry_depletion_rate: Default::default(),
             exit_depletion_rate: Default::default(),
@@ -397,6 +530,7 @@ impl BandwidthController {
             exit_previous_error_query: false,
             shutdown_token,
             successful_checks: 0,
+            upgrade_mode_enabled_on_last_check: false,
         }
     }
 
@@ -427,6 +561,30 @@ impl BandwidthController {
         )
     }
 
+    fn gateway_id(&self, entry: bool) -> nym_gateway_directory::NodeIdentity {
+        if entry {
+            self.wg_entry_gateway_client.gateway_id()
+        } else {
+            self.wg_exit_gateway_client.gateway_id()
+        }
+    }
+
+    fn depletion_rate(&mut self, entry: bool) -> &mut DepletionRate {
+        if entry {
+            &mut self.entry_depletion_rate
+        } else {
+            &mut self.exit_depletion_rate
+        }
+    }
+
+    fn ticket_type(&self, entry: bool) -> TicketType {
+        if entry {
+            TicketType::V1WireguardEntry
+        } else {
+            TicketType::V1WireguardExit
+        }
+    }
+
     pub(crate) fn is_using_latest_client(&self) -> bool {
         matches!(
             self.wg_entry_gateway_client,
@@ -437,9 +595,21 @@ impl BandwidthController {
         )
     }
 
+    async fn got_upgrade_mode_attestation(&self) -> bool {
+        // in case of failure we assume conservative case of NOT having the attestation
+        self.account_command_tx
+            .query_upgrade_mode_enabled()
+            .await
+            .inspect_err(|err| {
+                error!("critical failure: failed to resolve account controller query: {err}")
+            })
+            .unwrap_or_default()
+    }
+
     #[allow(clippy::too_many_arguments)]
-    pub(crate) async fn create(
+    pub(crate) fn create(
         ticket_provider: Box<dyn BandwidthTicketProvider>,
+        account_command_tx: AccountCommandSender,
         selected_gateways: &SelectedGateways,
         entry_auth_client: AuthenticatorClient,
         exit_auth_client: AuthenticatorClient,
@@ -449,7 +619,7 @@ impl BandwidthController {
         exit_signal_channel: TunUpReceiver,
         gateway_metadata_update_version: Option<semver::Version>,
         cancel_token: CancellationToken,
-    ) -> Result<BandwidthController, Error> {
+    ) -> BandwidthController {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_gateway_data.private_ipv4.into(),
             entry_signal_channel,
@@ -465,22 +635,30 @@ impl BandwidthController {
             gateway_metadata_update_version,
         );
 
-        let bw = Self::new(
+        Self::new(
             ticket_provider,
             wg_entry_client,
             wg_exit_client,
+            account_command_tx,
             cancel_token.clone(),
-        );
-
-        Ok(bw)
+        )
     }
 
     pub(crate) async fn top_up_bandwidth(
-        ticket_provider: &dyn BandwidthTicketProvider,
-        ticketbook_type: TicketType,
-        bw_client: &mut TemporaryBandwidthClient,
-    ) -> Result<i64, SpecificGatewayError> {
-        let credential = ticket_provider
+        &mut self,
+        entry: bool,
+    ) -> Result<AvailableBandwidth, SpecificGatewayError> {
+        let ticketbook_type = self.ticket_type(entry);
+        tracing::debug!("Topping up our bandwidth allowance for {ticketbook_type}");
+
+        let bw_client = if entry {
+            &mut self.wg_entry_gateway_client
+        } else {
+            &mut self.wg_exit_gateway_client
+        };
+
+        let credential = self
+            .ticket_provider
             .get_ecash_ticket(
                 ticketbook_type,
                 bw_client.gateway_id(),
@@ -499,77 +677,186 @@ impl BandwidthController {
         Ok(remaining_bandwidth)
     }
 
-    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration> {
-        let (wg_metadata_client, current_depletion_rate) = if entry {
-            (
-                &mut self.wg_entry_gateway_client,
-                &mut self.entry_depletion_rate,
-            )
+    pub(crate) async fn request_upgrade_mode_recheck(
+        &mut self,
+        entry: bool,
+    ) -> Result<bool, UpgradeModeRecheckError> {
+        let bw_client = if entry {
+            &mut self.wg_entry_gateway_client
         } else {
-            (
-                &mut self.wg_exit_gateway_client,
-                &mut self.exit_depletion_rate,
-            )
+            &mut self.wg_exit_gateway_client
         };
 
+        let Some(upgrade_mode_jwt) = self
+            .ticket_provider
+            .get_upgrade_mode_token()
+            .await
+            .map_err(|source| UpgradeModeRecheckError::UpgradeModeTokenRequest {
+                gateway_id: bw_client.gateway_id().to_string(),
+                source: Box::new(source),
+            })?
+        else {
+            return Err(UpgradeModeRecheckError::UnavailableUpgradeModeToken {
+                gateway_id: bw_client.gateway_id().to_string(),
+            });
+        };
+
+        let upgrade_mode_enabled = bw_client
+            .request_upgrade_mode_recheck(upgrade_mode_jwt)
+            .await?;
+        Ok(upgrade_mode_enabled)
+    }
+
+    async fn handle_bandwidth_query_error(&mut self, entry: bool, err: SpecificGatewayError) {
+        tracing::warn!("{err}");
+        let gateway_id = self.gateway_id(entry);
+        if (entry && self.entry_previous_error_query) || (!entry && self.exit_previous_error_query)
+        {
+            tracing::error!("gateway {gateway_id} is erroring out",);
+            // For now let's keep the old behavior of stopping, but only if we've had a successful check before
+            if self.successful_checks != 0 {
+                self.shutdown_token.cancel();
+            }
+        } else {
+            if entry {
+                self.entry_previous_error_query = true;
+            } else {
+                self.exit_previous_error_query = true;
+            }
+            tracing::info!(
+                "Empty query for {} gateway bandwidth check. This is normal, as long as it is not repeating for the same gateway",
+                if entry {
+                    "entry".to_string()
+                } else {
+                    "exit".to_string()
+                }
+            );
+        }
+    }
+
+    async fn handle_bandwidth_query(
+        &mut self,
+        entry: bool,
+        current_period: Duration,
+        query_result: AvailableBandwidth,
+    ) -> Option<Duration> {
+        let remaining_bandwidth = query_result.bandwidth_bytes;
+        let gw_upgrade_mode = query_result.upgrade_mode;
+        let gateway_id = self.gateway_id(entry);
+
+        self.successful_checks += 1;
+
+        if entry {
+            self.entry_previous_error_query = false;
+        } else {
+            self.exit_previous_error_query = false;
+        }
+
+        let current_depletion_rate = self.depletion_rate(entry);
+
+        match current_depletion_rate
+            .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
+        {
+            Err(e) => {
+                tracing::warn!("Error while updating query coefficients: {e:?}");
+                return None;
+            }
+            Ok(Some(new_duration)) => {
+                let secs = new_duration.as_secs();
+                tracing::debug!("Adjusting check interval to {secs} seconds");
+                return Some(new_duration);
+            }
+            Ok(None) => {}
+        }
+
+        let got_um_data = self.got_upgrade_mode_attestation().await;
+
+        // attempt to perform bandwidth top-up, if applicable
+        match gw_upgrade_mode {
+            None => {
+                // no UM support - we have to attempt to send zk-nym otherwise we won't be able to communicate with it much longer
+                warn!("gateway {gateway_id} is outdated and does not support upgrade mode queries")
+            }
+            Some(true) => {
+                // gateway informed us it is currently in upgrade mode - we don't have to do anything
+                debug!(
+                    "gateway {gateway_id} is already in upgrade mode - no need to perform bandwidth top up"
+                );
+                if !got_um_data {
+                    // account controller is not aware of the UM - it didn't have to request bandwidth
+                    // from VPN API and thus hasn't received UM JWT
+                    // this can happen for clients with a lot of stored ticketbooks. there's nothing
+                    // inherently wrong with it
+                    debug!("however, we do not possess a corresponding upgrade mode attestation");
+                }
+                self.upgrade_mode_enabled_on_last_check = true;
+                return None;
+            }
+            Some(false) => {
+                if got_um_data && !self.upgrade_mode_enabled_on_last_check {
+                    // if we have relevant attestation and the gateway is not in upgrade mode,
+                    // we need to trigger it to perform internal state refresh
+                    info!(
+                        "gateway {gateway_id} is not aware of the upgrade mode that has been triggered"
+                    );
+                    // there are some legit EDGE CASES where this can fail. consider the following scenario:
+                    // 1. upgrade mode has JUST been triggered - gateway doesn't know about it yet
+                    // 2. we learned about it within split a second - we got lucky because we just queried vpn api
+                    // 3. there's some networking issue happening on the grand internet, e.g. some BGP problems or high AWS latency, whatever,
+                    // and nym.com is returning old cached attestation.json copy to the gateway
+                    // 4. recheck fails and enters into rate limiting mode for another few seconds,
+                    // so I guess that's a long way of saying, if this fails, don't shut down,
+                    // but instead treat it as a retryable failure
+                    if let Err(err) = self.request_upgrade_mode_recheck(entry).await {
+                        warn!("Error requesting upgrade mode recheck: {err:?}");
+                    }
+                    // since we didn't manage to trigger gateway to go into the upgrade mode,
+                    // if we want to continue the connection we have to attempt to send a zk-nym instead
+                    // (so we exit the match statement)
+                } else if got_um_data && self.upgrade_mode_enabled_on_last_check {
+                    // UM is over - we inform AC and top up bandwidth as normal
+                    info!("gateway {gateway_id} has informed us the upgrade mode has finished");
+                    if let Err(err) = self.account_command_tx.send_disable_upgrade_mode().await {
+                        error!("error sending message to the account controller: {err}");
+                        // we need to trigger a shutdown here because this message must not fail,
+                        // if it did, AC won't exit upgrade mode state and won't resume acquiring zk-nyms
+                        self.shutdown_token.cancel();
+                        return None;
+                    }
+                    // we continue sending zk-nym
+                } else {
+                    // if we got here it means we don't have any attestation data and gateway said
+                    // it's not in upgrade mode, meaning it's business as usual
+                    // so continue and attempt to top-up bandwidth with a zk-nym
+                    trace!("upgrade mode is not enabled anywhere in the system");
+                }
+            }
+        }
+
+        if let Err(e) = self.top_up_bandwidth(entry).await {
+            tracing::warn!("Error topping up with more bandwidth {e:?}");
+            // TODO: try to return this error in the JoinHandle instead
+            // For now let's keep the old behavior of stopping
+            self.shutdown_token.cancel();
+        }
+
+        None
+    }
+
+    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration> {
+        let bw_client = if entry {
+            &mut self.wg_entry_gateway_client
+        } else {
+            &mut self.wg_exit_gateway_client
+        };
         tokio::select! {
             _ = self.shutdown_token.cancelled() => {
                 tracing::trace!("BandwidthController: Received shutdown");
             }
-            ret = wg_metadata_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
+            ret = bw_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
                 match ret {
-                    Ok(remaining_bandwidth) => {
-                        self.successful_checks += 1;
-
-                        if entry {
-                            self.entry_previous_error_query = false;
-                        } else {
-                            self.exit_previous_error_query = false;
-                        }
-                        match current_depletion_rate
-                            .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
-                        {
-                            Err(e) => tracing::warn!("Error while updating query coefficients: {:?}", e),
-                            Ok(Some(new_duration)) => {
-                                tracing::debug!("Adjusting check interval to {} seconds", new_duration.as_secs());
-                                return Some(new_duration);
-                            }
-                            Ok(None) => {
-                                let ticketbook_type = if entry {
-                                    TicketType::V1WireguardEntry
-                                } else {
-                                    TicketType::V1WireguardExit
-                                };
-                                tracing::debug!("Topping up our bandwidth allowance for {ticketbook_type}");
-                                if let Err(e) = Self::top_up_bandwidth(&*self.ticket_provider, ticketbook_type, wg_metadata_client)
-                                    .await
-                                {
-                                    tracing::warn!("Error topping up with more bandwidth {:?}", e);
-                                    // TODO: try to return this error in the JoinHandle instead
-                                    // For now let's keep the old behavior of stopping
-                                    self.shutdown_token.cancel();
-                                }
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        tracing::warn!("{e}");
-                        if (entry && self.entry_previous_error_query) || (!entry && self.exit_previous_error_query) {
-                            tracing::error!("gateway {} is erroring out", wg_metadata_client.gateway_id());
-                            // For now let's keep the old behavior of stopping, but only if we've had a successful check before
-                            if self.successful_checks != 0 {
-                                self.shutdown_token.cancel();
-                            }
-                        } else {
-                            if entry {
-                                self.entry_previous_error_query = true;
-                            } else {
-                                self.exit_previous_error_query = true;
-                            }
-                            tracing::info!("Empty query for {} gateway bandwidth check. This is normal, as long as it is not repeating for the same gateway", if entry {"entry".to_string()} else {"exit".to_string()});
-                        }
-
-                    }
+                    Ok(query_res) => return self.handle_bandwidth_query(entry, current_period, query_res).await,
+                    Err(err) => self.handle_bandwidth_query_error(entry, err).await,
                 }
             }
         }

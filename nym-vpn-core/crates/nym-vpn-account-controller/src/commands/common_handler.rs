@@ -1,5 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
+
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     ResolverOverrides,
