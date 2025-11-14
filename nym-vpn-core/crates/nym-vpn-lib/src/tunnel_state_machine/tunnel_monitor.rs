@@ -302,27 +302,11 @@ impl TunnelMonitor {
 
         self.send_event(TunnelMonitorEvent::AwaitingAccountReadiness);
 
-        match self
-            .account_controller_state
-            .wait_for_account_ready_to_connect()
+        self.shutdown_token
+            .clone()
+            .run_until_cancelled(self.await_account_readiness_with_retry())
             .await
-        {
-            Ok(()) => Ok(()),
-            Err(AccountControllerError::ErrorState(reason)) if reason.is_retryable() => {
-                tracing::debug!(
-                    "Account controller is in a retryable error state : {reason}. Forcing a refresh"
-                );
-                self.account_command_tx
-                    .background_refresh_account_state()
-                    .await
-                    .map_err(|e| Error::Account(account::Error::Command(e)))?;
-                self.account_controller_state
-                    .wait_for_account_ready_to_connect()
-                    .await
-            }
-            Err(e) => Err(e),
-        }
-        .map_err(|e| Error::Account(account::Error::ControllerState(e)))?;
+            .ok_or(tunnel::Error::Cancelled)??;
 
         self.send_event(TunnelMonitorEvent::RefreshingGateways);
 
@@ -846,6 +830,30 @@ impl TunnelMonitor {
         tracing::info!("Tunnel monitor finished");
 
         Ok(tun_devices)
+    }
+
+    async fn await_account_readiness_with_retry(&mut self) -> Result<(), Error> {
+        match self
+            .account_controller_state
+            .wait_for_account_ready_to_connect()
+            .await
+        {
+            Ok(()) => Ok(()),
+            Err(AccountControllerError::ErrorState(reason)) if reason.is_retryable() => {
+                tracing::debug!(
+                    "Account controller is in a retryable error state : {reason}. Forcing a refresh"
+                );
+                self.account_command_tx
+                    .background_refresh_account_state()
+                    .await
+                    .map_err(|e| Error::Account(account::Error::Command(e)))?;
+                self.account_controller_state
+                    .wait_for_account_ready_to_connect()
+                    .await
+            }
+            Err(e) => Err(e),
+        }
+        .map_err(|e| Error::Account(account::Error::ControllerState(e)))
     }
 
     fn send_event(&mut self, event: TunnelMonitorEvent) {

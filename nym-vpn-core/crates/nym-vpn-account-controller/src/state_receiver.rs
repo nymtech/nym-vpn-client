@@ -19,8 +19,8 @@ impl AccountStateReceiver {
     pub async fn wait_for_account_ready_to_connect(
         &mut self,
     ) -> Result<(), AccountControllerError> {
-        let mut state = self.get_state();
         loop {
+            let state = self.get_state();
             match state {
                 AccountControllerState::Offline => {
                     return Err(AccountControllerError::Offline);
@@ -39,7 +39,6 @@ impl AccountStateReceiver {
                             "Account controller state receiver has closed".into(),
                         )
                     })?;
-                    state = self.get_state();
                 }
                 AccountControllerState::ReadyToConnect | AccountControllerState::Decentralised => {
                     return Ok(());
