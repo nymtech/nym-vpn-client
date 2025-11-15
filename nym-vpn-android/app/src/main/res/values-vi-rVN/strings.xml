@@ -116,8 +116,8 @@
 	<string name="two_hop_explanation">Trải nghiệm tốc độ duyệt web nhanh (250+ Mbps) với kết nối 2 máy chủ. Chế độ này tận dụng AmneziaWG, phiên bản chống kiểm duyệt của WireGuard, lý tưởng cho phát trực tuyến, việc duyệt web và tải xuống nhanh.</string>
 	<string name="two_hop_title">Nhanh (WireGuard)</string>
 	<string name="disabled_while_connecting">Đã tắt trong khi đang kết nối đến VPN</string>
-	<string name="exit">Thoát</string>
-	<string name="entry">Vào</string>
+	<string name="exit_location">Vị trí thoát</string>
+	<string name="entry_location">Vị trí vào</string>
 	<string name="no_results_found">Không tìm thấy kết quả nào.</string>
 	<string name="how_to_run_gateway">cách chạy một cổng.</string>
 	<string name="or_learn">hoặc tìm hiểu</string>
@@ -314,12 +314,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Cụm mật khẩu tài khoản của bạn</string>
 	<string name="passphrase_description">🔒Cụm mật khẩu chính của tài khoản bạn: 24 từ giúp bạn truy cập tài khoản từ mọi thiết bị.</string>
-	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
-	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">🔒Cụm từ mật khẩu tài khoản chính của bạn:</string>
+	<string name="passphrase_description_last">24 từ cho phép bạn truy cập tài khoản của mình từ bất kỳ thiết bị nào.</string>
 	<string name="passphrase_show">Hiển thị cụm từ mật khẩu của tôi</string>
 	<string name="passphrase_copy">Sao chép cụm từ mật khẩu</string>
 	<string name="passphrase_save">Lưu vào trình quản lý mật khẩu</string>
-	<string name="passphrase_download">Download</string>
+	<string name="passphrase_download">Tải xuống</string>
 	<string name="passphrase_lose">⚠️ Mất những từ này = mất tài khoản của bạn mãi mãi.</string>
 	<string name="passphrase_never">Không bao giờ chia sẻ chúng với bất kỳ ai, bao gồm cả bộ phận Hỗ trợ Nym.</string>
 	<string name="passphrase_saved">Tôi đã lưu 24 từ này một cách an toàn và sẽ không bao giờ chia sẻ chúng</string>

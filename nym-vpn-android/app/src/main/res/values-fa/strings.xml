@@ -116,8 +116,8 @@
 	<string name="two_hop_explanation">تجربه بالاترین حد سرعت با اتصال دو سروره. این حالت از AmneziaWG استفاده میکند، نسخه‌ای از WireGuard که برای مقابله با سانسور طراحی شده است، ایده‌آل برای وب‌گردی با سرعت زیاد، تماشای آنلاین و اشتراک گذاری فایل.</string>
 	<string name="two_hop_title">سریع (WireGuard<small>*</small>)</string>
 	<string name="disabled_while_connecting">در زمان برقراری اتصال به وی‌پی‌ان غیرفعال است</string>
-	<string name="exit">خروج</string>
-	<string name="entry">ورودی</string>
+	<string name="exit_location">منطقه خروجی</string>
+	<string name="entry_location">مکان ورودی</string>
 	<string name="no_results_found">نتیجه‌ای یافت نشد.</string>
 	<string name="how_to_run_gateway">چگونه یک گیت وی را اجرا کنیم.</string>
 	<string name="or_learn">یا یاد بگیرید</string>
