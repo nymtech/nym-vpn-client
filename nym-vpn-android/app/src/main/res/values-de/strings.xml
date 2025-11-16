@@ -116,8 +116,8 @@
 	<string name="two_hop_explanation">Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.</string>
 	<string name="two_hop_title">Fast (WireGuard<small>*</small>)</string>
 	<string name="disabled_while_connecting">Deaktiviert während Verbindung mit dem VPN besteht</string>
-	<string name="exit">Austrittsregion</string>
-	<string name="entry">Eingangsregion</string>
+	<string name="exit_location">Austrittsregion</string>
+	<string name="entry_location">Eintrittsregion</string>
 	<string name="no_results_found">Keine Ergebnisse gefunden.</string>
 	<string name="how_to_run_gateway">wie man ein Gateway ausführt.</string>
 	<string name="or_learn">oder lernen</string>

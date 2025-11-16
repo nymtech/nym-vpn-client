@@ -116,8 +116,8 @@
 	<string name="two_hop_explanation">通过两跳路由连接享受高速浏览（250+Mbps）。 该模式采用 AmneziaWG，这是一种抗审查版本的 WireGuard。快速模式是快速浏览、流媒体和文件共享的理想选择。</string>
 	<string name="two_hop_title">快速 (WireGuard)</string>
 	<string name="disabled_while_connecting">连接 VPN 时禁用</string>
-	<string name="exit">退出</string>
-	<string name="entry">进入</string>
+	<string name="exit_location">最后一跳选择</string>
+	<string name="entry_location">第一跳选择</string>
 	<string name="no_results_found">未找到结果。</string>
 	<string name="how_to_run_gateway">如何运行网关。</string>
 	<string name="or_learn">或学习</string>
