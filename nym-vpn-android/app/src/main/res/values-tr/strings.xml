@@ -116,8 +116,8 @@
 	<string name="two_hop_explanation">Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Bu mod, hızlı tarama, akış ve dosya paylaşımı için ideal olan, sansüre dirençli bir WireGuard versiyonu olan AmneziaWG\'yi kullanır.</string>
 	<string name="two_hop_title">Hızlı (WireGuard)</string>
 	<string name="disabled_while_connecting">VPN bağlantısı sırasında devre dışı bırakıldı</string>
-	<string name="exit">Çıkış</string>
-	<string name="entry">Giriş</string>
+	<string name="exit_location">Çıkış konumu</string>
+	<string name="entry_location">Giriş konumu</string>
 	<string name="no_results_found">Sonuç bulunamadı.</string>
 	<string name="how_to_run_gateway">Gateway nasıl çalıştırılır.</string>
 	<string name="or_learn">ya da öğrenin</string>
@@ -314,12 +314,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Hesap parola cümleniz</string>
 	<string name="passphrase_description">🔒Ana hesap parola cümleniz: Hesabınıza herhangi bir cihazdan erişmenizi sağlayan 24 kelime.</string>
-	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
-	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">🔒Ana hesap şifreniz:</string>
+	<string name="passphrase_description_last">Hesabınıza herhangi bir cihazdan erişmenizi sağlayan 24 kelime.</string>
 	<string name="passphrase_show">Parola cümlemi göster</string>
 	<string name="passphrase_copy">Parolayı kopyala</string>
 	<string name="passphrase_save">Parola yöneticisine kaydet</string>
-	<string name="passphrase_download">Download</string>
+	<string name="passphrase_download">İndir</string>
 	<string name="passphrase_lose">⚠️ Bu kelimeleri kaybederseniz = hesabınızı sonsuza kadar kaybedersiniz.</string>
 	<string name="passphrase_never">Bunları, Nym Destek de dahil olmak üzere, hiç kimseyle paylaşmayın.</string>
 	<string name="passphrase_saved">Bu 24 kelimeyi güvenli bir şekilde kaydettim ve asla paylaşmayacağım.</string>

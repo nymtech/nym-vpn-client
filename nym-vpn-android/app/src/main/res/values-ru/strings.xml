@@ -116,8 +116,8 @@
 	<string name="two_hop_explanation">Высокоскоростной браузинг (250+ Мбит/с) с 2-ступенчатой маршрутизацией. Использует AmneziaWG — устойчивую к цензуре версию WireGuard, идеальную для стриминга, быстрого просмотра и загрузок.</string>
 	<string name="two_hop_title">Быстрый (WireGuard)</string>
 	<string name="disabled_while_connecting">Неактивно при подключении к VPN</string>
-	<string name="exit">Выход</string>
-	<string name="entry">Вход</string>
+	<string name="exit_location">Локация выхода</string>
+	<string name="entry_location">Локация входа</string>
 	<string name="no_results_found">Ничего не найдено.</string>
 	<string name="how_to_run_gateway">как установить шлюз.</string>
 	<string name="or_learn">или научиться</string>
@@ -316,7 +316,7 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Кодовая фраза вашего аккаунта</string>
 	<string name="passphrase_description">🔒 Ваша кодовая фраза для аккаунта: 24 слова, которые позволяют получить доступ к аккаунту с любого устройства.</string>
-	<string name="passphrase_description_first">🔒Пароль вашей основной учетной записи:</string>
+	<string name="passphrase_description_first">🔒Кодовая фраза вашего аккаунта:</string>
 	<string name="passphrase_description_last">24 слова, которые позволяют вам заходить в свою учетную запись с любого устройства.</string>
 	<string name="passphrase_show">Показать мою кодовую фразу</string>
 	<string name="passphrase_copy">Копировать кодовую фразу</string>

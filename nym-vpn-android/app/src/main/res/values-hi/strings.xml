@@ -116,8 +116,8 @@
 	<string name="two_hop_explanation">सबसे अधिक गति का लाभ 2-सर्वर से पाएं। यह मोड AmneziaWG का उपयोग करता है, जो WireGuard का सेंसरशिप-प्रतिरोधी संस्करण है - जो तेज़ ब्राउज़िंग, स्ट्रीमिंग और फ़ाइल साझाकरण के लिए आदर्श है।</string>
 	<string name="two_hop_title">तेज़ (WireGuard<small>*</small>)</string>
 	<string name="disabled_while_connecting">VPN से जुड़ते समय अक्षम</string>
-	<string name="exit">आखरी स्थान</string>
-	<string name="entry">उद्भव स्थान</string>
+	<string name="exit_location">आखरी स्थान</string>
+	<string name="entry_location">उद्भव स्थान</string>
 	<string name="no_results_found">कोई परिणाम नहीं मिला।</string>
 	<string name="how_to_run_gateway">गेटवे को कैसे चलाएँ।</string>
 	<string name="or_learn">या सीखें</string>
