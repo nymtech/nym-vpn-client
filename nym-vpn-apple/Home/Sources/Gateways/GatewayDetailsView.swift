@@ -239,7 +239,6 @@ private extension GatewayDetailsView {
             streamingAndContentRow()
             if gateway.isQuicAvailable,
                 hopType == .entry,
-                featureFlagsManager.isQuicEnabled,
                 connectionManager.connectionType == .wireguard {
                 separatorLine()
                 bridges()
