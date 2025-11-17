@@ -169,7 +169,6 @@ jobs:
           RUBY_PREFIX="$(brew --prefix ruby)"
           echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
           export PATH="${RUBY_PREFIX}/bin:$PATH"
-          gem install xcpretty
 
           # Show versions for debugging
           brew --version
@@ -315,6 +314,26 @@ jobs:
             exit 1
           fi
 
+      - name: Update localizations Crowdin
+        if: ${{ env.RELEASE_TYPE != 'pr' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          brew tap crowdin/crowdin
+          brew install crowdin@4 || brew upgrade crowdin@4 || true
+
+          # Make sure the crowdin binary is on PATH for this step
+          export PATH="$(brew --prefix crowdin@4)/bin:$PATH"
+
+          which crowdin || echo "crowdin not in PATH"
+
+          crowdin download translations \
+            --config crowdin-configs/macos-ios.yml \
+            --project-id "$CROWDIN_PROJECT_ID" \
+            --token "$CROWDIN_PERSONAL_TOKEN"
+      
       - name: Build core
         working-directory: nym-vpn-apple/scripts
         env:
