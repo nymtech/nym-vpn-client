@@ -24,8 +24,7 @@ public struct GatewayCell: View {
     private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
 
     private var shouldShowQuic: Bool {
-        featureFlagsManager.isQuicEnabled
-        && hopType == .entry
+        hopType == .entry
         && connectionManager.connectionType == .wireguard
         && appSettings.isQuicEnabled
     }

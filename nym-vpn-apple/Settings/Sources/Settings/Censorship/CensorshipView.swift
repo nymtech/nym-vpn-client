@@ -19,15 +19,10 @@ public struct CensorshipView: View {
             Spacer()
                 .frame(height: 24)
             VStack(spacing: 0) {
-                if featureFlagsManager.isQuicEnabled {
-                    quicSection()
-                    Spacer()
-                        .frame(height: 24)
-                }
-
-                if featureFlagsManager.isStealthAPIEnabled {
-                    stealhApiSection()
-                }
+                quicSection()
+                Spacer()
+                    .frame(height: 24)
+                stealhApiSection()
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
             .padding(.horizontal, 16)
