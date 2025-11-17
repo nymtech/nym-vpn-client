@@ -106,8 +106,7 @@
 	<string name="welcome_to_nym">欢迎访问 NymVPN</string>
 	<string name="get_access_code">获取访问代码</string>
 	<string name="access_code">24 字访问代码</string>
-	<string name="support_and_feedback"><![CDATA[支持 & 反馈]]></string>
-	<string name="get_in_touch">取得联系</string>
+    <string name="get_in_touch">取得联系</string>
 	<string name="device_id">设备 ID：</string>
 	<string name="loading">加载中</string>
 	<string name="offline">无网络</string>
