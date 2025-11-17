@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0]
+
 ### Added
 - Crowdin Translations (https://github.com/nymtech/nym-vpn-client/pull/2777)
 
