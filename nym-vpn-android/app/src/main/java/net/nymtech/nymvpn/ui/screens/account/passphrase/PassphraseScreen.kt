@@ -130,16 +130,14 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 			}
 
 		when (manager.canAuthenticate(authenticators)) {
-			BiometricManager.BIOMETRIC_SUCCESS,
-			BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
-			-> {
+			BiometricManager.BIOMETRIC_SUCCESS -> {
 				if (biometricPrompt != null) {
 					biometricPrompt.authenticate(promptInfo)
 				} else {
 					showSheet = true
 				}
 			}
-
+			BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
 			BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
 			BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE,
 			BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED,
@@ -148,7 +146,6 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 			-> {
 				showSheet = true
 			}
-
 			else -> showSheet = true
 		}
 	}
