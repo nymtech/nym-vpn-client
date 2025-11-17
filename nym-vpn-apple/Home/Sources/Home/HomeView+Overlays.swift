@@ -50,14 +50,14 @@ extension HomeView {
 
     @ViewBuilder
     func statisticsEnableOverlay() -> some View {
-        if viewModel.isStatisticsOverlayDisplayed,
-           !viewModel.appSettings.isStatisticsEnabled {
-            StatisticsEnableOverlay(
-                isPresented: $viewModel.isStatisticsOverlayDisplayed
-            )
-            .transition(.opacity)
-            .animation(.easeInOut, value: viewModel.isStatisticsOverlayDisplayed)
-        }
+//        if viewModel.isStatisticsOverlayDisplayed,
+//           !viewModel.appSettings.isStatisticsEnabled {
+//            StatisticsEnableOverlay(
+//                isPresented: $viewModel.isStatisticsOverlayDisplayed
+//            )
+//            .transition(.opacity)
+//            .animation(.easeInOut, value: viewModel.isStatisticsOverlayDisplayed)
+//        }
     }
 
     @ViewBuilder

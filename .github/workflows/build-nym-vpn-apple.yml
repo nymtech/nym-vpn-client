@@ -603,26 +603,26 @@ jobs:
             "$DIST_XML_FILE"
 
           # Add background image for light mode
-          xmlstarlet edit --inplace \
-            --subnode '//installer-gui-script' \
-            --type elem --name "background" \
-            --var new_node '$prev' \
-            --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
-            --append '$new_node' --type attr -n 'file' --value 'background-light.png' \
-            --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
-            --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
-            "$DIST_XML_FILE"
+          # xmlstarlet edit --inplace \
+          #   --subnode '//installer-gui-script' \
+          #   --type elem --name "background" \
+          #   --var new_node '$prev' \
+          #   --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
+          #   --append '$new_node' --type attr -n 'file' --value 'background-light.png' \
+          #   --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
+          #   --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
+          #   "$DIST_XML_FILE"
 
           # Add background image for dark mode
-          xmlstarlet edit --inplace \
-            --subnode '//installer-gui-script' \
-            --type elem --name "background-darkAqua" \
-            --var new_node '$prev' \
-            --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
-            --append '$new_node' --type attr -n 'file' --value 'background-dark.png' \
-            --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
-            --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
-            "$DIST_XML_FILE"
+          # xmlstarlet edit --inplace \
+          #   --subnode '//installer-gui-script' \
+          #   --type elem --name "background-darkAqua" \
+          #   --var new_node '$prev' \
+          #   --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
+          #   --append '$new_node' --type attr -n 'file' --value 'background-dark.png' \
+          #   --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
+          #   --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
+          #   "$DIST_XML_FILE"
 
           echo "✅ Distribution XML:"
           cat "$DIST_XML_FILE"
