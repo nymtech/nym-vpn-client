@@ -1,4 +1,0 @@
-What's new:
-- Added In-App Purchases 
-- Added new locales
-- UI improvements and fixes
