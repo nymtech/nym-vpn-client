@@ -19,8 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -49,6 +49,8 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
+import nym_vpn_lib_types.AccountControllerState
+import timber.log.Timber
 
 @Composable
 fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentViewModel = hiltViewModel()) {
@@ -57,9 +59,9 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 	val activity = context as? Activity
 	val userId = appUiState.managerState.accountId
 
-	var animationEnded by rememberSaveable { mutableStateOf(false) }
-	var navigated by rememberSaveable { mutableStateOf(false) }
+	var animationStart by rememberSaveable { mutableStateOf(false) }
 	var latestEvent by remember { mutableStateOf<PaymentUiEvent?>(null) }
+	val accountState by viewModel.accountState.collectAsState()
 
 	LaunchedEffect(activity, productId) {
 		activity?.let {
@@ -75,53 +77,75 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 					SnackbarController.showMessage(StringValue.StringResource(R.string.account_payment_error))
 					navController.replaceCurrentWith(Route.SelectPlan)
 				}
-
 				is PaymentUiEvent.PaymentSuccess -> {
-					if (animationEnded && !navigated) {
-						navigated = true
-						navController.replaceCurrentWith(Route.Main())
-					}
+					animationStart = true
+					viewModel.refreshAccountState()
 				}
-
 				is PaymentUiEvent.SubscriptionOwned -> {
-					navigated = true
 					navController.replaceCurrentWith(Route.Main())
 				}
-
 				PaymentUiEvent.PaymentPending -> {
-					if (animationEnded && !navigated) {
-						navigated = true
-						navController.replaceCurrentWith(Route.Main())
-					}
+					animationStart = true
 				}
 			}
 		}
 	}
 
 	PaymentScreen(
+		start = animationStart,
+		accountState = accountState,
 		onAnimationEnd = {
-			animationEnded = true
-			if ((latestEvent == PaymentUiEvent.PaymentSuccess || latestEvent == PaymentUiEvent.PaymentPending) && !navigated) {
-				navigated = true
-				navController.navigateAndForget(Route.Main())
-			}
+			navController.navigateAndForget(Route.Main())
 		},
 	)
 }
 
 @Composable
-fun PaymentScreen(onAnimationEnd: () -> Unit) {
-	var step by remember { mutableIntStateOf(0) }
+fun PaymentScreen(accountState: AccountControllerState?, start: Boolean, onAnimationEnd: () -> Unit) {
+	val backgroundColor =
+		if (accountState == AccountControllerState.ReadyToConnect || accountState == AccountControllerState.RequestingZkNyms) {
+			MaterialTheme.colorScheme.primary
+		} else {
+			MaterialTheme.colorScheme.surfaceContainer
+		}
 
-	LaunchedEffect(Unit) {
-		delay(2000)
-		step = 1
-		delay(2000)
-		step = 2
-		delay(2000)
-		step = 3
-		delay(2000)
-		onAnimationEnd()
+	var textData by remember {
+		mutableStateOf(
+			Pair(
+				R.string.account_payment_processing,
+				R.string.account_payment_verifying,
+			),
+		)
+	}
+
+	LaunchedEffect(start, accountState) {
+		Timber.d("accountState UI: $accountState")
+		if (!start || accountState == null) return@LaunchedEffect
+
+		when (accountState) {
+			is AccountControllerState.ReadyToConnect -> {
+				textData = Pair(
+					R.string.account_payment_welcome,
+					R.string.account_payment_protected,
+				)
+				delay(1_000)
+				onAnimationEnd()
+			}
+			is AccountControllerState.RequestingZkNyms -> {
+				textData = Pair(
+					R.string.account_payment_saving,
+					R.string.account_payment_anonymous,
+				)
+			}
+			is AccountControllerState.Syncing -> {
+				textData = Pair(
+					R.string.account_payment_retrieving,
+					R.string.account_payment_credentials,
+				)
+			}
+			else -> {
+			}
+		}
 	}
 
 	Column(
@@ -151,11 +175,7 @@ fun PaymentScreen(onAnimationEnd: () -> Unit) {
 					.weight(1f)
 					.fillMaxHeight()
 					.background(
-						if (step > 1) {
-							MaterialTheme.colorScheme.primary
-						} else {
-							MaterialTheme.colorScheme.surfaceContainer
-						},
+						backgroundColor,
 						shape = RoundedCornerShape(size = 4.dp),
 					),
 			)
@@ -185,30 +205,8 @@ fun PaymentScreen(onAnimationEnd: () -> Unit) {
 				)
 			}
 
-			val data = when (step) {
-				0 -> {
-					Pair(R.string.account_payment_processing, R.string.account_payment_verifying)
-				}
-
-				1 -> {
-					Pair(R.string.account_payment_retrieving, R.string.account_payment_credentials)
-				}
-
-				2 -> {
-					Pair(R.string.account_payment_saving, R.string.account_payment_anonymous)
-				}
-
-				3 -> {
-					Pair(R.string.account_payment_welcome, R.string.account_payment_protected)
-				}
-
-				else -> {
-					Pair(-1, -1)
-				}
-			}
-
 			Text(
-				text = stringResource(data.first),
+				text = stringResource(textData.first),
 				style = Typography.titleMedium,
 				textAlign = TextAlign.Center,
 				color = MaterialTheme.colorScheme.onBackground,
@@ -217,7 +215,7 @@ fun PaymentScreen(onAnimationEnd: () -> Unit) {
 			)
 
 			Text(
-				text = stringResource(data.second),
+				text = stringResource(textData.second),
 				style = Typography.bodyMedium,
 				textAlign = TextAlign.Center,
 				modifier = Modifier.padding(top = 16.dp, start = 40.dp, end = 40.dp),
@@ -232,6 +230,6 @@ fun PaymentScreen(onAnimationEnd: () -> Unit) {
 @Composable
 private fun PreviewPaymentScreen() {
 	NymVPNTheme(Theme.default()) {
-		PaymentScreen(onAnimationEnd = {})
+		PaymentScreen(accountState = AccountControllerState.RequestingZkNyms, start = true, onAnimationEnd = {})
 	}
 }
