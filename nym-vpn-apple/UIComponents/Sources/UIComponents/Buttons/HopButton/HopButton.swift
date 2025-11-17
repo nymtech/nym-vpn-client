@@ -30,8 +30,7 @@ public struct HopButton: View {
     }
 
     private var shouldShowQuic: Bool {
-        featureFlagsManager.isQuicEnabled
-        && hopType == .entry
+        hopType == .entry
         && connectionManager.connectionType == .wireguard
         && appSettings.isQuicEnabled
         && gatewayManager.containsQuic(with: connectionManager.entryGateway)

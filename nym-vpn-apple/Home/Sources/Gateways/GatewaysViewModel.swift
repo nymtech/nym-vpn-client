@@ -33,8 +33,7 @@ import UIComponents
     }
 
     var shouldShowQuic: Bool {
-        featureFlagsManager.isQuicEnabled
-        && type == .entry
+        type == .entry
         && connectionManager.connectionType == .wireguard
         && appSettings.isQuicEnabled
     }

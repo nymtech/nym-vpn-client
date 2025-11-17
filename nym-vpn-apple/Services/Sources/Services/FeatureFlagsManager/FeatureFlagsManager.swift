@@ -24,9 +24,6 @@ import GRPCManager
     )
 #endif
 
-    public var isStealthAPIEnabled = false
-    public var isQuicEnabled = false
-
 #if os(iOS)
     init(configurationManager: ConfigurationManager) {
         self.configurationManager = configurationManager
@@ -94,13 +91,9 @@ private extension FeatureFlagsManager {
 #if os(iOS)
             guard let flags = try? currentEnvironment().featureFlags else { return }
             Task { @MainActor in
-                isQuicEnabled = flags.isQuicEnabled() ?? false
-                isStealthAPIEnabled = flags.isDomainFrontingEnabled() ?? false
             }
 #elseif os(macOS)
             guard let flags = try? await grpcManager.fetchFeatureFlags() else { return }
-            isQuicEnabled = flags.isQuicEnabled() ?? false
-            isStealthAPIEnabled = flags.isDomainFrontingEnabled() ?? false
 #endif
         }
     }
