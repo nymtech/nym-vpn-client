@@ -638,6 +638,7 @@ message AccountControllerState {
   }
   message Offline {}
   message Decentralised {}
+  message UpgradeMode {}
 
   oneof state {
     LoggedOut logged_out = 1;
@@ -647,6 +648,7 @@ message AccountControllerState {
     Error error = 4;
     Offline offline = 5;
     Decentralised decentralised = 6;
+    UpgradeMode upgrade_mode = 8;
   }
 }
 

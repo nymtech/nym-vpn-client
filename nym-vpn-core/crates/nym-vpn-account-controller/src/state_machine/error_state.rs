@@ -3,19 +3,19 @@
 
 use std::pin::Pin;
 
-use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
-use tokio::{sync::mpsc, time::Sleep};
-use tokio_util::sync::CancellationToken;
-
 use crate::{
     SharedAccountState,
-    commands::{AccountCommand, common_handler, handler},
+    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
     state_machine::{
         ACCOUNT_UPDATE_INTERVAL, AccountControllerStateHandler, LoggedOutState,
         NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncingState,
     },
 };
+use nym_offline_monitor::ConnectivityMonitor;
+use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
+use tokio::{sync::mpsc, time::Sleep};
+use tokio_util::sync::CancellationToken;
+use tracing::warn;
 
 /// ErrorState
 /// We encountered something that doesn't allow us to make any progress.
@@ -123,6 +123,17 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
 
                     AccountCommand::Common(common_command) => {
                         common_handler::handle_common_command(common_command, shared_state).await
+                    },
+                    AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
+                        UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
+                            return_sender.send(Ok(false))
+                        }
+                        UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
+                            warn!(
+                                "received unexpected command to disable upgrade mode while in 'ErrorState' state"
+                            );
+                            return_sender.send(Ok(()))
+                        }
                     },
                 }
                 NextAccountControllerState::SameState(self)

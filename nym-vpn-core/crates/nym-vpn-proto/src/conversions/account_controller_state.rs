@@ -11,6 +11,7 @@ impl From<proto::account_controller_state::Error> for AccountControllerErrorStat
             proto::account_controller_state::ErrorStateReason::Storage => {
                 AccountControllerErrorStateReason::Storage {
                     context: value.context.unwrap_or_default(),
+                    details: value.details.unwrap_or_default(),
                 }
             }
             proto::account_controller_state::ErrorStateReason::ApiFailure => {
@@ -51,11 +52,11 @@ impl From<proto::account_controller_state::Error> for AccountControllerErrorStat
 impl From<AccountControllerErrorStateReason> for proto::account_controller_state::Error {
     fn from(value: AccountControllerErrorStateReason) -> Self {
         match value {
-            AccountControllerErrorStateReason::Storage { context } => {
+            AccountControllerErrorStateReason::Storage { context, details } => {
                 proto::account_controller_state::Error {
                     reason: proto::account_controller_state::ErrorStateReason::Storage.into(),
                     context: Some(context),
-                    details: None,
+                    details: Some(details),
                 }
             }
             AccountControllerErrorStateReason::ApiFailure { context, details } => {
@@ -144,6 +145,11 @@ impl From<AccountControllerState> for proto::AccountControllerState {
                     proto::account_controller_state::Decentralised {},
                 )
             }
+            AccountControllerState::UpgradeMode => {
+                proto::account_controller_state::State::UpgradeMode(
+                    proto::account_controller_state::UpgradeMode {},
+                )
+            }
             AccountControllerState::Error(reason) => proto::account_controller_state::State::Error(
                 proto::account_controller_state::Error::from(reason),
             ),
@@ -185,6 +191,9 @@ impl TryFrom<proto::AccountControllerState> for AccountControllerState {
             proto::account_controller_state::State::Decentralised(
                 proto::account_controller_state::Decentralised {},
             ) => Self::Decentralised,
+            proto::account_controller_state::State::UpgradeMode(
+                proto::account_controller_state::UpgradeMode {},
+            ) => Self::UpgradeMode,
         })
     }
 }

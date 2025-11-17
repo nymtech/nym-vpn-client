@@ -1037,6 +1037,7 @@ impl TunnelMonitor {
 
         let bw = BandwidthController::create(
             bw_controller,
+            self.account_command_tx.clone(),
             selected_gateways,
             entry_gateway_client,
             exit_gateway_client,
@@ -1046,9 +1047,7 @@ impl TunnelMonitor {
             exit_signal_rx,
             gw_update_version,
             self.shutdown_token.child_token(),
-        )
-        .await
-        .map_err(|e| Box::new(tunnel::Error::from(e)))?;
+        );
 
         let authenticator_listener_handle = if bw.is_using_latest_client() {
             // We don't need the mixnet client anymore

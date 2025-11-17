@@ -1,9 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt::Debug;
-
 use super::VpnApiError;
+use std::fmt::Debug;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
@@ -16,6 +15,7 @@ pub enum RequestZkNymError {
 
     #[error("failed to construct withdrawal request: {0}")]
     ConstructWithdrawalRequest(String),
+
     #[error("{response}, {ticket_type}")]
     RequestZkNymEndpointFailure {
         ticket_type: String,
@@ -88,6 +88,18 @@ pub enum RequestZkNymError {
     #[error("nym-vpn-api: unexpected error response: {0}")]
     UnexpectedErrorResponse(String),
 
+    #[error("polled zk nym has been revoked or is in the process of getting revoked")]
+    ZkNymRevoked,
+
+    #[error("VPN API has failed to issue zk-nym")]
+    IssuanceError,
+
+    #[error("the upgrade mode JWT is malformed")]
+    MalformedUpgradeModeJWT,
+
+    #[error("received response is inconsistent: {reason}")]
+    InconsistentResponse { reason: String },
+
     #[error("internal error: {0}")]
     Internal(String),
 }
@@ -145,6 +157,12 @@ impl RequestZkNymError {
             _ => None,
         }
     }
+
+    pub fn inconsistent_response<S: Into<String>>(reason: S) -> Self {
+        RequestZkNymError::InconsistentResponse {
+            reason: reason.into(),
+        }
+    }
 }
 
 // Simplified version of the error enum suitable for app API
@@ -179,8 +197,12 @@ impl From<RequestZkNymError> for RequestZkNymErrorReason {
             | RequestZkNymError::ConfirmZkNymDownloadEndpointFailure { response, id: _ } => {
                 Self::VpnApi(response)
             }
-            RequestZkNymError::UnexpectedErrorResponse(message) => {
-                Self::UnexpectedVpnApiResponse(message)
+            RequestZkNymError::UnexpectedErrorResponse(reason)
+            | RequestZkNymError::InconsistentResponse { reason } => {
+                Self::UnexpectedVpnApiResponse(reason)
+            }
+            RequestZkNymError::IssuanceError => {
+                Self::UnexpectedVpnApiResponse("'error' status response received'".to_string())
             }
             RequestZkNymError::CredentialStorage(message) => Self::Storage(message),
             RequestZkNymError::CreateEcashKeyPair(_)
@@ -201,17 +223,23 @@ impl From<RequestZkNymError> for RequestZkNymErrorReason {
             | RequestZkNymError::ImportZkNym { .. }
             | RequestZkNymError::AggregateWallets(_)
             | RequestZkNymError::MissingPendingRequest(_)
-            | RequestZkNymError::Internal(_) => Self::Internal(err.to_string()),
+            | RequestZkNymError::Internal(_)
+            | RequestZkNymError::MalformedUpgradeModeJWT
+            | RequestZkNymError::ZkNymRevoked => Self::Internal(err.to_string()),
         }
     }
 }
 
 pub type ZkNymId = String;
 
-// todo: this type is not used anywhere in the codebase for some reason
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
-pub struct RequestZkNymSuccess {
-    pub id: ZkNymId,
-    pub ticketbook_type: String,
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+pub enum RequestZkNymSuccess {
+    Ticketbook {
+        id: ZkNymId,
+        ticketbook_type: String,
+    },
+    UpgradeMode {
+        id: ZkNymId,
+    },
 }

@@ -16,6 +16,7 @@ pub enum AccountState {
     Syncing,
     Offline,
     Decentralised,
+    UpgradeMode,
     BandwidthExceeded,
     StatusNotActive,
     NoSubscription,
@@ -31,6 +32,7 @@ impl AccountState {
             lib::AccountControllerState::Syncing => AccountState::Syncing,
             lib::AccountControllerState::ReadyToConnect => AccountState::Ready,
             lib::AccountControllerState::Decentralised => AccountState::Decentralised,
+            lib::AccountControllerState::UpgradeMode => AccountState::UpgradeMode,
             lib::AccountControllerState::Offline => AccountState::Offline,
             lib::AccountControllerState::RequestingZkNyms => AccountState::RequestingZkNyms,
             lib::AccountControllerState::Error(error) => match error {
@@ -56,21 +58,18 @@ impl AccountState {
 pub fn log_account_state(state: &lib::AccountControllerState) {
     match state {
         lib::AccountControllerState::Error(e) => match e {
-            lib::AccountControllerErrorStateReason::Storage { context } => {
-                warn!("account state error: {:?}, context: {context}", e)
+            lib::AccountControllerErrorStateReason::Storage { context, details } => {
+                warn!("account state error: {e:?}, context: {context}, details: {details}")
             }
             lib::AccountControllerErrorStateReason::ApiFailure { context, details }
             | lib::AccountControllerErrorStateReason::Internal { context, details } => {
-                warn!(
-                    "account state error: {:?}, context: {}, details: {}",
-                    e, context, details
-                )
+                warn!("account state error: {e:?}, context: {context}, details: {details}",)
             }
             lib::AccountControllerErrorStateReason::DeviceTimeDesynced => {
-                warn!("account state error: {:?}", e)
+                warn!("account state error: {e:?}")
             }
-            _ => info!("account state error: {:?}", e),
+            _ => info!("account state error: {e:?}"),
         },
-        _ => debug!("account state: [{:?}]", state),
+        _ => debug!("account state: [{state:?}]"),
     }
 }

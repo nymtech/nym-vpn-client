@@ -125,6 +125,10 @@ public struct HopButton: View {
                 } else if let code = hopCountryCode {
                     FlagImage(countryCode: code)
                         .padding(12)
+                } else {
+                    GenericImage(imageName: "pin")
+                        .frame(width: 24, height: 24)
+                        .padding(12)
                 }
 
                 titleSubtitleText(with: titleText, subtitle: subtitleText)

@@ -182,6 +182,14 @@ public enum VPNErrorReason: LocalizedError {
             case let .Internal(details):
                 self = .internalError(details: details)
                 return
+            case .ZkNymRevoked:
+                messageString = "ZkNym revoked"
+            case .IssuanceError:
+                messageString = "Issuance error"
+            case .MalformedUpgradeModeJwt:
+                messageString = "Malformed upgrade mode JWT"
+            case let .InconsistentResponse(reason: reason):
+                messageString = reason
             }
             self = .requestZknym(details: messageString)
         case let .UnexpectedVpnApiResponse(details: details):

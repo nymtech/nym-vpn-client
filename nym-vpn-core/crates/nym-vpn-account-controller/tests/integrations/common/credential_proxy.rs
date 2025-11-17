@@ -223,6 +223,7 @@ impl MockCredentialProxy {
                 issued_bandwidth_in_gb: 25f64,
                 blinded_shares: Some(wallet),
                 status: NymVpnZkNymStatus::Active,
+                upgrade_mode: None,
             };
             let mut guard = self.shares_available.lock().unwrap();
             guard.insert(id.clone(), zk_nym);

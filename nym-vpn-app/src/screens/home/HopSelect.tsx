@@ -14,7 +14,7 @@ import { useLang } from '../../hooks';
 import { useGateways, useMainState } from '../../contexts';
 import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../node';
-import { useActionToast } from './util';
+import { isBridgeMode, useActionToast } from './util';
 
 type HopSelectProps = {
   node: SelectedNode;
@@ -33,13 +33,18 @@ export default function HopSelect({
   disabled,
   locked,
 }: HopSelectProps) {
-  const { backendFlags, quic, vpnMode } = useMainState();
+  const { backendFlags, vpnMode, tunnel, connectingState } = useMainState();
   const { lookupGw } = useGateways();
   const { t } = useTranslation('home');
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');
+  const quicConnection =
+    isBridgeMode(tunnel?.data) || isBridgeMode(connectingState?.tunnel);
   const quicTag =
-    vpnMode === 'wg' && nodeHop === 'entry' && backendFlags.quic && quic;
+    vpnMode === 'wg' &&
+    nodeHop === 'entry' &&
+    backendFlags.quic &&
+    quicConnection;
 
   const handleClick = () => {
     if (disabled) {

@@ -3,8 +3,8 @@
 
 use crate::{
     commands::{
-        AccountCommand, CommonCommand, ReturnSender, common_handler, decentralised_zknym_handler,
-        handler,
+        AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand, common_handler,
+        decentralised_zknym_handler, handler,
     },
     shared_state::SharedAccountState,
     state_machine::{
@@ -16,6 +16,7 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio_util::sync::CancellationToken;
+use tracing::warn;
 
 /// DecentralisedState
 /// We are operating independently of the VPN API which means:
@@ -88,6 +89,17 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                             CommonCommand::GetActiveDevices(return_sender) => return_decentralised(return_sender),
                             CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(common_handler::handle_get_available_tickets(shared_state).await),
                         }
+                    },
+                   AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
+                       UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
+                           return_sender.send(Ok(false))
+                       }
+                       UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
+                           warn!(
+                               "received unexpected command to disable upgrade mode while in 'DecentralisedState' state"
+                           );
+                           return_sender.send(Ok(()))
+                       }
                     },
                     other => {
                         other.return_error(AccountCommandError::AccountDecentralised);
