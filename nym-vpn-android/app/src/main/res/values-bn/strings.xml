@@ -116,8 +116,8 @@
 	<string name="two_hop_explanation">২-হপ রাউটিংসহ উচ্চগতির ব্রাউজিং (২৫০+ Mbps). AmneziaWG ব্যবহার করা হয়েছে, এটি সেন্সরশিপ-রোধী WireGuard সংস্করণ, স্ট্রিমিং, দ্রুত ব্রাউজিং ও ডাউনলোডের জন্য উপযুক্ত.</string>
 	<string name="two_hop_title">দ্রুত (WireGuard)</string>
 	<string name="disabled_while_connecting">ভিপিএনে সংযুক্ত হওয়ার সময় নিষ্ক্রিয়</string>
-	<string name="exit">প্রস্থান</string>
-	<string name="entry">প্রবেশ</string>
+	<string name="exit_location">Exit location</string>
+	<string name="entry_location">Entry location</string>
 	<string name="no_results_found">কোন ফলাফল পাওয়া যায়নি.</string>
 	<string name="how_to_run_gateway">গেটওয়ে কীভাবে চালাবেন.</string>
 	<string name="or_learn">অথবা শিখুন</string>

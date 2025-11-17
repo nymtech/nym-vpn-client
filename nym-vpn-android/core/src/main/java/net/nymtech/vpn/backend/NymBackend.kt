@@ -42,6 +42,7 @@ import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.login
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Network
 import nym_vpn_lib_types.ParsedAccountLinks
@@ -371,6 +372,10 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			nym_vpn_lib.updateAccountState()
 			response.accountToken
 		}
+	}
+
+	override suspend fun getAccountState(): AccountControllerState {
+		return nym_vpn_lib.getAccountState()
 	}
 
 	val notification = notificationManager.buildVpnNotification(
