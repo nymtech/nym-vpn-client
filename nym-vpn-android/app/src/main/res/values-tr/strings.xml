@@ -106,8 +106,7 @@
 	<string name="welcome_to_nym">NymVPN\'e Hoş Geldiniz</string>
 	<string name="get_access_code">Erişim Kodu Alın</string>
 	<string name="access_code">24 kelimelik erişim kodu</string>
-	<string name="support_and_feedback"><![CDATA[Destek ve geri bildirim]]></string>
-	<string name="get_in_touch">İletişime geçin</string>
+    <string name="get_in_touch">İletişime geçin</string>
 	<string name="device_id">Cihaz Kimliği:</string>
 	<string name="loading">Yükleniyor</string>
 	<string name="offline">İnternet yok</string>
