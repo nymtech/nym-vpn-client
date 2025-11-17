@@ -10,7 +10,7 @@ enum class ConnectionStatus {
 	FastNonQuicConnected,
 }
 
-internal fun getConnectionStatus(appUiState: AppUiState): ConnectionStatus {
+internal fun getConnectionStatus(hasQuicEnabled: Boolean, appUiState: AppUiState): ConnectionStatus {
 	if (appUiState.settings.vpnMode != Tunnel.Mode.TWO_HOP_MIXNET) return ConnectionStatus.Disconnected
 	return when (appUiState.managerState.tunnelState) {
 		Tunnel.State.Up -> {
@@ -18,7 +18,7 @@ internal fun getConnectionStatus(appUiState: AppUiState): ConnectionStatus {
 				appUiState.gateways.entryGateways.firstOrNull { it.identity == connectedGatewayId }?.isQuicSupported()
 			} ?: false
 
-			if (isQuicSupported) ConnectionStatus.FastQuicConnected else ConnectionStatus.FastNonQuicConnected
+			if (isQuicSupported && hasQuicEnabled) ConnectionStatus.FastQuicConnected else ConnectionStatus.FastNonQuicConnected
 		}
 
 		else -> ConnectionStatus.Disconnected
