@@ -6962,6 +6962,17 @@
         }
       }
     },
+    "createAccount.introOffer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7 days free trial - no payment required"
+          }
+        }
+      }
+    },
     "createAccount.login" : {
       "extractionState" : "manual",
       "localizations" : {

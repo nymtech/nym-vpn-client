@@ -28,12 +28,16 @@ public struct SettingsList: View {
 private extension SettingsList {
     @ViewBuilder
     func appVersionText() -> some View {
-        HStack {
-            Text(viewModel.versionTitle)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
-                .padding(.bottom, 16)
+        VStack(spacing: 0) {
+            HStack {
+                Text(viewModel.versionTitle)
+                    .foregroundStyle(NymColor.gray1)
+                    .textStyle(.Body.Medium.regular)
+                    .padding(.bottom, 16)
+                Spacer()
+            }
             Spacer()
+                .frame(height: 24)
         }
     }
 }
