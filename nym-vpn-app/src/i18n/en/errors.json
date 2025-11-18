@@ -2,7 +2,7 @@
   "unknown": "Unknown error",
   "internal": "Internal error",
   "daemon": {
-    "not-connected": "Not connected to the daemon",
+    "not-connected": "Can't connect to the daemon (vpnd). Relaunch the daemon or restart the app.",
     "internal": "Daemon internal error",
     "invalid-network": "Invalid network"
   },
