@@ -116,8 +116,8 @@
 	<string name="two_hop_explanation">Високошвидкісний перегляд веб-сторінок (250+ Мбіт/с) із 2-ступеневою маршрутизацією. Використовує AmneziaWG, версію WireGuard, стійку до цензури, яка ідеально підходить для потокового передавання, швидкого перегляду веб-сторінок та завантаження файлів.</string>
 	<string name="two_hop_title">Швидкий (WireGuard<small>*</small>)</string>
 	<string name="disabled_while_connecting">Вимкнено під час підключення до VPN</string>
-	<string name="exit_location">Вибір останнього підключення</string>
-	<string name="entry_location">Вибір першого підключення</string>
+	<string name="exit_location">Місце виходу</string>
+	<string name="entry_location">Місце входу</string>
 	<string name="no_results_found">Результатів не знайдено.</string>
 	<string name="how_to_run_gateway">як запустити шлюз.</string>
 	<string name="or_learn">або навчитися</string>
