@@ -1,7 +1,8 @@
 #if os(macOS)
 import Foundation
-import TunnelMixnet
+import ConnectionTypes
 import NotificationMessages
+import TunnelMixnet
 
 extension ConnectionManager {
     @MainActor func connect() async throws {
@@ -20,13 +21,8 @@ extension ConnectionManager {
         }
     }
 
-    @MainActor func fetchConnectionConfig() async {
-        connectionConfig = await grpcManager.config()
-    }
-
     func updateConnectionConfig() {
         Task {
-            guard let connectionConfig else { return }
             try? await grpcManager.updateConfig(newConfig: connectionConfig)
         }
     }
@@ -63,16 +59,6 @@ extension ConnectionManager {
             }
             .store(in: &cancellables)
 
-        grpcManager.$isServing
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isServing in
-                guard isServing else { return }
-                Task { @MainActor in
-                    await self?.fetchConnectionConfig()
-                }
-            }
-            .store(in: &cancellables)
-
         grpcManager.$connectionInfoData
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
@@ -82,7 +68,7 @@ extension ConnectionManager {
         appSettings.$isQuicEnabledPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newValue in
-                self?.connectionConfig?.enableBridges = newValue
+                self?.connectionConfig.enableBridges = newValue
                 guard let self, currentTunnelStatus == .connected, appSettings.shouldReconnect else { return }
                 updateConnectionConfig()
             }

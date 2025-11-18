@@ -8,6 +8,7 @@ import NymVPNRpc
 import Logging
 import AppVersionProvider
 import Constants
+import ConnectionTypes
 import TunnelStatus
 
 @MainActor public final class GRPCManager: ObservableObject {

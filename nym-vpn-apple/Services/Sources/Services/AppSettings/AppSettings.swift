@@ -43,6 +43,9 @@ import CountriesManagerTypes
     @AppStorage(AppSettingKey.exitRouter.rawValue)
     public var exitRouter: String?
 
+    @AppStorage(AppSettingKey.connectionConfig.rawValue)
+    public var connectionConfig: String?
+
     @AppStorage(AppSettingKey.connectionType.rawValue)
     public var connectionType: Int?
 
@@ -133,4 +136,5 @@ public enum AppSettingKey: String {
     case quic
     case shouldReconnect
     case passphraseStored
+    case connectionConfig
 }
