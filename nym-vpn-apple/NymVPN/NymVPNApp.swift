@@ -30,6 +30,7 @@ struct NymVPNApp: App {
     private var scenePhase
 
     @ObservedObject private var appSettings = AppSettings.shared
+    @ObservedObject private var configurationManager = ConfigurationManager.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var credentialsManager = CredentialsManager.shared
     @ObservedObject private var featureFlagsManager = FeatureFlagsManager.shared
@@ -87,6 +88,7 @@ struct NymVPNApp: App {
                 configureScreenSize()
             }
             .environmentObject(appSettings)
+            .environmentObject(configurationManager)
             .environmentObject(connectionManager)
             .environmentObject(credentialsManager)
             .environmentObject(externalLinkManager)
