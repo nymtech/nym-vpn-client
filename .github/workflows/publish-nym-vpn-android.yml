@@ -265,8 +265,8 @@ jobs:
       - name: Setup ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.2" # Not needed with a .ruby-version file
-          bundler-cache: true
+          ruby-version: '3.4' # Not needed with a .ruby-version, .tool-versions or mise.toml
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
 
       - uses: actions/checkout@v4
 
@@ -340,6 +340,10 @@ jobs:
         run: |
           version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
+
+      - name: Force IPv4 for Ruby/Bundler
+        run: |
+          export RUBYOPT="-rresolv-replace"
 
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}
