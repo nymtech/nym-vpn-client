@@ -341,6 +341,10 @@ jobs:
           version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
+      - name: Force IPv4 for Ruby/Bundler
+        run: |
+          export RUBYOPT="-rresolv-replace"
+
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}
         run: |
