@@ -6,14 +6,20 @@ import {
   LocationDetailsArticle,
   ResidentialIpServersUrl,
 } from '../../constants';
+import { NodeHop } from '../../types';
 
 export type Props = {
   isOpen: boolean;
   onClose: () => void;
+  node: NodeHop;
 };
 
-function LocationDetailsDialog({ isOpen, onClose }: Props) {
+function LocationDetailsDialog({ isOpen, onClose, node }: Props) {
   const { t } = useTranslation('nodeLocation');
+  const title =
+    node === 'entry'
+      ? t('location-details.entry-title')
+      : t('location-details.exit-title');
 
   return (
     <Dialog
@@ -33,7 +39,7 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
           className="text-xl text-baltic-sea dark:text-white text-center"
           data-testid="location-details-title"
         >
-          {t('location-details.title')}
+          {title}
         </DialogTitle>
       </div>
       <div className="flex flex-col gap-2">

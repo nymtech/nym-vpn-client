@@ -112,6 +112,7 @@ function Node({ node }: { node: NodeHop }) {
       <LocationDetailsDialog
         isOpen={isOpen('location-info')}
         onClose={() => close('location-info')}
+        node={node}
       />
       <PageAnim
         className="xs:max-w-lg h-full flex flex-col"
