@@ -713,22 +713,11 @@ jobs:
           SAFE_BRANCH=$(echo "${GITHUB_REF_NAME}" | tr '/' '-')
           echo "ARTIFACT_NAME=apple-${RELEASE_TYPE}-${TIMESTAMP}-${SAFE_BRANCH}" >> "$GITHUB_ENV"
 
-      - name: Upload artifacts (QA / Ship)
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ steps.notarize-pkg.outputs.pkg_path || steps.make-pkg.outputs.pkg_path }}
-          if-no-files-found: error
-          retention-days: 1
-      
       - name: Rename PKG for upload
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         working-directory: nym-vpn-apple/build/pkg
         run: |
           set -euo pipefail
-
-          # Find the built package
           ORIGINAL_PKG=$(basename "${{ steps.notarize-pkg.outputs.pkg_path || steps.make-pkg.outputs.pkg_path }}")
 
           # Strip "apple-" prefix → keep timestamp-branch only
@@ -744,10 +733,130 @@ jobs:
           # Export relative path (relative to repository root)
           RELATIVE_PATH="nym-vpn-apple/build/pkg/$NEW_NAME"
           echo "renamed_pkg_relative_path=$RELATIVE_PATH" >> "$GITHUB_ENV"
-          echo "✅ Renamed and ready to upload: $RELATIVE_PATH"
+          echo "✅ Renamed and ready: $RELATIVE_PATH"
 
-      - name: Upload to www
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+      - name: Generate Sparkle appcast & SHA-256 hash
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        working-directory: nym-vpn-apple/build/pkg
+        env:
+          APPLE_SPARKLE_PRIVATE_KEY: ${{ secrets.APPLE_SPARKLE_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          which jq || brew install jq
+
+          if [[ -z "${renamed_pkg_relative_path:-}" ]]; then
+            echo "❌ renamed_pkg_relative_path not set"
+            exit 1
+          fi
+
+          # Resolve final PKG filename (already renamed)
+          PKG_FILE="$(basename "${renamed_pkg_relative_path}")"
+          if [[ ! -f "$PKG_FILE" ]]; then
+            echo "❌ PKG file not found in $(pwd): $PKG_FILE"
+            ls -la
+            exit 1
+          fi
+
+          echo "📦 Using PKG: $PKG_FILE"
+
+          # --- Download latest Sparkle distribution ---
+          SPARKLE_DIR="$RUNNER_TEMP/sparkle"
+          mkdir -p "$SPARKLE_DIR"
+
+          echo "📥 Fetching latest Sparkle release metadata…"
+          curl -fsSL "https://api.github.com/repos/sparkle-project/Sparkle/releases/latest" \
+            -o "$SPARKLE_DIR/release.json"
+
+          ASSET_URL=$(jq -r '.assets[] | select(.name | endswith(".tar.xz")) | .browser_download_url' \
+            "$SPARKLE_DIR/release.json" | head -n 1)
+
+          if [[ -z "$ASSET_URL" || "$ASSET_URL" == "null" ]]; then
+            echo "❌ Could not find Sparkle .tar.xz asset in latest release"
+            jq '.' "$SPARKLE_DIR/release.json" || true
+            exit 1
+          fi
+
+          echo "⬇️ Downloading Sparkle from: $ASSET_URL"
+          SPARKLE_TAR="$SPARKLE_DIR/Sparkle.tar.xz"
+          curl -fsSL "$ASSET_URL" -o "$SPARKLE_TAR"
+
+          EXTRACT_DIR="$SPARKLE_DIR/extracted"
+          mkdir -p "$EXTRACT_DIR"
+          # Sparkle tarballs have a top-level dir; strip it
+          tar -xf "$SPARKLE_TAR" -C "$EXTRACT_DIR" --strip-components=1
+
+          SPARKLE_BIN="$EXTRACT_DIR/bin"
+          if [[ ! -x "$SPARKLE_BIN/generate_appcast" ]]; then
+            echo "❌ generate_appcast not found in Sparkle distribution"
+            ls -R "$EXTRACT_DIR"
+            exit 1
+          fi
+
+          if [[ -z "${APPLE_SPARKLE_PRIVATE_KEY:-}" ]]; then
+            echo "❌ APPLE_SPARKLE_PRIVATE_KEY secret is empty"
+            exit 1
+          fi
+
+          # 🔑 Write EdDSA private key to a file
+          KEY_FILE="$SPARKLE_DIR/sparkle_private_key_file"
+          printf '%s' "$APPLE_SPARKLE_PRIVATE_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+
+          echo "📝 Generating appcast.xml…"
+          "$SPARKLE_BIN/generate_appcast" \
+            "$(pwd)" \
+            --ed-key-file "$KEY_FILE" \
+            --link "https://nymvpn.com" \
+            --download-url-prefix "https://nymvpn.com/builds/nym-vpn-client/macOS/"
+
+          if [[ ! -f "appcast.xml" ]]; then
+            echo "❌ appcast.xml not generated"
+            ls -la
+            exit 1
+          fi
+
+          echo "🔐 Computing SHA-256 hash for $PKG_FILE…"
+          shasum -a 256 "$PKG_FILE" > sha256-hash.txt
+          echo "✅ sha256-hash.txt:"
+          cat sha256-hash.txt
+
+          # Prepare a clean publish folder with only the files we want to upload
+          PUBLISH_DIR="publish"
+          rm -rf "$PUBLISH_DIR"
+          mkdir -p "$PUBLISH_DIR"
+
+          cp "$PKG_FILE" "$PUBLISH_DIR/"
+          cp "appcast.xml" "$PUBLISH_DIR/"
+          cp "sha256-hash.txt" "$PUBLISH_DIR/"
+
+          echo "📂 Publish folder contents:"
+          ls -la "$PUBLISH_DIR"
+
+          # Export path relative to repo root for ssh-deploy & artifacts
+          echo "publish_relative_path=nym-vpn-apple/build/pkg/$PUBLISH_DIR" >> "$GITHUB_ENV"
+
+      - name: Upload artifacts (QA)
+        if: ${{ env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          # Upload the renamed PKG
+          path: ${{ env.renamed_pkg_relative_path }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload artifacts (Ship + appcast + hash)
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          # publish/ contains PKG + appcast.xml + sha256-hash.txt
+          path: ${{ env.publish_relative_path }}
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload to www (QA)
+        if: ${{ env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
         uses: easingthemes/ssh-deploy@main
         with:
           REMOTE_PORT: 22
@@ -759,6 +868,20 @@ jobs:
           REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
           TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/
           SOURCE: ${{ env.renamed_pkg_relative_path }}
+
+      - name: Upload to www (Ship + Sparkle)
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        uses: easingthemes/ssh-deploy@main
+        with:
+          REMOTE_PORT: 22
+          ARGS: -avzr
+          SSH_CMD_ARGS: -o StrictHostKeyChecking=no
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
+          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/
+          SOURCE: ${{ env.publish_relative_path }}
 
       - name: Cleanup Keychain
         if: always()
