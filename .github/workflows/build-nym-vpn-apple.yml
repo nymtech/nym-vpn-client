@@ -735,11 +735,76 @@ jobs:
           echo "renamed_pkg_relative_path=$RELATIVE_PATH" >> "$GITHUB_ENV"
           echo "✅ Renamed and ready: $RELATIVE_PATH"
 
-      - name: Generate Sparkle appcast & SHA-256 hash
+      - name: Create ZIP archive from signed PKG (ship)
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${renamed_pkg_relative_path:-}" ]]; then
+            echo "❌ renamed_pkg_relative_path not set (did Rename PKG for upload run?)"
+            exit 1
+          fi
+
+          # Resolve signed, renamed PKG path (ship-20251119-2202-feat-sparkle-NymVPN-2.13.0.pkg)
+          PKG_BASENAME="$(basename "${renamed_pkg_relative_path}")"
+          PKG_PATH="$PWD/build/pkg/$PKG_BASENAME"
+
+          if [[ ! -f "$PKG_PATH" ]]; then
+            echo "❌ Signed PKG not found at $PKG_PATH"
+            ls -la "$PWD/build/pkg"
+            exit 1
+          fi
+
+          echo "📦 Using signed PKG: $PKG_PATH"
+
+          echo "📄 Reading MARKETING_VERSION from Xcode build settings…"
+          VERSION=$(
+            xcodebuild -showBuildSettings \
+              -workspace "NymVPN.xcworkspace" \
+              -scheme "NymVPNDaemon" \
+              -configuration "Release" 2>/dev/null |
+            awk '/MARKETING_VERSION/ { print $3; exit }'
+          )
+
+          if [[ -z "$VERSION" ]]; then
+            echo "❌ Could not determine MARKETING_VERSION from Xcode (MARKETING_VERSION)"
+            exit 1
+          fi
+
+          echo "✅ MARKETING_VERSION: $VERSION"
+
+          ARCHIVE_DIR="$PWD/build/pkg"
+
+          # 🚩 This is the **final** PKG name we want user-facing
+          FINAL_PKG_NAME="NymVPN-${VERSION}.pkg"
+          FINAL_PKG_PATH="$ARCHIVE_DIR/$FINAL_PKG_NAME"
+
+          echo "📛 Copying signed PKG to final name: $FINAL_PKG_PATH"
+          cp "$PKG_PATH" "$FINAL_PKG_PATH"
+
+          # 🎁 Create zip with the PKG at the zip root (no extra "pkg" folder)
+          pushd "$ARCHIVE_DIR" >/dev/null
+          NOTARISATION_ARCHIVE="NymVPN-${VERSION}.zip"
+          echo "🧷 Creating archive: $NOTARISATION_ARCHIVE"
+
+          # No --keepParent, and run from ARCHIVE_DIR so zip contains just NymVPN-<version>.pkg at root
+          ditto -c -k "$FINAL_PKG_NAME" "$NOTARISATION_ARCHIVE"
+
+          echo "📂 Archive directory contents after zip:"
+          ls -la
+          popd >/dev/null
+
+          # Export absolute zip path for the Sparkle/sign_update step
+          echo "zip_archive_path=$ARCHIVE_DIR/$NOTARISATION_ARCHIVE" >> "$GITHUB_ENV"
+
+      - name: Generate Sparkle appcast & SHA-256 hash (sign_update)
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
         working-directory: nym-vpn-apple/build/pkg
         env:
           APPLE_SPARKLE_PRIVATE_KEY: ${{ secrets.APPLE_SPARKLE_PRIVATE_KEY }}
+          APP_PATH: ${{ steps.archive-macos.outputs.app_path }}
+          ZIP_ARCHIVE_PATH: ${{ env.zip_archive_path }}
         run: |
           set -euo pipefail
           which jq || brew install jq
@@ -749,17 +814,48 @@ jobs:
             exit 1
           fi
 
-          # Resolve final PKG filename (already renamed)
-          PKG_FILE="$(basename "${renamed_pkg_relative_path}")"
-          if [[ ! -f "$PKG_FILE" ]]; then
-            echo "❌ PKG file not found in $(pwd): $PKG_FILE"
+          INSTALLER_PKG="$(basename "${renamed_pkg_relative_path}")"
+          if [[ ! -f "$INSTALLER_PKG" ]]; then
+            echo "❌ PKG file not found in $(pwd): $INSTALLER_PKG"
             ls -la
             exit 1
           fi
 
-          echo "📦 Using PKG: $PKG_FILE"
+          echo "📦 Using PKG: $INSTALLER_PKG"
 
-          # --- Download latest Sparkle distribution ---
+          if [[ -z "${ZIP_ARCHIVE_PATH:-}" || ! -f "$ZIP_ARCHIVE_PATH" ]]; then
+            echo "❌ ZIP_ARCHIVE_PATH invalid or missing: $ZIP_ARCHIVE_PATH"
+            ls -la
+            exit 1
+          fi
+
+          ZIP_FILE="$(basename "$ZIP_ARCHIVE_PATH")"
+          if [[ "$ZIP_FILE" != *.zip ]]; then
+            echo "❌ ZIP_ARCHIVE_PATH does not look like a .zip: $ZIP_FILE"
+            exit 1
+          fi
+
+          # Make sure the zip is in the current working directory (build/pkg)
+          if [[ ! -f "$ZIP_FILE" ]]; then
+            echo "📥 Copying zip into working dir…"
+            cp "$ZIP_ARCHIVE_PATH" .
+          fi
+
+          echo "🧷 Using ZIP for Sparkle signing: $ZIP_FILE"
+
+          if [[ -z "${APP_PATH:-}" || ! -d "$APP_PATH" ]]; then
+            echo "❌ APP_PATH not set or invalid: $APP_PATH"
+            exit 1
+          fi
+
+          APP_PLIST="$APP_PATH/Contents/Info.plist"
+          SHORT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PLIST")"
+          BUNDLE_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PLIST")"
+
+          echo "ℹ️  CFBundleShortVersionString: $SHORT_VERSION"
+          echo "ℹ️  CFBundleVersion:          $BUNDLE_VERSION"
+
+          # --- Download latest Sparkle distribution for sign_update ---
           SPARKLE_DIR="$RUNNER_TEMP/sparkle"
           mkdir -p "$SPARKLE_DIR"
 
@@ -782,12 +878,11 @@ jobs:
 
           EXTRACT_DIR="$SPARKLE_DIR/extracted"
           mkdir -p "$EXTRACT_DIR"
-          # Sparkle tarballs have a top-level dir; strip it
           tar -xf "$SPARKLE_TAR" -C "$EXTRACT_DIR" --strip-components=1
 
           SPARKLE_BIN="$EXTRACT_DIR/bin"
-          if [[ ! -x "$SPARKLE_BIN/generate_appcast" ]]; then
-            echo "❌ generate_appcast not found in Sparkle distribution"
+          if [[ ! -x "$SPARKLE_BIN/sign_update" ]]; then
+            echo "❌ sign_update not found in Sparkle distribution"
             ls -R "$EXTRACT_DIR"
             exit 1
           fi
@@ -797,42 +892,71 @@ jobs:
             exit 1
           fi
 
-          # 🔑 Write EdDSA private key to a file
+          # 🔑 Write EdDSA private key to a file and ensure it's removed afterwards
           KEY_FILE="$SPARKLE_DIR/sparkle_private_key_file"
           printf '%s' "$APPLE_SPARKLE_PRIVATE_KEY" > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
+          trap "rm -f '$KEY_FILE'" EXIT
 
-          echo "📝 Generating appcast.xml…"
-          "$SPARKLE_BIN/generate_appcast" \
-            "$(pwd)" \
-            --ed-key-file "$KEY_FILE" \
-            --link "https://nymvpn.com" \
-            --download-url-prefix "https://nymvpn.com/builds/nym-vpn-client/macOS/"
+          echo "📝 Signing ZIP with Sparkle EdDSA key…"
+          # sign_update prints something like:
+          #   sparkle:edSignature="…" length="123456"
+          SPARKLE_ATTRS=$(printf '%s' "$APPLE_SPARKLE_PRIVATE_KEY" | \
+            "$SPARKLE_BIN/sign_update" --ed-key-file - "$ZIP_FILE")
 
-          if [[ ! -f "appcast.xml" ]]; then
-            echo "❌ appcast.xml not generated"
-            ls -la
+          if [[ -z "${SPARKLE_ATTRS:-}" ]]; then
+            echo "❌ Failed to obtain Sparkle signature attributes from sign_update"
             exit 1
           fi
 
-          echo "🔐 Computing SHA-256 hash for $PKG_FILE…"
-          shasum -a 256 "$PKG_FILE" > sha256-hash.txt
+          echo "✅ Sparkle attributes: $SPARKLE_ATTRS"
+
+          echo "🔐 Computing SHA-256"
+          shasum -a 256 "$INSTALLER_PKG" > sha256-hash.txt
           echo "✅ sha256-hash.txt:"
           cat sha256-hash.txt
 
-          # Prepare a clean publish folder with only the files we want to upload
+          DOWNLOAD_URL="https://builds.ci.nymte.ch/nym-vpn-client/macOS/publish/$ZIP_FILE"
+          HOST_LINK="https://nymvpn.com"
+          PUB_DATE="$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S %z')"
+
+          echo "🧾 Creating appcast.xml…"
+          {
+            echo '<?xml version="1.0" standalone="yes"?>'
+            echo '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">'
+            echo '  <channel>'
+            echo '    <title>NymVPN</title>'
+            echo "    <link>${HOST_LINK}</link>"
+            echo '    <item>'
+            echo "      <title>NymVPN ${SHORT_VERSION}</title>"
+            echo "      <pubDate>${PUB_DATE}</pubDate>"
+            echo "      <sparkle:version>${BUNDLE_VERSION}</sparkle:version>"
+            echo "      <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>"
+            echo "      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>"
+            echo '      <enclosure'
+            echo "        url=\"${DOWNLOAD_URL}\""
+            echo '        sparkle:os="macos" sparkle:installationType="package"'
+            echo '        type="application/octet-stream"'
+            printf '        %s />\n' "${SPARKLE_ATTRS}"
+            echo '    </item>'
+            echo '  </channel>'
+            echo '</rss>'
+          } > appcast.xml
+
+          echo "✅ Generated appcast.xml:"
+          cat appcast.xml
+
           PUBLISH_DIR="publish"
           rm -rf "$PUBLISH_DIR"
           mkdir -p "$PUBLISH_DIR"
 
-          cp "$PKG_FILE" "$PUBLISH_DIR/"
-          cp "appcast.xml" "$PUBLISH_DIR/"
-          cp "sha256-hash.txt" "$PUBLISH_DIR/"
+          cp "$ZIP_FILE" "$PUBLISH_DIR/"
+          cp appcast.xml "$PUBLISH_DIR/"
+          cp sha256-hash.txt "$PUBLISH_DIR/"
 
           echo "📂 Publish folder contents:"
           ls -la "$PUBLISH_DIR"
 
-          # Export path relative to repo root for ssh-deploy & artifacts
           echo "publish_relative_path=nym-vpn-apple/build/pkg/$PUBLISH_DIR" >> "$GITHUB_ENV"
 
       - name: Upload artifacts (QA)
@@ -840,7 +964,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          # Upload the renamed PKG
           path: ${{ env.renamed_pkg_relative_path }}
           if-no-files-found: error
           retention-days: 1
@@ -850,13 +973,27 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          # publish/ contains PKG + appcast.xml + sha256-hash.txt
           path: ${{ env.publish_relative_path }}
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 1
 
-      - name: Upload to www (QA)
-        if: ${{ env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+      - name: Select upload source for www
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${RELEASE_TYPE}" == "qa" ]]; then
+            UPLOAD_SOURCE="${renamed_pkg_relative_path}"
+            echo "UPLOAD_SOURCE=${UPLOAD_SOURCE}" >> "$GITHUB_ENV"
+            echo "🌐 QA: will upload PKG only → ${UPLOAD_SOURCE}"
+          else
+            UPLOAD_SOURCE="${publish_relative_path}"
+            echo "UPLOAD_SOURCE=${UPLOAD_SOURCE}" >> "$GITHUB_ENV"
+            echo "🌐 Ship: will upload ZIP + appcast.xml + sha256-hash.txt → ${UPLOAD_SOURCE}"
+          fi
+
+      - name: Upload to www
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         uses: easingthemes/ssh-deploy@main
         with:
           REMOTE_PORT: 22
@@ -867,21 +1004,7 @@ jobs:
           REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
           TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/
-          SOURCE: ${{ env.renamed_pkg_relative_path }}
-
-      - name: Upload to www (Ship + Sparkle)
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        uses: easingthemes/ssh-deploy@main
-        with:
-          REMOTE_PORT: 22
-          ARGS: -avzr
-          SSH_CMD_ARGS: -o StrictHostKeyChecking=no
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
-          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/
-          SOURCE: ${{ env.publish_relative_path }}
+          SOURCE: ${{ env.UPLOAD_SOURCE }}
 
       - name: Cleanup Keychain
         if: always()
