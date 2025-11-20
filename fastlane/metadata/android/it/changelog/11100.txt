@@ -1,4 +1,0 @@
-Cosa c'è di nuovo:
-- Miglioramenti della batteria
-- Correzione bug scanner QR
-- Varie correzioni e miglioramenti

@@ -1,2 +1,0 @@
-Yenilikler:
-- API sürümünü yükseltme

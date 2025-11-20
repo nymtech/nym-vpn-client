@@ -1,3 +1,0 @@
-Có gì mới:
-- Sửa proguard
-- Cập nhật giao diện người dùng

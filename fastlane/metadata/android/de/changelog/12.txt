@@ -1,4 +1,0 @@
-Was ist neu:
-- Abi Splitting für apk Größenoptimierung hinzugefügt
-- Rauch Test hinzugefügt
-- Minifizierungs Fehler behoben

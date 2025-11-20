@@ -1,4 +1,0 @@
-Was ist neu:
-- UI-Verbesserungen
-- Zugangsdaten schneiden hinzufügen
-- Temporäre Korrektur für Verbindungsfehler

@@ -1,3 +1,0 @@
-Có gì mới:
-- Phát hiện ngoại tuyến
-- Sửa lỗi
