@@ -1,13 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::state_machine::DecentralisedState;
 use crate::{
     SharedAccountState,
     commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
     state_machine::{
-        AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
-        OfflineState, PrivateAccountControllerState,
+        AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
+        NextAccountControllerState, OfflineState, PrivateAccountControllerState,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -109,7 +108,6 @@ impl SyncingState {
             }
         };
 
-
         // Make sure time isn't too much desynced, othersiwe Zk-nyms will fail to verify on gateways
         match vpn_api_client.get_remote_time().await {
             Ok(remote_time) => {
@@ -160,9 +158,7 @@ impl SyncingState {
                 }
             }
 
-            Err(e) => {
-                handle_vpn_api_error(e)
-            }
+            Err(e) => handle_vpn_api_error(e),
         }
     }
 
