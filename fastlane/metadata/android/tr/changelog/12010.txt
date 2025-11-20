@@ -1,4 +1,0 @@
-Yenilikler:
-- Bireysel gateway seçimi
-- Hata düzeltmeleri 
-- Optimizasyon iyileştirmeleri

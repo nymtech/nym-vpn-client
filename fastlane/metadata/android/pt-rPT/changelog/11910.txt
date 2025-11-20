@@ -1,2 +1,0 @@
-Quais as novidades:
-- Corrigir erro de fundo

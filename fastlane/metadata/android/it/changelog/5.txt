@@ -1,3 +1,0 @@
-Cosa c'è di nuovo:
-- Correzioni bug
-- Aggiungi licenze

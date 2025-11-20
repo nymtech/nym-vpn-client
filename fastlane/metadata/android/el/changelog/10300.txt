@@ -1,5 +1,0 @@
-What's new:
-- Credential expiry time
-- QR code scanning for credential
-- Kill switch link
-- UI enhancements

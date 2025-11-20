@@ -1,4 +1,0 @@
-Cosa c'è di nuovo:
-- Aggiungi schermata di log
-- Migliora la visualizzazione dello stato VPN
-- Aggiungi Sentry

@@ -1,9 +1,0 @@
-Cosa c'è di nuovo:
-- Pulsante di download aggiunto per lo schermo di log
-- Nuova schermata Privacy & Dati
-- Introduzione del flusso di monitoraggio della rete
-- Schermata di benvenuto aggiunta
-- Interfaccia utente aggiornata per modalità e snackBar
-- Miglioramenti del Data Store
-- Correzioni per crash hardware su dispositivi specifici
-- Correggi il crash del lettore di log su alcuni dispositivi

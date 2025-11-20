@@ -1,5 +1,0 @@
-Cosa c'è di nuovo:
-- Gli schermi e le funzionalità dell'interruttore di uccisione possono ora essere disconnessi
-- Migliorati i messaggi di errore per una maggiore chiarezza
-- Gestione dati connessione aggiornata
-- Risolto il problema del backstack nella schermata di benvenuto
