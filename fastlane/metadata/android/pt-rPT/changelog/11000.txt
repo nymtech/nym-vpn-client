@@ -1,5 +1,0 @@
-Quais as novidades:
-- Duas melhorias de velocidade de salto com WireGuard
-- Melhorias de desempenho do aplicativo
-- Melhorias na interface
-- Várias correções de erros

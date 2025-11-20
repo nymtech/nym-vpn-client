@@ -1,3 +1,0 @@
-Yenilikler:
-- Çevrimdışı tespiti
-- Hata düzeltmeleri 

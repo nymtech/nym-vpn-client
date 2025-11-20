@@ -1,7 +1,0 @@
-Cosa c'è di nuovo:
-- Migliorate le prestazioni delle API
-- Aggiunte scorciatoie di base
-- Miglioramenti interfaccia utente
-- Verifica scadenza credenziali corrette
-- Corretto bug di sincronizzazione interfaccia utente
-- Migliorata la sincronizzazione rapida dei tile

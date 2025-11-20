@@ -1,5 +1,0 @@
-O que há de novo:
-- As telas e a funcionalidade do kill switch agora podem ser desativadas
-- Mensagens de erros melhoradas para uma melhor clareza
-- Manipulação de dados de conexão atualizada
-- Corrigido problema de backstack na tela de boas-vindas

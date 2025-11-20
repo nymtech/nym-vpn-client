@@ -1,3 +1,0 @@
-Cosa c'è di nuovo:
-- Funzione LAN Bypass
-- Correzioni di bug e miglioramenti

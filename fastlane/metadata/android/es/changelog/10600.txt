@@ -1,3 +1,0 @@
-Novedades:
-- Añadir más idiomas
-- Añadidas mejoras en la pantalla de inicio

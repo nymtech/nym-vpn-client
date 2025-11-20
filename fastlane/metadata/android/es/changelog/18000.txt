@@ -1,3 +1,0 @@
-Novedades:
-- Corrección de errores y mejoras de estabilidad
-- Ajustes de navegación

@@ -1,3 +1,0 @@
-Quoi de neuf :
-- Corrections de bugs
-- Ajouter des licences

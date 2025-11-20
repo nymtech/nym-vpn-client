@@ -1,3 +1,0 @@
-Có gì mới:
-- Bỏ qua tính năng LAN
-- Sửa lỗi và cải tiến

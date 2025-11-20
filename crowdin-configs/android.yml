@@ -4,24 +4,47 @@ base_path: "../"
 
 preserve_hierarchy: true
 
-languages_mapping: &android-code
-  android_code: 
-    ar: ar
-    bn: bn
-    de: de
-    el: el
-    es-ES: es
-    fa: fa
-    fr: fr
-    hi: hi
-    it: it
-    ja: ja
-    pt-BR: pt-rBR
-    pt-PT: pt-rPT
-    ru: ru
-    tr: tr
-    uk: uk
-    zh-CN: zh-rCN
+languages_mapping:
+  # res/values
+  android_code: &android-code
+    ar:    ar
+    bn:    bn-rBD        # values-bn-rBD
+    de:    de            # values-de
+    el:    el-rGR        # values-el-rGR
+    es-ES: es            # values-es
+    fa:    fa            # values-fa
+    fr:    fr            # values-fr
+    hi:    hi            # values-hi
+    it:    it            # values-it
+    ja:    ja            # values-ja
+    pt-BR: pt-rBR        # values-pt-rBR
+    pt-PT: pt-rPT        # values-pt-rPT
+    ru:    ru            # values-ru
+    tr:    tr            # values-tr
+    uk:    uk            # values-uk
+    vi:    vi-rVN        # values-vi-rVN
+    zh-CN: zh-rCN        # values-zh-rCN
+
+  # fastlane / Google Play
+  play_locale: &play-locale
+    ar:    ar
+    bn:    bn-BD
+    de:    de-DE
+    el:    el-GR
+    en-US: en-US
+    es-ES: es-ES
+    fa:    fa
+    fr:    fr-FR
+    hi:    hi-IN
+    it:    it-IT
+    ja:    ja-JP
+    pt-BR: pt-BR
+    pt-PT: pt-PT
+    ru:    ru-RU
+    tr:    tr-TR
+    uk:    uk
+    vi:    vi
+    zh-CN: zh-CN
 
 files:
   - source: "/nym-vpn-android/app/src/main/res/values/strings.xml"
@@ -33,9 +56,9 @@ files:
     languages_mapping: *android-code
 
   - source: "/fastlane/metadata/android/en-US/*.txt"
-    translation: "/fastlane/metadata/android/%android_code%/%original_file_name%"
-    languages_mapping: *android-code
+    translation: "/fastlane/metadata/android/%play_locale%/%original_file_name%"
+    languages_mapping: *play-locale
 
   - source: "/fastlane/metadata/android/en-US/changelogs/*.txt"
-    translation: "/fastlane/metadata/android/%android_code%/changelog/%original_file_name%"
-    languages_mapping: *android-code
+    translation: "/fastlane/metadata/android/%play_locale%/changelogs/%original_file_name%"
+    languages_mapping: *play-locale
