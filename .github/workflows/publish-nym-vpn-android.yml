@@ -261,14 +261,16 @@ jobs:
       SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
       KEY_STORE_FILE: "android_keystore.jks"
       KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
+      RUBYOPT: "-rresolv-replace"
+      BUNDLE_TIMEOUT: "120"
     steps:
+      - uses: actions/checkout@v4
+
       - name: Setup ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3' # Not needed with a .ruby-version, .tool-versions or mise.toml
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-
-      - uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -340,10 +342,6 @@ jobs:
         run: |
           version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
-
-      - name: Force IPv4 for Ruby/Bundler
-        run: |
-          export RUBYOPT="-rresolv-replace"
 
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}
