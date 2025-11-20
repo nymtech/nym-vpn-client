@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
+import { useNavigate } from 'react-router';
+import { Button } from '@headlessui/react';
 import {
   Country,
   Gateway,
@@ -14,6 +16,7 @@ import { useLang } from '../../hooks';
 import { useGateways, useMainState } from '../../contexts';
 import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../node';
+import { routes } from '../../router';
 import { isBridgeMode, useActionToast } from './util';
 
 type HopSelectProps = {
@@ -22,7 +25,6 @@ type HopSelectProps = {
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
-  locked?: boolean;
 };
 
 export default function HopSelect({
@@ -31,13 +33,13 @@ export default function HopSelect({
   gatewayId,
   onClick,
   disabled,
-  locked,
 }: HopSelectProps) {
   const { backendFlags, vpnMode, tunnel, connectingState } = useMainState();
   const { lookupGw } = useGateways();
   const { t } = useTranslation('home');
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');
+  const navigate = useNavigate();
   const quicConnection =
     isBridgeMode(tunnel?.data) || isBridgeMode(connectingState?.tunnel);
   const quicTag =
@@ -51,6 +53,14 @@ export default function HopSelect({
       toast();
     } else {
       onClick();
+    }
+  };
+
+  const handleArrowClick = () => {
+    if (node.type === 'gateway' && gateway) {
+      navigate(routes.nodeDetails, {
+        state: { gateway, hop: nodeHop, resetScroll: true },
+      });
     }
   };
 
@@ -148,7 +158,7 @@ export default function HopSelect({
     return (
       <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
         <FlagIcon code={countryCode} alt={countryCode} />
-        <div className={clsx('flex flex-col justify-center truncate')}>
+        <div className={clsx('flex flex-col items-start truncate')}>
           <div
             className={clsx([
               'text-base truncate',
@@ -208,22 +218,13 @@ export default function HopSelect({
   return (
     <div
       className={clsx([
-        'w-full flex flex-row justify-between items-center py-3 px-4 h-[3.75rem]',
+        'w-full flex flex-row justify-between items-center px-4 h-[3.75rem]',
         'text-baltic-sea dark:text-white',
         'border border-bombay dark:border-iron rounded-lg',
-        !locked && [
-          'hover:border-baltic-sea hover:ring-baltic-sea',
-          'dark:hover:border-white dark:hover:ring-white',
-        ],
         'relative transition select-none cursor-default',
-        locked && 'opacity-50',
+        disabled && 'opacity-50',
       ])}
-      onKeyDown={handleClick}
       role="presentation"
-      onClick={handleClick}
-      data-testid={`hop-select-${nodeHop}`}
-      data-disabled={disabled}
-      data-locked={locked}
     >
       <div
         className={clsx([
@@ -235,12 +236,38 @@ export default function HopSelect({
       >
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
-      <SelectedNode {...nodeData(node, gateway)} />
-      <MsIcon
-        icon="arrow_right"
-        className="pointer-events-none"
-        data-testid={`hop-select-arrow-${nodeHop}`}
-      />
+
+      <Button
+        className={clsx([
+          'flex items-center justify-center h-full w-full py-3 rounded-none rounded-l-lg',
+          !disabled && [
+            'hover:cursor-pointer hover:text-black/80 dark:hover:text-white/80',
+          ],
+        ])}
+        disabled={disabled}
+        onClick={handleClick}
+        onKeyDown={handleClick}
+      >
+        <SelectedNode {...nodeData(node, gateway)} />
+      </Button>
+      {node.type === 'gateway' && (
+        <Button
+          className={clsx(
+            'h-6 w-6 flex items-center justify-center rounded-sm',
+            !disabled && [
+              'hover:cursor-pointer hover:bg-mercury dark:hover:bg-mine-shaft',
+            ],
+          )}
+          disabled={disabled}
+          onClick={handleArrowClick}
+          onKeyDown={handleArrowClick}
+        >
+          <MsIcon
+            icon="arrow_right"
+            className="text-baltic-sea dark:text-white"
+          />
+        </Button>
+      )}
     </div>
   );
 }

@@ -236,7 +236,6 @@ function Home() {
                   onClick={() => goToNodeList('entry')}
                   nodeHop="entry"
                   disabled={hopSelectDisabled}
-                  locked={daemonStatus === 'down'}
                 />
                 <HopSelect
                   node={exitNode}
@@ -244,7 +243,6 @@ function Home() {
                   onClick={() => goToNodeList('exit')}
                   nodeHop="exit"
                   disabled={hopSelectDisabled}
-                  locked={daemonStatus === 'down'}
                 />
               </div>
             </div>
