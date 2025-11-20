@@ -927,7 +927,7 @@ jobs:
             echo '    <title>NymVPN</title>'
             echo "    <link>${HOST_LINK}</link>"
             echo '    <item>'
-            echo "      <title>NymVPN ${SHORT_VERSION}</title>"
+            echo "      <title>${SHORT_VERSION}</title>"
             echo "      <pubDate>${PUB_DATE}</pubDate>"
             echo "      <sparkle:version>${BUNDLE_VERSION}</sparkle:version>"
             echo "      <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>"
@@ -966,6 +966,49 @@ jobs:
           path: ${{ env.renamed_pkg_relative_path }}
           if-no-files-found: error
           retention-days: 1
+
+      - name: Prepare nightly PKG asset
+        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        working-directory: nym-vpn-apple/build/pkg
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${renamed_pkg_relative_path:-}" ]]; then
+            echo "❌ renamed_pkg_relative_path not set"
+            exit 1
+          fi
+
+          SRC_BASENAME="$(basename "${renamed_pkg_relative_path}")"
+
+          if [[ ! -f "$SRC_BASENAME" ]]; then
+            echo "❌ Source PKG not found: $SRC_BASENAME"
+            ls -la
+            exit 1
+          fi
+
+          echo "📦 Using source PKG: $SRC_BASENAME"
+          cp "$SRC_BASENAME" "NymVPN-nightly.pkg"
+
+          # Export path for the release step (from repo root)
+          echo "NIGHTLY_PKG_PATH=nym-vpn-apple/build/pkg/NymVPN-nightly.pkg" >> "$GITHUB_ENV"
+          echo "✅ Nightly PKG prepared as NymVPN-nightly.pkg"
+      
+      - name: Publish macOS nightly GitHub Release
+        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: macos-nightly
+          name: "NymVPN macOS nightly"
+          prerelease: true
+          draft: false
+          files: ${{ env.NIGHTLY_PKG_PATH }}
+          body: |
+            Nightly macOS build of NymVPN.
+            - Branch: ${{ github.ref_name }}
+            - Commit: ${{ github.sha }}
+            - Built at: ${{ github.run_started_at }}
 
       - name: Upload artifacts (Ship + appcast + hash)
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
