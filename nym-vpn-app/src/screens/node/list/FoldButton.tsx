@@ -13,17 +13,21 @@ const FoldButton = ({ html, state }: FoldButtonProps) => {
   return (
     <Button
       className={clsx(
-        'w-14 h-full flex justify-center items-center mr-3',
-        'border-l-1 border-bombay dark:border-iron',
+        'w-6 h-6 flex justify-center items-center mr-3 rounded-sm',
         'text-baltic-sea/80 dark:text-white/80',
         'hover:text-baltic-sea dark:hover:text-white',
+        'hover:bg-mercury dark:hover:bg-mine-shaft',
         'focus:outline-none',
       )}
       data-testid="fold-button"
       {...html}
     >
       <MsIcon
-        icon={state.open ? 'arrow_drop_up' : 'arrow_drop_down'}
+        icon="keyboard_arrow_down"
+        className={clsx(
+          'transition-transform duration-200 leading-none',
+          state.open && 'rotate-180',
+        )}
         data-testid="fold-button-icon"
       />
     </Button>
