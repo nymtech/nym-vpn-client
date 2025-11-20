@@ -101,16 +101,16 @@ const GatewayItem = ({
       <div className="flex py-2 self-stretch items-center">
         <Button
           className={clsx(
-            'w-14 flex justify-center items-center mr-3 shrink-0',
-            'text-baltic-sea/80 dark:text-white/80',
-            'hover:text-baltic-sea dark:hover:text-white',
+            'w-6 h-6 flex justify-center items-center mr-3 shrink-0',
+            'text-baltic-sea dark:text-white',
+            'hover:bg-faded-lavender dark:hover:bg-charcoal rounded-sm',
             'focus:outline-none',
           )}
           onClick={() => onNodeDetails(gateway)}
           data-testid={`gateway-info-button-${gateway.id.substring(0, 8)}`}
         >
           <MsIcon
-            icon="info"
+            icon="arrow_right"
             data-testid={`gateway-info-icon-${gateway.id.substring(0, 8)}`}
           />
         </Button>
