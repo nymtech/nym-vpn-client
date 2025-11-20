@@ -56,7 +56,7 @@ export default function HopSelect({
     }
   };
 
-  const handleArrowClick = () => {
+  const handleDetailsClick = () => {
     if (node.type === 'gateway' && gateway) {
       navigate(routes.nodeDetails, {
         state: { gateway, hop: nodeHop, resetScroll: true },
@@ -259,8 +259,8 @@ export default function HopSelect({
             ],
           )}
           disabled={disabled}
-          onClick={handleArrowClick}
-          onKeyDown={handleArrowClick}
+          onClick={handleDetailsClick}
+          onKeyDown={handleDetailsClick}
         >
           <MsIcon
             icon="arrow_right"
