@@ -86,7 +86,7 @@ jobs:
           git diff > mac-plist-changes.patch
 
       - name: Upload applied changes
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: mac-plist-changes.patch
           path: mac-plist-changes.patch
@@ -160,7 +160,7 @@ jobs:
           protoc --grpc-swift_out=. nym_vpn_service.proto
 
       - name: Upload generated protobuf files for swift
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: swift-proto-files
           path: |
@@ -176,7 +176,7 @@ jobs:
           cp -v nym-vpn-core/crates/nym-vpn-proto/proto/nym_vpn_service.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.UPLOAD_DIR_MAC }}
           path: ${{ env.UPLOAD_DIR_MAC }}

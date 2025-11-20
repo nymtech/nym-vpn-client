@@ -45,7 +45,7 @@ jobs:
         run: make -f Windows.mk winfw CPU_ARCH=AMD64 RELEASE=1
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: winfw
           path: |

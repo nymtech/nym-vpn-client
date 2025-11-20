@@ -147,7 +147,7 @@ jobs:
           cp -vpr ${{ env.SRC_BIN }} ${{ env.UPLOAD_DIR_LINUX }}/${{ env.DST_BIN }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.UPLOAD_DIR_LINUX }}
           path: ${{ env.UPLOAD_DIR_LINUX }}

@@ -86,7 +86,7 @@ jobs:
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd_*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.UPLOAD_DIR_DEB }}
           path: ${{ env.UPLOAD_DIR_DEB }}

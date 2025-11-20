@@ -327,7 +327,7 @@ jobs:
           cp -vp ${{ env.NSIS_DIR }}/NymVPN_*_x64-setup.exe.sig ${{ env.UPLOAD_DIR_WINDOWS }}/ || true
 
       - name: Upload artifact windows
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.UPLOAD_DIR_WINDOWS }}
           path: ${{ env.UPLOAD_DIR_WINDOWS }}

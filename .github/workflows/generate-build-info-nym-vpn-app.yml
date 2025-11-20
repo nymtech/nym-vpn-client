@@ -41,7 +41,7 @@ jobs:
           cat build-info.txt
 
       - name: Upload build-info
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-info
           path: build-info.txt

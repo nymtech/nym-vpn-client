@@ -88,7 +88,7 @@ jobs:
           cp -vpr ${{ env.SRC_DIR }} ${{ env.UPLOAD_DIR_IOS }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.UPLOAD_DIR_IOS }}
           path: ${{ env.UPLOAD_DIR_IOS }}

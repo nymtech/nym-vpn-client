@@ -42,7 +42,7 @@ jobs:
         run: ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wireguard-go_apple_universal
           path: build/lib/universal-apple-darwin
