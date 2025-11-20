@@ -91,13 +91,35 @@ impl SyncingState {
         vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
+        let handle_vpn_api_error = |e: VpnApiClientError| -> Result<bool, SyncError> {
+            let error_response = NymErrorResponse::try_from(e)?;
+            // SW Use UUID when it will be available
+            if error_response.status == "access_denied"
+                && error_response.message == "Account not found"
+            {
+                // Request was fine, but account is unregistered
+                // Later down the line we can maybe register it here
+                Err(SyncError::UnregisteredAccount)
+            } else {
+                Err(SyncError::ApiResponseError {
+                    details: error_response
+                        .code_reference_id
+                        .unwrap_or(error_response.message),
+                })
+            }
+        };
+
+
         // Make sure time isn't too much desynced, othersiwe Zk-nyms will fail to verify on gateways
-        if !vpn_api_client
-            .get_remote_time()
-            .await?
-            .is_acceptable_synced()
-        {
-            return Err(SyncError::DeviceTimeDesynced);
+        match vpn_api_client.get_remote_time().await {
+            Ok(remote_time) => {
+                if !remote_time.is_acceptable_synced() {
+                    return Err(SyncError::DeviceTimeDesynced);
+                }
+            }
+            Err(e) => {
+                return handle_vpn_api_error(e);
+            }
         }
 
         match vpn_api_client
@@ -139,21 +161,7 @@ impl SyncingState {
             }
 
             Err(e) => {
-                let error_response = NymErrorResponse::try_from(e)?;
-                // SW Use UUID when it will be available
-                if error_response.status == "access_denied"
-                    && error_response.message == "Account not found"
-                {
-                    // Request was fine, but account is unregistered
-                    // Later down the line we can maybe register it here
-                    Err(SyncError::UnregisteredAccount)
-                } else {
-                    Err(SyncError::ApiResponseError {
-                        details: error_response
-                            .code_reference_id
-                            .unwrap_or(error_response.message),
-                    })
-                }
+                handle_vpn_api_error(e)
             }
         }
     }
