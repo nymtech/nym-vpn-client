@@ -112,6 +112,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
 	var showBanner by remember { mutableStateOf(false) }
+	var showPerAppSecurityBanner by remember { mutableStateOf(false) }
 
 	with(appUiState.managerState) {
 		LaunchedEffect(tunnelState, connectionData?.connectedAt) {
@@ -200,6 +201,10 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		viewModel.onStreamingServerBannerDisplayed()
 		showBanner = false
 	}
+	fun dismissPerAppSecurityBanner() {
+		viewModel.onPerAppSecurityBannerDisplayed()
+		showPerAppSecurityBanner = false
+	}
 
 	fun onEntryClick() {
 		when (uiState.connectionState) {
@@ -220,7 +225,9 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	}
 
 	LaunchedEffect(Unit) {
-		if (!appUiState.settings.isStreamingServerBannerDisplayed) {
+		if (!appUiState.settings.isPerAppSecurityBannerDisplayed) {
+			showPerAppSecurityBanner = true
+		} else if (!appUiState.settings.isStreamingServerBannerDisplayed) {
 			showBanner = true
 		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -332,6 +339,26 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					icon = Icons.Outlined.Close,
 					onClicked = {
 						dismissStreamingBanner()
+					},
+				),
+			),
+			modifier = Modifier.padding(16.dp),
+		)
+		InfoBanner(
+			showBanner = showPerAppSecurityBanner,
+			config = BannerConfig(
+				message = stringResource(R.string.per_app_security_banner_title),
+				action = BannerAction(
+					title = stringResource(R.string.per_app_security_banner_action),
+					onClicked = {
+						dismissPerAppSecurityBanner()
+						navController.goFromRoot(Route.SplitTunneling)
+					},
+				),
+				icon = BannerIcon(
+					icon = Icons.Outlined.Close,
+					onClicked = {
+						dismissPerAppSecurityBanner()
 					},
 				),
 			),

@@ -113,4 +113,15 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 		val fd = vpnInterface?.detachFd() ?: return -1
 		return fd
 	}
+
+	fun restrictApps(disAllowedApplicationPackages: List<String>) {
+		try {
+			disAllowedApplicationPackages.forEach {
+				builder.addDisallowedApplication(it)
+				Timber.d("Disallowed application: $it")
+			}
+		} catch (_: Exception) {
+			Timber.e("Error applying app restriction list")
+		}
+	}
 }

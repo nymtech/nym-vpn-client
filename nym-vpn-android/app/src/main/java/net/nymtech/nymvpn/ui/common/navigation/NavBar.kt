@@ -30,14 +30,14 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
 import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
+import net.nymtech.nymvpn.ui.screens.splittunneling.view.components.SplitTunnelingInfoModal
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
-import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBackButton: Boolean = false) {
+fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBackButton: Boolean = false, onBackClick: (Route) -> Unit = {}) {
 	val keyboardController = LocalSoftwareKeyboardController.current
 	val context = LocalContext.current
 
@@ -46,8 +46,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 	var showLocationTooltip by remember { mutableStateOf(false) }
 	var showExitServerTooltip by remember { mutableStateOf(false) }
 	var showPassphraseModal by remember { mutableStateOf(false) }
-
-	Timber.d("@@ hide back button $hideBackButton")
+	var showSplitTunnelingModal by remember { mutableStateOf(false) }
 
 	LaunchedEffect(navBackStackEntry, hideBackButton) {
 		keyboardController?.hide()
@@ -276,6 +275,17 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showPassphraseModal = true } },
 			)
 
+			currentRoute.startsWith(Route.SplitTunneling::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle(stringResource(R.string.split_tunneling)) },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						onBackClick(Route.SplitTunneling)
+					}
+				},
+				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showSplitTunnelingModal = true } },
+			)
+
 			else -> NavBarState(show = false)
 		}
 	}
@@ -295,6 +305,11 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 	PassphraseInfo(
 		show = showPassphraseModal,
 		onDismiss = { showPassphraseModal = false },
+	)
+
+	SplitTunnelingInfoModal(
+		showModal = showSplitTunnelingModal,
+		onDismiss = { showSplitTunnelingModal = false },
 	)
 
 	AnimatedVisibility(

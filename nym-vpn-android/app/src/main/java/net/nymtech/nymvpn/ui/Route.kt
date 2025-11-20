@@ -88,4 +88,7 @@ sealed class Route {
 		val type: GatewayType,
 		val location: String,
 	) : Route()
+
+	@Serializable
+	data object SplitTunneling : Route()
 }

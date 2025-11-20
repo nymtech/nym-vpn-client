@@ -74,6 +74,7 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
+import net.nymtech.nymvpn.ui.screens.splittunneling.view.SplitTunnelingScreen
 import net.nymtech.nymvpn.ui.screens.welcome.WelcomeScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -124,6 +125,7 @@ class MainActivity : AppCompatActivity() {
 			var navHeight by remember { mutableStateOf(0.dp) }
 			val density = LocalDensity.current
 			var hideBackButtonInNavBar by remember { mutableStateOf(false) }
+			var onBackClickEventFromRoute by remember { mutableStateOf<Route?>(null) }
 
 			LaunchedEffect(configurationChange) {
 				if (configurationChange) {
@@ -174,6 +176,9 @@ class MainActivity : AppCompatActivity() {
 										}
 									},
 									hideBackButton = hideBackButtonInNavBar,
+									onBackClick = {
+										onBackClickEventFromRoute = it
+									}
 								)
 							},
 							snackbarHost = {
@@ -298,6 +303,15 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.Account> {
 									AccountInfoScreen(appState)
+								}
+								composable<Route.SplitTunneling> {
+									SplitTunnelingScreen(
+										appState = appState,
+										onBackEventConsumed = {
+											onBackClickEventFromRoute = null
+										},
+										onBackClickEventTriggered = onBackClickEventFromRoute == Route.SplitTunneling,
+									)
 								}
 							}
 						}
