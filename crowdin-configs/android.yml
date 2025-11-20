@@ -1,5 +1,5 @@
-project_id_env: "CROWDIN_PROJECT_ID"
-api_token_env: "CROWDIN_PERSONAL_TOKEN"
+project_id_env: CROWDIN_PROJECT_ID
+api_token_env: CROWDIN_PERSONAL_TOKEN
 base_path: "../"
 
 preserve_hierarchy: true
@@ -8,25 +8,25 @@ languages_mapping:
   # res/values
   android_code: &android-code
     ar:    ar
-    bn:    bn-rBD        # values-bn-rBD
-    de:    de            # values-de
-    el:    el-rGR        # values-el-rGR
-    es-ES: es            # values-es
-    fa:    fa            # values-fa
-    fr:    fr            # values-fr
-    hi:    hi            # values-hi
-    it:    it            # values-it
-    ja:    ja            # values-ja
-    pt-BR: pt-rBR        # values-pt-rBR
-    pt-PT: pt-rPT        # values-pt-rPT
-    ru:    ru            # values-ru
-    tr:    tr            # values-tr
-    uk:    uk            # values-uk
-    vi:    vi-rVN        # values-vi-rVN
-    zh-CN: zh-rCN        # values-zh-rCN
+    bn:    bn-rBD
+    de:    de
+    el:    el-rGR
+    es-ES: es
+    fa:    fa
+    fr:    fr
+    hi:    hi
+    it:    it
+    ja:    ja
+    pt-BR: pt-rBR
+    pt-PT: pt-rPT
+    ru:    ru
+    tr:    tr
+    uk:    uk
+    vi:    vi-rVN
+    zh-CN: zh-rCN
 
   # fastlane / Google Play
-  play_locale: &play-locale
+  locale: &play-locale
     ar:    ar
     bn:    bn-BD
     de:    de-DE
@@ -47,18 +47,22 @@ languages_mapping:
     zh-CN: zh-CN
 
 files:
-  - source: "/nym-vpn-android/app/src/main/res/values/strings.xml"
-    translation: "/nym-vpn-android/app/src/main/res/values-%android_code%/strings.xml"
-    languages_mapping: *android-code
+  - source: "nym-vpn-android/app/src/main/res/values/strings.xml"
+    translation: "nym-vpn-android/app/src/main/res/values-%android_code%/strings.xml"
+    languages_mapping:
+      android_code: *android-code
 
-  - source: "/nym-vpn-android/core/src/main/res/values/strings.xml"
-    translation: "/nym-vpn-android/core/src/main/res/values-%android_code%/strings.xml"
-    languages_mapping: *android-code
+  - source: "nym-vpn-android/core/src/main/res/values/strings.xml"
+    translation: "nym-vpn-android/core/src/main/res/values-%android_code%/strings.xml"
+    languages_mapping:
+      android_code: *android-code
 
-  - source: "/fastlane/metadata/android/en-US/*.txt"
-    translation: "/fastlane/metadata/android/%play_locale%/%original_file_name%"
-    languages_mapping: *play-locale
+  - source: "fastlane/metadata/android/en-US/*.txt"
+    translation: "fastlane/metadata/android/%locale%/%original_file_name%"
+    languages_mapping:
+      locale: *play-locale
 
-  - source: "/fastlane/metadata/android/en-US/changelogs/*.txt"
-    translation: "/fastlane/metadata/android/%play_locale%/changelogs/%original_file_name%"
-    languages_mapping: *play-locale
+  - source: "fastlane/metadata/android/en-US/changelogs/*.txt"
+    translation: "fastlane/metadata/android/%locale%/changelogs/%original_file_name%"
+    languages_mapping:
+      locale: *play-locale
