@@ -1,5 +1,0 @@
-Cosa c'è di nuovo:
-- Miglioramenti dell'interfaccia utente
-- Miglioramenti cache
-- Aggiunta integrazione portuale master
-- Migliorata la sincronizzazione dello stato dei tile

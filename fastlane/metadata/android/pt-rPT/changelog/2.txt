@@ -1,3 +1,0 @@
-Quais as novidades:
-- Corrigir a guarda
-- Atualizar UI

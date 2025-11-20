@@ -1,3 +1,0 @@
-Cosa c'è di nuovo:
-- Correzioni di crash e miglioramenti della stabilità
-- Regolazioni di navigazione

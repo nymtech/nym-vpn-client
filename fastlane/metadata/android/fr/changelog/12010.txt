@@ -1,4 +1,0 @@
-Quoi de neuf :
-- Sélection de passerelle individuelle
-- Corrections de bugs
-- Améliorations d'optimisation

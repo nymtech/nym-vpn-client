@@ -1,3 +1,0 @@
-Quoi de neuf :
-- Amélioration de l'écran de logs
-- Corrections de bugs

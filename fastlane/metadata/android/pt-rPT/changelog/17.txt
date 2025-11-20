@@ -1,3 +1,0 @@
-Quais as novidades:
-- Corrigir problema de cache de país
-- Intensificar melhorias de desempenho

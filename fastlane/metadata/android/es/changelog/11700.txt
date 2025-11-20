@@ -1,2 +1,0 @@
-Novedades:
-- Compilaciones reproducibles

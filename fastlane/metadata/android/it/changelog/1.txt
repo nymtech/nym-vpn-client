@@ -1,2 +1,0 @@
-Cosa c'è di nuovo:
-- Creazione interfaccia utente
