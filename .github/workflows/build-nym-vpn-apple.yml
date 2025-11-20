@@ -901,8 +901,7 @@ jobs:
           echo "📝 Signing ZIP with Sparkle EdDSA key…"
           # sign_update prints something like:
           #   sparkle:edSignature="…" length="123456"
-          SPARKLE_ATTRS=$(printf '%s' "$APPLE_SPARKLE_PRIVATE_KEY" | \
-            "$SPARKLE_BIN/sign_update" --ed-key-file - "$ZIP_FILE")
+          SPARKLE_ATTRS=$("$SPARKLE_BIN/sign_update" --ed-key-file "$KEY_FILE" "$ZIP_FILE")
 
           if [[ -z "${SPARKLE_ATTRS:-}" ]]; then
             echo "❌ Failed to obtain Sparkle signature attributes from sign_update"
@@ -911,8 +910,8 @@ jobs:
 
           echo "✅ Sparkle attributes: $SPARKLE_ATTRS"
 
-          echo "🔐 Computing SHA-256"
-          shasum -a 256 "$INSTALLER_PKG" > sha256-hash.txt
+          echo "🔐 Computing SHA-256 (ZIP payload)"
+          shasum -a 256 "$ZIP_FILE" > sha256-hash.txt
           echo "✅ sha256-hash.txt:"
           cat sha256-hash.txt
 
