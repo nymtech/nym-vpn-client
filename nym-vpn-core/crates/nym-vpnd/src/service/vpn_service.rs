@@ -1036,7 +1036,7 @@ impl NymVpnService {
 
         let entry_point = entry.unwrap_or(self.config_manager.config().entry_point.clone());
         let exit_point = exit.unwrap_or(self.config_manager.config().exit_point.clone());
-        let custom_dns = options.dns.as_ref().map(|ip_addr| vec![ip_addr.clone()]);
+        let custom_dns = options.dns.as_ref().map(|ip_addr| vec![*ip_addr]);
         let config = VpnServiceConfig {
             entry_point,
             exit_point,
