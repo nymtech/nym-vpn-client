@@ -52,7 +52,7 @@ function CardSwitch({
         'bg-white dark:bg-charcoal px-5 min-h-16 rounded-t-lg py-4',
         !noHoverEffect && 'hover:bg-iron/5 dark:hover:bg-black/10',
         'cursor-default',
-        disabled && 'opacity-50 pointer-events-none',
+        disabled && 'pointer-events-none',
         'overflow-hidden',
         className,
       )}
@@ -69,7 +69,11 @@ function CardSwitch({
         checked={checked}
         onChange={onClick}
         disabled={disabled}
-        className={clsx('self-start', subheader && 'mt-2')}
+        className={clsx(
+          'self-start',
+          subheader && 'mt-2',
+          disabled && 'opacity-50',
+        )}
       />
     </div>
   );
