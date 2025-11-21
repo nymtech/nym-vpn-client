@@ -218,7 +218,7 @@ export default function HopSelect({
   return (
     <div
       className={clsx([
-        'w-full flex flex-row justify-between items-center px-4 h-[3.75rem]',
+        'w-full flex flex-row justify-between items-center h-[3.75rem]',
         'text-baltic-sea dark:text-white',
         'border border-bombay dark:border-iron rounded-lg',
         'relative transition select-none cursor-default',
@@ -239,10 +239,8 @@ export default function HopSelect({
 
       <Button
         className={clsx([
-          'flex items-center justify-center h-full w-full py-3 rounded-none rounded-l-lg',
-          !disabled && [
-            'hover:cursor-pointer hover:text-black/80 dark:hover:text-white/80',
-          ],
+          'flex flex-1 pl-4 items-center justify-center h-full py-3 rounded-none rounded-l-lg',
+          !disabled && ['hover:text-white/80'],
         ])}
         disabled={disabled}
         onClick={handleClick}
@@ -253,10 +251,8 @@ export default function HopSelect({
       {node.type === 'gateway' && (
         <Button
           className={clsx(
-            'h-6 w-6 flex items-center justify-center rounded-sm',
-            !disabled && [
-              'hover:cursor-pointer hover:bg-mercury dark:hover:bg-mine-shaft',
-            ],
+            'h-11 w-11 my-2 mr-2 flex items-center justify-center rounded-full',
+            !disabled && ['hover:bg-mercury dark:hover:bg-mine-shaft'],
           )}
           disabled={disabled}
           onClick={handleDetailsClick}
@@ -264,7 +260,7 @@ export default function HopSelect({
         >
           <MsIcon
             icon="arrow_right"
-            className="text-baltic-sea dark:text-white"
+            className="text-baltic-sea dark:text-white leading-none"
           />
         </Button>
       )}

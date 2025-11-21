@@ -98,12 +98,12 @@ const GatewayItem = ({
       {streamOptimized && (
         <MsIcon icon="smart_display" className="text-cornflower" />
       )}
-      <div className="flex py-2 self-stretch items-center">
+      <div className="flex p-2 self-stretch items-center">
         <Button
           className={clsx(
-            'w-6 h-6 flex justify-center items-center mr-3 shrink-0',
+            'w-11 h-11 flex justify-center items-center shrink-0 rounded-full',
             'text-baltic-sea dark:text-white',
-            'hover:bg-faded-lavender dark:hover:bg-charcoal rounded-sm',
+            'hover:bg-faded-lavender dark:hover:bg-charcoal',
             'focus:outline-none',
           )}
           onClick={() => onNodeDetails(gateway)}

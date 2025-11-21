@@ -54,7 +54,7 @@ function RowHeader({
           <LocationInfo node={node} name={node.name} gwCount={gwCount} />
         )}
       </div>
-      <Accordion.Header className="flex py-2 items-center justify-center">
+      <Accordion.Header className="flex p-2 items-center justify-center">
         <Accordion.Trigger
           render={(props, state) => <FoldButton html={props} state={state} />}
         />
