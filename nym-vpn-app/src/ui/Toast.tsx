@@ -97,7 +97,7 @@ function Toast({
           >
             <motion.ul
               className={clsx(
-                'mx-6 px-5 py-4 min-w-54 max-w-lg',
+                'mx-auto px-5 py-4 w-full max-w-lg',
                 'flex justify-between items-center rounded-lg select-none cursor-default',
                 'text-baltic-sea dark:text-white bg-white dark:bg-charcoal',
                 type === 'error' &&
