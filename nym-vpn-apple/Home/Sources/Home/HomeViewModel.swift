@@ -340,3 +340,11 @@ extension HomeViewModel {
         }
     }
 }
+
+extension HomeViewModel {
+    func changeConnectionType(with type: ConnectionType) {
+        impactGenerator.softImpact()
+        guard connectionManager.connectionType != type else { return }
+        connectionManager.connectionType = type
+    }
+}
