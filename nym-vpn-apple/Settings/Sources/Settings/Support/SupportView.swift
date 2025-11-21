@@ -14,32 +14,20 @@ struct SupportView: View {
         VStack(spacing: 0) {
             navbar()
             VStack(spacing: 0) {
-                Spacer()
-                    .frame(height: 24)
                 ScrollView {
-                    sections()
-                        .frame(maxWidth: MagicNumbers.maxWidth)
+                    VStack(spacing: 0) {
+                        titleSubtitleSection()
+                        sections()
+                            .frame(maxWidth: MagicNumbers.maxWidth)
+                    }
+                    .padding(.horizontal, 16)
                 }
             }
-            .padding(.horizontal, 16)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
-        .overlay {
-            if viewModel.isResetVPNProfileDisplayed {
-                ResetVPNProfileDialog(
-                    viewModel: ResetVPNProfileDialogViewModel(
-                        isDisplayed: $viewModel.isResetVPNProfileDisplayed,
-                        impactGenerator: .shared,
-                        action: {
-                            viewModel.resetVPNProfile()
-                        }
-                    )
-                )
-            }
-        }
         .background {
             NymColor.background
                 .ignoresSafeArea()
@@ -48,7 +36,6 @@ struct SupportView: View {
 }
 
 private extension SupportView {
-    @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
             title: viewModel.title,
@@ -56,12 +43,36 @@ private extension SupportView {
         )
     }
 
-    @ViewBuilder
-    func sections() -> some View {
-        ForEach(viewModel.sections, id: \.self) { viewModel in
-            SettingsListItem(viewModel: viewModel)
+    func titleSubtitleSection() -> some View {
+        HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("⚠️ \("support.protectTitle".localizedString)")
+                    .textStyle(.Headline.Small.regular)
+                    .foregroundStyle(NymColor.primary)
+
+                Text(subtitleText())
+                    .textStyle(.Body.Medium.regular)
+                    .foregroundStyle(NymColor.gray1)
+            }
             Spacer()
-                .frame(height: 24)
         }
+        .padding(.vertical, 24)
+    }
+
+    func sections() -> some View {
+        SettingsList<SupportSectionKind>(
+            viewModel:
+                SettingsListViewModel(
+                    sections: viewModel.sections
+                )
+        )
+    }
+}
+
+private extension SupportView {
+    func subtitleText() -> AttributedString {
+        let first = AttributedString("support.protect.subtitle1".localizedString)
+        let second = AttributedString("support.protect.subtitle2".localizedString)
+        return first + "\n\n" + second
     }
 }

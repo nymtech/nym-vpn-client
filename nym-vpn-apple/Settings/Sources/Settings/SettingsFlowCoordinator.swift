@@ -95,7 +95,6 @@ private extension SettingsFlowCoordinator {
         SupportView(
             viewModel: SupportViewModel(
                 path: $flowState.path,
-                connectionManager: .shared,
                 externalLinkManager: .shared
             )
         )

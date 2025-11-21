@@ -4,31 +4,10 @@ import ConfigurationManager
 import Device
 import Theme
 
-@MainActor public struct SettingsListViewModel {
-    private let appVersion: String
-    private let configurationManager: ConfigurationManager
-    private let navigateToSantasMenuAction: (() -> Void)
+@MainActor public struct SettingsListViewModel<Kind: SettingsSectionKind> {
+    let sections: [SettingsSection<Kind>]
 
-    let sections: [SettingsSection]
-
-    var versionTitle: String {
-        "\("version".localizedString) \(appVersion) (\(AppVersionProvider.libVersion))"
-    }
-
-    public init(
-        sections: [SettingsSection],
-        appVersion: String,
-        configurationManager: ConfigurationManager,
-        navigateToSantasMenuAction: @escaping (() -> Void)
-    ) {
+    public init(sections: [SettingsSection<Kind>]) {
         self.sections = sections
-        self.appVersion = appVersion
-        self.configurationManager = configurationManager
-        self.navigateToSantasMenuAction = navigateToSantasMenuAction
-    }
-
-    public func navigateToSantasMenu() {
-        guard configurationManager.isSantaClaus else { return }
-        navigateToSantasMenuAction()
     }
 }
