@@ -1,2 +1,2 @@
-Novedades
-- Creación de interfaz de usuario
+Novedades:
+- Creación de interfaz

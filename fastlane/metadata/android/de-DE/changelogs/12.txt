@@ -1,4 +1,4 @@
-Neuigkeiten:
-- Abi Teilung zur Optimierung der APK Größe
-- Smoke test hinzugefügt
-- Code Optimierungen
+Was ist neu:
+- Abi Splitting für apk Größenoptimierung hinzugefügt
+- Rauch Test hinzugefügt
+- Minifizierungs Fehler behoben

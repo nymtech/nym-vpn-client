@@ -106,7 +106,7 @@
 	<string name="welcome_to_nym">NymVPNへようこそ</string>
 	<string name="get_access_code">アクセスコードを取得</string>
 	<string name="access_code">24語で構成されるアクセスコード</string>
-    <string name="get_in_touch">お問い合わせ</string>
+	<string name="get_in_touch">お問い合わせ</string>
 	<string name="device_id">デバイスID:</string>
 	<string name="loading">読み込み中</string>
 	<string name="offline">インターネット接続がありません</string>

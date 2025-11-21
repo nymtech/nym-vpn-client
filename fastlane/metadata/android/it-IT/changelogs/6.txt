@@ -1,4 +1,4 @@
-What's new:
-- Add logs screen
-- Improve VPN status display
-- Add Sentry
+Cosa c'è di nuovo:
+- Aggiungi schermata di log
+- Migliora la visualizzazione dello stato VPN
+- Aggiungi Sentry

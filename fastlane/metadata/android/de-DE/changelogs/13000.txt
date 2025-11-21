@@ -1,0 +1,4 @@
+Was ist neu:
+- Fehlerbehebungen protokollieren
+- Stabilitätsverbesserungen
+- Client-Aktualisierungsnachrichten

@@ -1,5 +1,5 @@
-Neuigkeiten:
-- File descriptor Bug behoben
-- Nym Api v5 Bug
-- IPv4/IPv6 VPN Bug behoben
-- Weitere Bugfixes
+Was ist neu:
+- Dateideskriptor-Fehler behoben
+- Behebung v5 nym api Fehler
+- IPV6- / IPV4-VPN-Stopps beheben
+- Andere Fehlerbehebungen

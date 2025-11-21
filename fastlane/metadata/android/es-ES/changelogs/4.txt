@@ -1,4 +1,4 @@
 Novedades:
-- Refactorización del cliente VPN
-- Añadir activos de imagen
-- Corrección de la sincronización del estado de la interfaz de usuario con VPN
+- Refactorizado el cliente VPN
+- Añadido recursos de imagen
+- Corregida la sincronización de estado de la UI con la VPN

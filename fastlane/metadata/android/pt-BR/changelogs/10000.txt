@@ -1,7 +1,7 @@
-Novidades:
-- Desempenho aprimorado da API
-- Adição de atalhos básicos de aplicativos
-- Aprimoramentos da interface do usuário
-- Correção da verificação de expiração da credencial
-- Correção do bug de sincronização da UI de conexão
-- Melhoria na sincronização rápida de blocos
+Quais as novidades:
+- Desempenho de API melhorado
+- Atalhos de aplicativo básico adicionados
+- Melhorias da UI
+- Verificação da expiração da credencial corrigida
+- Falha de sincronização de interface de conexão corrigida
+- Sincronização rápida melhorada

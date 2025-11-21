@@ -1,4 +1,4 @@
 Yenilikler:
 - VPN kütüphane entegrasyonu eklendi
-- Başlangıç ekranı
-- Ülke listesi
+- Açılış ekranı eklendi
+- Ülke listesi eklendi

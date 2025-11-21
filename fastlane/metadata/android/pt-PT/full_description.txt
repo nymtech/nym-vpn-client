@@ -16,7 +16,7 @@ ESCOLHA O SEU NÍVEL DE PRIVACIDADE
 ⚡ Modo Rápido – Velocidades fulminantes para streaming e navegação. Por defeito 2-hop: um servidor sabe quem é, outro sabe o que faz — mas nunca ambos.
 🔒 Modo Anónimo – Privacidade máxima através de um mixnet de 5-hop com geração de ruído e até 5 camadas de encriptação. Concebido para resistir até à análise de tráfego alimentada por IA e vigilância avançada.
 
-PORQUE É QUE NymVPN É DIFERENTE
+POR QUE NYMVPN É DIFFERENTE
 
 • Proteção de metadados – Ao contrário de outros VPNs, protegemos não só os seus dados, mas também os padrões que deixa
 • Resistente à censura – Aceda a conteúdos bloqueados em ambientes restritivos com AmneziaWG, QUIC e protocolos stealth
@@ -35,6 +35,7 @@ FUNCIONALIDADES ESSENCIAIS
 • Interruptor “kill switch” que evita fugas de dados
 • Experiência totalmente sem anúncios
 • Stack criptográfico de última geração
+
 
 PERFEITO PARA
 

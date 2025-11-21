@@ -1,4 +1,4 @@
-Novidades:
-- Adição da integração com biblioteca VPN
-- Tela de splash
+Quais as novidades:
+- Adicionar integração da biblioteca vpn
+- Tela de abertura
 - Lista de países

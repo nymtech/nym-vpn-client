@@ -4,7 +4,7 @@ Smetti di essere tracciato online. L’unico VPN che non può spiarti, anche se 
 
 NAVIGA SENZA LASCIARE TRACCIA
 
-Stufo di chiederti chi ti sta osservando? I VPN tradizionali possono teoricamente registrare la tua attività. NymVPN è fondamentalmente diverso: la nostra rete decentralizzata rende impossibile il logging centralizzato per progettazione. Non è solo una “politica no-logs” — è un’architettura “che non può loggare”.
+Stanco di chiedersi chi sta guardando? I VPN tradizionali possono teoricamente registrare la tua attività. NymVPN è fondamentalmente diverso: la nostra rete decentralizzata rende impossibile il logging centralizzato per progettazione. Non è solo una “politica no-logs” — è un’architettura “che non può loggare”.
 
 ✓ Vero anonimato: paga con cripto o contanti, nessuna email richiesta
 ✓ 50+ paesi, centinaia di server indipendenti
@@ -16,7 +16,7 @@ SCEGLI IL TUO LIVELLO DI PRIVACY
 ⚡ Modalità Veloce – velocità fulminee per streaming e navigazione. Default 2-hop: un server ti conosce, un altro sa cosa fai — ma mai entrambi.
 🔒 Modalità Anonima – Privacy massima attraverso un mixnet a 5-hop con generazione di rumore e fino a 5 livelli di crittografia. Progettato per resistere anche all’analisi del traffico alimentata da IA e alla sorveglianza avanzata.
 
-PERCHÉ NymVPN È DIVERSO
+PERCHÉ NYMVPN È DIVERSO
 
 • Protezione dei metadati – A differenza di altri VPN, non proteggiamo solo i tuoi dati ma anche i modelli che lasci
 • Resistente alla censura – Accedi a contenuti bloccati in ambienti restrittivi con AmneziaWG, QUIC e protocolli stealth
@@ -35,6 +35,7 @@ CARATTERISTICHE ESSENZIALI
 • Kill switch che previene perdite di dati
 • Esperienza completamente priva di pubblicità
 • Stack crittografico all’avanguardia
+
 
 PERFETTO PER
 

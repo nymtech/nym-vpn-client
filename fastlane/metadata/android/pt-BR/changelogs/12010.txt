@@ -1,0 +1,4 @@
+Quais as novidades:
+- Seleção de gateway individual
+- Correção de erros
+- Melhorias na otimização

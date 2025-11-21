@@ -1,3 +1,3 @@
-Neuigkeiten:
-- Fehler bei der Zwischenspeicherung der Länder behoben
-- Performanceoptimierung
+Was ist neu:
+- Problem beim Caching des Landes beheben
+- Hilt Leistungsverbesserung

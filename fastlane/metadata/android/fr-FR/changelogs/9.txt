@@ -1,4 +1,4 @@
-Nouveautés :
-- Correction d'un bug d'animation de navigation
-- Correction d'un bug de l'écran d'identification
-- Correction de l'API de liste de pays et de la recherche
+Quoi de neuf :
+- Correction du bug d'animation de navigation
+- Corrige les bugs de l'écran d'authentification
+- Corrige la liste des pays API et recherche

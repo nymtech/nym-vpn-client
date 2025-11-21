@@ -1,5 +1,5 @@
 Yenilikler:
 - Kullanıcı arayüzü iyileştirmeleri
-- Önbellekleme iyileştirmeleri
+- Önbellek geliştirmeleri
 - Harbour Master entegrasyonu eklendi
-- Hızlı ayarlar simgesi durum senkronizasyonu iyileştirildi
+- Hızlı geçiş düğmesi durumu senkronizasyonu iyileştirildi

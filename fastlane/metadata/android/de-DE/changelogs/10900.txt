@@ -1,2 +1,2 @@
-Neuigkeiten:
-- Fehler in der Navigation korrigiert
+Was ist neu:
+- Navigationsfehler beheben

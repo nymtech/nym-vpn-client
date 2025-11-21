@@ -1,3 +1,3 @@
-Nouveautés :
-- Ajout des langues PT, FR, ES
-- Correction de bugs
+Quoi de neuf :
+- Ajout de langues PT, FR, ES
+- Corrections de bugs

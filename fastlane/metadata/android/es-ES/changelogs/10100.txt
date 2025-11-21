@@ -1,4 +1,4 @@
 Novedades:
-- Mejoras en la interfaz de usuario
-- Adición de recorte de credenciales
-- Corrección temporal para errores de conexión
+- Mejoras en la interfaz
+Agregar recorte de credenciales
+- Arreglo temporal para errores de conexión

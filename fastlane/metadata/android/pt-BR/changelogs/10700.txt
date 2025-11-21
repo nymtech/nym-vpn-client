@@ -1,5 +1,5 @@
-Novidades:
-- Seletor de idiomas no aplicativo
+Quais as novidades:
+- Seletor de idioma do aplicativo
 - Mais idiomas
 - Melhoria na sincronização de status
-- Diversas correções de bugs e melhorias
+- Várias correções de erros e melhorias
