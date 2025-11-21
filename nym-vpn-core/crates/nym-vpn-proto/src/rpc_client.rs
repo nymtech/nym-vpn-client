@@ -130,6 +130,19 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_custom_dns(&mut self, ips: Option<Vec<String>>) -> Result<()> {
+        let request = proto::CustomDns {
+            ips: ips.unwrap_or_default(),
+        };
+
+        self.0
+            .set_custom_dns(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_network(&mut self, network: String) -> Result<()> {
         self.0
             .set_network(network)
@@ -541,10 +554,12 @@ impl RpcClient {
 
 pub fn get_rpc_socket_path() -> PathBuf {
     #[cfg(unix)]
-    return PathBuf::from("/var/run/nym-vpn.sock");
+    let path = "/var/run/nym-vpn.sock";
 
     #[cfg(windows)]
-    return PathBuf::from(r"\\.\pipe\nym-vpn");
+    let path = r"\\.\pipe\nym-vpn";
+
+    PathBuf::from(path)
 }
 
 #[derive(thiserror::Error, Debug)]

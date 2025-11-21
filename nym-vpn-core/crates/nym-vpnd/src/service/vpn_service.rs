@@ -1,10 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, pin::Pin};
-
 use bip39::Mnemonic;
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use std::{net::IpAddr, path::PathBuf, pin::Pin};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
@@ -66,6 +65,7 @@ pub enum VpnServiceCommand {
     SetAllowLan(oneshot::Sender<()>, bool),
     SetEnableBridges(oneshot::Sender<()>, bool),
     SetResidentialExit(oneshot::Sender<()>, bool),
+    SetCustomDns(oneshot::Sender<()>, Option<Vec<IpAddr>>),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -736,6 +736,10 @@ impl NymVpnService {
                 self.handle_set_residential_exit(residential_exit).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetCustomDns(tx, custom_dns) => {
+                self.handle_set_custom_dns(custom_dns).await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -911,6 +915,11 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
+    async fn handle_set_custom_dns(&mut self, custom_dns: Option<Vec<IpAddr>>) {
+        self.config_manager.set_custom_dns(custom_dns).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
         let mut global_config =
             GlobalConfig::read_from_default_config_dir()
@@ -1027,6 +1036,7 @@ impl NymVpnService {
 
         let entry_point = entry.unwrap_or(self.config_manager.config().entry_point.clone());
         let exit_point = exit.unwrap_or(self.config_manager.config().exit_point.clone());
+        let custom_dns = options.dns.as_ref().map(|ip_addr| vec![ip_addr.clone()]);
         let config = VpnServiceConfig {
             entry_point,
             exit_point,
@@ -1034,7 +1044,6 @@ impl NymVpnService {
             enable_two_hop: options.enable_two_hop,
             enable_bridges: options.enable_bridges,
             netstack: options.netstack,
-            dns: options.dns,
             allow_lan: true, // always true to support legacy behavior
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
@@ -1042,6 +1051,7 @@ impl NymVpnService {
             disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
             residential_exit: false,
+            custom_dns,
         };
 
         self.config_manager.set_config(config).await;

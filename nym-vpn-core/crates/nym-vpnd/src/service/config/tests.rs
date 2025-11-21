@@ -1,0 +1,485 @@
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use super::*;
+use nym_vpn_lib_types::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
+use std::{net::IpAddr, str::FromStr};
+use tempfile::tempdir;
+
+// Test migrating from TOML to the latest JSON version
+async fn run_migrate_toml_test(
+    toml_content: &str,
+    json_latest_content: &str,
+    entry_point: EntryPoint,
+    exit_point: ExitPoint,
+) {
+    let temp_dir = tempdir().unwrap();
+    let config_path = temp_dir.path();
+
+    let network_config_path = config_path.join("tulips");
+    let _ = fs::create_dir_all(&network_config_path).await;
+    let toml_path = network_config_path.join(DEFAULT_CONFIG_FILE_TOML);
+    let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
+
+    // Write the TOML config file
+    fs::write(&toml_path, toml_content).await.unwrap();
+
+    // Read the TOML config and migrate it to latest JSON version.  The latest version of the
+    // JSON will be written straight back to disk.
+    let config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+        .await
+        .unwrap();
+    let config = config_manager.config();
+    std::assert_eq!(config.entry_point, entry_point);
+    std::assert_eq!(config.exit_point, exit_point);
+
+    // The TOML file should be deleted and replaced with a JSON version
+    assert!(!toml_path.exists());
+    assert!(json_path.exists());
+
+    // Read the JSON config
+    let config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+        .await
+        .unwrap();
+    let config = config_manager.config();
+    std::assert_eq!(config.entry_point, entry_point);
+    std::assert_eq!(config.exit_point, exit_point);
+
+    // Check the JSON is the right version and all snake-case
+    let read_json_content = fs::read_to_string(&json_path).await.unwrap();
+    std::assert_eq!(json_latest_content, read_json_content);
+}
+
+// Test migrating from an old JSON version to the latest JSON version
+async fn run_migrate_json_test(json_old_content: &str, json_latest_content: &str) {
+    let temp_dir = tempdir().unwrap();
+    let config_path = temp_dir.path();
+
+    let network_config_path = config_path.join("tulips");
+    let _ = fs::create_dir_all(&network_config_path).await;
+    let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
+
+    // Write the old JSON config file
+    fs::write(&json_path, json_old_content).await.unwrap();
+
+    // Read the old JSON config and migrate it to latest JSON.  The latest version of the
+    // JSON will be written straight back to disk.
+    let _config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+        .await
+        .unwrap();
+
+    // Check the JSON is the right version and all snake-case (ignore whitespace/order)
+    let read_json_content = fs::read_to_string(&json_path).await.unwrap();
+    let expected: serde_json::Value = serde_json::from_str(json_latest_content).unwrap();
+    let actual: serde_json::Value = serde_json::from_str(&read_json_content).unwrap();
+    std::assert_eq!(expected, actual);
+}
+
+// Test serializing and deserializing the config produces the same result
+async fn run_serialize_test(config: VpnServiceConfig) {
+    let temp_dir = tempdir().unwrap();
+    let config_path = temp_dir.path();
+
+    let network_config_path = config_path.join("tulips");
+
+    // Write the config to disk
+    let mut config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+        .await
+        .unwrap();
+    config_manager.set_config(config.clone()).await;
+    assert!(config_manager.write_to_file().await);
+    drop(config_manager);
+
+    // Read it back and compare it
+    let config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+        .await
+        .unwrap();
+    let read_config = config_manager.config();
+    std::assert_eq!(&config, read_config);
+}
+
+// Test reading a broken config falls back to a default config
+async fn run_fallback_test(broken_json_content: &str) {
+    let temp_dir = tempdir().unwrap();
+    let config_path = temp_dir.path();
+
+    let network_config_path = config_path.join("tulips");
+    let _ = fs::create_dir_all(&network_config_path).await;
+    let json_path = network_config_path.join(DEFAULT_CONFIG_FILE_JSON);
+
+    // Write the broken JSON config file
+    fs::write(&json_path, broken_json_content).await.unwrap();
+
+    // Ensure reading the broken config falls back to default config
+    let config_manager = VpnServiceConfigManager::new(&network_config_path, None)
+        .await
+        .unwrap();
+
+    std::assert_eq!(config_manager.config(), &VpnServiceConfig::default());
+}
+
+#[tokio::test]
+async fn test_service_config_migrate_toml_location() {
+    let toml_content = r#"
+[entry_point.Location]
+location = "FR"
+
+[exit_point.Location]
+location = "BE"
+"#;
+
+    let json_content = r#"{
+  "version": "v3",
+  "entry_point": {
+    "country": {
+      "two_letter_iso_country_code": "FR"
+    }
+  },
+  "exit_point": {
+    "country": {
+      "two_letter_iso_country_code": "BE"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": false,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "custom_dns": null
+}"#;
+
+    let entry_point = EntryPoint::Country {
+        two_letter_iso_country_code: "FR".to_string(),
+    };
+
+    let exit_point = ExitPoint::Country {
+        two_letter_iso_country_code: "BE".to_string(),
+    };
+
+    run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
+}
+
+#[tokio::test]
+async fn test_service_config_migrate_gateway() {
+    let toml_content = r#"
+[entry_point.Gateway]
+identity = [ 92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 194, 140, 95, 21, 196, 121, 130, 232, 195, 71, 173, 66, 124, 5, 14, 114, 107, ]
+
+[exit_point.Gateway]
+identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136, 114, 215, 90, 236, 161, 231, 176, 140, 190, 147, 182, 64, 171, 145, 31, 245, 186, ]
+"#;
+
+    let json_content = r#"{
+  "version": "v3",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "gateway": {
+      "identity": "7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": false,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "custom_dns": null
+}"#;
+
+    let entry_point = EntryPoint::Gateway {
+        identity: nym_vpn_lib_types::NodeIdentity::from_str(
+            "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
+        )
+        .unwrap(),
+    };
+
+    let exit_point = ExitPoint::Gateway {
+        identity: nym_vpn_lib_types::NodeIdentity::from_str(
+            "7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj",
+        )
+        .unwrap(),
+    };
+
+    run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
+}
+
+#[tokio::test]
+#[ignore] // Temporarily disabled due to issues with ExitPoint::Address (de)serialisation.
+async fn test_service_config_migrate_toml_address() {
+    let toml_content = r#"
+[entry_point.Gateway]
+identity = [92, 25, 33, 77, 4, 117, 82, 117, 246, 239, 233, 11, 129, 183, 86, 194, 140, 95, 21, 196, 121, 130, 232, 195, 71, 173, 66, 124, 5, 14, 114, 107]
+
+[exit_point.Address]
+address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 188, 35, 50, 144, 234, 226, 114, 99, 40, 10, 102, 200, 170, 19, 162, 86, 134, 84, 20, 195, 193, 42, 194, 230, 153, 163, 90, 214, 216, 196, 166, 87, 132, 206, 215, 91, 89, 51, 98, 72, 156, 159, 248, 109, 225, 152, 204, 80, 97, 9, 62, 22, 108, 155, 95, 153, 29, 143, 48, 208, 5, 101, 231, 176, 93, 107, 229, 11, 225, 145, 1, 14, 219, 44, 88, 199, 206, 40, 185, 150, 151]
+"#;
+
+    let json_content = r#"{
+  "version": "v3",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+            "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "disable_ipv6": false,
+  "enable_two_hop": false,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "custom_dns": null
+}"#;
+
+    let entry_point = EntryPoint::Gateway {
+        identity: NodeIdentity::from_str("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42").unwrap(),
+    };
+
+    let exit_point = ExitPoint::Address {
+            address: Box::new(
+                Recipient::from_str("MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e").unwrap(),
+            )
+        };
+
+    run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
+}
+
+#[tokio::test]
+async fn test_service_config_migrate_toml_random() {
+    let toml_content = r#"
+entry_point = "Random"
+exit_point = "Random"
+"#;
+
+    let json_content = r#"{
+  "version": "v3",
+  "entry_point": "random",
+  "exit_point": "random",
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": false,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "custom_dns": null
+}"#;
+
+    let entry_point = EntryPoint::Random;
+
+    let exit_point = ExitPoint::Random;
+
+    run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
+}
+
+#[tokio::test]
+async fn test_service_config_migrate_from_v1() {
+    let json_v1_content = r#"{
+  "version": "v1",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  }
+}"#;
+
+    let json_latest_content = r#"{
+  "version": "v3",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": false,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "custom_dns": null
+}"#;
+
+    run_migrate_json_test(json_v1_content, json_latest_content).await;
+}
+
+#[tokio::test]
+async fn test_service_config_migrate_from_v2() {
+    let json_v2_content = r#"{
+  "version": "v2",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "dns": "192.168.50.1",
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": false,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false
+}"#;
+
+    let json_latest_content = r#"{
+  "version": "v3",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": false,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "custom_dns": ["192.168.50.1"]
+}"#;
+
+    run_migrate_json_test(json_v2_content, json_latest_content).await;
+}
+
+#[tokio::test]
+async fn test_service_config_fallback_default_v1() {
+    let broken_json_content = r#"{
+  "version": "v1",
+  "entrXy_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  }
+}"#;
+    run_fallback_test(broken_json_content).await;
+}
+
+#[tokio::test]
+async fn test_service_config_fallback_default_v2() {
+    let broken_json_content = r#"{
+  "version": "v3",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "dns": null,
+  "disable_ipv6": false,
+  "enable_two_hop": false,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false
+}"#;
+
+    run_fallback_test(broken_json_content).await;
+}
+
+#[tokio::test]
+async fn test_service_config_serialize_defaults() {
+    let config = VpnServiceConfig::default();
+    run_serialize_test(config).await;
+}
+
+#[tokio::test]
+async fn test_service_config_serialize_full() {
+    let config = VpnServiceConfig {
+        entry_point: EntryPoint::Country {
+            two_letter_iso_country_code: "US".to_string(),
+        },
+        exit_point: ExitPoint::Gateway {
+            identity: NodeIdentity::from_str("7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj")
+                .unwrap(),
+        },
+        allow_lan: true,
+        disable_ipv6: true,
+        enable_two_hop: true,
+        enable_bridges: false,
+        netstack: true,
+        disable_poisson_rate: true,
+        disable_background_cover_traffic: true,
+        min_mixnode_performance: Some(55u8),
+        min_gateway_mixnet_performance: Some(64u8),
+        min_gateway_vpn_performance: Some(1u8),
+        residential_exit: true,
+        custom_dns: Some(vec![
+            IpAddr::from_str("192.168.50.1").unwrap(),
+            IpAddr::from_str("2001:db8:85a3::8a2e:370:7334").unwrap(),
+        ]),
+    };
+    run_serialize_test(config).await;
+}
