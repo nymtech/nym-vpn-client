@@ -27,7 +27,7 @@ jobs:
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install system dependencies
         run: |
