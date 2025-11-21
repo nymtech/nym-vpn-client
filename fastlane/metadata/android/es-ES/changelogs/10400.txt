@@ -1,4 +1,4 @@
 Novedades:
-- Mejora del registro en archivos
+- Registro mejorado en el archivo
 - Corrección de errores
 - Otras eficiencias y mejoras

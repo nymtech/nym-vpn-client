@@ -1,5 +1,5 @@
-Novidades:
-- Melhorias na interface do usuário
-- Melhorias no cache
-- Adição da integração com o Harbour Master
-- Melhoria na sincronização de estado do atalho rápido
+Quais as novidades:
+- Melhorias na UI
+- Melhorias de cache
+- Integração de harbour master adicionada
+- Sincronização rápida do bloco foi melhorada

@@ -1,2 +1,2 @@
-Novidades:
-Correção de falha ao rodar em segundo plano
+Quais as novidades:
+- Correção da falha do plano de fundo

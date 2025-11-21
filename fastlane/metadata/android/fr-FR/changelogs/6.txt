@@ -1,4 +1,4 @@
-Nouveautés :
-- Ajout d'un écran de logs
-- Amélioration de l'affichage de l'état du VPN
-- Ajout de Sentry
+Quoi de neuf :
+- Ajouter un écran de logs
+- Améliorer l'affichage de l'état du VPN
+- Ajouter un sentinelle

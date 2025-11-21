@@ -106,7 +106,7 @@
 	<string name="welcome_to_nym">خوش آمدید به NymVPN</string>
 	<string name="get_access_code">کد دسترسی دریافت کنید</string>
 	<string name="access_code">۲۴-کلمه-کد-دسترسی</string>
-    <string name="get_in_touch">با ما در ارتباط باشید</string>
+	<string name="get_in_touch">با ما در ارتباط باشید</string>
 	<string name="device_id">شناسه دستگاه:</string>
 	<string name="loading">در حال بارگذاری</string>
 	<string name="offline">اینترنت وجود ندارد</string>

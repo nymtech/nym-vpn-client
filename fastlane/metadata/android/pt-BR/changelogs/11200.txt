@@ -1,2 +1,2 @@
-Novidade:
-- Correção do bug de travamento dos logs
+Quais as novidades:
+- Correção de erro nos logs

@@ -1,0 +1,7 @@
+Was ist neu:
+- Unterstützung für thematische Symbole hinzugefügt
+- Verbindungsstatus zeigt jetzt detailliertere Informationen an
+- Der Servername wird unter dem Land auf dem Hauptbildschirm angezeigt
+- UI-Aktualisierungen nach dem Abmelden behoben
+- Server-Detailansicht hinzugefügt
+- Aktualisierungen zur Zensurbekämpfung

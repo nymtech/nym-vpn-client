@@ -106,7 +106,7 @@
 	<string name="welcome_to_nym">Bienvenue sur NymVPN</string>
 	<string name="get_access_code">Obtenir le code d\'accès</string>
 	<string name="access_code">Code d\'accès 24 mots</string>
-    <string name="get_in_touch">Contactez-nous</string>
+	<string name="get_in_touch">Contactez-nous</string>
 	<string name="device_id">ID de l\'appareil :</string>
 	<string name="loading">En cours de chargement</string>
 	<string name="offline">Pas d\'internet</string>

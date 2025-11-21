@@ -1,4 +1,4 @@
-Novidades:
+Quais as novidades:
 - Adicionado suporte para VPN sempre ativa
-- Adicionado suporte ao bloco Configurações rápidas
-- Correção de bug com conexão automática na inicialização
+- Adicionado suporte para bloco de Configurações Rápidas
+- Corrigido erro com auto-conexão na inicialização

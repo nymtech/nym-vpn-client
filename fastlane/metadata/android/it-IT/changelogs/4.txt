@@ -1,4 +1,4 @@
-What's new:
+Cosa c'è di nuovo:
 - Refactor VPN client
-- Add image assets
-- Fix UI state sync with VPN
+- Aggiungi risorse immagine
+- Correggi la sincronizzazione dello stato dell'UI con la VPN

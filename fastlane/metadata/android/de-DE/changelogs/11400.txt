@@ -1,0 +1,6 @@
+Was ist neu:
+- Anonyme Zugangsdaten hinzugefügt
+- Verbesserte Tunnelsicherheit
+- UI-Aktualisierungen
+- Verbesserte Handhabung von Netzwerkänderungen
+- Andere Korrekturen und Verbesserungen

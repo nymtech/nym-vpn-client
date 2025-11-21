@@ -1,0 +1,3 @@
+Yenilikler:
+Yerel Ağ Trafiğini Yönlendirmeme özelliği
+- Hata düzeltmeleri ve iyileştirmeler.

@@ -1,2 +1,2 @@
 Novedades:
-- Corrección de fallos en los registros
+- Corregir error de bloqueo de registros

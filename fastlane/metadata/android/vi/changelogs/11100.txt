@@ -1,0 +1,4 @@
+Có gì mới:
+- Cải thiện pin
+- Sửa lỗi máy quét QR
+- Sửa nhiều lỗi và cải tiến khác nhau

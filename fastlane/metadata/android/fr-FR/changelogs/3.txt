@@ -1,4 +1,4 @@
-Nouveautés :
-- Ajout de l'intégration de la bibliothèque VPN
+Quoi de neuf :
+- Ajouter une intégration à la bibliothèque VPN
 - Écran de démarrage
 - Liste des pays

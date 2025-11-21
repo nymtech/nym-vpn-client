@@ -1,4 +1,4 @@
 Novedades:
-- Corrección de errores del registrador
+- Corrección de errores de Logger
 - Mejoras de estabilidad
 - Mensajes de actualización del cliente

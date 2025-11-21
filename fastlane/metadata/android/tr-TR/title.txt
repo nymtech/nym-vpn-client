@@ -1,1 +1,1 @@
-NymVPN: Özel Mixnet
+NymVPN: Gizli Mixnet

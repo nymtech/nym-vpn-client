@@ -1,1 +1,1 @@
-NymVPN: Частная Mixnet
+NymVPN: Приватный микснет

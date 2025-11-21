@@ -1,4 +1,4 @@
-Nouveautés :
-- Amélioration de la journalisation dans un fichier
+Quoi de neuf :
+- Amélioration de la journalisation vers un fichier
 - Corrections de bugs
-- Autres gains d'efficacité et améliorations
+- Autres efficiences et améliorations

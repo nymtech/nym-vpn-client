@@ -106,7 +106,7 @@
 	<string name="welcome_to_nym">Ласкаво просимо до NymVPN</string>
 	<string name="get_access_code">Отримати код доступу</string>
 	<string name="access_code">24-слівний код доступу</string>
-    <string name="get_in_touch">Зв\'яжіться з нами</string>
+	<string name="get_in_touch">Зв\'яжіться з нами</string>
 	<string name="device_id">Ідентифікатор пристрою:</string>
 	<string name="loading">Завантаження</string>
 	<string name="offline">Немає інтернету</string>

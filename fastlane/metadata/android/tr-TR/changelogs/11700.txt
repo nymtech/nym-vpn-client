@@ -1,2 +1,2 @@
 Yenilikler:
-Tekrarlanabilir derlemeler
+- Tekrar edilebilir derlemeler

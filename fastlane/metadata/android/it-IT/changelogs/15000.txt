@@ -1,0 +1,6 @@
+Cosa c'è di nuovo:
+- Aggiornamenti e miglioramenti minori dell'interfaccia utente
+- Correzione per la corretta apertura dell'URL 
+- Migliori messaggi di errore in bassa connettività
+- Prompts quando il tempo del dispositivo non è sincronizzato
+- Miglioramenti della connettività

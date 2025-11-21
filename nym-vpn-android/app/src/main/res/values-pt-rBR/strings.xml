@@ -67,7 +67,7 @@
 	<string name="exit_gateway_locations_sub_item_2_desc">Os locais exibidos são</string>
 	<string name="exit_gateway_locations_sub_item_2_desc_link_text">determinado a partir de endereços IP</string>
 	<string name="exit_gateway_locations_sub_item_2_desc_after_link">e podem não refletir as localizações físicas exatas.</string>
-	<string name="ok">Certo</string>
+	<string name="ok">OK</string>
 	<string name="vpn_connection">Conexão VPN</string>
 	<string name="vpn_permission_message">Confirme a solicitação de conexão VPN tentando se reconectar.</string>
 	<string name="try_reconnecting">Tente reconectar</string>
@@ -106,14 +106,14 @@
 	<string name="welcome_to_nym">Bem-vindo ao NymVPN</string>
 	<string name="get_access_code">Obter Código de Acesso</string>
 	<string name="access_code">Código de acesso de 24 palavras</string>
-    <string name="get_in_touch">Entre em contato com o suporte</string>
+	<string name="get_in_touch">Entre em contato com o suporte</string>
 	<string name="device_id">ID do dispositivo:</string>
 	<string name="loading">Carregando</string>
 	<string name="offline">Sem internet</string>
 	<string name="no_internet">Seu dispositivo não tem conexão com a Internet</string>
 	<string name="waiting_for_connection">Será conectado quando o dispositivo ficar online</string>
-	<string name="two_hop_explanation">Experimente a velocidade máxima com a conectividade de 2 servidores. Esse modo aproveita o AmneziaWG, uma versão resistente à censura do WireGuard, ideal para navegação rápida, streaming e compartilhamento de arquivos.</string>
-	<string name="two_hop_title">Rápido (WireGuard<small>*</small>)</string>
+	<string name="two_hop_explanation">Navegação em alta velocidade (mais de 250 Mbps) com roteamento de 2 saltos. Utiliza o AmneziaWG, uma versão resistente à censura do WireGuard, ideal para streaming, navegação rápida e downloads.</string>
+	<string name="two_hop_title">Rápido (WireGuard)</string>
 	<string name="disabled_while_connecting">Desativado durante a conexão com a VPN</string>
 	<string name="exit_location">Local de saída</string>
 	<string name="entry_location">Local de entrada</string>
@@ -154,7 +154,7 @@
 	<string name="join_telegram">Junte-se a nós no Telegram</string>
 	<!-- Common -->
 	<string name="button_done">Concluído</string>
-	<string name="stream_display">Tela da transmissão</string>
+	<string name="stream_display">Tela de transmissão</string>
 	<string name="streaming_server_banner_title">Novo: Descubra streaming-\nservidores otimizados (▶️)</string>
 	<string name="streaming_server_banner_action">Verificar novos servidores\nde saída</string>
 	<string name="quic_gatway_filter_info_msg">Mostrar apenas localizações e servidores rápidos que suportam o protocolo QUIC. Para revelar todos os servidores, desative o QUIC</string>
