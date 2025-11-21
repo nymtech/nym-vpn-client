@@ -15,8 +15,7 @@ use nym_gateway_directory::Gateway;
 
 use crate::tunnel_state_machine::tunnel::SelectedGateways;
 use nym_vpn_account_controller::AccountCommandSender;
-use nym_wg_metadata_client::error::MetadataClientError;
-use nym_wg_metadata_client::{MetadataClient, TunUpReceiver};
+use nym_wg_metadata_client::{MetadataClient, TunUpReceiver, error::MetadataClientError};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use tracing::{debug, error, info, trace, warn};
 use url::Url;

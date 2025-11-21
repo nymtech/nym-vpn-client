@@ -8,7 +8,6 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 
-use crate::state_machine::UpgradeModeState;
 use crate::{
     SharedAccountState,
     commands::{
@@ -17,7 +16,7 @@ use crate::{
     },
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
-        OfflineState, PrivateAccountControllerState, ReadyState, SyncingState,
+        OfflineState, PrivateAccountControllerState, ReadyState, SyncingState, UpgradeModeState,
     },
     storage::VpnCredentialStorage,
 };
