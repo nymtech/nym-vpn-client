@@ -204,7 +204,7 @@ function Home() {
         initial={{ opacity: 0, x: '-1rem' }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
-        className="sm:max-w-lg h-full flex flex-col"
+        className="h-full flex flex-col"
         data-testid="home-container"
       >
         <div className="grow" data-testid="home-tunnel-state-container">

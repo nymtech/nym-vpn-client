@@ -73,7 +73,7 @@ function Login() {
 
   return (
     <PageAnim
-      className="xs:max-w-lg h-full flex flex-col justify-end items-center gap-6 select-none cursor-default"
+      className="h-full flex flex-col justify-end items-center gap-6 select-none cursor-default"
       data-testid="login-page"
     >
       <div className="grow w-full" />

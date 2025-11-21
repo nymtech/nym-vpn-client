@@ -34,7 +34,7 @@ function Settings() {
   };
 
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6">
       <Account />
       <SettingsGroup
         settings={[

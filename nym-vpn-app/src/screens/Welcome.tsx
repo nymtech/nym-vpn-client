@@ -59,7 +59,7 @@ function Welcome() {
 
   return (
     <PageAnim
-      className="xs:max-w-lg h-full flex flex-col justify-end items-center gap-4 select-none cursor-default"
+      className="h-full flex flex-col justify-end items-center gap-4 select-none cursor-default"
       data-testid="welcome-page"
     >
       <div
