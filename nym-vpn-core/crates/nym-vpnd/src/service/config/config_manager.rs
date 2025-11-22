@@ -4,7 +4,7 @@
 use crate::service::{
     config::{
         DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
-        VpnServiceConfigVersion, legacy::VpnServiceConfigExtLegacy,
+        VpnServiceConfigVersion, legacy,
     },
     error::{Error, Result},
     read_json_config_file, read_toml_config_file, write_json_config_file,
@@ -18,7 +18,6 @@ use nym_vpn_lib::{
         WireguardMultihopMode, WireguardTunnelOptions,
     },
 };
-use nym_vpn_lib_types::{EntryPoint, ExitPoint, TunnelEvent, TunnelType, VpnServiceConfig};
 use std::{
     net::IpAddr,
     path::{Path, PathBuf},
@@ -27,17 +26,17 @@ use tokio::{fs, sync::broadcast};
 
 pub struct VpnServiceConfigManager {
     json_config_path: PathBuf,
-    config: VpnServiceConfig,
+    config: nym_vpn_lib_types::VpnServiceConfig,
 
     // Used to send `ConfigChanged` events when the config is updated.
     // It's only optional to simplify testing.
-    tunnel_event_tx: Option<broadcast::Sender<TunnelEvent>>,
+    tunnel_event_tx: Option<broadcast::Sender<nym_vpn_lib_types::TunnelEvent>>,
 }
 
 impl VpnServiceConfigManager {
     pub async fn new(
         network_config_dir: &Path,
-        tunnel_event_tx: Option<broadcast::Sender<TunnelEvent>>,
+        tunnel_event_tx: Option<broadcast::Sender<nym_vpn_lib_types::TunnelEvent>>,
     ) -> Result<Self> {
         let toml_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_TOML);
         let json_config_path = network_config_dir.join(DEFAULT_CONFIG_FILE_JSON);
@@ -50,7 +49,7 @@ impl VpnServiceConfigManager {
                         "Failed to read service config file {}; using default",
                         json_config_path.display()
                     );
-                    (VpnServiceConfig::default(), None)
+                    (nym_vpn_lib_types::VpnServiceConfig::default(), None)
                 }
             };
 
@@ -79,25 +78,25 @@ impl VpnServiceConfigManager {
         Ok(config_manager)
     }
 
-    pub fn config(&self) -> &VpnServiceConfig {
+    pub fn config(&self) -> &nym_vpn_lib_types::VpnServiceConfig {
         &self.config
     }
 
-    pub async fn set_config(&mut self, config: VpnServiceConfig) {
+    pub async fn set_config(&mut self, config: nym_vpn_lib_types::VpnServiceConfig) {
         if self.config != config {
             self.config = config;
             self.save_config_and_send_event().await;
         }
     }
 
-    pub async fn set_entry_point(&mut self, entry_point: EntryPoint) {
+    pub async fn set_entry_point(&mut self, entry_point: nym_vpn_lib_types::EntryPoint) {
         if self.config.entry_point != entry_point {
             self.config.entry_point = entry_point;
             self.save_config_and_send_event().await;
         }
     }
 
-    pub async fn set_exit_point(&mut self, exit_point: ExitPoint) {
+    pub async fn set_exit_point(&mut self, exit_point: nym_vpn_lib_types::ExitPoint) {
         if self.config.exit_point != exit_point {
             self.config.exit_point = exit_point;
             self.save_config_and_send_event().await;
@@ -207,7 +206,9 @@ impl VpnServiceConfigManager {
 
         // Notify all clients that the config has changed
         if let Some(tx) = self.tunnel_event_tx.as_ref() {
-            match tx.send(TunnelEvent::ConfigChanged(Box::new(self.config.clone()))) {
+            match tx.send(nym_vpn_lib_types::TunnelEvent::ConfigChanged(Box::new(
+                self.config.clone(),
+            ))) {
                 Ok(recv_count) => {
                     tracing::info!("Sent config changed event to {recv_count} receivers");
                 }
@@ -222,7 +223,10 @@ impl VpnServiceConfigManager {
     async fn read_from_file(
         toml_config_path: &Path,
         json_config_path: &Path,
-    ) -> Result<(VpnServiceConfig, Option<VpnServiceConfigVersion>)> {
+    ) -> Result<(
+        nym_vpn_lib_types::VpnServiceConfig,
+        Option<VpnServiceConfigVersion>,
+    )> {
         let (config, version) = if json_config_path.exists() {
             let ext_config = read_json_config_file::<VpnServiceConfigExt>(json_config_path)
                 .await
@@ -234,24 +238,25 @@ impl VpnServiceConfigManager {
                 json_config_path.display()
             );
 
-            let config = VpnServiceConfig::try_from(ext_config).map_err(Error::ConfigSetup)?;
+            let config = nym_vpn_lib_types::VpnServiceConfig::try_from(ext_config)
+                .map_err(Error::ConfigSetup)?;
 
             (config, Some(version))
         } else if toml_config_path.exists() {
-            let legacy_config =
-                read_toml_config_file::<VpnServiceConfigExtLegacy>(toml_config_path)
-                    .await
-                    .map_err(Error::ConfigSetup)?;
+            let legacy_config = read_toml_config_file::<legacy::VpnServiceConfig>(toml_config_path)
+                .await
+                .map_err(Error::ConfigSetup)?;
 
             tracing::info!("Read service config from {}", toml_config_path.display());
 
-            let config = VpnServiceConfig::try_from(legacy_config).map_err(Error::ConfigSetup)?;
+            let config = nym_vpn_lib_types::VpnServiceConfig::try_from(legacy_config)
+                .map_err(Error::ConfigSetup)?;
 
             (config, None)
         } else {
             tracing::info!("Using default service config");
 
-            (VpnServiceConfig::default(), None)
+            (nym_vpn_lib_types::VpnServiceConfig::default(), None)
         };
 
         Ok((config, version))
@@ -314,9 +319,9 @@ impl VpnServiceConfigManager {
         };
 
         let tunnel_type = if self.config.enable_two_hop {
-            TunnelType::Wireguard
+            nym_vpn_lib_types::TunnelType::Wireguard
         } else {
-            TunnelType::Mixnet
+            nym_vpn_lib_types::TunnelType::Mixnet
         };
 
         let dns = self

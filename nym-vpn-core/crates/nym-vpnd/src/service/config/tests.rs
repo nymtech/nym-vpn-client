@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::*;
-use nym_vpn_lib_types::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use std::{net::IpAddr, str::FromStr};
 use tempfile::tempdir;
 
@@ -10,8 +9,8 @@ use tempfile::tempdir;
 async fn run_migrate_toml_test(
     toml_content: &str,
     json_latest_content: &str,
-    entry_point: EntryPoint,
-    exit_point: ExitPoint,
+    entry_point: nym_vpn_lib_types::EntryPoint,
+    exit_point: nym_vpn_lib_types::ExitPoint,
 ) {
     let temp_dir = tempdir().unwrap();
     let config_path = temp_dir.path();
@@ -76,7 +75,7 @@ async fn run_migrate_json_test(json_old_content: &str, json_latest_content: &str
 }
 
 // Test serializing and deserializing the config produces the same result
-async fn run_serialize_test(config: VpnServiceConfig) {
+async fn run_serialize_test(config: nym_vpn_lib_types::VpnServiceConfig) {
     let temp_dir = tempdir().unwrap();
     let config_path = temp_dir.path();
 
@@ -115,7 +114,10 @@ async fn run_fallback_test(broken_json_content: &str) {
         .await
         .unwrap();
 
-    std::assert_eq!(config_manager.config(), &VpnServiceConfig::default());
+    std::assert_eq!(
+        config_manager.config(),
+        &nym_vpn_lib_types::VpnServiceConfig::default()
+    );
 }
 
 #[tokio::test]
@@ -154,11 +156,11 @@ location = "BE"
   "custom_dns": null
 }"#;
 
-    let entry_point = EntryPoint::Country {
+    let entry_point = nym_vpn_lib_types::EntryPoint::Country {
         two_letter_iso_country_code: "FR".to_string(),
     };
 
-    let exit_point = ExitPoint::Country {
+    let exit_point = nym_vpn_lib_types::ExitPoint::Country {
         two_letter_iso_country_code: "BE".to_string(),
     };
 
@@ -201,14 +203,14 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "custom_dns": null
 }"#;
 
-    let entry_point = EntryPoint::Gateway {
+    let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
         identity: nym_vpn_lib_types::NodeIdentity::from_str(
             "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
         )
         .unwrap(),
     };
 
-    let exit_point = ExitPoint::Gateway {
+    let exit_point = nym_vpn_lib_types::ExitPoint::Gateway {
         identity: nym_vpn_lib_types::NodeIdentity::from_str(
             "7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj",
         )
@@ -254,13 +256,16 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   "custom_dns": null
 }"#;
 
-    let entry_point = EntryPoint::Gateway {
-        identity: NodeIdentity::from_str("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42").unwrap(),
+    let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
+        identity: nym_vpn_lib_types::NodeIdentity::from_str(
+            "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
+        )
+        .unwrap(),
     };
 
-    let exit_point = ExitPoint::Address {
+    let exit_point = nym_vpn_lib_types::ExitPoint::Address {
             address: Box::new(
-                Recipient::from_str("MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e").unwrap(),
+                nym_vpn_lib_types::Recipient::from_str("MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e").unwrap(),
             )
         };
 
@@ -292,9 +297,8 @@ exit_point = "Random"
   "custom_dns": null
 }"#;
 
-    let entry_point = EntryPoint::Random;
-
-    let exit_point = ExitPoint::Random;
+    let entry_point = nym_vpn_lib_types::EntryPoint::Random;
+    let exit_point = nym_vpn_lib_types::ExitPoint::Random;
 
     run_migrate_toml_test(toml_content, json_content, entry_point, exit_point).await;
 }
@@ -451,19 +455,21 @@ async fn test_service_config_fallback_default_v2() {
 
 #[tokio::test]
 async fn test_service_config_serialize_defaults() {
-    let config = VpnServiceConfig::default();
+    let config = nym_vpn_lib_types::VpnServiceConfig::default();
     run_serialize_test(config).await;
 }
 
 #[tokio::test]
 async fn test_service_config_serialize_full() {
-    let config = VpnServiceConfig {
-        entry_point: EntryPoint::Country {
+    let config = nym_vpn_lib_types::VpnServiceConfig {
+        entry_point: nym_vpn_lib_types::EntryPoint::Country {
             two_letter_iso_country_code: "US".to_string(),
         },
-        exit_point: ExitPoint::Gateway {
-            identity: NodeIdentity::from_str("7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj")
-                .unwrap(),
+        exit_point: nym_vpn_lib_types::ExitPoint::Gateway {
+            identity: nym_vpn_lib_types::NodeIdentity::from_str(
+                "7fp3cmzCvgeRgbB1ycTnK6RokjHNqPmCCSBG23gyxshj",
+            )
+            .unwrap(),
         },
         allow_lan: true,
         disable_ipv6: true,

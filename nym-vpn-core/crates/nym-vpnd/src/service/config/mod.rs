@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod config_manager;
+mod entry_exit;
 mod legacy;
 mod v1;
 mod v2;
@@ -12,8 +13,6 @@ mod tests;
 
 pub use config_manager::VpnServiceConfigManager;
 
-use super::error::Result;
-use nym_vpn_lib_types::VpnServiceConfig;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     fmt,
@@ -82,7 +81,7 @@ impl TryFrom<&str> for NetworkEnvironments {
 // External, versioned, representation of the vpn service config file.
 //
 
-type VpnServiceConfigExtLatest = v3::VpnServiceConfigExtV3;
+type VpnServiceConfigExtLatest = v3::VpnServiceConfig;
 
 /// Represents the version of the vpn service config file.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -113,9 +112,9 @@ impl fmt::Display for VpnServiceConfigVersion {
 #[serde(tag = "version")]
 #[serde(rename_all = "snake_case")]
 enum VpnServiceConfigExt {
-    V1(v1::VpnServiceConfigExtV1),
-    V2(v2::VpnServiceConfigExtV2),
-    V3(v3::VpnServiceConfigExtV3),
+    V1(v1::VpnServiceConfig),
+    V2(v2::VpnServiceConfig),
+    V3(v3::VpnServiceConfig),
 }
 
 impl VpnServiceConfigExt {
@@ -128,23 +127,22 @@ impl VpnServiceConfigExt {
     }
 }
 
-impl TryFrom<VpnServiceConfigExt> for VpnServiceConfig {
+impl TryFrom<VpnServiceConfigExt> for nym_vpn_lib_types::VpnServiceConfig {
     type Error = ConfigSetupError;
 
     fn try_from(value: VpnServiceConfigExt) -> Result<Self, Self::Error> {
         match value {
-            VpnServiceConfigExt::V1(v1) => VpnServiceConfig::try_from(v1),
-            VpnServiceConfigExt::V2(v2) => VpnServiceConfig::try_from(v2),
-            VpnServiceConfigExt::V3(v3) => VpnServiceConfig::try_from(v3),
+            VpnServiceConfigExt::V1(v1) => nym_vpn_lib_types::VpnServiceConfig::try_from(v1),
+            VpnServiceConfigExt::V2(v2) => nym_vpn_lib_types::VpnServiceConfig::try_from(v2),
+            VpnServiceConfigExt::V3(v3) => nym_vpn_lib_types::VpnServiceConfig::try_from(v3),
         }
     }
 }
 
-impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExt {
+impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
     type Error = ConfigSetupError;
 
-    fn try_from(value: &VpnServiceConfig) -> Result<Self, Self::Error> {
-        // Always construct the latest external representation
+    fn try_from(value: &nym_vpn_lib_types::VpnServiceConfig) -> Result<Self, Self::Error> {
         let latest = VpnServiceConfigExtLatest::try_from(value)?;
         Ok(latest.into())
     }

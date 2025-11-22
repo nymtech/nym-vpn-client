@@ -5,18 +5,16 @@ use crate::service::{
     ConfigSetupError,
     config::{
         VpnServiceConfigExt, VpnServiceConfigExtLatest,
-        v2::{EntryPointExtV2, ExitPointExtV2},
+        entry_exit::v2::{EntryPoint, ExitPoint},
     },
-    error::Result,
 };
-use nym_vpn_lib_types::{EntryPoint, ExitPoint, VpnServiceConfig};
 use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, str::FromStr};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct VpnServiceConfigExtV3 {
-    entry_point: EntryPointExtV2,
-    exit_point: ExitPointExtV2,
+pub struct VpnServiceConfig {
+    entry_point: EntryPoint,
+    exit_point: ExitPoint,
     allow_lan: bool,
     disable_ipv6: bool,
     enable_two_hop: bool,
@@ -31,16 +29,16 @@ pub struct VpnServiceConfigExtV3 {
     custom_dns: Option<Vec<String>>,
 }
 
-impl From<VpnServiceConfigExtV3> for VpnServiceConfigExt {
-    fn from(v3: VpnServiceConfigExtV3) -> Self {
+impl From<VpnServiceConfig> for VpnServiceConfigExt {
+    fn from(v3: VpnServiceConfig) -> Self {
         VpnServiceConfigExt::V3(v3)
     }
 }
 
-impl TryFrom<VpnServiceConfigExtV3> for VpnServiceConfig {
+impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
     type Error = ConfigSetupError;
 
-    fn try_from(value: VpnServiceConfigExtV3) -> Result<Self, Self::Error> {
+    fn try_from(value: VpnServiceConfig) -> Result<Self, Self::Error> {
         let custom_dns: Option<Vec<IpAddr>> = value
             .custom_dns
             .map(|dns_list| {
@@ -54,9 +52,9 @@ impl TryFrom<VpnServiceConfigExtV3> for VpnServiceConfig {
             })
             .transpose()?;
 
-        let config = VpnServiceConfig {
-            entry_point: EntryPoint::try_from(value.entry_point)?,
-            exit_point: ExitPoint::try_from(value.exit_point)?,
+        let config = nym_vpn_lib_types::VpnServiceConfig {
+            entry_point: nym_vpn_lib_types::EntryPoint::try_from(value.entry_point)?,
+            exit_point: nym_vpn_lib_types::ExitPoint::try_from(value.exit_point)?,
             allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
@@ -74,14 +72,11 @@ impl TryFrom<VpnServiceConfigExtV3> for VpnServiceConfig {
     }
 }
 
-//
-// Note: impl TryFrom<&VpnServiceConfig> is only required for the latest configuration version,
-// so when the next version is created, MOVE this impl to that version.
-//
-impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
+// This is only required for the latest configuration version.
+impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExtLatest {
     type Error = ConfigSetupError;
 
-    fn try_from(value: &VpnServiceConfig) -> Result<Self, Self::Error> {
+    fn try_from(value: &nym_vpn_lib_types::VpnServiceConfig) -> Result<Self, Self::Error> {
         let custom_dns = match &value.custom_dns {
             None => None,
             Some(dns_list) => {
@@ -91,8 +86,8 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
             }
         };
         let ext_config = VpnServiceConfigExtLatest {
-            entry_point: EntryPointExtV2::try_from(&value.entry_point)?,
-            exit_point: ExitPointExtV2::try_from(&value.exit_point)?,
+            entry_point: EntryPoint::try_from(&value.entry_point)?,
+            exit_point: ExitPoint::try_from(&value.exit_point)?,
             allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
