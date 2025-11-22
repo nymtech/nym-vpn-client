@@ -10,7 +10,7 @@ pub enum Command {
     /// Get Custom DNS servers
     Get,
 
-    /// Set Custom DNS servers
+    /// Set Custom DNS servers (space separated)
     Set { dns_servers: Vec<String> },
 
     /// Clear Custom DNS servers
@@ -30,7 +30,7 @@ impl Command {
                             .iter()
                             .map(|ip| ip.to_string())
                             .collect::<Vec<_>>()
-                            .join(", "))
+                            .join(" "))
                         .unwrap_or_else(|| "not set".to_string())
                 );
                 Ok(())
