@@ -15,7 +15,8 @@
       "title": "位置精度",
       "description": "显示的位置是 <1>通过 IP 地址</1> 决定，可能无法反映确切的实际位置。"
     },
-    "title": "选择出口位置"
+    "entry-title": "选择入口位置",
+    "exit-title": "选择退出地点"
   },
   "location-not-available": {
     "entry": "所选条目位置不可用，切换到 {{location}}",

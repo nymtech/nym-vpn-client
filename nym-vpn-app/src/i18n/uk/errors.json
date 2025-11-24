@@ -6,7 +6,7 @@
     "internal": "Внутрішня помилка Daemon",
     "invalid-network": "Неправильна мережа"
   },
-  "grpc": "Внутрішня помилка gRPC",
+  "vpnd-client": "Внутрішня помилка клієнта Vpnd",
   "tunnel": {
     "internal": "Внутрішня помилка",
     "firewall": "Помилка брандмауера",

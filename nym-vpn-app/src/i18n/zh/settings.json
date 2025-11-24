@@ -75,7 +75,7 @@
   },
   "killswitch": {
     "title": "Killswitch",
-    "desc": "如果互联网断开，断开连接"
+    "desc": "您的数据始终处于保护状态"
   },
   "privacy": {
     "error-monitoring": {

@@ -3,17 +3,17 @@
   "internal": "Interner Fehler",
   "daemon": {
     "not-connected": "Nicht mit dem Dienst verbunden",
-    "internal": "Interner Daemon-Fehler",
+    "internal": "Interner Fehler des Dämons",
     "invalid-network": "Ungültiges Netzwerk"
   },
-  "grpc": "Interner gRPC Fehler",
+  "vpnd-client": "Interner Vpnd Client Fehler",
   "tunnel": {
     "internal": "Interner Fehler",
     "firewall": "Firewall-Fehler",
     "routing": "Routing-Fehler",
     "dns": "DNS-Fehler",
     "same-entry-exit-gw": "Kann nicht mit dem gleichen Eintrag und Exit-Knoten verbinden. Bitte ändern Sie entweder die Position des Eintrags oder des Exitknotens.",
-    "invalid-entry-gw-country": "Ungültiges Eintragsknotenland, bitte ändern Sie den Eintragsknotenpunkt",
+    "invalid-entry-gw-country": "Ungültiges Land für den Eintragsserver. Wähle einen anderen und verbinde dich wieder.",
     "invalid-exit-gw-country": "Ungültiges Exitknotenland, bitte den Exitknotenpunkt ändern",
     "invalid-entry-gw-id": "Der Eintragsserver ist offline. Wählen Sie einen anderen und verbinden Sie ihn erneut.",
     "invalid-exit-gw-id": "Server verlassen ist offline. Wähle einen anderen und verbinde ihn erneut.",
@@ -51,7 +51,7 @@
     "fast-mode": "Fehler beim Abrufen der verfügbaren Länder"
   },
   "mixnet": {
-    "no-bandwidth": "No bandwidth remaining.",
+    "no-bandwidth": "Kein Datenvolumen mehr vorhanden",
     "entry-gateway-down": "Eintrags-Gateway ist nicht verfügbar",
     "exit-gateway-down": {
       "ipv4": "Gateway verlassen (IPv4)",
