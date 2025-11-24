@@ -11,6 +11,7 @@ use nym_vpn_api_client::{
 };
 use rand::seq::IteratorRandom;
 use std::{
+    collections::HashSet,
     fmt::{self, Display},
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     str::FromStr,
@@ -617,11 +618,21 @@ impl GatewayList {
         self.gateways.is_empty()
     }
 
-    pub fn into_exit_gateways(self) -> GatewayList {
+    pub fn whitelisted(&self, blacklisted: &HashSet<NodeIdentity>) -> Self {
+        let filtered_gateways = self
+            .gateways
+            .iter()
+            .filter(|gateway| !blacklisted.contains(&gateway.identity()))
+            .cloned()
+            .collect();
+        Self::new(self.gw_type, filtered_gateways)
+    }
+
+    pub fn into_exit_gateways(self) -> Self {
         Self::new(self.gw_type, self.filter(&[GatewayFilter::Exit]))
     }
 
-    pub fn into_vpn_gateways(self) -> GatewayList {
+    pub fn into_vpn_gateways(self) -> Self {
         Self::new(self.gw_type, self.filter(&[GatewayFilter::Vpn]))
     }
 

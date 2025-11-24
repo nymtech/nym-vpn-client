@@ -1,14 +1,13 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_offline_monitor::ConnectivityHandle;
+use nym_sdk::mixnet::NodeIdentity;
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     net::IpAddr,
     time::{Duration, Instant},
 };
-
-use nym_offline_monitor::ConnectivityHandle;
-use nym_sdk::mixnet::NodeIdentity;
 use strum::IntoEnumIterator;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
@@ -68,6 +67,25 @@ impl GatewayCacheHandle {
             .send(Command::ReplaceGatewayClient(Box::new(gateway_client)))
             .map_err(|_| Error::Cancelled)
     }
+
+    pub fn add_blacklisted_gateway(&self, gateway_id: NodeIdentity) -> Result<()> {
+        self.tx
+            .send(Command::AddBlacklistedGateway(gateway_id))
+            .map_err(|_| Error::Cancelled)
+    }
+
+    #[allow(unused)]
+    pub fn remove_blackedlisted_gateway(&self, gateway_id: NodeIdentity) -> Result<()> {
+        self.tx
+            .send(Command::RemoveBlacklistedGateway(gateway_id))
+            .map_err(|_| Error::Cancelled)
+    }
+
+    pub fn clear_blacklisted_gateways(&self) -> Result<()> {
+        self.tx
+            .send(Command::ClearBlacklistedGateways)
+            .map_err(|_| Error::Cancelled)
+    }
 }
 
 enum Command {
@@ -85,6 +103,9 @@ enum Command {
         tokio::sync::oneshot::Sender<Result<IpAddr>>,
     ),
     ReplaceGatewayClient(Box<GatewayClient>),
+    AddBlacklistedGateway(NodeIdentity),
+    RemoveBlacklistedGateway(NodeIdentity),
+    ClearBlacklistedGateways,
 }
 
 pub struct GatewayCache {
@@ -105,6 +126,9 @@ pub struct GatewayCache {
 
     // Shutdown token
     shutdown_token: CancellationToken,
+
+    // List of blacklisted gateways
+    blacklisted: HashSet<NodeIdentity>,
 }
 
 impl GatewayCache {
@@ -122,6 +146,7 @@ impl GatewayCache {
             cached_gateways: HashMap::default(),
             is_performed_initial_refresh: false,
             shutdown_token,
+            blacklisted: HashSet::new(),
         };
         let join_handle = tokio::spawn(inner.run());
         (GatewayCacheHandle::new(command_tx), join_handle)
@@ -151,6 +176,15 @@ impl GatewayCache {
                         }
                         Command::ReplaceGatewayClient(gateway_client) => {
                             self.replace_gateway_client(*gateway_client)
+                        }
+                        Command::AddBlacklistedGateway(gateway_id) => {
+                            self.blacklisted.insert(gateway_id);
+                        }
+                        Command::RemoveBlacklistedGateway(gateway_id) => {
+                            self.blacklisted.remove(&gateway_id);
+                        }
+                        Command::ClearBlacklistedGateways => {
+                            self.blacklisted.clear();
                         }
                     }
                 }
@@ -271,20 +305,49 @@ impl GatewayCache {
 
         // Regardless of if we managed to refresh the cache, we return the cached gateways if they
         // exist. They should be the most recent one we can muster
-        if let Some((gateways, _)) = self.cached_gateways.get(&gw_type) {
-            tracing::debug!(
-                "Gateway cache returning {} cached gateways for {:?}",
-                gateways.len(),
-                gw_type
-            );
-            Ok(gateways.clone())
-        } else {
-            tracing::debug!(
-                "No cached gateways for {:?}, returning refresh result",
-                gw_type
-            );
-            refresh_result
+        let (res, cached, num_blacklisted) =
+            if let Some((gateways, _)) = self.cached_gateways.get(&gw_type) {
+                if self.blacklisted.is_empty() {
+                    (Ok(gateways.clone()), true, 0)
+                } else {
+                    let whitelisted = gateways.whitelisted(&self.blacklisted);
+                    let num_blacklisted = gateways.len() - whitelisted.len();
+                    (Ok(whitelisted), true, num_blacklisted)
+                }
+            } else {
+                match refresh_result {
+                    Ok(gateways) => {
+                        if self.blacklisted.is_empty() {
+                            (Ok(gateways), false, 0)
+                        } else {
+                            let whitelisted = gateways.whitelisted(&self.blacklisted);
+                            let num_blacklisted = gateways.len() - whitelisted.len();
+                            (Ok(whitelisted), false, num_blacklisted)
+                        }
+                    }
+                    Err(err) => (Err(err), false, 0),
+                }
+            };
+
+        if let Ok(ref gateways) = res {
+            if cached {
+                tracing::debug!(
+                    "Returning {} cached gateways for {:?} ({} blacklisted)",
+                    gateways.len(),
+                    gw_type,
+                    num_blacklisted
+                );
+            } else {
+                tracing::debug!(
+                    "Returning {} un-cached gateways for {:?} ({} blacklisted)",
+                    gateways.len(),
+                    gw_type,
+                    num_blacklisted
+                );
+            }
         }
+
+        res
     }
 
     async fn lookup_filtered_gateways(&mut self, filters: GatewayFilters) -> Result<Vec<Gateway>> {

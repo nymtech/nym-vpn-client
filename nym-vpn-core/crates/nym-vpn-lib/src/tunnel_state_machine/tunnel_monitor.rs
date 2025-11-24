@@ -81,7 +81,7 @@ use crate::{
             mixnet,
             transports::{self, TransportError},
             wireguard::{
-                self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
+                ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
                 connected_tunnel::ConnectedTunnel,
             },
         },
@@ -251,6 +251,8 @@ impl TunnelMonitor {
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
     ) -> TunnelMonitorHandle {
+        tracing::info!("Starting tunnel monitor...");
+
         let shutdown_token = CancellationToken::new();
         let tunnel_monitor = Self {
             tunnel_parameters,
@@ -590,7 +592,7 @@ impl TunnelMonitor {
         let (exit_metadata_tx, exit_metadata_rx) = tokio::sync::oneshot::channel::<MetadataEvent>();
 
         let (entry_metadata_addr_tx, entry_metadata_addr_rx) = tokio::sync::oneshot::channel();
-        let (bridge_close_tx, mut bridge_close_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (bridge_close_tx, mut bridge_close_rx) = mpsc::unbounded_channel();
 
         // todo: refactor
         let (
@@ -761,12 +763,24 @@ impl TunnelMonitor {
                                         connection_data: connection_data.clone(),
                                     });
                                 }
+
+                                if let Err(e) =  self.gateway_cache_handle.clear_blacklisted_gateways() {
+                                    tracing::error!("Failed to clear blacklisted gateways: {e}");
+                                } else {
+                                    tracing::info!("Cleared blacklisted gateways");
+                                }
                             }
                             ConnectionStatusEvent::IntermittentFailure { retry } => {
                                 tracing::info!("Tunnel connection is failing (retry: {retry})");
                             }
                             ConnectionStatusEvent::Failed => {
-                                tracing::info!("Tunnel connection is down. Exiting");
+                                tracing::info!("Tunnel connection is down; exiting.");
+                                let entry_id = selected_gateways.entry_gateway().identity();
+                                if let Err(e) =  self.gateway_cache_handle.add_blacklisted_gateway(entry_id) {
+                                    tracing::error!("Failed to blacklist entry gateway {}: {e}", entry_id);
+                                } else {
+                                    tracing::info!("Blacklisted entry gateway {}", entry_id);
+                                }
                                 break;
                             }
                         }
@@ -1214,7 +1228,7 @@ impl TunnelMonitor {
     #[cfg(windows)]
     async fn start_wireguard_netstack_tunnel(
         &mut self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
@@ -1431,7 +1445,7 @@ impl TunnelMonitor {
     #[cfg(windows)]
     async fn start_wireguard_tunnel(
         &mut self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
         let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
