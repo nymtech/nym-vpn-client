@@ -10,18 +10,17 @@ use nym_vpn_api_client::{
     types::Percent,
 };
 use rand::seq::IteratorRandom;
-use std::time::Duration;
 use std::{
     collections::HashMap,
     fmt::{self, Display},
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     str::FromStr,
-    time::Instant,
+    time::{Duration, Instant},
 };
 use tracing::error;
 use typed_builder::TypedBuilder;
 
-use crate::{error::Result, helpers, AuthAddress, Country, Error, IpPacketRouterAddress};
+use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result, helpers};
 
 pub type NymNode = Gateway;
 

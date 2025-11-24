@@ -13,8 +13,8 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    entries::gateway::BlacklistedGateways, error::Result, Error, Gateway, GatewayClient, GatewayFilters,
-    GatewayList, GatewayType,
+    Error, Gateway, GatewayClient, GatewayFilters, GatewayList, GatewayType,
+    entries::gateway::BlacklistedGateways, error::Result,
 };
 
 /// The maximum age of the cache before it is considered stale.
