@@ -47,14 +47,14 @@ function AntiCensorship() {
 
   if (!backendFlags.quic && !backendFlags.domainFronting) {
     return (
-      <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 select-none">
+      <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
         This feature is not available
       </PageAnim>
     );
   }
 
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 select-none">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
       <div className="text-iron dark:text-bombay">
         {t('anti-censorship.intro')}
       </div>

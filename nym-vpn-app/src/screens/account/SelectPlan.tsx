@@ -16,7 +16,7 @@ function SelectPlan() {
   };
 
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col items-center select-none cursor-default">
+    <PageAnim className="h-full flex flex-col items-center select-none cursor-default">
       <div className="grow flex flex-col justify-center items-center gap-6 px-4">
         <MsIcon className="text-malachite text-4xl" icon="verified_user" />
         <div className="flex flex-col gap-2 text-2xl text-center dark:text-white">

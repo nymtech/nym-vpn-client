@@ -61,7 +61,7 @@ function LicenseList({ language }: Props) {
       : rootFontSize * heightFactor;
 
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col">
+    <PageAnim className="h-full flex flex-col">
       {licenses.length === 0 ? (
         <span className="mt-4 pl-4 italic text-iron dark:text-bombay select-none cursor-default">
           {t('legal.emptyData')}

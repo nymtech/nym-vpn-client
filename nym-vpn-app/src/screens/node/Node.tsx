@@ -85,7 +85,7 @@ function Node({ node }: { node: NodeHop }) {
   if (error) {
     return (
       <PageAnim
-        className="xs:max-w-lg h-full flex flex-col"
+        className="h-full flex flex-col"
         data-testid="node-error-container"
       >
         <div
@@ -115,11 +115,11 @@ function Node({ node }: { node: NodeHop }) {
         node={node}
       />
       <PageAnim
-        className="xs:max-w-lg h-full flex flex-col"
+        className="h-full flex flex-col"
         data-testid={`node-container-${node}`}
       >
         <div
-          className="w-full max-w-md px-6 mt-6 mb-6"
+          className="w-full px-6 mt-6 mb-6"
           data-testid="node-search-container"
         >
           {quicFilter && (
