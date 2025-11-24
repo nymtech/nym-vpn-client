@@ -1,5 +1,5 @@
 Có gì mới:
-- Added In App purchases for Play Store
-- New locales added: BN, EL, VI
-- UI and UX improvements and fixes
-- Connection stability improvements 
+- Thêm tính năng mua hàng trong ứng dụng cho Play Store
+- Thêm ngôn ngữ mới: BN, EL, VI
+- Cải thiện và sửa lỗi giao diện người dùng và trải nghiệm người dùng
+- Cải thiện độ ổn định kết nối 
