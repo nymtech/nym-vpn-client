@@ -10,16 +10,18 @@ use nym_vpn_api_client::{
     types::Percent,
 };
 use rand::seq::IteratorRandom;
+use std::time::Duration;
 use std::{
-    collections::HashSet,
+    collections::HashMap,
     fmt::{self, Display},
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     str::FromStr,
+    time::Instant,
 };
 use tracing::error;
 use typed_builder::TypedBuilder;
 
-use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result, helpers};
+use crate::{error::Result, helpers, AuthAddress, Country, Error, IpPacketRouterAddress};
 
 pub type NymNode = Gateway;
 
@@ -618,11 +620,11 @@ impl GatewayList {
         self.gateways.is_empty()
     }
 
-    pub fn whitelisted(&self, blacklisted: &HashSet<NodeIdentity>) -> Self {
+    pub fn whitelisted(&self, blacklisted: &BlacklistedGateways) -> Self {
         let filtered_gateways = self
             .gateways
             .iter()
-            .filter(|gateway| !blacklisted.contains(&gateway.identity()))
+            .filter(|gateway| !blacklisted.is_listed(&gateway.identity()))
             .cloned()
             .collect();
         Self::new(self.gw_type, filtered_gateways)
@@ -727,6 +729,46 @@ pub enum GatewayFilter {
 pub struct GatewayFilters {
     pub gw_type: GatewayType,
     pub filters: Vec<GatewayFilter>,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct BlacklistedGateways(HashMap<NodeIdentity, Instant>);
+
+impl BlacklistedGateways {
+    const TTL: Duration = Duration::from_mins(20);
+
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    pub fn add(&mut self, identity: NodeIdentity) {
+        let now = Instant::now();
+        self.0.insert(identity, now + Self::TTL);
+        self.0.retain(|_, &mut expiry| expiry > now); // Housekeeping
+    }
+
+    pub fn remove(&mut self, identity: NodeIdentity) {
+        let now = Instant::now();
+        self.0.remove(&identity);
+        self.0.retain(|_, &mut expiry| expiry > now); // Housekeeping
+    }
+
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
+    pub fn is_listed(&self, identity: &NodeIdentity) -> bool {
+        let now = Instant::now();
+        if let Some(instant) = self.0.get(identity) {
+            &now < instant
+        } else {
+            false
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 #[cfg(test)]

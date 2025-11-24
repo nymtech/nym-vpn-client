@@ -4,7 +4,7 @@
 use nym_offline_monitor::ConnectivityHandle;
 use nym_sdk::mixnet::NodeIdentity;
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     net::IpAddr,
     time::{Duration, Instant},
 };
@@ -13,7 +13,8 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    Error, Gateway, GatewayClient, GatewayFilters, GatewayList, GatewayType, error::Result,
+    entries::gateway::BlacklistedGateways, error::Result, Error, Gateway, GatewayClient, GatewayFilters,
+    GatewayList, GatewayType,
 };
 
 /// The maximum age of the cache before it is considered stale.
@@ -128,7 +129,7 @@ pub struct GatewayCache {
     shutdown_token: CancellationToken,
 
     // List of blacklisted gateways
-    blacklisted: HashSet<NodeIdentity>,
+    blacklisted: BlacklistedGateways,
 }
 
 impl GatewayCache {
@@ -146,7 +147,7 @@ impl GatewayCache {
             cached_gateways: HashMap::default(),
             is_performed_initial_refresh: false,
             shutdown_token,
-            blacklisted: HashSet::new(),
+            blacklisted: BlacklistedGateways::new(),
         };
         let join_handle = tokio::spawn(inner.run());
         (GatewayCacheHandle::new(command_tx), join_handle)
@@ -178,10 +179,10 @@ impl GatewayCache {
                             self.replace_gateway_client(*gateway_client)
                         }
                         Command::AddBlacklistedGateway(gateway_id) => {
-                            self.blacklisted.insert(gateway_id);
+                            self.blacklisted.add(gateway_id);
                         }
                         Command::RemoveBlacklistedGateway(gateway_id) => {
-                            self.blacklisted.remove(&gateway_id);
+                            self.blacklisted.remove(gateway_id);
                         }
                         Command::ClearBlacklistedGateways => {
                             self.blacklisted.clear();
