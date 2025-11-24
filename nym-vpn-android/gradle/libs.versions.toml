@@ -40,7 +40,7 @@ gradlePlugins-licensee = "1.14.1"
 gradlePlugins-detekt = "1.23.8"
 gradlePlugins-gross = "0.4.6"
 material = "1.13.0"
-gradlePlugins-ktlint = "12.2.0"
+gradlePlugins-ktlint = "14.0.1"
 gradlePlugins-grgit = "5.3.3"
 
 [libraries]
