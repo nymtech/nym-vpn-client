@@ -734,7 +734,7 @@ pub struct GatewayFilters {
 pub struct BlacklistedGateways(HashMap<NodeIdentity, Instant>);
 
 impl BlacklistedGateways {
-    const TTL: Duration = Duration::from_mins(20);
+    const TTL: Duration = Duration::from_secs(20 * 60);
 
     pub fn new() -> Self {
         Default::default()
