@@ -7,7 +7,7 @@ import {
 } from '../../../contexts';
 import { StateDispatch } from '../../../types';
 import { kvSet } from '../../../kvStore';
-import { DomainFrontingUrl, QuicUrl } from '../../../constants';
+import { AmneziaWgUrl, DomainFrontingUrl, QuicUrl } from '../../../constants';
 
 function AntiCensorship() {
   const { quic, backendFlags, state } = useMainState();
@@ -58,6 +58,31 @@ function AntiCensorship() {
       <div className="text-iron dark:text-bombay">
         {t('anti-censorship.intro')}
       </div>
+      <SettingsMenuCardBig
+        header={
+          <CardSwitch
+            header={t('anti-censorship.amneziawg.label')}
+            checked={true}
+            disabled={true}
+            onClick={() => {
+              /* TODO */
+            }}
+          />
+        }
+      >
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+            {t('anti-censorship.amneziawg.content')}
+          </p>
+          <Link
+            className="w-fit text-sm mt-2"
+            text={t('anti-censorship.amneziawg.link')}
+            url={AmneziaWgUrl}
+            color="primary"
+            icon
+          />
+        </div>
+      </SettingsMenuCardBig>
       {backendFlags.quic && (
         <SettingsMenuCardBig
           header={
