@@ -1,5 +1,5 @@
 Що нового:
-- Added In App purchases for Play Store
-- New locales added: BN, EL, VI
-- UI and UX improvements and fixes
-- Connection stability improvements 
+- Додано можливість покупок у додатку для Play Store
+- Додано нові локалізації: BN, EL, VI
+- Покращення та виправлення інтерфейсу користувача та користувацького досвіду
+- Покращення стабільності з'єднання 
