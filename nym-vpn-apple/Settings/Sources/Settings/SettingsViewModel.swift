@@ -328,6 +328,15 @@ private extension SettingsViewModel {
 #endif
         viewModels.append(
             SettingsListItemViewModel(
+                accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isLanBypassEnabled)),
+                title: "settings.lanBypass.title".localizedString,
+                subtitle: "settings.lanBypass.subtitle".localizedString,
+                imageName: "lan",
+                action: {}
+            )
+        )
+        viewModels.append(
+            SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.censorship.title".localizedString,
                 imageName: "domain",

@@ -67,6 +67,9 @@ import CountriesManagerTypes
     @AppStorage(AppSettingKey.ipv6TrafficIsEnabled.rawValue)
     public var isIPv6TrafficEnabled = true
 
+    @AppStorage(AppSettingKey.lanBypass.rawValue)
+    public var isLanBypassEnabled = false
+
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
 
@@ -127,13 +130,12 @@ public enum AppSettingKey: String {
     case currentEnv
     case countryStore
     case gatewayStore
-    case santaEntryGateways
-    case santaExitGateways
     case accountToken
     case ipv6TrafficIsEnabled
     case statistics
     case statisticsConnectionCount
     case quic
+    case lanBypass
     case shouldReconnect
     case passphraseStored
     case connectionConfig
