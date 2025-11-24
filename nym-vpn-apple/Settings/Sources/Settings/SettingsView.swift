@@ -28,6 +28,12 @@ private extension SettingsView {
                 Spacer()
                     .frame(height: 24)
                 settingsList()
+                Spacer()
+                    .frame(height: 24)
+                appVersionText()
+                    .onTapGesture(count: 3) {
+                        viewModel.navigateToSantasMenu()
+                    }
             }
             .padding(.horizontal, 16)
             .scrollIndicators(.hidden)
@@ -80,17 +86,20 @@ private extension SettingsView {
 
     @ViewBuilder
     func settingsList() -> some View {
-        SettingsList(
-            viewModel:
-                SettingsListViewModel(
-                    sections: viewModel.sections,
-                    appVersion: viewModel.appVersion(),
-                    configurationManager: ConfigurationManager.shared,
-                    navigateToSantasMenuAction: { [weak viewModel] in
-                        guard let viewModel else { return }
-                        viewModel.navigateToSantasMenu()
-                    }
-                )
-        )
+        SettingsList(viewModel: SettingsListViewModel(sections: viewModel.sections))
+    }
+
+    func appVersionText() -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(viewModel.versionTitle)
+                    .foregroundStyle(NymColor.gray1)
+                    .textStyle(.Body.Medium.regular)
+                    .padding(.bottom, 16)
+                Spacer()
+            }
+            Spacer()
+                .frame(height: 24)
+        }
     }
 }
