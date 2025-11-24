@@ -28,6 +28,9 @@ extension GRPCManager {
             if oldConfig.enableBridges != newConfig.enableBridges {
                 try await self?.rpcClient?.setEnableBridges(enableBridges: newConfig.enableBridges)
             }
+            if oldConfig.allowLan != newConfig.allowLan {
+                try await self?.rpcClient?.setAllowLan(allowLan: newConfig.allowLan)
+            }
         }.value
     }
 
