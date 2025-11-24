@@ -75,7 +75,7 @@
   },
   "killswitch": {
     "title": "Кіллсвіч",
-    "desc": "Відключіть, якщо інтернет пропадає"
+    "desc": "Завжди готовий захистити ваші дані"
   },
   "privacy": {
     "error-monitoring": {
@@ -98,7 +98,7 @@
     "bandwidth-exceeded": "Перевищено пропускну здатність",
     "max-device-reached": "Досягнуто максимальної кількості пристроїв",
     "status-inactive": "Обліковий запис неактивний",
-    "requesting-zknyms": "Requesting ZkNyms",
+    "requesting-zknyms": "Запит до ZkNyms",
     "error": "Внутрішня помилка"
   }
 }

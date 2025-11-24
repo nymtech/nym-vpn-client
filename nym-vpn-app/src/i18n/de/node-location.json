@@ -8,14 +8,15 @@
   "quic-filter-note": "Nur die Anzeige von schnellen Standorten und Servern, die das QUIC-Protokoll unterstützen. Um alle Server freizugeben, schalten Sie QUIC <here /> aus.",
   "location-details": {
     "streaming": {
-      "title": "Streaming",
+      "title": "Stream",
       "description": "<0>Wohn-IP-Servern</0> optimiert für Streaming- und Content-Zugriff. Kann aufgrund höherer Nachfrage und Hardware-Einschränkungen langsamere Geschwindigkeiten aufweisen."
     },
     "location": {
       "title": "Standortgenauigkeit",
       "description": "Angezeigte Standorte werden <1>von IP-Adressen ermittelt</1> und können nicht exakte physische Standorte wiedergeben."
     },
-    "title": "Details zum Serverstandort"
+    "entry-title": "Standorte des Eintrags auswählen",
+    "exit-title": "Ausstiegsorte werden ausgewählt"
   },
   "location-not-available": {
     "entry": "Ausgewählte Eintrittsregion nicht verfügbar, gewechselt zu {{location}}",
@@ -56,7 +57,7 @@
       "offline": "Offline"
     },
     "notes": {
-      "anti-censorship": "Aktivieren Sie das „QUIC-Protokoll“ in den Anti-Zensur-Einstellungen um diese Funktion zu nutzen",
+      "anti-censorship": "<0>Aktivieren Sie \"QUIC-Protocol\"</0> in den Anti-Zensur-Einstellungen, um diese Funktion zu verwenden",
       "performance_with_time": "Leistungspunkte berechnet aus Serverauslastung und Uptime. Laufzeit wie zuletzt 24 Stunden Durchschnitt. Letztes Update {{relativeTime}}.",
       "performance": "Leistungspunkte berechnet aus Serverauslastung und Uptime. Laufzeit als 24-Stunden Durchschnitt."
     },

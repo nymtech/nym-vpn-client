@@ -15,7 +15,8 @@
       "title": "स्थिति की सटीकता",
       "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
     },
-    "title": "सर्वर स्थानों की जानकारी"
+    "entry-title": "Choosing entry locations",
+    "exit-title": "Choosing exit locations"
   },
   "location-not-available": {
     "entry": "चयनित प्रवेश स्थान उपलब्ध नहीं है, {{location}} पर स्विच किया गया है",

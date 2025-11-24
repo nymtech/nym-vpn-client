@@ -6,7 +6,7 @@
     "internal": "Daemon अंदरूनी त्रुटि",
     "invalid-network": "अमान्य नेटवर्क"
   },
-  "grpc": "अंदरूनी gRPC त्रुटि",
+  "vpnd-client": "Internal Vpnd Client error",
   "tunnel": {
     "internal": "अंदरूनी त्रुटि",
     "firewall": "फायरवॉल त्रुटि",

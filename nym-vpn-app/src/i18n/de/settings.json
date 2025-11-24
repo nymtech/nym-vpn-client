@@ -14,10 +14,10 @@
   "support": {
     "title": "Support",
     "faq": "Lies die FAQs",
-    "contact": "Get in touch",
+    "contact": "Support kontaktieren",
     "telegram": "Chat auf Telegramm",
     "github": "Problem auf GitHub melden",
-    "matrix": "Tritt unserem Matrix Chat bei",
+    "matrix": "Begleiten Sie uns auf Matrix",
     "discord": "Tritt unserem Discord Channel bei"
   },
   "legal": {
@@ -30,8 +30,8 @@
     "emptyData": "Keine Lizenzdaten verfügbar"
   },
   "logs": {
-    "title": "Logs",
-    "desc": "Kopier oder lösch die Logfiles",
+    "title": "Protokolle (lokal gespeichert)",
+    "desc": "Protokolle kopieren oder löschen",
     "app": "App-Logs",
     "daemon": "Daemon Logs"
   },
@@ -51,7 +51,7 @@
       "link": "Wie der Stealth-API-Verbindungsmodus funktioniert"
     },
     "snackbar-switch-on": "Erweiterte Verbindung (QUIC-Protokoll) wird aktiviert, wenn Sie sich neu verbinden.",
-    "snackbar-switch-off": "Erweiterte Verbindung (QUIC-Protokoll) wird deaktiviert, wenn Sie sich neu verbinden."
+    "snackbar-switch-off": "Erweiterte Verbindung (QUIC-Protocol) wird deaktiviert, wenn Sie sich neu verbinden."
   },
   "faq": "FAQ",
   "display-theme": "Anzeigemodus",
@@ -98,7 +98,7 @@
     "bandwidth-exceeded": "Bandbreite überschritten",
     "max-device-reached": "Max. Geräte erreicht",
     "status-inactive": "Konto ist inaktiv",
-    "requesting-zknyms": "ZkNyms anfordern",
+    "requesting-zknyms": "ZkNym anfordern",
     "error": "Interner Fehler"
   }
 }

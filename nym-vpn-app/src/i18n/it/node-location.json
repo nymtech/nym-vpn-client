@@ -15,7 +15,8 @@
       "title": "Precisione posizione",
       "description": "Le posizioni visualizzate sono <1>determinate da indirizzi IP</1> e potrebbero non riflettere posizioni fisiche esatte."
     },
-    "title": "Dettagli sulla posizione dei server"
+    "entry-title": "Scegliere le posizioni di ingresso",
+    "exit-title": "Scegliere le posizioni di uscita"
   },
   "location-not-available": {
     "entry": "Posizione della voce selezionata non disponibile, commutata a {{location}}",

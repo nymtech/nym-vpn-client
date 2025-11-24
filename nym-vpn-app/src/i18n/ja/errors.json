@@ -6,7 +6,7 @@
     "internal": "デーモン内部エラー",
     "invalid-network": "無効なネットワーク"
   },
-  "grpc": "内部gRPCエラー",
+  "vpnd-client": "内部Vpnd クライアントエラー",
   "tunnel": {
     "internal": "内部エラー",
     "firewall": "ファイアウォールエラー",

@@ -75,7 +75,7 @@
   },
   "killswitch": {
     "title": "Killswitch",
-    "desc": "Ngắt kết nối nếu internet bị rớt"
+    "desc": "Luôn bật để bảo vệ dữ liệu của bạn"
   },
   "privacy": {
     "error-monitoring": {
@@ -98,7 +98,7 @@
     "bandwidth-exceeded": "Vượt quá giới hạn băng thông",
     "max-device-reached": "Đã đạt đến số lượng thiết bị tối đa",
     "status-inactive": "Tài khoản không hoạt động",
-    "requesting-zknyms": "Requesting ZkNyms",
+    "requesting-zknyms": "Yêu cầu ZkNyms",
     "error": "Lỗi nội bộ"
   }
 }
