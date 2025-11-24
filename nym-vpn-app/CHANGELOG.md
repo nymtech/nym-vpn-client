@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.19.0] - 2025-11-19
 
+### Added
+
+- Add Greek, Bengali and Vietnamese translation languages
+- Show "QUIC" label on the selected node only when truly connected
+  over QUIC protocol
+- Add a label to servers with a residential IP
+
+### Changed
+
+- Use custom icons for server score levels (good, normal, poor)
+- Migrate daemon communication layer to RpcClient
+
 ## [1.18.0] - 2025-11-03
 
 ### Added
