@@ -80,10 +80,8 @@ use crate::{
         tunnel::{
             mixnet,
             transports::{self, TransportError},
-            wireguard::{
-                ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
-                connected_tunnel::ConnectedTunnel,
-            },
+            wireguard,
+            wireguard::{ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver},
         },
     },
 };
@@ -640,7 +638,7 @@ impl TunnelMonitor {
                     Some(bridge_close_tx)
                 };
 
-                let connected_tunnel = ConnectedTunnel::new(
+                let connected_tunnel = wireguard::connected_tunnel::ConnectedTunnel::new(
                     selected_gateways.entry_keypair().clone(),
                     selected_gateways.exit_keypair().clone(),
                     connection_data,
@@ -1228,7 +1226,7 @@ impl TunnelMonitor {
     #[cfg(windows)]
     async fn start_wireguard_netstack_tunnel(
         &mut self,
-        connected_tunnel: ConnectedTunnel,
+        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
@@ -1445,7 +1443,7 @@ impl TunnelMonitor {
     #[cfg(windows)]
     async fn start_wireguard_tunnel(
         &mut self,
-        connected_tunnel: ConnectedTunnel,
+        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
         let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
