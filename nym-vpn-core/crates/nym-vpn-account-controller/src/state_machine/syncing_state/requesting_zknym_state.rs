@@ -357,19 +357,21 @@ impl RequestingZkNymsState {
                 };
             }
             AccountCommand::VpnApiFirewallDown(return_sender) => {
-                // no need to abort the fetching handle, as per @SW:
-                // "In theory, if we get VpnApiFirewallDown, it means we got the up version before, so no handle is running"
                 // as a side note, firewall handling could use some improvements as well,
                 // because the current solution is suboptimal to say the least
                 // and is causing a number of weird edge cases
-                shared_state.firewall_active = false;
                 return_sender.send(Ok(()));
-                return NextAccountControllerState::NewState(RequestingZkNymsState::enter(
-                    shared_state,
-                    self.attempts,
-                    self.fair_usage_left,
-                    false,
-                ));
+                // No-op if firewall was already down
+                if shared_state.firewall_active {
+                    // If firewall is indeed active, no handle should be running, so nothing to abort
+                    shared_state.firewall_active = false;
+                    return NextAccountControllerState::NewState(RequestingZkNymsState::enter(
+                        shared_state,
+                        self.attempts,
+                        self.fair_usage_left,
+                        false,
+                    ));
+                }
             }
             AccountCommand::VpnApiFirewallUp(return_sender) => {
                 shared_state.firewall_active = true;
