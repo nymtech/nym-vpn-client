@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Connection error notification cleared after successfully connecting (https://github.com/nymtech/nym-vpn-client/pull/4029)
+- Fix connection drops after language change (https://github.com/nymtech/nym-vpn-client/pull/4034)
 
 ## [2.4.0]
 
