@@ -81,12 +81,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-internal fun SplitTunnelingScreen(
-	appState: AppUiState,
-	onBackEventConsume: () -> Unit,
-	onBackClickEventTriggered: Boolean = false,
-	viewModel: SplitTunnelingViewModel = hiltViewModel(),
-) {
+internal fun SplitTunnelingScreen(appState: AppUiState, onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: SplitTunnelingViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
 
@@ -278,14 +273,7 @@ private fun SplitTunneling(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) 
 }
 
 @Composable
-private fun FilterButton(
-	title: String,
-	noOfApps: Int,
-	description: String,
-	imageVector: ImageVector,
-	isSelected: Boolean,
-	modifier: Modifier = Modifier,
-) {
+private fun FilterButton(title: String, noOfApps: Int, description: String, imageVector: ImageVector, isSelected: Boolean, modifier: Modifier = Modifier) {
 	Card(
 		modifier = modifier,
 		shape = RoundedCornerShape(8.dp.scaledHeight()),

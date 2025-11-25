@@ -22,17 +22,18 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	override var owner: NymBackend? = null
 
 	companion object {
-		var _builder: Builder? = null
+		var vpnServiceBuilder: Builder? = null
+			private set
 	}
 
+	@get:Synchronized
 	private val builder: Builder
-		get() = if (_builder == null) {
-			_builder = Builder()
-			_builder!!
+		get() = if (vpnServiceBuilder == null) {
+			vpnServiceBuilder = Builder()
+			vpnServiceBuilder!!
 		} else {
-			_builder!!
+			vpnServiceBuilder!!
 		}
-
 
 	override fun onCreate() {
 		super.onCreate()
@@ -43,7 +44,7 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	override fun onDestroy() {
 		Timber.d("Vpn service destroyed")
 		try {
-			_builder = null
+			vpnServiceBuilder = null
 			vpnInterfaceFd?.close()
 			vpnInterfaceFd = null
 		} catch (e: Exception) {

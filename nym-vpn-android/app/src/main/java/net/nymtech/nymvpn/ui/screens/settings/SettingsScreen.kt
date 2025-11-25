@@ -49,12 +49,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-fun SettingsScreen(
-	appViewModel: AppViewModel,
-	appUiState: AppUiState,
-	showVpnSettings: Boolean = false,
-	viewModel: SettingsViewModel = hiltViewModel(),
-) {
+fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSettings: Boolean = false, viewModel: SettingsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
 	val navController = LocalNavController.current

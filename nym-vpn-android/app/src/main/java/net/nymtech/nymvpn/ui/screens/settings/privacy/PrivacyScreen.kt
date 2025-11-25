@@ -35,12 +35,7 @@ fun PrivacyScreen(appUiState: AppUiState, viewModel: PrivacyViewModel = hiltView
 }
 
 @Composable
-fun PrivacyScreen(
-	statsEnabled: Boolean,
-	sentryEnabled: Boolean,
-	onNetworkStatsEnable: (enabled: Boolean) -> Unit,
-	onMonitoringEnable: (enabled: Boolean) -> Unit,
-) {
+fun PrivacyScreen(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStatsEnable: (enabled: Boolean) -> Unit, onMonitoringEnable: (enabled: Boolean) -> Unit) {
 	val context = LocalContext.current
 	Column(
 		horizontalAlignment = Alignment.Start,
