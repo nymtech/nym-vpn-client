@@ -245,7 +245,7 @@
 	<string name="details_anti_censorship">Anti-Zensur</string>
 	<string name="details_quic_protocol">QUIC-Protokoll</string>
 	<string name="details_standard_protocol">Standard protocol</string>
-	<string name="details_enable_quic_start">Aktiviere „QUIC-Protokoll“</string>
+	<string name="details_enable_quic_start">Aktiviere “QUIC-Protokoll“</string>
 	<string name="details_enable_quic_end">in Anti-Zensur-Einstellungen, um diese Funktion zu nutzen</string>
 	<string name="details_overall_performance">Gesamtleistung</string>
 	<string name="details_server_load">Serverlast</string>
@@ -276,7 +276,7 @@
 	<string name="censorship_stealth_description">Verschleiert API-Anfragen hinter populären, erlaubten Domains, VPN-Blockierungen zu umgehen. Wird automatisch von NymVPN verwendet, wenn Standard-API-Verbindungsversuche fehlschlagen.</string>
 	<string name="censorship_stealth_link_text">Wie der Stealth-API-Verbindungsmodus funktioniert</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic">QUISCH</string>
+	<string name="quic">QUIC</string>
 	<string name="quick_info_modal_title">Erweiterte Verbindung aktivieren (QUIC)?</string>
 	<string name="quick_info_modal_desc">Dies wird dich mit dem QUIC-Protokoll wieder verbinden. Du wirst deine aktuellen Gateways behalten, wenn sie QUIC unterstützen, oder wenn nötig, kompatible Gateways auswählen.\n\nIhre Daten bleiben bei der erneuten Verbindung geschützt.</string>
 	<string name="quic_primary_btn_text">Jetzt mit QUIC verbinden</string>
@@ -325,7 +325,7 @@
 	<string name="passphrase_never">Teilen Sie sie niemals mit irgendjemandem, einschließlich Nym Support.</string>
 	<string name="passphrase_saved">Ich habe diese 24 Wörter sicher gespeichert und werde sie nie teilen</string>
 	<string name="passphrase_info_title">Was ist Passwort</string>
-	<string name="passphrase_info_description">Es ist ein einzigartiger Satz von 24 Wörtern, der auf Ihrem Gerät generiert wird und als Ihr sicheres Login fungiert. Nur Sie haben Zugriff darauf - es gibt kein Backup, Zurücksetzen oder Wiederherstellen.\n\ n ⚠️ Bewahren Sie es sicher auf: Diese Passphrase ist die einzige Möglichkeit, auf Ihr Konto zuzugreifen.</string>
+	<string name="passphrase_info_description">Es ist ein einzigartiger Satz von 24 Wörtern, der auf Ihrem Gerät generiert wird und als Ihr sicheres Login fungiert. Nur Sie haben Zugriff darauf - es gibt kein Backup, Zurücksetzen oder Wiederherstellen.\n\n ⚠️ Bewahren Sie es sicher auf: Diese Passphrase ist die einzige Möglichkeit, auf Ihr Konto zuzugreifen.</string>
 	<string name="passphrase_info_privacy_removed">Für deine Privatsphäre haben wir entfernt:</string>
 	<string name="passphrase_info_stored_accounts">Zentral gespeicherte Konten</string>
 	<string name="passphrase_info_personal_logins">Persönliche Daten-basierte Anmeldungen</string>
