@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Custom DNS servers can be used, instead of the pre-defined ones. They can be set and cleared using the CLI `nym-vpnc dns` command (https://github.com/nymtech/nym-vpn-client/pull/4015).
+
 ### Changed
 
 - Rotate wireguard keys every 1-2 weeks, if disconnected (https://github.com/nymtech/nym-vpn-client/pull/3788)

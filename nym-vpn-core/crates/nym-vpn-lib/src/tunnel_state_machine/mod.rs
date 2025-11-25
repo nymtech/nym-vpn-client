@@ -40,7 +40,7 @@ use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
-    sync::{mpsc, oneshot, watch},
+    sync::{mpsc, watch},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
@@ -164,19 +164,26 @@ impl TunnelSettings {
     /// Returns resolved DNS config resolved against default DNS IPs.
     pub fn resolved_dns_config(&self) -> ResolvedDnsConfig {
         self.dns.to_dns_config().resolve(
-            &self.default_dns_ips(),
+            &self.dns_ips(),
             #[cfg(target_os = "macos")]
             53,
         )
     }
 
     /// Returns DNS IPs filtering out IPv6 addresses when IPv6 is disabled.
-    pub fn default_dns_ips(&self) -> Vec<IpAddr> {
-        crate::DEFAULT_DNS_SERVERS
-            .iter()
-            .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
-            .copied()
-            .collect()
+    pub fn dns_ips(&self) -> Vec<IpAddr> {
+        match self.dns {
+            DnsOptions::Custom(ref addrs) => addrs
+                .iter()
+                .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
+                .copied()
+                .collect(),
+            DnsOptions::Default => crate::DEFAULT_DNS_SERVERS
+                .iter()
+                .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
+                .copied()
+                .collect(),
+        }
     }
 
     pub fn bridges_enabled(&self) -> bool {
@@ -261,9 +268,6 @@ pub enum TunnelCommand {
 
     /// Set new tunnel settings.
     SetTunnelSettings(TunnelSettings),
-
-    /// Allow LAN connections outside of tunnel.
-    SetAllowLan(bool, oneshot::Sender<()>),
 }
 
 impl From<PrivateTunnelState> for TunnelState {
@@ -437,17 +441,6 @@ pub struct SharedState {
 }
 
 impl SharedState {
-    /// Update `allow_lan` setting.
-    /// Returns true if changed, otherwise false.
-    fn set_allow_lan(&mut self, allow_lan: bool) -> bool {
-        if self.tunnel_settings.allow_lan == allow_lan {
-            false
-        } else {
-            self.tunnel_settings.allow_lan = allow_lan;
-            true
-        }
-    }
-
     /// Notify discovery and account controller when network is unrestricted.
     async fn allow_networking(&self) {
         self.discovery_refresher_command_tx
