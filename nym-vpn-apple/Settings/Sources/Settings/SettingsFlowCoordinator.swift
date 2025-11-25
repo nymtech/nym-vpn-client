@@ -68,6 +68,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             censorshipDestination()
         case .accountAndDevices:
             accountAndDevicesDestination()
+        case .systemStatus:
+            SystemStatusView(path: $flowState.path)
         }
     }
 }

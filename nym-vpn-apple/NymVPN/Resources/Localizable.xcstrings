@@ -34598,6 +34598,50 @@
         }
       }
     },
+    "settings.systemStatus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System status"
+          }
+        }
+      }
+    },
+    "settings.systemStatus.networkStatus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network and API status"
+          }
+        }
+      }
+    },
+    "settings.systemStatus.serverExplorer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server explorer"
+          }
+        }
+      }
+    },
+    "settings.systemStatus.serverMonitoring" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server monitoring"
+          }
+        }
+      }
+    },
     "statisticsOverlay.enableNetworkStats" : {
       "extractionState" : "manual",
       "localizations" : {

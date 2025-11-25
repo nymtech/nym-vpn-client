@@ -70,7 +70,7 @@ public final class ConnectionConfig: Codable {
     public init(from config: VpnServiceConfig) {
         self.entry = ConnectionConfig.entryGateway(from: config.entryPoint)
         self.exit = ConnectionConfig.exitRouter(from: config.exitPoint)
-        self.dns = config.dns
+//        self.dns = config.dns
         self.allowLan = config.allowLan
         self.disableIpv6 = config.disableIpv6
         self.enableTwoHop = config.enableTwoHop

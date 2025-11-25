@@ -30,5 +30,9 @@ public enum Constants: String {
     case matrixLink = "https://nym.com/go/matrix"
     case crowdin = "https://crowdin.com/editor/nymvpn-apps"
 
+    case networkAndApiStatus = "https://status.nymtech.net/status/mainnet"
+    case serverExplorer = "https://nym.com/explorer"
+    case serverMonitoring = "https://harbourmaster.nymtech.net"
+
     case logFileName = "Logs.log"
 }

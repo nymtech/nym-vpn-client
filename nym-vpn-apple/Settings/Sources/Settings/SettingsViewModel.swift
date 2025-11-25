@@ -161,6 +161,11 @@ private extension SettingsViewModel {
         path.append(SettingLink.legal)
     }
 
+    func navigateToSystemStatus() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.systemStatus)
+    }
+
     func navigateToAccount() {
         impactGenerator.softImpact()
         path.append(SettingLink.accountAndDevices)
@@ -215,7 +220,8 @@ private extension SettingsViewModel {
                     killswitchSection(),
                     appearanceSection(),
                     logsSection(),
-                    legalSection()
+                    legalSection(),
+                    systemStatusSection()
                 ]
             )
             if appSettings.isCredentialImported {
@@ -390,6 +396,19 @@ private extension SettingsViewModel {
             )
         ]
         return AppSettingsSection(kind: .legal, viewModels: viewModels)
+    }
+
+    func systemStatusSection() -> AppSettingsSection {
+        let viewModels = [
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.systemStatus".localizedString,
+                action: { [weak self] in
+                    self?.navigateToSystemStatus()
+                }
+            )
+        ]
+        return AppSettingsSection(kind: .systemStatus, viewModels: viewModels)
     }
 
     func logoutSection() -> AppSettingsSection {
