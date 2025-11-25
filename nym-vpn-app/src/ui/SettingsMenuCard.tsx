@@ -101,7 +101,7 @@ function SettingsMenuCard({
         </div>
       </div>
       {trailingIcon && <MsIcon icon={trailingIcon} className="text-bombay" />}
-      {trailingComponent && !trailingIcon && <div>{trailingComponent}</div>}
+      {trailingComponent && <div>{trailingComponent}</div>}
     </div>
   );
 }
