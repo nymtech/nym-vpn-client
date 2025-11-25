@@ -81,7 +81,7 @@ function SettingsMenuCard({
         )}
       >
         {leadingIcon && <MsIcon icon={leadingIcon} className="text-bombay" />}
-        {leadingComponent && !leadingIcon && <div>{leadingComponent}</div>}
+        {leadingComponent && <div>{leadingComponent}</div>}
         <div className="min-w-0 flex flex-col justify-center">
           <p className="truncate text-base text-baltic-sea dark:text-white select-none">
             {title}
