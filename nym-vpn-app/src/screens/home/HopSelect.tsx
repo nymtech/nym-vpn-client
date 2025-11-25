@@ -25,6 +25,7 @@ type HopSelectProps = {
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
+  locked?: boolean;
 };
 
 export default function HopSelect({
@@ -33,6 +34,7 @@ export default function HopSelect({
   gatewayId,
   onClick,
   disabled,
+  locked,
 }: HopSelectProps) {
   const { backendFlags, vpnMode, tunnel, connectingState } = useMainState();
   const { lookupGw } = useGateways();
@@ -57,7 +59,9 @@ export default function HopSelect({
   };
 
   const handleDetailsClick = () => {
-    if (node.type === 'gateway' && gateway) {
+    if (disabled) {
+      toast();
+    } else if (node.type === 'gateway' && gateway) {
       navigate(routes.nodeDetails, {
         state: { gateway, hop: nodeHop, resetScroll: true },
       });
@@ -222,7 +226,7 @@ export default function HopSelect({
         'text-baltic-sea dark:text-white',
         'border border-bombay dark:border-iron rounded-lg',
         'relative transition select-none cursor-default',
-        disabled && 'opacity-50',
+        locked && 'opacity-50',
       ])}
       role="presentation"
     >
@@ -232,7 +236,6 @@ export default function HopSelect({
           'bg-faded-lavender dark:bg-ash text-xs',
           disabled && 'cursor-default',
         ])}
-        data-testid={`hop-select-label-${nodeHop}`}
       >
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
@@ -240,9 +243,8 @@ export default function HopSelect({
       <Button
         className={clsx([
           'flex flex-1 pl-4 items-center justify-center h-full py-3 rounded-none rounded-l-lg',
-          !disabled && ['hover:text-white/80'],
+          !locked && 'hover:text-white/80',
         ])}
-        disabled={disabled}
         onClick={handleClick}
         onKeyDown={handleClick}
       >
@@ -252,9 +254,8 @@ export default function HopSelect({
         <Button
           className={clsx(
             'h-11 w-11 my-2 mr-2 flex items-center justify-center rounded-full',
-            !disabled && ['hover:bg-mercury dark:hover:bg-mine-shaft'],
+            !locked && 'hover:bg-mercury dark:hover:bg-mine-shaft',
           )}
-          disabled={disabled}
           onClick={handleDetailsClick}
           onKeyDown={handleDetailsClick}
         >
