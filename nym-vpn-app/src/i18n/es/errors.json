@@ -6,7 +6,7 @@
     "internal": "Error interno del demonio",
     "invalid-network": "Red inválida"
   },
-  "grpc": "Error interno gRPC",
+  "vpnd-client": "Error interno de Vpnd Cliente",
   "tunnel": {
     "internal": "Error interno",
     "firewall": "Error del firewall",

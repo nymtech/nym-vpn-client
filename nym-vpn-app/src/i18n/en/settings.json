@@ -50,6 +50,11 @@
       "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
       "link": "How the Stealth API connect mode works"
     },
+    "amneziawg": {
+      "label": "Minimal obfuscation (AmneziaWG)",
+      "content": "Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments.\n\nNote: Only implemented client-side.",
+      "link": "How AmneziaWG prevents DPI"
+    },
     "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
     "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
   },

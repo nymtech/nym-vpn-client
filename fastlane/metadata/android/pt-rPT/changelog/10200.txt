@@ -1,5 +1,0 @@
-Quais as novidades:
-- Sincronização de estado de conexão fixa
-- Melhoria nas mensagens de erros
-- Fluxo de permissão adicionado
-- Removido logs de depuração do lançamento

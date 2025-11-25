@@ -29,7 +29,10 @@ function Logs() {
   };
 
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6" data-testid="logs-page">
+    <PageAnim
+      className="h-full flex flex-col mt-2 gap-6"
+      data-testid="logs-page"
+    >
       <SettingsMenuCard
         title={t('logs.app')}
         leadingIcon="sort"

@@ -3,11 +3,11 @@
     "canceling": "Abbrechen…",
     "resolving-api-addresses": "Auflösen der API-Adressen…",
     "awaiting-account-readiness": "Warte auf Kontoreife…",
-    "refreshing-gateways": "Gateways… aktualisieren",
-    "selecting-gateways": "Gateways… auswählen",
-    "registering-with-gateways": "Registrierung mit Gateways…",
-    "connecting-tunnel": "Verbindung zum VPN-Tunnel…"
+    "refreshing-gateways": "Aktualisierung der Serverliste (3/6)",
+    "selecting-gateways": "Auswahl der besten Server (4/6)",
+    "registering-with-gateways": "Anonyme Registrierung bei Servern (5/6)",
+    "connecting-tunnel": "Herstellen einer Serververbindung (6/6)"
   },
-  "connection-attempt_one": "retrying… attempt {{count}}",
-  "connection-attempt_other": "retrying… attempts {{count}}"
+  "connection-attempt_one": "Retrying… versuch {{count}}",
+  "connection-attempt_other": "Retrying… versuch  {{count}}"
 }

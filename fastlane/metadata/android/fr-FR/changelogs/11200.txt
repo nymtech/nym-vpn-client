@@ -1,2 +1,2 @@
-Nouveautés :
-- Corrige le bug de crash des logs
+Quoi de neuf :
+- Correction du bug de plantage des logs

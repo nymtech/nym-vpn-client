@@ -1,4 +1,4 @@
-What's new:
-- Add vpn lib integration
-- Splash screen
-- Country list
+Cosa c'è di nuovo:
+- Aggiungi integrazione vpn lib
+- Schermata di avvio
+- Elenco paesi

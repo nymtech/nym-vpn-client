@@ -24,6 +24,8 @@ extension TunnelsManager {
         tunnelProviderManager.onDemandRules = [alwaysOnRule]
         tunnelProviderManager.isOnDemandEnabled = isOndemandEnabled
 
+        tunnelProviderManager.protocolConfiguration?.excludeLocalNetworks = tunnelConfiguration.isLanBypassEnabled
+
         do {
             try await tunnelProviderManager.saveToPreferencesAndLoadTunnels()
 

@@ -1,49 +1,50 @@
-Çevrimiçi izlenmekten kurtulun. İstese bile sizi izleyemeyecek tek VPN. İsviçre üretimi, dünya genelinde gizlilik savunucuları tarafından güveniliyor.
+Çevrimiçi izlenmeyi durdurun. Sizi izleyemeyecek tek VPN. İsviçre’de geliştirildi ve dünya genelinde gizlilik savunucuları tarafından güveniliyor.
 
-⭐️ Aşağıda yer aldı: PCMag, TechRadar, Wirecutter, ZDNet, Tom’s Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+⭐️ Bu platformlarda yer aldı: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-İZ BIRAKMADAN GÖZ ATIN
+İZ BIRAKMADAN GEZİN
 
-“Beni kim izliyor?” diye düşünmekten bıktınız mı? Geleneksel VPN’ler teorik olarak etkinliğinizi kaydedebilir. NymVPN temelden farklı: merkezi günlükleme tasarımı itibariyle imkânsız kılan bir dağıtık ağ kullanıyoruz. Bu sadece “kayıtsızlık politikası” değil – bu “kayıt yapamaz” mimari.
+Sizi kimin izlediğini düşünmekten yoruldunuz mu? Geleneksel VPN’ler teorik olarak etkinliklerinizi kaydedebilir. NymVPN temelde farklıdır: Merkeziyetsiz ağımız, merkezi kayıt tutmayı tasarım gereği imkansız kılar. Bu bir ‘kayıt tutmama politikası’ değil — bu, ‘kayıt tutamaz’ mimarisidir.
 
-✓ Gerçek anonimlik: Kripto ya da nakit ile ödeme, e-posta gerekmez
-✓ 50+ ülke, yüzlerce bağımsız sunucu
-✓ Çok-cihaz koruma: 1 anonim kodla 10 cihaz
-✓ İsviçre merkezli, akademik düzeyde gizlilik standartlarıyla
+✓ Gerçek anonimlik: Kripto veya nakit ile ödeme, e-posta gerekmez
+✓ 50’den fazla ülke, yüzlerce bağımsız sunucu
+✓ Çoklu cihaz koruması: Tek anonim kod ile 10 cihaz
+✓ İsviçre merkezli, akademik düzeyde gizlilik standartları
 
-GİZLİLİK SEVİYENİZİ SEÇİN
+GİZLİLİK DÜZEYİNİZİ SEÇİN
 
-⚡ Hızlı Mod – Akış ve tarama için yıldırım hızında bağlantı. Varsayılan 2-hop: bir sunucu sizi tanır, diğeri ne yaptığınızı bilir — ama hiçbiri her ikisini birden.
-🔒 Anonim Mod – En üst düzey gizlilik: 5-hop’lu mixnet, gürültü üretme teknolojisi ve 5 katmana kadar şifreleme. Yapay zeka destekli trafik analizine ve ileri düzey gözetleme tekniklerine bile dayanacak şekilde tasarlandı.
+⚡ Hızlı Mod – Yayın izlerken veya internette gezinirken süper hızlı performans sağlar. Varsayılan olarak 2-hop kullanılır: bir sunucu kim olduğunuzu, diğer sunucu ne yaptığınızı bilir ama ikisi hiçbir zaman birlikte bilmez.
+🔒 Anonim Mod – Gürültü üreten teknoloji ve 5 katmanlı şifreleme ile 5-hop mixnet üzerinden maksimum gizlilik sağlar.  Yapay zekâ destekli trafik analizi ve gelişmiş gözetlemeye karşı dayanacak şekilde tasarlanmıştır.
 
-NymVPN neden farklı
+NYMVPN’İ FARKLI KILAN NEDİR
 
-• Meta-veri koruması – Diğer VPN’lerin aksine, sadece verilerinizi değil bırakığınız desenleri de koruyoruz
-• Sansüre direnç – Kısıtlayıcı ortamlarda AmneziaWG, QUIC ve gizli protokollerle engellenmiş bilgilere erişin
-• Zero-Knowledge ödemeler – Aboneliğiniz kriptografik olarak etkinliğinizle ilişkilendirilmemiştir
-• Üniversite tasarımı – KU Leuven ve EPFL’den PhD kriptograflar tarafından geliştirildi, 20+ hakemli yayınla
+• Meta veri koruması – Diğer VPN’lerin aksine, sadece verilerinizi değil, geride bıraktığınız kalıpları da korur
+• Sansüre dirençli – AmneziaWG, QUIC ve gizli protokollerle kısıtlayıcı ortamlarda engellenmiş bilgilere erişim sağlar
+• Sıfır bilgi ödemeleri – Aboneliğiniz etkinliğinizden kriptografik olarak ayrıdır
+• Üniversite tasarımı – KU Leuven ve EPFL’den doktora seviyesinde kriptograflar tarafından 20+ hakemli yayına dayanarak geliştirildi
 
-BAĞIMSIZCA DOĞRULANDI
+BAĞIMSIZ OLARAK DOĞRULANDI
 
-• 4 güvenlik denetimi (2021-2024): JP Aumasson, Oak Security, Cryspen, Cure53
-• Açık kaynak ve şeffaf (“Signals of Trustworthy VPNs”)
-• 10.000+ kullanıcı şimdiden NymVPN’i gizlilik için tercih etti
+• 4 güvenlik denetimi (2021-2024) – JP Aumasson, Oak Security, Cryspen, Cure53
+• Açık kaynak ve şeffaf (“Güvenilir VPN Sinyalleri”)
+• 10.000+ kullanıcı, gizlilikleri için NymVPN’e güveniyor
 
 TEMEL ÖZELLİKLER
 
-• 50+ ülkeden seçimle yüksek hızlı bağlantılar
-• Veri sızıntısını önleyen kill switch (öldürme anahtarı)
-• Tamamen reklam içermeyen deneyim
-• En gelişmiş kriptografik yığın (stack)
+• 50’den fazla ülke seçeneğiyle yüksek hızlı bağlantılar
+• Kill switch özelliği veri sızıntılarını engeller
+• Tamamen reklamsız kullanım deneyimi
+• En güncel ve ileri düzey kriptografik altyapı
 
-İÇİN MÜKEMMEL
 
-→ Reklam verenler tarafından izlenmeden akış ve tarama yapmak isteyenler
-→ Cafeler, havaalanları, oteller gibi yerlerdeki genel WiFi bağlantılarını güvenle kullanmak isteyenler
+ŞUNLAR İÇİN MÜKEMMEL:
+
+→ Reklam verenler tarafından izlenmeden yayın izleme ve internette gezinme
+→ Kafeler, havaalanları, oteller gibi yerlerde güvenli kamuya açık WiFi bağlantıları
 → Kısıtlayıcı ülkelerde güvenilir erişime ihtiyaç duyan herkes
-→ Yalnızca gizlenen bir IP istemeyen, gerçek anonimlik arayanlar
-→ İzlenemez iletişim gereken gazeteciler ve aktivistler
+→ Sadece IP gizleme değil, gerçek anonimlik isteyen kişiler
+→ İzlenemez iletişime ihtiyaç duyan gazeteciler ve aktivistler
 
-Şimdi indir. Saniyeler içinde bağlan. Çevrimdışı görün.
+Şimdi indir. Saniyeler içinde bağlan. Online görünmez ol.
 
-🎁 7 gün ücretsiz deneme | 💯 30 gün para iade garantisi | 🌐 Dünya çapında 10.000+ kullanıcı tarafından güveniliyor
+🎁 7 günlük ücretsiz deneme | 💯 30 gün para iade garantisi | 🌐 Dünya genelinde 10.000+ kullanıcı tarafından güveniliyor

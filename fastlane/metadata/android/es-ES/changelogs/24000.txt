@@ -1,0 +1,5 @@
+Novedades:
+- Añadidas compras en la aplicación para Play Store
+- Nuevos locales añadidos: BN, EL, VI
+- Mejoras y correcciones de UI y UX
+- Mejoras de estabilidad de conexión 

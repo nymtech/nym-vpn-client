@@ -1,7 +1,7 @@
 {
   "vpn-tunnel-state": {
     "connected": "VPN Tunnel verbunden",
-    "disconnected": "NymVPN Tunnel getrennt. Um deine Sicherheit zu gewährleisten bitte erneut verbinden.",
+    "disconnected": "NymVPN Tunnel getrennt.",
     "error": "VPN-Tunnel fehlgeschlagen: Ein Fehler ist aufgetreten",
     "offline": "PC ist offline"
   },

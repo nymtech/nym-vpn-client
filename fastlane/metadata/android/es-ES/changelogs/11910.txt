@@ -1,2 +1,2 @@
 Novedades:
-- Corrección del fallo de fondo
+- Corregir error del fondo

@@ -1,1 +1,1 @@
-NymVPN: 私有Mixnet
+NymVPN：隐私混合网络

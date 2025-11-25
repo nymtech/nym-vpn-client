@@ -1,13 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::state_machine::DecentralisedState;
 use crate::{
     SharedAccountState,
     commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
     state_machine::{
-        AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
-        OfflineState, PrivateAccountControllerState,
+        AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
+        NextAccountControllerState, OfflineState, PrivateAccountControllerState,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -91,13 +90,34 @@ impl SyncingState {
         vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
+        let handle_vpn_api_error = |e: VpnApiClientError| -> Result<bool, SyncError> {
+            let error_response = NymErrorResponse::try_from(e)?;
+            // SW Use UUID when it will be available
+            if error_response.status == "access_denied"
+                && error_response.message == "Account not found"
+            {
+                // Request was fine, but account is unregistered
+                // Later down the line we can maybe register it here
+                Err(SyncError::UnregisteredAccount)
+            } else {
+                Err(SyncError::ApiResponseError {
+                    details: error_response
+                        .code_reference_id
+                        .unwrap_or(error_response.message),
+                })
+            }
+        };
+
         // Make sure time isn't too much desynced, othersiwe Zk-nyms will fail to verify on gateways
-        if !vpn_api_client
-            .get_remote_time()
-            .await?
-            .is_acceptable_synced()
-        {
-            return Err(SyncError::DeviceTimeDesynced);
+        match vpn_api_client.get_remote_time().await {
+            Ok(remote_time) => {
+                if !remote_time.is_acceptable_synced() {
+                    return Err(SyncError::DeviceTimeDesynced);
+                }
+            }
+            Err(e) => {
+                return handle_vpn_api_error(e);
+            }
         }
 
         match vpn_api_client
@@ -138,23 +158,7 @@ impl SyncingState {
                 }
             }
 
-            Err(e) => {
-                let error_response = NymErrorResponse::try_from(e)?;
-                // SW Use UUID when it will be available
-                if error_response.status == "access_denied"
-                    && error_response.message == "Account not found"
-                {
-                    // Request was fine, but account is unregistered
-                    // Later down the line we can maybe register it here
-                    Err(SyncError::UnregisteredAccount)
-                } else {
-                    Err(SyncError::ApiResponseError {
-                        details: error_response
-                            .code_reference_id
-                            .unwrap_or(error_response.message),
-                    })
-                }
-            }
+            Err(e) => handle_vpn_api_error(e),
         }
     }
 
@@ -255,9 +259,12 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                     },
 
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
-                        shared_state.firewall_active = false;
                         return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts));
+                        // No-op if the firewall was already down
+                        if shared_state.firewall_active {
+                            shared_state.firewall_active = false;
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts));
+                        }
                     },
 
                     AccountCommand::VpnApiFirewallUp(return_sender) => {

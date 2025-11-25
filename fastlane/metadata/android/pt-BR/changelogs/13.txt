@@ -1,5 +1,5 @@
-Novidades:
-- Correção do bug do descritor de arquivo
-- Correção do bug da API Nym v5
-- Correção de paradas de VPN IPv6/IPv4
-- Outras correções de bugs
+Quais as novidades:
+- Correção do erro no descritor de arquivo
+- Correção do bug da API nym v5
+- Correção de paradas de vpn ipv6/ipv4
+- Outras correções de erros

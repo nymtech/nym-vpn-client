@@ -1,0 +1,9 @@
+Có gì mới:
+- Nút tải xuống đã được thêm vào màn hình Nhật ký
+- Màn hình Quyền riêng tư & Dữ liệu Mới
+- Tích hợp luồng Giám sát Mạng
+- Thêm màn hình chào mừng
+- Cập nhật giao diện người dùng cho các modal và SnackBar
+Cải tiến Kho dữ liệu
+- Sửa lỗi phần cứng gây sự cố treo trên một số thiết bị cụ thể
+- Sửa lỗi trình đọc nhật ký bị treo trên một số thiết bị

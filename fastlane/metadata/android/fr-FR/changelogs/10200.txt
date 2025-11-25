@@ -1,5 +1,5 @@
-Nouveautés :
-- Synchronisation de l'état de connexion corrigée
-- Messagerie d'erreur améliorée
-- Ajout d'un flux d'autorisation refusée
+Quoi de neuf :
+- Synchronisation de l'état de la connexion fixe
+- Amélioration de la messagerie d'erreur
+- Ajout du flux de permission refusé
 - Suppression des journaux de débogage de la version

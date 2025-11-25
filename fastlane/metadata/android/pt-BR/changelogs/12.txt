@@ -1,4 +1,4 @@
-Novidades:
-- Adição do abi splitting para otimização do tamanho do APK
-- Adição do teste de fumaça
-- Corrigido bug de minificação
+Quais as novidades:
+- Divisão de abi adicionada para otimização de tamanho de apk
+- Teste de fumaça adicionado
+- Erro de minificação corrigido

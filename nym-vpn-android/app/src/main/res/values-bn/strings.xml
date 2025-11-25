@@ -106,8 +106,7 @@
 	<string name="welcome_to_nym">NymVPN-এ স্বাগতম</string>
 	<string name="get_access_code">অ্যাক্সেস কোড পান</string>
 	<string name="access_code">২৪-শব্দের অ্যাক্সেস কোড</string>
-	<string name="support_and_feedback"><![CDATA[সহায়তা ও প্রতিক্রিয়া]]></string>
-	<string name="get_in_touch">সহায়তার জন্য যোগাযোগ করুন</string>
+    <string name="get_in_touch">সহায়তার জন্য যোগাযোগ করুন</string>
 	<string name="device_id">ডিভাইস আইডি:</string>
 	<string name="loading">লোড হচ্ছে</string>
 	<string name="offline">ইন্টারনেট নেই</string>

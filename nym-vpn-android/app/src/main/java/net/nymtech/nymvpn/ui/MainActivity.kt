@@ -178,7 +178,7 @@ class MainActivity : AppCompatActivity() {
 									hideBackButton = hideBackButtonInNavBar,
 									onBackClick = {
 										onBackClickEventFromRoute = it
-									}
+									},
 								)
 							},
 							snackbarHost = {
@@ -307,7 +307,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(
 										appState = appState,
-										onBackEventConsumed = {
+										onBackEventConsume = {
 											onBackClickEventFromRoute = null
 										},
 										onBackClickEventTriggered = onBackClickEventFromRoute == Route.SplitTunneling,

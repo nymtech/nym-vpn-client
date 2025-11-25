@@ -18,10 +18,21 @@ import timber.log.Timber
 internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwner {
 
 	private var vpnInterfaceFd: ParcelFileDescriptor? = null
+	private var disAllowedApplicationPackages: List<String> = emptyList()
 	override var owner: NymBackend? = null
 
+	companion object {
+		var _builder: Builder? = null
+	}
+
 	private val builder: Builder
-		get() = Builder()
+		get() = if (_builder == null) {
+			_builder = Builder()
+			_builder!!
+		} else {
+			_builder!!
+		}
+
 
 	override fun onCreate() {
 		super.onCreate()
@@ -32,6 +43,7 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	override fun onDestroy() {
 		Timber.d("Vpn service destroyed")
 		try {
+			_builder = null
 			vpnInterfaceFd?.close()
 			vpnInterfaceFd = null
 		} catch (e: Exception) {
@@ -116,6 +128,7 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 
 	fun restrictApps(disAllowedApplicationPackages: List<String>) {
 		try {
+			this.disAllowedApplicationPackages = disAllowedApplicationPackages
 			disAllowedApplicationPackages.forEach {
 				builder.addDisallowedApplication(it)
 				Timber.d("Disallowed application: $it")

@@ -1,24 +1,20 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::commands::{UpgradeModeCommand, common_handler, handler};
-use crate::state_machine::{
-    ErrorState, LoggedOutState, RequestingZkNymsState, SyncingState,
-    UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL,
-};
 use crate::{
-    commands::AccountCommand,
+    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
     shared_state::SharedAccountState,
     state_machine::{
-        AccountControllerStateHandler, NextAccountControllerState, PrivateAccountControllerState,
+        AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
+        PrivateAccountControllerState, RequestingZkNymsState, SyncingState,
+        UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use std::pin::Pin;
 use time::OffsetDateTime;
-use tokio::sync::mpsc;
-use tokio::time::Sleep;
+use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, info, warn};
 

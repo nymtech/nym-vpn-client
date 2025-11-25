@@ -6,7 +6,7 @@
     "internal": "خطأ داخلي بالوحدة الخلفية(الديمن)",
     "invalid-network": "شبكة غير صالحة"
   },
-  "grpc": "خطأ داخلي في خدمة gRPC",
+  "vpnd-client": "خطأ داخل Vpnd العميل",
   "tunnel": {
     "internal": "خطأ داخلي",
     "firewall": "خطأ في جدار الحماية",

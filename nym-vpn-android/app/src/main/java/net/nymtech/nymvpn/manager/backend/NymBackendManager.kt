@@ -131,6 +131,7 @@ class NymBackendManager @Inject constructor(
 	}
 
 	override suspend fun startTunnel() {
+		notificationService.clearNotifications()
 		runCatching {
 			emitBackendUiEvent(null)
 			val tunnel = NymTunnel(
@@ -159,8 +160,7 @@ class NymBackendManager @Inject constructor(
 		}
 	}
 
-	private suspend fun getRestrictedAppsPackages() =
-		 splitTunnelingRepository.getAppInfoList().filter { !it.passThroughVpn }.map { it.packageName }
+	private suspend fun getRestrictedAppsPackages() = splitTunnelingRepository.getAppInfoList().filter { !it.passThroughVpn }.map { it.packageName }
 
 	private suspend fun isQuicEnabled(): Boolean {
 		return settingsRepository.getQUICEnabled() &&

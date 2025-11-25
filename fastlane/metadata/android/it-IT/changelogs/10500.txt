@@ -1,3 +1,3 @@
-What's new:
-- Added languages PT, FR, ES
-- Bug fixes
+Cosa c'è di nuovo:
+- Aggiunte lingue PT, FR, ES
+- Correzioni bug

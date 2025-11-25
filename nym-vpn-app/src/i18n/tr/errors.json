@@ -6,7 +6,7 @@
     "internal": "Daemon dahili hata",
     "invalid-network": "Geçersiz ağ"
   },
-  "grpc": "Dahili gRPC hatası",
+  "vpnd-client": "Dahili VPN istemcisi hatası",
   "tunnel": {
     "internal": "Dahili hata",
     "firewall": "Güvenlik duvarı hatası",

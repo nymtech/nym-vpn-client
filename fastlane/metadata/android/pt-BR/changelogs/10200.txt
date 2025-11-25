@@ -1,5 +1,5 @@
-Novidades:
-- Sincronização do estado de conexão corrigida
-- Melhoria nas mensagens de erro
-- Adição do fluxo de permissão negada
-- Logs de depuração removidos da versão
+Quais as novidades:
+- Sincronização de estado de conexão corrigida
+- Melhoria nas mensagens de erros
+- Adicionado fluxo de permissão negada
+- Removido logs de depuração do lançamento

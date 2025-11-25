@@ -2,9 +2,9 @@ Pare de ser rastreado online. O único VPN que não pode espionar você, mesmo q
 
 ⭐️ Conforme visto em: PCMag, TechRadar, Wirecutter, ZDNet, Tom’s Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-NAVEGUE SEM DEIXAR RASTRO
+MELHOR SEM SAIBAR UM TREINO
 
-Cansado de se perguntar quem está te observando? VPNs tradicionais teoricamente podem registrar suas atividades. NymVPN é fundamentalmente diferente: nossa rede descentralizada torna impossível o registro centralizado por design. Não se trata apenas de uma “política de não registros” — é uma arquitetura que “não pode registrar”.
+Cansado de se perguntar quem está assistindo? VPNs tradicionais teoricamente podem registrar suas atividades. NymVPN é fundamentalmente diferente: nossa rede descentralizada torna impossível o registro centralizado por design. Não se trata apenas de uma “política de não registros” — é uma arquitetura que “não pode registrar”.
 
 ✓ Anonimato verdadeiro: pague com cripto ou em dinheiro, sem e-mail necessário
 ✓ 50+ países, centenas de servidores independentes
@@ -16,7 +16,7 @@ ESCOLHA SEU NÍVEL DE PRIVACIDADE
 ⚡ Modo Rápido – Velocidades relâmpago para streaming e navegação. Por padrão 2-hop: um servidor sabe quem você é, outro sabe o que você faz — mas nunca os dois.
 🔒 Modo Anônimo – Privacidade máxima via mixnet de 5-hop com tecnologia de geração de ruído e até 5 camadas de criptografia. Projetado para resistir até mesmo à análise de tráfego movida por IA e vigilância avançada.
 
-POR QUE NymVPN É DIFERENTE
+POR QUE NYMVPN É DIFFERENTE
 
 • Proteção de metadados – Ao contrário de outros VPNs, protegemos não só seus dados, mas também os padrões que você deixa
 • Resistente à censura – Acesse conteúdo bloqueado em ambientes restritivos com AmneziaWG, QUIC e protocolos stealth
@@ -29,12 +29,13 @@ VERIFICADO INDEPENDENTEMENTE
 • Open-source e transparente (“Signals of Trustworthy VPNs”)
 • Mais de 10.000 usuários já confiam na NymVPN para sua privacidade
 
-RECURSOS ESSENCIAIS
+CARACTERÍSTICAS ESSENCIAIS
 
 • Conexões de alta velocidade com seleção entre 50+ países
 • Kill switch que evita vazamentos de dados
 • Experiência totalmente sem anúncios
 • Stack criptográfico de última geração
+
 
 PERFEITO PARA
 

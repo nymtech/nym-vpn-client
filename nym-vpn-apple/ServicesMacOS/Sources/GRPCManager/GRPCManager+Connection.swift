@@ -11,8 +11,8 @@ extension GRPCManager {
     }
 
     public func updateConfig(newConfig: ConnectionConfig) async throws {
+        guard let oldConfig = await config() else { return }
         try await Task.detached { [weak self] in
-            guard let oldConfig = await self?.config() else { return }
             if oldConfig.entry != newConfig.entry {
                 try await self?.rpcClient?.setEntryPoint(entryPoint: newConfig.entryPoint)
             }
@@ -27,6 +27,9 @@ extension GRPCManager {
             }
             if oldConfig.enableBridges != newConfig.enableBridges {
                 try await self?.rpcClient?.setEnableBridges(enableBridges: newConfig.enableBridges)
+            }
+            if oldConfig.allowLan != newConfig.allowLan {
+                try await self?.rpcClient?.setAllowLan(allowLan: newConfig.allowLan)
             }
         }.value
     }

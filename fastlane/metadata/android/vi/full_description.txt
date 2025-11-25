@@ -1,49 +1,50 @@
-Ngừng bị theo dõi trực tuyến. VPN duy nhất mà không thể theo dõi bạn — ngay cả khi nó muốn. Sản xuất tại Thụy Sĩ, được các nhà bảo vệ quyền riêng tư trên toàn thế giới tin cậy.
+Đừng để bị theo dõi trực tuyến. VPN duy nhất không thể theo dõi bạn, ngay cả khi muốn thế. Sản xuất tại Thụy Sĩ, được những người ủng hộ quyền riêng tư trên toàn thế giới tin dùng.
 
-⭐️ Được giới thiệu tại: PCMag, TechRadar, Wirecutter, ZDNet, Tom’s Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+⭐️ Đã xuất hiện trên: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-DUYỆT WEB KHÔNG ĐỂ LẠI DẤU VẾT
+DUYỆT WEB MÀ KHÔNG ĐỂ LẠI DẤU VẾT
 
-Mệt mỏi vì tự hỏi ai đang theo dõi bạn? Các VPN truyền thống theo lý thuyết có thể ghi lại hoạt động của bạn. NymVPN thì hoàn toàn khác: mạng phân quyền của chúng tôi khiến việc ghi nhật ký tập trung trở nên bất khả thi theo thiết kế. Đây không chỉ là “chính sách không ghi nhật ký” — đây là kiến trúc “không thể ghi nhật ký”.
+Bạn đã chán ngấy việc lo lắng xem ai đang theo dõi mình? Về mặt lý thuyết, VPN truyền thống có thể ghi lại hoạt động của bạn. NymVPN hoàn toàn khác biệt: mạng lưới phi tập trung của chúng tôi khiến việc ghi nhật ký tập trung trở nên bất khả thi. Đây không phải là "chính sách không ghi nhật ký" mà là kiến ​​trúc "không thể ghi nhật ký".
 
-✓ Ẩn danh thực sự: Thanh toán bằng crypto hoặc tiền mặt, không cần email
-✓ 50+ quốc gia, hàng trăm máy chủ độc lập
+✓ Ẩn danh thực sự: Thanh toán bằng tiền điện tử hoặc tiền mặt, không cần email
+✓ Hơn 50 quốc gia, hàng trăm máy chủ độc lập
 ✓ Bảo vệ đa thiết bị: 10 thiết bị với một mã ẩn danh
-✓ Có trụ sở tại Thụy Sĩ với tiêu chuẩn quyền riêng tư cấp học thuật
+✓ Có trụ sở tại Thụy Sĩ với tiêu chuẩn bảo mật cấp độ học thuật
 
-CHỌN MỨC ĐỘ RIÊNG TƯ CỦA BẠN
+CHỌN MỨC ĐỘ RIÊNG TƯ
 
-⚡ Chế độ Nhanh – Tốc độ cực nhanh cho streaming và lướt web. Mặc định 2-hop: một máy chủ biết bạn là ai, máy chủ khác biết bạn đang làm gì — nhưng không bao giờ cả hai.
-🔒 Chế độ Ẩn danh – Quyền riêng tư tối đa qua mixnet 5-hop với công nghệ tạo nhiễu và lên tới 5 lớp mã hóa. Được thiết kế để chống lại phân tích lưu lượng do AI điều khiển và giám sát tiên tiến.
+⚡ Chế độ Nhanh – Tốc độ cực nhanh để phát trực tuyến và duyệt web. Mặc định là 2 bước nhảy, cho phép một máy chủ biết bạn là ai, một máy chủ khác biết bạn đang làm gì—nhưng không bao giờ biết tất cả.
+🔒 Chế độ Ẩn danh – Quyền riêng tư tối đa thông qua mixnet 5 bước nhảy với công nghệ tạo nhiễu và tlên tới 5 lớp mã hóa. Được thiết kế để chống lại ngay cả phân tích lưu lượng truy cập được hỗ trợ bởi AI và giám sát tiên tiến.
 
-TẠI SAO NymVPN KHÁC BIỆT
+TẠI SAO NYMVPN KHÁC BIỆT
 
-• Bảo vệ metadata – Khác với các VPN khác, chúng tôi không chỉ bảo vệ dữ liệu của bạn mà còn cả mô hình mà bạn để lại
-• Kháng kiểm duyệt – Truy cập thông tin bị chặn trong môi trường hạn chế bằng AmneziaWG, QUIC và các giao thức stealth
-• Thanh toán Zero-Knowledge – Gói đăng ký của bạn không bị liên kết mã hóa với hoạt động của bạn
-• Thiết kế bởi trường đại học – Được phát triển bởi các nhà mật mã học PhD từ KU Leuven và EPFL với hơn 20 bài báo bình duyệt
+• Bảo vệ siêu dữ liệu – Không giống như các VPN khác, chúng tôi không chỉ bảo vệ dữ liệu của bạn mà còn cả các mô hình dữ liệu bạn để lại
+• Chống kiểm duyệt – Truy cập thông tin bị chặn trong môi trường hạn chế với các giao thức AmneziaWG, QUIC và giao thức ẩn
+• Thanh toán zero-knowledge – Gói đăng ký của bạn được mã hóa và không liên kết với hoạt động của bạn
+• Được thiết kế bởi trường đại học – Được xây dựng bởi các nhà mật mã học tiến sĩ từ KU Leuven và EPFL với hơn 20 ấn phẩm được bình duyệt
 
-ĐƯỢC XÁC MINH ĐỘC LẬP
+ĐÃ ĐƯỢC KIỂM ĐỊNH ĐỘC LẬP
 
-• 4 cuộc kiểm định bảo mật (2021-2024) bởi JP Aumasson, Oak Security, Cryspen, Cure53
-• Mã nguồn mở và minh bạch (“Signals of Trustworthy VPNs”)
-• Hơn 10.000 người dùng đã tin tưởng NymVPN cho quyền riêng tư của mình
+• 4 lần kiểm toán bảo mật (2021-2024) bởi JP Aumasson, Oak Security, Cryspen, Cure53
+• Mã nguồn mở và minh bạch ("Dấu hiệu của VPN đáng tin cậy")
+• Hơn 10.000 người dùng đã tin tưởng NymVPN để bảo vệ quyền riêng tư của họ
 
-TÍNH NĂNG CƠ BẢN
+CÁC TÍNH NĂNG CƠ BẢN
 
 • Kết nối tốc độ cao với lựa chọn hơn 50 quốc gia
-• Kill switch ngăn rò rỉ dữ liệu
-• Trải nghiệm hoàn toàn không quảng cáo
-• Ngăn xếp mã hóa hiện đại nhất
+• Kill switch ngăn chặn rò rỉ dữ liệu
+• Trải nghiệm hoàn toàn không có quảng cáo
+• Cơ chế mã hóa tiên tiến
 
-PHÙ HỢP CHO
 
-→ Streaming và duyệt web không bị hãng quảng cáo theo dõi
-→ Kết nối WiFi công cộng an toàn tại quán cà-phê, sân bay, khách sạn
-→ Những người ở quốc gia bị hạn chế cần truy cập đáng tin cậy
-→ Những ai muốn ẩn danh thực sự, chứ không chỉ ẩn IP
-→ Nhà báo và nhà hoạt động cần giao tiếp không thể bị lần theo
+HOÀN HẢO CHO
 
-Tải ngay. Kết nối trong vài giây. Biến mất trực tuyến.
+→ Phát trực tuyến và duyệt web mà không bị theo dõi bởi các nhà quảng cáo
+→ Kết nối WiFi công cộng an toàn tại quán cà phê, sân bay, khách sạn
+→ Bất kỳ ai ở các quốc gia hạn chế cần truy cập đáng tin cậy
+→ Những người muốn ẩn danh thực sự, không chỉ là ẩn địa chỉ IP
+→ Các nhà báo và nhà hoạt động cần giao tiếp mà không thể bị theo dõi
 
-🎁 Dùng thử miễn phí 7 ngày | 💯 Bảo đảm hoàn tiền trong 30 ngày | 🌐 Được hơn 10.000 người dùng toàn cầu tin cậy
+Tải xuống ngay. Kết nối trong vài giây. Biến mất khi trực tuyến.
+
+🎁 Dùng thử miễn phí trong 7 ngày | 💯 Đảm bảo hoàn tiền trong 30 ngày | 🌐 Được hơn 10.000 người dùng trên toàn thế giới tin dùng

@@ -3503,7 +3503,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#d126d8e5a0e69a0da013b65e5845054ff98da1f7"
+source = "git+https://github.com/nymtech/nym?branch=develop#3057721845c83e68928d17dadbec5dd0ffbd9a1d"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -3544,7 +3544,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#d126d8e5a0e69a0da013b65e5845054ff98da1f7"
+source = "git+https://github.com/nymtech/nym?branch=develop#3057721845c83e68928d17dadbec5dd0ffbd9a1d"
 dependencies = [
  "pem",
  "tracing",
@@ -3566,7 +3566,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#d126d8e5a0e69a0da013b65e5845054ff98da1f7"
+source = "git+https://github.com/nymtech/nym?branch=develop#3057721845c83e68928d17dadbec5dd0ffbd9a1d"
 dependencies = [
  "thiserror 2.0.17",
 ]

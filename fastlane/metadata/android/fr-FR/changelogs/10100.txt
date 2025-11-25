@@ -1,4 +1,4 @@
-Nouveautés :
+Quoi de neuf :
 - Améliorations de l'interface utilisateur
-- Ajout d'une fonction de suppression des informations d'identification
+- Ajouter une limite d'identifiants
 - Correction temporaire des erreurs de connexion

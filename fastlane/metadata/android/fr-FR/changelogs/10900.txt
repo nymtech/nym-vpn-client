@@ -1,2 +1,2 @@
-Nouveautés :
-- Correction des anomalies de navigation
+Quoi de neuf :
+- Correction des bugs de navigation

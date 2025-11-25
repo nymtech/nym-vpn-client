@@ -1,3 +1,0 @@
-Cosa c'è di nuovo:
-- Aggiungi controllo credenziali
-- Aggiungi memoria crittografata per credenziali

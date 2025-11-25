@@ -1,39 +1,23 @@
 import SwiftUI
 import Theme
 
-public struct SettingsList: View {
-    private let viewModel: SettingsListViewModel
+public struct SettingsList<Kind: SettingsSectionKind>: View {
+    private let viewModel: SettingsListViewModel<Kind>
 
-    public init(viewModel: SettingsListViewModel) {
+    public init(viewModel: SettingsListViewModel<Kind>) {
         self.viewModel = viewModel
     }
 
     public var body: some View {
         ForEach(viewModel.sections, id: \.self) { section in
             VStack(spacing: 0) {
-                ForEach(Array(section.settingsViewModels.enumerated()), id: \.element) { index, viewModel in
-                    SettingsListItem(viewModel: updatePosition(for: viewModel, with: index, section: section))
+                ForEach(Array(section.viewModels.enumerated()), id: \.element) { index, viewModel in
+                    SettingsListItem(
+                        viewModel: updatePosition(for: viewModel, with: index, section: section)
+                    )
                 }
             }
-            Spacer()
-                .frame(height: 24)
-        }
-        appVersionText()
-            .onTapGesture(count: 3) {
-                viewModel.navigateToSantasMenu()
-            }
-    }
-}
-
-private extension SettingsList {
-    @ViewBuilder
-    func appVersionText() -> some View {
-        HStack {
-            Text(viewModel.versionTitle)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
-                .padding(.bottom, 16)
-            Spacer()
+            .padding(.bottom, 16)
         }
     }
 }
@@ -42,7 +26,7 @@ private extension SettingsList {
     func updatePosition(
         for viewModel: SettingsListItemViewModel,
         with index: Int,
-        section: SettingsSection
+        section: SettingsSection<Kind>
     ) -> SettingsListItemViewModel {
         viewModel.position = SettingsListItemPosition(
             isFirst: isFirst(index: index, section: section),
@@ -51,11 +35,11 @@ private extension SettingsList {
         return viewModel
     }
 
-    func isFirst(index: Int, section: SettingsSection) -> Bool {
+    func isFirst(index: Int, section: SettingsSection<Kind>) -> Bool {
         index == 0
     }
 
-    func isLast(index: Int, section: SettingsSection) -> Bool {
-        index == section.settingsViewModels.count - 1
+    func isLast(index: Int, section: SettingsSection<Kind>) -> Bool {
+        index == section.viewModels.count - 1
     }
 }

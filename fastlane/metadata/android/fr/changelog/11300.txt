@@ -1,3 +1,0 @@
-Quoi de neuf :
-- Corrections de bugs
-- Amélioration de la stabilité

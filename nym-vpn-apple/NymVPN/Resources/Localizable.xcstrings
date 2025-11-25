@@ -6962,6 +6962,17 @@
         }
       }
     },
+    "createAccount.introOffer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7 days free trial - no payment required"
+          }
+        }
+      }
+    },
     "createAccount.login" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32916,6 +32927,28 @@
         }
       }
     },
+    "settings.helpTranslate.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make the app better in your language."
+          }
+        }
+      }
+    },
+    "settings.helpTranslate.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help with translation"
+          }
+        }
+      }
+    },
     "settings.ipv6.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -33316,6 +33349,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Killswitch"
+          }
+        }
+      }
+    },
+    "settings.lanBypass.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow direct local network access"
+          }
+        }
+      }
+    },
+    "settings.lanBypass.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bypass LAN"
           }
         }
       }
@@ -35437,6 +35492,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "订阅已到期"
+          }
+        }
+      }
+    },
+    "support.protect.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only contact NymVPN support through the official channels listed below. We will never ask for your passphrase or contact you first via direct messages."
+          }
+        }
+      }
+    },
+    "support.protect.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Received unexpected contact? It's likely a scam."
+          }
+        }
+      }
+    },
+    "support.protectTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protect yourself from scams"
           }
         }
       }

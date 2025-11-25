@@ -1,4 +1,0 @@
-Was ist neu:
-- VPN-Client refaktorieren
-- Bild-Assets hinzufügen
-- Synchronisierung der Benutzeroberfläche mit VPN korrigieren

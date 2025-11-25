@@ -1,5 +1,5 @@
 Novedades:
-- Mejoras en la interfaz de usuario
-- Mejoras en el caché
-- Integración con harbour master
-- Mejora de la sincronización rápida del estado de los mosaicos
+- Mejoras en la interfaz
+- Mejoras de caché
+- Añadida integración del harbour master
+- Mejora en la sincronización del estado de los accesos rápidos

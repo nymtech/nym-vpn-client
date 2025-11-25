@@ -15,7 +15,8 @@
       "title": "Vị trí chính xác",
       "description": "Các vị trí được hiển thị <1>xác định từ địa chỉ IP</1> và có thể không phản ánh chính xác vị trí vật lý."
     },
-    "title": "Chi tiết về vị trí máy chủ"
+    "entry-title": "Choosing entry locations",
+    "exit-title": "Choosing exit locations"
   },
   "location-not-available": {
     "entry": "Vị trí vào đã chọn không khả dụng, đã chuyển sang {{location}}",

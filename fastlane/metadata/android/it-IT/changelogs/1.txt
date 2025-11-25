@@ -1,2 +1,2 @@
-What's new:
-- UI creation
+Cosa c'è di nuovo:
+- Creazione interfaccia utente

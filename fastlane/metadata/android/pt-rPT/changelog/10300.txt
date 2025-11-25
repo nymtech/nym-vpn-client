@@ -1,5 +1,0 @@
-Quais as novidades:
-- Expiração de credenciais
-- Digitalização de código QR para obter credenciais
-- Link do Kill switch
-- Aprimoramentos da UI

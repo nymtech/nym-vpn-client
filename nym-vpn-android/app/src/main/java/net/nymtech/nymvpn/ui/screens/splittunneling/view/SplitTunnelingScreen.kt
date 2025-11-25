@@ -83,7 +83,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 internal fun SplitTunnelingScreen(
 	appState: AppUiState,
-	onBackEventConsumed: () -> Unit,
+	onBackEventConsume: () -> Unit,
 	onBackClickEventTriggered: Boolean = false,
 	viewModel: SplitTunnelingViewModel = hiltViewModel(),
 ) {
@@ -92,14 +92,14 @@ internal fun SplitTunnelingScreen(
 
 	val onNavigateBack = remember {
 		{
-			onBackEventConsumed()
+			onBackEventConsume()
 			viewModel.onUiEvent(UiEvent.ClearNavigation)
 			navController.safePopBackStack()
 		}
 	}
 	val onNavigateHome = remember {
 		{
-			onBackEventConsumed()
+			onBackEventConsume()
 			viewModel.onUiEvent(UiEvent.ClearNavigation)
 			val route = Route.Main()
 			navController.navigate(route = route) {
@@ -136,7 +136,7 @@ internal fun SplitTunnelingScreen(
 		handleNavigation(
 			pendingNavigation = uiState.pendingNavigation,
 			onNavigateBack = onNavigateBack,
-			onNavigateHome = onNavigateHome
+			onNavigateHome = onNavigateHome,
 		)
 	}
 
@@ -416,11 +416,7 @@ private fun loadIcon(packageName: String): Bitmap? {
 		null
 	}
 }
-private fun handleNavigation(
-	pendingNavigation: SplitTunnelingUiState.PendingNavigation?,
-	onNavigateBack: () -> Unit,
-	onNavigateHome: () -> Unit,
-) {
+private fun handleNavigation(pendingNavigation: SplitTunnelingUiState.PendingNavigation?, onNavigateBack: () -> Unit, onNavigateHome: () -> Unit) {
 	pendingNavigation?.let {
 		when (it) {
 			SplitTunnelingUiState.PendingNavigation.NavigateBack -> onNavigateBack()

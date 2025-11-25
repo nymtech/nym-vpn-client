@@ -15,7 +15,8 @@
       "title": "Précision de la localisation",
       "description": "Les emplacements affichés sont <1>déterminés à partir d'adresses IP</1> et peuvent ne pas refléter des emplacements physiques exacts."
     },
-    "title": "Détails sur l'emplacement des serveurs"
+    "entry-title": "Choix des emplacements d'entré",
+    "exit-title": "Choix des emplacements de sortie"
   },
   "location-not-available": {
     "entry": "Le lieu d'entrée sélectionné n'est pas disponible, il a été remplacé par {{location}}",

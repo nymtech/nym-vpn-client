@@ -103,6 +103,7 @@ extension ConnectionManager {
                 isErrorReportingEnabled: isErrorReportingEnabled,
                 isStatisticsEnabled: appSettings.isStatisticsEnabled,
                 isQuicEnabled: appSettings.isQuicEnabled,
+                isLanBypassEnabled: appSettings.isLanBypassEnabled,
                 isTwoHopEnabled: false
             )
         case .wireguard:
@@ -114,6 +115,7 @@ extension ConnectionManager {
                 isErrorReportingEnabled: isErrorReportingEnabled,
                 isStatisticsEnabled: appSettings.isStatisticsEnabled,
                 isQuicEnabled: appSettings.isQuicEnabled,
+                isLanBypassEnabled: appSettings.isLanBypassEnabled,
                 isTwoHopEnabled: true
             )
         }

@@ -106,7 +106,6 @@
 	<string name="welcome_to_nym">Chào mừng đến với NymVPN</string>
 	<string name="get_access_code">Lấy Mã Truy Cập</string>
 	<string name="access_code">mã-truy-cập-24-từ</string>
-	<string name="support_and_feedback"><![CDATA[Hỗ trợ & phản hồi]]></string>
 	<string name="get_in_touch">Liên hệ</string>
 	<string name="device_id">ID thiết bị:</string>
 	<string name="loading">Đang tải</string>

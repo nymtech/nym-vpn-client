@@ -1,5 +1,5 @@
-Nouveautés :
+Quoi de neuf :
 - Délai d'expiration des identifiants
-- Lecture du code QR pour les identifiants
-- Lien Kill Switch
+- Numérisation du code QR pour les identifiants
+- Lien du bouton Tuer
 - Améliorations de l'interface utilisateur

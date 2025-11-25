@@ -1,2 +1,0 @@
-Novedades:
-- Corregir error de bloqueo de registros

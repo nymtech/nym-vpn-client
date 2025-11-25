@@ -1,5 +1,0 @@
-Quoi de neuf :
-- Sélecteur de langue dans l'application
-- Plus de langues
-- Amélioration de la synchronisation des statuts
-- Diverses corrections de bugs et améliorations

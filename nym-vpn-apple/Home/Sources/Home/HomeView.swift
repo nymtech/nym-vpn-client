@@ -116,23 +116,19 @@ private extension HomeView {
         NetworkButton(viewModel: viewModel.fastButtonViewModel)
             .padding(EdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16))
             .onTapGesture {
-                viewModel.impactGenerator.softImpact()
-                viewModel.connectionManager.connectionType = .wireguard
+                viewModel.changeConnectionType(with: .wireguard)
             }
             .accessibilityAction {
-                viewModel.impactGenerator.softImpact()
-                viewModel.connectionManager.connectionType = .wireguard
+                viewModel.changeConnectionType(with: .wireguard)
             }
 
         NetworkButton(viewModel: viewModel.anonymousButtonViewModel)
             .padding(.horizontal, 16)
             .onTapGesture {
-                viewModel.impactGenerator.softImpact()
-                viewModel.connectionManager.connectionType = .mixnet5hop
+                viewModel.changeConnectionType(with: .mixnet5hop)
             }
             .accessibilityAction {
-                viewModel.impactGenerator.softImpact()
-                viewModel.connectionManager.connectionType = .mixnet5hop
+                viewModel.changeConnectionType(with: .mixnet5hop)
             }
         Spacer()
             .frame(height: 20)
