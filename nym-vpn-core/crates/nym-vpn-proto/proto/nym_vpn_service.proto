@@ -99,6 +99,10 @@ message Dns {
   optional string ip = 1;
 }
 
+message CustomDns {
+  repeated string ips = 1;
+}
+
 message ApiUrl {
   string url = 1;
   repeated string front_hosts = 2;
@@ -253,7 +257,6 @@ message ConnectRequest {
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
-  Dns dns = 3;
   bool allow_lan = 4;
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
@@ -265,6 +268,7 @@ message VpnServiceConfig {
   optional uint32 min_mixnode_performance = 8;
   optional uint32 min_gateway_mixnet_performance = 9;
   optional uint32 min_gateway_vpn_performance = 10;
+  CustomDns custom_dns = 16;
 }
 
 message AsEntry {
@@ -692,7 +696,6 @@ message DecentralisedAccountStoreRequest {
   string mnemonic = 1;
 }
 
-
 message DecentralisedObtainTicketbooksRequest {
   uint64 amount = 1;
 }
@@ -816,6 +819,7 @@ service NymVpnService {
   rpc SetNetstack (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetCustomDns (CustomDns) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}

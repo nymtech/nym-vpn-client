@@ -49,7 +49,7 @@ const BLOCKING_INTERFACE_ADDRS: [IpAddr; 2] = [
 
 pub struct ErrorState {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    firewall_policy_params: BlockedPolicyParameters,
+    _firewall_policy_params: BlockedPolicyParameters,
 }
 
 impl ErrorState {
@@ -87,7 +87,7 @@ impl ErrorState {
 
         let blocked_state = Self {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            firewall_policy_params,
+            _firewall_policy_params: firewall_policy_params,
         };
 
         (Box::new(blocked_state), PrivateTunnelState::Error(reason))
@@ -193,20 +193,6 @@ impl TunnelStateHandler for ErrorState {
                         } else {
                             NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                         }
-                    },
-                    TunnelCommand::SetAllowLan(allow_lan, complete_tx) => {
-                        if shared_state.set_allow_lan(allow_lan) {
-                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                            {
-                                self.firewall_policy_params.allow_lan = allow_lan;
-                                if let Err(err) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                    trace_err_chain!(err, "failed to set firewall policy");
-                                }
-                            }
-                        }
-
-                        _ = complete_tx.send(());
-                        NextTunnelState::SameState(self)
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         shared_state.tunnel_settings = tunnel_settings;

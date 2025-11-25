@@ -13,7 +13,7 @@ import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support, backendFlags } = useMainState();
+  const { desktopNotifications, ipv6Support } = useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -21,7 +21,6 @@ function Settings() {
   const { exit } = useExit();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
-  const showAntiCensorship = backendFlags.quic || backendFlags.domainFronting;
 
   const handleAutostartChanged = async () => {
     await toggleAutostart();
@@ -62,7 +61,12 @@ function Settings() {
               <Switch checked={ipv6Support} onChange={handleIpv6Support} />
             ),
           },
-          showAntiCensorship && {
+          {
+            title: t('killswitch.title'),
+            desc: t('killswitch.desc'),
+            leadingIcon: 'power_settings_new',
+          },
+          {
             title: t('anti-censorship.title', { ns: 'settings' }),
             leadingIcon: 'campaign',
             onClick: () => navigate(routes.antiCensorship),

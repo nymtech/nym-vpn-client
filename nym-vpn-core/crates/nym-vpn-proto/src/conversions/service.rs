@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{conversions::ConversionError, proto};
+use std::net::IpAddr;
 
 impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
     type Error = ConversionError;
@@ -19,18 +20,14 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .transpose()?
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.exit_point"))?;
 
-        let dns = match value.dns.and_then(|dns| dns.ip) {
-            Some(ip) => Some(
-                ip.parse::<std::net::IpAddr>()
-                    .map_err(|e| ConversionError::ParseAddr("VpnServiceConfig.dns", e))?,
-            ),
+        let custom_dns: Option<Vec<IpAddr>> = match value.custom_dns {
             None => None,
+            Some(custom_dns) => custom_dns.try_into()?,
         };
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
             exit_point,
-            dns,
             allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
@@ -42,6 +39,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u8),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
             residential_exit: value.residential_exit,
+            custom_dns,
         };
         Ok(config)
     }
@@ -52,9 +50,6 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
         proto::VpnServiceConfig {
             entry_point: Some(proto::EntryNode::from(value.entry_point)),
             exit_point: Some(proto::ExitNode::from(value.exit_point)),
-            dns: value.dns.map(|ip| proto::Dns {
-                ip: Some(ip.to_string()),
-            }),
             allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
@@ -66,6 +61,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
             residential_exit: value.residential_exit,
+            custom_dns: Some(value.custom_dns.into()),
         }
     }
 }

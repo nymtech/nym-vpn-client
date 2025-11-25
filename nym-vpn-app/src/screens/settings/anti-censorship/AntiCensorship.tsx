@@ -109,35 +109,33 @@ function AntiCensorship() {
           </div>
         </SettingsMenuCardBig>
       )}
-      {backendFlags.domainFronting && (
-        <SettingsMenuCardBig
-          header={
-            <CardSwitch
-              header={t('anti-censorship.stealth-api.label')}
-              subheaderColor="king-nacho"
-              // TODO keep it always ON for now
-              checked={true}
-              onClick={() => {
-                /* TODO */
-              }}
-              disabled
-            />
-          }
-        >
-          <div className="flex flex-col gap-2">
-            <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
-              {t('anti-censorship.stealth-api.content')}
-            </p>
-            <Link
-              className="w-fit text-sm mt-2"
-              text={t('anti-censorship.stealth-api.link')}
-              url={DomainFrontingUrl}
-              color="primary"
-              icon
-            />
-          </div>
-        </SettingsMenuCardBig>
-      )}
+      <SettingsMenuCardBig
+        header={
+          <CardSwitch
+            header={t('anti-censorship.stealth-api.label')}
+            subheaderColor="king-nacho"
+            // TODO keep it always ON for now
+            checked={true}
+            onClick={() => {
+              /* TODO */
+            }}
+            disabled
+          />
+        }
+      >
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+            {t('anti-censorship.stealth-api.content')}
+          </p>
+          <Link
+            className="w-fit text-sm mt-2"
+            text={t('anti-censorship.stealth-api.link')}
+            url={DomainFrontingUrl}
+            color="primary"
+            icon
+          />
+        </div>
+      </SettingsMenuCardBig>
     </PageAnim>
   );
 }

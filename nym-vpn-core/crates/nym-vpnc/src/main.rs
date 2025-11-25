@@ -68,6 +68,12 @@ pub enum Command {
         subcommand: commands::lan::Command,
     },
 
+    /// DNS
+    Dns {
+        #[command(subcommand)]
+        subcommand: commands::dns::Command,
+    },
+
     /// Tunnel configuration (enable or disable ipv6, two-hop mode, circumvention transports)
     Tunnel {
         #[command(subcommand)]
@@ -123,6 +129,7 @@ async fn main() -> Result<()> {
         Command::Gateway(args) => args.execute(rpc_client).await,
         Command::Tunnel { subcommand } => subcommand.execute(rpc_client).await,
         Command::Lan { subcommand } => subcommand.execute(rpc_client).await,
+        Command::Dns { subcommand } => subcommand.execute(rpc_client).await,
         Command::Network { subcommand } => subcommand.execute(rpc_client).await,
         Command::Account { subcommand } => subcommand.execute(rpc_client).await,
         Command::Device(args) => args.execute(rpc_client).await,
