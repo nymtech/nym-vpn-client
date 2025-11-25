@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
@@ -35,7 +38,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp)) {
+fun AmneziaSection(shape: Shape = RoundedCornerShape(8.dp)) {
 	val context = LocalContext.current
 	val interactionSource = remember { MutableInteractionSource() }
 
@@ -55,10 +58,14 @@ fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp)) {
 				verticalAlignment = Alignment.CenterVertically,
 			) {
 				Text(
-					text = stringResource(R.string.censorship_stealth_title),
+					text = stringResource(R.string.censorship_amnezia_title),
 					style = MaterialTheme.typography.titleMedium,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					maxLines = 2,
+					overflow = TextOverflow.Ellipsis,
+					modifier = Modifier.weight(1f),
 				)
+				Spacer(modifier = Modifier.width(8.dp))
 				ScaledSwitch(
 					checked = true,
 					enabled = false,
@@ -66,7 +73,7 @@ fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp)) {
 				)
 			}
 			Text(
-				text = stringResource(R.string.censorship_stealth_description),
+				text = stringResource(R.string.censorship_amnezia_description),
 				style = Typography.bodySmall,
 				color = MaterialTheme.colorScheme.outline,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
@@ -85,11 +92,11 @@ fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp)) {
 						interactionSource = interactionSource,
 						indication = null,
 					) {
-						context.openWebUrl(context.getString(R.string.censorship_stealth_link))
+						context.openWebUrl(context.getString(R.string.censorship_amnezia_link))
 					},
 			) {
 				Text(
-					text = stringResource(R.string.censorship_stealth_link_text),
+					text = stringResource(R.string.censorship_amnezia_link_text),
 					style = MaterialTheme.typography.bodyMedium.copy(
 						textDecoration = TextDecoration.Underline,
 					),
@@ -102,8 +109,8 @@ fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp)) {
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-internal fun PreviewStealthApiSection() {
+internal fun PreviewAmneziaSection() {
 	NymVPNTheme(Theme.default()) {
-		StealthApiSection()
+		AmneziaSection()
 	}
 }

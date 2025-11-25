@@ -61,6 +61,7 @@ fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) ->
 				Text(
 					text = stringResource(R.string.censorship_quic_title),
 					style = MaterialTheme.typography.titleMedium,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				)
 				ScaledSwitch(
 					checked = quicEnabled,
