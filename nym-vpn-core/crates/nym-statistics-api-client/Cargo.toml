@@ -12,6 +12,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+nym-statistics-common.workspace = true
 nym-http-api-client.workspace = true
 serde = { workspace = true, features = ["derive"] }
 
