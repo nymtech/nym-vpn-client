@@ -129,6 +129,7 @@ class NymBackendManager @Inject constructor(
 	}
 
 	override suspend fun startTunnel() {
+		notificationService.clearNotifications()
 		runCatching {
 			emitBackendUiEvent(null)
 			val tunnel = NymTunnel(

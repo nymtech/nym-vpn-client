@@ -103,6 +103,17 @@ constructor(
 		}
 	}
 
+	override fun clearNotifications() {
+		val notificationManager = NotificationManagerCompat.from(context)
+		if (ActivityCompat.checkSelfPermission(
+				context,
+				Manifest.permission.POST_NOTIFICATIONS,
+			) == PackageManager.PERMISSION_GRANTED
+		) {
+			notificationManager.cancel(NOTIFICATION_ID)
+		}
+	}
+
 	companion object {
 		private const val NOTIFICATION_ID = 42
 	}
