@@ -15,7 +15,28 @@ export type SettingsMenuCardProps = {
   className?: string;
   style?: CSSProperties;
   noHoverEffect?: boolean;
-  'data-testid'?: string;
+  variant?: 'normal' | 'danger';
+};
+
+const getVariantStyles = (
+  variant: 'normal' | 'danger',
+  noHoverEffect?: boolean,
+) => {
+  const variantStyles = {
+    normal: {
+      base: 'bg-white dark:bg-charcoal',
+      hover: 'hover:bg-white/60 dark:hover:bg-charcoal/85',
+    },
+    danger: {
+      base: 'border-aphrodisiac border bg-aphrodisiac/10 dark:bg-aphrodisiac/10',
+      hover: 'hover:bg-aphrodisiac/10 dark:hover:bg-aphrodisiac/20',
+    },
+  };
+
+  return (
+    variantStyles[variant].base +
+    (noHoverEffect ? '' : ` ${variantStyles[variant].hover}`)
+  );
 };
 
 function SettingsMenuCard({
@@ -31,19 +52,17 @@ function SettingsMenuCard({
   className,
   style,
   noHoverEffect,
-  ...rest
+  variant = 'normal',
 }: SettingsMenuCardProps) {
-  const testId =
-    rest['data-testid'] ||
-    `settings-card-${title.replace(/\s+/g, '-').toLowerCase()}`;
+  const variantStyles = getVariantStyles(variant, noHoverEffect);
 
   return (
     <div
       className={clsx([
+        variantStyles,
         'flex flex-row justify-between items-center gap-4 select-none',
-        'bg-white dark:bg-charcoal px-5 rounded-lg min-h-16',
+        'px-5 rounded-lg min-h-16',
         description ? 'py-2' : 'py-4',
-        !noHoverEffect && 'hover:bg-white/60 dark:hover:bg-charcoal/85',
         'transition cursor-default',
         disabled && 'opacity-50 pointer-events-none',
         className,
@@ -55,35 +74,16 @@ function SettingsMenuCard({
       role="button"
       tabIndex={disabled ? -1 : 0}
       style={style}
-      data-testid={testId}
-      data-test-disabled={disabled ? 'true' : 'false'}
     >
       <div
         className={clsx(
           'overflow-hidden flex flex-row items-center justify-between gap-4',
         )}
-        data-testid={`${testId}-content`}
       >
-        {leadingIcon && (
-          <MsIcon
-            icon={leadingIcon}
-            className="dark:text-white"
-            data-testid={`${testId}-leading-icon`}
-          />
-        )}
-        {leadingComponent && !leadingIcon && (
-          <div data-testid={`${testId}-leading-component`}>
-            {leadingComponent}
-          </div>
-        )}
-        <div
-          className="min-w-0 flex flex-col justify-center"
-          data-testid={`${testId}-text-container`}
-        >
-          <p
-            className="truncate text-base text-baltic-sea dark:text-white select-none"
-            data-testid={`${testId}-title`}
-          >
+        {leadingIcon && <MsIcon icon={leadingIcon} className="text-bombay" />}
+        {leadingComponent && !leadingIcon && <div>{leadingComponent}</div>}
+        <div className="min-w-0 flex flex-col justify-center">
+          <p className="truncate text-base text-baltic-sea dark:text-white select-none">
             {title}
           </p>
           {description && (
@@ -94,21 +94,14 @@ function SettingsMenuCard({
                 descriptionColor === 'red' && 'text-aphrodisiac',
                 descriptionColor === 'yellow' && 'text-king-nacho',
               )}
-              data-testid={`${testId}-description`}
             >
               {description}
             </p>
           )}
         </div>
       </div>
-      {trailingIcon && (
-        <MsIcon icon={trailingIcon} data-testid={`${testId}-trailing-icon`} />
-      )}
-      {trailingComponent && !trailingIcon && (
-        <div data-testid={`${testId}-trailing-component`}>
-          {trailingComponent}
-        </div>
-      )}
+      {trailingIcon && <MsIcon icon={trailingIcon} className="text-bombay" />}
+      {trailingComponent && !trailingIcon && <div>{trailingComponent}</div>}
     </div>
   );
 }

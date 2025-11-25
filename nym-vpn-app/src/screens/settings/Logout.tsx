@@ -69,91 +69,127 @@ function Logout() {
   return (
     <>
       <SettingsMenuCard
+        variant="danger"
         title={logoutCopy}
         onClick={() => setIsOpen(true)}
         disabled={daemonStatus === 'down' || state !== 'disconnected'}
-        data-testid="logout-button"
       />
       <Dialog
         open={isOpen}
         onClose={onClose}
         className="flex flex-col items-center gap-6"
-        data-testid="logout-dialog"
       >
-        {loading ? (
-          <>
-            <div
-              className="flex justify-center w-11/12"
-              data-testid="logout-loading-icon-container"
-            >
-              <MsIcon
-                icon="pending"
-                className="text-3xl text-baltic-sea dark:text-white"
-                data-testid="logout-loading-icon"
-              />
-            </div>
+        <div className="flex flex-col items-center gap-4 w-11/12">
+          <MsIcon
+            icon="logout"
+            className="text-3xl text-baltic-sea dark:text-white"
+          />
+          <DialogTitle
+            as="h3"
+            className="text-xl text-baltic-sea dark:text-white text-center w-full truncate"
+          >
+            {t('logout-confirmation.title')}
+          </DialogTitle>
+        </div>
 
-            <p
-              className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80"
-              data-testid="logout-loading-message"
-            >
+        <p className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80">
+          {t('logout-confirmation.description')}
+        </p>
+
+        {loading ? (
+          <div className="flex flex-row items-center justify-center gap-4">
+            <p className="text-center text-baltic-sea dark:text-white md:text-nowrap max-w-80">
               {t('logout-confirmation.logging-out')}
             </p>
-          </>
+            <MsIcon
+              icon="progress_activity"
+              className="text-cheddar dark:text-king-nacho animate-spin leading-none"
+            />
+          </div>
         ) : (
-          <>
-            <div
-              className="flex flex-col items-center gap-4 w-11/12"
-              data-testid="logout-dialog-header"
-            >
-              <MsIcon
-                icon="info"
-                className="text-3xl text-baltic-sea dark:text-white"
-                data-testid="logout-info-icon"
-              />
-              <DialogTitle
-                as="h3"
-                className="text-xl text-baltic-sea dark:text-white text-center w-full truncate"
-                data-testid="logout-dialog-title"
-              >
-                {t('logout-confirmation.title')}
-              </DialogTitle>
-            </div>
-
-            <p
-              className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80"
-              data-testid="logout-dialog-description"
-            >
-              {t('logout-confirmation.description')}
-            </p>
-
-            <div
-              className={clsx(
-                'flex flex-row flex-nowrap justify-center mt-2 w-full gap-3',
-              )}
-              data-testid="logout-dialog-buttons"
-            >
-              <Button
-                onClick={onClose}
-                className="min-w-32"
-                data-testid="logout-cancel-button"
-              >
-                {capFirst(t('cancel', { ns: 'glossary' }))}
-              </Button>
-              <Button
-                onClick={logout}
-                className="min-w-32"
-                outline
-                data-testid="logout-confirm-button"
-              >
-                {logoutCopy}
-              </Button>
-            </div>
-          </>
+          <div
+            className={clsx(
+              'flex flex-col flex-nowrap justify-center mt-2 w-full gap-3',
+            )}
+          >
+            <Button onClick={logout} className="min-w-32" color="red">
+              {logoutCopy}
+            </Button>
+            <Button onClick={onClose} className="min-w-32" outline color="gray">
+              {capFirst(t('cancel', { ns: 'glossary' }))}
+            </Button>
+          </div>
         )}
       </Dialog>
     </>
   );
+  // return (
+  //   <>
+  //     <SettingsMenuCard
+  //       variant="danger"
+  //       title={logoutCopy}
+  //       onClick={() => setIsOpen(true)}
+  //       disabled={daemonStatus === 'down' || state !== 'disconnected'}
+  //     />
+  //     <Dialog
+  //       open={isOpen}
+  //       onClose={onClose}
+  //       className="flex flex-col items-center gap-6"
+  //     >
+  //       {loading ? (
+  //         <>
+  //           <div className="flex justify-center w-11/12">
+  //             <MsIcon
+  //               icon="pending"
+  //               className="text-3xl text-baltic-sea dark:text-white"
+  //             />
+  //           </div>
+
+  //           <p className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80">
+  //             {t('logout-confirmation.logging-out')}
+  //           </p>
+  //         </>
+  //       ) : (
+  //         <>
+  //           <div className="flex flex-col items-center gap-4 w-11/12">
+  //             <MsIcon
+  //               icon="logout"
+  //               className="text-3xl text-baltic-sea dark:text-white"
+  //             />
+  //             <DialogTitle
+  //               as="h3"
+  //               className="text-xl text-baltic-sea dark:text-white text-center w-full truncate"
+  //             >
+  //               {t('logout-confirmation.title')}
+  //             </DialogTitle>
+  //           </div>
+
+  //           <p className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80">
+  //             {t('logout-confirmation.description')}
+  //           </p>
+
+  //           <div
+  //             className={clsx(
+  //               'flex flex-col flex-nowrap justify-center mt-2 w-full gap-3',
+  //             )}
+  //           >
+  //             <Button onClick={logout} className="min-w-32" color="red">
+  //               {logoutCopy}
+  //             </Button>
+  //             <Button
+  //               onClick={onClose}
+  //               className="min-w-32"
+  //               outline
+  //               color="gray"
+  //             >
+  //               {capFirst(t('cancel', { ns: 'glossary' }))}
+  //             </Button>
+  //           </div>
+  //         </>
+  //       )}
+  //     </Dialog>
+  //   </>
+  // );
 }
 
 export default Logout;

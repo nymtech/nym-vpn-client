@@ -58,8 +58,9 @@ function Button({
         ];
       case 'red':
         return [
-          'bg-aphrodisiac data-hover:bg-aphrodisiac/85',
-          'dark:data-hover:bg-aphrodisiac/80',
+          'bg-aphrodisiac/10 data-hover:bg-aphrodisiac/85 border border-aphrodisiac outline-aphrodisiac',
+          'dark:data-hover:bg-aphrodisiac/20',
+          'text-aphrodisiac dark:text-white',
         ];
     }
   };
@@ -68,6 +69,8 @@ function Button({
     switch (color) {
       case 'malachite':
         return 'border border-malachite outline-malachite';
+      case 'red':
+        return 'border border-aphrodisiac outline-aphrodisiac';
       default:
         // TODO add style for other colors
         return null;
