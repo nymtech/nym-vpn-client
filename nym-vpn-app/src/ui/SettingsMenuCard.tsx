@@ -15,28 +15,22 @@ export type SettingsMenuCardProps = {
   className?: string;
   style?: CSSProperties;
   noHoverEffect?: boolean;
-  variant?: 'normal' | 'danger';
+  color?: 'normal' | 'red';
 };
 
-const getVariantStyles = (
-  variant: 'normal' | 'danger',
-  noHoverEffect?: boolean,
-) => {
-  const variantStyles = {
+const getColorStyles = (color: 'normal' | 'red', noHoverEffect?: boolean) => {
+  const styles = {
     normal: {
       base: 'bg-white dark:bg-charcoal',
       hover: 'hover:bg-white/60 dark:hover:bg-charcoal/85',
     },
-    danger: {
+    red: {
       base: 'border-aphrodisiac border bg-aphrodisiac/10 dark:bg-aphrodisiac/10',
       hover: 'hover:bg-aphrodisiac/10 dark:hover:bg-aphrodisiac/20',
     },
   };
 
-  return (
-    variantStyles[variant].base +
-    (noHoverEffect ? '' : ` ${variantStyles[variant].hover}`)
-  );
+  return styles[color].base + (noHoverEffect ? '' : ` ${styles[color].hover}`);
 };
 
 function SettingsMenuCard({
@@ -52,14 +46,14 @@ function SettingsMenuCard({
   className,
   style,
   noHoverEffect,
-  variant = 'normal',
+  color = 'normal',
 }: SettingsMenuCardProps) {
-  const variantStyles = getVariantStyles(variant, noHoverEffect);
+  const colorStyles = getColorStyles(color, noHoverEffect);
 
   return (
     <div
       className={clsx([
-        variantStyles,
+        colorStyles,
         'flex flex-row justify-between items-center gap-4 select-none',
         'px-5 rounded-lg min-h-16',
         description ? 'py-2' : 'py-4',

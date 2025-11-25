@@ -69,7 +69,7 @@ function Logout() {
   return (
     <>
       <SettingsMenuCard
-        variant="danger"
+        color="red"
         title={logoutCopy}
         onClick={() => setIsOpen(true)}
         disabled={daemonStatus === 'down' || state !== 'disconnected'}
