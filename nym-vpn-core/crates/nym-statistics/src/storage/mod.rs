@@ -1,15 +1,22 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::storage::{error::StatsStorageError, sqlite::SqliteStatsStorageManager};
-use rand::Rng;
+use crate::storage::{
+    error::StatsStorageError,
+    models::{SessionReport, SessionReportWithId},
+    sqlite::SqliteStatsStorageManager,
+};
+use rand::distributions::{Alphanumeric, DistString};
 use sqlx::ConnectOptions;
 use sqlx_pool_guard::SqlitePoolGuard;
 use std::path::Path;
 use tracing::log::LevelFilter;
 
 pub mod error;
+pub(crate) mod models;
 mod sqlite;
+#[cfg(test)]
+pub(crate) mod test;
 
 const STATS_DB_FILE_NAME: &str = "stats.db";
 
@@ -63,16 +70,19 @@ impl StatsStorage {
         self.storage_manager.close().await
     }
 
-    pub(crate) async fn maybe_init_and_load_seed(&self) -> Result<String, StatsStorageError> {
+    pub(crate) async fn maybe_init_and_load_seed(
+        &self,
+        custom_seed: Option<String>,
+    ) -> Result<String, StatsStorageError> {
         match self.storage_manager.load_seed().await {
             Ok(Some(seed)) => Ok(seed),
             Ok(None) => {
                 // we don't need anything crypto secure here
-                let seed: String = rand::thread_rng()
-                    .sample_iter(&rand::distributions::Alphanumeric)
-                    .take(20)
-                    .map(char::from)
-                    .collect();
+                let seed = if let Some(seed) = custom_seed {
+                    seed
+                } else {
+                    Alphanumeric.sample_string(&mut rand::thread_rng(), 20)
+                };
                 self.storage_manager.set_seed(seed.clone()).await?;
                 Ok(seed)
             }
@@ -80,13 +90,41 @@ impl StatsStorage {
         }
     }
 
-    pub(crate) async fn reset_seed(&self) -> Result<(), StatsStorageError> {
+    pub(crate) async fn reset_seed(
+        &self,
+        custom_seed: Option<String>,
+    ) -> Result<(), StatsStorageError> {
         self.storage_manager.remove_seed().await?;
-        self.maybe_init_and_load_seed().await?;
+        self.maybe_init_and_load_seed(custom_seed).await?;
         Ok(())
     }
-    pub(crate) async fn remove_seed(&self) -> Result<(), StatsStorageError> {
-        self.storage_manager.remove_seed().await
+
+    pub(crate) async fn insert_pending_session_report(
+        &self,
+        report: &SessionReport,
+    ) -> Result<(), StatsStorageError> {
+        self.storage_manager
+            .insert_pending_session_report(report)
+            .await
+    }
+
+    pub(crate) async fn get_pending_session_report_with_id(
+        &self,
+    ) -> Result<Vec<SessionReportWithId>, StatsStorageError> {
+        self.storage_manager
+            .get_pending_session_report_with_id()
+            .await
+    }
+
+    pub(crate) async fn delete_pending_session_report(
+        &self,
+        id: i32,
+    ) -> Result<(), StatsStorageError> {
+        self.storage_manager.delete_pending_session_report(id).await
+    }
+
+    pub(crate) async fn delete_all(&self) -> Result<(), StatsStorageError> {
+        self.storage_manager.delete_all().await
     }
 }
 
