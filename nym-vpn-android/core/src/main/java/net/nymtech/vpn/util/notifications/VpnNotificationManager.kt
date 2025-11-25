@@ -16,7 +16,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import net.nymtech.vpn.R
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.SingletonHolder
+import net.nymtech.vpn.util.extensions.pointNameForRegion
+import net.nymtech.vpn.util.extensions.toDisplayCountry
+import nym_vpn_lib_types.ExitPoint
+import kotlin.let
 
 @SuppressLint("MissingPermission")
 internal class VpnNotificationManager private constructor(private val context: Context) {
@@ -51,13 +56,27 @@ internal class VpnNotificationManager private constructor(private val context: C
 		}
 	}
 
-	fun buildVpnNotification(state: Tunnel.State): Notification {
+	fun buildVpnNotification(state: Tunnel.State, exit: ExitPoint?, gatewaysList: List<NymGateway>?): Notification {
 		setupChannel()
 
 		val title = context.getString(R.string.vpn_notification_title)
+		val connected = exit?.let { e ->
+			val exitPoint = when (e) {
+				is ExitPoint.Gateway -> gatewaysList?.firstOrNull { it.identity == e.identity }?.name ?: e.identity
+				is ExitPoint.Country -> {
+					toDisplayCountry(e.twoLetterIsoCountryCode)
+				}
+				is ExitPoint.Address -> e.address
+				is ExitPoint.Random -> "random"
+				is ExitPoint.Region -> {
+					gatewaysList?.firstOrNull { it.region.equals(e.region, true) }?.pointNameForRegion() ?: e.region
+				}
+			}
+			context.getString(R.string.state_connected) + ": $exitPoint"
+		} ?: context.getString(R.string.state_connected)
 		val text = when (state) {
 			Tunnel.State.Down -> context.getString(R.string.state_disconnected)
-			Tunnel.State.Up -> context.getString(R.string.state_connected)
+			Tunnel.State.Up -> connected
 			Tunnel.State.InitializingClient -> context.getString(R.string.state_initializing)
 			Tunnel.State.EstablishingConnection -> context.getString(R.string.state_establishing)
 			else -> state.toString()
@@ -96,7 +115,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 			.build()
 	}
 
-	internal fun updateVpnNotification(state: Tunnel.State) {
+	internal fun updateVpnNotification(state: Tunnel.State, exit: ExitPoint?, gatewaysList: List<NymGateway>?) {
 		withNotificationPermission {
 			val notificationManager = NotificationManagerCompat.from(context)
 			if (state == Tunnel.State.Down) {
@@ -104,7 +123,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 			} else {
 				notificationManager.notify(
 					VPN_FOREGROUND_ID,
-					buildVpnNotification(state),
+					buildVpnNotification(state, exit, gatewaysList),
 				)
 			}
 		}

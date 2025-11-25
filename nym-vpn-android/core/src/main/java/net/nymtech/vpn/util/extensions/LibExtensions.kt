@@ -1,11 +1,13 @@
 package net.nymtech.vpn.util.extensions
 
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.Base58
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.TunnelState
+import java.util.Locale
 
 fun TunnelEvent.NewState.asTunnelState(): Tunnel.State {
 	return when (this.v1) {
@@ -53,4 +55,12 @@ fun String.asExitPoint(): ExitPoint {
 		Base58.isValidBase58(this, 32) -> ExitPoint.Gateway(this)
 		else -> throw IllegalArgumentException("Invalid exit id")
 	}
+}
+
+fun NymGateway.pointNameForRegion(): String {
+	return listOfNotNull(toDisplayCountry(this.twoLetterCountryISO.orEmpty()), region).joinToString(", ")
+}
+
+fun toDisplayCountry(twoLetterIsoCountryCode: String): String {
+	return Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
 }
