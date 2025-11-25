@@ -6,11 +6,13 @@ import ExternalLinkManager
 import UIComponents
 import Theme
 
-public struct AccountAndDevicesView: View {
+@MainActor public struct AccountAndDevicesView: View {
     @EnvironmentObject private var configurationManager: ConfigurationManager
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @EnvironmentObject private var impactGenerator: ImpactGenerator
     @EnvironmentObject private var externalLinkManager: ExternalLinkManager
+
+    @State private var isPresentedManageSubscription = false
 
     @Binding private var path: NavigationPath
 
@@ -23,6 +25,9 @@ public struct AccountAndDevicesView: View {
                 nymAccountSection()
                 accountIdentifier()
                 deviceIdentifier()
+#if os(iOS)
+                manageSubscription()
+#endif
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
             .padding(.horizontal, 16)
@@ -31,6 +36,9 @@ public struct AccountAndDevicesView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
+#if os(iOS)
+        .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
+#endif
         .background {
             NymColor.background
                 .ignoresSafeArea()
@@ -87,6 +95,21 @@ private extension AccountAndDevicesView {
                 imageSize: 24
             )
         }
+    }
+
+    func manageSubscription() -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "settings.manageSubscription".localizedString,
+                systemImageName: "creditcard",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {
+                    impactGenerator.softImpact()
+                    isPresentedManageSubscription = true
+                }
+            )
+        )
     }
 }
 
