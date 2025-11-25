@@ -36,6 +36,7 @@ public struct SettingsCopyableContentCell: View {
                     .accessibilityLabel("accessibility.doubleTap.copy".localizedString)
                     .accessibilityAddTraits([.isButton])
                     .animation(.easeInOut, value: didCopy)
+                    .foregroundStyle(NymColor.gray1)
                     .frame(width: 20, height: 20)
                     .onTapGesture {
                         copyAction()
