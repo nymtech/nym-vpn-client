@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import clsx from 'clsx';
 import { Field, Input, Label } from '@headlessui/react';
 import { inputStates } from './common-styles';
 import MsIcon from './MsIcon';
+import ButtonIcon from './ButtonIcon';
 
 export type TextInputProps = {
+  ref?: React.RefObject<HTMLInputElement | null>;
   // default value for uncontrolled input
   defaultValue?: string;
   // value for controlled input
@@ -18,12 +20,12 @@ export type TextInputProps = {
   className?: string;
   leftIcon?: string;
   readonly?: boolean;
-  'data-testid'?: string;
+  clearable?: boolean;
 };
 
 function TextInput({
+  ref,
   defaultValue,
-  value,
   onChange,
   spellCheck,
   label,
@@ -31,13 +33,19 @@ function TextInput({
   leftIcon,
   autoFocus,
   className,
-  ...rest
+  clearable = false,
 }: TextInputProps) {
+  const [value, setValue] = useState(defaultValue || '');
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
     onChange(e.target.value);
   };
 
-  const testId = rest['data-testid'] || 'text-input';
+  const handleClear = () => {
+    setValue('');
+    onChange('');
+  };
 
   return (
     <Field
@@ -45,12 +53,12 @@ function TextInput({
         'w-full flex flex-row items-center',
         label && 'relative',
       ])}
-      data-testid={`${testId}-field`}
     >
       <Input
         id="passphrase"
         name="passphrase"
         type="text"
+        ref={ref}
         defaultValue={defaultValue}
         value={value}
         aria-multiline={true}
@@ -63,12 +71,12 @@ function TextInput({
           className,
           label && 'relative',
           leftIcon && 'pl-11',
+          'pr-11',
         ])}
         placeholder={placeholder}
         onChange={handleChange}
         spellCheck={spellCheck}
         autoFocus={autoFocus}
-        data-testid={testId}
         data-test-has-left-icon={leftIcon ? 'true' : 'false'}
       />
       {label && (
@@ -78,7 +86,6 @@ function TextInput({
             'dark:text-white',
             'bg-faded-lavender dark:bg-ash text-xs',
           ])}
-          data-testid={`${testId}-label`}
         >
           {label}
         </Label>
@@ -87,7 +94,14 @@ function TextInput({
         <MsIcon
           icon={leftIcon}
           className="absolute left-3 text-baltic-sea dark:text-bombay hover:cursor-text"
-          data-testid={`${testId}-left-icon`}
+        />
+      )}
+      {clearable && value.length > 0 && (
+        <ButtonIcon
+          color="chalk"
+          icon="cancel"
+          className="absolute right-1 text-baltic-sea dark:text-bombay hover:cursor-pointer"
+          onClick={handleClear}
         />
       )}
     </Field>

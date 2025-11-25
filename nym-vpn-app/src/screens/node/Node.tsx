@@ -1,4 +1,4 @@
-import { useDeferredValue } from 'react';
+import { useDeferredValue, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
@@ -49,6 +49,11 @@ function Node({ node }: { node: NodeHop }) {
   const { filter, nodes, gateways } = useFilterList();
   const deferredNodes = useDeferredValue(nodes);
   const deferredGateways = useDeferredValue(gateways);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchRef.current) searchRef.current.focus();
+  }, []);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
@@ -141,12 +146,13 @@ function Node({ node }: { node: NodeHop }) {
             </p>
           )}
           <TextInput
+            ref={searchRef}
             defaultValue=""
             onChange={filter}
             placeholder={t('search-country')}
             leftIcon="search"
             label={t('input-label')}
-            data-testid="node-search-input"
+            clearable
           />
         </div>
         {loading && (
