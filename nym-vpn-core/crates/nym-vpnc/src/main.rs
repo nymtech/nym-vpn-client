@@ -71,7 +71,7 @@ pub enum Command {
     /// Custom DNS
     CustomDns {
         #[command(subcommand)]
-        subcommand: commands::custom_dns::Command,
+        subcommand: commands::dns::Command,
     },
 
     /// Tunnel configuration (enable or disable ipv6, two-hop mode, circumvention transports)
