@@ -1,0 +1,3 @@
+What's new:
+- Crash fixes and stability improvements
+- Navigation adjustments
