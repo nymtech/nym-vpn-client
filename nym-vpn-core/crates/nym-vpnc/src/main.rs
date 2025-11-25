@@ -68,8 +68,8 @@ pub enum Command {
         subcommand: commands::lan::Command,
     },
 
-    /// Custom DNS
-    CustomDns {
+    /// DNS
+    Dns {
         #[command(subcommand)]
         subcommand: commands::dns::Command,
     },
@@ -129,7 +129,7 @@ async fn main() -> Result<()> {
         Command::Gateway(args) => args.execute(rpc_client).await,
         Command::Tunnel { subcommand } => subcommand.execute(rpc_client).await,
         Command::Lan { subcommand } => subcommand.execute(rpc_client).await,
-        Command::CustomDns { subcommand } => subcommand.execute(rpc_client).await,
+        Command::Dns { subcommand } => subcommand.execute(rpc_client).await,
         Command::Network { subcommand } => subcommand.execute(rpc_client).await,
         Command::Account { subcommand } => subcommand.execute(rpc_client).await,
         Command::Device(args) => args.execute(rpc_client).await,

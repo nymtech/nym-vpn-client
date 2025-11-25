@@ -726,7 +726,8 @@ impl NymVpnService {
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetAllowLan(tx, allow_lan) => {
-                self.handle_set_allow_lan(allow_lan, tx).await;
+                self.handle_set_allow_lan(allow_lan).await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::SetEnableBridges(tx, enable_bridges) => {
                 self.handle_set_enable_bridges(enable_bridges).await;
@@ -896,11 +897,9 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_allow_lan(&mut self, allow_lan: bool, complete_tx: oneshot::Sender<()>) {
+    async fn handle_set_allow_lan(&mut self, allow_lan: bool) {
         self.config_manager.set_allow_lan(allow_lan).await;
-        _ = self
-            .command_sender
-            .send(TunnelCommand::SetAllowLan(allow_lan, complete_tx));
+        self.update_tunnel_settings_with_throttle();
     }
 
     async fn handle_set_enable_bridges(&mut self, enable_bridges: bool) {

@@ -1606,7 +1606,7 @@ impl TunnelMonitor {
                 .tunnel_parameters
                 .tunnel_settings
                 .dns
-                .ip_addresses(&self.tunnel_parameters.tunnel_settings.default_dns_ips())
+                .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
                 .to_vec(),
             interface_addresses,
             remote_addresses: vec![entry_endpoint],
@@ -1639,7 +1639,7 @@ impl TunnelMonitor {
             .tunnel_parameters
             .tunnel_settings
             .dns
-            .ip_addresses(&self.tunnel_parameters.tunnel_settings.default_dns_ips())
+            .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
             .to_vec();
 
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {

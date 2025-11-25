@@ -93,11 +93,6 @@ impl TunnelStateHandler for DisconnectingState {
                         };
                         NextTunnelState::SameState(self)
                     }
-                    TunnelCommand::SetAllowLan(allow_lan, complete_tx) => {
-                        _ = shared_state.set_allow_lan(allow_lan);
-                        _ = complete_tx.send(());
-                        NextTunnelState::SameState(self)
-                    },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         shared_state.tunnel_settings = tunnel_settings;
                         NextTunnelState::SameState(self)

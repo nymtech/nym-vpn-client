@@ -1,4 +1,4 @@
-pub mod legacy {
+pub(crate) mod legacy {
     use crate::service::ConfigSetupError;
     use serde::Deserialize;
 
