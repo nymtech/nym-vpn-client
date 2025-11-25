@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Device
 import ErrorReason
 import MessageModels
 import UIComponents
@@ -81,21 +82,22 @@ extension HomeViewModel {
     }
 
     func displayEnableStatisticsSnackBarCTAIfNeeded() {
-//        guard lastTunnelStatus == .disconnected,
-//              !appSettings.isStatisticsEnabled,
-//              appSettings.statisticsConnectionCount == 1 || appSettings.statisticsConnectionCount.isMultiple(of: 10)
-//        else {
-//            return
-//        }
-//        messagesManager.addAndProcess(
-//            SnackBarMessage(
-//                text: "statisticsOverlay.snackbar.helpImprove".localizedString,
-//                style: .noIcon,
-//                ctaText: "statisticsOverlay.snackbar.improveNow".localizedString,
-//                ctaAction: { [weak self] in
-//                    self?.isStatisticsOverlayDisplayed = true
-//                }
-//            )
-//        )
+        guard lastTunnelStatus == .disconnected,
+              !appSettings.isStatisticsEnabled,
+              appSettings.statisticsConnectionCount == 1 || appSettings.statisticsConnectionCount.isMultiple(of: 10),
+              Device.isMacOS
+        else {
+            return
+        }
+        messagesManager.addAndProcess(
+            SnackBarMessage(
+                text: "statisticsOverlay.snackbar.helpImprove".localizedString,
+                style: .noIcon,
+                ctaText: "statisticsOverlay.snackbar.improveNow".localizedString,
+                ctaAction: { [weak self] in
+                    self?.isStatisticsOverlayDisplayed = true
+                }
+            )
+        )
     }
 }
