@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+
+### Fixed
+- Connection error notification cleared after successfully connecting (https://github.com/nymtech/nym-vpn-client/pull/4029)
+
+
 ## [2.4.0]
 
 ### Added
