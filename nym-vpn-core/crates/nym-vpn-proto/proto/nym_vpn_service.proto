@@ -265,6 +265,12 @@ message VpnServiceConfig {
   optional uint32 min_mixnode_performance = 8;
   optional uint32 min_gateway_mixnet_performance = 9;
   optional uint32 min_gateway_vpn_performance = 10;
+  NetworkStatsConfig network_stats = 11;
+}
+
+message NetworkStatsConfig {
+  bool enabled = 1;
+  bool allow_disconnected = 2;
 }
 
 message AsEntry {
@@ -800,6 +806,16 @@ message DeleteLogFileResponse {
   DeleteLogFileError error = 2;
 }
 
+message NetworkStatsResetSeedRequest {
+  // this doesn't need to be cryptographically secure, so anything will do
+  optional string seed = 1;
+}
+
+message NetworkStatisticsIdentity {
+    string seed = 1;
+    string id = 2;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
@@ -918,12 +934,15 @@ service NymVpnService {
   // Disable Sentry error monitoring (requires daemon restart)
   rpc DisableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
-  // Check if network statistics collection is enabled
-  rpc IsCollectNetworkStatsEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  // Enable/disable network statistics collection
+  rpc NetworkStatsEnabled (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
-  // Enable network statistics collection (requires daemon restart)
-  rpc EnableCollectNetworkStats (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  // Allow/disallow disconnected network statistics collection sending
+  rpc NetworkStatsAllowDisconnected (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
-  // Disable network statistics collection (requires daemon restart)
-  rpc DisableCollectNetworkStats (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  // Reset seed used for network statistics id
+  rpc NetworkStatsResetSeed (NetworkStatsResetSeedRequest) returns (google.protobuf.Empty) {}
+
+  // Get seed and Id used for network statistics
+  rpc NetworkStatsGetSeed (google.protobuf.Empty) returns (NetworkStatisticsIdentity) {}
 }

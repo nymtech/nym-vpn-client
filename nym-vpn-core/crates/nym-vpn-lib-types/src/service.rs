@@ -9,7 +9,7 @@ use time::OffsetDateTime;
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
-use crate::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
+use crate::{EntryPoint, ExitPoint, NetworkStatisticsConfig, NymNetworkDetails, NymVpnNetwork};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
@@ -36,6 +36,7 @@ pub struct VpnServiceConfig {
     pub min_gateway_mixnet_performance: Option<u8>,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
+    pub network_stats: NetworkStatisticsConfig,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -73,6 +74,7 @@ impl fmt::Display for VpnServiceConfig {
                 .unwrap_or_else(|| "<None>".to_string())
         )?;
         writeln!(f, "residential_exit: {}", self.residential_exit)?;
+        writeln!(f, "networks stats config: {}", self.network_stats)?;
         Ok(())
     }
 }
@@ -94,6 +96,7 @@ impl Default for VpnServiceConfig {
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
             residential_exit: false,
+            network_stats: Default::default(),
         }
     }
 }

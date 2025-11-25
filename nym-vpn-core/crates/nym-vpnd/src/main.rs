@@ -128,7 +128,6 @@ struct RunParameters {
     network: Option<String>,
     config_env_file: Option<PathBuf>,
     sentry_enabled: bool,
-    stats_id_seed: Option<String>,
     user_agent: UserAgent,
 }
 
@@ -139,7 +138,6 @@ impl RunParameters {
             network: args.network,
             config_env_file: args.config_env_file,
             sentry_enabled,
-            stats_id_seed: args.stats_id_seed,
             user_agent: args.user_agent.unwrap_or_else(|| new_user_agent!()),
         }
     }
@@ -163,8 +161,6 @@ async fn run_standalone(
         log_path: parameters.log_path,
         network_env: Box::new(network_env),
         sentry_enabled: parameters.sentry_enabled,
-        netstats_enabled: global_config_file.collect_network_statistics,
-        stats_id_seed: parameters.stats_id_seed,
         user_agent: parameters.user_agent,
     };
 

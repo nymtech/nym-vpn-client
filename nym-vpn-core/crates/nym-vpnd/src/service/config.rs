@@ -12,7 +12,8 @@ use nym_vpn_lib::{
     },
 };
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, NodeIdentity, Recipient, TunnelEvent, TunnelType, VpnServiceConfig,
+    EntryPoint, ExitPoint, NetworkStatisticsConfig, NodeIdentity, Recipient, TunnelEvent,
+    TunnelType, VpnServiceConfig,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
@@ -262,6 +263,20 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_netstats_allow_disconnected(&mut self, allow_disconnected: bool) {
+        if self.config.network_stats.allow_disconnected != allow_disconnected {
+            self.config.network_stats.allow_disconnected = allow_disconnected;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_netstats_enabled(&mut self, enabled: bool) {
+        if self.config.network_stats.enabled != enabled {
+            self.config.network_stats.enabled = enabled;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     async fn save_config_and_send_event(&self) {
         // This function already logs
         let _ = self.write_to_file().await;
@@ -411,19 +426,20 @@ impl VpnServiceConfigManager {
 // External, versioned, representation of the vpn service config file.
 //
 
-type VpnServiceConfigExtLatest = VpnServiceConfigExtV2;
+type VpnServiceConfigExtLatest = VpnServiceConfigExtV3;
 
 /// Represents the version of the vpn service config file.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum VpnServiceConfigVersion {
     V1,
     V2,
+    V3,
 }
 
 impl VpnServiceConfigVersion {
     /// Returns the latest version of the config file.
     pub fn latest() -> Self {
-        VpnServiceConfigVersion::V2
+        VpnServiceConfigVersion::V3
     }
 }
 
@@ -432,6 +448,7 @@ impl std::fmt::Display for VpnServiceConfigVersion {
         f.write_str(match self {
             VpnServiceConfigVersion::V1 => "v1",
             VpnServiceConfigVersion::V2 => "v2",
+            VpnServiceConfigVersion::V3 => "v3",
         })
     }
 }
@@ -442,6 +459,7 @@ impl std::fmt::Display for VpnServiceConfigVersion {
 enum VpnServiceConfigExt {
     V1(VpnServiceConfigExtV1),
     V2(VpnServiceConfigExtV2),
+    V3(VpnServiceConfigExtV3),
 }
 
 impl VpnServiceConfigExt {
@@ -449,6 +467,7 @@ impl VpnServiceConfigExt {
         match self {
             VpnServiceConfigExt::V1(_) => VpnServiceConfigVersion::V1,
             VpnServiceConfigExt::V2(_) => VpnServiceConfigVersion::V2,
+            VpnServiceConfigExt::V3(_) => VpnServiceConfigVersion::V3,
         }
     }
 }
@@ -460,6 +479,7 @@ impl TryFrom<VpnServiceConfigExt> for VpnServiceConfig {
         match value {
             VpnServiceConfigExt::V1(v1) => VpnServiceConfig::try_from(v1),
             VpnServiceConfigExt::V2(v2) => VpnServiceConfig::try_from(v2),
+            VpnServiceConfigExt::V3(v3) => VpnServiceConfig::try_from(v3),
         }
     }
 }
@@ -558,13 +578,80 @@ impl TryFrom<VpnServiceConfigExtV2> for VpnServiceConfig {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
+            network_stats: Default::default(),
         };
         Ok(config)
     }
 }
 
 //
-// Latest (v2)
+// v3
+//
+
+// Keep numbering identical even if there are no changes
+type EntryPointExtV3 = EntryPointExtV2;
+type ExitPointExtV3 = ExitPointExtV2;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct VpnServiceConfigExtV3 {
+    entry_point: EntryPointExtV3,
+    exit_point: ExitPointExtV3,
+    dns: Option<String>,
+    allow_lan: bool,
+    disable_ipv6: bool,
+    enable_two_hop: bool,
+    enable_bridges: bool,
+    netstack: bool,
+    disable_poisson_rate: bool,
+    disable_background_cover_traffic: bool,
+    min_mixnode_performance: Option<u8>,
+    min_gateway_mixnet_performance: Option<u8>,
+    min_gateway_vpn_performance: Option<u8>,
+    residential_exit: bool,
+    network_stats: NetworkStatisticsConfig,
+}
+
+impl From<VpnServiceConfigExtV3> for VpnServiceConfigExt {
+    fn from(v3: VpnServiceConfigExtV3) -> Self {
+        VpnServiceConfigExt::V3(v3)
+    }
+}
+
+impl TryFrom<VpnServiceConfigExtV3> for VpnServiceConfig {
+    type Error = ConfigSetupError;
+
+    fn try_from(value: VpnServiceConfigExtV3) -> Result<Self, Self::Error> {
+        let dns = value
+            .dns
+            .map(|addr| {
+                IpAddr::from_str(&addr)
+                    .map_err(|e| ConfigSetupError::IpAddress { error: Box::new(e) })
+            })
+            .transpose()?;
+
+        let config = VpnServiceConfig {
+            entry_point: EntryPoint::try_from(value.entry_point)?,
+            exit_point: ExitPoint::try_from(value.exit_point)?,
+            dns,
+            allow_lan: value.allow_lan,
+            disable_ipv6: value.disable_ipv6,
+            enable_two_hop: value.enable_two_hop,
+            enable_bridges: value.enable_bridges,
+            netstack: value.netstack,
+            disable_poisson_rate: value.disable_poisson_rate,
+            disable_background_cover_traffic: value.disable_background_cover_traffic,
+            min_mixnode_performance: value.min_mixnode_performance,
+            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
+            min_gateway_vpn_performance: value.min_gateway_vpn_performance,
+            residential_exit: value.residential_exit,
+            network_stats: value.network_stats,
+        };
+        Ok(config)
+    }
+}
+
+//
+// Latest (v3)
 //
 
 impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
@@ -586,6 +673,7 @@ impl TryFrom<&VpnServiceConfig> for VpnServiceConfigExtLatest {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
+            network_stats: value.network_stats,
         };
         Ok(ext_config)
     }
@@ -1566,6 +1654,7 @@ exit_point = "Random"
             min_gateway_mixnet_performance: Some(64u8),
             min_gateway_vpn_performance: Some(1u8),
             residential_exit: true,
+            network_stats: Default::default(),
         };
         run_serialize_test(config).await;
     }
