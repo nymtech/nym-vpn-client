@@ -712,14 +712,14 @@ impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GatewayFilter {
-    MinScore(ScoreValue), // Mixnet or Wg score
-    Country(String),      // Two-letter ISO country code
-    Region(String),       // Region name
-    Residential,          // Has a residential ASN
-    QuicEnabled,          // Has QUIC enabled
-    Exit,                 // Has an IPR address
-    Vpn,                  // Has an authenticator address
-    Whitelisted(BlacklistedGateways),
+    MinScore(ScoreValue),             // Mixnet or Wg score
+    Country(String),                  // Two-letter ISO country code
+    Region(String),                   // Region name
+    Residential,                      // Has a residential ASN
+    QuicEnabled,                      // Has QUIC enabled
+    Exit,                             // Has an IPR address
+    Vpn,                              // Has an authenticator address
+    Whitelisted(BlacklistedGateways), // Is not blacklisted
 }
 
 #[derive(Debug, Clone, PartialEq)]
