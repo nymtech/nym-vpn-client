@@ -105,7 +105,7 @@ function Dev() {
 
   return (
     <PageAnim
-      className="xs:max-w-lg h-full flex flex-col py-6 gap-6 select-none cursor-default"
+      className="h-full flex flex-col py-6 gap-6 select-none cursor-default"
       data-testid="dev-page"
     >
       <SettingsMenuCard

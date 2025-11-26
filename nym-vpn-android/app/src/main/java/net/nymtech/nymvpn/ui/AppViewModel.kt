@@ -66,6 +66,10 @@ constructor(
 			AppUiState(),
 		)
 
+	fun onConfigurationHandled() {
+		_configurationChange.value = false
+	}
+
 	fun logout(onComplete: (() -> Unit)? = null) = viewModelScope.launch {
 		runCatching {
 			if (backendManager.getState() == Tunnel.State.Down) {

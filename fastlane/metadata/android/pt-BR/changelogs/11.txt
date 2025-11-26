@@ -1,2 +1,2 @@
-Novidades:
-- Atualização da versão da API
+Quais as novidades:
+- Aumento da versão da API

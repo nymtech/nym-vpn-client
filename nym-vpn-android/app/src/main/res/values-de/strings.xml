@@ -38,19 +38,19 @@
 	<string name="join_discord">Tritt unserem Discord Channel bei</string>
 	<string name="login">Anmelden</string>
 	<string name="unknown">Unbekannt</string>
-	<string name="no_scm_found">Sourcecode URL nicht gefunden</string>
+	<string name="no_scm_found">Quellcode-URL nicht gefunden</string>
 	<string name="five_hop">5-hop</string>
 	<string name="mode">Modus</string>
 	<string name="okay">Okay</string>
 	<string name="two_hop">2-hop</string>
-	<string name="country_load_failure">Fehler beim Laden der Hops</string>
+	<string name="country_load_failure">Fehler beim Laden der Hop</string>
 	<string name="app_shortcuts">App Shortcuts</string>
 	<string name="enable_shortcuts">App Shortcuts aktivieren</string>
 	<string name="disabled_while_connected">Deaktiviert während eine Verbindung zum VPN besteht</string>
 	<string name="permission_required">Erlaubnis benötigt</string>
-	<string name="permission_message">Um sicher zu stellen das die App auf deinem Gerät korrekt funktioniert erteile bitte die folgenden, notwendigen Erlaubnisse. Diese sind für die reibungslose Funktion der App notwendig.</string>
+	<string name="permission_message">Um sicherzustellen, dass die App auf Ihrem Gerät ordnungsgemäß funktioniert, erlauben Sie bitte die folgenden Berechtigungen. Diese Berechtigungen sind erforderlich, damit diese App funktioniert.</string>
 	<string name="notifications">Benachrichtigungen</string>
-	<string name="notification_permission_required">Bitte aktivieren Sie die Benachrichtigungs-Berechtigung für die richtige App-Funktionalität</string>
+	<string name="notification_permission_required">Bitte aktivieren Sie die Benachrichtigungsberechtigung für die ordnungsgemäße App-Funktionalität</string>
 	<string name="kill_switch">Schalter beenden</string>
 	<string name="mode_selection">Modus auswählen</string>
 	<string name="five_hop_explanation">Geniess die höchste Sicherheit indem du deine Verbindung durch 5 Server (Mixnet) leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten.</string>
@@ -71,15 +71,15 @@
 	<string name="vpn_connection">VPN Verbindung</string>
 	<string name="vpn_permission_message">Bestätige die VPN Verbindung indem du dich erneut verbindest.</string>
 	<string name="try_reconnecting">Verbindung wiederherstellen</string>
-	<string name="always_on_disbled">VPN \"Always on\" deaktiviert</string>
-	<string name="always_on_message">Probleme? Stell sicher, dass \"Always on\" VPN in anderen Apps deaktiviert ist</string>
+	<string name="always_on_disbled">Immer eingeschaltetes VPN deaktiviert</string>
+	<string name="always_on_message">Funktioniert nicht? Stellen Sie sicher, dass Immer eingeschaltetes VPN für andere Apps in deaktiviert ist</string>
 	<string name="vpn_settings">VPN Systemeinstellungen</string>
 	<string name="try_again">und versuch es erneut</string>
 	<string name="network_error">Ein Netzwerkverbindungsproblem ist aufgetreten. Bitte überprüfen Sie Ihre Netzwerkverbindung und versuchen Sie es erneut.</string>
 	<string name="vpn_alerts_channel_id">NymVPN Alarmkanal</string>
 	<string name="vpn_alerts_channel_description">Ein Kanal für App-bezogene Benachrichtigungen.</string>
-	<string name="bandwidth_alert">Bandwidth alert</string>
-	<string name="no_bandwidth">No bandwidth remaining.</string>
+	<string name="bandwidth_alert">Warnung zum Datenvolumen</string>
+	<string name="no_bandwidth">Kein Datenvolumen mehr vorhanden</string>
 	<string name="connection_failed">Verbindung fehlgeschlagen</string>
 	<string name="low_bandwidth">"Geringe Bandbreite! Verbleibende Bandbreite: "</string>
 	<string name="vpn_permission_missing">Vpn-Berechtigung wurde nicht akzeptiert oder wird von einer anderen App verwendet.</string>
@@ -106,18 +106,17 @@
 	<string name="welcome_to_nym">Willkommen bei NymVPN</string>
 	<string name="get_access_code">Zugangscode erhalten</string>
 	<string name="access_code">24-Wort-Zugriffscode</string>
-	<string name="support_and_feedback"><![CDATA[Support]]></string>
-	<string name="get_in_touch">Get in touch</string>
+	<string name="get_in_touch">Support kontaktieren</string>
 	<string name="device_id">Geräte-ID:</string>
 	<string name="loading">Lädt</string>
 	<string name="offline">Kein Internet</string>
 	<string name="no_internet">Ihr Gerät hat keine Internetverbindung</string>
 	<string name="waiting_for_connection">Verbinden, sobald das Gerät online ist</string>
-	<string name="two_hop_explanation">Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.</string>
+	<string name="two_hop_explanation">Hochgeschwindigkeits-Browsing (250 + Mbit / s) mit 2-Hop-Routing. Verwendet AmneziaWG, eine zensurresistente Version von WireGuard, ideal für Streaming, schnelles Surfen und Downloads.</string>
 	<string name="two_hop_title">Fast (WireGuard<small>*</small>)</string>
 	<string name="disabled_while_connecting">Deaktiviert während Verbindung mit dem VPN besteht</string>
-	<string name="exit">Austrittsregion</string>
-	<string name="entry">Eingangsregion</string>
+	<string name="exit_location">Austrittsregion</string>
+	<string name="entry_location">Eintrittsregion</string>
 	<string name="no_results_found">Keine Ergebnisse gefunden.</string>
 	<string name="how_to_run_gateway">wie man ein Gateway ausführt.</string>
 	<string name="or_learn">oder lernen</string>
@@ -168,15 +167,15 @@
 	<string name="bandwidth_error">Monthly bandwidth exceeded. Please upgrade your account plan.</string>
 	<string name="max_devices_error">Limit des Kontogeräts überschritten. Bitte entfernen Sie vor der Verbindung ein Gerät von Ihrem Konto.</string>
 	<string name="device_time_out_of_sync">Gerätezeit nicht mehr synchronisiert</string>
-	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
+	<string name="error_ipv6_unavailable">Ipv6 nicht verfügbar</string>
 	<string name="error_device_logged_out">Gerät ist ausgeloggt.</string>
 	<string name="error_inactive_account">Kontostatus ist nicht \"aktiv\".</string>
 	<string name="error_set_dns">Fehler beim Konfigurieren der dns.</string>
 	<string name="error_set_firewall_policy">Firewall-Richtlinie konnte nicht gesetzt werden.</string>
 	<string name="error_set_routing">Routing konnte nicht konfiguriert werden.</string>
 	<string name="error_tun_device">Tunnelgerät konnte nicht konfiguriert werden.</string>
-	<string name="error_tunnel_provider">Fehler beim Konfigurieren des Pakettunnel Providers.</string>
-	<string name="error_kill_switch">Kill Switch schützt Sie. Tippen Sie auf Stop und \nerneuern Sie Ihr Paket.</string>
+	<string name="error_tunnel_provider">Fehler beim Konfigurieren des Pakettunnelanbieters.</string>
+	<string name="error_kill_switch">Kill Switch schützt dich. Tippen Sie auf Stopp und erneuern Sie Ihren Plan.</string>
 	<string name="error_active_plan">Sie haben keinen aktiven Plan. Tippen Sie auf \"Beginnen Sie mit dem anonymen Surfen.</string>
 	<string name="error_bandwidth_entry">Der Eintragsserver reagiert nicht oder reagiert schlecht auf eine Bandbreitenerhöhung.</string>
 	<string name="error_bandwidth_exit">Der Exit-Server reagiert nicht oder reagiert schlecht auf eine Bandbreitenerhöhung.</string>
@@ -221,7 +220,7 @@
 	<string name="notification_stats_enabled">Statistiken aktiviert! Ihre anonymen Daten helfen unser Netzwerk zu optimieren.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Fortfahren</string>
-	<string name="welcome_descr_start">Hilf NymVPN technische Probleme zu identifizieren und zu beheben! Überlege Opt-In zur Fehlerüberwachung (via </string>
+	<string name="welcome_descr_start">Helfen Sie NymVPN, technische Probleme zu identifizieren und zu beheben! Erwägen Sie, sich für die Fehlerüberwachung zu entscheiden (über</string>
 	<string name="welcome_descr_sentry_link_text">Wächter</string>
 	<string name="welcome_descr_end">) und die Netzwerkstatistiken eingeschaltet bleiben. Es ist immer anonym, jederzeit auswählen, und Ihre Aktivitäten können niemals offen gelegt werden. \n\nVielen Dank für Ihre Unterstützung!</string>
 	<string name="welcome_terms_privacy_text_start">Wenn du fortfährst willigst du in die NymVPN</string>
@@ -277,7 +276,7 @@
 	<string name="censorship_stealth_description">Verschleiert API-Anfragen hinter populären, erlaubten Domains, VPN-Blockierungen zu umgehen. Wird automatisch von NymVPN verwendet, wenn Standard-API-Verbindungsversuche fehlschlagen.</string>
 	<string name="censorship_stealth_link_text">Wie der Stealth-API-Verbindungsmodus funktioniert</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="quic">QUISCH</string>
+	<string name="quic">QUIC</string>
 	<string name="quick_info_modal_title">Erweiterte Verbindung aktivieren (QUIC)?</string>
 	<string name="quick_info_modal_desc">Dies wird dich mit dem QUIC-Protokoll wieder verbinden. Du wirst deine aktuellen Gateways behalten, wenn sie QUIC unterstützen, oder wenn nötig, kompatible Gateways auswählen.\n\nIhre Daten bleiben bei der erneuten Verbindung geschützt.</string>
 	<string name="quic_primary_btn_text">Jetzt mit QUIC verbinden</string>
@@ -286,6 +285,10 @@
 	<string name="quick_info_modal_desc_non_quic">Dies wird Sie wieder verbinden, ohne dass das QUIC-Protokoll aktiviert ist. Sie werden Ihre aktuellen Gateways behalten.\n\nIhre Daten bleiben bei einer erneuten Verbindung geschützt.</string>
 	<string name="quic_primary_btn_text_non_quic">Jetzt ohne QUIC wieder verbinden</string>
 	<string name="quic_text_btn_text_non_quic">QUIC bei der nächsten Verbindung ausschalten</string>
+	<string name="censorship_amnezia_title">Minimale Verschleierung (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Erschwert die Erkennung des WireGuard-Datenverkehrs. Stellt Decoy-Pakete vor, die einfache Regeln stören, die oft von Deep Packet Inspection (DPI) Zensursystemen verwendet werden, wodurch die Verbindungssicherheit in restriktiven Umgebungen verbessert wird. \n\nHinweis: Nur implementierte Client-Seite.</string>
+	<string name="censorship_amnezia_link_text">Wie AmneziaWG DPI verhindert</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/de-de/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Anonyme Mixnet-Technologie</string>
 	<string name="account_welcome_countries">50+ Länder weltweit</string>
@@ -300,8 +303,8 @@
 	<!-- Account Generating screen -->
 	<string name="account_generating_creating">Erstellen Ihrer anonymen Identität…</string>
 	<string name="account_generating_establishing">Einrichtung anonymer Netzwerk-Zugangsdaten</string>
-	<string name="account_generating_securing">Ihre Zugangsdaten werden lokal… gesichert</string>
-	<string name="account_generating_encrypting">Encrypting credentials with your device key; \nonly you can unlock them</string>
+	<string name="account_generating_securing">Ihre Zugangsdaten werden lokal gesicher…</string>
+	<string name="account_generating_encrypting">Anmeldeinformationen mit Ihrem Geräteschlüssel verschlüsseln; \ nur Sie können sie entsperren</string>
 	<string name="account_generating_error">Konto konnte nicht registriert werden. Bitte versuchen Sie es später erneut</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Bearbeite deine Zahlung sicher…</string>
@@ -316,17 +319,17 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Passwort deines Kontos</string>
 	<string name="passphrase_description">🔒Dein Hauptkonto Passphrase: 24 Wörter, mit denen du von jedem Gerät aus auf dein Konto zugreifen kannst.</string>
-	<string name="passphrase_description_first">:gesperrt:Dein Hauptkonto Passphrase:</string>
+	<string name="passphrase_description_first">🔒Ihre Master-Konto-Passphrase:</string>
 	<string name="passphrase_description_last">24 Wörter, mit denen Sie von jedem Gerät aus auf Ihr Konto zugreifen können.</string>
 	<string name="passphrase_show">Meine Passphrase anzeigen</string>
 	<string name="passphrase_copy">Passwort kopieren</string>
 	<string name="passphrase_save">Im Passwort-Manager speichern</string>
 	<string name="passphrase_download">Download</string>
-	<string name="passphrase_lose">:Warnung: Verlieren Sie diese Wörter = verlieren Sie Ihr Konto für immer.</string>
+	<string name="passphrase_lose">⚠️ Verliere diese Wörter = verliere dein Konto für immer.</string>
 	<string name="passphrase_never">Teilen Sie sie niemals mit irgendjemandem, einschließlich Nym Support.</string>
 	<string name="passphrase_saved">Ich habe diese 24 Wörter sicher gespeichert und werde sie nie teilen</string>
 	<string name="passphrase_info_title">Was ist Passwort</string>
-	<string name="passphrase_info_description">Es ist ein einzigartiger Satz von 24 Wörtern, die auf Ihrem Gerät generiert werden, der als sicherer Login fungiert. Nur Sie haben darauf Zugriff – es gibt kein Backup, Zurücksetzen oder Wiederherstellen.\n\n :Warnung: Diese Passphrase ist die einzige Möglichkeit, auf Ihr Konto zuzugreifen.</string>
+	<string name="passphrase_info_description">Es ist ein einzigartiger Satz von 24 Wörtern, der auf Ihrem Gerät generiert wird und als Ihr sicheres Login fungiert. Nur Sie haben Zugriff darauf - es gibt kein Backup, Zurücksetzen oder Wiederherstellen.\n\n ⚠️ Bewahren Sie es sicher auf: Diese Passphrase ist die einzige Möglichkeit, auf Ihr Konto zuzugreifen.</string>
 	<string name="passphrase_info_privacy_removed">Für deine Privatsphäre haben wir entfernt:</string>
 	<string name="passphrase_info_stored_accounts">Zentral gespeicherte Konten</string>
 	<string name="passphrase_info_personal_logins">Persönliche Daten-basierte Anmeldungen</string>
@@ -341,7 +344,7 @@
 	<string name="account_info_devices">Geräte</string>
 	<string name="account_info_id_title">Konto-ID</string>
 	<string name="account_info_id_description">Diese ID für Supportanfragen verwenden</string>
-	<string name="account_info_id_important">:Warnung: Wichtig: Nym-Unterstützung wird niemals nach Ihrer 24-Wort-Passphrase fragen.</string>
+	<string name="account_info_id_important">⚠️ Wichtig: Der Nym-Support wird niemals nach Ihrer 24-Wörter-Passphrase fragen. Teile es niemals mit jemandem.</string>
 	<!-- Logs screen -->
 	<string name="logs_share">Teilen</string>
 	<string name="logs_download">Download</string>

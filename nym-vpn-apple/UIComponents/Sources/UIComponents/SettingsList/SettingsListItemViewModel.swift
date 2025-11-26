@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Theme
 
 public final class SettingsListItemViewModel: Hashable {
@@ -19,6 +20,17 @@ public final class SettingsListItemViewModel: Hashable {
                 "copy"
             case .toggle, .empty:
                 nil
+            }
+        }
+
+        var imageColor: Color {
+            switch self {
+            case .arrow, .toggle, .copy:
+                NymColor.primary
+            case .externalLink:
+                NymColor.gray1
+            case .empty:
+                .clear
             }
         }
 

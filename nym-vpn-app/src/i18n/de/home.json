@@ -38,7 +38,7 @@
   },
   "modes-dialog": {
     "title": "Modus auswählen",
-    "privacy-description": "Geniess die höchste Sicherheit indem du deine Verbindung durch 5 Server leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten.",
+    "privacy-description": "Maximale Privatsphäre durch 5-Hop-Routing (bis zu 1-5 Mbit / s). Dummy-Verkehr und Timing-Verschleierung für mehr Anonymität. Perfekt für hochsensible Aktivitäten wie Zahlungen, E-Mails und Nachrichten.",
     "fast-description": "Erlebe die maximale Geschwindigkeit mit dem 2-Server-Modus. Perfekt für schnelles surfen, streamen und File-Sharing.",
     "link": "Weiter lesen"
   },
@@ -61,7 +61,7 @@
     "title": "Aktualisiere auf Version {{version}}…",
     "description": "Aktualisierungen werden installiert - bitte die App nicht schließen.",
     "restart-note": "Die App wird nach dem Update neu gestartet.",
-    "bar-label": "Downloadfortschritt"
+    "bar-label": "Download-Fortschritt"
   },
   "get-started": "Los geht's"
 }

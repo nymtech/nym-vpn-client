@@ -15,7 +15,8 @@
       "title": "Location accuracy",
       "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
     },
-    "title": "جزئیات مربوط به موقعیت مکانی سرورها"
+    "entry-title": "Choosing entry locations",
+    "exit-title": "Choosing exit locations"
   },
   "location-not-available": {
     "entry": "مکان ورودی انتخاب‌شده در دسترس نیست، به {{location}} تغییر یافت",

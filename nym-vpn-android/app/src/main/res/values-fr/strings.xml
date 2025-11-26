@@ -106,7 +106,6 @@
 	<string name="welcome_to_nym">Bienvenue sur NymVPN</string>
 	<string name="get_access_code">Obtenir le code d\'accès</string>
 	<string name="access_code">Code d\'accès 24 mots</string>
-	<string name="support_and_feedback"><![CDATA[Support & commentaires]]></string>
 	<string name="get_in_touch">Contactez-nous</string>
 	<string name="device_id">ID de l\'appareil :</string>
 	<string name="loading">En cours de chargement</string>
@@ -116,8 +115,8 @@
 	<string name="two_hop_explanation">Profitez d\'une vitesse maximale avec 2 serveurs. Ce mode est basé sur AmneziaWG, une version dérivée de WireGuard incluant une protection renforcée contre la censure. Parfait pour la navigation rapide, la diffusion en continu et le partage de fichiers.</string>
 	<string name="two_hop_title">Rapide (WireGuard<small>*</small>)</string>
 	<string name="disabled_while_connecting">Désactivé lors de la connexion au VPN</string>
-	<string name="exit">Quitter</string>
-	<string name="entry">Entrée</string>
+	<string name="exit_location">Nœud de sortie</string>
+	<string name="entry_location">Nœud d\'entrée</string>
 	<string name="no_results_found">Aucun résultat trouvé.</string>
 	<string name="how_to_run_gateway">comment exécuter une passerelle.</string>
 	<string name="or_learn">ou apprendre</string>
@@ -286,6 +285,10 @@
 	<string name="quick_info_modal_desc_non_quic">Cela vous reconnectera sans protocole QUIC activé. Vous conserverez vos passerelles actuelles.\n\nVos données restent protégées pendant la reconnexion.</string>
 	<string name="quic_primary_btn_text_non_quic">Se reconnecter sans QUIC maintenant</string>
 	<string name="quic_text_btn_text_non_quic">Désactiver QUIC lors de la prochaine connexion</string>
+	<string name="censorship_amnezia_title">obfuscation minimale (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Rend le trafic WireGuard plus difficile à détecter. Introduit des paquets de leurre qui perturbent les règles simples souvent utilisées par les systèmes de censure Deep Packet Inspection (DPI), améliorant la fiabilité de la connexion dans les environnements restrictifs. \n\nRemarque : uniquement côté client implémenté.</string>
+	<string name="censorship_amnezia_link_text">Comment AmneziaWG empêche les DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/fr/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Technologie mixnet anonyme</string>
 	<string name="account_welcome_countries">Plus de 50 pays dans le monde</string>
@@ -316,7 +319,7 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Mot de passe de votre compte</string>
 	<string name="passphrase_description">🔒Votre phrase secrète principale : 24 mots qui vous permettent d\'accéder à votre compte depuis n\'importe quel appareil.</string>
-	<string name="passphrase_description_first">🔒Votre phrase de passe de compte maître:</string>
+	<string name="passphrase_description_first">🔒Votre phrase de passe de compte :</string>
 	<string name="passphrase_description_last">24 mots qui vous permettent d\'accéder à votre compte depuis n\'importe quel appareil.</string>
 	<string name="passphrase_show">Afficher ma phrase de passe</string>
 	<string name="passphrase_copy">Copier la phrase de passe</string>

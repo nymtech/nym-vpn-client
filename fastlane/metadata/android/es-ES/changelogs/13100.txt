@@ -1,2 +1,2 @@
 Novedades:
-- Mayor fiabilidad de la conexión
+- Mejoras en la fiabilidad de la conexión

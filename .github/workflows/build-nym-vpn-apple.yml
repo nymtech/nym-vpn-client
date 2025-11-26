@@ -169,7 +169,6 @@ jobs:
           RUBY_PREFIX="$(brew --prefix ruby)"
           echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
           export PATH="${RUBY_PREFIX}/bin:$PATH"
-          gem install xcpretty
 
           # Show versions for debugging
           brew --version
@@ -315,6 +314,26 @@ jobs:
             exit 1
           fi
 
+      - name: Update localizations Crowdin
+        if: ${{ env.RELEASE_TYPE != 'pr' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          brew tap crowdin/crowdin
+          brew install crowdin@4 || brew upgrade crowdin@4 || true
+
+          # Make sure the crowdin binary is on PATH for this step
+          export PATH="$(brew --prefix crowdin@4)/bin:$PATH"
+
+          which crowdin || echo "crowdin not in PATH"
+
+          crowdin download translations \
+            --config crowdin-configs/macos-ios.yml \
+            --project-id "$CROWDIN_PROJECT_ID" \
+            --token "$CROWDIN_PERSONAL_TOKEN"
+      
       - name: Build core
         working-directory: nym-vpn-apple/scripts
         env:
@@ -355,6 +374,39 @@ jobs:
 
           echo "✅ Signed archive + .ipa exported"
 
+      - name: Generate what to test notes for iOS
+        if: ${{ env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true' }}
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+
+          DATE_TIME="$(date '+%Y-%m-%d %H:%M:%S')"
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+
+          # Get ONLY the latest commit
+          LATEST_COMMIT="$(git log -1 --pretty=format:'%h, %ar, message: %s')"
+
+          # Build release notes
+          RELEASE_NOTES="Date: ${DATE_TIME}\nBranch: ${BRANCH_NAME}\nLatest commit:\n- ${LATEST_COMMIT}"
+
+          # Escape newlines for JSON
+          ESCAPED_NOTES=$(printf "%s" "$RELEASE_NOTES" | awk '{printf "%s\\n", $0}')
+          ESCAPED_NOTES="${ESCAPED_NOTES%\\n}"
+
+          # Build whats_new.json
+          {
+            printf '[\n'
+            printf '  {\n'
+            printf '    "language": "en-US",\n'
+            printf '    "locale": "en-US",\n'
+            printf '    "whats_new": "%s"\n' "$ESCAPED_NOTES"
+            printf '  }\n'
+            printf ']\n'
+          } > whats_new.json
+
+          echo "Generated whats_new.json:"
+          cat whats_new.json
+
       - name: Upload to TestFlight
         if: ${{ env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true' }}
         working-directory: nym-vpn-apple
@@ -366,9 +418,12 @@ jobs:
           set -euo pipefail
 
           echo "🚀 Uploading to TestFlight..."
-          app-store-connect publish
-            # --beta-group=
-            # --testflight // uncomment later on and add groups
+          app-store-connect publish \
+            --beta-build-localizations=@file:whats_new.json \
+            --beta-group='External QA' \
+            --beta-group='Nym Team External' \
+            --testflight
+            # --beta-group="World" \
             # --expire-build-submitted-for-review
 
           echo "✅ Upload completed successfully."
@@ -426,7 +481,8 @@ jobs:
             CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
             PROVISIONING_PROFILE_SPECIFIER="" \
             ENABLE_HARDENED_RUNTIME=YES \
-            OTHER_CODE_SIGN_FLAGS="--timestamp"
+            OTHER_CODE_SIGN_FLAGS="--timestamp" \
+            | xcbeautify --renderer github-actions
 
           # Verify archive was created
           if [[ ! -d "$ARCHIVE_PATH" ]]; then
@@ -548,26 +604,26 @@ jobs:
             "$DIST_XML_FILE"
 
           # Add background image for light mode
-          xmlstarlet edit --inplace \
-            --subnode '//installer-gui-script' \
-            --type elem --name "background" \
-            --var new_node '$prev' \
-            --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
-            --append '$new_node' --type attr -n 'file' --value 'background-light.png' \
-            --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
-            --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
-            "$DIST_XML_FILE"
+          # xmlstarlet edit --inplace \
+          #   --subnode '//installer-gui-script' \
+          #   --type elem --name "background" \
+          #   --var new_node '$prev' \
+          #   --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
+          #   --append '$new_node' --type attr -n 'file' --value 'background-light.png' \
+          #   --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
+          #   --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
+          #   "$DIST_XML_FILE"
 
           # Add background image for dark mode
-          xmlstarlet edit --inplace \
-            --subnode '//installer-gui-script' \
-            --type elem --name "background-darkAqua" \
-            --var new_node '$prev' \
-            --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
-            --append '$new_node' --type attr -n 'file' --value 'background-dark.png' \
-            --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
-            --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
-            "$DIST_XML_FILE"
+          # xmlstarlet edit --inplace \
+          #   --subnode '//installer-gui-script' \
+          #   --type elem --name "background-darkAqua" \
+          #   --var new_node '$prev' \
+          #   --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
+          #   --append '$new_node' --type attr -n 'file' --value 'background-dark.png' \
+          #   --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
+          #   --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
+          #   "$DIST_XML_FILE"
 
           echo "✅ Distribution XML:"
           cat "$DIST_XML_FILE"
@@ -658,22 +714,11 @@ jobs:
           SAFE_BRANCH=$(echo "${GITHUB_REF_NAME}" | tr '/' '-')
           echo "ARTIFACT_NAME=apple-${RELEASE_TYPE}-${TIMESTAMP}-${SAFE_BRANCH}" >> "$GITHUB_ENV"
 
-      - name: Upload artifacts (QA / Ship)
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ steps.notarize-pkg.outputs.pkg_path || steps.make-pkg.outputs.pkg_path }}
-          if-no-files-found: error
-          retention-days: 1
-      
       - name: Rename PKG for upload
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         working-directory: nym-vpn-apple/build/pkg
         run: |
           set -euo pipefail
-
-          # Find the built package
           ORIGINAL_PKG=$(basename "${{ steps.notarize-pkg.outputs.pkg_path || steps.make-pkg.outputs.pkg_path }}")
 
           # Strip "apple-" prefix → keep timestamp-branch only
@@ -689,7 +734,306 @@ jobs:
           # Export relative path (relative to repository root)
           RELATIVE_PATH="nym-vpn-apple/build/pkg/$NEW_NAME"
           echo "renamed_pkg_relative_path=$RELATIVE_PATH" >> "$GITHUB_ENV"
-          echo "✅ Renamed and ready to upload: $RELATIVE_PATH"
+          echo "✅ Renamed and ready: $RELATIVE_PATH"
+
+      - name: Create ZIP archive from signed PKG (ship)
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${renamed_pkg_relative_path:-}" ]]; then
+            echo "❌ renamed_pkg_relative_path not set (did Rename PKG for upload run?)"
+            exit 1
+          fi
+
+          # Resolve signed, renamed PKG path (ship-20251119-2202-feat-sparkle-NymVPN-2.13.0.pkg)
+          PKG_BASENAME="$(basename "${renamed_pkg_relative_path}")"
+          PKG_PATH="$PWD/build/pkg/$PKG_BASENAME"
+
+          if [[ ! -f "$PKG_PATH" ]]; then
+            echo "❌ Signed PKG not found at $PKG_PATH"
+            ls -la "$PWD/build/pkg"
+            exit 1
+          fi
+
+          echo "📦 Using signed PKG: $PKG_PATH"
+
+          echo "📄 Reading MARKETING_VERSION from Xcode build settings…"
+          VERSION=$(
+            xcodebuild -showBuildSettings \
+              -workspace "NymVPN.xcworkspace" \
+              -scheme "NymVPNDaemon" \
+              -configuration "Release" 2>/dev/null |
+            awk '/MARKETING_VERSION/ { print $3; exit }'
+          )
+
+          if [[ -z "$VERSION" ]]; then
+            echo "❌ Could not determine MARKETING_VERSION from Xcode (MARKETING_VERSION)"
+            exit 1
+          fi
+
+          echo "✅ MARKETING_VERSION: $VERSION"
+
+          ARCHIVE_DIR="$PWD/build/pkg"
+
+          # 🚩 This is the **final** PKG name we want user-facing
+          FINAL_PKG_NAME="NymVPN-${VERSION}.pkg"
+          FINAL_PKG_PATH="$ARCHIVE_DIR/$FINAL_PKG_NAME"
+
+          echo "📛 Copying signed PKG to final name: $FINAL_PKG_PATH"
+          cp "$PKG_PATH" "$FINAL_PKG_PATH"
+
+          # 🎁 Create zip with the PKG at the zip root (no extra "pkg" folder)
+          pushd "$ARCHIVE_DIR" >/dev/null
+          NOTARISATION_ARCHIVE="NymVPN-${VERSION}.zip"
+          echo "🧷 Creating archive: $NOTARISATION_ARCHIVE"
+
+          # No --keepParent, and run from ARCHIVE_DIR so zip contains just NymVPN-<version>.pkg at root
+          ditto -c -k "$FINAL_PKG_NAME" "$NOTARISATION_ARCHIVE"
+
+          echo "📂 Archive directory contents after zip:"
+          ls -la
+          popd >/dev/null
+
+          # Export absolute zip path for the Sparkle/sign_update step
+          echo "zip_archive_path=$ARCHIVE_DIR/$NOTARISATION_ARCHIVE" >> "$GITHUB_ENV"
+
+      - name: Generate Sparkle appcast & SHA-256 hash (sign_update)
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        working-directory: nym-vpn-apple/build/pkg
+        env:
+          APPLE_SPARKLE_PRIVATE_KEY: ${{ secrets.APPLE_SPARKLE_PRIVATE_KEY }}
+          APP_PATH: ${{ steps.archive-macos.outputs.app_path }}
+          ZIP_ARCHIVE_PATH: ${{ env.zip_archive_path }}
+        run: |
+          set -euo pipefail
+          which jq || brew install jq
+
+          if [[ -z "${renamed_pkg_relative_path:-}" ]]; then
+            echo "❌ renamed_pkg_relative_path not set"
+            exit 1
+          fi
+
+          INSTALLER_PKG="$(basename "${renamed_pkg_relative_path}")"
+          if [[ ! -f "$INSTALLER_PKG" ]]; then
+            echo "❌ PKG file not found in $(pwd): $INSTALLER_PKG"
+            ls -la
+            exit 1
+          fi
+
+          echo "📦 Using PKG: $INSTALLER_PKG"
+
+          if [[ -z "${ZIP_ARCHIVE_PATH:-}" || ! -f "$ZIP_ARCHIVE_PATH" ]]; then
+            echo "❌ ZIP_ARCHIVE_PATH invalid or missing: $ZIP_ARCHIVE_PATH"
+            ls -la
+            exit 1
+          fi
+
+          ZIP_FILE="$(basename "$ZIP_ARCHIVE_PATH")"
+          if [[ "$ZIP_FILE" != *.zip ]]; then
+            echo "❌ ZIP_ARCHIVE_PATH does not look like a .zip: $ZIP_FILE"
+            exit 1
+          fi
+
+          # Make sure the zip is in the current working directory (build/pkg)
+          if [[ ! -f "$ZIP_FILE" ]]; then
+            echo "📥 Copying zip into working dir…"
+            cp "$ZIP_ARCHIVE_PATH" .
+          fi
+
+          echo "🧷 Using ZIP for Sparkle signing: $ZIP_FILE"
+
+          if [[ -z "${APP_PATH:-}" || ! -d "$APP_PATH" ]]; then
+            echo "❌ APP_PATH not set or invalid: $APP_PATH"
+            exit 1
+          fi
+
+          APP_PLIST="$APP_PATH/Contents/Info.plist"
+          SHORT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PLIST")"
+          BUNDLE_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PLIST")"
+
+          echo "ℹ️  CFBundleShortVersionString: $SHORT_VERSION"
+          echo "ℹ️  CFBundleVersion:          $BUNDLE_VERSION"
+
+          # --- Download latest Sparkle distribution for sign_update ---
+          SPARKLE_DIR="$RUNNER_TEMP/sparkle"
+          mkdir -p "$SPARKLE_DIR"
+
+          echo "📥 Fetching latest Sparkle release metadata…"
+          curl -fsSL "https://api.github.com/repos/sparkle-project/Sparkle/releases/latest" \
+            -o "$SPARKLE_DIR/release.json"
+
+          ASSET_URL=$(jq -r '.assets[] | select(.name | endswith(".tar.xz")) | .browser_download_url' \
+            "$SPARKLE_DIR/release.json" | head -n 1)
+
+          if [[ -z "$ASSET_URL" || "$ASSET_URL" == "null" ]]; then
+            echo "❌ Could not find Sparkle .tar.xz asset in latest release"
+            jq '.' "$SPARKLE_DIR/release.json" || true
+            exit 1
+          fi
+
+          echo "⬇️ Downloading Sparkle from: $ASSET_URL"
+          SPARKLE_TAR="$SPARKLE_DIR/Sparkle.tar.xz"
+          curl -fsSL "$ASSET_URL" -o "$SPARKLE_TAR"
+
+          EXTRACT_DIR="$SPARKLE_DIR/extracted"
+          mkdir -p "$EXTRACT_DIR"
+          tar -xf "$SPARKLE_TAR" -C "$EXTRACT_DIR" --strip-components=1
+
+          SPARKLE_BIN="$EXTRACT_DIR/bin"
+          if [[ ! -x "$SPARKLE_BIN/sign_update" ]]; then
+            echo "❌ sign_update not found in Sparkle distribution"
+            ls -R "$EXTRACT_DIR"
+            exit 1
+          fi
+
+          if [[ -z "${APPLE_SPARKLE_PRIVATE_KEY:-}" ]]; then
+            echo "❌ APPLE_SPARKLE_PRIVATE_KEY secret is empty"
+            exit 1
+          fi
+
+          # 🔑 Write EdDSA private key to a file and ensure it's removed afterwards
+          KEY_FILE="$SPARKLE_DIR/sparkle_private_key_file"
+          printf '%s' "$APPLE_SPARKLE_PRIVATE_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+          trap "rm -f '$KEY_FILE'" EXIT
+
+          echo "📝 Signing ZIP with Sparkle EdDSA key…"
+          # sign_update prints something like:
+          #   sparkle:edSignature="…" length="123456"
+          SPARKLE_ATTRS=$("$SPARKLE_BIN/sign_update" --ed-key-file "$KEY_FILE" "$ZIP_FILE")
+
+          if [[ -z "${SPARKLE_ATTRS:-}" ]]; then
+            echo "❌ Failed to obtain Sparkle signature attributes from sign_update"
+            exit 1
+          fi
+
+          echo "✅ Sparkle attributes: $SPARKLE_ATTRS"
+
+          echo "🔐 Computing SHA-256 (ZIP payload)"
+          shasum -a 256 "$ZIP_FILE" > sha256-hash.txt
+          echo "✅ sha256-hash.txt:"
+          cat sha256-hash.txt
+
+          DOWNLOAD_URL="https://builds.ci.nymte.ch/nym-vpn-client/macOS/publish/$ZIP_FILE"
+          HOST_LINK="https://nymvpn.com"
+          PUB_DATE="$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S %z')"
+
+          echo "🧾 Creating appcast.xml…"
+          {
+            echo '<?xml version="1.0" standalone="yes"?>'
+            echo '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">'
+            echo '  <channel>'
+            echo '    <title>NymVPN</title>'
+            echo "    <link>${HOST_LINK}</link>"
+            echo '    <item>'
+            echo "      <title>${SHORT_VERSION}</title>"
+            echo "      <pubDate>${PUB_DATE}</pubDate>"
+            echo "      <sparkle:version>${BUNDLE_VERSION}</sparkle:version>"
+            echo "      <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>"
+            echo "      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>"
+            echo '      <enclosure'
+            echo "        url=\"${DOWNLOAD_URL}\""
+            echo '        sparkle:os="macos" sparkle:installationType="package"'
+            echo '        type="application/octet-stream"'
+            printf '        %s />\n' "${SPARKLE_ATTRS}"
+            echo '    </item>'
+            echo '  </channel>'
+            echo '</rss>'
+          } > appcast.xml
+
+          echo "✅ Generated appcast.xml:"
+          cat appcast.xml
+
+          PUBLISH_DIR="publish"
+          rm -rf "$PUBLISH_DIR"
+          mkdir -p "$PUBLISH_DIR"
+
+          cp "$ZIP_FILE" "$PUBLISH_DIR/"
+          cp appcast.xml "$PUBLISH_DIR/"
+          cp sha256-hash.txt "$PUBLISH_DIR/"
+
+          echo "📂 Publish folder contents:"
+          ls -la "$PUBLISH_DIR"
+
+          echo "publish_relative_path=nym-vpn-apple/build/pkg/$PUBLISH_DIR" >> "$GITHUB_ENV"
+
+      - name: Upload artifacts (QA)
+        if: ${{ env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.renamed_pkg_relative_path }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Prepare nightly PKG asset
+        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        working-directory: nym-vpn-apple/build/pkg
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${renamed_pkg_relative_path:-}" ]]; then
+            echo "❌ renamed_pkg_relative_path not set"
+            exit 1
+          fi
+
+          SRC_BASENAME="$(basename "${renamed_pkg_relative_path}")"
+
+          if [[ ! -f "$SRC_BASENAME" ]]; then
+            echo "❌ Source PKG not found: $SRC_BASENAME"
+            ls -la
+            exit 1
+          fi
+
+          echo "📦 Using source PKG: $SRC_BASENAME"
+          cp "$SRC_BASENAME" "NymVPN-nightly.pkg"
+
+          # Export path for the release step (from repo root)
+          echo "NIGHTLY_PKG_PATH=nym-vpn-apple/build/pkg/NymVPN-nightly.pkg" >> "$GITHUB_ENV"
+          echo "✅ Nightly PKG prepared as NymVPN-nightly.pkg"
+      
+      - name: Publish macOS nightly GitHub Release
+        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: macos-nightly
+          name: "NymVPN macOS nightly"
+          prerelease: true
+          draft: false
+          files: ${{ env.NIGHTLY_PKG_PATH }}
+          body: |
+            Nightly macOS build of NymVPN.
+            - Branch: ${{ github.ref_name }}
+            - Commit: ${{ github.sha }}
+            - Built at: ${{ github.run_started_at }}
+
+      - name: Upload artifacts (Ship + appcast + hash)
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.publish_relative_path }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Select upload source for www
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${RELEASE_TYPE}" == "qa" ]]; then
+            UPLOAD_SOURCE="${renamed_pkg_relative_path}"
+            echo "UPLOAD_SOURCE=${UPLOAD_SOURCE}" >> "$GITHUB_ENV"
+            echo "🌐 QA: will upload PKG only → ${UPLOAD_SOURCE}"
+          else
+            UPLOAD_SOURCE="${publish_relative_path}"
+            echo "UPLOAD_SOURCE=${UPLOAD_SOURCE}" >> "$GITHUB_ENV"
+            echo "🌐 Ship: will upload ZIP + appcast.xml + sha256-hash.txt → ${UPLOAD_SOURCE}"
+          fi
 
       - name: Upload to www
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
@@ -703,7 +1047,7 @@ jobs:
           REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
           TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/
-          SOURCE: ${{ env.renamed_pkg_relative_path }}
+          SOURCE: ${{ env.UPLOAD_SOURCE }}
 
       - name: Cleanup Keychain
         if: always()

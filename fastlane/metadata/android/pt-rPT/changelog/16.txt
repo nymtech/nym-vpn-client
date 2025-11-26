@@ -1,5 +1,0 @@
-Quais as novidades:
-- Melhorias na interface
-- Melhorias de cache
-- Integração de mestre portuário adicionada
-- Sincronização rápida do bloco foi melhorada

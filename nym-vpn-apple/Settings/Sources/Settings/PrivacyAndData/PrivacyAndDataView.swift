@@ -22,9 +22,11 @@ public struct PrivacyAndDataView: View {
             Spacer()
                 .frame(height: 24)
             VStack(spacing: 0) {
+#if os(macOS)
                 statisticsSection()
                 Spacer()
                     .frame(height: 24)
+#endif
                 errorReportingSection()
             }
             .frame(maxWidth: MagicNumbers.maxWidth)

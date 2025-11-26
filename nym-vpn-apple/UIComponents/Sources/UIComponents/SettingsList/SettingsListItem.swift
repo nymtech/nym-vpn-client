@@ -68,11 +68,11 @@ private extension SettingsListItem {
         if let imageName = viewModel.imageName {
             Image(imageName, bundle: .module)
                 .renderingMode(.template)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(NymColor.gray1)
         } else if let systemImageName = viewModel.systemImageName {
             Image(systemName: systemImageName)
                 .renderingMode(.template)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(NymColor.gray1)
                 .font(.system(size: 18, weight: .bold))
         }
     }
@@ -82,7 +82,7 @@ private extension SettingsListItem {
         VStack(alignment: .leading, spacing: 4) {
             Text(viewModel.title)
                 .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Medium.regular)
+                .textStyle(.Body.Large.regular)
 
             if let subtitle = viewModel.subtitle {
                 BouncingMarqueeTextView(
@@ -102,8 +102,8 @@ private extension SettingsListItem {
             Image(imageName, bundle: .module)
                 .resizable()
                 .frame(width: 24, height: 24)
-                .foregroundStyle(NymColor.primary)
-                .padding(.trailing, 24)
+                .foregroundStyle(viewModel.accessory.imageColor)
+                .padding(.trailing, 16)
         }
     }
 
@@ -111,7 +111,7 @@ private extension SettingsListItem {
     func optionalToggleView() -> some View {
         if case let .toggle(viewModel: viewModel) = viewModel.accessory {
             ToggleView(viewModel: viewModel)
-                .padding(.trailing, 24)
+                .padding(.trailing, 16)
         }
     }
 

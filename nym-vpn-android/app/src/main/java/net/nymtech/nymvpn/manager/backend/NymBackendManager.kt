@@ -38,6 +38,7 @@ import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.model.SettingsConfig
 import net.nymtech.vpn.util.exceptions.BackendException
 import nym_vpn_lib.VpnException
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.ConnectionData
 import nym_vpn_lib_types.ConnectionEvent
 import nym_vpn_lib_types.EntryPoint
@@ -128,6 +129,7 @@ class NymBackendManager @Inject constructor(
 	}
 
 	override suspend fun startTunnel() {
+		notificationService.clearNotifications()
 		runCatching {
 			emitBackendUiEvent(null)
 			val tunnel = NymTunnel(
@@ -265,9 +267,17 @@ class NymBackendManager @Inject constructor(
 		refreshAccountLinks()
 	}
 
+	override suspend fun refreshAccountState() {
+		backend.await().updateAccountState()
+	}
+
 	override suspend fun getMnemonic(): List<String> {
 		val mnemonic = backend.await().getStoredMnemonic()
 		return mnemonic.split(" ")
+	}
+
+	override suspend fun getAccountState(): AccountControllerState {
+		return backend.await().getAccountState()
 	}
 
 	private fun emitMnemonicStored(stored: Boolean) {
@@ -333,6 +343,7 @@ class NymBackendManager @Inject constructor(
 			}
 
 			is BackendEvent.AccountState -> {
+				emitAccountState(backendEvent.event)
 				Timber.d("AccountState: ${backendEvent.event}")
 			}
 			is BackendEvent.ConfigChanged -> {
@@ -351,6 +362,14 @@ class NymBackendManager @Inject constructor(
 		_state.update {
 			it.copy(
 				tunnelState = state,
+			)
+		}
+	}
+
+	private fun emitAccountState(state: AccountControllerState) {
+		_state.update {
+			it.copy(
+				accountState = state,
 			)
 		}
 	}

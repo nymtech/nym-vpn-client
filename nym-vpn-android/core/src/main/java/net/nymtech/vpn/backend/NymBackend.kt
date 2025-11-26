@@ -42,6 +42,7 @@ import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.login
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Network
 import nym_vpn_lib_types.ParsedAccountLinks
@@ -65,6 +66,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	private val notificationManager = VpnNotificationManager.getInstance(context)
 
 	private lateinit var settingConfig: NymVpnLibConfig
+
+	private var cachedExitGateways: List<NymGateway>? = null
 
 	init {
 		ReLinker.loadLibrary(
@@ -284,7 +287,11 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override suspend fun getGateways(type: GatewayType): List<NymGateway> {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			nym_vpn_lib.getGateways(type).map(NymGateway::from)
+			val list = nym_vpn_lib.getGateways(type).map(NymGateway::from)
+			if (type == GatewayType.MIXNET_EXIT) {
+				cachedExitGateways = list
+			}
+			list
 		}
 	}
 
@@ -373,8 +380,14 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
+	override suspend fun getAccountState(): AccountControllerState {
+		return nym_vpn_lib.getAccountState()
+	}
+
 	val notification = notificationManager.buildVpnNotification(
 		getState(),
+		tunnel?.exitPoint,
+		getExitGateways(),
 	)
 
 	private suspend fun ensureNotificationAndStartForeground() {
@@ -382,6 +395,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 		val initialNotification = notificationManager.buildVpnNotification(
 			getState(),
+			tunnel?.exitPoint,
+			getExitGateways(),
 		)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 			vpn.startForeground(
@@ -403,6 +418,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		notificationManager.withNotificationPermission {
 			val updatedNotification = notificationManager.buildVpnNotification(
 				getState(),
+				tunnel?.exitPoint,
+				getExitGateways(),
 			)
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 				vpn.startForeground(
@@ -426,6 +443,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override fun getState(): Tunnel.State {
 		return state
 	}
+
+	fun getExitGateways() = cachedExitGateways
 
 	override suspend fun getStoredMnemonic() = nym_vpn_lib.getStoredMnemonic()
 
@@ -454,6 +473,6 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		this.state = state
 		tunnel?.onStateChange(state)
 
-		notificationManager.updateVpnNotification(state)
+		notificationManager.updateVpnNotification(state, tunnel?.exitPoint, getExitGateways())
 	}
 }

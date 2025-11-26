@@ -1,4 +1,4 @@
-Neuigkeiten:
-- UI Verbesserungen
-- Zugangsberechtigungen hinzugefügt
-- Vorübergehender Fix für Verbindungsprobleme
+Was ist neu:
+- UI-Verbesserungen
+- Zugangsdaten schneiden hinzufügen
+- Temporäre Korrektur für Verbindungsfehler

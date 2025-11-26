@@ -11,7 +11,7 @@ function Lang() {
 
   return (
     <PageAnim
-      className="xs:max-w-lg h-full flex flex-col py-6 gap-6"
+      className="h-full flex flex-col py-6 gap-6"
       data-testid="language-page"
     >
       <ul

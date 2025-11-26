@@ -1,11 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, pin::Pin};
-
 use bip39::Mnemonic;
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
-use std::sync::Arc;
+use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::sync::RwLock;
 use tokio::{
@@ -37,7 +35,11 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
+<<<<<<< HEAD
     NodeIdentity, UserAgent, VpnTopologyProvider,
+=======
+    DEFAULT_DNS_SERVERS, UserAgent, VpnTopologyProvider,
+>>>>>>> develop
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
@@ -69,10 +71,12 @@ pub enum VpnServiceCommand {
     SetAllowLan(oneshot::Sender<()>, bool),
     SetEnableBridges(oneshot::Sender<()>, bool),
     SetResidentialExit(oneshot::Sender<()>, bool),
+    SetCustomDns(oneshot::Sender<()>, Option<Vec<IpAddr>>),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
+    GetDefaultDns(oneshot::Sender<Vec<IpAddr>>, ()),
     ListGateways(
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         ListGatewaysOptions,
@@ -762,7 +766,8 @@ impl NymVpnService {
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetAllowLan(tx, allow_lan) => {
-                self.handle_set_allow_lan(allow_lan, tx).await;
+                self.handle_set_allow_lan(allow_lan).await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::SetEnableBridges(tx, enable_bridges) => {
                 self.handle_set_enable_bridges(enable_bridges).await;
@@ -770,6 +775,10 @@ impl NymVpnService {
             }
             VpnServiceCommand::SetResidentialExit(tx, residential_exit) => {
                 self.handle_set_residential_exit(residential_exit).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetCustomDns(tx, custom_dns) => {
+                self.handle_set_custom_dns(custom_dns).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetNetwork(tx, network) => {
@@ -786,6 +795,10 @@ impl NymVpnService {
             }
             VpnServiceCommand::GetFeatureFlags(tx, ()) => {
                 let result = self.handle_get_feature_flags().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetDefaultDns(tx, ()) => {
+                let result = self.handle_get_default_dns().await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::ListGateways(tx, options) => {
@@ -945,11 +958,9 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_allow_lan(&mut self, allow_lan: bool, complete_tx: oneshot::Sender<()>) {
+    async fn handle_set_allow_lan(&mut self, allow_lan: bool) {
         self.config_manager.set_allow_lan(allow_lan).await;
-        _ = self
-            .command_sender
-            .send(TunnelCommand::SetAllowLan(allow_lan, complete_tx));
+        self.update_tunnel_settings_with_throttle();
     }
 
     async fn handle_set_enable_bridges(&mut self, enable_bridges: bool) {
@@ -961,6 +972,11 @@ impl NymVpnService {
         self.config_manager
             .set_residential_exit(residential_exit)
             .await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_custom_dns(&mut self, custom_dns: Option<Vec<IpAddr>>) {
+        self.config_manager.set_custom_dns(custom_dns).await;
         self.update_tunnel_settings_with_throttle();
     }
 
@@ -1017,6 +1033,10 @@ impl NymVpnService {
             .feature_flags
             .clone()
             .map(FeatureFlags::from)
+    }
+
+    async fn handle_get_default_dns(&self) -> Vec<IpAddr> {
+        DEFAULT_DNS_SERVERS.clone()
     }
 
     async fn handle_list_gateways(
@@ -1231,6 +1251,7 @@ impl NymVpnService {
 
         let entry_point = entry.unwrap_or(self.config_manager.config().entry_point.clone());
         let exit_point = exit.unwrap_or(self.config_manager.config().exit_point.clone());
+        let custom_dns = options.dns.as_ref().map(|ip_addr| vec![*ip_addr]);
         let config = VpnServiceConfig {
             entry_point,
             exit_point,
@@ -1238,7 +1259,6 @@ impl NymVpnService {
             enable_two_hop: options.enable_two_hop,
             enable_bridges: options.enable_bridges,
             netstack: options.netstack,
-            dns: options.dns,
             allow_lan: true, // always true to support legacy behavior
             min_mixnode_performance: None,
             min_gateway_mixnet_performance: None,
@@ -1246,6 +1266,7 @@ impl NymVpnService {
             disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
             residential_exit: false,
+            custom_dns,
         };
 
         self.config_manager.set_config(config).await;

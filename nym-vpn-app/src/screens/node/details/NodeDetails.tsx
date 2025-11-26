@@ -29,6 +29,7 @@ import {
 import { kvSet } from '../../../kvStore';
 import { uiNodeToSelectedNode } from '../../../contexts/node-list/util';
 import { routes } from '../../../router';
+import { ScoreIndicator } from '../ScoreIndicator';
 import DataCard from './DataCard';
 
 type RouteState = {
@@ -86,25 +87,29 @@ function NodeDetails() {
   const featureRow = (
     label: string,
     feature: string,
+    icon: React.ReactNode,
     status: 'green' | 'orange' = 'green',
   ) => (
     <DataRow label={label}>
       {status === 'green' ? (
-        <MsIcon className="text-malachite text-xl" icon="check" />
+        icon
       ) : (
-        <MsIcon className="text-cheddar text-xl" icon="circle" />
+        <MsIcon
+          className="text-cheddar dark:text-king-nacho text-xl"
+          icon="circle"
+        />
       )}
       <p className="whitespace-nowrap truncate">{feature}</p>
     </DataRow>
   );
 
   const scoreRow = (label: string, score: Score) => {
-    const { icon, color, label: iconLabel } = performance(score);
+    const { color, label: iconLabel } = performance(score);
 
     return (
       <DataRow label={label}>
         <div className="flex gap-1 items-center overflow-hidden select-none">
-          <MsIcon className={clsx('text-lg', color)} icon={icon} />
+          <ScoreIndicator score={score} />
           <p className={clsx('font-medium truncate', color)}>{iconLabel}</p>
         </div>
       </DataRow>
@@ -165,6 +170,10 @@ function NodeDetails() {
       row: featureRow(
         t('node-details.data.advanced-privacy'),
         t('node-details.data.with-mixnet'),
+        <MsIcon
+          icon="visibility_off"
+          className="text-malachite-moss dark:text-malachite text-xl"
+        />,
       ),
       key: 'privacy',
     },
@@ -174,6 +183,7 @@ function NodeDetails() {
         isGoodIp
           ? t('node-details.data.ip-residential')
           : t('node-details.data.ip-datacenter'),
+        <MsIcon icon="smart_display" className="text-cornflower text-xl" />,
         isGoodIp ? 'green' : 'orange',
       ),
       key: 'ip-type',
@@ -184,6 +194,7 @@ function NodeDetails() {
         quic
           ? t('node-details.data.quic-protocol')
           : t('node-details.data.standard-protocol'),
+        <MsIcon icon="package_2" className="text-azur text-xl" />,
         quic ? 'green' : 'orange',
       ),
       key: 'anticensor-protocal',
@@ -301,7 +312,7 @@ function NodeDetails() {
   };
 
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col cursor-default">
+    <PageAnim className="h-full flex flex-col cursor-default">
       <div className="flex-1 overflow-auto flex flex-col gap-6 p-4">
         <h1 className="text-lg font-medium dark:text-white break-words">
           {gateway.name}

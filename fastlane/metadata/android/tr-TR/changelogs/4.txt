@@ -1,4 +1,4 @@
 Yenilikler:
-- VPN istemcisini yeniden yapılandırma
-- Görüntü kaynakları eklendi
-- VPN ile kullanıcı arayüzü durum senkronizasyonu düzeltildi
+- VPN istemcisi yeniden yapılandırıldı
+- Görsel öğeler eklendi
+- VPN ile arayüz durumu senkronizasyonu düzeltildi

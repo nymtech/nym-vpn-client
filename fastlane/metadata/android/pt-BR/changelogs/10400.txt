@@ -1,4 +1,4 @@
-Novidades:
-- Melhoria no registro de logs em arquivo
-- Correções de bugs
+Quais as novidades:
+- Melhoria no registro em arquivo
+- Correção de erros
 - Outras eficiências e melhorias

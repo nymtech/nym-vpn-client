@@ -44,6 +44,8 @@ export const SentryPrivacyPolicyUrl = 'https://sentry.io/privacy/';
 export const AnonNetworkStatsUrl = 'https://nym.com/anonymous-stats';
 export const QuicUrl = 'https://nym.com/features/quic';
 export const DomainFrontingUrl = 'https://nym.com/features/stealth-api-connect';
+export const AmneziaWgUrl =
+  'https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard';
 export const IpInfoIoUrl = 'https://ipinfo.io';
 export const SupportServerLocationUrl =
   'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';

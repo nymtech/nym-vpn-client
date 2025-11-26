@@ -1,4 +1,0 @@
-Cosa c'è di nuovo:
-- Corregge bug di animazione di navigazione
-- Corregge i bug credenziali dello schermo
-- Corregge la lista dei paesi API e la ricerca

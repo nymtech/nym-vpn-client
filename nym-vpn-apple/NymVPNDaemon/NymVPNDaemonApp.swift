@@ -39,6 +39,7 @@ struct NymVPNDaemonApp: App {
     private var appDelegate
 
     @ObservedObject private var appSettings = AppSettings.shared
+    @ObservedObject private var configurationManager = ConfigurationManager.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var credentialsManager = CredentialsManager.shared
     @ObservedObject private var externalLinkManager = ExternalLinkManager.shared
@@ -107,6 +108,7 @@ struct NymVPNDaemonApp: App {
             .preferredColorScheme(appearance.colorScheme)
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
+            .environmentObject(configurationManager)
             .environmentObject(connectionManager)
             .environmentObject(credentialsManager)
             .environmentObject(externalLinkManager)

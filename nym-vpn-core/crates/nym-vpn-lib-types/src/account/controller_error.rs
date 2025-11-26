@@ -3,6 +3,7 @@
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
@@ -20,7 +21,7 @@ use ts_rs::TS;
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum AccountControllerErrorStateReason {
     /// Error due to storage
-    Storage { context: String },
+    Storage { context: String, details: String },
 
     /// API Failure
     ApiFailure { context: String, details: String },
@@ -50,13 +51,30 @@ impl AccountControllerErrorStateReason {
     pub fn is_retryable(&self) -> bool {
         matches!(self, Self::ApiFailure { .. } | Self::Internal { .. })
     }
+
+    pub fn storage(
+        context: &'static str,
+        details: impl Into<String>,
+    ) -> AccountControllerErrorStateReason {
+        AccountControllerErrorStateReason::Storage {
+            context: context.to_string(),
+            details: details.into(),
+        }
+    }
+
+    pub fn storage_err(
+        context: &'static str,
+        details: impl Error,
+    ) -> AccountControllerErrorStateReason {
+        Self::storage(context, details.to_string())
+    }
 }
 
 impl std::fmt::Display for AccountControllerErrorStateReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AccountControllerErrorStateReason::Storage { context } => {
-                write!(f, "Storage error: {context}")
+            AccountControllerErrorStateReason::Storage { context, details } => {
+                write!(f, "Storage error: {context} - {details} ")
             }
             AccountControllerErrorStateReason::ApiFailure { context, details } => {
                 write!(f, "API failure: {context} - {details}")

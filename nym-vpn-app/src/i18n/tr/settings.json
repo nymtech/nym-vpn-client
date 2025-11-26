@@ -98,7 +98,7 @@
     "bandwidth-exceeded": "Bant genişliği aşıldı",
     "max-device-reached": "Maksimum cihaz sayısına ulaşıldı",
     "status-inactive": "Hesap pasif",
-    "requesting-zknyms": "Requesting ZkNyms",
+    "requesting-zknyms": "ZkNyms talep ediliyor",
     "error": "Dahili hata"
   }
 }

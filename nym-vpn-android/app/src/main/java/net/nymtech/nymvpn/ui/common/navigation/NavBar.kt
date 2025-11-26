@@ -81,14 +81,14 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 
 			currentRoute.startsWith(Route.EntryLocation::class.qualifiedName!!) -> NavBarState(
 				show = true,
-				title = { NavTitle(stringResource(R.string.entry)) },
+				title = { NavTitle(stringResource(R.string.entry_location)) },
 				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.safePopBackStack() } },
 				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showLocationTooltip = true } },
 			)
 
 			currentRoute.startsWith(Route.ExitLocation::class.qualifiedName!!) -> NavBarState(
 				show = true,
-				title = { NavTitle(stringResource(R.string.exit)) },
+				title = { NavTitle(stringResource(R.string.exit_location)) },
 				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.safePopBackStack() } },
 				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showExitServerTooltip = true } },
 			)

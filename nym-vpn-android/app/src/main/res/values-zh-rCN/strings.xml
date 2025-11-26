@@ -106,7 +106,6 @@
 	<string name="welcome_to_nym">欢迎访问 NymVPN</string>
 	<string name="get_access_code">获取访问代码</string>
 	<string name="access_code">24 字访问代码</string>
-	<string name="support_and_feedback"><![CDATA[支持 & 反馈]]></string>
 	<string name="get_in_touch">取得联系</string>
 	<string name="device_id">设备 ID：</string>
 	<string name="loading">加载中</string>
@@ -116,8 +115,8 @@
 	<string name="two_hop_explanation">通过两跳路由连接享受高速浏览（250+Mbps）。 该模式采用 AmneziaWG，这是一种抗审查版本的 WireGuard。快速模式是快速浏览、流媒体和文件共享的理想选择。</string>
 	<string name="two_hop_title">快速 (WireGuard)</string>
 	<string name="disabled_while_connecting">连接 VPN 时禁用</string>
-	<string name="exit">退出</string>
-	<string name="entry">进入</string>
+	<string name="exit_location">出口位置</string>
+	<string name="entry_location">入口位置</string>
 	<string name="no_results_found">未找到结果。</string>
 	<string name="how_to_run_gateway">如何运行网关。</string>
 	<string name="or_learn">或学习</string>
@@ -284,6 +283,10 @@
 	<string name="quick_info_modal_desc_non_quic">这将在不启用QUIC 协议的情况下重新连接，您将重新连接到当前网关。\n\n您的数据在重新连接时依然受到保护。</string>
 	<string name="quic_primary_btn_text_non_quic">不使用QUIC重新连接</string>
 	<string name="quic_text_btn_text_non_quic">下次连接时再关闭QUIC</string>
+	<string name="censorship_amnezia_title">最小混淆（阿姆内齐亚工作组）</string>
+	<string name="censorship_amnezia_description">使Wire护盾流量更难侦测。 采用欺骗性数据包，扰乱深包检查系统经常使用的简单规则，提高了在限制性环境下的连接可靠性。 \n\n注意：只实现了客户端。</string>
+	<string name="censorship_amnezia_link_text">阿姆涅齐亚工作组如何阻止DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us-articles/281043831231121-How-do-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">匿名混合网络技术</string>
 	<string name="account_welcome_countries">全世界50多个国家</string>
@@ -314,7 +317,7 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">您的账户助记词</string>
 	<string name="passphrase_description">🔒您的主帐户密码短语：24个单词组成的助记词让您从任何设备访问您的帐户。</string>
-	<string name="passphrase_description_first">🔒您的主帐户密码短语:</string>
+	<string name="passphrase_description_first">🔒您的主帐户助记词：</string>
 	<string name="passphrase_description_last">允许您从任何设备访问账户的24个单词。</string>
 	<string name="passphrase_show">显示我的助记词</string>
 	<string name="passphrase_copy">复制短语</string>

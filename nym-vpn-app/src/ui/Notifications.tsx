@@ -20,7 +20,7 @@ function Notifications() {
     <>
       <Viewport
         className={clsx(
-          'fixed top-20 right-0 z-99 m-0 flex w-full',
+          'fixed top-20 right-0 z-99 m-0 px-6 flex w-full',
           'list-none flex-col gap-2.5 outline-none',
           'cursor-default select-none',
         )}

@@ -6,7 +6,7 @@
     "internal": "守护进程内部错误",
     "invalid-network": "网络无效"
   },
-  "grpc": "内部gRPC错误",
+  "vpnd-client": "内部Vpnd客户端错误",
   "tunnel": {
     "internal": "内部错误",
     "firewall": "防火墙错误",

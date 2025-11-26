@@ -1,2 +1,2 @@
-Neuigkeiten:
-- Bugfix für API Änderungen
+Was ist neu:
+- Fix für API-Änderungen

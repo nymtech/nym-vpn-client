@@ -1,0 +1,5 @@
+Có gì mới:
+- Thêm tính năng mua hàng trong ứng dụng cho Play Store
+- Thêm ngôn ngữ mới: BN, EL, VI
+- Cải thiện và sửa lỗi giao diện người dùng và trải nghiệm người dùng
+- Cải thiện độ ổn định kết nối 

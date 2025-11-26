@@ -6,7 +6,7 @@
     "internal": "Lỗi nội bộ của daemon",
     "invalid-network": "Mạng không hợp lệ"
   },
-  "grpc": "Lỗi gRPC nội bộ",
+  "vpnd-client": "Lỗi Máy Khách VPN nội bộ",
   "tunnel": {
     "internal": "Lỗi nội bộ",
     "firewall": "Lỗi tường lửa",

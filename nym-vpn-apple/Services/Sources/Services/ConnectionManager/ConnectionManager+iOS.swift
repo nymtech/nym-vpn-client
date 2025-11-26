@@ -103,6 +103,7 @@ extension ConnectionManager {
                 isErrorReportingEnabled: isErrorReportingEnabled,
                 isStatisticsEnabled: appSettings.isStatisticsEnabled,
                 isQuicEnabled: appSettings.isQuicEnabled,
+                isLanBypassEnabled: appSettings.isLanBypassEnabled,
                 isTwoHopEnabled: false
             )
         case .wireguard:
@@ -114,6 +115,7 @@ extension ConnectionManager {
                 isErrorReportingEnabled: isErrorReportingEnabled,
                 isStatisticsEnabled: appSettings.isStatisticsEnabled,
                 isQuicEnabled: appSettings.isQuicEnabled,
+                isLanBypassEnabled: appSettings.isLanBypassEnabled,
                 isTwoHopEnabled: true
             )
         }
@@ -139,7 +141,8 @@ extension ConnectionManager {
             guard currentTunnelStatus == .connected || currentTunnelStatus == .connecting,
                   let tunnelProviderProtocol = activeTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
                   let mixnetConfig = tunnelProviderProtocol.asMixnetConfig(),
-                  newConfig.toJson() != mixnetConfig.toJson()
+                  newConfig.toJson() != mixnetConfig.toJson(),
+                  !isReconnecting
             else {
                 return
             }
@@ -207,20 +210,14 @@ extension ConnectionManager {
 // TODO: remove extension once tunnel supports reconnect
 extension ConnectionManager {
     /// connects disconnects VPN, depending on current VPN status
-    /// - Parameter isAutoConnect: Bool.
-    /// true - when reconnecting automatically, after change of connection settings:  country(UK, DE) or type(5hop, 2hop...).
-    /// false - when user manually taps "Connect".
-    /// On reconnect, after disconnect, the connectDisconnect is called as a user tapped connect.
-    @MainActor public func connectDisconnect(isAutoConnect: Bool = false) async throws {
+    @MainActor public func connectDisconnect() async throws {
         do {
-            let config = try generateConfig()
-            // User "Connect" button actions
-            guard !isAutoConnect else { return }
             if shouldDisconnectActiveTunnel() {
                 isDisconnecting = true
                 try await disconnectActiveTunnel()
                 lastError = nil
             } else {
+                let config = try generateConfig()
                 try await connect(with: config)
             }
         } catch let error {

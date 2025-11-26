@@ -51,7 +51,8 @@ extension HomeView {
     @ViewBuilder
     func statisticsEnableOverlay() -> some View {
         if viewModel.isStatisticsOverlayDisplayed,
-           !viewModel.appSettings.isStatisticsEnabled {
+           !viewModel.appSettings.isStatisticsEnabled,
+           Device.isMacOS {
             StatisticsEnableOverlay(
                 isPresented: $viewModel.isStatisticsOverlayDisplayed
             )

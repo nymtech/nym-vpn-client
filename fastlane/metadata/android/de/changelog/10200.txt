@@ -1,5 +1,0 @@
-Was ist neu:
-- Synchronisation mit Verbindungsstatus
-- Verbesserte Fehlermeldung
-- Hinzugefügte Berechtigung verweigert Flow
-- - Debug-Protokolle aus Release entfernt

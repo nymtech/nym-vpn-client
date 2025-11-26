@@ -15,7 +15,8 @@
       "title": "Location accuracy",
       "description": "örüntülenen konumla <1>IP adreslerinden belirlenir</1> ve tam fiziksel konumları yansıtmayabilir."
     },
-    "title": "Çıkış konumları seçiliyor"
+    "entry-title": "Choosing entry locations",
+    "exit-title": "Choosing exit locations"
   },
   "location-not-available": {
     "entry": "Seçilen giriş konumu kullanılamıyor, {{location}} konumuna geçildi",

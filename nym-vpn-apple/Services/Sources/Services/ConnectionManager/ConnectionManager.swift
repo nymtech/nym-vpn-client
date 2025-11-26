@@ -52,7 +52,11 @@ import GRPCManager
     )
 #endif
 
-    @Published public var connectionConfig: ConnectionConfig?
+    @Published public var connectionConfig: ConnectionConfig {
+        didSet {
+            connectionStorage.connectionConfig = connectionConfig
+        }
+    }
     @Published public var connectedDate: Date?
     @Published public var connectionRetryAttempt: Int?
     @Published public var afterDisconnectAction: AfterDisconnectAction?
@@ -64,9 +68,9 @@ import GRPCManager
         didSet {
             switch connectionType {
             case .mixnet5hop:
-                connectionConfig?.enableTwoHop = false
+                connectionConfig.enableTwoHop = false
             case .wireguard:
-                connectionConfig?.enableTwoHop = true
+                connectionConfig.enableTwoHop = true
             }
             appSettings.connectionType = connectionType.rawValue
             updateConnectionConfig()
@@ -89,7 +93,7 @@ import GRPCManager
     @Published public var entryGateway: EntryGateway {
         didSet {
             Task { @MainActor in
-                connectionConfig?.entry = entryGateway
+                connectionConfig.entry = entryGateway
                 connectionStorage.entryGateway = entryGateway
                 updateConnectionConfig()
             }
@@ -98,7 +102,7 @@ import GRPCManager
     @Published public var exitRouter: ExitRouter {
         didSet {
             Task { @MainActor in
-                connectionConfig?.exit = exitRouter
+                connectionConfig.exit = exitRouter
                 connectionStorage.exitRouter = exitRouter
                 updateConnectionConfig()
             }
@@ -119,6 +123,7 @@ import GRPCManager
         self.entryGateway = connectionStorage.entryGateway
         self.exitRouter = connectionStorage.exitRouter
         self.connectionType = connectionStorage.connectionType
+        self.connectionConfig = connectionStorage.connectionConfig
         setup()
     }
 #endif
@@ -139,6 +144,7 @@ import GRPCManager
         self.entryGateway = connectionStorage.entryGateway
         self.exitRouter = connectionStorage.exitRouter
         self.connectionType = connectionStorage.connectionType
+        self.connectionConfig = connectionStorage.connectionConfig
         setup()
     }
 #endif
@@ -169,9 +175,6 @@ private extension ConnectionManager {
         setupAppSettingsObservers()
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
-        Task { @MainActor in
-            await fetchConnectionConfig()
-        }
     }
 }
 
@@ -210,14 +213,15 @@ private extension ConnectionManager {
         appSettings.$isQuicEnabledPublisher
             .removeDuplicates()
             .sink { [weak self] value in
-                self?.connectionConfig?.enableBridges = value
+                self?.connectionConfig.enableBridges = value
             }
             .store(in: &cancellables)
 
         appSettings.$shouldReconnectPublisher
             .removeDuplicates()
             .filter { $0 }
-            .sink { [weak self] _ in
+            .sink { [weak self] shouldReconnect in
+                guard shouldReconnect else { return }
                 self?.updateConnectionConfig()
                 self?.appSettings.shouldReconnect = false
             }

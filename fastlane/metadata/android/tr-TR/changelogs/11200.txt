@@ -1,2 +1,2 @@
-What's new:
-- Fixes logs crash bug
+Yenilikler:
+- Kayıt çökme hatası düzeltmesi

@@ -1,3 +1,3 @@
-What's new:
-- Fix country caching issue
-- Hilt performance improvements
+Cosa c'è di nuovo:
+- Risolvere il problema della cache paese
+- Miglioramenti delle prestazioni Hilt

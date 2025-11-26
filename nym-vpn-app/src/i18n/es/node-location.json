@@ -15,7 +15,8 @@
       "title": "Precisión de ubicación",
       "description": "Las ubicaciones mostradas son <1>determinadas a partir de direcciones IP</1> y pueden no reflejar ubicaciones físicas exactas."
     },
-    "title": "Datos sobre la ubicación de los servidores"
+    "entry-title": "Elegir ubicaciones de entradas",
+    "exit-title": "Elegir ubicaciones de salida"
   },
   "location-not-available": {
     "entry": "Ubicación de entrada seleccionada no disponible, cambiada a {{location}}",

@@ -1,4 +1,0 @@
-Was ist neu:
-- Behebt Navigations-Animationsfehler
-- Behebt Anmeldeinformationsfehler
-- Behebt Länderlisten-API und Suche

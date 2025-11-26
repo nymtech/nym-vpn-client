@@ -66,6 +66,10 @@ struct SettingsFlowCoordinator<Content: View>: View {
             privacyAndDataDestination()
         case .censorship:
             censorshipDestination()
+        case .accountAndDevices:
+            accountAndDevicesDestination()
+        case .systemStatus:
+            SystemStatusView(path: $flowState.path)
         }
     }
 }
@@ -93,7 +97,6 @@ private extension SettingsFlowCoordinator {
         SupportView(
             viewModel: SupportViewModel(
                 path: $flowState.path,
-                connectionManager: .shared,
                 externalLinkManager: .shared
             )
         )
@@ -207,5 +210,9 @@ private extension SettingsFlowCoordinator {
     @ViewBuilder
     func censorshipDestination() -> some View {
         CensorshipView(path: $flowState.path)
+    }
+
+    func accountAndDevicesDestination() -> some View {
+        AccountAndDevicesView(path: $flowState.path)
     }
 }

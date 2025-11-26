@@ -106,7 +106,6 @@
 	<string name="welcome_to_nym">Добро пожаловать в NymVPN</string>
 	<string name="get_access_code">Получить Код Доступа</string>
 	<string name="access_code">Кодовая фраза из 24 слов</string>
-	<string name="support_and_feedback"><![CDATA[Поддержка и отзывы]]></string>
 	<string name="get_in_touch">Связаться с поддержкой</string>
 	<string name="device_id">ID устройства:</string>
 	<string name="loading">Загрузка</string>
@@ -116,8 +115,8 @@
 	<string name="two_hop_explanation">Высокоскоростной браузинг (250+ Мбит/с) с 2-ступенчатой маршрутизацией. Использует AmneziaWG — устойчивую к цензуре версию WireGuard, идеальную для стриминга, быстрого просмотра и загрузок.</string>
 	<string name="two_hop_title">Быстрый (WireGuard)</string>
 	<string name="disabled_while_connecting">Неактивно при подключении к VPN</string>
-	<string name="exit">Выход</string>
-	<string name="entry">Вход</string>
+	<string name="exit_location">Локация выхода</string>
+	<string name="entry_location">Локация входа</string>
 	<string name="no_results_found">Ничего не найдено.</string>
 	<string name="how_to_run_gateway">как установить шлюз.</string>
 	<string name="or_learn">или научиться</string>
@@ -286,6 +285,10 @@
 	<string name="quick_info_modal_desc_non_quic">Это подключит вас заново без включенного протокола QUIC. Вы сохраните свои текущие шлюзы.\n\nВаши данные останутся защищёнными во время переподключения.</string>
 	<string name="quic_primary_btn_text_non_quic">Переподключиться без QUIC</string>
 	<string name="quic_text_btn_text_non_quic">Выключить QUIC при следующем подключении</string>
+	<string name="censorship_amnezia_title">Минимальное обфускация (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Делает трафик WireGuard менее заметным. Вводит пакеты-приманки, которые нарушают работу простых правил, часто используемых системами цензуры с глубоким анализом пакетов (DPI), повышая надежность соединения в условиях ограничительных сред. \n\nПримечание: Реализовано только на стороне клиента.</string>
+	<string name="censorship_amnezia_link_text">Как AmneziaWG предотвращает DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/ru/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Анонимная технология микснета</string>
 	<string name="account_welcome_countries">Более 50 стран по всему миру</string>
@@ -316,7 +319,7 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Кодовая фраза вашего аккаунта</string>
 	<string name="passphrase_description">🔒 Ваша кодовая фраза для аккаунта: 24 слова, которые позволяют получить доступ к аккаунту с любого устройства.</string>
-	<string name="passphrase_description_first">🔒Пароль вашей основной учетной записи:</string>
+	<string name="passphrase_description_first">🔒Кодовая фраза вашего аккаунта:</string>
 	<string name="passphrase_description_last">24 слова, которые позволяют вам заходить в свою учетную запись с любого устройства.</string>
 	<string name="passphrase_show">Показать мою кодовую фразу</string>
 	<string name="passphrase_copy">Копировать кодовую фразу</string>

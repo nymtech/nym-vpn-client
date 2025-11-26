@@ -1,49 +1,50 @@
-Hör auf, online verfolgt zu werden. Der einzige VPN, der dich nicht ausspionieren kann — selbst wenn er wollte. Hergestellt in der Schweiz, vertraut von Datenschutzbefürwortern weltweit.
+Stoppen Sie die Verfolgung online. Das einzige VPN, das dich nicht ausspionieren kann, selbst wenn es wollte. Hergestellt in der Schweiz, vertraut von Datenschutzbeauftragten weltweit.
 
-⭐️ Wie gesehen bei: PCMag, TechRadar, Wirecutter, ZDNet, Tom’s Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+⭐ Wie gesehen in: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-SURFE OHNE SPUR ZU HINTERLASSEN
+DURCHSUCHEN OHNE SPUREN ZU HINTERLASSEN
 
-Genervt von der Frage „Wer sieht mich?“ Herkömmliche VPNs könnten theoretisch deine Aktivitäten protokollieren. NymVPN ist grundlegend anders: Unser dezentrales Netzwerk macht zentrales Logging durch Design unmöglich. Das ist keine „Keine-Logs-Richtlinie“ – es ist eine Architektur, die „nicht protokollieren kann“.
+Müde zu fragen, wer sieht? Traditionelle VPNs können Ihre Aktivität theoretisch protokollieren. NymVPN ist grundlegend anders: Unser dezentralisiertes Netzwerk macht eine zentralisierte Protokollierung durch Design unmöglich. Dies ist keine ''Richtlinie für keine Protokolle'' Es ist eine "kann nicht protokollieren" Architektur.
 
-✓ Echte Anonymität: Zahle mit Krypto oder Bargeld, keine E-Mail erforderlich
-✓ 50+ Länder, Hunderte unabhängige Server
-✓ Schutz für mehrere Geräte: 10 Geräte mit einem anonymen Code
-✓ Schweizer Sitz mit akademischen Datenschutzstandards
+✓ Wahre Anonymität: Bezahlen Sie mit Krypto oder Bargeld, keine E-Mail erforderlich
+✓ 50 + Länder, Hunderte von unabhängigen Servern
+✓ Mehrgeräteschutz: 10 Geräte mit einem anonymen Code
+✓ Die Schweiz basiert auf akademischen Datenschutzstandards
 
-WÄHLE DEIN PRIVATSPHÄREN-LEVEL
+WÄHLEN SIE IHRE PRIVATISCHE LEVEL
 
-⚡ Schnellmodus – Blitzschnelle Geschwindigkeit für Streaming und Surfen. Standardmäßig 2-Hop: Ein Server kennt dich, ein anderer weiß, was du tust — aber niemals beide.
-🔒 Anonymmodus – Maximale Privatsphäre über ein 5-Hop-Mixnet mit Geräusch-technik und bis zu 5 Verschlüsselungslagen. Entwickelt, um selbst KI-gestützte Verkehrsanalyse und fortgeschrittene Überwachung zu widerstehen.
+⚡ Schneller Modus – blitzschnelle Geschwindigkeiten für Streaming und Surfen. 2-Hop standardmäßig, so dass ein Server weiß, wer du bist, ein anderer weiß, was du tust – aber nie beides.
+🔒 Anonymer Modus – Maximale Privatsphäre durch ein 5-Hop-Mixnet mit geräuschgenerierender Technologie und bis zu 5 Verschlüsselungsschichten. Entwickelt um selbst der AI-gestützten Verkehrsanalyse und der erweiterten Überwachung zu widerstehen.
 
-WARUM NymVPN ANDERS IST
+WARUM NYMVPN ANDERS IST
 
-• Metadatenschutz – Im Gegensatz zu anderen VPNs schützen wir nicht nur deine Daten, sondern auch die Muster, die du hinterlässt
-• Zensur-resistent – Greife auf gesperrte Inhalte in restriktiven Umgebungen zu mit AmneziaWG, QUIC und Tarn-Protokollen
-• Zero-Knowledge-Zahlungen – Dein Abo ist kryptografisch nicht mit deiner Aktivität verbunden
-• Universitäts-designed – Entwickelt von PhD-Kryptographen der KU Leuven und EPFL mit 20+ Peer-Reviewed-Publikationen
+• Metadatenschutz - Im Gegensatz zu anderen VPNs schützen wir nicht nur Ihre Daten, sondern auch die Muster, die Sie hinterlassen
+• Zensurresistenz – Zugriff auf blockierte Informationen in restriktiven Umgebungen mit AmneziaWG, QUIC- und Stealth-Protokollen
+• Null-Wissen-Zahlungen – Ihr Abonnement ist kryptographisch von Ihrer Aktivität getrennt
+• University-Design – Built by PhD-Kryptografen von KU Leuven und EPFL mit 20+ Peer-geprüften Publikationen
 
 UNABHÄNGIG VERIFIZIERT
 
-• 4 Sicherheits-Audits (2021–2024) durch JP Aumasson, Oak Security, Cryspen, Cure53
-• Open-Source und transparent („Signals of Trustworthy VPNs“)
-• Mehr als 10.000 Nutzer vertrauen bereits NymVPN für ihre Privatsphäre
+• 4 Sicherheits-Audits (2021-2024) von JP Aumasson, Eichensicherheit, Cryspen, Cure53
+• Quelloffen und transparent ("Signale vertrauenswürdiger VPNs")
+• 10.000+ Benutzer vertrauen NymVPN bereits für ihre Privatsphäre
 
-WESENTLICHE FUNKTIONEN
+ESENTIALE FEATUREN
 
-• Hochgeschwindigkeits-Verbindungen mit Auswahl aus 50+ Ländern
-• Kill-Switch verhindert Datenlecks
-• Völlig werbefreie Nutzung
-• Modernster kryptografischer Stack
+• Hochgeschwindigkeitsverbindungen mit 50+ Länderauswahl
+• Kill-Schalter verhindert Datenlecks
+• Komplett werbefreies Erlebnis
+• Modernster kryptographischer Stapel
+
 
 PERFEKT FÜR
 
-→ Streaming und Surfen ohne Verfolgung durch Werbetreibende
-→ Sichere öffentliche WiFi-Verbindungen in Cafés, Flughäfen, Hotels
-→ Nutzer in restriktiven Ländern, die verlässlichen Zugang brauchen
-→ Menschen, die echte Anonymität wollen, nicht nur eine versteckte IP
-→ Journalisten und Aktivisten, die rückverfolgungssichere Kommunikation brauchen
+→ Streaming und Surfen, ohne von Werbetreibenden verfolgt zu werden
+→ Sichere öffentliche WLAN-Verbindungen in Cafés, Flughäfen und Hotels
+→ Jeder, der in restriktiven Ländern auf verlässlichen Zugang angewiesen ist
+→ Personen, die echte Anonymität und nicht nur versteckte IP-Adressen wünschen
+→ Journalisten und Aktivisten brauchen nicht rückverfolgbare Kommunikation
 
-Jetzt herunterladen. In Sekunden verbinden. Online verschwinden.
+Jetzt herunterladen. Verbinden in Sekunden. Online verschwinden.
 
-🎁 7 Tage gratis Test | 💯 30-Tage Geld-zurück-Garantie | 🌐 Von über 10.000 Nutzern weltweit vertraut
+🎁 7-Tage kostenlose Testversion | 💯 30-Tage Geld-zurück-Garantie | 🌐 Vertrauen von 10.000+ Benutzern weltweit

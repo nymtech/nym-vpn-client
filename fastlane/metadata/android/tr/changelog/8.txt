@@ -1,3 +1,0 @@
-Yenilikler:
-- Günlükler ekranı iyileştirildi
-- Hata düzeltmeleri yapıldı

@@ -11,6 +11,8 @@ import ImpactGenerator
 import UIComponents
 
 @MainActor public class SettingsViewModel: SettingsFlowState {
+    public typealias AppSettingsSection = SettingsSection<AppSettingsSectionKind>
+
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager
     private let connectionManager: ConnectionManager
@@ -20,17 +22,13 @@ import UIComponents
 
     @ObservedObject private var credentialsManager: CredentialsManager
     private var cancellables = Set<AnyCancellable>()
-    private var deviceIdentifier: String? {
-        guard let deviceIdentifier = credentialsManager.deviceIdentifier else { return nil }
-        return "settings.deviceId".localizedString + deviceIdentifier
-    }
 
     let settingsTitle = "settings".localizedString
 #if os(macOS)
     @Binding private var isServing: Bool
 #endif
     @Published var isLogoutConfirmationDisplayed = false
-    @Published var sections: [SettingsSection] = []
+    @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
 
     var isValidCredentialImported: Bool {
@@ -50,6 +48,10 @@ import UIComponents
                 }
             }
         )
+    }
+
+    var versionTitle: String {
+        "\("version".localizedString) \(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))"
     }
 
 #if os(iOS)
@@ -97,10 +99,6 @@ import UIComponents
         setup()
     }
 #endif
-
-    func appVersion() -> String {
-        AppVersionProvider.appVersion()
-    }
 
     func navigateBack() {
         guard !path.isEmpty else { return }
@@ -163,9 +161,14 @@ private extension SettingsViewModel {
         path.append(SettingLink.legal)
     }
 
+    func navigateToSystemStatus() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.systemStatus)
+    }
+
     func navigateToAccount() {
         impactGenerator.softImpact()
-        try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
+        path.append(SettingLink.accountAndDevices)
     }
 
     func navigateToPassphrase() {
@@ -207,7 +210,7 @@ private extension SettingsViewModel {
 
     func configureSections() {
         Task {
-            var newSections = [SettingsSection]()
+            var newSections = [AppSettingsSection]()
             if appSettings.isCredentialImported {
                 newSections.append(accountSection())
             }
@@ -216,7 +219,9 @@ private extension SettingsViewModel {
                     feedbackSection(),
                     killswitchSection(),
                     appearanceSection(),
-                    legalSection()
+                    logsSection(),
+                    legalSection(),
+                    systemStatusSection()
                 ]
             )
             if appSettings.isCredentialImported {
@@ -239,13 +244,12 @@ private extension SettingsViewModel {
 
 // MARK: - Sections -
 private extension SettingsViewModel {
-    func accountSection() -> SettingsSection {
+    func accountSection() -> AppSettingsSection {
         var viewModels = [
             SettingsListItemViewModel(
-                accessory: .externalLink,
+                accessory: .arrow,
                 title: "settings.account".localizedString,
-                subtitle: deviceIdentifier,
-                imageName: "person",
+                systemImageName: "person.crop.circle",
                 action: { [weak self] in
                     Task { @MainActor in
                         self?.navigateToAccount()
@@ -267,39 +271,30 @@ private extension SettingsViewModel {
             )
         )
 #endif
-        return .account(viewModels: viewModels)
+        return AppSettingsSection(kind: .account, viewModels: viewModels)
     }
 
-    func appearanceSection() -> SettingsSection {
-        var viewModels = [
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.appearance".localizedString,
-                imageName: "appearance",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToAppearance()
+    func appearanceSection() -> AppSettingsSection {
+        AppSettingsSection(
+            kind: .theme,
+            viewModels: [
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "settings.appearance".localizedString,
+                    imageName: "appearance",
+                    action: { [weak self] in
+                        Task { @MainActor in
+                            self?.navigateToAppearance()
+                        }
                     }
-                }
-            )
-        ]
-        viewModels.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.privacyAndData".localizedString,
-                imageName: "privacy",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToPrivacyAndData()
-                    }
-                }
-            )
+                )
+            ]
         )
-        return .theme(viewModels: viewModels)
     }
 
-    func feedbackSection() -> SettingsSection {
-        .feedback(
+    func feedbackSection() -> AppSettingsSection {
+        AppSettingsSection(
+            kind: .feedback,
             viewModels: [
                 SettingsListItemViewModel(
                     accessory: .arrow,
@@ -310,22 +305,12 @@ private extension SettingsViewModel {
                             self?.navigateToSupportAndFeedback()
                         }
                     }
-                ),
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "logs".localizedString,
-                    imageName: "logs",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToLogs()
-                        }
-                    }
                 )
             ]
         )
     }
 
-    func killswitchSection() -> SettingsSection {
+    func killswitchSection() -> AppSettingsSection {
         var viewModels = [SettingsListItemViewModel]()
         viewModels.append(
             SettingsListItemViewModel(
@@ -342,56 +327,101 @@ private extension SettingsViewModel {
                 accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isIPv6TrafficEnabled)),
                 title: "settings.ipv6.title".localizedString,
                 subtitle: "settings.ipv6.subtitle".localizedString,
-                systemImageName: "key",
+                systemImageName: "powerplug.portrait",
                 action: {}
             )
         )
 #endif
-        if featureFlagsManager.isQuicEnabled || featureFlagsManager.isStealthAPIEnabled {
-            viewModels.append(
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.censorship.title".localizedString,
-                    imageName: "domain",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToCensorship()
-                        }
-                    }
-                )
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isLanBypassEnabled)),
+                title: "settings.lanBypass.title".localizedString,
+                subtitle: "settings.lanBypass.subtitle".localizedString,
+                imageName: "lan",
+                action: {}
             )
-        }
-        return .killSwitch(viewModels: viewModels)
+        )
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.censorship.title".localizedString,
+                imageName: "domain",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToCensorship()
+                    }
+                }
+            )
+        )
+
+        return AppSettingsSection(kind: .killSwitch, viewModels: viewModels)
     }
 
-    func legalSection() -> SettingsSection {
-        .legal(
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "legal".localizedString,
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToLegal()
-                        }
+    func logsSection() -> AppSettingsSection {
+        let viewModels = [
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "logs".localizedString,
+                imageName: "logs",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToLogs()
                     }
-                )
-            ]
-        )
+                }
+            ),
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.privacyAndData".localizedString,
+                systemImageName: "exclamationmark.shield",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToPrivacyAndData()
+                    }
+                }
+            )
+        ]
+        return AppSettingsSection(kind: .logs, viewModels: viewModels)
     }
 
-    func logoutSection() -> SettingsSection {
-        .logout(
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .empty,
-                    title: "settings.logout".localizedString,
-                    action: { [weak self] in
-                        self?.isLogoutConfirmationDisplayed = true
+    func legalSection() -> AppSettingsSection {
+        let viewModels = [
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "legal".localizedString,
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToLegal()
                     }
-                )
-            ]
-        )
+                }
+            )
+        ]
+        return AppSettingsSection(kind: .legal, viewModels: viewModels)
+    }
+
+    func systemStatusSection() -> AppSettingsSection {
+        let viewModels = [
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.systemStatus".localizedString,
+                action: { [weak self] in
+                    self?.navigateToSystemStatus()
+                }
+            )
+        ]
+        return AppSettingsSection(kind: .systemStatus, viewModels: viewModels)
+    }
+
+    func logoutSection() -> AppSettingsSection {
+        let viewModels = [
+            SettingsListItemViewModel(
+                accessory: .empty,
+                title: "settings.logout".localizedString,
+                action: { [weak self] in
+                    self?.isLogoutConfirmationDisplayed = true
+                }
+            )
+        ]
+        return AppSettingsSection(kind: .logout, viewModels: viewModels)
     }
 }
 

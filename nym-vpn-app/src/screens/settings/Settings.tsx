@@ -13,7 +13,7 @@ import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support, backendFlags } = useMainState();
+  const { desktopNotifications, ipv6Support } = useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -21,7 +21,6 @@ function Settings() {
   const { exit } = useExit();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
-  const showAntiCensorship = backendFlags.quic || backendFlags.domainFronting;
 
   const handleAutostartChanged = async () => {
     await toggleAutostart();
@@ -34,7 +33,7 @@ function Settings() {
   };
 
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6">
       <Account />
       <SettingsGroup
         settings={[
@@ -86,21 +85,8 @@ function Settings() {
             title: t('killswitch.title'),
             desc: t('killswitch.desc'),
             leadingIcon: 'power_settings_new',
-            onClick: () => {
-              /**/
-            },
-            trailing: (
-              <Switch
-                checked={true}
-                onChange={() => {
-                  /* */
-                }}
-                disabled
-              />
-            ),
-            disabled: true,
           },
-          showAntiCensorship && {
+          {
             title: t('anti-censorship.title', { ns: 'settings' }),
             leadingIcon: 'campaign',
             onClick: () => navigate(routes.antiCensorship),

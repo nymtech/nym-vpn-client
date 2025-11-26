@@ -21,8 +21,13 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_common::trace_err_chain;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use std::sync::Arc;
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+};
+
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
@@ -34,14 +39,8 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use std::sync::Arc;
-use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
-};
 use tokio::{
-    sync::{mpsc, oneshot, watch},
+    sync::{mpsc, watch},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
@@ -165,19 +164,26 @@ impl TunnelSettings {
     /// Returns resolved DNS config resolved against default DNS IPs.
     pub fn resolved_dns_config(&self) -> ResolvedDnsConfig {
         self.dns.to_dns_config().resolve(
-            &self.default_dns_ips(),
+            &self.dns_ips(),
             #[cfg(target_os = "macos")]
             53,
         )
     }
 
     /// Returns DNS IPs filtering out IPv6 addresses when IPv6 is disabled.
-    pub fn default_dns_ips(&self) -> Vec<IpAddr> {
-        crate::DEFAULT_DNS_SERVERS
-            .iter()
-            .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
-            .copied()
-            .collect()
+    pub fn dns_ips(&self) -> Vec<IpAddr> {
+        match self.dns {
+            DnsOptions::Custom(ref addrs) => addrs
+                .iter()
+                .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
+                .copied()
+                .collect(),
+            DnsOptions::Default => crate::DEFAULT_DNS_SERVERS
+                .iter()
+                .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
+                .copied()
+                .collect(),
+        }
     }
 
     pub fn bridges_enabled(&self) -> bool {
@@ -262,9 +268,6 @@ pub enum TunnelCommand {
 
     /// Set new tunnel settings.
     SetTunnelSettings(TunnelSettings),
-
-    /// Allow LAN connections outside of tunnel.
-    SetAllowLan(bool, oneshot::Sender<()>),
 }
 
 impl From<PrivateTunnelState> for TunnelState {
@@ -438,17 +441,6 @@ pub struct SharedState {
 }
 
 impl SharedState {
-    /// Update `allow_lan` setting.
-    /// Returns true if changed, otherwise false.
-    fn set_allow_lan(&mut self, allow_lan: bool) -> bool {
-        if self.tunnel_settings.allow_lan == allow_lan {
-            false
-        } else {
-            self.tunnel_settings.allow_lan = allow_lan;
-            true
-        }
-    }
-
     /// Notify discovery and account controller when network is unrestricted.
     async fn allow_networking(&self) {
         self.discovery_refresher_command_tx
@@ -485,7 +477,7 @@ impl SharedState {
             .set_resolver_overrides(Some(nym_vpn_api_resolver_overrides))
             .await
         {
-            trace_err_chain!(
+            nym_common::trace_err_chain!(
                 err,
                 "Failed to set resolver overrides for account controller"
             );
@@ -502,7 +494,7 @@ impl SharedState {
             .send(DiscoveryRefresherCommand::UseResolverOverrides(None))
             .ok();
         if let Err(err) = self.account_command_tx.set_resolver_overrides(None).await {
-            trace_err_chain!(err, "Failed to unset static API addresses");
+            nym_common::trace_err_chain!(err, "Failed to unset static API addresses");
         }
     }
 }
@@ -916,11 +908,12 @@ impl account::Error {
                 }) => Some(ErrorStateReason::Internal(format!(
                     "Internal account controller error: {context} {details}"
                 ))),
-                AcError::ErrorState(AccountControllerErrorStateReason::Storage { context }) => {
-                    Some(ErrorStateReason::Internal(format!(
-                        "Failed to initialize account storage: {context}",
-                    )))
-                }
+                AcError::ErrorState(AccountControllerErrorStateReason::Storage {
+                    context,
+                    details,
+                }) => Some(ErrorStateReason::Internal(format!(
+                    "Failed to initialize account storage: {context} {details}",
+                ))),
                 AcError::ErrorState(AccountControllerErrorStateReason::ApiFailure {
                     context,
                     details,

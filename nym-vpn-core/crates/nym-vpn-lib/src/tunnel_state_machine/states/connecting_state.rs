@@ -130,7 +130,7 @@ impl ConnectingState {
                     .map(|v| v.entry_gateway().endpoints())
                     .unwrap_or_default(),
                 api_endpoints: Vec::new(),
-                dns_servers: shared_state.tunnel_settings.default_dns_ips(),
+                dns_servers: shared_state.tunnel_settings.dns_ips(),
                 tunnel_interface: None,
             };
 
@@ -637,26 +637,26 @@ impl TunnelStateHandler for ConnectingState {
                             NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                         }
                     },
-                    TunnelCommand::SetAllowLan(allow_lan, complete_tx) => {
-                        if shared_state.set_allow_lan(allow_lan) {
-                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                            {
-                                self.firewall_policy_params.allow_lan = allow_lan;
-                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                    trace_err_chain!(e, "failed to set firewall policy");
-                                    _ = complete_tx.send(());
-                                    return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
-                                }
-                            }
-                        }
-                        _ = complete_tx.send(());
-
-                        NextTunnelState::SameState(self)
-                    },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         if shared_state.tunnel_settings == tunnel_settings {
                             NextTunnelState::SameState(self)
                         } else {
+                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                            {
+                                let firewall_changed = shared_state.tunnel_settings.allow_lan != tunnel_settings.allow_lan ||
+                                    shared_state.tunnel_settings.dns != tunnel_settings.dns;
+
+                                if firewall_changed {
+                                    self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
+                                    self.firewall_policy_params.dns_servers = tunnel_settings.dns_ips();
+
+                                    if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                        trace_err_chain!(e, "failed to set firewall policy");
+                                        return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                                    }
+                                }
+                            }
+
                             let gateways_changed = shared_state.tunnel_settings.entry_point != tunnel_settings.entry_point ||
                                 shared_state.tunnel_settings.exit_point != tunnel_settings.exit_point;
 

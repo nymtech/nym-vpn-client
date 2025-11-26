@@ -302,27 +302,11 @@ impl TunnelMonitor {
 
         self.send_event(TunnelMonitorEvent::AwaitingAccountReadiness);
 
-        match self
-            .account_controller_state
-            .wait_for_account_ready_to_connect()
+        self.shutdown_token
+            .clone()
+            .run_until_cancelled(self.await_account_readiness_with_retry())
             .await
-        {
-            Ok(()) => Ok(()),
-            Err(AccountControllerError::ErrorState(reason)) if reason.is_retryable() => {
-                tracing::debug!(
-                    "Account controller is in a retryable error state : {reason}. Forcing a refresh"
-                );
-                self.account_command_tx
-                    .background_refresh_account_state()
-                    .await
-                    .map_err(|e| Error::Account(account::Error::Command(e)))?;
-                self.account_controller_state
-                    .wait_for_account_ready_to_connect()
-                    .await
-            }
-            Err(e) => Err(e),
-        }
-        .map_err(|e| Error::Account(account::Error::ControllerState(e)))?;
+            .ok_or(tunnel::Error::Cancelled)??;
 
         self.send_event(TunnelMonitorEvent::RefreshingGateways);
 
@@ -848,6 +832,30 @@ impl TunnelMonitor {
         Ok(tun_devices)
     }
 
+    async fn await_account_readiness_with_retry(&mut self) -> Result<(), Error> {
+        match self
+            .account_controller_state
+            .wait_for_account_ready_to_connect()
+            .await
+        {
+            Ok(()) => Ok(()),
+            Err(AccountControllerError::ErrorState(reason)) if reason.is_retryable() => {
+                tracing::debug!(
+                    "Account controller is in a retryable error state : {reason}. Forcing a refresh"
+                );
+                self.account_command_tx
+                    .background_refresh_account_state()
+                    .await
+                    .map_err(|e| Error::Account(account::Error::Command(e)))?;
+                self.account_controller_state
+                    .wait_for_account_ready_to_connect()
+                    .await
+            }
+            Err(e) => Err(e),
+        }
+        .map_err(|e| Error::Account(account::Error::ControllerState(e)))
+    }
+
     fn send_event(&mut self, event: TunnelMonitorEvent) {
         if let Err(e) = self.monitor_event_sender.send(event)
             && !self.shutdown_token.is_cancelled()
@@ -915,7 +923,7 @@ impl TunnelMonitor {
                     .tunnel_parameters
                     .tunnel_settings
                     .dns
-                    .ip_addresses(&self.tunnel_parameters.tunnel_settings.default_dns_ips())
+                    .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
                     .to_vec(),
                 interface_addresses,
                 remote_addresses: vec![assigned_addresses.entry_mixnet_gateway_ip],
@@ -1029,6 +1037,7 @@ impl TunnelMonitor {
 
         let bw = BandwidthController::create(
             bw_controller,
+            self.account_command_tx.clone(),
             selected_gateways,
             entry_gateway_client,
             exit_gateway_client,
@@ -1038,9 +1047,7 @@ impl TunnelMonitor {
             exit_signal_rx,
             gw_update_version,
             self.shutdown_token.child_token(),
-        )
-        .await
-        .map_err(|e| Box::new(tunnel::Error::from(e)))?;
+        );
 
         let authenticator_listener_handle = if bw.is_using_latest_client() {
             // We don't need the mixnet client anymore
@@ -1599,7 +1606,7 @@ impl TunnelMonitor {
                 .tunnel_parameters
                 .tunnel_settings
                 .dns
-                .ip_addresses(&self.tunnel_parameters.tunnel_settings.default_dns_ips())
+                .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
                 .to_vec(),
             interface_addresses,
             remote_addresses: vec![entry_endpoint],
@@ -1632,7 +1639,7 @@ impl TunnelMonitor {
             .tunnel_parameters
             .tunnel_settings
             .dns
-            .ip_addresses(&self.tunnel_parameters.tunnel_settings.default_dns_ips())
+            .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
             .to_vec();
 
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {

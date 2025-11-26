@@ -1,3 +1,3 @@
-Neuigkeiten:
-- Proguard Fix
-- UI Update
+Was ist neu:
+- Repariere Proguard
+- UI aktualisieren

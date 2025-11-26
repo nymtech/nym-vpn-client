@@ -1,5 +1,5 @@
-What's new:
-- Credential expiry time
-- QR code scanning for credential
-- Kill switch link
-- UI enhancements
+Cosa c'è di nuovo:
+- Tempo di scadenza credenziali
+- Scansione del codice QR per credenziali
+- Collegamento interruttore di uccisione
+- Miglioramenti interfaccia utente

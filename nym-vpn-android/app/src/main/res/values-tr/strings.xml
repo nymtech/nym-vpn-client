@@ -106,7 +106,6 @@
 	<string name="welcome_to_nym">NymVPN\'e Hoş Geldiniz</string>
 	<string name="get_access_code">Erişim Kodu Alın</string>
 	<string name="access_code">24 kelimelik erişim kodu</string>
-	<string name="support_and_feedback"><![CDATA[Destek ve geri bildirim]]></string>
 	<string name="get_in_touch">İletişime geçin</string>
 	<string name="device_id">Cihaz Kimliği:</string>
 	<string name="loading">Yükleniyor</string>
@@ -116,8 +115,8 @@
 	<string name="two_hop_explanation">Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Bu mod, hızlı tarama, akış ve dosya paylaşımı için ideal olan, sansüre dirençli bir WireGuard versiyonu olan AmneziaWG\'yi kullanır.</string>
 	<string name="two_hop_title">Hızlı (WireGuard)</string>
 	<string name="disabled_while_connecting">VPN bağlantısı sırasında devre dışı bırakıldı</string>
-	<string name="exit">Çıkış</string>
-	<string name="entry">Giriş</string>
+	<string name="exit_location">Çıkış konumu</string>
+	<string name="entry_location">Giriş konumu</string>
 	<string name="no_results_found">Sonuç bulunamadı.</string>
 	<string name="how_to_run_gateway">Gateway nasıl çalıştırılır.</string>
 	<string name="or_learn">ya da öğrenin</string>
@@ -284,6 +283,10 @@
 	<string name="quick_info_modal_desc_non_quic">Bu işlem, QUIC protokolü etkin olmadan yeniden bağlanmanızı sağlar. Mevcut gateway\'leri korunur. \n\nYeniden bağlanma sırasında verileriniz güvende kalır.</string>
 	<string name="quic_primary_btn_text_non_quic">Şimdi QUIC olmadan yeniden bağlan</string>
 	<string name="quic_text_btn_text_non_quic">Sonraki bağlantıda QUIC’i kapat</string>
+	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>
+	<string name="censorship_amnezia_link_text">How AmneziaWG prevents DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Anonim mixnet teknolojisi</string>
 	<string name="account_welcome_countries">Dünya genelinde 50’den fazla ülke</string>
@@ -314,12 +317,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">Hesap parola cümleniz</string>
 	<string name="passphrase_description">🔒Ana hesap parola cümleniz: Hesabınıza herhangi bir cihazdan erişmenizi sağlayan 24 kelime.</string>
-	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
-	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">🔒Ana hesap şifreniz:</string>
+	<string name="passphrase_description_last">Hesabınıza herhangi bir cihazdan erişmenizi sağlayan 24 kelime.</string>
 	<string name="passphrase_show">Parola cümlemi göster</string>
 	<string name="passphrase_copy">Parolayı kopyala</string>
 	<string name="passphrase_save">Parola yöneticisine kaydet</string>
-	<string name="passphrase_download">Download</string>
+	<string name="passphrase_download">İndir</string>
 	<string name="passphrase_lose">⚠️ Bu kelimeleri kaybederseniz = hesabınızı sonsuza kadar kaybedersiniz.</string>
 	<string name="passphrase_never">Bunları, Nym Destek de dahil olmak üzere, hiç kimseyle paylaşmayın.</string>
 	<string name="passphrase_saved">Bu 24 kelimeyi güvenli bir şekilde kaydettim ve asla paylaşmayacağım.</string>

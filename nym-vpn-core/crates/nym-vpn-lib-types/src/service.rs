@@ -24,7 +24,6 @@ use crate::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
 pub struct VpnServiceConfig {
     pub entry_point: EntryPoint,
     pub exit_point: ExitPoint,
-    pub dns: Option<IpAddr>,
     pub allow_lan: bool,
     pub disable_ipv6: bool,
     pub enable_two_hop: bool,
@@ -36,18 +35,15 @@ pub struct VpnServiceConfig {
     pub min_gateway_mixnet_performance: Option<u8>,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
+    pub custom_dns: Option<Vec<IpAddr>>,
 }
 
 impl fmt::Display for VpnServiceConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
             f,
-            "entry point: {:?}, exit point: {:?}, dns: {}",
-            self.entry_point,
-            self.exit_point,
-            self.dns
-                .map(|d| d.to_string())
-                .unwrap_or_else(|| "<None>".to_string())
+            "entry point: {:?}, exit point: {:?}",
+            self.entry_point, self.exit_point,
         )?;
         writeln!(
             f,
@@ -73,6 +69,18 @@ impl fmt::Display for VpnServiceConfig {
                 .unwrap_or_else(|| "<None>".to_string())
         )?;
         writeln!(f, "residential_exit: {}", self.residential_exit)?;
+        writeln!(
+            f,
+            "custom_dns: {}",
+            self.custom_dns
+                .as_ref()
+                .map(|dns| dns
+                    .iter()
+                    .map(|ip| ip.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", "))
+                .unwrap_or_else(|| "none".to_string())
+        )?;
         Ok(())
     }
 }
@@ -82,7 +90,6 @@ impl Default for VpnServiceConfig {
         Self {
             entry_point: EntryPoint::Random,
             exit_point: ExitPoint::Random,
-            dns: None,
             allow_lan: false,
             disable_ipv6: false,
             enable_two_hop: false,
@@ -94,6 +101,7 @@ impl Default for VpnServiceConfig {
             min_gateway_mixnet_performance: None,
             min_gateway_vpn_performance: None,
             residential_exit: false,
+            custom_dns: None,
         }
     }
 }

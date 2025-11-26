@@ -7,7 +7,7 @@ use nym_credentials_interface::CredentialSpendingData;
 use nym_gateway_directory::NodeIdentity;
 use nym_http_api_client::ReqwestClientBuilder;
 use nym_wireguard_private_metadata_client::WireguardMetadataApiClient;
-use nym_wireguard_private_metadata_shared::{Version, v1};
+use nym_wireguard_private_metadata_shared::{AvailableBandwidth, Version, v1, v2};
 use tokio::sync::OnceCell;
 use url::Url;
 
@@ -128,20 +128,29 @@ impl MetadataClient {
         self.gateway_id
     }
 
-    fn print_remaining_bandwidth(gateway_id: NodeIdentity, available_bandwidth: i64) {
-        let remaining_pretty = if available_bandwidth > 1024 * 1024 {
-            format!("{:.2} MB", available_bandwidth as f64 / 1024.0 / 1024.0)
+    fn print_remaining_bandwidth(
+        gateway_id: NodeIdentity,
+        available_bandwidth: AvailableBandwidth,
+    ) {
+        let bytes = available_bandwidth.bandwidth_bytes;
+        let upgrade_mode = available_bandwidth.upgrade_mode == Some(true);
+
+        let remaining_pretty = if bytes > 1024 * 1024 {
+            format!("{:.2} MB", bytes as f64 / 1024.0 / 1024.0)
         } else {
-            format!("{} KB", available_bandwidth / 1024)
+            format!("{} KB", bytes / 1024)
         };
         tracing::debug!(
             "Remaining wireguard bandwidth with gateway {} for today: {}",
             gateway_id,
             remaining_pretty
         );
+        if upgrade_mode {
+            tracing::debug!("Bandwidth is not metered as the system is undergoing an upgrade")
+        }
     }
 
-    pub async fn query_bandwidth(&mut self) -> Result<i64> {
+    pub async fn query_bandwidth(&mut self) -> Result<AvailableBandwidth> {
         let client = self
             .lazy_client()
             .await
@@ -149,16 +158,21 @@ impl MetadataClient {
             .map_err(|err| MetadataClientError::Internal(err.to_string()))?;
         let request = match client.version {
             Version::V1 => v1::AvailableBandwidthRequest {}.try_into()?,
+            Version::V2 => v2::AvailableBandwidthRequest {}.try_into()?,
         };
         let response = client.inner.available_bandwidth(&request).await?;
         let available_bandwidth = match client.version {
-            Version::V1 => v1::AvailableBandwidthResponse::try_from(response)?.available_bandwidth,
+            Version::V1 => v1::AvailableBandwidthResponse::try_from(response)?.into(),
+            Version::V2 => v2::AvailableBandwidthResponse::try_from(response)?.into(),
         };
         Self::print_remaining_bandwidth(self.gateway_id, available_bandwidth);
         Ok(available_bandwidth)
     }
 
-    pub async fn topup_bandwidth(&mut self, credential: CredentialSpendingData) -> Result<i64> {
+    pub async fn topup_bandwidth(
+        &mut self,
+        credential: CredentialSpendingData,
+    ) -> Result<AvailableBandwidth> {
         let client = self
             .lazy_client()
             .await
@@ -166,12 +180,42 @@ impl MetadataClient {
             .map_err(|err| MetadataClientError::Internal(err.to_string()))?;
         let request = match client.version {
             Version::V1 => v1::TopUpRequest { credential }.try_into()?,
+            Version::V2 => v2::TopUpRequest {
+                credential: credential.into(),
+            }
+            .try_into()?,
         };
         let response = client.inner.topup_bandwidth(&request).await?;
         let available_bandwidth = match client.version {
-            Version::V1 => v1::TopUpResponse::try_from(response)?.available_bandwidth,
+            Version::V1 => v1::TopUpResponse::try_from(response)?.into(),
+            Version::V2 => v2::TopUpResponse::try_from(response)?.into(),
         };
         Self::print_remaining_bandwidth(self.gateway_id, available_bandwidth);
         Ok(available_bandwidth)
+    }
+
+    pub async fn check_upgrade_mode(&mut self, upgrade_mode_jwt: String) -> Result<bool> {
+        let client = self
+            .lazy_client()
+            .await
+            .as_ref()
+            .map_err(|err| MetadataClientError::Internal(err.to_string()))?;
+
+        let request = match client.version {
+            Version::V1 => return Err(MetadataClientError::UnsupportedMetadataEndpointVersion),
+            Version::V2 => v2::UpgradeModeCheckRequest {
+                request_type: v2::UpgradeModeCheckRequestType::UpgradeModeJwt {
+                    token: upgrade_mode_jwt,
+                },
+            }
+            .try_into()?,
+        };
+        let response = client.inner.request_upgrade_mode_check(&request).await?;
+        let upgrade_mode_enabled = match client.version {
+            Version::V1 => return Err(MetadataClientError::UnsupportedMetadataEndpointVersion),
+            Version::V2 => v2::UpgradeModeCheckResponse::try_from(response)?.upgrade_mode,
+        };
+
+        Ok(upgrade_mode_enabled)
     }
 }

@@ -1,0 +1,5 @@
+Có gì mới:
+- Các màn hình và chức năng killswitch giờ có thể được vô hiệu hóa
+- Cải thiện thông báo lỗi trở nên rõ ràng hơn
+- Cập nhật cách xử lý dữ liệu kết nối
+- Sửa lỗi backstack trên màn hình Chào mừng

@@ -1,10 +1,11 @@
 import SwiftUI
 import Constants
-import ConnectionManager
 import ExternalLinkManager
 import UIComponents
 
 @MainActor final class SupportViewModel: ObservableObject {
+    typealias SupportSection = SettingsSection<SupportSectionKind>
+
     private let externalLinkManager: ExternalLinkManager
     private let faqLink = Constants.supportURL.rawValue
     private let newSupportRequest = Constants.newSupportRequest.rawValue
@@ -12,43 +13,25 @@ import UIComponents
     private let telegramLink = Constants.telegramLink.rawValue
     private let matrixLink = Constants.matrixLink.rawValue
     private let discordLink = Constants.discordLink.rawValue
-    private let connectionManager: ConnectionManager
-
     let title = "settings.supportAndFeedback".localizedString
 
     @Binding var path: NavigationPath
     @Published var isResetVPNProfileDisplayed = false
 
-    var sections: [SettingsListItemViewModel] {
-        var newSections = [
-            faqSectionViewModel(),
-            getInTouchSectionViewModel(),
-            chatOnTelegramSectionViewModel(),
-            matrixSectionViewModel(),
-            discordSectionViewModel(),
-            githubIssueViewModel()
+    var sections: [SupportSection] {
+        [
+            SupportSection(kind: .faq, viewModels: faqRows()),
+            SupportSection(kind: .contacts, viewModels: contactRows()),
+            SupportSection(kind: .translations, viewModels: translateRows())
         ]
-#if os(iOS)
-        newSections.append(resetVPNProfileSectionViewModel())
-#endif
-        return newSections
     }
 
     init(
         path: Binding<NavigationPath>,
-        connectionManager: ConnectionManager,
         externalLinkManager: ExternalLinkManager
     ) {
         _path = path
-        self.connectionManager = connectionManager
         self.externalLinkManager = externalLinkManager
-    }
-}
-
-// MARK: - Actions -
-extension SupportViewModel {
-    func resetVPNProfile() {
-        connectionManager.resetVpnProfile()
     }
 }
 
@@ -62,7 +45,7 @@ extension SupportViewModel {
         try? externalLinkManager.openExternalURL(urlString: urlString)
     }
 
-    func  displayResetVPNProfileDialog() {
+    func displayResetVPNProfileDialog() {
         isResetVPNProfileDisplayed = true
     }
 }
@@ -70,86 +53,81 @@ extension SupportViewModel {
 // MARK: - Sections -
 
 private extension SupportViewModel {
-    func faqSectionViewModel() -> SettingsListItemViewModel {
-        SettingsListItemViewModel(
-            accessory: .arrow,
-            title: "checkFAQ".localizedString,
-            imageName: "faq",
-            position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: { [weak self] in
-                self?.openExternalURL(urlString: self?.faqLink)
-            }
-        )
+    func faqRows() -> [SettingsListItemViewModel] {
+        [
+            SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "checkFAQ".localizedString,
+                imageName: "faq",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: { [weak self] in
+                    self?.openExternalURL(urlString: self?.faqLink)
+                }
+            ),
+            SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "settings.getInTouch".localizedString,
+                imageName: "email",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: { [weak self] in
+                    self?.openExternalURL(urlString: self?.newSupportRequest)
+                }
+            )
+        ]
     }
 
-    func getInTouchSectionViewModel() -> SettingsListItemViewModel {
-        SettingsListItemViewModel(
-            accessory: .arrow,
-            title: "settings.getInTouch".localizedString,
-            imageName: "email",
-            position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: { [weak self] in
-                self?.openExternalURL(urlString: self?.newSupportRequest)
-            }
-        )
+    func contactRows() -> [SettingsListItemViewModel] {
+        [
+            SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "feedback.githubIssue".localizedString,
+                imageName: "github",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: { [weak self] in
+                    self?.openExternalURL(urlString: self?.githubIssueLink)
+                }
+            ),
+            SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "joinMatrix".localizedString,
+                imageName: "matrix",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: { [weak self] in
+                    self?.openExternalURL(urlString: self?.matrixLink)
+                }
+            ),
+            SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "joinDiscord".localizedString,
+                imageName: "discord",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: { [weak self] in
+                    self?.openExternalURL(urlString: self?.discordLink)
+                }
+            ),
+            SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "settings.chatOnTelegram".localizedString,
+                imageName: "telegram",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: { [weak self] in
+                    self?.openExternalURL(urlString: self?.telegramLink)
+                }
+            )
+        ]
     }
 
-    func chatOnTelegramSectionViewModel() -> SettingsListItemViewModel {
-        SettingsListItemViewModel(
-            accessory: .arrow,
-            title: "settings.chatOnTelegram".localizedString,
-            imageName: "telegram",
-            position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: { [weak self] in
-                self?.openExternalURL(urlString: self?.telegramLink)
-            }
-        )
-    }
-
-    func githubIssueViewModel() -> SettingsListItemViewModel {
-        SettingsListItemViewModel(
-            accessory: .arrow,
-            title: "feedback.githubIssue".localizedString,
-            imageName: "github",
-            position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: { [weak self] in
-                self?.openExternalURL(urlString: self?.githubIssueLink)
-            }
-        )
-    }
-
-    func matrixSectionViewModel() -> SettingsListItemViewModel {
-        SettingsListItemViewModel(
-            accessory: .arrow,
-            title: "joinMatrix".localizedString,
-            imageName: "matrix",
-            position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: { [weak self] in
-                self?.openExternalURL(urlString: self?.matrixLink)
-            }
-        )
-    }
-
-    func discordSectionViewModel() -> SettingsListItemViewModel {
-        SettingsListItemViewModel(
-            accessory: .arrow,
-            title: "joinDiscord".localizedString,
-            imageName: "discord",
-            position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: { [weak self] in
-                self?.openExternalURL(urlString: self?.discordLink)
-            }
-        )
-    }
-
-    func resetVPNProfileSectionViewModel() -> SettingsListItemViewModel {
-        SettingsListItemViewModel(
-            accessory: .empty,
-            title: "settings.support.resetVpnProfile".localizedString,
-            position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: { [weak self] in
-                self?.displayResetVPNProfileDialog()
-            }
-        )
+    func translateRows() -> [SettingsListItemViewModel] {
+        [
+            SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "settings.helpTranslate.title".localizedString,
+                subtitle: "settings.helpTranslate.subtitle".localizedString,
+                systemImageName: "globe",
+                action: { [weak self] in
+                    self?.openExternalURL(urlString: Constants.crowdin.rawValue)
+                }
+            )
+        ]
     }
 }

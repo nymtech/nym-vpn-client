@@ -245,26 +245,28 @@ impl TunnelStateHandler for ConnectedState {
                     TunnelCommand::Disconnect => {
                         self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
                     },
-                    TunnelCommand::SetAllowLan(allow_lan, complete_tx) => {
-                        if shared_state.set_allow_lan(allow_lan) {
-                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                            {
-                                self.firewall_policy_params.allow_lan = allow_lan;
-                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                    trace_err_chain!(e, "failed to set firewall policy");
-                                    _ = complete_tx.send(());
-                                    return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
-                                }
-                            }
-                        }
-                        _ = complete_tx.send(());
-                        NextTunnelState::SameState(self)
-                    },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         if shared_state.tunnel_settings == tunnel_settings {
                             NextTunnelState::SameState(self)
                         } else {
+                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                            {
+                                let firewall_changed = shared_state.tunnel_settings.allow_lan != tunnel_settings.allow_lan ||
+                                    shared_state.tunnel_settings.dns != tunnel_settings.dns;
+
+                                if firewall_changed {
+                                    self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
+                                    self.firewall_policy_params.dns_config = tunnel_settings.resolved_dns_config();
+
+                                    if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                        trace_err_chain!(e, "failed to set firewall policy");
+                                        return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                                    }
+                                }
+                            }
+
                             shared_state.tunnel_settings = tunnel_settings;
+
                             self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                         }
                     }

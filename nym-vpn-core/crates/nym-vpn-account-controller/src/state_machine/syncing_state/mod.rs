@@ -1,28 +1,28 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{
+    SharedAccountState,
+    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
+    state_machine::{
+        AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
+        NextAccountControllerState, OfflineState, PrivateAccountControllerState,
+    },
+};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
-    response::{NymErrorResponse, NymVpnAccountStatusResponse},
+    response::NymErrorResponse,
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
+use requesting_zknym_state::RequestingZkNymsState;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
+use tracing::warn;
 
-use crate::{
-    SharedAccountState,
-    commands::{AccountCommand, common_handler, handler},
-    state_machine::{
-        AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
-        OfflineState, PrivateAccountControllerState, decentralised_state::DecentralisedState,
-    },
-};
-use requesting_zknym_state::RequestingZkNymsState;
-
-mod requesting_zknym_state;
+pub(super) mod requesting_zknym_state;
 
 const MAX_SYNCING_ATTEMPTS: u32 = 10;
 const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
@@ -90,61 +90,60 @@ impl SyncingState {
         vpn_api_account: &VpnAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
+        let handle_vpn_api_error = |e: VpnApiClientError| -> Result<bool, SyncError> {
+            let error_response = NymErrorResponse::try_from(e)?;
+            // SW Use UUID when it will be available
+            if error_response.status == "access_denied"
+                && error_response.message == "Account not found"
+            {
+                // Request was fine, but account is unregistered
+                // Later down the line we can maybe register it here
+                Err(SyncError::UnregisteredAccount)
+            } else {
+                Err(SyncError::ApiResponseError {
+                    details: error_response
+                        .code_reference_id
+                        .unwrap_or(error_response.message),
+                })
+            }
+        };
+
         // Make sure time isn't too much desynced, othersiwe Zk-nyms will fail to verify on gateways
-        if !vpn_api_client
-            .get_remote_time()
-            .await?
-            .is_acceptable_synced()
-        {
-            return Err(SyncError::DeviceTimeDesynced);
+        match vpn_api_client.get_remote_time().await {
+            Ok(remote_time) => {
+                if !remote_time.is_acceptable_synced() {
+                    return Err(SyncError::DeviceTimeDesynced);
+                }
+            }
+            Err(e) => {
+                return handle_vpn_api_error(e);
+            }
         }
 
         match vpn_api_client
             .get_account_summary_with_device(vpn_api_account, device)
             .await
         {
-            Ok(account_summary_with_device) => {
-                tracing::debug!("{account_summary_with_device:#?}");
+            Ok(summary) => {
+                tracing::debug!("{summary:#?}");
 
                 // Checking that the account is active
-                if account_summary_with_device.account_summary.account.status
-                    != NymVpnAccountStatusResponse::Active
-                {
+                if !summary.account_active() {
                     return Err(SyncError::InactiveAccount(
-                        account_summary_with_device
-                            .account_summary
-                            .account
-                            .status
-                            .to_string(),
+                        summary.account_summary.account.status.to_string(),
                     ));
                 }
 
                 // that there is an active subscription
-                if !account_summary_with_device
-                    .account_summary
-                    .subscription
-                    .is_active
-                {
+                if !summary.subscription_active() {
                     return Err(SyncError::InactiveSubscription);
                 }
 
-                let fair_usage_left = account_summary_with_device
-                    .account_summary
-                    .fair_usage
-                    .limitGB
-                    != account_summary_with_device
-                        .account_summary
-                        .fair_usage
-                        .usedGB;
+                let fair_usage_left = summary.bandwidth_limit() != summary.used_bandwidth();
 
                 // that the device is registered or there is a spot left for it with fair usage
-                if account_summary_with_device.active_device.is_none() {
-                    if account_summary_with_device
-                        .account_summary
-                        .devices
-                        .remaining
-                        == 0
-                    {
+                if summary.active_device.is_none() {
+                    if summary.remaining_devices() == 0 {
                         return Err(SyncError::MaxDeviceReached); // Early detection of max device reached
                     }
 
@@ -159,23 +158,7 @@ impl SyncingState {
                 }
             }
 
-            Err(e) => {
-                let error_response = NymErrorResponse::try_from(e)?;
-                // SW Use UUID when it will be available
-                if error_response.status == "access_denied"
-                    && error_response.message == "Account not found"
-                {
-                    // Request was fine, but account is unregistered
-                    // Later down the line we can maybe register it here
-                    Err(SyncError::UnregisteredAccount)
-                } else {
-                    Err(SyncError::ApiResponseError {
-                        details: error_response
-                            .code_reference_id
-                            .unwrap_or(error_response.message),
-                    })
-                }
-            }
+            Err(e) => handle_vpn_api_error(e),
         }
     }
 
@@ -209,7 +192,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                 match syncing_result {
                     Ok(result) => {
                         match result {
-                            Ok(fair_usage) => { NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, fair_usage))},
+                            Ok(fair_usage) => { NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, fair_usage, false))},
                             Err(e) if e.is_retryable() => {
                                 if self.attempts > MAX_SYNCING_ATTEMPTS {
                                     tracing::debug!("Error trying to get account summary, exhausted retries : {}", e.to_string());
@@ -247,11 +230,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
                         return_sender.send(res);
-                        if error {
-                            return NextAccountControllerState::SameState(self);
+                        return if error {
+                            NextAccountControllerState::SameState(self)
                         } else {
                             self.syncing_state_handle.abort();
-                            return NextAccountControllerState::NewState(LoggedOutState::enter());
+                            NextAccountControllerState::NewState(LoggedOutState::enter())
                         }
                     },
                     AccountCommand::RotateKeys(return_sender) => {
@@ -262,11 +245,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                     AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
-                        if shared_state.firewall_active {
-                            return NextAccountControllerState::SameState(self);
+                        return if shared_state.firewall_active {
+                            NextAccountControllerState::SameState(self)
                         } else {
                             self.syncing_state_handle.abort();
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
                         }
                     },
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
@@ -276,9 +259,12 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                     },
 
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
-                        shared_state.firewall_active = false;
                         return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts));
+                        // No-op if the firewall was already down
+                        if shared_state.firewall_active {
+                            shared_state.firewall_active = false;
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts));
+                        }
                     },
 
                     AccountCommand::VpnApiFirewallUp(return_sender) => {
@@ -289,6 +275,17 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
 
                     AccountCommand::Common(common_command) => {
                         common_handler::handle_common_command(common_command, shared_state).await
+                    },
+                    AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
+                        UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
+                            return_sender.send(Ok(false))
+                        }
+                        UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
+                            warn!(
+                                "received unexpected command to disable upgrade mode while in 'SyncingState' state"
+                            );
+                            return_sender.send(Ok(()))
+                        }
                     },
                 }
                 NextAccountControllerState::SameState(self)

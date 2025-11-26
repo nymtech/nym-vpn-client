@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
+use std::{net::IpAddr, path::PathBuf};
 
 use futures::{StreamExt, stream::BoxStream};
 use tokio::{
@@ -197,6 +197,23 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_custom_dns(
+        &self,
+        request: tonic::Request<proto::IpAddrList>,
+    ) -> Result<tonic::Response<()>> {
+        let custom_dns: Option<Vec<IpAddr>> = request
+            .into_inner()
+            .try_into()
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid Custom DNS: {e}")))?;
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetCustomDns, custom_dns)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set custom DNS: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
         let network = request.into_inner();
         let status = self
@@ -256,6 +273,17 @@ impl NymVpnService for CommandInterface {
             .ok_or(tonic::Status::not_found("Feature flags not found"))?;
 
         Ok(tonic::Response::new(feature_flags.into()))
+    }
+
+    async fn get_default_dns(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::IpAddrList>> {
+        let dns_ips = self
+            .send_and_wait(VpnServiceCommand::GetDefaultDns, ())
+            .await?;
+        let ipaddr_list = proto::IpAddrList::from(Some(dns_ips));
+        Ok(tonic::Response::new(ipaddr_list))
     }
 
     async fn connect_tunnel(
@@ -392,6 +420,39 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn account_balance(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::AccountBalanceResponse>> {
+        let response = self
+            .send_and_wait(VpnServiceCommand::DecentralisedBalance, ())
+            .await?;
+
+        let response = proto::AccountBalanceResponse::from(response);
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn decentralised_obtain_ticketbooks(
+        &self,
+        request: tonic::Request<proto::DecentralisedObtainTicketbooksRequest>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let ticketbook_request =
+            nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest::from(request.into_inner());
+        let result = self
+            .send_and_wait(
+                VpnServiceCommand::DecentralisedObtainTicketbooks,
+                ticketbook_request,
+            )
+            .await?;
+
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn is_account_stored(
         &self,
         _request: tonic::Request<()>,
@@ -447,39 +508,6 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(proto::GetAccountIdentityResponse {
             account_identity,
         }))
-    }
-
-    async fn account_balance(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::AccountBalanceResponse>> {
-        let response = self
-            .send_and_wait(VpnServiceCommand::DecentralisedBalance, ())
-            .await?;
-
-        let response = proto::AccountBalanceResponse::from(response);
-
-        Ok(tonic::Response::new(response))
-    }
-
-    async fn decentralised_obtain_ticketbooks(
-        &self,
-        request: tonic::Request<proto::DecentralisedObtainTicketbooksRequest>,
-    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
-        let ticketbook_request =
-            nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest::from(request.into_inner());
-        let result = self
-            .send_and_wait(
-                VpnServiceCommand::DecentralisedObtainTicketbooks,
-                ticketbook_request,
-            )
-            .await?;
-
-        let response = proto::AccountCommandResponse {
-            error: result.err().map(proto::AccountCommandError::from),
-        };
-
-        Ok(tonic::Response::new(response))
     }
 
     async fn get_account_links(

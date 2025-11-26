@@ -1,0 +1,15 @@
+{
+  "images" : [
+    {
+      "filename" : "money_bag_16dp_1F1F1F_FILL0_wght400_GRAD0_opsz20 1.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "preserves-vector-representation" : true
+  }
+}

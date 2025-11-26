@@ -1,3 +1,0 @@
-Quoi de neuf :
-- Ajouter une vérification des identifiants
-- Ajouter un stockage chiffré pour les identifiants

@@ -7,6 +7,8 @@ use std::{
     time::{Duration, Instant},
 };
 
+use super::{ZkNymId, cached_data::CachedData};
+use crate::storage::{PendingCredentialRequest, VpnCredentialStorage};
 use nym_credential_proxy_requests::api::v1::ticketbook::models::{
     AggregatedCoinIndicesSignaturesResponse, AggregatedExpirationDateSignaturesResponse,
     MasterVerificationKeyResponse, PartialVerificationKeysResponse, TicketbookWalletSharesResponse,
@@ -17,17 +19,17 @@ use nym_credentials_interface::{
     WithdrawalRequest,
 };
 use nym_ecash_time::EcashTime;
+use nym_upgrade_mode_check::try_decode_upgrade_mode_jwt_claims;
 use nym_vpn_api_client::{
     VpnApiClient,
-    response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk},
+    response::{
+        NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk, UpgradeModeResponseData,
+    },
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiError};
-use time::Date;
-
-use crate::storage::{PendingCredentialRequest, VpnCredentialStorage};
-
-use super::{ZkNymId, cached_data::CachedData};
+use time::{Date, OffsetDateTime};
+use tracing::info;
 
 const ZK_NYM_POLLING_TIMEOUT: Duration = Duration::from_secs(60);
 const ZK_NYM_POLLING_INTERVAL: Duration = Duration::from_secs(5);
@@ -87,6 +89,73 @@ impl RequestZkNymTask {
     }
 
     #[tracing::instrument(skip(self))]
+    async fn import_retrieved_zk_nym(
+        &self,
+        response: NymVpnZkNym,
+        pending_request: PendingCredentialRequest,
+    ) -> Result<(), RequestZkNymError> {
+        // The result might contain attached keys and signatures. If so, import them.
+        self.import_attached_keys_and_signatures(&response, pending_request.expiration_date)
+            .await?;
+
+        // Import the zk-nym ticketbook itself. This will unblind and aggregate the zk-nym shares
+        self.import_zk_nym(response, pending_request).await?;
+
+        Ok(())
+    }
+
+    #[tracing::instrument(skip(self))]
+    async fn import_retrieved_upgrade_mode_token(
+        &self,
+        response: UpgradeModeResponseData,
+    ) -> Result<(), RequestZkNymError> {
+        info!("import retrieved upgrade mode JWT");
+
+        // ASSUMPTION: we trust our credential-proxy -> VPN API chain to have validated
+        // that the attestation had been signed with expected key
+        // (because otherwise, attempting to thread in environment-dependant key here would be quite a hassle)
+
+        // decode the JWT to
+        // 1. (optional) make sure it's correctly formed
+        // 2. retrieve its expiration
+        let jwt_payload = try_decode_upgrade_mode_jwt_claims(&response.upgrade_mode_jwt)
+            .map_err(|_| RequestZkNymError::MalformedUpgradeModeJWT)?;
+
+        // if the expiration is not set (it should always be!) set it to unix epoch,
+        // i.e. treat it as expired for all intents and purposes
+        let expiration = jwt_payload
+            .expires_at
+            .and_then(|exp| OffsetDateTime::from_unix_timestamp(exp.as_secs() as i64).ok())
+            .unwrap_or(OffsetDateTime::UNIX_EPOCH);
+
+        info!("the retrieved upgrade mode JWT is set to expire at {expiration}");
+
+        // put it, ugh, in the persistent storage, so that the bandwidth controller would be able to use it
+        // if future Simon is reading it, plz refactor it : D
+        self.credential_storage
+            .lock()
+            .await
+            .insert_upgrade_mode_jwt(response.upgrade_mode_jwt, expiration)
+            .await
+            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
+
+        Ok(())
+    }
+
+    async fn process_upgrade_mode_response(
+        &self,
+        response: NymVpnZkNym,
+    ) -> Result<UpgradeModeResponseData, RequestZkNymError> {
+        let Some(upgrade_mode_data) = response.upgrade_mode else {
+            // unless VPN API is faulty, this shouldn't be possible
+            return Err(RequestZkNymError::inconsistent_response(
+                "VPN API response with status 'upgrade_mode' did not contain upgrade mode attestation",
+            ));
+        };
+        Ok(upgrade_mode_data)
+    }
+
+    #[tracing::instrument(skip(self))]
     pub(super) async fn resume_request_zk_nym_ticketbook(
         &self,
         id: ZkNymId,
@@ -98,24 +167,41 @@ impl RequestZkNymTask {
         let poll_result = self.poll_zk_nym(&id).await?;
         let ticketbook_type = poll_result.ticketbook_type.clone();
 
-        // The result might contain attached keys and signatures. If so, import them.
-        self.import_attached_keys_and_signatures(&poll_result, pending_request.expiration_date)
-            .await?;
+        let success = match poll_result.status {
+            NymVpnZkNymStatus::Pending => {
+                unreachable!("poll_zk_nym would not return an Ok with Pending status")
+            }
+            NymVpnZkNymStatus::Revoking | NymVpnZkNymStatus::Revoked => {
+                return Err(RequestZkNymError::ZkNymRevoked);
+            }
+            NymVpnZkNymStatus::Error => {
+                return Err(RequestZkNymError::IssuanceError);
+            }
+            NymVpnZkNymStatus::Active => {
+                self.import_retrieved_zk_nym(poll_result, pending_request)
+                    .await?;
+                RequestZkNymSuccess::Ticketbook {
+                    id: id.clone(),
+                    ticketbook_type,
+                }
+            }
+            NymVpnZkNymStatus::UpgradeMode => {
+                let upgrade_mode_data = self.process_upgrade_mode_response(poll_result).await?;
+                self.import_retrieved_upgrade_mode_token(upgrade_mode_data)
+                    .await?;
+                RequestZkNymSuccess::UpgradeMode { id: id.clone() }
+            }
+        };
 
-        // Import the zk-nym ticketbook itself. This will unblind and aggregate the zk-nym shares
-        self.import_zk_nym(poll_result, pending_request).await?;
-
-        // Once we successfully manage to import the zk-nym ticketbook, we tell the vpn-api that we
+        // Once we successfully manage to import the zk-nym ticketbook,
+        // or upgrade mode attestation, we tell the vpn-api that we
         // have downloaded it.
         self.confirm_zk_nym_downloaded(&id).await?;
 
         // Remove the pending request from the storage. We no longer need it.
         self.remove_pending_request(&id).await?;
 
-        Ok(RequestZkNymSuccess {
-            id,
-            ticketbook_type,
-        })
+        Ok(success)
     }
 
     fn construct_zk_nym_request_data(

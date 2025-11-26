@@ -1,0 +1,5 @@
+O que há de novo:
+- Adicionado nas compras de App na Play Store
+- Novas localidades adicionadas: BN, EL, VI
+- Melhorias e correções de UI e de UX
+- Melhorias na estabilidade da conexão 

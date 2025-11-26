@@ -53,6 +53,9 @@ pub enum AccountCommand {
     /// Tells the AC free to go ahead
     VpnApiFirewallDown(ReturnSender<(), AccountCommandError>),
 
+    /// Upgrade mode-related commands
+    UpgradeMode(UpgradeModeCommand),
+
     /// Read-only commands
     Common(CommonCommand),
 }
@@ -80,6 +83,14 @@ impl AccountCommand {
                 CommonCommand::GetActiveDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::SetResolverOverrides(return_sender, _) => {
+                    return_sender.send(Err(error))
+                }
+            },
+            AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
+                UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
+                    return_sender.send(Err(error))
+                }
+                UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
                     return_sender.send(Err(error))
                 }
             },
@@ -111,11 +122,23 @@ pub enum CommonCommand {
     /// Returns a list of tickets available in storage
     GetAvailableTickets(ReturnSender<AvailableTicketbooks, AccountCommandError>),
 
-    /// Override the VPN API client resolver to allow him to go through the firewall (witg Domain Fronting)
+    /// Override the VPN API client resolver to allow him to go through the firewall (with Domain Fronting)
     SetResolverOverrides(
         ReturnSender<(), AccountCommandError>,
         Option<ResolverOverrides>,
     ),
+}
+
+/// Commands relating to the upgrade mode
+#[derive(Debug, strum::Display)]
+pub enum UpgradeModeCommand {
+    /// Returns flag indicating whether the VPN API has informed us about the upgrade mode.
+    /// this is known implicitly via the [AccountController](crate::controller::AccountController) being in the [UpgradeModeState](crate::state_machine::upgrade_mode_state::UpgradeModeState)
+    GetUpgradeModeEnabled(ReturnSender<bool, AccountCommandError>),
+
+    /// Inform the [AccountController](crate::controller::AccountController) about the upgrade mode being over
+    /// to allow it to attempt to resume zk-nym acquisition.
+    DisableUpgradeMode(ReturnSender<(), AccountCommandError>),
 }
 
 #[derive(Debug)]

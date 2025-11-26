@@ -329,6 +329,7 @@ extension HomeViewModel {
             if newStatus == .connected {
                 resetStatusInfoState()
             }
+
             displayEnableStatisticsSnackBarCTAIfNeeded()
         }
     }
@@ -338,5 +339,13 @@ extension HomeViewModel {
             guard newState != connectButtonState else { return }
             connectButtonState = newState
         }
+    }
+}
+
+extension HomeViewModel {
+    func changeConnectionType(with type: ConnectionType) {
+        impactGenerator.softImpact()
+        guard connectionManager.connectionType != type else { return }
+        connectionManager.connectionType = type
     }
 }

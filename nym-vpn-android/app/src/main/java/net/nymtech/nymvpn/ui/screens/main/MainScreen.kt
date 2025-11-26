@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,7 +104,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	val snackbar = SnackbarController.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
 	val screenSnackbar = remember { SnackbarHostState() }
-	var didAutoStart by remember { mutableStateOf(false) }
+	var didAutoStart by rememberSaveable { mutableStateOf(false) }
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	val connectionTime by viewModel.connectionTime.collectAsState()
@@ -201,6 +202,24 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		showBanner = false
 	}
 
+	fun onEntryClick() {
+		when (uiState.connectionState) {
+			ConnectionState.Disconnected, ConnectionState.Offline -> navController.goFromRoot(Route.EntryLocation)
+			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
+			else -> snackbar.showMessage(context.getString(R.string.disabled_while_connected))
+		}
+	}
+	fun onExitClick() {
+		when (uiState.connectionState) {
+			ConnectionState.Disconnected, ConnectionState.Offline -> {
+				dismissStreamingBanner()
+				navController.goFromRoot(Route.ExitLocation)
+			}
+			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
+			else -> snackbar.showMessage(context.getString(R.string.disabled_while_connected))
+		}
+	}
+
 	LaunchedEffect(Unit) {
 		if (!appUiState.settings.isStreamingServerBannerDisplayed) {
 			showBanner = true
@@ -210,7 +229,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		}
 	}
 
-	if (autoStart && !didAutoStart) {
+	if (autoStart && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
 		LaunchedEffect(Unit) {
 			didAutoStart = true
 			onConnectPressed()
@@ -267,23 +286,20 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					}
 					LocationField(
 						value = appUiState.entryPointName,
-						label = stringResource(R.string.entry),
+						label = stringResource(R.string.entry_location),
 						countryCode = appUiState.entryPointCountry,
 						gatewayLocation = appUiState.entryPointLocation,
-						onClick = { navController.goFromRoot(Route.EntryLocation) },
-						enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
+						onClick = { onEntryClick() },
+						enabled = true,
 						showQuicLabel = shouldShowQuic,
 					)
 					LocationField(
 						value = appUiState.exitPointName,
-						label = stringResource(R.string.exit),
+						label = stringResource(R.string.exit_location),
 						countryCode = appUiState.exitPointCountry,
 						gatewayLocation = appUiState.exitPointLocation,
-						onClick = {
-							dismissStreamingBanner()
-							navController.goFromRoot(Route.ExitLocation)
-						},
-						enabled = uiState.connectionState in listOf(ConnectionState.Disconnected, ConnectionState.Offline),
+						onClick = { onExitClick() },
+						enabled = true,
 						showGatewayStreamIcon = appUiState.exitPointGateway?.asnKind == AsnKind.RESIDENTIAL,
 					)
 				}
@@ -296,6 +312,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					onStopKillSwitch = { onStopKillSwitchPressed() },
 					onGetStart = { onGetStartedPressed() },
 					navController = navController,
+					accountState = appUiState.managerState.accountState,
 					snackbar = snackbar,
 				)
 			}

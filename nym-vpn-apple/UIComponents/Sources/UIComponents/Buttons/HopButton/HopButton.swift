@@ -30,8 +30,7 @@ public struct HopButton: View {
     }
 
     private var shouldShowQuic: Bool {
-        featureFlagsManager.isQuicEnabled
-        && hopType == .entry
+        hopType == .entry
         && connectionManager.connectionType == .wireguard
         && appSettings.isQuicEnabled
         && gatewayManager.containsQuic(with: connectionManager.entryGateway)
@@ -124,6 +123,10 @@ public struct HopButton: View {
                         .padding(12)
                 } else if let code = hopCountryCode {
                     FlagImage(countryCode: code)
+                        .padding(12)
+                } else {
+                    GenericImage(imageName: "pin")
+                        .frame(width: 24, height: 24)
                         .padding(12)
                 }
 

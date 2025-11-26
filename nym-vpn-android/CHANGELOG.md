@@ -6,7 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
+- Node details added in quick settings notification (https://github.com/nymtech/nym-vpn-client/pull/4029)
+- AmneziaWG section added to censorship screen (https://github.com/nymtech/nym-vpn-client/pull/4033)
+- Revoke implementation added for VPN service (https://github.com/nymtech/nym-vpn-client/pull/4041)
+
+### Changed
+
+### Fixed
+- Connection error notification cleared after successfully connecting (https://github.com/nymtech/nym-vpn-client/pull/4029)
+- Fix connection drops after language change (https://github.com/nymtech/nym-vpn-client/pull/4034)
+- Fix QUIC autostart issue (https://github.com/nymtech/nym-vpn-client/pull/4040)
+
+## [2.4.0]
+
+### Added
+- Crowdin Translations (https://github.com/nymtech/nym-vpn-client/pull/2777)
+
+### Changed
+- IAP enabled
+
+### Fixed
 - Split by US state and allow to connect to US state (https://github.com/nymtech/nym-vpn-client/pull/3895)
+- Remove VerticalDivider for gateway trailing content (https://github.com/nymtech/nym-vpn-client/pull/3912)
+- Fixes for servers display (https://github.com/nymtech/nym-vpn-client/pull/3911)
 
 ## [2.3.0] - 2025-11-06
 

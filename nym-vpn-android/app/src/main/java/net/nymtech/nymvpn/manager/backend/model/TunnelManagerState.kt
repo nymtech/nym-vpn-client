@@ -1,11 +1,13 @@
 package net.nymtech.nymvpn.manager.backend.model
 
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.EstablishConnectionState
 import nym_vpn_lib_types.ParsedAccountLinks
 
 data class TunnelManagerState(
 	val tunnelState: Tunnel.State = Tunnel.State.Down,
+	val accountState: AccountControllerState = AccountControllerState.Offline,
 	val backendUiEvent: BackendUiEvent? = null,
 	val connectionData: ConnectionInfo? = null,
 	val establishConnectionState: EstablishConnectionState? = null,

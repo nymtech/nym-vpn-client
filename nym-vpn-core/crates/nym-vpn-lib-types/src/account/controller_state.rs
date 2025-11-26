@@ -39,6 +39,9 @@ pub enum AccountControllerState {
     /// Logged in, operating independently of VPN API
     Decentralised,
 
+    /// Network is undergoing an upgrade, can't get zk-nyms, but got an alternative credential.
+    UpgradeMode,
+
     /// Logged in, error during sync, can't proceed
     Error(AccountControllerErrorStateReason),
 }
@@ -63,6 +66,9 @@ impl fmt::Display for AccountControllerState {
             }
             Self::Decentralised => {
                 write!(f, "Decentralised")
+            }
+            AccountControllerState::UpgradeMode => {
+                write!(f, "Upgrade Mode")
             }
             Self::Error(reason) => write!(f, "Error : {reason}"),
         }

@@ -11,7 +11,7 @@ use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::sync::mpsc;
 
 use crate::{
-    AccountControllerConfig,
+    AccountControllerConfig, AccountControllerEventSender,
     nyxd_client::NyxdClient,
     storage::{AccountStorageOp, VpnCredentialStorage},
 };
@@ -49,6 +49,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
 
     /// Channel to send storage operation to the AccountController
     pub(crate) storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
+
+    /// Channel for broadcasting global `AccountController` events
+    pub(crate) event_sender: AccountControllerEventSender,
 }
 
 impl<C: ConnectivityMonitor> SharedAccountState<C> {
@@ -63,6 +66,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         vpn_api_account: Option<VpnAccount>,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
+        event_sender: AccountControllerEventSender,
     ) -> Self {
         SharedAccountState {
             connectivity_handle,
@@ -75,6 +79,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             device,
             firewall_active: false,
             storage_op_sender,
+            event_sender,
         }
     }
 }

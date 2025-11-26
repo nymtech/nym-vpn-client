@@ -16,7 +16,7 @@ mod logged_out_state;
 mod offline_state;
 mod ready_state;
 mod syncing_state;
-
+mod upgrade_mode_state;
 // Account Controller state machine available states
 
 /// Account stored, online, can't proceed without user action and/or temporary failure somewhere
@@ -34,8 +34,21 @@ pub(crate) use ready_state::ReadyState;
 /// Account stored, online, determining if we can't connect or not
 pub(crate) use syncing_state::SyncingState;
 
+/// We're in the process of attempting to acquire a zk-nym
+pub(crate) use syncing_state::requesting_zknym_state::RequestingZkNymsState;
+
+/// Account is operating independently of VPN API
+pub(crate) use decentralised_state::DecentralisedState;
+
+/// The system is undergoing an upgrade mode, where zk-nyms can't be issued
+pub(crate) use upgrade_mode_state::UpgradeModeState;
+
 // The interval at which we update the account state
 const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(2 * 60);
+
+// The interval at which we attempt to exit the upgrade mode by trying to get a new zk-nym instead
+// (note: this does not prevent bandwidth controller from notifying us directly about the UM being over)
+const UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL: Duration = Duration::from_secs(10 * 60);
 
 #[async_trait::async_trait]
 pub(crate) trait AccountControllerStateHandler<C: ConnectivityMonitor>: Send {
@@ -58,6 +71,30 @@ pub(crate) enum NextAccountControllerState<C: ConnectivityMonitor> {
     Finished,
 }
 
+impl<C: ConnectivityMonitor>
+    From<(
+        Box<dyn AccountControllerStateHandler<C>>,
+        PrivateAccountControllerState,
+    )> for NextAccountControllerState<C>
+{
+    fn from(
+        new_state: (
+            Box<dyn AccountControllerStateHandler<C>>,
+            PrivateAccountControllerState,
+        ),
+    ) -> Self {
+        NextAccountControllerState::NewState(new_state)
+    }
+}
+
+impl<C: ConnectivityMonitor> From<Box<dyn AccountControllerStateHandler<C>>>
+    for NextAccountControllerState<C>
+{
+    fn from(state: Box<dyn AccountControllerStateHandler<C>>) -> Self {
+        NextAccountControllerState::SameState(state)
+    }
+}
+
 impl From<PrivateAccountControllerState> for AccountControllerState {
     fn from(value: PrivateAccountControllerState) -> Self {
         match value {
@@ -66,6 +103,7 @@ impl From<PrivateAccountControllerState> for AccountControllerState {
             PrivateAccountControllerState::LoggedOut => Self::LoggedOut,
             PrivateAccountControllerState::ReadyToConnect => Self::ReadyToConnect,
             PrivateAccountControllerState::Decentralised => Self::Decentralised,
+            PrivateAccountControllerState::UpgradeMode => Self::UpgradeMode,
             PrivateAccountControllerState::Error(reason) => Self::Error(reason),
             PrivateAccountControllerState::RequestingZkNyms => Self::RequestingZkNyms,
         }
@@ -80,6 +118,7 @@ pub(super) enum PrivateAccountControllerState {
     LoggedOut,
     ReadyToConnect,
     Decentralised,
+    UpgradeMode,
     Error(AccountControllerErrorStateReason),
     RequestingZkNyms,
 }

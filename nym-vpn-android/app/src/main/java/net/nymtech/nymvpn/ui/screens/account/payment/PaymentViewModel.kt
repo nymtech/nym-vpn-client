@@ -4,18 +4,26 @@ import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import net.nymtech.billing.model.BillingCode
 import net.nymtech.billing.model.PurchaseState
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
+import nym_vpn_lib_types.AccountControllerState
 import timber.log.Timber
 import javax.inject.Inject
+import kotlinx.coroutines.isActive
+import nym_vpn_lib_types.AccountControllerErrorStateReason
 
 @HiltViewModel
 class PaymentViewModel
@@ -31,8 +39,14 @@ constructor(
 		onBufferOverflow = BufferOverflow.DROP_OLDEST,
 	)
 	val events: SharedFlow<PaymentUiEvent> = _events.asSharedFlow()
+
+	private val _accountState = MutableStateFlow<AccountControllerState?>(null)
+	val accountState: StateFlow<AccountControllerState?> = _accountState.asStateFlow()
+
 	private var accountId: String? = null
 	private val processedTokens = mutableSetOf<String>()
+
+	private var stateUpdatesJob: Job? = null
 
 	init {
 		billingManager.initialize()
@@ -54,6 +68,7 @@ constructor(
 									backendManager.registerAccount(token)
 									backendManager.refreshAccount()
 									_events.tryEmit(PaymentUiEvent.PaymentSuccess)
+									startAccountStatesUpdate()
 								}.onFailure { e ->
 									_events.tryEmit(PaymentUiEvent.PaymentError(e.message ?: "Register account failed"))
 								}
@@ -105,6 +120,36 @@ constructor(
 				billingManager.launchPurchaseFlow(activity, productId, accountId!!)
 			} else {
 				_events.tryEmit(PaymentUiEvent.PaymentError("Missing user id"))
+			}
+		}
+	}
+
+	fun refreshAccountState() {
+		viewModelScope.launch {
+			backendManager.refreshAccountState()
+		}
+	}
+
+	private fun startAccountStatesUpdate() {
+		stateUpdatesJob?.cancel()
+		stateUpdatesJob = viewModelScope.launch {
+			while (isActive) {
+				try {
+					val state = backendManager.getAccountState()
+					if (state is AccountControllerState.Error) {
+						if (state.v1 == AccountControllerErrorStateReason.InactiveSubscription) {
+							refreshAccountState()
+						}
+					}
+					Timber.d("startAccountStatesUpdate $state")
+					_accountState.value = state
+					if (state == AccountControllerState.ReadyToConnect) {
+						break
+					}
+				} catch (t: Throwable) {
+					Timber.w(t, "Failed to get account state")
+				}
+				delay(2_000)
 			}
 		}
 	}

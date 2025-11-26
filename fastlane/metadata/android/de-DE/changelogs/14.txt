@@ -1,4 +1,4 @@
-Neuigkeiten:
-- UI Verbesserungen
-- Auswahlscreen zu Analysedaten
-- Verschiedene Optimierungen
+Was ist neu:
+- UI-Erweiterungen
+- Analyseauswahlbildschirm
+- Diverse Erweiterungen und Verbesserungen

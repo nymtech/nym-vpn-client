@@ -1,2 +1,2 @@
-Novidades:
-- Correção para mudanças na API
+Quais as novidades:
+- Correção para alterações na API
