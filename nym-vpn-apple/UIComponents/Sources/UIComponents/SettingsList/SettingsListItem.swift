@@ -102,7 +102,7 @@ private extension SettingsListItem {
             Image(imageName, bundle: .module)
                 .resizable()
                 .frame(width: 24, height: 24)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(viewModel.accessory.imageColor)
                 .padding(.trailing, 16)
         }
     }
