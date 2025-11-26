@@ -71,7 +71,7 @@ function TextInput({
           className,
           label && 'relative',
           leftIcon && 'pl-11',
-          'pr-11',
+          clearable && 'pr-11',
         ])}
         placeholder={placeholder}
         onChange={handleChange}
