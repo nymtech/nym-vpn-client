@@ -8,27 +8,27 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use futures::{
-    FutureExt,
     future::{BoxFuture, Fuse},
+    FutureExt,
 };
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::Error;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::tunnel_state_machine::Error;
 use crate::tunnel_state_machine::{
-    ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
-    SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
-    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
-    tunnel::{SelectedGateways, Tombstone},
-    tunnel_monitor::{
+    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState}, tunnel::{SelectedGateways, Tombstone}, tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
         TunnelMonitorHandle, TunnelParameters,
-    },
+    }, ErrorStateReason, NextTunnelState,
+    PrivateActionAfterDisconnect, PrivateTunnelState, Result, SharedState,
+    TunnelCommand,
+    TunnelInterface,
+    TunnelStateHandler,
 };
 
 use nym_common::trace_err_chain;
@@ -375,11 +375,12 @@ impl ConnectingState {
 
         let tunnel_parameters = TunnelParameters {
             nym_config: shared_state.nym_config.clone(),
+            resolved_gateway_config,
             tunnel_settings: shared_state.tunnel_settings.clone(),
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
-            resolved_gateway_config,
+            blacklisted_entry_gateways: shared_state.blacklisted_entry_gateways.clone(),
         };
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
@@ -587,6 +588,12 @@ impl TunnelStateHandler for ConnectingState {
                         next_state
                     }
                     TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
+                        // We have successfully connected, clear any blacklisted entry gateways
+                        if !shared_state.blacklisted_entry_gateways.is_empty() {
+                            tracing::info!("Clearing blacklisted entry gateways");
+                            shared_state.blacklisted_entry_gateways.clear();
+                        }
+
                         NextTunnelState::NewState(ConnectedState::enter(
                             tunnel_interface,
                             *connection_data,
@@ -616,6 +623,17 @@ impl TunnelStateHandler for ConnectingState {
 
                             self.reconnect(shared_state).await
                         }
+                    }
+                    TunnelMonitorEvent::ConnectionFailed => {
+                        // We have failed to connect repeatidly; let's blacklist the previously selected
+                        // entry gateways for a while (or until successfully connected) in order to avoid
+                        // connection attempt loops.
+                        if let Some(ref selected_gateways) = self.selected_gateways {
+                            let entry_gateway_identifier = selected_gateways.entry_gateway().identity;
+                            tracing::warn!("Blacklisting entry gateway {} due to repeated connection failure", entry_gateway_identifier.to_string());
+                            shared_state.blacklisted_entry_gateways.add(entry_gateway_identifier);
+                        }
+                        NextTunnelState::SameState(self)
                     }
                 }
            }

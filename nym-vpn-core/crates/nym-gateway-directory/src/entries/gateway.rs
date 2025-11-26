@@ -11,14 +11,16 @@ use nym_vpn_api_client::{
 };
 use rand::seq::IteratorRandom;
 use std::{
-    fmt::{self, Display},
+    fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     str::FromStr,
 };
 use tracing::error;
 use typed_builder::TypedBuilder;
 
-use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result, helpers};
+use crate::{
+    AuthAddress, BlacklistedGateways, Country, Error, IpPacketRouterAddress, error::Result, helpers,
+};
 
 pub type NymNode = Gateway;
 
@@ -178,6 +180,10 @@ impl Gateway {
         self.authenticator_address.is_some()
     }
 
+    pub fn is_whitelisted(&self, blacklisted_gateways: &BlacklistedGateways) -> bool {
+        !blacklisted_gateways.exists(&self.identity)
+    }
+
     pub fn host(&self) -> Option<&String> {
         self.host.as_ref()
     }
@@ -236,6 +242,9 @@ impl Gateway {
             GatewayFilter::QuicEnabled => self.is_quic_enabled(),
             GatewayFilter::Exit => self.is_exit_node(),
             GatewayFilter::Vpn => self.is_vpn_node(),
+            GatewayFilter::Whitelisted(blacklisted_gateways) => {
+                self.is_whitelisted(blacklisted_gateways)
+            }
         }
     }
 
@@ -310,7 +319,7 @@ impl PartialOrd for ScoreValue {
 }
 
 impl FromStr for ScoreValue {
-    type Err = crate::Error;
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
@@ -318,12 +327,12 @@ impl FromStr for ScoreValue {
             "low" => Ok(ScoreValue::Low),
             "medium" => Ok(ScoreValue::Medium),
             "high" => Ok(ScoreValue::High),
-            _ => Err(crate::Error::InvalidScoreValue(s.to_string())),
+            _ => Err(Error::InvalidScoreValue(s.to_string())),
         }
     }
 }
 
-impl Display for ScoreValue {
+impl fmt::Display for ScoreValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             ScoreValue::Offline => "Offline",
@@ -645,7 +654,7 @@ impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
         self.node_id()
     }
 
-    fn identity(&self) -> nym_sdk::mixnet::NodeIdentity {
+    fn identity(&self) -> NodeIdentity {
         self.identity()
     }
 
@@ -710,6 +719,7 @@ pub enum GatewayFilter {
     QuicEnabled,          // Has QUIC enabled
     Exit,                 // Has an IPR address
     Vpn,                  // Has an authenticator address
+    Whitelisted(BlacklistedGateways),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -1020,6 +1030,21 @@ mod tests {
                 .is_none()
         );
     }
+    #[test]
+    fn test_gateway_whitelisting() {
+        let gateway_list = sample_gateway_list(GatewayType::MixnetExit);
+
+        let blacklisted = gateway_list.gateways[3].identity;
+        let mut blacklisted_gateways = BlacklistedGateways::new();
+        blacklisted_gateways.add(blacklisted);
+
+        for _ in 0..64 {
+            let chosen = gateway_list
+                .choose_random(&[GatewayFilter::Whitelisted(blacklisted_gateways.clone())])
+                .unwrap();
+            assert_ne!(chosen.identity, blacklisted);
+        }
+    }
 
     // Create a list of Gateways with different properties set for testing
     fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
@@ -1032,24 +1057,69 @@ mod tests {
         let ipr = IpPacketRouterAddress::try_from_base58_string(addr).unwrap();
         let aa = AuthAddress::try_from_base58_string(addr).unwrap();
         let variables = [
-            ("US", "CA", None, Some(ipr), Some(aa)),     // Gateway 1
-            ("US", "NY", Some(asn.clone()), None, None), // Gateway 2
-            ("DE", "BE", None, None, Some(aa)),          // Gateway 3
-            ("FR", "Aquitaine", Some(asn.clone()), None, Some(aa)), // Gateway 4
-            ("US", "TX", Some(asn.clone()), Some(ipr), None), // Gateway 5
-            ("GB", "Hampshire", None, None, None),       // Gateway 6
+            (
+                // Gateway 1
+                "HiVGQq2riqPFoPyYRYCZq3zFmFk15gnJzH4s9mHEbgKH",
+                "US",
+                "CA",
+                None,
+                Some(ipr),
+                Some(aa),
+            ),
+            (
+                // Gateway 2
+                "B4r2xMJYc4VgoEhPmccmNSawQWdYP9zGp9DJqjcz6PoX",
+                "US",
+                "NY",
+                Some(asn.clone()),
+                None,
+                None,
+            ),
+            (
+                // Gateway 3
+                "6tGNU195QKNMaTxkvm917d3NNGLkpTp8mTfxqLzATbtB",
+                "DE",
+                "BE",
+                None,
+                None,
+                Some(aa),
+            ),
+            (
+                // Gateway 4
+                "F618gw6jZaLR1VdMTeaH11MhHQJY5rdpYEDLrMKEHcjk",
+                "FR",
+                "Aquitaine",
+                Some(asn.clone()),
+                None,
+                Some(aa),
+            ),
+            (
+                // Gateway 5
+                "3UBiq22tkNSRhyRNjL5mnw5Yk4z6FvgvjizT4ukeEaeB",
+                "US",
+                "TX",
+                Some(asn.clone()),
+                Some(ipr),
+                None,
+            ),
+            (
+                // Gateway 6
+                "2djmrzZ62M8jpzpYb7MMq6QjP15CkbnKHf3ZV3kSCXUE",
+                "GB",
+                "Hampshire",
+                None,
+                None,
+                None,
+            ),
         ];
 
         let mut instance = 0;
         let gateways: Vec<Gateway> = variables
             .into_iter()
-            .map(|(country, region, asn, ipr, aa)| {
+            .map(|(identity, country, region, asn, ipr, aa)| {
                 instance += 1;
                 Gateway {
-                    identity: NodeIdentity::from_base58_string(
-                        "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
-                    )
-                    .unwrap(),
+                    identity: NodeIdentity::from_base58_string(identity).unwrap(),
                     name: format!("Gateway {instance}"),
                     description: None,
                     location: Some(Location {
