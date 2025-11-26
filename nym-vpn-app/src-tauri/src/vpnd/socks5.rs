@@ -18,7 +18,7 @@ pub struct HttpRpcSettings {
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts")]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "kebab-case")]
 pub enum Socks5State {
     Disabled = 0,
     Idle = 1,
