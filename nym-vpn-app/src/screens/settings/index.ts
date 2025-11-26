@@ -8,3 +8,4 @@ export * from './dev';
 export * from './data-privacy';
 export * from './anti-censorship';
 export * from './socks5';
+export * from './custom-dns';

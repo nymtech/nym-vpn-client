@@ -76,7 +76,10 @@ export type StateAction =
   | { type: 'set-backend-flags'; flags: FeatureFlags }
   | { type: 'set-quic'; enabled: boolean }
   | { type: 'set-domain-fronting'; enabled: boolean }
-  | { type: 'set-streaming-optimized-label-seen'; seen: boolean };
+  | { type: 'set-streaming-optimized-label-seen'; seen: boolean }
+  | { type: 'set-custom-dns-enabled'; enabled: boolean }
+  | { type: 'set-custom-dns'; dns: string[] }
+  | { type: 'set-default-dns'; dns: string[] };
 
 export const initialState: AppState = {
   initialized: false,
@@ -115,6 +118,9 @@ export const initialState: AppState = {
     zknymCredential: false,
   },
   streamingOptimizedLabelSeen: false,
+  customDnsEnabled: false,
+  customDns: [],
+  defaultDns: [],
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -380,7 +386,21 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         domainFronting: action.enabled,
       };
-
+    case 'set-custom-dns-enabled':
+      return {
+        ...state,
+        customDnsEnabled: action.enabled,
+      };
+    case 'set-custom-dns':
+      return {
+        ...state,
+        customDns: action.dns,
+      };
+    case 'set-default-dns':
+      return {
+        ...state,
+        defaultDns: action.dns,
+      };
     case 'reset':
       return initialState;
   }

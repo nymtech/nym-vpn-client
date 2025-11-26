@@ -37,6 +37,8 @@ export type InitState = {
   quic: boolean;
   noIpv6: boolean;
   allowLan: boolean;
+  customDnsEnabled: boolean;
+  customDns: string[];
 };
 
 export type AppState = {
@@ -90,4 +92,7 @@ export type AppState = {
   domainFronting: boolean;
   // whether the user has seen the streaming optimized label feature alert
   streamingOptimizedLabelSeen: boolean;
+  customDnsEnabled: boolean;
+  customDns: string[];
+  defaultDns: string[];
 };
