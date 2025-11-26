@@ -18,12 +18,12 @@ bip39.workspace = true
 clap.workspace = true
 futures.workspace = true
 log-panics.workspace = true
-reqwest = { version = "0.12", features = ["socks"] }
-hyper = { version = "1.5", features = ["server", "http1"] }
-hyper-util = { version = "0.1", features = ["tokio"] }
-http-body-util = "0.1"
-bytes = "1.5"
-urlencoding = "2.1"
+reqwest = { workspace = true, features = ["socks"] }
+hyper = { workspace = true, features = ["server", "http1"] }
+hyper-util = { workspace = true, features = ["tokio"] }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+urlencoding = { workspace = true }
 serde.workspace = true
 serde_json.workspace = true
 strum.workspace = true
