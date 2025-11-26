@@ -21,7 +21,9 @@ public struct WelcomeView: View {
                 titleView()
                 subtitleView()
                 sentryToggle()
-//                statisticsToggle()
+#if os(macOS)
+                statisticsToggle()
+#endif
                 Spacer()
                     .frame(height: 24)
                 continueButton()

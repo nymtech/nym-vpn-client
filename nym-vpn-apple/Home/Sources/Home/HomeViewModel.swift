@@ -329,6 +329,7 @@ extension HomeViewModel {
             if newStatus == .connected {
                 resetStatusInfoState()
             }
+
             displayEnableStatisticsSnackBarCTAIfNeeded()
         }
     }
