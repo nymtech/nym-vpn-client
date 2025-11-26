@@ -192,7 +192,7 @@ public extension HomeViewModel {
     @MainActor func navigateToPlanPurchase() {
 #if os(iOS)
         path.append(HomeLink.settings)
-        path.append(SettingLink.planPurchase)
+        path.append(SettingLink.planPurchase(shouldDisplayBackButton: true))
 #elseif os(macOS)
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
 #endif
