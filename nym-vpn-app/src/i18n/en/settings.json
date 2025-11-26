@@ -97,7 +97,9 @@
     "http-rpc-address-placeholder": "127.0.0.1:8545",
     "configuration": "Configuration",
     "enabling": "Enabling proxy...",
-    "disabling": "Disabling proxy..."
+    "disabling": "Disabling proxy...",
+    "add-to-browser-proxy-settings": "Add this URL to your browser's proxy settings to route traffic through the Nym mixnet",
+    "use-in-wallet": "Use this URL in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual provider URL."
   },
   "privacy": {
     "error-monitoring": {
