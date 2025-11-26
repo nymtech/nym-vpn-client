@@ -57,10 +57,10 @@ impl From<u8> for proto::Threshold {
     }
 }
 
-impl TryFrom<proto::CustomDns> for Option<Vec<IpAddr>> {
+impl TryFrom<proto::IpAddrList> for Option<Vec<IpAddr>> {
     type Error = ConversionError;
 
-    fn try_from(value: proto::CustomDns) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::IpAddrList) -> Result<Self, Self::Error> {
         if value.ips.is_empty() {
             Ok(None)
         } else {
@@ -78,14 +78,14 @@ impl TryFrom<proto::CustomDns> for Option<Vec<IpAddr>> {
     }
 }
 
-impl From<Option<Vec<IpAddr>>> for proto::CustomDns {
+impl From<Option<Vec<IpAddr>>> for proto::IpAddrList {
     fn from(value: Option<Vec<IpAddr>>) -> Self {
         match value {
             Some(ips) => {
                 let ip_strings = ips.into_iter().map(|ip| ip.to_string()).collect();
-                proto::CustomDns { ips: ip_strings }
+                proto::IpAddrList { ips: ip_strings }
             }
-            None => proto::CustomDns { ips: vec![] },
+            None => proto::IpAddrList { ips: vec![] },
         }
     }
 }

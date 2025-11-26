@@ -1,14 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
-
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
     ConnectArgs, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions,
     LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
+use std::path::PathBuf;
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
@@ -131,7 +130,7 @@ impl RpcClient {
     }
 
     pub async fn set_custom_dns(&mut self, ips: Option<Vec<String>>) -> Result<()> {
-        let request = proto::CustomDns {
+        let request = proto::IpAddrList {
             ips: ips.unwrap_or_default(),
         };
 
@@ -191,6 +190,16 @@ impl RpcClient {
             .into_inner();
 
         Ok(FeatureFlags::from(response))
+    }
+
+    pub async fn get_default_dns(&mut self) -> Result<Vec<String>> {
+        let response = self
+            .0
+            .get_default_dns(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(response.ips)
     }
 
     pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<()> {
