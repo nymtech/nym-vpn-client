@@ -115,8 +115,8 @@ function Socks5() {
 
   // get status color
   const getStatusColor = () => {
-    if (hasError) return 'text-melon';
-    if (isConnected) return 'text-green-500';
+    if (hasError) return 'text-aphrodisiac';
+    if (isConnected) return 'text-malachite';
     return 'text-iron dark:text-bombay';
   };
 
@@ -170,8 +170,8 @@ function Socks5() {
           </div>
 
           {hasError && status?.errorMessage && (
-            <div className="bg-melon/10 border border-melon rounded-lg p-3">
-              <p className="text-sm text-melon">{status.errorMessage}</p>
+            <div className="bg-malachite/10 border border-malabg-malachite rounded-lg p-3">
+              <p className="text-sm text-aphrodisiac">{status.errorMessage}</p>
             </div>
           )}
         </div>
