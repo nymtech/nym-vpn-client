@@ -25,7 +25,7 @@ impl BlacklistedGateways {
         self.0.remove(identity);
         self.0.retain(|_, expiry| *expiry >= now); // Housekeeping
     }
-    
+
     pub fn clear(&mut self) {
         self.0.clear();
     }
@@ -36,7 +36,7 @@ impl BlacklistedGateways {
             None => false,
         }
     }
-    
+
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
