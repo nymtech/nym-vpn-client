@@ -14,6 +14,8 @@ export type Socks5ProviderProps = {
 
 // get socks5 status every 5 seconds
 const POLL_INTERVAL = 5000; // 5 seconds
+// prevent multiple initialization of the interval due to react strict mode
+let initialized = false;
 
 export function Socks5Provider({ children }: Socks5ProviderProps) {
   const [status, setStatus] = useState<Socks5Status | null>(null);
@@ -70,6 +72,11 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
 
   // initial load and periodic polling
   useEffect(() => {
+    if (initialized) {
+      return;
+    }
+    initialized = true;
+
     refresh();
     const interval = setInterval(refresh, POLL_INTERVAL);
     return () => clearInterval(interval);
