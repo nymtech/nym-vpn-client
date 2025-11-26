@@ -20,7 +20,6 @@ use anyhow::{Result, anyhow};
 use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
-use commands::dev as cmd_dev;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
@@ -213,7 +212,7 @@ async fn main() -> Result<()> {
             };
             debug!("app_config: {app_config:?}");
 
-            let app_state = AppState::new(&db, &app_config, &cli, os, sentry_guard);
+            let app_state = AppState::new(os, sentry_guard);
             app.manage(Mutex::new(app_state));
 
             let pkg_info = app.package_info();
@@ -234,7 +233,8 @@ async fn main() -> Result<()> {
                         VpndClient::reset_log_flag();
 
                         c_vpnd.update_vpnd_state(info, &handle).await.ok();
-                        // initialize tunnel state
+                        // initialize vpn config and state
+                        c_vpnd.update_config(&handle).await.ok();
                         c_vpnd.tunnel_state(&handle).await.ok();
                         vpnd_check::sentry_check(sentry_enabled, &c_vpnd).await.ok();
                         vpnd_check::netstats_check(&db, &c_vpnd).await.ok();
@@ -255,12 +255,15 @@ async fn main() -> Result<()> {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            tunnel::get_vpn_config,
             tunnel::set_vpn_mode,
             tunnel::get_tunnel_state,
             tunnel::connect,
             tunnel::disconnect,
-            cmd_dev::get_credentials_mode,
-            cmd_dev::set_credentials_mode,
+            tunnel::set_node,
+            tunnel::set_quic,
+            tunnel::set_no_ipv6,
+            tunnel::set_allow_lan,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_del,

@@ -20,10 +20,6 @@ export type Cli = {
    */
   buildInfo: boolean;
   /**
-   * IP address of the DNS server to use when connected to the VPN
-   */
-  dns: string | null;
-  /**
    * Enable writing app logs to a file
    */
   logFile: boolean;
@@ -71,9 +67,7 @@ export type DbKey =
   | 'welcome-screen-seen'
   | 'desktop-notifications'
   | 'last-network-env'
-  | 'disable-ipv6'
   | 'network-stats-enabled'
-  | 'quic-enabled'
   | 'domain-fronting-enabled'
   | 'cache-mx-entry-gateways'
   | 'cache-mx-exit-gateways'
@@ -207,6 +201,12 @@ export type NetworkCompat = { core: boolean | null; tauri: boolean | null };
 
 export type NetworkEnv = 'mainnet' | 'canary' | 'qa' | 'sandbox';
 
+export type NodeConfig =
+  | { country: Country }
+  | { gateway: string }
+  | { region: string }
+  | 'random';
+
 export type OsInfo = {
   /**
    * long version
@@ -265,6 +265,7 @@ export type TAccountState =
   | 'syncing'
   | 'offline'
   | 'decentralised'
+  | 'upgrade-mode'
   | 'bandwidth-exceeded'
   | 'status-not-active'
   | 'no-subscription'
@@ -352,6 +353,23 @@ export type UiTheme = 'light' | 'dark';
 export type UpdateMetadata = { version: string; currentVersion: string };
 
 export type VpnMode = 'mixnet' | 'wg';
+
+export type VpndConfig = {
+  entryNode: NodeConfig;
+  exitNode: NodeConfig;
+  dns: string | null;
+  allowLan: boolean;
+  disableIpv6: boolean;
+  vpnMode: VpnMode;
+  bridges: boolean;
+  netstack: boolean;
+  disablePoissonRate: boolean;
+  disableBackgroundCoverTraffic: boolean;
+  minMixnodePerformance: number | null;
+  minGatewayMixnetPerformance: number | null;
+  minGatewayVpnPerformance: number | null;
+  residentialExit: boolean;
+};
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };
 

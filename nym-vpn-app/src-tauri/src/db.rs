@@ -35,9 +35,7 @@ pub enum Key {
     WelcomeScreenSeen,
     DesktopNotifications,
     LastNetworkEnv,
-    DisableIpv6,
     NetworkStatsEnabled,
-    QuicEnabled,
     DomainFrontingEnabled,
     // some data cache (no semantic difference)
     CacheMxEntryGateways,

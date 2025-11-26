@@ -1,15 +1,16 @@
+use crate::commands::gateway::Hop;
 use crate::{
-    db::{Db, Key},
     error::{BackendError, ErrorKey},
     events::AppHandleEventEmitter,
     state::{SharedAppState, app::VpnMode},
     vpnd::{
         client::{Node, VpndClient, VpndError},
+        config::VpndConfig,
         tunnel::{ConnectingState, TunnelState},
     },
 };
-use tauri::State;
-use tracing::{debug, error, info, instrument, warn};
+use tauri::{Manager, State};
+use tracing::{debug, info, instrument, warn};
 
 #[instrument(skip_all)]
 #[tauri::command]
@@ -23,14 +24,18 @@ pub async fn get_tunnel_state(
 
 #[instrument(skip_all)]
 #[tauri::command]
+pub async fn get_vpn_config(app: tauri::AppHandle) -> Result<Option<VpndConfig>, BackendError> {
+    let s_state = app.state::<SharedAppState>();
+    let app_state = s_state.lock().await;
+    Ok(app_state.vpnd_config.clone())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
 pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
     vpnd: State<'_, VpndClient>,
-    db: State<'_, Db>,
-    entry: Node,
-    exit: Node,
-    quic: bool,
 ) -> Result<TunnelState, BackendError> {
     {
         let mut app_state = state.lock().await;
@@ -44,50 +49,21 @@ pub async fn connect(
         debug!("update connection state [Connecting]");
         app_state.tunnel = TunnelState::Connecting(ConnectingState::default());
     }
-
-    app.emit_connecting();
     let app_state = state.lock().await;
-    let vpn_mode = app_state.vpn_mode.clone();
-    let dns = app_state.dns_server.clone();
-    let credentials_mode = app_state.credentials_mode;
-    // release the lock
-    drop(app_state);
-
-    info!("entry {}", entry);
-    info!("exit {}", exit);
-    let two_hop_mod = if let VpnMode::Wg = vpn_mode {
-        info!("mode [wg]");
-        true
+    if let Some(config) = &app_state.vpnd_config {
+        info!("vpn mode: {}", config.vpn_mode);
+        info!("entry node: {}", config.entry_node);
+        info!("exit node: {}", config.exit_node);
+        info!("QUIC mode: {}", config.bridges);
+        info!("allow LAN: {}", config.allow_lan);
+        info!("no IPv6: {}", config.disable_ipv6);
     } else {
-        info!("mode [mixnet]");
-        false
-    };
-    if credentials_mode {
-        info!("credentials mode [on]");
-    } else {
-        info!("credentials mode [off]");
+        warn!("no vpnd config available");
     }
 
-    let use_netstack_wireguard = false;
+    app.emit_connecting();
 
-    let disable_ipv6 = db
-        .get_typed::<bool>(Key::DisableIpv6.as_ref())
-        .unwrap_or(None)
-        .unwrap_or(false);
-
-    match vpnd
-        .vpn_connect(
-            entry,
-            exit,
-            two_hop_mod,
-            credentials_mode,
-            use_netstack_wireguard,
-            dns,
-            disable_ipv6,
-            quic,
-        )
-        .await
-    {
+    match vpnd.vpn_connect().await {
         Ok(_) => Ok(TunnelState::Connecting(ConnectingState::default())),
         Err(vpnd_err) => {
             warn!("vpn_connect: {}", vpnd_err);
@@ -136,27 +112,44 @@ pub async fn disconnect(
     Ok(TunnelState::Disconnecting(None))
 }
 
-#[instrument(skip(app_state, db))]
+#[instrument(skip(vpnd))]
 #[tauri::command]
-pub async fn set_vpn_mode(
-    app_state: State<'_, SharedAppState>,
-    db: State<'_, Db>,
-    mode: VpnMode,
+pub async fn set_vpn_mode(vpnd: State<'_, VpndClient>, mode: VpnMode) -> Result<(), BackendError> {
+    vpnd.set_two_hop(mode == VpnMode::Wg).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_node(
+    vpnd: State<'_, VpndClient>,
+    node: Node,
+    hop: Hop,
 ) -> Result<(), BackendError> {
-    let mut state = app_state.lock().await;
-
-    if matches!(
-        state.tunnel,
-        TunnelState::Connected(_) | TunnelState::Connecting(_) | TunnelState::Disconnecting(_)
-    ) {
-        let err_message = format!("cannot change vpn mode from state {}", state.tunnel);
-        error!(err_message);
-        return Err(BackendError::internal(&err_message, None));
+    match hop {
+        Hop::Entry => vpnd.set_entry_node(node).await?,
+        Hop::Exit => vpnd.set_exit_node(node).await?,
     }
-    state.vpn_mode = mode.clone();
-    drop(state);
+    Ok(())
+}
 
-    db.insert(Key::VpnMode.as_ref(), &mode)
-        .map_err(|_| BackendError::internal("Failed to save vpn mode in db", None))?;
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_quic(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
+    vpnd.set_quic(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_no_ipv6(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
+    vpnd.set_no_ipv6(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_allow_lan(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
+    vpnd.set_allow_lan(enabled).await?;
     Ok(())
 }

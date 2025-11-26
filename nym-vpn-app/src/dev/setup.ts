@@ -48,7 +48,6 @@ const tunnelState: TTunnelState = 'disconnected';
 // const tunnelState: TTunnelState = { offline: { reconnect: true } };
 // const tunnelState: TTunnelState = { error: { key: 'internal', data: 'Oupsy something went wrong' } };
 const isLoggedIn = true;
-let zknymMode = false;
 let autostart = true;
 // note: compat check is skipped if DEV_MODE=true
 const networkCompat: NetworkCompat = {
@@ -269,15 +268,6 @@ export function mockTauriIPC() {
 
     if (cmd === 'network_compat') {
       return new Promise<NetworkCompat>((resolve) => resolve(networkCompat));
-    }
-
-    if (cmd === 'get_credentials_mode') {
-      return new Promise((resolve) => resolve(zknymMode));
-    }
-
-    if (cmd === 'set_credentials_mode') {
-      zknymMode = (args as ArgsObj<boolean>).enabled;
-      return new Promise((resolve) => resolve(1));
     }
 
     if (cmd === 'feature_flags') {

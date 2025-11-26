@@ -5,12 +5,14 @@ use ts_rs::TS;
 
 use crate::error::{BackendError, ErrorKey};
 use crate::vpnd::account::AccountState;
+use crate::vpnd::config::VpndConfig;
 use crate::vpnd::tunnel::ConnectingState;
 use crate::vpnd::{client::VpndStatus, events::MixnetEvent, tunnel::TunnelState};
 
 pub const EVENT_VPND_STATUS: &str = "vpnd-status";
 pub const EVENT_TUNNEL_STATE: &str = "tunnel-state";
 pub const EVENT_ACCOUNT_STATE: &str = "account-state";
+pub const EVENT_VPN_CONFIG: &str = "vpn-config";
 pub const EVENT_MIXNET: &str = "mixnet-event";
 
 #[derive(Clone, Serialize, TS)]
@@ -56,6 +58,7 @@ impl MixnetEventPayload {
 
 pub trait AppHandleEventEmitter {
     fn emit_vpnd_status(&self, status: VpndStatus);
+    fn emit_vpnd_config(&self, config: VpndConfig);
     fn emit_tunnel_update(&self, state: &TunnelState);
     fn emit_connecting(&self);
     fn emit_disconnecting(&self);
@@ -67,6 +70,10 @@ pub trait AppHandleEventEmitter {
 impl AppHandleEventEmitter for tauri::AppHandle {
     fn emit_vpnd_status(&self, status: VpndStatus) {
         self.emit(EVENT_VPND_STATUS, status).ok();
+    }
+
+    fn emit_vpnd_config(&self, config: VpndConfig) {
+        self.emit(EVENT_VPN_CONFIG, config).ok();
     }
 
     fn emit_tunnel_update(&self, state: &TunnelState) {

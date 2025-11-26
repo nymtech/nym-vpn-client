@@ -13,3 +13,4 @@ mod timestamp;
 pub mod tunnel;
 mod tunnel_error;
 pub mod vpnd_status;
+pub mod config;
