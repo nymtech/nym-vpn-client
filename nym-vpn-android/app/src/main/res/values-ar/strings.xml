@@ -285,6 +285,10 @@
 	<string name="quick_info_modal_desc_non_quic">سيؤدي هذا إلى إعادة الاتصال بك دون تمكين بروتوكول QUIC. ستحتفظ ببوابتك الحالية.\n\nتظل بياناتك محمية أثناء إعادة الاتصال.</string>
 	<string name="quic_primary_btn_text_non_quic">إعادة الاتصال بدون QUIC الآن</string>
 	<string name="quic_text_btn_text_non_quic">إيقاف تشغيل QUIC عند الاتصال التالي</string>
+	<string name="censorship_amnezia_title">الحد الأدنى من التشويش</string>
+	<string name="censorship_amnezia_description">يجعل حركة مرور WireGuard أكثر صعوبة لكشفها. يقدم حزم مفككة تعطل القواعد البسيطة التي كثيرا ما تستخدمها نظم الرقابة على عمليات التفتيش العميقة (Deep Packet)، مما يحسن موثوقية الاتصال في البيئات التقييدية. \n\nملاحظة: تم تنفيذ جانب العميل فقط.</string>
+	<string name="censorship_amnezia_link_text">كيف يمنع أمنيزياي الفريق إدارة شؤون الإعلام</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-★ NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">تكنولوجيا المزيج المجهولة</string>
 	<string name="account_welcome_countries">50 دولة في جميع أنحاء العالم</string>

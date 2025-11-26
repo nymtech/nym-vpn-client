@@ -5,9 +5,9 @@
 	<string name="disconnected">اتصال قطع شده</string>
 	<string name="disconnecting">در حال قطع اتصال</string>
 	<string name="connecting">در حال اتصال</string>
-	<string name="five_hop_mixnet">میکس‌نت‌ِناشناس</string>
-	<string name="five_hop_description">برای پرداخت‌ها، ایمیل‌ها و پیام‌ها</string>
-	<string name="two_hop_description">ایده‌آل برای وب‌گردی، پخش زنده و اشتراک‌گذاری</string>
+	<string name="five_hop_mixnet">ِمیکس‌نتِ ناشناس</string>
+	<string name="five_hop_description">حداکثر حریم خصوصی برای کارهای مهم و حساس</string>
+	<string name="two_hop_description">وبگردی، استریمینگ، دانلودکردن</string>
 	<string name="connect">وصل کردن</string>
 	<string name="disconnect">قطع اتصال</string>
 	<string name="init_client">درحال راه‌اندازی کلاینت…</string>
@@ -53,14 +53,14 @@
 	<string name="notification_permission_required">لطفاً برای عملکرد صحیح برنامه اجازه اعلان‌ها را فعال کنید</string>
 	<string name="kill_switch">کلید توقف اضطراری</string>
 	<string name="mode_selection">انتخاب حالت</string>
-	<string name="five_hop_explanation">از حداکثر سطح حریم خصوصی با ۵ بار عبور دادن ارتباط شما از سرورها توسط میکس‌نت، لذت ببرید. بهترین گزینه برای پرداخت‌ها، استفاده از ایمیل، و پیام هایی که در آن حفظ امنیت برای شما حائز اهمیت است.</string>
+	<string name="five_hop_explanation">حریم خصوصی حداکثری با مسیر پنج-پرشی (۱ تا ۵ مگابیت بر ثانیه). ترافیک ساختگی و مبهم‌سازی زمان‌بندی برای افزایش ناشناسی. مناسب برای فعالیت‌های بسیار حساس مانند پرداخت‌ها، ایمیل‌ها و پیام‌ها.</string>
 	<string name="continue_reading">ادامه مطلب</string>
 	<string name="appearance">نمای ظاهری</string>
 	<string name="language">زبان</string>
 	<string name="gateway_modal_description">ما مکان فیزیکی سرورها را بر اساس آدرس‌ IP آنها میتوانیم حدس بزنیم که در کدام کشور یا منطقه قرار دارد، با این حال امکان دارد که اندکی از مکان واقعی متفاوت باشد.</string>
 	<string name="gateway_locations_title">جزئیات مربوط به مکان سرورها</string>
-	<string name="exit_gateway_locations_title">Choosing exit locations</string>
-	<string name="exit_gateway_locations_sub_item_1">Streaming</string>
+	<string name="exit_gateway_locations_title">انتخاب مناطق خروجی</string>
+	<string name="exit_gateway_locations_sub_item_1">استریمینگ</string>
 	<string name="exit_gateway_locations_sub_item_1_desc_link_text">Residential IP servers optimized</string>
 	<string name="exit_gateway_locations_sub_item_1_desc">for streaming and content access. May experience slower speeds due to higher demand and hardware limitations.</string>
 	<string name="exit_gateway_locations_sub_item_2">Location accuracy</string>
@@ -112,11 +112,11 @@
 	<string name="offline">اینترنت وجود ندارد</string>
 	<string name="no_internet">دستگاه شما به اینترنت متصل نیست</string>
 	<string name="waiting_for_connection">زمانی که دستگاه آنلاین شد متصل خواهد شد</string>
-	<string name="two_hop_explanation">تجربه بالاترین حد سرعت با اتصال دو سروره. این حالت از AmneziaWG استفاده میکند، نسخه‌ای از WireGuard که برای مقابله با سانسور طراحی شده است، ایده‌آل برای وب‌گردی با سرعت زیاد، تماشای آنلاین و اشتراک گذاری فایل.</string>
-	<string name="two_hop_title">سریع (WireGuard<small>*</small>)</string>
+	<string name="two_hop_explanation">بیشترین سرعت وبگردی (۲۵۰ مگابیت بر ثانیه) با مسیر دو-پرشی. از AmneziaWG بهره می‌برد؛ نسخه‌ای ضد‌سانسور از WireGuard که برای استریم، وبگردی با سرعت بالا و دانلود بسیار مناسب است.</string>
+	<string name="two_hop_title">پر سرعت (WireGuard)</string>
 	<string name="disabled_while_connecting">در زمان برقراری اتصال به وی‌پی‌ان غیرفعال است</string>
 	<string name="exit_location">منطقه خروجی</string>
-	<string name="entry_location">مکان ورودی</string>
+	<string name="entry_location">منطقه ورودی</string>
 	<string name="no_results_found">نتیجه‌ای یافت نشد.</string>
 	<string name="how_to_run_gateway">چگونه یک گیت وی را اجرا کنیم.</string>
 	<string name="or_learn">یا یاد بگیرید</string>
@@ -185,12 +185,12 @@
 	<string name="error_invalid_exit_gateway_identity">گره خروجی آفلاین است. گره دیگری انتخاب کرده و دوباره متصل شوید.</string>
 	<!-- Main Screen -->
 	<string name="main_get_started_button">شروع کنید</string>
-	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">Setting up your account (2/6)</string>
-	<string name="connection_state_refreshing_gateways">Updating server list (3/6)</string>
-	<string name="connection_state_selecting_gateways">Choosing best servers (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (5/6)</string>
-	<string name="connection_state_connecting_tunnel">Establishing server connection (6/6)</string>
+	<string name="connection_state_resolving_addresses">در حال آماده‌سازی NymVPN ‏(۱/۶)</string>
+	<string name="connection_state_awaiting_readiness">در حال تنظیم حساب کاربری شما ‏(۲/۶)</string>
+	<string name="connection_state_refreshing_gateways">در حال به‌روزرسانی لیست سرورها ‏(۳/۶)</string>
+	<string name="connection_state_selecting_gateways">در حال انتخاب بهترین سرورها ‏(۴/۶)</string>
+	<string name="connection_state_connecting_mixnet_client">در حال ثبت‌نام ناشناس در سرورها ‏(۵/۶)</string>
+	<string name="connection_state_connecting_tunnel">در حال برقراری اتصال با سرور ‏(۶/۶)</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">ضد سانسور</string>
 	<string name="settings_passphrase_title">Passphrase</string>
@@ -287,6 +287,10 @@
 	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current gateways.\n\nYour data stays protected during reconnection.</string>
 	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
 	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
+	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>
+	<string name="censorship_amnezia_link_text">How AmneziaWG prevents DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Anonymous mixnet technology</string>
 	<string name="account_welcome_countries">50+ countries worldwide</string>
