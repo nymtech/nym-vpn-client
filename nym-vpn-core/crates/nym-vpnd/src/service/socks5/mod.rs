@@ -7,6 +7,7 @@
 //! - Proxies HTTP RPC traffic to SOCKS5
 //! - Shuts down mixnet after idle timeout
 
+mod config;
 mod http_rpc;
 mod lazy_socks5;
 mod util;
@@ -23,6 +24,7 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 
+pub use config::{socks5_idle_timeout, socks5_request_timeout};
 pub use nym_vpn_lib_types::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 
 /// SOCKS5 service errors
