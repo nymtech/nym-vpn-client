@@ -18,13 +18,12 @@ use tokio_util::sync::CancellationToken;
 
 use super::{
     HttpRpcSettings, Socks5Error, Socks5Service, Socks5Settings, Socks5Status,
-    config::{
-        NetworkEnvironments, VpnServiceConfigManager, socks5_idle_timeout, socks5_request_timeout,
-    },
+    config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
     },
+    socks5_idle_timeout, socks5_request_timeout,
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
