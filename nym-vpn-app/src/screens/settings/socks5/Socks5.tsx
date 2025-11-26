@@ -240,8 +240,7 @@ function Socks5() {
                       className="text-cornflower text-sm mt-0.5 flex-shrink-0"
                     />
                     <span className="text-xs text-iron dark:text-bombay">
-                      Add this URL to your browser's proxy settings to route
-                      traffic through the Nym mixnet
+                      {t('app-proxy.add-to-browser-proxy-settings')}
                     </span>
                   </div>
                 </div>
@@ -272,12 +271,7 @@ function Socks5() {
                         className="text-cornflower text-sm mt-0.5 flex-shrink-0"
                       />
                       <span className="text-xs text-iron dark:text-bombay">
-                        Use this URL in MetaMask or other Web3 wallets to make
-                        RPC calls through the Nym mixnet. Replace{' '}
-                        <code className="text-cornflower">
-                          &lt;your-provider-url&gt;
-                        </code>{' '}
-                        with your actual provider URL.
+                        {t('app-proxy.use-in-wallet')}
                       </span>
                     </div>
                   </div>
