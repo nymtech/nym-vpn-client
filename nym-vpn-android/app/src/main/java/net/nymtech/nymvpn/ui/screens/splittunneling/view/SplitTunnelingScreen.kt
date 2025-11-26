@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -125,6 +126,9 @@ internal fun SplitTunnelingScreen(appState: AppUiState, onBackEventConsume: () -
 		viewModel.onUiEvent(UiEvent.OnBackClick(appState.managerState.tunnelState))
 	}
 
+	LaunchedEffect(Unit) {
+		viewModel.onUiEvent(UiEvent.LoadData)
+	}
 	LaunchedEffect(onBackClickEventTriggered) {
 		if (onBackClickEventTriggered) {
 			viewModel.onUiEvent(UiEvent.OnBackClick(appState.managerState.tunnelState))
@@ -293,19 +297,20 @@ private fun StaticContent(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -
 	}
 
 	HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+	Spacer(modifier = Modifier.height(12.dp))
 }
 
 @Composable
 private fun FilterButton(title: String, noOfApps: Int, description: String, imageVector: ImageVector, isSelected: Boolean, modifier: Modifier = Modifier) {
 	Card(
-		modifier = modifier,
+		modifier = modifier.heightIn(min = 56.dp),
 		shape = RoundedCornerShape(8.dp.scaledHeight()),
 		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
 		border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground) else null,
 	) {
 		Column(
 			verticalArrangement = Arrangement.Center,
-			modifier = Modifier.padding(horizontal = 12.dp.scaledWidth(), vertical = 8.dp.scaledHeight()),
+			modifier = Modifier.padding(horizontal = 12.dp.scaledWidth(), vertical = 8.dp.scaledHeight()).fillMaxHeight(),
 		) {
 			Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp.scaledWidth())) {
 				Icon(

@@ -33,6 +33,7 @@ sealed interface UiEvent {
 	data object ClearNavigation : UiEvent
 	data object ClearDialog : UiEvent
 	data object NavigateBack : UiEvent
+	data object LoadData : UiEvent
 	data object SelectAllDirectAppsClick : UiEvent
 	data object SelectAllVpnPassThroughClick : UiEvent
 }

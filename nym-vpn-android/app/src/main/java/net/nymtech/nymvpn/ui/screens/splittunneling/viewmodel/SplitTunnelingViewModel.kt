@@ -34,7 +34,7 @@ class SplitTunnelingViewModel @Inject constructor(
 	val uiState = _uiState.asStateFlow()
 	private var initialAppInfoList: List<AppInfo> = emptyList()
 
-	init {
+	private fun getInitData() {
 		getAllInstalledAppList()
 		onPerAppSecurityBannerDisplayed()
 	}
@@ -49,6 +49,7 @@ class SplitTunnelingViewModel @Inject constructor(
 			is UiEvent.ClearNavigation -> _uiState.update { it.copy(pendingNavigation = null) }
 			is UiEvent.ClearDialog -> _uiState.update { it.copy(pendingDialog = null) }
 			is UiEvent.NavigateBack -> _uiState.update { it.copy(pendingNavigation = SplitTunnelingUiState.PendingNavigation.NavigateBack) }
+			UiEvent.LoadData -> getInitData()
 		}
 	}
 
@@ -64,13 +65,14 @@ class SplitTunnelingViewModel @Inject constructor(
 	}
 
 	private fun getAllInstalledAppList() {
-		viewModelScope.launch {
+		viewModelScope.launch(Dispatchers.Default) {
 			_uiState.update { it.copy(isLoading = true) }
 			runCatching {
 				val (sortedSystemApps, sortedNormalApps) = helper.getInstalledApp(packageManager, splitTunnelingRepository)
 				initialAppInfoList = sortedSystemApps + sortedNormalApps
 				_uiState.update {
 					it.copy(
+						isLoading = false,
 						systemApps = sortedSystemApps,
 						normalApps = sortedNormalApps,
 						filteredSystemApps = sortedSystemApps,
@@ -79,8 +81,7 @@ class SplitTunnelingViewModel @Inject constructor(
 						vpnPassThroughAppsCount = sortedSystemApps.totalAppCounts(true) + sortedNormalApps.totalAppCounts(true),
 					)
 				}
-			}
-			_uiState.update { it.copy(isLoading = false) }
+			}.onFailure { _uiState.update { it.copy(isLoading = false) } }
 		}
 	}
 
