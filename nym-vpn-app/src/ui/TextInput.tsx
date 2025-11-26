@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import clsx from 'clsx';
 import { Field, Input, Label } from '@headlessui/react';
 import { inputStates } from './common-styles';
@@ -26,6 +26,7 @@ export type TextInputProps = {
 function TextInput({
   ref,
   defaultValue,
+  value,
   onChange,
   spellCheck,
   label,
@@ -35,15 +36,11 @@ function TextInput({
   className,
   clearable = false,
 }: TextInputProps) {
-  const [value, setValue] = useState(defaultValue || '');
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value);
     onChange(e.target.value);
   };
 
   const handleClear = () => {
-    setValue('');
     onChange('');
   };
 
@@ -59,6 +56,7 @@ function TextInput({
         name="passphrase"
         type="text"
         ref={ref}
+        defaultValue={defaultValue}
         value={value}
         aria-multiline={true}
         className={clsx([
@@ -95,7 +93,7 @@ function TextInput({
           className="absolute left-3 text-baltic-sea dark:text-bombay hover:cursor-text"
         />
       )}
-      {clearable && value.length > 0 && (
+      {clearable && !!value && (
         <ButtonIcon
           color="chalk"
           icon="cancel"
