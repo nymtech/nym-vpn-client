@@ -18,4 +18,12 @@ export type Socks5ContextType = {
   refresh: () => Promise<void>;
 };
 
-export const Socks5Context = createContext<Socks5ContextType | null>(null);
+const initialState: Socks5ContextType = {
+  status: null,
+  isLoading: false,
+  enable: async () => {},
+  disable: async () => {},
+  refresh: async () => {},
+};
+
+export const Socks5Context = createContext<Socks5ContextType>(initialState);

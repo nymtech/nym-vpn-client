@@ -72,7 +72,7 @@ function Socks5() {
           close: true,
         });
       }
-    } catch (error: unknown) {
+    } catch (error) {
       const explicitErrorMessage = (error as any)?.message ?? '';
 
       // Explicit error we want to show, show specific error
