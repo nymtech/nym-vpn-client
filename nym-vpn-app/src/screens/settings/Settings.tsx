@@ -87,6 +87,12 @@ function Settings() {
             leadingIcon: 'power_settings_new',
           },
           {
+            title: t('dns.title'),
+            leadingIcon: 'dns',
+            onClick: () => navigate(routes.dns),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
+          {
             title: t('anti-censorship.title', { ns: 'settings' }),
             leadingIcon: 'campaign',
             onClick: () => navigate(routes.antiCensorship),

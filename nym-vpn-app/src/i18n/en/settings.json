@@ -20,6 +20,19 @@
     "matrix": "Join us on Matrix",
     "discord": "Join us on Discord"
   },
+  "dns": {
+    "title": "Customize DNS",
+    "topbar-title": "DNS customization",
+    "details": {
+      "title": "Customize DNS",
+      "description": "Only change this if you need custom DNS.",
+      "list-title": "List of DNS servers",
+      "add": "Add",
+      "input-label": "DNS address",
+      "warning": "⚠️  Third-party DNS may limit features.",
+      "link": "Learn more about DNS "
+    }
+  },
   "legal": {
     "title": "Legal",
     "policy": "Privacy statement",
