@@ -48,6 +48,7 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
         await refresh();
       } catch (error) {
         console.error('Failed to enable SOCKS5 proxy:', error);
+        throw error;
       } finally {
         setIsLoading(false);
       }
@@ -63,6 +64,7 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
       await refresh();
     } catch (error) {
       console.error('Failed to disable SOCKS5 proxy:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
