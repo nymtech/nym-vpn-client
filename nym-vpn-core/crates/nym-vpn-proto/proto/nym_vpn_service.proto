@@ -99,7 +99,7 @@ message Dns {
   optional string ip = 1;
 }
 
-message CustomDns {
+message IpAddrList {
   repeated string ips = 1;
 }
 
@@ -268,7 +268,7 @@ message VpnServiceConfig {
   optional uint32 min_mixnode_performance = 8;
   optional uint32 min_gateway_mixnet_performance = 9;
   optional uint32 min_gateway_vpn_performance = 10;
-  CustomDns custom_dns = 16;
+  IpAddrList custom_dns = 16;
 }
 
 message AsEntry {
@@ -819,7 +819,7 @@ service NymVpnService {
   rpc SetNetstack (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetCustomDns (CustomDns) returns (google.protobuf.Empty) {}
+  rpc SetCustomDns (IpAddrList) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
@@ -832,6 +832,9 @@ service NymVpnService {
 
   // List the feature flags fetched from the nym-vpn-api
   rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
+
+  // Get the default DNS used by the daemon
+  rpc GetDefaultDns (google.protobuf.Empty) returns (IpAddrList) {}
 
   // Connect the tunnel (deprecated; use ConnectTunnelV2 instead).
   rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.Empty) {}

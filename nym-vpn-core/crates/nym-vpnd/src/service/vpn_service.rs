@@ -24,7 +24,7 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
-    UserAgent, VpnTopologyProvider,
+    DEFAULT_DNS_SERVERS, UserAgent, VpnTopologyProvider,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
@@ -70,6 +70,7 @@ pub enum VpnServiceCommand {
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
+    GetDefaultDns(oneshot::Sender<Vec<IpAddr>>, ()),
     ListGateways(
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         ListGatewaysOptions,
@@ -757,6 +758,10 @@ impl NymVpnService {
                 let result = self.handle_get_feature_flags().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::GetDefaultDns(tx, ()) => {
+                let result = self.handle_get_default_dns().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::ListGateways(tx, options) => {
                 self.handle_list_gateways(options, tx).await;
             }
@@ -972,6 +977,10 @@ impl NymVpnService {
             .feature_flags
             .clone()
             .map(FeatureFlags::from)
+    }
+
+    async fn handle_get_default_dns(&self) -> Vec<IpAddr> {
+        DEFAULT_DNS_SERVERS.iter().copied().collect()
     }
 
     async fn handle_list_gateways(
