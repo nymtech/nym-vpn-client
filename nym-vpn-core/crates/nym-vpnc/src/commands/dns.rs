@@ -48,14 +48,7 @@ impl Command {
             }
             Command::GetDefault => {
                 let default_dns = rpc_client.get_default_dns().await?;
-                println!(
-                    "Default DNS: {}",
-                    default_dns
-                        .iter()
-                        .map(|ip| ip.to_string())
-                        .collect::<Vec<_>>()
-                        .join(" ")
-                );
+                println!("Default DNS: {}", default_dns.join(" "));
                 Ok(())
             }
         }
