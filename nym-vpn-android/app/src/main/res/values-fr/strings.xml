@@ -285,6 +285,10 @@
 	<string name="quick_info_modal_desc_non_quic">Cela vous reconnectera sans protocole QUIC activé. Vous conserverez vos passerelles actuelles.\n\nVos données restent protégées pendant la reconnexion.</string>
 	<string name="quic_primary_btn_text_non_quic">Se reconnecter sans QUIC maintenant</string>
 	<string name="quic_text_btn_text_non_quic">Désactiver QUIC lors de la prochaine connexion</string>
+	<string name="censorship_amnezia_title">obfuscation minimale (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Rend le trafic WireGuard plus difficile à détecter. Introduit des paquets de leurre qui perturbent les règles simples souvent utilisées par les systèmes de censure Deep Packet Inspection (DPI), améliorant la fiabilité de la connexion dans les environnements restrictifs. \n\nRemarque : uniquement côté client implémenté.</string>
+	<string name="censorship_amnezia_link_text">Comment AmneziaWG empêche les DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/fr/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Technologie mixnet anonyme</string>
 	<string name="account_welcome_countries">Plus de 50 pays dans le monde</string>

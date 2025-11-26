@@ -285,6 +285,10 @@
 	<string name="quick_info_modal_desc_non_quic">Это подключит вас заново без включенного протокола QUIC. Вы сохраните свои текущие шлюзы.\n\nВаши данные останутся защищёнными во время переподключения.</string>
 	<string name="quic_primary_btn_text_non_quic">Переподключиться без QUIC</string>
 	<string name="quic_text_btn_text_non_quic">Выключить QUIC при следующем подключении</string>
+	<string name="censorship_amnezia_title">Минимальное обфускация (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Делает трафик WireGuard менее заметным. Вводит пакеты-приманки, которые нарушают работу простых правил, часто используемых системами цензуры с глубоким анализом пакетов (DPI), повышая надежность соединения в условиях ограничительных сред. \n\nПримечание: Реализовано только на стороне клиента.</string>
+	<string name="censorship_amnezia_link_text">Как AmneziaWG предотвращает DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/ru/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Анонимная технология микснета</string>
 	<string name="account_welcome_countries">Более 50 стран по всему миру</string>

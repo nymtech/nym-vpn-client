@@ -283,6 +283,10 @@
 	<string name="quick_info_modal_desc_non_quic">Thao tác này sẽ kết nối lại mà không cần bật giao thức QUIC. Bạn sẽ giữ nguyên các cổng kết nối hiện tại.\n\nDữ liệu của bạn sẽ được bảo vệ trong quá trình kết nối lại.</string>
 	<string name="quic_primary_btn_text_non_quic">Kết nối lại ngay bây giờ mà không dùng QUIC</string>
 	<string name="quic_text_btn_text_non_quic">Tắt QUIC trong kết nối tiếp theo</string>
+	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>
+	<string name="censorship_amnezia_link_text">How AmneziaWG prevents DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Công nghệ mixnet ẩn danh</string>
 	<string name="account_welcome_countries">Hơn 50 quốc gia trên toàn thế giới</string>

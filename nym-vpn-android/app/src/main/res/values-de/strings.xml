@@ -245,7 +245,7 @@
 	<string name="details_anti_censorship">Anti-Zensur</string>
 	<string name="details_quic_protocol">QUIC-Protokoll</string>
 	<string name="details_standard_protocol">Standard protocol</string>
-	<string name="details_enable_quic_start">Aktiviere “QUIC-Protokoll“</string>
+	<string name="details_enable_quic_start">Aktiviere „QUIC-Protokoll“</string>
 	<string name="details_enable_quic_end">in Anti-Zensur-Einstellungen, um diese Funktion zu nutzen</string>
 	<string name="details_overall_performance">Gesamtleistung</string>
 	<string name="details_server_load">Serverlast</string>
@@ -285,6 +285,10 @@
 	<string name="quick_info_modal_desc_non_quic">Dies wird Sie wieder verbinden, ohne dass das QUIC-Protokoll aktiviert ist. Sie werden Ihre aktuellen Gateways behalten.\n\nIhre Daten bleiben bei einer erneuten Verbindung geschützt.</string>
 	<string name="quic_primary_btn_text_non_quic">Jetzt ohne QUIC wieder verbinden</string>
 	<string name="quic_text_btn_text_non_quic">QUIC bei der nächsten Verbindung ausschalten</string>
+	<string name="censorship_amnezia_title">Minimale Verschleierung (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Erschwert die Erkennung des WireGuard-Datenverkehrs. Stellt Decoy-Pakete vor, die einfache Regeln stören, die oft von Deep Packet Inspection (DPI) Zensursystemen verwendet werden, wodurch die Verbindungssicherheit in restriktiven Umgebungen verbessert wird. \n\nHinweis: Nur implementierte Client-Seite.</string>
+	<string name="censorship_amnezia_link_text">Wie AmneziaWG DPI verhindert</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/de-de/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Anonyme Mixnet-Technologie</string>
 	<string name="account_welcome_countries">50+ Länder weltweit</string>
