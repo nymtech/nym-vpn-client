@@ -19,6 +19,7 @@ export type TextInputProps = {
   leftIcon?: string;
   readonly?: boolean;
   'data-testid'?: string;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 };
 
 function TextInput({
@@ -31,6 +32,7 @@ function TextInput({
   leftIcon,
   autoFocus,
   className,
+  onKeyDown,
   ...rest
 }: TextInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,6 +72,7 @@ function TextInput({
         autoFocus={autoFocus}
         data-testid={testId}
         data-test-has-left-icon={leftIcon ? 'true' : 'false'}
+        onKeyDown={onKeyDown}
       />
       {label && (
         <Label

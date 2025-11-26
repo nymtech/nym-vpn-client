@@ -107,6 +107,16 @@ function Node({ node }: { node: NodeHop }) {
     );
   }
 
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      if (uiGateways.length > 0) {
+        handleSelect(uiGateways[0]);
+      } else if (uiNodes.length > 0) {
+        handleSelect(uiNodes[0].country);
+      }
+    }
+  };
+
   return (
     <>
       <LocationDetailsDialog
@@ -147,6 +157,8 @@ function Node({ node }: { node: NodeHop }) {
             leftIcon="search"
             label={t('input-label')}
             data-testid="node-search-input"
+            autoFocus
+            onKeyDown={handleSearchKeyDown}
           />
         </div>
         {loading && (

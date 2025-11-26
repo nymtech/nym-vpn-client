@@ -1,15 +1,55 @@
 [
   {
     "country": {
-      "code": "YY",
-      "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaa"
+      "code": "YA",
+      "name": "Country 0"
     },
     "quic": true,
     "gateways": [
       {
         "country": {
-          "code": "YY",
-          "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaa"
+          "code": "YA",
+          "name": "Country 1"
+        },
+        "id": "VERYLONNNNNGGGGG4h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA24h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA24h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA2",
+        "mxScore": "low",
+        "name": "__anon__",
+        "type": "wg",
+        "wgScore": "high"
+      }
+    ],
+    "type": "wg"
+  },  
+  {
+    "country": {
+      "code": "YB",
+      "name": "Country 1"
+    },
+    "gateways": [
+      {
+        "country": {
+          "code": "YB",
+          "name": "Country 1"
+        },
+        "id": "VERYLONNNNNGGGGG4h383ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA24h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA24h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA2",
+        "mxScore": "low",
+        "name": "__anon__",
+        "type": "wg",
+        "wgScore": "high"
+      }
+    ],
+    "type": "wg"
+  },
+ {
+    "country": {
+      "code": "YC",
+      "name": "Country 2"
+    },
+    "gateways": [
+      {
+        "country": {
+          "code": "YC",
+          "name": "Country 2"
         },
         "location": {
           "city": "Sydney",
