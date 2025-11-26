@@ -65,6 +65,7 @@ class SplitTunnelingViewModel @Inject constructor(
 
 	private fun getAllInstalledAppList() {
 		viewModelScope.launch {
+			_uiState.update { it.copy(isLoading = true) }
 			runCatching {
 				val (sortedSystemApps, sortedNormalApps) = helper.getInstalledApp(packageManager, splitTunnelingRepository)
 				initialAppInfoList = sortedSystemApps + sortedNormalApps
@@ -79,6 +80,7 @@ class SplitTunnelingViewModel @Inject constructor(
 					)
 				}
 			}
+			_uiState.update { it.copy(isLoading = false) }
 		}
 	}
 

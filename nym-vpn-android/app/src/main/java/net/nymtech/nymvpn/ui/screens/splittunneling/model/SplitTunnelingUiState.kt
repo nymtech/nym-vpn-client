@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import net.nymtech.vpn.backend.Tunnel
 
 data class SplitTunnelingUiState(
+	val isLoading: Boolean = false,
 	val query: String = "",
 	val systemApps: List<AppInfo> = emptyList(),
 	val normalApps: List<AppInfo> = emptyList(),

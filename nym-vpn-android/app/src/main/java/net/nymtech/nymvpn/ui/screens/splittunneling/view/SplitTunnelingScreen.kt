@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,14 +24,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -56,6 +58,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.drawable.toBitmapOrNull
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -146,130 +150,149 @@ internal fun SplitTunnelingScreen(appState: AppUiState, onBackEventConsume: () -
 
 @Composable
 private fun SplitTunneling(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -> Unit) {
-	Column(
-		modifier = Modifier
-			.fillMaxSize()
-			.verticalScroll(rememberScrollState())
-			.windowInsetsPadding(WindowInsets.navigationBars)
-			.imePadding()
-			.padding(16.dp.scaledHeight()),
-	) {
-		Text(
-			text = stringResource(R.string.split_tunneling_info_msg),
-			style = Typography.bodyMedium,
-			color = MaterialTheme.colorScheme.outline,
-			modifier = Modifier.padding(top = 8.dp.scaledHeight()),
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-		)
-		Text(
-			text = stringResource(R.string.split_tunneling_info_desc),
-			modifier = Modifier.padding(top = 12.dp.scaledHeight()),
-			style = Typography.bodyMedium,
-			color = CustomColors.warning,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-		)
-		CustomTextField(
-			value = uiState.query,
-			onValueChange = { onUiEvent(UiEvent.QueryChange(it)) },
+	Box(modifier = Modifier.fillMaxSize()) {
+		LazyColumn(
 			modifier = Modifier
-				.fillMaxWidth()
-				.padding(vertical = 24.dp.scaledHeight())
-				.height(56.dp.scaledHeight())
-				.background(Color.Transparent, RoundedCornerShape(30.dp)),
-			placeholder = { Text(stringResource(R.string.search_apps_hint), color = MaterialTheme.colorScheme.outline) },
-			singleLine = true,
-			leading = { Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.search), modifier = Modifier.size(iconSize)) },
-			label = { Text(stringResource(R.string.search)) },
-			textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-		)
-		Text(
-			text = stringResource(R.string.apps),
-			style = Typography.bodyLarge,
-			color = MaterialTheme.colorScheme.onSurface,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			fontWeight = FontWeight(500),
-		)
-
-		Row(
-			modifier = Modifier
-				.padding(top = 12.dp.scaledHeight(), bottom = 24.dp.scaledHeight())
-				.fillMaxWidth()
-				.height(IntrinsicSize.Min),
-			horizontalArrangement = Arrangement.spacedBy(12.dp.scaledWidth()),
-			verticalAlignment = Alignment.CenterVertically,
+				.fillMaxSize()
+				.windowInsetsPadding(WindowInsets.navigationBars)
+				.imePadding(),
+			contentPadding = PaddingValues(16.dp.scaledHeight()),
 		) {
-			FilterButton(
-				stringResource(R.string.direct),
-				uiState.directAppsCount,
-				stringResource(R.string.direct_desc),
-				ImageVector.vectorResource(R.drawable.split),
-				isSelected = uiState.appliedFilter == AppFilter.Direct,
-				modifier = Modifier
-					.weight(1f)
-					.fillMaxHeight()
-					.clickable {
-						onUiEvent(UiEvent.SelectAllDirectAppsClick)
-					},
-			)
-			FilterButton(
-				stringResource(R.string.via_vpn),
-				uiState.vpnPassThroughAppsCount,
-				stringResource(R.string.via_desc),
-				Icons.Filled.Shield,
-				isSelected = uiState.appliedFilter == AppFilter.VpnPassThrough,
-				modifier = Modifier
-					.weight(1f)
-					.fillMaxHeight()
-					.clickable {
-						onUiEvent(UiEvent.SelectAllVpnPassThroughClick)
-					},
-			)
-		}
+			item {
+				StaticContent(uiState, onUiEvent)
+			}
 
-		Row(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(bottom = 12.dp.scaledHeight()),
-			horizontalArrangement = Arrangement.End,
-		) {
-			Text(
-				text = stringResource(R.string.direct),
-				modifier = Modifier.widthIn(min = 42.dp),
-				style = Typography.bodySmall.copy(fontSize = 10.sp, lineHeight = 14.sp),
-				color = MaterialTheme.colorScheme.onSurface,
-				textAlign = TextAlign.Center,
-			)
-			Text(
-				text = stringResource(R.string.nym_vpn),
-				modifier = Modifier.widthIn(min = 42.dp),
-				style = Typography.bodySmall.copy(fontSize = 10.sp, lineHeight = 14.sp),
-				color = MaterialTheme.colorScheme.onSurface,
-				textAlign = TextAlign.Center,
-			)
-		}
+			items(
+				items = uiState.filteredNormalApps,
+				key = { app -> app.packageName },
+			) { app ->
+				AppInfoRow(app, onUiEvent)
+				Spacer(modifier = Modifier.padding(bottom = 12.dp.scaledHeight()))
+			}
 
-		HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+			if (uiState.filteredSystemApps.isNotEmpty()) {
+				item {
+					Spacer(modifier = Modifier.padding(bottom = 14.dp.scaledHeight()))
+					Text(
+						text = stringResource(R.string.system_applications),
+						style = Typography.bodyMedium,
+						color = MaterialTheme.colorScheme.outline,
+					)
+					Spacer(modifier = Modifier.padding(bottom = 14.dp.scaledHeight()))
+				}
 
-		uiState.filteredNormalApps.forEach { app ->
-			Spacer(modifier = Modifier.padding(bottom = 12.dp.scaledHeight()))
-			AppInfoRow(app, onUiEvent)
-			Spacer(modifier = Modifier.padding(bottom = 12.dp.scaledHeight()))
+				items(
+					items = uiState.filteredSystemApps,
+					key = { app -> app.packageName },
+				) { app ->
+					AppInfoRow(app, onUiEvent)
+					Spacer(modifier = Modifier.padding(bottom = 12.dp.scaledHeight()))
+				}
+			}
 		}
-		Spacer(modifier = Modifier.padding(bottom = 14.dp.scaledHeight()))
-		if (uiState.filteredSystemApps.isNotEmpty()) {
-			Text(
-				text = stringResource(R.string.system_applications),
-				style = Typography.bodyMedium,
-				color = MaterialTheme.colorScheme.outline,
-			)
-		}
-		Spacer(modifier = Modifier.padding(bottom = 14.dp.scaledHeight()))
-		uiState.filteredSystemApps.forEach { app ->
-			Spacer(modifier = Modifier.padding(bottom = 12.dp.scaledHeight()))
-			AppInfoRow(app, onUiEvent)
-			Spacer(modifier = Modifier.padding(bottom = 12.dp.scaledHeight()))
+		if (uiState.isLoading) {
+			LoadingDialog()
 		}
 	}
+}
+
+@Composable
+private fun StaticContent(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -> Unit) {
+	Text(
+		text = stringResource(R.string.split_tunneling_info_msg),
+		style = Typography.bodyMedium,
+		color = MaterialTheme.colorScheme.outline,
+		modifier = Modifier.padding(top = 8.dp.scaledHeight()),
+		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+	)
+	Text(
+		text = stringResource(R.string.split_tunneling_info_desc),
+		modifier = Modifier.padding(top = 12.dp.scaledHeight()),
+		style = Typography.bodyMedium,
+		color = CustomColors.warning,
+		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+	)
+	CustomTextField(
+		value = uiState.query,
+		onValueChange = { onUiEvent(UiEvent.QueryChange(it)) },
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(vertical = 24.dp.scaledHeight())
+			.height(56.dp.scaledHeight())
+			.background(Color.Transparent, RoundedCornerShape(30.dp)),
+		placeholder = { Text(stringResource(R.string.search_apps_hint), color = MaterialTheme.colorScheme.outline) },
+		singleLine = true,
+		leading = { Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.search), modifier = Modifier.size(iconSize)) },
+		label = { Text(stringResource(R.string.search)) },
+		textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+	)
+	Text(
+		text = stringResource(R.string.apps),
+		style = Typography.bodyLarge,
+		color = MaterialTheme.colorScheme.onSurface,
+		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		fontWeight = FontWeight(500),
+	)
+
+	Row(
+		modifier = Modifier
+			.padding(top = 12.dp.scaledHeight(), bottom = 24.dp.scaledHeight())
+			.fillMaxWidth()
+			.height(IntrinsicSize.Min),
+		horizontalArrangement = Arrangement.spacedBy(12.dp.scaledWidth()),
+		verticalAlignment = Alignment.CenterVertically,
+	) {
+		FilterButton(
+			stringResource(R.string.direct),
+			uiState.directAppsCount,
+			stringResource(R.string.direct_desc),
+			ImageVector.vectorResource(R.drawable.split),
+			isSelected = uiState.appliedFilter == AppFilter.Direct,
+			modifier = Modifier
+				.weight(1f)
+				.fillMaxHeight()
+				.clickable {
+					onUiEvent(UiEvent.SelectAllDirectAppsClick)
+				},
+		)
+		FilterButton(
+			stringResource(R.string.via_vpn),
+			uiState.vpnPassThroughAppsCount,
+			stringResource(R.string.via_desc),
+			Icons.Filled.Shield,
+			isSelected = uiState.appliedFilter == AppFilter.VpnPassThrough,
+			modifier = Modifier
+				.weight(1f)
+				.fillMaxHeight()
+				.clickable {
+					onUiEvent(UiEvent.SelectAllVpnPassThroughClick)
+				},
+		)
+	}
+
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.padding(bottom = 12.dp.scaledHeight()),
+		horizontalArrangement = Arrangement.End,
+	) {
+		Text(
+			text = stringResource(R.string.direct),
+			modifier = Modifier.widthIn(min = 42.dp),
+			style = Typography.bodySmall.copy(fontSize = 10.sp, lineHeight = 14.sp),
+			color = MaterialTheme.colorScheme.onSurface,
+			textAlign = TextAlign.Center,
+		)
+		Text(
+			text = stringResource(R.string.nym_vpn),
+			modifier = Modifier.widthIn(min = 42.dp),
+			style = Typography.bodySmall.copy(fontSize = 10.sp, lineHeight = 14.sp),
+			color = MaterialTheme.colorScheme.onSurface,
+			textAlign = TextAlign.Center,
+		)
+	}
+
+	HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
 }
 
 @Composable
@@ -426,6 +449,40 @@ private fun HandleDialog(pendingDialog: SplitTunnelingUiState.PendingDialog?, on
 	}
 }
 
+@Composable
+private fun LoadingDialog() {
+	Dialog(
+		onDismissRequest = { },
+		properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+	) {
+		Box(
+			modifier = Modifier
+				.size(120.dp.scaledHeight())
+				.background(
+					color = MaterialTheme.colorScheme.surface,
+					shape = MaterialTheme.shapes.medium,
+				),
+			contentAlignment = Alignment.Center,
+		) {
+			Column(
+				horizontalAlignment = Alignment.CenterHorizontally,
+				verticalArrangement = Arrangement.Center,
+			) {
+				CircularProgressIndicator(
+					modifier = Modifier.size(48.dp.scaledHeight()),
+					color = MaterialTheme.colorScheme.primary,
+				)
+				Spacer(modifier = Modifier.height(16.dp.scaledHeight()))
+				Text(
+					text = stringResource(R.string.loading),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onSurface,
+				)
+			}
+		}
+	}
+}
+
 @PreviewLightDark
 @Composable
 internal fun SplitTunnelingPreview() {
@@ -435,6 +492,7 @@ internal fun SplitTunnelingPreview() {
 		Surface {
 			SplitTunneling(
 				uiState = SplitTunnelingUiState(
+					isLoading = false,
 					filteredNormalApps = listOf(
 						AppInfo(
 							name = "App 1",
@@ -445,41 +503,41 @@ internal fun SplitTunnelingPreview() {
 						AppInfo(
 							name = "App 2",
 							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn",
+							packageName = "net.nymtech.nymvpn14",
 						),
 						AppInfo(
 							name = "App 3",
 							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn",
+							packageName = "net.nymtech.nymvpn13",
 							passThroughVpn = false,
 						),
 						AppInfo(
 							name = "App 4",
 							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn",
+							packageName = "net.nymtech.nymvpn12",
 							passThroughVpn = false,
 						),
 						AppInfo(
 							name = "App 5",
 							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn",
+							packageName = "net.nymtech.nymvpn11",
 						),
 					),
 					filteredSystemApps = listOf(
 						AppInfo(
 							name = "App 1",
 							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn",
+							packageName = "net.nymtech.nymvpn1",
 						),
 						AppInfo(
 							name = "App 2",
 							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn",
+							packageName = "net.nymtech.nymvpn2",
 						),
 						AppInfo(
 							name = "App 3",
 							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn",
+							packageName = "net.nymtech.nymvpn3",
 						),
 					),
 					directAppsCount = 3,

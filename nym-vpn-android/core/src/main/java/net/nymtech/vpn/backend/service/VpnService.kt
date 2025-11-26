@@ -21,19 +21,7 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	private var disAllowedApplicationPackages: List<String> = emptyList()
 	override var owner: NymBackend? = null
 
-	companion object {
-		var vpnServiceBuilder: Builder? = null
-			private set
-	}
-
-	@get:Synchronized
-	private val builder: Builder
-		get() = if (vpnServiceBuilder == null) {
-			vpnServiceBuilder = Builder()
-			vpnServiceBuilder!!
-		} else {
-			vpnServiceBuilder!!
-		}
+	private val builder by lazy { Builder() }
 
 	override fun onCreate() {
 		super.onCreate()
@@ -44,7 +32,6 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	override fun onDestroy() {
 		Timber.d("Vpn service destroyed")
 		try {
-			vpnServiceBuilder = null
 			vpnInterfaceFd?.close()
 			vpnInterfaceFd = null
 		} catch (e: Exception) {

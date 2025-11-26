@@ -3,8 +3,6 @@ package net.nymtech.nymvpn.ui.screens.splittunneling.viewmodel
 import android.Manifest
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.SplitTunnelingRepository
 import net.nymtech.nymvpn.ui.screens.splittunneling.model.AppFilter
@@ -13,14 +11,38 @@ import javax.inject.Inject
 
 class SplitTunnelingHelper @Inject constructor() {
 
+	/**
+	 * A set of package names for common system apps that are not useful for split tunneling.
+	 * These apps typically do not make direct internet connections that a user would want to route through a VPN.
+	 */
+	private val packageBlocklist = setOf(
+		"com.android.camera",
+		"com.android.camera2",
+		"com.google.android.deskclock",
+		"com.android.deskclock",
+		"com.google.android.calculator",
+		"com.android.calculator2",
+		"com.google.android.calendar",
+		"com.android.providers.calendar",
+		"com.android.contacts",
+		"com.google.android.contacts",
+		"com.android.gallery3d",
+		"com.google.android.apps.photos",
+		"com.android.settings",
+		"com.android.systemui",
+		"com.android.stk",
+		"com.android.stk2",
+		"com.google.android.apps.safetyhub",
+	)
+
 	private val applicationFilterPredicate: (ApplicationInfo, PackageManager) -> Boolean = { appInfo, pm ->
-		pm.hasInternetPermission(appInfo.packageName) && !isSelfApplication(appInfo.packageName)
+		pm.hasInternetPermission(appInfo.packageName) &&
+			!isSelfApplication(appInfo.packageName) &&
+			!packageBlocklist.contains(appInfo.packageName)
 	}
 
 	suspend fun getInstalledApp(packageManager: PackageManager, splitTunnelingRepository: SplitTunnelingRepository): Pair<List<AppInfo>, List<AppInfo>> {
-		val savedAppsInfo = withContext(Dispatchers.IO) {
-			splitTunnelingRepository.getAppInfoList().associateBy { it.packageName }
-		}
+		val savedAppsInfo = splitTunnelingRepository.getAppInfoList().associateBy { it.packageName }
 
 		val normalApps = mutableListOf<AppInfo>()
 		val systemApps = mutableListOf<AppInfo>()
@@ -49,9 +71,7 @@ class SplitTunnelingHelper @Inject constructor() {
 			}
 		}
 
-		withContext(Dispatchers.IO) {
-			splitTunnelingRepository.saveAppInfoList(systemApps + normalApps)
-		}
+		splitTunnelingRepository.saveAppInfoList(systemApps + normalApps)
 
 		val sortedSystemApps = systemApps.sortedBy { app -> app.name }
 		val sortedNormalApps = normalApps.sortedBy { app -> app.name }
