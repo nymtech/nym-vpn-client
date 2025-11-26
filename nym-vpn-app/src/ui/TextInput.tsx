@@ -59,7 +59,6 @@ function TextInput({
         name="passphrase"
         type="text"
         ref={ref}
-        defaultValue={defaultValue}
         value={value}
         aria-multiline={true}
         className={clsx([
