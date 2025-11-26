@@ -11,6 +11,7 @@ import {
 } from '../../../ui';
 import { useInAppNotify } from '../../../contexts';
 import { PulseDot } from '../../../ui';
+import { useClipboard } from '../../../hooks';
 
 function Socks5() {
   const { status, isLoading, enable, disable } = useSocks5();
@@ -18,6 +19,7 @@ function Socks5() {
   const { push } = useInAppNotify();
   const { t } = useTranslation('settings');
   const [isCopying, setIsCopying] = useState(false);
+  const { copy } = useClipboard();
 
   // default listen addresses
   const [socks5Address, setSocks5Address] = useState('127.0.0.1:1080');
@@ -99,19 +101,13 @@ function Socks5() {
   };
 
   // copy to clipboard
-  const handleCopy = async (url: string, id: string) => {
+  const handleCopy = async (url: string) => {
     if (!url) return;
 
     try {
-      await navigator.clipboard.writeText(url);
+      await copy(url, true);
       setIsCopying(true);
       setTimeout(() => setIsCopying(false), 2000);
-      push({
-        id: `${id}-copied`,
-        message: t('app-proxy.copied-to-clipboard'),
-        duration: 2000,
-        close: true,
-      });
     } catch (error) {
       console.error('Failed to copy:', error);
     }
@@ -231,7 +227,7 @@ function Socks5() {
                       {socks5Url}
                     </code>
                     <Button
-                      onClick={() => handleCopy(socks5Url, 'socks5')}
+                      onClick={() => handleCopy(socks5Url)}
                       className="!w-8 !h-8 !p-0 !min-w-8 flex-shrink-0 flex items-center justify-center"
                       disabled={isCopying}
                     >
@@ -263,7 +259,7 @@ function Socks5() {
                         {httpRpcUrl}
                       </code>
                       <Button
-                        onClick={() => handleCopy(httpRpcUrl, 'http-rpc')}
+                        onClick={() => handleCopy(httpRpcUrl)}
                         className="!w-8 !h-8 !p-0 !min-w-8 flex-shrink-0 flex items-center justify-center"
                         disabled={isCopying}
                       >
