@@ -980,7 +980,7 @@ impl NymVpnService {
     }
 
     async fn handle_get_default_dns(&self) -> Vec<IpAddr> {
-        DEFAULT_DNS_SERVERS.iter().copied().collect()
+        DEFAULT_DNS_SERVERS.clone()
     }
 
     async fn handle_list_gateways(
