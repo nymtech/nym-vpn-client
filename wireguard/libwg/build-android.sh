@@ -2,6 +2,11 @@
 
 set -eu
 
+if [ -z "$NDK_TOOLCHAIN_DIR" ]; then
+    echo "NDK_TOOLCHAIN_DIR is not set. Please set it to your NDK toolchain directory."
+    exit 1
+fi
+
 # Ensure we are in the correct directory for the execution of this script
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $script_dir
@@ -16,19 +21,19 @@ echo "GOROOT: $GOROOT"
 for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64}; do
     case "$arch" in
         "aarch64")
-            export ANDROID_C_COMPILER="${NDK_TOOLCHAIN_DIR}/aarch64-linux-android21-clang"
+            export ANDROID_C_COMPILER="${NDK_TOOLCHAIN_DIR}/aarch64-linux-android-clang"
             export RUST_TARGET_TRIPLE="aarch64-linux-android"
             export ANDROID_ABI="arm64-v8a"
             export ANDROID_ARCH_NAME="arm64"
             ;;
         "x86_64")
-            export ANDROID_C_COMPILER="${NDK_TOOLCHAIN_DIR}/x86_64-linux-android21-clang"
+            export ANDROID_C_COMPILER="${NDK_TOOLCHAIN_DIR}/x86_64-linux-android-clang"
             export RUST_TARGET_TRIPLE="x86_64-linux-android"
             export ANDROID_ABI="x86_64"
             export ANDROID_ARCH_NAME="x86_64"
             ;;
         "armv7")
-            export ANDROID_C_COMPILER="${NDK_TOOLCHAIN_DIR}/armv7a-linux-androideabi21-clang"
+            export ANDROID_C_COMPILER="${NDK_TOOLCHAIN_DIR}/armv7a-linux-androideabi-clang"
             export RUST_TARGET_TRIPLE="armv7-linux-androideabi"
             export ANDROID_ABI="armeabi-v7a"
             export ANDROID_ARCH_NAME="arm"
