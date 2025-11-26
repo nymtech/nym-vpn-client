@@ -159,7 +159,7 @@ function Node({ node }: { node: NodeHop }) {
             leftIcon="search"
             label={t('input-label')}
             clearable
-            value={search || ''}
+            defaultValue={search || ''}
           />
         </div>
         {loading && (
