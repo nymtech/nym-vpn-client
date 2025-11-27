@@ -22,17 +22,17 @@ use tracing::{debug, error, info};
 #[derive(Debug, Clone)]
 pub struct LazySocks5Config {
     /// Data directory for mixnet client state
-    mixnet_data_path: PathBuf,
+    pub mixnet_data_path: PathBuf,
     /// Public SOCKS5 listen address (user-facing)
-    listen_address: SocketAddr,
+    pub listen_address: SocketAddr,
     /// Internal SOCKS5 address (from Nym SDK)
-    internal_listen_address: SocketAddr,
+    pub internal_listen_address: SocketAddr,
     /// Request timeout duration
-    request_timeout: Duration,
+    pub request_timeout: Duration,
     /// Idle timeout duration
-    idle_timeout: Duration,
+    pub idle_timeout: Duration,
     /// Exit node gateway address
-    network_requester_address: String,
+    pub network_requester_address: String,
 }
 
 /// Errors from the LazySocks5
@@ -69,30 +69,18 @@ pub struct LazySocks5 {
 impl LazySocks5 {
     /// Create a new lazy SOCKS5 wrapper
     pub fn new(
-        mixnet_data_path: PathBuf,
-        listen_address: SocketAddr,
-        internal_listen_address: SocketAddr,
-        request_timeout: Duration,
-        idle_timeout: Duration,
-        network_requester_address: String,
+        config: LazySocks5Config,
         tunnel_state_shared: Arc<RwLock<TunnelState>>,
         cancel_token: CancellationToken,
     ) -> Result<Self, LazySocks5Error> {
         info!(
             "Creating LazySocks5: public={}, internal={}",
-            listen_address.to_string(),
-            internal_listen_address.to_string()
+            config.listen_address.to_string(),
+            config.internal_listen_address.to_string()
         );
 
         Ok(Self {
-            config: LazySocks5Config {
-                mixnet_data_path,
-                listen_address,
-                internal_listen_address,
-                request_timeout,
-                idle_timeout,
-                network_requester_address,
-            },
+            config,
             tunnel_state_shared,
             cancel_token,
             active_connections: Arc::new(RwLock::new(0)),
@@ -154,7 +142,7 @@ impl LazySocks5 {
                                     wrapper.handle_connection_with_dvpn(stream, addr).await
                                 } else {
                                     debug!("Routing connection from {} through mixnet", addr);
-                                    wrapper.handle_connection_with_mixnet(stream, addr).await
+                                    Box::pin(wrapper.handle_connection_with_mixnet(stream, addr)).await
                                 };
 
                                 if let Err(e) = result {
@@ -425,7 +413,7 @@ impl LazySocks5 {
         let _guard = ConnectionGuard::new(self.active_connections.clone()).await;
 
         // Ensure backend is started (lazy initialization) with retries
-        if let Err(e) = self.ensure_backend_started_with_retry(client_addr).await {
+        if let Err(e) = Box::pin(self.ensure_backend_started_with_retry(client_addr)).await {
             error!("Failed to start backend for {}: {}", client_addr, e);
             // Send SOCKS5 error response
             let _ = Self::send_socks5_error(&mut client_stream).await;
@@ -573,8 +561,8 @@ impl LazySocks5 {
         // Connect to the mixnet via SOCKS5
         info!("Connecting to mixnet via SOCKS5...");
         info!("This will spawn the internal SOCKS5 server and establish mixnet connection...");
-        let mixnet_client = mixnet_client
-            .connect_to_mixnet_via_socks5()
+        let mixnet_client = Box::pin(mixnet_client
+            .connect_to_mixnet_via_socks5())
             .await
             .map_err(|e| {
                 error!("Failed to connect to mixnet via SOCKS5: {}", e);
@@ -608,7 +596,7 @@ impl LazySocks5 {
 
         let mut last_error = None;
         for attempt in 1..=MAX_RETRIES {
-            match self.ensure_backend_started().await {
+            match Box::pin(self.ensure_backend_started()).await {
                 Ok(_) => {
                     return Ok(());
                 }

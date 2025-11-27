@@ -13,7 +13,7 @@ mod lazy_socks5;
 mod util;
 
 use http_rpc::HttpRpc;
-use lazy_socks5::{LazySocks5, LazySocks5Error};
+use lazy_socks5::{LazySocks5, LazySocks5Config, LazySocks5Error};
 use nym_vpn_lib_types::TunnelState;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 use tokio::{sync::RwLock, task::JoinHandle};
@@ -22,6 +22,17 @@ use tracing::{debug, error, info};
 
 pub use config::{socks5_idle_timeout, socks5_request_timeout};
 pub use nym_vpn_lib_types::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
+
+/// Configuration for enabling SOCKS5 service
+struct Socks5EnableConfig {
+    data_dir: PathBuf,
+    socks5_listen_address: String,
+    http_rpc_proxy_listen_address: String,
+    network_requester_address: String,
+    request_timeout: Duration,
+    idle_timeout: Duration,
+    cancel_token: CancellationToken,
+}
 
 /// SOCKS5 service errors
 #[derive(Debug, thiserror::Error)]
@@ -96,7 +107,7 @@ impl Socks5ServiceState {
         };
 
         Socks5Status {
-            state: state,
+            state,
             socks5_settings: Socks5Settings {
                 listen_address: self.socks5_listen_address.clone(),
             },
@@ -108,16 +119,16 @@ impl Socks5ServiceState {
         }
     }
 
-    async fn enable(
-        &mut self,
-        data_dir: PathBuf,
-        socks5_listen_address: String,
-        http_rpc_proxy_listen_address: String,
-        network_requester_address: String,
-        request_timeout: Duration,
-        idle_timeout: Duration,
-        cancel_token: CancellationToken,
-    ) -> Result<(), Socks5Error> {
+    async fn enable(&mut self, config: Socks5EnableConfig) -> Result<(), Socks5Error> {
+        let Socks5EnableConfig {
+            data_dir,
+            socks5_listen_address,
+            http_rpc_proxy_listen_address,
+            network_requester_address,
+            request_timeout,
+            idle_timeout,
+            cancel_token,
+        } = config;
         // Check if already enabled
         if self.state != Socks5State::Disabled {
             info!(
@@ -145,13 +156,16 @@ impl Socks5ServiceState {
         let internal_socks5_addr: SocketAddr = "127.0.0.1:1081".parse().unwrap();
 
         // Create lazy SOCKS5 wrapper
-        let lazy_socks5 = Arc::new(LazySocks5::new(
-            data_dir,
-            socks5_listen_addr,
-            internal_socks5_addr,
+        let config = LazySocks5Config {
+            mixnet_data_path: data_dir,
+            listen_address: socks5_listen_addr,
+            internal_listen_address: internal_socks5_addr,
             request_timeout,
             idle_timeout,
-            network_requester_address.clone(),
+            network_requester_address: network_requester_address.clone(),
+        };
+        let lazy_socks5 = Arc::new(LazySocks5::new(
+            config,
             self.tunnel_state.clone(),
             cancel_token.child_token(),
         )?);
@@ -275,15 +289,15 @@ impl Socks5Service {
     ) -> Result<(), Socks5Error> {
         let mut state = self.state.write().await;
         state
-            .enable(
+            .enable(Socks5EnableConfig {
                 data_dir,
                 socks5_listen_address,
                 http_rpc_proxy_listen_address,
                 network_requester_address,
                 request_timeout,
                 idle_timeout,
-                self.shutdown_token.child_token(),
-            )
+                cancel_token: self.shutdown_token.child_token(),
+            })
             .await
     }
 

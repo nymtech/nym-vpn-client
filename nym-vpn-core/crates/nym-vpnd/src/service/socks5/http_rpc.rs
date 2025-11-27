@@ -218,13 +218,13 @@ impl HttpRpc {
 
         // Parse query parameters
         for param in query.split('&') {
-            if let Some((key, value)) = param.split_once('=') {
-                if key == "p" {
-                    // URL decode the value
-                    let decoded = urlencoding::decode(value)
-                        .map_err(|e| format!("Failed to decode URL: {}", e))?;
-                    return Ok(decoded.to_string());
-                }
+            if let Some((key, value)) = param.split_once('=')
+                && key == "p"
+            {
+                // URL decode the value
+                let decoded = urlencoding::decode(value)
+                    .map_err(|e| format!("Failed to decode URL: {}", e))?;
+                return Ok(decoded.to_string());
             }
         }
 
