@@ -19,17 +19,13 @@ use nym_credentials_interface::{
     WithdrawalRequest,
 };
 use nym_ecash_time::EcashTime;
-use nym_upgrade_mode_check::try_decode_upgrade_mode_jwt_claims;
 use nym_vpn_api_client::{
     VpnApiClient,
-    response::{
-        NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk, UpgradeModeResponseData,
-    },
+    response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk},
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiError};
-use time::{Date, OffsetDateTime};
-use tracing::info;
+use time::Date;
 
 const ZK_NYM_POLLING_TIMEOUT: Duration = Duration::from_secs(60);
 const ZK_NYM_POLLING_INTERVAL: Duration = Duration::from_secs(5);
@@ -105,57 +101,6 @@ impl RequestZkNymTask {
     }
 
     #[tracing::instrument(skip(self))]
-    async fn import_retrieved_upgrade_mode_token(
-        &self,
-        response: UpgradeModeResponseData,
-    ) -> Result<(), RequestZkNymError> {
-        info!("import retrieved upgrade mode JWT");
-
-        // ASSUMPTION: we trust our credential-proxy -> VPN API chain to have validated
-        // that the attestation had been signed with expected key
-        // (because otherwise, attempting to thread in environment-dependant key here would be quite a hassle)
-
-        // decode the JWT to
-        // 1. (optional) make sure it's correctly formed
-        // 2. retrieve its expiration
-        let jwt_payload = try_decode_upgrade_mode_jwt_claims(&response.upgrade_mode_jwt)
-            .map_err(|_| RequestZkNymError::MalformedUpgradeModeJWT)?;
-
-        // if the expiration is not set (it should always be!) set it to unix epoch,
-        // i.e. treat it as expired for all intents and purposes
-        let expiration = jwt_payload
-            .expires_at
-            .and_then(|exp| OffsetDateTime::from_unix_timestamp(exp.as_secs() as i64).ok())
-            .unwrap_or(OffsetDateTime::UNIX_EPOCH);
-
-        info!("the retrieved upgrade mode JWT is set to expire at {expiration}");
-
-        // put it, ugh, in the persistent storage, so that the bandwidth controller would be able to use it
-        // if future Simon is reading it, plz refactor it : D
-        self.credential_storage
-            .lock()
-            .await
-            .insert_upgrade_mode_jwt(response.upgrade_mode_jwt, expiration)
-            .await
-            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
-
-        Ok(())
-    }
-
-    async fn process_upgrade_mode_response(
-        &self,
-        response: NymVpnZkNym,
-    ) -> Result<UpgradeModeResponseData, RequestZkNymError> {
-        let Some(upgrade_mode_data) = response.upgrade_mode else {
-            // unless VPN API is faulty, this shouldn't be possible
-            return Err(RequestZkNymError::inconsistent_response(
-                "VPN API response with status 'upgrade_mode' did not contain upgrade mode attestation",
-            ));
-        };
-        Ok(upgrade_mode_data)
-    }
-
-    #[tracing::instrument(skip(self))]
     pub(super) async fn resume_request_zk_nym_ticketbook(
         &self,
         id: ZkNymId,
@@ -184,12 +129,6 @@ impl RequestZkNymTask {
                     id: id.clone(),
                     ticketbook_type,
                 }
-            }
-            NymVpnZkNymStatus::UpgradeMode => {
-                let upgrade_mode_data = self.process_upgrade_mode_response(poll_result).await?;
-                self.import_retrieved_upgrade_mode_token(upgrade_mode_data)
-                    .await?;
-                RequestZkNymSuccess::UpgradeMode { id: id.clone() }
             }
         };
 

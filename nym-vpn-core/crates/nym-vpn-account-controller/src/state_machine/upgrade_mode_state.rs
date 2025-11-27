@@ -7,16 +7,14 @@ use crate::{
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
         PrivateAccountControllerState, RequestingZkNymsState, SyncingState,
-        UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use std::pin::Pin;
-use time::OffsetDateTime;
 use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
-use tracing::{debug, info, warn};
+use tracing::{debug, warn};
 
 const UM_STATE_CONTEXT: &str = "UPGRADE_MODE_STATE";
 
@@ -41,54 +39,57 @@ impl UpgradeModeState {
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
-        // determine the refresh interval based on the remaining validity of the retrieved credential
-        let refresh_interval = match shared_state
-            .credential_storage
-            .try_retrieve_upgrade_mode_jwt()
-            .await
-        {
-            Err(err) => {
-                return ErrorState::enter(AccountControllerErrorStateReason::storage_err(
-                    UM_STATE_CONTEXT,
-                    err,
-                ));
-            }
-            // we should only ever enter UpgradeModeState after we have just retrieved and saved
-            // an upgrade mode credential, so this branch **theoretically** should be unreachable
-            Ok(None) => {
-                return ErrorState::enter(AccountControllerErrorStateReason::Internal {
-                    context: "UpgradeModeState".to_string(),
-                    details: "entered 'UpgradeModeState' with no upgrade mode credentials"
-                        .to_string(),
-                });
-            }
-            Ok(Some((_, Some(expiration)))) => {
-                let until_expiration = expiration - OffsetDateTime::now_utc();
-                // we have to ensure we refresh our JWT before it expires,
-                // otherwise gateways will reject it
-                if until_expiration < UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL {
-                    // this shouldn't be possible under any circumstances...
-                    // (the sql query explicitly asks for entries that are NOT expired)
-                    // so when it eventually DOES happen, make sure we attempt to refresh the state immediately
-                    // instead of crashing
-                    if until_expiration.is_negative() {
-                        info!("the retrieved upgrade mode JWT expired immediately");
-                        return SyncingState::enter(shared_state, 0);
-                    }
-                    until_expiration.unsigned_abs()
-                } else {
-                    UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL
-                }
-            }
-            Ok(Some((_, None))) => UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL,
-        };
-
-        let refresh_timer = Box::pin(tokio::time::sleep(refresh_interval));
-
-        (
-            Box::new(UpgradeModeState { refresh_timer }),
-            PrivateAccountControllerState::UpgradeMode,
-        )
+        let _ = shared_state;
+        unreachable!("upgrade mode state should not be reachable")
+        //
+        // // determine the refresh interval based on the remaining validity of the retrieved credential
+        // let refresh_interval = match shared_state
+        //     .credential_storage
+        //     .try_retrieve_upgrade_mode_jwt()
+        //     .await
+        // {
+        //     Err(err) => {
+        //         return ErrorState::enter(AccountControllerErrorStateReason::storage_err(
+        //             UM_STATE_CONTEXT,
+        //             err,
+        //         ));
+        //     }
+        //     // we should only ever enter UpgradeModeState after we have just retrieved and saved
+        //     // an upgrade mode credential, so this branch **theoretically** should be unreachable
+        //     Ok(None) => {
+        //         return ErrorState::enter(AccountControllerErrorStateReason::Internal {
+        //             context: "UpgradeModeState".to_string(),
+        //             details: "entered 'UpgradeModeState' with no upgrade mode credentials"
+        //                 .to_string(),
+        //         });
+        //     }
+        //     Ok(Some((_, Some(expiration)))) => {
+        //         let until_expiration = expiration - OffsetDateTime::now_utc();
+        //         // we have to ensure we refresh our JWT before it expires,
+        //         // otherwise gateways will reject it
+        //         if until_expiration < UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL {
+        //             // this shouldn't be possible under any circumstances...
+        //             // (the sql query explicitly asks for entries that are NOT expired)
+        //             // so when it eventually DOES happen, make sure we attempt to refresh the state immediately
+        //             // instead of crashing
+        //             if until_expiration.is_negative() {
+        //                 info!("the retrieved upgrade mode JWT expired immediately");
+        //                 return SyncingState::enter(shared_state, 0);
+        //             }
+        //             until_expiration.unsigned_abs()
+        //         } else {
+        //             UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL
+        //         }
+        //     }
+        //     Ok(Some((_, None))) => UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL,
+        // };
+        //
+        // let refresh_timer = Box::pin(tokio::time::sleep(refresh_interval));
+        //
+        // (
+        //     Box::new(UpgradeModeState { refresh_timer }),
+        //     PrivateAccountControllerState::UpgradeMode,
+        // )
     }
 
     // I don't like that return type either
@@ -114,6 +115,8 @@ impl UpgradeModeState {
         Ok(())
     }
 
+    // I've left this (alongside the state itself) on purpose, because if some new command is added
+    // or default handling is modified, it must be also correctly adjusted on this state
     async fn handle_account_command<C: ConnectivityMonitor>(
         self: Box<Self>,
         command: AccountCommand,

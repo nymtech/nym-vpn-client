@@ -207,12 +207,6 @@ pub struct NymVpnZkNymPost {
     pub status: NymVpnZkNymStatus,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct UpgradeModeResponseData {
-    pub upgrade_mode_attestation: UpgradeModeAttestation,
-    pub upgrade_mode_jwt: String,
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NymVpnZkNym {
     pub created_on_utc: String,
@@ -224,7 +218,6 @@ pub struct NymVpnZkNym {
     pub issued_bandwidth_in_gb: f64,
     pub blinded_shares: Option<TicketbookWalletSharesResponse>,
     pub status: NymVpnZkNymStatus,
-    pub upgrade_mode: Option<UpgradeModeResponseData>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, strum::Display)]
@@ -235,7 +228,6 @@ pub enum NymVpnZkNymStatus {
     Revoking,
     Revoked,
     Error,
-    UpgradeMode,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
