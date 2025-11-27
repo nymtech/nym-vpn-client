@@ -115,6 +115,6 @@ private extension GeneratePassphraseView {
 
     func navigateToPlanSelectIfNeeded() {
         guard didFinishAnimatingText, didRegisterAccount else { return }
-        path.append(SettingLink.planPurchase)
+        path.append(SettingLink.planPurchase(shouldDisplayBackButton: false))
     }
 }

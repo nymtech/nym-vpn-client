@@ -18,6 +18,7 @@ public struct PurchasePlanView: View {
     @State private var isPlanAlertDisplayed = false
     @State private var isAlertDisplayed = false
     @State private var isPurchasing = false
+    @State private var shouldDisplayBackButton = false
 
     public var body: some View {
         VStack(alignment: .center, spacing: 0) {
@@ -46,14 +47,23 @@ public struct PurchasePlanView: View {
         }
     }
 
-    public init(path: Binding<NavigationPath>) {
+    public init(path: Binding<NavigationPath>, shouldDisplayBackButton: Bool) {
         _path = path
+        self.shouldDisplayBackButton = shouldDisplayBackButton
     }
 }
 
 private extension PurchasePlanView {
     var navbar: some View {
-        CustomNavBar(useElevationBackground: true)
+        CustomNavBar(
+            useElevationBackground: true,
+            leftButton: CustomNavBarButton(
+                type: .back,
+                action: {
+                    path = .init()
+                }
+            )
+        )
     }
 
     var checkmarkImage: some View {
