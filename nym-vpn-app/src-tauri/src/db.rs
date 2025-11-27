@@ -29,8 +29,6 @@ pub enum Key {
     UiTheme,
     UiRootFontSize,
     UiLanguage,
-    EntryNode,
-    ExitNode,
     WelcomeScreenSeen,
     DesktopNotifications,
     LastNetworkEnv,

@@ -8,7 +8,7 @@ import duration from 'dayjs/plugin/duration';
 import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
-import { InitState, SelectedNode, VpndConfig, VpndStatus } from './types';
+import { InitState, VpndConfig, VpndStatus } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
 import { getTheme } from './util';
@@ -88,8 +88,8 @@ dayjs.extend(duration);
     vpnMode: config?.vpnMode || defaultVpnMode,
     uiTheme: await getTheme(),
     welcomeChecked: (await kvGet<boolean>('welcome-screen-seen')) || false,
-    entryNode: (await kvGet<SelectedNode>('entry-node')) || DefaultNode,
-    exitNode: (await kvGet<SelectedNode>('exit-node')) || DefaultNode,
+    entryNode: config?.entryNode || DefaultNode,
+    exitNode: config?.exitNode || DefaultNode,
     quic: config?.bridges !== undefined ? config.bridges : defaultQuic,
     noIpv6:
       config?.disableIpv6 !== undefined ? config.disableIpv6 : defaultNoIpv6,

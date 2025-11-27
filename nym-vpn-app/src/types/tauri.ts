@@ -61,8 +61,6 @@ export type DbKey =
   | 'ui-theme'
   | 'ui-root-font-size'
   | 'ui-language'
-  | 'entry-node'
-  | 'exit-node'
   | 'welcome-screen-seen'
   | 'desktop-notifications'
   | 'last-network-env'

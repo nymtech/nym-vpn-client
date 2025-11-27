@@ -9,7 +9,6 @@ import {
   GatewayType,
   GatewaysByCountry,
   NetworkCompat,
-  SelectedNode,
   TTunnelState,
   UiTheme,
   UpdateMetadata,
@@ -53,16 +52,6 @@ let autostart = true;
 const networkCompat: NetworkCompat = {
   tauri: true,
   core: true,
-};
-const savedEntry: SelectedNode = {
-  gateway: {
-    id: '3UBiq22tkNSRhyRNjL5mnw5Yk4z6FvgvjizT4ukeEaeB',
-  },
-};
-const savedExit: SelectedNode = {
-  gateway: {
-    id: 'EQ4EBTTtufKV5SVch5jV5SGZjgUSz59QSJqF2HQxszk6',
-  },
 };
 const featureFlags: FeatureFlags = {
   quic: true,
@@ -136,12 +125,6 @@ export function mockTauriIPC() {
         return;
       }
       switch ((args as ArgsObj<DbKey>).key) {
-        case 'entry-node':
-          res = savedEntry;
-          break;
-        case 'exit-node':
-          res = savedExit;
-          break;
         case 'ui-root-font-size':
           res = 12;
           break;

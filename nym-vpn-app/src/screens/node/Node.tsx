@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
+import { invoke } from '@tauri-apps/api/core';
 import {
   SelectedUiNode,
   UiGateway,
@@ -19,7 +20,6 @@ import {
   isRegion,
 } from '../../types';
 import { Link, PageAnim, TextInput } from '../../ui';
-import { kvSet } from '../../kvStore';
 import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
@@ -94,14 +94,18 @@ function Node({ node }: { node: NodeHop }) {
       return;
     }
 
-    await kvSet(
-      node === 'entry' ? 'entry-node' : 'exit-node',
-      uiNodeToSelectedNode(selected),
-    );
-    dispatch({
-      type: 'set-node',
-      payload: { hop: node, node: selectedNode },
-    });
+    try {
+      await invoke('set_node', {
+        node: selectedNode,
+        hop: node,
+      });
+      dispatch({
+        type: 'set-node',
+        payload: { hop: node, node: selectedNode },
+      });
+    } catch {
+      /* TODO notify the user something went wrong */
+    }
     navigate(routes.root);
     resetSaved(node);
   };
