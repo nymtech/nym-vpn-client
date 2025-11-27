@@ -561,8 +561,7 @@ impl LazySocks5 {
         // Connect to the mixnet via SOCKS5
         info!("Connecting to mixnet via SOCKS5...");
         info!("This will spawn the internal SOCKS5 server and establish mixnet connection...");
-        let mixnet_client = Box::pin(mixnet_client
-            .connect_to_mixnet_via_socks5())
+        let mixnet_client = Box::pin(mixnet_client.connect_to_mixnet_via_socks5())
             .await
             .map_err(|e| {
                 error!("Failed to connect to mixnet via SOCKS5: {}", e);
