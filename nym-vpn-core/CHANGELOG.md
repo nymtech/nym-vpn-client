@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [1.20.0] - 2025-12-01
+
+### Added
+
 - Custom DNS servers can be used, instead of the pre-defined ones. They can be set and cleared using the CLI `nym-vpnc dns` command (https://github.com/nymtech/nym-vpn-client/pull/4015)
 
 ### Changed
