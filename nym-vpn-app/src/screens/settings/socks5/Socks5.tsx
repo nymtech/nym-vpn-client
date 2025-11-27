@@ -10,6 +10,7 @@ import {
 } from '../../../ui';
 import { useInAppNotify, useMainState, useSocks5 } from '../../../contexts';
 import { useClipboard } from '../../../hooks';
+import clsx from 'clsx';
 
 const DEFAULT_SOCKS5_ADDRESS = '127.0.0.1:1080';
 const DEFAULT_HTTP_RPC_ADDRESS = '127.0.0.1:8545';
@@ -108,25 +109,6 @@ function Socks5() {
     }
   };
 
-  // get status color
-  const getStatusColor = () => {
-    if (hasError) return 'text-aphrodisiac';
-    if (isConnected) return 'text-malachite';
-    return 'text-iron dark:text-bombay';
-  };
-
-  // get status badge
-  const getStatusBadge = () => {
-    const label = status ? status.state : 'unknown';
-    return (
-      <span
-        className={`text-xs font-medium px-2 py-1 rounded ${getStatusColor()}`}
-      >
-        {label}
-      </span>
-    );
-  };
-
   return (
     <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 select-none">
       <div className="text-iron dark:text-bombay">{t('app-proxy.intro')}</div>
@@ -146,7 +128,11 @@ function Socks5() {
               onChange={(e) => setSocks5Address(e.target.value)}
               disabled={isEnabled}
               placeholder={t('app-proxy.socks5-address-placeholder')}
-              className="px-3 py-2 bg-baltic dark:bg-shark rounded-lg text-sm font-mono text-mine-shaft dark:text-mercury border border-transparent focus:border-cornflower focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              className={clsx(
+                'px-3 py-2 bg-baltic rounded-lg text-sm font-mono',
+                'dark:bg-shark text-mine-shaft dark:text-mercury border border-transparent',
+                'focus:border-cornflower focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
+              )}
             />
           </div>
 
@@ -160,7 +146,11 @@ function Socks5() {
               onChange={(e) => setHttpRpcAddress(e.target.value)}
               disabled={isEnabled}
               placeholder={t('app-proxy.http-rpc-address-placeholder')}
-              className="px-3 py-2 bg-baltic dark:bg-shark rounded-lg text-sm font-mono text-mine-shaft dark:text-mercury border border-transparent focus:border-cornflower focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              className={clsx(
+                'px-3 py-2 bg-baltic rounded-lg text-sm font-mono',
+                'dark:bg-shark text-mine-shaft dark:text-mercury border border-transparent',
+                'focus:border-cornflower focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
+              )}
             />
           </div>
 
@@ -196,7 +186,15 @@ function Socks5() {
               <span className="text-sm text-iron dark:text-bombay">
                 {t('app-proxy.status')}:
               </span>
-              {getStatusBadge()}
+              <span
+                className={clsx(
+                  'text-xs font-medium px-2 py-1 rounded',
+                  'text-iron dark:text-bombay',
+                  hasError && 'text-aphrodisiac dark:text-aphrodisiac',
+                )}
+              >
+                {status ? status.state : 'unknown'}
+              </span>
             </div>
 
             <div className="flex items-center justify-between">
