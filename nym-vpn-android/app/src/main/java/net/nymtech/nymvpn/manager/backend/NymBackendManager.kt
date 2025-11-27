@@ -17,6 +17,7 @@ import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.SplitTunnelingRepository
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
@@ -57,6 +58,7 @@ import javax.inject.Inject
 class NymBackendManager @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val notificationService: NotificationService,
+	private val splitTunnelingRepository: SplitTunnelingRepository,
 	@ApplicationContext private val context: Context,
 	@ApplicationScope private val applicationScope: CoroutineScope,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -146,7 +148,8 @@ class NymBackendManager @Inject constructor(
 				bypassLan = settingsRepository.isBypassLanEnabled(),
 			)
 			val enableBridges = isQuicEnabled()
-			backend.await().start(tunnel, context.toUserAgent(), enableBridges)
+			val restrictedAppsPackages = getRestrictedAppsPackages()
+			backend.await().start(tunnel, context.toUserAgent(), enableBridges, restrictedAppsPackages)
 		}.onFailure {
 			if (it is BackendException) {
 				when (it) {
@@ -161,6 +164,8 @@ class NymBackendManager @Inject constructor(
 			}
 		}
 	}
+
+	private suspend fun getRestrictedAppsPackages() = splitTunnelingRepository.getAppInfoList().filter { !it.passThroughVpn }.map { it.packageName }
 
 	private suspend fun isQuicEnabled(): Boolean {
 		return settingsRepository.getQUICEnabled() &&

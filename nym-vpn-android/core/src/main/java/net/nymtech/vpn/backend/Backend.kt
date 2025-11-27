@@ -33,7 +33,7 @@ interface Backend {
 
 	suspend fun updateAccountState()
 
-	suspend fun start(tunnel: Tunnel, userAgent: UserAgent, enableBridges: Boolean)
+	suspend fun start(tunnel: Tunnel, userAgent: UserAgent, enableBridges: Boolean, restrictedAppsPackages: List<String> = emptyList())
 
 	suspend fun stop()
 

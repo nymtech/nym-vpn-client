@@ -28,10 +28,7 @@ class StopVpnReceiver : BroadcastReceiver() {
 	}
 }
 
-fun BroadcastReceiver.goAsync(
-	context: CoroutineContext = EmptyCoroutineContext,
-	block: suspend CoroutineScope.(BroadcastReceiver.PendingResult) -> Unit,
-) {
+fun BroadcastReceiver.goAsync(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.(BroadcastReceiver.PendingResult) -> Unit) {
 	val pendingResult = goAsync()
 	@OptIn(DelicateCoroutinesApi::class)
 	GlobalScope.launch(context) {

@@ -241,15 +241,7 @@ private fun buildPromptInfo(context: Context): BiometricPrompt.PromptInfo {
 }
 
 @Composable
-fun PassphraseScreen(
-	passphrase: List<String>,
-	show: Boolean,
-	onShowClick: () -> Unit,
-	onCopyClick: () -> Unit,
-	onDownloadClick: () -> Unit,
-	onSaveClick: () -> Unit,
-	onContinueClick: () -> Unit,
-) {
+fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () -> Unit, onCopyClick: () -> Unit, onDownloadClick: () -> Unit, onSaveClick: () -> Unit, onContinueClick: () -> Unit) {
 	var confirmed by remember { mutableStateOf(false) }
 	Column(
 		modifier = Modifier

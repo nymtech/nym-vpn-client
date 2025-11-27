@@ -50,12 +50,7 @@ import net.nymtech.vpn.backend.Tunnel
 import kotlin.Boolean
 
 @Composable
-fun SettingsScreen(
-	appViewModel: AppViewModel,
-	appUiState: AppUiState,
-	showVpnSettings: Boolean = false,
-	viewModel: SettingsViewModel = hiltViewModel(),
-) {
+fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSettings: Boolean = false, viewModel: SettingsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
 	val navController = LocalNavController.current

@@ -78,6 +78,8 @@ interface SettingsRepository {
 	suspend fun getIsStreamServerBannerDisplayed(): Boolean
 
 	suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean)
+	suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean
+	suspend fun setIsPerAppSecurityBannerDisplayed(displayed: Boolean)
 
 	val settingsFlow: Flow<Settings>
 }

@@ -32,12 +32,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun MonitoringSection(
-	sentryEnabled: Boolean,
-	onMonitoringEnable: (enabled: Boolean) -> Unit,
-	context: Context,
-	shape: Shape = RoundedCornerShape(8.dp),
-) {
+fun MonitoringSection(sentryEnabled: Boolean, onMonitoringEnable: (enabled: Boolean) -> Unit, context: Context, shape: Shape = RoundedCornerShape(8.dp)) {
 	val interactionSource = remember { MutableInteractionSource() }
 
 	Card(

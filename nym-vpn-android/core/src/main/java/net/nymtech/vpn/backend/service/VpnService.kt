@@ -20,8 +20,7 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	private var vpnInterfaceFd: ParcelFileDescriptor? = null
 	override var owner: NymBackend? = null
 
-	private val builder: Builder
-		get() = Builder()
+	private val builder by lazy { Builder() }
 
 	override fun onCreate() {
 		super.onCreate()
@@ -137,5 +136,16 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 		stopSelf()
 
 		super.onRevoke()
+	}
+
+	fun restrictApps(disAllowedApplicationPackages: List<String>) {
+		try {
+			disAllowedApplicationPackages.forEach {
+				builder.addDisallowedApplication(it)
+				Timber.d("Disallowed application: $it")
+			}
+		} catch (_: Exception) {
+			Timber.e("Error applying app restriction list")
+		}
 	}
 }

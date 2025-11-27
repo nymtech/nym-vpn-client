@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Revoke implementation added for VPN service (https://github.com/nymtech/nym-vpn-client/pull/4041)
 - Account screen added (https://github.com/nymtech/nym-vpn-client/pull/4060)
 
+- Android: Bi-mode Split Tunneling (https://github.com/nymtech/nym-vpn-client/pull/4049
+-
 ### Changed
 - UI changes and updates for Settings screen (https://github.com/nymtech/nym-vpn-client/pull/4060)
 - Fixes for Privacy & Censorship screens (https://github.com/nymtech/nym-vpn-client/pull/4060)
