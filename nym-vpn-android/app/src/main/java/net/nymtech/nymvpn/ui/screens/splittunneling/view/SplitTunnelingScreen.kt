@@ -4,8 +4,8 @@ import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -67,7 +68,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.splittunneling.model.AppFilter
@@ -77,6 +77,8 @@ import net.nymtech.nymvpn.ui.screens.splittunneling.model.UiEvent
 import net.nymtech.nymvpn.ui.screens.splittunneling.view.components.SplitTunnelingSettingModal
 import net.nymtech.nymvpn.ui.screens.splittunneling.viewmodel.SplitTunnelingViewModel
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.CustomColorsPalette
+import net.nymtech.nymvpn.ui.theme.LocalCustomColorsPalette
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -154,6 +156,8 @@ internal fun SplitTunnelingScreen(appState: AppUiState, onBackEventConsume: () -
 
 @Composable
 private fun SplitTunneling(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -> Unit) {
+	val customColorPalette = LocalCustomColorsPalette.current
+	val interactionSource = remember { MutableInteractionSource() }
 	Box(modifier = Modifier.fillMaxSize()) {
 		LazyColumn(
 			modifier = Modifier
@@ -170,27 +174,29 @@ private fun SplitTunneling(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) 
 				items = uiState.filteredNormalApps,
 				key = { app -> app.packageName },
 			) { app ->
-				AppInfoRow(app, onUiEvent)
-				Spacer(modifier = Modifier.padding(top = 14.dp.scaledHeight(), bottom = 14.dp.scaledHeight()))
+				Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
+				AppInfoRow(customColorPalette, app, onUiEvent, interactionSource)
+				Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
 			}
 
 			if (uiState.filteredSystemApps.isNotEmpty()) {
 				item {
-					Spacer(modifier = Modifier.padding(bottom = 14.dp.scaledHeight()))
+					Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
 					Text(
 						text = stringResource(R.string.system_applications),
 						style = Typography.bodyMedium,
 						color = MaterialTheme.colorScheme.outline,
 					)
-					Spacer(modifier = Modifier.padding(bottom = 14.dp.scaledHeight()))
+					Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
 				}
 
 				items(
 					items = uiState.filteredSystemApps,
 					key = { app -> app.packageName },
 				) { app ->
-					AppInfoRow(app, onUiEvent)
-					Spacer(modifier = Modifier.padding(top = 14.dp.scaledHeight(), bottom = 14.dp.scaledHeight()))
+					Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
+					AppInfoRow(customColorPalette, app, onUiEvent, interactionSource)
+					Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
 				}
 			}
 		}
@@ -282,11 +288,12 @@ private fun StaticContent(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -
 	) {
 		Text(
 			text = stringResource(R.string.direct),
-			modifier = Modifier.widthIn(min = 42.dp),
+			modifier = Modifier.widthIn(min = 50.dp),
 			style = Typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 12.sp),
 			color = MaterialTheme.colorScheme.onSurface,
 			textAlign = TextAlign.Center,
 		)
+		Spacer(modifier = Modifier.width(8.dp.scaledWidth()))
 		Text(
 			text = stringResource(R.string.nym_vpn),
 			modifier = Modifier.widthIn(min = 42.dp),
@@ -297,7 +304,6 @@ private fun StaticContent(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -
 	}
 
 	HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
-	Spacer(modifier = Modifier.height(12.dp))
 }
 
 @Composable
@@ -305,7 +311,7 @@ private fun FilterButton(title: String, noOfApps: Int, description: String, imag
 	Card(
 		modifier = modifier.heightIn(min = 56.dp),
 		shape = RoundedCornerShape(8.dp.scaledHeight()),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(0.7f)),
 		border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground) else null,
 	) {
 		Column(
@@ -341,7 +347,7 @@ private fun FilterButton(title: String, noOfApps: Int, description: String, imag
 }
 
 @Composable
-private fun AppInfoRow(appInfo: AppInfo, onUiEvent: (UiEvent) -> Unit) {
+private fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onUiEvent: (UiEvent) -> Unit, mutableInteraction: MutableInteractionSource = MutableInteractionSource()) {
 	Row(
 		modifier = Modifier.fillMaxWidth(),
 		verticalAlignment = Alignment.CenterVertically,
@@ -365,57 +371,46 @@ private fun AppInfoRow(appInfo: AppInfo, onUiEvent: (UiEvent) -> Unit) {
 		)
 		Row(
 			modifier = Modifier
-				.border(width = 1.dp, color = MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp.scaledHeight()))
-				.clickable {
-					onUiEvent(UiEvent.ChangeSelection(appInfo.packageName))
-				},
+				.clickable(
+					indication = null,
+					interactionSource = mutableInteraction,
+					onClick = { onUiEvent(UiEvent.ChangeSelection(appInfo.packageName)) },
+				),
 			verticalAlignment = Alignment.CenterVertically,
 		) {
 			Box(
 				modifier = Modifier
-					.then(
-						if (!appInfo.passThroughVpn) {
-							Modifier.background(
-								CustomColors.error.copy(alpha = 0.1f),
-								shape = RoundedCornerShape(topStart = 8.dp.scaledHeight(), bottomStart = 8.dp.scaledHeight()),
-							)
-						} else {
-							Modifier
-						},
-					)
-					.padding(start = 8.dp.scaledWidth(), end = 4.dp.scaledWidth()),
+					.size(50.dp.scaledHeight(), 24.dp.scaledHeight())
+					.background(
+						color = if (!appInfo.passThroughVpn) customColorPalette.redIconBackground else customColorPalette.greyIconBackground,
+						shape = RoundedCornerShape(24.dp.scaledHeight()),
+					),
+				contentAlignment = Alignment.Center,
 			) {
 				Icon(
 					painterResource(R.drawable.split),
 					contentDescription = null,
 					modifier = Modifier
-						.padding(horizontal = 8.dp.scaledHeight(), vertical = 4.dp.scaledHeight())
 						.size(16.dp.scaledHeight()),
-					tint = if (!appInfo.passThroughVpn) CustomColors.error else MaterialTheme.colorScheme.outline,
+					tint = if (!appInfo.passThroughVpn) customColorPalette.redIcon else customColorPalette.greyIcon,
 				)
 			}
-			VerticalDivider(modifier = Modifier.height(24.dp))
+			Spacer(modifier = Modifier.width(8.dp.scaledWidth()))
 			Box(
 				modifier = Modifier
-					.then(
-						if (appInfo.passThroughVpn) {
-							Modifier.background(
-								MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-								shape = RoundedCornerShape(topEnd = 8.dp.scaledHeight(), bottomEnd = 8.dp.scaledHeight()),
-							)
-						} else {
-							Modifier
-						},
-					)
-					.padding(start = 4.dp.scaledWidth(), end = 8.dp.scaledWidth()),
+					.size(50.dp.scaledHeight(), 24.dp.scaledHeight())
+					.background(
+						color = if (appInfo.passThroughVpn) customColorPalette.greenIconBackground else customColorPalette.greyIconBackground,
+						shape = RoundedCornerShape(24.dp.scaledHeight()),
+					),
+				contentAlignment = Alignment.Center,
 			) {
 				Icon(
 					Icons.Filled.Shield,
 					contentDescription = null,
 					modifier = Modifier
-						.padding(horizontal = 8.dp.scaledHeight(), vertical = 4.dp.scaledHeight())
 						.size(16.dp.scaledHeight()),
-					tint = if (appInfo.passThroughVpn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+					tint = if (appInfo.passThroughVpn) customColorPalette.greenIcon else customColorPalette.greyIcon,
 				)
 			}
 		}

@@ -18,7 +18,6 @@ import timber.log.Timber
 internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwner {
 
 	private var vpnInterfaceFd: ParcelFileDescriptor? = null
-	private var disAllowedApplicationPackages: List<String> = emptyList()
 	override var owner: NymBackend? = null
 
 	private val builder by lazy { Builder() }
@@ -138,15 +137,15 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 
 		super.onRevoke()
 	}
-  
-  fun restrictApps(disAllowedApplicationPackages: List<String>) {
+
+	fun restrictApps(disAllowedApplicationPackages: List<String>) {
 		try {
-			this.disAllowedApplicationPackages = disAllowedApplicationPackages
 			disAllowedApplicationPackages.forEach {
 				builder.addDisallowedApplication(it)
 				Timber.d("Disallowed application: $it")
 			}
 		} catch (_: Exception) {
 			Timber.e("Error applying app restriction list")
+		}
 	}
 }
