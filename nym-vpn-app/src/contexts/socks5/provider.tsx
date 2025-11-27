@@ -40,7 +40,9 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
     ) => {
       // Prevent concurrent enable calls
       if (isLoading) {
-        console.warn('SOCKS5 enable already in progress, ignoring duplicate call');
+        console.warn(
+          'SOCKS5 enable already in progress, ignoring duplicate call',
+        );
         return;
       }
 
@@ -67,7 +69,9 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
   const disable = useCallback(async () => {
     // Prevent concurrent disable calls
     if (isLoading) {
-      console.warn('SOCKS5 disable already in progress, ignoring duplicate call');
+      console.warn(
+        'SOCKS5 disable already in progress, ignoring duplicate call',
+      );
       return;
     }
 

@@ -129,7 +129,7 @@ impl Socks5ServiceState {
             idle_timeout,
             cancel_token,
         } = config;
-        
+
         // Prevent concurrent enable calls - if already enabled/enabling, just return success
         if self.state == Socks5State::Idle || self.state == Socks5State::Connected {
             warn!(
@@ -138,7 +138,7 @@ impl Socks5ServiceState {
             );
             return Ok(());
         }
-        
+
         // Check if we need to clean up from error state
         if self.state == Socks5State::Error {
             info!(

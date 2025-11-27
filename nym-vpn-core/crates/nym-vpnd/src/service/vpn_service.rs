@@ -694,10 +694,7 @@ impl NymVpnService {
                 let socks5_service = self.socks5_service.clone();
                 tokio::spawn(async move {
                     if let Err(e) = socks5_service.disable().await {
-                        tracing::error!(
-                            "Failed to auto-disable SOCKS5 on VPN disconnect: {}",
-                            e
-                        );
+                        tracing::error!("Failed to auto-disable SOCKS5 on VPN disconnect: {}", e);
                     }
                 });
             }
