@@ -51,6 +51,8 @@ pub enum Socks5Error {
 struct Socks5ServiceState {
     /// Current state
     state: Socks5State,
+    /// Flag to prevent concurrent enable operations
+    is_enabling: bool,
     /// Shared tunnel state
     tunnel_state: Arc<RwLock<TunnelState>>,
     /// SOCKS5 listen address
@@ -75,6 +77,7 @@ impl Socks5ServiceState {
     fn new(tunnel_state: Arc<RwLock<TunnelState>>) -> Self {
         Self {
             state: Socks5State::Disabled,
+            is_enabling: false,
             tunnel_state,
             socks5_listen_address: String::new(),
             http_rpc_proxy_listen_address: String::new(),
@@ -139,6 +142,15 @@ impl Socks5ServiceState {
             return Ok(());
         }
 
+        // Check if an enable operation is already in progress
+        if self.is_enabling {
+            warn!("SOCKS5 enable operation already in progress, ignoring duplicate request");
+            return Ok(());
+        }
+
+        // Set the enabling flag to prevent concurrent calls
+        self.is_enabling = true;
+
         // Check if we need to clean up from error state
         if self.state == Socks5State::Error {
             info!(
@@ -159,6 +171,7 @@ impl Socks5ServiceState {
 
         // Parse listen addresses
         let socks5_listen_addr: SocketAddr = socks5_listen_address.parse().map_err(|e| {
+            self.is_enabling = false;
             Socks5Error::InvalidConfig(format!("Invalid SOCKS5 listen address: {}", e))
         })?;
 
@@ -174,11 +187,16 @@ impl Socks5ServiceState {
             idle_timeout,
             network_requester_address: network_requester_address.clone(),
         };
-        let lazy_socks5 = Arc::new(LazySocks5::new(
-            config,
-            self.tunnel_state.clone(),
-            cancel_token.child_token(),
-        )?);
+        let lazy_socks5 = Arc::new(
+            LazySocks5::new(
+                config,
+                self.tunnel_state.clone(),
+                cancel_token.child_token(),
+            )
+            .inspect_err(|_| {
+                self.is_enabling = false;
+            })?,
+        );
 
         // Spawn lazy SOCKS5 task
         let lazy_socks5_clone = lazy_socks5.clone();
@@ -197,6 +215,7 @@ impl Socks5ServiceState {
         // Optionally start HTTP RPC proxy
         let http_rpc_proxy_handle = if !http_rpc_proxy_listen_address.is_empty() {
             let http_rpc_addr: SocketAddr = http_rpc_proxy_listen_address.parse().map_err(|e| {
+                self.is_enabling = false;
                 Socks5Error::InvalidConfig(format!("Invalid HTTP RPC listen address: {}", e))
             })?;
 
@@ -231,6 +250,9 @@ impl Socks5ServiceState {
         self.lazy_socks5_handle = Some(lazy_socks5_handle);
         self.http_rpc_proxy_handle = http_rpc_proxy_handle;
         self.cancel_token = Some(cancel_token);
+
+        // Clear the enabling flag
+        self.is_enabling = false;
 
         Ok(())
     }
