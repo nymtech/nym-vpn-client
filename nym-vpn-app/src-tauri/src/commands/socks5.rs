@@ -32,5 +32,5 @@ pub async fn disable_socks5(vpnd: State<'_, VpndClient>) -> Result<(), BackendEr
 #[tauri::command]
 pub async fn get_socks5_status(vpnd: State<'_, VpndClient>) -> Result<Socks5Status, BackendError> {
     let status = vpnd.get_socks5_status().await?;
-    Ok(status.into())
+    Ok(status)
 }
