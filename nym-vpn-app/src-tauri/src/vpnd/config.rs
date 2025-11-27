@@ -73,7 +73,7 @@ impl TryFrom<lib::ExitPoint> for NodeConfig {
 pub struct VpndConfig {
     pub entry_node: NodeConfig,
     pub exit_node: NodeConfig,
-    pub dns: Option<IpAddr>,
+    pub custom_dns: Option<Vec<IpAddr>>,
     pub allow_lan: bool,
     pub disable_ipv6: bool,
     pub vpn_mode: VpnMode,
@@ -98,7 +98,7 @@ impl VpndConfig {
         Ok(VpndConfig {
             entry_node: config.entry_point.try_into()?,
             exit_node: config.exit_point.try_into()?,
-            dns: config.dns,
+            custom_dns: config.custom_dns,
             allow_lan: config.allow_lan,
             disable_ipv6: config.disable_ipv6,
             vpn_mode,

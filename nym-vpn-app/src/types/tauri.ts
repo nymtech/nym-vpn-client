@@ -357,7 +357,7 @@ export type VpnMode = 'mixnet' | 'wg';
 export type VpndConfig = {
   entryNode: NodeConfig;
   exitNode: NodeConfig;
-  dns: string | null;
+  customDns: Array<string> | null;
   allowLan: boolean;
   disableIpv6: boolean;
   vpnMode: VpnMode;
