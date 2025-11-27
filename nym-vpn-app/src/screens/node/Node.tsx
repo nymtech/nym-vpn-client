@@ -41,6 +41,8 @@ function Node({ node }: { node: NodeHop }) {
   const search = node === 'entry' ? entryNodeList.search : exitNodeList.search;
 
   const { tE } = useI18nError();
+  const { entryNode, exitNode } = useMainState();
+  const selectedNode = node === 'entry' ? entryNode : exitNode;
 
   const quicFilter =
     vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
@@ -56,6 +58,26 @@ function Node({ node }: { node: NodeHop }) {
   useEffect(() => {
     if (searchRef.current) searchRef.current.focus();
   }, []);
+
+  useEffect(() => {
+    // if there's already a focused node, don't do anything
+    // when navigating to node details new focused is set
+    if (focused) return;
+    if (selectedNode.type === 'country') {
+      setFocused(node, { type: 'country', key: selectedNode.node.code });
+    } else if (selectedNode.type === 'region') {
+      addToExpanded(node, selectedNode.node.country.code);
+      setFocused(node, { type: 'region', key: selectedNode.node.name });
+    } else if (selectedNode.type === 'gateway') {
+      addToExpanded(node, selectedNode.node.country.code);
+      if (selectedNode.node.country.code.toLowerCase() === 'us') {
+        addToExpanded(node, selectedNode.node.name);
+        setFocused(node, { type: 'region', key: selectedNode.node.name });
+      } else {
+        setFocused(node, { type: 'gateway', key: selectedNode.node.id });
+      }
+    }
+  }, [selectedNode, node, addToExpanded, setFocused, focused]);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
