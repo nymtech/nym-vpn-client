@@ -181,7 +181,13 @@ impl Gateway {
     }
 
     pub fn is_whitelisted(&self, blacklisted_gateways: &BlacklistedGateways) -> bool {
-        !blacklisted_gateways.exists(&self.identity)
+        match blacklisted_gateways.exists(&self.identity) {
+            Ok(exists) => !exists,
+            Err(e) => {
+                tracing::error!("Error testing gateway whitelisting: {e}");
+                false
+            }
+        }
     }
 
     pub fn host(&self) -> Option<&String> {
@@ -1036,7 +1042,7 @@ mod tests {
 
         let blacklisted = gateway_list.gateways[3].identity;
         let blacklisted_gateways = BlacklistedGateways::new();
-        blacklisted_gateways.add(blacklisted);
+        blacklisted_gateways.add(blacklisted).unwrap();
 
         for _ in 0..64 {
             let chosen = gateway_list

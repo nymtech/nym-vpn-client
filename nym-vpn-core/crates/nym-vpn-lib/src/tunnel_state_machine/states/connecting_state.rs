@@ -589,9 +589,14 @@ impl TunnelStateHandler for ConnectingState {
                     }
                     TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
                         // We have successfully connected, clear any blacklisted entry gateways
-                        if !shared_state.blacklisted_entry_gateways.is_empty() {
-                            tracing::info!("Clearing blacklisted entry gateways");
-                            shared_state.blacklisted_entry_gateways.clear();
+                        match shared_state.blacklisted_entry_gateways.is_empty() {
+                            Ok(is_empty) => if !is_empty {
+                                tracing::info!("Clearing blacklisted entry gateways");
+                                if let Err(e) = shared_state.blacklisted_entry_gateways.clear() {
+                                    tracing::error!("Failed to clear blacklisted entry gateway list: {e}");
+                                }
+                            }
+                            Err(e) => tracing::error!("Failed to read blacklisted entry gateway list: {e}")
                         }
 
                         NextTunnelState::NewState(ConnectedState::enter(
@@ -629,8 +634,11 @@ impl TunnelStateHandler for ConnectingState {
                         // entry gateways for a while and force gateway re-selection.
                         if let Some(ref selected_gateways) = self.selected_gateways {
                             let entry_gateway_identifier = selected_gateways.entry_gateway().identity;
-                            tracing::warn!("Blacklisting entry gateway {} due to repeated connection failure", entry_gateway_identifier);
-                            shared_state.blacklisted_entry_gateways.add(entry_gateway_identifier);
+                            if let Err(e) = shared_state.blacklisted_entry_gateways.add(entry_gateway_identifier) {
+                                tracing::error!("Failed to add gateway {} to blacklisted entry gateway list: {e}", entry_gateway_identifier);
+                            } else {
+                                tracing::warn!("Blacklisted entry gateway {} due to repeated connection failure", entry_gateway_identifier);
+                            }
                             self.selected_gateways = None;
                         }
                         NextTunnelState::SameState(self)

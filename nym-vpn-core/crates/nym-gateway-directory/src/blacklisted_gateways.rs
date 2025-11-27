@@ -1,4 +1,5 @@
 use crate::NodeIdentity;
+use anyhow::{Result, anyhow};
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
@@ -15,41 +16,55 @@ impl BlacklistedGateways {
         Default::default()
     }
 
-    pub fn add(&self, identity: NodeIdentity) {
-        let now = Instant::now();
-        if let Ok(mut map) = self.0.write() {
-            map.insert(identity, now + Self::TTL);
-            map.retain(|_, expiry| *expiry >= now); // Housekeeping
-        }
-    }
-
-    pub fn remove(&self, identity: &NodeIdentity) {
-        let now = Instant::now();
-        if let Ok(mut map) = self.0.write() {
-            map.remove(identity);
-            map.retain(|_, expiry| *expiry >= now); // Housekeeping
-        }
-    }
-
-    pub fn clear(&self) {
-        if let Ok(mut map) = self.0.write() {
-            map.clear();
-        }
-    }
-
-    pub fn exists(&self, identity: &NodeIdentity) -> bool {
-        if let Ok(map) = self.0.read() {
-            match map.get(identity) {
-                Some(expiry) => *expiry > Instant::now(),
-                None => false,
+    pub fn add(&self, identity: NodeIdentity) -> Result<()> {
+        match self.0.write() {
+            Ok(mut map) => {
+                let now = Instant::now();
+                map.insert(identity, now + Self::TTL);
+                map.retain(|_, expiry| *expiry >= now); // Housekeeping
+                Ok(())
             }
-        } else {
-            false
+            Err(e) => Err(anyhow!("Failed to acquire write lock: {e}")),
         }
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.0.read().map(|map| map.is_empty()).unwrap_or(true)
+    pub fn remove(&self, identity: &NodeIdentity) -> Result<()> {
+        match self.0.write() {
+            Ok(mut map) => {
+                let now = Instant::now();
+                map.remove(identity);
+                map.retain(|_, expiry| *expiry >= now); // Housekeeping
+                Ok(())
+            }
+            Err(e) => Err(anyhow!("Failed to acquire write lock: {e}")),
+        }
+    }
+
+    pub fn clear(&self) -> Result<()> {
+        match self.0.write() {
+            Ok(mut map) => {
+                map.clear();
+                Ok(())
+            }
+            Err(e) => Err(anyhow!("Failed to acquire write lock: {e}")),
+        }
+    }
+
+    pub fn exists(&self, identity: &NodeIdentity) -> Result<bool> {
+        match self.0.read() {
+            Ok(map) => match map.get(identity) {
+                Some(expiry) => Ok(*expiry > Instant::now()),
+                None => Ok(false),
+            },
+            Err(e) => Err(anyhow!("Failed to acquire read lock: {e}")),
+        }
+    }
+
+    pub fn is_empty(&self) -> Result<bool> {
+        match self.0.read() {
+            Ok(map) => Ok(map.is_empty()),
+            Err(e) => Err(anyhow!("Failed to acquire read lock: {e}")),
+        }
     }
 }
 
@@ -73,9 +88,9 @@ mod tests {
         let blacklist = BlacklistedGateways::new();
         let identity = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
 
-        assert!(!blacklist.exists(&identity));
-        blacklist.add(identity);
-        assert!(blacklist.exists(&identity));
+        assert!(!blacklist.exists(&identity).unwrap());
+        blacklist.add(identity).unwrap();
+        assert!(blacklist.exists(&identity).unwrap());
     }
 
     #[test]
@@ -83,11 +98,11 @@ mod tests {
         let blacklist = BlacklistedGateways::new();
         let identity = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
 
-        blacklist.add(identity);
-        assert!(blacklist.exists(&identity));
+        blacklist.add(identity).unwrap();
+        assert!(blacklist.exists(&identity).unwrap());
 
-        blacklist.remove(&identity);
-        assert!(!blacklist.exists(&identity));
+        blacklist.remove(&identity).unwrap();
+        assert!(!blacklist.exists(&identity).unwrap());
     }
 
     #[test]
@@ -96,27 +111,27 @@ mod tests {
         let id1 = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
         let id2 = create_test_identity("HiVGQq2riqPFoPyYRYCZq3zFmFk15gnJzH4s9mHEbgKH");
 
-        blacklist.add(id1);
-        blacklist.add(id2);
-        assert!(!blacklist.is_empty());
+        blacklist.add(id1).unwrap();
+        blacklist.add(id2).unwrap();
+        assert!(!blacklist.is_empty().unwrap());
 
-        blacklist.clear();
-        assert!(blacklist.is_empty());
-        assert!(!blacklist.exists(&id1));
-        assert!(!blacklist.exists(&id2));
+        blacklist.clear().unwrap();
+        assert!(blacklist.is_empty().unwrap());
+        assert!(!blacklist.exists(&id1).unwrap());
+        assert!(!blacklist.exists(&id2).unwrap());
     }
 
     #[test]
     fn test_is_empty() {
         let blacklist = BlacklistedGateways::new();
-        assert!(blacklist.is_empty());
+        assert!(blacklist.is_empty().unwrap());
 
         let identity = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
-        blacklist.add(identity);
-        assert!(!blacklist.is_empty());
+        blacklist.add(identity).unwrap();
+        assert!(!blacklist.is_empty().unwrap());
 
-        blacklist.remove(&identity);
-        assert!(blacklist.is_empty());
+        blacklist.remove(&identity).unwrap();
+        assert!(blacklist.is_empty().unwrap());
     }
 
     #[test]
@@ -131,7 +146,7 @@ mod tests {
         }
 
         // Should return false because the entry is expired
-        assert!(!blacklist.exists(&identity));
+        assert!(!blacklist.exists(&identity).unwrap());
     }
 
     #[test]
@@ -146,7 +161,7 @@ mod tests {
         }
 
         // Add a new entry, which should trigger housekeeping
-        blacklist.add(id2);
+        blacklist.add(id2).unwrap();
 
         // The expired entry should have been cleaned up
         if let Ok(map) = blacklist.0.read() {
@@ -164,17 +179,21 @@ mod tests {
         // Add an expired entry manually
         if let Ok(mut map) = blacklist.0.write() {
             map.insert(id1, Instant::now() - Duration::from_secs(1));
+        } else {
+            panic!("Failed to acquire write lock");
         }
 
-        blacklist.add(id2);
+        blacklist.add(id2).unwrap();
 
         // Remove id2, which should trigger housekeeping
-        blacklist.remove(&id2);
+        blacklist.remove(&id2).unwrap();
 
         // Both entries should be gone (id1 expired, id2 removed)
         if let Ok(map) = blacklist.0.read() {
             assert!(!map.contains_key(&id1));
             assert!(!map.contains_key(&id2));
+        } else {
+            panic!("Failed to acquire read lock");
         }
     }
 
@@ -189,14 +208,14 @@ mod tests {
 
         let handle1 = thread::spawn(move || {
             for _ in 0..100 {
-                blacklist_for_thread1.add(id1);
+                blacklist_for_thread1.add(id1).unwrap();
                 thread::sleep(Duration::from_micros(10));
             }
         });
 
         let handle2 = thread::spawn(move || {
             for _ in 0..100 {
-                blacklist_for_thread2.add(id2);
+                blacklist_for_thread2.add(id2).unwrap();
                 thread::sleep(Duration::from_micros(10));
             }
         });
@@ -205,11 +224,11 @@ mod tests {
         handle2.join().unwrap();
 
         assert!(
-            blacklist.exists(&id1),
+            blacklist.exists(&id1).unwrap(),
             "id1 should exist in shared blacklist"
         );
         assert!(
-            blacklist.exists(&id2),
+            blacklist.exists(&id2).unwrap(),
             "id2 should exist in shared blacklist"
         );
     }
@@ -220,14 +239,14 @@ mod tests {
         let blacklist_clone = blacklist.clone();
         let identity = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
 
-        blacklist.add(identity);
+        blacklist.add(identity).unwrap();
 
         // Clone should see the same state
-        assert!(blacklist_clone.exists(&identity));
+        assert!(blacklist_clone.exists(&identity).unwrap());
 
-        blacklist_clone.remove(&identity);
+        blacklist_clone.remove(&identity).unwrap();
 
         // Original should see the removal
-        assert!(!blacklist.exists(&identity));
+        assert!(!blacklist.exists(&identity).unwrap());
     }
 }
