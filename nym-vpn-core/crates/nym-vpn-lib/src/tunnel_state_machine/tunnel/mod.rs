@@ -22,6 +22,7 @@ pub use tombstone::Tombstone;
 pub async fn select_gateways(
     gateway_cache_handle: GatewayCacheHandle,
     blacklisted_entry_gateways: &BlacklistedGateways,
+    blacklisted_exit_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     wg_keys_db: WireguardKeysDb,
     cancel_token: CancellationToken,
@@ -29,6 +30,7 @@ pub async fn select_gateways(
     let select_gateways_fut = gateway_selector::select_gateways(
         gateway_cache_handle,
         blacklisted_entry_gateways,
+        blacklisted_exit_gateways,
         tunnel_settings,
         wg_keys_db,
     );

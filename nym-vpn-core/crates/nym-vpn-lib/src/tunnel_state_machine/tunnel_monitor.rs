@@ -221,6 +221,7 @@ pub struct TunnelParameters {
     pub selected_gateways: Option<SelectedGateways>,
     pub user_agent: UserAgent,
     pub blacklisted_entry_gateways: BlacklistedGateways,
+    pub blacklisted_exit_gateways: BlacklistedGateways,
 }
 
 pub struct TunnelMonitor {
@@ -376,6 +377,7 @@ impl TunnelMonitor {
                 let new_gateways = tunnel::select_gateways(
                     self.gateway_cache_handle.clone(),
                     &self.tunnel_parameters.blacklisted_entry_gateways,
+                    &self.tunnel_parameters.blacklisted_exit_gateways,
                     &self.tunnel_parameters.tunnel_settings,
                     self.wg_keys_db.clone(),
                     self.shutdown_token.child_token(),

@@ -57,6 +57,7 @@ impl SelectedGateways {
 pub async fn select_gateways(
     gateway_cache_handle: GatewayCacheHandle,
     blacklisted_entry_gateways: &BlacklistedGateways,
+    blacklisted_exit_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     wg_keys_db: WireguardKeysDb,
 ) -> Result<SelectedGateways, GatewayDirectoryError> {
@@ -122,7 +123,12 @@ pub async fn select_gateways(
     tracing::info!("Found {} exit gateways", exit_gateways.len());
 
     let exit_gateway = exit_point
-        .lookup_gateway(&exit_gateways, Some(ScoreValue::High), tunnel_settings.residential_exit)
+        .lookup_gateway(
+            &exit_gateways,
+            Some(ScoreValue::High),
+            tunnel_settings.residential_exit,
+            blacklisted_exit_gateways,
+        )
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
             if err.is_unmatched_non_specific_gateway() {
@@ -131,7 +137,8 @@ pub async fn select_gateways(
                 exit_point.lookup_gateway(
                     &exit_gateways,
                     Some(ScoreValue::Medium),
-                    tunnel_settings.residential_exit
+                    tunnel_settings.residential_exit,
+                    blacklisted_exit_gateways,
                 )
             } else {
                 Err(err)
@@ -145,7 +152,8 @@ pub async fn select_gateways(
                 exit_point.lookup_gateway(
                     &exit_gateways,
                     Some(ScoreValue::Low),
-                    tunnel_settings.residential_exit
+                    tunnel_settings.residential_exit,
+                    blacklisted_exit_gateways,
                 )
             } else {
                 Err(err)

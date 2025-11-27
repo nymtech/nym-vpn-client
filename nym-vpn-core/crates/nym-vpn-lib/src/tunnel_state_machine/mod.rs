@@ -440,6 +440,7 @@ pub struct SharedState {
     wg_keys_db: WireguardKeysDb,
     user_agent: UserAgent,
     blacklisted_entry_gateways: BlacklistedGateways,
+    blacklisted_exit_gateways: BlacklistedGateways,
 }
 
 impl SharedState {
@@ -596,6 +597,7 @@ impl TunnelStateMachine {
             wg_keys_db,
             user_agent,
             blacklisted_entry_gateways: BlacklistedGateways::new(),
+            blacklisted_exit_gateways: BlacklistedGateways::new(),
         };
 
         let (current_state_handler, _) = if shared_state

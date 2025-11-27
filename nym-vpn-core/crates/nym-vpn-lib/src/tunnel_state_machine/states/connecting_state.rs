@@ -381,6 +381,7 @@ impl ConnectingState {
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
             blacklisted_entry_gateways: shared_state.blacklisted_entry_gateways.clone(),
+            blacklisted_exit_gateways: shared_state.blacklisted_exit_gateways.clone(),
         };
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
@@ -588,10 +589,14 @@ impl TunnelStateHandler for ConnectingState {
                         next_state
                     }
                     TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
-                        // We have successfully connected, clear any blacklisted entry gateways
+                        // We have successfully connected, clear any blacklisted gateways
                         if !shared_state.blacklisted_entry_gateways.is_empty() {
                             tracing::info!("Clearing blacklisted entry gateways");
                             shared_state.blacklisted_entry_gateways.clear();
+                        }
+                        if !shared_state.blacklisted_exit_gateways.is_empty() {
+                            tracing::info!("Clearing blacklisted exit gateways");
+                            shared_state.blacklisted_exit_gateways.clear();
                         }
 
                         NextTunnelState::NewState(ConnectedState::enter(
@@ -626,11 +631,27 @@ impl TunnelStateHandler for ConnectingState {
                     }
                     TunnelMonitorEvent::ConnectionFailed => {
                         // We have failed to connect repeatedly; let's blacklist the previously selected
-                        // entry gateways for a while and force gateway re-selection.
+                        // gateways for a while and force gateway re-selection.
                         if let Some(ref selected_gateways) = self.selected_gateways {
                             let entry_gateway_identifier = selected_gateways.entry_gateway().identity;
                             tracing::warn!("Blacklisting entry gateway {} due to repeated connection failure", entry_gateway_identifier);
                             shared_state.blacklisted_entry_gateways.add(entry_gateway_identifier);
+
+                            // Also blacklist the exit gateway, but ONLY if it was selected via
+                            // Country/Region/Random (not if user explicitly chose a specific gateway)
+                            use nym_vpn_lib_types::ExitPoint;
+                            match shared_state.tunnel_settings.exit_point.as_ref() {
+                                ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
+                                    let exit_gateway_identifier = selected_gateways.exit_gateway().identity;
+                                    tracing::warn!("Blacklisting exit gateway {} due to repeated connection failure", exit_gateway_identifier);
+                                    shared_state.blacklisted_exit_gateways.add(exit_gateway_identifier);
+                                }
+                                ExitPoint::Gateway { .. } | ExitPoint::Address { .. } => {
+                                    // User explicitly selected this gateway/address - don't blacklist it
+                                    tracing::debug!("Not blacklisting exit gateway - user explicitly selected it");
+                                }
+                            }
+
                             self.selected_gateways = None;
                         }
                         NextTunnelState::SameState(self)
