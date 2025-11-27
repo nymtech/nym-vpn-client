@@ -113,4 +113,29 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 		val fd = vpnInterface?.detachFd() ?: return -1
 		return fd
 	}
+
+	override fun onRevoke() {
+		Timber.w("VPN revoked by system(likely another VPN was started)")
+
+		lifecycleScope.launch {
+			try {
+				owner?.let { backend ->
+					backend.stop()
+				}
+			} catch (e: Exception) {
+				Timber.e(e, "Error while stopping tunnel on revoke")
+			}
+		}
+
+		try {
+			vpnInterfaceFd?.close()
+			vpnInterfaceFd = null
+		} catch (e: Exception) {
+			Timber.e(e, "Error closing VPN interface on revoke")
+		}
+		stopForeground(STOP_FOREGROUND_REMOVE)
+		stopSelf()
+
+		super.onRevoke()
+	}
 }
