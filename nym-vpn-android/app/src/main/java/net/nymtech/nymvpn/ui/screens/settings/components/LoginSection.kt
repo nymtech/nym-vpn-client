@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -39,6 +38,6 @@ fun LoginSection(isMnemonicStored: Boolean, onLoginClick: () -> Unit) {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewLoginSection() {
 	NymVPNTheme(Theme.default()) {
-		LoginSection( false) {}
+		LoginSection(false) {}
 	}
 }

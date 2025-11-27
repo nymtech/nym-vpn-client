@@ -11,6 +11,7 @@ data class SettingsActions(
 	val onLogoutClick: () -> Unit = {},
 	val onQuitClick: () -> Unit = {},
 	val onAppVersionClick: () -> Unit = {},
+	val onSplitTunnelingClick: () -> Unit = {},
 	val onAutoConnectEnable: (enabled: Boolean) -> Unit = {},
 	val onBypassLanEnable: (enabled: Boolean) -> Unit = {},
 	val onSupportIPv6Enable: (enabled: Boolean) -> Unit = {},

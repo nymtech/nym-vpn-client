@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.splittunneling.model
+package net.nymtech.nymvpn.ui.screens.settings.tunneling
 
 import kotlinx.serialization.Serializable
 import net.nymtech.vpn.backend.Tunnel

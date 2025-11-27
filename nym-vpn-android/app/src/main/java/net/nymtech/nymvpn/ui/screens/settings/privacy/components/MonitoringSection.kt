@@ -51,7 +51,7 @@ fun MonitoringSection(sentryEnabled: Boolean, onMonitoringEnable: (enabled: Bool
 				verticalAlignment = Alignment.CenterVertically,
 			) {
 				Column(
-					modifier = Modifier.weight(1f)
+					modifier = Modifier.weight(1f),
 				) {
 					Text(
 						text = stringResource(R.string.privacy_error_reports_title),

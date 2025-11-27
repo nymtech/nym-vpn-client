@@ -6,8 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.automirrored.outlined.CallSplit
-import androidx.compose.material.icons.outlined.AdminPanelSettings
-import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Power
 import androidx.compose.material3.Icon
@@ -183,8 +181,6 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 					onClick = actions.onKillSwitchClick,
 				),
 			)
-
-			if (values.showCensorshipSection) {
 			add(
 				SelectionItem(
 					leading = {
@@ -192,6 +188,7 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 							Icons.AutoMirrored.Outlined.CallSplit,
 							stringResource(R.string.split_tunneling),
 							modifier = Modifier.size(iconSize.scaledWidth()),
+							tint = MaterialTheme.colorScheme.outline,
 						)
 					},
 					trailing = {
@@ -199,6 +196,7 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 							Icons.AutoMirrored.Outlined.ArrowRight,
 							stringResource(R.string.go),
 							modifier = Modifier.size(iconSize),
+							tint = MaterialTheme.colorScheme.onBackground,
 						)
 					},
 					title = {
@@ -207,13 +205,11 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 						)
 					},
-					onClick = {
-						navController.navigate(Route.SplitTunneling)
-					},
+					onClick = actions.onSplitTunnelingClick,
 				),
 			)
 
-			if (showCensorshipSection) {
+			if (values.showCensorshipSection) {
 				add(
 					SelectionItem(
 						leading = {

@@ -133,6 +133,9 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 			onAppVersionClick = {
 				navController.navigate(Route.Developer)
 			},
+			onSplitTunnelingClick = {
+				navController.navigate(Route.SplitTunneling)
+			},
 			onAutoConnectEnable = { viewModel.onAutoConnectSelected(it) },
 			onBypassLanEnable = { viewModel.onBypassLanSelected(it) },
 			onSupportIPv6Enable = {

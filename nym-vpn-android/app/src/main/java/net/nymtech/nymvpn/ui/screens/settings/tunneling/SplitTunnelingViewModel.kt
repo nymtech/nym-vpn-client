@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.splittunneling.viewmodel
+package net.nymtech.nymvpn.ui.screens.settings.tunneling
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -14,10 +14,10 @@ import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.SplitTunnelingRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
-import net.nymtech.nymvpn.ui.screens.splittunneling.model.AppFilter
-import net.nymtech.nymvpn.ui.screens.splittunneling.model.AppInfo
-import net.nymtech.nymvpn.ui.screens.splittunneling.model.SplitTunnelingUiState
-import net.nymtech.nymvpn.ui.screens.splittunneling.model.UiEvent
+import net.nymtech.nymvpn.util.SplitTunnelingHelper
+import net.nymtech.nymvpn.util.filterAllPassThroughValue
+import net.nymtech.nymvpn.util.totalAppCounts
+import net.nymtech.nymvpn.util.updatePassThroughValue
 import net.nymtech.vpn.backend.Tunnel
 import javax.inject.Inject
 

@@ -30,7 +30,7 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
 import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
-import net.nymtech.nymvpn.ui.screens.splittunneling.view.components.SplitTunnelingInfoModal
+import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.SplitTunnelingInfoModal
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
