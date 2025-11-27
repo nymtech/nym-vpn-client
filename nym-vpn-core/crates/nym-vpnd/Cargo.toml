@@ -18,7 +18,7 @@ bip39.workspace = true
 clap.workspace = true
 futures.workspace = true
 log-panics.workspace = true
-reqwest = { workspace = true, features = ["socks"] }
+reqwest = { workspace = true, features = ["socks", "rustls-tls"] }
 hyper = { workspace = true, features = ["server", "http1"] }
 hyper-util = { workspace = true, features = ["tokio"] }
 http-body-util = { workspace = true }
