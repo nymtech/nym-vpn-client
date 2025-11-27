@@ -38,9 +38,7 @@ import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LogsSection
 import net.nymtech.nymvpn.ui.screens.settings.components.QuitSection
-import net.nymtech.nymvpn.ui.screens.settings.components.ResetAppSection
 import net.nymtech.nymvpn.ui.screens.settings.components.SupportSection
-import net.nymtech.nymvpn.ui.screens.settings.components.SystemStatusSection
 import net.nymtech.nymvpn.ui.screens.settings.components.VpnSettingsSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -104,7 +102,7 @@ fun SettingsScreen(
 			appDeviceStartupEnabled = false,
 			appSystemTrayEnabled = false,
 			appVersion = BuildConfig.VERSION_NAME,
-			daemonVersion = "",
+			daemonVersion = uiState.daemonVersion,
 		),
 		SettingsActions(
 			onLoginClick = {
@@ -203,9 +201,9 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 			VpnSettingsSection(values, actions)
 			AppearanceSection(values, actions)
 			LogsSection(onLogsClick = actions.onLogsClick, onPrivacyClick = actions.onPrivacyClick)
-			ResetAppSection(actions.onResetClick)
+			// ResetAppSection(actions.onResetClick)
 			LegalSection(actions.onLegalClick)
-			SystemStatusSection(actions.onSystemStatusClick)
+			// SystemStatusSection(actions.onSystemStatusClick)
 			LogoutSection(
 				values.isMnemonicStored,
 				onLogoutClick = actions.onLogoutClick,

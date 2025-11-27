@@ -4,10 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowRight
-import androidx.compose.material.icons.outlined.AddModerator
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.Lan
-import androidx.compose.material.icons.outlined.LooksTwo
 import androidx.compose.material.icons.outlined.Power
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,36 +61,36 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 				),
 			)
 
-			add(
-				SelectionItem(
-					leading = {
-						Icon(
-							Icons.Outlined.AddModerator,
-							stringResource(R.string.settings_ipv6_title),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
-						)
-					},
-					trailing = {
-						ScaledSwitch(
-							checked = values.supportIPv6Enabled,
-							onClick = actions.onSupportIPv6Enable,
-						)
-					},
-					title = {
-						Text(
-							stringResource(R.string.settings_ipv6_title),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
-					},
-					description = {
-						Text(
-							stringResource(R.string.settings_ipv6_description),
-							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-						)
-					},
-				),
-			)
+// 			add(
+// 				SelectionItem(
+// 					leading = {
+// 						Icon(
+// 							Icons.Outlined.AddModerator,
+// 							stringResource(R.string.settings_ipv6_title),
+// 							modifier = Modifier.size(iconSize.scaledWidth()),
+// 							tint = MaterialTheme.colorScheme.outline,
+// 						)
+// 					},
+// 					trailing = {
+// 						ScaledSwitch(
+// 							checked = values.supportIPv6Enabled,
+// 							onClick = actions.onSupportIPv6Enable,
+// 						)
+// 					},
+// 					title = {
+// 						Text(
+// 							stringResource(R.string.settings_ipv6_title),
+// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+// 						)
+// 					},
+// 					description = {
+// 						Text(
+// 							stringResource(R.string.settings_ipv6_description),
+// 							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+// 						)
+// 					},
+// 				),
+// 			)
 			add(
 				SelectionItem(
 					leading = {
@@ -124,36 +122,36 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 				),
 			)
 
-			add(
-				SelectionItem(
-					leading = {
-						Icon(
-							Icons.Outlined.LooksTwo,
-							stringResource(R.string.settings_auto_select_title),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
-						)
-					},
-					trailing = {
-						ScaledSwitch(
-							checked = values.autoselectServerEnabled,
-							onClick = actions.onAutoselectServerEnable,
-						)
-					},
-					title = {
-						Text(
-							stringResource(R.string.settings_auto_select_title),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
-					},
-					description = {
-						Text(
-							stringResource(R.string.settings_auto_select_description),
-							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-						)
-					},
-				),
-			)
+// 			add(
+// 				SelectionItem(
+// 					leading = {
+// 						Icon(
+// 							Icons.Outlined.LooksTwo,
+// 							stringResource(R.string.settings_auto_select_title),
+// 							modifier = Modifier.size(iconSize.scaledWidth()),
+// 							tint = MaterialTheme.colorScheme.outline,
+// 						)
+// 					},
+// 					trailing = {
+// 						ScaledSwitch(
+// 							checked = values.autoselectServerEnabled,
+// 							onClick = actions.onAutoselectServerEnable,
+// 						)
+// 					},
+// 					title = {
+// 						Text(
+// 							stringResource(R.string.settings_auto_select_title),
+// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+// 						)
+// 					},
+// 					description = {
+// 						Text(
+// 							stringResource(R.string.settings_auto_select_description),
+// 							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+// 						)
+// 					},
+// 				),
+// 			)
 
 			add(
 				SelectionItem(

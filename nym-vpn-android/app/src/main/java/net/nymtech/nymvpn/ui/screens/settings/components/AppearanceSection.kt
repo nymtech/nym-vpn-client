@@ -8,7 +8,6 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.RocketLaunch
 import androidx.compose.material.icons.outlined.ViewComfy
 import androidx.compose.material.icons.rounded.ViewComfy
 import androidx.compose.material3.Icon
@@ -16,9 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
@@ -34,66 +31,66 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 	SettingsGroup(
 		items = buildList {
-			add(
-				SelectionItem(
-					leading = {
-						Icon(
-							Icons.Outlined.RocketLaunch,
-							stringResource(R.string.settings_device_startup_title),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
-						)
-					},
-					trailing = {
-						ScaledSwitch(
-							checked = values.appDeviceStartupEnabled,
-							onClick = actions.onDeviceStartupEnable,
-						)
-					},
-					title = {
-						Text(
-							stringResource(R.string.settings_device_startup_title),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
-					},
-					description = {
-						Text(
-							stringResource(R.string.settings_device_startup_description),
-							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-						)
-					},
-				),
-			)
-			add(
-				SelectionItem(
-					leading = {
-						Icon(
-							ImageVector.vectorResource(R.drawable.ic_system_tray),
-							stringResource(R.string.settings_system_tray_title),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
-						)
-					},
-					trailing = {
-						ScaledSwitch(
-							checked = values.appSystemTrayEnabled,
-							onClick = actions.onSystemTrayEnable,
-						)
-					},
-					title = {
-						Text(
-							stringResource(R.string.settings_system_tray_title),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
-					},
-					description = {
-						Text(
-							stringResource(R.string.settings_system_tray_description),
-							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-						)
-					},
-				),
-			)
+// 			add(
+// 				SelectionItem(
+// 					leading = {
+// 						Icon(
+// 							Icons.Outlined.RocketLaunch,
+// 							stringResource(R.string.settings_device_startup_title),
+// 							modifier = Modifier.size(iconSize.scaledWidth()),
+// 							tint = MaterialTheme.colorScheme.outline,
+// 						)
+// 					},
+// 					trailing = {
+// 						ScaledSwitch(
+// 							checked = values.appDeviceStartupEnabled,
+// 							onClick = actions.onDeviceStartupEnable,
+// 						)
+// 					},
+// 					title = {
+// 						Text(
+// 							stringResource(R.string.settings_device_startup_title),
+// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+// 						)
+// 					},
+// 					description = {
+// 						Text(
+// 							stringResource(R.string.settings_device_startup_description),
+// 							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+// 						)
+// 					},
+// 				),
+// 			)
+// 			add(
+// 				SelectionItem(
+// 					leading = {
+// 						Icon(
+// 							ImageVector.vectorResource(R.drawable.ic_system_tray),
+// 							stringResource(R.string.settings_system_tray_title),
+// 							modifier = Modifier.size(iconSize.scaledWidth()),
+// 							tint = MaterialTheme.colorScheme.outline,
+// 						)
+// 					},
+// 					trailing = {
+// 						ScaledSwitch(
+// 							checked = values.appSystemTrayEnabled,
+// 							onClick = actions.onSystemTrayEnable,
+// 						)
+// 					},
+// 					title = {
+// 						Text(
+// 							stringResource(R.string.settings_system_tray_title),
+// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+// 						)
+// 					},
+// 					description = {
+// 						Text(
+// 							stringResource(R.string.settings_system_tray_description),
+// 							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+// 						)
+// 					},
+// 				),
+// 			)
 			add(
 				SelectionItem(
 					leading = {

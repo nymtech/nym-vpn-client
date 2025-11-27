@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import javax.inject.Inject
 
@@ -17,6 +18,7 @@ class SettingsViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 	private val environmentManager: EnvironmentManager,
+	private val backendManager: BackendManager,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(SettingsUiState())
@@ -26,7 +28,8 @@ constructor(
 		viewModelScope.launch {
 			val domainFronting = environmentManager.isDomainFrontingEnabled()
 			val quic = environmentManager.isQuicEnabled()
-			_uiState.update { it.copy(showCensorshipSection = (domainFronting || quic)) }
+			val daemonVersion = backendManager.getDaemonVersion()
+			_uiState.update { it.copy(showCensorshipSection = (domainFronting || quic), daemonVersion = daemonVersion) }
 		}
 	}
 
