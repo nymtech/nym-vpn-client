@@ -33,7 +33,15 @@ import Theme
 
     func sentryViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isErrorReportingOn)),
+            accessory: .toggle(
+                viewModel:
+                    ToggleViewModel(
+                        isOn: appSettings.$isErrorReportingOn,
+                        action: { [weak self] isOn in
+                            self?.appSettings.isErrorReportingOn = isOn
+                        }
+                    )
+            ),
             title: "settings.anonymousErrorReports.title".localizedString,
             subtitle: "settings.anonymousErrorReports.subtitle".localizedString,
             imageName: "errorReport",
@@ -44,7 +52,15 @@ import Theme
 
     func statisticsViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
-            accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isStatisticsEnabled)),
+            accessory: .toggle(
+                viewModel:
+                    ToggleViewModel(
+                        isOn: appSettings.$isStatisticsEnabled,
+                        action: { [weak self] isOn in
+                            self?.appSettings.isStatisticsEnabled = isOn
+                        }
+                    )
+            ),
             title: "welcome.analytics".localizedString,
             imageName: "statistics",
             position: .init(isFirst: false, isLast: true),
