@@ -69,7 +69,10 @@ function Button({
       case 'malachite':
         return 'border border-malachite outline-malachite data-hover:ring-1 data-hover:ring-malachite';
       case 'red':
-        return 'bg-aphrodisiac/10 data-hover:bg-aphrodisiac/85 border border-aphrodisiac outline-aphrodisiac dark:data-hover:bg-aphrodisiac/20';
+        return [
+          'bg-aphrodisiac/10 data-hover:bg-aphrodisiac/20',
+          'border border-aphrodisiac outline-aphrodisiac',
+        ];
       case 'gray':
         return 'data-hover:border-iron dark:data-hover:text-bombay data-hover:ring-1 data-hover:ring-malachite';
       default:
