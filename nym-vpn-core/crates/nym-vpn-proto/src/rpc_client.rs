@@ -1,14 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
-
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
     ConnectArgs, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions,
     LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
+use std::path::PathBuf;
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
@@ -130,6 +129,19 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_custom_dns(&mut self, ips: Option<Vec<String>>) -> Result<()> {
+        let request = proto::IpAddrList {
+            ips: ips.unwrap_or_default(),
+        };
+
+        self.0
+            .set_custom_dns(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_network(&mut self, network: String) -> Result<()> {
         self.0
             .set_network(network)
@@ -178,6 +190,16 @@ impl RpcClient {
             .into_inner();
 
         Ok(FeatureFlags::from(response))
+    }
+
+    pub async fn get_default_dns(&mut self) -> Result<Vec<String>> {
+        let response = self
+            .0
+            .get_default_dns(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(response.ips)
     }
 
     pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<()> {
@@ -541,10 +563,12 @@ impl RpcClient {
 
 pub fn get_rpc_socket_path() -> PathBuf {
     #[cfg(unix)]
-    return PathBuf::from("/var/run/nym-vpn.sock");
+    let path = "/var/run/nym-vpn.sock";
 
     #[cfg(windows)]
-    return PathBuf::from(r"\\.\pipe\nym-vpn");
+    let path = r"\\.\pipe\nym-vpn";
+
+    PathBuf::from(path)
 }
 
 #[derive(thiserror::Error, Debug)]

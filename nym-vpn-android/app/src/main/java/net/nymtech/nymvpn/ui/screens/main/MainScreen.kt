@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,7 +104,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	val snackbar = SnackbarController.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
 	val screenSnackbar = remember { SnackbarHostState() }
-	var didAutoStart by remember { mutableStateOf(false) }
+	var didAutoStart by rememberSaveable { mutableStateOf(false) }
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	val connectionTime by viewModel.connectionTime.collectAsState()
@@ -235,7 +236,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		}
 	}
 
-	if (autoStart && !didAutoStart) {
+	if (autoStart && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
 		LaunchedEffect(Unit) {
 			didAutoStart = true
 			onConnectPressed()

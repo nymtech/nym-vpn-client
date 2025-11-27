@@ -283,6 +283,10 @@
 	<string name="quick_info_modal_desc_non_quic">यह आपको बिना QUIC प्रोटोकॉल के दोबारा कनेक्ट करेगा। आपके मौजूदा गेटवे वैसे ही रहेंगे।\n\nरीकनेक्शन के दौरान आपका डेटा सुरक्षित रहेगा।</string>
 	<string name="quic_primary_btn_text_non_quic">अभी बिना QUIC के दोबारा कनेक्ट करें</string>
 	<string name="quic_text_btn_text_non_quic">अगले कनेक्शन पर QUIC बंद करें</string>
+	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>
+	<string name="censorship_amnezia_link_text">How AmneziaWG prevents DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">गुमनाम mixnet प्रौद्योगिकी</string>
 	<string name="account_welcome_countries">50+ देश दुनिया भर में</string>

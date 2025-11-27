@@ -283,6 +283,10 @@
 	<string name="quick_info_modal_desc_non_quic">QUICプロトコルが有効になっていない状態で再接続されます。現在のゲートウェイを維持します。\n\n再接続中はデータは保護されたままです。</string>
 	<string name="quic_primary_btn_text_non_quic">QUICなしで今再接続する</string>
 	<string name="quic_text_btn_text_non_quic">次回接続時にQUICをオフにする</string>
+	<string name="censorship_amnezia_title">最小難読化(AmneziaWG)</string>
+	<string name="censorship_amnezia_description">WireGuard のトラフィックを検出するのが難しくなります。 Deep Packet Inspection(DPI)検閲システムによって頻繁に使用される単純なルールを破壊するおとりパケットを導入し、制限環境での接続信頼性を向上させます。 \n\n注意: 実装されたクライアント側のみ。</string>
+	<string name="censorship_amnezia_link_text">AmneziaWGがDPIを防ぐ方法</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">匿名のmixnet技術</string>
 	<string name="account_welcome_countries">世界中の50カ国以上</string>

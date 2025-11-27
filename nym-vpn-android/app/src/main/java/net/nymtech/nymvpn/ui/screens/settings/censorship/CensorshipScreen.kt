@@ -26,6 +26,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.screens.settings.censorship.components.AmneziaSection
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.ConnectionStatus
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.QuicInfoModal
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.QuicInfoModalData
@@ -95,6 +96,7 @@ fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolea
 				.fillMaxWidth()
 				.padding(top = 16.dp),
 		)
+		AmneziaSection()
 		if (showQUICSection) {
 			QuicSection(quicEnabled, onQuicEnable)
 		}

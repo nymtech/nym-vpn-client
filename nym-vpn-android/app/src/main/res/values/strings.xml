@@ -303,6 +303,10 @@
 	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current gateways.\n\nYour data stays protected during reconnection.</string>
 	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
 	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
+	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>
+	<string name="censorship_amnezia_link_text">How AmneziaWG prevents DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Anonymous mixnet technology</string>
 	<string name="account_welcome_countries">50+ countries worldwide</string>

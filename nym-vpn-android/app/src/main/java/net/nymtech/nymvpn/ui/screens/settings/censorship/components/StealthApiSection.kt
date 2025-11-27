@@ -57,6 +57,7 @@ fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp)) {
 				Text(
 					text = stringResource(R.string.censorship_stealth_title),
 					style = MaterialTheme.typography.titleMedium,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				)
 				ScaledSwitch(
 					checked = true,

@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
+import { useNavigate } from 'react-router';
+import { Button } from '@headlessui/react';
 import {
   Country,
   Gateway,
@@ -14,6 +16,7 @@ import { useLang } from '../../hooks';
 import { useGateways, useMainState } from '../../contexts';
 import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../node';
+import { routes } from '../../router';
 import { isBridgeMode, useActionToast } from './util';
 
 type HopSelectProps = {
@@ -38,6 +41,7 @@ export default function HopSelect({
   const { t } = useTranslation('home');
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');
+  const navigate = useNavigate();
   const quicConnection =
     isBridgeMode(tunnel?.data) || isBridgeMode(connectingState?.tunnel);
   const quicTag =
@@ -51,6 +55,16 @@ export default function HopSelect({
       toast();
     } else {
       onClick();
+    }
+  };
+
+  const handleDetailsClick = () => {
+    if (disabled) {
+      toast();
+    } else if (node.type === 'gateway' && gateway) {
+      navigate(routes.nodeDetails, {
+        state: { gateway, hop: nodeHop, resetScroll: true },
+      });
     }
   };
 
@@ -148,7 +162,7 @@ export default function HopSelect({
     return (
       <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
         <FlagIcon code={countryCode} alt={countryCode} />
-        <div className={clsx('flex flex-col justify-center truncate')}>
+        <div className={clsx('flex flex-col items-start truncate')}>
           <div
             className={clsx([
               'text-base truncate',
@@ -208,22 +222,13 @@ export default function HopSelect({
   return (
     <div
       className={clsx([
-        'w-full flex flex-row justify-between items-center py-3 px-4 h-[3.75rem]',
+        'w-full flex flex-row justify-between items-center h-[3.75rem]',
         'text-baltic-sea dark:text-white',
         'border border-bombay dark:border-iron rounded-lg',
-        !locked && [
-          'hover:border-baltic-sea hover:ring-baltic-sea',
-          'dark:hover:border-white dark:hover:ring-white',
-        ],
         'relative transition select-none cursor-default',
         locked && 'opacity-50',
       ])}
-      onKeyDown={handleClick}
       role="presentation"
-      onClick={handleClick}
-      data-testid={`hop-select-${nodeHop}`}
-      data-disabled={disabled}
-      data-locked={locked}
     >
       <div
         className={clsx([
@@ -231,16 +236,35 @@ export default function HopSelect({
           'bg-faded-lavender dark:bg-ash text-xs',
           disabled && 'cursor-default',
         ])}
-        data-testid={`hop-select-label-${nodeHop}`}
       >
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
-      <SelectedNode {...nodeData(node, gateway)} />
-      <MsIcon
-        icon="arrow_right"
-        className="pointer-events-none"
-        data-testid={`hop-select-arrow-${nodeHop}`}
-      />
+
+      <Button
+        className={clsx([
+          'flex flex-1 pl-4 items-center justify-center h-full py-3 rounded-none rounded-l-lg',
+          !locked && 'hover:text-white/80',
+        ])}
+        onClick={handleClick}
+        onKeyDown={handleClick}
+      >
+        <SelectedNode {...nodeData(node, gateway)} />
+      </Button>
+      {node.type === 'gateway' && (
+        <Button
+          className={clsx(
+            'h-11 w-11 my-2 mr-2 flex items-center justify-center rounded-full',
+            !locked && 'hover:bg-mercury dark:hover:bg-mine-shaft',
+          )}
+          onClick={handleDetailsClick}
+          onKeyDown={handleDetailsClick}
+        >
+          <MsIcon
+            icon="arrow_right"
+            className="text-baltic-sea dark:text-white leading-none"
+          />
+        </Button>
+      )}
     </div>
   );
 }

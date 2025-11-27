@@ -283,6 +283,10 @@
 	<string name="quick_info_modal_desc_non_quic">这将在不启用QUIC 协议的情况下重新连接，您将重新连接到当前网关。\n\n您的数据在重新连接时依然受到保护。</string>
 	<string name="quic_primary_btn_text_non_quic">不使用QUIC重新连接</string>
 	<string name="quic_text_btn_text_non_quic">下次连接时再关闭QUIC</string>
+	<string name="censorship_amnezia_title">最小混淆（阿姆内齐亚工作组）</string>
+	<string name="censorship_amnezia_description">使Wire护盾流量更难侦测。 采用欺骗性数据包，扰乱深包检查系统经常使用的简单规则，提高了在限制性环境下的连接可靠性。 \n\n注意：只实现了客户端。</string>
+	<string name="censorship_amnezia_link_text">阿姆涅齐亚工作组如何阻止DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us-articles/281043831231121-How-do-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">匿名混合网络技术</string>
 	<string name="account_welcome_countries">全世界50多个国家</string>

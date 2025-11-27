@@ -99,6 +99,10 @@ impl RpcClient {
         Ok(self.inner.clone().get_feature_flags().await?)
     }
 
+    pub async fn get_default_dns(&self) -> Result<Vec<String>> {
+        Ok(self.inner.clone().get_default_dns().await?)
+    }
+
     pub async fn connect_tunnel(&self) -> Result<()> {
         self.inner.clone().connect_tunnel_v2().await?;
         Ok(())

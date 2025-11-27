@@ -28,7 +28,7 @@ pub struct OfflineState {
     selected_gateways: Option<SelectedGateways>,
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    firewall_policy_params: BlockedPolicyParameters,
+    _firewall_policy_params: BlockedPolicyParameters,
 }
 
 impl OfflineState {
@@ -59,7 +59,7 @@ impl OfflineState {
                 reconnect,
                 selected_gateways,
                 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                firewall_policy_params,
+                _firewall_policy_params: firewall_policy_params,
             }),
             PrivateTunnelState::Offline { reconnect },
         )
@@ -138,20 +138,6 @@ impl TunnelStateHandler for OfflineState {
                         } else {
                             NextTunnelState::SameState(self)
                         }
-                    },
-                    TunnelCommand::SetAllowLan(allow_lan, complete_tx) => {
-                        if shared_state.set_allow_lan(allow_lan) {
-                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                            {
-                                self.firewall_policy_params.allow_lan = allow_lan;
-                                if let Err(err) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                    trace_err_chain!(err, "Failed to apply firewall policy for blocked state");
-                                }
-                            }
-                        }
-
-                        _ = complete_tx.send(());
-                        NextTunnelState::SameState(self)
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         shared_state.tunnel_settings = tunnel_settings;

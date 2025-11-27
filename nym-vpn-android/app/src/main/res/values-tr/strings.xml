@@ -283,6 +283,11 @@
 	<string name="quick_info_modal_desc_non_quic">Bu işlem, QUIC protokolü etkin olmadan yeniden bağlanmanızı sağlar. Mevcut gateway\'leri korunur. \n\nYeniden bağlanma sırasında verileriniz güvende kalır.</string>
 	<string name="quic_primary_btn_text_non_quic">Şimdi QUIC olmadan yeniden bağlan</string>
 	<string name="quic_text_btn_text_non_quic">Sonraki bağlantıda QUIC’i kapat</string>
+	<string name="censorship_amnezia_title">Minimum gizleme/karmaşıklaştırma (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">WireGuard trafiğinin tespit edilmesini zorlaştırır.
+Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kuralları bozmak için sahte paketler (decoy packets) ekler ve bu da kısıtlayıcı ortamlarda bağlantı güvenilirliğini artırır. \n\nNot: Yalnızca istemci tarafında uygulanmıştır.</string>
+	<string name="censorship_amnezia_link_text">AmneziaWG, DPI’yi nasıl engeller?</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Anonim mixnet teknolojisi</string>
 	<string name="account_welcome_countries">Dünya genelinde 50’den fazla ülke</string>

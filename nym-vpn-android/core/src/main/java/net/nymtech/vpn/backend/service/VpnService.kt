@@ -114,7 +114,32 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 		return fd
 	}
 
-	fun restrictApps(disAllowedApplicationPackages: List<String>) {
+	override fun onRevoke() {
+		Timber.w("VPN revoked by system(likely another VPN was started)")
+
+		lifecycleScope.launch {
+			try {
+				owner?.let { backend ->
+					backend.stop()
+				}
+			} catch (e: Exception) {
+				Timber.e(e, "Error while stopping tunnel on revoke")
+			}
+		}
+
+		try {
+			vpnInterfaceFd?.close()
+			vpnInterfaceFd = null
+		} catch (e: Exception) {
+			Timber.e(e, "Error closing VPN interface on revoke")
+		}
+		stopForeground(STOP_FOREGROUND_REMOVE)
+		stopSelf()
+
+		super.onRevoke()
+	}
+  
+  fun restrictApps(disAllowedApplicationPackages: List<String>) {
 		try {
 			this.disAllowedApplicationPackages = disAllowedApplicationPackages
 			disAllowedApplicationPackages.forEach {
@@ -123,6 +148,5 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 			}
 		} catch (_: Exception) {
 			Timber.e("Error applying app restriction list")
-		}
 	}
 }

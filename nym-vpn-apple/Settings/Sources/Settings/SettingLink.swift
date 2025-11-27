@@ -13,6 +13,7 @@ public enum SettingLink: Hashable, Identifiable {
     case logs
     case support
     case legal
+    case systemStatus
     case acknowledgments
     case licence(details: LicenceDetails)
     case santasMenu

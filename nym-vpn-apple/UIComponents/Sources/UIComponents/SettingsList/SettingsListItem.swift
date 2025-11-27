@@ -68,11 +68,11 @@ private extension SettingsListItem {
         if let imageName = viewModel.imageName {
             Image(imageName, bundle: .module)
                 .renderingMode(.template)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(NymColor.gray1)
         } else if let systemImageName = viewModel.systemImageName {
             Image(systemName: systemImageName)
                 .renderingMode(.template)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(NymColor.gray1)
                 .font(.system(size: 18, weight: .bold))
         }
     }
@@ -102,7 +102,7 @@ private extension SettingsListItem {
             Image(imageName, bundle: .module)
                 .resizable()
                 .frame(width: 24, height: 24)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(viewModel.accessory.imageColor)
                 .padding(.trailing, 16)
         }
     }
