@@ -79,7 +79,10 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
 
     refresh();
     const interval = setInterval(refresh, POLL_INTERVAL);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      initialized = false;
+    };
   }, [refresh]);
 
   const ctx = useMemo(

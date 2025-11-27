@@ -21,7 +21,6 @@ function Socks5() {
   const { exitNode } = useMainState();
   const { push } = useInAppNotify();
   const { t } = useTranslation('settings');
-  const [isCopying, setIsCopying] = useState(false);
   const { copy } = useClipboard();
 
   // default listen addresses
@@ -111,8 +110,6 @@ function Socks5() {
 
     try {
       await copy(url, true);
-      setIsCopying(true);
-      setTimeout(() => setIsCopying(false), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
     }
@@ -234,9 +231,11 @@ function Socks5() {
                     <Button
                       onClick={() => handleCopy(socks5Url)}
                       className="!w-8 !h-8 !p-0 !min-w-8 flex-shrink-0 flex items-center justify-center"
-                      disabled={isCopying}
                     >
-                      <MsIcon icon="content_copy" className="text-white" />
+                      <MsIcon
+                        icon="content_copy"
+                        className="text-white dark:text-charcoal"
+                      />
                     </Button>
                   </div>
                   <div className="flex items-start gap-2 mt-1">
@@ -265,9 +264,11 @@ function Socks5() {
                       <Button
                         onClick={() => handleCopy(httpRpcUrl)}
                         className="!w-8 !h-8 !p-0 !min-w-8 flex-shrink-0 flex items-center justify-center"
-                        disabled={isCopying}
                       >
-                        <MsIcon icon="content_copy" className="text-white" />
+                        <MsIcon
+                          icon="content_copy"
+                          className="text-white dark:text-charcoal"
+                        />
                       </Button>
                     </div>
                     <div className="flex items-start gap-2 mt-1">
