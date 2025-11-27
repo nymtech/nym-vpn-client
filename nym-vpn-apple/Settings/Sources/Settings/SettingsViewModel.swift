@@ -324,7 +324,14 @@ private extension SettingsViewModel {
 #if os(macOS)
         viewModels.append(
             SettingsListItemViewModel(
-                accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isIPv6TrafficEnabled)),
+                accessory: .toggle(
+                    viewModel: ToggleViewModel(
+                        isOn: appSettings.$isIPv6TrafficEnabled,
+                        action: { [weak self] isOn in
+                            self?.appSettings.isIPv6TrafficEnabled = isOn
+                        }
+                    )
+                ),
                 title: "settings.ipv6.title".localizedString,
                 subtitle: "settings.ipv6.subtitle".localizedString,
                 systemImageName: "powerplug.portrait",
@@ -334,7 +341,14 @@ private extension SettingsViewModel {
 #endif
         viewModels.append(
             SettingsListItemViewModel(
-                accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isLanBypassEnabled)),
+                accessory: .toggle(
+                    viewModel: ToggleViewModel(
+                        isOn: appSettings.$isLanBypassEnabled,
+                        action: { [weak self] isOn in
+                            self?.appSettings.isLanBypassEnabled = isOn
+                        }
+                    )
+                ),
                 title: "settings.lanBypass.title".localizedString,
                 subtitle: "settings.lanBypass.subtitle".localizedString,
                 imageName: "lan",

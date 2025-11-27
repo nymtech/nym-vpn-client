@@ -63,6 +63,7 @@ private extension PrivacyAndDataView {
                     viewModel: ToggleViewModel(
                         isOn: $appSettings.isStatisticsEnabled,
                         action: { isOn in
+                            appSettings.isStatisticsEnabled = isOn
 #if os(macOS)
                             enableMacOSNetworkStatsIfNeeded(with: isOn)
 #endif
@@ -105,6 +106,7 @@ private extension PrivacyAndDataView {
                     viewModel: ToggleViewModel(
                         isOn: $appSettings.isErrorReportingOn,
                         action: { isOn in
+                            appSettings.isErrorReportingOn = isOn
 #if os(macOS)
                             enableMacOSErrorReportingIfNeeded(with: isOn)
 #endif
