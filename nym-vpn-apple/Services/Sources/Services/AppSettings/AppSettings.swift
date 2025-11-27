@@ -65,10 +65,16 @@ import CountriesManagerTypes
     public var isPassphraseStored: Bool = false
 
     @AppStorage(AppSettingKey.ipv6TrafficIsEnabled.rawValue)
-    public var isIPv6TrafficEnabled = true
+    public var isIPv6TrafficEnabled = true {
+        didSet {
+            print("isIPv6TrafficEnabled: \(isIPv6TrafficEnabled)")
+        }
+    }
 
     @AppStorage(AppSettingKey.lanBypass.rawValue)
-    public var isLanBypassEnabled = false
+    public var isLanBypassEnabled = false {
+        didSet { isLanBypassEnabledPublisher = isLanBypassEnabled }
+    }
 
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
@@ -90,6 +96,7 @@ import CountriesManagerTypes
     @Published public var isCredentialImportedPublisher: Bool
     @Published public var isQuicEnabledPublisher: Bool
     @Published public var shouldReconnectPublisher: Bool
+    @Published public var isLanBypassEnabledPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
     private init() {
@@ -97,11 +104,13 @@ import CountriesManagerTypes
         self.isCredentialImportedPublisher = false
         self.isQuicEnabledPublisher = false
         self.shouldReconnectPublisher = false
+        self.isLanBypassEnabledPublisher = false
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
         self.isQuicEnabledPublisher = self.isQuicEnabled
-        self.shouldReconnect = self.shouldReconnect
+        self.shouldReconnectPublisher = self.shouldReconnect
+        self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
     }
 }
 

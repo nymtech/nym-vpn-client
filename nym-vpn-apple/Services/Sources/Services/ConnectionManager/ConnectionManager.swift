@@ -226,6 +226,14 @@ private extension ConnectionManager {
                 self?.appSettings.shouldReconnect = false
             }
             .store(in: &cancellables)
+
+        appSettings.$isLanBypassEnabledPublisher
+            .removeDuplicates()
+            .sink { [weak self] newValue in
+                self?.connectionConfig.allowLan = newValue
+                self?.updateConnectionConfig()
+            }
+            .store(in: &cancellables)
     }
 
     func setupConnectionChangeObserver() {

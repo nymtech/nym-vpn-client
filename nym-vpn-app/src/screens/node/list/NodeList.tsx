@@ -123,7 +123,7 @@ const NodeList = memo(function NodeList({
     if (focused) {
       timeoutId = setTimeout(() => {
         scrollToNode(focused.type, focused.key);
-      }, 20);
+      }, 100);
     }
 
     return () => clearTimeout(timeoutId);

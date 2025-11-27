@@ -270,7 +270,7 @@
 	<string name="censorship_description">اگر در محل شما مشکل اتصال وجود دارد یا NymVPN مسدود شده است، این ویژگی‌ها را فعال کنید.</string>
 	<string name="censorship_quic_title">اتصال بهبود یافته (QUIC)</string>
 	<string name="censorship_quic_changes">تغییرات پس از اتصال مجدد اعمال خواهند شد</string>
-	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
+	<string name="censorship_quic_description">باعث افزایش پایداری حالت Fast در شبکه‌های محدودکننده می‌شود، زیرا ترافیک WireGuard را در داخل QUIC ‏(HTTP/3) بسته‌بندی می‌کند تا شبیه وبگردی معمولی دیده شود.\n\nتوجه: سرورهای ورودی را فقط به گیِت‌وی‌های سازگار با QUIC محدود می‌کند.</string>
 	<string name="censorship_quic_link_text">QUIC چگونه کیفیت اتصال‌ها را بهتر می‌کند</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
