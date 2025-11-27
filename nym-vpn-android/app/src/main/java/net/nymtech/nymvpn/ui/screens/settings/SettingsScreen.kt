@@ -1,19 +1,14 @@
 package net.nymtech.nymvpn.ui.screens.settings
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import android.app.Activity
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,39 +17,43 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
-import net.nymtech.nymvpn.ui.screens.settings.components.AccountId
 import net.nymtech.nymvpn.ui.screens.settings.components.AccountSection
-import net.nymtech.nymvpn.ui.screens.settings.components.AppVersion
+import net.nymtech.nymvpn.ui.screens.settings.components.AppVersionSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppearanceSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LegalSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LoginSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutSection
+import net.nymtech.nymvpn.ui.screens.settings.components.LogsSection
+import net.nymtech.nymvpn.ui.screens.settings.components.QuitSection
 import net.nymtech.nymvpn.ui.screens.settings.components.SupportSection
 import net.nymtech.nymvpn.ui.screens.settings.components.VpnSettingsSection
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
+import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import kotlin.Boolean
 
 @Composable
 fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSettings: Boolean = false, viewModel: SettingsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
 	val navController = LocalNavController.current
-	val clipboardManager = LocalClipboardManager.current
-	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
@@ -68,13 +67,14 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 
 	LaunchedEffect(appUiState.managerState.isMnemonicStored) {
 		loggingOut = false
+		showLogoutDialog = false
 	}
 
 	LogoutDialog(
 		show = showLogoutDialog,
+		isLoggingOut = loggingOut,
 		onDismiss = { showLogoutDialog = false },
 		onConfirm = {
-			showLogoutDialog = false
 			loggingOut = true
 			appViewModel.logout {
 				navController.navigate(Route.Main()) {
@@ -85,6 +85,97 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 		},
 	)
 
+	SettingsScreen(
+		SettingsValues(
+			isMnemonicStored = appUiState.managerState.isMnemonicStored,
+			autoConnectEnabled = appUiState.settings.autoStartEnabled,
+			bypassLanEnabled = appUiState.settings.isBypassLanEnabled,
+			supportIPv6Enabled = false,
+			autoselectServerEnabled = false,
+			showCensorshipSection = uiState.showCensorshipSection,
+			appShortcutsEnabled = appUiState.settings.isShortcutsEnabled,
+			appDeviceStartupEnabled = false,
+			appSystemTrayEnabled = false,
+			appVersion = BuildConfig.VERSION_NAME,
+			daemonVersion = uiState.daemonVersion,
+		),
+		SettingsActions(
+			onLoginClick = {
+				navController.navigate(Route.Login)
+			},
+			onAccountClick = {
+				navController.navigate(Route.Account)
+			},
+			onPassphraseClick = {
+				navController.navigate(Route.Passphrase)
+			},
+			onSupportClick = {
+				navController.navigate(Route.Support)
+			},
+			onResetClick = {
+			},
+			onLegalClick = {
+				navController.navigate(Route.Legal)
+			},
+			onSystemStatusClick = {
+			},
+			onLogoutClick = {
+				if (appUiState.managerState.tunnelState != Tunnel.State.Down) {
+					snackbar.showMessage(context.getString(R.string.action_requires_tunnel_down))
+				} else {
+					showLogoutDialog = true
+				}
+			},
+			onQuitClick = {
+				(context as Activity).finishAffinity()
+				context.finishAndRemoveTask()
+			},
+			onAppVersionClick = {
+				navController.navigate(Route.Developer)
+			},
+			onSplitTunnelingClick = {
+				navController.navigate(Route.SplitTunneling)
+			},
+			onAutoConnectEnable = { viewModel.onAutoConnectSelected(it) },
+			onBypassLanEnable = { viewModel.onBypassLanSelected(it) },
+			onSupportIPv6Enable = {
+			},
+			onAutoselectServerEnable = {
+			},
+			onShortcutsEnable = {
+				viewModel.onAppShortcutsSelected(it)
+			},
+			onDeviceStartupEnable = {
+			},
+			onSystemTrayEnable = {
+			},
+			onKillSwitchClick = {
+				context.launchVpnSettings()
+			},
+			onCensorshipClick = {
+				navController.navigate(Route.Censorship)
+			},
+			onAppearanceClick = {
+				navController.navigate(Route.Appearance)
+			},
+			onPrivacyClick = {
+				navController.navigate(Route.Privacy)
+			},
+			onLogsClick = {
+				navController.navigate(Route.Logs)
+			},
+			onNotificationsClick = {
+				context.launchNotificationSettings()
+			},
+			onBatterySettingsClick = {
+				context.launchBatteryOptSettingsScreen()
+			},
+		),
+	)
+}
+
+@Composable
+fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 	Box(modifier = Modifier.fillMaxSize()) {
 		Column(
 			horizontalAlignment = Alignment.Start,
@@ -93,52 +184,38 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 				.verticalScroll(rememberScrollState())
 				.fillMaxSize()
 				.padding(top = 24.dp)
-				.padding(horizontal = 24.dp.scaledWidth())
-				.padding(bottom = padding.calculateBottomPadding()),
+				.padding(horizontal = 24.dp.scaledWidth()),
 		) {
 			LoginSection(
-				appUiState = appUiState,
-				onLoginClick = { navController.navigate(Route.Login) },
+				isMnemonicStored = values.isMnemonicStored,
+				onLoginClick = actions.onLoginClick,
 			)
-			AccountSection(appUiState = appUiState, context = context)
-			SupportSection(navController = navController)
-			VpnSettingsSection(
-				appUiState = appUiState,
-				viewModel = viewModel,
-				context = context,
-				showCensorshipSection = uiState.showCensorshipSection,
+			AccountSection(
+				isMnemonicStored = values.isMnemonicStored,
+				onPassphraseClick = actions.onPassphraseClick,
+				onAccountClick = actions.onAccountClick,
 			)
-			AppearanceSection(appUiState = appUiState, viewModel = viewModel, context = context)
-			LegalSection()
+			SupportSection(actions.onSupportClick)
+			VpnSettingsSection(values, actions)
+			AppearanceSection(values, actions)
+			LogsSection(onLogsClick = actions.onLogsClick, onPrivacyClick = actions.onPrivacyClick)
+			// ResetAppSection(actions.onResetClick)
+			LegalSection(actions.onLegalClick)
+			// SystemStatusSection(actions.onSystemStatusClick)
 			LogoutSection(
-				appUiState,
-				loggingOut = loggingOut,
-				onLogoutClick = {
-					if (appUiState.managerState.tunnelState != Tunnel.State.Down) {
-						snackbar.showMessage(context.getString(R.string.action_requires_tunnel_down))
-					} else {
-						showLogoutDialog = true
-					}
-				},
+				values.isMnemonicStored,
+				onLogoutClick = actions.onLogoutClick,
 			)
-			if (appUiState.managerState.accountId != null) {
-				AccountId(clipboardManager, appUiState.managerState.accountId)
-			}
-			AppVersion(clipboardManager, navController)
+			QuitSection(actions.onQuitClick)
+			AppVersionSection(appVersion = values.appVersion, daemonVersion = values.daemonVersion, onAppVersionClick = actions.onAppVersionClick)
 		}
+	}
+}
 
-		if (loggingOut) {
-			Box(
-				modifier = Modifier
-					.fillMaxSize()
-					.background(color = Color.Black.copy(alpha = 0.5f))
-					.clickable(enabled = false) {},
-			) {
-				CircularProgressIndicator(
-					modifier = Modifier.align(Alignment.Center),
-					color = MaterialTheme.colorScheme.primary,
-				)
-			}
-		}
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+internal fun PreviewSettingsScreen() {
+	NymVPNTheme(Theme.default()) {
+		SettingsScreen(SettingsValues(isMnemonicStored = true), SettingsActions())
 	}
 }

@@ -12,6 +12,6 @@ fun NavTitle(text: String) {
 	Text(
 		text,
 		style = MaterialTheme.typography.titleLarge,
-		fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 	)
 }

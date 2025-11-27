@@ -3,7 +3,7 @@ package net.nymtech.nymvpn.data.datastore
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.serialization.json.Json
 import net.nymtech.nymvpn.data.SplitTunnelingRepository
-import net.nymtech.nymvpn.ui.screens.splittunneling.model.AppInfo
+import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppInfo
 import timber.log.Timber
 import javax.inject.Inject
 

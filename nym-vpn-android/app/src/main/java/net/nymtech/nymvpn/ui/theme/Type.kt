@@ -19,6 +19,7 @@ val Typography =
 			fontSize = 16.sp.scaled(),
 			lineHeight = 24.sp.scaled(),
 			letterSpacing = 0.5.sp.scaled(),
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		),
 		bodySmall =
 		TextStyle(
@@ -26,6 +27,7 @@ val Typography =
 			lineHeight = 16.sp.scaled(),
 			fontWeight = FontWeight(400),
 			letterSpacing = 0.4.sp.scaled(),
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		),
 		titleLarge =
 		TextStyle(
@@ -45,6 +47,7 @@ val Typography =
 			fontSize = 14.sp.scaled(),
 			lineHeight = 20.sp.scaled(),
 			fontWeight = FontWeight(400),
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			letterSpacing = 0.25.sp.scaled(),
 		),
 		labelSmall =

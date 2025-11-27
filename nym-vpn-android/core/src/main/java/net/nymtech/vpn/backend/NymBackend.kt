@@ -45,6 +45,7 @@ import nym_vpn_lib.stopVpn
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Network
+import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TunnelEvent
@@ -244,6 +245,13 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 				"Client is incompatible with current network version. " + "Client: $currentVersion, Network: $compatibleVersion",
 			)
 			return@withContext false
+		}
+	}
+
+	override suspend fun getNetworkVersions(): NetworkCompatibility? {
+		return withContext(ioDispatcher) {
+			initialized.await()
+			getNetworkCompatibilityVersions()
 		}
 	}
 

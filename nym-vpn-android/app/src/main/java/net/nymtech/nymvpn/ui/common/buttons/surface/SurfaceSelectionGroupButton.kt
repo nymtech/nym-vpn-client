@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -79,7 +80,7 @@ fun SurfaceSelectionGroupButton(
 						verticalAlignment = Alignment.CenterVertically,
 						modifier = Modifier
 							.weight(1f, false)
-							.padding(vertical = 4.dp.scaledHeight())
+							.padding(vertical = 8.dp.scaledHeight())
 							.fillMaxSize()
 							.padding(end = 4.dp.scaledWidth()),
 					) {
@@ -114,7 +115,7 @@ fun SurfaceSelectionGroupButton(
 					}
 				}
 			}
-			if (index + 1 != items.size && divider) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+			if (index + 1 != items.size && divider) HorizontalDivider(color = MaterialTheme.colorScheme.background)
 		}
 	}
 }

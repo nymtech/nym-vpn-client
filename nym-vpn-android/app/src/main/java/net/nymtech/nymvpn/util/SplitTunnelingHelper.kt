@@ -1,12 +1,12 @@
-package net.nymtech.nymvpn.ui.screens.splittunneling.viewmodel
+package net.nymtech.nymvpn.util
 
 import android.Manifest
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.SplitTunnelingRepository
-import net.nymtech.nymvpn.ui.screens.splittunneling.model.AppFilter
-import net.nymtech.nymvpn.ui.screens.splittunneling.model.AppInfo
+import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppFilter
+import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppInfo
 import javax.inject.Inject
 
 class SplitTunnelingHelper @Inject constructor() {
@@ -14,6 +14,7 @@ class SplitTunnelingHelper @Inject constructor() {
 	/**
 	 * A set of package names for common system apps that are not useful for split tunneling.
 	 * These apps typically do not make direct internet connections that a user would want to route through a VPN.
+	 * TODO: Move to standalone module
 	 */
 	private val packageBlocklist = setOf(
 		"com.android.camera",

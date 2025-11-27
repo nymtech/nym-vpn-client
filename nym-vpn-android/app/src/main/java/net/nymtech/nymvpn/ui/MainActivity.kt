@@ -74,7 +74,7 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
-import net.nymtech.nymvpn.ui.screens.splittunneling.view.SplitTunnelingScreen
+import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingScreen
 import net.nymtech.nymvpn.ui.screens.welcome.WelcomeScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
