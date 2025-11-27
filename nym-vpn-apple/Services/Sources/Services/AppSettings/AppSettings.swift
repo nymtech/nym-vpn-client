@@ -65,15 +65,15 @@ import CountriesManagerTypes
     public var isPassphraseStored: Bool = false
 
     @AppStorage(AppSettingKey.ipv6TrafficIsEnabled.rawValue)
-    public var isIPv6TrafficEnabled = true
+    public var isIPv6TrafficEnabled = true {
+        didSet {
+            print("isIPv6TrafficEnabled: \(isIPv6TrafficEnabled)")
+        }
+    }
 
     @AppStorage(AppSettingKey.lanBypass.rawValue)
     public var isLanBypassEnabled = false {
-        didSet {
-            DispatchQueue.main.async {
-                self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
-            }
-        }
+        didSet { isLanBypassEnabledPublisher = isLanBypassEnabled }
     }
 
     @AppStorage(AppSettingKey.statistics.rawValue)

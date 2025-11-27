@@ -229,7 +229,8 @@ private extension ConnectionManager {
 
         appSettings.$isLanBypassEnabledPublisher
             .removeDuplicates()
-            .sink { [weak self] _ in
+            .sink { [weak self] newValue in
+                self?.connectionConfig.allowLan = newValue
                 self?.updateConnectionConfig()
             }
             .store(in: &cancellables)
