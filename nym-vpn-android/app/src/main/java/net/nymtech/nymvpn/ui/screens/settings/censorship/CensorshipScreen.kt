@@ -66,8 +66,9 @@ fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hi
 	fun onPrimaryButtonClicked() {
 		dismissQuicInfoModal()
 		viewModel.disconnect()
-		navController.navigate(route = Route.Main(autoStart = true)) {
-			popUpTo(Route.Main()) {
+		val route = Route.Main()
+		navController.navigate(route = route) {
+			popUpTo(route) {
 				inclusive = true
 			}
 			launchSingleTop = true

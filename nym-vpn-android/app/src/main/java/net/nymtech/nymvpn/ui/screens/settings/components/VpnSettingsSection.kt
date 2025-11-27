@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowRight
+import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Lan
@@ -109,6 +110,34 @@ fun VpnSettingsSection(appUiState: AppUiState, viewModel: SettingsViewModel, con
 						)
 					},
 					onClick = { context.launchVpnSettings() },
+				),
+			)
+
+			add(
+				SelectionItem(
+					leading = {
+						Icon(
+							Icons.AutoMirrored.Outlined.CallSplit,
+							stringResource(R.string.split_tunneling),
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
+					trailing = {
+						Icon(
+							Icons.AutoMirrored.Outlined.ArrowRight,
+							stringResource(R.string.go),
+							modifier = Modifier.size(iconSize),
+						)
+					},
+					title = {
+						Text(
+							stringResource(R.string.split_tunneling),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
+					onClick = {
+						navController.navigate(Route.SplitTunneling)
+					},
 				),
 			)
 

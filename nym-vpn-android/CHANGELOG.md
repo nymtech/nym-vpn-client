@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Node details added in quick settings notification (https://github.com/nymtech/nym-vpn-client/pull/4029)
 - AmneziaWG section added to censorship screen (https://github.com/nymtech/nym-vpn-client/pull/4033)
 - Revoke implementation added for VPN service (https://github.com/nymtech/nym-vpn-client/pull/4041)
-
+- Android: Bi-mode Split Tunneling (https://github.com/nymtech/nym-vpn-client/pull/4049
+- 
 ### Changed
 
 ### Fixed
