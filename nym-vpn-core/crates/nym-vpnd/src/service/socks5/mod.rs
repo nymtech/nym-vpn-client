@@ -151,8 +151,8 @@ impl Socks5ServiceState {
         // Set the enabling flag to prevent concurrent calls
         self.is_enabling = true;
 
-        // Check if we need to clean up from error state
-        if self.state == Socks5State::Error {
+        // Clean up any existing state before re-enabling
+        if self.state != Socks5State::Disabled {
             info!(
                 "Lazy SOCKS5 service is in {:?} state, cleaning up before re-enabling",
                 self.state
