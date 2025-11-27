@@ -7,14 +7,16 @@ import {
   GitHubIssuesUrl,
   MatrixRoomUrl,
   TelegramUrl,
+  TranslationHelpUrl,
 } from '../../../constants';
-import { PageAnim, SettingsMenuCard } from '../../../ui';
+import { PageAnim } from '../../../ui';
 import {
   DiscordIcon,
   ElementIcon,
   GitHubIcon,
   TelegramIcon,
 } from '../../../assets';
+import SettingsGroup from '../SettingsGroup';
 
 function Support() {
   const { t } = useTranslation('settings');
@@ -24,67 +26,82 @@ function Support() {
       className="h-full flex flex-col mt-2 gap-6"
       data-testid="support-page"
     >
-      <SettingsMenuCard
-        title={t('support.faq')}
-        onClick={() => {
-          openUrl(FaqUrl);
-        }}
-        leadingIcon="help"
-        trailingIcon="open_in_new"
-        data-testid="support-faq-button"
+      <div>
+        <p className="truncate text-base select-none text-baltic-sea dark:text-white">
+          {t('support.intro.title')}
+        </p>
+        <p className="text-sm whitespace-pre-line mt-4 text-iron dark:text-bombay">
+          {t('support.intro.description')}
+        </p>
+      </div>
+      <SettingsGroup
+        settings={[
+          {
+            title: t('support.faq'),
+            onClick: () => {
+              openUrl(FaqUrl);
+            },
+            leadingIcon: 'help',
+            trailingIcon: 'open_in_new',
+          },
+          {
+            title: t('support.contact'),
+            onClick: () => {
+              openUrl(ContactSupportUrl);
+            },
+            leadingIcon: 'mail_outline',
+            trailingIcon: 'open_in_new',
+          },
+        ]}
       />
-      <SettingsMenuCard
-        title={t('support.contact')}
-        onClick={() => {
-          openUrl(ContactSupportUrl);
-        }}
-        leadingIcon="send"
-        trailingIcon="open_in_new"
-        data-testid="support-contact-button"
+      <SettingsGroup
+        settings={[
+          {
+            title: t('support.github'),
+            onClick: () => {
+              openUrl(GitHubIssuesUrl);
+            },
+            leadingComponent: <GitHubIcon className="w-6 h-6 fill-bombay" />,
+            trailingIcon: 'open_in_new',
+          },
+          {
+            title: t('support.matrix'),
+            onClick: () => {
+              openUrl(MatrixRoomUrl);
+            },
+            leadingComponent: <ElementIcon className="w-6 h-6 fill-bombay" />,
+            trailingIcon: 'open_in_new',
+          },
+          {
+            title: t('support.discord'),
+            onClick: () => {
+              openUrl(DiscordInviteUrl);
+            },
+            leadingComponent: <DiscordIcon className="w-6 h-6 fill-bombay" />,
+            trailingIcon: 'open_in_new',
+          },
+          {
+            title: t('support.telegram'),
+            onClick: () => {
+              openUrl(TelegramUrl);
+            },
+            leadingComponent: <TelegramIcon className="w-6 h-6 fill-bombay" />,
+            trailingIcon: 'open_in_new',
+          },
+        ]}
       />
-      <SettingsMenuCard
-        title={t('support.telegram')}
-        onClick={() => {
-          openUrl(TelegramUrl);
-        }}
-        leadingComponent={
-          <TelegramIcon className="w-6 h-6 fill-baltic-sea dark:fill-white" />
-        }
-        trailingIcon="open_in_new"
-        data-testid="support-telegram-button"
-      />
-      <SettingsMenuCard
-        title={t('support.matrix')}
-        onClick={() => {
-          openUrl(MatrixRoomUrl);
-        }}
-        leadingComponent={
-          <ElementIcon className="w-6 h-6 fill-baltic-sea dark:fill-white" />
-        }
-        trailingIcon="open_in_new"
-        data-testid="support-matrix-button"
-      />
-      <SettingsMenuCard
-        title={t('support.discord')}
-        onClick={() => {
-          openUrl(DiscordInviteUrl);
-        }}
-        leadingComponent={
-          <DiscordIcon className="w-6 h-6 fill-baltic-sea dark:fill-white" />
-        }
-        trailingIcon="open_in_new"
-        data-testid="support-discord-button"
-      />
-      <SettingsMenuCard
-        title={t('support.github')}
-        onClick={() => {
-          openUrl(GitHubIssuesUrl);
-        }}
-        leadingComponent={
-          <GitHubIcon className="w-6 h-7 fill-baltic-sea dark:fill-white" />
-        }
-        trailingIcon="open_in_new"
-        data-testid="support-github-button"
+      <SettingsGroup
+        settings={[
+          {
+            title: t('support.help.title'),
+            desc: t('support.help.description'),
+            leadingIcon: 'language',
+            trailingIcon: 'open_in_new',
+            onClick: () => {
+              openUrl(TranslationHelpUrl);
+            },
+          },
+        ]}
       />
     </PageAnim>
   );

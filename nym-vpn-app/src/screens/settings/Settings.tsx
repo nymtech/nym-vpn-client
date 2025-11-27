@@ -43,39 +43,19 @@ function Settings() {
             onClick: () => navigate(routes.support),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
-          {
-            title: t('logs.title'),
-            desc: t('logs.desc'),
-            leadingIcon: 'sort',
-            onClick: () => navigate(routes.logs),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
-          },
-          {
-            title: t('data-privacy', { ns: 'common' }),
-            leadingIcon: 'encrypted',
-            onClick: () => navigate(routes.dataPrivacy),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
-          },
         ]}
       />
       <SettingsGroup
         settings={[
           {
-            title: t('autostart.title'),
-            desc: t('autostart.desc'),
-            leadingIcon: 'computer',
-            onClick: handleAutostartChanged,
-            trailing: (
-              <Switch
-                checked={autostartEnabled}
-                onChange={handleAutostartChanged}
-              />
-            ),
+            title: t('killswitch.title'),
+            desc: t('killswitch.desc'),
+            leadingIcon: 'power',
           },
           {
             title: t('ipv6-support.title'),
             desc: t('ipv6-support.desc'),
-            leadingIcon: 'linear_scale',
+            leadingIcon: 'add_moderator',
             onClick: handleIpv6Support,
             trailing: (
               <Switch checked={ipv6Support} onChange={handleIpv6Support} />
@@ -97,6 +77,18 @@ function Settings() {
       <SettingsGroup
         settings={[
           {
+            title: t('autostart.title'),
+            desc: t('autostart.desc'),
+            leadingIcon: 'rocket_launch',
+            onClick: handleAutostartChanged,
+            trailing: (
+              <Switch
+                checked={autostartEnabled}
+                onChange={handleAutostartChanged}
+              />
+            ),
+          },
+          {
             title: t('appearance', { ns: 'common' }),
             leadingIcon: 'view_comfy',
             onClick: () => navigate(routes.appearance),
@@ -115,10 +107,30 @@ function Settings() {
           },
         ]}
       />
-      <SettingsMenuCard
-        title={t('legal.title')}
-        onClick={() => navigate(routes.legal)}
-        trailingIcon="arrow_right"
+      <SettingsGroup
+        settings={[
+          {
+            title: t('logs.title'),
+            leadingIcon: 'notes',
+            onClick: () => navigate(routes.logs),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
+          {
+            title: t('data-privacy', { ns: 'common' }),
+            leadingIcon: 'privacy_tip',
+            onClick: () => navigate(routes.dataPrivacy),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
+        ]}
+      />
+      <SettingsGroup
+        settings={[
+          {
+            title: t('legal.title'),
+            onClick: () => navigate(routes.legal),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
+        ]}
       />
       <Logout />
       <SettingsMenuCard title={t('quit')} onClick={exit} />
