@@ -46,10 +46,6 @@ pub(crate) use upgrade_mode_state::UpgradeModeState;
 // The interval at which we update the account state
 const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(2 * 60);
 
-// The interval at which we attempt to exit the upgrade mode by trying to get a new zk-nym instead
-// (note: this does not prevent bandwidth controller from notifying us directly about the UM being over)
-const UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL: Duration = Duration::from_secs(10 * 60);
-
 #[async_trait::async_trait]
 pub(crate) trait AccountControllerStateHandler<C: ConnectivityMonitor>: Send {
     async fn handle_event(
@@ -118,6 +114,7 @@ pub(super) enum PrivateAccountControllerState {
     LoggedOut,
     ReadyToConnect,
     Decentralised,
+    #[allow(dead_code)]
     UpgradeMode,
     Error(AccountControllerErrorStateReason),
     RequestingZkNyms,

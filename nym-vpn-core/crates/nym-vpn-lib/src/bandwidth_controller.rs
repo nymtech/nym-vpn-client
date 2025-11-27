@@ -205,6 +205,7 @@ impl SpecificGatewayError {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, thiserror::Error)]
 pub enum UpgradeModeRecheckError {
     #[error("failed to request upgrade mode token to use with the gateway: {gateway_id}")]
@@ -364,14 +365,14 @@ impl TemporaryBandwidthClient {
                         e,
                     )
                 })?;
-                let Some(bandwidth_bytes) = response.available_bandwidth_bytes else {
+                let Some(bandwidth_bytes) = response else {
                     return Err(SpecificGatewayError::Internal {
                         reason: "No such peer on the gateway".to_string(),
                     });
                 };
                 Ok(AvailableBandwidth {
                     bandwidth_bytes,
-                    upgrade_mode: response.current_upgrade_mode_status.into(),
+                    upgrade_mode: None,
                 })
             }
             TemporaryBandwidthClient::Latest(metadata_client) => {
@@ -379,8 +380,8 @@ impl TemporaryBandwidthClient {
                     SpecificGatewayError::from_query_bandwidth(self.gateway_id().to_string(), e)
                 })?;
                 Ok(AvailableBandwidth {
-                    bandwidth_bytes: response.bandwidth_bytes,
-                    upgrade_mode: response.upgrade_mode,
+                    bandwidth_bytes: response,
+                    upgrade_mode: None,
                 })
             }
         }
@@ -434,8 +435,8 @@ impl TemporaryBandwidthClient {
                     )
                 })?;
                 Ok(AvailableBandwidth {
-                    bandwidth_bytes: response.remaining_bandwidth_bytes,
-                    upgrade_mode: response.current_upgrade_mode_status.into(),
+                    bandwidth_bytes: response,
+                    upgrade_mode: None,
                 })
             }
             TemporaryBandwidthClient::Latest(metadata_client) => {
@@ -450,44 +451,47 @@ impl TemporaryBandwidthClient {
                         )
                     })?;
                 Ok(AvailableBandwidth {
-                    bandwidth_bytes: response.bandwidth_bytes,
-                    upgrade_mode: response.upgrade_mode,
+                    bandwidth_bytes: response,
+                    upgrade_mode: None,
                 })
             }
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) async fn request_upgrade_mode_recheck(
         &mut self,
         // this argument will change in the future once we have different kinds of emergency credentials
         upgrade_mode_jwt: String,
     ) -> Result<bool, SpecificGatewayError> {
-        match self {
-            TemporaryBandwidthClient::Deprecated(authenticator_client) => {
-                let upgrade_mode_enabled = authenticator_client
-                    .check_upgrade_mode(upgrade_mode_jwt)
-                    .await
-                    .map_err(|err| {
-                        SpecificGatewayError::from_deprecated_upgrade_mode_recheck_bandwidth(
-                            self.gateway_id().to_string(),
-                            err,
-                        )
-                    })?;
-                Ok(upgrade_mode_enabled)
-            }
-            TemporaryBandwidthClient::Latest(metadata_client) => {
-                let upgrade_mode_enabled = metadata_client
-                    .check_upgrade_mode(upgrade_mode_jwt)
-                    .await
-                    .map_err(|err| {
-                        SpecificGatewayError::from_upgrade_mode_recheck_bandwidth(
-                            self.gateway_id().to_string(),
-                            err,
-                        )
-                    })?;
-                Ok(upgrade_mode_enabled)
-            }
-        }
+        let _ = upgrade_mode_jwt;
+        Ok(false)
+        // match self {
+        //     TemporaryBandwidthClient::Deprecated(authenticator_client) => {
+        //         let upgrade_mode_enabled = authenticator_client
+        //             .check_upgrade_mode(upgrade_mode_jwt)
+        //             .await
+        //             .map_err(|err| {
+        //                 SpecificGatewayError::from_deprecated_upgrade_mode_recheck_bandwidth(
+        //                     self.gateway_id().to_string(),
+        //                     err,
+        //                 )
+        //             })?;
+        //         Ok(upgrade_mode_enabled)
+        //     }
+        //     TemporaryBandwidthClient::Latest(metadata_client) => {
+        //         let upgrade_mode_enabled = metadata_client
+        //             .check_upgrade_mode(upgrade_mode_jwt)
+        //             .await
+        //             .map_err(|err| {
+        //                 SpecificGatewayError::from_upgrade_mode_recheck_bandwidth(
+        //                     self.gateway_id().to_string(),
+        //                     err,
+        //                 )
+        //             })?;
+        //         Ok(upgrade_mode_enabled)
+        //     }
+        // }
     }
 }
 
@@ -680,30 +684,32 @@ impl BandwidthController {
         &mut self,
         entry: bool,
     ) -> Result<bool, UpgradeModeRecheckError> {
-        let bw_client = if entry {
-            &mut self.wg_entry_gateway_client
-        } else {
-            &mut self.wg_exit_gateway_client
-        };
-
-        let Some(upgrade_mode_jwt) = self
-            .ticket_provider
-            .get_upgrade_mode_token()
-            .await
-            .map_err(|source| UpgradeModeRecheckError::UpgradeModeTokenRequest {
-                gateway_id: bw_client.gateway_id().to_string(),
-                source: Box::new(source),
-            })?
-        else {
-            return Err(UpgradeModeRecheckError::UnavailableUpgradeModeToken {
-                gateway_id: bw_client.gateway_id().to_string(),
-            });
-        };
-
-        let upgrade_mode_enabled = bw_client
-            .request_upgrade_mode_recheck(upgrade_mode_jwt)
-            .await?;
-        Ok(upgrade_mode_enabled)
+        let _ = entry;
+        Ok(false)
+        // let bw_client = if entry {
+        //     &mut self.wg_entry_gateway_client
+        // } else {
+        //     &mut self.wg_exit_gateway_client
+        // };
+        //
+        // let Some(upgrade_mode_jwt) = self
+        //     .ticket_provider
+        //     .get_upgrade_mode_token()
+        //     .await
+        //     .map_err(|source| UpgradeModeRecheckError::UpgradeModeTokenRequest {
+        //         gateway_id: bw_client.gateway_id().to_string(),
+        //         source: Box::new(source),
+        //     })?
+        // else {
+        //     return Err(UpgradeModeRecheckError::UnavailableUpgradeModeToken {
+        //         gateway_id: bw_client.gateway_id().to_string(),
+        //     });
+        // };
+        //
+        // let upgrade_mode_enabled = bw_client
+        //     .request_upgrade_mode_recheck(upgrade_mode_jwt)
+        //     .await?;
+        // Ok(upgrade_mode_enabled)
     }
 
     async fn handle_bandwidth_query_error(&mut self, entry: bool, err: SpecificGatewayError) {
@@ -741,6 +747,12 @@ impl BandwidthController {
     ) -> Option<Duration> {
         let remaining_bandwidth = query_result.bandwidth_bytes;
         let gw_upgrade_mode = query_result.upgrade_mode;
+
+        if gw_upgrade_mode.is_some() {
+            // this should be impossible as we do not support responses setting this field
+            error!("impossible situation: gateway upgrade mode field is set")
+        }
+
         let gateway_id = self.gateway_id(entry);
 
         self.successful_checks += 1;
