@@ -31,6 +31,7 @@ export const TelegramUrl = 'https://nym.com/go/telegram';
 export const DiscordInviteUrl = 'https://nym.com/go/discord';
 export const FaqUrl = 'https://support.nym.com/hc';
 export const ContactSupportUrl = 'https://support.nym.com/hc/requests/new';
+export const TranslationHelpUrl = 'https://crowdin.com/editor/nymvpn-apps';
 export const ToSUrl = 'https://nym.com/vpn-terms';
 export const PrivacyPolicyUrl = 'https://nym.com/vpn-privacy-statement';
 export const LocationDetailsArticle =

@@ -4,21 +4,29 @@
     "desc": "Auto connect at app startup"
   },
   "ipv6-support": {
-    "title": "IPv6 traffic tunneling",
-    "desc": "Disable to only use IPv4"
+    "title": "Support IPv6",
+    "desc": "Allow IPv6 connections"
   },
   "notifications": {
     "title": "Desktop notifications"
   },
   "monitoring-alert": "You should restart the app and daemon service for the change to take effect.",
   "support": {
+    "intro": {
+      "title": "⚠️ Protect yourself from scams",
+      "description": "Only contact NymVPN support through the official channels listed below. We will never ask for your passphrase or contact you first via direct messages.\n\nReceived unexpected contact? It's likely a scam."
+    },
     "title": "Support & feedback",
     "faq": "Check the FAQ",
-    "contact": "Contact support",
+    "contact": "Contact us",
     "telegram": "Chat on Telegram",
     "github": "Open a GitHub issue",
     "matrix": "Join us on Matrix",
-    "discord": "Join us on Discord"
+    "discord": "Join us on Discord",
+    "help": {
+      "title": "Help with translation",
+      "description": "Make the app better in your language."
+    }
   },
   "legal": {
     "title": "Legal",
@@ -31,7 +39,6 @@
   },
   "logs": {
     "title": "Logs (stored locally)",
-    "desc": "Copy or delete logs",
     "app": "App logs",
     "daemon": "Daemon logs"
   },
@@ -61,9 +68,9 @@
   "faq": "FAQ",
   "display-theme": "Display mode",
   "logout-confirmation": {
-    "title": "Are you sure?",
-    "description": "You will need your access code to reconnect your device.",
-    "logging-out": "Logging out…"
+    "title": "Log out of this device?",
+    "description": "You’ll need your 24-word passphrase to sign in again.",
+    "logging-out": "Logging out"
   },
   "quit": "Quit NymVPN",
   "login-button": "Connect device",
@@ -75,8 +82,8 @@
     "device-id": "Device ID"
   },
   "autostart": {
-    "title": "Autostart",
-    "desc": "Launch NymVPN when system starts"
+    "title": "Launch on device startup",
+    "desc": "Start app when device boots"
   },
   "killswitch": {
     "title": "Killswitch",
