@@ -77,6 +77,10 @@ constructor(
 		settingsRepository.setIsStreamServerBannerDisplayed(true)
 	}
 
+	fun onPerAppSecurityBannerDisplayed() = viewModelScope.launch {
+		settingsRepository.setIsPerAppSecurityBannerDisplayed(true)
+	}
+
 	fun onTunnelStateChanged(tunnelState: Tunnel.State, connectedAt: Long?) {
 		if (tunnelState == Tunnel.State.Up && connectedAt != null) {
 			startConnectionTimer(connectedAt)

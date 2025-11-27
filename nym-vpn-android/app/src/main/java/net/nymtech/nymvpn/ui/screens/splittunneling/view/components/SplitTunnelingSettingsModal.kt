@@ -1,76 +1,73 @@
-package net.nymtech.nymvpn.ui.screens.settings.logs.modal
+package net.nymtech.nymvpn.ui.screens.splittunneling.view.components
 
-import android.content.res.Configuration
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun LogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, title: String, description: String, buttonText: String, icon: ImageVector) {
+internal fun SplitTunnelingSettingModal(showModal: Boolean, onApplyNowClick: () -> Unit, onNextConnectionApplyClick: () -> Unit) {
 	Modal(
-		show = show,
-		onDismiss = onDismiss,
-		icon = icon,
+		show = showModal,
+		onDismiss = {},
 		title = {
 			Text(
-				text = title,
-				style = CustomTypography.labelHuge,
+				text = stringResource(R.string.split_tunnel_changes_confirm_modal_title),
+				style = CustomTypography.titleMediumPlus,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
 		text = {
-			Text(
-				description,
-				textAlign = TextAlign.Center,
-				style = MaterialTheme.typography.bodyMedium,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			)
+			Column {
+				Text(
+					text = stringResource(R.string.split_tunnel_changes_confirm_modal_desc),
+					style = MaterialTheme.typography.bodyMedium,
+					textAlign = TextAlign.Center,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				)
+			}
 		},
 		confirmButton = {
 			MainStyledButton(
-				onClick = onConfirm,
+				onClick = onApplyNowClick,
 				content = {
 					Text(
-						buttonText,
+						stringResource(R.string.split_tunnel_changes_confirm_modal_primary_btn_label),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = MaterialTheme.colorScheme.onSurface,
+						color = Color.Black,
 					)
 				},
 				modifier = Modifier
 					.fillMaxWidth()
 					.height(40.dp.scaledHeight()),
-				color = CustomColors.buttonRedTransparent,
-				borderStroke = BorderStroke(width = 1.dp, color = CustomColors.buttonRedTransparentBorder),
 			)
 		},
 		dismissButton = {
 			TransparentButton(
-				onClick = onDismiss,
+				onClick = onNextConnectionApplyClick,
 				content = {
 					Text(
-						stringResource(R.string.cancel),
+						stringResource(R.string.split_tunnel_changes_confirm_modal_text_btn_label),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						color = MaterialTheme.colorScheme.onSurface,
 					)
@@ -80,21 +77,14 @@ fun LogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, title
 					.height(40.dp.scaledHeight()),
 			)
 		},
+		icon = Icons.AutoMirrored.Outlined.CallSplit,
 	)
 }
 
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-internal fun PreviewLogsModal() {
+@PreviewLightDark
+private fun ExitServerDetailsModalPreview() {
 	NymVPNTheme(Theme.default()) {
-		LogsModal(
-			show = true,
-			{},
-			{},
-			title = stringResource(R.string.logs_delete_title),
-			description = stringResource(R.string.logs_delete_description),
-			buttonText = stringResource(R.string.logs_delete_title),
-			icon = Icons.Outlined.Delete,
-		)
+		SplitTunnelingSettingModal(true, onApplyNowClick = {}, onNextConnectionApplyClick = {})
 	}
 }

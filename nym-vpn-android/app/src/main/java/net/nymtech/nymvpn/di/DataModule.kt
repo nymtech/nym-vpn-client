@@ -9,9 +9,11 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.SplitTunnelingRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreGatewayRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.data.datastore.DataStoreSettingsRepository
+import net.nymtech.nymvpn.data.datastore.DataStoreSplitTunnelingRepository
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import javax.inject.Singleton
 
@@ -34,5 +36,11 @@ class DataModule {
 	@Provides
 	fun provideGatewayRepository(dataStoreManager: DataStoreManager): GatewayRepository {
 		return DataStoreGatewayRepository(dataStoreManager)
+	}
+
+	@Singleton
+	@Provides
+	fun provideSplitTunnelingRepository(dataStoreManager: DataStoreManager): SplitTunnelingRepository {
+		return DataStoreSplitTunnelingRepository(dataStoreManager)
 	}
 }

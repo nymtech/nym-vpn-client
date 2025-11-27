@@ -20,12 +20,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun SettingsSection(
-	statsEnabled: Boolean,
-	sentryEnabled: Boolean,
-	onNetworkStatsEnable: (enabled: Boolean) -> Unit,
-	onMonitoringEnable: (enabled: Boolean) -> Unit,
-) {
+fun SettingsSection(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStatsEnable: (enabled: Boolean) -> Unit, onMonitoringEnable: (enabled: Boolean) -> Unit) {
 	SettingsGroup(
 		modifier = Modifier.padding(top = 12.dp, bottom = 12.dp),
 		items = listOf(
