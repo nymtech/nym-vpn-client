@@ -112,7 +112,7 @@ function Logout() {
               'flex flex-col flex-nowrap justify-center mt-2 w-full gap-3',
             )}
           >
-            <Button onClick={logout} className="min-w-32" color="red">
+            <Button onClick={logout} className="min-w-32" color="red" outline>
               {logoutCopy}
             </Button>
             <Button onClick={onClose} className="min-w-32" outline color="gray">

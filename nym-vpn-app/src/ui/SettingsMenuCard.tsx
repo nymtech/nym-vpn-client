@@ -18,21 +18,6 @@ export type SettingsMenuCardProps = {
   color?: 'normal' | 'red';
 };
 
-const getColorStyles = (color: 'normal' | 'red', noHoverEffect?: boolean) => {
-  const styles = {
-    normal: {
-      base: 'bg-white dark:bg-charcoal',
-      hover: 'hover:bg-white/60 dark:hover:bg-charcoal/85',
-    },
-    red: {
-      base: 'border-aphrodisiac border bg-aphrodisiac/10 dark:bg-aphrodisiac/10',
-      hover: 'hover:bg-aphrodisiac/10 dark:hover:bg-aphrodisiac/20',
-    },
-  };
-
-  return styles[color].base + (noHoverEffect ? '' : ` ${styles[color].hover}`);
-};
-
 function SettingsMenuCard({
   title,
   leadingIcon,
@@ -48,12 +33,20 @@ function SettingsMenuCard({
   noHoverEffect,
   color = 'normal',
 }: SettingsMenuCardProps) {
-  const colorStyles = getColorStyles(color, noHoverEffect);
-
   return (
     <div
       className={clsx([
-        colorStyles,
+        // normal color
+        color === 'normal' && 'bg-white dark:bg-charcoal',
+        color === 'normal' &&
+          !noHoverEffect &&
+          'hover:bg-white/60 dark:hover:bg-charcoal/85',
+        // red color
+        color === 'red' &&
+          'border-aphrodisiac border bg-aphrodisiac/10 dark:bg-aphrodisiac/10',
+        color === 'red' &&
+          !noHoverEffect &&
+          'hover:bg-aphrodisiac/20 dark:hover:bg-aphrodisiac/20',
         'flex flex-row justify-between items-center gap-4 select-none',
         'px-5 rounded-lg min-h-16',
         description ? 'py-2' : 'py-4',

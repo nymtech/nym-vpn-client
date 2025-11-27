@@ -58,9 +58,8 @@ function Button({
         ];
       case 'red':
         return [
-          'bg-aphrodisiac/10 data-hover:bg-aphrodisiac/85 border border-aphrodisiac outline-aphrodisiac',
-          'dark:data-hover:bg-aphrodisiac/20',
-          'text-aphrodisiac dark:text-white',
+          'bg-aphrodisiac data-hover:bg-aphrodisiac/85',
+          'dark:data-hover:bg-aphrodisiac/80',
         ];
     }
   };
@@ -68,9 +67,11 @@ function Button({
   const getOutlineColorStyle = () => {
     switch (color) {
       case 'malachite':
-        return 'border border-malachite outline-malachite';
+        return 'border border-malachite outline-malachite data-hover:ring-1 data-hover:ring-malachite';
       case 'red':
-        return 'border border-aphrodisiac outline-aphrodisiac';
+        return 'bg-aphrodisiac/10 data-hover:bg-aphrodisiac/85 border border-aphrodisiac outline-aphrodisiac dark:data-hover:bg-aphrodisiac/20';
+      case 'gray':
+        return 'data-hover:border-iron dark:data-hover:text-bombay data-hover:ring-1 data-hover:ring-malachite';
       default:
         // TODO add style for other colors
         return null;
@@ -86,7 +87,7 @@ function Button({
       case 'cornflower':
         return 'text-cornflower';
       case 'red':
-        return 'text-aphrodisiac';
+        return 'text-aphrodisiac dark:text-white';
     }
   };
 
@@ -101,7 +102,6 @@ function Button({
         outline ? getOutlineTextColor() : 'text-black dark:text-baltic-sea',
         'focus:outline-hidden',
         'transition data-disabled:opacity-60 data-active:ring-0',
-        outline && 'data-hover:ring-1 data-hover:ring-malachite',
         'tracking-normal cursor-default',
         colorStyle,
         className && className,
