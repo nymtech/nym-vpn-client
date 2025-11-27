@@ -69,7 +69,11 @@ import CountriesManagerTypes
 
     @AppStorage(AppSettingKey.lanBypass.rawValue)
     public var isLanBypassEnabled = false {
-        didSet { isLanBypassEnabledPublisher = isLanBypassEnabled }
+        didSet {
+            DispatchQueue.main.async {
+                self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
+            }
+        }
     }
 
     @AppStorage(AppSettingKey.statistics.rawValue)
@@ -105,7 +109,7 @@ import CountriesManagerTypes
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
         self.isQuicEnabledPublisher = self.isQuicEnabled
-        self.shouldReconnect = self.shouldReconnect
+        self.shouldReconnectPublisher = self.shouldReconnect
         self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
     }
 }
