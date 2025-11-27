@@ -7,6 +7,10 @@
     "title": "IPv6 traffic tunneling",
     "desc": "Disable to only use IPv4"
   },
+  "allow-lan": {
+    "title": "Allow LAN traffic",
+    "desc": "Allow local network access"
+  },
   "notifications": {
     "title": "Desktop notifications"
   },

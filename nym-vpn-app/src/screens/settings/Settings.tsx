@@ -13,7 +13,7 @@ import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support } = useMainState();
+  const { desktopNotifications, ipv6Support, allowLan } = useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -31,6 +31,16 @@ function Settings() {
     try {
       await invoke('set_no_ipv6', { enabled: !switched });
       dispatch({ type: 'set-ipv6-support', enabled: switched });
+    } catch {
+      /* TODO */
+    }
+  };
+
+  const handleAllowLan = async () => {
+    const switched = !allowLan;
+    try {
+      await invoke('set_allow_lan', { enabled: switched });
+      dispatch({ type: 'set-allow-lan', enabled: switched });
     } catch {
       /* TODO */
     }
@@ -84,6 +94,13 @@ function Settings() {
             trailing: (
               <Switch checked={ipv6Support} onChange={handleIpv6Support} />
             ),
+          },
+          {
+            title: t('allow-lan.title'),
+            desc: t('allow-lan.desc'),
+            leadingIcon: 'lan',
+            onClick: handleAllowLan,
+            trailing: <Switch checked={allowLan} onChange={handleAllowLan} />,
           },
           {
             title: t('killswitch.title'),

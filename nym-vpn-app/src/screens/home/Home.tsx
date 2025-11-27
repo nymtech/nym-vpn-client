@@ -46,7 +46,6 @@ function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation('home');
   const loading = state === 'disconnecting';
-  const hopSelectDisabled = daemonStatus === 'down' || state !== 'disconnected';
   const needAPlan =
     daemonStatus !== 'down' &&
     state === 'disconnected' &&
@@ -224,16 +223,14 @@ function Home() {
                   gatewayId={entryGwId}
                   onClick={() => goToNodeList('entry')}
                   nodeHop="entry"
-                  disabled={hopSelectDisabled}
-                  locked={daemonStatus === 'down'}
+                  disabled={daemonStatus === 'down'}
                 />
                 <HopSelect
                   node={exitNode}
                   gatewayId={exitGwId}
                   onClick={() => goToNodeList('exit')}
                   nodeHop="exit"
-                  disabled={hopSelectDisabled}
-                  locked={daemonStatus === 'down'}
+                  disabled={daemonStatus === 'down'}
                 />
               </div>
             </div>

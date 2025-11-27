@@ -26,7 +26,6 @@ type HopSelectProps = {
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
-  locked?: boolean;
 };
 
 type SelectedNodeProps = {
@@ -44,7 +43,6 @@ export default function HopSelect({
   gatewayId,
   onClick,
   disabled,
-  locked,
 }: HopSelectProps) {
   const { backendFlags, vpnMode, tunnel, connectingState } = useMainState();
   const { lookupGw } = useGateways();
@@ -247,7 +245,7 @@ export default function HopSelect({
         'text-baltic-sea dark:text-white',
         'border border-bombay dark:border-iron rounded-lg',
         'relative transition select-none cursor-default',
-        locked && 'opacity-50',
+        disabled && 'opacity-50',
       ])}
       role="presentation"
     >
@@ -264,7 +262,7 @@ export default function HopSelect({
       <Button
         className={clsx([
           'flex flex-1 pl-4 items-center justify-center h-full py-3 rounded-none rounded-l-lg',
-          !locked && 'hover:text-white/80',
+          !disabled && 'hover:text-white/80',
         ])}
         onClick={handleClick}
         onKeyDown={handleClick}
@@ -275,7 +273,7 @@ export default function HopSelect({
         <Button
           className={clsx(
             'h-11 w-11 my-2 mr-2 flex items-center justify-center rounded-full',
-            !locked && 'hover:bg-mercury dark:hover:bg-mine-shaft',
+            !disabled && 'hover:bg-mercury dark:hover:bg-mine-shaft',
           )}
           onClick={handleDetailsClick}
           onKeyDown={handleDetailsClick}
