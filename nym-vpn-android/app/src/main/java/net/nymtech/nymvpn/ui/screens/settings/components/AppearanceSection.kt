@@ -1,161 +1,223 @@
 package net.nymtech.nymvpn.ui.screens.settings.components
 
-import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowRight
-import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
-import androidx.compose.material.icons.outlined.AppShortcut
+import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.PrivacyTip
+import androidx.compose.material.icons.outlined.RocketLaunch
+import androidx.compose.material.icons.outlined.ViewComfy
+import androidx.compose.material.icons.rounded.ViewComfy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.tooling.preview.Preview
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
-import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.screens.settings.SettingsViewModel
+import net.nymtech.nymvpn.ui.screens.settings.SettingsActions
+import net.nymtech.nymvpn.ui.screens.settings.SettingsValues
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
-import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun AppearanceSection(appUiState: AppUiState, viewModel: SettingsViewModel, context: Context) {
-	val navController = LocalNavController.current
-	val items = mutableListOf(
-		SelectionItem(
-			leading = {
-				Icon(
-					Icons.AutoMirrored.Outlined.ViewQuilt,
-					stringResource(R.string.appearance),
-					modifier = Modifier.size(iconSize.scaledWidth()),
-				)
-			},
-			trailing = {
-				Icon(
-					Icons.AutoMirrored.Outlined.ArrowRight,
-					stringResource(R.string.go),
-					modifier = Modifier.size(iconSize),
-				)
-			},
-			title = {
-				Text(
-					stringResource(R.string.appearance),
-					style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-				)
-			},
-			onClick = { navController.navigate(Route.Appearance) },
-		),
-		SelectionItem(
-			leading = {
-				Icon(
-					Icons.Outlined.PrivacyTip,
-					stringResource(R.string.privacy_title),
-					modifier = Modifier.size(iconSize.scaledWidth()),
-				)
-			},
-			trailing = {
-				Icon(
-					Icons.AutoMirrored.Outlined.ArrowRight,
-					stringResource(R.string.go),
-					modifier = Modifier.size(iconSize),
-				)
-			},
-			title = {
-				Text(
-					stringResource(R.string.privacy_title),
-					style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-				)
-			},
-			onClick = { navController.navigate(Route.Privacy) },
-		),
-		SelectionItem(
-			leading = {
-				Icon(
-					Icons.Outlined.Notifications,
-					stringResource(R.string.notifications),
-					modifier = Modifier.size(iconSize.scaledWidth()),
-				)
-			},
-			trailing = {
-				Icon(
-					Icons.AutoMirrored.Outlined.ArrowRight,
-					stringResource(R.string.go),
-					modifier = Modifier.size(iconSize),
-				)
-			},
-			title = {
-				Text(
-					stringResource(R.string.notifications),
-					style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-				)
-			},
-			onClick = { context.launchNotificationSettings() },
-		),
-		SelectionItem(
-			leading = {
-				Icon(
-					Icons.Outlined.BatterySaver,
-					stringResource(R.string.battery_opt),
-					modifier = Modifier.size(iconSize.scaledWidth()),
-				)
-			},
-			trailing = {
-				Icon(
-					Icons.AutoMirrored.Outlined.ArrowRight,
-					stringResource(R.string.go),
-					modifier = Modifier.size(iconSize),
-				)
-			},
-			title = {
-				Text(
-					stringResource(R.string.battery_opt),
-					style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-				)
-			},
-			onClick = { context.launchBatteryOptSettingsScreen() },
-		),
-	).apply {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
+	SettingsGroup(
+		items = buildList {
 			add(
 				SelectionItem(
 					leading = {
 						Icon(
-							Icons.Outlined.AppShortcut,
-							stringResource(R.string.app_shortcuts),
+							Icons.Outlined.RocketLaunch,
+							stringResource(R.string.settings_device_startup_title),
 							modifier = Modifier.size(iconSize.scaledWidth()),
+							tint = MaterialTheme.colorScheme.outline,
 						)
 					},
 					trailing = {
 						ScaledSwitch(
-							checked = appUiState.settings.isShortcutsEnabled,
-							onClick = { viewModel.onAppShortcutsSelected(it) },
+							checked = values.appDeviceStartupEnabled,
+							onClick = actions.onDeviceStartupEnable,
 						)
 					},
 					title = {
 						Text(
-							stringResource(R.string.app_shortcuts),
+							stringResource(R.string.settings_device_startup_title),
 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 						)
 					},
 					description = {
 						Text(
-							stringResource(R.string.enable_shortcuts),
-							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+							stringResource(R.string.settings_device_startup_description),
+							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
 						)
 					},
 				),
 			)
-		}
+			add(
+				SelectionItem(
+					leading = {
+						Icon(
+							ImageVector.vectorResource(R.drawable.ic_system_tray),
+							stringResource(R.string.settings_system_tray_title),
+							modifier = Modifier.size(iconSize.scaledWidth()),
+							tint = MaterialTheme.colorScheme.outline,
+						)
+					},
+					trailing = {
+						ScaledSwitch(
+							checked = values.appSystemTrayEnabled,
+							onClick = actions.onSystemTrayEnable,
+						)
+					},
+					title = {
+						Text(
+							stringResource(R.string.settings_system_tray_title),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
+					description = {
+						Text(
+							stringResource(R.string.settings_system_tray_description),
+							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+						)
+					},
+				),
+			)
+			add(
+				SelectionItem(
+					leading = {
+						Icon(
+							Icons.Outlined.ViewComfy,
+							stringResource(R.string.appearance),
+							modifier = Modifier.size(iconSize.scaledWidth()),
+							tint = MaterialTheme.colorScheme.outline,
+						)
+					},
+					trailing = {
+						Icon(
+							Icons.AutoMirrored.Outlined.ArrowRight,
+							stringResource(R.string.go),
+							modifier = Modifier.size(iconSize),
+							tint = MaterialTheme.colorScheme.onBackground,
+						)
+					},
+					title = {
+						Text(
+							stringResource(R.string.appearance),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
+					onClick = actions.onAppearanceClick,
+				),
+			)
+			add(
+				SelectionItem(
+					leading = {
+						Icon(
+							Icons.Outlined.Notifications,
+							stringResource(R.string.notifications),
+							modifier = Modifier.size(iconSize.scaledWidth()),
+							tint = MaterialTheme.colorScheme.outline,
+						)
+					},
+					trailing = {
+						Icon(
+							Icons.AutoMirrored.Outlined.ArrowRight,
+							stringResource(R.string.go),
+							modifier = Modifier.size(iconSize),
+							tint = MaterialTheme.colorScheme.onBackground,
+						)
+					},
+					title = {
+						Text(
+							stringResource(R.string.notifications),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
+					onClick = actions.onNotificationsClick,
+				),
+			)
+			add(
+				SelectionItem(
+					leading = {
+						Icon(
+							Icons.Outlined.BatterySaver,
+							stringResource(R.string.battery_opt),
+							modifier = Modifier.size(iconSize.scaledWidth()),
+							tint = MaterialTheme.colorScheme.outline,
+						)
+					},
+					trailing = {
+						Icon(
+							Icons.AutoMirrored.Outlined.ArrowRight,
+							stringResource(R.string.go),
+							modifier = Modifier.size(iconSize),
+							tint = MaterialTheme.colorScheme.onBackground,
+						)
+					},
+					title = {
+						Text(
+							stringResource(R.string.battery_opt),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
+					onClick = actions.onBatterySettingsClick,
+				),
+			)
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+				add(
+					SelectionItem(
+						leading = {
+							Icon(
+								Icons.Outlined.Apps,
+								stringResource(R.string.app_shortcuts),
+								modifier = Modifier.size(iconSize.scaledWidth()),
+								tint = MaterialTheme.colorScheme.outline,
+							)
+						},
+						trailing = {
+							ScaledSwitch(
+								checked = values.appShortcutsEnabled,
+								onClick = actions.onShortcutsEnable,
+							)
+						},
+						title = {
+							Text(
+								stringResource(R.string.app_shortcuts),
+								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+							)
+						},
+						description = {
+							Text(
+								stringResource(R.string.enable_shortcuts),
+								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+							)
+						},
+					),
+				)
+			}
+		},
+	)
+}
+
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+internal fun PreviewAppearanceSections() {
+	NymVPNTheme(Theme.default()) {
+		AppearanceSection(
+			SettingsValues(),
+			SettingsActions(),
+		)
 	}
-	SettingsGroup(items = items)
 }

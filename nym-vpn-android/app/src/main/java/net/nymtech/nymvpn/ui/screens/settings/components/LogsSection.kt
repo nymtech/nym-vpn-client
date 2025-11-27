@@ -3,7 +3,9 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.outlined.ArrowRight
+import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,12 +18,21 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LegalSection(onLegalClick: () -> Unit) {
+fun LogsSection(onLogsClick: () -> Unit, onPrivacyClick: () -> Unit) {
 	SettingsGroup(
 		items = listOf(
 			SelectionItem(
+				leading = {
+					Icon(
+						Icons.AutoMirrored.Default.Notes,
+						stringResource(R.string.local_logs),
+						modifier = Modifier.size(iconSize.scaledWidth()),
+						tint = MaterialTheme.colorScheme.outline,
+					)
+				},
 				trailing = {
 					Icon(
 						Icons.AutoMirrored.Outlined.ArrowRight,
@@ -32,11 +43,36 @@ fun LegalSection(onLegalClick: () -> Unit) {
 				},
 				title = {
 					Text(
-						stringResource(R.string.legal),
+						stringResource(R.string.local_logs),
 						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 					)
 				},
-				onClick = onLegalClick,
+				onClick = onLogsClick,
+			),
+			SelectionItem(
+				leading = {
+					Icon(
+						Icons.Outlined.PrivacyTip,
+						stringResource(R.string.privacy_title),
+						modifier = Modifier.size(iconSize.scaledWidth()),
+						tint = MaterialTheme.colorScheme.outline,
+					)
+				},
+				trailing = {
+					Icon(
+						Icons.AutoMirrored.Outlined.ArrowRight,
+						stringResource(R.string.go),
+						modifier = Modifier.size(iconSize),
+						tint = MaterialTheme.colorScheme.onBackground,
+					)
+				},
+				title = {
+					Text(
+						stringResource(R.string.privacy_title),
+						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+					)
+				},
+				onClick = onPrivacyClick,
 			),
 		),
 	)
@@ -44,8 +80,8 @@ fun LegalSection(onLegalClick: () -> Unit) {
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-internal fun PreviewLegalSection() {
+internal fun PreviewLogsSection() {
 	NymVPNTheme(Theme.default()) {
-		LegalSection {}
+		LogsSection({}, {})
 	}
 }
