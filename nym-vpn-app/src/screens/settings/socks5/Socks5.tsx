@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSocks5, useMainState } from '../../../contexts';
-import { getSocks5StateLabel, Socks5State } from '../../../types';
 import {
   Button,
   CardSwitch,
@@ -39,14 +38,9 @@ function Socks5() {
     }
   }, [status]);
 
-  const isEnabled =
-    !!status?.state &&
-    status?.state !== Socks5State.Disabled &&
-    status?.state !== Socks5State.Unknown;
-  const isConnected =
-    status?.state === Socks5State.Idle ||
-    status?.state === Socks5State.Connected;
-  const hasError = status?.state === Socks5State.Error;
+  const isEnabled = !!status?.state && status?.state !== 'disabled';
+  const isConnected = status?.state === 'idle' || status?.state === 'connected';
+  const hasError = status?.state === 'error';
   const socks5Url = status?.socks5Settings?.listenAddress
     ? `socks5h://${status.socks5Settings.listenAddress}`
     : null;
@@ -124,7 +118,7 @@ function Socks5() {
 
   // get status badge
   const getStatusBadge = () => {
-    const label = status ? getSocks5StateLabel(status.state) : 'Unknown';
+    const label = status ? status.state : 'unknown';
     return (
       <span
         className={`text-xs font-medium px-2 py-1 rounded ${getStatusColor()}`}
