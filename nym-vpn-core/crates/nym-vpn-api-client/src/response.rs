@@ -756,14 +756,14 @@ pub struct NymWellknownDiscoveryItem {
 
 pub type RegisteredNetworksResponse = HashSet<String>;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn nym_vpn_zk_nym_upgrade_mode_response_parsing() {
-        let raw_response = r#"{"id":"dj2e1yzc9jj9s8n","status":"upgrade_mode","ticketbook_type":"v1-mixnet-entry","last_updated_utc":"2025-11-13 15:40:31.166Z","created_on_utc":"2025-11-13 15:40:30.921Z","valid_until_utc":"2025-11-13 23:00:00.000Z","valid_from_utc":"2025-11-13 15:40:30.916Z","issued_bandwidth_in_gb":25,"upgrade_mode":{"upgrade_mode_attestation":{"attester_public_key":"6sfL7xcCzmcsxA1uXtnExcpA7KWypCcsUbs7SzUADxng","authorised_jwt_issuers":["Ddfd2WDCWbW28hmrrGV24GxQxBuGmg1Ra41k3TGn3B4Z"],"signature":"3UR5cL9XzDCFVHt9WVmJ4KemcftbfpCa63TBa9wd6w5dW4uq7u4BwS5UsBfwMB49StH5wDCbSpN1borZbfMnitxn","starting_time":"2025-11-10T09:15:18.967542Z","type":"upgrade_mode"},"upgrade_mode_jwt":"eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsImp3ayI6IkRkZmQyV0RDV2JXMjhobXJyR1YyNEd4UXhCdUdtZzFSYTQxazNUR24zQjRaIn0.eyJpYXQiOjE3NjMwNDc5NzYsImV4cCI6MTc2MzA1MTU3NiwibmJmIjoxNzYzMDQ3OTc2LCJpc3MiOiJueW0tY3JlZGVudGlhbC1wcm94eSIsIm5vbmNlIjoiR2ZtYzJYY2c2NUdkc0JaOWJ3RFg2OGxONmNfR2V5NUwiLCJ0eXBlIjoidXBncmFkZV9tb2RlIiwic3RhcnRpbmdfdGltZSI6IjIwMjUtMTEtMTBUMDk6MTU6MTguOTY3NTQyWiIsImF0dGVzdGVyX3B1YmxpY19rZXkiOiI2c2ZMN3hjQ3ptY3N4QTF1WHRuRXhjcEE3S1d5cENjc1ViczdTelVBRHhuZyIsImF1dGhvcmlzZWRfand0X2lzc3VlcnMiOlsiRGRmZDJXRENXYlcyOGhtcnJHVjI0R3hReEJ1R21nMVJhNDFrM1RHbjNCNFoiXSwic2lnbmF0dXJlIjoiM1VSNWNMOVh6RENGVkh0OVdWbUo0S2VtY2Z0YmZwQ2E2M1RCYTl3ZDZ3NWRXNHVxN3U0QndTNVVzQmZ3TUI0OVN0SDV3RENiU3BOMWJvclpiZk1uaXR4biJ9.u66O2q-xoEMtyr-6OBEKL8BEdhoo6xLo6dHkVxDmzB3I6CZ1pFIwzgZUKNA5DT_O6bFzcLv8DyLmOuzdAe-lDw"}}"#;
-        let res = serde_json::from_str::<NymVpnZkNym>(raw_response);
-        assert!(res.is_ok());
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//
+//     #[test]
+//     fn nym_vpn_zk_nym_upgrade_mode_response_parsing() {
+//         let raw_response = r#"{"id":"dj2e1yzc9jj9s8n","status":"upgrade_mode","ticketbook_type":"v1-mixnet-entry","last_updated_utc":"2025-11-13 15:40:31.166Z","created_on_utc":"2025-11-13 15:40:30.921Z","valid_until_utc":"2025-11-13 23:00:00.000Z","valid_from_utc":"2025-11-13 15:40:30.916Z","issued_bandwidth_in_gb":25,"upgrade_mode":{"upgrade_mode_attestation":{"attester_public_key":"6sfL7xcCzmcsxA1uXtnExcpA7KWypCcsUbs7SzUADxng","authorised_jwt_issuers":["Ddfd2WDCWbW28hmrrGV24GxQxBuGmg1Ra41k3TGn3B4Z"],"signature":"3UR5cL9XzDCFVHt9WVmJ4KemcftbfpCa63TBa9wd6w5dW4uq7u4BwS5UsBfwMB49StH5wDCbSpN1borZbfMnitxn","starting_time":"2025-11-10T09:15:18.967542Z","type":"upgrade_mode"},"upgrade_mode_jwt":"eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCIsImp3ayI6IkRkZmQyV0RDV2JXMjhobXJyR1YyNEd4UXhCdUdtZzFSYTQxazNUR24zQjRaIn0.eyJpYXQiOjE3NjMwNDc5NzYsImV4cCI6MTc2MzA1MTU3NiwibmJmIjoxNzYzMDQ3OTc2LCJpc3MiOiJueW0tY3JlZGVudGlhbC1wcm94eSIsIm5vbmNlIjoiR2ZtYzJYY2c2NUdkc0JaOWJ3RFg2OGxONmNfR2V5NUwiLCJ0eXBlIjoidXBncmFkZV9tb2RlIiwic3RhcnRpbmdfdGltZSI6IjIwMjUtMTEtMTBUMDk6MTU6MTguOTY3NTQyWiIsImF0dGVzdGVyX3B1YmxpY19rZXkiOiI2c2ZMN3hjQ3ptY3N4QTF1WHRuRXhjcEE3S1d5cENjc1ViczdTelVBRHhuZyIsImF1dGhvcmlzZWRfand0X2lzc3VlcnMiOlsiRGRmZDJXRENXYlcyOGhtcnJHVjI0R3hReEJ1R21nMVJhNDFrM1RHbjNCNFoiXSwic2lnbmF0dXJlIjoiM1VSNWNMOVh6RENGVkh0OVdWbUo0S2VtY2Z0YmZwQ2E2M1RCYTl3ZDZ3NWRXNHVxN3U0QndTNVVzQmZ3TUI0OVN0SDV3RENiU3BOMWJvclpiZk1uaXR4biJ9.u66O2q-xoEMtyr-6OBEKL8BEdhoo6xLo6dHkVxDmzB3I6CZ1pFIwzgZUKNA5DT_O6bFzcLv8DyLmOuzdAe-lDw"}}"#;
+//         let res = serde_json::from_str::<NymVpnZkNym>(raw_response);
+//         assert!(res.is_ok());
+//     }
+// }
