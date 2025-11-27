@@ -3503,7 +3503,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#122397f460c26cd7eb75e9040091b2e5e53daa7b"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Fkiwi-release-mozzarella#3805c20e4e6c7fc84d4b00534bb13e0383273790"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -3544,7 +3544,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#122397f460c26cd7eb75e9040091b2e5e53daa7b"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Fkiwi-release-mozzarella#3805c20e4e6c7fc84d4b00534bb13e0383273790"
 dependencies = [
  "pem",
  "tracing",
@@ -3566,7 +3566,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#122397f460c26cd7eb75e9040091b2e5e53daa7b"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Fkiwi-release-mozzarella#3805c20e4e6c7fc84d4b00534bb13e0383273790"
 dependencies = [
  "thiserror 2.0.17",
 ]
