@@ -37,7 +37,11 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
 	Modal(
 		show = show,
-		onDismiss = onDismiss,
+		onDismiss = if (isLoggingOut) {
+			{}
+		} else {
+			onDismiss
+		},
 		icon = Icons.AutoMirrored.Default.Logout,
 		title = {
 			Text(
