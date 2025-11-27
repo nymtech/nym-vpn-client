@@ -38,6 +38,12 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
       httpRpcSettings: HttpRpcSettings,
       exit: SelectedNode,
     ) => {
+      // Prevent concurrent enable calls
+      if (isLoading) {
+        console.warn('SOCKS5 enable already in progress, ignoring duplicate call');
+        return;
+      }
+
       setIsLoading(true);
       try {
         await invoke('enable_socks5', {
@@ -54,11 +60,17 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
         setIsLoading(false);
       }
     },
-    [refresh],
+    [refresh, isLoading],
   );
 
   // disable socks5
   const disable = useCallback(async () => {
+    // Prevent concurrent disable calls
+    if (isLoading) {
+      console.warn('SOCKS5 disable already in progress, ignoring duplicate call');
+      return;
+    }
+
     setIsLoading(true);
     try {
       await invoke('disable_socks5');
@@ -70,7 +82,7 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [refresh]);
+  }, [refresh, isLoading]);
 
   // initial load and periodic polling
   useEffect(() => {

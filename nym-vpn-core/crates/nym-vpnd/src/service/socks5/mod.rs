@@ -18,7 +18,7 @@ use nym_vpn_lib_types::TunnelState;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 use tokio::{sync::RwLock, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 
 pub use config::{socks5_idle_timeout, socks5_request_timeout};
 pub use nym_vpn_lib_types::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
@@ -129,10 +129,20 @@ impl Socks5ServiceState {
             idle_timeout,
             cancel_token,
         } = config;
-        // Check if already enabled
-        if self.state != Socks5State::Disabled {
+        
+        // Prevent concurrent enable calls - if already enabled/enabling, just return success
+        if self.state == Socks5State::Idle || self.state == Socks5State::Connected {
+            warn!(
+                "SOCKS5 service already in {:?} state, ignoring duplicate enable request",
+                self.state
+            );
+            return Ok(());
+        }
+        
+        // Check if we need to clean up from error state
+        if self.state == Socks5State::Error {
             info!(
-                "Lazy SOCKS5 service is in {:?} state, cleaning up existing service first",
+                "Lazy SOCKS5 service is in {:?} state, cleaning up before re-enabling",
                 self.state
             );
             self.cleanup().await;
@@ -261,6 +271,7 @@ impl Socks5ServiceState {
 }
 
 /// Handle to the lazy SOCKS5 service
+#[derive(Clone)]
 pub struct Socks5Service {
     /// Socks5 service state
     state: Arc<RwLock<Socks5ServiceState>>,
@@ -312,6 +323,15 @@ impl Socks5Service {
     pub async fn get_status(&self) -> Result<Socks5Status, Socks5Error> {
         let state = self.state.read().await;
         Ok(state.get_status().await)
+    }
+
+    /// Check if SOCKS5 is currently enabled
+    pub fn is_enabled(&self) -> bool {
+        // Use try_read to avoid blocking - if we can't read, assume not enabled
+        self.state
+            .try_read()
+            .map(|state| state.state != Socks5State::Disabled)
+            .unwrap_or(false)
     }
 
     /// Shutdown the service

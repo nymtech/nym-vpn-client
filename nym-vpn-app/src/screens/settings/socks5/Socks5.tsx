@@ -17,7 +17,7 @@ const DefaultHttpRpcAddress = '127.0.0.1:8545';
 
 function Socks5() {
   const { status, isLoading, enable, disable } = useSocks5();
-  const { exitNode } = useMainState();
+  const { exitNode, state: vpnState } = useMainState();
   const { push } = useInAppNotify();
   const { t } = useTranslation('settings');
   const { copy } = useClipboard();
@@ -46,8 +46,29 @@ function Socks5() {
     ? `http://${status.httpRpcSettings.listenAddress}?p=<your-provider-url>`
     : null;
 
+  // Check if VPN is connected
+  const isVpnConnected = vpnState === 'connected';
+  const canEnableSocks5 = isVpnConnected && !isLoading;
+
   // enable/disable socks5
   const handleToggle = async () => {
+    // Prevent duplicate calls while loading
+    if (isLoading) {
+      return;
+    }
+
+    // Prevent enabling if VPN is not connected
+    if (!isEnabled && !isVpnConnected) {
+      push({
+        id: 'socks5-vpn-not-connected',
+        message: t('app-proxy.error-vpn-not-connected'),
+        duration: 5000,
+        close: true,
+        type: 'error',
+      });
+      return;
+    }
+
     try {
       if (isEnabled) {
         await disable();
@@ -164,10 +185,14 @@ function Socks5() {
         header={
           <CardSwitch
             header={t('app-proxy.label')}
-            subheader={t('app-proxy.description')}
+            subheader={
+              !isVpnConnected && !isEnabled
+                ? t('app-proxy.connect-vpn-first')
+                : t('app-proxy.description')
+            }
             checked={isEnabled}
             onClick={handleToggle}
-            disabled={isLoading}
+            disabled={isLoading || (!isEnabled && !canEnableSocks5)}
           />
         }
       >
