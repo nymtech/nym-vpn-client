@@ -13,14 +13,18 @@ pub trait GatewayExt {
 
 impl GatewayExt for nym_gateway_directory::Gateway {
     fn endpoints(&self) -> Vec<SocketAddr> {
-        let ws_port = self
-            .clients_wss_port
-            .or(self.clients_ws_port)
-            .unwrap_or(DEFAULT_WS_PORT);
+        let mut ports: Vec<u16> = self
+            .clients_ws_port
+            .into_iter()
+            .chain(self.clients_wss_port)
+            .collect();
+        // if neither WS nor WSS is there, default port
+        if ports.is_empty() {
+            ports = vec![DEFAULT_WS_PORT];
+        }
 
-        self.ips
-            .iter()
-            .map(|ip| SocketAddr::new(*ip, ws_port))
+        itertools::iproduct!(self.ips.clone(), ports)
+            .map(|(ip, port)| SocketAddr::new(ip, port))
             .collect::<Vec<_>>()
     }
 }
