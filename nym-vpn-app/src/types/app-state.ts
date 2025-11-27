@@ -75,7 +75,7 @@ export type AppState = {
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
-  // TODO just a boolean for now to indicate if the user has added an account
+  // just a boolean for now to indicate if the user has added an account
   account: boolean;
   accountLinks?: AccountLinks | null;
   networkCompat?: NetworkCompat | null;
@@ -84,7 +84,7 @@ export type AppState = {
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   welcomeChecked: boolean;
-  // current user setting
+  // aka bridges mode
   quic: boolean;
   // current user setting
   domainFronting: boolean;

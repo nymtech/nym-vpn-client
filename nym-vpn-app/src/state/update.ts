@@ -2,6 +2,7 @@ import {
   StateDispatch,
   TAccountState,
   TTunnelState,
+  VpndConfig,
   isAccountError,
   isTunnelConnected,
   isTunnelConnecting,
@@ -99,4 +100,29 @@ export function updateAccountState(
       });
     }
   }
+}
+
+export function updateTunnelConfig(
+  config: VpndConfig,
+  dispatch: StateDispatch,
+) {
+  console.log('tunnel config update');
+  // TODO handle entry/exit nodes changes
+
+  dispatch({
+    type: 'set-vpn-mode',
+    mode: config.vpnMode,
+  });
+  dispatch({
+    type: 'set-quic',
+    enabled: config.bridges,
+  });
+  dispatch({
+    type: 'set-ipv6-support',
+    enabled: !config.disableIpv6,
+  });
+  dispatch({
+    type: 'set-allow-lan',
+    enabled: config.allowLan,
+  });
 }

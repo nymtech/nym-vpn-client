@@ -65,6 +65,7 @@ export type StateAction =
   | { type: 'set-account-links'; links: AccountLinks | null }
   | { type: 'set-network-compat'; compat: NetworkCompat | null }
   | { type: 'set-ipv6-support'; enabled: boolean }
+  | { type: 'set-allow-lan'; enabled: boolean }
   | { type: 'set-network-stats'; enabled: boolean }
   | { type: 'set-account-state'; state: AccountState }
   | { type: 'set-account-syncing'; syncing: boolean }
@@ -179,6 +180,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         ipv6Support: action.enabled,
+      };
+    case 'set-allow-lan':
+      return {
+        ...state,
+        allowLan: action.enabled,
       };
     case 'set-desktop-notifications':
       return {
