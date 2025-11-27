@@ -15,12 +15,8 @@ mod util;
 use http_rpc::HttpRpc;
 use lazy_socks5::{LazySocks5, LazySocks5Error};
 use nym_vpn_lib_types::TunnelState;
-use std::net::SocketAddr;
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::sync::RwLock;
-use tokio::task::JoinHandle;
+use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
+use tokio::{sync::RwLock, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 
@@ -45,7 +41,7 @@ struct Socks5ServiceState {
     /// Current state
     state: Socks5State,
     /// Shared tunnel state
-    tunnel_state_shared: Arc<RwLock<TunnelState>>,
+    tunnel_state: Arc<RwLock<TunnelState>>,
     /// SOCKS5 listen address
     socks5_listen_address: String,
     /// HTTP RPC listen address
@@ -65,10 +61,10 @@ struct Socks5ServiceState {
 }
 
 impl Socks5ServiceState {
-    fn new(tunnel_state_shared: Arc<RwLock<TunnelState>>) -> Self {
+    fn new(tunnel_state: Arc<RwLock<TunnelState>>) -> Self {
         Self {
             state: Socks5State::Disabled,
-            tunnel_state_shared,
+            tunnel_state,
             socks5_listen_address: String::new(),
             http_rpc_proxy_listen_address: String::new(),
             network_requester_address: String::new(),
@@ -156,7 +152,7 @@ impl Socks5ServiceState {
             request_timeout,
             idle_timeout,
             network_requester_address.clone(),
-            self.tunnel_state_shared.clone(),
+            self.tunnel_state.clone(),
             cancel_token.child_token(),
         )?);
 
@@ -260,12 +256,9 @@ pub struct Socks5Service {
 
 impl Socks5Service {
     /// Create a new lazy SOCKS5 service (starts in disabled state)
-    pub fn new(
-        tunnel_state_shared: Arc<RwLock<TunnelState>>,
-        shutdown_token: CancellationToken,
-    ) -> Self {
+    pub fn new(tunnel_state: Arc<RwLock<TunnelState>>, shutdown_token: CancellationToken) -> Self {
         Self {
-            state: Arc::new(RwLock::new(Socks5ServiceState::new(tunnel_state_shared))),
+            state: Arc::new(RwLock::new(Socks5ServiceState::new(tunnel_state))),
             shutdown_token,
         }
     }

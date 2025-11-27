@@ -5,9 +5,8 @@ use bip39::Mnemonic;
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
-use tokio::sync::RwLock;
 use tokio::{
-    sync::{broadcast, mpsc, oneshot, watch},
+    sync::{RwLock, broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
     time::{Duration, Instant},
 };
@@ -188,8 +187,7 @@ pub struct NymVpnService {
     target_state: TargetState,
 
     // Last known tunnel state
-    tunnel_state: TunnelState,
-    tunnel_state_shared: Arc<RwLock<TunnelState>>,
+    tunnel_state: Arc<RwLock<TunnelState>>,
 
     // Timer used to throttle changes to tunnel settings
     tunnel_settings_update_timer: Pin<Box<Fuse<tokio::time::Sleep>>>,
@@ -401,15 +399,11 @@ impl NymVpnService {
         let statistics_event_sender = statistics_controller.get_statistics_sender();
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
-        let tunnel_state = TunnelState::Disconnected;
-        // Shared state for the tunnel state
-        let tunnel_state_shared = Arc::new(RwLock::new(tunnel_state.clone()));
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
 
         // Initialize lazy SOCKS5 service (disabled by default)
-        let socks5_service = Socks5Service::new(
-            tunnel_state_shared.clone(),
-            services_shutdown_token.child_token(),
-        );
+        let socks5_service =
+            Socks5Service::new(tunnel_state.clone(), services_shutdown_token.child_token());
 
         // These used to interact with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
@@ -533,7 +527,6 @@ impl NymVpnService {
             log_path: parameters.log_path,
             target_state: TargetState::Unsecured,
             tunnel_state,
-            tunnel_state_shared,
             tunnel_settings_update_timer: Box::pin(Fuse::terminated()),
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
@@ -639,7 +632,7 @@ impl NymVpnService {
     }
 
     async fn set_target_state(&mut self, new_state: TargetState) -> bool {
-        if self.target_state != new_state || self.tunnel_state.is_error_state() {
+        if self.target_state != new_state || self.tunnel_state.read().await.is_error_state() {
             tracing::debug!("Set target state {} => {}", self.target_state, new_state);
             self.target_state = new_state;
 
@@ -686,11 +679,11 @@ impl NymVpnService {
     }
 
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
-        if let TunnelEvent::NewState(ref state) = event {
-            self.tunnel_state = state.clone();
-            // Update shared state
-            if let Ok(mut shared) = self.tunnel_state_shared.try_write() {
-                *shared = state.clone();
+        if let TunnelEvent::NewState(ref new_state) = event {
+            if let Ok(mut state) = self.tunnel_state.try_write() {
+                *state = state.clone();
+            } else {
+                tracing::error!("Failed to update tunnel state to {new_state}");
             }
         }
         if self.tunnel_event_tx.send(event).is_err() {
@@ -1285,7 +1278,7 @@ impl NymVpnService {
     }
 
     async fn handle_get_tunnel_state(&self) -> TunnelState {
-        self.tunnel_state.clone()
+        self.tunnel_state.read().await.clone()
     }
 
     async fn handle_store_account(
@@ -1344,7 +1337,7 @@ impl NymVpnService {
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.read().await != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to forget account while connected",
             ));
@@ -1364,7 +1357,7 @@ impl NymVpnService {
 
     async fn handle_rotate_keys(&mut self) -> Result<(), AccountCommandError> {
         // TODO: temporary, until key rotation can be done while connected
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.read().await != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to rotate keys while connected",
             ));
@@ -1422,7 +1415,7 @@ impl NymVpnService {
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountCommandError> {
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.read().await != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to reset device identity while connected",
             ));

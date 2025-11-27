@@ -3,17 +3,12 @@
 use super::lazy_socks5::LazySocks5;
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
-use hyper::body::Incoming;
-use hyper::server::conn::http1;
-use hyper::service::service_fn;
-use hyper::{Method, Request, Response, StatusCode};
+use hyper::{
+    Method, Request, Response, StatusCode, body::Incoming, server::conn::http1, service::service_fn,
+};
 use hyper_util::rt::TokioIo;
 use reqwest::Client;
-use std::convert::Infallible;
-use std::error::Error;
-use std::net::SocketAddr;
-use std::sync::Arc;
-use std::time::Duration;
+use std::{convert::Infallible, error::Error, net::SocketAddr, sync::Arc, time::Duration};
 use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};

@@ -3,14 +3,18 @@
 use super::util::ConnectionGuard;
 use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
 use nym_vpn_lib_types::{TunnelConnectionData, TunnelState};
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::time::Duration;
-use tokio::io::{AsyncReadExt, AsyncWriteExt, copy_bidirectional};
-use tokio::net::{TcpListener, TcpStream};
-use tokio::sync::RwLock;
-use tokio::time::{Instant, sleep};
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+    sync::Arc,
+    time::Duration,
+};
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt, copy_bidirectional},
+    net::{TcpListener, TcpStream},
+    sync::RwLock,
+    time::{Instant, sleep},
+};
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info};
 
