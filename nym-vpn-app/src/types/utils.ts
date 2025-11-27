@@ -122,7 +122,14 @@ export function isVpndNonCompat(status: VpndStatus): status is VpndNonCompat {
   return status !== 'down' && (status as VpndNonCompat).nonCompat !== undefined;
 }
 
-export type SelectableNode = SelectedNode['node'];
+export type SelectableNode =
+  | Exclude<
+      SelectedNode,
+      {
+        type: 'random';
+      }
+    >['node']
+  | 'random';
 function isGateway(node: SelectableNode): node is Gateway {
   return (
     (node as Gateway).id !== undefined && (node as Gateway).type !== undefined
@@ -136,6 +143,11 @@ function isCountry(node: SelectableNode): node is Country {
   );
 }
 export function toSelectedNode(node: SelectableNode): SelectedNode {
+  if (node === 'random') {
+    return {
+      type: 'random',
+    };
+  }
   if (isGateway(node)) {
     return {
       type: 'gateway',

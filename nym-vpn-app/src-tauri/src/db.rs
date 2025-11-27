@@ -29,7 +29,6 @@ pub enum Key {
     UiTheme,
     UiRootFontSize,
     UiLanguage,
-    VpnMode,
     EntryNode,
     ExitNode,
     WelcomeScreenSeen,

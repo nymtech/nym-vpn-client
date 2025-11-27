@@ -174,9 +174,6 @@ export function mockTauriIPC() {
         case 'welcome-screen-seen':
           res = !showWelcome;
           break;
-        case 'quic-enabled':
-          res = true;
-          break;
 
         /* 1740391345259 */
         case 'cache-mx-entry-gateways':
@@ -211,7 +208,6 @@ export function mockTauriIPC() {
           buildInfo: false,
           cleanLocalFiles: false,
           devMode: true,
-          dns: null,
           logFile: false,
           logLevel: 'trace',
         }),

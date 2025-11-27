@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
 import {
@@ -6,7 +7,6 @@ import {
   useMainState,
 } from '../../../contexts';
 import { StateDispatch } from '../../../types';
-import { kvSet } from '../../../kvStore';
 import { AmneziaWgUrl, DomainFrontingUrl, QuicUrl } from '../../../constants';
 
 function AntiCensorship() {
@@ -19,8 +19,14 @@ function AntiCensorship() {
 
   const onQuicChange = async () => {
     const isChecked = !quic;
-    await kvSet('quic-enabled', isChecked);
-    dispatch({ type: 'set-quic', enabled: isChecked });
+    try {
+      await invoke('set_quic', { enabled: isChecked });
+      dispatch({ type: 'set-quic', enabled: isChecked });
+    } catch {
+      /* TODO */
+      return;
+    }
+
     if (state == 'connected' || state == 'connecting') {
       push({
         id: `quic-switch-${isChecked}`,

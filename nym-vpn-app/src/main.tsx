@@ -8,7 +8,7 @@ import duration from 'dayjs/plugin/duration';
 import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
-import { InitState, SelectedNode, VpnMode, VpndStatus } from './types';
+import { InitState, SelectedNode, VpndConfig, VpndStatus } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
 import { getTheme } from './util';
@@ -30,6 +30,9 @@ console.log('env', window._APP);
 const devMode = window._APP.devMode;
 const startupError = window._APP.startupError;
 const defaultVpnMode = window._APP.defaultVpnMode;
+const defaultQuic = window._APP.defaultQuic;
+const defaultNoIpv6 = false;
+const defaultAllowLan = false;
 const ErrorWindowLabel = 'error';
 
 if (!import.meta.env.DEV) {
@@ -77,14 +80,21 @@ dayjs.extend(duration);
     return;
   }
 
+  const config = await invoke<VpndConfig | undefined>('get_vpn_config');
+
   // pre-get and prepare some early stage state
   const initState: InitState = {
     vpnd: (await invoke<VpndStatus | undefined>('daemon_status')) || 'down',
-    vpnMode: (await kvGet<VpnMode>('vpn-mode')) || defaultVpnMode,
+    vpnMode: config?.vpnMode || defaultVpnMode,
     uiTheme: await getTheme(),
     welcomeChecked: (await kvGet<boolean>('welcome-screen-seen')) || false,
     entryNode: (await kvGet<SelectedNode>('entry-node')) || DefaultNode,
     exitNode: (await kvGet<SelectedNode>('exit-node')) || DefaultNode,
+    quic: config?.bridges !== undefined ? config.bridges : defaultQuic,
+    noIpv6:
+      config?.disableIpv6 !== undefined ? config.disableIpv6 : defaultNoIpv6,
+    allowLan:
+      config?.allowLan !== undefined ? config.allowLan : defaultAllowLan,
   };
   console.log('initial state:', initState);
 

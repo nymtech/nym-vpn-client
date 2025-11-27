@@ -34,6 +34,7 @@ pub enum Node {
     Country(Country),
     Gateway(GatewayNode),
     Region(RegionNode),
+    Random,
 }
 
 impl TryFrom<Node> for lib::EntryPoint {
@@ -44,6 +45,7 @@ impl TryFrom<Node> for lib::EntryPoint {
             Node::Country(country) => country.into(),
             Node::Region(region) => region.into(),
             Node::Gateway(gateway) => gateway.try_into()?,
+            Node::Random => lib::EntryPoint::Random,
         })
     }
 }
@@ -56,6 +58,7 @@ impl TryFrom<Node> for lib::ExitPoint {
             Node::Country(country) => country.into(),
             Node::Region(region) => region.into(),
             Node::Gateway(gateway) => gateway.try_into()?,
+            Node::Random => lib::ExitPoint::Random,
         })
     }
 }
@@ -130,6 +133,7 @@ impl fmt::Display for Node {
             Node::Country(country) => write!(f, "country {country}"),
             Node::Region(region) => write!(f, "region {region}"),
             Node::Gateway(gateway) => write!(f, "gateway {gateway}"),
+            Node::Random => write!(f, "random"),
         }
     }
 }

@@ -28,6 +28,15 @@ type HopSelectProps = {
   locked?: boolean;
 };
 
+type SelectedNodeProps = {
+  countryCode?: countryCode;
+  name: string;
+  subInfo?: string | null;
+  animate?: boolean;
+  quic?: boolean;
+  streamOptimized?: boolean;
+};
+
 export default function HopSelect({
   nodeHop,
   node,
@@ -80,16 +89,14 @@ export default function HopSelect({
         );
       case 'gateway':
         return getGatewayInfo(selected.node, gateway);
+      case 'random':
+        return {
+          name: t('fastest', { ns: 'common' }),
+          animate: false,
+          quic: gateway?.quic,
+          streamOptimized: gateway?.asn?.type === 'residential',
+        };
     }
-  };
-
-  type SelectedNodeProps = {
-    countryCode: countryCode;
-    name: string;
-    subInfo?: string | null;
-    animate?: boolean;
-    quic?: boolean;
-    streamOptimized?: boolean;
   };
 
   const getLocationInfo = (
@@ -158,10 +165,17 @@ export default function HopSelect({
   }: SelectedNodeProps) => {
     const showQuic = quicTag && quic;
     const showStreamOptimized = nodeHop === 'exit' && streamOptimized;
+    const showFastest = node.type === 'random' && !countryCode;
 
     return (
       <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
-        <FlagIcon code={countryCode} alt={countryCode} />
+        {countryCode && <FlagIcon code={countryCode} alt={countryCode} />}
+        {showFastest && (
+          <MsIcon
+            icon="electric_bolt"
+            className="text-2xl text-baltic-sea dark:text-white"
+          />
+        )}
         <div className={clsx('flex flex-col items-start truncate')}>
           <div
             className={clsx([
@@ -211,7 +225,7 @@ export default function HopSelect({
     if (node.type === 'gateway') {
       return lookupGw(node.node.id, node.node.country.code, nodeHop);
     }
-    if (!gatewayId) {
+    if (!gatewayId || node.type === 'random') {
       return null;
     }
     const countryCode =

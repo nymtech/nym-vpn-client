@@ -104,6 +104,7 @@ export const initialState: AppState = {
   networkStats: false,
   welcomeChecked: false,
   quic: false,
+  allowLan: false,
   domainFronting: false,
   backendFlags: {
     quic: false,

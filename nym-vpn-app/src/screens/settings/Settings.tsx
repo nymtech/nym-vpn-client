@@ -1,8 +1,8 @@
+import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { routes } from '../../router';
-import { kvSet } from '../../kvStore';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
@@ -28,8 +28,12 @@ function Settings() {
 
   const handleIpv6Support = async () => {
     const switched = !ipv6Support;
-    dispatch({ type: 'set-ipv6-support', enabled: switched });
-    await kvSet('disable-ipv6', !switched);
+    try {
+      await invoke('set_no_ipv6', { enabled: !switched });
+      dispatch({ type: 'set-ipv6-support', enabled: switched });
+    } catch {
+      /* TODO */
+    }
   };
 
   return (

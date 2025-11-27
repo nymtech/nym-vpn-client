@@ -60,7 +60,7 @@ impl TryFrom<lib::ExitPoint> for NodeConfig {
             lib::ExitPoint::Address { address: _ } => {
                 // TODO add support for this type of exit point
                 return Err(anyhow!(
-                    "ExitPoint::Address is not supported by tauri client"
+                    "Exit node of type [Address] is not supported by tauri client"
                 ));
             }
         })

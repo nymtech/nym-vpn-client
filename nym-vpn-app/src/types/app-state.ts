@@ -34,6 +34,9 @@ export type InitState = {
   vpnd: VpndStatus;
   entryNode: SelectedNode;
   exitNode: SelectedNode;
+  quic: boolean;
+  noIpv6: boolean;
+  allowLan: boolean;
 };
 
 export type AppState = {
@@ -77,6 +80,7 @@ export type AppState = {
   accountLinks?: AccountLinks | null;
   networkCompat?: NetworkCompat | null;
   ipv6Support: boolean;
+  allowLan: boolean;
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   welcomeChecked: boolean;

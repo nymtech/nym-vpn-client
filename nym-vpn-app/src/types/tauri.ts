@@ -61,7 +61,6 @@ export type DbKey =
   | 'ui-theme'
   | 'ui-root-font-size'
   | 'ui-language'
-  | 'vpn-mode'
   | 'entry-node'
   | 'exit-node'
   | 'welcome-screen-seen'
@@ -244,7 +243,8 @@ export type Score = 'offline' | 'low' | 'medium' | 'high';
 export type SelectedNode =
   | { type: 'country'; node: Country }
   | { type: 'gateway'; node: GatewayNode }
-  | { type: 'region'; node: RegionNode };
+  | { type: 'region'; node: RegionNode }
+  | { type: 'random' };
 
 export type StartupError = {
   key: 'internal' | 'db-open' | 'db-locked';
