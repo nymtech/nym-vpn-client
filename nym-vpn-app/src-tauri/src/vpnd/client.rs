@@ -602,13 +602,10 @@ impl VpndClient {
     pub async fn get_socks5_status(&self) -> Result<Socks5Status, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let response = vpnd
-            .get_socks5_status()
-            .await
-            .map_err(|e| {
-                error!("failed to get SOCKS5 status: {}", e);
-                VpndError::RpcClient(e)
-            })?;
+        let response = vpnd.get_socks5_status().await.map_err(|e| {
+            error!("failed to get SOCKS5 status: {}", e);
+            VpndError::RpcClient(e)
+        })?;
 
         debug!("SOCKS5 status: {:?}", response);
 

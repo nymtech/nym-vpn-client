@@ -2,8 +2,8 @@ use tauri::State;
 use tracing::{info, instrument};
 
 use crate::error::BackendError;
-use crate::vpnd::client::VpndClient;
 use crate::vpnd::client::Node;
+use crate::vpnd::client::VpndClient;
 use crate::vpnd::socks5::{HttpRpcSettings, Socks5Settings, Socks5Status};
 
 #[instrument(skip_all)]
