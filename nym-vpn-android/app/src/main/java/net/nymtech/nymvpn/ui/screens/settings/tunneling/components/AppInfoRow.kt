@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.tunneling.components
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,14 +18,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmapOrNull
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppInfo
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.UiEvent
@@ -40,7 +44,7 @@ fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onUiEv
 		modifier = Modifier.fillMaxWidth(),
 		verticalAlignment = Alignment.CenterVertically,
 	) {
-		LoadIcon(appInfo.packageName)?.let {
+		loadIcon(appInfo.packageName)?.let {
 			Icon(
 				it.asImageBitmap(),
 				contentDescription = appInfo.name,
@@ -102,5 +106,16 @@ fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onUiEv
 				)
 			}
 		}
+	}
+}
+
+@Composable
+fun loadIcon(packageName: String): Bitmap? {
+	val context = LocalContext.current
+	val packageManager = remember(context) { context.packageManager }
+	return try {
+		packageManager.getApplicationIcon(packageName).toBitmapOrNull()
+	} catch (_: Exception) {
+		null
 	}
 }
