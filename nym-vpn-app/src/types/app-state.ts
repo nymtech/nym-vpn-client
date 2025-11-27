@@ -22,7 +22,7 @@ import {
   DaemonStatus,
   ProgressMsg,
   TunnelState,
-} from './utils';
+} from './util';
 
 export type StateDispatch = Dispatch<StateAction>;
 

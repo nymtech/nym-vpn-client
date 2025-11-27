@@ -2,4 +2,4 @@ export * from './app-state';
 export * from './tauri';
 export * from './routes';
 export * from './licenses';
-export * from './utils';
+export * from './util';

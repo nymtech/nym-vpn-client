@@ -1,5 +1,11 @@
 import { CKey } from '../../cache';
-import { GatewayType, GatewaysByCountry, SelectedNode } from '../../types';
+import {
+  GatewayType,
+  GatewaysByCountry,
+  SelectedNode,
+  isCountry,
+  isRegion,
+} from '../../types';
 import { GatewaysState } from './types';
 
 export function gwTypeToCacheKey(type: GatewayType): CKey {
@@ -45,18 +51,18 @@ export function getStateProps(type: GatewayType): {
 
 // Check if a node exists in the gateways list
 export function exists(selected: SelectedNode, gateways: GatewaysByCountry[]) {
-  switch (selected.type) {
-    case 'country':
-      return gateways.some((g) => g.country.code === selected.node.code);
-    case 'region':
-      return gateways.some((g) =>
-        g.regions.some((r) => r.name === selected.node.name),
-      );
-    case 'gateway':
-      return gateways.some((g) =>
-        g.gateways.some((gw) => gw.id === selected.node.id),
-      );
-    default:
-      return false;
+  if (selected === 'random') {
+    return true;
   }
+  if (isCountry(selected)) {
+    return gateways.some((g) => g.country.code === selected.country.code);
+  }
+  if (isRegion(selected)) {
+    return gateways.some((g) =>
+      g.regions.some((r) => r.name === selected.region),
+    );
+  }
+  return gateways.some((g) =>
+    g.gateways.some((gw) => gw.id === selected.gateway.id),
+  );
 }

@@ -132,14 +132,6 @@ export type Gateway = {
   quic: boolean;
 };
 
-export type GatewayNode = {
-  id: string;
-  name: string;
-  country: Country;
-  region: string;
-  city: string;
-};
-
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
 
 export type GatewaysByCountry = {
@@ -236,15 +228,13 @@ export type Region = {
   quic: boolean;
 };
 
-export type RegionNode = { name: string; country: Country };
-
 export type Score = 'offline' | 'low' | 'medium' | 'high';
 
 export type SelectedNode =
-  | { type: 'country'; node: Country }
-  | { type: 'gateway'; node: GatewayNode }
-  | { type: 'region'; node: RegionNode }
-  | { type: 'random' };
+  | { country: { code: string } }
+  | { gateway: { id: string } }
+  | { region: string }
+  | 'random';
 
 export type StartupError = {
   key: 'internal' | 'db-open' | 'db-locked';

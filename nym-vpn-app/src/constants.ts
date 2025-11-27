@@ -13,9 +13,7 @@ export const DefaultRootFontSize = 14; // in px
 // are checked against it and if needed it is automatically switched to
 // available ones
 export const DefaultNode: SelectedNode = {
-  type: 'country',
-  node: {
-    name: 'Switzerland',
+  country: {
     code: 'CH',
   },
 };

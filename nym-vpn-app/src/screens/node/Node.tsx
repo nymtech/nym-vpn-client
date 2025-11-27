@@ -11,12 +11,19 @@ import {
   useNodeList,
   useNodeListState,
 } from '../../contexts';
-import { NodeHop, StateDispatch } from '../../types';
+import {
+  NodeHop,
+  StateDispatch,
+  isCountry,
+  isGateway,
+  isRegion,
+} from '../../types';
 import { Link, PageAnim, TextInput } from '../../ui';
 import { kvSet } from '../../kvStore';
 import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
+import { regionToCountryCode } from '../home/util';
 import LocationDetailsDialog from './LocationDetailsDialog';
 import { NodeList, useFilterList } from './list';
 
@@ -62,27 +69,26 @@ function Node({ node }: { node: NodeHop }) {
   useEffect(() => {
     // if there's already a focused node, don't do anything
     // when navigating to node details new focused is set
-    if (focused) return;
-    if (selectedNode.type === 'country') {
-      setFocused(node, { type: 'country', key: selectedNode.node.code });
-    } else if (selectedNode.type === 'region') {
-      addToExpanded(node, selectedNode.node.country.code);
-      setFocused(node, { type: 'region', key: selectedNode.node.name });
-    } else if (selectedNode.type === 'gateway') {
-      addToExpanded(node, selectedNode.node.country.code);
-      if (selectedNode.node.country.code.toLowerCase() === 'us') {
-        addToExpanded(node, selectedNode.node.name);
-        setFocused(node, { type: 'region', key: selectedNode.node.name });
-      } else {
-        setFocused(node, { type: 'gateway', key: selectedNode.node.id });
+    if (focused) {
+      return;
+    }
+    if (isCountry(selectedNode)) {
+      setFocused(node, { type: 'country', key: selectedNode.country.code });
+    }
+    if (isRegion(selectedNode)) {
+      const code = regionToCountryCode(selectedNode.region);
+      if (code) {
+        addToExpanded(node, code);
+        setFocused(node, { type: 'region', key: selectedNode.region });
       }
     }
+    // TODO handle US regions auto-expand and focus
   }, [selectedNode, node, addToExpanded, setFocused, focused]);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
     if (
-      selectedNode.type === 'gateway' &&
+      isGateway(selectedNode) &&
       (selected.isSelected === 'exit' || selected.isSelected === 'entry')
     ) {
       return;

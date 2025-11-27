@@ -127,26 +127,35 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
 
   const findGateway = (
     id: string,
-    countryCode: string,
     gateways: GatewaysByCountry[],
+    countryCode?: string,
   ) => {
-    const byCountry = gateways.find(
-      (c) => c.country.code.toLowerCase() === countryCode.toLowerCase(),
-    );
-    if (byCountry) {
-      return byCountry.gateways.find((gw) => gw.id === id) || null;
+    if (countryCode) {
+      const byCountry = gateways.find(
+        (c) => c.country.code.toLowerCase() === countryCode.toLowerCase(),
+      );
+      if (byCountry) {
+        return byCountry.gateways.find((gw) => gw.id === id) || null;
+      }
+      return null;
+    }
+    for (const byCountry of gateways) {
+      const gw = byCountry.gateways.find((g) => g.id === id);
+      if (gw) {
+        return gw;
+      }
     }
     return null;
   };
 
   const lookupGw = useCallback(
-    (id: string, countryCode: string, type: 'entry' | 'exit') => {
+    (id: string, type: 'entry' | 'exit', countryCode?: string) => {
       if (vpnMode === 'wg') {
-        return findGateway(id, countryCode, state.wg);
+        return findGateway(id, state.wg, countryCode);
       } else if (type === 'entry') {
-        return findGateway(id, countryCode, state.mxEntry);
+        return findGateway(id, state.mxEntry, countryCode);
       } else {
-        return findGateway(id, countryCode, state.mxExit);
+        return findGateway(id, state.mxExit, countryCode);
       }
     },
     [state.mxEntry, state.mxExit, state.wg, vpnMode],

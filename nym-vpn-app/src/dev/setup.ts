@@ -54,34 +54,14 @@ const networkCompat: NetworkCompat = {
   tauri: true,
   core: true,
 };
-// const savedEntry: SelectedNode = {
-//   node: { code: 'FR', name: 'France' },
-//   type: 'country',
-// };
 const savedEntry: SelectedNode = {
-  type: 'gateway',
-  node: {
+  gateway: {
     id: '3UBiq22tkNSRhyRNjL5mnw5Yk4z6FvgvjizT4ukeEaeB',
-    name: '🐬 Oceanus Staking FR 1',
-    region: 'Île-de-France',
-    city: 'Paris',
-    country: {
-      code: 'FR',
-      name: 'France',
-    },
   },
 };
 const savedExit: SelectedNode = {
-  type: 'gateway',
-  node: {
+  gateway: {
     id: 'EQ4EBTTtufKV5SVch5jV5SGZjgUSz59QSJqF2HQxszk6',
-    name: 'bwnym-teckel-AR',
-    region: 'Buenos Aires F.D.',
-    city: 'Buenos Aires',
-    country: {
-      code: 'AR',
-      name: 'Argentina',
-    },
   },
 };
 const featureFlags: FeatureFlags = {
