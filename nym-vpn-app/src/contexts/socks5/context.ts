@@ -1,9 +1,9 @@
 import { createContext } from 'react';
 import type {
-  SelectedNode,
-  Socks5Status,
-  Socks5Settings,
   HttpRpcSettings,
+  SelectedNode,
+  Socks5Settings,
+  Socks5Status,
 } from '../../types';
 
 export type Socks5ContextType = {
@@ -21,9 +21,9 @@ export type Socks5ContextType = {
 const initialState: Socks5ContextType = {
   status: null,
   isLoading: false,
-  enable: async () => {},
-  disable: async () => {},
-  refresh: async () => {},
+  enable: async () => Promise.resolve(),
+  disable: async () => Promise.resolve(),
+  refresh: async () => Promise.resolve(),
 };
 
 export const Socks5Context = createContext<Socks5ContextType>(initialState);

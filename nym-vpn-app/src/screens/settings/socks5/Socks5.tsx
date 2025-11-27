@@ -1,15 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSocks5, useMainState } from '../../../contexts';
 import {
   Button,
   CardSwitch,
   MsIcon,
   PageAnim,
+  PulseDot,
   SettingsMenuCardBig,
 } from '../../../ui';
-import { useInAppNotify } from '../../../contexts';
-import { PulseDot } from '../../../ui';
+import { useInAppNotify, useMainState, useSocks5 } from '../../../contexts';
 import { useClipboard } from '../../../hooks';
 
 const DEFAULT_SOCKS5_ADDRESS = '127.0.0.1:1080';
@@ -73,7 +72,7 @@ function Socks5() {
         });
       }
     } catch (error) {
-      const explicitErrorMessage = (error as any)?.message ?? '';
+      const explicitErrorMessage = String((error as Error)?.message) ?? '';
 
       // Explicit error we want to show, show specific error
       if (explicitErrorMessage.includes('Gateway does not support')) {
