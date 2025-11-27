@@ -101,6 +101,11 @@ class NymBackendManager @Inject constructor(
 		}
 	}
 
+	override suspend fun getDaemonVersion(): String {
+		val versions = backend.await().getNetworkVersions()
+		return versions?.core ?: ""
+	}
+
 	private suspend fun isClientNetworkCompatible(environment: Tunnel.Environment): Boolean {
 		return if (
 			!BuildConfig.DEBUG && !BuildConfig.IS_PRERELEASE &&

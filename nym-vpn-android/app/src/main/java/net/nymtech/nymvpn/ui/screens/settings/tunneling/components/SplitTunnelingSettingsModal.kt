@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.splittunneling.view.components
+package net.nymtech.nymvpn.ui.screens.settings.tunneling.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth

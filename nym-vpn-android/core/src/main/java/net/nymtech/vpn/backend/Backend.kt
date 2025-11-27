@@ -4,6 +4,7 @@ import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Network
+import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.UserAgent
@@ -45,4 +46,6 @@ interface Backend {
 	fun getState(): Tunnel.State
 
 	suspend fun getStoredMnemonic(): String
+
+	suspend fun getNetworkVersions(): NetworkCompatibility?
 }

@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.data
 
-import net.nymtech.nymvpn.ui.screens.splittunneling.model.AppInfo
+import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppInfo
 
 interface SplitTunnelingRepository {
 
