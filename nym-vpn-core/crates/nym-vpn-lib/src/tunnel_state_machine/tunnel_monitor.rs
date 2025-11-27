@@ -22,7 +22,7 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_gateway_directory::{
-    GatewayCacheHandle, GatewayClient, GatewayMinPerformance, ResolvedConfig,
+    BlacklistedGateways, GatewayCacheHandle, GatewayClient, GatewayMinPerformance, ResolvedConfig,
 };
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -186,6 +186,9 @@ pub enum TunnelMonitorEvent {
         /// Back channel to acknowledge that the event has been processed
         reply_tx: tokio::sync::oneshot::Sender<()>,
     },
+
+    /// Connection has failed
+    ConnectionFailed,
 }
 
 pub struct TunnelMonitorHandle {
@@ -216,8 +219,8 @@ pub struct TunnelParameters {
     pub tunnel_settings: TunnelSettings,
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
-    /// The user agent used for HTTP requests.
     pub user_agent: UserAgent,
+    pub blacklisted_entry_gateways: BlacklistedGateways,
 }
 
 pub struct TunnelMonitor {
@@ -365,13 +368,14 @@ impl TunnelMonitor {
         self.gateway_cache_handle.refresh_all().await.ok();
 
         let selected_gateways =
-            if let Some(selected_gateways) = self.tunnel_parameters.selected_gateways.clone() {
-                selected_gateways
+            if let Some(ref selected_gateways) = self.tunnel_parameters.selected_gateways {
+                selected_gateways.clone()
             } else {
                 self.send_event(TunnelMonitorEvent::SelectingGateways);
 
                 let new_gateways = tunnel::select_gateways(
                     self.gateway_cache_handle.clone(),
+                    &self.tunnel_parameters.blacklisted_entry_gateways,
                     &self.tunnel_parameters.tunnel_settings,
                     self.wg_keys_db.clone(),
                     self.shutdown_token.child_token(),
@@ -767,6 +771,7 @@ impl TunnelMonitor {
                             }
                             ConnectionStatusEvent::Failed => {
                                 tracing::info!("Tunnel connection is down. Exiting");
+                                self.send_event(TunnelMonitorEvent::ConnectionFailed);
                                 break;
                             }
                         }

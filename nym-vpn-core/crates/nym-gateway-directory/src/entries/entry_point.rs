@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use crate::{
-    Error, ScoreValue,
+    BlacklistedGateways, Error, ScoreValue,
     entries::gateway::{COUNTRY_WITH_REGION_SELECTOR, Gateway, GatewayFilter, GatewayList},
     error::Result,
 };
@@ -55,6 +55,7 @@ impl EntryPoint {
         &self,
         gateways: &GatewayList,
         min_score: Option<ScoreValue>,
+        blacklisted_gateways: &BlacklistedGateways,
     ) -> Result<Gateway> {
         match &self {
             EntryPoint::Gateway { identity } => {
@@ -72,7 +73,10 @@ impl EntryPoint {
                 debug!("Selecting gateway by country: {two_letter_iso_country_code}");
 
                 let filters = Self::build_filters(
-                    vec![GatewayFilter::Country(two_letter_iso_country_code.clone())],
+                    vec![
+                        GatewayFilter::Country(two_letter_iso_country_code.clone()),
+                        GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()),
+                    ],
                     min_score,
                 );
 
@@ -91,6 +95,7 @@ impl EntryPoint {
                     vec![
                         GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
                         GatewayFilter::Region(region.to_string()),
+                        GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()),
                     ],
                     min_score,
                 );
@@ -105,7 +110,10 @@ impl EntryPoint {
             EntryPoint::Random => {
                 debug!("Selecting a random gateway");
 
-                let filters = Self::build_filters(vec![], min_score);
+                let filters = Self::build_filters(
+                    vec![GatewayFilter::NotBlacklisted(blacklisted_gateways.clone())],
+                    min_score,
+                );
 
                 gateways
                     .choose_random(&filters)
@@ -178,7 +186,11 @@ mod tests {
         );
 
         // Without Low fallback, this would fail
-        let result = entry_point.lookup_gateway(&gateways, Some(ScoreValue::Low));
+        let result = entry_point.lookup_gateway(
+            &gateways,
+            Some(ScoreValue::Low),
+            &BlacklistedGateways::default(),
+        );
         assert!(result.is_ok());
         assert_eq!(
             result.unwrap().performance.as_ref().unwrap().score,

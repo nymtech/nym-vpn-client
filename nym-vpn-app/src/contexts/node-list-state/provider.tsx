@@ -31,7 +31,7 @@ function NodeListPrevStateProvider({ children }: NodeListPrevStateProps) {
       if (hop === 'entry') {
         setEntryExpanded([...entryExpanded, value]);
       } else {
-        setEntryExpanded([...exitExpanded, value]);
+        setExitExpanded([...exitExpanded, value]);
       }
     },
     [entryExpanded, exitExpanded],

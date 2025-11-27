@@ -5,7 +5,8 @@ use std::sync::Arc;
 
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{
-    EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayList, GatewayType, ScoreValue,
+    BlacklistedGateways, EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayList,
+    GatewayType, ScoreValue,
 };
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
@@ -55,6 +56,7 @@ impl SelectedGateways {
 
 pub async fn select_gateways(
     gateway_cache_handle: GatewayCacheHandle,
+    blacklisted_entry_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     wg_keys_db: WireguardKeysDb,
 ) -> Result<SelectedGateways, GatewayDirectoryError> {
@@ -155,7 +157,7 @@ pub async fn select_gateways(
     entry_gateways.remove_gateway(&exit_gateway);
 
     let entry_gateway = entry_point
-        .lookup_gateway(&entry_gateways, Some(ScoreValue::High))
+        .lookup_gateway(&entry_gateways, Some(ScoreValue::High), blacklisted_entry_gateways)
         .or_else(|err| {
             // When no gateways could be found, lower performance tier and try again
             if err.is_unmatched_non_specific_gateway() {
@@ -163,7 +165,8 @@ pub async fn select_gateways(
 
                 entry_point.lookup_gateway(
                     &entry_gateways,
-                    Some(ScoreValue::Medium)
+                    Some(ScoreValue::Medium),
+                    blacklisted_entry_gateways,
                 )
             } else {
                 Err(err)
@@ -176,7 +179,8 @@ pub async fn select_gateways(
 
                 entry_point.lookup_gateway(
                     &entry_gateways,
-                    Some(ScoreValue::Low)
+                    Some(ScoreValue::Low),
+                    blacklisted_entry_gateways,
                 )
             } else {
                 Err(err)

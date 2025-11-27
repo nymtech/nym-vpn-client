@@ -1,4 +1,4 @@
-import { useDeferredValue } from 'react';
+import { useDeferredValue, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
@@ -32,13 +32,17 @@ function Node({ node }: { node: NodeHop }) {
     entry: entryNodeList,
     reset: resetSaved,
     addToExpanded,
+    setSearch,
   } = useNodeListState();
   const expanded =
     node === 'entry' ? entryNodeList.expanded : exitNodeList.expanded;
   const focused =
     node === 'entry' ? entryNodeList.focused : exitNodeList.focused;
+  const search = node === 'entry' ? entryNodeList.search : exitNodeList.search;
 
   const { tE } = useI18nError();
+  const { entryNode, exitNode } = useMainState();
+  const selectedNode = node === 'entry' ? entryNode : exitNode;
 
   const quicFilter =
     vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
@@ -46,9 +50,34 @@ function Node({ node }: { node: NodeHop }) {
   const navigate = useNavigate();
   const { t } = useTranslation('nodeLocation');
 
-  const { filter, nodes, gateways } = useFilterList();
+  const { filter, nodes, gateways } = useFilterList(node);
   const deferredNodes = useDeferredValue(nodes);
   const deferredGateways = useDeferredValue(gateways);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchRef.current) searchRef.current.focus();
+  }, []);
+
+  useEffect(() => {
+    // if there's already a focused node, don't do anything
+    // when navigating to node details new focused is set
+    if (focused) return;
+    if (selectedNode.type === 'country') {
+      setFocused(node, { type: 'country', key: selectedNode.node.code });
+    } else if (selectedNode.type === 'region') {
+      addToExpanded(node, selectedNode.node.country.code);
+      setFocused(node, { type: 'region', key: selectedNode.node.name });
+    } else if (selectedNode.type === 'gateway') {
+      addToExpanded(node, selectedNode.node.country.code);
+      if (selectedNode.node.country.code.toLowerCase() === 'us') {
+        addToExpanded(node, selectedNode.node.name);
+        setFocused(node, { type: 'region', key: selectedNode.node.name });
+      } else {
+        setFocused(node, { type: 'gateway', key: selectedNode.node.id });
+      }
+    }
+  }, [selectedNode, node, addToExpanded, setFocused, focused]);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
@@ -80,6 +109,11 @@ function Node({ node }: { node: NodeHop }) {
     // expand it, so it can be restored and scrolled to when navigating back
     // to the node list
     addToExpanded(node, gateway.country.code);
+  };
+
+  const onSearchChange = (value: string) => {
+    setSearch(node, value);
+    filter(value);
   };
 
   if (error) {
@@ -141,12 +175,13 @@ function Node({ node }: { node: NodeHop }) {
             </p>
           )}
           <TextInput
-            defaultValue=""
-            onChange={filter}
+            ref={searchRef}
+            onChange={onSearchChange}
             placeholder={t('search-country')}
             leftIcon="search"
             label={t('input-label')}
-            data-testid="node-search-input"
+            clearable
+            defaultValue={search || ''}
           />
         </div>
         {loading && (
