@@ -242,7 +242,7 @@ impl Gateway {
             GatewayFilter::QuicEnabled => self.is_quic_enabled(),
             GatewayFilter::Exit => self.is_exit_node(),
             GatewayFilter::Vpn => self.is_vpn_node(),
-            GatewayFilter::Whitelisted(blacklisted_gateways) => {
+            GatewayFilter::NotBlacklisted(blacklisted_gateways) => {
                 self.is_whitelisted(blacklisted_gateways)
             }
         }
@@ -715,11 +715,11 @@ pub enum GatewayFilter {
     MinScore(ScoreValue),             // Mixnet or Wg score
     Country(String),                  // Two-letter ISO country code
     Region(String),                   // Region name
-    Residential,                      // Has a residential ASN
-    QuicEnabled,                      // Has QUIC enabled
-    Exit,                             // Has an IPR address
-    Vpn,                              // Has an authenticator address
-    Whitelisted(BlacklistedGateways), // Is not blacklisted
+    Residential,                       // Has a residential ASN
+    QuicEnabled,                       // Has QUIC enabled
+    Exit,                              // Has an IPR address
+    Vpn,                               // Has an authenticator address
+    NotBlacklisted(BlacklistedGateways), // Is not in the blacklist
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -1040,7 +1040,7 @@ mod tests {
 
         for _ in 0..64 {
             let chosen = gateway_list
-                .choose_random(&[GatewayFilter::Whitelisted(blacklisted_gateways.clone())])
+                .choose_random(&[GatewayFilter::NotBlacklisted(blacklisted_gateways.clone())])
                 .unwrap();
             assert_ne!(chosen.identity, blacklisted);
         }

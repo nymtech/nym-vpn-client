@@ -91,7 +91,7 @@ impl ExitPoint {
                 let filters = Self::build_filters(
                     vec![
                         GatewayFilter::Country(two_letter_iso_country_code.clone()),
-                        GatewayFilter::Whitelisted(blacklisted_gateways.clone()),
+                        GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()),
                     ],
                     min_score,
                     residential_exit,
@@ -112,7 +112,7 @@ impl ExitPoint {
                         // Currently only supported in the US
                         GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
                         GatewayFilter::Region(region.to_string()),
-                        GatewayFilter::Whitelisted(blacklisted_gateways.clone()),
+                        GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()),
                     ],
                     min_score,
                     residential_exit,
@@ -129,7 +129,7 @@ impl ExitPoint {
                 tracing::debug!("Selecting a random exit gateway");
 
                 let filters = Self::build_filters(
-                    vec![GatewayFilter::Whitelisted(blacklisted_gateways.clone())],
+                    vec![GatewayFilter::NotBlacklisted(blacklisted_gateways.clone())],
                     min_score,
                     residential_exit,
                 );

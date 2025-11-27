@@ -75,7 +75,7 @@ impl EntryPoint {
                 let filters = Self::build_filters(
                     vec![
                         GatewayFilter::Country(two_letter_iso_country_code.clone()),
-                        GatewayFilter::Whitelisted(blacklisted_gateways.clone()),
+                        GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()),
                     ],
                     min_score,
                 );
@@ -95,7 +95,7 @@ impl EntryPoint {
                     vec![
                         GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
                         GatewayFilter::Region(region.to_string()),
-                        GatewayFilter::Whitelisted(blacklisted_gateways.clone()),
+                        GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()),
                     ],
                     min_score,
                 );
@@ -111,7 +111,7 @@ impl EntryPoint {
                 debug!("Selecting a random gateway");
 
                 let filters = Self::build_filters(
-                    vec![GatewayFilter::Whitelisted(blacklisted_gateways.clone())],
+                    vec![GatewayFilter::NotBlacklisted(blacklisted_gateways.clone())],
                     min_score,
                 );
 
