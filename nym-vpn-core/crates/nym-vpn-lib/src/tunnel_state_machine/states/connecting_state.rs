@@ -625,11 +625,11 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     }
                     TunnelMonitorEvent::ConnectionFailed => {
-                        // We have failed to connect repeatidly; let's blacklist the previously selected
+                        // We have failed to connect repeatedly; let's blacklist the previously selected
                         // entry gateways for a while and force gateway re-selection.
                         if let Some(ref selected_gateways) = self.selected_gateways {
                             let entry_gateway_identifier = selected_gateways.entry_gateway().identity;
-                            tracing::warn!("Blacklisting entry gateway {} due to repeated connection failure", entry_gateway_identifier.to_string());
+                            tracing::warn!("Blacklisting entry gateway {} due to repeated connection failure", entry_gateway_identifier);
                             shared_state.blacklisted_entry_gateways.add(entry_gateway_identifier);
                             self.selected_gateways = None;
                         }

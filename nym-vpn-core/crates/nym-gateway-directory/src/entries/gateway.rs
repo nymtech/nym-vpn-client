@@ -1035,7 +1035,7 @@ mod tests {
         let gateway_list = sample_gateway_list(GatewayType::MixnetExit);
 
         let blacklisted = gateway_list.gateways[3].identity;
-        let mut blacklisted_gateways = BlacklistedGateways::new();
+        let blacklisted_gateways = BlacklistedGateways::new();
         blacklisted_gateways.add(blacklisted);
 
         for _ in 0..64 {
