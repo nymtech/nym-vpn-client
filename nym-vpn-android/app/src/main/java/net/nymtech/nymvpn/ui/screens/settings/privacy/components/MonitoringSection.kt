@@ -55,7 +55,9 @@ fun MonitoringSection(
 				horizontalArrangement = Arrangement.SpaceBetween,
 				verticalAlignment = Alignment.CenterVertically,
 			) {
-				Column {
+				Column(
+					modifier = Modifier.weight(1f)
+				) {
 					Text(
 						text = stringResource(R.string.privacy_error_reports_title),
 						style = MaterialTheme.typography.titleMedium,
