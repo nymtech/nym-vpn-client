@@ -27,7 +27,7 @@ import {
 import { Notification } from '../contexts';
 import { CCache } from '../cache';
 import { daemonStatusUpdate, networkEnvChanged } from './helper';
-import { updateAccountState, updateTunnel, updateTunnelConfig } from './update';
+import { updateAccountState, updateTunnel } from './update';
 
 export function useTauriEvents(
   dispatch: StateDispatch,
@@ -121,7 +121,11 @@ export function useTauriEvents(
 
   const registerVpnConfigListener = useCallback(() => {
     return listen<VpndConfig>(VpnConfigEvent, ({ payload }) => {
-      updateTunnelConfig(payload, dispatch);
+      console.log('tunnel config update');
+      dispatch({
+        type: 'update-tunnel-config',
+        config: payload,
+      });
     });
   }, [dispatch]);
 

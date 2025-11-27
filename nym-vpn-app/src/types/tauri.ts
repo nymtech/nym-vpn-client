@@ -192,12 +192,6 @@ export type NetworkCompat = { core: boolean | null; tauri: boolean | null };
 
 export type NetworkEnv = 'mainnet' | 'canary' | 'qa' | 'sandbox';
 
-export type NodeConfig =
-  | { country: Country }
-  | { gateway: string }
-  | { region: string }
-  | 'random';
-
 export type OsInfo = {
   /**
    * long version
@@ -345,8 +339,8 @@ export type UpdateMetadata = { version: string; currentVersion: string };
 export type VpnMode = 'mixnet' | 'wg';
 
 export type VpndConfig = {
-  entryNode: NodeConfig;
-  exitNode: NodeConfig;
+  entryNode: SelectedNode;
+  exitNode: SelectedNode;
   customDns: Array<string> | null;
   allowLan: boolean;
   disableIpv6: boolean;

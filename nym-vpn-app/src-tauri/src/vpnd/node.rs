@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use nym_vpn_lib_types as lib;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -47,6 +48,44 @@ impl TryFrom<Node> for lib::ExitPoint {
                 identity: lib::NodeIdentity::from_str(&id)?,
             },
             Node::Random => lib::ExitPoint::Random,
+        })
+    }
+}
+
+impl From<lib::EntryPoint> for Node {
+    fn from(node: lib::EntryPoint) -> Self {
+        match node {
+            lib::EntryPoint::Country {
+                two_letter_iso_country_code: code,
+            } => Node::Country { code },
+            lib::EntryPoint::Region { region } => Node::Region(region),
+            lib::EntryPoint::Gateway { identity } => Node::Gateway {
+                id: identity.to_base58_string(),
+            },
+            lib::EntryPoint::Random => Node::Random,
+        }
+    }
+}
+
+impl TryFrom<lib::ExitPoint> for Node {
+    type Error = anyhow::Error;
+
+    fn try_from(node: lib::ExitPoint) -> Result<Self, Self::Error> {
+        Ok(match node {
+            lib::ExitPoint::Country {
+                two_letter_iso_country_code: code,
+            } => Node::Country { code },
+            lib::ExitPoint::Region { region } => Node::Region(region),
+            lib::ExitPoint::Gateway { identity } => Node::Gateway {
+                id: identity.to_base58_string(),
+            },
+            lib::ExitPoint::Random => Node::Random,
+            lib::ExitPoint::Address { address: _ } => {
+                // TODO add support for this type of exit point
+                return Err(anyhow!(
+                    "Exit node of type [Address] is not supported by tauri client"
+                ));
+            }
         })
     }
 }
