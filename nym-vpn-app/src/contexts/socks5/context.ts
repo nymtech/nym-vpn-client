@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import { createContext, useContext } from 'react';
 import type {
   HttpRpcSettings,
   SelectedNode,
@@ -27,3 +27,6 @@ const initialState: Socks5ContextType = {
 };
 
 export const Socks5Context = createContext<Socks5ContextType>(initialState);
+export function useSocks5() {
+  return useContext(Socks5Context);
+}

@@ -12,8 +12,8 @@ import {
 import { useInAppNotify, useMainState, useSocks5 } from '../../../contexts';
 import { useClipboard } from '../../../hooks';
 
-const DEFAULT_SOCKS5_ADDRESS = '127.0.0.1:1080';
-const DEFAULT_HTTP_RPC_ADDRESS = '127.0.0.1:8545';
+const DefaultSocks5Address = '127.0.0.1:1080';
+const DefaultHttpRpcAddress = '127.0.0.1:8545';
 
 function Socks5() {
   const { status, isLoading, enable, disable } = useSocks5();
@@ -23,10 +23,8 @@ function Socks5() {
   const { copy } = useClipboard();
 
   // default listen addresses
-  const [socks5Address, setSocks5Address] = useState(DEFAULT_SOCKS5_ADDRESS);
-  const [httpRpcAddress, setHttpRpcAddress] = useState(
-    DEFAULT_HTTP_RPC_ADDRESS,
-  );
+  const [socks5Address, setSocks5Address] = useState(DefaultSocks5Address);
+  const [httpRpcAddress, setHttpRpcAddress] = useState(DefaultHttpRpcAddress);
 
   // sync input fields with actual values when status changes
   useEffect(() => {
@@ -61,8 +59,8 @@ function Socks5() {
         });
       } else {
         await enable(
-          { listenAddress: socks5Address || DEFAULT_SOCKS5_ADDRESS },
-          { listenAddress: httpRpcAddress || DEFAULT_HTTP_RPC_ADDRESS },
+          { listenAddress: socks5Address || DefaultSocks5Address },
+          { listenAddress: httpRpcAddress || DefaultHttpRpcAddress },
           exitNode,
         );
         push({
