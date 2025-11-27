@@ -1,4 +1,4 @@
-import { useDeferredValue } from 'react';
+import { useDeferredValue, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
@@ -32,11 +32,13 @@ function Node({ node }: { node: NodeHop }) {
     entry: entryNodeList,
     reset: resetSaved,
     addToExpanded,
+    setSearch,
   } = useNodeListState();
   const expanded =
     node === 'entry' ? entryNodeList.expanded : exitNodeList.expanded;
   const focused =
     node === 'entry' ? entryNodeList.focused : exitNodeList.focused;
+  const search = node === 'entry' ? entryNodeList.search : exitNodeList.search;
 
   const { tE } = useI18nError();
 
@@ -46,9 +48,14 @@ function Node({ node }: { node: NodeHop }) {
   const navigate = useNavigate();
   const { t } = useTranslation('nodeLocation');
 
-  const { filter, nodes, gateways } = useFilterList();
+  const { filter, nodes, gateways } = useFilterList(node);
   const deferredNodes = useDeferredValue(nodes);
   const deferredGateways = useDeferredValue(gateways);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchRef.current) searchRef.current.focus();
+  }, []);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
@@ -80,6 +87,11 @@ function Node({ node }: { node: NodeHop }) {
     // expand it, so it can be restored and scrolled to when navigating back
     // to the node list
     addToExpanded(node, gateway.country.code);
+  };
+
+  const onSearchChange = (value: string) => {
+    setSearch(node, value);
+    filter(value);
   };
 
   if (error) {
@@ -141,12 +153,13 @@ function Node({ node }: { node: NodeHop }) {
             </p>
           )}
           <TextInput
-            defaultValue=""
-            onChange={filter}
+            ref={searchRef}
+            onChange={onSearchChange}
             placeholder={t('search-country')}
             leftIcon="search"
             label={t('input-label')}
-            data-testid="node-search-input"
+            clearable
+            defaultValue={search || ''}
           />
         </div>
         {loading && (
