@@ -72,7 +72,7 @@ function Socks5() {
         });
       }
     } catch (error) {
-      const explicitErrorMessage = String((error as Error)?.message) ?? '';
+      const explicitErrorMessage = String((error as Error)?.message) || '';
 
       // Explicit error we want to show, show specific error
       if (explicitErrorMessage.includes('Gateway does not support')) {
