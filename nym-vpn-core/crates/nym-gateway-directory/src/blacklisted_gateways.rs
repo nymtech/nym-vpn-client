@@ -181,22 +181,22 @@ mod tests {
     #[test]
     fn test_thread_safety() {
         let blacklist = BlacklistedGateways::new();
-        let blacklist_clone = blacklist.clone();
+        let blacklist_for_thread1 = blacklist.clone();
+        let blacklist_for_thread2 = blacklist.clone();
 
         let id1 = create_test_identity("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42");
         let id2 = create_test_identity("HiVGQq2riqPFoPyYRYCZq3zFmFk15gnJzH4s9mHEbgKH");
 
-        // Spawn threads that concurrently modify the blacklist
         let handle1 = thread::spawn(move || {
             for _ in 0..100 {
-                blacklist.add(id1);
+                blacklist_for_thread1.add(id1);
                 thread::sleep(Duration::from_micros(10));
             }
         });
 
         let handle2 = thread::spawn(move || {
             for _ in 0..100 {
-                blacklist_clone.add(id2);
+                blacklist_for_thread2.add(id2);
                 thread::sleep(Duration::from_micros(10));
             }
         });
@@ -204,12 +204,14 @@ mod tests {
         handle1.join().unwrap();
         handle2.join().unwrap();
 
-        // Both identities should exist after concurrent adds
-        let final_blacklist = BlacklistedGateways::new();
-        final_blacklist.add(id1);
-        final_blacklist.add(id2);
-        assert!(final_blacklist.exists(&id1));
-        assert!(final_blacklist.exists(&id2));
+        assert!(
+            blacklist.exists(&id1),
+            "id1 should exist in shared blacklist"
+        );
+        assert!(
+            blacklist.exists(&id2),
+            "id2 should exist in shared blacklist"
+        );
     }
 
     #[test]
