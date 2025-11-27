@@ -18,7 +18,7 @@ use nym_vpn_lib_types::TunnelState;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 use tokio::{sync::RwLock, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 
 pub use config::{socks5_idle_timeout, socks5_request_timeout};
 pub use nym_vpn_lib_types::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
@@ -31,6 +31,7 @@ struct Socks5EnableConfig {
     network_requester_address: String,
     request_timeout: Duration,
     idle_timeout: Duration,
+    #[allow(dead_code)]
     cancel_token: CancellationToken,
 }
 
@@ -61,7 +62,7 @@ struct Socks5ServiceState {
     network_requester_address: String,
     /// Error message
     error_message: Option<String>,
-    /// Cancellation token
+    /// Cancellation token for the wrapper and HTTP proxy
     cancel_token: Option<CancellationToken>,
     /// Lazy SOCKS5 wrapper
     lazy_socks5: Option<Arc<LazySocks5>>,
@@ -127,41 +128,32 @@ impl Socks5ServiceState {
             network_requester_address,
             request_timeout,
             idle_timeout,
-            cancel_token,
+            cancel_token: _, // Unused - we create our own independent token
         } = config;
 
-        // Prevent concurrent enable calls - if already enabled/enabling, just return success
-        // Check if we have an active wrapper handle (not just state)
-        let has_handle = self.lazy_socks5_handle.is_some();
-        let handle_finished = has_handle && self.lazy_socks5_handle.as_ref().unwrap().is_finished();
-
-        debug!(
-            "Enable called: state={:?}, has_handle={}, handle_finished={}",
-            self.state, has_handle, handle_finished
-        );
-
-        if (self.state == Socks5State::Idle || self.state == Socks5State::Connected)
-            && has_handle
-            && !handle_finished
-        {
-            warn!(
-                "SOCKS5 service already in {:?} state with active wrapper, ignoring duplicate enable request",
-                self.state
-            );
-            return Ok(());
-        }
-
-        // Check if we need to clean up from error state or stale handles
-        if self.state == Socks5State::Error
-            || (self.lazy_socks5_handle.is_some()
-                && self.lazy_socks5_handle.as_ref().unwrap().is_finished())
-        {
-            info!(
-                "Lazy SOCKS5 service is in {:?} state or has finished handle, cleaning up before re-enabling",
-                self.state
-            );
-            self.cleanup().await;
-            tokio::time::sleep(Duration::from_secs(1)).await;
+        // Prevent concurrent enable calls
+        match self.state {
+            Socks5State::Idle | Socks5State::Connected => {
+                // Already enabled - check if handle is still alive
+                if let Some(handle) = &self.lazy_socks5_handle
+                    && !handle.is_finished()
+                {
+                    debug!(
+                        "SOCKS5 service already enabled with active wrapper, ignoring duplicate request"
+                    );
+                    return Ok(());
+                }
+                // Handle finished, need to clean up and re-enable
+                info!("SOCKS5 wrapper handle finished, cleaning up before re-enabling");
+                self.cleanup().await;
+            }
+            Socks5State::Error => {
+                info!("SOCKS5 service in error state, cleaning up before re-enabling");
+                self.cleanup().await;
+            }
+            Socks5State::Disabled => {
+                // Normal case - service is disabled, proceed to enable
+            }
         }
 
         info!(
@@ -180,10 +172,8 @@ impl Socks5ServiceState {
         // Internal SOCKS5 address (where Nym SDK will bind)
         let internal_socks5_addr: SocketAddr = "127.0.0.1:1081".parse().unwrap();
 
-        // We don't use cancel_token.child_token() because that creates a fragile
-        // dependency where the wrapper could be cancelled by unrelated parent operations.
-        // Instead, we create an independent token that we fully control via cleanup().
-        let wrapper_cancel_token = CancellationToken::new();
+        // Create an independent cancellation token for this enable operation.
+        let service_cancel_token = CancellationToken::new();
 
         // Create lazy SOCKS5 wrapper
         let config = LazySocks5Config {
@@ -197,7 +187,7 @@ impl Socks5ServiceState {
         let lazy_socks5 = Arc::new(LazySocks5::new(
             config,
             self.tunnel_state.clone(),
-            wrapper_cancel_token.clone(),
+            service_cancel_token.clone(),
         )?);
 
         // Spawn lazy SOCKS5 task
@@ -225,8 +215,10 @@ impl Socks5ServiceState {
                 http_rpc_proxy_listen_address
             );
 
+            // Use the same service_cancel_token to ensure HTTP proxy and wrapper
+            // have synchronized lifecycles
             let mut http_proxy =
-                HttpRpc::new(http_rpc_addr, request_timeout, cancel_token.child_token());
+                HttpRpc::new(http_rpc_addr, request_timeout, service_cancel_token.clone());
 
             let lazy_socks5_clone = lazy_socks5.clone();
             let handle = tokio::spawn(async move {
@@ -250,8 +242,7 @@ impl Socks5ServiceState {
         self.lazy_socks5 = Some(lazy_socks5);
         self.lazy_socks5_handle = Some(lazy_socks5_handle);
         self.http_rpc_proxy_handle = http_rpc_proxy_handle;
-        // Store the wrapper's independent cancel token (not the parent token from config)
-        self.cancel_token = Some(wrapper_cancel_token);
+        self.cancel_token = Some(service_cancel_token);
 
         Ok(())
     }
@@ -268,26 +259,36 @@ impl Socks5ServiceState {
     }
 
     async fn cleanup(&mut self) {
-        // Cancel all operations
+        // Cancel all operations via the shared token
         if let Some(token) = self.cancel_token.take() {
+            debug!("Cancelling SOCKS5 service token");
             token.cancel();
         }
 
-        // Stop HTTP RPC proxy task
+        // Abort and await HTTP RPC proxy task
         if let Some(handle) = self.http_rpc_proxy_handle.take() {
-            debug!("Stopping HTTP RPC proxy");
+            debug!("Stopping HTTP RPC proxy task");
             handle.abort();
-            let _ = handle.await;
+            if let Err(e) = handle.await
+                && !e.is_cancelled()
+            {
+                error!("HTTP RPC proxy task error: {:?}", e);
+            }
         }
 
-        // Stop lazy SOCKS5 task
+        // Await lazy SOCKS5 task
         if let Some(handle) = self.lazy_socks5_handle.take() {
-            debug!("Stopping lazy SOCKS5 wrapper");
+            debug!("Stopping lazy SOCKS5 wrapper task");
             handle.abort();
-            let _ = handle.await;
+            if let Err(e) = handle.await
+                && !e.is_cancelled()
+            {
+                error!("Lazy SOCKS5 wrapper task error: {:?}", e);
+            }
         }
 
         self.lazy_socks5 = None;
+        debug!("SOCKS5 service cleanup complete");
     }
 }
 
