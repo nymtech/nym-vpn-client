@@ -131,18 +131,33 @@ impl Socks5ServiceState {
         } = config;
 
         // Prevent concurrent enable calls - if already enabled/enabling, just return success
-        if self.state == Socks5State::Idle || self.state == Socks5State::Connected {
+        // Check if we have an active wrapper handle (not just state)
+        let has_handle = self.lazy_socks5_handle.is_some();
+        let handle_finished = has_handle && self.lazy_socks5_handle.as_ref().unwrap().is_finished();
+
+        debug!(
+            "Enable called: state={:?}, has_handle={}, handle_finished={}",
+            self.state, has_handle, handle_finished
+        );
+
+        if (self.state == Socks5State::Idle || self.state == Socks5State::Connected)
+            && has_handle
+            && !handle_finished
+        {
             warn!(
-                "SOCKS5 service already in {:?} state, ignoring duplicate enable request",
+                "SOCKS5 service already in {:?} state with active wrapper, ignoring duplicate enable request",
                 self.state
             );
             return Ok(());
         }
 
-        // Check if we need to clean up from error state
-        if self.state == Socks5State::Error {
+        // Check if we need to clean up from error state or stale handles
+        if self.state == Socks5State::Error
+            || (self.lazy_socks5_handle.is_some()
+                && self.lazy_socks5_handle.as_ref().unwrap().is_finished())
+        {
             info!(
-                "Lazy SOCKS5 service is in {:?} state, cleaning up before re-enabling",
+                "Lazy SOCKS5 service is in {:?} state or has finished handle, cleaning up before re-enabling",
                 self.state
             );
             self.cleanup().await;
@@ -165,6 +180,11 @@ impl Socks5ServiceState {
         // Internal SOCKS5 address (where Nym SDK will bind)
         let internal_socks5_addr: SocketAddr = "127.0.0.1:1081".parse().unwrap();
 
+        // We don't use cancel_token.child_token() because that creates a fragile
+        // dependency where the wrapper could be cancelled by unrelated parent operations.
+        // Instead, we create an independent token that we fully control via cleanup().
+        let wrapper_cancel_token = CancellationToken::new();
+
         // Create lazy SOCKS5 wrapper
         let config = LazySocks5Config {
             mixnet_data_path: data_dir,
@@ -177,7 +197,7 @@ impl Socks5ServiceState {
         let lazy_socks5 = Arc::new(LazySocks5::new(
             config,
             self.tunnel_state.clone(),
-            cancel_token.child_token(),
+            wrapper_cancel_token.clone(),
         )?);
 
         // Spawn lazy SOCKS5 task
@@ -230,7 +250,8 @@ impl Socks5ServiceState {
         self.lazy_socks5 = Some(lazy_socks5);
         self.lazy_socks5_handle = Some(lazy_socks5_handle);
         self.http_rpc_proxy_handle = http_rpc_proxy_handle;
-        self.cancel_token = Some(cancel_token);
+        // Store the wrapper's independent cancel token (not the parent token from config)
+        self.cancel_token = Some(wrapper_cancel_token);
 
         Ok(())
     }

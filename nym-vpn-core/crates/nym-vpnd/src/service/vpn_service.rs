@@ -210,9 +210,6 @@ pub struct NymVpnService {
     // Configuration Manager
     config_manager: VpnServiceConfigManager,
 
-    // Gateway client
-    gateway_client: GatewayClient,
-
     // Gateway cache join handle
     gateway_cache_join_handle: JoinHandle<()>,
 
@@ -537,7 +534,6 @@ impl NymVpnService {
             shutdown_token,
             services_shutdown_token,
             state_machine_shutdown_token,
-            gateway_client: gateway_directory_client,
             gateway_cache_handle,
             gateway_cache_join_handle,
             discovery_refresher_event_rx,
@@ -1183,22 +1179,15 @@ impl NymVpnService {
             }
         };
 
-        // TODO: move this into the cache too
-        // Get all exit gateways from nym-api (which have nr_address)
-        let nym_exit_gateways = self
-            .gateway_client
-            .lookup_all_nymnodes()
+        // Get the gateway with nr_address from cache (or fetch if not cached)
+        let gateway = self
+            .gateway_cache_handle
+            .lookup_nymnode_by_identity(gateway_identity)
             .await
             .map_err(|e| {
-                Socks5Error::InvalidConfig(format!("Failed to lookup exit gateways: {}", e))
-            })?;
-
-        let gateway = nym_exit_gateways
-            .node_with_identity(&gateway_identity)
-            .ok_or_else(|| {
                 Socks5Error::InvalidConfig(format!(
-                    "Gateway {} not found in exit gateways",
-                    gateway_identity
+                    "Failed to lookup gateway {}: {}",
+                    gateway_identity, e
                 ))
             })?;
 
