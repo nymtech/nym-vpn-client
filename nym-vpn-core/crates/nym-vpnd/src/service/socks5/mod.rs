@@ -173,6 +173,7 @@ impl Socks5ServiceState {
         let internal_socks5_addr: SocketAddr = "127.0.0.1:1081".parse().unwrap();
 
         // Create an independent cancellation token for this enable operation.
+        // Both the wrapper and HTTP proxy share this token to ensure synchronized lifecycles.
         let service_cancel_token = CancellationToken::new();
 
         // Create lazy SOCKS5 wrapper
