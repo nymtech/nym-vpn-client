@@ -171,7 +171,7 @@ private fun SplitTunneling(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) 
 				key = { app -> app.packageName },
 			) { app ->
 				AppInfoRow(app, onUiEvent)
-				Spacer(modifier = Modifier.padding(bottom = 12.dp.scaledHeight()))
+				Spacer(modifier = Modifier.padding(top = 14.dp.scaledHeight(), bottom = 14.dp.scaledHeight()))
 			}
 
 			if (uiState.filteredSystemApps.isNotEmpty()) {
@@ -190,7 +190,7 @@ private fun SplitTunneling(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) 
 					key = { app -> app.packageName },
 				) { app ->
 					AppInfoRow(app, onUiEvent)
-					Spacer(modifier = Modifier.padding(bottom = 12.dp.scaledHeight()))
+					Spacer(modifier = Modifier.padding(top = 14.dp.scaledHeight(), bottom = 14.dp.scaledHeight()))
 				}
 			}
 		}
@@ -283,14 +283,14 @@ private fun StaticContent(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -
 		Text(
 			text = stringResource(R.string.direct),
 			modifier = Modifier.widthIn(min = 42.dp),
-			style = Typography.bodySmall.copy(fontSize = 10.sp, lineHeight = 14.sp),
+			style = Typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 12.sp),
 			color = MaterialTheme.colorScheme.onSurface,
 			textAlign = TextAlign.Center,
 		)
 		Text(
 			text = stringResource(R.string.nym_vpn),
 			modifier = Modifier.widthIn(min = 42.dp),
-			style = Typography.bodySmall.copy(fontSize = 10.sp, lineHeight = 14.sp),
+			style = Typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 12.sp),
 			color = MaterialTheme.colorScheme.onSurface,
 			textAlign = TextAlign.Center,
 		)
@@ -383,7 +383,7 @@ private fun AppInfoRow(appInfo: AppInfo, onUiEvent: (UiEvent) -> Unit) {
 							Modifier
 						},
 					)
-					.padding(start = 8.dp.scaledWidth(), end = 2.dp.scaledWidth()),
+					.padding(start = 8.dp.scaledWidth(), end = 4.dp.scaledWidth()),
 			) {
 				Icon(
 					painterResource(R.drawable.split),
@@ -407,7 +407,7 @@ private fun AppInfoRow(appInfo: AppInfo, onUiEvent: (UiEvent) -> Unit) {
 							Modifier
 						},
 					)
-					.padding(start = 2.dp.scaledWidth(), end = 8.dp.scaledWidth()),
+					.padding(start = 4.dp.scaledWidth(), end = 8.dp.scaledWidth()),
 			) {
 				Icon(
 					Icons.Filled.Shield,
