@@ -348,9 +348,9 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		InfoBanner(
 			showBanner = showPerAppSecurityBanner,
 			config = BannerConfig(
-				message = stringResource(R.string.per_app_security_banner_title),
+				message = stringResource(R.string.split_tunneling_per_app_security_banner_title),
 				action = BannerAction(
-					title = stringResource(R.string.per_app_security_banner_action),
+					title = stringResource(R.string.split_tunneling_per_app_security_banner_action),
 					onClicked = {
 						dismissPerAppSecurityBanner()
 						navController.goFromRoot(Route.SplitTunneling)

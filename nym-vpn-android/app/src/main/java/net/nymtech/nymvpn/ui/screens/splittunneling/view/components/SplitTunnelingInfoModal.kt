@@ -58,14 +58,14 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 				) {
 					Icon(
 						ImageVector.vectorResource(R.drawable.split),
-						stringResource(R.string.direct),
+						stringResource(R.string.split_tunneling_direct),
 						Modifier
 							.size(20.dp)
 							.align(Alignment.CenterVertically),
 						tint = MaterialTheme.colorScheme.outline,
 					)
 					Text(
-						text = stringResource(id = R.string.direct),
+						text = stringResource(id = R.string.split_tunneling_direct),
 						style = MaterialTheme.typography.bodyMedium,
 						color = MaterialTheme.colorScheme.onSurface,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
@@ -88,14 +88,14 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 				) {
 					Icon(
 						Icons.Filled.Shield,
-						stringResource(R.string.via_vpn),
+						stringResource(R.string.split_tunneling_via_vpn),
 						Modifier
 							.size(20.dp)
 							.align(Alignment.CenterVertically),
 						tint = MaterialTheme.colorScheme.outline,
 					)
 					Text(
-						stringResource(id = R.string.via_vpn),
+						stringResource(id = R.string.split_tunneling_via_vpn),
 						style = MaterialTheme.typography.bodyMedium,
 						color = MaterialTheme.colorScheme.onSurface,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
@@ -103,7 +103,7 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 					)
 				}
 				Text(
-					text = stringResource(R.string.via_desc),
+					text = stringResource(R.string.split_tunneling_via_desc),
 					modifier = Modifier.padding(top = 8.dp),
 					style = MaterialTheme.typography.bodyMedium,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),

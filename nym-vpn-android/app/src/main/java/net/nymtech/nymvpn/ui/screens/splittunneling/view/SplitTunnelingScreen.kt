@@ -183,7 +183,7 @@ private fun SplitTunneling(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) 
 				item {
 					Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
 					Text(
-						text = stringResource(R.string.system_applications),
+						text = stringResource(R.string.split_tunneling_system_applications),
 						style = Typography.bodyMedium,
 						color = MaterialTheme.colorScheme.outline,
 					)
@@ -230,14 +230,14 @@ private fun StaticContent(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -
 			.padding(vertical = 24.dp.scaledHeight())
 			.height(56.dp.scaledHeight())
 			.background(Color.Transparent, RoundedCornerShape(30.dp)),
-		placeholder = { Text(stringResource(R.string.search_apps_hint), color = MaterialTheme.colorScheme.outline) },
+		placeholder = { Text(stringResource(R.string.split_tunneling_search_apps_hint), color = MaterialTheme.colorScheme.outline) },
 		singleLine = true,
 		leading = { Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.search), modifier = Modifier.size(iconSize)) },
 		label = { Text(stringResource(R.string.search)) },
 		textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
 	)
 	Text(
-		text = stringResource(R.string.apps),
+		text = stringResource(R.string.split_tunneling_apps),
 		style = Typography.bodyLarge,
 		color = MaterialTheme.colorScheme.onSurface,
 		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
@@ -253,9 +253,9 @@ private fun StaticContent(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -
 		verticalAlignment = Alignment.CenterVertically,
 	) {
 		FilterButton(
-			stringResource(R.string.direct),
+			stringResource(R.string.split_tunneling_direct),
 			uiState.directAppsCount,
-			stringResource(R.string.direct_desc),
+			stringResource(R.string.split_tunneling_direct_desc),
 			ImageVector.vectorResource(R.drawable.split),
 			isSelected = uiState.appliedFilter == AppFilter.Direct,
 			modifier = Modifier
@@ -266,9 +266,9 @@ private fun StaticContent(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -
 				},
 		)
 		FilterButton(
-			stringResource(R.string.via_vpn),
+			stringResource(R.string.split_tunneling_via_vpn),
 			uiState.vpnPassThroughAppsCount,
-			stringResource(R.string.via_desc),
+			stringResource(R.string.split_tunneling_via_desc),
 			Icons.Filled.Shield,
 			isSelected = uiState.appliedFilter == AppFilter.VpnPassThrough,
 			modifier = Modifier
@@ -287,7 +287,7 @@ private fun StaticContent(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -
 		horizontalArrangement = Arrangement.End,
 	) {
 		Text(
-			text = stringResource(R.string.direct),
+			text = stringResource(R.string.split_tunneling_direct),
 			modifier = Modifier.widthIn(min = 50.dp),
 			style = Typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 12.sp),
 			color = MaterialTheme.colorScheme.onSurface,
@@ -295,7 +295,7 @@ private fun StaticContent(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -
 		)
 		Spacer(modifier = Modifier.width(8.dp.scaledWidth()))
 		Text(
-			text = stringResource(R.string.nym_vpn),
+			text = stringResource(R.string.split_tunneling_nym_vpn),
 			modifier = Modifier.widthIn(min = 42.dp),
 			style = Typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 12.sp),
 			color = MaterialTheme.colorScheme.onSurface,
