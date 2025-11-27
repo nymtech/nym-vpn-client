@@ -15,6 +15,9 @@ pub enum Command {
 
     /// Clear Custom DNS servers
     Clear,
+
+    /// Get the Default DNS servers
+    GetDefault,
 }
 
 impl Command {
@@ -41,6 +44,11 @@ impl Command {
             }
             Command::Clear => {
                 rpc_client.set_custom_dns(None).await?;
+                Ok(())
+            }
+            Command::GetDefault => {
+                let default_dns = rpc_client.get_default_dns().await?;
+                println!("Default DNS: {}", default_dns.join(" "));
                 Ok(())
             }
         }

@@ -49,7 +49,7 @@ static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<NameServerConfigGroup> = LazyLock::n
 });
 
 /// Default DNS server IP addresses.
-pub(crate) static DEFAULT_DNS_SERVERS: LazyLock<Vec<IpAddr>> = LazyLock::new(|| {
+pub static DEFAULT_DNS_SERVERS: LazyLock<Vec<IpAddr>> = LazyLock::new(|| {
     DEFAULT_DNS_SERVERS_CONFIG
         .iter()
         .map(|ns| ns.socket_addr.ip())

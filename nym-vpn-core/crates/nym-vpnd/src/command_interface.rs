@@ -197,7 +197,7 @@ impl NymVpnService for CommandInterface {
 
     async fn set_custom_dns(
         &self,
-        request: tonic::Request<proto::CustomDns>,
+        request: tonic::Request<proto::IpAddrList>,
     ) -> Result<tonic::Response<()>> {
         let custom_dns: Option<Vec<IpAddr>> = request
             .into_inner()
@@ -271,6 +271,17 @@ impl NymVpnService for CommandInterface {
             .ok_or(tonic::Status::not_found("Feature flags not found"))?;
 
         Ok(tonic::Response::new(feature_flags.into()))
+    }
+
+    async fn get_default_dns(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::IpAddrList>> {
+        let dns_ips = self
+            .send_and_wait(VpnServiceCommand::GetDefaultDns, ())
+            .await?;
+        let ipaddr_list = proto::IpAddrList::from(Some(dns_ips));
+        Ok(tonic::Response::new(ipaddr_list))
     }
 
     async fn connect_tunnel(

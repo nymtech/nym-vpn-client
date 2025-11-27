@@ -21,13 +21,6 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use std::sync::Arc;
-use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
-};
-
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
@@ -39,6 +32,12 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use std::sync::Arc;
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+};
 use tokio::{
     sync::{mpsc, watch},
     task::JoinHandle,
@@ -49,7 +48,9 @@ use tokio_util::sync::CancellationToken;
 use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
-use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
+use nym_gateway_directory::{
+    BlacklistedGateways, Config as GatewayDirectoryConfig, GatewayCacheHandle,
+};
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint, TunnelEvent,
@@ -438,6 +439,7 @@ pub struct SharedState {
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     wg_keys_db: WireguardKeysDb,
     user_agent: UserAgent,
+    blacklisted_entry_gateways: BlacklistedGateways,
 }
 
 impl SharedState {
@@ -593,6 +595,7 @@ impl TunnelStateMachine {
             discovery_refresher_command_tx,
             wg_keys_db,
             user_agent,
+            blacklisted_entry_gateways: BlacklistedGateways::new(),
         };
 
         let (current_state_handler, _) = if shared_state
