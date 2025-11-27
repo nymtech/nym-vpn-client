@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import clsx from 'clsx';
 import {
   Button,
   CardSwitch,
@@ -10,7 +11,6 @@ import {
 } from '../../../ui';
 import { useInAppNotify, useMainState, useSocks5 } from '../../../contexts';
 import { useClipboard } from '../../../hooks';
-import clsx from 'clsx';
 
 const DEFAULT_SOCKS5_ADDRESS = '127.0.0.1:1080';
 const DEFAULT_HTTP_RPC_ADDRESS = '127.0.0.1:8545';
