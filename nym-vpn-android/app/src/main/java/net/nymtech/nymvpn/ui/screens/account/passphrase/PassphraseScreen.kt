@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.account.passphrase
 
 import android.app.Activity
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -35,10 +36,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
@@ -70,7 +71,7 @@ import timber.log.Timber
 
 @Composable
 fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
-	val clipboardManager = LocalClipboardManager.current
+	val clipboardManager = LocalClipboard.current
 	val passphrase by viewModel.passphrase.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }
 	val navController = LocalNavController.current
@@ -175,7 +176,11 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 			requestAuthOrReveal()
 		},
 		onCopyClick = {
-			clipboardManager.setText(AnnotatedString(passphrase.joinToString(" ")))
+			scope.launch {
+				val text = passphrase.joinToString(" ")
+				val clipData = ClipData.newPlainText(text, text)
+				clipboardManager.setClipEntry(clipData.toClipEntry())
+			}
 		},
 		onDownloadClick = {
 			val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {

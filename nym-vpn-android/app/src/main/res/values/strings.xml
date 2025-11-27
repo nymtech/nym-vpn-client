@@ -371,12 +371,16 @@
 	<string name="passphrase_info_keeps_anonymous">Keeps you anonymous</string>
 	<string name="passphrase_info_belongs">Belongs only to you (self-custody)</string>
 	<!-- Account screen -->
+	<string name="account_title">Account and devices</string>
 	<string name="account_info_plan">Plan</string>
 	<string name="account_info_payments">Payments</string>
 	<string name="account_info_devices">Devices</string>
 	<string name="account_info_id_title">Account ID</string>
 	<string name="account_info_id_description">Use this ID for support requests</string>
 	<string name="account_info_id_important">⚠️ Important: Nym support will never ask for your 24-word passphrase. Never share it with anyone.</string>
+	<string name="account_on_nym">Account on nym.com</string>
+	<string name="account_device_id_title">Device ID</string>
+	<string name="account_id_title">Account ID</string>
 	<!-- Logs screen -->
 	<string name="logs_share">Share</string>
 	<string name="logs_download">Download</string>

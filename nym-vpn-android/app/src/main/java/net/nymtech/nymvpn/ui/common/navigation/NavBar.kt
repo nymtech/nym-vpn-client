@@ -276,6 +276,16 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showPassphraseModal = true } },
 			)
 
+			currentRoute.startsWith(Route.Account::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle(stringResource(R.string.account_title)) },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
+
 			else -> NavBarState(show = false)
 		}
 	}
