@@ -9,7 +9,6 @@ import {
   GatewayType,
   GatewaysByCountry,
   NetworkCompat,
-  SelectedNode,
   TTunnelState,
   UiTheme,
   UpdateMetadata,
@@ -48,42 +47,11 @@ const tunnelState: TTunnelState = 'disconnected';
 // const tunnelState: TTunnelState = { offline: { reconnect: true } };
 // const tunnelState: TTunnelState = { error: { key: 'internal', data: 'Oupsy something went wrong' } };
 const isLoggedIn = true;
-let zknymMode = false;
 let autostart = true;
 // note: compat check is skipped if DEV_MODE=true
 const networkCompat: NetworkCompat = {
   tauri: true,
   core: true,
-};
-// const savedEntry: SelectedNode = {
-//   node: { code: 'FR', name: 'France' },
-//   type: 'country',
-// };
-const savedEntry: SelectedNode = {
-  type: 'gateway',
-  node: {
-    id: '3UBiq22tkNSRhyRNjL5mnw5Yk4z6FvgvjizT4ukeEaeB',
-    name: '🐬 Oceanus Staking FR 1',
-    region: 'Île-de-France',
-    city: 'Paris',
-    country: {
-      code: 'FR',
-      name: 'France',
-    },
-  },
-};
-const savedExit: SelectedNode = {
-  type: 'gateway',
-  node: {
-    id: 'EQ4EBTTtufKV5SVch5jV5SGZjgUSz59QSJqF2HQxszk6',
-    name: 'bwnym-teckel-AR',
-    region: 'Buenos Aires F.D.',
-    city: 'Buenos Aires',
-    country: {
-      code: 'AR',
-      name: 'Argentina',
-    },
-  },
 };
 const featureFlags: FeatureFlags = {
   quic: true,
@@ -157,12 +125,6 @@ export function mockTauriIPC() {
         return;
       }
       switch ((args as ArgsObj<DbKey>).key) {
-        case 'entry-node':
-          res = savedEntry;
-          break;
-        case 'exit-node':
-          res = savedExit;
-          break;
         case 'ui-root-font-size':
           res = 12;
           break;
@@ -174,9 +136,6 @@ export function mockTauriIPC() {
           break;
         case 'welcome-screen-seen':
           res = !showWelcome;
-          break;
-        case 'quic-enabled':
-          res = true;
           break;
 
         /* 1740391345259 */
@@ -212,7 +171,6 @@ export function mockTauriIPC() {
           buildInfo: false,
           cleanLocalFiles: false,
           devMode: true,
-          dns: null,
           logFile: false,
           logLevel: 'trace',
         }),
@@ -269,15 +227,6 @@ export function mockTauriIPC() {
 
     if (cmd === 'network_compat') {
       return new Promise<NetworkCompat>((resolve) => resolve(networkCompat));
-    }
-
-    if (cmd === 'get_credentials_mode') {
-      return new Promise((resolve) => resolve(zknymMode));
-    }
-
-    if (cmd === 'set_credentials_mode') {
-      zknymMode = (args as ArgsObj<boolean>).enabled;
-      return new Promise((resolve) => resolve(1));
     }
 
     if (cmd === 'feature_flags') {

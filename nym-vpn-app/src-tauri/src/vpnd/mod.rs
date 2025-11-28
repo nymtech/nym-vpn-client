@@ -2,6 +2,7 @@ pub mod account;
 mod account_error;
 pub mod account_links;
 pub mod client;
+pub mod config;
 pub mod error;
 pub mod events;
 pub mod feature_flags;

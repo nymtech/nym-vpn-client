@@ -7,6 +7,10 @@
     "title": "Support IPv6",
     "desc": "Allow IPv6 connections"
   },
+  "allow-lan": {
+    "title": "Allow LAN traffic",
+    "desc": "Allow local network access"
+  },
   "notifications": {
     "title": "Desktop notifications"
   },

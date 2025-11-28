@@ -11,6 +11,7 @@ import {
   StateDispatch,
   TAccountState,
   TunnelStateEvent as TunnelStatePayload,
+  VpndConfig,
   VpndStatus,
   isMixnetEventError,
   isVpndNonCompat,
@@ -21,6 +22,7 @@ import {
   DaemonEvent,
   MixnetEvent,
   TunnelStateEvent,
+  VpnConfigEvent,
 } from '../constants';
 import { Notification } from '../contexts';
 import { CCache } from '../cache';
@@ -117,6 +119,16 @@ export function useTauriEvents(
     });
   }, [dispatch]);
 
+  const registerVpnConfigListener = useCallback(() => {
+    return listen<VpndConfig>(VpnConfigEvent, ({ payload }) => {
+      console.log('tunnel config update');
+      dispatch({
+        type: 'update-tunnel-config',
+        config: payload,
+      });
+    });
+  }, [dispatch]);
+
   // register/unregister event listener
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
@@ -124,6 +136,7 @@ export function useTauriEvents(
     const unlistenAccountState = registerAccountStateListener();
     const unlistenMixnetEvent = registerMixnetEventListener();
     const unlistenThemeChanges = registerThemeChangedListener();
+    const unlistenVpnConfig = registerVpnConfigListener();
 
     return () => {
       unlistenDaemon.then((f) => f());
@@ -131,6 +144,7 @@ export function useTauriEvents(
       unlistenAccountState.then((f) => f());
       unlistenMixnetEvent.then((f) => f());
       unlistenThemeChanges.then((f) => f());
+      unlistenVpnConfig.then((f) => f());
     };
   }, [
     registerDaemonListener,
@@ -138,5 +152,6 @@ export function useTauriEvents(
     registerAccountStateListener,
     registerMixnetEventListener,
     registerThemeChangedListener,
+    registerVpnConfigListener,
   ]);
 }

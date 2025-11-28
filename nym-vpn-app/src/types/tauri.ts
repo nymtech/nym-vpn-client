@@ -20,10 +20,6 @@ export type Cli = {
    */
   buildInfo: boolean;
   /**
-   * IP address of the DNS server to use when connected to the VPN
-   */
-  dns: string | null;
-  /**
    * Enable writing app logs to a file
    */
   logFile: boolean;
@@ -65,15 +61,10 @@ export type DbKey =
   | 'ui-theme'
   | 'ui-root-font-size'
   | 'ui-language'
-  | 'vpn-mode'
-  | 'entry-node'
-  | 'exit-node'
   | 'welcome-screen-seen'
   | 'desktop-notifications'
   | 'last-network-env'
-  | 'disable-ipv6'
   | 'network-stats-enabled'
-  | 'quic-enabled'
   | 'domain-fronting-enabled'
   | 'cache-mx-entry-gateways'
   | 'cache-mx-exit-gateways'
@@ -137,14 +128,6 @@ export type Gateway = {
   exitIpv6: string | null;
   buildVersion: string | null;
   quic: boolean;
-};
-
-export type GatewayNode = {
-  id: string;
-  name: string;
-  country: Country;
-  region: string;
-  city: string;
 };
 
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
@@ -239,14 +222,13 @@ export type Region = {
   quic: boolean;
 };
 
-export type RegionNode = { name: string; country: Country };
-
 export type Score = 'offline' | 'low' | 'medium' | 'high';
 
 export type SelectedNode =
-  | { type: 'country'; node: Country }
-  | { type: 'gateway'; node: GatewayNode }
-  | { type: 'region'; node: RegionNode };
+  | { country: { code: string } }
+  | { gateway: { id: string } }
+  | { region: string }
+  | 'random';
 
 export type Socks5Settings = { listenAddress: string };
 
@@ -367,6 +349,23 @@ export type UiTheme = 'light' | 'dark';
 export type UpdateMetadata = { version: string; currentVersion: string };
 
 export type VpnMode = 'mixnet' | 'wg';
+
+export type VpndConfig = {
+  entryNode: SelectedNode;
+  exitNode: SelectedNode;
+  customDns: Array<string> | null;
+  allowLan: boolean;
+  disableIpv6: boolean;
+  vpnMode: VpnMode;
+  bridges: boolean;
+  netstack: boolean;
+  disablePoissonRate: boolean;
+  disableBackgroundCoverTraffic: boolean;
+  minMixnodePerformance: number | null;
+  minGatewayMixnetPerformance: number | null;
+  minGatewayVpnPerformance: number | null;
+  residentialExit: boolean;
+};
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };
 

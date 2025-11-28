@@ -1,8 +1,8 @@
+import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { routes } from '../../router';
-import { kvSet } from '../../kvStore';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
@@ -13,7 +13,7 @@ import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support } = useMainState();
+  const { desktopNotifications, ipv6Support, allowLan } = useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -28,8 +28,22 @@ function Settings() {
 
   const handleIpv6Support = async () => {
     const switched = !ipv6Support;
-    dispatch({ type: 'set-ipv6-support', enabled: switched });
-    await kvSet('disable-ipv6', !switched);
+    try {
+      await invoke('set_no_ipv6', { enabled: !switched });
+      dispatch({ type: 'set-ipv6-support', enabled: switched });
+    } catch {
+      /* TODO */
+    }
+  };
+
+  const handleAllowLan = async () => {
+    const switched = !allowLan;
+    try {
+      await invoke('set_allow_lan', { enabled: switched });
+      dispatch({ type: 'set-allow-lan', enabled: switched });
+    } catch {
+      /* TODO */
+    }
   };
 
   return (
@@ -60,6 +74,13 @@ function Settings() {
             trailing: (
               <Switch checked={ipv6Support} onChange={handleIpv6Support} />
             ),
+          },
+          {
+            title: t('allow-lan.title'),
+            desc: t('allow-lan.desc'),
+            leadingIcon: 'lan',
+            onClick: handleAllowLan,
+            trailing: <Switch checked={allowLan} onChange={handleAllowLan} />,
           },
           {
             title: t('killswitch.title'),

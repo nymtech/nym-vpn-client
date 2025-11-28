@@ -1,8 +1,23 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { allCountries } from 'country-region-data';
 import { useInAppNotify, useMainState } from '../../contexts';
 import { StateDispatch, TunnelData, isWireguardData } from '../../types';
 import { kvSet } from '../../kvStore';
+
+// find country code (lowercase) for a given region name
+export function regionToCountryCode(region: string): string | null {
+  for (const data of allCountries) {
+    const res = data[2].some(
+      (r) => r[0].toLowerCase() === region.toLowerCase(),
+    );
+    if (res) {
+      return data[1].toLowerCase();
+    }
+  }
+  console.warn(`country not found for region [${region}]`);
+  return null;
+}
 
 export function useActionToast(action: 'node-select' | 'mode-select') {
   const { state } = useMainState();

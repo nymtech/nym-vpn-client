@@ -14,7 +14,6 @@ import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
-import { kvGet } from '../../kvStore';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
@@ -25,7 +24,6 @@ import { setStreamOptimizedLabelSeen } from './util';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
-const defaultQuic = window._APP.defaultQuic;
 const os = type();
 let welcomeInit = false;
 let compatChecked = false;
@@ -42,14 +40,12 @@ function Home() {
     account,
     networkCompat,
     welcomeChecked,
-    backendFlags,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { reset: resetNodeList } = useNodeListState();
   const navigate = useNavigate();
   const { t } = useTranslation('home');
   const loading = state === 'disconnecting';
-  const hopSelectDisabled = daemonStatus === 'down' || state !== 'disconnected';
   const needAPlan =
     daemonStatus !== 'down' &&
     state === 'disconnected' &&
@@ -64,7 +60,7 @@ function Home() {
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
-  const handleClick = async () => {
+  const handleClick = () => {
     if (state === 'disconnected' && !account) {
       navigate(routes.login);
       return;
@@ -95,15 +91,7 @@ function Home() {
       console.info('connect');
       dispatch({ type: 'reset-error' });
       dispatch({ type: 'connect' });
-      let savedQuic = await kvGet<boolean>('quic-enabled');
-      if (savedQuic === null) {
-        savedQuic = defaultQuic;
-      }
-      invoke('connect', {
-        entry: entryNode,
-        exit: exitNode,
-        quic: backendFlags.quic && savedQuic,
-      })
+      invoke('connect')
         .then((result) => {
           console.log(result);
         })
@@ -235,16 +223,14 @@ function Home() {
                   gatewayId={entryGwId}
                   onClick={() => goToNodeList('entry')}
                   nodeHop="entry"
-                  disabled={hopSelectDisabled}
-                  locked={daemonStatus === 'down'}
+                  disabled={daemonStatus === 'down'}
                 />
                 <HopSelect
                   node={exitNode}
                   gatewayId={exitGwId}
                   onClick={() => goToNodeList('exit')}
                   nodeHop="exit"
-                  disabled={hopSelectDisabled}
-                  locked={daemonStatus === 'down'}
+                  disabled={daemonStatus === 'down'}
                 />
               </div>
             </div>

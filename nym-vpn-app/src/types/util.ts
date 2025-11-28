@@ -6,6 +6,7 @@ import {
   MixnetData,
   MixnetEvent,
   MixnetEventPayload,
+  Region,
   SelectedNode,
   TAccountState,
   TBackendError,
@@ -122,13 +123,36 @@ export function isVpndNonCompat(status: VpndStatus): status is VpndNonCompat {
   return status !== 'down' && (status as VpndNonCompat).nonCompat !== undefined;
 }
 
-export type SelectableNode = SelectedNode['node'];
-function isGateway(node: SelectableNode): node is Gateway {
+export type SelectedGateway = {
+  gateway: {
+    id: string;
+  };
+};
+export function isGateway(node: SelectedNode): node is SelectedGateway {
+  return (node as SelectedGateway).gateway !== undefined;
+}
+export type SelectedCountry = {
+  country: {
+    code: string;
+  };
+};
+export function isCountry(node: SelectedNode): node is SelectedCountry {
+  return (node as SelectedCountry).country !== undefined;
+}
+export type SelectedEgion = {
+  region: string;
+};
+export function isRegion(node: SelectedNode): node is SelectedEgion {
+  return (node as SelectedEgion).region !== undefined;
+}
+
+export type SelectableNode = Gateway | Country | Region | 'random';
+function isSelectableGateway(node: SelectableNode): node is Gateway {
   return (
     (node as Gateway).id !== undefined && (node as Gateway).type !== undefined
   );
 }
-function isCountry(node: SelectableNode): node is Country {
+function isSelectableCountry(node: SelectableNode): node is Country {
   return (
     (node as Country).code !== undefined &&
     (node as Country).name !== undefined &&
@@ -136,21 +160,19 @@ function isCountry(node: SelectableNode): node is Country {
   );
 }
 export function toSelectedNode(node: SelectableNode): SelectedNode {
-  if (isGateway(node)) {
+  if (node === 'random') {
+    return 'random';
+  }
+  if (isSelectableGateway(node)) {
     return {
-      type: 'gateway',
-      node: { ...node, region: node.location.region, city: node.location.city },
+      gateway: { id: node.id },
     };
-  } else if (isCountry(node)) {
+  } else if (isSelectableCountry(node)) {
     return {
-      type: 'country',
-      node,
+      country: { code: node.code },
     };
   } else {
-    return {
-      type: 'region',
-      node,
-    };
+    return { region: node.name };
   }
 }
 
