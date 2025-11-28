@@ -27,6 +27,7 @@ function MainStateProvider({ children, init }: Props) {
     exitNode: init.exitNode,
     quic: init.quic,
     ipv6Support: !init.noIpv6,
+    allowLan: init.allowLan,
   });
 
   const { push } = useInAppNotify();
