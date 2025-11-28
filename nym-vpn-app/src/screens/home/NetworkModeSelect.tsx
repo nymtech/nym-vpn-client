@@ -8,21 +8,19 @@ import { StateDispatch, VpnMode } from '../../types';
 import { RadioGroup, RadioGroupOption } from '../../ui';
 import MsIcon from '../../ui/MsIcon';
 import ModeDetailsDialog from './ModeDetailsDialog';
-import { useActionToast } from './util';
 
 function NetworkModeSelect() {
-  const { state, vpnMode, daemonStatus } = useMainState();
+  const { vpnMode, daemonStatus } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { fetch } = useGateways();
 
   const [isDialogModesOpen, setIsDialogModesOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const toast = useActionToast('mode-select');
 
   const { t } = useTranslation('home');
 
   const handleNetworkModeChange = async (value: VpnMode) => {
-    if (state === 'disconnected' && value !== vpnMode) {
+    if (value !== vpnMode) {
       setLoading(true);
       try {
         await invoke<void>('set_vpn_mode', { mode: value });
@@ -40,12 +38,6 @@ function NetworkModeSelect() {
     }
   };
 
-  const handleDisabledState = () => {
-    if (state !== 'disconnected') {
-      toast();
-    }
-  };
-
   const vpnModes = useMemo<RadioGroupOption<VpnMode>[]>(() => {
     const iconStyle = (checked: boolean) =>
       clsx(
@@ -60,7 +52,7 @@ function NetworkModeSelect() {
         key: 'wg',
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
-        disabled: state !== 'disconnected' || loading,
+        disabled: loading,
         icon: (checked) => (
           <span
             className={iconStyle(checked)}
@@ -75,7 +67,7 @@ function NetworkModeSelect() {
         key: 'mixnet',
         label: t('privacy-mode.title'),
         desc: t('privacy-mode.desc'),
-        disabled: state !== 'disconnected' || loading,
+        disabled: loading,
         icon: (checked) => (
           <span
             className={iconStyle(checked)}
@@ -87,7 +79,7 @@ function NetworkModeSelect() {
         descWrap: true,
       },
     ];
-  }, [loading, state, t]);
+  }, [loading, t]);
 
   return (
     <div data-testid="network-mode-select-container">
@@ -120,7 +112,6 @@ function NetworkModeSelect() {
       />
       <div
         className="select-none"
-        onClick={handleDisabledState}
         data-testid="network-mode-radio-group-container"
       >
         <RadioGroup
