@@ -229,13 +229,15 @@ export default function HopSelect({
   };
 
   const gateway = useMemo(() => {
-    if (!gatewayId || node === 'random') {
+    if (node === 'random') {
       return null;
     }
     if (isGateway(node)) {
       return lookupGw(node.gateway.id, nodeHop);
+    } else if (gatewayId) {
+      return lookupGw(gatewayId, nodeHop);
     }
-    return lookupGw(gatewayId, nodeHop);
+    return null;
   }, [gatewayId, lookupGw, nodeHop, node]);
 
   return (

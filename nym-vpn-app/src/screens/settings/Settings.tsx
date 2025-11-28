@@ -83,11 +83,6 @@ function Settings() {
             trailing: <Switch checked={allowLan} onChange={handleAllowLan} />,
           },
           {
-            title: t('killswitch.title'),
-            desc: t('killswitch.desc'),
-            leadingIcon: 'power_settings_new',
-          },
-          {
             title: t('anti-censorship.title', { ns: 'settings' }),
             leadingIcon: 'campaign',
             onClick: () => navigate(routes.antiCensorship),

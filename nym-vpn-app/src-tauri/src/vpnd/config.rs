@@ -29,9 +29,9 @@ pub struct VpndConfig {
 impl VpndConfig {
     pub fn from_lib(config: lib::VpnServiceConfig) -> anyhow::Result<Self> {
         let vpn_mode = if config.enable_two_hop {
-            VpnMode::Mixnet
-        } else {
             VpnMode::Wg
+        } else {
+            VpnMode::Mixnet
         };
 
         Ok(VpndConfig {
