@@ -51,7 +51,7 @@ bool PermitVpnRelay::apply(IObjectInstaller &objectInstaller)
 	for (auto endpoint : m_endpoints) {
 		switch (endpoint.ip.type()) {
 		case wfp::IpAddress::Type::Ipv4:
-			if (ipv4Count >= MullvadGuids::Num_Baseline_PermitVpnRelay_Ipv4_Filters) {
+			if (ipv4Count == MullvadGuids::Num_Baseline_PermitVpnRelay_Ipv4_Filters) {
 				THROW_ERROR("Exceeded max allowed endpoints (IPv4)");
             }
 
@@ -64,7 +64,7 @@ bool PermitVpnRelay::apply(IObjectInstaller &objectInstaller)
 			break;
 
 		case wfp::IpAddress::Type::Ipv6:
-			if (ipv6Count >= MullvadGuids::Num_Baseline_PermitVpnRelay_Ipv6_Filters) {
+			if (ipv6Count == MullvadGuids::Num_Baseline_PermitVpnRelay_Ipv6_Filters) {
 				THROW_ERROR("Exceeded max allowed endpoints (IPv6)");
 			}
 
