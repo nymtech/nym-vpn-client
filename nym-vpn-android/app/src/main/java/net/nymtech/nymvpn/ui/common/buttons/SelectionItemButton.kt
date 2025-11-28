@@ -21,13 +21,7 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun SelectionItemButton(
-	leading: (@Composable () -> Unit)? = null,
-	buttonText: String,
-	trailing: (@Composable () -> Unit)? = null,
-	onClick: () -> Unit,
-	ripple: Boolean = true,
-) {
+fun SelectionItemButton(leading: (@Composable () -> Unit)? = null, buttonText: String, trailing: (@Composable () -> Unit)? = null, onClick: () -> Unit, ripple: Boolean = true) {
 	Card(
 		modifier =
 		Modifier.clip(RoundedCornerShape(8.dp))

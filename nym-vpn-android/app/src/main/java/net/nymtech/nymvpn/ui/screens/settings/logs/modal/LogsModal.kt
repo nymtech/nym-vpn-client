@@ -28,15 +28,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun LogsModal(
-	show: Boolean,
-	onDismiss: () -> Unit,
-	onConfirm: () -> Unit,
-	title: String,
-	description: String,
-	buttonText: String,
-	icon: ImageVector,
-) {
+fun LogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, title: String, description: String, buttonText: String, icon: ImageVector) {
 	Modal(
 		show = show,
 		onDismiss = onDismiss,

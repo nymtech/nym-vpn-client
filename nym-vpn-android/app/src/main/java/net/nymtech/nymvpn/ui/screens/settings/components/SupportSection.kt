@@ -11,15 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun SupportSection(navController: NavController) {
+fun SupportSection(onSupportClick: () -> Unit) {
 	SettingsGroup(
 		items = listOf(
 			SelectionItem(
@@ -28,6 +26,7 @@ fun SupportSection(navController: NavController) {
 						ImageVector.vectorResource(R.drawable.support),
 						stringResource(R.string.support),
 						modifier = Modifier.size(iconSize.scaledWidth()),
+						tint = MaterialTheme.colorScheme.outline,
 					)
 				},
 				trailing = {
@@ -35,6 +34,7 @@ fun SupportSection(navController: NavController) {
 						Icons.AutoMirrored.Outlined.ArrowRight,
 						stringResource(R.string.go),
 						modifier = Modifier.size(iconSize),
+						tint = MaterialTheme.colorScheme.onBackground,
 					)
 				},
 				title = {
@@ -43,30 +43,7 @@ fun SupportSection(navController: NavController) {
 						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 					)
 				},
-				onClick = { navController.navigate(Route.Support) },
-			),
-			SelectionItem(
-				leading = {
-					Icon(
-						ImageVector.vectorResource(R.drawable.logs),
-						stringResource(R.string.logs),
-						modifier = Modifier.size(iconSize.scaledWidth()),
-					)
-				},
-				trailing = {
-					Icon(
-						Icons.AutoMirrored.Outlined.ArrowRight,
-						stringResource(R.string.go),
-						modifier = Modifier.size(iconSize),
-					)
-				},
-				title = {
-					Text(
-						stringResource(R.string.local_logs),
-						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-					)
-				},
-				onClick = { navController.navigate(Route.Logs) },
+				onClick = onSupportClick,
 			),
 		),
 	)
