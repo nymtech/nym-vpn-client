@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Increase the number of Windows firewall slots (https://github.com/nymtech/nym-vpn-client/pull/4072)
+
 ### Removed
 
 ## [1.20.0] - 2025-12-01
