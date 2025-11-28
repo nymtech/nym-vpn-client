@@ -242,7 +242,7 @@ export default function HopSelect({
 
       <Button
         className={clsx([
-          'flex flex-1 pl-4 items-center justify-center h-full py-3 rounded-none rounded-l-lg',
+          'flex flex-1 pl-4 items-center justify-center h-full py-3 rounded-none rounded-l-lg overflow-hidden',
           !locked && 'hover:text-white/80',
         ])}
         onClick={handleClick}
