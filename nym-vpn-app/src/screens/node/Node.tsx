@@ -17,7 +17,7 @@ import { kvSet } from '../../kvStore';
 import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
-import LocationDetailsDialog from './LocationDetailsDialog';
+import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
 function Node({ node }: { node: NodeHop }) {

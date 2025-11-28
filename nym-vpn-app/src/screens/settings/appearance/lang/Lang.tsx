@@ -1,9 +1,11 @@
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import { useLang } from '../../../../hooks';
 import { languages } from '../../../../i18n';
-import { PageAnim } from '../../../../ui';
+import { PageAnim, SettingsMenuCard } from '../../../../ui';
+import { TranslationHelpUrl } from '../../../../constants';
 
 function Lang() {
   const { t, i18n } = useTranslation();
@@ -14,6 +16,14 @@ function Lang() {
       className="h-full flex flex-col py-6 gap-6"
       data-testid="language-page"
     >
+      <SettingsMenuCard
+        title={t('support.help.title', { ns: 'settings' })}
+        onClick={() => openUrl(TranslationHelpUrl)}
+        description={t('support.help.description', { ns: 'settings' })}
+        leadingIcon="language"
+        trailingIcon="open_in_new"
+        className="mx-3"
+      />
       <ul
         className="flex flex-col w-full items-stretch gap-1"
         data-testid="language-list"

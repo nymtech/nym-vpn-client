@@ -31,6 +31,7 @@ export const TelegramUrl = 'https://nym.com/go/telegram';
 export const DiscordInviteUrl = 'https://nym.com/go/discord';
 export const FaqUrl = 'https://support.nym.com/hc';
 export const ContactSupportUrl = 'https://support.nym.com/hc/requests/new';
+export const TranslationHelpUrl = 'https://crowdin.com/editor/nymvpn-apps';
 export const ToSUrl = 'https://nym.com/vpn-terms';
 export const PrivacyPolicyUrl = 'https://nym.com/vpn-privacy-statement';
 export const LocationDetailsArticle =
@@ -53,5 +54,5 @@ export const NetworkExplorerNodeUrl = 'https://nym.com/explorer/nym-node';
 export const countriesWithRegions = ['US', 'CA', 'AU', 'MX', 'BR', 'IN', 'CN'];
 export const ResidentialIpServersUrl =
   'https://support.nym.com/hc/en-us/articles/35279486714641-Why-can-t-I-access-streaming-services-while-using-NymVPN';
-export const LocationAccuracyLink =
-  'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
+export const QuicSupportArticleUrl =
+  'https://support.nym.com/hc/en-us/articles/39648047741457-QUIC-transport-mode';
