@@ -3,13 +3,13 @@
 "nym-vpn-core/crates/nym-vpn-proto/**":
   - rokas-ambrazevicius
   - neacsu
-  - doums
+  - agentpietrucha
   - pronebird
   - mrkiwi
 
 # client app changes
 "nym-vpn-app/*":
-  - doums
+  - agentpietrucha
 "nym-vpn-apple/*":
   - rokas-ambrazevicius
 "nym-vpn-android/*":

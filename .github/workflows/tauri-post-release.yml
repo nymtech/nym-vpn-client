@@ -100,4 +100,4 @@ jobs:
           git add nym-vpn-app/.pkg/flatpak
           git commit -m "${{ env.COMMIT_MSG }}"
           git push origin ${{ env.GIT_BRANCH }}
-          gh pr create --title '${{ env.COMMIT_MSG }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "doums"
+          gh pr create --title '${{ env.COMMIT_MSG }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "agentpietrucha"
