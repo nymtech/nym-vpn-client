@@ -150,6 +150,7 @@ mod tests {
             }),
             ipr_address: None,
             authenticator_address: None,
+            nr_address: None,
             bridge_params: None,
             last_probe: None,
             ips: Vec::new(),
