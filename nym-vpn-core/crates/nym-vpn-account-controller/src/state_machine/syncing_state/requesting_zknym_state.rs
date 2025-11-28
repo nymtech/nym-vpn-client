@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -104,7 +106,7 @@ impl RequestingZkNymsState {
     }
     async fn fetch_zk_nyms(
         vpn_api_client: VpnApiClient,
-        vpn_api_account: VpnAccount,
+        vpn_api_account: Arc<VpnAccount>,
         device: Device,
         storage: VpnCredentialStorage,
         credential_mode: bool,
