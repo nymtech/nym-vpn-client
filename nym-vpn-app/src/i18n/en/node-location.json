@@ -15,7 +15,11 @@
       "title": "Location accuracy",
       "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
     },
-    "entry-title": "Choosing entry locations",
+    "quic": {
+      "title": "QUIC protocol",
+      "description": "Improves the Fast mode reliability in restrictive networks by <1>wrapping WireGuard traffic in QUIC</1> (HTTP/3) to appear as regular web browsing."
+    },
+    "entry-title": "Choosing entry servers",
     "exit-title": "Choosing exit locations"
   },
   "location-not-available": {
