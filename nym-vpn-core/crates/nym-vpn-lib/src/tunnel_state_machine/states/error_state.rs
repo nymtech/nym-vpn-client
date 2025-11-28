@@ -166,6 +166,7 @@ impl TunnelStateHandler for ErrorState {
     ) -> NextTunnelState {
         tokio::select! {
             Some(command) = command_rx.recv() => {
+                tracing::debug!("ErrorState received command: {command:?}");
                 match command {
                     TunnelCommand::Connect => {
                         #[cfg(target_os = "macos")]

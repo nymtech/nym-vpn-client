@@ -31,8 +31,6 @@ struct Socks5EnableConfig {
     network_requester_address: String,
     request_timeout: Duration,
     idle_timeout: Duration,
-    #[allow(dead_code)]
-    cancel_token: CancellationToken,
 }
 
 /// SOCKS5 service errors
@@ -112,7 +110,7 @@ impl Socks5ServiceState {
             socks5_settings: Socks5Settings {
                 listen_address: self.socks5_listen_address.clone(),
             },
-            http_rpc_settings: nym_vpn_lib_types::HttpRpcSettings {
+            http_rpc_settings: HttpRpcSettings {
                 listen_address: self.http_rpc_proxy_listen_address.clone(),
             },
             active_connections,
@@ -128,7 +126,6 @@ impl Socks5ServiceState {
             network_requester_address,
             request_timeout,
             idle_timeout,
-            cancel_token: _, // Unused - we create our own independent token
         } = config;
 
         // Prevent concurrent enable calls
@@ -174,7 +171,7 @@ impl Socks5ServiceState {
 
         // Create an independent cancellation token for this enable operation.
         // Both the wrapper and HTTP proxy share this token to ensure synchronized lifecycles.
-        let service_cancel_token = CancellationToken::new();
+        let cancel_token = CancellationToken::new();
 
         // Create lazy SOCKS5 wrapper
         let config = LazySocks5Config {
@@ -188,7 +185,7 @@ impl Socks5ServiceState {
         let lazy_socks5 = Arc::new(LazySocks5::new(
             config,
             self.tunnel_state.clone(),
-            service_cancel_token.clone(),
+            cancel_token.clone(),
         )?);
 
         // Spawn lazy SOCKS5 task
@@ -218,8 +215,7 @@ impl Socks5ServiceState {
 
             // Use the same service_cancel_token to ensure HTTP proxy and wrapper
             // have synchronized lifecycles
-            let mut http_proxy =
-                HttpRpc::new(http_rpc_addr, request_timeout, service_cancel_token.clone());
+            let mut http_proxy = HttpRpc::new(http_rpc_addr, request_timeout, cancel_token.clone());
 
             let lazy_socks5_clone = lazy_socks5.clone();
             let handle = tokio::spawn(async move {
@@ -243,7 +239,7 @@ impl Socks5ServiceState {
         self.lazy_socks5 = Some(lazy_socks5);
         self.lazy_socks5_handle = Some(lazy_socks5_handle);
         self.http_rpc_proxy_handle = http_rpc_proxy_handle;
-        self.cancel_token = Some(service_cancel_token);
+        self.cancel_token = Some(cancel_token);
 
         Ok(())
     }
@@ -298,16 +294,13 @@ impl Socks5ServiceState {
 pub struct Socks5Service {
     /// Socks5 service state
     state: Arc<RwLock<Socks5ServiceState>>,
-    /// Shutdown token
-    shutdown_token: CancellationToken,
 }
 
 impl Socks5Service {
     /// Create a new lazy SOCKS5 service (starts in disabled state)
-    pub fn new(tunnel_state: Arc<RwLock<TunnelState>>, shutdown_token: CancellationToken) -> Self {
+    pub fn new(tunnel_state: Arc<RwLock<TunnelState>>) -> Self {
         Self {
             state: Arc::new(RwLock::new(Socks5ServiceState::new(tunnel_state))),
-            shutdown_token,
         }
     }
 
@@ -330,7 +323,6 @@ impl Socks5Service {
                 network_requester_address,
                 request_timeout,
                 idle_timeout,
-                cancel_token: self.shutdown_token.child_token(),
             })
             .await
     }
@@ -361,11 +353,5 @@ impl Socks5Service {
     pub async fn shutdown(&self) {
         let mut state = self.state.write().await;
         state.cleanup().await;
-    }
-}
-
-impl Drop for Socks5Service {
-    fn drop(&mut self) {
-        self.shutdown_token.cancel();
     }
 }

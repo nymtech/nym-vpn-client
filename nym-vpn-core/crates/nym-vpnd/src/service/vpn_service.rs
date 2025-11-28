@@ -399,8 +399,7 @@ impl NymVpnService {
         let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
 
         // Initialize lazy SOCKS5 service (disabled by default)
-        let socks5_service =
-            Socks5Service::new(tunnel_state.clone(), services_shutdown_token.child_token());
+        let socks5_service = Socks5Service::new(tunnel_state.clone());
 
         // These used to interact with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
