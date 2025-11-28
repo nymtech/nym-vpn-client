@@ -40,6 +40,8 @@ pub struct Gateway {
     #[builder(default, setter(strip_option))]
     pub authenticator_address: Option<AuthAddress>,
     #[builder(default)]
+    pub nr_address: Option<String>,
+    #[builder(default)]
     pub bridge_params: Option<BridgeInformation>,
     #[builder(default)]
     pub last_probe: Option<Probe>,
@@ -92,6 +94,11 @@ impl Gateway {
                     .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
                     .ok()
             });
+        let nr_address = node_description
+            .description
+            .network_requester
+            .as_ref()
+            .map(|nr| nr.address.clone());
         let version = Some(node_description.version().to_string());
         let role = if node_description.description.declared_role.entry {
             nym_validator_client::nym_nodes::NodeRole::EntryGateway
@@ -122,6 +129,7 @@ impl Gateway {
             location,
             ipr_address,
             authenticator_address,
+            nr_address,
             bridge_params: None,
             last_probe: None,
             ips,
@@ -541,6 +549,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             location: Some(gateway.location.into()),
             ipr_address,
             authenticator_address,
+            nr_address: None,
             bridge_params: gateway.bridges,
             last_probe: gateway.last_probe.map(Probe::from),
             ips: gateway.ip_addresses,
@@ -1136,6 +1145,7 @@ mod tests {
                     }),
                     ipr_address: ipr,
                     authenticator_address: aa,
+                    nr_address: None,
                     bridge_params: None,
                     last_probe: None,
                     ips: Vec::new(),

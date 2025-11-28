@@ -20,7 +20,8 @@ pub use crate::{
         exit_point::ExitPoint,
         gateway::{
             Asn, AsnKind, Entry, Exit, Gateway, GatewayFilter, GatewayFilters, GatewayList,
-            GatewayType, Location, NymNode, Performance, Probe, ProbeOutcome, ScoreValue,
+            GatewayType, Location, NymNode, NymNodeList, Performance, Probe, ProbeOutcome,
+            ScoreValue,
         },
         ipr_addresses::IpPacketRouterAddress,
     },

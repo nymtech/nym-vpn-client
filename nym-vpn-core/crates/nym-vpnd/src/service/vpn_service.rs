@@ -3,16 +3,26 @@
 
 use bip39::Mnemonic;
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
-use std::{net::IpAddr, path::PathBuf, pin::Pin};
+use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
-    sync::{broadcast, mpsc, oneshot, watch},
+    sync::{RwLock, broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
     time::{Duration, Instant},
 };
 use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
+use super::{
+    HttpRpcSettings, Socks5Error, Socks5Service, Socks5Settings, Socks5Status,
+    config::{NetworkEnvironments, VpnServiceConfigManager},
+    error::{
+        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
+        Result, SetNetworkError,
+    },
+    socks5_idle_timeout, socks5_request_timeout,
+};
+use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
@@ -24,7 +34,7 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
-    DEFAULT_DNS_SERVERS, UserAgent, VpnTopologyProvider,
+    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyProvider,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
@@ -37,15 +47,6 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
-
-use super::{
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
-        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
-    },
-};
-use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -79,6 +80,12 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         GatewayFilters,
     ),
+    EnableSocks5(
+        oneshot::Sender<Result<(), Socks5Error>>,
+        (Socks5Settings, HttpRpcSettings, ExitPoint),
+    ),
+    DisableSocks5(oneshot::Sender<Result<(), Socks5Error>>, ()),
+    GetSocks5Status(oneshot::Sender<Result<Socks5Status, Socks5Error>>, ()),
     // Deprecated
     Connect(oneshot::Sender<()>, ConnectArgs),
     SetTargetState(oneshot::Sender<bool>, TargetState),
@@ -180,7 +187,7 @@ pub struct NymVpnService {
     target_state: TargetState,
 
     // Last known tunnel state
-    tunnel_state: TunnelState,
+    tunnel_state: Arc<RwLock<TunnelState>>,
 
     // Timer used to throttle changes to tunnel settings
     tunnel_settings_update_timer: Pin<Box<Fuse<tokio::time::Sleep>>>,
@@ -232,6 +239,9 @@ pub struct NymVpnService {
 
     // The statistics channel sender
     statistics_event_sender: StatisticsSender,
+
+    // Lazy SOCKS5 proxy service handle
+    socks5_service: Socks5Service,
 }
 
 impl NymVpnService {
@@ -386,6 +396,11 @@ impl NymVpnService {
         let statistics_event_sender = statistics_controller.get_statistics_sender();
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+
+        // Initialize lazy SOCKS5 service (disabled by default)
+        let socks5_service = Socks5Service::new(tunnel_state.clone());
+
         // These used to interact with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
@@ -433,7 +448,7 @@ impl NymVpnService {
                     }
                 })?;
         let (gateway_cache_handle, gateway_cache_join_handle) = GatewayCache::spawn(
-            gateway_directory_client,
+            gateway_directory_client.clone(),
             connectivity_handle.clone(),
             services_shutdown_token.child_token(),
         );
@@ -507,7 +522,7 @@ impl NymVpnService {
             data_dir: network_data_dir,
             log_path: parameters.log_path,
             target_state: TargetState::Unsecured,
-            tunnel_state: TunnelState::Disconnected,
+            tunnel_state,
             tunnel_settings_update_timer: Box::pin(Fuse::terminated()),
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
@@ -525,6 +540,7 @@ impl NymVpnService {
             sentry_enabled: parameters.sentry_enabled,
             network_statistics_enabled: parameters.netstats_enabled,
             statistics_event_sender,
+            socks5_service,
         })
     }
 
@@ -586,6 +602,9 @@ impl NymVpnService {
         // Cancel all other services and wait for them to complete
         self.services_shutdown_token.cancel();
 
+        // Shutdown SOCKS5 service
+        self.socks5_service.shutdown().await;
+
         if let Err(e) = self.account_controller_handle.await {
             tracing::error!("Failed to join on account controller handle: {e}");
         }
@@ -608,7 +627,7 @@ impl NymVpnService {
     }
 
     async fn set_target_state(&mut self, new_state: TargetState) -> bool {
-        if self.target_state != new_state || self.tunnel_state.is_error_state() {
+        if self.target_state != new_state || self.tunnel_state.read().await.is_error_state() {
             tracing::debug!("Set target state {} => {}", self.target_state, new_state);
             self.target_state = new_state;
 
@@ -655,8 +674,25 @@ impl NymVpnService {
     }
 
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
-        if let TunnelEvent::NewState(ref state) = event {
-            self.tunnel_state = state.clone();
+        if let TunnelEvent::NewState(ref new_state) = event {
+            if let Ok(mut state) = self.tunnel_state.try_write() {
+                *state = new_state.clone();
+            } else {
+                tracing::error!("Failed to update tunnel state to {new_state}");
+            }
+
+            // Auto-disable SOCKS5 when VPN disconnects
+            if matches!(new_state, TunnelState::Disconnected | TunnelState::Error(_))
+                && self.socks5_service.is_enabled()
+            {
+                tracing::info!("VPN disconnected, auto-disabling SOCKS5 proxy");
+                let socks5_service = self.socks5_service.clone();
+                tokio::spawn(async move {
+                    if let Err(e) = socks5_service.disable().await {
+                        tracing::error!("Failed to auto-disable SOCKS5 on VPN disconnect: {}", e);
+                    }
+                });
+            }
         }
         if self.tunnel_event_tx.send(event).is_err() {
             tracing::error!("Failed to send tunnel event");
@@ -855,6 +891,23 @@ impl NymVpnService {
                 let result = self.handle_toggle_collect_network_stats(enable).await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::EnableSocks5(
+                tx,
+                (socks5_settings, http_rpc_settings, exit_point),
+            ) => {
+                let result = self
+                    .handle_enable_socks5(socks5_settings, http_rpc_settings, exit_point)
+                    .await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::DisableSocks5(tx, ()) => {
+                let result = self.handle_disable_socks5().await;
+                let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetSocks5Status(tx, ()) => {
+                let result = self.handle_get_socks5_status().await;
+                let _ = tx.send(result);
+            }
         }
     }
 
@@ -1034,6 +1087,150 @@ impl NymVpnService {
         });
     }
 
+    async fn handle_enable_socks5(
+        &mut self,
+        socks5_settings: Socks5Settings,
+        http_rpc_settings: HttpRpcSettings,
+        exit_point: ExitPoint,
+    ) -> Result<(), Socks5Error> {
+        tracing::info!("Enabling SOCKS5 client");
+        tracing::info!("Using exit point: {:?}", exit_point);
+
+        // Get all exit gateways
+        let exit_gateways: nym_gateway_directory::GatewayList = self
+            .gateway_cache_handle
+            .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
+            .await
+            .map_err(|e| {
+                Socks5Error::InvalidConfig(format!("Failed to lookup exit gateways: {}", e))
+            })?;
+
+        // Filter for gateways that support SOCKS5
+        let socks5_gateways = gateway_directory::GatewayList::new(
+            Some(gateway_directory::GatewayType::MixnetExit),
+            exit_gateways
+                .into_iter()
+                .filter(|gateway| {
+                    gateway
+                        .last_probe
+                        .as_ref()
+                        .and_then(|probe| probe.outcome.as_exit.as_ref())
+                        .map(|exit_point| exit_point.can_connect)
+                        .unwrap_or(false)
+                })
+                .collect(),
+        );
+
+        // Get exit node's identity depending on the exit point
+        let gateway_identity: NodeIdentity = match &exit_point {
+            // User has chosen a specific exit address (IPR address)
+            ExitPoint::Address { address } => *address.gateway().inner(),
+            // User has chosen a specific gateway identity
+            ExitPoint::Gateway { identity } => *identity.inner(),
+            // User has chosen a specific exit country, region, or random
+            ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
+                // For non-specific exit points, select a gateway the same way the VPN does
+                tracing::info!(
+                    "Selecting SOCKS5 exit node for exit point: {:?}",
+                    exit_point
+                );
+
+                // Convert to gateway_directory types for lookup
+                let exit_point_dir = gateway_directory::ExitPoint::from(exit_point.clone());
+                let residential_exit = self.config_manager.config().residential_exit;
+
+                // Try to find a high-performance gateway first
+                let selected_gateway = exit_point_dir
+                    .lookup_gateway(
+                        &socks5_gateways,
+                        Some(gateway_directory::ScoreValue::High),
+                        residential_exit,
+                    )
+                    .or_else(|err| {
+                        // When no gateways could be found, lower performance tier and try again
+                        if err.is_unmatched_non_specific_gateway() {
+                            tracing::debug!(
+                                "Could not locate high quality SOCKS5 exit gateway. \
+                                Lowering performance filter to medium and trying again"
+                            );
+                            exit_point_dir.lookup_gateway(
+                                &socks5_gateways,
+                                Some(gateway_directory::ScoreValue::Medium),
+                                residential_exit,
+                            )
+                        } else {
+                            Err(err)
+                        }
+                    })
+                    .map_err(|e| {
+                        Socks5Error::InvalidConfig(format!("Failed to select exit gateway: {}", e))
+                    })?;
+
+                tracing::info!(
+                    "Selected SOCKS5 exit gateway: {}, location: {}",
+                    selected_gateway.identity(),
+                    selected_gateway
+                        .two_letter_iso_country_code()
+                        .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
+                );
+
+                selected_gateway.identity()
+            }
+        };
+
+        // Get the gateway with nr_address from cache (or fetch if not cached)
+        let gateway = self
+            .gateway_cache_handle
+            .lookup_nymnode_by_identity(gateway_identity)
+            .await
+            .map_err(|e| {
+                Socks5Error::InvalidConfig(format!(
+                    "Failed to lookup gateway {}: {}",
+                    gateway_identity, e
+                ))
+            })?;
+
+        let nr_address = gateway
+            .nr_address
+            .as_ref()
+            .ok_or(Socks5Error::GatewayNotSupported)?
+            .clone();
+
+        tracing::info!("Using network requester address {} for SOCKS5", nr_address);
+
+        let request_timeout = socks5_request_timeout();
+        let idle_timeout = socks5_idle_timeout();
+
+        self.socks5_service
+            .enable(
+                self.data_dir.clone(),
+                socks5_settings.listen_address,
+                http_rpc_settings.listen_address,
+                nr_address,
+                request_timeout,
+                idle_timeout,
+            )
+            .await?;
+
+        tracing::info!("Lazy SOCKS5 proxy service enabled successfully");
+        tracing::info!(
+            "Mixnet will initialize on first SOCKS5 connection and shut down after {}s of inactivity",
+            idle_timeout.as_secs()
+        );
+        Ok(())
+    }
+
+    async fn handle_disable_socks5(&mut self) -> Result<(), Socks5Error> {
+        tracing::info!("Disabling lazy SOCKS5 proxy service");
+        self.socks5_service.disable().await?;
+        tracing::info!("Lazy SOCKS5 proxy service disabled successfully");
+        Ok(())
+    }
+
+    async fn handle_get_socks5_status(&self) -> Result<Socks5Status, Socks5Error> {
+        self.socks5_service.get_status().await
+    }
+
     // Deprecated
     async fn handle_connect(&mut self, connect_args: ConnectArgs) -> Result<()> {
         let ConnectArgs {
@@ -1082,7 +1279,7 @@ impl NymVpnService {
     }
 
     async fn handle_get_tunnel_state(&self) -> TunnelState {
-        self.tunnel_state.clone()
+        self.tunnel_state.read().await.clone()
     }
 
     async fn handle_store_account(
@@ -1141,7 +1338,7 @@ impl NymVpnService {
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.read().await != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to forget account while connected",
             ));
@@ -1161,7 +1358,7 @@ impl NymVpnService {
 
     async fn handle_rotate_keys(&mut self) -> Result<(), AccountCommandError> {
         // TODO: temporary, until key rotation can be done while connected
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.read().await != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to rotate keys while connected",
             ));
@@ -1219,7 +1416,7 @@ impl NymVpnService {
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountCommandError> {
-        if self.tunnel_state != TunnelState::Disconnected {
+        if *self.tunnel_state.read().await != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to reset device identity while connected",
             ));
