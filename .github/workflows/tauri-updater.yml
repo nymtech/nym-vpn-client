@@ -101,4 +101,4 @@ jobs:
           git add .pkg/tauri-updater
           git commit -m "${{ env.COMMIT_MSG }}"
           git push origin ${{ env.GIT_BRANCH }}
-          gh pr create --title '${{ env.PR_TITLE }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "doums"
+          gh pr create --title '${{ env.PR_TITLE }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "agentpietrucha"
