@@ -120,6 +120,7 @@ impl TunnelStateHandler for OfflineState {
     ) -> NextTunnelState {
         tokio::select! {
             Some(command) = command_rx.recv() => {
+                tracing::debug!("OfflineState received command: {command:?}");
                 match command {
                     TunnelCommand::Connect => {
                         if self.reconnect {

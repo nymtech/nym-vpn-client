@@ -646,6 +646,7 @@ impl TunnelStateHandler for ConnectingState {
                 }
            }
             Some(command) = command_rx.recv() => {
+                tracing::debug!("ConnectingState received command: {command:?}");
                 match command {
                     TunnelCommand::Connect => {
                         if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
