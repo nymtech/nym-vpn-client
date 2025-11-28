@@ -7,6 +7,7 @@ public struct GenericButton: View {
         case accentBorderOnly
         case primaryBorderOnly
         case textOnly
+        case destructive
 
         var backgroundColor: Color {
             switch self {
@@ -14,6 +15,8 @@ public struct GenericButton: View {
                 NymColor.accent
             case .accentBorderOnly, .textOnly, .primaryBorderOnly:
                 .clear
+            case .destructive:
+                NymColor.error.opacity(0.1)
             }
         }
 
@@ -23,7 +26,7 @@ public struct GenericButton: View {
                 NymColor.black
             case .accentBorderOnly, .textOnly:
                 NymColor.accent
-            case .primaryBorderOnly:
+            case .primaryBorderOnly, .destructive:
                 NymColor.primary
             }
         }
@@ -34,7 +37,7 @@ public struct GenericButton: View {
                 NymColor.black
             case .accentBorderOnly:
                 NymColor.accent
-            case .textOnly, .primaryBorderOnly:
+            case .textOnly, .primaryBorderOnly, .destructive:
                 NymColor.primary
             }
         }
@@ -43,7 +46,7 @@ public struct GenericButton: View {
             switch self {
             case .normal, .textOnly:
                 0
-            case .accentBorderOnly, .primaryBorderOnly:
+            case .accentBorderOnly, .primaryBorderOnly, .destructive:
                 1
             }
         }
@@ -56,6 +59,8 @@ public struct GenericButton: View {
                 NymColor.accent
             case .primaryBorderOnly:
                 NymColor.primary
+            case .destructive:
+                NymColor.error
             }
         }
     }
