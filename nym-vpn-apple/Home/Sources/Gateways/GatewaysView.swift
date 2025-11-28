@@ -56,14 +56,9 @@ public struct GatewaysView: View {
         }
         .overlay {
             if viewModel.isGeolocationModalDisplayed {
-                LocationInfoView(
-                    viewModel: LocationInfoViewModel(
-                        externalLinkManager: ExternalLinkManager.shared,
-                        isDisplayed: $viewModel.isGeolocationModalDisplayed
-                    )
-                )
-                .transition(.opacity)
-                .animation(.easeInOut, value: viewModel.isGeolocationModalDisplayed)
+                LocationInfoView(type: viewModel.type, isDisplayed: $viewModel.isGeolocationModalDisplayed)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: viewModel.isGeolocationModalDisplayed)
             }
         }
         .onTapGesture {

@@ -28,6 +28,7 @@ import UIComponents
     @Binding private var isServing: Bool
 #endif
     @Published var isLogoutConfirmationDisplayed = false
+    @Published var isLogoutLoading = false
     @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
 
@@ -37,16 +38,26 @@ import UIComponents
 
     var logoutDialogConfiguration: ActionDialogConfiguration {
         ActionDialogConfiguration(
-            systemIconImageName: "exclamationmark.circle",
+            systemIconImageName: "rectangle.portrait.and.arrow.right",
             titleLocalizedString: "settings.logoutTitle".localizedString,
             subtitleLocalizedString: "settings.logoutSubtitle".localizedString,
-            yesLocalizedString: "cancel".localizedString,
-            noLocalizedString: "settings.logout".localizedString,
-            noAction: { [weak self] in
+            yesLocalizedString: "settings.logout".localizedString,
+            noLocalizedString: "cancel".localizedString,
+            isYesDestructive: true,
+            yesAction: { [weak self] in
+                self?.isLogoutLoading = true
                 Task {
                     await self?.logout()
+                    try? await Task.sleep(for: .seconds(1))
+                    Task { @MainActor in
+                        self?.isLogoutConfirmationDisplayed = false
+                        self?.isLogoutLoading = false
+                    }
                 }
-            }
+            },
+            loadingText: "settings.loggingOut".localizedString,
+            shouldCloseAfterYesAction: false,
+            verticalButtonsLayout: true
         )
     }
 
@@ -324,7 +335,14 @@ private extension SettingsViewModel {
 #if os(macOS)
         viewModels.append(
             SettingsListItemViewModel(
-                accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isIPv6TrafficEnabled)),
+                accessory: .toggle(
+                    viewModel: ToggleViewModel(
+                        isOn: appSettings.$isIPv6TrafficEnabled,
+                        action: { [weak self] isOn in
+                            self?.appSettings.isIPv6TrafficEnabled = isOn
+                        }
+                    )
+                ),
                 title: "settings.ipv6.title".localizedString,
                 subtitle: "settings.ipv6.subtitle".localizedString,
                 systemImageName: "powerplug.portrait",
@@ -334,7 +352,14 @@ private extension SettingsViewModel {
 #endif
         viewModels.append(
             SettingsListItemViewModel(
-                accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isLanBypassEnabled)),
+                accessory: .toggle(
+                    viewModel: ToggleViewModel(
+                        isOn: appSettings.$isLanBypassEnabled,
+                        action: { [weak self] isOn in
+                            self?.appSettings.isLanBypassEnabled = isOn
+                        }
+                    )
+                ),
                 title: "settings.lanBypass.title".localizedString,
                 subtitle: "settings.lanBypass.subtitle".localizedString,
                 imageName: "lan",
@@ -416,6 +441,7 @@ private extension SettingsViewModel {
             SettingsListItemViewModel(
                 accessory: .empty,
                 title: "settings.logout".localizedString,
+                type: .destructive,
                 action: { [weak self] in
                     self?.isLogoutConfirmationDisplayed = true
                 }

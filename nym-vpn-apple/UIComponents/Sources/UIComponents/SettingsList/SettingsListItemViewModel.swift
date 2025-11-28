@@ -57,11 +57,35 @@ public final class SettingsListItemViewModel: Hashable {
         }
     }
 
+    public enum ItemType {
+        case regular
+        case destructive
+
+        var backgroundColor: Color {
+            switch self {
+            case .regular:
+                NymColor.elevation
+            case .destructive:
+                NymColor.error.opacity(0.1)
+            }
+        }
+
+        var strokeColor: Color {
+            switch self {
+            case .regular:
+                NymColor.elevation
+            case .destructive:
+                NymColor.error
+            }
+        }
+    }
+
     let title: String
     let subtitle: String?
     let multilineText: AttributedString?
     let imageName: String?
     let systemImageName: String?
+    let type: ItemType
     let accessory: Accessory
     let action: (() -> Void)
 
@@ -74,6 +98,7 @@ public final class SettingsListItemViewModel: Hashable {
         multilineText: AttributedString? = nil,
         imageName: String? = nil,
         systemImageName: String? = nil,
+        type: ItemType = .regular,
         position: SettingsListItemPosition = SettingsListItemPosition(isFirst: false, isLast: false),
         action: @escaping (() -> Void)
     ) {
@@ -82,6 +107,7 @@ public final class SettingsListItemViewModel: Hashable {
         self.multilineText = multilineText
         self.imageName = imageName
         self.systemImageName = systemImageName
+        self.type = type
         self.accessory = accessory
         self.position = position
         self.action = action

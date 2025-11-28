@@ -19,7 +19,14 @@ public final class ToggleViewModel: ObservableObject, Identifiable, Hashable {
     @Published var isDisabled: Bool
 
     private var action: ((Bool) -> Void)?
-
+    
+    /// Must use action for toggle state to update the value intented
+    /// - Parameters:
+    ///   - isOn: Bool
+    ///   - controlInAlert: Bool
+    ///   - isDisplayingAlert: Bool
+    ///   - isDisabled: Bool
+    ///   - action: change the actual value HERE
     public init(
         isOn: Binding<Bool>,
         controlInAlert: Bool = false,
