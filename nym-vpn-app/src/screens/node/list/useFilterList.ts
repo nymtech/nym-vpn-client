@@ -16,8 +16,7 @@ export function useFilterList(hop: NodeHop) {
 
   const [filteredNodes, setFilteredNodes] =
     useState<UiGatewaysByCountry[]>(nodes);
-  const [filteredGateways, setFilteredGateways] =
-    useState<UiGateway[]>(gateways);
+  const [filteredGateways, setFilteredGateways] = useState<UiGateway[]>([]);
 
   const filter = useCallback(
     (value: string) => {
@@ -80,7 +79,6 @@ export function useFilterList(hop: NodeHop) {
     } else {
       setFilteredNodes(nodes);
       setFilteredGateways([]);
-      setExpanded(hop, []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, gateways]);
