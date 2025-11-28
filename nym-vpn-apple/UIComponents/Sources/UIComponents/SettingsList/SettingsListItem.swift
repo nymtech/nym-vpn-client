@@ -29,10 +29,25 @@ public struct SettingsListItem: View {
             optionalDivider()
         }
         .background {
-            NymColor.elevation.opacity(isHovered ? 0.7 : 1)
+            UnevenRoundedRectangle(
+                topLeadingRadius: viewModel.topRadius,
+                bottomLeadingRadius: viewModel.bottomRadius,
+                bottomTrailingRadius: viewModel.bottomRadius,
+                topTrailingRadius: viewModel.topRadius
+            )
+            .fill(viewModel.type.backgroundColor.opacity(isHovered ? 0.7 : 1))
+        }
+        .overlay {
+            UnevenRoundedRectangle(
+                topLeadingRadius: viewModel.topRadius,
+                bottomLeadingRadius: viewModel.bottomRadius,
+                bottomTrailingRadius: viewModel.bottomRadius,
+                topTrailingRadius: viewModel.topRadius
+            )
+            .stroke(viewModel.type.strokeColor, lineWidth: 1)
         }
         .clipShape(
-            .rect(
+            UnevenRoundedRectangle(
                 topLeadingRadius: viewModel.topRadius,
                 bottomLeadingRadius: viewModel.bottomRadius,
                 bottomTrailingRadius: viewModel.bottomRadius,

@@ -48,7 +48,8 @@ private extension SettingsView {
                     viewModel: ActionDialogViewModel(
                         isDisplayed: $viewModel.isLogoutConfirmationDisplayed,
                         configuration: viewModel.logoutDialogConfiguration,
-                        impactGenerator: .shared
+                        impactGenerator: .shared,
+                        isLoading: $viewModel.isLogoutLoading
                     )
                 )
             }
