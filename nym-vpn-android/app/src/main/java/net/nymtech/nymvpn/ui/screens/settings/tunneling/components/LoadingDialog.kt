@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,7 +30,7 @@ fun LoadingDialog() {
 	) {
 		Box(
 			modifier = Modifier
-				.size(120.dp.scaledHeight())
+				.sizeIn(minWidth = 120.dp.scaledHeight(), minHeight = 120.dp.scaledHeight())
 				.background(
 					color = MaterialTheme.colorScheme.surface,
 					shape = MaterialTheme.shapes.medium,
@@ -36,6 +38,7 @@ fun LoadingDialog() {
 			contentAlignment = Alignment.Center,
 		) {
 			Column(
+				modifier = Modifier.padding(16.dp.scaledHeight()),
 				horizontalAlignment = Alignment.CenterHorizontally,
 				verticalArrangement = Arrangement.Center,
 			) {
