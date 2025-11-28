@@ -1,30 +1,27 @@
 use super::*;
-use crate::imp::{
-    util::wstr,
-    wfp::{
-        condition::{
-            ConditionBuilder, Location, Protocol,
-            tests::{
-                condition_test_address_and_mask_v6, condition_test_address_v4,
-                condition_test_address_v6, condition_test_port, condition_test_protocol,
-            },
-        },
-        consts::{
-            DHCP_CLIENT_PORT_V6, DHCP_SERVER_PORT_V6, LINK_LOCAL_V4, LINK_LOCAL_V6,
-            SITE_LOCAL_DHCP_MULTICAST_V6,
-        },
-        filter::{FilterBuilder, FilterWeight},
+use crate::imp::wfp::{
+    condition::{
+        tests::{
+            condition_test_address_and_mask_v6, condition_test_address_v4,
+            condition_test_address_v6, condition_test_port, condition_test_protocol,
+        }, ConditionBuilder, Location,
+        Protocol,
     },
+    consts::{
+        DHCP_CLIENT_PORT_V6, DHCP_SERVER_PORT_V6, LINK_LOCAL_V4, LINK_LOCAL_V6,
+        SITE_LOCAL_DHCP_MULTICAST_V6,
+    },
+    filter::{FilterBuilder, FilterWeight},
 };
+use nym_windows::str::wstr;
 use windows::{
-    Win32::NetworkManagement::WindowsFilteringPlatform::{
-        FWP_ACTION_PERMIT, FWP_UINT32, FWPM_FILTER_FLAG_BOOTTIME, FWPM_LAYER_ALE_AUTH_CONNECT_V6,
-    },
     core::PWSTR,
+    Win32::NetworkManagement::WindowsFilteringPlatform::{
+        FWPM_FILTER_FLAG_BOOTTIME, FWPM_LAYER_ALE_AUTH_CONNECT_V6, FWP_ACTION_PERMIT, FWP_UINT32,
+    },
 };
 
 #[test]
-
 fn filter() {
     let name = "Permit outbound DHCP requests (IPv6)";
     let description = "This filter is part of a rule that permits DHCP client traffic";
