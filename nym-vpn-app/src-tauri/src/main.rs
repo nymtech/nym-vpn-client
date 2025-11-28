@@ -25,6 +25,7 @@ use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
 use commands::sentry as cmd_sentry;
+use commands::socks5 as cmd_socks5;
 use commands::sys as cmd_sys;
 #[cfg(windows)]
 use commands::updater as cmd_updater;
@@ -290,6 +291,9 @@ async fn main() -> Result<()> {
             cmd_sentry::sentry_enabled,
             commands::network_stats::enable_netstats,
             commands::network_stats::disable_netstats,
+            cmd_socks5::enable_socks5,
+            cmd_socks5::disable_socks5,
+            cmd_socks5::get_socks5_status,
             #[cfg(windows)]
             cmd_updater::fetch_update,
             #[cfg(windows)]

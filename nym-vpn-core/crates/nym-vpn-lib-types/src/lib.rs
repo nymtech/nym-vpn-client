@@ -40,6 +40,7 @@ mod log_path;
 mod network;
 mod rpc_requests;
 mod service;
+mod socks5;
 mod tunnel_event;
 mod tunnel_state;
 #[cfg(feature = "uniffi-bindings")]
@@ -75,6 +76,7 @@ pub use rpc_requests::{
     DecentralisedObtainTicketbooksRequest, ListGatewaysOptions, StoreAccountRequest,
 };
 pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
+pub use socks5::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 pub use tunnel_event::{
     BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,
     TunnelEvent,
