@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
 import dayjs from 'dayjs';
-import { PageAnim, SettingsMenuCard, Switch } from '../../../ui';
+import { PageAnim } from '../../../ui';
 import { useMainState } from '../../../contexts';
 import {
   MixnetData,
@@ -13,24 +11,7 @@ import {
 import NetworkEnvSelect from './NetworkEnvSelect';
 
 function Dev() {
-  const [credentialsMode, setCredentialsMode] = useState(false);
-
   const { daemonStatus, networkEnv, tunnel, state } = useMainState();
-
-  useEffect(() => {
-    const getCredentialsMode = async () => {
-      const enabled = await invoke<boolean>('get_credentials_mode');
-      console.log('credentials mode:', enabled);
-      setCredentialsMode(enabled);
-    };
-    getCredentialsMode();
-  }, []);
-
-  const credentialsModeChanged = (enabled: boolean) => {
-    invoke('set_credentials_mode', { enabled }).then(() => {
-      setCredentialsMode(enabled);
-    });
-  };
 
   const mixnetData = (data: MixnetData) => (
     <div data-testid="dev-mixnet-data">
@@ -108,18 +89,6 @@ function Dev() {
       className="h-full flex flex-col py-6 gap-6 select-none cursor-default"
       data-testid="dev-page"
     >
-      <SettingsMenuCard
-        title={'CREDENTIALS_MODE'}
-        onClick={() => credentialsModeChanged(!credentialsMode)}
-        trailingComponent={
-          <Switch
-            checked={credentialsMode}
-            onChange={credentialsModeChanged}
-            data-testid="dev-credentials-switch"
-          />
-        }
-        data-testid="dev-credentials-card"
-      />
       {daemonStatus !== 'down' && networkEnv && (
         <NetworkEnvSelect current={networkEnv} />
       )}

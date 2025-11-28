@@ -1,19 +1,19 @@
 import { SelectedNode } from './types';
 
+// declared in src-tauri/src/events.rs
 export const AppName = 'NymVPN';
 export const TunnelStateEvent = 'tunnel-state';
 export const AccountStateEvent = 'account-state';
 export const DaemonEvent = 'vpnd-status';
 export const MixnetEvent = 'mixnet-event';
+export const VpnConfigEvent = 'vpn-config';
 // ⚠ keep this value in sync with the one declared in `index.html`
 export const DefaultRootFontSize = 14; // in px
 // NOTE: when fresh country data is get from daemon, the selected countries
 // are checked against it and if needed it is automatically switched to
 // available ones
 export const DefaultNode: SelectedNode = {
-  type: 'country',
-  node: {
-    name: 'Switzerland',
+  country: {
     code: 'CH',
   },
 };

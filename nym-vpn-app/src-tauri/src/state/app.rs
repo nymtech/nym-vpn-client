@@ -14,13 +14,11 @@ use crate::vpnd::account::AccountState;
 use crate::vpnd::client::{NetworkCompatVersions, VersionCheck};
 use crate::vpnd::tunnel::TunnelState;
 use crate::{
-    cli::Cli,
-    db::{Db, Key},
-    fs::config::AppConfig,
     vpnd::client::{VpndInfo, VpndStatus},
+    vpnd::config::VpndConfig,
 };
 
-#[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq, strum::Display)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "kebab-case")]
 pub enum VpnMode {
@@ -45,41 +43,28 @@ pub struct SentryClient(pub Option<ClientInitGuard>);
 pub struct AppState {
     pub os_info: OsInfo,
     pub vpnd_status: VpndStatus,
+    pub vpnd_config: Option<VpndConfig>,
     pub vpnd_info: Option<VpndInfo>,
     pub tunnel: TunnelState,
     pub account_state: AccountState,
-    pub vpn_mode: VpnMode,
-    pub dns_server: Option<String>,
-    pub credentials_mode: bool,
     pub network_compat: Option<NetworkCompat>,
     pub sentry_client: SentryClient,
 }
 
 impl AppState {
-    pub fn new(
-        db: &Db,
-        config: &AppConfig,
-        cli: &Cli,
-        os_info: OsInfo,
-        sentry_guard: Option<ClientInitGuard>,
-    ) -> Self {
-        let vpn_mode = db
-            .get_typed::<VpnMode>(Key::VpnMode.as_ref())
-            .inspect_err(|e| error!("failed to retrieve vpn mode from db: {e}"))
-            .ok()
-            .flatten()
-            .unwrap_or_default();
-        let dns_server: Option<String> = cli.dns.clone().or(config.dns_server.clone());
-
-        // restore any state from the saved app data (previous user session)
+    pub fn new(os_info: OsInfo, sentry_guard: Option<ClientInitGuard>) -> Self {
         AppState {
-            vpn_mode,
-            dns_server,
-            credentials_mode: cli.dev_mode,
             os_info,
             sentry_client: SentryClient(sentry_guard),
             ..Default::default()
         }
+    }
+
+    #[instrument(skip(self, app))]
+    pub async fn update_vpnd_config(&mut self, app: &AppHandle, config: VpndConfig) -> Result<()> {
+        self.vpnd_config = Some(config.clone());
+        app.emit_vpnd_config(config);
+        Ok(())
     }
 
     #[instrument(skip(self, app))]

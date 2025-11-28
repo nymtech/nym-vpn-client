@@ -22,7 +22,7 @@ import {
   DaemonStatus,
   ProgressMsg,
   TunnelState,
-} from './utils';
+} from './util';
 
 export type StateDispatch = Dispatch<StateAction>;
 
@@ -34,6 +34,9 @@ export type InitState = {
   vpnd: VpndStatus;
   entryNode: SelectedNode;
   exitNode: SelectedNode;
+  quic: boolean;
+  noIpv6: boolean;
+  allowLan: boolean;
 };
 
 export type AppState = {
@@ -72,15 +75,16 @@ export type AppState = {
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
-  // TODO just a boolean for now to indicate if the user has added an account
+  // just a boolean for now to indicate if the user has added an account
   account: boolean;
   accountLinks?: AccountLinks | null;
   networkCompat?: NetworkCompat | null;
   ipv6Support: boolean;
+  allowLan: boolean;
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   welcomeChecked: boolean;
-  // current user setting
+  // aka bridges mode
   quic: boolean;
   // current user setting
   domainFronting: boolean;

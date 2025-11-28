@@ -58,10 +58,6 @@ pub struct Cli {
     #[arg(short, long)]
     pub build_info: bool,
 
-    /// IP address of the DNS server to use when connected to the VPN
-    #[arg(short = 'D', long)]
-    pub dns: Option<String>,
-
     /// Enable writing app logs to a file
     #[arg(short, long)]
     pub log_file: bool,

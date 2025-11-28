@@ -14,7 +14,8 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    Error, Gateway, GatewayClient, GatewayFilters, GatewayList, GatewayType, error::Result,
+    Error, Gateway, GatewayClient, GatewayFilters, GatewayList, GatewayType, NymNode, NymNodeList,
+    error::Result,
 };
 
 /// The maximum age of the cache before it is considered stale.
@@ -68,6 +69,16 @@ impl GatewayCacheHandle {
             .send(Command::ReplaceGatewayClient(Box::new(gateway_client)))
             .map_err(|_| Error::Cancelled)
     }
+
+    /// Lookup a NymNode by identity, using cached data if available.
+    /// This is specifically for SOCKS5 which needs the nr_address field.
+    pub async fn lookup_nymnode_by_identity(&self, identity: NodeIdentity) -> Result<NymNode> {
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        self.tx
+            .send(Command::LookupNymNodeByIdentity(identity, tx))
+            .map_err(|_| Error::Cancelled)?;
+        rx.await.map_err(|_| Error::Cancelled)?
+    }
 }
 
 enum Command {
@@ -84,6 +95,7 @@ enum Command {
         String, // gateway_identity
         tokio::sync::oneshot::Sender<Result<IpAddr>>,
     ),
+    LookupNymNodeByIdentity(NodeIdentity, tokio::sync::oneshot::Sender<Result<NymNode>>),
     ReplaceGatewayClient(Box<GatewayClient>),
 }
 
@@ -96,6 +108,9 @@ pub struct GatewayCache {
 
     // The cached gateways and their last updated time
     cached_gateways: HashMap<GatewayType, (GatewayList, Instant)>,
+
+    // The cached full node list (with nr_address) for SOCKS5
+    cached_nymnodes: Option<(NymNodeList, Instant)>,
 
     // The connectivity handle to check if we are online
     connectivity_handle: ConnectivityHandle,
@@ -120,6 +135,7 @@ impl GatewayCache {
             connectivity_handle,
             command_rx,
             cached_gateways: HashMap::default(),
+            cached_nymnodes: None,
             is_performed_initial_refresh: false,
             shutdown_token,
         };
@@ -148,6 +164,9 @@ impl GatewayCache {
                         }
                         Command::LookupGatewayIp(gateway_identity, tx) => {
                             tx.send(self.lookup_gateway_ip(&gateway_identity).await).ok();
+                        }
+                        Command::LookupNymNodeByIdentity(identity, tx) => {
+                            tx.send(self.lookup_nymnode_by_identity(&identity).await).ok();
                         }
                         Command::ReplaceGatewayClient(gateway_client) => {
                             self.replace_gateway_client(*gateway_client)
@@ -183,6 +202,7 @@ impl GatewayCache {
         // Invalidate cache immediately if gateway performance change
         if new_config.min_gateway_performance() != old_config.min_gateway_performance() {
             self.cached_gateways.clear();
+            self.cached_nymnodes = None;
         }
     }
 
@@ -312,5 +332,54 @@ impl GatewayCache {
         self.gateway_client
             .lookup_gateway_ip(gateway_identity)
             .await
+    }
+
+    async fn refresh_nymnodes(&mut self) -> Result<NymNodeList> {
+        if let Some((node_list, last_updated)) = &self.cached_nymnodes
+            && last_updated.elapsed() < MAX_CACHE_AGE
+        {
+            tracing::debug!(
+                "Using cached NymNode list (age: {:?})",
+                last_updated.elapsed()
+            );
+            Ok(node_list.clone())
+        } else {
+            if self.connectivity_handle.connectivity().await.is_offline() {
+                tracing::warn!("Not refreshing NymNodes because we are not connected");
+                return Err(Error::Offline);
+            }
+
+            tracing::debug!("Fetching fresh NymNode list from nym-api...");
+            let refreshed_nodes = self.gateway_client.lookup_all_nymnodes().await?;
+
+            tracing::debug!("Cached {} NymNodes with nr_address", refreshed_nodes.len());
+            self.cached_nymnodes = Some((refreshed_nodes.clone(), Instant::now()));
+
+            Ok(refreshed_nodes)
+        }
+    }
+
+    async fn lookup_nymnode_by_identity(&mut self, identity: &NodeIdentity) -> Result<NymNode> {
+        let refresh_result = self.refresh_nymnodes().await;
+
+        // Try to find the node in cache first, regardless of refresh result
+        if let Some((node_list, _)) = &self.cached_nymnodes
+            && let Some(node) = node_list.node_with_identity(identity)
+        {
+            tracing::debug!(
+                "Found NymNode {} in cache (has nr_address: {})",
+                identity,
+                node.nr_address.is_some()
+            );
+            return Ok(node.clone());
+        }
+
+        // If not in cache and refresh failed, return the error
+        refresh_result?;
+
+        // If refresh succeeded but node not found, return error
+        Err(Error::RequestedGatewayIdNotFound(
+            identity.to_base58_string(),
+        ))
     }
 }

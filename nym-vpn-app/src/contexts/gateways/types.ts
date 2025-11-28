@@ -17,7 +17,7 @@ export type GatewaysState = {
   fetch: FetchGatewaysFn;
   lookupGw: (
     id: string,
-    countryCode: string,
     type: 'entry' | 'exit',
+    countryCode?: string,
   ) => Gateway | null;
 };

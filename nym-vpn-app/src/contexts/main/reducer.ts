@@ -24,6 +24,7 @@ import {
   TunnelError,
   UiTheme,
   VpnMode,
+  VpndConfig,
   VpndInfo,
 } from '../../types';
 
@@ -33,6 +34,7 @@ export type StateAction =
   | { type: 'set-tunnel-error'; error: TunnelError | null }
   | { type: 'set-daemon-status'; status: DaemonStatus }
   | { type: 'set-daemon-info'; info: VpndInfo }
+  | { type: 'update-tunnel-config'; config: VpndConfig }
   | { type: 'set-vpn-mode'; mode: VpnMode }
   | { type: 'set-error'; error: AppError | null }
   | { type: 'reset-error' }
@@ -65,6 +67,7 @@ export type StateAction =
   | { type: 'set-account-links'; links: AccountLinks | null }
   | { type: 'set-network-compat'; compat: NetworkCompat | null }
   | { type: 'set-ipv6-support'; enabled: boolean }
+  | { type: 'set-allow-lan'; enabled: boolean }
   | { type: 'set-network-stats'; enabled: boolean }
   | { type: 'set-account-state'; state: AccountState }
   | { type: 'set-account-syncing'; syncing: boolean }
@@ -104,6 +107,7 @@ export const initialState: AppState = {
   networkStats: false,
   welcomeChecked: false,
   quic: false,
+  allowLan: false,
   domainFronting: false,
   backendFlags: {
     quic: false,
@@ -142,6 +146,17 @@ export function reducer(state: AppState, action: StateAction): AppState {
         daemonStatus: action.status,
         error: null,
       };
+    case 'update-tunnel-config':
+      return {
+        ...state,
+        entryNode: action.config.entryNode,
+        exitNode: action.config.exitNode,
+        vpnMode: action.config.vpnMode,
+        quic: action.config.bridges,
+        ipv6Support: !action.config.disableIpv6,
+        allowLan: action.config.allowLan,
+      };
+
     case 'set-daemon-info':
       return {
         ...state,
@@ -178,6 +193,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         ipv6Support: action.enabled,
+      };
+    case 'set-allow-lan':
+      return {
+        ...state,
+        allowLan: action.enabled,
       };
     case 'set-desktop-notifications':
       return {
