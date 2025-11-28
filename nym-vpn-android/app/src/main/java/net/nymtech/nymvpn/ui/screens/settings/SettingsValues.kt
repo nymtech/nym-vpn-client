@@ -1,0 +1,15 @@
+package net.nymtech.nymvpn.ui.screens.settings
+
+data class SettingsValues(
+	val isMnemonicStored: Boolean = false,
+	val autoConnectEnabled: Boolean = false,
+	val bypassLanEnabled: Boolean = false,
+	val supportIPv6Enabled: Boolean = false,
+	val autoselectServerEnabled: Boolean = false,
+	val showCensorshipSection: Boolean = false,
+	val appShortcutsEnabled: Boolean = false,
+	val appDeviceStartupEnabled: Boolean = false,
+	val appSystemTrayEnabled: Boolean = false,
+	val appVersion: String = "",
+	val daemonVersion: String = "",
+)

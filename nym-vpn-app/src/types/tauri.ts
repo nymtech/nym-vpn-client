@@ -144,6 +144,8 @@ export type GpuType = 'nvidia' | 'amd' | 'intel' | { unknown: string | null };
 
 export type Hop = 'entry' | 'exit';
 
+export type HttpRpcSettings = { listenAddress: string };
+
 export type JsEnv = {
   devMode: boolean;
   updaterEnabled: boolean;
@@ -227,6 +229,18 @@ export type SelectedNode =
   | { gateway: { id: string } }
   | { region: string }
   | 'random';
+
+export type Socks5Settings = { listenAddress: string };
+
+export type Socks5State = 'disabled' | 'idle' | 'connected' | 'error';
+
+export type Socks5Status = {
+  state: Socks5State;
+  socks5Settings: Socks5Settings | null;
+  httpRpcSettings: HttpRpcSettings | null;
+  errorMessage: string | null;
+  activeConnections: number;
+};
 
 export type StartupError = {
   key: 'internal' | 'db-open' | 'db-locked';

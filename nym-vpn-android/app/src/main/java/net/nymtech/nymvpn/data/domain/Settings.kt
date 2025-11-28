@@ -23,6 +23,7 @@ data class Settings(
 	val welcomeScreenCompleted: Boolean = FLAG_WELCOME_SCREEN_COMPLETED,
 	val quicEnabled: Boolean = DEFAULT_QUIC_ENABLED,
 	val isStreamingServerBannerDisplayed: Boolean = DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
+	val isPerAppSecurityBannerDisplayed: Boolean = DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 ) {
 	companion object {
 		const val AUTO_START_DEFAULT = false
@@ -35,6 +36,7 @@ data class Settings(
 		const val FLAG_STATS_DIALOG_SKIP = false
 		const val FLAG_WELCOME_SCREEN_COMPLETED = false
 		const val DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED = false
+		const val DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED = false
 		val DEFAULT_ENVIRONMENT = Tunnel.Environment.MAINNET
 		val DEFAULT_ENTRY_POINT = EntryPoint.Country("FR")
 		val DEFAULT_EXIT_POINT = ExitPoint.Country("FR")

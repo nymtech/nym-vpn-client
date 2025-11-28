@@ -9,6 +9,7 @@ pub mod feature_flags;
 pub mod gateway;
 mod network;
 mod node;
+pub mod socks5;
 pub mod system_message;
 mod timestamp;
 pub mod tunnel;

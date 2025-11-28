@@ -3,6 +3,7 @@ import Theme
 
 public struct ActionDialogView: View {
     @ObservedObject private var viewModel: ActionDialogViewModel
+    @State private var isSpinning = false
 
     public init(viewModel: ActionDialogViewModel) {
         self.viewModel = viewModel
@@ -27,8 +28,12 @@ public struct ActionDialogView: View {
                     title()
                     subtitle()
 
-                    buttons()
-                        .padding(24)
+                    if viewModel.isLoading {
+                        loadingRow()
+                    } else {
+                        buttons()
+                            .padding(24)
+                    }
                 }
                 .background(NymColor.elevation)
                 .cornerRadius(16)
@@ -39,6 +44,14 @@ public struct ActionDialogView: View {
             .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
         .edgesIgnoringSafeArea(.all)
+        .onAppear {
+            if viewModel.isLoading {
+                isSpinning = true
+            }
+        }
+        .onChange(of: viewModel.isLoading) { isLoading in
+            isSpinning = isLoading
+        }
     }
 }
 
@@ -107,7 +120,7 @@ private extension ActionDialogView {
 
     @ViewBuilder
     func yesButton(text: String) -> some View {
-        GenericButton(title: text)
+        GenericButton(title: text, style: viewModel.configuration.isYesDestructive ? .destructive : .normal)
             .onTapGesture {
 #if os(iOS)
                 viewModel.impactGenerator.success()
@@ -129,5 +142,27 @@ private extension ActionDialogView {
                 viewModel.configuration.noAction?()
                 viewModel.isDisplayed = false
             }
+    }
+
+    @ViewBuilder
+    func loadingRow() -> some View {
+        if let loadingText = viewModel.configuration.loadingText {
+            HStack(alignment: .center) {
+                Text(loadingText)
+                    .textStyle(NymTextStyle.Body.Large.regular)
+                    .foregroundStyle(NymColor.primary)
+                Spacer()
+                    .frame(width: 8)
+                GenericImage(imageName: "activity")
+                    .frame(width: 24, height: 24)
+                    .rotationEffect(.degrees(isSpinning ? 360 : 0))
+                    .animation(
+                        .easeInOut(duration: 0.8)
+                        .repeatForever(autoreverses: false),
+                        value: isSpinning
+                    )
+            }
+            .padding(24)
+        }
     }
 }

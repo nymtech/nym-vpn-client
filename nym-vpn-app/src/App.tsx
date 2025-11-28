@@ -11,6 +11,7 @@ import {
   InAppNotificationProvider,
   MainStateProvider,
   NodeListStateProvider,
+  Socks5Provider,
 } from './contexts';
 import { useLang } from './hooks';
 import { LngTag } from './i18n';
@@ -70,13 +71,15 @@ function App({ init }: { init: InitState }) {
           <MainStateProvider init={init}>
             <GatewaysProvider>
               <NodeListStateProvider>
-                <ThemeSetter>
-                  <DialogProvider>
-                    <Suspense fallback={<RouteLoading />}>
-                      <RouterProvider router={router} />
-                    </Suspense>
-                  </DialogProvider>
-                </ThemeSetter>
+                <Socks5Provider>
+                  <ThemeSetter>
+                    <DialogProvider>
+                      <Suspense fallback={<RouteLoading />}>
+                        <RouterProvider router={router} />
+                      </Suspense>
+                    </DialogProvider>
+                  </ThemeSetter>
+                </Socks5Provider>
               </NodeListStateProvider>
             </GatewaysProvider>
           </MainStateProvider>
