@@ -19,19 +19,6 @@ namespace rules::multi
 namespace
 {
 
-// Maximum number of allowed relays per IP protocol.
-static const uint32_t MAX_ALLOWED_ENDPOINTS = 2;
-
-static const GUID ENDPOINT_IPV4_GUIDS[MAX_ALLOWED_ENDPOINTS] = {
-	MullvadGuids::Filter_Baseline_PermitVpnRelay_Ipv4_1(),
-	MullvadGuids::Filter_Baseline_PermitVpnRelay_Ipv4_2()
-};
-
-static const GUID ENDPOINT_IPV6_GUIDS[MAX_ALLOWED_ENDPOINTS] = {
-	MullvadGuids::Filter_Baseline_PermitVpnRelay_Ipv6_1(),
-	MullvadGuids::Filter_Baseline_PermitVpnRelay_Ipv6_2()
-};
-
 const GUID &TranslateSublayer(PermitVpnRelay::Sublayer sublayer)
 {
 	switch (sublayer)
@@ -64,24 +51,28 @@ bool PermitVpnRelay::apply(IObjectInstaller &objectInstaller)
 	for (auto endpoint : m_endpoints) {
 		switch (endpoint.ip.type()) {
 		case wfp::IpAddress::Type::Ipv4:
-			if (!AddIpv4RelayFilter(endpoint, ENDPOINT_IPV4_GUIDS[ipv4Count], objectInstaller)) {
+			if (ipv4Count == MullvadGuids::Num_Baseline_PermitVpnRelay_Ipv4_Filters) {
+				THROW_ERROR("Exceeded max allowed endpoints (IPv4)");
+            }
+
+			if (!AddIpv4RelayFilter(endpoint, MullvadGuids::Filter_Baseline_PermitVpnRelay_Ipv4[ipv4Count], objectInstaller)) {
 				return false;
 			}
 
-			if (ipv4Count++ == MAX_ALLOWED_ENDPOINTS) {
-				THROW_ERROR("Exceeded max allowed endpoints (IPv4)");
-			}
+			ipv4Count++;
 
 			break;
 
 		case wfp::IpAddress::Type::Ipv6:
-			if (!AddIpv6RelayFilter(endpoint, ENDPOINT_IPV6_GUIDS[ipv6Count], objectInstaller)) {
+			if (ipv6Count == MullvadGuids::Num_Baseline_PermitVpnRelay_Ipv6_Filters) {
+				THROW_ERROR("Exceeded max allowed endpoints (IPv6)");
+			}
+
+			if (!AddIpv6RelayFilter(endpoint, MullvadGuids::Filter_Baseline_PermitVpnRelay_Ipv6[ipv6Count], objectInstaller)) {
 				return false;
 			}
 
-			if (ipv6Count++ == MAX_ALLOWED_ENDPOINTS) {
-				THROW_ERROR("Exceeded max allowed endpoints (IPv6)");
-			}
+			ipv6Count++;
 
 			break;
 
