@@ -288,7 +288,7 @@ impl VpndClient {
     pub async fn set_exit_node(&self, node: Node) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.set_entry_point(node.try_into()?)
+        vpnd.set_exit_point(node.try_into()?)
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
