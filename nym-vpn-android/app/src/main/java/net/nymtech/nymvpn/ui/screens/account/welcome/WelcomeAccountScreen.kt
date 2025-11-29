@@ -124,7 +124,8 @@ fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onStartClic
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.Bottom,
 			modifier = Modifier
-				.weight(1f),
+				.weight(1f)
+				.padding(horizontal = 16.dp),
 		) {
 			Box {
 				Image(
