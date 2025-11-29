@@ -1,5 +1,5 @@
 تغییرات نسخه جدید:
-- Added In App purchases for Play Store
-- New locales added: BN, EL, VI
-- UI and UX improvements and fixes
-- Connection stability improvements 
+- خریدهای درون برنامه‌ای برای فروشگاه پلی استور اضافه شد
+- مناطق جدید اضافه شده: BN، EL، VI
+- بهبودها و رفع مشکلات رابط کاربری و تجربه کاربری
+- پایداری اتصال بهبود یافته 

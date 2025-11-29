@@ -194,6 +194,20 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censura</string>
 	<string name="settings_passphrase_title">Palavra-chave</string>
+	<string name="settings_ipv6_title">Suporte IPv6</string>
+	<string name="settings_ipv6_description">Permitir conexões IPv6</string>
+	<string name="settings_bypass_description">Permitir acesso direto à rede local</string>
+	<string name="settings_auto_select_title">Auto-selecionar servidor de referências</string>
+	<string name="settings_auto_select_description">Deixe o app escolher o melhor local de entrada</string>
+	<string name="settings_device_startup_title">Iniciar na inicialização do dispositivo</string>
+	<string name="settings_device_startup_description">Deixe o app escolher o melhor local de entrada</string>
+	<string name="settings_system_tray_title">Executar na bandeja do sistema</string>
+	<string name="settings_system_tray_description">Manter o aplicativo em execução quando fechado</string>
+	<string name="settings_reset_app_title">Redefinir dados do aplicativo</string>
+	<string name="settings_system_status_title">Status do sistema</string>
+	<string name="settings_quit_title">Sair do NymVPN</string>
+	<string name="settings_app_version_line">Versão do app: %1$s</string>
+	<string name="settings_daemon_version_line">Versão do Daemon: %1$s</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -339,12 +353,16 @@
 	<string name="passphrase_info_keeps_anonymous">Mantém você anônimo</string>
 	<string name="passphrase_info_belongs">Pertence apenas a você (autocustódia)</string>
 	<!-- Account screen -->
+	<string name="account_title">Conta e dispositivos</string>
 	<string name="account_info_plan">Planejamento</string>
 	<string name="account_info_payments">Pagamentos</string>
 	<string name="account_info_devices">Dispositivos</string>
 	<string name="account_info_id_title">ID da Conta</string>
 	<string name="account_info_id_description">Use este ID para pedidos de suporte</string>
 	<string name="account_info_id_important">⚠️ O suporte para Nym nunca pedirá sua senha de 24 palavras. Nunca o compartilhe com ninguém.</string>
+	<string name="account_on_nym">Conta no nym.com</string>
+	<string name="account_device_id_title">ID do dispositivo</string>
+	<string name="account_id_title">ID da Conta</string>
 	<!-- Logs screen -->
 	<string name="logs_share">Compartilhar</string>
 	<string name="logs_download">BAIXAR</string>
@@ -359,4 +377,26 @@
 	<string name="logs_download_description">Logs salvos podem ser acessados por outros apps ou com acesso ao armazenamento do seu dispositivo.</string>
 	<string name="logs_download_button">Salvar como arquivo mesmo assim</string>
 	<string name="logs_saved">Logs guardados na pasta de transferências</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">Ajustar tunelamento</string>
+	<string name="split_tunneling_info_msg">Defina cada aplicativo para usar o NymVPN ou conectar diretamente.</string>
+	<string name="split_tunneling_info_desc">As alterações serão aplicadas após reconectar</string>
+	<string name="split_tunneling_search_apps_hint">Pesquisar aplicativos</string>
+	<string name="split_tunneling_apps">Aplicativos</string>
+	<string name="split_tunneling_direct">Direto</string>
+	<string name="split_tunneling_direct_desc">Ignorar NymVPN</string>
+	<string name="split_tunneling_via_vpn">Através do NymVPN</string>
+	<string name="split_tunneling_via_desc">Protegido quando conectado</string>
+	<string name="split_tunneling_nym_vpn">NinVPN</string>
+	<string name="split_tunneling_system_applications">Aplicativos do sistema</string>
+	<string name="split_tunnel_info_modal_title">Usando tunelamento dividido</string>
+	<string name="split_tunnel_info_modal_desc">O tunelamento dividido permite otimizar cada app com velocidade máxima ou máxima privacidade. Você pode alterar essas configurações a qualquer momento.</string>
+	<string name="split_tunnel_info_direct_desc">Para serviços como banco, dispositivos inteligentes em casa ou aplicativos de trabalho.</string>
+	<string name="split_tunnel_info_via_vpn_desc">Configuração recomendada. Usaremos o modo atual (Fast ou Anônimo), com base nas suas necessidades.</string>
+	<string name="split_tunnel_changes_confirm_modal_title">Aplicar configurações de tunelamento dividido?</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">tunelamento dividido atualizado. Reconecte para aplicar as alterações.\n\nSeus dados permanecem protegidos durante a reconexão.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Reconectar agora</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Aplicar na próxima conexão</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 Novo: Escolher proteção por aplicativo ou conexão direta para a velocidade</string>
+	<string name="split_tunneling_per_app_security_banner_action">Configurar aplicativos\n</string>
 </resources>

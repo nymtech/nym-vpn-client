@@ -192,6 +192,20 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Chống kiểm duyệt</string>
 	<string name="settings_passphrase_title">Cụm từ mật khẩu</string>
+	<string name="settings_ipv6_title">Support IPv6</string>
+	<string name="settings_ipv6_description">Allow IPv6 connections</string>
+	<string name="settings_bypass_description">Allow direct local network access</string>
+	<string name="settings_auto_select_title">Auto-select entry server</string>
+	<string name="settings_auto_select_description">Let app choose best entry location</string>
+	<string name="settings_device_startup_title">Launch on device startup</string>
+	<string name="settings_device_startup_description">Let app choose best entry location</string>
+	<string name="settings_system_tray_title">Run in system tray</string>
+	<string name="settings_system_tray_description">Keep app running when closed</string>
+	<string name="settings_reset_app_title">Reset app data</string>
+	<string name="settings_system_status_title">System status</string>
+	<string name="settings_quit_title">Quit NymVPN</string>
+	<string name="settings_app_version_line">App version: %1$s</string>
+	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Để có kết nối tốt nhất</string>
 	<string name="battery_opt_descr">Vô hiệu hóa chế độ tối ưu hóa pin NymVPN để có kết nối VPN ổn định hơn.</string>
@@ -337,12 +351,16 @@
 	<string name="passphrase_info_keeps_anonymous">Giúp bạn duy trì tính ẩn danh</string>
 	<string name="passphrase_info_belongs">Chỉ thuộc về bạn (tự quản lý)</string>
 	<!-- Account screen -->
+	<string name="account_title">Account and devices</string>
 	<string name="account_info_plan">Gói</string>
 	<string name="account_info_payments">Thanh toán</string>
 	<string name="account_info_devices">Thiết bị</string>
 	<string name="account_info_id_title">ID tài khoản</string>
 	<string name="account_info_id_description">Sử dụng ID này cho các yêu cầu hỗ trợ</string>
 	<string name="account_info_id_important">⚠️ Quan trọng: Hỗ trợ Nym sẽ không bao giờ yêu cầu cụm từ mật khẩu 24 từ của bạn. Đừng bao giờ chia sẻ nó với bất kỳ ai.</string>
+	<string name="account_on_nym">Account on nym.com</string>
+	<string name="account_device_id_title">Device ID</string>
+	<string name="account_id_title">Account ID</string>
 	<!-- Logs screen -->
 	<string name="logs_share">Chia sẻ</string>
 	<string name="logs_download">Tải xuống</string>
@@ -357,4 +375,26 @@
 	<string name="logs_download_description">Các ứng dụng khác hoặc bất kỳ ai có quyền truy cập vào bộ nhớ trên thiết bị của bạn đều có thể truy cập vào nhật ký đã lưu.</string>
 	<string name="logs_download_button">Vẫn lưu dưới dạng tệp</string>
 	<string name="logs_saved">Nhật ký được lưu vào thư mục tải xuống\"</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">Split tunneling</string>
+	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
+	<string name="split_tunneling_info_desc">Changes will apply after reconnect</string>
+	<string name="split_tunneling_search_apps_hint">Search apps</string>
+	<string name="split_tunneling_apps">Apps</string>
+	<string name="split_tunneling_direct">Direct</string>
+	<string name="split_tunneling_direct_desc">Bypass NymVPN</string>
+	<string name="split_tunneling_via_vpn">Via NymVPN</string>
+	<string name="split_tunneling_via_desc">Protected when connected</string>
+	<string name="split_tunneling_nym_vpn">NymVPN</string>
+	<string name="split_tunneling_system_applications">System applications</string>
+	<string name="split_tunnel_info_modal_title">Using split tunneling</string>
+	<string name="split_tunnel_info_modal_desc">Split tunneling lets you optimize each app for either maximum speed or maximum privacy. You can easily change these settings anytime.</string>
+	<string name="split_tunnel_info_direct_desc">For services like banking, smart home devices, or work applications.</string>
+	<string name="split_tunnel_info_via_vpn_desc">Recommended setting. Will use the then-current mode (Fast or Anonymous), based on your needs.</string>
+	<string name="split_tunnel_changes_confirm_modal_title">Apply split tunneling settings?</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Reconnect now</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
+	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
 </resources>
