@@ -192,6 +192,20 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">反检查</string>
 	<string name="settings_passphrase_title">助记词</string>
+	<string name="settings_ipv6_title">支持 IPv6</string>
+	<string name="settings_ipv6_description">允许IPv6连接</string>
+	<string name="settings_bypass_description">允许直接本地网络访问</string>
+	<string name="settings_auto_select_title">自动选择条目服务器</string>
+	<string name="settings_auto_select_description">让应用选择最佳的条目位置</string>
+	<string name="settings_device_startup_title">启动设备时启动</string>
+	<string name="settings_device_startup_description">让应用选择最佳的条目位置</string>
+	<string name="settings_system_tray_title">在系统托盘中运行</string>
+	<string name="settings_system_tray_description">关闭时保持应用程序运行</string>
+	<string name="settings_reset_app_title">重置应用数据</string>
+	<string name="settings_system_status_title">系统状态</string>
+	<string name="settings_quit_title">退出 NymVPN</string>
+	<string name="settings_app_version_line">应用版本: %1$s</string>
+	<string name="settings_daemon_version_line">守护进程版本: %1$s</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">最佳连接方式</string>
 	<string name="battery_opt_descr">禁用 NymVPN 电池优化以获得更稳定的 VPN 连接。</string>
@@ -283,10 +297,10 @@
 	<string name="quick_info_modal_desc_non_quic">这将在不启用QUIC 协议的情况下重新连接，您将重新连接到当前网关。\n\n您的数据在重新连接时依然受到保护。</string>
 	<string name="quic_primary_btn_text_non_quic">不使用QUIC重新连接</string>
 	<string name="quic_text_btn_text_non_quic">下次连接时再关闭QUIC</string>
-	<string name="censorship_amnezia_title">最小混淆（阿姆内齐亚工作组）</string>
-	<string name="censorship_amnezia_description">使Wire护盾流量更难侦测。 采用欺骗性数据包，扰乱深包检查系统经常使用的简单规则，提高了在限制性环境下的连接可靠性。 \n\n注意：只实现了客户端。</string>
-	<string name="censorship_amnezia_link_text">阿姆涅齐亚工作组如何阻止DPI</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us-articles/281043831231121-How-do-NymVPN-implement-Wireguard</string>
+	<string name="censorship_amnezia_title">最低限度的反审查保护（AmneziaWG）</string>
+	<string name="censorship_amnezia_description">通过引入能够绕开深度包检测系统的基本检查规则的诱饵数据包，使得WireGuard流量更加难以被检测到，改善受限制的网络中连接的稳定性。\n\n注意：只实现了客户端。</string>
+	<string name="censorship_amnezia_link_text">Amnezia WG是如何阻止DPI的</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">匿名混合网络技术</string>
 	<string name="account_welcome_countries">全世界50多个国家</string>
@@ -337,12 +351,16 @@
 	<string name="passphrase_info_keeps_anonymous">保持您的匿名状态</string>
 	<string name="passphrase_info_belongs">仅属于您(自我托管)</string>
 	<!-- Account screen -->
+	<string name="account_title">帐户和设备</string>
 	<string name="account_info_plan">计划</string>
 	<string name="account_info_payments">付款</string>
 	<string name="account_info_devices">设备</string>
 	<string name="account_info_id_title">帐户 ID</string>
 	<string name="account_info_id_description">将此ID用于联系Nym支持团队</string>
 	<string name="account_info_id_important">⚠️ 重要: Nym支持团队永远不会索要您的24个单词密组成的助记词。永远不要与包括Nym工作人员在内的任何人共享它。</string>
+	<string name="account_on_nym">账户 nym.com</string>
+	<string name="account_device_id_title">设备ID</string>
+	<string name="account_id_title">帐户 ID</string>
 	<!-- Logs screen -->
 	<string name="logs_share">分享</string>
 	<string name="logs_download">下载</string>
@@ -357,4 +375,26 @@
 	<string name="logs_download_description">另存为的日志文件可能会被其他任何具有你的设备存储访问权限的应用程序或其他人访问。</string>
 	<string name="logs_download_button">仍然保存为文件</string>
 	<string name="logs_saved">保存日志到下载文件夹</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">分割隧道中</string>
+	<string name="split_tunneling_info_msg">设置每个应用使用NymVPN 或直接连接。</string>
+	<string name="split_tunneling_info_desc">更改将在重新连接后应用</string>
+	<string name="split_tunneling_search_apps_hint">搜索应用</string>
+	<string name="split_tunneling_apps">应用程序</string>
+	<string name="split_tunneling_direct">直线</string>
+	<string name="split_tunneling_direct_desc">旁路 NymVPN</string>
+	<string name="split_tunneling_via_vpn">通过 NymVPN</string>
+	<string name="split_tunneling_via_desc">连接时保护</string>
+	<string name="split_tunneling_nym_vpn">NymVPN</string>
+	<string name="split_tunneling_system_applications">系统应用程序</string>
+	<string name="split_tunnel_info_modal_title">使用拆分隧道化</string>
+	<string name="split_tunnel_info_modal_desc">拆分隧道使您能够优化每个应用的最大速度或最大隐私。您可以随时轻松更改这些设置。</string>
+	<string name="split_tunnel_info_direct_desc">对于银行服务、智能家居设备或工作应用程序等服务。</string>
+	<string name="split_tunnel_info_via_vpn_desc">推荐设置。将根据您的需要使用当时的模式(快速或匿名)。</string>
+	<string name="split_tunnel_changes_confirm_modal_title">应用分割隧道设置？</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">现在重新连接</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">应用到下一个连接</string>
+	<string name="split_tunneling_per_app_security_banner_title">:shuffle_tracks_buton: 新建: 选择单个应用保护或直接连接以获取速度</string>
+	<string name="split_tunneling_per_app_security_banner_action">配置\n应用</string>
 </resources>

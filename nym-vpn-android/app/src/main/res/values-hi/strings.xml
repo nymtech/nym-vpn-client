@@ -192,6 +192,20 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">एंटी-सेंसरशिप</string>
 	<string name="settings_passphrase_title">पासफ़्रेज़</string>
+	<string name="settings_ipv6_title">Support IPv6</string>
+	<string name="settings_ipv6_description">Allow IPv6 connections</string>
+	<string name="settings_bypass_description">Allow direct local network access</string>
+	<string name="settings_auto_select_title">Auto-select entry server</string>
+	<string name="settings_auto_select_description">Let app choose best entry location</string>
+	<string name="settings_device_startup_title">Launch on device startup</string>
+	<string name="settings_device_startup_description">Let app choose best entry location</string>
+	<string name="settings_system_tray_title">Run in system tray</string>
+	<string name="settings_system_tray_description">Keep app running when closed</string>
+	<string name="settings_reset_app_title">Reset app data</string>
+	<string name="settings_system_status_title">System status</string>
+	<string name="settings_quit_title">Quit NymVPN</string>
+	<string name="settings_app_version_line">App version: %1$s</string>
+	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">सबसे अच्छे कनेक्शन के लिए</string>
 	<string name="battery_opt_descr">अधिक स्थिर VPN कनेक्शनों के लिए NymVPN बैटरी अनुकूलन अक्षम करें।</string>
@@ -338,12 +352,16 @@
 	<string name="passphrase_info_keeps_anonymous">Is anonymous by design</string>
 	<string name="passphrase_info_belongs">केवल आपके लिए है (स्वयं-रक्षा)</string>
 	<!-- Account screen -->
+	<string name="account_title">Account and devices</string>
 	<string name="account_info_plan">प्लान</string>
 	<string name="account_info_payments">भुगतान</string>
 	<string name="account_info_devices">डिवाइस</string>
 	<string name="account_info_id_title">खाता पहचान</string>
 	<string name="account_info_id_description">सहायता के अनुरोधों के लिए इस आईडी का उपयोग करें</string>
 	<string name="account_info_id_important">⚠️ महत्वपूर्ण: Nym सपोर्ट कभी भी आपकी 24-शब्दों की पासफ़्रेज़ नहीं मांगेगा। इसे किसी के साथ साझा न करें।</string>
+	<string name="account_on_nym">Account on nym.com</string>
+	<string name="account_device_id_title">Device ID</string>
+	<string name="account_id_title">Account ID</string>
 	<!-- Logs screen -->
 	<string name="logs_share">साझा करें</string>
 	<string name="logs_download">डाउनलोड</string>
@@ -358,4 +376,26 @@
 	<string name="logs_download_description">सहेजे गए लॉग्स को अन्य ऐप्स या वे व्यक्ति एक्सेस कर सकते हैं, जिन्हें आपके डिवाइस की स्टोरेज तक पहुँच है।</string>
 	<string name="logs_download_button">फिर भी फ़ाइल के रूप में सहेजें</string>
 	<string name="logs_saved">लॉग्स Downloads फोल्डर में सहेजे गए</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">Split tunneling</string>
+	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
+	<string name="split_tunneling_info_desc">Changes will apply after reconnect</string>
+	<string name="split_tunneling_search_apps_hint">Search apps</string>
+	<string name="split_tunneling_apps">Apps</string>
+	<string name="split_tunneling_direct">Direct</string>
+	<string name="split_tunneling_direct_desc">Bypass NymVPN</string>
+	<string name="split_tunneling_via_vpn">Via NymVPN</string>
+	<string name="split_tunneling_via_desc">Protected when connected</string>
+	<string name="split_tunneling_nym_vpn">NymVPN</string>
+	<string name="split_tunneling_system_applications">System applications</string>
+	<string name="split_tunnel_info_modal_title">Using split tunneling</string>
+	<string name="split_tunnel_info_modal_desc">Split tunneling lets you optimize each app for either maximum speed or maximum privacy. You can easily change these settings anytime.</string>
+	<string name="split_tunnel_info_direct_desc">For services like banking, smart home devices, or work applications.</string>
+	<string name="split_tunnel_info_via_vpn_desc">Recommended setting. Will use the then-current mode (Fast or Anonymous), based on your needs.</string>
+	<string name="split_tunnel_changes_confirm_modal_title">Apply split tunneling settings?</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Reconnect now</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
+	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
 </resources>

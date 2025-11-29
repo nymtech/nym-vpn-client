@@ -1,50 +1,50 @@
-Stop being tracked online. The only VPN that can't spy on you, even if it wanted to. Made in Switzerland, trusted by privacy advocates worldwide.
+آنلاین ردیابی شدن خود را متوقف کنید. تنها VPN که حتی اگر بخواهد هم، نمی‌تواند از شما جاسوسی کند. ساخت سوئیس، مورد اعتماد مدافعان حریم خصوصی در سراسر جهان.
 
-⭐️ As seen in: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+⭐️ همان‌طور که در رسانه‌های زیر دیده‌اید: PCMag، TechRadar، Wirecutter، ZDNet، Tom's Guide، Forbes، Bloomberg، TechCrunch، How-To Geek، PCWorld، Heise Online
 
-BROWSE WITHOUT LEAVING A TRACE
+بدون به جا گذاشتن هیچ ردی، وبگردی کنید
 
-Tired of wondering who's watching? Traditional VPNs can theoretically log your activity. NymVPN is fundamentally different: our decentralized network makes centralized logging impossible by design. This isn't a "no-logs policy"—it's a "can't log" architecture.
+از این‌که همیشه نگران نگاه‌های پنهان باشی خسته شدی؟ VPN های سنتی از لحاظ تئوری می توانند فعالیت شما را ثبت کنند. NymVPN اساساً متفاوت است: شبکه غیرمتمرکز ما، ثبت لاگ یا گزارش متمرکز را از اساس غیرممکن می‌کند. این تنها یک «سیاست نداشتن لاگ» نیست—معماری بنیادی سیستم نمی‌تواند هیچ لاگی ثبت کند.
 
-✓ True anonymity: Pay with crypto or cash, no email required
-✓ 50+ countries, hundreds of independent servers
-✓ Multi-device protection: 10 devices with one anonymous code
-✓ Swiss-based with academic-grade privacy standards
+✓ ناشناس بودن واقعی: با ارز دیجیتال یا پول نقد پرداخت کنید، بدون نیاز به ایمیل
+✓ بیش از ۵۰ کشور، صدها سرور مستقل
+✓ محافظت از چند دستگاه: ۱۰ دستگاه با یک کد ناشناس
+✓ مستقر در سوئیس با استانداردهای سطح دانشگاهی حفظ حریم خصوصی
 
-CHOOSE YOUR PRIVACY LEVEL
+سطح حریم خصوصی خود را انتخاب کنید
 
-⚡ Fast Mode – Lightning-fast speeds for streaming and browsing. 2-hop by default so one server knows who you are, another knows what you're doing—but never both.
-🔒 Anonymous Mode – Maximum privacy through a 5-hop mixnet with noise-generating technology and up to 5 layers of encryption. Designed to resist even AI-powered traffic analysis and advanced surveillance.
+⚡ حالت سریع - سرعت فوق‌العاده برای استریمینگ و وبگردی. به طور پیش‌فرض دو-پرشی است، بنابراین یک سرور می‌داند شما چه کسی هستید، دیگری می‌داند چه کاری انجام می‌دهید - اما هرگز هر دو را باهم نمی‌دانند.
+🔒 حالت ناشناس - حداکثر حریم خصوصی از طریق یک میکس‌نت پنج-پرشی با فناوری تولید نویز و حداکثر ۵ لایه رمزگذاری. طوری طراحی شده که حتی در برابر تحلیل ترافیک مبتنی بر هوش مصنوعی و نظارت پیشرفته نیز مقابله کند.
 
 چرا NymVPN متفاوت است
 
-• Metadata protection – Unlike other VPNs, we protect not just your data but the patterns you leave behind
-• Censorship resistant – Access blocked information in restrictive environments with AmneziaWG, QUIC and stealth protocols
-• Zero-knowledge payments – Your subscription is cryptographically unlinked from your activity
-• University-designed – Built by PhD cryptographers from KU Leuven and EPFL with 20+ peer-reviewed publications
+• محافظت از متادیتا- برخلاف سایر VPN ها، ما نه تنها از داده‌های شما، بلکه از الگوهایی که از خود به جا می‌گذارید نیز محافظت می‌کنیم
+• مقابله در برابر سانسور - دسترسی به اطلاعات مسدود شده در محیط‌های محدود با پروتکل‌های AmneziaWG، QUIC و stealth
+• پرداخت‌های Zero-knowledge - اشتراک شما به صورت رمزنگاری‌شده از فعالیت شما جدا می‌شود
+• طراحی‌شده در دانشگاه – ساخته‌شده توسط رمزنگاران با مدرک دکتری از دانشگاه‌های KU Leuven و EPFL با بیش از ۲۰ مقاله داوری‌شده
 
 به طور مستقل تأیید شده
 
-• 4 security audits (2021-2024) by JP Aumasson, Oak Security, Cryspen, Cure53
-• Open-source and transparent ("Signals of Trustworthy VPNs")
-• 10,000+ users already trust NymVPN for their privacy
+•با ۴ ممیزی امنیتی (2021-2024) توسط JP Aumasson، Oak Security، Cryspen، Cure53
+• اُپِن‌سورس و شفاف ("نشانه‌های VPNهای قابل‌اعتماد")
+• بیش از 10،000 کاربر در حال حاضر به NymVPN برای حفظ حریم خصوصی خود اعتماد دارند
 
 ویژگی‌های ضروری
 
-• High-speed connections with 50+ country selection
-• Kill switch prevents data leaks
-• Completely ad-free experience
-• State-of-the-art cryptographic stack
+• اتصالات پرسرعت با بیش از ۵۰ کشور منتخب
+• سوئیچ Kill از نشت داده‌ها جلوگیری می‌کند
+• تجربه‌ای کامل بدون تبلیغات
+• مجموعهٔ رمزنگاری بسیار پیشرفته و مطابق با آخرین فناوری‌های روز دنیا
 
 
-PERFECT FOR
+مناسب برای
 
-→ Streaming and browsing without being tracked by advertisers
-→ Secure public WiFi connections at cafes, airports, hotels
-→ Anyone in restrictive countries needing reliable access
-→ People who want true anonymity, not just hidden IP addresses
-→ Journalists and activists needing untraceable communication
+→ استریمینگ و وبگردی بدون ردیابی توسط تبلیغ‌کنندگان
+→ اتصالات وای‌فای عمومی را در کافه‌ها، فرودگاه‌ها و هتل‌ها ایمن کنید
+→ هر کاربری در کشورهای سانسورشده که به دسترسی مطمئن و پایدار نیاز دارد
+→ افرادی که فقط به مخفی کردن آدرس IP راضی نبود و ناشناسی واقعی را می‌خواهند
+→ روزنامه‌نگاران و فعالانی که به ارتباطات غیرقابل ردیابی نیاز دارند
 
-Download now. Connect in seconds. Disappear online.
+همین حالا دانلود کنید. در عرض چند ثانیه وصل شوید. ناپدید شدن آنلاین.
 
-🎁 7-day free trial | 💯 30-day money-back guarantee | 🌐 Trusted by 10,000+ users worldwide
+🎁 ۷ روز دوره آزمایشی رایگان | 💯 ۳۰ روز ضمانت بازگشت وجه | 🌐 مورد اعتماد بیش از ۱۰۰۰۰ کاربر در سراسر جهان
