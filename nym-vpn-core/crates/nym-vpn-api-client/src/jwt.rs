@@ -62,7 +62,7 @@ impl Jwt {
     }
 
     pub fn new_secp256k1_with_now(wallet: &DirectSecp256k1HdWallet, now: u128) -> Jwt {
-        let account = wallet.get_accounts().unwrap(); // TODO: result
+        let account = wallet.get_accounts();
         let address = account[0].address();
         let public_key = account[0].public_key().to_bytes();
 
@@ -154,7 +154,7 @@ mod tests {
     fn get_secp256k1_keypair() -> DirectSecp256k1HdWallet {
         let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
         let mnemonic = bip39::Mnemonic::parse(mnemonic).unwrap();
-        DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic)
+        DirectSecp256k1HdWallet::checked_from_mnemonic("n", mnemonic).unwrap()
     }
 
     #[test]

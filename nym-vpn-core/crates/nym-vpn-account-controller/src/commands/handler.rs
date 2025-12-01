@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
@@ -64,7 +66,7 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage)?; // Storage error
 
-    shared_state.vpn_api_account = Some(vpn_account);
+    shared_state.vpn_api_account = Some(Arc::new(vpn_account));
     shared_state.device = Some(device);
 
     tracing::debug!("Account stored!");
@@ -90,7 +92,7 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage)?; // Storage error
 
-    shared_state.vpn_api_account = Some(vpn_account);
+    shared_state.vpn_api_account = Some(Arc::new(vpn_account));
     shared_state.device = Some(device);
     tracing::debug!("Account created and stored");
 
