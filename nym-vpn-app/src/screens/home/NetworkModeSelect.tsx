@@ -2,11 +2,9 @@ import { useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@headlessui/react';
 import { useGateways, useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
-import { RadioGroup, RadioGroupOption } from '../../ui';
-import MsIcon from '../../ui/MsIcon';
+import { ButtonIcon, RadioGroup, RadioGroupOption } from '../../ui';
 import ModeDetailsDialog from './ModeDetailsDialog';
 
 function NetworkModeSelect() {
@@ -41,10 +39,10 @@ function NetworkModeSelect() {
   const vpnModes = useMemo<RadioGroupOption<VpnMode>[]>(() => {
     const iconStyle = (checked: boolean) =>
       clsx(
-        'font-icon text-3xl',
+        'font-icon text-2xl leading-none',
         checked
           ? 'text-malachite-moss dark:text-malachite'
-          : 'text-baltic-sea dark:text-white',
+          : 'text-bombay dark:text-iron',
       );
 
     return [
@@ -91,20 +89,12 @@ function NetworkModeSelect() {
         data-testid="network-mode-label-container"
       >
         <label data-testid="network-mode-label">{t('select-mode-label')}</label>
-        <Button
-          className="w-6 focus:outline-hidden cursor-default"
+        <ButtonIcon
+          noDefaultSize
+          icon="info"
           onClick={() => setIsDialogModesOpen(true)}
-          data-testid="network-mode-info-button"
-        >
-          <MsIcon
-            icon="info"
-            className={clsx([
-              'text-xl',
-              'text-iron dark:text-bombay transition duration-150',
-              'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-baltic-sea dark:hover:text-white',
-            ])}
-          />
-        </Button>
+          color="chalk"
+        />
       </div>
       <ModeDetailsDialog
         isOpen={isDialogModesOpen}

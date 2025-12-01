@@ -113,7 +113,7 @@ function TunnelState() {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.1, ease: 'easeOut' }}
-      className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default select-none"
+      className="w-4/5 wrap-break-word text-center cursor-default select-none"
       data-testid="tunnel-info-message"
     >
       {message.map((msg, idx) => (
@@ -153,7 +153,7 @@ function TunnelState() {
         {showBadge && <ConnectionBadge state={state} />}
       </div>
       <div
-        className="w-full flex flex-col flex-1 items-center overflow-hidden"
+        className="w-full flex flex-col flex-1 items-center"
         data-testid="tunnel-details-container"
       >
         {!isError && messages.length > 0 && InfoMessage(messages)}
@@ -163,7 +163,7 @@ function TunnelState() {
             initial={{ opacity: 0, scale: 0.9, translateX: -8 }}
             animate={{ opacity: 1, scale: 1, translateX: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default text-aphrodisiac"
+            className="w-4/5 wrap-break-word text-center cursor-default text-aphrodisiac"
             data-testid="tunnel-error-container"
           >
             {getError()}

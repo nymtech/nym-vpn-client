@@ -46,14 +46,14 @@ function ButtonIcon({
   return (
     <HuButton
       className={clsx([
-        'rounded-full',
+        'rounded-full flex items-center justify-center',
         color === 'malachite' && [
           'text-malachite-moss/80 data-hover:text-malachite-moss',
           'dark:text-malachite/80 data-hover:dark:text-malachite',
         ],
         color === 'chalk' && [
-          'text-baltic-sea/70 data-hover:text-baltic-sea',
-          'dark:text-white/80 data-hover:dark:text-white',
+          'text-baltic-sea data-hover:text-baltic-sea/70',
+          'dark:text-white data-hover:dark:text-white/80',
         ],
         'focus:outline-hidden',
         'transition data-disabled:opacity-60 data-active:ring-0',

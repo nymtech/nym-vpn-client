@@ -133,8 +133,8 @@ function NodeDetails() {
       <p className="text-iron dark:text-bombay truncate">
         {t('node-details.data.identity-key')}
       </p>
-      <div className="flex justify-between gap-3 break-words">
-        <p className="font-mono text-sm flex-wrap text-wrap break-words overflow-hidden">
+      <div className="flex items-center justify-between gap-3 wrap-break-word">
+        <p className="font-mono text-sm flex-wrap text-wrap wrap-break-word overflow-hidden">
           {gateway.id}
         </p>
         <ButtonIcon

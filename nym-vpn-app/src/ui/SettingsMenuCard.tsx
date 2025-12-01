@@ -67,7 +67,9 @@ function SettingsMenuCard({
           'overflow-hidden flex flex-row items-center justify-between gap-4',
         )}
       >
-        {leadingIcon && <MsIcon icon={leadingIcon} className="text-bombay" />}
+        {leadingIcon && (
+          <MsIcon icon={leadingIcon} className="text-iron dark:text-bombay" />
+        )}
         {leadingComponent && <div>{leadingComponent}</div>}
         <div className="min-w-0 flex flex-col justify-center">
           <p className="truncate text-base text-baltic-sea dark:text-white select-none">
@@ -87,7 +89,9 @@ function SettingsMenuCard({
           )}
         </div>
       </div>
-      {trailingIcon && <MsIcon icon={trailingIcon} className="text-bombay" />}
+      {trailingIcon && (
+        <MsIcon icon={trailingIcon} className="text-bombay text-xl" />
+      )}
       {trailingComponent && <div>{trailingComponent}</div>}
     </div>
   );

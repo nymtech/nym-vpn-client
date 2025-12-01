@@ -28,7 +28,7 @@ function LocationDetailsDialog({ isOpen, onClose, node }: Props) {
       <div className="flex flex-col items-center gap-4">
         <MsIcon
           icon="info"
-          className="text-3xl text-baltic-sea dark:text-white"
+          className="text-baltic-sea dark:text-white"
           data-testid="location-details-info-icon"
         />
         <DialogTitle

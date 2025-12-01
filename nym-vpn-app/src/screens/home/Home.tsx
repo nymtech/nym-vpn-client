@@ -241,6 +241,7 @@ function Home() {
             disabled={loading || daemonStatus === 'down' || state === 'offline'}
             spinner={loading}
             className={clsx(['h-14', loading && 'data-disabled:opacity-80'])}
+            textSize="base"
             data-testid="home-connection-button"
             data-state={state}
           >

@@ -173,7 +173,7 @@ function RadioGroup<K extends Key>({
                             <Description
                               as="span"
                               className={clsx(
-                                'text-sm text-iron dark:text-bombay',
+                                'text-xs text-iron dark:text-bombay',
                                 !option.descWrap && 'truncate',
                               )}
                               data-testid={`${optionTestId}-description`}
