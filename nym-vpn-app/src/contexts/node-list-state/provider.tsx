@@ -29,9 +29,9 @@ function NodeListPrevStateProvider({ children }: NodeListPrevStateProps) {
         return;
       }
       if (hop === 'entry') {
-        setEntryExpanded([...entryExpanded, value]);
+        setEntryExpanded((prev) => [...prev, value]);
       } else {
-        setExitExpanded([...exitExpanded, value]);
+        setExitExpanded((prev) => [...prev, value]);
       }
     },
     [entryExpanded, exitExpanded],

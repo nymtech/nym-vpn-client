@@ -7,6 +7,7 @@ import {
   SelectedUiNode,
   UiGateway,
   useDialog,
+  useGateways,
   useMainDispatch,
   useMainState,
   useNodeList,
@@ -62,6 +63,8 @@ function Node({ node }: { node: NodeHop }) {
   const deferredGateways = useDeferredValue(gateways);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  const { lookupGw } = useGateways();
+
   useEffect(() => {
     if (searchRef.current) searchRef.current.focus();
   }, []);
@@ -74,16 +77,23 @@ function Node({ node }: { node: NodeHop }) {
     }
     if (isCountry(selectedNode)) {
       setFocused(node, { type: 'country', key: selectedNode.country.code });
-    }
-    if (isRegion(selectedNode)) {
+    } else if (isRegion(selectedNode)) {
       const code = regionToCountryCode(selectedNode.region);
       if (code) {
-        addToExpanded(node, code);
+        addToExpanded(node, code.toUpperCase());
         setFocused(node, { type: 'region', key: selectedNode.region });
       }
+    } else if (isGateway(selectedNode)) {
+      setFocused(node, { type: 'gateway', key: selectedNode.gateway.id });
+      const gw = lookupGw(selectedNode.gateway.id, node);
+      if (gw) {
+        addToExpanded(node, gw.country.code.toUpperCase());
+        if (gw.country.code.toLowerCase() === 'us') {
+          addToExpanded(node, gw.location.region);
+        }
+      }
     }
-    // TODO handle US regions auto-expand and focus
-  }, [selectedNode, node, addToExpanded, setFocused, focused]);
+  }, [selectedNode, node, addToExpanded, setFocused, focused, lookupGw]);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
@@ -133,7 +143,7 @@ function Node({ node }: { node: NodeHop }) {
         data-testid="node-error-container"
       >
         <div
-          className="w-4/5 h-2/3 overflow-auto break-words text-center"
+          className="w-4/5 h-2/3 overflow-auto wrap-break-word text-center"
           data-testid="node-error-message"
         >
           <p
