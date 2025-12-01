@@ -88,7 +88,7 @@ impl RequestZkNymTask {
         self.resume_request_zk_nym_ticketbook(response.id).await
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip_all)]
     async fn import_retrieved_zk_nym(
         &self,
         response: NymVpnZkNym,
