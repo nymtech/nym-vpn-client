@@ -254,18 +254,17 @@ impl TunnelStateHandler for ConnectedState {
                             {
                                 if shared_state.tunnel_settings.allow_lan != tunnel_settings.allow_lan {
                                     self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
-                                    self.firewall_policy_params.dns_config = tunnel_settings.resolved_dns_config();
 
                                     if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
                                         trace_err_chain!(e, "failed to set firewall policy");
                                         return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
                                     }
-                                }
 
-                                // If the only change was allow_lan, then don't restart the tunnel.
-                                shared_state.tunnel_settings.allow_lan = tunnel_settings.allow_lan;
-                                if shared_state.tunnel_settings == tunnel_settings {
-                                    return NextTunnelState::SameState(self);
+                                    // If the only change was allow_lan, then don't restart the tunnel.
+                                    shared_state.tunnel_settings.allow_lan = tunnel_settings.allow_lan;
+                                    if shared_state.tunnel_settings == tunnel_settings {
+                                        return NextTunnelState::SameState(self);
+                                    }
                                 }
                             }
 
