@@ -59,7 +59,7 @@ impl OfflineState {
                 reconnect,
                 selected_gateways,
                 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                firewall_policy_params: firewall_policy_params,
+                firewall_policy_params,
             }),
             PrivateTunnelState::Offline { reconnect },
         )
