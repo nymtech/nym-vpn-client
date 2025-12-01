@@ -100,13 +100,9 @@ private extension SettingsListItem {
                 .textStyle(.Body.Large.regular)
 
             if let subtitle = viewModel.subtitle {
-                BouncingMarqueeTextView(
-                    text: subtitle,
-                    textStyle: .Body.Small.regular,
-                    fontColor: NymColor.gray1,
-                    speed: 70,
-                    pauseDuration: 1.0
-                )
+                Text(subtitle)
+                    .foregroundStyle(NymColor.gray1)
+                    .textStyle(.Body.Small.regular)
             }
         }
     }

@@ -66,7 +66,7 @@ private extension AddCredentialsView {
     @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
-            title: "",
+            title: "NymVPN",
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
         )
     }

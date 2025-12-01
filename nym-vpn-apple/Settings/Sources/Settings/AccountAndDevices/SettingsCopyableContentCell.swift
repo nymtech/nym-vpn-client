@@ -30,6 +30,7 @@ public struct SettingsCopyableContentCell: View {
                 Text(subtitle)
                     .textStyle(.Body.Medium.regular)
                     .foregroundStyle(NymColor.gray1)
+                    .lineLimit(2)
 
                 GenericImage(imageName: didCopy ? "checkmarkSeeThrough" : "copy")
                     .accessibilityElement(children: .combine)

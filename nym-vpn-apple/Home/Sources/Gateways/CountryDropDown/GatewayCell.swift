@@ -154,8 +154,9 @@ private extension GatewayCell {
     func serverSubtitleString() -> String {
         if isSearching,
            let countryCode = server.location?.twoLetterIsoCountryCode,
-           let country = gatewayManager.localizedCountry(with: countryCode) {
-            "\(country.name), \(server.id)"
+           let country = gatewayManager.localizedCountry(with: countryCode),
+           let city = server.location?.city {
+            "\(city), \(country.name), \(server.id)"
         } else {
             server.location?.city ?? server.id
         }
