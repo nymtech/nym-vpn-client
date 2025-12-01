@@ -291,10 +291,7 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(ipaddr_list))
     }
 
-    async fn connect_tunnel_v2(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<bool>> {
+    async fn connect_tunnel(&self, _request: tonic::Request<()>) -> Result<tonic::Response<bool>> {
         let accepted = self
             .send_and_wait(VpnServiceCommand::SetTargetState, TargetState::Secured)
             .await?;

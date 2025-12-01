@@ -854,8 +854,8 @@ service NymVpnService {
   // Get the default DNS used by the daemon
   rpc GetDefaultDns (google.protobuf.Empty) returns (IpAddrList) {}
 
-  // Connect the tunnel (Configuration is owned by daemon)
-  rpc ConnectTunnelV2 (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  // Connect the tunnel
+  rpc ConnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Reconnect the tunnel if it had been established.
   rpc ReconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}

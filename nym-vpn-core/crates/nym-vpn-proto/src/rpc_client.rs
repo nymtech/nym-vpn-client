@@ -208,9 +208,9 @@ impl RpcClient {
         Ok(ip_vec)
     }
 
-    pub async fn connect_tunnel_v2(&mut self) -> Result<bool> {
+    pub async fn connect_tunnel(&mut self) -> Result<bool> {
         self.0
-            .connect_tunnel_v2(())
+            .connect_tunnel(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
