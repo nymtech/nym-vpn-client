@@ -73,7 +73,7 @@ function NetworkUpdateDialog({
         </DialogTitle>
       </div>
       <p
-        className="text-iron dark:text-bombay md:text-nowrap"
+        className="text-iron dark:text-bombay"
         data-testid="update-dialog-description"
       >
         {description()} {t('update-dialog.description-2')}

@@ -22,7 +22,7 @@ function DetailsSection({
         <MsIcon icon={icon} className="text-iron dark:text-bombay" />
         <h4 className="text-lg">{title}</h4>
       </div>
-      <p className="text-iron dark:text-bombay md:text-nowrap">{children}</p>
+      <p className="text-iron dark:text-bombay">{children}</p>
     </div>
   );
 }

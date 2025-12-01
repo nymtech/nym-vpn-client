@@ -92,13 +92,13 @@ function Logout() {
           </DialogTitle>
         </div>
 
-        <p className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80">
+        <p className="text-center text-iron dark:text-bombay max-w-80">
           {t('logout-confirmation.description')}
         </p>
 
         {loading ? (
           <div className="flex flex-row items-center justify-center gap-4">
-            <p className="text-center text-baltic-sea dark:text-white md:text-nowrap max-w-80">
+            <p className="text-center text-baltic-sea dark:text-white max-w-80">
               {t('logout-confirmation.logging-out')}
             </p>
             <MsIcon

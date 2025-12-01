@@ -119,7 +119,7 @@ function UpdateDialog() {
       {!isUpdating ? (
         <>
           <p
-            className="text-iron dark:text-bombay md:text-nowrap text-center"
+            className="text-iron dark:text-bombay text-center"
             data-testid="update-dialog-description"
           >
             {t('app-update-available.description', {
@@ -127,7 +127,7 @@ function UpdateDialog() {
             })}
           </p>
           <p
-            className="md:text-nowrap text-baltic-sea dark:text-white text-center max-w-2/3"
+            className="text-baltic-sea dark:text-white text-center max-w-2/3"
             data-testid="update-dialog-description"
           >
             {t('app-update-available.restart-note')}
@@ -153,7 +153,7 @@ function UpdateDialog() {
       ) : (
         <>
           <p
-            className="text-iron dark:text-bombay md:text-nowrap text-center"
+            className="text-iron dark:text-bombay text-center"
             data-testid="update-dialog-description"
           >
             {t('app-update-progress.description')}
@@ -164,7 +164,7 @@ function UpdateDialog() {
             className="w-full"
           />
           <p
-            className="md:text-nowrap text-baltic-sea dark:text-white"
+            className="text-baltic-sea dark:text-white"
             data-testid="update-dialog-description"
           >
             {t('app-update-progress.restart-note')}

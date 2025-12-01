@@ -48,7 +48,7 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
           </h4>
         </div>
         <p
-          className="text-iron dark:text-bombay md:text-nowrap"
+          className="text-iron dark:text-bombay"
           data-testid="mode-details-fast-description"
         >
           {t('modes-dialog.fast-description')}
@@ -69,7 +69,7 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
           </h4>
         </div>
         <p
-          className="text-iron dark:text-bombay md:text-nowrap"
+          className="text-iron dark:text-bombay"
           data-testid="mode-details-privacy-description"
         >
           {t('modes-dialog.privacy-description')}
