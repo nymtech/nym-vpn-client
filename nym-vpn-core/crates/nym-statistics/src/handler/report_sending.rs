@@ -286,15 +286,17 @@ impl InnerHandler {
                             return;
                         }
                         Some(event) => {
-                            if let Some(changes) = self.update_sending_policy(event) {
+                            if let Some(new_allowed) = self.update_sending_policy(event) {
                                 // Handle policy changes
-                                if changes {
-                                    timer.as_mut().set(tokio::time::sleep(SendingConfig::random_small_delay()).fuse());
+                                if new_allowed {
+                                    let next_delay = SendingConfig::random_small_delay();
+                                    tracing::debug!("Stats report conditions are met, trying to send in {} secs", next_delay.as_secs());
+                                    timer.as_mut().set(tokio::time::sleep(next_delay).fuse());
 
                                 } else {
                                     // We can't send, we need to abort
                                     timer.as_mut().set(tokio::time::sleep(SendingConfig::random_big_delay()).fuse());
-                                    tracing::debug!("Stats report conditions not met, canceling sending task");
+                                    tracing::debug!("Stats report conditions not met, canceling sending task (if it was running)");
                                     sending_task.set(Fuse::terminated());
                                 }
                             }

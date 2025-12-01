@@ -1,6 +1,6 @@
 CREATE TABLE pending_session_report (
     id                      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    day                     DATE NOT NULL,
+    day_utc                 DATE NOT NULL,
     connection_time_ms      INTEGER NOT NULL, 
     retry_attempt           INTEGER NOT NULL,
     session_duration_min    INTEGER NOT NULL,

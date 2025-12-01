@@ -47,7 +47,7 @@ impl SqliteStatsStorageManager {
         report: &SessionReport,
     ) -> Result<(), StatsStorageError> {
         sqlx::query!(
-            r#"INSERT INTO pending_session_report (day, 
+            r#"INSERT INTO pending_session_report (day_utc, 
             connection_time_ms, 
             retry_attempt,
             session_duration_min, 
@@ -77,7 +77,7 @@ impl SqliteStatsStorageManager {
         Ok(sqlx::query_as(
             r#"SELECT 
             id, 
-            day, 
+            day_utc, 
             connection_time_ms, 
             retry_attempt,
             session_duration_min, 
