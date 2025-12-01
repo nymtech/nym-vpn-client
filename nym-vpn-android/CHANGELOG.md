@@ -12,13 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AmneziaWG section added to censorship screen (https://github.com/nymtech/nym-vpn-client/pull/4033)
 - Revoke implementation added for VPN service (https://github.com/nymtech/nym-vpn-client/pull/4041)
 - Account screen added (https://github.com/nymtech/nym-vpn-client/pull/4060)
-
 - Android: Bi-mode Split Tunneling (https://github.com/nymtech/nym-vpn-client/pull/4049
--
+- "Help with translation" link added to Languages screen (https://github.com/nymtech/nym-vpn-client/pull/4086)
+
 ### Changed
 - UI changes and updates for Settings screen (https://github.com/nymtech/nym-vpn-client/pull/4060)
 - Fixes for Privacy & Censorship screens (https://github.com/nymtech/nym-vpn-client/pull/4060)
 - UI update for Navigation bar style (https://github.com/nymtech/nym-vpn-client/pull/4060)
+- UI updates for Languages screen, Censorship screen, Create account screen (https://github.com/nymtech/nym-vpn-client/pull/4086)
 
 ### Fixed
 - Connection error notification cleared after successfully connecting (https://github.com/nymtech/nym-vpn-client/pull/4029)
