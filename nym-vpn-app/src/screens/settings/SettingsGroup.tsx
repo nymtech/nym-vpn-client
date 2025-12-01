@@ -57,7 +57,7 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
               className="flex flex-1 items-center justify-between gap-4 overflow-hidden cursor-default"
             >
               {!!setting.leadingIcon && (
-                <span className="font-icon text-2xl select-none text-bombay">
+                <span className="font-icon text-2xl select-none text-iron dark:text-bombay">
                   {setting.leadingIcon}
                 </span>
               )}
@@ -81,7 +81,7 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
                 </Description>
               </div>
               {setting.trailingIcon && (
-                <span className="font-icon text-2xl select-none text-bombay">
+                <span className="font-icon text-xl select-none text-bombay">
                   {setting.trailingIcon}
                 </span>
               )}

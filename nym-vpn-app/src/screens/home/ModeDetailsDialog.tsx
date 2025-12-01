@@ -22,7 +22,7 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
       <div className="flex flex-col items-center gap-4">
         <MsIcon
           icon="info"
-          className="text-3xl text-baltic-sea dark:text-white"
+          className="text-2xl text-baltic-sea dark:text-white"
           data-testid="mode-details-info-icon"
         />
         <DialogTitle
@@ -38,13 +38,17 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
         data-testid="mode-details-fast-section"
       >
         <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
-          <MsIcon icon="speed" data-testid="mode-details-fast-icon" />
+          <MsIcon
+            icon="speed"
+            data-testid="mode-details-fast-icon"
+            className="text-iron dark:text-bombay"
+          />
           <h4 className="text-lg" data-testid="mode-details-fast-title">
             {t('vpn-modes.fast', { ns: 'common' })}
           </h4>
         </div>
         <p
-          className="text-iron dark:text-bombay md:text-nowrap"
+          className="text-iron dark:text-bombay"
           data-testid="mode-details-fast-description"
         >
           {t('modes-dialog.fast-description')}
@@ -58,13 +62,14 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
           <MsIcon
             icon="visibility_off"
             data-testid="mode-details-privacy-icon"
+            className="text-iron dark:text-bombay"
           />
           <h4 className="text-lg" data-testid="mode-details-privacy-title">
             {t('vpn-modes.privacy', { ns: 'common' })}
           </h4>
         </div>
         <p
-          className="text-iron dark:text-bombay md:text-nowrap"
+          className="text-iron dark:text-bombay"
           data-testid="mode-details-privacy-description"
         >
           {t('modes-dialog.privacy-description')}

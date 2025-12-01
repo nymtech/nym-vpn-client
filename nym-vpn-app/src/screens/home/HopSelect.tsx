@@ -253,7 +253,7 @@ export default function HopSelect({
     >
       <div
         className={clsx([
-          'absolute left-3 -top-2.5 px-1',
+          'absolute left-3 -top-2 px-1',
           'bg-faded-lavender dark:bg-ash text-xs',
           disabled && 'cursor-default',
         ])}

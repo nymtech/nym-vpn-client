@@ -8,6 +8,7 @@ export type ButtonProps = {
   onClick: () => void;
   disabled?: boolean;
   color?: 'malachite' | 'cornflower' | 'gray' | 'red';
+  textSize?: 'base' | 'lg';
   outline?: boolean;
   className?: string;
   spinner?: boolean;
@@ -34,6 +35,7 @@ function Button({
   children,
   disabled,
   color = 'malachite',
+  textSize = 'lg',
   outline,
   className,
   spinner,
@@ -94,6 +96,14 @@ function Button({
     }
   };
 
+  const getTextSizeStyle = () => {
+    switch (textSize) {
+      case 'base':
+        return 'text-base';
+      case 'lg':
+        return 'text-lg';
+    }
+  };
   const colorStyle = outline ? getOutlineColorStyle() : getColorStyle();
   const testId = rest['data-testid'] || 'button';
 
@@ -101,8 +111,9 @@ function Button({
     <HuButton
       className={clsx([
         'flex justify-center items-center w-full',
-        'rounded-lg text-lg font-medium py-3 px-6',
-        outline ? getOutlineTextColor() : 'text-black dark:text-baltic-sea',
+        'rounded-lg font-medium py-3 px-6',
+        getTextSizeStyle(),
+        outline ? getOutlineTextColor() : 'text-baltic-sea',
         'focus:outline-hidden',
         'transition data-disabled:opacity-60 data-active:ring-0',
         'tracking-normal cursor-default',

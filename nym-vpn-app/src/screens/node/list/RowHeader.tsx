@@ -26,7 +26,7 @@ function RowHeader({
   return (
     <div
       className={clsx(
-        'flex flex-row justify-between',
+        'flex flex-row justify-between rounded-r-lg',
         !sub
           ? ' bg-white dark:bg-charcoal'
           : 'bg-gainsboro dark:bg-charcoal/60',
