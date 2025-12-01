@@ -56,7 +56,7 @@ impl SqliteStatsStorageManager {
             exit_id, 
             follow_up_id,
             error) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
-            report.day,
+            report.day_utc,
             report.connection_time_ms,
             report.retry_attempt,
             report.session_duration_min,
