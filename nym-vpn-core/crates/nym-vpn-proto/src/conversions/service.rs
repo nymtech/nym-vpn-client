@@ -25,6 +25,13 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             Some(custom_dns) => custom_dns.try_into()?,
         };
 
+        let network_stats = value
+            .network_stats
+            .ok_or(ConversionError::NoValueSet(
+                "VpnServiceConfig.network_stats",
+            ))?
+            .into();
+
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
             exit_point,
@@ -40,6 +47,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
             residential_exit: value.residential_exit,
             custom_dns,
+            network_stats,
         };
         Ok(config)
     }
@@ -62,6 +70,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
             residential_exit: value.residential_exit,
             custom_dns: Some(value.custom_dns.into()),
+            network_stats: Some(proto::NetworkStatsConfig::from(value.network_stats)),
         }
     }
 }

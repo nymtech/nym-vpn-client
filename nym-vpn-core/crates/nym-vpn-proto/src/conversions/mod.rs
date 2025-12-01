@@ -6,6 +6,7 @@ pub mod account_controller_state;
 pub mod error;
 pub mod gateway_directory;
 pub mod network_config;
+pub mod network_stats;
 pub mod prost;
 pub mod service;
 pub mod socket_addr;

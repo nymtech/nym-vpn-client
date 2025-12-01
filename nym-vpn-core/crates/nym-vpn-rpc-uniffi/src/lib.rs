@@ -271,21 +271,16 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn is_collect_network_stats_enabled(&self) -> Result<bool> {
-        Ok(self
-            .inner
-            .clone()
-            .is_collect_network_stats_enabled()
-            .await?)
-    }
-
-    pub async fn enable_collect_network_stats(&self) -> Result<()> {
-        self.inner.clone().enable_collect_network_stats().await?;
+    pub async fn network_stats_enabled(&self, enabled: bool) -> Result<()> {
+        self.inner.clone().network_stats_enabled(enabled).await?;
         Ok(())
     }
 
-    pub async fn disable_collect_network_stats(&self) -> Result<()> {
-        self.inner.clone().disable_collect_network_stats().await?;
+    pub async fn network_stats_allow_disconnected(&self, allow_disconnected: bool) -> Result<()> {
+        self.inner
+            .clone()
+            .network_stats_allow_disconnected(allow_disconnected)
+            .await?;
         Ok(())
     }
 }
