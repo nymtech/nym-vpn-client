@@ -21,22 +21,25 @@ public struct PurchasePlanView: View {
     @State private var shouldDisplayBackButton = false
 
     public var body: some View {
-        VStack(alignment: .center, spacing: 0) {
+        VStack(spacing: 0) {
             navbar
-            Spacer()
-                .frame(height: 24)
+            VStack(alignment: .center, spacing: 0) {
 
-            StepView(stepCount: 2, currentStep: 1)
-            Spacer()
-            checkmarkImage
-            Spacer()
-                .frame(height: 12)
-            titleSubtitleView
-            Spacer()
-            selectPlanButton
+                Spacer()
+                    .frame(height: 24)
+
+                StepView(stepCount: 2, currentStep: 1)
+                Spacer()
+                checkmarkImage
+                Spacer()
+                    .frame(height: 12)
+                titleSubtitleView
+                Spacer()
+                selectPlanButton
+            }
+            .frame(maxWidth: MagicNumbers.moreMaxWidth)
+            .padding(16)
         }
-        .frame(maxWidth: MagicNumbers.moreMaxWidth)
-        .padding(16)
         .navigationBarBackButtonHidden(true)
         .background {
             NymColor.background
