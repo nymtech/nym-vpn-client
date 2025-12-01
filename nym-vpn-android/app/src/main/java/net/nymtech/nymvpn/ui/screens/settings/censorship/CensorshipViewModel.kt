@@ -28,7 +28,7 @@ class CensorshipViewModel @Inject constructor(
 			val domainFronting = environmentManager.isDomainFrontingEnabled()
 			val isQuicFeatureFlagEnabled = environmentManager.isQuicEnabled()
 			val isFastTunnel = settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
-			_uiState.update { it.copy(showQUICSection = isQuicFeatureFlagEnabled && isFastTunnel, showDomainSection = domainFronting) }
+			_uiState.update { it.copy(showQUICSection = isQuicFeatureFlagEnabled, showDomainSection = domainFronting) }
 		}
 	}
 
