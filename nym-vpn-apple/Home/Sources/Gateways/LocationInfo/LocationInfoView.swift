@@ -84,7 +84,6 @@ private extension LocationInfoView {
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.primary)
             Spacer()
-                .frame(height: 8)
         }
     }
 
@@ -164,7 +163,6 @@ private extension LocationInfoView {
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.primary)
             Spacer()
-                .frame(height: 8)
         }
     }
 
