@@ -225,6 +225,9 @@
 	<string name="settings_quit_title">Quit NymVPN</string>
 	<string name="settings_app_version_line">App version: %1$s</string>
 	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
+	<string name="settings_language_crowdin_link" translatable="false">https://crowdin.com/editor/nymvpn-apps</string>
+	<string name="settings_language_help_title">Help with translation</string>
+	<string name="settings_language_help_description">Make the app better in your language.</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -328,6 +331,7 @@
 	<string name="account_welcome_open_source">Open source &amp; Swiss privacy laws</string>
 	<string name="account_welcome_button">Start protecting my privacy</string>
 	<string name="account_welcome_have_account">Already have account?</string>
+	<string name="account_welcome_free_trial">7 days free trial - no payment required</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">You’re already subscribed!</string>
 	<string name="account_subscription_description">We found an active subscription linked to your Google Play account. Skip the signup and jump straight into using NymVPN. Just have your 24-word passphrase ready.</string>
