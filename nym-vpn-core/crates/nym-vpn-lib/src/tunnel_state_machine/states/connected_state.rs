@@ -12,15 +12,15 @@ use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
-use crate::tunnel_state_machine::{
-    ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
-    TunnelCommand, TunnelInterface, TunnelStateHandler,
-    states::{ConnectingState, DisconnectingState},
-    tunnel::SelectedGateways,
-    tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
-};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
+use crate::tunnel_state_machine::{gateway_ext::GatewayExt, Error, Result};
+use crate::tunnel_state_machine::{
+    states::{ConnectingState, DisconnectingState}, tunnel::SelectedGateways, tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle}, ConnectionData, NextTunnelState,
+    PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
+    TunnelCommand,
+    TunnelInterface,
+    TunnelStateHandler,
+};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -252,10 +252,7 @@ impl TunnelStateHandler for ConnectedState {
                         } else {
                             #[cfg(not(any(target_os = "android", target_os = "ios")))]
                             {
-                                let firewall_changed = shared_state.tunnel_settings.allow_lan != tunnel_settings.allow_lan ||
-                                    shared_state.tunnel_settings.dns != tunnel_settings.dns;
-
-                                if firewall_changed {
+                                if shared_state.tunnel_settings.allow_lan != tunnel_settings.allow_lan {
                                     self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
                                     self.firewall_policy_params.dns_config = tunnel_settings.resolved_dns_config();
 
@@ -263,6 +260,12 @@ impl TunnelStateHandler for ConnectedState {
                                         trace_err_chain!(e, "failed to set firewall policy");
                                         return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
                                     }
+                                }
+                                
+                                // If the only change was allow_lan, then don't restart the tunnel.
+                                shared_state.tunnel_settings.allow_lan = tunnel_settings.allow_lan;
+                                if shared_state.tunnel_settings == tunnel_settings {
+                                    return NextTunnelState::SameState(self);
                                 }
                             }
 
