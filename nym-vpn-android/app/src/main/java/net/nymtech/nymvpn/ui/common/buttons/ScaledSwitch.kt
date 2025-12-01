@@ -25,7 +25,7 @@ fun ScaledSwitch(checked: Boolean, onClick: (checked: Boolean) -> Unit, enabled:
 			checkedTrackColor = MaterialTheme.colorScheme.primary,
 			uncheckedBorderColor = MaterialTheme.colorScheme.outline,
 			uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-		)
+		),
 	)
 }
 
@@ -34,7 +34,8 @@ fun ScaledSwitch(checked: Boolean, onClick: (checked: Boolean) -> Unit, enabled:
 internal fun PreviewScaledSwitch() {
 	NymVPNTheme(Theme.default()) {
 		ScaledSwitch(
-			true, {}
+			true,
+			{},
 		)
 	}
 }

@@ -56,7 +56,7 @@ fun LoadingDialog() {
 					text = stringResource(R.string.loading),
 					style = MaterialTheme.typography.bodyMedium,
 					color = MaterialTheme.colorScheme.onSurface,
-					textAlign = TextAlign.Center
+					textAlign = TextAlign.Center,
 				)
 			}
 		}
