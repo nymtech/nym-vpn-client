@@ -42,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -125,7 +126,7 @@ fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onStartClic
 			verticalArrangement = Arrangement.Bottom,
 			modifier = Modifier
 				.weight(1f)
-				.padding(horizontal = 16.dp),
+				.padding(horizontal = 24.dp),
 		) {
 			Box {
 				Image(
@@ -150,11 +151,30 @@ fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onStartClic
 				style = MaterialTheme.typography.headlineLarge,
 				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier.padding(top = 40.dp),
+				textAlign = TextAlign.Center,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 			Column {
 				Row(
 					modifier = Modifier.padding(top = 24.dp),
+					verticalAlignment = Alignment.CenterVertically,
+				) {
+					Icon(
+						imageVector = ImageVector.vectorResource(id = R.drawable.ic_money_bag),
+						contentDescription = "",
+						modifier = Modifier.width(15.dp),
+						tint = MaterialTheme.colorScheme.primary,
+					)
+					Spacer(modifier = Modifier.width(6.dp))
+					Text(
+						text = stringResource(R.string.account_welcome_free_trial),
+						style = Typography.bodyMedium,
+						color = MaterialTheme.colorScheme.outline,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					)
+				}
+				Row(
+					modifier = Modifier.padding(top = 16.dp),
 					verticalAlignment = Alignment.CenterVertically,
 				) {
 					Icon(
@@ -285,7 +305,7 @@ fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onStartClic
 }
 
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, locale = "fr", widthDp = 400)
 internal fun PreviewWelcomeAccountScreen() {
 	NymVPNTheme(Theme.default()) {
 		WelcomeAccountScreen(true, onStartClick = {}, onLogInClick = {})

@@ -328,6 +328,7 @@
 	<string name="account_welcome_open_source">Open source &amp; Swiss privacy laws</string>
 	<string name="account_welcome_button">Start protecting my privacy</string>
 	<string name="account_welcome_have_account">Already have account?</string>
+	<string name="account_welcome_free_trial">7 days free trial - no payment required</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">You’re already subscribed!</string>
 	<string name="account_subscription_description">We found an active subscription linked to your Google Play account. Skip the signup and jump straight into using NymVPN. Just have your 24-word passphrase ready.</string>
