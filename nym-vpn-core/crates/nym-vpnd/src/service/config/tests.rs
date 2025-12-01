@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::*;
+use nym_vpn_lib_types::NetworkStatisticsConfig;
 use std::{net::IpAddr, str::FromStr};
 use tempfile::tempdir;
 
@@ -486,6 +487,10 @@ async fn test_service_config_serialize_full() {
             IpAddr::from_str("192.168.50.1").unwrap(),
             IpAddr::from_str("2001:db8:85a3::8a2e:370:7334").unwrap(),
         ]),
+        network_stats: NetworkStatisticsConfig {
+            enabled: true,
+            allow_disconnected: false,
+        },
     };
     run_serialize_test(config).await;
 }

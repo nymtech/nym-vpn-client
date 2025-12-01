@@ -200,6 +200,20 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_netstats_allow_disconnected(&mut self, allow_disconnected: bool) {
+        if self.config.network_stats.allow_disconnected != allow_disconnected {
+            self.config.network_stats.allow_disconnected = allow_disconnected;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_netstats_enabled(&mut self, enabled: bool) {
+        if self.config.network_stats.enabled != enabled {
+            self.config.network_stats.enabled = enabled;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     async fn save_config_and_send_event(&self) {
         // This function already logs
         let _ = self.write_to_file().await;
