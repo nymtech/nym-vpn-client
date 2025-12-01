@@ -8,27 +8,27 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use futures::{
-    future::{BoxFuture, Fuse},
     FutureExt,
+    future::{BoxFuture, Fuse},
 };
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::tunnel_state_machine::Error;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::Error;
 use crate::tunnel_state_machine::{
-    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState}, tunnel::{SelectedGateways, Tombstone}, tunnel_monitor::{
+    ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
+    SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
+    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
+    tunnel::{SelectedGateways, Tombstone},
+    tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
         TunnelMonitorHandle, TunnelParameters,
-    }, ErrorStateReason, NextTunnelState,
-    PrivateActionAfterDisconnect, PrivateTunnelState, Result, SharedState,
-    TunnelCommand,
-    TunnelInterface,
-    TunnelStateHandler,
+    },
 };
 
 use nym_common::trace_err_chain;
