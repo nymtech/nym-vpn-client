@@ -191,6 +191,92 @@ impl TunnelSettings {
         matches!(self.tunnel_type, TunnelType::Wireguard)
             && self.wireguard_tunnel_options.enable_bridges
     }
+
+    pub fn diff(&self, other: &Self) -> Option<TunnelSettingsDiff> {
+        let mut diff_bits = 0u64;
+
+        if self.enable_ipv6 != other.enable_ipv6 {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::EnableIpv6 as u64);
+        }
+        if self.tunnel_type != other.tunnel_type {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::TunnelType as u64);
+        }
+        if self.allow_lan != other.allow_lan {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::AllowLan as u64);
+        }
+        if self.residential_exit != other.residential_exit {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::ResidentialExit as u64);
+        }
+        if self.mixnet_tunnel_options != other.mixnet_tunnel_options {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::MixnetTunnelOptions as u64);
+        }
+        if self.wireguard_tunnel_options != other.wireguard_tunnel_options {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::WireguardTunnelOptions as u64);
+        }
+        if self.gateway_performance_options != other.gateway_performance_options {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::GatewayPerformanceOptions as u64);
+        }
+        if self.mixnet_client_config != other.mixnet_client_config {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::MixnetClientConfig as u64);
+        }
+        if self.entry_point != other.entry_point {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::EntryPoint as u64);
+        }
+        if self.exit_point != other.exit_point {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::ExitPoint as u64);
+        }
+        if self.dns != other.dns {
+            diff_bits |= 1 << (TunnelSettingsDiffFields::Dns as u64);
+        }
+
+        if diff_bits == 0 {
+            None
+        } else {
+            Some(TunnelSettingsDiff(diff_bits))
+        }
+    }
+}
+
+pub enum TunnelSettingsDiffFields {
+    EnableIpv6 = 0,
+    TunnelType,
+    AllowLan,
+    ResidentialExit,
+    MixnetTunnelOptions,
+    WireguardTunnelOptions,
+    GatewayPerformanceOptions,
+    MixnetClientConfig,
+    EntryPoint,
+    ExitPoint,
+    Dns,
+}
+
+pub struct TunnelSettingsDiff(u64);
+
+impl TunnelSettingsDiff {
+    pub fn is_field_changed(&self, field: TunnelSettingsDiffFields) -> bool {
+        (self.0 & (1 << (field as u64))) != 0
+    }
+
+    pub fn only_field_changed(&self, field: TunnelSettingsDiffFields) -> bool {
+        self.0 == (1 << (field as u64))
+    }
+
+    pub fn allow_lan_changed(&self) -> bool {
+        self.is_field_changed(TunnelSettingsDiffFields::AllowLan)
+    }
+
+    pub fn only_allow_lan_changed(&self) -> bool {
+        self.only_field_changed(TunnelSettingsDiffFields::AllowLan)
+    }
+
+    pub fn entry_point_changed(&self) -> bool {
+        self.is_field_changed(TunnelSettingsDiffFields::EntryPoint)
+    }
+
+    pub fn exit_point_changed(&self) -> bool {
+        self.is_field_changed(TunnelSettingsDiffFields::ExitPoint)
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq)]

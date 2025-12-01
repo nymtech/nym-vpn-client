@@ -247,31 +247,30 @@ impl TunnelStateHandler for ConnectedState {
                         self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        if shared_state.tunnel_settings == tunnel_settings {
-                            NextTunnelState::SameState(self)
-                        } else {
-                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                            {
-                                if shared_state.tunnel_settings.allow_lan != tunnel_settings.allow_lan {
-                                    self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
+                        let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                            return NextTunnelState::SameState(self);
+                        };
 
-                                    if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                        trace_err_chain!(e, "failed to set firewall policy");
-                                        return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
-                                    }
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        {
+                            if diff.allow_lan_changed() {
+                                self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
 
-                                    // If the only change was allow_lan, then don't restart the tunnel.
+                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                    trace_err_chain!(e, "failed to set firewall policy");
+                                    return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                                }
+
+                                // If the only change was Allow LAN, then don't restart the tunnel.
+                                if diff.only_allow_lan_changed() {
                                     shared_state.tunnel_settings.allow_lan = tunnel_settings.allow_lan;
-                                    if shared_state.tunnel_settings == tunnel_settings {
-                                        return NextTunnelState::SameState(self);
-                                    }
+                                    return NextTunnelState::SameState(self);
                                 }
                             }
-
-                            shared_state.tunnel_settings = tunnel_settings;
-
-                            self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                         }
+
+                        shared_state.tunnel_settings = tunnel_settings;
+                        self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                     }
                 }
             }
