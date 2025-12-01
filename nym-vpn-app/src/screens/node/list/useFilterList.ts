@@ -54,8 +54,7 @@ export function useFilterList(hop: NodeHop) {
       const filteredGw = gateways.filter((gw) => {
         return (
           gw.name.toLowerCase().includes(lowCaseValue) ||
-          gw.location.city.toLowerCase().includes(lowCaseValue) ||
-          gw.id.toLowerCase().includes(lowCaseValue)
+          gw.location.city.toLowerCase().includes(lowCaseValue)
         );
       });
       filteredGw.sort((a, b) => {

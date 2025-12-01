@@ -97,7 +97,7 @@ function TextInput({
         <ButtonIcon
           color="chalk"
           icon="cancel"
-          className="absolute right-1 text-baltic-sea dark:text-bombay hover:cursor-pointer"
+          className="absolute top-2.5 right-1 text-baltic-sea dark:text-bombay hover:cursor-pointer"
           onClick={handleClear}
         />
       )}

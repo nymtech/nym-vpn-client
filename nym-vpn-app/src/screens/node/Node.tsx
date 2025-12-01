@@ -191,7 +191,7 @@ function Node({ node }: { node: NodeHop }) {
             leftIcon="search"
             label={t('input-label')}
             clearable
-            defaultValue={search || ''}
+            value={search || ''}
           />
         </div>
         {loading && (
