@@ -3,7 +3,7 @@
   "none-found": "No results found. Please try another search",
   "list-loading": "The location list is loading…",
   "selected": "Selected",
-  "search-country": "Search location or server name",
+  "search-country": "Search location",
   "input-label": "Search",
   "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",
   "location-details": {
