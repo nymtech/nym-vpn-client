@@ -92,7 +92,7 @@ impl Default for VpnServiceConfig {
             exit_point: ExitPoint::Random,
             allow_lan: false,
             disable_ipv6: false,
-            enable_two_hop: false,
+            enable_two_hop: true,
             enable_bridges: false,
             netstack: false,
             disable_poisson_rate: false,

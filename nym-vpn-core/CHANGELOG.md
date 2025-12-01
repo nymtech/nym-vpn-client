@@ -7,15 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-### Changed
-
 ### Fixed
 
 - Increase the number of Windows firewall slots (https://github.com/nymtech/nym-vpn-client/pull/4072)
-
-### Removed
+- Enable two-hop by default (https://github.com/nymtech/nym-vpn-client/pull/4090)
 
 ## [1.20.0] - 2025-12-01
 
