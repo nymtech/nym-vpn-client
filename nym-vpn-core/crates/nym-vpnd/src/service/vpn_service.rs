@@ -376,11 +376,19 @@ impl NymVpnService {
         let wireguard_keys_db = account_controller.get_wireguard_keys_storage();
         let account_controller_handle = tokio::task::spawn(account_controller.run());
 
+        let config_manager =
+            VpnServiceConfigManager::new(&config_dir, Some(tunnel_event_tx.clone())).await?;
+
         // Statistics collection setup
-        let statistics_controller_config =
-            StatisticsControllerConfig::new(statistics_api, parameters.user_agent.clone())
-                .with_stats_id_seed(parameters.stats_id_seed)
-                .with_enabled(parameters.netstats_enabled);
+        let statistics_controller_config = config_manager.config().network_stats;
+
+        let statistics_api_url = parameters
+            .network_env
+            .system_configuration
+            .as_ref()
+            .and_then(|config| config.statistics_api.clone());
+
+        let stats_api_client = statistics_api_url.and_then(|url| nym_statistics_api_client::StatisticsApiClient::new(url.clone(), parameters.user_agent.clone()).inspect_err(|e| tracing::error!("Failed to build Statistics API client. Statistics collection will be disabled : {e}")).ok());
 
         // Statistics collection can technically fail, but if it's the case, we just disable it as it is not operation critical.
         let statistics_controller = StatisticsController::new(
@@ -632,9 +640,11 @@ impl NymVpnService {
 
             match new_state {
                 TargetState::Secured => {
+                    self.statistics_event_sender.report_connection_request();
                     let _ = self.command_sender.send(TunnelCommand::Connect);
                 }
                 TargetState::Unsecured => {
+                    self.statistics_event_sender.report_disconnection_request();
                     let _ = self.command_sender.send(TunnelCommand::Disconnect);
                 }
             }
@@ -648,6 +658,7 @@ impl NymVpnService {
     async fn reconnect_tunnel(&self) -> bool {
         match self.target_state {
             TargetState::Secured => {
+                self.statistics_event_sender.report_connection_request();
                 let _ = self.command_sender.send(TunnelCommand::Connect);
                 true
             }
@@ -1271,15 +1282,11 @@ impl NymVpnService {
 
         self.config_manager.set_config(config).await;
 
-        self.statistics_event_sender
-            .report(StatisticsEvent::new_connecting(
-                self.config_manager.config().enable_two_hop,
-            ));
-
         self.update_tunnel_settings();
 
         // Ensure to always reconnect to maintain the legacy behavior
         if self.target_state == TargetState::Secured {
+            self.statistics_event_sender.report_connection_request();
             let _ = self.command_sender.send(TunnelCommand::Connect);
         } else {
             let _ = self.set_target_state(TargetState::Secured).await;
@@ -1360,8 +1367,11 @@ impl NymVpnService {
             data_dir.display()
         );
 
-        self.statistics_event_sender
-            .report(StatisticsEvent::remove_seed());
+        let _ = self
+            .stats_control_commands_sender
+            .reset_seed(None)
+            .await
+            .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
 
         self.account_command_tx.forget_account().await
     }
@@ -1434,8 +1444,11 @@ impl NymVpnService {
 
         self.account_command_tx.reset_device_identity(seed).await?;
 
-        self.statistics_event_sender
-            .report(StatisticsEvent::reset_seed());
+        let _ = self
+            .stats_control_commands_sender
+            .reset_seed(None)
+            .await
+            .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
 
         Ok(())
     }
