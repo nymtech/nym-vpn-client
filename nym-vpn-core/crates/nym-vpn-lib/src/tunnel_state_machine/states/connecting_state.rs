@@ -677,12 +677,12 @@ impl TunnelStateHandler for ConnectingState {
                                         trace_err_chain!(e, "failed to set firewall policy");
                                         return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
                                     }
-                                }
 
-                                // If the only change was allow_lan, then don't restart the tunnel.
-                                shared_state.tunnel_settings.allow_lan = tunnel_settings.allow_lan;
-                                if shared_state.tunnel_settings == tunnel_settings {
-                                    return NextTunnelState::SameState(self);
+                                    // If the only change was allow_lan, then don't restart the tunnel.
+                                    shared_state.tunnel_settings.allow_lan = tunnel_settings.allow_lan;
+                                    if shared_state.tunnel_settings == tunnel_settings {
+                                        return NextTunnelState::SameState(self);
+                                    }
                                 }
                             }
 
