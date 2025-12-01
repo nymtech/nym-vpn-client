@@ -671,7 +671,7 @@ impl TunnelStateHandler for ConnectingState {
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
-                            if shared_state.tunnel_settings.allow_lan != tunnel_settings.allow_lan {
+                            if diff.allow_lan_changed() {
                                 self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
 
                                 if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
