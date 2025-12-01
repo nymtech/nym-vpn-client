@@ -240,20 +240,6 @@ message Threshold {
   uint32 min_performance = 1;
 }
 
-message ConnectRequest {
-  EntryNode entry = 1;
-  ExitNode exit = 2;
-  Dns dns = 3;
-  bool disable_ipv6 = 14;
-  bool enable_two_hop = 5;
-  bool enable_bridges = 21;
-  bool netstack = 13;
-  bool disable_poisson_rate = 6;
-  bool disable_background_cover_traffic = 7;
-  bool enable_credentials_mode = 8;
-  UserAgent user_agent = 12;
-}
-
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
@@ -867,9 +853,6 @@ service NymVpnService {
 
   // Get the default DNS used by the daemon
   rpc GetDefaultDns (google.protobuf.Empty) returns (IpAddrList) {}
-
-  // Connect the tunnel (deprecated; use ConnectTunnelV2 instead).
-  rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.Empty) {}
 
   // Connect the tunnel (Configuration is owned by daemon)
   rpc ConnectTunnelV2 (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}

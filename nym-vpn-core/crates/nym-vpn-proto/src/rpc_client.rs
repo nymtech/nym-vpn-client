@@ -3,7 +3,7 @@
 
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
-    ConnectArgs, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, HttpRpcSettings,
+    EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, HttpRpcSettings,
     ListGatewaysOptions, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
     ParsedAccountLinks, Socks5Settings, Socks5Status, StoreAccountRequest, SystemMessage,
     TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
@@ -206,16 +206,6 @@ impl RpcClient {
             .into_inner();
         let ip_vec = response.try_into().map_err(Error::InvalidResponse)?;
         Ok(ip_vec)
-    }
-
-    pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<()> {
-        let request = proto::ConnectRequest::try_from(request).map_err(Error::InvalidRequest)?;
-
-        self.0
-            .connect_tunnel(request)
-            .await
-            .map(|v| v.into_inner())
-            .map_err(Error::Rpc)
     }
 
     pub async fn connect_tunnel_v2(&mut self) -> Result<bool> {

@@ -72,8 +72,8 @@ pub use network::{
     SystemConfiguration, SystemMessage, ValidatorDetails,
 };
 pub use rpc_requests::{
-    AccountBalanceResponse, AccountCommandResponse, Coin, ConnectArgs, ConnectOptions,
-    DecentralisedObtainTicketbooksRequest, ListGatewaysOptions, StoreAccountRequest,
+    AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
+    ListGatewaysOptions, StoreAccountRequest,
 };
 pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
 pub use socks5::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};

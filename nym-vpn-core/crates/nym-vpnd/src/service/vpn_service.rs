@@ -39,7 +39,7 @@ use nym_vpn_lib::{
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 use nym_vpn_lib_types::{
-    AccountBalanceResponse, AccountCommandError, AccountControllerState, ConnectArgs,
+    AccountBalanceResponse, AccountCommandError, AccountControllerState,
     DecentralisedObtainTicketbooksRequest, EntryPoint, ExitPoint, FeatureFlags, Gateway,
     GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NymNetworkDetails,
     NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
@@ -86,8 +86,6 @@ pub enum VpnServiceCommand {
     ),
     DisableSocks5(oneshot::Sender<Result<(), Socks5Error>>, ()),
     GetSocks5Status(oneshot::Sender<Result<Socks5Status, Socks5Error>>, ()),
-    // Deprecated
-    Connect(oneshot::Sender<()>, ConnectArgs),
     SetTargetState(oneshot::Sender<bool>, TargetState),
     Reconnect(oneshot::Sender<bool>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
@@ -804,10 +802,6 @@ impl NymVpnService {
             VpnServiceCommand::ListFilteredGateways(tx, filters) => {
                 self.handle_list_filtered_gateways(filters, tx).await;
             }
-            VpnServiceCommand::Connect(tx, connect_args) => {
-                self.handle_connect(connect_args).await.ok();
-                let _ = tx.send(());
-            }
             VpnServiceCommand::SetTargetState(tx, target_state) => {
                 let accepted = self.set_target_state(target_state).await;
                 let _ = tx.send(accepted);
@@ -1229,53 +1223,6 @@ impl NymVpnService {
 
     async fn handle_get_socks5_status(&self) -> Result<Socks5Status, Socks5Error> {
         self.socks5_service.get_status().await
-    }
-
-    // Deprecated
-    async fn handle_connect(&mut self, connect_args: ConnectArgs) -> Result<()> {
-        let ConnectArgs {
-            entry,
-            exit,
-            options,
-        } = connect_args;
-
-        let entry_point = entry.unwrap_or(self.config_manager.config().entry_point.clone());
-        let exit_point = exit.unwrap_or(self.config_manager.config().exit_point.clone());
-        let custom_dns = options.dns.as_ref().map(|ip_addr| vec![*ip_addr]);
-        let config = VpnServiceConfig {
-            entry_point,
-            exit_point,
-            disable_ipv6: options.disable_ipv6,
-            enable_two_hop: options.enable_two_hop,
-            enable_bridges: options.enable_bridges,
-            netstack: options.netstack,
-            allow_lan: true, // always true to support legacy behavior
-            min_mixnode_performance: None,
-            min_gateway_mixnet_performance: None,
-            min_gateway_vpn_performance: None,
-            disable_poisson_rate: options.disable_poisson_rate,
-            disable_background_cover_traffic: options.disable_background_cover_traffic,
-            residential_exit: false,
-            custom_dns,
-        };
-
-        self.config_manager.set_config(config).await;
-
-        self.statistics_event_sender
-            .report(StatisticsEvent::new_connecting(
-                self.config_manager.config().enable_two_hop,
-            ));
-
-        self.update_tunnel_settings();
-
-        // Ensure to always reconnect to maintain the legacy behavior
-        if self.target_state == TargetState::Secured {
-            let _ = self.command_sender.send(TunnelCommand::Connect);
-        } else {
-            let _ = self.set_target_state(TargetState::Secured).await;
-        }
-
-        Ok(())
     }
 
     async fn handle_get_tunnel_state(&self) -> TunnelState {

@@ -106,9 +106,6 @@ pub enum Command {
         #[command(subcommand)]
         subcommand: commands::network_stats::Command,
     },
-
-    #[command(flatten)]
-    Legacy(commands::legacy::Command),
 }
 
 #[tokio::main]
@@ -135,7 +132,6 @@ async fn main() -> Result<()> {
         Command::Device(args) => args.execute(rpc_client).await,
         Command::Sentry { subcommand } => subcommand.execute(rpc_client).await,
         Command::NetworkStats { subcommand } => subcommand.execute(rpc_client).await,
-        Command::Legacy(subcommand) => subcommand.execute(rpc_client).await,
     }
 }
 
