@@ -6,11 +6,19 @@ import { useNavigate } from 'react-router';
 import clsx from 'clsx';
 import { motion } from 'motion/react';
 import {
+  Focused,
+  useGateways,
   useMainDispatch,
   useMainState,
   useNodeListState,
 } from '../../contexts';
-import { BackendError, StateDispatch } from '../../types';
+import {
+  BackendError,
+  StateDispatch,
+  isCountry,
+  isGateway,
+  isRegion,
+} from '../../types';
 import { routes } from '../../router';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
@@ -20,7 +28,7 @@ import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
 import useStreamingOptimizedLabel from './useStreamingOptimizedLabel';
-import { setStreamOptimizedLabelSeen } from './util';
+import { regionToCountryCode, setStreamOptimizedLabelSeen } from './util';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
@@ -42,7 +50,8 @@ function Home() {
     welcomeChecked,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
-  const { reset: resetNodeList } = useNodeListState();
+  const { setFocused, setSearch, setExpanded } = useNodeListState();
+  const { lookupGw } = useGateways();
   const navigate = useNavigate();
   const { t } = useTranslation('home');
   const loading = state === 'disconnecting';
@@ -167,11 +176,36 @@ function Home() {
   };
 
   const goToNodeList = (hop: 'entry' | 'exit') => {
+    const expanded = [];
+    let focused: Focused | null = null;
+    const node = hop === 'entry' ? entryNode : exitNode;
+
+    if (isCountry(node)) {
+      focused = { type: 'country', key: node.country.code };
+    } else if (isRegion(node)) {
+      const code = regionToCountryCode(node.region);
+      if (code) {
+        expanded.push(code.toUpperCase());
+        focused = { type: 'region', key: node.region };
+      }
+    } else if (isGateway(node)) {
+      focused = { type: 'gateway', key: node.gateway.id };
+      const gw = lookupGw(node.gateway.id, hop);
+      if (gw) {
+        expanded.push(gw.country.code.toUpperCase());
+        if (gw.country.code.toLowerCase() === 'us') {
+          expanded.push(gw.location.region);
+        }
+      }
+    }
+
+    setExpanded(hop, expanded);
+    setFocused(hop, focused);
+    setSearch(hop, null);
+
     if (hop === 'entry') {
-      resetNodeList('entry');
       navigate(routes.entryNodeLocation);
     } else {
-      resetNodeList('exit');
       navigate(routes.exitNodeLocation);
       setStreamOptimizedLabelSeen(dispatch);
     }

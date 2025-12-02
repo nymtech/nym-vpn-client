@@ -7,24 +7,16 @@ import {
   SelectedUiNode,
   UiGateway,
   useDialog,
-  useGateways,
   useMainDispatch,
   useMainState,
   useNodeList,
   useNodeListState,
 } from '../../contexts';
-import {
-  NodeHop,
-  StateDispatch,
-  isCountry,
-  isGateway,
-  isRegion,
-} from '../../types';
+import { NodeHop, StateDispatch, isGateway } from '../../types';
 import { Link, PageAnim, TextInput } from '../../ui';
 import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
-import { regionToCountryCode } from '../home/util';
 import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
@@ -49,8 +41,6 @@ function Node({ node }: { node: NodeHop }) {
   const search = node === 'entry' ? entryNodeList.search : exitNodeList.search;
 
   const { tE } = useI18nError();
-  const { entryNode, exitNode } = useMainState();
-  const selectedNode = node === 'entry' ? entryNode : exitNode;
 
   const quicFilter =
     vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
@@ -63,37 +53,8 @@ function Node({ node }: { node: NodeHop }) {
   const deferredGateways = useDeferredValue(gateways);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const { lookupGw } = useGateways();
-
   useEffect(() => {
     if (searchRef.current) searchRef.current.focus();
-  }, []);
-
-  useEffect(() => {
-    // if there's already a focused node, don't do anything
-    // when navigating to node details new focused is set
-    if (focused) {
-      return;
-    }
-    if (isCountry(selectedNode)) {
-      setFocused(node, { type: 'country', key: selectedNode.country.code });
-    } else if (isRegion(selectedNode)) {
-      const code = regionToCountryCode(selectedNode.region);
-      if (code) {
-        addToExpanded(node, code.toUpperCase());
-        setFocused(node, { type: 'region', key: selectedNode.region });
-      }
-    } else if (isGateway(selectedNode)) {
-      setFocused(node, { type: 'gateway', key: selectedNode.gateway.id });
-      const gw = lookupGw(selectedNode.gateway.id, node);
-      if (gw) {
-        addToExpanded(node, gw.country.code.toUpperCase());
-        if (gw.country.code.toLowerCase() === 'us') {
-          addToExpanded(node, gw.location.region);
-        }
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSelect = async (selected: SelectedUiNode) => {
@@ -133,7 +94,6 @@ function Node({ node }: { node: NodeHop }) {
   };
 
   const onSearchChange = (value: string) => {
-    setFocused(node, null);
     setSearch(node, value);
     filter(value);
   };
