@@ -60,13 +60,11 @@ export default function HopSelect({
   };
 
   const handleDetailsClick = () => {
-    if (disabled) {
-      toast();
-    } else if (isGateway(node) && gateway) {
-      navigate(routes.nodeDetails, {
-        state: { gateway, hop: nodeHop, resetScroll: true },
-      });
-    }
+    if (!gateway) return;
+
+    navigate(routes.nodeDetails, {
+      state: { gateway, hop: nodeHop, resetScroll: true },
+    });
   };
 
   const nodeData = (
@@ -208,7 +206,7 @@ export default function HopSelect({
       >
         <SelectedNodeDisplay {...nodeData(node, gateway)} disabled={disabled} />
       </Button>
-      {isGateway(node) && (
+      {!!gateway && (
         <Button
           className={clsx(
             'h-11 w-11 my-2 mr-2 flex items-center justify-center rounded-full',
