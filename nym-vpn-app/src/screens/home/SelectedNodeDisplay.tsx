@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
-import { useTranslation } from 'react-i18next';
 import { FlagIcon, MsIcon, Skeleton, countryCode } from '../../ui';
 import { QuicTag } from '../node';
 
@@ -27,13 +26,14 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
     showStreamOptimized,
     showFastest,
   }) => {
-    const { t } = useTranslation('common');
-
     if (!countryCode) {
       return (
         <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
           <Skeleton className="w-7 h-7" rounded="full" />
-          <span>{t('loading')}</span>
+          <div className="flex flex-col items-start justify-center gap-1">
+            <Skeleton className="w-36 h-4" rounded />
+            <Skeleton className="w-36 h-3" rounded />
+          </div>
         </div>
       );
     }
