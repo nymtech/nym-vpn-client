@@ -1,6 +1,8 @@
 import { memo } from 'react';
 import { dequal } from 'dequal';
 import { Accordion } from '@base-ui-components/react';
+import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import {
   Focused,
   SelectedKind,
@@ -14,6 +16,7 @@ import {
 } from '../../../contexts';
 import { NodeHop, VpnMode } from '../../../types';
 import { NodeItem } from './NodeItem';
+import GatewayItem from './GatewayItem';
 
 export type NodeListProps = {
   nodes: UiGatewaysByCountry[];
@@ -28,6 +31,7 @@ export type NodeListProps = {
 
 const NodeList = memo(function NodeList({
   nodes,
+  gateways,
   onSelect,
   hop,
   vpnMode,
@@ -36,6 +40,7 @@ const NodeList = memo(function NodeList({
 }: NodeListProps) {
   const { backendFlags, quic } = useMainState();
   const { setExpanded } = useNodeListState();
+  const { t } = useTranslation('nodeLocation');
 
   const quicFilter =
     vpnMode === 'wg' && hop === 'entry' && backendFlags.quic && quic;
@@ -87,6 +92,32 @@ const NodeList = memo(function NodeList({
           ></Accordion.Item>
         ))}
       </Accordion.Root>
+      {gateways.length > 0 && (
+        <div className="mt-2" data-testid="standalone-gateways-container">
+          <h3 className="text-iron dark:text-bombay px-4 py-6 truncate">
+            {t('search-other-nodes')}
+          </h3>
+          {gateways.map((gateway) => (
+            <motion.div
+              key={gateway.id}
+              initial={{ opacity: 0, translateX: -4 }}
+              animate={{ opacity: 1, translateX: 0 }}
+              transition={{ duration: 0.1, ease: 'easeOut' }}
+              className="flex flex-col gap-2"
+              data-testid={`standalone-gateway-${gateway.id.substring(0, 8)}`}
+            >
+              <GatewayItem
+                node={hop}
+                gateway={gateway}
+                onSelect={onSelect}
+                onNodeDetails={onNodeDetails}
+                vpnMode={vpnMode}
+                quicLabel={quicFilter}
+              />
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }, arePropsEqual);
