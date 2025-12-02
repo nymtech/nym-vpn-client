@@ -93,7 +93,8 @@ function Node({ node }: { node: NodeHop }) {
         }
       }
     }
-  }, [selectedNode, node, addToExpanded, setFocused, focused, lookupGw]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
