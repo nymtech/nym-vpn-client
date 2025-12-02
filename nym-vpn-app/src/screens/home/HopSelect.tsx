@@ -71,7 +71,6 @@ export default function HopSelect({
     selected: SelectedNode,
     gateway: Gateway | null,
   ): SelectedNodeDisplayProps => {
-    console.log('nodeData', selected, gateway);
     if (selected === 'random') {
       return {
         name: t('fastest', { ns: 'common' }),
