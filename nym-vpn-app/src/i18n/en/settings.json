@@ -8,8 +8,8 @@
     "desc": "Allow IPv6 connections"
   },
   "allow-lan": {
-    "title": "Allow LAN traffic",
-    "desc": "Allow local network access"
+    "title": "Bypass LAN",
+    "desc": "Allow direct local network access"
   },
   "notifications": {
     "title": "Desktop notifications"
