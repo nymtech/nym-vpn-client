@@ -25,5 +25,6 @@
   },
   "appearance": "Appearance",
   "language": "Language",
-  "server-details": "Server details"
+  "server-details": "Server details",
+  "loading": "Loading..."
 }

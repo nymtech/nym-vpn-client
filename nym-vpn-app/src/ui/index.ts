@@ -21,6 +21,7 @@ export { default as Notifications } from './Notifications';
 export { default as Link } from './Link';
 export { default as Progress } from './Progress';
 export { default as PulseDot } from './PulseDot';
+export { default as Skeleton } from './Skeleton';
 export { default as Toast } from './Toast';
 export * from './Button';
 export * from './ButtonIcon';

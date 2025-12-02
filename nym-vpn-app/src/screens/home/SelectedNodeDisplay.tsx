@@ -1,7 +1,8 @@
 import { memo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
-import { FlagIcon, MsIcon, countryCode } from '../../ui';
+import { useTranslation } from 'react-i18next';
+import { FlagIcon, MsIcon, Skeleton, countryCode } from '../../ui';
 import { QuicTag } from '../node';
 
 export type SelectedNodeDisplayProps = {
@@ -25,55 +26,71 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
     showQuic,
     showStreamOptimized,
     showFastest,
-  }) => (
-    <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
-      {countryCode && <FlagIcon code={countryCode} alt={countryCode} />}
-      {showFastest && (
-        <MsIcon
-          icon="electric_bolt"
-          className="text-2xl text-baltic-sea dark:text-white"
-        />
-      )}
-      <div className={clsx('flex flex-col items-start truncate')}>
-        <div
-          className={clsx(['text-base truncate', disabled && 'cursor-default'])}
-        >
-          {name}
+  }) => {
+    const { t } = useTranslation('common');
+
+    if (!countryCode) {
+      return (
+        <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
+          <Skeleton className="w-7 h-7" rounded="full" />
+          <span>{t('loading')}</span>
         </div>
-        {animate ? (
-          <AnimatePresence>
-            {subInfo && (
-              <motion.div
-                initial={{ opacity: 0, x: '-1rem' }}
-                exit={{ opacity: 0, x: '1rem' }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                className="text-sm text-iron dark:text-bombay truncate"
-              >
-                {subInfo}
-              </motion.div>
+      );
+    }
+
+    return (
+      <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
+        {countryCode && <FlagIcon code={countryCode} alt={countryCode} />}
+        {showFastest && (
+          <MsIcon
+            icon="electric_bolt"
+            className="text-2xl text-baltic-sea dark:text-white"
+          />
+        )}
+        <div className={clsx('flex flex-col items-start truncate')}>
+          <div
+            className={clsx([
+              'text-base truncate',
+              disabled && 'cursor-default',
+            ])}
+          >
+            {name}
+          </div>
+          {animate ? (
+            <AnimatePresence>
+              {subInfo && (
+                <motion.div
+                  initial={{ opacity: 0, x: '-1rem' }}
+                  exit={{ opacity: 0, x: '1rem' }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="text-sm text-iron dark:text-bombay truncate"
+                >
+                  {subInfo}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          ) : (
+            <>
+              {subInfo && (
+                <div className="text-sm text-iron dark:text-bombay truncate">
+                  {subInfo}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        {(showQuic || showStreamOptimized) && (
+          <div className="flex items-center justify-end gap-3 flex-1 mr-1">
+            {showStreamOptimized && (
+              <MsIcon icon="smart_display" className="text-cornflower" />
             )}
-          </AnimatePresence>
-        ) : (
-          <>
-            {subInfo && (
-              <div className="text-sm text-iron dark:text-bombay truncate">
-                {subInfo}
-              </div>
-            )}
-          </>
+            {showQuic && <QuicTag />}
+          </div>
         )}
       </div>
-      {(showQuic || showStreamOptimized) && (
-        <div className="flex items-center justify-end gap-3 flex-1 mr-1">
-          {showStreamOptimized && (
-            <MsIcon icon="smart_display" className="text-cornflower" />
-          )}
-          {showQuic && <QuicTag />}
-        </div>
-      )}
-    </div>
-  ),
+    );
+  },
 );
 
 SelectedNodeDisplay.displayName = 'SelectedNodeDisplay';
