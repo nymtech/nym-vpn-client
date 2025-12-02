@@ -131,7 +131,10 @@ impl RpcClient {
     }
 
     pub async fn set_custom_dns(&mut self, ips: Option<Vec<IpAddr>>) -> Result<()> {
-        let request: proto::IpAddrList = ips.into();
+        let request: proto::IpAddrList = match ips {
+            Some(ips) => ips.into(),
+            None => proto::IpAddrList { ips: vec![] },
+        };
 
         self.0
             .set_custom_dns(request)

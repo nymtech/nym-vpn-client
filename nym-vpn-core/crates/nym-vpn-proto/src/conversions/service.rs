@@ -20,10 +20,10 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .transpose()?
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.exit_point"))?;
 
-        let custom_dns: Option<Vec<IpAddr>> = match value.custom_dns {
-            None => None,
-            Some(custom_dns) => custom_dns.try_into()?,
-        };
+        let custom_dns: Option<Vec<IpAddr>> = value
+            .custom_dns
+            .map(proto::IpAddrList::try_into)
+            .transpose()?;
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -47,9 +47,13 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
 
 impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
     fn from(value: nym_vpn_lib_types::VpnServiceConfig) -> Self {
+        let entry_point = Some(proto::EntryNode::from(value.entry_point));
+        let exit_point = Some(proto::ExitNode::from(value.exit_point));
+        let custom_dns = value.custom_dns.map(proto::IpAddrList::from);
+
         proto::VpnServiceConfig {
-            entry_point: Some(proto::EntryNode::from(value.entry_point)),
-            exit_point: Some(proto::ExitNode::from(value.exit_point)),
+            entry_point,
+            exit_point,
             allow_lan: value.allow_lan,
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
@@ -61,7 +65,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
             residential_exit: value.residential_exit,
-            custom_dns: Some(value.custom_dns.into()),
+            custom_dns,
         }
     }
 }
