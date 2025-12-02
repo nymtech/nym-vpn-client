@@ -6,9 +6,9 @@ use crate::service::{
     config::{
         VpnServiceConfigExt, VpnServiceConfigExtLatest,
         entry_exit::v2::{EntryPoint, ExitPoint},
+        network_stats::v1::NetworkStatisticsConfig,
     },
 };
-use nym_vpn_lib_types::NetworkStatisticsConfig;
 use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, str::FromStr};
 
@@ -69,7 +69,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
             custom_dns,
-            network_stats: value.network_stats,
+            network_stats: nym_vpn_lib_types::NetworkStatisticsConfig::from(value.network_stats),
         };
         Ok(config)
     }
@@ -103,7 +103,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExtLatest
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
             custom_dns,
-            network_stats: value.network_stats,
+            network_stats: NetworkStatisticsConfig::from(&value.network_stats),
         };
         Ok(ext_config)
     }
