@@ -8,7 +8,7 @@ use nym_vpn_lib_types::{
     ParsedAccountLinks, Socks5Settings, Socks5Status, StoreAccountRequest, SystemMessage,
     TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
-use std::path::PathBuf;
+use std::{net::IpAddr, path::PathBuf};
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
@@ -21,6 +21,8 @@ type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
 pub struct RpcClient(ServiceClient);
 
 impl RpcClient {
+    const MAX_CUSTOM_DNS_SERVERS: usize = 5;
+
     pub async fn new() -> Result<RpcClient> {
         let socket_path = get_rpc_socket_path();
         let channel = Endpoint::from_static("unix://placeholder")
@@ -130,10 +132,12 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_custom_dns(&mut self, ips: Option<Vec<String>>) -> Result<()> {
-        let request = proto::IpAddrList {
-            ips: ips.unwrap_or_default(),
-        };
+    pub async fn set_custom_dns(&mut self, ips: Vec<IpAddr>) -> Result<()> {
+        let request: proto::IpAddrList = ips
+            .into_iter()
+            .take(Self::MAX_CUSTOM_DNS_SERVERS)
+            .collect::<Vec<_>>()
+            .into();
 
         self.0
             .set_custom_dns(request)
@@ -193,14 +197,15 @@ impl RpcClient {
         Ok(FeatureFlags::from(response))
     }
 
-    pub async fn get_default_dns(&mut self) -> Result<Vec<String>> {
+    pub async fn get_default_dns(&mut self) -> Result<Vec<IpAddr>> {
         let response = self
             .0
             .get_default_dns(())
             .await
             .map_err(Error::Rpc)?
             .into_inner();
-        Ok(response.ips)
+        let ip_vec = response.try_into().map_err(Error::InvalidResponse)?;
+        Ok(ip_vec)
     }
 
     pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<()> {

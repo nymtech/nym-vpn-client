@@ -35,6 +35,7 @@ use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
 use std::{
+    collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
 };
@@ -190,6 +191,102 @@ impl TunnelSettings {
     pub fn bridges_enabled(&self) -> bool {
         matches!(self.tunnel_type, TunnelType::Wireguard)
             && self.wireguard_tunnel_options.enable_bridges
+    }
+
+    pub fn diff(&self, other: &Self) -> Option<TunnelSettingsDiff> {
+        let mut diff = TunnelSettingsDiff::new();
+
+        if self.enable_ipv6 != other.enable_ipv6 {
+            diff.add(TunnelSettingsDiffFields::EnableIpv6);
+        }
+        if self.tunnel_type != other.tunnel_type {
+            diff.add(TunnelSettingsDiffFields::TunnelType);
+        }
+        if self.allow_lan != other.allow_lan {
+            diff.add(TunnelSettingsDiffFields::AllowLan);
+        }
+        if self.residential_exit != other.residential_exit {
+            diff.add(TunnelSettingsDiffFields::ResidentialExit);
+        }
+        if self.mixnet_tunnel_options != other.mixnet_tunnel_options {
+            diff.add(TunnelSettingsDiffFields::MixnetTunnelOptions);
+        }
+        if self.wireguard_tunnel_options != other.wireguard_tunnel_options {
+            diff.add(TunnelSettingsDiffFields::WireguardTunnelOptions);
+        }
+        if self.gateway_performance_options != other.gateway_performance_options {
+            diff.add(TunnelSettingsDiffFields::GatewayPerformanceOptions);
+        }
+        if self.mixnet_client_config != other.mixnet_client_config {
+            diff.add(TunnelSettingsDiffFields::MixnetClientConfig);
+        }
+        if self.entry_point != other.entry_point {
+            diff.add(TunnelSettingsDiffFields::EntryPoint);
+        }
+        if self.exit_point != other.exit_point {
+            diff.add(TunnelSettingsDiffFields::ExitPoint);
+        }
+        if self.dns != other.dns {
+            diff.add(TunnelSettingsDiffFields::Dns);
+        }
+
+        if diff.is_empty() { None } else { Some(diff) }
+    }
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum TunnelSettingsDiffFields {
+    EnableIpv6 = 0,
+    TunnelType,
+    AllowLan,
+    ResidentialExit,
+    MixnetTunnelOptions,
+    WireguardTunnelOptions,
+    GatewayPerformanceOptions,
+    MixnetClientConfig,
+    EntryPoint,
+    ExitPoint,
+    Dns,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
+pub struct TunnelSettingsDiff(HashSet<TunnelSettingsDiffFields>);
+
+impl TunnelSettingsDiff {
+    pub fn new() -> Self {
+        Self(HashSet::new())
+    }
+
+    pub fn add(&mut self, field: TunnelSettingsDiffFields) {
+        self.0.insert(field);
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn is_field_changed(&self, field: &TunnelSettingsDiffFields) -> bool {
+        self.0.contains(field)
+    }
+
+    pub fn only_field_changed(&self, field: &TunnelSettingsDiffFields) -> bool {
+        self.is_field_changed(field) && self.0.len() == 1
+    }
+
+    pub fn allow_lan_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::AllowLan)
+    }
+
+    pub fn only_allow_lan_changed(&self) -> bool {
+        self.only_field_changed(&TunnelSettingsDiffFields::AllowLan)
+    }
+
+    pub fn entry_point_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::EntryPoint)
+    }
+
+    pub fn exit_point_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::ExitPoint)
     }
 }
 

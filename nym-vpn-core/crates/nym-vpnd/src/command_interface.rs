@@ -201,13 +201,19 @@ impl NymVpnService for CommandInterface {
         &self,
         request: tonic::Request<proto::IpAddrList>,
     ) -> Result<tonic::Response<()>> {
-        let custom_dns: Option<Vec<IpAddr>> = request
+        let custom_dns: Vec<IpAddr> = request
             .into_inner()
             .try_into()
             .map_err(|e| tonic::Status::invalid_argument(format!("Invalid Custom DNS: {e}")))?;
 
+        let opt_custom_dns = if custom_dns.is_empty() {
+            None
+        } else {
+            Some(custom_dns)
+        };
+
         let _ = self
-            .send_and_wait(VpnServiceCommand::SetCustomDns, custom_dns)
+            .send_and_wait(VpnServiceCommand::SetCustomDns, opt_custom_dns)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to set custom DNS: {e}")))?;
 
@@ -282,7 +288,7 @@ impl NymVpnService for CommandInterface {
         let dns_ips = self
             .send_and_wait(VpnServiceCommand::GetDefaultDns, ())
             .await?;
-        let ipaddr_list = proto::IpAddrList::from(Some(dns_ips));
+        let ipaddr_list = proto::IpAddrList::from(dns_ips);
         Ok(tonic::Response::new(ipaddr_list))
     }
 

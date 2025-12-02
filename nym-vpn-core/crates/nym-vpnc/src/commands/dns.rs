@@ -1,9 +1,9 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::Result;
-
+use anyhow::{Result, anyhow};
 use nym_vpn_proto::rpc_client::RpcClient;
+use std::net::IpAddr;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -39,16 +39,30 @@ impl Command {
                 Ok(())
             }
             Command::Set { dns_servers } => {
-                rpc_client.set_custom_dns(Some(dns_servers)).await?;
+                let ip_addr_list = dns_servers
+                    .iter()
+                    .map(|s| {
+                        s.parse()
+                            .map_err(|e| anyhow!("Failed to parse '{s}' as an IP address: {e}",))
+                    })
+                    .collect::<Result<Vec<IpAddr>>>()?;
+                rpc_client.set_custom_dns(ip_addr_list).await?;
                 Ok(())
             }
             Command::Clear => {
-                rpc_client.set_custom_dns(None).await?;
+                rpc_client.set_custom_dns(vec![]).await?;
                 Ok(())
             }
             Command::GetDefault => {
                 let default_dns = rpc_client.get_default_dns().await?;
-                println!("Default DNS: {}", default_dns.join(" "));
+                println!(
+                    "Default DNS: {}",
+                    default_dns
+                        .iter()
+                        .map(|ip| ip.to_string())
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                );
                 Ok(())
             }
         }
