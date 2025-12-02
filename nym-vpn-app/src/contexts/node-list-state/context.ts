@@ -25,7 +25,7 @@ type State = {
     // country code
     value: string,
   ) => void;
-  setFocused: (hop: Hop, focused: Focused) => void;
+  setFocused: (hop: Hop, focused: Focused | null) => void;
   setSearch: (hop: Hop, search: string | null) => void;
   reset: (hop: Hop | 'all') => void;
 };

@@ -37,7 +37,7 @@ function NodeListPrevStateProvider({ children }: NodeListPrevStateProps) {
     [entryExpanded, exitExpanded],
   );
 
-  const setFocused = useCallback((hop: Hop, focus: Focused) => {
+  const setFocused = useCallback((hop: Hop, focus: Focused | null) => {
     if (hop === 'entry') {
       setEntryFocused(focus);
     } else {

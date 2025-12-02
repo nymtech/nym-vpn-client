@@ -132,6 +132,7 @@ function Node({ node }: { node: NodeHop }) {
   };
 
   const onSearchChange = (value: string) => {
+    setFocused(node, null);
     setSearch(node, value);
     filter(value);
   };
