@@ -176,7 +176,7 @@ function Home() {
   };
 
   const goToNodeList = (hop: 'entry' | 'exit') => {
-    const expanded = [];
+    const expanded: string[] = [];
     let focused: Focused | null = null;
     const node = hop === 'entry' ? entryNode : exitNode;
 
