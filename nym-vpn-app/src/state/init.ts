@@ -22,7 +22,6 @@ import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
 
 const defaultNetStats = window._APP.defaultNetstats;
-const defaultQuic = window._APP.defaultQuic;
 const defaultDomFront = window._APP.defaultDomainFronting;
 
 // initialize connection state
@@ -164,27 +163,6 @@ export async function initFirstBatch(
     },
   };
 
-  const getIpv6SupportRq: TauriReq<() => Promise<boolean | null>> = {
-    name: 'getIpv6Support',
-    request: () => kvGet<boolean>('disable-ipv6'),
-    onFulfilled: (disabled) => {
-      if (disabled) {
-        dispatch({ type: 'set-ipv6-support', enabled: false });
-      }
-    },
-  };
-
-  const getQuicRq: TauriReq<() => Promise<boolean | null>> = {
-    name: 'getQuicRq',
-    request: () => kvGet<boolean>('quic-enabled'),
-    onFulfilled: (enabled) => {
-      dispatch({
-        type: 'set-quic',
-        enabled: enabled !== null ? enabled : defaultQuic,
-      });
-    },
-  };
-
   const getDomainFrontingRq: TauriReq<() => Promise<boolean | null>> = {
     name: 'getDomainFrontingRq',
     request: () => kvGet<boolean>('domain-fronting-enabled'),
@@ -228,9 +206,7 @@ export async function initFirstBatch(
     getDepsRustRq,
     getDepsJsRq,
     getDesktopNotificationsRq,
-    getIpv6SupportRq,
     getNetworkStatsRq,
-    getQuicRq,
     getDomainFrontingRq,
     getStreamingOptimizedLabelSeenRq,
   ];

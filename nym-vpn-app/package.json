@@ -47,6 +47,7 @@
     "@tauri-apps/plugin-updater": "^2.9.0",
     "@tauri-apps/plugin-window-state": "^2.4.0",
     "clsx": "^2.0.0",
+    "country-region-data": "^4.0.0",
     "dayjs": "^1.11.10",
     "dequal": "^2.0.3",
     "i18next": "^25.2.1",

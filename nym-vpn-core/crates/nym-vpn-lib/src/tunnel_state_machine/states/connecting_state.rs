@@ -375,11 +375,12 @@ impl ConnectingState {
 
         let tunnel_parameters = TunnelParameters {
             nym_config: shared_state.nym_config.clone(),
+            resolved_gateway_config,
             tunnel_settings: shared_state.tunnel_settings.clone(),
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
-            resolved_gateway_config,
+            blacklisted_entry_gateways: shared_state.blacklisted_entry_gateways.clone(),
         };
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
@@ -587,6 +588,17 @@ impl TunnelStateHandler for ConnectingState {
                         next_state
                     }
                     TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
+                        // We have successfully connected, clear any blacklisted entry gateways
+                        match shared_state.blacklisted_entry_gateways.is_empty() {
+                            Ok(is_empty) => if !is_empty {
+                                tracing::info!("Clearing blacklisted entry gateways");
+                                if let Err(e) = shared_state.blacklisted_entry_gateways.clear() {
+                                    tracing::error!("Failed to clear blacklisted entry gateway list: {e}");
+                                }
+                            }
+                            Err(e) => tracing::error!("Failed to read blacklisted entry gateway list: {e}")
+                        }
+
                         NextTunnelState::NewState(ConnectedState::enter(
                             tunnel_interface,
                             *connection_data,
@@ -617,9 +629,24 @@ impl TunnelStateHandler for ConnectingState {
                             self.reconnect(shared_state).await
                         }
                     }
+                    TunnelMonitorEvent::ConnectionFailed => {
+                        // We have failed to connect repeatedly; let's blacklist the previously selected
+                        // entry gateways for a while and force gateway re-selection.
+                        if let Some(ref selected_gateways) = self.selected_gateways {
+                            let entry_gateway_identifier = selected_gateways.entry_gateway().identity;
+                            if let Err(e) = shared_state.blacklisted_entry_gateways.add(entry_gateway_identifier) {
+                                tracing::error!("Failed to add gateway {} to blacklisted entry gateway list: {e}", entry_gateway_identifier);
+                            } else {
+                                tracing::warn!("Blacklisted entry gateway {} due to repeated connection failure", entry_gateway_identifier);
+                            }
+                            self.selected_gateways = None;
+                        }
+                        NextTunnelState::SameState(self)
+                    }
                 }
            }
             Some(command) = command_rx.recv() => {
+                tracing::debug!("ConnectingState received command: {command:?}");
                 match command {
                     TunnelCommand::Connect => {
                         if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
@@ -638,40 +665,39 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        if shared_state.tunnel_settings == tunnel_settings {
-                            NextTunnelState::SameState(self)
-                        } else {
-                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                            {
-                                let firewall_changed = shared_state.tunnel_settings.allow_lan != tunnel_settings.allow_lan ||
-                                    shared_state.tunnel_settings.dns != tunnel_settings.dns;
+                        let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                            return NextTunnelState::SameState(self);
+                        };
 
-                                if firewall_changed {
-                                    self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
-                                    self.firewall_policy_params.dns_servers = tunnel_settings.dns_ips();
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        {
+                            if diff.allow_lan_changed() {
+                                self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
 
-                                    if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                        trace_err_chain!(e, "failed to set firewall policy");
-                                        return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
-                                    }
+                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                    trace_err_chain!(e, "failed to set firewall policy");
+                                    return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                                }
+
+                                // If the only change was Allow LAN, then don't restart the tunnel.
+                                if diff.only_allow_lan_changed() {
+                                    shared_state.tunnel_settings.allow_lan = tunnel_settings.allow_lan;
+                                    return NextTunnelState::SameState(self);
                                 }
                             }
+                        }
 
-                            let gateways_changed = shared_state.tunnel_settings.entry_point != tunnel_settings.entry_point ||
-                                shared_state.tunnel_settings.exit_point != tunnel_settings.exit_point;
+                        shared_state.tunnel_settings = tunnel_settings;
 
-                            shared_state.tunnel_settings = tunnel_settings;
-
-                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                                Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
+                        if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                            Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
+                        } else {
+                            let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() {
+                                None
                             } else {
-                                let next_gateways = if gateways_changed {
-                                    None
-                                } else {
-                                    self.selected_gateways
-                                };
-                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
-                            }
+                                self.selected_gateways
+                            };
+                            NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
                         }
                     }
                 }

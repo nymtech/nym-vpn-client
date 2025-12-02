@@ -194,6 +194,20 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">مكافحة الرقابة</string>
 	<string name="settings_passphrase_title">كلمة المرور</string>
+	<string name="settings_ipv6_title">دعم IPv6</string>
+	<string name="settings_ipv6_description">السماح باتصالات IPv6</string>
+	<string name="settings_bypass_description">السماح بالوصول المباشر إلى الشبكة المحلية</string>
+	<string name="settings_auto_select_title">تحديد تلقائي لخادم الدخول</string>
+	<string name="settings_auto_select_description">السماح للتطبيق باختيار أفضل موقع للدخول</string>
+	<string name="settings_device_startup_title">تشغيل عند بدء تشغيل الجهاز</string>
+	<string name="settings_device_startup_description">السماح للتطبيق باختيار أفضل موقع للدخول</string>
+	<string name="settings_system_tray_title">تشغيل في صالة النظام</string>
+	<string name="settings_system_tray_description">إبقاء التطبيق قيد التشغيل عند إغلاقه</string>
+	<string name="settings_reset_app_title">إعادة تعيين بيانات التطبيق</string>
+	<string name="settings_system_status_title">حالة النظام</string>
+	<string name="settings_quit_title">الخروج من NymVPN</string>
+	<string name="settings_app_version_line">إصدار التطبيق: %1$s</string>
+	<string name="settings_daemon_version_line">إصدار دايمون: %1$s</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">للحصول على أفضل اتصال</string>
 	<string name="battery_opt_descr">تعطيل تحسينات بطارية NymVPN لاتصالات VPN أكثر استقرارا.</string>
@@ -285,6 +299,10 @@
 	<string name="quick_info_modal_desc_non_quic">سيؤدي هذا إلى إعادة الاتصال بك دون تمكين بروتوكول QUIC. ستحتفظ ببوابتك الحالية.\n\nتظل بياناتك محمية أثناء إعادة الاتصال.</string>
 	<string name="quic_primary_btn_text_non_quic">إعادة الاتصال بدون QUIC الآن</string>
 	<string name="quic_text_btn_text_non_quic">إيقاف تشغيل QUIC عند الاتصال التالي</string>
+	<string name="censorship_amnezia_title">الحد الأدنى من التشويش</string>
+	<string name="censorship_amnezia_description">يجعل حركة مرور WireGuard أكثر صعوبة لكشفها. يقدم حزم مفككة تعطل القواعد البسيطة التي كثيرا ما تستخدمها نظم الرقابة على عمليات التفتيش العميقة (Deep Packet)، مما يحسن موثوقية الاتصال في البيئات التقييدية. \n\nملاحظة: تم تنفيذ جانب العميل فقط.</string>
+	<string name="censorship_amnezia_link_text">كيف يمنع أمنيزياي الفريق إدارة شؤون الإعلام</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-★ NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">تكنولوجيا المزيج المجهولة</string>
 	<string name="account_welcome_countries">50 دولة في جميع أنحاء العالم</string>
@@ -335,12 +353,16 @@
 	<string name="passphrase_info_keeps_anonymous">يبقيك مجهول الهوية</string>
 	<string name="passphrase_info_belongs">ينتمي إليك فقط (الوصاية الذاتية)</string>
 	<!-- Account screen -->
+	<string name="account_title">الحساب والأجهزة</string>
 	<string name="account_info_plan">خطة</string>
 	<string name="account_info_payments">الدفعات</string>
 	<string name="account_info_devices">الأجهزة</string>
 	<string name="account_info_id_title">معرف الحساب</string>
 	<string name="account_info_id_description">استخدم هذا المعرف لطلبات الدعم</string>
 	<string name="account_info_id_important">⚠️ هام: لن يطلب أي دعم أبداً عبارة المرور الخاصة بك على 24 كلمة. لا تشاركها مطلقاً مع أي شخص.</string>
+	<string name="account_on_nym">حساب على nym.com</string>
+	<string name="account_device_id_title">معرف الجهاز</string>
+	<string name="account_id_title">معرف الحساب</string>
 	<!-- Logs screen -->
 	<string name="logs_share">مشاركة</string>
 	<string name="logs_download">تنزيل</string>
@@ -355,4 +377,26 @@
 	<string name="logs_download_description">يمكن الوصول إلى السجلات المحفوظة بواسطة تطبيقات أخرى أو أي شخص لديه حق الوصول إلى تخزين جهازك.</string>
 	<string name="logs_download_button">حفظ كملف على أي حال</string>
 	<string name="logs_saved">Logs saved to downloads folder</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">تقسيم نفق</string>
+	<string name="split_tunneling_info_msg">تعيين كل تطبيق لاستخدام NymVPN أو الاتصال مباشرة.</string>
+	<string name="split_tunneling_info_desc">سيتم تطبيق التغييرات بعد إعادة الاتصال</string>
+	<string name="split_tunneling_search_apps_hint">البحث عن التطبيقات</string>
+	<string name="split_tunneling_apps">التطبيقات</string>
+	<string name="split_tunneling_direct">مباشر</string>
+	<string name="split_tunneling_direct_desc">تجاوز NymVPN</string>
+	<string name="split_tunneling_via_vpn">Via NymVPN</string>
+	<string name="split_tunneling_via_desc">محمي عند الاتصال</string>
+	<string name="split_tunneling_nym_vpn">NymVPN</string>
+	<string name="split_tunneling_system_applications">تطبيقات النظام</string>
+	<string name="split_tunnel_info_modal_title">استخدام انقسام نفقي</string>
+	<string name="split_tunnel_info_modal_desc">تقسيم النفق يتيح لك تحسين كل تطبيق سواء لأقصى سرعة أو لأقصى قدر من الخصوصية. يمكنك بسهولة تغيير هذه الإعدادات في أي وقت.</string>
+	<string name="split_tunnel_info_direct_desc">لخدمات مثل الخدمات المصرفية أو الأجهزة المنزلية الذكية أو تطبيقات العمل.</string>
+	<string name="split_tunnel_info_via_vpn_desc">الإعداد الموصى به. سيتم استخدام الوضع الحالي آنذاك (سريع أو مجهول)، بناء على احتياجاتك.</string>
+	<string name="split_tunnel_changes_confirm_modal_title">تطبيق إعدادات تقسيم النفق؟</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">إعادة الاتصال الآن</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">تطبيق على الاتصال التالي</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 جديد: اختر الحماية لكل تطبيق أو الاتصال المباشر للسرعة</string>
+	<string name="split_tunneling_per_app_security_banner_action">تكوين\nتطبيقات</string>
 </resources>

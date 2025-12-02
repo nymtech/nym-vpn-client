@@ -13,13 +13,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun TransparentButton(
-	testTag: String? = null,
-	onClick: () -> Unit,
-	content: @Composable () -> Unit,
-	modifier: Modifier = Modifier,
-	borderStroke: BorderStroke? = null,
-) {
+fun TransparentButton(testTag: String? = null, onClick: () -> Unit, content: @Composable () -> Unit, modifier: Modifier = Modifier, borderStroke: BorderStroke? = null) {
 	Button(
 		onClick = { onClick() },
 		colors = ButtonDefaults.buttonColors(

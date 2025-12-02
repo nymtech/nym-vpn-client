@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import dayjs from 'dayjs';
 import * as H from 'history';
 import { Trans, useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
 import { useLocation, useNavigate } from 'react-router';
 import {
   UiGateway,
@@ -26,7 +27,6 @@ import {
   NetworkExplorerNodeUrl,
   SupportServerLocationUrl,
 } from '../../../constants';
-import { kvSet } from '../../../kvStore';
 import { uiNodeToSelectedNode } from '../../../contexts/node-list/util';
 import { routes } from '../../../router';
 import { ScoreIndicator } from '../ScoreIndicator';
@@ -133,8 +133,8 @@ function NodeDetails() {
       <p className="text-iron dark:text-bombay truncate">
         {t('node-details.data.identity-key')}
       </p>
-      <div className="flex justify-between gap-3 break-words">
-        <p className="font-mono text-sm flex-wrap text-wrap break-words overflow-hidden">
+      <div className="flex items-center justify-between gap-3 wrap-break-word">
+        <p className="font-mono text-sm flex-wrap text-wrap wrap-break-word overflow-hidden">
           {gateway.id}
         </p>
         <ButtonIcon
@@ -155,12 +155,19 @@ function NodeDetails() {
     if (isSelected) {
       return;
     }
-    const selectedNode = uiNodeToSelectedNode(gateway);
-    await kvSet(hop === 'entry' ? 'entry-node' : 'exit-node', selectedNode);
-    dispatch({
-      type: 'set-node',
-      payload: { hop, node: selectedNode },
-    });
+    const node = uiNodeToSelectedNode(gateway);
+    try {
+      await invoke('set_node', {
+        node,
+        hop,
+      });
+      dispatch({
+        type: 'set-node',
+        payload: { hop, node },
+      });
+    } catch {
+      /* TODO notify the user something went wrong */
+    }
     navigate(routes.root);
     resetSaved(hop);
   };

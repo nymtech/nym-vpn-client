@@ -45,14 +45,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
 
 @Composable
-fun LoginInputSection(
-	appUiState: AppUiState,
-	viewModel: LoginViewModel,
-	success: Boolean?,
-	loading: Boolean,
-	onLoadingChange: (Boolean) -> Unit,
-	onRequestCameraPermission: () -> Unit,
-) {
+fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, success: Boolean?, loading: Boolean, onLoadingChange: (Boolean) -> Unit, onRequestCameraPermission: () -> Unit) {
 	val context = LocalContext.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 	var mnemonic by remember { mutableStateOf("") }

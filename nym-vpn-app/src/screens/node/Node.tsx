@@ -1,7 +1,8 @@
-import { useDeferredValue } from 'react';
+import { useDeferredValue, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
+import { invoke } from '@tauri-apps/api/core';
 import {
   SelectedUiNode,
   UiGateway,
@@ -11,13 +12,19 @@ import {
   useNodeList,
   useNodeListState,
 } from '../../contexts';
-import { NodeHop, StateDispatch } from '../../types';
+import {
+  NodeHop,
+  StateDispatch,
+  isCountry,
+  isGateway,
+  isRegion,
+} from '../../types';
 import { Link, PageAnim, TextInput } from '../../ui';
-import { kvSet } from '../../kvStore';
 import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
-import LocationDetailsDialog from './LocationDetailsDialog';
+import { regionToCountryCode } from '../home/util';
+import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
 function Node({ node }: { node: NodeHop }) {
@@ -32,13 +39,17 @@ function Node({ node }: { node: NodeHop }) {
     entry: entryNodeList,
     reset: resetSaved,
     addToExpanded,
+    setSearch,
   } = useNodeListState();
   const expanded =
     node === 'entry' ? entryNodeList.expanded : exitNodeList.expanded;
   const focused =
     node === 'entry' ? entryNodeList.focused : exitNodeList.focused;
+  const search = node === 'entry' ? entryNodeList.search : exitNodeList.search;
 
   const { tE } = useI18nError();
+  const { entryNode, exitNode } = useMainState();
+  const selectedNode = node === 'entry' ? entryNode : exitNode;
 
   const quicFilter =
     vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
@@ -46,27 +57,55 @@ function Node({ node }: { node: NodeHop }) {
   const navigate = useNavigate();
   const { t } = useTranslation('nodeLocation');
 
-  const { filter, nodes, gateways } = useFilterList();
+  const { filter, nodes, gateways } = useFilterList(node);
   const deferredNodes = useDeferredValue(nodes);
   const deferredGateways = useDeferredValue(gateways);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchRef.current) searchRef.current.focus();
+  }, []);
+
+  useEffect(() => {
+    // if there's already a focused node, don't do anything
+    // when navigating to node details new focused is set
+    if (focused) {
+      return;
+    }
+    if (isCountry(selectedNode)) {
+      setFocused(node, { type: 'country', key: selectedNode.country.code });
+    }
+    if (isRegion(selectedNode)) {
+      const code = regionToCountryCode(selectedNode.region);
+      if (code) {
+        addToExpanded(node, code);
+        setFocused(node, { type: 'region', key: selectedNode.region });
+      }
+    }
+    // TODO handle US regions auto-expand and focus
+  }, [selectedNode, node, addToExpanded, setFocused, focused]);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
     if (
-      selectedNode.type === 'gateway' &&
+      isGateway(selectedNode) &&
       (selected.isSelected === 'exit' || selected.isSelected === 'entry')
     ) {
       return;
     }
 
-    await kvSet(
-      node === 'entry' ? 'entry-node' : 'exit-node',
-      uiNodeToSelectedNode(selected),
-    );
-    dispatch({
-      type: 'set-node',
-      payload: { hop: node, node: selectedNode },
-    });
+    try {
+      await invoke('set_node', {
+        node: selectedNode,
+        hop: node,
+      });
+      dispatch({
+        type: 'set-node',
+        payload: { hop: node, node: selectedNode },
+      });
+    } catch {
+      /* TODO notify the user something went wrong */
+    }
     navigate(routes.root);
     resetSaved(node);
   };
@@ -80,6 +119,11 @@ function Node({ node }: { node: NodeHop }) {
     // expand it, so it can be restored and scrolled to when navigating back
     // to the node list
     addToExpanded(node, gateway.country.code);
+  };
+
+  const onSearchChange = (value: string) => {
+    setSearch(node, value);
+    filter(value);
   };
 
   if (error) {
@@ -141,12 +185,13 @@ function Node({ node }: { node: NodeHop }) {
             </p>
           )}
           <TextInput
-            defaultValue=""
-            onChange={filter}
+            ref={searchRef}
+            onChange={onSearchChange}
             placeholder={t('search-country')}
             leftIcon="search"
             label={t('input-label')}
-            data-testid="node-search-input"
+            clearable
+            value={search || ''}
           />
         </div>
         {loading && (

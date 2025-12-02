@@ -59,3 +59,22 @@ impl TryFrom<proto::IpAddr> for IpAddr {
         })
     }
 }
+
+impl From<Vec<IpAddr>> for proto::IpAddrList {
+    fn from(value: Vec<IpAddr>) -> Self {
+        let ips: Vec<proto::IpAddr> = value.into_iter().map(proto::IpAddr::from).collect();
+        proto::IpAddrList { ips }
+    }
+}
+
+impl TryFrom<proto::IpAddrList> for Vec<IpAddr> {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::IpAddrList) -> Result<Self, Self::Error> {
+        value
+            .ips
+            .into_iter()
+            .map(IpAddr::try_from)
+            .collect::<Result<Vec<_>, _>>()
+    }
+}

@@ -25,7 +25,7 @@
 	<string name="is_selected">Вибрано</string>
 	<string name="fastest">Найшвидший</string>
 	<string name="auto_connect">Авто-підключення</string>
-	<string name="auto_connect_description">Авто-підключення при перезавантаженні</string>
+	<string name="auto_connect_description">Підключатися при відкритті програми</string>
 	<string name="logs">Журнали</string>
 	<string name="support">Служба підтримки</string>
 	<string name="legal">Правові документи</string>
@@ -129,8 +129,8 @@
 	<string name="app_update_required">Ваш додаток більше не підтримується. Будь ласка, оновіть його до останньої версії, щоб продовжити використання NymVPN.</string>
 	<string name="update_required">Потрібне оновлення!</string>
 	<string name="update">Оновлення</string>
-	<string name="log_out_title">Ви впевнені, що хочете вийти з системи?</string>
-	<string name="log_out_body">Для повторного входу вам знадобиться фраза відновлення.</string>
+	<string name="log_out_title">Вийти з цього пристрою?</string>
+	<string name="log_out_body">Для повторного входу вам знадобиться 24-слівна парольна фраза.</string>
 	<string name="cancel">Скасувати</string>
 	<string name="info">Інформація</string>
 	<string name="collapse">Згортання</string>
@@ -192,6 +192,20 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Проти цензури</string>
 	<string name="settings_passphrase_title">Кодова фраза</string>
+	<string name="settings_ipv6_title">Підтримка IPv6</string>
+	<string name="settings_ipv6_description">Вимкнути, щоб використовувати тільки IPv4</string>
+	<string name="settings_bypass_description">Дозволити прямий доступ до локальної мережі</string>
+	<string name="settings_auto_select_title">Автоматичний вибір сервера входу</string>
+	<string name="settings_auto_select_description">Дозвольте додатку вибрати найкраще місце для входу</string>
+	<string name="settings_device_startup_title">Запуск при запуску пристрою</string>
+	<string name="settings_device_startup_description">Дозвольте додатку вибрати найкраще місце для входу</string>
+	<string name="settings_system_tray_title">Запустити в системному треї</string>
+	<string name="settings_system_tray_description">Зберігати роботу програми після закриття</string>
+	<string name="settings_reset_app_title">Скинути дані програми</string>
+	<string name="settings_system_status_title">Стан системи</string>
+	<string name="settings_quit_title">Вийти з NymVPN</string>
+	<string name="settings_app_version_line">Версія програми: %1$s</string>
+	<string name="settings_daemon_version_line">Версія Daemon: %1$s</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Для кращого з\'єднання</string>
 	<string name="battery_opt_descr">Вимкніть оптимізацію заряду батареї NymVPN для більш стабільних VPN-з\'єднань.</string>
@@ -283,6 +297,10 @@
 	<string name="quick_info_modal_desc_non_quic">Це дозволить вам знову підключитися без увімкненого протоколу QUIC. Ви збережете свої поточні шлюзи.\n\nВаші дані залишаться захищеними під час повторного підключення.</string>
 	<string name="quic_primary_btn_text_non_quic">Підключитися знову без QUIC зараз</string>
 	<string name="quic_text_btn_text_non_quic">Вимкнути QUIC при наступному з\'єднанні</string>
+	<string name="censorship_amnezia_title">Мінімальне заплутування (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Ускладнює виявлення трафіку WireGuard. Впроваджує пакети-приманки, які порушують прості правила, що часто використовуються системами цензури Deep Packet Inspection (DPI), покращуючи надійність з\'єднання в обмежувальних середовищах. \n\nПримітка: реалізовано тільки на стороні клієнта.</string>
+	<string name="censorship_amnezia_link_text">Як AmneziaWG запобігає DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Анонімна технологія змішаних мереж</string>
 	<string name="account_welcome_countries">50 + країни по всьому світу</string>
@@ -333,12 +351,16 @@
 	<string name="passphrase_info_keeps_anonymous">Зберігає вашу анонімність</string>
 	<string name="passphrase_info_belongs">Належить тільки вам (самоконтроль)</string>
 	<!-- Account screen -->
+	<string name="account_title">Обліковий запис та пристрої</string>
 	<string name="account_info_plan">План</string>
 	<string name="account_info_payments">Оплата</string>
 	<string name="account_info_devices">Пристрої</string>
 	<string name="account_info_id_title">ID облікового запису</string>
 	<string name="account_info_id_description">Використовуйте цей ID для запитів на підтримку</string>
 	<string name="account_info_id_important">⚠️ Важливо: служба підтримки Nym ніколи не запитуватиме у вас 24-слівний пароль. Ніколи не повідомляйте його нікому.</string>
+	<string name="account_on_nym">Акаунт на nym.com</string>
+	<string name="account_device_id_title">Ідентифікатор пристрою</string>
+	<string name="account_id_title">ID облікового запису</string>
 	<!-- Logs screen -->
 	<string name="logs_share">Поділіться</string>
 	<string name="logs_download">Завантажити</string>
@@ -353,4 +375,26 @@
 	<string name="logs_download_description">До збережених журналів можуть отримати доступ інші програми або будь-хто, хто має доступ до пам\'яті вашого пристрою.</string>
 	<string name="logs_download_button">Все одно зберегти як файл</string>
 	<string name="logs_saved">Логи збережені в папці завантажень</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">Роздільне тунелювання</string>
+	<string name="split_tunneling_info_msg">Налаштуйте кожну програму на використання NymVPN або підключіться безпосередньо.</string>
+	<string name="split_tunneling_info_desc">Зміни будуть застосовані після повторного підключення</string>
+	<string name="split_tunneling_search_apps_hint">Пошук додатків</string>
+	<string name="split_tunneling_apps">Додатки</string>
+	<string name="split_tunneling_direct">Особисте</string>
+	<string name="split_tunneling_direct_desc">Bypass NymVPN</string>
+	<string name="split_tunneling_via_vpn">Через NymVPN</string>
+	<string name="split_tunneling_via_desc">Захищений при підключенні</string>
+	<string name="split_tunneling_nym_vpn">NymVPN</string>
+	<string name="split_tunneling_system_applications">Системні додатки</string>
+	<string name="split_tunnel_info_modal_title">Використання розділеного тунелювання</string>
+	<string name="split_tunnel_info_modal_desc">Роздільне тунелювання дозволяє оптимізувати кожну програму для максимальної швидкості або максимальної конфіденційності. Ви можете легко змінити ці налаштування в будь-який час.</string>
+	<string name="split_tunnel_info_direct_desc">Для таких послуг, як банківські послуги, пристрої розумного будинку або робочі додатки.</string>
+	<string name="split_tunnel_info_via_vpn_desc">Рекомендовані налаштування. Використовуватиме поточний режим (Швидкий або Анонімний) відповідно до ваших потреб.</string>
+	<string name="split_tunnel_changes_confirm_modal_title">Застосувати налаштування розділеного тунелювання?</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Оновлено функцію розділеного тунелювання. Підключіться знову, щоб застосувати зміни.\n\nВаші дані залишаються захищеними під час повторного підключення.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Повторно з\'єднатися</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Застосувати при наступному підключенні</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 Нове: виберіть захист для окремих програм або пряме підключення для швидкості</string>
+	<string name="split_tunneling_per_app_security_banner_action">Налаштування\napps</string>
 </resources>

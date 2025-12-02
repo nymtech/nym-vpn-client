@@ -8,6 +8,7 @@ export type ButtonProps = {
   onClick: () => void;
   disabled?: boolean;
   color?: 'malachite' | 'cornflower' | 'gray' | 'red';
+  textSize?: 'base' | 'lg';
   outline?: boolean;
   className?: string;
   spinner?: boolean;
@@ -34,6 +35,7 @@ function Button({
   children,
   disabled,
   color = 'malachite',
+  textSize = 'lg',
   outline,
   className,
   spinner,
@@ -67,7 +69,14 @@ function Button({
   const getOutlineColorStyle = () => {
     switch (color) {
       case 'malachite':
-        return 'border border-malachite outline-malachite';
+        return 'border border-malachite outline-malachite data-hover:ring-1 data-hover:ring-malachite';
+      case 'red':
+        return [
+          'bg-aphrodisiac/10 data-hover:bg-aphrodisiac/20',
+          'border border-aphrodisiac outline-aphrodisiac',
+        ];
+      case 'gray':
+        return 'data-hover:border-iron dark:data-hover:text-bombay data-hover:ring-1 data-hover:ring-malachite';
       default:
         // TODO add style for other colors
         return null;
@@ -83,10 +92,18 @@ function Button({
       case 'cornflower':
         return 'text-cornflower';
       case 'red':
-        return 'text-aphrodisiac';
+        return 'text-aphrodisiac dark:text-white';
     }
   };
 
+  const getTextSizeStyle = () => {
+    switch (textSize) {
+      case 'base':
+        return 'text-base';
+      case 'lg':
+        return 'text-lg';
+    }
+  };
   const colorStyle = outline ? getOutlineColorStyle() : getColorStyle();
   const testId = rest['data-testid'] || 'button';
 
@@ -94,11 +111,11 @@ function Button({
     <HuButton
       className={clsx([
         'flex justify-center items-center w-full',
-        'rounded-lg text-lg font-medium py-3 px-6',
-        outline ? getOutlineTextColor() : 'text-black dark:text-baltic-sea',
+        'rounded-lg font-medium py-3 px-6',
+        getTextSizeStyle(),
+        outline ? getOutlineTextColor() : 'text-baltic-sea',
         'focus:outline-hidden',
         'transition data-disabled:opacity-60 data-active:ring-0',
-        outline && 'data-hover:ring-1 data-hover:ring-malachite',
         'tracking-normal cursor-default',
         colorStyle,
         className && className,

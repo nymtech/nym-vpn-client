@@ -1,14 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
-
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
-    ConnectArgs, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions,
-    LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    ConnectArgs, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, HttpRpcSettings,
+    ListGatewaysOptions, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
+    ParsedAccountLinks, Socks5Settings, Socks5Status, StoreAccountRequest, SystemMessage,
+    TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
+use std::{net::IpAddr, path::PathBuf};
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
@@ -21,6 +21,8 @@ type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
 pub struct RpcClient(ServiceClient);
 
 impl RpcClient {
+    const MAX_CUSTOM_DNS_SERVERS: usize = 5;
+
     pub async fn new() -> Result<RpcClient> {
         let socket_path = get_rpc_socket_path();
         let channel = Endpoint::from_static("unix://placeholder")
@@ -130,10 +132,12 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_custom_dns(&mut self, ips: Option<Vec<String>>) -> Result<()> {
-        let request = proto::CustomDns {
-            ips: ips.unwrap_or_default(),
-        };
+    pub async fn set_custom_dns(&mut self, ips: Vec<IpAddr>) -> Result<()> {
+        let request: proto::IpAddrList = ips
+            .into_iter()
+            .take(Self::MAX_CUSTOM_DNS_SERVERS)
+            .collect::<Vec<_>>()
+            .into();
 
         self.0
             .set_custom_dns(request)
@@ -191,6 +195,17 @@ impl RpcClient {
             .into_inner();
 
         Ok(FeatureFlags::from(response))
+    }
+
+    pub async fn get_default_dns(&mut self) -> Result<Vec<IpAddr>> {
+        let response = self
+            .0
+            .get_default_dns(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        let ip_vec = response.try_into().map_err(Error::InvalidResponse)?;
+        Ok(ip_vec)
     }
 
     pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<()> {
@@ -549,6 +564,48 @@ impl RpcClient {
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
+    }
+
+    pub async fn enable_socks5(
+        &mut self,
+        socks5_settings: Socks5Settings,
+        http_rpc_settings: HttpRpcSettings,
+        exit_point: ExitPoint,
+    ) -> Result<()> {
+        let request = proto::EnableSocks5Request {
+            socks5_settings: Some(proto::Socks5Settings {
+                listen_address: socks5_settings.listen_address,
+            }),
+            http_rpc_settings: Some(proto::HttpRpcSettings {
+                listen_address: http_rpc_settings.listen_address,
+            }),
+            exit: Some(proto::ExitNode::from(exit_point)),
+        };
+
+        self.0
+            .enable_socks5(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn disable_socks5(&mut self) -> Result<()> {
+        self.0
+            .disable_socks5(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn get_socks5_status(&mut self) -> Result<Socks5Status> {
+        let response = self
+            .0
+            .get_socks5_status(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Socks5Status::try_from(response).map_err(Error::InvalidResponse)
     }
 }
 

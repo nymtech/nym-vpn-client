@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -39,7 +41,7 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     pub(crate) nyxd_client: NyxdClient,
 
     /// Stored account
-    pub(crate) vpn_api_account: Option<VpnAccount>,
+    pub(crate) vpn_api_account: Option<Arc<VpnAccount>>,
 
     /// Registered device
     pub(crate) device: Option<Device>,
@@ -75,7 +77,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             wireguard_keys_storage,
             vpn_api_client,
             nyxd_client,
-            vpn_api_account,
+            vpn_api_account: vpn_api_account.map(Arc::new),
             device,
             firewall_active: false,
             storage_op_sender,

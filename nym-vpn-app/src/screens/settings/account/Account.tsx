@@ -114,7 +114,7 @@ function Account() {
         onClick={handleGoToAccount}
         description={getAccountDescription(accountState) as string | undefined}
         descriptionColor={getAccountColor(accountState)}
-        leadingIcon="person"
+        leadingIcon="account_circle"
         trailingIcon="open_in_new"
         disabled={!accountLoginUrl && !accountUrl}
       />

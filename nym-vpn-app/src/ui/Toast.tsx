@@ -73,7 +73,7 @@ function Toast({
       whileHover={{ opacity: 1 }}
       whileTap={{ opacity: 1 }}
       transition={{ duration: 0.15 }}
-      className="w-6 ml-4 focus:outline-hidden text-black dark:text-white cursor-default"
+      className="w-6 ml-4 focus:outline-hidden dark:text-black text-white cursor-default"
       onClick={() => handleOpenChange(false)}
       data-testid={`${testId}-close-button`}
     >
@@ -99,11 +99,11 @@ function Toast({
               className={clsx(
                 'mx-auto px-5 py-4 w-full max-w-lg',
                 'flex justify-between items-center rounded-lg select-none cursor-default',
-                'text-baltic-sea dark:text-white bg-white dark:bg-charcoal',
+                'dark:text-baltic-sea text-white dark:bg-white bg-charcoal',
                 type === 'error' &&
                   'border-2 text-aphrodisiac! dark:text-aphrodisiac! border-aphrodisiac',
                 type === 'warn' && 'border-2 border-king-nacho',
-                type === 'info' && 'border-2 border-iron dark:border-bombay',
+                type === 'info' && 'border-2 dark:border-iron border-bombay',
                 type === 'ghost' && 'border-2 border-transparent',
               )}
               initial={{ opacity: 0, y: -10 }}

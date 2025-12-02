@@ -29,13 +29,7 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun CustomSnackBar(
-	data: SnackbarData,
-	paddingTop: Dp,
-	isRtl: Boolean = false,
-	containerColor: Color = CustomColors.snackBarBackgroundColor,
-	content: MutableState<CustomSnackbarContent?>,
-) {
+fun CustomSnackBar(data: SnackbarData, paddingTop: Dp, isRtl: Boolean = false, containerColor: Color = CustomColors.snackBarBackgroundColor, content: MutableState<CustomSnackbarContent?>) {
 	if (content.value != null) {
 		content.value?.let { info ->
 			Box(

@@ -29,10 +29,25 @@ public struct SettingsListItem: View {
             optionalDivider()
         }
         .background {
-            NymColor.elevation.opacity(isHovered ? 0.7 : 1)
+            UnevenRoundedRectangle(
+                topLeadingRadius: viewModel.topRadius,
+                bottomLeadingRadius: viewModel.bottomRadius,
+                bottomTrailingRadius: viewModel.bottomRadius,
+                topTrailingRadius: viewModel.topRadius
+            )
+            .fill(viewModel.type.backgroundColor.opacity(isHovered ? 0.7 : 1))
+        }
+        .overlay {
+            UnevenRoundedRectangle(
+                topLeadingRadius: viewModel.topRadius,
+                bottomLeadingRadius: viewModel.bottomRadius,
+                bottomTrailingRadius: viewModel.bottomRadius,
+                topTrailingRadius: viewModel.topRadius
+            )
+            .stroke(viewModel.type.strokeColor, lineWidth: 1)
         }
         .clipShape(
-            .rect(
+            UnevenRoundedRectangle(
                 topLeadingRadius: viewModel.topRadius,
                 bottomLeadingRadius: viewModel.bottomRadius,
                 bottomTrailingRadius: viewModel.bottomRadius,
@@ -85,13 +100,9 @@ private extension SettingsListItem {
                 .textStyle(.Body.Large.regular)
 
             if let subtitle = viewModel.subtitle {
-                BouncingMarqueeTextView(
-                    text: subtitle,
-                    textStyle: .Body.Small.regular,
-                    fontColor: NymColor.gray1,
-                    speed: 70,
-                    pauseDuration: 1.0
-                )
+                Text(subtitle)
+                    .foregroundStyle(NymColor.gray1)
+                    .textStyle(.Body.Small.regular)
             }
         }
     }
@@ -102,7 +113,7 @@ private extension SettingsListItem {
             Image(imageName, bundle: .module)
                 .resizable()
                 .frame(width: 24, height: 24)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(viewModel.accessory.imageColor)
                 .padding(.trailing, 16)
         }
     }

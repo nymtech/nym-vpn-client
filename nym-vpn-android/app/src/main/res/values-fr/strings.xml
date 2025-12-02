@@ -194,6 +194,20 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censure</string>
 	<string name="settings_passphrase_title">Phrase de passe</string>
+	<string name="settings_ipv6_title">Prise en charge IPv6</string>
+	<string name="settings_ipv6_description">Autoriser les connexions IPv6</string>
+	<string name="settings_bypass_description">Autoriser l\'accès direct au réseau local</string>
+	<string name="settings_auto_select_title">Sélection automatique du serveur d\'entrée</string>
+	<string name="settings_auto_select_description">Laisser l\'application choisir le meilleur emplacement d\'entrée</string>
+	<string name="settings_device_startup_title">Lancer au démarrage de l\'appareil</string>
+	<string name="settings_device_startup_description">Laisser l\'application choisir le meilleur emplacement d\'entrée</string>
+	<string name="settings_system_tray_title">Exécuter dans la barre d\'état système</string>
+	<string name="settings_system_tray_description">Garder l\'application en cours d\'exécution quand elle est fermée</string>
+	<string name="settings_reset_app_title">Réinitialiser les données de l\'application</string>
+	<string name="settings_system_status_title">Statut du système</string>
+	<string name="settings_quit_title">Quitter NymVPN</string>
+	<string name="settings_app_version_line">Version de l\'application: %1$s</string>
+	<string name="settings_daemon_version_line">Version du Daemon : %1$s</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Pour une meilleure connexion</string>
 	<string name="battery_opt_descr">Désactiver les optimisations de batterie pour NymVPN afin de permettre des connexions VPN plus stables.</string>
@@ -285,6 +299,10 @@
 	<string name="quick_info_modal_desc_non_quic">Cela vous reconnectera sans protocole QUIC activé. Vous conserverez vos passerelles actuelles.\n\nVos données restent protégées pendant la reconnexion.</string>
 	<string name="quic_primary_btn_text_non_quic">Se reconnecter sans QUIC maintenant</string>
 	<string name="quic_text_btn_text_non_quic">Désactiver QUIC lors de la prochaine connexion</string>
+	<string name="censorship_amnezia_title">obfuscation minimale (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Rend le trafic WireGuard plus difficile à détecter. Introduit des paquets de leurre qui perturbent les règles simples souvent utilisées par les systèmes de censure Deep Packet Inspection (DPI), améliorant la fiabilité de la connexion dans les environnements restrictifs. \n\nRemarque : uniquement côté client implémenté.</string>
+	<string name="censorship_amnezia_link_text">Comment AmneziaWG empêche les DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/fr/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Technologie mixnet anonyme</string>
 	<string name="account_welcome_countries">Plus de 50 pays dans le monde</string>
@@ -335,12 +353,16 @@
 	<string name="passphrase_info_keeps_anonymous">Vous garde anonyme</string>
 	<string name="passphrase_info_belongs">Appartient uniquement à vous (self-custody)</string>
 	<!-- Account screen -->
+	<string name="account_title">Compte et appareils</string>
 	<string name="account_info_plan">Forfait</string>
 	<string name="account_info_payments">Paiements</string>
 	<string name="account_info_devices">Appareils</string>
 	<string name="account_info_id_title">ID du compte client</string>
 	<string name="account_info_id_description">Utiliser cet ID pour les demandes de support</string>
 	<string name="account_info_id_important">⚠️ Important : le support de Nym ne demandera jamais votre phrase de passe de 24 mots. Ne la partagez jamais avec quiconque.</string>
+	<string name="account_on_nym">Compte sur nym.com</string>
+	<string name="account_device_id_title">ID de l\'appareil</string>
+	<string name="account_id_title">ID du compte client</string>
 	<!-- Logs screen -->
 	<string name="logs_share">Partager</string>
 	<string name="logs_download">Télécharger</string>
@@ -355,4 +377,26 @@
 	<string name="logs_download_description">Les journaux enregistrés peuvent être consultés par d\'autres applications ou par toute personne ayant accès au stockage de votre appareil.</string>
 	<string name="logs_download_button">Enregistrer en tant que fichier quand même</string>
 	<string name="logs_saved">Journaux enregistrés dans le dossier Téléchargements</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">Fractionner le tunnel</string>
+	<string name="split_tunneling_info_msg">Définissez chaque application pour qu\'elle utilise NymVPN ou se connecte directement.</string>
+	<string name="split_tunneling_info_desc">Les modifications s\'appliqueront après la reconnexion</string>
+	<string name="split_tunneling_search_apps_hint">Rechercher des applications</string>
+	<string name="split_tunneling_apps">Applications</string>
+	<string name="split_tunneling_direct">Directement</string>
+	<string name="split_tunneling_direct_desc">Contourner NymVPN</string>
+	<string name="split_tunneling_via_vpn">Via NymVPN</string>
+	<string name="split_tunneling_via_desc">Protégé lorsque connecté</string>
+	<string name="split_tunneling_nym_vpn">NymVPN</string>
+	<string name="split_tunneling_system_applications">Applications système</string>
+	<string name="split_tunnel_info_modal_title">Utilisation du tunnel fractionné</string>
+	<string name="split_tunnel_info_modal_desc">Split tunneling vous permet d\'optimiser chaque application pour une vitesse maximale ou une confidentialité maximale. Vous pouvez facilement modifier ces paramètres à tout moment.</string>
+	<string name="split_tunnel_info_direct_desc">Pour des services comme les services bancaires, les appareils ménagers intelligents ou les applications de travail.</string>
+	<string name="split_tunnel_info_via_vpn_desc">Réglage recommandé. Utilisera le mode alors en cours (Fast ou Anonyme), en fonction de vos besoins.</string>
+	<string name="split_tunnel_changes_confirm_modal_title">Appliquer les paramètres de tunnel divisé ?</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Tunnel partagé mis à jour. Reconnectez-vous pour appliquer les modifications.\n\nVos données restent protégées pendant la reconnexion.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Reconnecter maintenant</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Appliquer à la prochaine connexion</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 Nouveau : Choisir la protection par application ou la connexion directe pour la vitesse</string>
+	<string name="split_tunneling_per_app_security_banner_action">Configurer les applis\n</string>
 </resources>

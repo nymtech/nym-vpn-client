@@ -1,8 +1,8 @@
+import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { routes } from '../../router';
-import { kvSet } from '../../kvStore';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
@@ -13,7 +13,7 @@ import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support } = useMainState();
+  const { desktopNotifications, ipv6Support, allowLan } = useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -28,8 +28,22 @@ function Settings() {
 
   const handleIpv6Support = async () => {
     const switched = !ipv6Support;
-    dispatch({ type: 'set-ipv6-support', enabled: switched });
-    await kvSet('disable-ipv6', !switched);
+    try {
+      await invoke('set_no_ipv6', { enabled: !switched });
+      dispatch({ type: 'set-ipv6-support', enabled: switched });
+    } catch {
+      /* TODO */
+    }
+  };
+
+  const handleAllowLan = async () => {
+    const switched = !allowLan;
+    try {
+      await invoke('set_allow_lan', { enabled: switched });
+      dispatch({ type: 'set-allow-lan', enabled: switched });
+    } catch {
+      /* TODO */
+    }
   };
 
   return (
@@ -43,17 +57,42 @@ function Settings() {
             onClick: () => navigate(routes.support),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
+        ]}
+      />
+      <SettingsGroup
+        settings={[
           {
-            title: t('logs.title'),
-            desc: t('logs.desc'),
-            leadingIcon: 'sort',
-            onClick: () => navigate(routes.logs),
+            title: t('killswitch.title'),
+            desc: t('killswitch.desc'),
+            leadingIcon: 'power',
+          },
+          {
+            title: t('ipv6-support.title'),
+            desc: t('ipv6-support.desc'),
+            leadingIcon: 'add_moderator',
+            onClick: handleIpv6Support,
+            trailing: (
+              <Switch checked={ipv6Support} onChange={handleIpv6Support} />
+            ),
+          },
+          {
+            title: t('allow-lan.title'),
+            desc: t('allow-lan.desc'),
+            leadingIcon: 'lan',
+            onClick: handleAllowLan,
+            trailing: <Switch checked={allowLan} onChange={handleAllowLan} />,
+          },
+          {
+            title: t('anti-censorship.title', { ns: 'settings' }),
+            leadingIcon: 'campaign',
+            onClick: () => navigate(routes.antiCensorship),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
           {
-            title: t('data-privacy', { ns: 'common' }),
-            leadingIcon: 'encrypted',
-            onClick: () => navigate(routes.dataPrivacy),
+            title: t('app-proxy.title'),
+            desc: t('app-proxy.menu-desc'),
+            leadingIcon: 'lan',
+            onClick: () => navigate(routes.socks5),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
         ]}
@@ -63,7 +102,7 @@ function Settings() {
           {
             title: t('autostart.title'),
             desc: t('autostart.desc'),
-            leadingIcon: 'computer',
+            leadingIcon: 'rocket_launch',
             onClick: handleAutostartChanged,
             trailing: (
               <Switch
@@ -72,36 +111,6 @@ function Settings() {
               />
             ),
           },
-          {
-            title: t('ipv6-support.title'),
-            desc: t('ipv6-support.desc'),
-            leadingIcon: 'linear_scale',
-            onClick: handleIpv6Support,
-            trailing: (
-              <Switch checked={ipv6Support} onChange={handleIpv6Support} />
-            ),
-          },
-          {
-            title: t('killswitch.title'),
-            desc: t('killswitch.desc'),
-            leadingIcon: 'power_settings_new',
-          },
-          {
-            title: t('dns.title'),
-            leadingIcon: 'dns',
-            onClick: () => navigate(routes.dns),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
-          },
-          {
-            title: t('anti-censorship.title', { ns: 'settings' }),
-            leadingIcon: 'campaign',
-            onClick: () => navigate(routes.antiCensorship),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
-          },
-        ]}
-      />
-      <SettingsGroup
-        settings={[
           {
             title: t('appearance', { ns: 'common' }),
             leadingIcon: 'view_comfy',
@@ -121,10 +130,30 @@ function Settings() {
           },
         ]}
       />
-      <SettingsMenuCard
-        title={t('legal.title')}
-        onClick={() => navigate(routes.legal)}
-        trailingIcon="arrow_right"
+      <SettingsGroup
+        settings={[
+          {
+            title: t('logs.title'),
+            leadingIcon: 'notes',
+            onClick: () => navigate(routes.logs),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
+          {
+            title: t('data-privacy', { ns: 'common' }),
+            leadingIcon: 'privacy_tip',
+            onClick: () => navigate(routes.dataPrivacy),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
+        ]}
+      />
+      <SettingsGroup
+        settings={[
+          {
+            title: t('legal.title'),
+            onClick: () => navigate(routes.legal),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
+        ]}
       />
       <Logout />
       <SettingsMenuCard title={t('quit')} onClick={exit} />

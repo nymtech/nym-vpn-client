@@ -31,12 +31,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun NetworkStatsSection(
-	statsEnabled: Boolean,
-	onNetworkStatsEnable: (enabled: Boolean) -> Unit,
-	context: Context,
-	shape: Shape = RoundedCornerShape(8.dp),
-) {
+fun NetworkStatsSection(statsEnabled: Boolean, onNetworkStatsEnable: (enabled: Boolean) -> Unit, context: Context, shape: Shape = RoundedCornerShape(8.dp)) {
 	val interactionSource = remember { MutableInteractionSource() }
 
 	Card(

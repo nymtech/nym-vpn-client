@@ -1,9 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::*;
 use std::{net::IpAddr, str::FromStr};
+
+use pretty_assertions::assert_eq;
 use tempfile::tempdir;
+
+use super::*;
 
 // Test migrating from TOML to the latest JSON version
 async fn run_migrate_toml_test(
@@ -29,8 +32,8 @@ async fn run_migrate_toml_test(
         .await
         .unwrap();
     let config = config_manager.config();
-    std::assert_eq!(config.entry_point, entry_point);
-    std::assert_eq!(config.exit_point, exit_point);
+    assert_eq!(config.entry_point, entry_point);
+    assert_eq!(config.exit_point, exit_point);
 
     // The TOML file should be deleted and replaced with a JSON version
     assert!(!toml_path.exists());
@@ -41,12 +44,12 @@ async fn run_migrate_toml_test(
         .await
         .unwrap();
     let config = config_manager.config();
-    std::assert_eq!(config.entry_point, entry_point);
-    std::assert_eq!(config.exit_point, exit_point);
+    assert_eq!(config.entry_point, entry_point);
+    assert_eq!(config.exit_point, exit_point);
 
     // Check the JSON is the right version and all snake-case
     let read_json_content = fs::read_to_string(&json_path).await.unwrap();
-    std::assert_eq!(json_latest_content, read_json_content);
+    assert_eq!(json_latest_content, read_json_content);
 }
 
 // Test migrating from an old JSON version to the latest JSON version
@@ -71,7 +74,7 @@ async fn run_migrate_json_test(json_old_content: &str, json_latest_content: &str
     let read_json_content = fs::read_to_string(&json_path).await.unwrap();
     let expected: serde_json::Value = serde_json::from_str(json_latest_content).unwrap();
     let actual: serde_json::Value = serde_json::from_str(&read_json_content).unwrap();
-    std::assert_eq!(expected, actual);
+    assert_eq!(expected, actual);
 }
 
 // Test serializing and deserializing the config produces the same result
@@ -94,7 +97,7 @@ async fn run_serialize_test(config: nym_vpn_lib_types::VpnServiceConfig) {
         .await
         .unwrap();
     let read_config = config_manager.config();
-    std::assert_eq!(&config, read_config);
+    assert_eq!(&config, read_config);
 }
 
 // Test reading a broken config falls back to a default config
@@ -114,7 +117,7 @@ async fn run_fallback_test(broken_json_content: &str) {
         .await
         .unwrap();
 
-    std::assert_eq!(
+    assert_eq!(
         config_manager.config(),
         &nym_vpn_lib_types::VpnServiceConfig::default()
     );
@@ -144,7 +147,7 @@ location = "BE"
   },
   "allow_lan": false,
   "disable_ipv6": false,
-  "enable_two_hop": false,
+  "enable_two_hop": true,
   "enable_bridges": false,
   "netstack": false,
   "disable_poisson_rate": false,
@@ -191,7 +194,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   },
   "allow_lan": false,
   "disable_ipv6": false,
-  "enable_two_hop": false,
+  "enable_two_hop": true,
   "enable_bridges": false,
   "netstack": false,
   "disable_poisson_rate": false,
@@ -244,7 +247,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
     }
   },
   "disable_ipv6": false,
-  "enable_two_hop": false,
+  "enable_two_hop": true,
   "enable_bridges": false,
   "netstack": false,
   "disable_poisson_rate": false,
@@ -285,7 +288,7 @@ exit_point = "Random"
   "exit_point": "random",
   "allow_lan": false,
   "disable_ipv6": false,
-  "enable_two_hop": false,
+  "enable_two_hop": true,
   "enable_bridges": false,
   "netstack": false,
   "disable_poisson_rate": false,
@@ -333,7 +336,7 @@ async fn test_service_config_migrate_from_v1() {
   },
   "allow_lan": false,
   "disable_ipv6": false,
-  "enable_two_hop": false,
+  "enable_two_hop": true,
   "enable_bridges": false,
   "netstack": false,
   "disable_poisson_rate": false,
@@ -365,7 +368,7 @@ async fn test_service_config_migrate_from_v2() {
   "dns": "192.168.50.1",
   "allow_lan": false,
   "disable_ipv6": false,
-  "enable_two_hop": false,
+  "enable_two_hop": true,
   "enable_bridges": false,
   "netstack": false,
   "disable_poisson_rate": false,
@@ -390,7 +393,7 @@ async fn test_service_config_migrate_from_v2() {
   },
   "allow_lan": false,
   "disable_ipv6": false,
-  "enable_two_hop": false,
+  "enable_two_hop": true,
   "enable_bridges": false,
   "netstack": false,
   "disable_poisson_rate": false,
@@ -439,7 +442,7 @@ async fn test_service_config_fallback_default_v2() {
   },
   "dns": null,
   "disable_ipv6": false,
-  "enable_two_hop": false,
+  "enable_two_hop": true,
   "enable_bridges": false,
   "netstack": false,
   "disable_poisson_rate": false,

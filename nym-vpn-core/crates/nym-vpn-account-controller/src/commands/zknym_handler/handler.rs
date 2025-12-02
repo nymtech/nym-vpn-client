@@ -20,7 +20,7 @@ pub(crate) type ZkNymId = String;
 pub type RequestZkNymSummary = Vec<Result<RequestZkNymSuccess, RequestZkNymError>>;
 
 pub(crate) struct RequestZkNymCommandHandler {
-    account: VpnAccount,
+    account: Arc<VpnAccount>,
     device: Device,
     credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
     vpn_api_client: VpnApiClient,
@@ -29,7 +29,7 @@ pub(crate) struct RequestZkNymCommandHandler {
 
 impl RequestZkNymCommandHandler {
     pub(crate) fn new(
-        account: VpnAccount,
+        account: Arc<VpnAccount>,
         device: Device,
         storage: VpnCredentialStorage,
         vpn_api_client: VpnApiClient,

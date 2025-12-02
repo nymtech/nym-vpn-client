@@ -20,8 +20,7 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	private var vpnInterfaceFd: ParcelFileDescriptor? = null
 	override var owner: NymBackend? = null
 
-	private val builder: Builder
-		get() = Builder()
+	private val builder by lazy { Builder() }
 
 	override fun onCreate() {
 		super.onCreate()
@@ -112,5 +111,41 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 		vpnInterfaceFd = vpnInterface
 		val fd = vpnInterface?.detachFd() ?: return -1
 		return fd
+	}
+
+	override fun onRevoke() {
+		Timber.w("VPN revoked by system(likely another VPN was started)")
+
+		lifecycleScope.launch {
+			try {
+				owner?.let { backend ->
+					backend.stop()
+				}
+			} catch (e: Exception) {
+				Timber.e(e, "Error while stopping tunnel on revoke")
+			}
+		}
+
+		try {
+			vpnInterfaceFd?.close()
+			vpnInterfaceFd = null
+		} catch (e: Exception) {
+			Timber.e(e, "Error closing VPN interface on revoke")
+		}
+		stopForeground(STOP_FOREGROUND_REMOVE)
+		stopSelf()
+
+		super.onRevoke()
+	}
+
+	fun restrictApps(disAllowedApplicationPackages: List<String>) {
+		try {
+			disAllowedApplicationPackages.forEach {
+				builder.addDisallowedApplication(it)
+				Timber.d("Disallowed application: $it")
+			}
+		} catch (_: Exception) {
+			Timber.e("Error applying app restriction list")
+		}
 	}
 }

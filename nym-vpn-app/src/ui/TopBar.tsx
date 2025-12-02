@@ -15,7 +15,7 @@ import { NymVpnTextLogo } from '../assets';
 import { useDialog, useMainState } from '../contexts';
 import { routes } from '../router';
 import { Routes } from '../types';
-import MsIcon from './MsIcon';
+import ButtonIcon from './ButtonIcon';
 
 type NavLocation = {
   title?: string | ReactNode;
@@ -130,6 +130,13 @@ export default function TopBar() {
       },
       '/settings/anti-censorship': {
         title: t('anti-censorship.title', { ns: 'settings' }),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
+      '/settings/socks5': {
+        title: t('app-proxy.title', { ns: 'settings' }),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
@@ -292,25 +299,18 @@ export default function TopBar() {
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-left-button-container"
         >
-          <button
-            className="w-6 mx-4 focus:outline-hidden cursor-default"
-            onClick={currentNavLocation.handleLeftNav}
-            data-testid="top-bar-left-button"
-          >
-            <MsIcon
-              icon={currentNavLocation.leftIcon}
-              className={clsx([
-                'dark:text-bombay transition duration-150',
-                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black dark:hover:text-white',
-              ])}
-              data-testid="top-bar-left-icon"
-            />
-          </button>
+          <ButtonIcon
+            icon={currentNavLocation.leftIcon}
+            onClick={currentNavLocation.handleLeftNav!}
+            color="chalk"
+            className="mx-4"
+            noDefaultSize
+          />
         </motion.div>
       ) : (
         <div className="w-6 mx-4" data-testid="top-bar-left-spacer" />
       )}
-      <div data-testid="top-bar-title-container">
+      <div data-testid="top-bar-title-container" className="text-xl">
         {renderTitle(currentNavLocation.title)}
       </div>
       {currentNavLocation.rightIcon ? (
@@ -320,21 +320,13 @@ export default function TopBar() {
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-right-button-container"
         >
-          <button
-            className="w-6 mx-4 focus:outline-hidden cursor-default"
-            onClick={currentNavLocation.handleRightNav}
-            data-testid="top-bar-right-button"
-          >
-            <MsIcon
-              icon={currentNavLocation.rightIcon}
-              className={clsx([
-                'dark:text-bombay transition duration-150',
-                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black dark:hover:text-white',
-                currentNavLocation.rightIconClassName,
-              ])}
-              data-testid="top-bar-right-icon"
-            />
-          </button>
+          <ButtonIcon
+            icon={currentNavLocation.rightIcon}
+            onClick={currentNavLocation.handleRightNav!}
+            color="chalk"
+            className="mx-4"
+            noDefaultSize
+          />
         </motion.div>
       ) : (
         <div className="w-6 mx-4" data-testid="top-bar-right-spacer" />

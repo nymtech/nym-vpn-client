@@ -8,8 +8,10 @@ public struct ActionDialogConfiguration {
     let subtitleLocalizedString: String?
     let yesLocalizedString: String?
     let noLocalizedString: String?
+    let isYesDestructive: Bool
     let yesAction: (() -> Void)?
     let noAction: (() -> Void)?
+    let loadingText: String?
     let shouldCloseAfterYesAction: Bool
     let verticalButtonsLayout: Bool
 
@@ -20,8 +22,10 @@ public struct ActionDialogConfiguration {
         subtitleLocalizedString: String? = nil,
         yesLocalizedString: String? = nil,
         noLocalizedString: String? = nil,
+        isYesDestructive: Bool = false,
         yesAction: (() -> Void)? = nil,
         noAction: (() -> Void)? = nil,
+        loadingText: String? = nil,
         shouldCloseAfterYesAction: Bool = true,
         verticalButtonsLayout: Bool = false
     ) {
@@ -31,8 +35,10 @@ public struct ActionDialogConfiguration {
         self.subtitleLocalizedString = subtitleLocalizedString
         self.yesLocalizedString = yesLocalizedString
         self.noLocalizedString = noLocalizedString
+        self.isYesDestructive = isYesDestructive
         self.yesAction = yesAction
         self.noAction = noAction
+        self.loadingText = loadingText
         self.shouldCloseAfterYesAction = shouldCloseAfterYesAction
         self.verticalButtonsLayout = verticalButtonsLayout
     }

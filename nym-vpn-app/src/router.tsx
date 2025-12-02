@@ -23,6 +23,7 @@ import {
   SelectPlan,
   Settings,
   SettingsRouteIndex,
+  Socks5,
   Support,
   Welcome,
 } from './screens';
@@ -42,6 +43,7 @@ export const routes = {
   logs: '/settings/logs',
   dns: '/settings/dns',
   antiCensorship: '/settings/anti-censorship',
+  socks5: '/settings/socks5',
   dataPrivacy: '/settings/data-privacy',
   support: '/settings/support',
   legal: '/settings/legal',
@@ -140,6 +142,11 @@ const router = createBrowserRouter([
           {
             path: routes.antiCensorship,
             Component: AntiCensorship,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.socks5,
+            Component: Socks5,
             errorElement: <Error />,
           },
           {

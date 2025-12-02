@@ -35,7 +35,7 @@ const ZK_NYM_POLLING_TIMEOUT: Duration = Duration::from_secs(60);
 const ZK_NYM_POLLING_INTERVAL: Duration = Duration::from_secs(5);
 
 pub(super) struct RequestZkNymTask {
-    account: VpnAccount,
+    account: Arc<VpnAccount>,
     device: Device,
     vpn_api_client: VpnApiClient,
     credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
@@ -44,7 +44,7 @@ pub(super) struct RequestZkNymTask {
 
 impl RequestZkNymTask {
     pub(super) fn new(
-        account: VpnAccount,
+        account: Arc<VpnAccount>,
         device: Device,
         vpn_api_client: VpnApiClient,
         credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
@@ -88,7 +88,7 @@ impl RequestZkNymTask {
         self.resume_request_zk_nym_ticketbook(response.id).await
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip_all)]
     async fn import_retrieved_zk_nym(
         &self,
         response: NymVpnZkNym,

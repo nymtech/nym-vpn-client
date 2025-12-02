@@ -36,8 +36,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             createAccountWelcomeDestination()
         case .generatePassphrase:
             GeneratePassphraseView(path: $flowState.path)
-        case .planPurchase:
-            PurchasePlanView(path: $flowState.path)
+        case let .planPurchase(shouldDisplayBackButton: shouldDisplayBackButton):
+            PurchasePlanView(path: $flowState.path, shouldDisplayBackButton: shouldDisplayBackButton)
         case .processingAccount:
             ProcessingAccountView(path: $flowState.path)
         case .passphrase:
@@ -68,6 +68,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             censorshipDestination()
         case .accountAndDevices:
             accountAndDevicesDestination()
+        case .systemStatus:
+            SystemStatusView(path: $flowState.path)
         }
     }
 }

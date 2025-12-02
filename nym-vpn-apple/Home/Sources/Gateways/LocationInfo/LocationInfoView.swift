@@ -5,13 +5,14 @@ import UIComponents
 import Theme
 
 struct LocationInfoView: View {
+    private let type: HopType
     @EnvironmentObject private var externalLinkManager: ExternalLinkManager
     @State private var isContinueReadingLinkHovered = false
+    @Binding private var isDisplayed: Bool
 
-    private let viewModel: LocationInfoViewModel
-
-    init(viewModel: LocationInfoViewModel) {
-        self.viewModel = viewModel
+    init(type: HopType, isDisplayed: Binding<Bool>) {
+        _isDisplayed = isDisplayed
+        self.type = type
     }
 
     var body: some View {
@@ -29,8 +30,8 @@ struct LocationInfoView: View {
                 VStack {
                     icon()
                     title()
-                    streamingSectionTitle()
-                    streamingSubtitle()
+                    streamingOrQuicSectionTitle()
+                    streamingOrQuicSubtitle()
                     Spacer()
                         .frame(height: 16)
                     locationAccuracySectionTitle()
@@ -55,7 +56,7 @@ private extension LocationInfoView {
         Spacer()
             .frame(height: 24)
 
-        Image(systemName: viewModel.infoIconImageName)
+        Image(systemName: "info.circle")
             .frame(width: 24, height: 24)
 
         Spacer()
@@ -64,7 +65,7 @@ private extension LocationInfoView {
 
     @ViewBuilder
     func title() -> some View {
-        Text(viewModel.titleLocalizedString)
+        Text(titleText())
             .textStyle(.Headline.Medium.regular)
             .foregroundStyle(NymColor.primary)
 
@@ -72,24 +73,41 @@ private extension LocationInfoView {
             .frame(height: 16)
     }
 
-    func streamingSectionTitle() -> some View {
+    func streamingOrQuicSectionTitle() -> some View {
         HStack(spacing: 0) {
-            GenericImage(systemImageName: "play.rectangle")
+            GenericImage(systemImageName: streamingOrQuickImageName())
                 .frame(width: 16, height: 16)
                 .foregroundStyle(NymColor.primary)
             Spacer()
                 .frame(width: 8)
-            Text("locationModal.streaming".localizedString)
+            Text(streamingOrQuicTitle())
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.primary)
             Spacer()
-                .frame(height: 8)
         }
     }
 
-    func streamingSubtitle() -> some View {
+    func streamingOrQuickImageName() -> String {
+        switch type {
+        case .entry:
+            "shippingbox.fill"
+        case .exit:
+            "play.rectangle"
+        }
+    }
+
+    func streamingOrQuicTitle() -> String {
+        switch type {
+        case .entry:
+            "locationModal.quic".localizedString
+        case .exit:
+            "locationModal.streaming".localizedString
+        }
+    }
+
+    func streamingOrQuicSubtitle() -> some View {
         HStack(spacing: 0) {
-            Text(streamingAttributtedString())
+            Text(quicOrStreamingAttributtedString())
                 .tint(NymColor.gray1)
                 .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
@@ -97,12 +115,32 @@ private extension LocationInfoView {
             Spacer()
         }
         .environment(\.openURL, OpenURLAction { url in
-            if url == URL(string: Constants.streamingServicesURL.rawValue) {
+            if url == URL(string: Constants.streamingServicesURL.rawValue)
+                || url == URL(string: Constants.quicURL.rawValue) {
                 externalLinkManager.openExternalURL(url)
                 return .handled
             }
             return .systemAction
         })
+    }
+
+    func quicOrStreamingAttributtedString() -> AttributedString {
+        switch type {
+        case .entry:
+            quicAttributtedString()
+        case .exit:
+            streamingAttributtedString()
+        }
+    }
+
+    func quicAttributtedString() -> AttributedString {
+        let first = AttributedString("locationModal.quic.subtitle1".localizedString)
+        var second = AttributedString("locationModal.quic.subtitle2".localizedString)
+        let third = AttributedString("locationModal.quic.subtitle3".localizedString)
+        second.underlineStyle = .single
+        second.foregroundColor = NymColor.primary
+        second.link = URL(string: Constants.quicURL.rawValue)
+        return first + AttributedString(" ") + second + AttributedString(" ") + third
     }
 
     func streamingAttributtedString() -> AttributedString {
@@ -121,11 +159,10 @@ private extension LocationInfoView {
                 .foregroundStyle(NymColor.primary)
             Spacer()
                 .frame(width: 8)
-            Text("locationModal.streaming".localizedString)
+            Text("locationModal.locationAccuracy".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.primary)
             Spacer()
-                .frame(height: 8)
         }
     }
 
@@ -159,10 +196,21 @@ private extension LocationInfoView {
 
     @ViewBuilder
     func okButton() -> some View {
-        GenericButton(title: viewModel.okLocalizedString)
+        GenericButton(title: "ok".localizedString)
             .padding(.vertical, 24)
             .onTapGesture {
-                viewModel.isDisplayed.toggle()
+                isDisplayed.toggle()
             }
+    }
+}
+
+private extension LocationInfoView {
+    func titleText() -> String {
+        switch type {
+        case .exit:
+            "locationModal.exit.title".localizedString
+        case .entry:
+            "locationModal.entry.title".localizedString
+        }
     }
 }

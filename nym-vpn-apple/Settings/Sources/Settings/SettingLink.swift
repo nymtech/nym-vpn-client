@@ -5,7 +5,7 @@ public enum SettingLink: Hashable, Identifiable {
     case addCredentials
     case createAccountWelcome
     case generatePassphrase
-    case planPurchase
+    case planPurchase(shouldDisplayBackButton: Bool)
     case processingAccount
     case passphrase
     case appearance
@@ -13,6 +13,7 @@ public enum SettingLink: Hashable, Identifiable {
     case logs
     case support
     case legal
+    case systemStatus
     case acknowledgments
     case licence(details: LicenceDetails)
     case santasMenu

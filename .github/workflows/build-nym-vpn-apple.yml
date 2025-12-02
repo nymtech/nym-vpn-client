@@ -481,7 +481,8 @@ jobs:
             CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
             PROVISIONING_PROFILE_SPECIFIER="" \
             ENABLE_HARDENED_RUNTIME=YES \
-            OTHER_CODE_SIGN_FLAGS="--timestamp"
+            OTHER_CODE_SIGN_FLAGS="--timestamp" \
+            | xcbeautify --renderer github-actions
 
           # Verify archive was created
           if [[ ! -d "$ARCHIVE_PATH" ]]; then

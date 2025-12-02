@@ -18,24 +18,28 @@ public struct PurchasePlanView: View {
     @State private var isPlanAlertDisplayed = false
     @State private var isAlertDisplayed = false
     @State private var isPurchasing = false
+    @State private var shouldDisplayBackButton = false
 
     public var body: some View {
-        VStack(alignment: .center, spacing: 0) {
+        VStack(spacing: 0) {
             navbar
-            Spacer()
-                .frame(height: 24)
+            VStack(alignment: .center, spacing: 0) {
 
-            StepView(stepCount: 2, currentStep: 1)
-            Spacer()
-            checkmarkImage
-            Spacer()
-                .frame(height: 12)
-            titleSubtitleView
-            Spacer()
-            selectPlanButton
+                Spacer()
+                    .frame(height: 24)
+
+                StepView(stepCount: 2, currentStep: 1)
+                Spacer()
+                checkmarkImage
+                Spacer()
+                    .frame(height: 12)
+                titleSubtitleView
+                Spacer()
+                selectPlanButton
+            }
+            .frame(maxWidth: MagicNumbers.moreMaxWidth)
+            .padding(16)
         }
-        .frame(maxWidth: MagicNumbers.moreMaxWidth)
-        .padding(16)
         .navigationBarBackButtonHidden(true)
         .background {
             NymColor.background
@@ -46,14 +50,23 @@ public struct PurchasePlanView: View {
         }
     }
 
-    public init(path: Binding<NavigationPath>) {
+    public init(path: Binding<NavigationPath>, shouldDisplayBackButton: Bool) {
         _path = path
+        self.shouldDisplayBackButton = shouldDisplayBackButton
     }
 }
 
 private extension PurchasePlanView {
     var navbar: some View {
-        CustomNavBar(useElevationBackground: true)
+        CustomNavBar(
+            useElevationBackground: true,
+            leftButton: CustomNavBarButton(
+                type: .back,
+                action: {
+                    path = .init()
+                }
+            )
+        )
     }
 
     var checkmarkImage: some View {

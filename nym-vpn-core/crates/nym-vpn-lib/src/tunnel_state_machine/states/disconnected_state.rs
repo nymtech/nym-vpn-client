@@ -61,6 +61,7 @@ impl TunnelStateHandler for DisconnectedState {
     ) -> NextTunnelState {
         tokio::select! {
             Some(command) = command_rx.recv() => {
+                tracing::debug!("DisconnectedState received command: {command:?}");
                 match command {
                     TunnelCommand::Connect => {
                         NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)

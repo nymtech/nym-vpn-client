@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,8 +69,9 @@ fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hi
 	fun onPrimaryButtonClicked() {
 		dismissQuicInfoModal()
 		viewModel.disconnect()
-		navController.navigate(route = Route.Main(autoStart = true)) {
-			popUpTo(Route.Main()) {
+		val route = Route.Main()
+		navController.navigate(route = route) {
+			popUpTo(route) {
 				inclusive = true
 			}
 			launchSingleTop = true
@@ -79,12 +83,15 @@ fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hi
 
 @Composable
 fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolean, quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> Unit) {
+	val scrollState = rememberScrollState()
 	Column(
 		horizontalAlignment = Alignment.Start,
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
 		modifier = Modifier
 			.fillMaxSize()
-			.padding(horizontal = 24.dp.scaledWidth()),
+			.verticalScroll(scrollState)
+			.padding(horizontal = 24.dp.scaledWidth())
+			.navigationBarsPadding(),
 	) {
 		Text(
 			text = stringResource(R.string.censorship_description),

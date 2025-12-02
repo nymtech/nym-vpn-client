@@ -192,6 +192,20 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">検閲対策</string>
 	<string name="settings_passphrase_title">パスワード</string>
+	<string name="settings_ipv6_title">IPv6 をサポート</string>
+	<string name="settings_ipv6_description">IPv6 接続を許可する</string>
+	<string name="settings_bypass_description">ローカルネットワークへの直接アクセスを許可する</string>
+	<string name="settings_auto_select_title">エントリサーバーの自動選択</string>
+	<string name="settings_auto_select_description">アプリに最適なエントリの場所を選択させます</string>
+	<string name="settings_device_startup_title">端末の起動時に起動</string>
+	<string name="settings_device_startup_description">アプリに最適なエントリの場所を選択させます</string>
+	<string name="settings_system_tray_title">システムトレイで実行</string>
+	<string name="settings_system_tray_description">終了時にアプリを起動させ続ける</string>
+	<string name="settings_reset_app_title">アプリのデータをリセット</string>
+	<string name="settings_system_status_title">システムの状態</string>
+	<string name="settings_quit_title">NymVPNを終了</string>
+	<string name="settings_app_version_line">アプリのバージョン: %1$s</string>
+	<string name="settings_daemon_version_line">デーモンバージョン： %1$s</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">接続を最適化する</string>
 	<string name="battery_opt_descr">より安定したVPN接続のため、NymVPNバッテリーの最適化を無効にします。</string>
@@ -283,6 +297,10 @@
 	<string name="quick_info_modal_desc_non_quic">QUICプロトコルが有効になっていない状態で再接続されます。現在のゲートウェイを維持します。\n\n再接続中はデータは保護されたままです。</string>
 	<string name="quic_primary_btn_text_non_quic">QUICなしで今再接続する</string>
 	<string name="quic_text_btn_text_non_quic">次回接続時にQUICをオフにする</string>
+	<string name="censorship_amnezia_title">最小難読化(AmneziaWG)</string>
+	<string name="censorship_amnezia_description">WireGuard のトラフィックを検出するのが難しくなります。 Deep Packet Inspection(DPI)検閲システムによって頻繁に使用される単純なルールを破壊するおとりパケットを導入し、制限環境での接続信頼性を向上させます。 \n\n注意: 実装されたクライアント側のみ。</string>
+	<string name="censorship_amnezia_link_text">AmneziaWGがDPIを防ぐ方法</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">匿名のmixnet技術</string>
 	<string name="account_welcome_countries">世界中の50カ国以上</string>
@@ -333,12 +351,16 @@
 	<string name="passphrase_info_keeps_anonymous">匿名のままにする</string>
 	<string name="passphrase_info_belongs">あなたにのみ属する（自己親権）</string>
 	<!-- Account screen -->
+	<string name="account_title">アカウントとデバイス</string>
 	<string name="account_info_plan">プラン</string>
 	<string name="account_info_payments">支払い</string>
 	<string name="account_info_devices">デバイス</string>
 	<string name="account_info_id_title">アカウントID</string>
 	<string name="account_info_id_description">サポートリクエストにこのIDを使用する</string>
 	<string name="account_info_id_important">⚠️ 重要: Nym サポートは、24 語のパスフレーズを要求することはありません。誰とも共有しないでください。</string>
+	<string name="account_on_nym">nym.com のアカウント</string>
+	<string name="account_device_id_title">デバイス ID</string>
+	<string name="account_id_title">アカウントID</string>
 	<!-- Logs screen -->
 	<string name="logs_share">共有</string>
 	<string name="logs_download">ダウンロード</string>
@@ -353,4 +375,26 @@
 	<string name="logs_download_description">保存されたログには、他のアプリやデバイスのストレージへのアクセス権を持つ人がアクセスできます。</string>
 	<string name="logs_download_button">とにかくファイルとして保存</string>
 	<string name="logs_saved">ログがダウンロードフォルダーに保存されました</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">分割トンネル</string>
+	<string name="split_tunneling_info_msg">NymVPNを使用するか、直接接続するために各アプリを設定します。</string>
+	<string name="split_tunneling_info_desc">再接続後に変更が適用されます</string>
+	<string name="split_tunneling_search_apps_hint">アプリを検索</string>
+	<string name="split_tunneling_apps">アプリ</string>
+	<string name="split_tunneling_direct">Direct</string>
+	<string name="split_tunneling_direct_desc">NymVPNをバイパス</string>
+	<string name="split_tunneling_via_vpn">NymVPN経由で</string>
+	<string name="split_tunneling_via_desc">接続時に保護</string>
+	<string name="split_tunneling_nym_vpn">NymVPN</string>
+	<string name="split_tunneling_system_applications">システムアプリケーション</string>
+	<string name="split_tunnel_info_modal_title">分割トンネリングの使用</string>
+	<string name="split_tunnel_info_modal_desc">分割トンネリングを使用すると、最高速度または最大プライバシーのいずれかのアプリを最適化できます。これらの設定はいつでも簡単に変更できます。</string>
+	<string name="split_tunnel_info_direct_desc">銀行、スマートホームデバイス、または仕事用アプリケーションのようなサービス。</string>
+	<string name="split_tunnel_info_via_vpn_desc">推奨される設定です。あなたのニーズに応じて、現在のモード（高速または匿名）を使用します。</string>
+	<string name="split_tunnel_changes_confirm_modal_title">分割トンネリング設定を適用しますか？</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">分割トンネルを更新しました。再接続して変更を適用します。\n\n再接続中はデータは保護されたままです。</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">今すぐ再接続</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">次の接続時に適用</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 追加: アプリごとの保護またはスピードのための直接接続を選択してください</string>
+	<string name="split_tunneling_per_app_security_banner_action">\nアプリを設定</string>
 </resources>

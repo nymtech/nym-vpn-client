@@ -25,7 +25,7 @@
 	<string name="is_selected">Выбрано</string>
 	<string name="fastest">Быстрейший</string>
 	<string name="auto_connect">Авто-подключение</string>
-	<string name="auto_connect_description">Подключаться автоматически после перезагрузки</string>
+	<string name="auto_connect_description">Подключаться при запуске приложения</string>
 	<string name="logs">Логи</string>
 	<string name="support">Поддержка</string>
 	<string name="legal">Юридические аспекты</string>
@@ -131,8 +131,8 @@
     </string>
 	<string name="update_required">Требуется обновление!</string>
 	<string name="update">Обновление</string>
-	<string name="log_out_title">Вы уверены, что хотите выйти?</string>
-	<string name="log_out_body">Для повторного входа вам понадобится ваша фраза восстановления.</string>
+	<string name="log_out_title">Выйти из этого устройства?</string>
+	<string name="log_out_body">Чтобы войти снова, вам понадобится ваш код доступа из 24 слов.</string>
 	<string name="cancel">Отмена</string>
 	<string name="info">Информация</string>
 	<string name="collapse">Свернуть</string>
@@ -194,6 +194,20 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Антицензура</string>
 	<string name="settings_passphrase_title">Кодовая фраза</string>
+	<string name="settings_ipv6_title">Поддержка IPv6</string>
+	<string name="settings_ipv6_description">Разрешить IPv6 соединения</string>
+	<string name="settings_bypass_description">Разрешить прямой доступ к локальной сети</string>
+	<string name="settings_auto_select_title">Автовыбор сервера входа</string>
+	<string name="settings_auto_select_description">Позволить приложению выбрать оптимальную точку входа</string>
+	<string name="settings_device_startup_title">Запуск при запуске устройства</string>
+	<string name="settings_device_startup_description">Позволить приложению выбрать оптимальную точку входа</string>
+	<string name="settings_system_tray_title">Запускать в панели задач</string>
+	<string name="settings_system_tray_description">Оставлять приложение запущенным при закрытии</string>
+	<string name="settings_reset_app_title">Сбросить данные приложения</string>
+	<string name="settings_system_status_title">Статус системы</string>
+	<string name="settings_quit_title">Выйти из NymVPN</string>
+	<string name="settings_app_version_line">Версия приложения: %1$s</string>
+	<string name="settings_daemon_version_line">Версия демона: %1$s</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Для лучшего соединения</string>
 	<string name="battery_opt_descr">Отключите оптимизацию энергопотребления для NymVPN, чтобы обеспечить более стабильное подключение VPN.</string>
@@ -285,6 +299,10 @@
 	<string name="quick_info_modal_desc_non_quic">Это подключит вас заново без включенного протокола QUIC. Вы сохраните свои текущие шлюзы.\n\nВаши данные останутся защищёнными во время переподключения.</string>
 	<string name="quic_primary_btn_text_non_quic">Переподключиться без QUIC</string>
 	<string name="quic_text_btn_text_non_quic">Выключить QUIC при следующем подключении</string>
+	<string name="censorship_amnezia_title">Минимальное обфускация (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Делает трафик WireGuard менее заметным. Вводит пакеты-приманки, которые нарушают работу простых правил, часто используемых системами цензуры с глубоким анализом пакетов (DPI), повышая надежность соединения в условиях ограничительных сред. \n\nПримечание: Реализовано только на стороне клиента.</string>
+	<string name="censorship_amnezia_link_text">Как AmneziaWG предотвращает DPI</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/ru/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Анонимная технология микснета</string>
 	<string name="account_welcome_countries">Более 50 стран по всему миру</string>
@@ -335,12 +353,16 @@
 	<string name="passphrase_info_keeps_anonymous">Сохраняет вашу анонимность</string>
 	<string name="passphrase_info_belongs">Принадлежит только вам (самостоятельное хранение)</string>
 	<!-- Account screen -->
+	<string name="account_title">Учетная запись и устройства</string>
 	<string name="account_info_plan">План</string>
 	<string name="account_info_payments">Платежи</string>
 	<string name="account_info_devices">Устройства</string>
 	<string name="account_info_id_title">ID клиента</string>
 	<string name="account_info_id_description">Используйте этот идентификатор при обращении в службу поддержки</string>
 	<string name="account_info_id_important">⚠️ Важно: Служба поддержки Nym никогда не будет запрашивать вашу кодовую фразу из 24 слов. Никогда и никому её не сообщайте.</string>
+	<string name="account_on_nym">Аккаунт на nym.com</string>
+	<string name="account_device_id_title">ID устройства</string>
+	<string name="account_id_title">ID клиента</string>
 	<!-- Logs screen -->
 	<string name="logs_share">Поделиться</string>
 	<string name="logs_download">Скачать</string>
@@ -355,4 +377,26 @@
 	<string name="logs_download_description">Сохраненные логи могут быть доступны другим приложениям или любым лицам, имеющим доступ к хранилищу вашего устройства.</string>
 	<string name="logs_download_button">Все равно сохранить как файл</string>
 	<string name="logs_saved">Логи сохранены в загрузки\"</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">Раздельное туннелирование</string>
+	<string name="split_tunneling_info_msg">Настройте каждое приложение для использования NymVPN или прямого подключения.</string>
+	<string name="split_tunneling_info_desc">Изменения будут применены после переподключения</string>
+	<string name="split_tunneling_search_apps_hint">Поиск приложений</string>
+	<string name="split_tunneling_apps">Приложения</string>
+	<string name="split_tunneling_direct">Прямое подключение</string>
+	<string name="split_tunneling_direct_desc">Обход NymVPN</string>
+	<string name="split_tunneling_via_vpn">Через NymVPN</string>
+	<string name="split_tunneling_via_desc">Защищено при подключении</string>
+	<string name="split_tunneling_nym_vpn">NymVPN</string>
+	<string name="split_tunneling_system_applications">Системные приложения</string>
+	<string name="split_tunnel_info_modal_title">Использование раздельного туннеля</string>
+	<string name="split_tunnel_info_modal_desc">Раздельное туннелирование позволяет оптимизировать каждое приложение для максимальной скорости или конфиденциальности. Эти настройки можно легко изменить в любое время.</string>
+	<string name="split_tunnel_info_direct_desc">Для таких сервисов, как банковские приложения, устройства умного дома или рабочие приложения.</string>
+	<string name="split_tunnel_info_via_vpn_desc">Рекомендуемая настройка. Будет использоваться текущий режим (Быстрый или Анонимный) в соответствии с вашими потребностями.</string>
+	<string name="split_tunnel_changes_confirm_modal_title">Применить настройки раздельного туннелирования?</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Раздельное туннелирование обновлено. Переподключитесь для применения изменений.\n\nВаши данные остаются защищенными во время переподключения.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Переподключиться</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Применить при следующем подключении</string>
+	<string name="split_tunneling_per_app_security_banner_title">🛡️ Новая функция: Выберите защиту для каждого приложения или прямое подключение для скорости</string>
+	<string name="split_tunneling_per_app_security_banner_action">Настроить\nприложения</string>
 </resources>

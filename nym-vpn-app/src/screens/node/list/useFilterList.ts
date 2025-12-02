@@ -4,22 +4,19 @@ import {
   UiGatewaysByCountry,
   UiRegion,
   useNodeList,
+  useNodeListState,
 } from '../../../contexts';
+import { NodeHop } from '../../../types';
 import { sortByScore } from './util';
 
-export function useFilterList() {
+export function useFilterList(hop: NodeHop) {
   const { nodes, gateways, vpnMode } = useNodeList();
+  const { addToExpanded, setExpanded, entry, exit } = useNodeListState();
+  const search = hop === 'entry' ? entry.search : exit.search;
 
   const [filteredNodes, setFilteredNodes] =
     useState<UiGatewaysByCountry[]>(nodes);
-  const [filteredGateways, setFilteredGateways] =
-    useState<UiGateway[]>(gateways);
-
-  // refresh the UI list whenever the backend gateway data changes
-  useEffect(() => {
-    setFilteredNodes(nodes);
-    setFilteredGateways([]);
-  }, [nodes, gateways]);
+  const [filteredGateways, setFilteredGateways] = useState<UiGateway[]>([]);
 
   const filter = useCallback(
     (value: string) => {
@@ -27,6 +24,7 @@ export function useFilterList() {
         // reset
         setFilteredNodes(nodes);
         setFilteredGateways([]);
+        setExpanded(hop, []);
         return;
       }
 
@@ -38,6 +36,7 @@ export function useFilterList() {
             return region.name.toLowerCase().includes(lowCaseValue);
           });
           if (usRegions.length > 0) {
+            addToExpanded(hop, node.country.code);
             return true;
           }
         }
@@ -55,8 +54,7 @@ export function useFilterList() {
       const filteredGw = gateways.filter((gw) => {
         return (
           gw.name.toLowerCase().includes(lowCaseValue) ||
-          gw.location.city.toLowerCase().includes(lowCaseValue) ||
-          gw.id.toLowerCase().includes(lowCaseValue)
+          gw.location.city.toLowerCase().includes(lowCaseValue)
         );
       });
       filteredGw.sort((a, b) => {
@@ -70,8 +68,19 @@ export function useFilterList() {
       setFilteredNodes(filteredNodes);
       setFilteredGateways(filteredGw);
     },
-    [gateways, nodes, vpnMode],
+    [gateways, nodes, vpnMode, addToExpanded, setExpanded, hop],
   );
+
+  // refresh the UI list whenever the backend gateway data changes
+  useEffect(() => {
+    if (search) {
+      filter(search);
+    } else {
+      setFilteredNodes(nodes);
+      setFilteredGateways([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, gateways]);
 
   return {
     filter,

@@ -25,7 +25,7 @@
 	<string name="is_selected">Seçildi</string>
 	<string name="fastest">En hızlı</string>
 	<string name="auto_connect">Otomatik bağlan</string>
-	<string name="auto_connect_description">Yeniden başlatıldığında otomatik bağlan</string>
+	<string name="auto_connect_description">Uygulama açıldığında bağlan</string>
 	<string name="logs">Günlükler</string>
 	<string name="support">Destek</string>
 	<string name="legal">Hukuki</string>
@@ -129,8 +129,8 @@
 	<string name="app_update_required">Kullandığınız uygulama artık desteklenmiyor.           NymVPN kullanmaya devam edebilmek için en son sürüme güncelleme yapın.    </string>
 	<string name="update_required">Güncelleme gerekli!</string>
 	<string name="update">Güncelle</string>
-	<string name="log_out_title">Çıkış yapmak istediğinizden emin misiniz?</string>
-	<string name="log_out_body">Tekrar giriş yapabilmek için kurtarma cümlenize ihtiyacınız olacak.</string>
+	<string name="log_out_title">Bu cihazdan çıkış yapılsın mı?</string>
+	<string name="log_out_body">Tekrar giriş yapmak için 24 kelimelik parola ifadenize ihtiyacınız olacak.</string>
 	<string name="cancel">Iptal et</string>
 	<string name="info">Bilgi</string>
 	<string name="collapse">Daralt</string>
@@ -192,6 +192,20 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Sansür Karşıtı</string>
 	<string name="settings_passphrase_title">Parola Cümlesi</string>
+	<string name="settings_ipv6_title">Support IPv6</string>
+	<string name="settings_ipv6_description">Allow IPv6 connections</string>
+	<string name="settings_bypass_description">Allow direct local network access</string>
+	<string name="settings_auto_select_title">Auto-select entry server</string>
+	<string name="settings_auto_select_description">Let app choose best entry location</string>
+	<string name="settings_device_startup_title">Cihaz açıldığında başlat</string>
+	<string name="settings_device_startup_description">Let app choose best entry location</string>
+	<string name="settings_system_tray_title">Run in system tray</string>
+	<string name="settings_system_tray_description">Keep app running when closed</string>
+	<string name="settings_reset_app_title">Reset app data</string>
+	<string name="settings_system_status_title">System status</string>
+	<string name="settings_quit_title">Quit NymVPN</string>
+	<string name="settings_app_version_line">App version: %1$s</string>
+	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">En iyi bağlantı için</string>
 	<string name="battery_opt_descr">Daha kararlı VPN bağlantıları için NymVPN’in pil optimizasyonlarını devre dışı bırakın.</string>
@@ -283,6 +297,11 @@
 	<string name="quick_info_modal_desc_non_quic">Bu işlem, QUIC protokolü etkin olmadan yeniden bağlanmanızı sağlar. Mevcut gateway\'leri korunur. \n\nYeniden bağlanma sırasında verileriniz güvende kalır.</string>
 	<string name="quic_primary_btn_text_non_quic">Şimdi QUIC olmadan yeniden bağlan</string>
 	<string name="quic_text_btn_text_non_quic">Sonraki bağlantıda QUIC’i kapat</string>
+	<string name="censorship_amnezia_title">Minimum gizleme/karmaşıklaştırma (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">WireGuard trafiğinin tespit edilmesini zorlaştırır.
+Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kuralları bozmak için sahte paketler (decoy packets) ekler ve bu da kısıtlayıcı ortamlarda bağlantı güvenilirliğini artırır. \n\nNot: Yalnızca istemci tarafında uygulanmıştır.</string>
+	<string name="censorship_amnezia_link_text">AmneziaWG, DPI’yi nasıl engeller?</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Anonim mixnet teknolojisi</string>
 	<string name="account_welcome_countries">Dünya genelinde 50’den fazla ülke</string>
@@ -333,12 +352,16 @@
 	<string name="passphrase_info_keeps_anonymous">Anonimlik</string>
 	<string name="passphrase_info_belongs">Sadece size aittir ve kontrolünüz altındadır (self-custody)</string>
 	<!-- Account screen -->
+	<string name="account_title">Account and devices</string>
 	<string name="account_info_plan">Plan</string>
 	<string name="account_info_payments">Ödemeler</string>
 	<string name="account_info_devices">Cihazlar</string>
 	<string name="account_info_id_title">Hesap Kimlik No (ID)</string>
 	<string name="account_info_id_description">Destek talepleri için bu ID’yi kullanın</string>
 	<string name="account_info_id_important">⚠️ Önemli: Nym destek ekibi 24 kelimelik parola ifadenizi asla istemez. Bunu hiç kimseyle paylaşmayın.</string>
+	<string name="account_on_nym">Account on nym.com</string>
+	<string name="account_device_id_title">Device ID</string>
+	<string name="account_id_title">Account ID</string>
 	<!-- Logs screen -->
 	<string name="logs_share">Paylaş</string>
 	<string name="logs_download">İndir</string>
@@ -353,4 +376,26 @@
 	<string name="logs_download_description">Kaydedilen günlükler, diğer uygulamalar veya cihazınızın depolama alanına erişimi olan kişiler tarafından görüntülenebilir.</string>
 	<string name="logs_download_button">Yine de dosya olarak kaydet</string>
 	<string name="logs_saved">Günlükler, indirilenler klasörüne kaydedildi</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">Split tunneling</string>
+	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
+	<string name="split_tunneling_info_desc">Changes will apply after reconnect</string>
+	<string name="split_tunneling_search_apps_hint">Search apps</string>
+	<string name="split_tunneling_apps">Apps</string>
+	<string name="split_tunneling_direct">Direct</string>
+	<string name="split_tunneling_direct_desc">Bypass NymVPN</string>
+	<string name="split_tunneling_via_vpn">Via NymVPN</string>
+	<string name="split_tunneling_via_desc">Protected when connected</string>
+	<string name="split_tunneling_nym_vpn">NymVPN</string>
+	<string name="split_tunneling_system_applications">System applications</string>
+	<string name="split_tunnel_info_modal_title">Using split tunneling</string>
+	<string name="split_tunnel_info_modal_desc">Split tunneling lets you optimize each app for either maximum speed or maximum privacy. You can easily change these settings anytime.</string>
+	<string name="split_tunnel_info_direct_desc">For services like banking, smart home devices, or work applications.</string>
+	<string name="split_tunnel_info_via_vpn_desc">Recommended setting. Will use the then-current mode (Fast or Anonymous), based on your needs.</string>
+	<string name="split_tunnel_changes_confirm_modal_title">Apply split tunneling settings?</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Reconnect now</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
+	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
 </resources>

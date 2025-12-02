@@ -5,7 +5,7 @@
 
 uniffi::setup_scaffolding!();
 
-use std::sync::Arc;
+use std::{net::IpAddr, sync::Arc};
 
 use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
@@ -16,6 +16,8 @@ use nym_vpn_lib_types::{
     GatewayType, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
+
+uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
 
 #[derive(Clone, uniffi::Object)]
 struct RpcClient {
@@ -80,6 +82,11 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_custom_dns(&self, dns_servers: Vec<IpAddr>) -> Result<()> {
+        self.inner.clone().set_custom_dns(dns_servers).await?;
+        Ok(())
+    }
+
     pub async fn set_network(&self, network: String) -> Result<()> {
         self.inner.clone().set_network(network).await?;
         Ok(())
@@ -97,6 +104,11 @@ impl RpcClient {
 
     pub async fn get_feature_flags(&self) -> Result<FeatureFlags> {
         Ok(self.inner.clone().get_feature_flags().await?)
+    }
+
+    pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>> {
+        let ips = self.inner.clone().get_default_dns().await?;
+        Ok(ips)
     }
 
     pub async fn connect_tunnel(&self) -> Result<()> {

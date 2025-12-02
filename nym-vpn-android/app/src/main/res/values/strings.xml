@@ -27,7 +27,7 @@
 	<string name="is_selected">Selected</string>
 	<string name="fastest">Fastest</string>
 	<string name="auto_connect">Auto-connect</string>
-	<string name="auto_connect_description">Auto connect on reboot</string>
+	<string name="auto_connect_description">Connect when app opens</string>
 	<string name="logs">Logs</string>
 	<string name="support">Support</string>
 	<string name="legal">Legal</string>
@@ -146,8 +146,8 @@
     </string>
 	<string name="update_required">Update required!</string>
 	<string name="update">Update</string>
-	<string name="log_out_title">Are you sure you want to log out?</string>
-	<string name="log_out_body">You will need your recovery phrase to log in again.</string>
+	<string name="log_out_title">Log out of this device?</string>
+	<string name="log_out_body">You’ll need your 24-word passphrase to sign in again.</string>
 	<string name="cancel">Cancel</string>
 	<string name="info">Info</string>
 	<string name="collapse">Collapse</string>
@@ -211,6 +211,23 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censorship</string>
 	<string name="settings_passphrase_title">Passphrase</string>
+	<string name="settings_ipv6_title">Support IPv6</string>
+	<string name="settings_ipv6_description">Allow IPv6 connections</string>
+	<string name="settings_bypass_description">Allow direct local network access</string>
+	<string name="settings_auto_select_title">Auto-select entry server</string>
+	<string name="settings_auto_select_description">Let app choose best entry location</string>
+	<string name="settings_device_startup_title">Launch on device startup</string>
+	<string name="settings_device_startup_description">Let app choose best entry location</string>
+	<string name="settings_system_tray_title">Run in system tray</string>
+	<string name="settings_system_tray_description">Keep app running when closed</string>
+	<string name="settings_reset_app_title">Reset app data</string>
+	<string name="settings_system_status_title">System status</string>
+	<string name="settings_quit_title">Quit NymVPN</string>
+	<string name="settings_app_version_line">App version: %1$s</string>
+	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
+	<string name="settings_language_crowdin_link" translatable="false">https://crowdin.com/editor/nymvpn-apps</string>
+	<string name="settings_language_help_title">Help with translation</string>
+	<string name="settings_language_help_description">Make the app better in your language.</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -314,6 +331,7 @@
 	<string name="account_welcome_open_source">Open source &amp; Swiss privacy laws</string>
 	<string name="account_welcome_button">Start protecting my privacy</string>
 	<string name="account_welcome_have_account">Already have account?</string>
+	<string name="account_welcome_free_trial">7 days free trial - no payment required</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">You’re already subscribed!</string>
 	<string name="account_subscription_description">We found an active subscription linked to your Google Play account. Skip the signup and jump straight into using NymVPN. Just have your 24-word passphrase ready.</string>
@@ -357,12 +375,16 @@
 	<string name="passphrase_info_keeps_anonymous">Keeps you anonymous</string>
 	<string name="passphrase_info_belongs">Belongs only to you (self-custody)</string>
 	<!-- Account screen -->
+	<string name="account_title">Account and devices</string>
 	<string name="account_info_plan">Plan</string>
 	<string name="account_info_payments">Payments</string>
 	<string name="account_info_devices">Devices</string>
 	<string name="account_info_id_title">Account ID</string>
 	<string name="account_info_id_description">Use this ID for support requests</string>
 	<string name="account_info_id_important">⚠️ Important: Nym support will never ask for your 24-word passphrase. Never share it with anyone.</string>
+	<string name="account_on_nym">Account on nym.com</string>
+	<string name="account_device_id_title">Device ID</string>
+	<string name="account_id_title">Account ID</string>
 	<!-- Logs screen -->
 	<string name="logs_share">Share</string>
 	<string name="logs_download">Download</string>
@@ -377,4 +399,26 @@
 	<string name="logs_download_description">Saved logs may be accessed by other apps or anyone with access to your device\'s storage.</string>
 	<string name="logs_download_button">Save as file anyway</string>
 	<string name="logs_saved">Logs saved to your Downloads folder"</string>
+	<!-- Split tunneling screen -->
+	<string name="split_tunneling">Split tunneling</string>
+	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
+	<string name="split_tunneling_info_desc">Changes will apply after reconnect</string>
+	<string name="split_tunneling_search_apps_hint">Search apps</string>
+	<string name="split_tunneling_apps">Apps</string>
+	<string name="split_tunneling_direct">Direct</string>
+	<string name="split_tunneling_direct_desc">Bypass NymVPN</string>
+	<string name="split_tunneling_via_vpn">Via NymVPN</string>
+	<string name="split_tunneling_via_desc">Protected when connected</string>
+	<string name="split_tunneling_nym_vpn">NymVPN</string>
+	<string name="split_tunneling_system_applications">System applications</string>
+	<string name="split_tunnel_info_modal_title">Using split tunneling</string>
+	<string name="split_tunnel_info_modal_desc">Split tunneling lets you optimize each app for either maximum speed or maximum privacy. You can easily change these settings anytime.</string>
+	<string name="split_tunnel_info_direct_desc">For services like banking, smart home devices, or work applications.</string>
+	<string name="split_tunnel_info_via_vpn_desc">Recommended setting. Will use the then-current mode (Fast or Anonymous), based on your needs.</string>
+	<string name="split_tunnel_changes_confirm_modal_title">Apply split tunneling settings?</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Reconnect now</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
+	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
 </resources>

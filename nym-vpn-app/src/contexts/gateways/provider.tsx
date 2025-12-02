@@ -1,16 +1,10 @@
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import {
-  BackendError,
-  GatewayType,
-  GatewaysByCountry,
-  StateDispatch,
-} from '../../types';
-import { useMainDispatch, useMainState } from '../main';
+import { BackendError, GatewayType, GatewaysByCountry } from '../../types';
+import { useMainState } from '../main';
 import { CCache } from '../../cache';
-import { DefaultNode, GatewaysCacheDuration } from '../../constants';
-import { kvSet } from '../../kvStore';
-import { exists, getStateProps, gwTypeToCacheKey } from './util';
+import { GatewaysCacheDuration } from '../../constants';
+import { getStateProps, gwTypeToCacheKey } from './util';
 import { GatewaysContext, initialState } from './context';
 import { reducer } from './reducer';
 import { GatewaysState } from './types';
@@ -24,28 +18,7 @@ type GatewaysStateProviderProps = {
 function GatewaysProvider({ children }: GatewaysStateProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { initialized, entryNode, exitNode, daemonStatus, vpnMode } =
-    useMainState();
-  const mainDispatch = useMainDispatch() as StateDispatch;
-
-  const checkSelectedNode = useCallback(
-    async (gateways: GatewaysByCountry[], nodeType: 'entry' | 'exit') => {
-      const node = nodeType === 'entry' ? entryNode : exitNode;
-      if (!exists(node, gateways)) {
-        console.info(`[${nodeType}] node not available, swap to default`);
-        mainDispatch({
-          type: 'set-node',
-          payload: {
-            hop: nodeType,
-            node: DefaultNode,
-          },
-        });
-        await kvSet(`${nodeType}-node`, DefaultNode);
-        // TODO notify user
-      }
-    },
-    [mainDispatch, entryNode, exitNode],
-  );
+  const { initialized, daemonStatus, vpnMode } = useMainState();
 
   // use cached values if any, otherwise query from daemon
   const fetchGateways = useCallback(
@@ -103,50 +76,42 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
           type: nodeType,
         },
       });
-      if (gateways.length > 0) {
-        if (nodeType === 'mx-entry') {
-          await checkSelectedNode(gateways, 'entry');
-        } else if (nodeType === 'mx-exit') {
-          await checkSelectedNode(gateways, 'exit');
-        } else {
-          // for wg check both entry and exit as they share the same gateways
-          await checkSelectedNode(gateways, 'entry');
-          await checkSelectedNode(gateways, 'exit');
-        }
-      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      checkSelectedNode,
-      daemonStatus,
-      state.mxEntryLoading,
-      state.mxExitLoading,
-      state.wgLoading,
-    ],
+    [daemonStatus, state.mxEntryLoading, state.mxExitLoading, state.wgLoading],
   );
 
   const findGateway = (
     id: string,
-    countryCode: string,
     gateways: GatewaysByCountry[],
+    countryCode?: string,
   ) => {
-    const byCountry = gateways.find(
-      (c) => c.country.code.toLowerCase() === countryCode.toLowerCase(),
-    );
-    if (byCountry) {
-      return byCountry.gateways.find((gw) => gw.id === id) || null;
+    if (countryCode) {
+      const byCountry = gateways.find(
+        (c) => c.country.code.toLowerCase() === countryCode.toLowerCase(),
+      );
+      if (byCountry) {
+        return byCountry.gateways.find((gw) => gw.id === id) || null;
+      }
+      return null;
+    }
+    for (const byCountry of gateways) {
+      const gw = byCountry.gateways.find((g) => g.id === id);
+      if (gw) {
+        return gw;
+      }
     }
     return null;
   };
 
   const lookupGw = useCallback(
-    (id: string, countryCode: string, type: 'entry' | 'exit') => {
+    (id: string, type: 'entry' | 'exit', countryCode?: string) => {
       if (vpnMode === 'wg') {
-        return findGateway(id, countryCode, state.wg);
+        return findGateway(id, state.wg, countryCode);
       } else if (type === 'entry') {
-        return findGateway(id, countryCode, state.mxEntry);
+        return findGateway(id, state.mxEntry, countryCode);
       } else {
-        return findGateway(id, countryCode, state.mxExit);
+        return findGateway(id, state.mxExit, countryCode);
       }
     },
     [state.mxEntry, state.mxExit, state.wg, vpnMode],

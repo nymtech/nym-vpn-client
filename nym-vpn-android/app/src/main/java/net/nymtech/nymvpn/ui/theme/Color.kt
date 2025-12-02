@@ -76,14 +76,32 @@ object CustomColors {
 data class CustomColorsPalette(
 	val borderCyan: Color = Color.Unspecified,
 	val labelCyan: Color = Color.Unspecified,
+	val redIconBackground: Color = Color.Unspecified,
+	val redIcon: Color = Color.Unspecified,
+	val greyIconBackground: Color = Color.Unspecified,
+	val greyIcon: Color = Color.Unspecified,
+	val greenIconBackground: Color = Color.Unspecified,
+	val greenIcon: Color = Color.Unspecified,
 )
 
 val LightCustomColorsPalette = CustomColorsPalette(
 	borderCyan = Color(0x8000A3F5),
 	labelCyan = Color(0xFF00A3F5),
+	redIconBackground = Color(0xFFFFE2E2),
+	redIcon = Color(0xFFE73E14),
+	greyIconBackground = Color(0xFFE2E4EA),
+	greyIcon = Color(0xFFB0ADB6),
+	greenIconBackground = Color(0xFFAFFFD2),
+	greenIcon = Color(0xFF0B8A42),
 )
 
 val DarkCustomColorsPalette = CustomColorsPalette(
 	borderCyan = Color(0x8098DDFF),
 	labelCyan = Color(0xFF98DDFF),
+	redIconBackground = Color(0xFF500E0E),
+	redIcon = Color(0xFFE73E14),
+	greyIconBackground = Color(0xFF32393B),
+	greyIcon = Color(0xFF66646C),
+	greenIconBackground = Color(0xFF254B35),
+	greenIcon = Color(0xFF14E76F),
 )

@@ -7,8 +7,6 @@ use std::fs;
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone)]
 pub struct AppConfig {
-    /// IP address of the DNS server to use when connected to the VPN
-    pub dns_server: Option<String>,
     /// Whether Sentry error monitoring is enabled
     #[serde(default)]
     pub sentry_monitoring: bool,

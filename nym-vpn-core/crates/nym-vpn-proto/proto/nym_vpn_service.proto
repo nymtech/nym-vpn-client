@@ -99,8 +99,8 @@ message Dns {
   optional string ip = 1;
 }
 
-message CustomDns {
-  repeated string ips = 1;
+message IpAddrList {
+  repeated IpAddr ips = 1;
 }
 
 message ApiUrl {
@@ -268,7 +268,7 @@ message VpnServiceConfig {
   optional uint32 min_mixnode_performance = 8;
   optional uint32 min_gateway_mixnet_performance = 9;
   optional uint32 min_gateway_vpn_performance = 10;
-  CustomDns custom_dns = 16;
+  IpAddrList custom_dns = 16;
 }
 
 message AsEntry {
@@ -803,6 +803,38 @@ message DeleteLogFileResponse {
   DeleteLogFileError error = 2;
 }
 
+// Enable SOCKS5 proxy request
+message EnableSocks5Request {
+  Socks5Settings socks5_settings = 1;
+  HttpRpcSettings http_rpc_settings = 2;
+  ExitNode exit = 3;
+}
+
+// SOCKS5 proxy status
+message Socks5Status {
+  enum State {
+    DISABLED = 0;
+    IDLE = 1;          // Enabled but no connections
+    CONNECTED = 2;     // Active connections
+    ERROR = 3;
+  }
+  State state = 1;
+  Socks5Settings socks5_settings = 2;
+  HttpRpcSettings http_rpc_settings = 3;
+  optional string error_message = 4;
+  uint32 active_connections = 5;
+}
+
+// socks5 settings
+message Socks5Settings {
+  string listen_address = 1;  // e.g., "127.0.0.1:1080"
+}
+
+// http rpc settings
+message HttpRpcSettings {
+  string listen_address = 1;  // e.g., "127.0.0.1:8545"
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
@@ -819,7 +851,7 @@ service NymVpnService {
   rpc SetNetstack (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetCustomDns (CustomDns) returns (google.protobuf.Empty) {}
+  rpc SetCustomDns (IpAddrList) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
@@ -832,6 +864,9 @@ service NymVpnService {
 
   // List the feature flags fetched from the nym-vpn-api
   rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
+
+  // Get the default DNS used by the daemon
+  rpc GetDefaultDns (google.protobuf.Empty) returns (IpAddrList) {}
 
   // Connect the tunnel (deprecated; use ConnectTunnelV2 instead).
   rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.Empty) {}
@@ -930,4 +965,13 @@ service NymVpnService {
 
   // Disable network statistics collection (requires daemon restart)
   rpc DisableCollectNetworkStats (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // Enable socks5 proxy
+  rpc EnableSocks5 (EnableSocks5Request) returns (google.protobuf.Empty) {}
+
+  // Disable socks5 proxy
+  rpc DisableSocks5 (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // Get socks5 proxy status
+  rpc GetSocks5Status (google.protobuf.Empty) returns (Socks5Status) {}
 }

@@ -43,13 +43,14 @@ private extension PassphraseOverlay {
                 Text(titleText)
                     .foregroundStyle(NymColor.primary)
                     .textStyle(.Body.Medium.regular)
-                    .layoutPriority(1)
+                    .layoutPriority(2)
             }
             Spacer()
             Text("passphraseOverlay.backup".localizedString)
                 .foregroundStyle(NymColor.accent)
                 .textStyle(.Body.Medium.bold)
                 .contentShape(Rectangle())
+                .layoutPriority(1)
                 .onTapGesture {
                     navigateToPassphrase()
                 }

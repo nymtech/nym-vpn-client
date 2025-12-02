@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { PrivacyPolicyUrl, ToSUrl } from '../../../constants';
 import { routes } from '../../../router';
-import { MsIcon, PageAnim } from '../../../ui';
+import { PageAnim } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 import { useMainState } from '../../../contexts';
 
@@ -22,14 +22,14 @@ function Legal() {
             onClick: () => {
               openUrl(ToSUrl);
             },
-            trailing: <MsIcon icon="open_in_new" />,
+            trailingIcon: 'open_in_new',
           },
           {
             title: t('legal.policy'),
             onClick: () => {
               openUrl(PrivacyPolicyUrl);
             },
-            trailing: <MsIcon icon="open_in_new" />,
+            trailingIcon: 'open_in_new',
           },
         ]}
       />
@@ -41,14 +41,14 @@ function Legal() {
               onClick: () => {
                 navigate(routes.licensesRust);
               },
-              trailing: <MsIcon icon="arrow_right" />,
+              trailingIcon: 'arrow_right',
             },
             codeDepsJs.length > 0 && {
               title: t('legal.licenses-js'),
               onClick: () => {
                 navigate(routes.licensesJs);
               },
-              trailing: <MsIcon icon="arrow_right" />,
+              trailingIcon: 'arrow_right',
             },
           ]}
         />

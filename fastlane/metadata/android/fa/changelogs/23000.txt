@@ -1,8 +1,8 @@
 تغییرات نسخه جدید:
-- Added QUIC status and server details
-- New streaming icon and updated tooltips on Home/Exit
-- New passphrase screen and account creation flow
-- Entry/Exit screens now show city names instead of server IDs
-- Improved gateway details with relative update times
-- Fixed server uptime display
-- Various UI improvements and fixes
+- وضعیت QUIC و جزئیات سرور اضافه شد
+– آیکون جدید استریمینگ و توضیحات راهنمای به‌روزشده در بخش خانه/خروج
+- صفحه عبارت عبور جدید و روند ایجاد حساب کاربری
+- صفحه‌های ورود/خروج اکنون به جای شناسه سرور، نام شهرها را نشان می‌دهند
+- جزئیات گِیت‌وی و زمان‌ نسبی به‌روزرسانی، بهبود یافته
+– مشکل نمایش زمان فعال‌بودن سرور برطرف شد
+- بهبودها و اصلاحات مختلف رابط کاربری

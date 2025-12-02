@@ -21,13 +21,6 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use std::sync::Arc;
-use std::{
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
-};
-
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
@@ -39,6 +32,13 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use std::sync::Arc;
+use std::{
+    collections::HashSet,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+};
 use tokio::{
     sync::{mpsc, watch},
     task::JoinHandle,
@@ -49,7 +49,9 @@ use tokio_util::sync::CancellationToken;
 use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
-use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
+use nym_gateway_directory::{
+    BlacklistedGateways, Config as GatewayDirectoryConfig, GatewayCacheHandle,
+};
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint, TunnelEvent,
@@ -189,6 +191,102 @@ impl TunnelSettings {
     pub fn bridges_enabled(&self) -> bool {
         matches!(self.tunnel_type, TunnelType::Wireguard)
             && self.wireguard_tunnel_options.enable_bridges
+    }
+
+    pub fn diff(&self, other: &Self) -> Option<TunnelSettingsDiff> {
+        let mut diff = TunnelSettingsDiff::new();
+
+        if self.enable_ipv6 != other.enable_ipv6 {
+            diff.add(TunnelSettingsDiffFields::EnableIpv6);
+        }
+        if self.tunnel_type != other.tunnel_type {
+            diff.add(TunnelSettingsDiffFields::TunnelType);
+        }
+        if self.allow_lan != other.allow_lan {
+            diff.add(TunnelSettingsDiffFields::AllowLan);
+        }
+        if self.residential_exit != other.residential_exit {
+            diff.add(TunnelSettingsDiffFields::ResidentialExit);
+        }
+        if self.mixnet_tunnel_options != other.mixnet_tunnel_options {
+            diff.add(TunnelSettingsDiffFields::MixnetTunnelOptions);
+        }
+        if self.wireguard_tunnel_options != other.wireguard_tunnel_options {
+            diff.add(TunnelSettingsDiffFields::WireguardTunnelOptions);
+        }
+        if self.gateway_performance_options != other.gateway_performance_options {
+            diff.add(TunnelSettingsDiffFields::GatewayPerformanceOptions);
+        }
+        if self.mixnet_client_config != other.mixnet_client_config {
+            diff.add(TunnelSettingsDiffFields::MixnetClientConfig);
+        }
+        if self.entry_point != other.entry_point {
+            diff.add(TunnelSettingsDiffFields::EntryPoint);
+        }
+        if self.exit_point != other.exit_point {
+            diff.add(TunnelSettingsDiffFields::ExitPoint);
+        }
+        if self.dns != other.dns {
+            diff.add(TunnelSettingsDiffFields::Dns);
+        }
+
+        if diff.is_empty() { None } else { Some(diff) }
+    }
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum TunnelSettingsDiffFields {
+    EnableIpv6 = 0,
+    TunnelType,
+    AllowLan,
+    ResidentialExit,
+    MixnetTunnelOptions,
+    WireguardTunnelOptions,
+    GatewayPerformanceOptions,
+    MixnetClientConfig,
+    EntryPoint,
+    ExitPoint,
+    Dns,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
+pub struct TunnelSettingsDiff(HashSet<TunnelSettingsDiffFields>);
+
+impl TunnelSettingsDiff {
+    pub fn new() -> Self {
+        Self(HashSet::new())
+    }
+
+    pub fn add(&mut self, field: TunnelSettingsDiffFields) {
+        self.0.insert(field);
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn is_field_changed(&self, field: &TunnelSettingsDiffFields) -> bool {
+        self.0.contains(field)
+    }
+
+    pub fn only_field_changed(&self, field: &TunnelSettingsDiffFields) -> bool {
+        self.is_field_changed(field) && self.0.len() == 1
+    }
+
+    pub fn allow_lan_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::AllowLan)
+    }
+
+    pub fn only_allow_lan_changed(&self) -> bool {
+        self.only_field_changed(&TunnelSettingsDiffFields::AllowLan)
+    }
+
+    pub fn entry_point_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::EntryPoint)
+    }
+
+    pub fn exit_point_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::ExitPoint)
     }
 }
 
@@ -438,6 +536,7 @@ pub struct SharedState {
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     wg_keys_db: WireguardKeysDb,
     user_agent: UserAgent,
+    blacklisted_entry_gateways: BlacklistedGateways,
 }
 
 impl SharedState {
@@ -593,6 +692,7 @@ impl TunnelStateMachine {
             discovery_refresher_command_tx,
             wg_keys_db,
             user_agent,
+            blacklisted_entry_gateways: BlacklistedGateways::new(),
         };
 
         let (current_state_handler, _) = if shared_state

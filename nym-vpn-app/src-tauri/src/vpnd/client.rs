@@ -3,10 +3,12 @@ pub use super::{
     error::VpndError,
     feature_flags::FeatureFlags,
     node::Node,
+    socks5::{HttpRpcSettings, Socks5Settings, Socks5Status},
     system_message::SystemMessage,
     vpnd_status::{VersionCheck, VpndInfo, VpndStatus},
 };
 use super::{
+    config::VpndConfig,
     events::MixnetEvent,
     gateway::{Gateway, GatewayType},
     tunnel::TunnelState,
@@ -17,7 +19,6 @@ use lib::UserAgent;
 use nym_vpn_lib_types as lib;
 use nym_vpn_proto::rpc_client::RpcClient;
 use once_cell::sync::Lazy;
-use std::net::IpAddr;
 use std::{
     env::consts::{ARCH, OS},
     path::PathBuf,
@@ -152,7 +153,18 @@ impl VpndClient {
         Ok(tunnel)
     }
 
-    /// Watch tunnel state and account state updates
+    /// Get the current daemon configuration and update the app state
+    #[instrument(skip_all)]
+    pub async fn update_config(&self, app: &AppHandle) -> Result<(), VpndError> {
+        let config = self.config().await?;
+        let s_state = app.state::<SharedAppState>();
+        let mut app_state = s_state.lock().await;
+        app_state.update_vpnd_config(app, config).await?;
+
+        Ok(())
+    }
+
+    /// Watch tunnel state, account state and vpn config updates
     #[instrument(skip_all)]
     pub async fn watch_events(&self, app: &AppHandle) -> Result<()> {
         let mut vpnd = self.vpnd().await?;
@@ -197,7 +209,10 @@ impl VpndClient {
                     .await
                     .ok();
             }
-            _ => debug!("ignoring tunnel event: {event:?}"),
+            lib::TunnelEvent::ConfigChanged(e) => {
+                debug!("config event {e}");
+                VpndClient::handle_config_update(app, *e).await.ok();
+            }
         }
         Ok(())
     }
@@ -229,47 +244,123 @@ impl VpndClient {
         Ok(())
     }
 
+    #[instrument(skip_all)]
+    async fn handle_config_update(app: &AppHandle, update: lib::VpnServiceConfig) -> Result<()> {
+        let config = VpndConfig::from_lib(update)
+            .inspect_err(|e| error!("failed to parse vpnd config: {e}"))?;
+        let s_state = app.state::<SharedAppState>();
+        let mut app_state = s_state.lock().await;
+        app_state.update_vpnd_config(app, config).await?;
+        Ok(())
+    }
+
+    /// Get the current daemon configuration
+    #[instrument(skip_all)]
+    pub async fn config(&self) -> Result<VpndConfig, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+        let config = vpnd
+            .get_config()
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        Ok(VpndConfig::from_lib(config)
+            .inspect_err(|e| error!("failed to parse vpnd config: {e}"))?)
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_entry_node(&self, node: Node) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_entry_point(node.try_into()?)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_exit_node(&self, node: Node) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_exit_point(node.try_into()?)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        Ok(())
+    }
+
+    /// Enable or disable two-hop mode (aka wg)
+    #[instrument(skip_all)]
+    pub async fn set_two_hop(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+        vpnd.set_enable_two_hop(enabled)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        Ok(())
+    }
+
+    /// Enable or disable QUIC mode (aka bridges)
+    #[instrument(skip_all)]
+    pub async fn set_quic(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+        vpnd.set_enable_bridges(enabled)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        Ok(())
+    }
+
+    /// Enable or disable no-IPv6 mode
+    #[instrument(skip_all)]
+    pub async fn set_no_ipv6(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+        vpnd.set_disable_ipv6(enabled)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        Ok(())
+    }
+
+    /// Allow or disallow LAN access while connected to the VPN
+    #[instrument(skip_all)]
+    pub async fn set_allow_lan(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+        vpnd.set_allow_lan(enabled)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("rpc: {}", e);
+            })?;
+
+        Ok(())
+    }
+
     /// Connect to the VPN
     #[instrument(skip_all)]
     #[allow(clippy::too_many_arguments)]
-    pub async fn vpn_connect(
-        &self,
-        entry_node: Node,
-        exit_node: Node,
-        two_hop_mod: bool,
-        credentials_mode: bool,
-        netstack: bool,
-        dns: Option<String>,
-        disable_ipv6: bool,
-        enable_bridges: bool,
-    ) -> Result<(), VpndError> {
+    pub async fn vpn_connect(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let dns = dns
-            .map(|addr| {
-                addr.parse::<IpAddr>()
-                    .inspect_err(|e| warn!("failed to parse dns address '{addr}': {e}"))
-            })
-            .transpose()
-            .unwrap_or(None);
-
-        let args = lib::ConnectArgs {
-            entry: Some(entry_node.try_into()?),
-            exit: Some(exit_node.try_into()?),
-            options: lib::ConnectOptions {
-                enable_two_hop: two_hop_mod,
-                enable_bridges,
-                netstack,
-                disable_poisson_rate: false,
-                disable_background_cover_traffic: false,
-                enable_credentials_mode: credentials_mode,
-                dns,
-                user_agent: Some(self.user_agent.clone()),
-                disable_ipv6,
-            },
-        };
-
-        vpnd.connect_tunnel(args)
+        vpnd.connect_tunnel_v2()
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
@@ -549,6 +640,66 @@ impl VpndClient {
         debug!("enabled vpnd sentry");
         info!("restart vpnd (service) required for the change to take effect");
         Ok(())
+    }
+
+    /// Enable SOCKS5 proxy
+    #[instrument(skip_all)]
+    pub async fn enable_socks5(
+        &self,
+        socks5_settings: Socks5Settings,
+        http_rpc_settings: HttpRpcSettings,
+        exit_node: Node,
+    ) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let exit_point: lib::ExitPoint = exit_node.try_into()?;
+
+        let lib_socks5_settings = lib::Socks5Settings {
+            listen_address: socks5_settings.listen_address,
+        };
+
+        let lib_http_rpc_settings = lib::HttpRpcSettings {
+            listen_address: http_rpc_settings.listen_address,
+        };
+
+        vpnd.enable_socks5(lib_socks5_settings, lib_http_rpc_settings, exit_point)
+            .await
+            .map_err(|e| {
+                error!("failed to enable SOCKS5 proxy: {}", e);
+                VpndError::RpcClient(e)
+            })?;
+
+        info!("SOCKS5 proxy enabled");
+        Ok(())
+    }
+
+    /// Disable SOCKS5 proxy
+    #[instrument(skip_all)]
+    pub async fn disable_socks5(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.disable_socks5().await.map_err(|e| {
+            error!("failed to disable SOCKS5 proxy: {}", e);
+            VpndError::RpcClient(e)
+        })?;
+
+        info!("SOCKS5 proxy disabled");
+        Ok(())
+    }
+
+    /// Get SOCKS5 proxy status
+    #[instrument(skip_all)]
+    pub async fn get_socks5_status(&self) -> Result<Socks5Status, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let response = vpnd.get_socks5_status().await.map_err(|e| {
+            error!("failed to get SOCKS5 status: {}", e);
+            VpndError::RpcClient(e)
+        })?;
+
+        debug!("SOCKS5 status: {:?}", response);
+
+        Ok(response.into())
     }
 
     /// Disable sentry at daemon level

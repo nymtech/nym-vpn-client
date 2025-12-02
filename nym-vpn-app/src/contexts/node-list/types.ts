@@ -3,7 +3,11 @@ import { Country, Gateway, GatewaysByCountry, Region } from '../../types';
 export type SelectedKind = 'entry-and-exit' | 'entry' | 'exit' | false;
 export type GwSelectedKind = Exclude<SelectedKind, 'entry-and-exit'>;
 
-export type SelectedUiNode = UiCountry | UiRegion | UiGateway;
+export type SelectedUiNode =
+  | UiCountry
+  | UiRegion
+  | UiGateway
+  | { nodeType: 'random'; isSelected: SelectedKind };
 export type UiCountry = Country & {
   nodeType: 'country';
   isSelected: SelectedKind;

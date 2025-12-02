@@ -64,7 +64,6 @@ impl From<VpnAccountMode> for StoredAccountMode {
     }
 }
 
-#[derive(Clone, Debug)]
 pub struct VpnAccount {
     /// The underlying wallet behind the account that defines
     /// the associated private key(s).
@@ -87,13 +86,13 @@ pub struct VpnAccount {
 
 impl VpnAccount {
     pub fn new(mnemonic: bip39::Mnemonic, mode: VpnAccountMode) -> Result<Self, Error> {
-        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic);
+        let wallet = DirectSecp256k1HdWallet::checked_from_mnemonic("n", mnemonic)?;
         Self::derive_from_wallet(wallet, mode)
     }
 
     pub fn generate_new() -> Result<(Self, bip39::Mnemonic), Error> {
         let mnemonic = bip39::Mnemonic::generate(24).unwrap();
-        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
+        let wallet = DirectSecp256k1HdWallet::checked_from_mnemonic("n", mnemonic.clone())?;
         let account = Self::derive_from_wallet(wallet, VpnAccountMode::Api)?;
         Ok((account, mnemonic))
     }
@@ -102,22 +101,22 @@ impl VpnAccount {
         wallet: DirectSecp256k1HdWallet,
         mode: VpnAccountMode,
     ) -> Result<Self, Error> {
-        let accounts = wallet.get_accounts()?;
+        let accounts = wallet.get_accounts();
         let Some(first) = accounts.first() else {
             return Err(Error::NoAccounts);
         };
-        let address = first.address();
+        let address = first.address().clone();
         let id = address.to_string();
         let raw_pub_key = first.public_key();
         let pub_key = bs58::encode(raw_pub_key.to_bytes()).into_string();
 
-        let signature = wallet.sign_raw(address, &id)?;
+        let signature = wallet.sign_raw(&address, &id)?;
         let signature_bytes = signature.to_bytes();
         let signature_base64 = base64_url::encode(&signature_bytes);
 
         Ok(Self {
             wallet,
-            id: address.clone(),
+            id: address,
             pub_key,
             mode,
             signature_base64,
@@ -155,7 +154,9 @@ impl VpnAccount {
     pub fn ecash_keypair_seed(&self) -> Result<Zeroizing<Vec<u8>>, Error> {
         let hd_path = cosmos_derivation_path();
         // TODO: private key is NOT zeroized here
-        let extended_private_key = self.wallet.derive_extended_private_key(&hd_path)?;
+        let extended_private_key = self
+            .wallet
+            .derive_extended_private_key_with_password(&hd_path, "")?; // No password is used
 
         Ok(Zeroizing::new(
             extended_private_key.private_key().to_bytes().to_vec(),

@@ -1,15 +1,22 @@
-import { SelectableNode, SelectedNode, toSelectedNode } from '../../types';
+import {
+  SelectableNode,
+  SelectedNode,
+  isCountry,
+  isGateway,
+  isRegion,
+  toSelectedNode,
+} from '../../types';
 import { SelectedKind, SelectedUiNode } from './types';
 
 export function isSelected(node: SelectedNode, selected: SelectedNode) {
-  if (node.type === 'gateway' && selected.type === 'gateway') {
-    return selected.node.id === node.node.id;
+  if (isGateway(node) && isGateway(selected)) {
+    return selected.gateway.id === node.gateway.id;
   }
-  if (node.type === 'country' && selected.type === 'country') {
-    return selected.node.code === node.node.code;
+  if (isCountry(node) && isCountry(selected)) {
+    return selected.country.code === node.country.code;
   }
-  if (node.type === 'region' && selected.type === 'region') {
-    return selected.node.name === node.node.name;
+  if (isRegion(node) && isRegion(selected)) {
+    return selected.region === node.region;
   }
   return false;
 }
@@ -21,7 +28,7 @@ export function isSelectedNodeType(
 ): SelectedKind {
   const selected = toSelectedNode(node);
   if (
-    selected.type === 'country' &&
+    isCountry(selected) &&
     isSelected(selected, selectedEntry) &&
     isSelected(selected, selectedExit)
   )
@@ -35,25 +42,18 @@ export function uiNodeToSelectedNode(uiNode: SelectedUiNode): SelectedNode {
   switch (uiNode.nodeType) {
     case 'country':
       return {
-        type: 'country',
-        node: { code: uiNode.code, name: uiNode.name },
+        country: { code: uiNode.code },
       };
     case 'region':
       return {
-        type: 'region',
-        node: { name: uiNode.name, country: uiNode.country },
+        region: uiNode.name,
       };
     case 'gateway': {
       return {
-        type: 'gateway',
-        node: {
-          id: uiNode.id,
-          name: uiNode.name,
-          country: uiNode.country,
-          city: uiNode.location.city,
-          region: uiNode.location.region,
-        },
+        gateway: { id: uiNode.id },
       };
     }
+    case 'random':
+      return 'random';
   }
 }

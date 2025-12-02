@@ -16,12 +16,7 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun MainStyledButtonOutlined(
-	testTag: String? = null,
-	onClick: () -> Unit,
-	content: @Composable () -> Unit,
-	color: Color = MaterialTheme.colorScheme.primary,
-) {
+fun MainStyledButtonOutlined(testTag: String? = null, onClick: () -> Unit, content: @Composable () -> Unit, color: Color = MaterialTheme.colorScheme.primary) {
 	OutlinedButton(
 		onClick = { onClick() },
 		contentPadding = PaddingValues(),

@@ -31,4 +31,5 @@ interface BackendManager {
 	val stateFlow: Flow<TunnelManagerState>
 	fun getState(): Tunnel.State
 	fun initialize()
+	suspend fun getDaemonVersion(): String
 }
