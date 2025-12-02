@@ -27,10 +27,7 @@ import {
   NetworkExplorerNodeUrl,
   SupportServerLocationUrl,
 } from '../../../constants';
-import {
-  isSelectedNodeType,
-  uiNodeToSelectedNode,
-} from '../../../contexts/node-list/util';
+import { isSelectedNodeType } from '../../../contexts/node-list/util';
 import { routes } from '../../../router';
 import { ScoreIndicator } from '../ScoreIndicator';
 import DataCard from './DataCard';
@@ -155,10 +152,9 @@ function NodeDetails() {
   );
 
   const handleSelect = async () => {
-    if (isSelected) {
-      return;
-    }
-    const node = uiNodeToSelectedNode(gateway);
+    if (isSelected) return;
+
+    const node = { gateway: { id: gateway.id } };
     try {
       await invoke('set_node', {
         node,
