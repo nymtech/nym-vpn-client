@@ -82,7 +82,7 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_custom_dns(&self, dns_servers: Option<Vec<IpAddr>>) -> Result<()> {
+    pub async fn set_custom_dns(&self, dns_servers: Vec<IpAddr>) -> Result<()> {
         self.inner.clone().set_custom_dns(dns_servers).await?;
         Ok(())
     }

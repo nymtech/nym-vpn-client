@@ -39,25 +39,18 @@ impl Command {
                 Ok(())
             }
             Command::Set { dns_servers } => {
-                let ip_addr_list = if dns_servers.is_empty() {
-                    None
-                } else {
-                    Some(
-                        dns_servers
-                            .iter()
-                            .map(|s| {
-                                s.parse().map_err(|e| {
-                                    anyhow!("Failed to parse '{s}' as an IP address: {e}",)
-                                })
-                            })
-                            .collect::<Result<Vec<IpAddr>>>()?,
-                    )
-                };
+                let ip_addr_list = dns_servers
+                    .iter()
+                    .map(|s| {
+                        s.parse()
+                            .map_err(|e| anyhow!("Failed to parse '{s}' as an IP address: {e}",))
+                    })
+                    .collect::<Result<Vec<IpAddr>>>()?;
                 rpc_client.set_custom_dns(ip_addr_list).await?;
                 Ok(())
             }
             Command::Clear => {
-                rpc_client.set_custom_dns(None).await?;
+                rpc_client.set_custom_dns(vec![]).await?;
                 Ok(())
             }
             Command::GetDefault => {
