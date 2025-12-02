@@ -211,6 +211,9 @@ impl TunnelStateHandler for ErrorState {
                             }
                         }
 
+                        #[cfg(any(target_os = "android", target_os = "ios"))]
+                        let _ = diff;
+
                         shared_state.tunnel_settings = tunnel_settings;
                         NextTunnelState::SameState(self)
                     }

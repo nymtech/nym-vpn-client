@@ -59,3 +59,44 @@ impl TryFrom<proto::IpAddr> for IpAddr {
         })
     }
 }
+
+impl From<Vec<IpAddr>> for proto::IpAddrList {
+    fn from(value: Vec<IpAddr>) -> Self {
+        let ips: Vec<proto::IpAddr> = value.into_iter().map(proto::IpAddr::from).collect();
+        proto::IpAddrList { ips }
+    }
+}
+
+impl TryFrom<proto::IpAddrList> for Vec<IpAddr> {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::IpAddrList) -> Result<Self, Self::Error> {
+        value
+            .ips
+            .into_iter()
+            .map(IpAddr::try_from)
+            .collect::<Result<Vec<_>, _>>()
+    }
+}
+
+impl From<Option<Vec<IpAddr>>> for proto::IpAddrList {
+    fn from(value: Option<Vec<IpAddr>>) -> Self {
+        match value {
+            Some(ips) => ips.into(),
+            None => proto::IpAddrList { ips: vec![] },
+        }
+    }
+}
+
+impl TryFrom<proto::IpAddrList> for Option<Vec<IpAddr>> {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::IpAddrList) -> Result<Self, Self::Error> {
+        let ips: Vec<IpAddr> = value.try_into()?;
+        if ips.is_empty() {
+            Ok(None)
+        } else {
+            Ok(Some(ips))
+        }
+    }
+}
