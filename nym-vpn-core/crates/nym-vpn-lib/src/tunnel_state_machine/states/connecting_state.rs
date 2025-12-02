@@ -665,40 +665,39 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        if shared_state.tunnel_settings == tunnel_settings {
-                            NextTunnelState::SameState(self)
-                        } else {
-                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                            {
-                                let firewall_changed = shared_state.tunnel_settings.allow_lan != tunnel_settings.allow_lan ||
-                                    shared_state.tunnel_settings.dns != tunnel_settings.dns;
+                        let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                            return NextTunnelState::SameState(self);
+                        };
 
-                                if firewall_changed {
-                                    self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
-                                    self.firewall_policy_params.dns_servers = tunnel_settings.dns_ips();
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        {
+                            if diff.allow_lan_changed() {
+                                self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
 
-                                    if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                        trace_err_chain!(e, "failed to set firewall policy");
-                                        return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
-                                    }
+                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                    trace_err_chain!(e, "failed to set firewall policy");
+                                    return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                                }
+
+                                // If the only change was Allow LAN, then don't restart the tunnel.
+                                if diff.only_allow_lan_changed() {
+                                    shared_state.tunnel_settings.allow_lan = tunnel_settings.allow_lan;
+                                    return NextTunnelState::SameState(self);
                                 }
                             }
+                        }
 
-                            let gateways_changed = shared_state.tunnel_settings.entry_point != tunnel_settings.entry_point ||
-                                shared_state.tunnel_settings.exit_point != tunnel_settings.exit_point;
+                        shared_state.tunnel_settings = tunnel_settings;
 
-                            shared_state.tunnel_settings = tunnel_settings;
-
-                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                                Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
+                        if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                            Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
+                        } else {
+                            let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() {
+                                None
                             } else {
-                                let next_gateways = if gateways_changed {
-                                    None
-                                } else {
-                                    self.selected_gateways
-                                };
-                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
-                            }
+                                self.selected_gateways
+                            };
+                            NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
                         }
                     }
                 }

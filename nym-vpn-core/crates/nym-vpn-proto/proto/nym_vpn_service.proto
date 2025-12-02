@@ -100,7 +100,7 @@ message Dns {
 }
 
 message IpAddrList {
-  repeated string ips = 1;
+  repeated IpAddr ips = 1;
 }
 
 message ApiUrl {
