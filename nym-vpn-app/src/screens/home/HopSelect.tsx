@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 import { Button } from '@headlessui/react';
@@ -12,13 +11,16 @@ import {
   isGateway,
   isRegion,
 } from '../../types';
-import { FlagIcon, MsIcon, countryCode } from '../../ui';
+import { MsIcon, countryCode } from '../../ui';
 import { useLang } from '../../hooks';
 import { useGateways, useMainState } from '../../contexts';
 import { countriesWithRegions } from '../../constants';
-import { QuicTag } from '../node';
 import { routes } from '../../router';
 import { isBridgeMode, regionToCountryCode, useActionToast } from './util';
+import {
+  SelectedNodeDisplay,
+  SelectedNodeDisplayProps,
+} from './SelectedNodeDisplay';
 
 type HopSelectProps = {
   node: SelectedNode;
@@ -26,15 +28,6 @@ type HopSelectProps = {
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
-};
-
-type SelectedNodeProps = {
-  countryCode?: countryCode;
-  name: string;
-  subInfo?: string | null;
-  animate?: boolean;
-  quic?: boolean;
-  streamOptimized?: boolean;
 };
 
 export default function HopSelect({
@@ -76,13 +69,19 @@ export default function HopSelect({
     }
   };
 
-  const nodeData = (selected: SelectedNode, gateway: Gateway | null) => {
+  const nodeData = (
+    selected: SelectedNode,
+    gateway: Gateway | null,
+  ): SelectedNodeDisplayProps => {
+    console.log('nodeData', selected, gateway);
     if (selected === 'random') {
       return {
         name: t('fastest', { ns: 'common' }),
         animate: false,
-        quic: gateway?.quic,
-        streamOptimized: gateway?.asn?.type === 'residential',
+        showQuic: Boolean(quicTag && gateway?.quic),
+        showStreamOptimized:
+          nodeHop === 'exit' && gateway?.asn?.type === 'residential',
+        showFastest: node === 'random' && !gateway?.country?.code,
       };
     }
     if (isCountry(selected)) {
@@ -103,7 +102,7 @@ export default function HopSelect({
     countryCode: string,
     gateway: Gateway | null,
     region?: string,
-  ): SelectedNodeProps => {
+  ): SelectedNodeDisplayProps => {
     let location = getCountryName(countryCode) || countryCode;
     let subInfo = null;
     if (region && region.length > 0) {
@@ -125,15 +124,17 @@ export default function HopSelect({
       name: location,
       subInfo,
       animate: true,
-      quic: gateway?.quic,
-      streamOptimized: gateway?.asn?.type === 'residential',
+      showQuic: Boolean(quicTag && gateway?.quic),
+      showStreamOptimized:
+        nodeHop === 'exit' && gateway?.asn?.type === 'residential',
+      showFastest: node === 'random' && !gateway?.country?.code,
     };
   };
 
   const getGatewayInfo = (
     id: string,
     gateway: Gateway | null,
-  ): SelectedNodeProps => {
+  ): SelectedNodeDisplayProps => {
     if (!gateway) {
       return {
         name: id,
@@ -157,75 +158,11 @@ export default function HopSelect({
       countryCode: country.code.toLowerCase() as countryCode,
       name,
       subInfo: components.join(', '),
-      quic: gateway?.quic,
-      streamOptimized: gateway?.asn?.type === 'residential',
+      showQuic: Boolean(quicTag && gateway?.quic),
+      showStreamOptimized:
+        nodeHop === 'exit' && gateway?.asn?.type === 'residential',
+      showFastest: node === 'random' && !gateway?.country?.code,
     };
-  };
-
-  const SelectedNode = ({
-    countryCode,
-    name,
-    subInfo,
-    animate,
-    quic,
-    streamOptimized,
-  }: SelectedNodeProps) => {
-    const showQuic = quicTag && quic;
-    const showStreamOptimized = nodeHop === 'exit' && streamOptimized;
-    const showFastest = node === 'random' && !countryCode;
-
-    return (
-      <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
-        {countryCode && <FlagIcon code={countryCode} alt={countryCode} />}
-        {showFastest && (
-          <MsIcon
-            icon="electric_bolt"
-            className="text-2xl text-baltic-sea dark:text-white"
-          />
-        )}
-        <div className={clsx('flex flex-col items-start truncate')}>
-          <div
-            className={clsx([
-              'text-base truncate',
-              disabled && 'cursor-default',
-            ])}
-          >
-            {name}
-          </div>
-          {animate ? (
-            <AnimatePresence>
-              {subInfo && (
-                <motion.div
-                  initial={{ opacity: 0, x: '-1rem' }}
-                  exit={{ opacity: 0, x: '1rem' }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.2, ease: 'easeOut' }}
-                  className="text-sm text-iron dark:text-bombay truncate"
-                >
-                  {subInfo}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          ) : (
-            <>
-              {subInfo && (
-                <div className="text-sm text-iron dark:text-bombay truncate">
-                  {subInfo}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-        {(showQuic || showStreamOptimized) && (
-          <div className="flex items-center justify-end gap-3 flex-1 mr-1">
-            {showStreamOptimized && (
-              <MsIcon icon="smart_display" className="text-cornflower" />
-            )}
-            {showQuic && <QuicTag />}
-          </div>
-        )}
-      </div>
-    );
   };
 
   const gateway = useMemo(() => {
@@ -269,7 +206,7 @@ export default function HopSelect({
         onClick={handleClick}
         onKeyDown={handleClick}
       >
-        <SelectedNode {...nodeData(node, gateway)} />
+        <SelectedNodeDisplay {...nodeData(node, gateway)} disabled={disabled} />
       </Button>
       {isGateway(node) && (
         <Button
