@@ -360,7 +360,7 @@ impl VpndClient {
     pub async fn vpn_connect(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.connect_tunnel_v2()
+        vpnd.connect_tunnel()
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
