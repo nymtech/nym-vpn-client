@@ -16,7 +16,8 @@ use nym_vpn_lib_types::{
     GatewayType, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
-use nym_vpn_proto::conversions::ConversionError;
+
+uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
 
 #[derive(Clone, uniffi::Object)]
 struct RpcClient {
@@ -81,23 +82,8 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_custom_dns(&self, dns_servers: Option<Vec<String>>) -> Result<()> {
-        let ips = match dns_servers {
-            Some(servers) => {
-                let parsed = servers
-                    .into_iter()
-                    .map(|s| s.parse::<IpAddr>())
-                    .collect::<std::result::Result<Vec<IpAddr>, _>>()
-                    .map_err(|e| {
-                        RpcError::new(InnerRpcError::RpcError(DaemonRpcError::InvalidRequest(
-                            ConversionError::ParseAddr("Failed to parse DNS server IP address", e),
-                        )))
-                    })?;
-                Some(parsed)
-            }
-            None => None,
-        };
-        self.inner.clone().set_custom_dns(ips).await?;
+    pub async fn set_custom_dns(&self, dns_servers: Option<Vec<IpAddr>>) -> Result<()> {
+        self.inner.clone().set_custom_dns(dns_servers).await?;
         Ok(())
     }
 
@@ -120,10 +106,9 @@ impl RpcClient {
         Ok(self.inner.clone().get_feature_flags().await?)
     }
 
-    pub async fn get_default_dns(&self) -> Result<Vec<String>> {
+    pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>> {
         let ips = self.inner.clone().get_default_dns().await?;
-        let dns_servers = ips.into_iter().map(|ip| ip.to_string()).collect();
-        Ok(dns_servers)
+        Ok(ips)
     }
 
     pub async fn connect_tunnel(&self) -> Result<()> {
