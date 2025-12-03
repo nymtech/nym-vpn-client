@@ -20,12 +20,29 @@ jobs:
 
   build:
     if: github.actor != 'dependabot[bot]'
-    runs-on: arc-linux-latest
+    runs-on: AppleSilicon
     needs: build-wireguard-go-android
 
     steps:
-      - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update && sudo apt-get install -y \
+            libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler \
+            git curl gcc g++ make unzip rsync
+
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install \
+            protobuf \
+            git \
+            curl \
+            gcc \
+            make \
+            unzip \
+            rsync || true
 
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -53,7 +70,14 @@ jobs:
         shell: bash
         run: |
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
-          echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
+
+          case "$(uname -s)" in
+            Linux*) host_tag=linux-x86_64 ;;
+            Darwin*) host_tag=darwin-x86_64 ;;
+            *) host_tag=linux-x86_64 ;;
+          esac
+
+          echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/${host_tag}/bin" >> $GITHUB_ENV
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
