@@ -63,8 +63,7 @@ env:
 
 jobs:
   build:
-    runs-on: AppleSilicon
-
+    runs-on: arc-linux-latest
     env:
       SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
       SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
@@ -102,12 +101,7 @@ jobs:
         shell: bash
         run: |
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
-          case "$(uname -s)" in
-            Linux*) host_tag=linux-x86_64 ;;
-            Darwin*) host_tag=darwin-x86_64 ;;
-            *) host_tag=linux-x86_64 ;;
-          esac
-          echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/${host_tag}/bin" >> $GITHUB_ENV
+          echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -135,26 +129,10 @@ jobs:
         with:
           crate: cargo-license
 
-      - name: Install deps (Linux)
-        if: runner.os == 'Linux'
+      - name: Install deps
         run: |
-          sudo apt-get update && sudo apt-get install -y \
-            libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler \
-            git curl gcc g++ make unzip rsync
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
 
-      - name: Install deps (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew update
-          brew install \
-            protobuf \
-            git \
-            curl \
-            gcc \
-            make \
-            unzip \
-            rsync || true
-          
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
       - name: Decode Keystore
