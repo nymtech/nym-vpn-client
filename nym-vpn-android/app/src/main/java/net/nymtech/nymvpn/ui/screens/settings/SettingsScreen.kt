@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.BuildConfig
-import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
@@ -46,7 +45,6 @@ import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
 import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import net.nymtech.vpn.backend.Tunnel
 import kotlin.Boolean
 
 @Composable
@@ -120,11 +118,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 			onSystemStatusClick = {
 			},
 			onLogoutClick = {
-				if (appUiState.managerState.tunnelState != Tunnel.State.Down) {
-					snackbar.showMessage(context.getString(R.string.action_requires_tunnel_down))
-				} else {
-					showLogoutDialog = true
-				}
+				showLogoutDialog = true
 			},
 			onQuitClick = {
 				(context as Activity).finishAffinity()
