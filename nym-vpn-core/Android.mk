@@ -31,6 +31,13 @@ DYNAMIC_LIB_PATH := $(CURDIR)/target/aarch64-linux-android/$(TARGET_DIR)/libnym_
 WIREGUARD_DIR := $(CURDIR)/../wireguard
 LICENSES_FILE := $(ANDROID_DIR)/core/src/main/assets/licenses_rust.json
 
+# Use llvm-objcopy from NDK to strip .comment section for reproducible builds
+OBJCOPY ?= $(NDK_TOOLCHAIN_DIR)/llvm-objcopy
+
+define STRIP_COMMENT_SECTION
+	$(OBJCOPY) --remove-section .comment $(1) || true
+endef
+
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
@@ -42,6 +49,7 @@ build: $(ARM64_V8_BUILD_DIR)/libwg.so
 	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t arm64-v8a -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi $(RELEASE_FLAG)
 	cd $(ARM64_V8_BUILD_DIR) ; \
 	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so
+	$(call STRIP_COMMENT_SECTION,$(ARM64_V8_BUILD_DIR)/libnym_vpn_lib.so)
 
 uniffi: build
 	cargo run --bin uniffi-bindgen generate \
@@ -50,6 +58,7 @@ uniffi: build
 
 $(ARM64_V8_BUILD_DIR)/libwg.so: $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh --android $(DOCKER_FLAG)
+	$(call STRIP_COMMENT_SECTION,$@)
 
 libwg: $(ARM64_V8_BUILD_DIR)/libwg.so
 
