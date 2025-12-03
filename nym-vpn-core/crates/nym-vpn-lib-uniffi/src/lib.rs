@@ -75,14 +75,16 @@ use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use sentry::ClientInitGuard;
 use tokio::{runtime::Runtime, sync::Mutex};
 
-use self::error::VpnError;
-use crate::gateway_cache::UniffiGatewayCacheHandle;
-use account::AccountControllerHandle;
+use nym_vpn_lib::tunnel_state_machine::DnsOptions;
 use nym_vpn_lib_types::{
     AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
     NetworkCompatibility, ParsedAccountLinks, RegisterAccountResponse, SystemMessage, TunnelEvent,
     UserAgent,
 };
+
+use account::AccountControllerHandle;
+use error::VpnError;
+use gateway_cache::UniffiGatewayCacheHandle;
 use offline_monitor::OfflineMonitorHandle;
 use state_machine::StateMachineHandle;
 use stats::StatisticsControllerHandle;
@@ -531,6 +533,9 @@ pub struct VPNConfig {
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
     pub residential_exit: bool,
+    /// Custom DNS used when set.
+    /// Leave empty to use default DNS servers.
+    pub custom_dns: Vec<IpAddr>,
     #[cfg(target_os = "android")]
     pub tun_provider: Arc<dyn AndroidTunProvider>,
     #[cfg(target_os = "ios")]
