@@ -16,7 +16,7 @@ on:
 jobs:
   check:
     if: github.actor != 'dependabot[bot]'
-    runs-on: arc-linux-latest
+    runs-on: AppleSilicon
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -34,8 +34,16 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Install deps
-        run: sudo apt-get update && sudo apt-get install -y unzip rsync
+      - name: Install deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update && sudo apt-get install -y unzip rsync
+
+      - name: Install deps (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install unzip rsync || true
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
