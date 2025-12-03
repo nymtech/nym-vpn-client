@@ -17,6 +17,7 @@ anyhow.workspace = true
 bip39.workspace = true
 clap.workspace = true
 futures.workspace = true
+hex.workspace = true
 log-panics.workspace = true
 reqwest = { workspace = true, features = ["socks", "rustls-tls"] }
 hyper = { workspace = true, features = ["server", "http1"] }

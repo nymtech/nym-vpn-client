@@ -11,9 +11,12 @@ pub enum Command {
     Get,
     /// Login with mnemonic
     Set {
-        /// Mnemonic phrase
+        /// Mnemonic phrase or private key hex encoded
         #[arg(index = 1)]
-        mnemonic: String,
+        secret: String,
+        /// Type of login of the secret
+        #[clap(long, default_value_t = LoginType::Mnemonic)]
+        login_type: LoginType,
         /// Account mode
         #[clap(long, default_value_t = VpnAccountMode::Api)]
         mode: VpnAccountMode,
@@ -61,12 +64,20 @@ impl Command {
                 println!("Account state: {account_state:?}");
                 Ok(())
             }
-            Command::Set { mnemonic, mode } => {
-                let request = match mode {
-                    VpnAccountMode::Api => StoreAccountRequest::Vpn { mnemonic },
-                    VpnAccountMode::Decentralised => {
-                        StoreAccountRequest::Decentralised { mnemonic }
+            Command::Set {
+                secret,
+                login_type,
+                mode,
+            } => {
+                let secret = match login_type {
+                    LoginType::Mnemonic => nym_vpn_lib_types::LoginSecret::Mnemonic(secret),
+                    LoginType::PrivateKeyHex => {
+                        nym_vpn_lib_types::LoginSecret::PrivateKeyHex(secret)
                     }
+                };
+                let request = match mode {
+                    VpnAccountMode::Api => StoreAccountRequest::Vpn { secret },
+                    VpnAccountMode::Decentralised => StoreAccountRequest::Decentralised { secret },
                 };
                 let response = rpc_client.store_account(request).await?;
 
@@ -171,6 +182,21 @@ impl std::fmt::Display for VpnAccountMode {
         match self {
             VpnAccountMode::Api => write!(f, "api"),
             VpnAccountMode::Decentralised => write!(f, "decentralised"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum LoginType {
+    Mnemonic,
+    PrivateKeyHex,
+}
+
+impl std::fmt::Display for LoginType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LoginType::Mnemonic => write!(f, "mnemonic"),
+            LoginType::PrivateKeyHex => write!(f, "private key"),
         }
     }
 }

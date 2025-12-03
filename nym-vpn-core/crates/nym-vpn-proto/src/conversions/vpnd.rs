@@ -475,13 +475,47 @@ impl TryFrom<proto::StoreAccountRequest> for StoreAccountRequest {
 
         Ok(match request {
             proto::store_account_request::Request::VpnAccountStore(account) => {
-                StoreAccountRequest::Vpn {
-                    mnemonic: account.mnemonic,
+                match account
+                    .secret
+                    .ok_or(ConversionError::NoValueSet(
+                        "StoreAccountRequest.request.secret",
+                    ))?
+                    .login_type
+                    .ok_or(ConversionError::NoValueSet(
+                        "StoreAccountRequest.request.secret.login_type",
+                    ))? {
+                    proto::login_secret::LoginType::Mnemonic(mnemonic) => {
+                        nym_vpn_lib_types::StoreAccountRequest::Vpn {
+                            secret: nym_vpn_lib_types::LoginSecret::Mnemonic(mnemonic),
+                        }
+                    }
+                    proto::login_secret::LoginType::PrivateKeyHex(private_key_hex) => {
+                        nym_vpn_lib_types::StoreAccountRequest::Vpn {
+                            secret: nym_vpn_lib_types::LoginSecret::PrivateKeyHex(private_key_hex),
+                        }
+                    }
                 }
             }
             proto::store_account_request::Request::DecentralisedAccountStore(account) => {
-                nym_vpn_lib_types::StoreAccountRequest::Decentralised {
-                    mnemonic: account.mnemonic,
+                match account
+                    .secret
+                    .ok_or(ConversionError::NoValueSet(
+                        "StoreAccountRequest.request.secret",
+                    ))?
+                    .login_type
+                    .ok_or(ConversionError::NoValueSet(
+                        "StoreAccountRequest.request.secret.login_type",
+                    ))? {
+                    proto::login_secret::LoginType::Mnemonic(mnemonic) => {
+                        nym_vpn_lib_types::StoreAccountRequest::Decentralised {
+                            secret: nym_vpn_lib_types::LoginSecret::Mnemonic(mnemonic),
+                        }
+                    }
+                    proto::login_secret::LoginType::PrivateKeyHex(private_key_hex) => {
+                        nym_vpn_lib_types::StoreAccountRequest::Decentralised {
+                            secret: nym_vpn_lib_types::LoginSecret::PrivateKeyHex(private_key_hex),
+                        }
+                    }
                 }
             }
         })
@@ -491,16 +525,54 @@ impl TryFrom<proto::StoreAccountRequest> for StoreAccountRequest {
 impl From<StoreAccountRequest> for proto::StoreAccountRequest {
     fn from(value: StoreAccountRequest) -> Self {
         let request = match value {
-            StoreAccountRequest::Vpn { mnemonic } => {
-                proto::store_account_request::Request::VpnAccountStore(
-                    proto::VpnAccountStoreRequest { mnemonic },
-                )
-            }
-            nym_vpn_lib_types::StoreAccountRequest::Decentralised { mnemonic } => {
-                proto::store_account_request::Request::DecentralisedAccountStore(
-                    proto::DecentralisedAccountStoreRequest { mnemonic },
-                )
-            }
+            StoreAccountRequest::Vpn { secret } => match secret {
+                nym_vpn_lib_types::LoginSecret::Mnemonic(mnemonic) => {
+                    proto::store_account_request::Request::VpnAccountStore(
+                        proto::VpnAccountStoreRequest {
+                            secret: Some(proto::LoginSecret {
+                                login_type: Some(proto::login_secret::LoginType::Mnemonic(
+                                    mnemonic,
+                                )),
+                            }),
+                        },
+                    )
+                }
+                nym_vpn_lib_types::LoginSecret::PrivateKeyHex(private_key_hex) => {
+                    proto::store_account_request::Request::VpnAccountStore(
+                        proto::VpnAccountStoreRequest {
+                            secret: Some(proto::LoginSecret {
+                                login_type: Some(proto::login_secret::LoginType::PrivateKeyHex(
+                                    private_key_hex,
+                                )),
+                            }),
+                        },
+                    )
+                }
+            },
+            nym_vpn_lib_types::StoreAccountRequest::Decentralised { secret } => match secret {
+                nym_vpn_lib_types::LoginSecret::Mnemonic(mnemonic) => {
+                    proto::store_account_request::Request::DecentralisedAccountStore(
+                        proto::DecentralisedAccountStoreRequest {
+                            secret: Some(proto::LoginSecret {
+                                login_type: Some(proto::login_secret::LoginType::Mnemonic(
+                                    mnemonic,
+                                )),
+                            }),
+                        },
+                    )
+                }
+                nym_vpn_lib_types::LoginSecret::PrivateKeyHex(private_key_hex) => {
+                    proto::store_account_request::Request::DecentralisedAccountStore(
+                        proto::DecentralisedAccountStoreRequest {
+                            secret: Some(proto::LoginSecret {
+                                login_type: Some(proto::login_secret::LoginType::PrivateKeyHex(
+                                    private_key_hex,
+                                )),
+                            }),
+                        },
+                    )
+                }
+            },
         };
 
         proto::StoreAccountRequest {

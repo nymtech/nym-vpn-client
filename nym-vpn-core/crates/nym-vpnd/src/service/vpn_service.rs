@@ -41,9 +41,10 @@ use nym_vpn_lib::{
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
     DecentralisedObtainTicketbooksRequest, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NymNetworkDetails,
-    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
-    SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    GatewayFilters, ListGatewaysOptions, LogPath, LoginSecret, NetworkCompatibility,
+    NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks,
+    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig,
+    VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -1246,16 +1247,14 @@ impl NymVpnService {
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountCommandError> {
         match store_request {
-            StoreAccountRequest::Vpn { mnemonic } => {
-                let mnemonic = Mnemonic::parse::<String>(mnemonic)
-                    .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
+            StoreAccountRequest::Vpn { secret } => {
+                let mnemonic = parse_secret(&secret)?;
                 self.account_command_tx
                     .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
                     .await
             }
-            StoreAccountRequest::Decentralised { mnemonic } => {
-                let mnemonic = Mnemonic::parse::<String>(mnemonic)
-                    .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
+            StoreAccountRequest::Decentralised { secret } => {
+                let mnemonic = parse_secret(&secret)?;
                 self.account_command_tx
                     .store_account(StorableAccount::new(
                         mnemonic,
@@ -1480,4 +1479,16 @@ impl NymVpnService {
         self.network_statistics_enabled = enable;
         Ok(())
     }
+}
+
+fn parse_secret(secret: &LoginSecret) -> Result<Mnemonic, AccountCommandError> {
+    let ret = match secret {
+        LoginSecret::Mnemonic(mnemonic) => Mnemonic::parse(mnemonic),
+        LoginSecret::PrivateKeyHex(private_key_hex) => {
+            let key_bytes = hex::decode(private_key_hex)
+                .map_err(|err| AccountCommandError::InvalidPrivateKey(err.to_string()))?;
+            Mnemonic::from_entropy(&key_bytes)
+        }
+    };
+    ret.map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))
 }

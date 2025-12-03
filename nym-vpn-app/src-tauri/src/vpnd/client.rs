@@ -16,7 +16,7 @@ use super::{
 
 use anyhow::Result;
 use lib::UserAgent;
-use nym_vpn_lib_types as lib;
+use nym_vpn_lib_types::{self as lib};
 use nym_vpn_proto::rpc_client::RpcClient;
 use once_cell::sync::Lazy;
 use std::{
@@ -390,7 +390,9 @@ impl VpndClient {
         let mut vpnd = self.vpnd().await?;
 
         let response = vpnd
-            .store_account(lib::StoreAccountRequest::Vpn { mnemonic })
+            .store_account(lib::StoreAccountRequest::Vpn {
+                secret: lib::LoginSecret::Mnemonic(mnemonic),
+            })
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {

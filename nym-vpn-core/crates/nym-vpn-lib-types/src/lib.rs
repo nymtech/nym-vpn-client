@@ -73,7 +73,7 @@ pub use network::{
 };
 pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
-    ListGatewaysOptions, StoreAccountRequest,
+    ListGatewaysOptions, LoginSecret, StoreAccountRequest,
 };
 pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
 pub use socks5::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};

@@ -18,9 +18,24 @@ pub struct ListGatewaysOptions {
 
 #[derive(zeroize::Zeroize)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum LoginSecret {
+    Mnemonic(String),
+    PrivateKeyHex(String),
+}
+
+#[derive(zeroize::Zeroize)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum StoreAccountRequest {
-    Vpn { mnemonic: String },
-    Decentralised { mnemonic: String },
+    Vpn { secret: LoginSecret },
+    Decentralised { secret: LoginSecret },
 }
 
 impl std::fmt::Debug for StoreAccountRequest {

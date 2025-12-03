@@ -13,8 +13,8 @@ use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayType, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    GatewayType, LogPath, LoginSecret, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
+    ParsedAccountLinks, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
@@ -176,11 +176,11 @@ impl RpcClient {
         Ok(gateways)
     }
 
-    pub async fn store_account(&self, mnemonic: String) -> Result<()> {
+    pub async fn store_account(&self, secret: LoginSecret) -> Result<()> {
         let response = self
             .inner
             .clone()
-            .store_account(nym_vpn_lib_types::StoreAccountRequest::Vpn { mnemonic })
+            .store_account(nym_vpn_lib_types::StoreAccountRequest::Vpn { secret })
             .await?;
 
         if let Some(err) = response.error {

@@ -5573,6 +5573,7 @@ version = "1.21.0-beta"
 dependencies = [
  "android_logger",
  "async-trait",
+ "hex",
  "ipnetwork",
  "itertools 0.14.0",
  "lazy_static",
@@ -5709,6 +5710,7 @@ dependencies = [
  "clap",
  "eventlog",
  "futures",
+ "hex",
  "http-body-util",
  "hyper 1.7.0",
  "hyper-util",

@@ -49,6 +49,9 @@ pub enum VpnError {
     #[error("failed to parse mnemonic with error: {details}")]
     InvalidMnemonic { details: String },
 
+    #[error("failed to parse private key with error: {details}")]
+    InvalidPrivateKey { details: String },
+
     #[error("invalid account storage path: {details}")]
     InvalidAccountStoragePath { details: String },
 
@@ -120,6 +123,7 @@ impl From<AccountCommandError> for VpnError {
             },
             AccountCommandError::ExistingAccount => Self::ExistingAccount,
             AccountCommandError::InvalidMnemonic(details) => Self::InvalidMnemonic { details },
+            AccountCommandError::InvalidPrivateKey(details) => Self::InvalidPrivateKey { details },
             AccountCommandError::NyxdConnectionFailure(details) => {
                 Self::NyxdConnectionFailure { details }
             }
