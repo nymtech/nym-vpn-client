@@ -19,6 +19,9 @@ pub enum Command {
     /// Set Custom DNS servers (space separated)
     Set { dns_servers: Vec<String> },
 
+    /// Clear Custom DNS servers
+    Clear,
+
     /// Get the Default DNS servers
     GetDefault,
 }
@@ -61,6 +64,11 @@ impl Command {
                     })
                     .collect::<Result<Vec<IpAddr>>>()?;
                 rpc_client.set_custom_dns(ip_addr_list).await?;
+                Ok(())
+            }
+            Command::Clear => {
+                // You can also use `Set`, and specify no servers, but this is clearer.
+                rpc_client.set_custom_dns(vec![]).await?;
                 Ok(())
             }
             Command::GetDefault => {
