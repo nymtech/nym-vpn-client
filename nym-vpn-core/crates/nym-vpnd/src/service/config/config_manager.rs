@@ -82,6 +82,7 @@ impl VpnServiceConfigManager {
         &self.config
     }
 
+    #[cfg(test)]
     pub async fn set_config(&mut self, config: nym_vpn_lib_types::VpnServiceConfig) {
         if self.config != config {
             self.config = config;

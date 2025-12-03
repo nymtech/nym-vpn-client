@@ -1,14 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
-use crate::{EntryPoint, ExitPoint, GatewayType, UserAgent};
+use crate::{GatewayType, UserAgent};
 
 #[derive(Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
@@ -87,26 +85,4 @@ impl From<nym_validator_client::nyxd::Coin> for Coin {
 //#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct AccountBalanceResponse {
     pub result: Result<Vec<Coin>, crate::AccountCommandError>,
-}
-
-// Deprecated
-#[derive(Debug)]
-pub struct ConnectArgs {
-    pub entry: Option<EntryPoint>,
-    pub exit: Option<ExitPoint>,
-    pub options: ConnectOptions,
-}
-
-// Deprecated
-#[derive(Default, Debug, Clone)]
-pub struct ConnectOptions {
-    pub dns: Option<IpAddr>,
-    pub disable_ipv6: bool,
-    pub enable_two_hop: bool,
-    pub enable_bridges: bool,
-    pub netstack: bool,
-    pub disable_poisson_rate: bool,
-    pub disable_background_cover_traffic: bool,
-    pub enable_credentials_mode: bool,
-    pub user_agent: Option<UserAgent>,
 }

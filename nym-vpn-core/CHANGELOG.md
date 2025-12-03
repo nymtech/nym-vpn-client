@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increase the number of Windows firewall slots (https://github.com/nymtech/nym-vpn-client/pull/4072)
 - Enable two-hop by default (https://github.com/nymtech/nym-vpn-client/pull/4090)
 
+### Removed
+
+- CLI: remove legacy call to connect the tunnel (https://github.com/nymtech/nym-vpn-client/pull/4094)
+
 ## [1.20.0] - 2025-12-01
 
 ### Added
@@ -26,8 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Avoid connection looping by temporarily blacklisting the entry gateway (https://github.com/nymtech/nym-vpn-client/pull/4047)
-
-### Removed
 
 ## [1.19.0] - 2025-11-19
 
