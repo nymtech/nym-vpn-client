@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2025-12-03
+
 ### Added
 - Node details added in quick settings notification (https://github.com/nymtech/nym-vpn-client/pull/4029)
 - AmneziaWG section added to censorship screen (https://github.com/nymtech/nym-vpn-client/pull/4033)
@@ -14,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account screen added (https://github.com/nymtech/nym-vpn-client/pull/4060)
 - Android: Bi-mode Split Tunneling (https://github.com/nymtech/nym-vpn-client/pull/4049
 - "Help with translation" link added to Languages screen (https://github.com/nymtech/nym-vpn-client/pull/4086)
+- Allow user to logout when tunnel is Up (https://github.com/nymtech/nym-vpn-client/pull/4103)
 
 ### Changed
 - UI changes and updates for Settings screen (https://github.com/nymtech/nym-vpn-client/pull/4060)
@@ -27,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix QUIC autostart issue (https://github.com/nymtech/nym-vpn-client/pull/4040)
 - Fix for Sentry toggle (https://github.com/nymtech/nym-vpn-client/pull/4060)
 
-## [2.4.0]
+## [2.4.0] - 2025-11-19
 
 ### Added
 - Crowdin Translations (https://github.com/nymtech/nym-vpn-client/pull/2777)

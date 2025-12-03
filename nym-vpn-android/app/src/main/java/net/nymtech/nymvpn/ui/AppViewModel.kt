@@ -73,15 +73,18 @@ constructor(
 	fun logout(onComplete: (() -> Unit)? = null) = viewModelScope.launch {
 		runCatching {
 			if (backendManager.getState() == Tunnel.State.Down) {
-				backendManager.removeMnemonic()
-				backendManager.refresh()
-				onComplete?.invoke()
+				performLogout(onComplete)
 			} else {
-				SnackbarController.showMessage(
-					StringValue.StringResource(R.string.action_requires_tunnel_down),
-				)
+				backendManager.stopTunnel()
+				performLogout(onComplete)
 			}
 		}.onFailure { Timber.e(it) }
+	}
+
+	private suspend fun performLogout(onComplete: (() -> Unit)? = null) {
+		backendManager.removeMnemonic()
+		backendManager.refresh()
+		onComplete?.invoke()
 	}
 
 	fun onLocaleChange(localeTag: String) = viewModelScope.launch {
