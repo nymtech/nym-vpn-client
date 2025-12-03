@@ -296,10 +296,9 @@ collect_network_statistics = true
 "#;
 
         let json_content = r#"{
-  "version": "v1",
+  "version": "v2",
   "network_name": "tulips",
-  "sentry_monitoring": false,
-  "collect_network_statistics": true
+  "sentry_monitoring": false
 }"#;
 
         // Write the TOML config file
@@ -339,10 +338,9 @@ collect_network_statistics = true
 "#;
 
         let broken_json_content = r#"{
-  "version": "v1",
+  "version": "v2",
   "network_name": "tulips",
-  "sentry_mXonitoring": false,
-  "collect_network_statistics": true
+  "sentry_mXonitoring": false
 }"#;
 
         // Write the (broken) TOML config file
