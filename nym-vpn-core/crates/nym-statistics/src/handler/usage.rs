@@ -680,7 +680,7 @@ impl From<FinishedSession> for SessionReport {
         let session_duration_min = bucketize_session_duration(value.session_duration.as_secs());
         let retry_attempt = value.retry_attempt.try_into().unwrap_or(i32::MAX);
         SessionReport {
-            day: value.start_day,
+            day_utc: value.start_day,
             connection_time_ms,
             retry_attempt,
             session_duration_min,
@@ -1029,7 +1029,7 @@ mod tests {
 
         // Test that storage is correct
         let expected_report = SessionReport {
-            day: start_day,
+            day_utc: start_day,
             connection_time_ms: connection_duration.as_millis().try_into().unwrap(),
             retry_attempt: 1,
             session_duration_min: bucketize_session_duration(session_duration.as_secs()),
@@ -1082,7 +1082,7 @@ mod tests {
         assert_eq!(usage_handler.session_state, SessionState::NoSession);
 
         let expected_report = SessionReport {
-            day: start_day,
+            day_utc: start_day,
             connection_time_ms: connection_duration.as_millis().try_into().unwrap(),
             retry_attempt: 0,
             session_duration_min: bucketize_session_duration(session_duration.as_secs()),
@@ -1195,7 +1195,7 @@ mod tests {
         );
 
         let expected_report = SessionReport {
-            day: start_day,
+            day_utc: start_day,
             connection_time_ms: connection_duration.as_millis().try_into().unwrap(),
             retry_attempt: 0,
             session_duration_min: bucketize_session_duration(session_duration.as_secs()),
