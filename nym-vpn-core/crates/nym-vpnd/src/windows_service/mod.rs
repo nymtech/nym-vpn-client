@@ -143,8 +143,6 @@ async fn run_service() -> anyhow::Result<()> {
         log_path: run_params.log_path,
         network_env: Box::new(network_env),
         sentry_enabled: run_params.sentry_enabled,
-        netstats_enabled: global_config_file.collect_network_statistics,
-        stats_id_seed: run_params.stats_id_seed,
         user_agent: run_params.user_agent,
     };
 
