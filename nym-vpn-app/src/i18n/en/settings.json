@@ -37,12 +37,19 @@
     "topbar-title": "DNS customization",
     "details": {
       "title": "Customize DNS",
-      "description": "Only change this if you need custom DNS.",
       "list-title": "List of DNS servers",
       "add": "Add",
       "input-label": "DNS address",
+      "input-placeholder": "IPv4 or IPv6 address",
+      "apply": "Apply changes",
       "warning": "⚠️  Third-party DNS may limit features.",
-      "link": "Learn more about DNS "
+      "link": "Learn more about DNS",
+      "on": {
+        "description": "Configure your DNS servers below. Servers will be tried in order as fallbacks. Drag to reorder priority."
+      },
+      "off": {
+        "description": "Using NymVPN's default DNS optimized for the Nym network."
+      }
     }
   },
   "legal": {
