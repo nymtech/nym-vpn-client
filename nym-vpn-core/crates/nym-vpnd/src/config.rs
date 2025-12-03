@@ -30,13 +30,10 @@ impl GlobalConfig {
     }
 
     pub async fn read_from_config_dir(config_dir: &Path) -> anyhow::Result<Self> {
-        let config = match Self::read_config(config_dir).await {
-            Ok(config) => config,
-            Err(err) => {
-                tracing::error!("Failed to read global config file; using default : {err}");
-                GlobalConfig::default()
-            }
-        };
+        let config = Self::read_config(config_dir).await.unwrap_or_else(|err| {
+            tracing::error!("Failed to read global config file; using default : {err}");
+            GlobalConfig::default()
+        });
 
         // Always write back config file back using the latest JSON version
         // TODO: Avoid doing this as it's double-writing the config file.
