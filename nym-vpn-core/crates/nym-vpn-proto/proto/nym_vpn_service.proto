@@ -57,6 +57,11 @@ message Location {
   optional Asn asn = 6;
 }
 
+message GatewayLightInfo {
+  string id = 1;
+  optional string country_code = 2;
+}
+
 message EntryNode {
   oneof entry_node_enum {
     GatewayId gateway = 1;
@@ -375,14 +380,14 @@ enum EstablishConnectionState {
 }
 
 message EstablishConnectionData {
-  GatewayId entry_gateway = 1;
-  GatewayId exit_gateway = 2;
+  GatewayLightInfo entry_gateway = 1;
+  GatewayLightInfo exit_gateway = 2;
   optional TunnelConnectionData tunnel = 3;
 }
 
 message ConnectionData {
-  GatewayId entry_gateway = 1;
-  GatewayId exit_gateway = 2;
+  GatewayLightInfo entry_gateway = 1;
+  GatewayLightInfo exit_gateway = 2;
   google.protobuf.Timestamp connected_at = 3;
   TunnelConnectionData tunnel = 4;
 }
