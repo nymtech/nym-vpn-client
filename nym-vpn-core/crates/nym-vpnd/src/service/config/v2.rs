@@ -12,21 +12,21 @@ use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, str::FromStr};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub(crate) struct VpnServiceConfig {
-    pub(crate) entry_point: EntryPoint,
-    pub(crate) exit_point: ExitPoint,
-    pub(crate) dns: Option<String>,
-    pub(crate) allow_lan: bool,
-    pub(crate) disable_ipv6: bool,
-    pub(crate) enable_two_hop: bool,
-    pub(crate) enable_bridges: bool,
-    pub(crate) netstack: bool,
-    pub(crate) disable_poisson_rate: bool,
-    pub(crate) disable_background_cover_traffic: bool,
-    pub(crate) min_mixnode_performance: Option<u8>,
-    pub(crate) min_gateway_mixnet_performance: Option<u8>,
-    pub(crate) min_gateway_vpn_performance: Option<u8>,
-    pub(crate) residential_exit: bool,
+pub struct VpnServiceConfig {
+    pub entry_point: EntryPoint,
+    pub exit_point: ExitPoint,
+    pub dns: Option<String>,
+    pub allow_lan: bool,
+    pub disable_ipv6: bool,
+    pub enable_two_hop: bool,
+    pub enable_bridges: bool,
+    pub netstack: bool,
+    pub disable_poisson_rate: bool,
+    pub disable_background_cover_traffic: bool,
+    pub min_mixnode_performance: Option<u8>,
+    pub min_gateway_mixnet_performance: Option<u8>,
+    pub min_gateway_vpn_performance: Option<u8>,
+    pub residential_exit: bool,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
