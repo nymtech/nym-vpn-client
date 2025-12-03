@@ -134,7 +134,7 @@ location = "BE"
 "#;
 
     let json_content = r#"{
-  "version": "v3",
+  "version": "v4",
   "entry_point": {
     "country": {
       "two_letter_iso_country_code": "FR"
@@ -156,7 +156,8 @@ location = "BE"
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "custom_dns": null
+  "enable_custom_dns": false,
+  "custom_dns": []
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Country {
@@ -181,7 +182,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
 "#;
 
     let json_content = r#"{
-  "version": "v3",
+  "version": "v4",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -203,7 +204,8 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "custom_dns": null
+  "enable_custom_dns": false,
+  "custom_dns": []
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
@@ -283,7 +285,7 @@ exit_point = "Random"
 "#;
 
     let json_content = r#"{
-  "version": "v3",
+  "version": "v4",
   "entry_point": "random",
   "exit_point": "random",
   "allow_lan": false,
@@ -297,7 +299,8 @@ exit_point = "Random"
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "custom_dns": null
+  "enable_custom_dns": false,
+  "custom_dns": []
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Random;
@@ -323,7 +326,7 @@ async fn test_service_config_migrate_from_v1() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v3",
+  "version": "v4",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -345,7 +348,8 @@ async fn test_service_config_migrate_from_v1() {
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "custom_dns": null
+  "enable_custom_dns": false,
+  "custom_dns": []
 }"#;
 
     run_migrate_json_test(json_v1_content, json_latest_content).await;
@@ -380,6 +384,38 @@ async fn test_service_config_migrate_from_v2() {
 }"#;
 
     let json_latest_content = r#"{
+  "version": "v4",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "enable_custom_dns": true,
+  "custom_dns": [ "192.168.50.1" ]
+}"#;
+
+    run_migrate_json_test(json_v2_content, json_latest_content).await;
+}
+
+#[tokio::test]
+async fn test_service_config_migrate_from_v3() {
+    let json_v3_content = r#"{
   "version": "v3",
   "entry_point": {
     "gateway": {
@@ -402,10 +438,43 @@ async fn test_service_config_migrate_from_v2() {
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "custom_dns": ["192.168.50.1"]
+  "custom_dns": [
+    "192.168.50.1",
+    "2001:db8:85a3::8a2e:370:7334"
+  ]
 }"#;
 
-    run_migrate_json_test(json_v2_content, json_latest_content).await;
+    let json_latest_content = r#"{
+  "version": "v4",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "enable_custom_dns": true,
+  "custom_dns": [
+    "192.168.50.1",
+    "2001:db8:85a3::8a2e:370:7334"
+  ]
+}"#;
+
+    run_migrate_json_test(json_v3_content, json_latest_content).await;
 }
 
 #[tokio::test]
@@ -429,7 +498,7 @@ async fn test_service_config_fallback_default_v1() {
 #[tokio::test]
 async fn test_service_config_fallback_default_v2() {
     let broken_json_content = r#"{
-  "version": "v3",
+  "version": "v2",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -451,6 +520,37 @@ async fn test_service_config_fallback_default_v2() {
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
   "residential_exit": false
+}"#;
+
+    run_fallback_test(broken_json_content).await;
+}
+
+#[tokio::test]
+async fn test_service_config_fallback_default_v3() {
+    let broken_json_content = r#"{
+  "version": "v3",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "dns": null,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "enable_bridges": false,
+  "netstack": false,
+  "disable_poisson_rate": false,
+  "disable_background_cover_traffic": false,
+  "min_mixnode_performance": null,
+  "min_gateway_mixnet_performance": null,
+  "min_gateway_vpn_performance": null,
+  "residential_exit": false,
+  "custom_dns": [ "1.2.3.4" ]
 }"#;
 
     run_fallback_test(broken_json_content).await;
@@ -485,10 +585,11 @@ async fn test_service_config_serialize_full() {
         min_gateway_mixnet_performance: Some(64u8),
         min_gateway_vpn_performance: Some(1u8),
         residential_exit: true,
-        custom_dns: Some(vec![
+        enable_custom_dns: true,
+        custom_dns: vec![
             IpAddr::from_str("192.168.50.1").unwrap(),
             IpAddr::from_str("2001:db8:85a3::8a2e:370:7334").unwrap(),
-        ]),
+        ],
     };
     run_serialize_test(config).await;
 }

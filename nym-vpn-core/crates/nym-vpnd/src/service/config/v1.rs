@@ -12,8 +12,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct VpnServiceConfig {
-    entry_point: EntryPoint,
-    exit_point: ExitPoint,
+    pub entry_point: EntryPoint,
+    pub exit_point: ExitPoint,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {

@@ -10,8 +10,8 @@ use serde::Deserialize;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub(crate) struct VpnServiceConfig {
-    entry_point: EntryPoint,
-    exit_point: ExitPoint,
+    pub(crate) entry_point: EntryPoint,
+    pub(crate) exit_point: ExitPoint,
 }
 
 impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
