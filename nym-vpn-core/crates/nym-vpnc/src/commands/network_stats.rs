@@ -40,6 +40,7 @@ impl Command {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
+                let identity = rpc_client.network_stats_get_seed().await?;
                 println!(
                     "Anonymous network statistics collection: {}",
                     display_on_off(config.network_stats.enabled)
@@ -48,6 +49,8 @@ impl Command {
                     "Disconnected reporting: {}",
                     display_on_off(config.network_stats.allow_disconnected)
                 );
+                println!("Anonymous network statistics seed: \"{}\"", identity.seed);
+                println!("Anonymous network statistics id: {}", identity.id);
 
                 Ok(())
             }
@@ -93,7 +96,7 @@ impl SeedCommand {
         match self {
             SeedCommand::Get => {
                 let identity = rpc_client.network_stats_get_seed().await?;
-                println!("Anonymous network statistics seed: {}", identity.seed);
+                println!("Anonymous network statistics seed: \"{}\"", identity.seed);
                 println!("Anonymous network statistics id: {}", identity.id);
 
                 Ok(())
