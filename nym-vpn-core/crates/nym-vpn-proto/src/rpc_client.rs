@@ -532,9 +532,9 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    pub async fn network_stats_enabled(&mut self, enabled: bool) -> Result<()> {
+    pub async fn network_stats_set_enabled(&mut self, enabled: bool) -> Result<()> {
         self.0
-            .network_stats_enabled(enabled)
+            .network_stats_set_enabled(enabled)
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)

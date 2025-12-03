@@ -745,7 +745,7 @@ impl VpndClient {
     pub async fn enable_netstats(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.network_stats_enabled(true)
+        vpnd.network_stats_set_enabled(true)
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
@@ -761,7 +761,7 @@ impl VpndClient {
     pub async fn disable_netstats(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.network_stats_enabled(false)
+        vpnd.network_stats_set_enabled(false)
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {

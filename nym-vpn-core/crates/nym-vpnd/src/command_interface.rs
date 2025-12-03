@@ -691,7 +691,7 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
-    async fn network_stats_enabled(
+    async fn network_stats_set_enabled(
         &self,
         request: tonic::Request<bool>,
     ) -> Result<tonic::Response<()>> {
