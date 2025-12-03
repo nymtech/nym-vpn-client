@@ -129,7 +129,7 @@ impl StatisticsController {
 
     // Main loop. We're listening to statistics events and controller commands
     pub async fn run(mut self) {
-        if self.handler.is_none() {
+        let Some(mut stats_handler) = self.handler.take() else {
             tracing::error!(
                 "StatisticsController : something went wrong during init. Collection is disabled"
             );
@@ -138,16 +138,12 @@ impl StatisticsController {
                 .run_until_cancelled(self.no_op_loop())
                 .await;
             return;
-        }
+        };
 
         tracing::debug!(
             "StatisticsController initialized successfully : Reporting enabled? {}",
             self.config.enabled
         );
-
-        // Safety : We just checked that self.handler wasn't None
-        #[allow(clippy::unwrap_used)]
-        let mut stats_handler = self.handler.take().unwrap();
 
         loop {
             tokio::select! {
