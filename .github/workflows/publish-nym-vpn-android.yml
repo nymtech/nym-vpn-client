@@ -71,7 +71,7 @@ jobs:
     if: ${{ inputs.release_type != 'none' }}
     needs:
       - build-nym-vpn-android-apk
-    runs-on: arc-linux-latest
+    runs-on: AppleSilicon
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -83,9 +83,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
-          sudo apt update && sudo apt install -y gettext-base gh zip apksigner rsync
+          sudo apt update && sudo apt install -y gettext-base gh zip rsync
+
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install gettext gh zip rsync || true
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Get version code
         run: |
@@ -178,7 +188,7 @@ jobs:
           append_body: true
 
   publish-nym-fdroid:
-    runs-on: arc-linux-latest
+    runs-on: AppleSilicon
     needs:
       - publish-github
     if: inputs.release_type == 'release'
@@ -191,7 +201,7 @@ jobs:
           event-type: fdroid-update
 
   publish-accrescent:
-    runs-on: arc-linux-latest
+    runs-on: AppleSilicon
     env:
       SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
       SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
@@ -250,7 +260,7 @@ jobs:
   publish-play:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
     # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
-    runs-on: arc-linux-latest
+    runs-on: AppleSilicon
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -279,9 +289,25 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Install deps
+      - name: Install deps (Linux)
+        if: runner.os == 'Linux'
         run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
+          sudo apt-get update && sudo apt-get install -y \
+            libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler \
+            git curl gcc g++ make unzip rsync
+
+      - name: Install deps (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install \
+            protobuf \
+            git \
+            curl \
+            gcc \
+            make \
+            unzip \
+            rsync || true
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
