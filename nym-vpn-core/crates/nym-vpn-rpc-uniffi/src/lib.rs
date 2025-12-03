@@ -112,7 +112,7 @@ impl RpcClient {
     }
 
     pub async fn connect_tunnel(&self) -> Result<()> {
-        self.inner.clone().connect_tunnel_v2().await?;
+        self.inner.clone().connect_tunnel().await?;
         Ok(())
     }
 

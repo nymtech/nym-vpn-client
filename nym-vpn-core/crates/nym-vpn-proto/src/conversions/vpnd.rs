@@ -10,9 +10,9 @@ use std::{
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 use nym_vpn_lib_types::{
-    AccountCommandResponse, ApiUrl, BridgeInformation, BridgeParameters, ConnectArgs,
-    ConnectOptions, GatewayType, ListGatewaysOptions, LogPath, NymNetworkDetails, NymVpnNetwork,
-    Performance, QuicClientOptions, StoreAccountRequest, SystemMessage, UserAgent, VpnServiceInfo,
+    AccountCommandResponse, ApiUrl, BridgeInformation, BridgeParameters, GatewayType,
+    ListGatewaysOptions, LogPath, NymNetworkDetails, NymVpnNetwork, Performance, QuicClientOptions,
+    StoreAccountRequest, SystemMessage, UserAgent, VpnServiceInfo,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -434,79 +434,6 @@ impl From<proto::SystemMessage> for SystemMessage {
             message: value.message,
             properties: Some(value.properties),
         }
-    }
-}
-
-impl TryFrom<proto::ConnectRequest> for ConnectArgs {
-    type Error = ConversionError;
-
-    fn try_from(value: proto::ConnectRequest) -> Result<Self, Self::Error> {
-        let entry = value
-            .entry
-            .clone() // todo: prevent clone()
-            .map(nym_vpn_lib_types::EntryPoint::try_from)
-            .transpose()?;
-        let exit = value
-            .exit
-            .clone() // todo: prevent clone()
-            .map(nym_vpn_lib_types::ExitPoint::try_from)
-            .transpose()?;
-        let options = ConnectOptions::try_from(value)?;
-        Ok(ConnectArgs {
-            entry,
-            exit,
-            options,
-        })
-    }
-}
-
-impl TryFrom<ConnectArgs> for proto::ConnectRequest {
-    type Error = ConversionError;
-
-    fn try_from(value: ConnectArgs) -> Result<Self, Self::Error> {
-        let entry = value.entry.map(proto::EntryNode::from);
-        let exit = value.exit.map(proto::ExitNode::from);
-        Ok(Self {
-            dns: value.options.dns.map(|ip| proto::Dns {
-                ip: Some(ip.to_string()),
-            }),
-            disable_ipv6: value.options.disable_ipv6,
-            enable_two_hop: value.options.enable_two_hop,
-            enable_bridges: value.options.enable_bridges,
-            netstack: value.options.netstack,
-            disable_poisson_rate: value.options.disable_poisson_rate,
-            disable_background_cover_traffic: value.options.disable_background_cover_traffic,
-            enable_credentials_mode: value.options.enable_credentials_mode,
-            user_agent: value.options.user_agent.map(proto::UserAgent::from),
-            entry,
-            exit,
-        })
-    }
-}
-
-impl TryFrom<proto::ConnectRequest> for ConnectOptions {
-    type Error = ConversionError;
-
-    fn try_from(value: proto::ConnectRequest) -> Result<Self, Self::Error> {
-        let dns = match value.dns.and_then(|dns| dns.ip) {
-            Some(ip) => Some(
-                ip.parse::<std::net::IpAddr>()
-                    .map_err(|e| ConversionError::ParseAddr("ConnectRequest.dns", e))?,
-            ),
-            None => None,
-        };
-
-        Ok(Self {
-            dns,
-            disable_ipv6: value.disable_ipv6,
-            enable_two_hop: value.enable_two_hop,
-            enable_bridges: value.enable_bridges,
-            netstack: value.netstack,
-            disable_poisson_rate: value.disable_poisson_rate,
-            disable_background_cover_traffic: value.disable_background_cover_traffic,
-            enable_credentials_mode: value.enable_credentials_mode,
-            user_agent: value.user_agent.map(UserAgent::from),
-        })
     }
 }
 
