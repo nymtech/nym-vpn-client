@@ -214,10 +214,17 @@ impl InnerHandler {
         storage: StatsStorage,
         api_client: StatisticsApiClient,
         system_report: StaticInformationReport,
+        tunnel_state: TunnelState,
     ) -> Result<(), Error> {
         let reports_to_send = storage.get_pending_session_report_with_id().await?;
         if reports_to_send.is_empty() {
             tracing::debug!("ReportHandler: Nothing to send");
+            if tunnel_state == TunnelState::Connected {
+                tracing::debug!("ReportHandler: Pinging active device");
+                if let Err(e) = api_client.post_active_device(system_report).await {
+                    tracing::warn!("Pinging active device failed : {e}");
+                };
+            }
             return Ok(());
         }
 
@@ -298,7 +305,7 @@ impl InnerHandler {
                     }
                 }
                 _ = &mut timer => {
-                    sending_task.set(Self::send_reports(self.storage.clone(), self.api_client.clone(), self.system_report.clone()).fuse());
+                    sending_task.set(Self::send_reports(self.storage.clone(), self.api_client.clone(), self.system_report.clone(), self.sending_config.tunnel_state).fuse());
                 }
                 sending_res = &mut sending_task => {
                     sending_task.as_mut().set(Fuse::terminated());
