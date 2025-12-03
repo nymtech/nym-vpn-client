@@ -16,8 +16,7 @@ use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
 
 use nym_vpn_lib_types::{
-    ConnectArgs, EntryPoint, ExitPoint, GatewayFilters, ListGatewaysOptions, TargetState,
-    TunnelEvent,
+    EntryPoint, ExitPoint, GatewayFilters, ListGatewaysOptions, TargetState, TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -292,23 +291,7 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(ipaddr_list))
     }
 
-    async fn connect_tunnel(
-        &self,
-        request: tonic::Request<proto::ConnectRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let connect_args = ConnectArgs::try_from(request.into_inner())
-            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-
-        self.send_and_wait(VpnServiceCommand::Connect, connect_args)
-            .await?;
-
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn connect_tunnel_v2(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<bool>> {
+    async fn connect_tunnel(&self, _request: tonic::Request<()>) -> Result<tonic::Response<bool>> {
         let accepted = self
             .send_and_wait(VpnServiceCommand::SetTargetState, TargetState::Secured)
             .await?;
