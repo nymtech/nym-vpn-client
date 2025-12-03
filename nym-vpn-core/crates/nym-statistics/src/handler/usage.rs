@@ -14,7 +14,7 @@ use crate::{
     storage::{StatsStorage, models::SessionReport},
 };
 
-const SESSION_DURATION_BUCKETS_MIN: [i32; 11] = [1, 3, 5, 7, 9, 11, 15, 20, 30, 45, 60];
+const SESSION_DURATION_BUCKETS_MIN: [i32; 12] = [0, 1, 3, 5, 7, 9, 11, 15, 20, 30, 45, 60];
 const SHUTDOWN_ERROR: &str = "SHUTDOWN_REQUESTED";
 const OFFLINE_ENDING: &str = "OFFLINE_ENDING";
 const RECOVERABLE_ERROR: &str = "RECOVERABLE_ERROR";
@@ -643,7 +643,7 @@ impl UsageHandler {
 fn bucketize_session_duration(session_duration_secs: u64) -> i32 {
     let session_duration_min = (session_duration_secs / 60).try_into().unwrap_or(i32::MAX);
     for upper_bound in SESSION_DURATION_BUCKETS_MIN {
-        if session_duration_min < upper_bound {
+        if session_duration_min <= upper_bound {
             return upper_bound;
         }
     }
@@ -1271,5 +1271,115 @@ mod tests {
             .handle_event(UsageEvent::Disconnected(disconnected_instant))
             .await;
         assert_eq!(usage_handler.session_state, SessionState::NoSession);
+    }
+
+    #[tokio::test]
+    async fn unsuccessfull_connection_test() {
+        // Connection that is never established
+        let mut usage_handler = mock_usage_handler();
+
+        // Time info
+        let start_day = time::OffsetDateTime::now_utc().date();
+        let connect_request_instant = Instant::now();
+        let connection_duration = Duration::from_millis(1234);
+
+        let disconnect_request_instant = connect_request_instant + connection_duration;
+
+        let disconnection_duration = Duration::from_millis(1234);
+        let disconnected_instant = disconnect_request_instant + disconnection_duration;
+
+        // Connection request
+        usage_handler
+            .handle_event(UsageEvent::ConnectRequest(connect_request_instant))
+            .await;
+        assert_eq!(
+            usage_handler.session_state,
+            SessionState::ConnectionRequested {
+                start_day,
+                start_time: connect_request_instant,
+            }
+        );
+
+        // Connecting events
+        usage_handler
+            .handle_event(UsageEvent::Connecting {
+                instant: Instant::now(),
+                retry_attempt: 0,
+                maybe_exit_id: None,
+                maybe_tunnel_type: None,
+            })
+            .await;
+        assert_eq!(
+            usage_handler.session_state,
+            SessionState::Connecting {
+                start_day,
+                start_time: connect_request_instant,
+                retry_attempt: 0,
+                tunnel_type: None,
+                exit_id: None,
+                follow_up_id: None,
+            }
+        );
+
+        // Info update and skip a bit forward
+        usage_handler
+            .handle_event(UsageEvent::Connecting {
+                instant: Instant::now(),
+                retry_attempt: 4,
+                maybe_exit_id: Some(mock_gateway_id_a()),
+                maybe_tunnel_type: None,
+            })
+            .await;
+        assert_eq!(
+            usage_handler.session_state,
+            SessionState::Connecting {
+                start_day,
+                start_time: connect_request_instant,
+                retry_attempt: 4,
+                exit_id: Some(mock_gateway_id_a()),
+                tunnel_type: None,
+                follow_up_id: None,
+            }
+        );
+
+        // Disconnection request
+        usage_handler
+            .handle_event(UsageEvent::DisconnectRequest(disconnect_request_instant))
+            .await;
+
+        assert_eq!(
+            usage_handler.session_state,
+            SessionState::Disconnecting {
+                start_day,
+                connection_duration,
+                retry_attempt: 4,
+                session_duration: Duration::from_secs(0),
+                tunnel_type: "".into(),
+                exit_id: mock_gateway_id_a(),
+                disconnecting_time: disconnect_request_instant,
+                follow_up_id: None,
+            }
+        );
+
+        // Disconnected and session end
+        usage_handler
+            .handle_event(UsageEvent::Disconnected(disconnected_instant))
+            .await;
+        assert_eq!(usage_handler.session_state, SessionState::NoSession);
+
+        // Test that storage is correct
+        let expected_report = SessionReport {
+            day_utc: start_day,
+            connection_time_ms: connection_duration.as_millis().try_into().unwrap(),
+            retry_attempt: 4,
+            session_duration_min: 0,
+            tunnel_type: "".into(),
+            exit_id: mock_gateway_id_a(),
+            follow_up_id: None,
+            error: None,
+            disconnection_time_ms: disconnection_duration.as_millis().try_into().unwrap(),
+        };
+
+        usage_handler.assert_stored_session(expected_report);
     }
 }
