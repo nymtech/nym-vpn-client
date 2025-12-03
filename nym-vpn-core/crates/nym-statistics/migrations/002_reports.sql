@@ -7,6 +7,7 @@ CREATE TABLE pending_session_report (
     disconnection_time_ms   INTEGER NOT NULL, 
     tunnel_type             TEXT NOT NULL,
     exit_id                 TEXT NOT NULL,
+    exit_cc                 TEXT,
     follow_up_id            TEXT,
     error                   TEXT
 );

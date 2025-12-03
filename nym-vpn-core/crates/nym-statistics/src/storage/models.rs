@@ -10,6 +10,7 @@ pub(crate) struct SessionReport {
     pub disconnection_time_ms: i32,
     pub tunnel_type: String,
     pub exit_id: String,
+    pub exit_cc: Option<String>,
     pub follow_up_id: Option<String>,
     pub error: Option<String>,
 }
@@ -31,6 +32,7 @@ impl From<SessionReport> for VpnSessionReport {
             disconnection_time_ms: value.disconnection_time_ms,
             tunnel_type: value.tunnel_type,
             exit_id: value.exit_id,
+            exit_cc: value.exit_cc,
             follow_up_id: value.follow_up_id,
             error: value.error,
         }
