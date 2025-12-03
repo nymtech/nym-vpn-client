@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.5.0]
+## [2.5.0] - 2025-12-03
 
 ### Added
 - Node details added in quick settings notification (https://github.com/nymtech/nym-vpn-client/pull/4029)
@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix QUIC autostart issue (https://github.com/nymtech/nym-vpn-client/pull/4040)
 - Fix for Sentry toggle (https://github.com/nymtech/nym-vpn-client/pull/4060)
 
-## [2.4.0]
+## [2.4.0] - 2025-11-19
 
 ### Added
 - Crowdin Translations (https://github.com/nymtech/nym-vpn-client/pull/2777)
