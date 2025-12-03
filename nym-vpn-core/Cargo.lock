@@ -5585,6 +5585,7 @@ dependencies = [
  "nym-platform-metadata",
  "nym-sdk",
  "nym-statistics",
+ "nym-statistics-api-client",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib",
