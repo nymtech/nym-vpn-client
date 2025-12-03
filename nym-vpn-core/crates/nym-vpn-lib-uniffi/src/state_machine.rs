@@ -75,6 +75,11 @@ pub(super) async fn start_state_machine(
         TunnelType::Mixnet
     };
 
+    let dns = if config.custom_dns.is_empty() {
+        DnsOptions::default()
+    } else {
+        DnsOptions::Custom(config.custom_dns)
+    };
     let user_agent = UserAgent::from(config.user_agent);
 
     let entry_point = config.entry_gateway;
@@ -110,7 +115,7 @@ pub(super) async fn start_state_machine(
         mixnet_client_config: None,
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
-        dns: DnsOptions::default(),
+        dns,
     };
     let tunnel_constants = TunnelConstants::default();
 

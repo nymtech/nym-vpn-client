@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add custom DNS setting for mobile platforms (https://github.com/nymtech/nym-vpn-client/pull/4106)
+
 ### Fixed
 
 - Increase the number of Windows firewall slots (https://github.com/nymtech/nym-vpn-client/pull/4072)
