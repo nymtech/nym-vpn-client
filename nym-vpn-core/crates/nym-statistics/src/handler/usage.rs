@@ -14,7 +14,7 @@ use crate::{
     storage::{StatsStorage, models::SessionReport},
 };
 
-const SESSION_DURATION_BUCKETS_MIN: [i32; 12] = [0, 1, 3, 5, 7, 9, 11, 15, 20, 30, 45, 60];
+const SESSION_DURATION_BUCKETS_MIN: [i32; 11] = [1, 3, 5, 7, 9, 11, 15, 20, 30, 45, 60];
 const SHUTDOWN_ERROR: &str = "SHUTDOWN_REQUESTED";
 const OFFLINE_ENDING: &str = "OFFLINE_ENDING";
 const RECOVERABLE_ERROR: &str = "RECOVERABLE_ERROR";
@@ -641,9 +641,13 @@ impl UsageHandler {
 }
 
 fn bucketize_session_duration(session_duration_secs: u64) -> i32 {
+    // Special case for sessions that couldn't start
+    if session_duration_secs == 0 {
+        return 0;
+    }
     let session_duration_min = (session_duration_secs / 60).try_into().unwrap_or(i32::MAX);
     for upper_bound in SESSION_DURATION_BUCKETS_MIN {
-        if session_duration_min <= upper_bound {
+        if session_duration_min < upper_bound {
             return upper_bound;
         }
     }
@@ -1381,5 +1385,18 @@ mod tests {
         };
 
         usage_handler.assert_stored_session(expected_report);
+    }
+
+    #[test]
+    fn bucketize_session_duration_test() {
+        // Zero duration gets a zero
+        assert_eq!(bucketize_session_duration(0), 0);
+        // Sub 60 gets a 1
+        assert_eq!(bucketize_session_duration(1), 1);
+        assert_eq!(bucketize_session_duration(2), 1);
+        assert_eq!(bucketize_session_duration(30), 1);
+        assert_eq!(bucketize_session_duration(59), 1);
+        // higher
+        assert!(bucketize_session_duration(60) > 1);
     }
 }
