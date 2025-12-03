@@ -4,6 +4,7 @@
 mod config_manager;
 mod entry_exit;
 mod legacy;
+mod network_stats;
 mod v1;
 mod v2;
 mod v3;
