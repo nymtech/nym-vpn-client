@@ -7,6 +7,7 @@ mod legacy;
 mod v1;
 mod v2;
 mod v3;
+mod v4;
 
 #[cfg(test)]
 mod tests;
@@ -23,6 +24,7 @@ use tokio::{
     io::{self, AsyncWriteExt},
 };
 
+use crate::service::config::entry_exit::v2::{EntryPoint, ExitPoint};
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
@@ -81,20 +83,19 @@ impl TryFrom<&str> for NetworkEnvironments {
 // External, versioned, representation of the vpn service config file.
 //
 
-type VpnServiceConfigExtLatest = v3::VpnServiceConfig;
-
 /// Represents the version of the vpn service config file.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum VpnServiceConfigVersion {
     V1,
     V2,
     V3,
+    V4,
 }
 
 impl VpnServiceConfigVersion {
     /// Returns the latest version of the config file.
     pub fn latest() -> Self {
-        VpnServiceConfigVersion::V3
+        VpnServiceConfigVersion::V4
     }
 }
 
@@ -104,6 +105,7 @@ impl fmt::Display for VpnServiceConfigVersion {
             VpnServiceConfigVersion::V1 => "v1",
             VpnServiceConfigVersion::V2 => "v2",
             VpnServiceConfigVersion::V3 => "v3",
+            VpnServiceConfigVersion::V4 => "v4",
         })
     }
 }
@@ -115,6 +117,7 @@ enum VpnServiceConfigExt {
     V1(v1::VpnServiceConfig),
     V2(v2::VpnServiceConfig),
     V3(v3::VpnServiceConfig),
+    V4(v4::VpnServiceConfig),
 }
 
 impl VpnServiceConfigExt {
@@ -123,6 +126,7 @@ impl VpnServiceConfigExt {
             VpnServiceConfigExt::V1(_) => VpnServiceConfigVersion::V1,
             VpnServiceConfigExt::V2(_) => VpnServiceConfigVersion::V2,
             VpnServiceConfigExt::V3(_) => VpnServiceConfigVersion::V3,
+            VpnServiceConfigExt::V4(_) => VpnServiceConfigVersion::V4,
         }
     }
 }
@@ -135,6 +139,7 @@ impl TryFrom<VpnServiceConfigExt> for nym_vpn_lib_types::VpnServiceConfig {
             VpnServiceConfigExt::V1(v1) => nym_vpn_lib_types::VpnServiceConfig::try_from(v1),
             VpnServiceConfigExt::V2(v2) => nym_vpn_lib_types::VpnServiceConfig::try_from(v2),
             VpnServiceConfigExt::V3(v3) => nym_vpn_lib_types::VpnServiceConfig::try_from(v3),
+            VpnServiceConfigExt::V4(v4) => nym_vpn_lib_types::VpnServiceConfig::try_from(v4),
         }
     }
 }
@@ -143,8 +148,30 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
     type Error = ConfigSetupError;
 
     fn try_from(value: &nym_vpn_lib_types::VpnServiceConfig) -> Result<Self, Self::Error> {
-        let latest = VpnServiceConfigExtLatest::try_from(value)?;
-        Ok(latest.into())
+        let custom_dns = value
+            .custom_dns
+            .iter()
+            .map(|ip| ip.to_string())
+            .collect::<Vec<_>>();
+
+        let v4 = v4::VpnServiceConfig {
+            entry_point: EntryPoint::try_from(&value.entry_point)?,
+            exit_point: ExitPoint::try_from(&value.exit_point)?,
+            allow_lan: value.allow_lan,
+            disable_ipv6: value.disable_ipv6,
+            enable_two_hop: value.enable_two_hop,
+            enable_bridges: value.enable_bridges,
+            netstack: value.netstack,
+            disable_poisson_rate: value.disable_poisson_rate,
+            disable_background_cover_traffic: value.disable_background_cover_traffic,
+            min_mixnode_performance: value.min_mixnode_performance,
+            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
+            min_gateway_vpn_performance: value.min_gateway_vpn_performance,
+            residential_exit: value.residential_exit,
+            enable_custom_dns: value.enable_custom_dns,
+            custom_dns,
+        };
+        Ok(VpnServiceConfigExt::V4(v4))
     }
 }
 

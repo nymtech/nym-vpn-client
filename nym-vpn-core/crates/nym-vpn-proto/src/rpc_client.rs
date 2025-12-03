@@ -132,6 +132,15 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_custom_dns(&mut self, enable: bool) -> Result<()> {
+        self.0
+            .set_enable_custom_dns(enable)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_custom_dns(&mut self, ips: Vec<IpAddr>) -> Result<()> {
         let request: proto::IpAddrList = ips
             .into_iter()

@@ -196,6 +196,22 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_enable_custom_dns(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_custom_dns = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetEnableCustomDns, enable_custom_dns)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set enable custom DNS: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_custom_dns(
         &self,
         request: tonic::Request<proto::IpAddrList>,
@@ -205,14 +221,8 @@ impl NymVpnService for CommandInterface {
             .try_into()
             .map_err(|e| tonic::Status::invalid_argument(format!("Invalid Custom DNS: {e}")))?;
 
-        let opt_custom_dns = if custom_dns.is_empty() {
-            None
-        } else {
-            Some(custom_dns)
-        };
-
         let _ = self
-            .send_and_wait(VpnServiceCommand::SetCustomDns, opt_custom_dns)
+            .send_and_wait(VpnServiceCommand::SetCustomDns, custom_dns)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to set custom DNS: {e}")))?;
 

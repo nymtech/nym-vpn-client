@@ -66,7 +66,8 @@ pub enum VpnServiceCommand {
     SetAllowLan(oneshot::Sender<()>, bool),
     SetEnableBridges(oneshot::Sender<()>, bool),
     SetResidentialExit(oneshot::Sender<()>, bool),
-    SetCustomDns(oneshot::Sender<()>, Option<Vec<IpAddr>>),
+    SetEnableCustomDns(oneshot::Sender<()>, bool),
+    SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -772,6 +773,10 @@ impl NymVpnService {
                 self.handle_set_residential_exit(residential_exit).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetEnableCustomDns(tx, enable_custom_dns) => {
+                self.handle_set_enable_custom_dns(enable_custom_dns).await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetCustomDns(tx, custom_dns) => {
                 self.handle_set_custom_dns(custom_dns).await;
                 let _ = tx.send(());
@@ -966,7 +971,14 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_custom_dns(&mut self, custom_dns: Option<Vec<IpAddr>>) {
+    async fn handle_set_enable_custom_dns(&mut self, enable_custom_dns: bool) {
+        self.config_manager
+            .set_enable_custom_dns(enable_custom_dns)
+            .await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) {
         self.config_manager.set_custom_dns(custom_dns).await;
         self.update_tunnel_settings_with_throttle();
     }

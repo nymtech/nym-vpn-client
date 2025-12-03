@@ -254,6 +254,7 @@ message VpnServiceConfig {
   optional uint32 min_mixnode_performance = 8;
   optional uint32 min_gateway_mixnet_performance = 9;
   optional uint32 min_gateway_vpn_performance = 10;
+  bool enable_custom_dns = 17;
   IpAddrList custom_dns = 16;
 }
 
@@ -837,6 +838,7 @@ service NymVpnService {
   rpc SetNetstack (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableCustomDns (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetCustomDns (IpAddrList) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect

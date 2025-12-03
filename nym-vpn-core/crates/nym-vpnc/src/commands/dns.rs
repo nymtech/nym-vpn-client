@@ -10,6 +10,12 @@ pub enum Command {
     /// Get Custom DNS servers
     Get,
 
+    /// Enable Custom DNS
+    Enable,
+
+    /// Disable Custom DNS
+    Disable,
+
     /// Set Custom DNS servers (space separated)
     Set { dns_servers: Vec<String> },
 
@@ -26,16 +32,27 @@ impl Command {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
                 println!(
-                    "Custom DNS: {}",
+                    "Custom DNS: {} [{}]",
+                    if config.enable_custom_dns {
+                        "Enabled"
+                    } else {
+                        "Disabled"
+                    },
                     config
                         .custom_dns
-                        .map(|dns| dns
-                            .iter()
-                            .map(|ip| ip.to_string())
-                            .collect::<Vec<_>>()
-                            .join(" "))
-                        .unwrap_or_else(|| "not set".to_string())
+                        .iter()
+                        .map(|ip| ip.to_string())
+                        .collect::<Vec<_>>()
+                        .join(" ")
                 );
+                Ok(())
+            }
+            Command::Enable => {
+                rpc_client.set_enable_custom_dns(true).await?;
+                Ok(())
+            }
+            Command::Disable => {
+                rpc_client.set_enable_custom_dns(false).await?;
                 Ok(())
             }
             Command::Set { dns_servers } => {
@@ -50,6 +67,7 @@ impl Command {
                 Ok(())
             }
             Command::Clear => {
+                // You can also use `Set`, and specify no servers, but this is clearer.
                 rpc_client.set_custom_dns(vec![]).await?;
                 Ok(())
             }

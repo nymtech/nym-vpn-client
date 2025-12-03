@@ -20,10 +20,10 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .transpose()?
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.exit_point"))?;
 
-        let custom_dns: Option<Vec<IpAddr>> = value
-            .custom_dns
-            .map(proto::IpAddrList::try_into)
-            .transpose()?;
+        let custom_dns: Vec<IpAddr> = match value.custom_dns {
+            Some(ip_addr_list) => ip_addr_list.try_into()?,
+            None => vec![],
+        };
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -39,6 +39,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u8),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
             residential_exit: value.residential_exit,
+            enable_custom_dns: value.enable_custom_dns,
             custom_dns,
         };
         Ok(config)
@@ -49,7 +50,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
     fn from(value: nym_vpn_lib_types::VpnServiceConfig) -> Self {
         let entry_point = Some(proto::EntryNode::from(value.entry_point));
         let exit_point = Some(proto::ExitNode::from(value.exit_point));
-        let custom_dns = value.custom_dns.map(proto::IpAddrList::from);
+        let custom_dns = Some(proto::IpAddrList::from(value.custom_dns));
 
         proto::VpnServiceConfig {
             entry_point,
@@ -65,6 +66,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
             residential_exit: value.residential_exit,
+            enable_custom_dns: value.enable_custom_dns,
             custom_dns,
         }
     }

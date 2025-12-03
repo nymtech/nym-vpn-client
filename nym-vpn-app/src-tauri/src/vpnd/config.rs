@@ -37,7 +37,7 @@ impl VpndConfig {
         Ok(VpndConfig {
             entry_node: config.entry_point.into(),
             exit_node: config.exit_point.try_into()?,
-            custom_dns: config.custom_dns,
+            custom_dns: Some(config.custom_dns),
             allow_lan: config.allow_lan,
             disable_ipv6: config.disable_ipv6,
             vpn_mode,
