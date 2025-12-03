@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account screen added (https://github.com/nymtech/nym-vpn-client/pull/4060)
 - Android: Bi-mode Split Tunneling (https://github.com/nymtech/nym-vpn-client/pull/4049
 - "Help with translation" link added to Languages screen (https://github.com/nymtech/nym-vpn-client/pull/4086)
+- Allow user to logout when tunnel is Up (https://github.com/nymtech/nym-vpn-client/pull/4103)
 
 ### Changed
 - UI changes and updates for Settings screen (https://github.com/nymtech/nym-vpn-client/pull/4060)
