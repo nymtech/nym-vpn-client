@@ -63,6 +63,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
             custom_dns,
+            network_stats: Default::default(),
         };
         Ok(config)
     }
