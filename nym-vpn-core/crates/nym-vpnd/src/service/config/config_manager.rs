@@ -146,7 +146,14 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_custom_dns(&mut self, custom_dns: Option<Vec<IpAddr>>) {
+    pub async fn set_enable_custom_dns(&mut self, enable_custom_dns: bool) {
+        if self.config.enable_custom_dns != enable_custom_dns {
+            self.config.enable_custom_dns = enable_custom_dns;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) {
         if self.config.custom_dns != custom_dns {
             self.config.custom_dns = custom_dns;
             self.save_config_and_send_event().await;
@@ -325,12 +332,11 @@ impl VpnServiceConfigManager {
             nym_vpn_lib_types::TunnelType::Mixnet
         };
 
-        let dns = self
-            .config
-            .custom_dns
-            .as_ref()
-            .map(|addrs| DnsOptions::Custom(addrs.clone()))
-            .unwrap_or_default();
+        let dns = if self.config.enable_custom_dns && !self.config.custom_dns.is_empty() {
+            DnsOptions::Custom(self.config.custom_dns.clone())
+        } else {
+            DnsOptions::default()
+        };
 
         TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,

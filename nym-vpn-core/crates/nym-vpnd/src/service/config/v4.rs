@@ -15,7 +15,6 @@ use std::{net::IpAddr, str::FromStr};
 pub(crate) struct VpnServiceConfig {
     pub(crate) entry_point: EntryPoint,
     pub(crate) exit_point: ExitPoint,
-    pub(crate) dns: Option<String>,
     pub(crate) allow_lan: bool,
     pub(crate) disable_ipv6: bool,
     pub(crate) enable_two_hop: bool,
@@ -27,11 +26,13 @@ pub(crate) struct VpnServiceConfig {
     pub(crate) min_gateway_mixnet_performance: Option<u8>,
     pub(crate) min_gateway_vpn_performance: Option<u8>,
     pub(crate) residential_exit: bool,
+    pub(crate) enable_custom_dns: bool,
+    pub(crate) custom_dns: Vec<String>,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
-    fn from(v2: VpnServiceConfig) -> Self {
-        VpnServiceConfigExt::V2(v2)
+    fn from(v4: VpnServiceConfig) -> Self {
+        VpnServiceConfigExt::V4(v4)
     }
 }
 
@@ -39,14 +40,14 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
     type Error = ConfigSetupError;
 
     fn try_from(value: VpnServiceConfig) -> Result<Self, Self::Error> {
-        let custom_dns = match value.dns {
-            Some(str) => {
-                let ip = IpAddr::from_str(&str)
-                    .map_err(|e| ConfigSetupError::IpAddress { error: Box::new(e) })?;
-                vec![ip]
-            }
-            None => vec![],
-        };
+        let custom_dns: Vec<IpAddr> = value
+            .custom_dns
+            .iter()
+            .map(|dns_str| {
+                IpAddr::from_str(dns_str)
+                    .map_err(|e| ConfigSetupError::IpAddress { error: Box::new(e) })
+            })
+            .collect::<Result<_, _>>()?;
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point: nym_vpn_lib_types::EntryPoint::try_from(value.entry_point)?,
@@ -62,7 +63,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
-            enable_custom_dns: !custom_dns.is_empty(),
+            enable_custom_dns: value.enable_custom_dns,
             custom_dns,
         };
         Ok(config)

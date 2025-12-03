@@ -11,9 +11,9 @@ use crate::service::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct VpnServiceConfig {
-    entry_point: EntryPoint,
-    exit_point: ExitPoint,
+pub(crate) struct VpnServiceConfig {
+    pub(crate) entry_point: EntryPoint,
+    pub(crate) exit_point: ExitPoint,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
