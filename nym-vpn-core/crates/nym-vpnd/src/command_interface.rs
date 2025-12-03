@@ -691,40 +691,71 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
-    async fn is_collect_network_stats_enabled(
+    async fn network_stats_enabled(
         &self,
-        _: tonic::Request<()>,
-    ) -> std::result::Result<tonic::Response<bool>, tonic::Status> {
-        let result = self
-            .send_and_wait(VpnServiceCommand::IsCollectNetStatsEnabled, ())
-            .await?;
-        Ok(tonic::Response::new(result))
-    }
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enabled = request.into_inner();
 
-    async fn enable_collect_network_stats(
-        &self,
-        _: tonic::Request<()>,
-    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
-        self.send_and_wait(VpnServiceCommand::ToggleCollectNetStats, true)
-            .await?
-            .map_err(|err| {
-                tracing::error!("Failed to enable collect network stats: {err}");
-                tonic::Status::internal("failed to enable collect network stats")
+        let _ = self
+            .send_and_wait(VpnServiceCommand::EnableNetStats, enabled)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to enable/disable network statistics: {e}"))
             })?;
+
         Ok(tonic::Response::new(()))
     }
 
-    async fn disable_collect_network_stats(
+    async fn network_stats_allow_disconnected(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+        let allow_disconnected = request.into_inner();
+
+        let _ = self
+            .send_and_wait(
+                VpnServiceCommand::AllowDisconnectedNetStats,
+                allow_disconnected,
+            )
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!(
+                    "Failed to set network statistics allow_disconnected: {e}"
+                ))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn network_stats_reset_seed(
+        &self,
+        request: tonic::Request<proto::NetworkStatsResetSeedRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let seed = request.into_inner().seed;
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::ResetNetStatsSeed, seed)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to reset network statistics seed: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn network_stats_get_seed(
         &self,
         _: tonic::Request<()>,
-    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
-        self.send_and_wait(VpnServiceCommand::ToggleCollectNetStats, false)
+    ) -> Result<tonic::Response<proto::NetworkStatisticsIdentity>> {
+        let identity = self
+            .send_and_wait(VpnServiceCommand::GetNetStatsSeed, ())
             .await?
-            .map_err(|err| {
-                tracing::error!("Failed to disable collect network stats: {err}");
-                tonic::Status::internal("failed to disable collect network stats")
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to get network statistics identity: {e}"))
             })?;
-        Ok(tonic::Response::new(()))
+
+        Ok(tonic::Response::new(identity.into()))
     }
 
     async fn enable_socks5(

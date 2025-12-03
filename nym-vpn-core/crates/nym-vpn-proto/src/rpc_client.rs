@@ -4,9 +4,9 @@
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
     EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, HttpRpcSettings,
-    ListGatewaysOptions, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, Socks5Settings, Socks5Status, StoreAccountRequest, SystemMessage,
-    TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    ListGatewaysOptions, LogPath, NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice,
+    NymVpnUsage, ParsedAccountLinks, Socks5Settings, Socks5Status, StoreAccountRequest,
+    SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use std::{net::IpAddr, path::PathBuf};
 use tokio_stream::{Stream, StreamExt};
@@ -532,25 +532,29 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    pub async fn is_collect_network_stats_enabled(&mut self) -> Result<bool> {
+    pub async fn network_stats_enabled(&mut self, enabled: bool) -> Result<()> {
         self.0
-            .is_collect_network_stats_enabled(())
+            .network_stats_enabled(enabled)
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn enable_collect_network_stats(&mut self) -> Result<()> {
+    pub async fn network_stats_allow_disconnected(
+        &mut self,
+        allow_disconnected: bool,
+    ) -> Result<()> {
         self.0
-            .enable_collect_network_stats(())
+            .network_stats_allow_disconnected(allow_disconnected)
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn disable_collect_network_stats(&mut self) -> Result<()> {
+    pub async fn network_stats_reset_seed(&mut self, seed: Option<String>) -> Result<()> {
+        let request = proto::NetworkStatsResetSeedRequest { seed };
         self.0
-            .disable_collect_network_stats(())
+            .network_stats_reset_seed(request)
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
@@ -596,6 +600,16 @@ impl RpcClient {
             .into_inner();
 
         Socks5Status::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn network_stats_get_seed(&mut self) -> Result<NetworkStatisticsIdentity> {
+        let response = self
+            .0
+            .network_stats_get_seed(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+        Ok(NetworkStatisticsIdentity::from(response))
     }
 }
 
