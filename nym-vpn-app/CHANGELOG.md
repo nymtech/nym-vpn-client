@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.20.0] - 2025-12-02
+
+### Added
+
+- Allow seeing server details from home screen
+- Auto focus node list search input
+- Minimal obfuscation (AmneziaWG)
+- Allow to connect dApps / wallets to the mixnet via SOCKS5 url or HTTP RPC url
+
+### Changed
+
+- Always show Anti-Censorship setting option
+- Visual improvements
+
+### Fixed
+
+- Styling fixes and visual improvements
+
 ## [1.19.0] - 2025-11-19
 
 ### Added
