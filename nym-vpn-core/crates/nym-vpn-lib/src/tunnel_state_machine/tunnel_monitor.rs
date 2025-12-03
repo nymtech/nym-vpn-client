@@ -45,8 +45,8 @@ use nym_registration_common::NymNode;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_lib_types::{
     AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
-    EstablishConnectionData, GatewayId, MixnetConnectionData, NymAddress, TunnelConnectionData,
-    TunnelType, WireguardConnectionData, WireguardNode,
+    EstablishConnectionData, GatewayLightInfo, MixnetConnectionData, NymAddress,
+    TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
 };
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 
@@ -576,8 +576,8 @@ impl TunnelMonitor {
             }
         };
         let connection_data = Box::new(EstablishConnectionData {
-            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
-            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
+            entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayLightInfo::from(selected_gateways.exit_gateway().clone()),
             tunnel: Some(tunnel_connection_data),
         });
         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
@@ -679,8 +679,8 @@ impl TunnelMonitor {
         };
 
         let establishing_connection_data = EstablishConnectionData {
-            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
-            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
+            entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
             tunnel: Some(tunnel_conn_data.clone()),
         };
 
@@ -737,8 +737,8 @@ impl TunnelMonitor {
         let mut last_connection_status = None;
         let mut has_sent_up_event = false;
         let connection_data = Box::new(ConnectionData {
-            entry_gateway: GatewayId::from(selected_gateways.entry_gateway().clone()),
-            exit_gateway: GatewayId::from(selected_gateways.exit_gateway().clone()),
+            entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
             connected_at: OffsetDateTime::now_utc(),
             tunnel: tunnel_conn_data,
         });

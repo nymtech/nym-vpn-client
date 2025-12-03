@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS, UserAgent};
-use nym_statistics_common::report::vpn_client::VpnClientStatsReportV2;
+use nym_statistics_common::report::vpn_client::{ActiveDeviceReport, VpnClientStatsReportV2};
 use serde::{Serialize, de::DeserializeOwned};
 use url::Url;
 
@@ -54,6 +54,13 @@ impl StatisticsApiClient {
 
     pub async fn post_session_report(&self, report: VpnClientStatsReportV2) -> Result<()> {
         self.post_query(routes::SESSION_REPORT_ROUTE, &report)
+            .await
+            .map_err(Box::new)
+            .map_err(StatisticsApiClientError::ReportSending)
+    }
+
+    pub async fn post_active_device(&self, report: ActiveDeviceReport) -> Result<()> {
+        self.post_query(routes::ACTIVE_DEVICE_ROUTE, &report)
             .await
             .map_err(Box::new)
             .map_err(StatisticsApiClientError::ReportSending)

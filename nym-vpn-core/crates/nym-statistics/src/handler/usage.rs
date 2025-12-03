@@ -74,19 +74,27 @@ impl UsageHandler {
                 instant,
                 retry_attempt,
                 maybe_exit_id,
+                maybe_exit_cc,
                 maybe_tunnel_type,
             } => {
-                self.handle_connecting(instant, retry_attempt, maybe_exit_id, maybe_tunnel_type)
-                    .await;
+                self.handle_connecting(
+                    instant,
+                    retry_attempt,
+                    maybe_exit_id,
+                    maybe_exit_cc,
+                    maybe_tunnel_type,
+                )
+                .await;
             }
 
             // State machine entered "Connected" state
             UsageEvent::Connected {
                 instant,
                 exit_id,
+                exit_cc,
                 tunnel_type,
             } => {
-                self.handle_connected(instant, exit_id, tunnel_type);
+                self.handle_connected(instant, exit_id, exit_cc, tunnel_type);
             }
 
             // User pressed "Disconnect"
@@ -160,6 +168,7 @@ impl UsageHandler {
         event_time: Instant,
         new_retry_attempt: u32,
         maybe_exit_id: Option<String>,
+        maybe_exit_cc: Option<String>,
         maybe_tunnel_type: Option<String>,
     ) {
         match self.session_state.clone() {
@@ -174,6 +183,7 @@ impl UsageHandler {
                     retry_attempt: new_retry_attempt,
                     tunnel_type: maybe_tunnel_type,
                     exit_id: maybe_exit_id,
+                    exit_cc: maybe_exit_cc,
                     follow_up_id: None,
                 }
             }
@@ -186,6 +196,7 @@ impl UsageHandler {
                     retry_attempt: new_retry_attempt,
                     tunnel_type: maybe_tunnel_type,
                     exit_id: maybe_exit_id,
+                    exit_cc: maybe_exit_cc,
                     follow_up_id: None,
                 }
             }
@@ -202,6 +213,7 @@ impl UsageHandler {
                     retry_attempt: new_retry_attempt,
                     tunnel_type: maybe_tunnel_type,
                     exit_id: maybe_exit_id,
+                    exit_cc: maybe_exit_cc,
                     follow_up_id: None,
                 }
             }
@@ -212,6 +224,7 @@ impl UsageHandler {
                 retry_attempt,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => {
                 self.session_state = SessionState::Connecting {
@@ -220,6 +233,7 @@ impl UsageHandler {
                     retry_attempt: max(retry_attempt, new_retry_attempt),
                     tunnel_type: maybe_tunnel_type.or(tunnel_type), // update with the new value, maybe further attempts changed it
                     exit_id: maybe_exit_id.or(exit_id), // update with the new value, maybe further attempts changed it
+                    exit_cc: maybe_exit_cc.or(exit_cc),
                     follow_up_id,
                 }
             }
@@ -231,6 +245,7 @@ impl UsageHandler {
                 session_start_time,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => {
                 let session_id = Alphanumeric.sample_string(&mut rand::thread_rng(), 20);
@@ -242,6 +257,7 @@ impl UsageHandler {
                     disconnection_duration: Duration::from_millis(0),
                     tunnel_type,
                     exit_id,
+                    exit_cc,
                     follow_up_id,
                     error: Some(format!("{RECOVERABLE_ERROR}_{session_id}")),
                 };
@@ -252,6 +268,7 @@ impl UsageHandler {
                     retry_attempt: new_retry_attempt,
                     tunnel_type: maybe_tunnel_type,
                     exit_id: maybe_exit_id,
+                    exit_cc: maybe_exit_cc,
                     follow_up_id: Some(session_id),
                 }
             }
@@ -266,6 +283,7 @@ impl UsageHandler {
                 session_duration,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
                 disconnecting_time,
             } => {
@@ -277,6 +295,7 @@ impl UsageHandler {
                     disconnection_duration: event_time.duration_since(disconnecting_time),
                     tunnel_type,
                     exit_id,
+                    exit_cc,
                     follow_up_id,
                     error: None,
                 };
@@ -287,6 +306,7 @@ impl UsageHandler {
                     retry_attempt: new_retry_attempt,
                     tunnel_type: maybe_tunnel_type,
                     exit_id: maybe_exit_id,
+                    exit_cc: maybe_exit_cc,
                     follow_up_id: None,
                 }
             }
@@ -297,6 +317,7 @@ impl UsageHandler {
         &mut self,
         session_start_time: Instant,
         exit_id: String,
+        exit_cc: Option<String>,
         tunnel_type: String,
     ) {
         match self.session_state.clone() {
@@ -314,6 +335,7 @@ impl UsageHandler {
                     session_start_time,
                     tunnel_type,
                     exit_id,
+                    exit_cc,
                     follow_up_id,
                 }
             }
@@ -338,6 +360,7 @@ impl UsageHandler {
                 session_start_time,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => {
                 self.session_state = SessionState::Disconnecting {
@@ -348,6 +371,7 @@ impl UsageHandler {
                         .duration_since(session_start_time),
                     tunnel_type,
                     exit_id,
+                    exit_cc,
                     follow_up_id,
                     disconnecting_time: session_disconnection_start,
                 }
@@ -359,6 +383,7 @@ impl UsageHandler {
                 retry_attempt,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => {
                 self.session_state = SessionState::Disconnecting {
@@ -368,6 +393,7 @@ impl UsageHandler {
                     session_duration: Duration::from_millis(0),
                     tunnel_type: tunnel_type.unwrap_or_default(),
                     exit_id: exit_id.unwrap_or_default(),
+                    exit_cc,
                     follow_up_id,
                     disconnecting_time: session_disconnection_start,
                 }
@@ -401,6 +427,7 @@ impl UsageHandler {
                 retry_attempt,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => {
                 self.session_state = SessionState::Disconnecting {
@@ -410,6 +437,7 @@ impl UsageHandler {
                     session_duration: Duration::from_millis(0),
                     tunnel_type: tunnel_type.unwrap_or_default(),
                     exit_id: exit_id.unwrap_or_default(),
+                    exit_cc,
                     follow_up_id,
                     disconnecting_time: event_time,
                 }
@@ -422,6 +450,7 @@ impl UsageHandler {
                 session_start_time,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => {
                 self.session_state = SessionState::Disconnecting {
@@ -431,6 +460,7 @@ impl UsageHandler {
                     session_duration: event_time.duration_since(session_start_time),
                     tunnel_type,
                     exit_id,
+                    exit_cc,
                     follow_up_id,
                     disconnecting_time: event_time,
                 }
@@ -458,6 +488,7 @@ impl UsageHandler {
                 session_duration,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
                 disconnecting_time,
             } => {
@@ -469,6 +500,7 @@ impl UsageHandler {
                     disconnection_duration: session_end_time.duration_since(disconnecting_time),
                     tunnel_type,
                     exit_id,
+                    exit_cc,
                     follow_up_id,
                     error: None,
                 };
@@ -498,6 +530,7 @@ impl UsageHandler {
                 session_start_time,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => {
                 let finished_session = FinishedSession {
@@ -508,6 +541,7 @@ impl UsageHandler {
                     disconnection_duration: Duration::from_millis(0),
                     tunnel_type,
                     exit_id,
+                    exit_cc,
                     follow_up_id,
                     error: Some(error_string),
                 };
@@ -520,6 +554,7 @@ impl UsageHandler {
                 retry_attempt,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => {
                 let finished_session = FinishedSession {
@@ -530,6 +565,7 @@ impl UsageHandler {
                     disconnection_duration: Duration::from_millis(0),
                     tunnel_type: tunnel_type.unwrap_or_default(),
                     exit_id: exit_id.unwrap_or_default(),
+                    exit_cc,
                     follow_up_id,
                     error: Some(error_string),
                 };
@@ -543,6 +579,7 @@ impl UsageHandler {
                 session_duration,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
                 disconnecting_time,
             } => {
@@ -554,6 +591,7 @@ impl UsageHandler {
                     disconnection_duration: error_time.duration_since(disconnecting_time),
                     tunnel_type,
                     exit_id,
+                    exit_cc,
                     follow_up_id,
                     error: Some(error_string),
                 };
@@ -591,6 +629,7 @@ impl UsageHandler {
                 session_duration,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
                 disconnecting_time,
             } => {
@@ -602,6 +641,7 @@ impl UsageHandler {
                     disconnection_duration: event_time.duration_since(disconnecting_time),
                     tunnel_type,
                     exit_id,
+                    exit_cc,
                     follow_up_id,
                     error: Some(OFFLINE_ENDING.into()),
                 };
@@ -614,6 +654,7 @@ impl UsageHandler {
                 retry_attempt,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => {
                 let finished_session = FinishedSession {
@@ -624,6 +665,7 @@ impl UsageHandler {
                     disconnection_duration: Duration::from_millis(0),
                     tunnel_type: tunnel_type.unwrap_or_default(),
                     exit_id: exit_id.unwrap_or_default(),
+                    exit_cc,
                     follow_up_id,
                     error: Some(OFFLINE_ENDING.into()),
                 };
@@ -664,6 +706,7 @@ struct FinishedSession {
     session_duration: Duration,
     tunnel_type: String,
     exit_id: String,
+    exit_cc: Option<String>,
     follow_up_id: Option<String>,
     disconnection_duration: Duration,
     error: Option<String>,
@@ -691,6 +734,7 @@ impl From<FinishedSession> for SessionReport {
             disconnection_time_ms,
             tunnel_type: value.tunnel_type,
             exit_id: value.exit_id,
+            exit_cc: value.exit_cc,
             follow_up_id: value.follow_up_id,
             error: value.error,
         }
@@ -721,6 +765,7 @@ enum SessionState {
         retry_attempt: u32,
         tunnel_type: Option<String>,
         exit_id: Option<String>,
+        exit_cc: Option<String>,
         follow_up_id: Option<String>,
     },
 
@@ -732,6 +777,7 @@ enum SessionState {
         session_start_time: Instant,
         tunnel_type: String,
         exit_id: String,
+        exit_cc: Option<String>,
         follow_up_id: Option<String>,
     },
 
@@ -743,6 +789,7 @@ enum SessionState {
         session_duration: Duration,
         tunnel_type: String,
         exit_id: String,
+        exit_cc: Option<String>,
         follow_up_id: Option<String>,
         disconnecting_time: Instant,
     },
@@ -761,6 +808,7 @@ impl SessionState {
                 retry_attempt,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => Some(FinishedSession {
                 start_day,
@@ -770,6 +818,7 @@ impl SessionState {
                 disconnection_duration: Duration::from_millis(0),
                 tunnel_type: tunnel_type.unwrap_or_default(),
                 exit_id: exit_id.unwrap_or_default(),
+                exit_cc,
                 follow_up_id,
                 error: Some(SHUTDOWN_ERROR.into()),
             }),
@@ -780,6 +829,7 @@ impl SessionState {
                 session_start_time,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
             } => Some(FinishedSession {
                 start_day,
@@ -789,6 +839,7 @@ impl SessionState {
                 disconnection_duration: Duration::from_millis(0),
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
                 error: Some(SHUTDOWN_ERROR.into()),
             }),
@@ -799,6 +850,7 @@ impl SessionState {
                 session_duration,
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
                 disconnecting_time,
             } => Some(FinishedSession {
@@ -809,6 +861,7 @@ impl SessionState {
                 disconnection_duration: Instant::now().duration_since(disconnecting_time),
                 tunnel_type,
                 exit_id,
+                exit_cc,
                 follow_up_id,
                 error: Some(SHUTDOWN_ERROR.into()),
             }),
@@ -833,8 +886,14 @@ mod tests {
     fn mock_gateway_id_a() -> String {
         "gatewayA".into()
     }
+    fn mock_gateway_cc_a() -> String {
+        "EU".into()
+    }
     fn mock_gateway_id_b() -> String {
         "gatewayB".into()
+    }
+    fn mock_gateway_cc_b() -> String {
+        "DS".into()
     }
     fn wg_tunnel_type() -> String {
         TunnelType::Wireguard.short_name().into()
@@ -885,6 +944,7 @@ mod tests {
                 instant: Instant::now(),
                 retry_attempt: 0,
                 maybe_exit_id: None,
+                maybe_exit_cc: None,
                 maybe_tunnel_type: None,
             })
             .await;
@@ -896,6 +956,7 @@ mod tests {
                 retry_attempt: 0,
                 tunnel_type: None,
                 exit_id: None,
+                exit_cc: None,
                 follow_up_id: None,
             }
         );
@@ -906,6 +967,7 @@ mod tests {
                 instant: Instant::now(),
                 retry_attempt: 1,
                 maybe_exit_id: Some(mock_gateway_id_a()),
+                maybe_exit_cc: Some(mock_gateway_cc_a()),
                 maybe_tunnel_type: Some(wg_tunnel_type()),
             })
             .await;
@@ -916,6 +978,7 @@ mod tests {
                 start_time: connect_request_instant,
                 retry_attempt: 1,
                 exit_id: Some(mock_gateway_id_a()),
+                exit_cc: Some(mock_gateway_cc_a()),
                 tunnel_type: Some(wg_tunnel_type()),
                 follow_up_id: None,
             }
@@ -927,6 +990,7 @@ mod tests {
                 instant: Instant::now(),
                 retry_attempt: 0,
                 maybe_exit_id: None,
+                maybe_exit_cc: None,
                 maybe_tunnel_type: None,
             })
             .await;
@@ -937,6 +1001,7 @@ mod tests {
                 start_time: connect_request_instant,
                 retry_attempt: 1,
                 exit_id: Some(mock_gateway_id_a()),
+                exit_cc: Some(mock_gateway_cc_a()),
                 tunnel_type: Some(wg_tunnel_type()),
                 follow_up_id: None,
             }
@@ -948,6 +1013,7 @@ mod tests {
                 instant: Instant::now(),
                 retry_attempt: 1,
                 maybe_exit_id: Some(mock_gateway_id_b()),
+                maybe_exit_cc: Some(mock_gateway_cc_b()),
                 maybe_tunnel_type: Some(wg_tunnel_type()),
             })
             .await;
@@ -958,6 +1024,7 @@ mod tests {
                 start_time: connect_request_instant,
                 retry_attempt: 1,
                 exit_id: Some(mock_gateway_id_b()),
+                exit_cc: Some(mock_gateway_cc_b()),
                 tunnel_type: Some(wg_tunnel_type()),
                 follow_up_id: None,
             }
@@ -968,6 +1035,7 @@ mod tests {
             .handle_event(UsageEvent::Connected {
                 instant: connected_instant,
                 exit_id: mock_gateway_id_b(),
+                exit_cc: Some(mock_gateway_cc_b()),
                 tunnel_type: wg_tunnel_type(),
             })
             .await;
@@ -981,6 +1049,7 @@ mod tests {
                 session_start_time: connected_instant,
                 tunnel_type: wg_tunnel_type(),
                 exit_id: mock_gateway_id_b(),
+                exit_cc: Some(mock_gateway_cc_b()),
                 follow_up_id: None,
             }
         );
@@ -999,6 +1068,7 @@ mod tests {
                 session_duration,
                 tunnel_type: wg_tunnel_type(),
                 exit_id: mock_gateway_id_b(),
+                exit_cc: Some(mock_gateway_cc_b()),
                 disconnecting_time: disconnect_request_instant,
                 follow_up_id: None,
             }
@@ -1020,6 +1090,7 @@ mod tests {
                 session_duration,
                 tunnel_type: wg_tunnel_type(),
                 exit_id: mock_gateway_id_b(),
+                exit_cc: Some(mock_gateway_cc_b()),
                 disconnecting_time: disconnect_request_instant,
                 follow_up_id: None,
             }
@@ -1039,6 +1110,7 @@ mod tests {
             session_duration_min: bucketize_session_duration(session_duration.as_secs()),
             tunnel_type: wg_tunnel_type(),
             exit_id: mock_gateway_id_b(),
+            exit_cc: Some(mock_gateway_cc_b()),
             follow_up_id: None,
             error: None,
             disconnection_time_ms: disconnection_duration.as_millis().try_into().unwrap(),
@@ -1072,6 +1144,7 @@ mod tests {
             session_start_time: connected_instant,
             tunnel_type: wg_tunnel_type(),
             exit_id: mock_gateway_id_a(),
+            exit_cc: Some(mock_gateway_cc_a()),
             follow_up_id: None,
         };
 
@@ -1093,6 +1166,7 @@ mod tests {
             disconnection_time_ms: 0,
             tunnel_type: wg_tunnel_type(),
             exit_id: mock_gateway_id_a(),
+            exit_cc: Some(mock_gateway_cc_a()),
             follow_up_id: None,
             error: Some(error_reason.into()),
         };
@@ -1130,6 +1204,7 @@ mod tests {
             session_start_time: connected_instant,
             tunnel_type: wg_tunnel_type(),
             exit_id: mock_gateway_id_a(),
+            exit_cc: Some(mock_gateway_cc_a()),
             follow_up_id: None,
         };
 
@@ -1150,6 +1225,7 @@ mod tests {
                 session_duration,
                 tunnel_type: wg_tunnel_type(),
                 exit_id: mock_gateway_id_a(),
+                exit_cc: Some(mock_gateway_cc_a()),
                 disconnecting_time: disconnecting_instant,
                 follow_up_id: None,
             }
@@ -1161,6 +1237,7 @@ mod tests {
                 instant: reconnecting_instant,
                 retry_attempt,
                 maybe_exit_id: None,
+                maybe_exit_cc: None,
                 maybe_tunnel_type: None,
             })
             .await;
@@ -1173,6 +1250,7 @@ mod tests {
                 retry_attempt,
                 tunnel_type: None,
                 exit_id: None,
+                exit_cc: None,
                 follow_up_id: None,
             }
         );
@@ -1182,6 +1260,7 @@ mod tests {
                 instant: reconnected_instant,
                 tunnel_type: wg_tunnel_type(),
                 exit_id: mock_gateway_id_b(),
+                exit_cc: Some(mock_gateway_cc_b()),
             })
             .await;
 
@@ -1194,6 +1273,7 @@ mod tests {
                 session_start_time: reconnected_instant,
                 tunnel_type: wg_tunnel_type(),
                 exit_id: mock_gateway_id_b(),
+                exit_cc: Some(mock_gateway_cc_b()),
                 follow_up_id: None,
             }
         );
@@ -1206,6 +1286,7 @@ mod tests {
             disconnection_time_ms: disconnection_duration.as_millis().try_into().unwrap(),
             tunnel_type: wg_tunnel_type(),
             exit_id: mock_gateway_id_a(),
+            exit_cc: Some(mock_gateway_cc_a()),
             follow_up_id: None,
             error: None,
         };
@@ -1240,6 +1321,7 @@ mod tests {
             session_start_time: connected_instant,
             tunnel_type: wg_tunnel_type(),
             exit_id: mock_gateway_id_a(),
+            exit_cc: Some(mock_gateway_cc_a()),
             follow_up_id: None,
         };
 
@@ -1310,6 +1392,7 @@ mod tests {
                 instant: Instant::now(),
                 retry_attempt: 0,
                 maybe_exit_id: None,
+                maybe_exit_cc: None,
                 maybe_tunnel_type: None,
             })
             .await;
@@ -1321,6 +1404,7 @@ mod tests {
                 retry_attempt: 0,
                 tunnel_type: None,
                 exit_id: None,
+                exit_cc: None,
                 follow_up_id: None,
             }
         );
@@ -1331,6 +1415,7 @@ mod tests {
                 instant: Instant::now(),
                 retry_attempt: 4,
                 maybe_exit_id: Some(mock_gateway_id_a()),
+                maybe_exit_cc: Some(mock_gateway_cc_a()),
                 maybe_tunnel_type: None,
             })
             .await;
@@ -1341,6 +1426,7 @@ mod tests {
                 start_time: connect_request_instant,
                 retry_attempt: 4,
                 exit_id: Some(mock_gateway_id_a()),
+                exit_cc: Some(mock_gateway_cc_a()),
                 tunnel_type: None,
                 follow_up_id: None,
             }
@@ -1360,6 +1446,7 @@ mod tests {
                 session_duration: Duration::from_secs(0),
                 tunnel_type: "".into(),
                 exit_id: mock_gateway_id_a(),
+                exit_cc: Some(mock_gateway_cc_a()),
                 disconnecting_time: disconnect_request_instant,
                 follow_up_id: None,
             }
@@ -1379,6 +1466,7 @@ mod tests {
             session_duration_min: 0,
             tunnel_type: "".into(),
             exit_id: mock_gateway_id_a(),
+            exit_cc: Some(mock_gateway_cc_a()),
             follow_up_id: None,
             error: None,
             disconnection_time_ms: disconnection_duration.as_millis().try_into().unwrap(),
