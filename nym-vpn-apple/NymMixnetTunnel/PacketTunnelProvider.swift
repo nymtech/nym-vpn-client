@@ -135,7 +135,7 @@ extension PacketTunnelProvider {
 
         Task {
             let logLevel = await MainActor.run { ConfigurationManager.shared.debugLevel }
-            let success await initLogger(
+            let success = await initLogger(
                 path: logPath,
                 debugLevel: logLevel,
                 sentryMonitoring: true
