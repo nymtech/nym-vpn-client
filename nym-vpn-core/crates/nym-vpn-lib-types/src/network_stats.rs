@@ -29,7 +29,7 @@ pub struct NetworkStatisticsConfig {
     // - If the tunnel is connected in mixnet mode, it will go through the mixnet
     // - If the tunnel is connected in wireguard mode, it will go through wireguard
     // We thus need this option to allow users to report even if they can't connect (i.e. if they're being censored)
-    /// Allow statistics sending, even if not conncetced to the mixnet/vpn
+    /// Allow statistics sending, even if not connected to the mixnet/vpn
     pub allow_disconnected: bool,
 }
 
