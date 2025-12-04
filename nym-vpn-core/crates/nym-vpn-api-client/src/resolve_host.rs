@@ -24,7 +24,7 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
         })?
         .collect::<Vec<_>>();
 
-    tracing::debug!("Resolved to: {ips:?}");
+    tracing::debug!("Resolved {hostname} to: {ips:?}");
     assert!(!ips.is_empty());
     Ok(ips)
 }
