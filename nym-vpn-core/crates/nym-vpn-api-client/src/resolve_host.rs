@@ -22,7 +22,6 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
                 source: err,
             }
         })?
-        .into_iter()
         .collect::<Vec<_>>();
 
     tracing::debug!("Resolved to: {ips:?}");
