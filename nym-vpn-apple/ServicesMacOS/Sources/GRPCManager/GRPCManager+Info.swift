@@ -2,43 +2,37 @@ import Shell
 
 extension GRPCManager {
     public func version() async throws {
-        try await Task.detached { [weak self] in
-            do {
-                guard let result = try await self?.rpcClient?.getInfo()
-                else {
-                    Task { @MainActor in
-                        self?.daemonVersion = "noVersion"
-                    }
-                    return
-                }
+        do {
+            guard let result = try await rpcClient?.getInfo()
+            else {
                 Task { @MainActor in
-                    self?.daemonVersion = result.version
-                    self?.networkName = result.nymNetwork.networkName
-                    self?.logger.info("🛜 \(result.nymNetwork.networkName)")
+                    daemonVersion = "noVersion"
                 }
-            } catch {
-                Task { @MainActor in
-                    guard self?.daemonVersion != "noVersion" || self?.daemonVersion != "update" else { return }
-                    self?.daemonVersion = "noVersion"
-                }
-                throw error
+                return
             }
-        }.value
+            Task { @MainActor in
+                daemonVersion = result.version
+                networkName = result.nymNetwork.networkName
+                logger.info("🛜 \(result.nymNetwork.networkName)")
+            }
+        } catch {
+            Task { @MainActor in
+                guard daemonVersion != "noVersion" || daemonVersion != "update" else { return }
+                daemonVersion = "noVersion"
+            }
+            throw error
+        }
     }
 
     public func updateErrorReportingIfNeeded(with isEnabled: Bool) async throws {
-        try await Task.detached { [weak self] in
-            if isEnabled {
-                try await self?.rpcClient?.enableSentry()
-            } else {
-                try await self?.rpcClient?.disableSentry()
-            }
-        }.value
+        if isEnabled {
+            try await rpcClient?.enableSentry()
+        } else {
+            try await rpcClient?.disableSentry()
+        }
     }
 
     public func updateNetworkStatisticsIfNeeded(with isEnabled: Bool) async throws {
-        try await Task.detached { [weak self] in
-            try await self?.rpcClient?.networkStatsSetEnabled(enabled: isEnabled)
-        }.value
+        try await rpcClient?.networkStatsSetEnabled(enabled: isEnabled)
     }
 }
