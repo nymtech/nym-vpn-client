@@ -59,7 +59,7 @@ impl Command {
                 allow_disconnected,
             }) => {
                 if let Some(enabled) = enabled {
-                    rpc_client.network_stats_enabled(*enabled).await?;
+                    rpc_client.network_stats_set_enabled(*enabled).await?;
                 }
 
                 if let Some(allow_disconnected) = allow_disconnected {

@@ -284,8 +284,11 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn network_stats_enabled(&self, enabled: bool) -> Result<()> {
-        self.inner.clone().network_stats_enabled(enabled).await?;
+    pub async fn network_stats_set_enabled(&self, enabled: bool) -> Result<()> {
+        self.inner
+            .clone()
+            .network_stats_set_enabled(enabled)
+            .await?;
         Ok(())
     }
 

@@ -959,10 +959,16 @@ service NymVpnService {
   rpc DisableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Enable/disable network statistics collection
-  rpc NetworkStatsEnabled (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc NetworkStatsSetEnabled (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
   // Allow/disallow disconnected network statistics collection sending
   rpc NetworkStatsAllowDisconnected (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+
+  // Reset seed used for network statistics id
+  rpc NetworkStatsResetSeed (NetworkStatsResetSeedRequest) returns (google.protobuf.Empty) {}
+
+  // Get seed and Id used for network statistics
+  rpc NetworkStatsGetSeed (google.protobuf.Empty) returns (NetworkStatisticsIdentity) {}
 
   // Enable socks5 proxy
   rpc EnableSocks5 (EnableSocks5Request) returns (google.protobuf.Empty) {}
@@ -972,10 +978,4 @@ service NymVpnService {
 
   // Get socks5 proxy status
   rpc GetSocks5Status (google.protobuf.Empty) returns (Socks5Status) {}
-  
-  // Reset seed used for network statistics id
-  rpc NetworkStatsResetSeed (NetworkStatsResetSeedRequest) returns (google.protobuf.Empty) {}
-
-  // Get seed and Id used for network statistics
-  rpc NetworkStatsGetSeed (google.protobuf.Empty) returns (NetworkStatisticsIdentity) {}
 }
