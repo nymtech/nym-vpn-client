@@ -129,7 +129,12 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	) {
 		runCatching {
 			startNetworkMonitorJob()
-			initLogger(null, LOG_LEVEL, false)
+
+			if (!initLogger(null, LOG_LEVEL, false)) {
+				Timber.e("Failed to initialize nym_vpn_lib logger")
+				throw BackendException("Failed to initialize nym_vpn_lib logger")
+			}
+
 			initEnvironment(environment)
 			configureLib(config, userAgent)
 			initialized.complete(Unit)

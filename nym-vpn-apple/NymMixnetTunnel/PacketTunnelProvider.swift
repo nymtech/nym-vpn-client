@@ -12,26 +12,31 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     let tunnelActor: TunnelActor
 
     lazy var logger = Logger(label: "MixnetTunnel")
+    var loggingInit = false
 
     override init() {
-        Self.configureLogger()
-        LoggingSystem.bootstrap { label in
-            let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
-#if DEBUG
-            let osLogHandler = OSLogHandler(
-                subsystem: Bundle.main.bundleIdentifier ?? "NymMixnetTunnel",
-                category: label
-            )
-            return MultiplexLogHandler([osLogHandler, fileLogHandler])
-#else
-            return fileLogHandler
-#endif
-        }
-
         tunnelActor = TunnelActor()
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
+        if !self.loggingInit {
+            try Self.configureLogger()
+            LoggingSystem.bootstrap { label in
+                let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
+#if DEBUG
+                let osLogHandler = OSLogHandler(
+                    subsystem: Bundle.main.bundleIdentifier ?? "NymMixnetTunnel",
+                    category: label
+                )
+                return MultiplexLogHandler([osLogHandler, fileLogHandler])
+#else
+                return fileLogHandler
+#endif
+            }
+            
+            self.loggingInit = true
+        }
+
         logger.info("Start tunnel...")
 
         await setup()
@@ -125,16 +130,19 @@ extension PacketTunnelProvider {
         }
     }
 
-    static func configureLogger() {
+    static func configureLogger() async throws {
         let logPath = LogFileManager.logFileURL(logFileType: .library)?.path()
 
         Task {
             let logLevel = await MainActor.run { ConfigurationManager.shared.debugLevel }
-            await initLogger(
+            let success await initLogger(
                 path: logPath,
                 debugLevel: logLevel,
                 sentryMonitoring: true
             )
+            if !success {
+                throw PacketTunnelProviderError.failedToInitLogging
+            }
         }
     }
 }

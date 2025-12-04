@@ -11,7 +11,7 @@ use tracing_subscriber::{
     util::SubscriberInitExt,
 };
 
-pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) {
+pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> bool {
     let oslogger_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
 
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -41,36 +41,42 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) {
     let registry = Registry::default().with(oslogger_layer);
 
     let mut layers = Vec::new();
-    let file_layer = path.as_ref().and_then(|path| {
+
+    if let Some(path) = &path {
         // Ensure log directory exists
         if let Some(parent) = path.parent()
             && !parent.exists()
             && let Err(e) = std::fs::create_dir_all(parent)
         {
             eprintln!("Failed to create log directory {}: {e}", parent.display());
+            return false;
         }
 
         // Attempting to get the tracing_appending solution to work was not successful.
         // Falling back to a more basic solution that does not support log rotation, for now.
 
         // Attempt to open the log file for writing
-        OpenOptions::new()
+        let file = match OpenOptions::new()
             .write(true)
             .create(true)
             .truncate(true)
             .open(path)
-            .ok()
-            .map(|file| {
-                fmtLayer::default()
-                    .with_writer(file)
-                    .with_ansi(false)
-                    .compact()
-            })
-    });
+        {
+            Ok(file) => file,
+            Err(e) => {
+                eprintln!("Failed to open log file {}: {e}", path.display());
+                return false;
+            }
+        };
 
-    if let Some(file_layer) = file_layer {
+        let file_layer = fmtLayer::default()
+            .with_writer(file)
+            .with_ansi(false)
+            .compact();
+
         layers.push(file_layer.boxed());
-    };
+    }
+
     if sentry {
         let layer = sentry_tracing::layer().event_filter(|md| match md.level() {
             &Level::ERROR | &Level::WARN => sentry_tracing::EventFilter::Event,
@@ -80,11 +86,14 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) {
         layers.push(layer.boxed());
     }
 
-    let result = registry.with(layers).with(filter).try_init();
-
-    if let Err(err) = result {
-        eprintln!("Failed to initialize logger: {err}");
-    } else {
-        tracing::debug!("Logger initialized level: {level}, path?:{path:?}");
+    match registry.with(layers).with(filter).try_init() {
+        Ok(_) => {
+            tracing::debug!("Logger initialized level: {level}, path?:{path:?}");
+            true
+        }
+        Err(err) => {
+            eprintln!("Failed to initialize logger: {err}");
+            false
+        }
     }
 }
