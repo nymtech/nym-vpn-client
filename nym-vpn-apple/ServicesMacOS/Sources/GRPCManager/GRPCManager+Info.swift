@@ -40,13 +40,10 @@ extension GRPCManager {
 
     public func updateNetworkStatisticsIfNeeded(with isEnabled: Bool) async throws {
         try await Task.detached { [weak self] in
-            let isStatisticsEnabled = try await self?.rpcClient?.isCollectNetworkStatsEnabled()
+            let config = try await self?.rpcClient?.getConfig()
+            let isStatisticsEnabled = config?.networkStats.enabled
             guard isStatisticsEnabled != isEnabled else { return }
-            if isEnabled {
-                try await self?.rpcClient?.enableCollectNetworkStats()
-            } else {
-                try await self?.rpcClient?.disableCollectNetworkStats()
-            }
+            try await self?.rpcClient?.networkStatsSetEnabled(enabled: isEnabled)
         }.value
     }
 }
