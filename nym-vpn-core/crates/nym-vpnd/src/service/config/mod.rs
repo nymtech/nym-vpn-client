@@ -4,6 +4,7 @@
 mod config_manager;
 mod entry_exit;
 mod legacy;
+mod network_stats;
 mod v1;
 mod v2;
 mod v3;
@@ -25,6 +26,7 @@ use tokio::{
 };
 
 use crate::service::config::entry_exit::v2::{EntryPoint, ExitPoint};
+use crate::service::config::network_stats::v1::NetworkStatisticsConfig;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
@@ -170,6 +172,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             residential_exit: value.residential_exit,
             enable_custom_dns: value.enable_custom_dns,
             custom_dns,
+            network_stats: NetworkStatisticsConfig::from(&value.network_stats),
         };
         Ok(VpnServiceConfigExt::V4(v4))
     }

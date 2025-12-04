@@ -26,7 +26,7 @@ use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_dns::ResolvedDnsConfig;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
-use nym_statistics::{StatisticsSender, events::StatisticsEvent};
+use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_api_client::ResolverOverrides;
@@ -739,9 +739,9 @@ impl TunnelStateMachine {
                     self.current_state_handler = new_state_handler;
                     let state = TunnelState::from(new_state);
                     tracing::info!("New tunnel state: {}", state);
-                    if let Some(event) = StatisticsEvent::new_from_state(state.clone()) {
-                        self.shared_state.statistics_event_sender.report(event)
-                    }
+                    self.shared_state
+                        .statistics_event_sender
+                        .report_tunnel_state(state.clone());
                     let _ = self.event_sender.send(TunnelEvent::NewState(state));
                 }
                 NextTunnelState::SameState(same_state) => {
