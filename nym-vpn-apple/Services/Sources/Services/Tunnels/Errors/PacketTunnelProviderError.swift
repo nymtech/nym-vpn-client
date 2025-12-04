@@ -1,6 +1,7 @@
 import Foundation
 
 public enum PacketTunnelProviderError: String, Error {
+    case failedToInitLogging
     case invalidSavedConfiguration
     case backendStartFailure
     case noCredentialDataDir

@@ -204,7 +204,11 @@ async fn configure_lib_for_main_process(user_agent: UserAgent) -> Result<(), Vpn
     Ok(())
 }
 
-async fn init_logger(path: Option<PathBuf>, debug_level: Option<String>, sentry_monitoring: bool) {
+async fn init_logger(
+    path: Option<PathBuf>,
+    debug_level: Option<String>,
+    sentry_monitoring: bool,
+) -> bool {
     let default_log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     let log_level = debug_level.unwrap_or(default_log_level);
     tracing::info!("Setting log level: {log_level}, path?: {path:?}");
@@ -215,9 +219,14 @@ async fn init_logger(path: Option<PathBuf>, debug_level: Option<String>, sentry_
         *guard = sentry_monitoring::init();
     }
     #[cfg(target_os = "ios")]
-    swift::init_logs(log_level, path, sentry_monitoring);
+    let success = swift::init_logs(log_level, path, sentry_monitoring);
     #[cfg(target_os = "android")]
-    android::init_logs(log_level);
+    let success = android::init_logs(log_level);
+
+    if !success {
+        tracing::error!("Failed to initialise OS-specific logger");
+    }
+    success
 }
 
 /// Additional extra function for when only want to set the logger without initializing the
@@ -228,8 +237,8 @@ pub async fn initLogger(
     path: Option<PathBuf>,
     debug_level: Option<String>,
     sentry_monitoring: bool,
-) {
-    init_logger(path, debug_level, sentry_monitoring).await;
+) -> bool {
+    init_logger(path, debug_level, sentry_monitoring).await
 }
 
 /// Returns the system messages for the current network environment

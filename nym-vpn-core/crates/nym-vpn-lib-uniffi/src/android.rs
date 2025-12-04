@@ -3,7 +3,7 @@
 
 use log::LevelFilter;
 
-pub(crate) fn init_logs(level: String) {
+pub(crate) fn init_logs(level: String) -> bool {
     use android_logger::{Config, FilterBuilder};
     let levels = level + ",tungstenite=warn,mio=warn,tokio_tungstenite=warn";
 
@@ -17,4 +17,5 @@ pub(crate) fn init_logs(level: String) {
             .with_filter(FilterBuilder::new().parse(levels.as_str()).build()),
     );
     tracing::debug!("Logger initialized");
+    true
 }
