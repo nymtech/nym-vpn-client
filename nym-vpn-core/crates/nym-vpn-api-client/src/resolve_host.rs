@@ -1,49 +1,32 @@
-use std::{
-    net::{IpAddr, SocketAddr},
-    time::Duration,
-};
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use std::net::{IpAddr, SocketAddr};
 
 use nym_common::trace_err_chain;
 use nym_http_api_client::HickoryDnsResolver;
 
 use crate::error::{Result, VpnApiClientError};
 
-// be generous with the resolution timeout
-const HOSTNAME_RESOLUTION_TIMEOUT: Duration = Duration::from_secs(10);
-
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
-    let mut resolver = HickoryDnsResolver::default();
-    // Disable system resolver because it's typically blocked by firewall anyway.
-    resolver.disable_system_fallback();
+    let resolver = HickoryDnsResolver::default();
 
-    let addrs =
-        match tokio::time::timeout(HOSTNAME_RESOLUTION_TIMEOUT, resolver.resolve_str(hostname))
-            .await
-        {
-            Ok(Ok(addrs)) => addrs,
-            Ok(Err(err)) => {
-                trace_err_chain!(err, "Failed to resolve hostname");
-                return Err(VpnApiClientError::FailedToDnsResolveGateway {
-                    hostname: hostname.to_string(),
-                    source: err,
-                });
+    let ips = resolver
+        .resolve_str(hostname)
+        .await
+        .map_err(|err| {
+            trace_err_chain!(err, "Failed to resolve hostname");
+            VpnApiClientError::FailedToDnsResolveGateway {
+                hostname: hostname.to_string(),
+                source: err,
             }
-            Err(_timeout) => {
-                return Err(VpnApiClientError::HostnameResolutionTimeout {
-                    hostname: hostname.to_string(),
-                });
-            }
-        };
+        })?
+        .into_iter()
+        .collect::<Vec<_>>();
 
-    let ips: Vec<IpAddr> = addrs.into_iter().collect();
     tracing::debug!("Resolved to: {ips:?}");
-    if ips.is_empty() {
-        return Err(VpnApiClientError::ResolvedHostnameButNoIp(
-            hostname.to_string(),
-        ));
-    }
-
+    assert!(!ips.is_empty());
     Ok(ips)
 }
 
