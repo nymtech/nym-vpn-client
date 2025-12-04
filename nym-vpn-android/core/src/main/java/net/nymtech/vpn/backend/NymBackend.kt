@@ -332,17 +332,18 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			try {
 				startVpn(
 					VpnConfig(
-						tunnel.entryPoint,
-						tunnel.exitPoint,
-						tunnel.mode.isTwoHop(),
-						enableBridges,
-						false,
-						vpnService.await(),
-						storagePath,
-						storagePath,
-						this@NymBackend,
-						null,
-						userAgent,
+						entryGateway = tunnel.entryPoint,
+						exitRouter = tunnel.exitPoint,
+						enableTwoHop = tunnel.mode.isTwoHop(),
+						enableBridges = enableBridges,
+						residentialExit = false,
+						tunProvider = vpnService.await(),
+						configPath = storagePath,
+						credentialDataPath = storagePath,
+						tunStatusListener = this@NymBackend,
+						userAgent = userAgent,
+						customDns = listOf(),
+						statisticsRecipient = null,
 					),
 				)
 			} catch (e: VpnException) {
