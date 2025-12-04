@@ -81,6 +81,7 @@ dayjs.extend(duration);
   }
 
   const config = await invoke<VpndConfig | undefined>('get_vpn_config');
+  console.log('config', config);
 
   // pre-get and prepare some early stage state
   const initState: InitState = {
@@ -95,6 +96,9 @@ dayjs.extend(duration);
       config?.disableIpv6 !== undefined ? config.disableIpv6 : defaultNoIpv6,
     allowLan:
       config?.allowLan !== undefined ? config.allowLan : defaultAllowLan,
+    customDnsEnabled:
+      config?.enableCustomDns !== undefined ? config.enableCustomDns : false,
+    customDns: !config?.customDns ? [] : config.customDns,
   };
   console.log('initial state:', initState);
 

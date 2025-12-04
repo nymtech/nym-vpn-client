@@ -23,6 +23,7 @@ use std::{
     env::consts::{ARCH, OS},
     path::PathBuf,
     sync::Mutex,
+    net::IpAddr,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio_stream::StreamExt;
@@ -770,6 +771,49 @@ impl VpndClient {
 
         debug!("disabled vpnd network statistics collection");
         info!("restart vpnd (service) required for the change to take effect");
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let dns = vpnd.get_default_dns().await.map_err(|e| {
+            error!("failed to get default DNS: {}", e);
+            VpndError::RpcClient(e)
+        })?;
+        Ok(dns)
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_custom_dns_enabled(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_enable_custom_dns(enabled).await.map_err(VpndError::RpcClient).inspect_err(|e| {
+            error!("failed to set custom DNS enabled: {}", e);
+        })?;
+
+
+        debug!("custom DNS enabled: {}", enabled);
+        if enabled {
+            info!("⚠ vpnd custom DNS enabled ⚠");
+        } else {
+            info!("custom DNS disabled");
+        }
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_custom_dns(&self, dns: Vec<IpAddr>) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let borrowed_dns = dns.clone();
+
+        vpnd.set_custom_dns(dns).await.map_err(VpndError::RpcClient).inspect_err(|e| {
+            error!("failed to set custom DNS: {}", e);
+        })?;
+
+        debug!("custom DNS set: {:?}", borrowed_dns);
         Ok(())
     }
 

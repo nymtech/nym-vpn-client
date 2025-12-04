@@ -354,6 +354,7 @@ export type VpndConfig = {
   entryNode: SelectedNode;
   exitNode: SelectedNode;
   customDns: Array<string> | null;
+  enableCustomDns: boolean;
   allowLan: boolean;
   disableIpv6: boolean;
   vpnMode: VpnMode;

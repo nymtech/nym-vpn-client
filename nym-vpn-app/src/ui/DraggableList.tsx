@@ -66,7 +66,7 @@ function SortableItem<T extends DraggableListItem>({
       ref={setNodeRef}
       style={style}
       className={clsx(
-        'not-first:border-t border-bombay dark:border-iron',
+        'border-t border-bombay dark:border-iron',
         isDragging ? 'opacity-50 z-10' : '',
       )}
     >
@@ -115,7 +115,8 @@ function DraggableList<T extends DraggableListItem>({
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="flex flex-col border-t border-b border-bombay dark:border-iron">
+        <div className="flex flex-col border-b border-bombay dark:border-iron">
+          {/* <div className="flex flex-col"> */}
           {items.map((item) => (
             <SortableItem
               key={item.id}

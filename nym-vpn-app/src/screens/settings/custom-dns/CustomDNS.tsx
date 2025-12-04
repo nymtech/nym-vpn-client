@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import {
@@ -14,21 +14,15 @@ import {
 } from '../../../ui';
 import DraggableList, { DraggableListItem } from '../../../ui/DraggableList';
 import { CustomDnsHelpUrl } from '../../../constants';
-import { useInAppNotify } from '../../../contexts/index';
+import useCustomDns from '../../../hooks/useCustomDns';
+import { ipv4Regex, ipv6Regex } from '../../../utils';
 
-function DefaultDnsServers() {
-  const defaultDnsServers = [
-    '192.0.2.44',
-    '2001:db8::44',
-    '198.51.100.44',
-    '2001:db8::1337',
-  ];
-
+function DefaultDnsServers({ defaultDnsList }: { defaultDnsList: string[] }) {
   return (
     <div className="flex flex-col">
       <p className="text-xs">Default DNS servers</p>
       <div className="py-3">
-        {defaultDnsServers.map((dns) => (
+        {defaultDnsList.map((dns) => (
           <div
             key={dns}
             className="flex flex-row items-center gap-2 p-3 pl-0 border-t last:border-b border-bombay dark:border-iron"
@@ -69,7 +63,7 @@ function DnsItemContent({
         icon="delete_outline"
         color="chalk"
         onClick={() => {
-          onDelete(item.dns);
+          onDelete(item.id);
         }}
         noDefaultSize
         className="shrink-0"
@@ -80,23 +74,40 @@ function DnsItemContent({
 
 const MAX_DNS_SERVERS = 5;
 
-function CustomDns() {
+function CustomDns({
+  onApplyDns,
+  customDnsList,
+}: {
+  onApplyDns: (dnsList: string[]) => Promise<void>;
+  customDnsList: string[];
+}) {
   const { t } = useTranslation('settings');
-  const [dnsList, setDnsList] = useState<DnsItem[]>([
-    { id: '1.1.1.1', dns: '1.1.1.1' },
-    { id: '1.0.0.1', dns: '1.0.0.1' },
-  ]);
+  const [dnsList, setDnsList] = useState<DnsItem[]>(() =>
+    customDnsList.map((dns) => ({ id: dns, dns: dns })),
+  );
   const [inputValue, setInputValue] = useState('');
-  const { push } = useInAppNotify();
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleAddDns = () => {
     const inputValueTrimmed = inputValue.trim();
-    if (
-      inputValueTrimmed === '' ||
-      dnsList.length >= MAX_DNS_SERVERS ||
-      dnsList.some((item) => item.dns === inputValueTrimmed)
-    )
+    const containsDuplicate = dnsList.some(
+      (item) => item.dns === inputValueTrimmed,
+    );
+    const isValid =
+      ipv4Regex.test(inputValueTrimmed) || ipv6Regex.test(inputValueTrimmed);
+
+    if (inputValueTrimmed === '') return;
+
+    if (containsDuplicate) {
+      setErrorMessage('Duplicate DNS address');
       return;
+    }
+
+    if (!isValid) {
+      setErrorMessage('Invalid DNS address format');
+      return;
+    }
+
     setDnsList((prev) => [
       ...prev,
       { id: inputValueTrimmed, dns: inputValueTrimmed },
@@ -105,17 +116,16 @@ function CustomDns() {
   };
 
   const handleApplyDns = () => {
-    if (dnsList.length > 0) {
-      push({
-        message: 'Custom DNS applied. Reconnect to use it.',
-        type: 'info',
-      });
-      return;
-    }
+    onApplyDns(dnsList.map((item) => item.dns));
+  };
+
+  const handleTextInputChange = (value: string) => {
+    setInputValue(value);
+    setErrorMessage('');
   };
 
   const handleDeleteDns = (dns: string) => {
-    setDnsList((prev) => prev.filter((d) => d.dns !== dns));
+    setDnsList((prev) => prev.filter((d) => d.id !== dns));
   };
 
   const handleReorder = (items: DnsItem[]) => {
@@ -124,34 +134,39 @@ function CustomDns() {
 
   return (
     <>
-      <div className="flex flex-col">
-        <p className="text-xs">
-          Custom DNS servers ({dnsList.length}/{MAX_DNS_SERVERS})
-        </p>
-        <div className="py-3">
-          <DraggableList
-            items={dnsList}
-            onReorder={handleReorder}
-            renderItem={(item, dragHandle) => (
-              <DnsItemContent
-                item={item}
-                dragHandle={dragHandle}
-                onDelete={handleDeleteDns}
-              />
-            )}
-          />
+      {dnsList.length > 0 && (
+        <div className="flex flex-col">
+          <p className="text-xs">
+            Custom DNS servers ({dnsList.length}/{MAX_DNS_SERVERS})
+          </p>
+          <div className="my-3">
+            <DraggableList
+              items={dnsList}
+              onReorder={handleReorder}
+              renderItem={(item, dragHandle) => (
+                <DnsItemContent
+                  item={item}
+                  dragHandle={dragHandle}
+                  onDelete={handleDeleteDns}
+                />
+              )}
+            />
+          </div>
         </div>
-      </div>
+      )}
       {dnsList.length < MAX_DNS_SERVERS && (
         <div className="flex flex-row gap-2">
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col gap-2 ">
             <TextInput
               placeholder={t('dns.details.input-placeholder')}
-              onChange={setInputValue}
+              onChange={handleTextInputChange}
               value={inputValue}
               label={t('dns.details.input-label')}
               color="gray"
             />
+            {errorMessage && (
+              <p className="text-xs text-aphrodisiac">{errorMessage}</p>
+            )}
           </div>
           <div className="shrink">
             <Button onClick={handleAddDns}>
@@ -163,24 +178,54 @@ function CustomDns() {
         </div>
       )}
 
-      {dnsList.length > 0 && (
-        <Button onClick={handleApplyDns} outline color="gray">
-          <span className="text-lg text-black dark:text-baltic-sea">
-            {t('dns.details.apply')}
-          </span>
-        </Button>
-      )}
+      <Button
+        disabled={dnsList.length === 0}
+        onClick={handleApplyDns}
+        outline
+        color="gray"
+      >
+        <span className="text-lg text-black dark:text-baltic-sea">
+          {t('dns.details.apply')}
+        </span>
+      </Button>
     </>
   );
 }
 
 function CustomDNS() {
   const { t } = useTranslation('settings');
-  const [customDns, setCustomDns] = useState(true);
+  const {
+    enabled: customDnsEnabled,
+    toggle: toggleCustomDns,
+    customDns: customDnsList,
+    setCustomDns,
+    defaultDns: defaultDnsList,
+  } = useCustomDns();
 
-  const description = customDns
+  const [dnsEnabledLocal, setDnsEnabledLocal] = useState(customDnsEnabled);
+
+  const description = customDnsEnabled
     ? t('dns.details.on.description')
     : t('dns.details.off.description');
+
+  const handleDnsSwitchChange = async () => {
+    const newState = !dnsEnabledLocal;
+    setDnsEnabledLocal(newState);
+    if (newState === false) {
+      await toggleCustomDns(false);
+    }
+  };
+
+  const applyChanges = async (dnsList: string[]) => {
+    console.log(
+      '[applyChanges] dnsList',
+      dnsList,
+      'dnsEnabledLocal',
+      dnsEnabledLocal,
+    );
+    await toggleCustomDns(dnsEnabledLocal);
+    await setCustomDns(dnsList);
+  };
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
@@ -188,10 +233,8 @@ function CustomDNS() {
         header={
           <CardSwitch
             header={t('dns.details.title')}
-            checked={customDns}
-            onClick={() => {
-              setCustomDns(!customDns);
-            }}
+            checked={dnsEnabledLocal}
+            onClick={handleDnsSwitchChange}
           />
         }
       >
@@ -201,11 +244,18 @@ function CustomDNS() {
             {description}
           </p>
 
-          {customDns ? <CustomDns /> : <DefaultDnsServers />}
+          {dnsEnabledLocal ? (
+            <CustomDns
+              onApplyDns={applyChanges}
+              customDnsList={customDnsList}
+            />
+          ) : (
+            <DefaultDnsServers defaultDnsList={defaultDnsList} />
+          )}
         </div>
       </SettingsMenuCardBig>
 
-      {customDns && (
+      {dnsEnabledLocal && (
         <motion.div
           initial={{ opacity: 0, translateY: -4 }}
           animate={{ opacity: 1, translateY: 0 }}
