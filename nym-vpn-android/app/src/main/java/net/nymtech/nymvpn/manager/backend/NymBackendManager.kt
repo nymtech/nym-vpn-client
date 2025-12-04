@@ -158,6 +158,7 @@ class NymBackendManager @Inject constructor(
 						launchVpnPermissionNotification()
 						stopTunnel()
 					}
+					is BackendException.InitLoggingFailed -> {}
 				}
 			} else {
 				Timber.e(it)
