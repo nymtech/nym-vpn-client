@@ -60,6 +60,23 @@ impl SendingConfig {
         .sample(&mut rand::thread_rng());
         Duration::from_mins(random_delay_mins)
     }
+
+    // Return Some(new_value) if `allows_sending` changed, None otherwise
+    fn update(&mut self, event: ReportSendingEvent) -> Option<bool> {
+        let old_value = self.allows_sending();
+        match event {
+            ReportSendingEvent::Connected => self.tunnel_state = TunnelState::Connected,
+            ReportSendingEvent::Disconnected => self.tunnel_state = TunnelState::Disconnected,
+            ReportSendingEvent::Standby => self.tunnel_state = TunnelState::Standby,
+            ReportSendingEvent::AllowDirectSending(status) => self.allow_direct_sending = status,
+        }
+        let new_value = self.allows_sending();
+        if old_value == new_value {
+            None
+        } else {
+            Some(new_value)
+        }
+    }
 }
 
 pub struct ReportSendingHandler {
@@ -155,7 +172,7 @@ struct InnerHandler {
     storage: StatsStorage,
     api_client: StatisticsApiClient,
     event_rx: Receiver<ReportSendingEvent>,
-    sending_policy: SendingConfig,
+    sending_config: SendingConfig,
     system_report: StaticInformationReport,
     cancellation_token: CancellationToken,
 }
@@ -172,7 +189,7 @@ impl InnerHandler {
             os_arch: System::cpu_arch(),
             app_version: nym_bin_common::bin_info!().build_version.into(),
         };
-        let sending_policy = SendingConfig {
+        let sending_config = SendingConfig {
             tunnel_state: TunnelState::Disconnected,
             allow_direct_sending,
         };
@@ -182,7 +199,7 @@ impl InnerHandler {
             storage,
             api_client,
             event_rx,
-            sending_policy,
+            sending_config,
             system_report,
             cancellation_token: cancellation_token.clone(),
         };
@@ -190,30 +207,6 @@ impl InnerHandler {
         InnerHandlerHandle {
             event_tx,
             cancellation_token,
-        }
-    }
-
-    // Return Some(new_value) if `allows_sending` changed, None otherwise
-    fn update_sending_policy(&mut self, event: ReportSendingEvent) -> Option<bool> {
-        let old_value = self.sending_policy.allows_sending();
-        match event {
-            ReportSendingEvent::Connected => {
-                self.sending_policy.tunnel_state = TunnelState::Connected
-            }
-
-            ReportSendingEvent::Disconnected => {
-                self.sending_policy.tunnel_state = TunnelState::Disconnected
-            }
-            ReportSendingEvent::Standby => self.sending_policy.tunnel_state = TunnelState::Standby,
-            ReportSendingEvent::AllowDirectSending(status) => {
-                self.sending_policy.allow_direct_sending = status
-            }
-        }
-        let new_value = self.sending_policy.allows_sending();
-        if old_value == new_value {
-            None
-        } else {
-            Some(new_value)
         }
     }
 
@@ -265,7 +258,7 @@ impl InnerHandler {
     async fn run(mut self) {
         let mut sending_retries = 0;
         let sending_task = Fuse::terminated();
-        let timer = if self.sending_policy.allow_direct_sending {
+        let timer = if self.sending_config.allow_direct_sending {
             tokio::time::sleep(SendingConfig::random_small_delay()).fuse()
         } else {
             Fuse::terminated()
@@ -286,7 +279,7 @@ impl InnerHandler {
                             return;
                         }
                         Some(event) => {
-                            if let Some(new_allowed) = self.update_sending_policy(event) {
+                            if let Some(new_allowed) = self.sending_config.update(event) {
                                 // Handle policy changes
                                 if new_allowed {
                                     let next_delay = SendingConfig::random_small_delay();
@@ -346,5 +339,47 @@ impl InnerHandler {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{
+        events::ReportSendingEvent,
+        handler::report_sending::{SendingConfig, TunnelState},
+    };
+
+    fn mock_sending_config() -> SendingConfig {
+        SendingConfig {
+            tunnel_state: TunnelState::Disconnected,
+            allow_direct_sending: false,
+        }
+    }
+
+    #[tokio::test]
+    async fn sending_policy_test() {
+        let mut sending_policy = mock_sending_config();
+
+        assert_eq!(sending_policy.update(ReportSendingEvent::Standby), None);
+        assert_eq!(
+            sending_policy.update(ReportSendingEvent::Connected),
+            Some(true)
+        );
+        assert_eq!(
+            sending_policy.update(ReportSendingEvent::Standby),
+            Some(false)
+        );
+        assert_eq!(
+            sending_policy.update(ReportSendingEvent::Disconnected),
+            None
+        );
+        assert_eq!(
+            sending_policy.update(ReportSendingEvent::AllowDirectSending(true)),
+            Some(true)
+        );
+        assert_eq!(
+            sending_policy.update(ReportSendingEvent::AllowDirectSending(false)),
+            Some(false)
+        );
     }
 }

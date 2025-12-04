@@ -158,7 +158,11 @@ location = "BE"
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
   "enable_custom_dns": false,
-  "custom_dns": []
+  "custom_dns": [],
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Country {
@@ -206,7 +210,11 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
   "enable_custom_dns": false,
-  "custom_dns": []
+  "custom_dns": [],
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
@@ -259,7 +267,11 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
-  "custom_dns": null
+  "custom_dns": null,
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
@@ -301,7 +313,11 @@ exit_point = "Random"
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
   "enable_custom_dns": false,
-  "custom_dns": []
+  "custom_dns": [],
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Random;
@@ -350,7 +366,11 @@ async fn test_service_config_migrate_from_v1() {
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
   "enable_custom_dns": false,
-  "custom_dns": []
+  "custom_dns": [],
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
 }"#;
 
     run_migrate_json_test(json_v1_content, json_latest_content).await;
@@ -442,7 +462,11 @@ async fn test_service_config_migrate_from_v3() {
   "custom_dns": [
     "192.168.50.1",
     "2001:db8:85a3::8a2e:370:7334"
-  ]
+  ],
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
 }"#;
 
     let json_latest_content = r#"{
@@ -520,7 +544,11 @@ async fn test_service_config_fallback_default_v2() {
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
-  "residential_exit": false
+  "residential_exit": false,
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
 }"#;
 
     run_fallback_test(broken_json_content).await;
