@@ -49,7 +49,7 @@ impl ResolverOverrides {
                     .inspect_err(|err| {
                         tracing::warn!(
                             "{}",
-                            err.display_chain_with_msg(&format!(
+                            err.display_chain_with_msg(format!(
                                 "Failed to resolve domain {domain}"
                             ))
                         );
