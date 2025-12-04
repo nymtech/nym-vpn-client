@@ -4,6 +4,7 @@
 use std::time::Duration;
 
 use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS, UserAgent};
+use nym_statistics_common::report::vpn_client::VpnClientStatsReportV2;
 use serde::{Serialize, de::DeserializeOwned};
 use url::Url;
 
@@ -13,7 +14,7 @@ use crate::{
 };
 
 // requests can unfortunately take a long time over the mixnet
-pub(crate) const NYM_STATISTICS_API_TIMEOUT: Duration = Duration::from_secs(60);
+pub(crate) const NYM_STATISTICS_API_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[derive(Clone, Debug)]
 pub struct StatisticsApiClient {
@@ -45,18 +46,14 @@ impl StatisticsApiClient {
         B: Serialize,
     {
         let request = self.inner.create_post_request(path, NO_PARAMS, json_body)?;
-
         let response = request.send().await?;
 
-        //SW parse_response currently can't handle empty response without throwing an error because it will try to deserialize it anyway
+        // parse_response currently can't handle empty response without throwing an error because it will try to deserialize it anyway
         nym_http_api_client::parse_response(response, false).await
     }
 
-    pub async fn post_stats_report<B>(&self, body: B) -> Result<()>
-    where
-        B: Serialize,
-    {
-        self.post_query(routes::REPORT_ROUTE, &body)
+    pub async fn post_session_report(&self, report: VpnClientStatsReportV2) -> Result<()> {
+        self.post_query(routes::SESSION_REPORT_ROUTE, &report)
             .await
             .map_err(Box::new)
             .map_err(StatisticsApiClientError::ReportSending)
