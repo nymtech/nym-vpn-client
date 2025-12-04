@@ -28,8 +28,6 @@ extension GRPCManager {
 
     public func updateErrorReportingIfNeeded(with isEnabled: Bool) async throws {
         try await Task.detached { [weak self] in
-            let isSentryEnabled = try await self?.rpcClient?.isSentryEnabled()
-            guard isSentryEnabled != isEnabled else { return }
             if isEnabled {
                 try await self?.rpcClient?.enableSentry()
             } else {
@@ -40,9 +38,6 @@ extension GRPCManager {
 
     public func updateNetworkStatisticsIfNeeded(with isEnabled: Bool) async throws {
         try await Task.detached { [weak self] in
-            let config = try await self?.rpcClient?.getConfig()
-            let isStatisticsEnabled = config?.networkStats.enabled
-            guard isStatisticsEnabled != isEnabled else { return }
             try await self?.rpcClient?.networkStatsSetEnabled(enabled: isEnabled)
         }.value
     }
