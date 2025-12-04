@@ -54,8 +54,9 @@ impl SqliteStatsStorageManager {
             disconnection_time_ms,
             tunnel_type, 
             exit_id, 
+            exit_cc, 
             follow_up_id,
-            error) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
+            error) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
             report.day_utc,
             report.connection_time_ms,
             report.retry_attempt,
@@ -63,6 +64,7 @@ impl SqliteStatsStorageManager {
             report.disconnection_time_ms,
             report.tunnel_type,
             report.exit_id,
+            report.exit_cc,
             report.follow_up_id,
             report.error
         )
@@ -83,7 +85,8 @@ impl SqliteStatsStorageManager {
             session_duration_min, 
             disconnection_time_ms,
             tunnel_type, 
-            exit_id, 
+            exit_id,
+            exit_cc, 
             follow_up_id,
             error FROM pending_session_report
             LIMIT 5"#,

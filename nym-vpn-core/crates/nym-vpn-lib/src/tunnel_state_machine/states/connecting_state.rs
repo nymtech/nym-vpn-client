@@ -42,7 +42,7 @@ use nym_firewall::{
 use nym_gateway_directory::ResolvedConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
-use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayId};
+use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayLightInfo};
 
 /// Initial delay between retry attempts.
 const INITIAL_WAIT_DELAY: Duration = Duration::from_secs(2);
@@ -155,8 +155,8 @@ impl ConnectingState {
             selected_gateways
                 .as_ref()
                 .map(|gateways| EstablishConnectionData {
-                    entry_gateway: GatewayId::from(gateways.entry_gateway().clone()),
-                    exit_gateway: GatewayId::from(gateways.exit_gateway().clone()),
+                    entry_gateway: GatewayLightInfo::from(gateways.entry_gateway().clone()),
+                    exit_gateway: GatewayLightInfo::from(gateways.exit_gateway().clone()),
                     tunnel: None,
                 });
 

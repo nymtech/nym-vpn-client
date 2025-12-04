@@ -69,20 +69,23 @@ impl StatisticsEvent {
     fn new_connecting(
         retry_attempt: u32,
         maybe_exit_id: Option<String>,
+        maybe_exit_cc: Option<String>,
         maybe_tunnel_type: Option<String>,
     ) -> Self {
         Self::Usage(UsageEvent::Connecting {
             instant: Instant::now(),
             retry_attempt,
             maybe_exit_id,
+            maybe_exit_cc,
             maybe_tunnel_type,
         })
     }
 
-    fn new_connected(exit_id: String, tunnel_type: String) -> Self {
+    fn new_connected(exit_id: String, exit_cc: Option<String>, tunnel_type: String) -> Self {
         Self::Usage(UsageEvent::Connected {
             instant: Instant::now(),
             exit_id,
+            exit_cc,
             tunnel_type,
         })
     }
@@ -120,14 +123,23 @@ impl StatisticsEvent {
                 connection_data,
                 ..
             } => {
-                let maybe_exit_id = connection_data.clone().map(|d| d.exit_gateway.id);
+                let maybe_exit_id = connection_data.as_ref().map(|d| d.exit_gateway.id.clone());
+                let maybe_exit_cc = connection_data
+                    .as_ref()
+                    .and_then(|d| d.exit_gateway.country_code.clone());
                 let maybe_tunnel_type = connection_data
                     .and_then(|d| d.tunnel)
                     .map(|d| d.tunnel_type().short_name().into());
-                Self::new_connecting(retry_attempt, maybe_exit_id, maybe_tunnel_type)
+                Self::new_connecting(
+                    retry_attempt,
+                    maybe_exit_id,
+                    maybe_exit_cc,
+                    maybe_tunnel_type,
+                )
             }
             TunnelState::Connected { connection_data } => Self::new_connected(
                 connection_data.exit_gateway.id,
+                connection_data.exit_gateway.country_code,
                 connection_data.tunnel.tunnel_type().short_name().into(),
             ),
             TunnelState::Disconnecting { after_disconnect } => {
@@ -158,11 +170,13 @@ pub enum UsageEvent {
         instant: Instant,
         retry_attempt: u32,
         maybe_exit_id: Option<String>,
+        maybe_exit_cc: Option<String>,
         maybe_tunnel_type: Option<String>,
     },
     Connected {
         instant: Instant,
         exit_id: String,
+        exit_cc: Option<String>,
         tunnel_type: String,
     },
     Disconnected(Instant),

@@ -5,7 +5,7 @@ use futures::{FutureExt, future::Fuse, pin_mut};
 use nym_statistics_api_client::StatisticsApiClient;
 use nym_statistics_common::{
     generate_vpn_client_stats_id,
-    report::vpn_client::{StaticInformationReport, VpnClientStatsReportV2},
+    report::vpn_client::{ActiveDeviceReport, StaticInformationReport, VpnClientStatsReportV2},
 };
 use nym_vpn_lib_types::NetworkStatisticsConfig;
 
@@ -214,10 +214,20 @@ impl InnerHandler {
         storage: StatsStorage,
         api_client: StatisticsApiClient,
         system_report: StaticInformationReport,
+        tunnel_state: TunnelState,
     ) -> Result<(), Error> {
         let reports_to_send = storage.get_pending_session_report_with_id().await?;
+        let seed = storage.maybe_init_and_load_seed(None).await?;
+        let identifier = generate_vpn_client_stats_id(seed);
         if reports_to_send.is_empty() {
             tracing::debug!("ReportHandler: Nothing to send");
+            if tunnel_state == TunnelState::Connected {
+                tracing::debug!("ReportHandler: Pinging active device");
+                let report = ActiveDeviceReport::new(identifier, system_report);
+                if let Err(e) = api_client.post_active_device(report).await {
+                    tracing::warn!("Pinging active device failed : {e}");
+                };
+            }
             return Ok(());
         }
 
@@ -225,8 +235,7 @@ impl InnerHandler {
             "ReportHandler: Trying to send {} reports",
             reports_to_send.len()
         );
-        let seed = storage.maybe_init_and_load_seed(None).await?;
-        let identifier = generate_vpn_client_stats_id(seed);
+
         let mut sending_errors = 0;
 
         for report_with_id in reports_to_send {
@@ -298,7 +307,7 @@ impl InnerHandler {
                     }
                 }
                 _ = &mut timer => {
-                    sending_task.set(Self::send_reports(self.storage.clone(), self.api_client.clone(), self.system_report.clone()).fuse());
+                    sending_task.set(Self::send_reports(self.storage.clone(), self.api_client.clone(), self.system_report.clone(), self.sending_config.tunnel_state).fuse());
                 }
                 sending_res = &mut sending_task => {
                     sending_task.as_mut().set(Fuse::terminated());
