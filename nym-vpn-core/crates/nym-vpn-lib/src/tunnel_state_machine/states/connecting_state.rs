@@ -130,7 +130,8 @@ impl ConnectingState {
                     .map(|v| v.entry_gateway().endpoints())
                     .unwrap_or_default(),
                 api_endpoints: Vec::new(),
-                dns_servers: shared_state.tunnel_settings.dns_ips(),
+                // Allow default DNS servers since hickory does not rely on custom DNS
+                dns_servers: shared_state.tunnel_settings.default_dns_ips(),
                 tunnel_interface: None,
             };
 

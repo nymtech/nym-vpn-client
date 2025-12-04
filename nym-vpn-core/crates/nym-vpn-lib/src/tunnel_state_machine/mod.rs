@@ -180,12 +180,16 @@ impl TunnelSettings {
                 .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
                 .copied()
                 .collect(),
-            DnsOptions::Default => crate::DEFAULT_DNS_SERVERS
-                .iter()
-                .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
-                .copied()
-                .collect(),
+            DnsOptions::Default => self.default_dns_ips(),
         }
+    }
+
+    pub fn default_dns_ips(&self) -> Vec<IpAddr> {
+        crate::DEFAULT_DNS_SERVERS
+            .iter()
+            .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
+            .copied()
+            .collect()
     }
 
     pub fn bridges_enabled(&self) -> bool {
