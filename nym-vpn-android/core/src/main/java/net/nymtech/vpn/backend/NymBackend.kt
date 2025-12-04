@@ -133,7 +133,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 			if (!initLogger(null, LOG_LEVEL, false)) {
 				Timber.e("Failed to initialize nym_vpn_lib logger")
-				throw BackendException("Failed to initialize nym_vpn_lib logger")
+				throw BackendException.InitLoggingFailed()
 			}
 
 			initEnvironment(environment)
