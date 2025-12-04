@@ -3,7 +3,7 @@ use time::Date;
 
 #[derive(sqlx::FromRow, PartialEq, Eq, Debug)]
 pub(crate) struct SessionReport {
-    pub day: Date,
+    pub day_utc: Date,
     pub connection_time_ms: i32,
     pub retry_attempt: i32,
     pub session_duration_min: i32,
@@ -24,7 +24,7 @@ pub(crate) struct SessionReportWithId {
 impl From<SessionReport> for VpnSessionReport {
     fn from(value: SessionReport) -> Self {
         Self {
-            start_day: value.day,
+            start_day_utc: value.day_utc,
             connection_time_ms: value.connection_time_ms,
             retry_attempt: value.retry_attempt,
             session_duration_min: value.session_duration_min,
