@@ -146,7 +146,7 @@ impl DiscoveryRefresher {
                                     if *network == new_network {
                                         tracing::info!("Network environment is up to date");
                                     } else {
-                                        network = Box::new(new_network);
+                                        *network = new_network;
                                         self.events_tx
                                             .send(DiscoveryRefresherEvent::NewNetwork(network.clone()))
                                             .ok();
