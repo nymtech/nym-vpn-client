@@ -20,7 +20,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
         if !self.loggingInit {
-            try Self.configureLogger()
+            try await Self.configureLogger()
             LoggingSystem.bootstrap { label in
                 let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
 #if DEBUG
