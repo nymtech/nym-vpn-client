@@ -222,6 +222,8 @@ async fn init_logger(
     let success = swift::init_logs(log_level, path, sentry_monitoring);
     #[cfg(target_os = "android")]
     let success = android::init_logs(log_level);
+    #[cfg(not(any(target_os = "ios", target_os = "android")))]
+    let success = true;
 
     if !success {
         tracing::error!("Failed to initialise OS-specific logger");
