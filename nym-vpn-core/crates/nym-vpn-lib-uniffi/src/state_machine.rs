@@ -39,9 +39,7 @@ pub(super) async fn init_state_machine(
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
     if guard.is_none() {
-        statistics_event_sender.report(nym_statistics::events::StatisticsEvent::new_connecting(
-            config.enable_two_hop,
-        )); // mobile "Connect" event
+        statistics_event_sender.report_connection_request(); // mobile "Connect" event
         let state_machine_handle = start_state_machine(
             config,
             network_env,
@@ -213,7 +211,7 @@ pub(super) async fn start_state_machine(
         tunnel_constants,
         account_controller_tx,
         account_controller_state,
-        statistics_event_sender,
+        statistics_event_sender.clone(),
         gateway_cache_handle,
         topology_provider,
         connectivity_handle,
@@ -238,6 +236,7 @@ pub(super) async fn start_state_machine(
         discovery_refresher_handle,
         discovery_watch_handle,
         command_sender,
+        statistics_event_sender,
         shutdown_token,
     })
 }
@@ -248,6 +247,7 @@ pub(super) struct StateMachineHandle {
     discovery_refresher_handle: JoinHandle<()>,
     discovery_watch_handle: JoinHandle<()>,
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
+    statistics_event_sender: StatisticsSender,
     shutdown_token: CancellationToken,
 }
 
@@ -259,6 +259,7 @@ impl StateMachineHandle {
     }
 
     pub(super) async fn shutdown_and_wait(self) {
+        self.statistics_event_sender.report_disconnection_request(); // mobile "Disconnect" event
         self.shutdown_token.cancel();
 
         if let Err(e) = self.state_machine_handle.await {
