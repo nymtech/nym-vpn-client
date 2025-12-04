@@ -998,7 +998,14 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) {
+    async fn handle_set_custom_dns(&mut self, mut custom_dns: Vec<IpAddr>) {
+        const MAX_CUSTOM_DNS_SERVERS: usize = 5;
+
+        if custom_dns.len() > MAX_CUSTOM_DNS_SERVERS {
+            tracing::warn!("Only the first {MAX_CUSTOM_DNS_SERVERS} DNS servers will be used");
+            custom_dns.truncate(MAX_CUSTOM_DNS_SERVERS);
+        }
+
         self.config_manager.set_custom_dns(custom_dns).await;
         self.update_tunnel_settings_with_throttle();
     }
