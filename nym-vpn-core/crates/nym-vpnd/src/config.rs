@@ -10,7 +10,6 @@ use std::path::Path;
 pub struct GlobalConfig {
     pub network_name: String,
     pub sentry_monitoring: bool,
-    pub collect_network_statistics: bool,
 }
 
 impl Default for GlobalConfig {
@@ -18,7 +17,6 @@ impl Default for GlobalConfig {
         Self {
             network_name: NymNetworkDetails::default().network_name,
             sentry_monitoring: false,
-            collect_network_statistics: true,
         }
     }
 }
@@ -120,13 +118,14 @@ impl GlobalConfig {
 // External, versioned, representation of the global config file.
 //
 
-type GlobalConfigExtLatest = GlobalConfigExtV1;
+type GlobalConfigExtLatest = GlobalConfigExtV2;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "version")]
 #[serde(rename_all = "snake_case")]
 enum GlobalConfigExt {
     V1(GlobalConfigExtV1),
+    V2(GlobalConfigExtV2),
 }
 
 impl TryFrom<GlobalConfigExt> for GlobalConfig {
@@ -135,6 +134,7 @@ impl TryFrom<GlobalConfigExt> for GlobalConfig {
     fn try_from(value: GlobalConfigExt) -> Result<Self, Self::Error> {
         match value {
             GlobalConfigExt::V1(v1) => GlobalConfig::try_from(v1),
+            GlobalConfigExt::V2(v2) => GlobalConfig::try_from(v2),
         }
     }
 }
@@ -149,6 +149,55 @@ impl TryFrom<&GlobalConfig> for GlobalConfigExt {
     }
 }
 
+//
+// v2
+//
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+struct GlobalConfigExtV2 {
+    network_name: String,
+    sentry_monitoring: bool,
+}
+
+impl Default for GlobalConfigExtV2 {
+    fn default() -> Self {
+        Self {
+            network_name: NymNetworkDetails::default().network_name,
+            sentry_monitoring: false,
+        }
+    }
+}
+
+impl From<GlobalConfigExtV2> for GlobalConfigExt {
+    fn from(v2: GlobalConfigExtV2) -> Self {
+        GlobalConfigExt::V2(v2)
+    }
+}
+
+impl TryFrom<GlobalConfigExtV2> for GlobalConfig {
+    type Error = crate::service::ConfigSetupError;
+
+    fn try_from(value: GlobalConfigExtV2) -> Result<Self, Self::Error> {
+        Ok(GlobalConfig {
+            network_name: value.network_name,
+            sentry_monitoring: value.sentry_monitoring,
+        })
+    }
+}
+
+impl TryFrom<&GlobalConfig> for GlobalConfigExtLatest {
+    type Error = crate::service::ConfigSetupError;
+
+    fn try_from(value: &GlobalConfig) -> Result<Self, Self::Error> {
+        Ok(GlobalConfigExtLatest {
+            network_name: value.network_name.clone(),
+            sentry_monitoring: value.sentry_monitoring,
+        })
+    }
+}
+
+//
+// v1
+//
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 struct GlobalConfigExtV1 {
     network_name: String,
@@ -179,19 +228,6 @@ impl TryFrom<GlobalConfigExtV1> for GlobalConfig {
         Ok(GlobalConfig {
             network_name: value.network_name,
             sentry_monitoring: value.sentry_monitoring,
-            collect_network_statistics: value.collect_network_statistics,
-        })
-    }
-}
-
-impl TryFrom<&GlobalConfig> for GlobalConfigExtLatest {
-    type Error = crate::service::ConfigSetupError;
-
-    fn try_from(value: &GlobalConfig) -> Result<Self, Self::Error> {
-        Ok(GlobalConfigExtLatest {
-            network_name: value.network_name.clone(),
-            sentry_monitoring: value.sentry_monitoring,
-            collect_network_statistics: value.collect_network_statistics,
         })
     }
 }
@@ -217,7 +253,6 @@ impl TryFrom<LegacyGlobalConfig> for GlobalConfig {
         Ok(Self {
             network_name: value.network_name,
             sentry_monitoring: value.sentry_monitoring,
-            collect_network_statistics: value.collect_network_statistics,
         })
     }
 }
@@ -273,7 +308,6 @@ collect_network_statistics = true
             .unwrap();
         assert_eq!(config.network_name, "tulips");
         assert!(!config.sentry_monitoring);
-        assert!(config.collect_network_statistics);
 
         // The TOML file should be deleted and replaced with a JSON version
         assert!(!toml_path.exists());
@@ -285,7 +319,6 @@ collect_network_statistics = true
             .unwrap();
         assert_eq!(config.network_name, "tulips");
         assert!(!config.sentry_monitoring);
-        assert!(config.collect_network_statistics);
 
         // Check the JSON is the right version and all snake-case
         let read_json_content = fs::read_to_string(&json_path).await.unwrap();

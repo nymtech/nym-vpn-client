@@ -9,7 +9,7 @@ use time::OffsetDateTime;
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
-use crate::{EntryPoint, ExitPoint, NymNetworkDetails, NymVpnNetwork};
+use crate::{EntryPoint, ExitPoint, NetworkStatisticsConfig, NymNetworkDetails, NymVpnNetwork};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
@@ -37,6 +37,7 @@ pub struct VpnServiceConfig {
     pub residential_exit: bool,
     pub enable_custom_dns: bool,
     pub custom_dns: Vec<IpAddr>,
+    pub network_stats: NetworkStatisticsConfig,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -80,6 +81,7 @@ impl fmt::Display for VpnServiceConfig {
                 .collect::<Vec<_>>()
                 .join(", ")
         )?;
+        writeln!(f, "networks stats config: {}", self.network_stats)?;
         Ok(())
     }
 }
@@ -102,6 +104,7 @@ impl Default for VpnServiceConfig {
             residential_exit: false,
             enable_custom_dns: false,
             custom_dns: vec![],
+            network_stats: Default::default(),
         }
     }
 }

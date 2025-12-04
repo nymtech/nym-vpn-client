@@ -2990,7 +2990,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.62.2",
+ "windows-core 0.58.0",
 ]
 
 [[package]]
@@ -5723,6 +5723,7 @@ dependencies = [
  "nym-registration-client",
  "nym-sdk",
  "nym-statistics",
+ "nym-statistics-api-client",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
  "nym-vpn-lib",
