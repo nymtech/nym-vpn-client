@@ -230,7 +230,7 @@ impl Firewall {
     }
 
     fn socket_recv<'a>(socket: &mnl::Socket, buf: &'a mut [u8]) -> Result<Option<&'a [u8]>> {
-        let ret = socket.recv(buf).map_err(Error::NetlinkRecvError)?;
+        let ret = socket.recv_raw(buf).map_err(Error::NetlinkRecvError)?;
         tracing::trace!("Read {} bytes from netlink", ret);
         if ret > 0 {
             Ok(Some(&buf[..ret]))
