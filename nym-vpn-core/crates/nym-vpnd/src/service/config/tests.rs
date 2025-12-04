@@ -428,7 +428,11 @@ async fn test_service_config_migrate_from_v2() {
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
   "enable_custom_dns": true,
-  "custom_dns": [ "192.168.50.1" ]
+  "custom_dns": [ "192.168.50.1" ],
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
 }"#;
 
     run_migrate_json_test(json_v2_content, json_latest_content).await;
@@ -462,11 +466,7 @@ async fn test_service_config_migrate_from_v3() {
   "custom_dns": [
     "192.168.50.1",
     "2001:db8:85a3::8a2e:370:7334"
-  ],
-  "network_stats": {
-    "enabled": true,
-    "allow_disconnected": false
-  }
+  ]
 }"#;
 
     let json_latest_content = r#"{
@@ -496,7 +496,11 @@ async fn test_service_config_migrate_from_v3() {
   "custom_dns": [
     "192.168.50.1",
     "2001:db8:85a3::8a2e:370:7334"
-  ]
+  ],
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
 }"#;
 
     run_migrate_json_test(json_v3_content, json_latest_content).await;
@@ -544,11 +548,7 @@ async fn test_service_config_fallback_default_v2() {
   "min_mixnode_performance": null,
   "min_gateway_mixnet_performance": null,
   "min_gateway_vpn_performance": null,
-  "residential_exit": false,
-  "network_stats": {
-    "enabled": true,
-    "allow_disconnected": false
-  }
+  "residential_exit": false
 }"#;
 
     run_fallback_test(broken_json_content).await;
