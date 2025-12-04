@@ -66,7 +66,7 @@ pub(crate) mod v1 {
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[serde(rename_all = "snake_case")]
-    pub(crate) enum EntryPoint {
+    pub enum EntryPoint {
         Gateway { identity: String },
         Location { location: String },
         Random,
