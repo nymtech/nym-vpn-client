@@ -261,7 +261,7 @@ message VpnServiceConfig {
   optional uint32 min_gateway_vpn_performance = 10;
   bool enable_custom_dns = 17;
   IpAddrList custom_dns = 16;
-  NetworkStatsConfig network_stats = 17;
+  NetworkStatsConfig network_stats = 18;
 }
 
 message NetworkStatsConfig {
