@@ -129,12 +129,6 @@ pub enum VpnApiClientError {
         source: nym_http_api_client::ResolveError,
     },
 
-    #[error("resolved hostname {0} but no IP address found")]
-    ResolvedHostnameButNoIp(String),
-
-    #[error("timed out while attempting to resolve hostname: {hostname}")]
-    HostnameResolutionTimeout { hostname: String },
-
     #[error("Failed to resolve hostname(s): {hostnames:?}")]
     HostnamesResolutionError { hostnames: HashSet<String> },
 
