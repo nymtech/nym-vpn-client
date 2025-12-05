@@ -123,8 +123,8 @@ pub enum VpnApiClientError {
     #[error("failed to post account")]
     PostAccount(#[source] Box<HttpClientError>),
 
-    #[error("failed to resolve gateway hostname: {hostname}")]
-    FailedToDnsResolveGateway {
+    #[error("failed to resolve hostname: {hostname}")]
+    DnsResolutionFailure {
         hostname: String,
         source: nym_http_api_client::ResolveError,
     },
