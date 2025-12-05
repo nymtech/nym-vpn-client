@@ -52,6 +52,11 @@ impl StatisticsController {
         let (commands_tx, commands_rx) = tokio::sync::mpsc::unbounded_channel();
 
         let stats_storage = StatsStorage::init(base_storage_path).await.inspect_err(|e| tracing::error!("Failed to initialize stats storage. Statistics collection will be disabled : {e}")).ok();
+        if stats_api_client.is_none() {
+            tracing::debug!(
+                "StatisticsController : No stats API client availabe, statisticis collection will be disabled"
+            );
+        }
 
         let statistics_handler = if let Some(storage) = stats_storage.clone()
             && let Some(api_client) = stats_api_client
@@ -120,30 +125,18 @@ impl StatisticsController {
         }
     }
 
-    // Even if something went wrong durint init, we can't just not run, because StatisticsSender everywhere will expect to be able to send stuff
-    // Hence this loop doing nothing but comsuming events
-    // This should never stop because we are holding a sender
-    async fn no_op_loop(&mut self) {
-        while (self.stats_rx.recv().await).is_some() {}
-    }
-
     // Main loop. We're listening to statistics events and controller commands
     pub async fn run(mut self) {
-        let Some(mut stats_handler) = self.handler.take() else {
+        if self.handler.is_none() {
             tracing::error!(
-                "StatisticsController : something went wrong during init. Collection is disabled"
+                "StatisticsController : either storage or API client was missing, collection disabled"
             );
-            self.cancel_token
-                .clone()
-                .run_until_cancelled(self.no_op_loop())
-                .await;
-            return;
-        };
-
-        tracing::debug!(
-            "StatisticsController initialized successfully : Reporting enabled? {}",
-            self.config.enabled
-        );
+        } else {
+            tracing::debug!(
+                "StatisticsController initialized successfully : Reporting enabled? {}",
+                self.config.enabled
+            );
+        }
 
         loop {
             tokio::select! {
@@ -151,14 +144,18 @@ impl StatisticsController {
                 _ = self.cancel_token.cancelled() => {
                     tracing::debug!("StatisticsController : Received cancellation signal");
                     // Signal shutdown with some time to wrap up tasks
-                    let _ = tokio::time::timeout(Duration::from_secs(2), stats_handler.on_shutdown()).await;
+                    if let Some(ref mut stats_handler) = self.handler {
+                        let _ = tokio::time::timeout(Duration::from_secs(2), stats_handler.on_shutdown()).await;
+                    }
                     break;
                 },
                 command = self.commands_rx.recv() => match command {
                     Some(command) => {
                         match command {
                             ControllerCommand::Config(config_command) => {
-                                stats_handler.handle_command(config_command).await;
+                                if let Some(ref mut stats_handler) = self.handler {
+                                    stats_handler.handle_command(config_command).await;
+                                }
                                 self.handle_command(command).await;
                             }
                             ControllerCommand::Seed(_) => {
@@ -174,7 +171,7 @@ impl StatisticsController {
                 },
                 stats_event = self.stats_rx.recv() => match stats_event {
                     Some(stats_event) => {
-                        if self.config.enabled {
+                        if let Some(ref mut stats_handler) = self.handler && self.config.enabled {
                             tracing::trace!("Received stats event : {stats_event:?}");
                             stats_handler.handle_event(stats_event).await;
                         }
@@ -186,7 +183,9 @@ impl StatisticsController {
                 },
             }
         }
-        stats_handler.close().await;
+        if let Some(ref stats_handler) = self.handler {
+            stats_handler.close().await;
+        }
         tracing::debug!("StatisticsController: Exiting");
     }
 }
