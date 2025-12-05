@@ -25,6 +25,7 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
         .collect::<Vec<_>>();
 
     tracing::debug!("Resolved {hostname} to: {ips:?}");
+    // Safety: `HickoryDnsResolver::resolve_str()` always returns at least one IP address on success, otherwise an error.
     assert!(!ips.is_empty());
     Ok(ips)
 }
