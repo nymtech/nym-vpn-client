@@ -8,10 +8,12 @@ import { DnsItem, DnsItemContent } from './DnsItemContent';
 const MAX_DNS_SERVERS = 5;
 
 export function CustomDnsServers({
+  hasUnsavedChanges,
   onApplyDns,
   customDnsList,
   onListChange,
 }: {
+  hasUnsavedChanges: boolean;
   onApplyDns: (dnsList: string[]) => Promise<void>;
   customDnsList: DnsItem[];
   onListChange: (dnsList: DnsItem[]) => void;
@@ -123,7 +125,9 @@ export function CustomDnsServers({
       )}
 
       <Button
-        disabled={customDnsList.length === 0 || isApplyingDns}
+        disabled={
+          !hasUnsavedChanges || customDnsList.length === 0 || isApplyingDns
+        }
         onClick={handleApply}
         outline
         color="gray"

@@ -131,6 +131,7 @@ function CustomDNS() {
 
           {dnsEnabledLocal ? (
             <CustomDnsServers
+              hasUnsavedChanges={hasUnsavedChanges}
               onApplyDns={handleApply}
               customDnsList={customDnsList}
               onListChange={handleListChange}
