@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
@@ -13,45 +13,68 @@ import { CCache } from '../../cache';
 function Logout() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const { account, daemonStatus, state } = useMainState();
+  const { account, state } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
   const { tE } = useI18nError();
   const { push } = useInAppNotify();
   const logoutCopy = capFirst(t('logout', { ns: 'glossary' }));
 
-  const logout = async () => {
-    if (state !== 'disconnected') {
-      console.warn(`cannot logout while tunnel state is ${state}`);
-      push({
-        message: t('logout.from-state', { ns: 'notifications', state }),
-      });
-      return;
-    }
+  useEffect(() => {
+    if (!loggingOut) return;
 
-    setLoading(true);
-    let hasFailed = false;
-    try {
-      console.info('logging out');
-      await invoke('forget_account');
-      dispatch({ type: 'set-account', stored: false });
-      await CCache.del('cache-account-id');
-      await CCache.del('cache-device-id');
-      dispatch({ type: 'reset-error' });
-    } catch (e) {
-      hasFailed = true;
-      push({
-        message: `${t('logout.error', { ns: 'notifications' })}: ${tE((e as BackendError).key || 'unknown')}`,
-      });
-    } finally {
-      setIsOpen(false);
-      setLoading(false);
+    if (state === 'disconnected') {
+      setLoggingOut(false);
+      (async () => {
+        try {
+          console.info('logging out');
+          await invoke('forget_account');
+          dispatch({ type: 'set-account', stored: false });
+          await CCache.del('cache-account-id');
+          await CCache.del('cache-device-id');
+          dispatch({ type: 'reset-error' });
+
+          push({
+            message: t('logout.success', { ns: 'notifications' }),
+          });
+        } catch (e) {
+          console.error('[logout] error', e);
+          push({
+            message: `${t('logout.error', { ns: 'notifications' })}: ${tE((e as BackendError).key || 'unknown')}`,
+          });
+        } finally {
+          setIsOpen(false);
+          setLoading(false);
+        }
+      })();
     }
-    if (!hasFailed) {
-      push({
-        message: t('logout.success', { ns: 'notifications' }),
-      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, loggingOut]);
+
+  const logout = async () => {
+    setLoading(true);
+    setLoggingOut(true);
+
+    if (
+      state === 'connected' ||
+      state === 'connecting' ||
+      state === 'offline-auto-reconnect' ||
+      state === 'error'
+    ) {
+      try {
+        dispatch({ type: 'disconnect' });
+        await invoke('disconnect');
+      } catch (e: unknown) {
+        console.error('[logout] disconnect error', e);
+        setIsOpen(false);
+        setLoading(false);
+        setLoggingOut(false);
+        push({
+          message: `${t('logout.error', { ns: 'notifications' })}: ${tE((e as BackendError).key || 'unknown')}`,
+        });
+      }
     }
   };
 
@@ -72,7 +95,6 @@ function Logout() {
         color="red"
         title={logoutCopy}
         onClick={() => setIsOpen(true)}
-        disabled={daemonStatus === 'down' || state !== 'disconnected'}
       />
       <Dialog
         open={isOpen}
