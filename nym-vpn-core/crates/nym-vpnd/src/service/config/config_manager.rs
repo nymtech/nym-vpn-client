@@ -146,17 +146,29 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_enable_custom_dns(&mut self, enable_custom_dns: bool) {
-        if self.config.enable_custom_dns != enable_custom_dns {
+    /// Enable or disable custom DNS servers
+    ///
+    /// Returns true if the setting has changed, otherwise false if it's the same
+    pub async fn set_enable_custom_dns(&mut self, enable_custom_dns: bool) -> bool {
+        if self.config.enable_custom_dns == enable_custom_dns {
+            false
+        } else {
             self.config.enable_custom_dns = enable_custom_dns;
             self.save_config_and_send_event().await;
+            true
         }
     }
 
-    pub async fn set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) {
-        if self.config.custom_dns != custom_dns {
+    /// Update custom DNS servers
+    ///
+    /// Returns true if custom DNS servers have changed, otherwise false if they're the same
+    pub async fn set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) -> bool {
+        if self.config.custom_dns == custom_dns {
+            false
+        } else {
             self.config.custom_dns = custom_dns;
             self.save_config_and_send_event().await;
+            true
         }
     }
 
