@@ -28538,6 +28538,28 @@
         }
       }
     },
+    "proxy.activeConnections" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active connections"
+          }
+        }
+      }
+    },
+    "proxy.connectionError" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy connection error. Check your app configuration or try restarting the proxy."
+          }
+        }
+      }
+    },
     "proxy.proxyStatus" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28545,6 +28567,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Proxy status:"
+          }
+        }
+      }
+    },
+    "proxy.proxyStatus.connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
+    "proxy.proxyStatus.disabled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabled"
+          }
+        }
+      }
+    },
+    "proxy.proxyStatus.loading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading…"
           }
         }
       }
