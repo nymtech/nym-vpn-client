@@ -165,8 +165,6 @@ impl TunnelStateHandler for OfflineState {
                 }
             }
             Some(connectivity) = shared_state.connectivity_handle.next() => {
-                // See: https://github.com/rust-lang/rust-clippy/issues/14799
-                #[allow(clippy::collapsible_else_if)]
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else {
