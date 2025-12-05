@@ -61,7 +61,6 @@ function CustomDNS() {
     setIsConfirmationDialogOpen(false);
     setDnsEnabledLocal(customDnsEnabled);
     setCustomDnsList(customDns.map((dns) => ({ id: dns, dns })));
-    setDnsEnabledLocal(customDnsEnabled);
   };
 
   const handleDnsSwitchChange = async () => {
