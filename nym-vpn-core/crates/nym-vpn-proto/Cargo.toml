@@ -16,6 +16,7 @@ prost-types.workspace = true
 prost.workspace = true
 tonic-prost.workspace = true
 tonic.workspace = true
+tokio.workspace = true
 tokio-stream = { workspace = true, optional = true, features = ["net"] }
 tower = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }

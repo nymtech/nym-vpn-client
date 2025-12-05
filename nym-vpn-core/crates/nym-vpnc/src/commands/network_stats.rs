@@ -36,7 +36,7 @@ pub struct SetParams {
 }
 
 impl Command {
-    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
+    pub async fn execute(self, rpc_client: &RpcClient) -> Result<()> {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
@@ -92,7 +92,7 @@ pub enum SeedCommand {
 }
 
 impl SeedCommand {
-    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
+    pub async fn execute(self, rpc_client: &RpcClient) -> Result<()> {
         match self {
             SeedCommand::Get => {
                 let identity = rpc_client.network_stats_get_seed().await?;

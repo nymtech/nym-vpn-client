@@ -8,7 +8,8 @@ use nym_vpn_lib_types::{
     NymVpnUsage, ParsedAccountLinks, Socks5Settings, Socks5Status, StoreAccountRequest,
     SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
-use std::{net::IpAddr, path::PathBuf};
+use std::{net::IpAddr, path::PathBuf, sync::Arc};
+use tokio::sync::Mutex;
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
@@ -17,8 +18,8 @@ use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
 
 type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
 
-#[derive(Debug, Clone)]
-pub struct RpcClient(ServiceClient);
+#[derive(Debug)]
+pub struct RpcClient(Arc<Mutex<ServiceClient>>);
 
 impl RpcClient {
     pub async fn new() -> Result<RpcClient> {
@@ -28,18 +29,27 @@ impl RpcClient {
                 nym_ipc::client::connect(socket_path.clone())
             }))
             .await?;
-        Ok(RpcClient(ServiceClient::new(channel)))
+        Ok(RpcClient(Arc::new(Mutex::new(ServiceClient::new(channel)))))
     }
 
-    pub async fn get_info(&mut self) -> Result<VpnServiceInfo> {
-        let response = self.0.info(()).await.map_err(Error::Rpc)?.into_inner();
+    pub async fn get_info(&self) -> Result<VpnServiceInfo> {
+        let response = self
+            .0
+            .lock()
+            .await
+            .info(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
 
         VpnServiceInfo::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn get_config(&mut self) -> Result<VpnServiceConfig> {
+    pub async fn get_config(&self) -> Result<VpnServiceConfig> {
         let response = self
             .0
+            .lock()
+            .await
             .get_config(())
             .await
             .map_err(Error::Rpc)?
@@ -52,10 +62,12 @@ impl RpcClient {
         VpnServiceConfig::try_from(config).map_err(Error::InvalidResponse)
     }
 
-    pub async fn set_entry_point(&mut self, entry_point: EntryPoint) -> Result<()> {
+    pub async fn set_entry_point(&self, entry_point: EntryPoint) -> Result<()> {
         let entry_node = proto::EntryNode::from(entry_point);
 
         self.0
+            .lock()
+            .await
             .set_entry_point(entry_node)
             .await
             .map_err(Error::Rpc)?
@@ -64,10 +76,12 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_exit_point(&mut self, exit_point: ExitPoint) -> Result<()> {
+    pub async fn set_exit_point(&self, exit_point: ExitPoint) -> Result<()> {
         let exit_node = proto::ExitNode::from(exit_point);
 
         self.0
+            .lock()
+            .await
             .set_exit_point(exit_node)
             .await
             .map_err(Error::Rpc)?
@@ -76,8 +90,10 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_disable_ipv6(&mut self, disable_ipv6: bool) -> Result<()> {
+    pub async fn set_disable_ipv6(&self, disable_ipv6: bool) -> Result<()> {
         self.0
+            .lock()
+            .await
             .set_disable_ipv6(disable_ipv6)
             .await
             .map_err(Error::Rpc)?
@@ -85,8 +101,10 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_enable_two_hop(&mut self, enable_two_hop: bool) -> Result<()> {
+    pub async fn set_enable_two_hop(&self, enable_two_hop: bool) -> Result<()> {
         self.0
+            .lock()
+            .await
             .set_enable_two_hop(enable_two_hop)
             .await
             .map_err(Error::Rpc)?
@@ -94,8 +112,10 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_netstack(&mut self, netstack: bool) -> Result<()> {
+    pub async fn set_netstack(&self, netstack: bool) -> Result<()> {
         self.0
+            .lock()
+            .await
             .set_netstack(netstack)
             .await
             .map_err(Error::Rpc)?
@@ -103,8 +123,10 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_allow_lan(&mut self, allow_lan: bool) -> Result<()> {
+    pub async fn set_allow_lan(&self, allow_lan: bool) -> Result<()> {
         self.0
+            .lock()
+            .await
             .set_allow_lan(allow_lan)
             .await
             .map_err(Error::Rpc)?
@@ -112,8 +134,10 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_enable_bridges(&mut self, enable_bridges: bool) -> Result<()> {
+    pub async fn set_enable_bridges(&self, enable_bridges: bool) -> Result<()> {
         self.0
+            .lock()
+            .await
             .set_enable_bridges(enable_bridges)
             .await
             .map_err(Error::Rpc)?
@@ -121,8 +145,10 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_residential_exit(&mut self, residential_exit: bool) -> Result<()> {
+    pub async fn set_residential_exit(&self, residential_exit: bool) -> Result<()> {
         self.0
+            .lock()
+            .await
             .set_residential_exit(residential_exit)
             .await
             .map_err(Error::Rpc)?
@@ -130,8 +156,10 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_enable_custom_dns(&mut self, enable: bool) -> Result<()> {
+    pub async fn set_enable_custom_dns(&self, enable: bool) -> Result<()> {
         self.0
+            .lock()
+            .await
             .set_enable_custom_dns(enable)
             .await
             .map_err(Error::Rpc)?
@@ -139,12 +167,14 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_custom_dns(&mut self, ips: Vec<IpAddr>) -> Result<()> {
+    pub async fn set_custom_dns(&self, ips: Vec<IpAddr>) -> Result<()> {
         let request = proto::IpAddrList {
             ips: ips.into_iter().map(proto::IpAddr::from).collect(),
         };
 
         self.0
+            .lock()
+            .await
             .set_custom_dns(request)
             .await
             .map_err(Error::Rpc)?
@@ -152,8 +182,10 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_network(&mut self, network: String) -> Result<()> {
+    pub async fn set_network(&self, network: String) -> Result<()> {
         self.0
+            .lock()
+            .await
             .set_network(network)
             .await
             .map_err(Error::Rpc)?
@@ -161,9 +193,11 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn get_system_messages(&mut self) -> Result<Vec<SystemMessage>> {
+    pub async fn get_system_messages(&self) -> Result<Vec<SystemMessage>> {
         let response = self
             .0
+            .lock()
+            .await
             .get_system_messages(())
             .await
             .map_err(Error::Rpc)?
@@ -178,9 +212,11 @@ impl RpcClient {
         Ok(messages)
     }
 
-    pub async fn get_network_compatibility(&mut self) -> Result<Option<NetworkCompatibility>> {
+    pub async fn get_network_compatibility(&self) -> Result<Option<NetworkCompatibility>> {
         let response = self
             .0
+            .lock()
+            .await
             .get_network_compatibility(())
             .await
             .map_err(Error::Rpc)?
@@ -191,9 +227,11 @@ impl RpcClient {
             .map(NetworkCompatibility::from))
     }
 
-    pub async fn get_feature_flags(&mut self) -> Result<FeatureFlags> {
+    pub async fn get_feature_flags(&self) -> Result<FeatureFlags> {
         let response = self
             .0
+            .lock()
+            .await
             .get_feature_flags(())
             .await
             .map_err(Error::Rpc)?
@@ -202,9 +240,11 @@ impl RpcClient {
         Ok(FeatureFlags::from(response))
     }
 
-    pub async fn get_default_dns(&mut self) -> Result<Vec<IpAddr>> {
+    pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>> {
         let response = self
             .0
+            .lock()
+            .await
             .get_default_dns(())
             .await
             .map_err(Error::Rpc)?
@@ -213,33 +253,41 @@ impl RpcClient {
         Ok(ip_vec)
     }
 
-    pub async fn connect_tunnel(&mut self) -> Result<bool> {
+    pub async fn connect_tunnel(&self) -> Result<bool> {
         self.0
+            .lock()
+            .await
             .connect_tunnel(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn reconnect_tunnel(&mut self) -> Result<bool> {
+    pub async fn reconnect_tunnel(&self) -> Result<bool> {
         self.0
+            .lock()
+            .await
             .reconnect_tunnel(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn disconnect_tunnel(&mut self) -> Result<bool> {
+    pub async fn disconnect_tunnel(&self) -> Result<bool> {
         self.0
+            .lock()
+            .await
             .disconnect_tunnel(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn get_tunnel_state(&mut self) -> Result<TunnelState> {
+    pub async fn get_tunnel_state(&self) -> Result<TunnelState> {
         let state = self
             .0
+            .lock()
+            .await
             .get_tunnel_state(())
             .await
             .map_err(Error::Rpc)?
@@ -249,10 +297,12 @@ impl RpcClient {
     }
 
     pub async fn listen_to_events(
-        &mut self,
+        &self,
     ) -> Result<impl Stream<Item = Result<TunnelEvent>> + 'static> {
         let listener = self
             .0
+            .lock()
+            .await
             .listen_to_events(())
             .await
             .map_err(Error::Rpc)?
@@ -265,12 +315,14 @@ impl RpcClient {
         }))
     }
 
-    pub async fn list_gateways(&mut self, options: ListGatewaysOptions) -> Result<Vec<Gateway>> {
+    pub async fn list_gateways(&self, options: ListGatewaysOptions) -> Result<Vec<Gateway>> {
         let request =
             proto::ListGatewaysRequest::try_from(options).map_err(Error::InvalidRequest)?;
 
         let gateways = self
             .0
+            .lock()
+            .await
             .list_gateways(request)
             .await
             .map(|v| v.into_inner().gateways)
@@ -282,14 +334,13 @@ impl RpcClient {
             .collect::<Result<Vec<_>>>()
     }
 
-    pub async fn list_filtered_gateways(
-        &mut self,
-        filters: GatewayFilters,
-    ) -> Result<Vec<Gateway>> {
+    pub async fn list_filtered_gateways(&self, filters: GatewayFilters) -> Result<Vec<Gateway>> {
         let request = proto::GatewayFilters::from(filters);
 
         let gateways = self
             .0
+            .lock()
+            .await
             .list_filtered_gateways(request)
             .await
             .map(|v| v.into_inner().gateways)
@@ -302,12 +353,14 @@ impl RpcClient {
     }
 
     pub async fn store_account(
-        &mut self,
+        &self,
         store_request: StoreAccountRequest,
     ) -> Result<AccountCommandResponse> {
         let request = proto::StoreAccountRequest::from(store_request);
         let response = self
             .0
+            .lock()
+            .await
             .store_account(request)
             .await
             .map_err(Error::Rpc)?
@@ -316,17 +369,21 @@ impl RpcClient {
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn is_account_stored(&mut self) -> Result<bool> {
+    pub async fn is_account_stored(&self) -> Result<bool> {
         self.0
+            .lock()
+            .await
             .is_account_stored(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn forget_account(&mut self) -> Result<AccountCommandResponse> {
+    pub async fn forget_account(&self) -> Result<AccountCommandResponse> {
         let response = self
             .0
+            .lock()
+            .await
             .forget_account(())
             .await
             .map_err(Error::Rpc)?
@@ -335,9 +392,11 @@ impl RpcClient {
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn rotate_keys(&mut self) -> Result<AccountCommandResponse> {
+    pub async fn rotate_keys(&self) -> Result<AccountCommandResponse> {
         let response = self
             .0
+            .lock()
+            .await
             .rotate_keys(())
             .await
             .map_err(Error::Rpc)?
@@ -346,18 +405,22 @@ impl RpcClient {
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn get_account_identity(&mut self) -> Result<Option<String>> {
+    pub async fn get_account_identity(&self) -> Result<Option<String>> {
         self.0
+            .lock()
+            .await
             .get_account_identity(())
             .await
             .map(|v| v.into_inner().account_identity)
             .map_err(Error::Rpc)
     }
 
-    pub async fn get_account_links(&mut self, locale: String) -> Result<ParsedAccountLinks> {
+    pub async fn get_account_links(&self, locale: String) -> Result<ParsedAccountLinks> {
         let request = proto::GetAccountLinksRequest { locale };
         let response = self
             .0
+            .lock()
+            .await
             .get_account_links(request)
             .await
             .map(|v| v.into_inner())
@@ -366,9 +429,11 @@ impl RpcClient {
         Ok(ParsedAccountLinks::from(response))
     }
 
-    pub async fn account_balance(&mut self) -> Result<AccountBalanceResponse> {
+    pub async fn account_balance(&self) -> Result<AccountBalanceResponse> {
         let response = self
             .0
+            .lock()
+            .await
             .account_balance(())
             .await
             .map_err(Error::Rpc)?
@@ -378,12 +443,14 @@ impl RpcClient {
     }
 
     pub async fn decentralised_obtain_ticketbooks(
-        &mut self,
+        &self,
         amount: u64,
     ) -> Result<AccountCommandResponse> {
         let request = proto::DecentralisedObtainTicketbooksRequest { amount };
         let response = self
             .0
+            .lock()
+            .await
             .decentralised_obtain_ticketbooks(request)
             .await
             .map_err(Error::Rpc)?
@@ -392,9 +459,11 @@ impl RpcClient {
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn get_account_state(&mut self) -> Result<AccountControllerState> {
+    pub async fn get_account_state(&self) -> Result<AccountControllerState> {
         let state = self
             .0
+            .lock()
+            .await
             .get_account_state(())
             .await
             .map_err(Error::Rpc)?
@@ -403,8 +472,10 @@ impl RpcClient {
         AccountControllerState::try_from(state).map_err(Error::InvalidResponse)
     }
 
-    pub async fn refresh_account_state(&mut self) -> Result<()> {
+    pub async fn refresh_account_state(&self) -> Result<()> {
         self.0
+            .lock()
+            .await
             .refresh_account_state(())
             .await
             .map_err(Error::Rpc)?
@@ -412,9 +483,11 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn get_account_usage(&mut self) -> Result<Vec<NymVpnUsage>> {
+    pub async fn get_account_usage(&self) -> Result<Vec<NymVpnUsage>> {
         let response = self
             .0
+            .lock()
+            .await
             .get_account_usage(())
             .await
             .map_err(Error::Rpc)?
@@ -423,9 +496,11 @@ impl RpcClient {
         Ok(response.account_usages.map(Vec::from).unwrap_or_default())
     }
 
-    pub async fn reset_device_identity(&mut self, seed: Option<Vec<u8>>) -> Result<()> {
+    pub async fn reset_device_identity(&self, seed: Option<Vec<u8>>) -> Result<()> {
         let request = proto::ResetDeviceIdentityRequest { seed };
         self.0
+            .lock()
+            .await
             .reset_device_identity(request)
             .await
             .map_err(Error::Rpc)?
@@ -433,9 +508,11 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn get_device_identity(&mut self) -> Result<Option<String>> {
+    pub async fn get_device_identity(&self) -> Result<Option<String>> {
         let response = self
             .0
+            .lock()
+            .await
             .get_device_identity(())
             .await
             .map_err(Error::Rpc)?
@@ -444,9 +521,11 @@ impl RpcClient {
         Ok(response.device_identity)
     }
 
-    pub async fn get_devices(&mut self) -> Result<Vec<NymVpnDevice>> {
+    pub async fn get_devices(&self) -> Result<Vec<NymVpnDevice>> {
         let response = self
             .0
+            .lock()
+            .await
             .get_devices(())
             .await
             .map_err(Error::Rpc)?
@@ -464,9 +543,11 @@ impl RpcClient {
         Ok(devices)
     }
 
-    pub async fn get_active_devices(&mut self) -> Result<Vec<NymVpnDevice>> {
+    pub async fn get_active_devices(&self) -> Result<Vec<NymVpnDevice>> {
         let response = self
             .0
+            .lock()
+            .await
             .get_active_devices(())
             .await
             .map_err(Error::Rpc)?
@@ -483,9 +564,11 @@ impl RpcClient {
 
         Ok(devices)
     }
-    pub async fn get_available_tickets(&mut self) -> Result<AvailableTickets> {
+    pub async fn get_available_tickets(&self) -> Result<AvailableTickets> {
         let response = self
             .0
+            .lock()
+            .await
             .get_available_tickets(())
             .await
             .map_err(Error::Rpc)?
@@ -494,9 +577,11 @@ impl RpcClient {
         Ok(AvailableTickets::from(response))
     }
 
-    pub async fn get_log_path(&mut self) -> Result<LogPath> {
+    pub async fn get_log_path(&self) -> Result<LogPath> {
         let response = self
             .0
+            .lock()
+            .await
             .get_log_path(())
             .await
             .map(|v| v.into_inner())
@@ -505,60 +590,71 @@ impl RpcClient {
         Ok(LogPath::from(response))
     }
 
-    pub async fn delete_log_file(&mut self) -> Result<()> {
+    pub async fn delete_log_file(&self) -> Result<()> {
         self.0
+            .lock()
+            .await
             .delete_log_file(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn is_sentry_enabled(&mut self) -> Result<bool> {
+    pub async fn is_sentry_enabled(&self) -> Result<bool> {
         self.0
+            .lock()
+            .await
             .is_sentry_enabled(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn enable_sentry(&mut self) -> Result<()> {
+    pub async fn enable_sentry(&self) -> Result<()> {
         self.0
+            .lock()
+            .await
             .enable_sentry(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn disable_sentry(&mut self) -> Result<()> {
+    pub async fn disable_sentry(&self) -> Result<()> {
         self.0
+            .lock()
+            .await
             .disable_sentry(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn network_stats_set_enabled(&mut self, enabled: bool) -> Result<()> {
+    pub async fn network_stats_set_enabled(&self, enabled: bool) -> Result<()> {
         self.0
+            .lock()
+            .await
             .network_stats_set_enabled(enabled)
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn network_stats_allow_disconnected(
-        &mut self,
-        allow_disconnected: bool,
-    ) -> Result<()> {
+    pub async fn network_stats_allow_disconnected(&self, allow_disconnected: bool) -> Result<()> {
         self.0
+            .lock()
+            .await
             .network_stats_allow_disconnected(allow_disconnected)
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn network_stats_reset_seed(&mut self, seed: Option<String>) -> Result<()> {
+    pub async fn network_stats_reset_seed(&self, seed: Option<String>) -> Result<()> {
         let request = proto::NetworkStatsResetSeedRequest { seed };
         self.0
+            .lock()
+            .await
             .network_stats_reset_seed(request)
             .await
             .map(|v| v.into_inner())
@@ -566,7 +662,7 @@ impl RpcClient {
     }
 
     pub async fn enable_socks5(
-        &mut self,
+        &self,
         socks5_settings: Socks5Settings,
         http_rpc_settings: HttpRpcSettings,
         exit_point: ExitPoint,
@@ -582,23 +678,29 @@ impl RpcClient {
         };
 
         self.0
+            .lock()
+            .await
             .enable_socks5(request)
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn disable_socks5(&mut self) -> Result<()> {
+    pub async fn disable_socks5(&self) -> Result<()> {
         self.0
+            .lock()
+            .await
             .disable_socks5(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn get_socks5_status(&mut self) -> Result<Socks5Status> {
+    pub async fn get_socks5_status(&self) -> Result<Socks5Status> {
         let response = self
             .0
+            .lock()
+            .await
             .get_socks5_status(())
             .await
             .map_err(Error::Rpc)?
@@ -607,9 +709,11 @@ impl RpcClient {
         Socks5Status::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn network_stats_get_seed(&mut self) -> Result<NetworkStatisticsIdentity> {
+    pub async fn network_stats_get_seed(&self) -> Result<NetworkStatisticsIdentity> {
         let response = self
             .0
+            .lock()
+            .await
             .network_stats_get_seed(())
             .await
             .map(|v| v.into_inner())

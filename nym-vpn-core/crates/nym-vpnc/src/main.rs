@@ -23,7 +23,7 @@ async fn main() -> Result<()> {
         .await
         .context("Failed to create RPC client")?;
 
-    args.command.execute(rpc_client).await
+    args.command.execute(&rpc_client).await
 }
 
 #[derive(Parser, Debug)]
@@ -121,7 +121,7 @@ pub enum Command {
 }
 
 impl Command {
-    pub async fn execute(self, rpc_client: RpcClient) -> Result<()> {
+    pub async fn execute(self, rpc_client: &RpcClient) -> Result<()> {
         match self {
             Command::Connect { wait } => Self::connect(rpc_client, wait).await,
             Command::Reconnect => Self::reconnect(rpc_client).await,
@@ -141,7 +141,7 @@ impl Command {
         }
     }
 
-    async fn connect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
+    async fn connect(rpc_client: &RpcClient, wait: bool) -> Result<()> {
         rpc_client.connect_tunnel().await?;
 
         if wait {
@@ -152,12 +152,12 @@ impl Command {
         }
     }
 
-    async fn reconnect(mut rpc_client: RpcClient) -> Result<()> {
+    async fn reconnect(rpc_client: &RpcClient) -> Result<()> {
         let _accepted = rpc_client.reconnect_tunnel().await?;
         Ok(())
     }
 
-    async fn wait_until_connected(mut rpc_client: RpcClient) -> Result<()> {
+    async fn wait_until_connected(rpc_client: &RpcClient) -> Result<()> {
         let mut stream = rpc_client.listen_to_events().await?;
         while let Some(new_state) = stream.next().await {
             let TunnelEvent::NewState(new_state) = new_state? else {
@@ -185,9 +185,9 @@ impl Command {
         Ok(())
     }
 
-    async fn disconnect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
+    async fn disconnect(rpc_client: &RpcClient, wait: bool) -> Result<()> {
         if wait {
-            let mut stream = rpc_client.clone().listen_to_events().await?;
+            let mut stream = rpc_client.listen_to_events().await?;
 
             println!("Waiting until disconnected");
 
@@ -226,7 +226,7 @@ impl Command {
         }
     }
 
-    async fn status(mut rpc_client: RpcClient, listen: bool) -> Result<()> {
+    async fn status(rpc_client: &RpcClient, listen: bool) -> Result<()> {
         let state = rpc_client.get_tunnel_state().await?;
         println!("State: {state}");
 
@@ -253,13 +253,13 @@ impl Command {
         Ok(())
     }
 
-    async fn info(mut rpc_client: RpcClient) -> Result<()> {
+    async fn info(rpc_client: &RpcClient) -> Result<()> {
         let service_info = rpc_client.get_info().await?;
         Self::print_service_info(service_info);
         Ok(())
     }
 
-    async fn get_config(mut rpc_client: RpcClient) -> Result<()> {
+    async fn get_config(rpc_client: &RpcClient) -> Result<()> {
         let config = rpc_client.get_config().await?;
         println!("{config:#?}");
         Ok(())

@@ -48,7 +48,7 @@ pub enum Command {
 }
 
 impl Command {
-    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
+    pub async fn execute(self, rpc_client: &RpcClient) -> Result<()> {
         match self {
             Command::Get => {
                 let account_id = rpc_client.get_account_identity().await?;

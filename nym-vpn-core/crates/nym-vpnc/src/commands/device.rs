@@ -35,7 +35,7 @@ pub enum Command {
 }
 
 impl Args {
-    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
+    pub async fn execute(self, rpc_client: &RpcClient) -> Result<()> {
         match self.command.unwrap_or(Command::Get) {
             Command::Get => {
                 let identity = rpc_client.get_device_identity().await?;

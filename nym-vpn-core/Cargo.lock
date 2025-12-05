@@ -5646,6 +5646,7 @@ dependencies = [
  "prost-types",
  "thiserror 2.0.17",
  "time",
+ "tokio",
  "tokio-stream",
  "tonic",
  "tonic-prost",

@@ -27,7 +27,7 @@ pub enum Command {
 }
 
 impl Command {
-    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
+    pub async fn execute(self, rpc_client: &RpcClient) -> Result<()> {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;

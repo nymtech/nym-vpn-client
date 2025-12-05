@@ -19,7 +19,7 @@ pub enum Command {
 }
 
 impl Command {
-    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
+    pub async fn execute(self, rpc_client: &RpcClient) -> Result<()> {
         match self {
             Command::Get => {
                 let network_name = rpc_client.get_info().await?.nym_network.network_name;

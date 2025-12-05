@@ -145,7 +145,7 @@ pub struct FilterArgs {
 }
 
 impl Args {
-    pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
+    pub async fn execute(self, rpc_client: &RpcClient) -> Result<()> {
         match self.command {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
@@ -190,7 +190,7 @@ impl Args {
         }
     }
 
-    async fn list_gateways(&self, mut rpc_client: RpcClient, gw_type: GatewayType) -> Result<()> {
+    async fn list_gateways(&self, rpc_client: &RpcClient, gw_type: GatewayType) -> Result<()> {
         let gateways = rpc_client
             .list_gateways(ListGatewaysOptions {
                 gw_type: gw_type.into(),
@@ -212,7 +212,7 @@ impl Args {
 
     async fn list_filtered_gateways(
         &self,
-        mut rpc_client: RpcClient,
+        rpc_client: &RpcClient,
         gw_type: GatewayType,
         filters: FilterArgs,
     ) -> Result<()> {
