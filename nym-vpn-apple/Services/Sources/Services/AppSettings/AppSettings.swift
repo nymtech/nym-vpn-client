@@ -86,6 +86,10 @@ import CountriesManagerTypes
     public var shouldReconnect = false {
         didSet { shouldReconnectPublisher = shouldReconnect }
     }
+    @AppStorage(AppSettingKey.quic.rawValue)
+    public var isProxyEnabled = false {
+        didSet { isProxyEnabledPublisher = isProxyEnabled }
+    }
 
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher: Bool
@@ -93,6 +97,7 @@ import CountriesManagerTypes
     @Published public var isQuicEnabledPublisher: Bool
     @Published public var shouldReconnectPublisher: Bool
     @Published public var isLanBypassEnabledPublisher: Bool
+    @Published public var isProxyEnabledPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
     private init() {
@@ -101,12 +106,14 @@ import CountriesManagerTypes
         self.isQuicEnabledPublisher = false
         self.shouldReconnectPublisher = false
         self.isLanBypassEnabledPublisher = false
+        self.isProxyEnabledPublisher = false
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
         self.isQuicEnabledPublisher = self.isQuicEnabled
         self.shouldReconnectPublisher = self.shouldReconnect
         self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
+        self.isProxyEnabledPublisher = self.isProxyEnabled
     }
 }
 
@@ -144,4 +151,5 @@ public enum AppSettingKey: String {
     case shouldReconnect
     case passphraseStored
     case connectionConfig
+    case proxy
 }

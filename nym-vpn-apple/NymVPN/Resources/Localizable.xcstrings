@@ -28538,6 +28538,61 @@
         }
       }
     },
+    "proxy.proxyStatus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy status:"
+          }
+        }
+      }
+    },
+    "proxy.status.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requires an active NymVPN connection"
+          }
+        }
+      }
+    },
+    "proxy.status.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable proxy"
+          }
+        }
+      }
+    },
+    "proxy.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routes app and wallet traffic through the Nym mixnet for enhanced privacy via a SOCKS5 proxy for apps and HTTP RPC proxy for wallets."
+          }
+        }
+      }
+    },
+    "proxy.vpnStatus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPN status:"
+          }
+        }
+      }
+    },
     "purchasePlan.fullyProtected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34177,6 +34232,28 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "隐私和数据"
+          }
+        }
+      }
+    },
+    "settings.proxy.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route app traffic through mixnet"
+          }
+        }
+      }
+    },
+    "settings.proxy.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App & Wallet proxy"
           }
         }
       }

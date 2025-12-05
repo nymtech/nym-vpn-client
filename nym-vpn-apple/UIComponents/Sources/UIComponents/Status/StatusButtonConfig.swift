@@ -39,7 +39,7 @@ public enum StatusButtonConfig: String {
         }
     }
 
-    var title: String {
+    public var title: String {
         self.rawValue.localizedString
     }
 

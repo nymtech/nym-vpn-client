@@ -57,6 +57,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
         case .santasMenu:
             santasMenuDestination()
 #if os(macOS)
+        case .proxy:
+            proxyDestination()
         case .appMode:
             appModeDestination()
         case .daemonEnable:
@@ -196,6 +198,11 @@ private extension SettingsFlowCoordinator {
     }
 
 #if os(macOS)
+    @ViewBuilder
+    func proxyDestination() -> some View {
+        ProxyView(path: $flowState.path)
+    }
+    
     @ViewBuilder
     func appModeDestination() -> some View {
         AppModeView(path: $flowState.path)
