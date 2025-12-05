@@ -40,7 +40,7 @@ export function ConfirmationDialog({
           {t('dns.dialog.title')}
         </DialogTitle>
       </div>
-      <p className="text-center text-iron dark:text-bombay max-w-80">
+      <p className="text-center text-iron dark:text-bombay max-w-80 whitespace-pre-line">
         {t('dns.dialog.description')}
       </p>
       <div className="flex flex-col flex-nowrap justify-center mt-2 w-full gap-3">
