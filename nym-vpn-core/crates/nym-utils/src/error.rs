@@ -1,8 +1,8 @@
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
 pub enum UtilsError {
     #[error(transparent)]
-    Hex(#[from] hex::FromHexError),
+    Bip39(#[from] bip39::Error),
 
     #[error(transparent)]
-    Bip39(#[from] bip39::Error),
+    Privy(#[from] nym_privy::error::PrivyError),
 }
