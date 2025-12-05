@@ -572,7 +572,7 @@ message AccountCommandError {
     bool no_device_stored = 6;
     bool existing_account = 7;
     bool offline = 8;
-    string invalid_private_key = 9;
+    string invalid_secret = 9;
     string invalid_mnemonic = 10;
     string nyxd_connection_failure = 11;
     string nyxd_query_failure = 12;

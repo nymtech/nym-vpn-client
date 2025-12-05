@@ -17,7 +17,6 @@ anyhow.workspace = true
 bip39.workspace = true
 clap.workspace = true
 futures.workspace = true
-hex.workspace = true
 log-panics.workspace = true
 reqwest = { workspace = true, features = ["socks", "rustls-tls"] }
 hyper = { workspace = true, features = ["server", "http1"] }
@@ -75,6 +74,7 @@ nym-vpn-lib-types = { workspace = true }
 nym-vpn-store = { workspace = true }
 nym-vpn-network-config = { workspace = true }
 nym-platform-metadata = { workspace = true }
+nym-utils.workspace = true
 nym-gateway-directory = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 

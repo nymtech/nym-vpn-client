@@ -28,7 +28,7 @@ pub struct ListGatewaysOptions {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum LoginSecret {
     Mnemonic(String),
-    PrivateKeyHex(String),
+    PrivyHexSignature(String),
 }
 
 #[derive(zeroize::Zeroize)]

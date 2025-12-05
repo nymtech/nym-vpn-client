@@ -198,24 +198,10 @@ pub(super) async fn update_account_state() -> Result<(), VpnError> {
         .map_err(VpnError::from)
 }
 
-fn parse_secret(secret: &LoginSecret) -> Result<Mnemonic, VpnError> {
-    let ret = match secret {
-        LoginSecret::Mnemonic(mnemonic) => Mnemonic::parse(mnemonic),
-        LoginSecret::PrivateKeyHex(private_key_hex) => {
-            let key_bytes =
-                hex::decode(private_key_hex).map_err(|err| VpnError::InvalidPrivateKey {
-                    details: err.to_string(),
-                })?;
-            Mnemonic::from_entropy(&key_bytes)
-        }
-    };
-    ret.map_err(|err| VpnError::InvalidMnemonic {
-        details: err.to_string(),
-    })
-}
-
 pub(super) async fn login(secret: &LoginSecret) -> Result<(), VpnError> {
-    let mnemonic = parse_secret(secret)?;
+    let mnemonic = nym_utils::parse_secret(secret).map_err(|err| VpnError::InvalidSecret {
+        details: err.to_string(),
+    })?;
     get_command_sender()
         .await?
         .store_account(mnemonic.into())
@@ -332,7 +318,9 @@ pub(crate) mod raw {
     }
 
     pub(crate) async fn login_raw(secret: &LoginSecret, path: &str) -> Result<(), VpnError> {
-        let mnemonic = parse_secret(secret)?;
+        let mnemonic = nym_utils::parse_secret(secret).map_err(|err| VpnError::InvalidSecret {
+            details: err.to_string(),
+        })?;
         login_inner(mnemonic, path).await
     }
 

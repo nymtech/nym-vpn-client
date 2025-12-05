@@ -72,7 +72,7 @@ impl Command {
                 let secret = match login_type {
                     LoginType::Mnemonic => nym_vpn_lib_types::LoginSecret::Mnemonic(secret),
                     LoginType::PrivateKeyHex => {
-                        nym_vpn_lib_types::LoginSecret::PrivateKeyHex(secret)
+                        nym_vpn_lib_types::LoginSecret::PrivyHexSignature(secret)
                     }
                 };
                 let request = match mode {

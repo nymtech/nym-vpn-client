@@ -33,10 +33,10 @@ impl From<lib::AccountCommandError> for BackendError {
                 ErrorKey::AccountInvalidMnemonic,
                 format!("invalid mnemonic: {e}"),
             ),
-            lib::AccountCommandError::InvalidPrivateKey(e) => BackendError::with_detail(
-                "invalid private key",
-                ErrorKey::AccountInvalidPrivateKey,
-                format!("invalid private key: {e}"),
+            lib::AccountCommandError::InvalidSecret(e) => BackendError::with_detail(
+                "invalid secret",
+                ErrorKey::AccountInvalidSecret,
+                format!("invalid secret: {e}"),
             ),
             lib::AccountCommandError::NyxdConnectionFailure(e) => {
                 BackendError::internal_with_detail("failed to connect to nyxd", e)

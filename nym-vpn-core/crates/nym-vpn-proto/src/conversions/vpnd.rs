@@ -491,7 +491,9 @@ impl TryFrom<proto::StoreAccountRequest> for StoreAccountRequest {
                     }
                     proto::login_secret::LoginType::PrivateKeyHex(private_key_hex) => {
                         nym_vpn_lib_types::StoreAccountRequest::Vpn {
-                            secret: nym_vpn_lib_types::LoginSecret::PrivateKeyHex(private_key_hex),
+                            secret: nym_vpn_lib_types::LoginSecret::PrivyHexSignature(
+                                private_key_hex,
+                            ),
                         }
                     }
                 }
@@ -513,7 +515,9 @@ impl TryFrom<proto::StoreAccountRequest> for StoreAccountRequest {
                     }
                     proto::login_secret::LoginType::PrivateKeyHex(private_key_hex) => {
                         nym_vpn_lib_types::StoreAccountRequest::Decentralised {
-                            secret: nym_vpn_lib_types::LoginSecret::PrivateKeyHex(private_key_hex),
+                            secret: nym_vpn_lib_types::LoginSecret::PrivyHexSignature(
+                                private_key_hex,
+                            ),
                         }
                     }
                 }
@@ -537,7 +541,7 @@ impl From<StoreAccountRequest> for proto::StoreAccountRequest {
                         },
                     )
                 }
-                nym_vpn_lib_types::LoginSecret::PrivateKeyHex(private_key_hex) => {
+                nym_vpn_lib_types::LoginSecret::PrivyHexSignature(private_key_hex) => {
                     proto::store_account_request::Request::VpnAccountStore(
                         proto::VpnAccountStoreRequest {
                             secret: Some(proto::LoginSecret {
@@ -561,7 +565,7 @@ impl From<StoreAccountRequest> for proto::StoreAccountRequest {
                         },
                     )
                 }
-                nym_vpn_lib_types::LoginSecret::PrivateKeyHex(private_key_hex) => {
+                nym_vpn_lib_types::LoginSecret::PrivyHexSignature(private_key_hex) => {
                     proto::store_account_request::Request::DecentralisedAccountStore(
                         proto::DecentralisedAccountStoreRequest {
                             secret: Some(proto::LoginSecret {

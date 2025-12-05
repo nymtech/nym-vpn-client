@@ -1,7 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use bip39::Mnemonic;
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
@@ -41,10 +40,9 @@ use nym_vpn_lib::{
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
     DecentralisedObtainTicketbooksRequest, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayFilters, ListGatewaysOptions, LogPath, LoginSecret, NetworkCompatibility,
-    NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks,
-    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig,
-    VpnServiceInfo,
+    GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NymNetworkDetails,
+    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
+    SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -1248,13 +1246,15 @@ impl NymVpnService {
     ) -> Result<(), AccountCommandError> {
         match store_request {
             StoreAccountRequest::Vpn { secret } => {
-                let mnemonic = parse_secret(&secret)?;
+                let mnemonic = nym_utils::parse_secret(&secret)
+                    .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
                 self.account_command_tx
                     .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
                     .await
             }
             StoreAccountRequest::Decentralised { secret } => {
-                let mnemonic = parse_secret(&secret)?;
+                let mnemonic = nym_utils::parse_secret(&secret)
+                    .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
                 self.account_command_tx
                     .store_account(StorableAccount::new(
                         mnemonic,
@@ -1479,16 +1479,4 @@ impl NymVpnService {
         self.network_statistics_enabled = enable;
         Ok(())
     }
-}
-
-fn parse_secret(secret: &LoginSecret) -> Result<Mnemonic, AccountCommandError> {
-    let ret = match secret {
-        LoginSecret::Mnemonic(mnemonic) => Mnemonic::parse(mnemonic),
-        LoginSecret::PrivateKeyHex(private_key_hex) => {
-            let key_bytes = hex::decode(private_key_hex)
-                .map_err(|err| AccountCommandError::InvalidPrivateKey(err.to_string()))?;
-            Mnemonic::from_entropy(&key_bytes)
-        }
-    };
-    ret.map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))
 }
