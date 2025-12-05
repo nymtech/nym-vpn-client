@@ -21,8 +21,6 @@ type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
 pub struct RpcClient(ServiceClient);
 
 impl RpcClient {
-    const MAX_CUSTOM_DNS_SERVERS: usize = 5;
-
     pub async fn new() -> Result<RpcClient> {
         let socket_path = get_rpc_socket_path();
         let channel = Endpoint::from_static("unix://placeholder")
@@ -142,11 +140,9 @@ impl RpcClient {
     }
 
     pub async fn set_custom_dns(&mut self, ips: Vec<IpAddr>) -> Result<()> {
-        let request: proto::IpAddrList = ips
-            .into_iter()
-            .take(Self::MAX_CUSTOM_DNS_SERVERS)
-            .collect::<Vec<_>>()
-            .into();
+        let request = proto::IpAddrList {
+            ips: ips.into_iter().map(proto::IpAddr::from).collect(),
+        };
 
         self.0
             .set_custom_dns(request)
