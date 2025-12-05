@@ -3,7 +3,9 @@
 
 use log::LevelFilter;
 
-pub(crate) fn init_logs(level: String) -> bool {
+use crate::error::VpnError;
+
+pub(crate) fn init_logs(level: String) -> Result<(), VpnError> {
     use android_logger::{Config, FilterBuilder};
     let levels = level + ",tungstenite=warn,mio=warn,tokio_tungstenite=warn";
 
@@ -16,6 +18,6 @@ pub(crate) fn init_logs(level: String) -> bool {
             .with_tag("libnymvpn")
             .with_filter(FilterBuilder::new().parse(levels.as_str()).build()),
     );
-    tracing::debug!("Logger initialized");
-    true
+
+    Ok(())
 }

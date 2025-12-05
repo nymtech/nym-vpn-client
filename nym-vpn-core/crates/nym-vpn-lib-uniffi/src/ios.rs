@@ -11,7 +11,9 @@ use tracing_subscriber::{
     util::SubscriberInitExt,
 };
 
-pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> bool {
+use crate::error::VpnError;
+
+pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(), VpnError> {
     let oslogger_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
 
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -48,8 +50,9 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> bool {
             && !parent.exists()
             && let Err(e) = std::fs::create_dir_all(parent)
         {
-            eprintln!("Failed to create log directory {}: {e}", parent.display());
-            return false;
+            return Err(VpnError::CreateLogFile {
+                details: format!("Failed to create log directory {}: {e}", parent.display()),
+            });
         }
 
         // Attempting to get the tracing_appending solution to work was not successful.
@@ -64,8 +67,9 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> bool {
         {
             Ok(file) => file,
             Err(e) => {
-                eprintln!("Failed to open log file {}: {e}", path.display());
-                return false;
+                return Err(VpnError::CreateLogFile {
+                    details: format!("Failed to open log file {}: {e}", path.display()),
+                });
             }
         };
 
@@ -86,14 +90,11 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> bool {
         layers.push(layer.boxed());
     }
 
-    match registry.with(layers).with(filter).try_init() {
-        Ok(_) => {
-            tracing::debug!("Logger initialized level: {level}, path?:{path:?}");
-            true
-        }
-        Err(err) => {
-            eprintln!("Failed to initialize logger: {err}");
-            false
-        }
-    }
+    registry
+        .with(layers)
+        .with(filter)
+        .try_init()
+        .map_err(|err| VpnError::CreateLogFile {
+            details: format!("Failed to initialize OsLogger: {err}"),
+        })
 }
