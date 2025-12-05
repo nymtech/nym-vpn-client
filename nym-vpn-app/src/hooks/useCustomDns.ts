@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useMainDispatch, useMainState } from '../contexts/main/context';
 import { StateDispatch } from '../types';
-import { useInAppNotify } from '../contexts/index';
+import { useInAppNotify } from '../contexts';
 
 function useCustomDns() {
   const { t } = useTranslation('settings');
@@ -26,8 +26,8 @@ function useCustomDns() {
 
   const setCustomDns = async (dns: string[]) => {
     try {
-      await invoke('set_custom_dns', { dns: dns });
-      dispatch({ type: 'set-custom-dns', dns: dns });
+      await invoke('set_custom_dns', { dns });
+      dispatch({ type: 'set-custom-dns', dns });
     } catch (e) {
       console.error(e);
       push({

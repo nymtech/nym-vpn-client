@@ -62,12 +62,6 @@
       "duplicate": "Duplicate DNS address",
       "invalid": "Invalid DNS address format",
       "failed": "Failed to apply DNS changes"
-    },
-    "apply-dialog": {
-      "title": "Apply DNS changes?",
-      "description": "Custom DNS settings updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.",
-      "confirm": "Apply and reconnect now",
-      "cancel": "Discard changes"
     }
   },
   "legal": {

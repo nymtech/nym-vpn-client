@@ -35,7 +35,7 @@ function CustomDNS() {
     () => customDnsEnabled,
   );
   const [customDnsList, setCustomDnsList] = useState<DnsItem[]>(() =>
-    customDns.map((dns) => ({ id: dns, dns: dns })),
+    customDns.map((dns) => ({ id: dns, dns })),
   );
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
     useState(false);
@@ -60,7 +60,7 @@ function CustomDNS() {
   const discardChanges = () => {
     setIsConfirmationDialogOpen(false);
     setDnsEnabledLocal(customDnsEnabled);
-    setCustomDnsList(customDns.map((dns) => ({ id: dns, dns: dns })));
+    setCustomDnsList(customDns.map((dns) => ({ id: dns, dns })));
     setDnsEnabledLocal(customDnsEnabled);
   };
 
