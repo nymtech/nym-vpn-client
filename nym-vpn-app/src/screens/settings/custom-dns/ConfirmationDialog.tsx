@@ -42,7 +42,7 @@ export function ConfirmationDialog({
       className="flex flex-col items-center gap-6"
     >
       <div className="flex flex-col items-center gap-4 w-11/12">
-        <MsIcon icon="dns" />
+        <MsIcon icon="dns" className="text-baltic-sea dark:text-white" />
 
         <DialogTitle
           as="h3"

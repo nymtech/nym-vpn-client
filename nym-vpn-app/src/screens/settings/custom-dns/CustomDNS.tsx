@@ -91,7 +91,11 @@ function CustomDNS() {
 
   const handleConfirmation = async () => {
     await applyChanges();
-    navigate(routes.root);
+    if (state === 'connected') {
+      navigate(routes.root);
+    } else {
+      navigate(routes.settings);
+    }
   };
 
   const handleBackNavigation = useCallback(() => {
