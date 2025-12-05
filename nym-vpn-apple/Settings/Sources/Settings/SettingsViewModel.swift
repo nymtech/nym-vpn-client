@@ -187,6 +187,11 @@ private extension SettingsViewModel {
         path.append(SettingLink.passphrase)
     }
 
+    func navigateToProxy() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.proxy)
+    }
+
     func navigateToCensorship() {
         impactGenerator.softImpact()
         path.append(SettingLink.censorship)
@@ -366,6 +371,20 @@ private extension SettingsViewModel {
                 action: {}
             )
         )
+#if os(macOS)
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.proxy.title".localizedString,
+                imageName: "proxy",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToProxy()
+                    }
+                }
+            )
+        )
+#endif
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
