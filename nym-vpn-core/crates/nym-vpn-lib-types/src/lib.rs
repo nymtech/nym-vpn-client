@@ -38,6 +38,7 @@ mod device;
 mod gateway;
 mod log_path;
 mod network;
+mod network_stats;
 mod rpc_requests;
 mod service;
 mod socks5;
@@ -57,7 +58,8 @@ pub use account::{
 };
 pub use connection_data::{
     BridgeAddress, ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,
-    MixnetConnectionData, NymAddress, TunnelConnectionData, WireguardConnectionData, WireguardNode,
+    GatewayLightInfo, MixnetConnectionData, NymAddress, TunnelConnectionData,
+    WireguardConnectionData, WireguardNode,
 };
 pub use device::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
 pub use gateway::{
@@ -71,6 +73,7 @@ pub use network::{
     NetworkCompatibility, NymContracts, NymNetworkDetails, NymVpnNetwork, ParsedAccountLinks,
     SystemConfiguration, SystemMessage, ValidatorDetails,
 };
+pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
 pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
     ListGatewaysOptions, LoginSecret, StoreAccountRequest,

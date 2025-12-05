@@ -67,10 +67,11 @@ nym-common.workspace = true
 nym-ipc.workspace = true
 nym-offline-monitor.workspace = true
 nym-statistics = { workspace = true }
+nym-statistics-api-client = { workspace = true }
 nym-vpn-account-controller = { workspace = true }
 nym-vpn-api-client = { workspace = true }
 nym-vpn-lib = { workspace = true }
-nym-vpn-lib-types = { workspace = true }
+nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 nym-vpn-store = { workspace = true }
 nym-vpn-network-config = { workspace = true }
 nym-platform-metadata = { workspace = true }

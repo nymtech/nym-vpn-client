@@ -40,6 +40,7 @@ uniffi = { workspace = true, features = ["tokio"] }
 nym-bin-common.workspace = true
 nym-sdk.workspace = true
 nym-statistics.workspace = true
+nym-statistics-api-client.workspace = true
 nym-offline-monitor.workspace = true
 nym-vpn-lib.workspace = true
 nym-vpn-lib-types = { workspace = true, features = [

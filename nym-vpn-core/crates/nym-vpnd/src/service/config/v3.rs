@@ -67,6 +67,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             residential_exit: value.residential_exit,
             enable_custom_dns: !custom_dns.is_empty(),
             custom_dns,
+            network_stats: Default::default(),
         };
         Ok(config)
     }

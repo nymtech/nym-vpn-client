@@ -54,16 +54,21 @@ async fn start_statistics_controller(
     let user_agent = new_user_agent!();
     let shutdown_token = CancellationToken::new();
 
-    let statistics_controller_config = nym_statistics::StatisticsControllerConfig::new(
-        network_env
-            .system_configuration
-            .and_then(|c| c.statistics_api),
-        user_agent,
-    )
-    .with_enabled(enabled);
+    let statistics_controller_config = nym_vpn_lib_types::NetworkStatisticsConfig {
+        enabled,
+        allow_disconnected: false,
+    };
+
+    let statistics_api_url = network_env
+        .system_configuration
+        .as_ref()
+        .and_then(|config| config.statistics_api.clone());
+
+    let stats_api_client = statistics_api_url.and_then(|url| nym_statistics_api_client::StatisticsApiClient::new(url.clone(), user_agent.clone()).inspect_err(|e| tracing::error!("Failed to build Statistics API client. Statistics collection will be disabled : {e}")).ok());
 
     let statistics_controller = nym_statistics::StatisticsController::new(
         statistics_controller_config,
+        stats_api_client,
         data_dir,
         shutdown_token.child_token(),
     )

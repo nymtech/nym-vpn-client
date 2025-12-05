@@ -24,8 +24,7 @@ use super::{
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
 use nym_statistics::{
-    StatisticsController, StatisticsControllerConfig,
-    events::{StatisticsEvent, StatisticsSender},
+    StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
 };
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
@@ -40,9 +39,10 @@ use nym_vpn_lib::{
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
     DecentralisedObtainTicketbooksRequest, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NymNetworkDetails,
-    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest,
-    SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NetworkStatisticsIdentity,
+    NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks,
+    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig,
+    VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -139,16 +139,22 @@ pub enum VpnServiceCommand {
     DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
     ToggleSentry(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
-    IsCollectNetStatsEnabled(oneshot::Sender<bool>, ()),
-    ToggleCollectNetStats(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
+    AllowDisconnectedNetStats(oneshot::Sender<()>, bool),
+    EnableNetStats(oneshot::Sender<()>, bool),
+    ResetNetStatsSeed(
+        oneshot::Sender<Result<(), StatisticsControllerError>>,
+        Option<String>,
+    ),
+    GetNetStatsSeed(
+        oneshot::Sender<Result<NetworkStatisticsIdentity, StatisticsControllerError>>,
+        (),
+    ),
 }
 
 pub struct NymVpnServiceParameters {
     pub log_path: Option<LogPath>,
     pub network_env: Box<Network>,
     pub sentry_enabled: bool,
-    pub netstats_enabled: bool,
-    pub stats_id_seed: Option<String>,
     pub user_agent: UserAgent,
 }
 
@@ -232,11 +238,11 @@ pub struct NymVpnService {
     // Sentry client has been initialized and is enabled
     sentry_enabled: bool,
 
-    // Whether network statistics reporting is enabled
-    network_statistics_enabled: bool,
-
     // The statistics channel sender
     statistics_event_sender: StatisticsSender,
+
+    // The stats control command channel,
+    stats_control_commands_sender: StatisticsCommandsSender,
 
     // Lazy SOCKS5 proxy service handle
     socks5_service: Socks5Service,
@@ -306,12 +312,6 @@ impl NymVpnService {
         let state_machine_shutdown_token = CancellationToken::new();
         let services_shutdown_token = CancellationToken::new();
 
-        let statistics_api = parameters
-            .network_env
-            .system_configuration
-            .as_ref()
-            .and_then(|config| config.statistics_api.clone());
-
         #[cfg(target_os = "linux")]
         let routing_params = nym_vpn_lib::tunnel_state_machine::RoutingParameters::default();
 
@@ -374,24 +374,31 @@ impl NymVpnService {
         let wireguard_keys_db = account_controller.get_wireguard_keys_storage();
         let account_controller_handle = tokio::task::spawn(account_controller.run());
 
+        let config_manager =
+            VpnServiceConfigManager::new(&config_dir, Some(tunnel_event_tx.clone())).await?;
+
         // Statistics collection setup
-        let statistics_controller_config =
-            StatisticsControllerConfig::new(statistics_api, parameters.user_agent.clone())
-                .with_stats_id_seed(parameters.stats_id_seed)
-                .with_enabled(parameters.netstats_enabled);
+        let statistics_controller_config = config_manager.config().network_stats;
+
+        let statistics_api_url = parameters
+            .network_env
+            .system_configuration
+            .as_ref()
+            .and_then(|config| config.statistics_api.clone());
+
+        let stats_api_client = statistics_api_url.and_then(|url| nym_statistics_api_client::StatisticsApiClient::new(url.clone(), parameters.user_agent.clone()).inspect_err(|e| tracing::error!("Failed to build Statistics API client. Statistics collection will be disabled : {e}")).ok());
 
         // Statistics collection can technically fail, but if it's the case, we just disable it as it is not operation critical.
         let statistics_controller = StatisticsController::new(
             statistics_controller_config,
+            stats_api_client,
             network_data_dir.clone(),
             services_shutdown_token.child_token(),
         )
         .await;
 
-        let config_manager =
-            VpnServiceConfigManager::new(&config_dir, Some(tunnel_event_tx.clone())).await?;
-
         let statistics_event_sender = statistics_controller.get_statistics_sender();
+        let stats_control_commands_sender = statistics_controller.get_commands_sender();
         let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
         let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
@@ -536,8 +543,8 @@ impl NymVpnService {
             discovery_refresher_event_rx,
             discovery_refresher_join_handle,
             sentry_enabled: parameters.sentry_enabled,
-            network_statistics_enabled: parameters.netstats_enabled,
             statistics_event_sender,
+            stats_control_commands_sender,
             socks5_service,
         })
     }
@@ -631,9 +638,11 @@ impl NymVpnService {
 
             match new_state {
                 TargetState::Secured => {
+                    self.statistics_event_sender.report_connection_request();
                     let _ = self.command_sender.send(TunnelCommand::Connect);
                 }
                 TargetState::Unsecured => {
+                    self.statistics_event_sender.report_disconnection_request();
                     let _ = self.command_sender.send(TunnelCommand::Disconnect);
                 }
             }
@@ -647,6 +656,7 @@ impl NymVpnService {
     async fn reconnect_tunnel(&self) -> bool {
         match self.target_state {
             TargetState::Secured => {
+                self.statistics_event_sender.report_connection_request();
                 let _ = self.command_sender.send(TunnelCommand::Connect);
                 true
             }
@@ -882,12 +892,22 @@ impl NymVpnService {
                 let result = self.handle_toggle_sentry(enable).await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::IsCollectNetStatsEnabled(tx, ()) => {
-                let _ = tx.send(self.handle_is_collect_network_stats_enabled().await);
+            VpnServiceCommand::EnableNetStats(tx, enabled) => {
+                self.handle_enable_network_stats(enabled).await;
+                let _ = tx.send(());
             }
-            VpnServiceCommand::ToggleCollectNetStats(tx, enable) => {
-                let result = self.handle_toggle_collect_network_stats(enable).await;
+            VpnServiceCommand::AllowDisconnectedNetStats(tx, allow_disconnected) => {
+                self.handle_allow_disconnected_network_stats(allow_disconnected)
+                    .await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::ResetNetStatsSeed(tx, seed) => {
+                let result = self.handle_reset_network_stats_seed(seed).await;
                 let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetNetStatsSeed(tx, ()) => {
+                let identity = self.handle_get_network_stats_seed().await;
+                let _ = tx.send(identity);
             }
             VpnServiceCommand::EnableSocks5(
                 tx,
@@ -977,7 +997,14 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) {
+    async fn handle_set_custom_dns(&mut self, mut custom_dns: Vec<IpAddr>) {
+        const MAX_CUSTOM_DNS_SERVERS: usize = 5;
+
+        if custom_dns.len() > MAX_CUSTOM_DNS_SERVERS {
+            tracing::warn!("Only the first {MAX_CUSTOM_DNS_SERVERS} DNS servers will be used");
+            custom_dns.truncate(MAX_CUSTOM_DNS_SERVERS);
+        }
+
         self.config_manager.set_custom_dns(custom_dns).await;
         self.update_tunnel_settings_with_throttle();
     }
@@ -1308,8 +1335,11 @@ impl NymVpnService {
             data_dir.display()
         );
 
-        self.statistics_event_sender
-            .report(StatisticsEvent::remove_seed());
+        let _ = self
+            .stats_control_commands_sender
+            .reset_seed(None)
+            .await
+            .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
 
         self.account_command_tx.forget_account().await
     }
@@ -1382,8 +1412,11 @@ impl NymVpnService {
 
         self.account_command_tx.reset_device_identity(seed).await?;
 
-        self.statistics_event_sender
-            .report(StatisticsEvent::reset_seed());
+        let _ = self
+            .stats_control_commands_sender
+            .reset_seed(None)
+            .await
+            .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
 
         Ok(())
     }
@@ -1456,27 +1489,30 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn handle_is_collect_network_stats_enabled(&self) -> bool {
-        self.network_statistics_enabled
+    async fn handle_enable_network_stats(&mut self, enabled: bool) {
+        self.config_manager.set_netstats_enabled(enabled).await;
+        self.stats_control_commands_sender
+            .set_enable_collection(enabled);
     }
 
-    async fn handle_toggle_collect_network_stats(
+    async fn handle_allow_disconnected_network_stats(&mut self, allow_disconnected: bool) {
+        self.config_manager
+            .set_netstats_allow_disconnected(allow_disconnected)
+            .await;
+        self.stats_control_commands_sender
+            .set_allow_direct_sending(allow_disconnected);
+    }
+
+    async fn handle_reset_network_stats_seed(
         &mut self,
-        enable: bool,
-    ) -> Result<(), GlobalConfigError> {
-        let mut config = GlobalConfig::read_from_default_config_dir()
-            .await
-            .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
-        config.collect_network_statistics = enable;
-        if enable {
-            tracing::info!("Collect network statistics enabled, daemon needs to be restarted");
-        } else {
-            tracing::info!("Collect network statistics disabled, daemon needs to be restarted");
-        }
-        GlobalConfig::write_to_default_config_dir(&config)
-            .await
-            .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
-        self.network_statistics_enabled = enable;
-        Ok(())
+        seed: Option<String>,
+    ) -> Result<(), StatisticsControllerError> {
+        self.stats_control_commands_sender.reset_seed(seed).await
+    }
+
+    async fn handle_get_network_stats_seed(
+        &mut self,
+    ) -> Result<NetworkStatisticsIdentity, StatisticsControllerError> {
+        self.stats_control_commands_sender.get_seed().await
     }
 }

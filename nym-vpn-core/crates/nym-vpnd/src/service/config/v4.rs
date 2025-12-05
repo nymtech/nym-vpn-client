@@ -6,6 +6,7 @@ use crate::service::{
     config::{
         VpnServiceConfigExt,
         entry_exit::v2::{EntryPoint, ExitPoint},
+        network_stats::v1::NetworkStatisticsConfig,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -28,6 +29,7 @@ pub struct VpnServiceConfig {
     pub residential_exit: bool,
     pub enable_custom_dns: bool,
     pub custom_dns: Vec<String>,
+    pub network_stats: NetworkStatisticsConfig,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
@@ -65,6 +67,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             residential_exit: value.residential_exit,
             enable_custom_dns: value.enable_custom_dns,
             custom_dns,
+            network_stats: nym_vpn_lib_types::NetworkStatisticsConfig::from(value.network_stats),
         };
         Ok(config)
     }

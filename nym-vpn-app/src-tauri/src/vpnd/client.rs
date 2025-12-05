@@ -726,13 +726,14 @@ impl VpndClient {
     pub async fn netstats_enabled(&self) -> Result<bool, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let enabled = vpnd
-            .is_collect_network_stats_enabled()
+        let config = vpnd
+            .get_config()
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
                 error!("rpc: {}", e);
             })?;
+        let enabled = config.network_stats.enabled;
 
         debug!("network statistics collection enabled: {}", enabled);
         if enabled {
@@ -746,7 +747,7 @@ impl VpndClient {
     pub async fn enable_netstats(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.enable_collect_network_stats()
+        vpnd.network_stats_set_enabled(true)
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
@@ -754,7 +755,6 @@ impl VpndClient {
             })?;
 
         debug!("enabled vpnd network statistics collection");
-        info!("restart vpnd (service) required for the change to take effect");
         Ok(())
     }
 
@@ -763,7 +763,7 @@ impl VpndClient {
     pub async fn disable_netstats(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.disable_collect_network_stats()
+        vpnd.network_stats_set_enabled(false)
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
@@ -771,7 +771,6 @@ impl VpndClient {
             })?;
 
         debug!("disabled vpnd network statistics collection");
-        info!("restart vpnd (service) required for the change to take effect");
         Ok(())
     }
 

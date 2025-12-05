@@ -31,10 +31,6 @@ pub struct CliArgs {
     #[arg(long, value_parser = parse_user_agent)]
     pub user_agent: Option<UserAgent>,
 
-    /// Override the otherwise random statistics_id_seed
-    #[arg(long, hide = true)]
-    pub stats_id_seed: Option<String>,
-
     /// Subcommand to execute
     #[command(subcommand)]
     pub command: Option<Command>,

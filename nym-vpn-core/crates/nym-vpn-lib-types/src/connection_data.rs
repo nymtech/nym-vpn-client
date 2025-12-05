@@ -42,6 +42,38 @@ impl From<nym_gateway_directory::Gateway> for GatewayId {
     }
 }
 
+// Represents a gateway's info for ConnectionData
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct GatewayLightInfo {
+    pub id: String,
+    pub country_code: Option<String>,
+}
+
+impl GatewayLightInfo {
+    pub fn new(id: String, country_code: Option<String>) -> Self {
+        Self { id, country_code }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::Gateway> for GatewayLightInfo {
+    fn from(value: nym_gateway_directory::Gateway) -> Self {
+        Self::new(
+            value.identity().to_base58_string(),
+            value.location.map(|l| l.two_letter_iso_country_code),
+        )
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(
@@ -54,10 +86,10 @@ impl From<nym_gateway_directory::Gateway> for GatewayId {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct EstablishConnectionData {
     /// Mixnet entry gateway.
-    pub entry_gateway: GatewayId,
+    pub entry_gateway: GatewayLightInfo,
 
     /// Mixnet exit gateway.
-    pub exit_gateway: GatewayId,
+    pub exit_gateway: GatewayLightInfo,
 
     /// Tunnel connection data.
     /// Becomes available once tunnel connection is initiated.
@@ -120,10 +152,10 @@ impl fmt::Display for EstablishConnectionState {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct ConnectionData {
     /// Mixnet entry gateway.
-    pub entry_gateway: GatewayId,
+    pub entry_gateway: GatewayLightInfo,
 
     /// Mixnet exit gateway.
-    pub exit_gateway: GatewayId,
+    pub exit_gateway: GatewayLightInfo,
 
     /// When the tunnel connection was last established.
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
