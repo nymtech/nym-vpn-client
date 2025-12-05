@@ -1,9 +1,12 @@
+#if os(macOS)
 import SwiftUI
 import AppSettings
 import ConnectionManager
 import FeatureFlagsManager
 import Constants
 import MessageModels
+import NymVPNRpc
+import GRPCManager
 import Theme
 import UIComponents
 
@@ -11,7 +14,13 @@ public struct ProxyView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
+    @EnvironmentObject private var grpcManager: GRPCManager
     @Binding private var path: NavigationPath
+
+    @State private var proxyStatusLoading = true
+    @State private var proxyIsOn: Bool = false
+    @State private var proxyStatus: Socks5Status?
+
     @State private var isSnackbarDisplayed = false
     @State private var snackbarMessage: String?
 
@@ -23,7 +32,6 @@ public struct ProxyView: View {
                 proxyStatusSection()
             }
             .padding(.horizontal, 16)
-
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
@@ -36,6 +44,43 @@ public struct ProxyView: View {
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .task {
+            do {
+                proxyStatus = try await grpcManager.socks5Status()
+            } catch GRPCError.daemonNotRunning {
+                print("Daemon not running")
+                proxyStatusLoading = false
+            } catch GRPCError.invalidData {
+                print("Invalid data")
+                proxyStatusLoading = false
+            } catch {
+                withAnimation {
+                    guard !isSnackbarDisplayed else { return }
+                    proxyStatusLoading = false
+                    snackbarMessage = "proxy.connectionError".localizedString
+                    isSnackbarDisplayed = true
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(3))
+                        isSnackbarDisplayed = false
+                    }
+                }
+            }
+        }
+        .onChange(of: proxyStatus) { status in
+            let isOn = switch status?.state {
+            case .none, .some(.disabled), .some(.error):
+                false
+            case .some(.idle), .some(.connected):
+                true
+            }
+
+            proxyIsOn = isOn
+            proxyStatusLoading = false
+        }
+        .onChange(of: proxyIsOn) { isOn in
+            guard !proxyStatusLoading else { return }
+            print("Proxy is \(isOn ? "on" : "off")!")
         }
     }
 
@@ -65,11 +110,10 @@ private extension ProxyView {
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
                     viewModel: ToggleViewModel(
-                        isOn: $appSettings.isProxyEnabled,
+                        isOn: $proxyIsOn,
                         isDisabled: connectionManager.currentTunnelStatus != .connected,
                         action: { _ in
                             guard connectionManager.currentTunnelStatus == .connected else { return }
-                            appSettings.isProxyEnabled.toggle()
                         }
                     )
                 ),
@@ -86,46 +130,54 @@ private extension ProxyView {
 
     func vpnAndProxyStatusDetails() -> some View {
         VStack {
-            HStack {
-                Text("proxy.vpnStatus".localizedString)
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Medium.regular)
-                Spacer()
-
-                let statusButtonConfig = StatusButtonConfig(
-                    tunnelStatus: connectionManager.currentTunnelStatus,
-                    hasInternet: true
-                )
-                Text(statusButtonConfig.title)
-                    .foregroundStyle(vpnStatusColor())
-                    .textStyle(.Body.Medium.bold)
-            }
+            let statusButtonConfig = StatusButtonConfig(
+                tunnelStatus: connectionManager.currentTunnelStatus,
+                hasInternet: true
+            )
+            detailsSection(
+                title: "proxy.vpnStatus".localizedString,
+                details: statusButtonConfig.title,
+                color: vpnStatusColor()
+            )
+            .padding(.bottom, 12)
 
             Divider()
                 .frame(height: 1)
-                .overlay(NymColor.background)
-                .padding(.vertical, 12)
+                .overlay(NymColor.gray2)
 
-            HStack {
-                Text("proxy.proxyStatus".localizedString)
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Medium.regular)
-                Spacer()
-                // TODO
-                let statusButtonConfig = StatusButtonConfig(
-                    tunnelStatus: connectionManager.currentTunnelStatus,
-                    hasInternet: true
-                )
-                Text(statusButtonConfig.title)
-                    .foregroundStyle(vpnStatusColor())
-                    .textStyle(.Body.Medium.bold)
-            }
-            HStack {
-            }
+            detailsSection(
+                title: "proxy.proxyStatus".localizedString,
+                details: proxyStatusText(),
+                color: proxyStatusColor()
+            )
+            .padding(.vertical, 12)
+
+            Divider()
+                .frame(height: 1)
+                .overlay(NymColor.gray2)
+
+            detailsSection(
+                title: "proxy.activeConnections".localizedString,
+                details: proxyActiveConnectionsText(),
+                color: NymColor.primary
+            )
+            .padding(.top, 12)
         }
         .padding(.vertical, 16)
     }
-    
+
+    func detailsSection(title: String, details: String, color: Color) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title)
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Medium.regular)
+            Spacer()
+            Text(details)
+                .foregroundStyle(color)
+                .textStyle(.Body.Medium.bold)
+        }
+    }
+
     func vpnStatusColor() -> Color {
         switch connectionManager.currentTunnelStatus {
         case .connected:
@@ -136,6 +188,41 @@ private extension ProxyView {
             NymColor.warning
         }
     }
+
+    func proxyStatusText() -> String {
+        if proxyStatusLoading {
+            "proxy.proxyStatus.loading".localizedString
+        } else {
+            switch proxyStatus?.state {
+            case .none, .some(.disabled), .some(.error):
+                "proxy.proxyStatus.disabled".localizedString
+            case .some(.idle), .some(.connected):
+                "proxy.proxyStatus.connected".localizedString
+            }
+        }
+    }
+
+    func proxyStatusColor() -> Color {
+        if proxyStatusLoading {
+            NymColor.primary
+        } else {
+            switch proxyStatus?.state {
+            case .none, .some(.disabled), .some(.error):
+                NymColor.error
+            case .some(.idle), .some(.connected):
+                NymColor.action
+            }
+        }
+    }
+
+    func proxyActiveConnectionsText() -> String {
+        switch proxyStatus?.activeConnections {
+        case .none:
+            "0"
+        case let .some(connections):
+            "\(connections)"
+        }
+    }
 }
 
 // MARK: - Actions -
@@ -144,3 +231,5 @@ private extension ProxyView {
         if !path.isEmpty { path.removeLast() }
     }
 }
+
+#endif
