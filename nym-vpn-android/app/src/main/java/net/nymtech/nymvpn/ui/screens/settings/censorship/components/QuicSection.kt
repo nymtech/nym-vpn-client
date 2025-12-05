@@ -39,12 +39,12 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) -> Unit, shape: Shape = RoundedCornerShape(8.dp)) {
+fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) -> Unit, shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier.fillMaxWidth()) {
 	val context = LocalContext.current
 	val interactionSource = remember { MutableInteractionSource() }
 
 	Card(
-		modifier = Modifier.fillMaxWidth(),
+		modifier = modifier,
 		shape = shape,
 		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
 	) {
