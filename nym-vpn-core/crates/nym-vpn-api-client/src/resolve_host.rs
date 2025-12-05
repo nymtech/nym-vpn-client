@@ -17,7 +17,7 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
         .await
         .map_err(|err| {
             trace_err_chain!(err, "Failed to resolve hostname");
-            VpnApiClientError::FailedToDnsResolveGateway {
+            VpnApiClientError::DnsResolutionFailure {
                 hostname: hostname.to_string(),
                 source: err,
             }
