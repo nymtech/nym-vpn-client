@@ -999,7 +999,7 @@ impl NymVpnService {
         {
             let config = self.config_manager.config();
             // Ignore reconnect if custom DNS is enabled but custom DNS addresses aren't set
-            if (enable_custom_dns && !config.custom_dns.is_empty()) || !enable_custom_dns {
+            if !enable_custom_dns || !config.custom_dns.is_empty() {
                 self.update_tunnel_settings_with_throttle();
             }
         }
