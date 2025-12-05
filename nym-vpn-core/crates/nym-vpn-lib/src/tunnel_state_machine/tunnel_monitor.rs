@@ -680,7 +680,7 @@ impl TunnelMonitor {
 
         let establishing_connection_data = EstablishConnectionData {
             entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
-            exit_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayLightInfo::from(selected_gateways.exit_gateway().clone()),
             tunnel: Some(tunnel_conn_data.clone()),
         };
 
@@ -738,7 +738,7 @@ impl TunnelMonitor {
         let mut has_sent_up_event = false;
         let connection_data = Box::new(ConnectionData {
             entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
-            exit_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayLightInfo::from(selected_gateways.exit_gateway().clone()),
             connected_at: OffsetDateTime::now_utc(),
             tunnel: tunnel_conn_data,
         });
