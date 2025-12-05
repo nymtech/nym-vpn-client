@@ -12,31 +12,30 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     let tunnelActor: TunnelActor
 
     lazy var logger = Logger(label: "MixnetTunnel")
-    var loggingInit = false
+    var logInitFailure: String?
 
     override init() {
         tunnelActor = TunnelActor()
+
+        super.init()
+
+        self.configureLogger()
+        
+        LoggingSystem.bootstrap { label in
+            let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
+#if DEBUG
+            let osLogHandler = OSLogHandler(
+                subsystem: Bundle.main.bundleIdentifier ?? "NymMixnetTunnel",
+                category: label
+            )
+            return MultiplexLogHandler([osLogHandler, fileLogHandler])
+#else
+            return fileLogHandler
+#endif
+        }
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
-        if !self.loggingInit {
-            try await Self.configureLogger()
-            LoggingSystem.bootstrap { label in
-                let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
-#if DEBUG
-                let osLogHandler = OSLogHandler(
-                    subsystem: Bundle.main.bundleIdentifier ?? "NymMixnetTunnel",
-                    category: label
-                )
-                return MultiplexLogHandler([osLogHandler, fileLogHandler])
-#else
-                return fileLogHandler
-#endif
-            }
-            
-            self.loggingInit = true
-        }
-
         logger.info("Start tunnel...")
 
         await setup()
@@ -130,18 +129,19 @@ extension PacketTunnelProvider {
         }
     }
 
-    static func configureLogger() async throws {
+    func configureLogger() {
         let logPath = LogFileManager.logFileURL(logFileType: .library)?.path()
 
         Task {
             let logLevel = await MainActor.run { ConfigurationManager.shared.debugLevel }
-            let success = await initLogger(
-                path: logPath,
-                debugLevel: logLevel,
-                sentryMonitoring: true
-            )
-            if !success {
-                throw PacketTunnelProviderError.failedToInitLogging
+            do {
+                try await initLogger(
+                    path: logPath,
+                    debugLevel: logLevel,
+                    sentryMonitoring: true
+                )
+            } catch {
+                self.logInitFailure = error.localizedDescription
             }
         }
     }

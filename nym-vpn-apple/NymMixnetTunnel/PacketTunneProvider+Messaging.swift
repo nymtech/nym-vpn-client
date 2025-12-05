@@ -55,6 +55,9 @@ extension PacketTunnelProvider {
                     tunnelConnectingState: tunnelConnectingState,
                     connectionInfoData: connectionInfoData
                 )
+                
+                // Should we clear tunnelActor.lastError here?
+                
                 return try JSONEncoder().encode(statusResponse)
             } catch {
                 logger.error("AppMessage: \(error.localizedDescription)")
