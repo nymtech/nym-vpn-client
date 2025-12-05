@@ -54,9 +54,15 @@
     },
     "dialog": {
       "title": "Apply DNS changes?",
-      "description": "Custom DNS settings updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.",
-      "apply": "Apply and reconnect now",
-      "cancel": "Discard changes"
+      "cancel": "Discard changes",
+      "connected": {
+        "description": "Custom DNS settings updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.",
+        "apply": "Apply and reconnect now"
+      },
+      "disconnected": {
+        "description": "Custom DNS settings updated.",
+        "apply": "Apply changes"
+      }
     },
     "error": {
       "duplicate": "Duplicate DNS address",

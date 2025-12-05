@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { Button, Dialog, MsIcon } from '../../../ui';
+import { useMainState } from '../../../contexts';
 
 export function ConfirmationDialog({
   isOpen,
@@ -14,6 +15,16 @@ export function ConfirmationDialog({
 }) {
   const { t } = useTranslation('settings');
   const [isApplyingDns, setIsApplyingDns] = useState(false);
+  const { state } = useMainState();
+
+  const description =
+    state === 'connected'
+      ? t('dns.dialog.connected.description')
+      : t('dns.dialog.disconnected.description');
+  const apply =
+    state === 'connected'
+      ? t('dns.dialog.connected.apply')
+      : t('dns.dialog.disconnected.apply');
 
   const handleConfirm = async () => {
     setIsApplyingDns(true);
@@ -41,7 +52,7 @@ export function ConfirmationDialog({
         </DialogTitle>
       </div>
       <p className="text-center text-iron dark:text-bombay max-w-80 whitespace-pre-line">
-        {t('dns.dialog.description')}
+        {description}
       </p>
       <div className="flex flex-col flex-nowrap justify-center mt-2 w-full gap-3">
         <Button
@@ -51,7 +62,7 @@ export function ConfirmationDialog({
           spinner={isApplyingDns}
           disabled={isApplyingDns}
         >
-          {t('dns.dialog.apply')}
+          {apply}
         </Button>
         <Button onClick={onClose} className="min-w-32" color="gray" outline>
           {t('dns.dialog.cancel')}
