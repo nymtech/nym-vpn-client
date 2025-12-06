@@ -24,8 +24,8 @@ public struct StrokeBorderView<Content: View>: View {
         VStack(alignment: .leading) {
             content
         }
-        .background(isHovered ? NymColor.backgroundHover : NymColor.background)
         .frame(height: 56)
+        .background(isHovered ? NymColor.backgroundHover : NymColor.background)
         .cornerRadius(8)
         .overlay {
             RoundedRectangle(cornerRadius: 8)
