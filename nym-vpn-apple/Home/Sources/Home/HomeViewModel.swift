@@ -187,15 +187,11 @@ public extension HomeViewModel {
             if let entryGatewayId = connectionInfoData?.entryGatewayId ?? connectionManager.entryGateway.gatewayId,
                let entryGateway = gatewayManager.gateway(with: entryGatewayId, gatewayType: .entry) {
                 navigateToGatewayDetails(gateway: entryGateway, hopType: hopType)
-            } else {
-                navigateToEntryGateways()
             }
         case .exit:
             if let exitGatewayId = connectionInfoData?.exitGatewayId ?? connectionManager.exitRouter.gatewayId,
                let exitGateway = gatewayManager.gateway(with: exitGatewayId, gatewayType: .exit) {
                 navigateToGatewayDetails(gateway: exitGateway, hopType: hopType)
-            } else {
-                navigateToExitGateways()
             }
         }
     }

@@ -49,9 +49,9 @@ public struct HopButton: View {
     private var gatewayId: String? {
         switch hopType {
         case .entry:
-            connectionManager.connectionInfoData?.entryGatewayId
+            connectionManager.connectionInfoData?.entryGatewayId ?? connectionManager.entryGateway.gatewayId
         case .exit:
-            connectionManager.connectionInfoData?.exitGatewayId
+            connectionManager.connectionInfoData?.exitGatewayId ?? connectionManager.exitRouter.gatewayId
         }
     }
 
@@ -123,7 +123,9 @@ public struct HopButton: View {
         ) {
             HStack {
                 button().onHover { isButtonHovered = $0 }
-                accessory().onHover { isAccessoryHovered = $0 }
+                if gatewayId != nil {
+                    accessory().onHover { isAccessoryHovered = $0 }
+                }
             }
         }
     }
