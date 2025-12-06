@@ -159,28 +159,34 @@ private extension HomeView {
 
     @ViewBuilder
     func entryHop() -> some View {
-        HopButton(hopType: .entry)
-            .animation(.default, value: viewModel.connectionManager.entryGateway)
-            .onTapGesture {
+        HopButton(
+            hopType: .entry,
+            buttonAction: {
                 viewModel.navigateToEntryGateways()
-            }
-            .accessibilityAction {
-                viewModel.navigateToEntryGateways()
-            }
+            },
+            accessoryAction: {
+                viewModel.navigateToGatewayDetails(for: .entry)
+            },
+            accessoryAccessibilityText: "home.serverDetails".localizedString
+        )
+        .animation(.default, value: viewModel.connectionManager.entryGateway)
         Spacer()
             .frame(height: 20)
     }
 
     @ViewBuilder
     func exitHop() -> some View {
-        HopButton(hopType: .exit)
-            .animation(.default, value: viewModel.connectionManager.exitRouter)
-            .onTapGesture {
+        HopButton(
+            hopType: .exit,
+            buttonAction: {
                 viewModel.navigateToExitGateways()
-            }
-            .accessibilityAction {
-                viewModel.navigateToExitGateways()
-            }
+            },
+            accessoryAction: {
+                viewModel.navigateToGatewayDetails(for: .exit)
+            },
+            accessoryAccessibilityText: "home.serverDetails".localizedString
+        )
+        .animation(.default, value: viewModel.connectionManager.exitRouter)
     }
 
     @ViewBuilder

@@ -43,6 +43,7 @@ public struct StrokeBorderView<Content: View>: View {
                         .frame(height: 3)
                 )
                 .position(x: strokeTitleLeftMargin, y: 0)
+                .accessibilityHidden(true)
         }
     }
 }
