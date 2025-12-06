@@ -8,6 +8,9 @@ import Theme
 
 public struct HopButton: View {
     private let hopType: HopType
+    private let buttonAction: () -> Void
+    private let accessoryAction: () -> Void
+    private let accessoryAccessibilityText: String
 
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
@@ -118,40 +121,23 @@ public struct HopButton: View {
             isHovered: $isHovered
         ) {
             HStack {
-                if isQuickest {
-                    BoltImage()
-                        .padding(12)
-                } else if let code = hopCountryCode {
-                    FlagImage(countryCode: code)
-                        .padding(12)
-                } else {
-                    GenericImage(imageName: "pin")
-                        .frame(width: 24, height: 24)
-                        .padding(12)
-                }
-
-                titleSubtitleText(with: titleText, subtitle: subtitleText)
-
-                Spacer()
-                if shouldShowQuic {
-                    QuicLabel()
-                } else if shouldShowStreaming {
-                    StreamingIcon()
-                }
-                Image("arrowRight", bundle: .module)
-                    .resizable()
-                    .frame(width: 24, height: 24)
-                    .padding(EdgeInsets(top: 16, leading: 4, bottom: 16, trailing: 16))
+                button()
+                accessory()
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits([.isButton])
-        .accessibilityLabel("\(hopType.hopLocalizedTitle) \(titleText)")
         .onHover { isHovered = $0 }
     }
 
-    public init(hopType: HopType) {
+    public init(
+        hopType: HopType,
+        buttonAction: @escaping () -> Void,
+        accessoryAction: @escaping () -> Void,
+        accessoryAccessibilityText: String
+    ) {
         self.hopType = hopType
+        self.buttonAction = buttonAction
+        self.accessoryAction = accessoryAction
+        self.accessoryAccessibilityText = accessoryAccessibilityText
     }
 }
 
@@ -199,6 +185,37 @@ private extension HopButton {
 
 private extension HopButton {
     @ViewBuilder
+    func button() -> some View {
+        HStack {
+            if isQuickest {
+                BoltImage()
+                    .padding(12)
+            } else if let code = hopCountryCode {
+                FlagImage(countryCode: code)
+                    .padding(12)
+            } else {
+                GenericImage(imageName: "pin")
+                    .frame(width: 24, height: 24)
+                    .padding(12)
+            }
+
+            titleSubtitleText(with: titleText, subtitle: subtitleText)
+
+            Spacer()
+            if shouldShowQuic {
+                QuicLabel()
+            } else if shouldShowStreaming {
+                StreamingIcon()
+            }
+        }
+        .onTapGesture(perform: buttonAction)
+        .accessibilityElement(children: .combine)
+        .accessibilityAction(.default, buttonAction)
+        .accessibilityAddTraits([.isButton])
+        .accessibilityLabel("\(hopType.hopLocalizedTitle) \(titleText)")
+    }
+
+    @ViewBuilder
     func titleSubtitleText(with text: String, subtitle: String?) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(text)
@@ -214,5 +231,18 @@ private extension HopButton {
             }
         }
         .animation(.default, value: subtitle)
+    }
+
+    @ViewBuilder
+    func accessory() -> some View {
+        Image("arrowRight", bundle: .module)
+            .resizable()
+            .frame(width: 24, height: 24)
+            .padding(EdgeInsets(top: 16, leading: 4, bottom: 16, trailing: 16))
+            .onTapGesture(perform: accessoryAction)
+            .accessibilityElement(children: .combine)
+            .accessibilityAction(.default, accessoryAction)
+            .accessibilityAddTraits([.isButton])
+            .accessibilityLabel("\(hopType.hopLocalizedTitle) \(titleText) \(accessoryAccessibilityText)")
     }
 }
