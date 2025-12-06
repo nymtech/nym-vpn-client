@@ -16,7 +16,8 @@ public struct HopButton: View {
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var gatewayManager: GatewayManager
     @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
-    @State private var isHovered = false
+    @State private var isButtonHovered = false
+    @State private var isAccessoryHovered = false
 
     private var gatewayType: NodeType {
         switch connectionManager.connectionType {
@@ -118,14 +119,13 @@ public struct HopButton: View {
         StrokeBorderView(
             strokeTitle: hopType.hopLocalizedTitle,
             strokeTitleLeftMargin: 30,
-            isHovered: $isHovered
+            isHovered: $isButtonHovered
         ) {
             HStack {
-                button()
-                accessory()
+                button().onHover { isButtonHovered = $0 }
+                accessory().onHover { isAccessoryHovered = $0 }
             }
         }
-        .onHover { isHovered = $0 }
     }
 
     public init(
@@ -235,14 +235,23 @@ private extension HopButton {
 
     @ViewBuilder
     func accessory() -> some View {
-        Image("arrowRight", bundle: .module)
-            .resizable()
-            .frame(width: 24, height: 24)
-            .padding(EdgeInsets(top: 16, leading: 4, bottom: 16, trailing: 16))
-            .onTapGesture(perform: accessoryAction)
-            .accessibilityElement(children: .combine)
-            .accessibilityAction(.default, accessoryAction)
-            .accessibilityAddTraits([.isButton])
-            .accessibilityLabel("\(hopType.hopLocalizedTitle) \(titleText) \(accessoryAccessibilityText)")
+        ZStack {
+            if isAccessoryHovered {
+                Circle()
+                    .fill(NymColor.backgroundHover)
+                    .frame(width: 40, height: 40)
+            }
+
+            Image("arrowRight", bundle: .module)
+                .resizable()
+                .frame(width: 24, height: 24)
+        }
+        .frame(width: 48, height: 48)
+        .padding(.trailing, 4)
+        .onTapGesture(perform: accessoryAction)
+        .accessibilityElement(children: .combine)
+        .accessibilityAction(.default, accessoryAction)
+        .accessibilityAddTraits([.isButton])
+        .accessibilityLabel("\(hopType.hopLocalizedTitle) \(titleText) \(accessoryAccessibilityText)")
     }
 }
