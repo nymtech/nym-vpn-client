@@ -171,8 +171,8 @@ private extension GatewayCell {
     }
 
     func infoButton() -> some View {
-        GenericImage(systemImageName: "info.circle", allowsHover: true)
-            .frame(width: 18, height: 18)
+        GenericImage(imageName: "arrowRight", allowsHover: true)
+            .frame(width: 24, height: 24)
             .padding(19)
     }
 }

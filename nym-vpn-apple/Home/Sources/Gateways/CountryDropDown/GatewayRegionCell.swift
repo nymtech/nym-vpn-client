@@ -102,7 +102,6 @@ public extension GatewayRegionCell {
                 stateTapAction()
             }
             HStack(spacing: 0) {
-                lineSeparator()
                 arrowDropDown()
             }
             .accessibilityElement(children: .combine)
@@ -143,18 +142,11 @@ public extension GatewayRegionCell {
             .textStyle(.Body.Small.regular)
     }
 
-    func lineSeparator() -> some View {
-        Rectangle()
-            .foregroundColor(NymColor.gray2)
-            .frame(width: 1, height: 42)
-            .padding(0)
-    }
-
     func arrowDropDown() -> some View {
         GenericImage(imageName: "arrowDropDown")
             .frame(width: 24, height: 24)
             .padding(16)
-            .rotationEffect(.degrees(isExpanded ? 180 : 0))
+            .rotationEffect(.degrees(isExpanded ? 0 : 180))
             .animation(.easeInOut, value: isExpanded)
     }
 }
