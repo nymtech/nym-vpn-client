@@ -257,10 +257,10 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.advancedPrivacy".localizedString)
             Spacer()
-            GenericImage(systemImageName: "checkmark")
-                .frame(width: 10, height: 10)
+            GenericImage(imageName: "anonymous")
+                .frame(width: 20, height: 20)
                 .foregroundStyle(NymColor.accent)
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 4)
             rowSubtite(with: "gatewayInfo.advancedPrivacySubtitle".localizedString)
         }
     }
@@ -271,10 +271,10 @@ private extension GatewayDetailsView {
             Spacer()
             switch gateway.location?.asn?.type {
             case .residential:
-                GenericImage(systemImageName: "checkmark")
-                    .frame(width: 10, height: 10)
-                    .foregroundStyle(NymColor.accent)
-                    .padding(.horizontal, 8)
+                GenericImage(imageName: "smartDisplay")
+                    .frame(width: 20, height: 20)
+                    .foregroundStyle(NymColor.info)
+                    .padding(.horizontal, 4)
                 rowSubtite(with: "gatewayInfo.residentialIp".localizedString)
             case .other:
                 GenericImage(systemImageName: "circle.fill")
@@ -296,10 +296,19 @@ private extension GatewayDetailsView {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.bridges".localizedString)
             Spacer()
-            GenericImage(systemImageName: gateway.isQuicAvailable ? "checkmark" : "circle.fill")
-                .frame(width: 10, height: 10)
-                .foregroundStyle(gateway.isQuicAvailable ? NymColor.accent : NymColor.warning)
-                .padding(.horizontal, 8)
+
+            if gateway.isQuicAvailable {
+                GenericImage(imageName: "quic")
+                    .frame(width: 20, height: 20)
+                    .foregroundStyle(NymColor.quic)
+                    .padding(.horizontal, 4)
+            } else {
+                GenericImage(systemImageName: "circle.fill")
+                    .frame(width: 10, height: 10)
+                    .foregroundStyle(NymColor.warning)
+                    .padding(.horizontal, 8)
+            }
+
             rowSubtite(
                 with: gateway.isQuicAvailable
                 ? "gatewayInfo.quicProtocol".localizedString

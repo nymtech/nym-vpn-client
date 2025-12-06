@@ -181,7 +181,7 @@ private extension GatewayCountryCell {
         GenericImage(imageName: "arrowDropDown")
             .frame(width: 24, height: 24)
             .padding(16)
-            .rotationEffect(.degrees(isExpanded ? 180 : 0))
+            .rotationEffect(.degrees(isExpanded ? 0 : 180))
             .animation(.easeInOut, value: isExpanded)
     }
 }
