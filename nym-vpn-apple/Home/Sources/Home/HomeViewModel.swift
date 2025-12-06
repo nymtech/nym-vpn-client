@@ -182,28 +182,25 @@ public extension HomeViewModel {
     }
 
     @MainActor func navigateToGatewayDetails(for hopType: HopType) {
-        guard connectionManager.currentTunnelStatus == .connected,
-              let entryGatewayId = connectionInfoData?.entryGatewayId,
-              let entryGateway = gatewayManager.gateway(with: entryGatewayId, gatewayType: .entry),
-              let exitGatewayId = connectionInfoData?.exitGatewayId,
-              let exitGateway = gatewayManager.gateway(with: exitGatewayId, gatewayType: .exit)
-        else {
-            switch hopType {
-            case .entry:
+        switch hopType {
+        case .entry:
+            if let entryGatewayId = connectionInfoData?.entryGatewayId ?? connectionManager.entryGateway.gatewayId,
+               let entryGateway = gatewayManager.gateway(with: entryGatewayId, gatewayType: .entry) {
+                navigateToGatewayDetails(gateway: entryGateway, hopType: hopType)
+            } else {
                 navigateToEntryGateways()
-            case .exit:
+            }
+        case .exit:
+            if let exitGatewayId = connectionInfoData?.exitGatewayId ?? connectionManager.exitRouter.gatewayId,
+               let exitGateway = gatewayManager.gateway(with: exitGatewayId, gatewayType: .exit) {
+                navigateToGatewayDetails(gateway: exitGateway, hopType: hopType)
+            } else {
                 navigateToExitGateways()
             }
-            return
         }
+    }
 
-        let gateway = switch hopType {
-        case .entry:
-            entryGateway
-        case .exit:
-            exitGateway
-        }
-
+    @MainActor private func navigateToGatewayDetails(gateway: GatewayNode, hopType: HopType) {
         path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: hopType))
     }
 

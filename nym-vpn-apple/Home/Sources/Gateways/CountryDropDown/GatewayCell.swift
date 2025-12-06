@@ -19,7 +19,8 @@ public struct GatewayCell: View {
     @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @Binding private var path: NavigationPath
     @Binding private var scrollToModel: GatewayScrollToModel
-    @State private var isHovered = false
+    @State private var isButtonHovered = false
+    @State private var isAccessoryHovered = false
     @State private var isSelected: Bool
     private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
 
@@ -56,16 +57,24 @@ public struct GatewayCell: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            serverInfo()
-            Spacer()
-                .frame(width: 16)
-            if shouldShowQuic {
-                QuicLabel()
-            } else if shouldShowStreaming {
-                StreamingIcon()
+            HStack{
+                serverInfo()
+                Spacer()
+                    .frame(width: 16)
+                if shouldShowQuic {
+                    QuicLabel()
+                } else if shouldShowStreaming {
+                    StreamingIcon()
+                }
+            }
+            .onHover { newValue in
+                isButtonHovered = newValue
             }
 
             infoButton()
+                .onHover { newValue in
+                    isAccessoryHovered = newValue
+                }
                 .contentShape(Rectangle())
                 .onTapGesture {
                     infoButtonTapAction()
@@ -74,10 +83,7 @@ public struct GatewayCell: View {
                     infoButtonTapAction()
                 }
         }
-        .background(isHovered ? NymColor.backgroundHover : NymColor.background)
-        .onHover { newValue in
-            isHovered = newValue
-        }
+        .background(isButtonHovered ? NymColor.backgroundHover : NymColor.background)
     }
 }
 
@@ -171,9 +177,18 @@ private extension GatewayCell {
     }
 
     func infoButton() -> some View {
-        GenericImage(imageName: "arrowRight", allowsHover: true)
-            .frame(width: 24, height: 24)
-            .padding(19)
+        ZStack {
+            if isAccessoryHovered {
+                Circle()
+                    .fill(NymColor.backgroundHover)
+                    .frame(width: 40, height: 40)
+            }
+
+            GenericImage(imageName: "arrowRight")
+                .frame(width: 24, height: 24)
+        }
+        .frame(width: 48, height: 48)
+        .padding(.trailing, 4)
     }
 }
 

@@ -18,7 +18,8 @@ public struct GatewayRegionCell: View {
     @Binding private var path: NavigationPath
     @Binding private var scrollToModel: GatewayScrollToModel
     @State private var isExpanded: Bool
-    @State private var isHovered = false
+    @State private var isButtonHovered = false
+    @State private var isAccessoryHovered = false
     @State private var isRegionSelected = false
     private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
 
@@ -90,6 +91,10 @@ public extension GatewayRegionCell {
                 }
                 Spacer()
             }
+            .padding(.vertical, 12)
+            .onHover { newValue in
+                isButtonHovered = newValue
+            }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(region) \(servers.count) \("servers".localizedString)")
             .accessibilityValue(isRegionSelected ? "selected".localizedString : "")
@@ -101,25 +106,24 @@ public extension GatewayRegionCell {
             .accessibilityAction {
                 stateTapAction()
             }
-            HStack(spacing: 0) {
-                arrowDropDown()
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("gatewaySelector.expandServers".localizedString)
-            .accessibilityAddTraits([.isButton])
-            .contentShape(Rectangle())
-            .onTapGesture {
-                expandTapAction()
-            }
-            .accessibilityAction {
-                expandTapAction()
-            }
-        }
-        .onHover { newValue in
-            isHovered = newValue
+
+            arrowDropDown()
+                .onHover { newValue in
+                    isAccessoryHovered = newValue
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("gatewaySelector.expandServers".localizedString)
+                .accessibilityAddTraits([.isButton])
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    expandTapAction()
+                }
+                .accessibilityAction {
+                    expandTapAction()
+                }
         }
         .background {
-            isHovered ? NymColor.elevationHover : NymColor.elevation.opacity(0.6)
+            isButtonHovered ? NymColor.backgroundHover : NymColor.elevation.opacity(0.6)
         }
     }
 
@@ -143,11 +147,20 @@ public extension GatewayRegionCell {
     }
 
     func arrowDropDown() -> some View {
-        GenericImage(imageName: "arrowDropDown")
-            .frame(width: 24, height: 24)
-            .padding(16)
-            .rotationEffect(.degrees(isExpanded ? 0 : 180))
-            .animation(.easeInOut, value: isExpanded)
+        ZStack {
+            if isAccessoryHovered {
+                Circle()
+                    .fill(NymColor.backgroundHover)
+                    .frame(width: 40, height: 40)
+            }
+
+            GenericImage(imageName: "arrowDropDown")
+                .frame(width: 24, height: 24)
+                .rotationEffect(.degrees(isExpanded ? 0 : 180))
+                .animation(.easeInOut, value: isExpanded)
+        }
+        .frame(width: 48, height: 48)
+        .padding(.trailing, 4)
     }
 }
 
