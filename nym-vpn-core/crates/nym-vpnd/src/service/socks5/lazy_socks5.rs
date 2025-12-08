@@ -16,7 +16,7 @@ use tokio::{
     time::{Instant, sleep},
 };
 use tokio_util::sync::CancellationToken;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 
 /// Configuration for the LazySocks5
 #[derive(Debug, Clone)]
@@ -490,31 +490,44 @@ impl LazySocks5 {
         // Remove old socks5 directory if it exists
         // - to get fresh identity each time
         // - to not worry about version migrations
-        if socks5_data_path.exists() {
-            info!(
-                "Removing old socks5 directory: {}",
-                socks5_data_path.display()
-            );
-            tokio::fs::remove_dir_all(&socks5_data_path)
+        let create_dir = if socks5_data_path.exists() {
+            match tokio::fs::remove_dir_all(&socks5_data_path).await {
+                Ok(_) => {
+                    info!(
+                        "Removed old socks5 directory {}",
+                        socks5_data_path.display()
+                    );
+
+                    true
+                }
+                Err(e) => {
+                    warn!(
+                        "Failed to remove old socks5 directory {}: {e}.  We will use the old directory.",
+                        socks5_data_path.display()
+                    );
+                    false
+                }
+            }
+        } else {
+            true
+        };
+
+        if create_dir {
+            tokio::fs::create_dir_all(&socks5_data_path)
                 .await
                 .map_err(|e| {
-                    error!("Failed to remove old socks5 directory: {}", e);
+                    error!(
+                        "Failed to create socks5 data directory {}: {e}",
+                        socks5_data_path.display()
+                    );
                     LazySocks5Error::Internal(format!(
-                        "Failed to remove old socks5 directory: {}",
-                        e
+                        "Failed to create socks5 data directory {}: {e}",
+                        socks5_data_path.display()
                     ))
                 })?;
+
+            info!("Created fresh socks5 directory for new identity");
         }
-
-        // Create fresh socks5 subdirectory
-        tokio::fs::create_dir_all(&socks5_data_path)
-            .await
-            .map_err(|e| {
-                error!("Failed to create socks5 data directory: {}", e);
-                LazySocks5Error::Internal(format!("Failed to create socks5 data directory: {}", e))
-            })?;
-
-        info!("Created fresh socks5 directory for new identity");
 
         // Create base storage paths for the main VPN (to get the shared credential DB path)
         let main_storage_paths = StoragePaths::new_from_dir(&self.config.mixnet_data_path)
