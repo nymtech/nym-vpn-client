@@ -991,10 +991,17 @@ impl NymVpnService {
     }
 
     async fn handle_set_enable_custom_dns(&mut self, enable_custom_dns: bool) {
-        self.config_manager
+        if self
+            .config_manager
             .set_enable_custom_dns(enable_custom_dns)
-            .await;
-        self.update_tunnel_settings_with_throttle();
+            .await
+        {
+            let config = self.config_manager.config();
+            // Ignore reconnect if custom DNS is enabled but custom DNS addresses aren't set
+            if !enable_custom_dns || !config.custom_dns.is_empty() {
+                self.update_tunnel_settings_with_throttle();
+            }
+        }
     }
 
     async fn handle_set_custom_dns(&mut self, mut custom_dns: Vec<IpAddr>) {
@@ -1005,8 +1012,13 @@ impl NymVpnService {
             custom_dns.truncate(MAX_CUSTOM_DNS_SERVERS);
         }
 
-        self.config_manager.set_custom_dns(custom_dns).await;
-        self.update_tunnel_settings_with_throttle();
+        if self.config_manager.set_custom_dns(custom_dns).await {
+            let config = self.config_manager.config();
+            // Only issue reconnect if custom DNS is enabled
+            if config.enable_custom_dns {
+                self.update_tunnel_settings_with_throttle();
+            }
+        }
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
