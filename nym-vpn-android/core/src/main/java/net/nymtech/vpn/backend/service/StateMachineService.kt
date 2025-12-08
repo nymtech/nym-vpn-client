@@ -32,7 +32,7 @@ internal class StateMachineService : LifecycleService(), TunnelOwner {
 
 		// Then update with the richer notification if permission granted
 		notificationManager.withNotificationPermission {
-			val richNotification = notificationManager.buildVpnNotification(getCurrentState(), getCurrentExitPoint(), getGateways())
+			val richNotification = notificationManager.buildVpnNotification(getCurrentState(), getCurrentEntryPoint(), getCurrentExitPoint(), getEntryGateways(), getExitGateways())
 			ServiceCompat.startForeground(
 				this,
 				FOREGROUND_NOTIFICATION_ID,
@@ -52,7 +52,7 @@ internal class StateMachineService : LifecycleService(), TunnelOwner {
 
 		// Then update notification if permission granted
 		notificationManager.withNotificationPermission {
-			val richNotification = notificationManager.buildVpnNotification(getCurrentState(), getCurrentExitPoint(), getGateways())
+			val richNotification = notificationManager.buildVpnNotification(getCurrentState(), getCurrentEntryPoint(), getCurrentExitPoint(), getEntryGateways(), getExitGateways())
 			ServiceCompat.startForeground(
 				this,
 				FOREGROUND_NOTIFICATION_ID,

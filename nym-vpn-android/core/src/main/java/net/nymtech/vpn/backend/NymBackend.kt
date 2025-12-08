@@ -68,6 +68,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	private lateinit var settingConfig: NymVpnLibConfig
 
+	private var cachedEntryGateways: List<NymGateway>? = null
 	private var cachedExitGateways: List<NymGateway>? = null
 
 	init {
@@ -299,6 +300,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			if (type == GatewayType.MIXNET_EXIT) {
 				cachedExitGateways = list
 			}
+			if (type == GatewayType.MIXNET_ENTRY) {
+				cachedEntryGateways = list
+			}
 			list
 		}
 	}
@@ -400,7 +404,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	val notification = notificationManager.buildVpnNotification(
 		getState(),
+		tunnel?.entryPoint,
 		tunnel?.exitPoint,
+		getEntryGateways(),
 		getExitGateways(),
 	)
 
@@ -409,7 +415,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 		val initialNotification = notificationManager.buildVpnNotification(
 			getState(),
+			tunnel?.entryPoint,
 			tunnel?.exitPoint,
+			getEntryGateways(),
 			getExitGateways(),
 		)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -432,7 +440,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		notificationManager.withNotificationPermission {
 			val updatedNotification = notificationManager.buildVpnNotification(
 				getState(),
+				tunnel?.entryPoint,
 				tunnel?.exitPoint,
+				getEntryGateways(),
 				getExitGateways(),
 			)
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -457,6 +467,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override fun getState(): Tunnel.State {
 		return state
 	}
+
+	fun getEntryGateways() = cachedEntryGateways
 
 	fun getExitGateways() = cachedExitGateways
 
@@ -487,6 +499,12 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		this.state = state
 		tunnel?.onStateChange(state)
 
-		notificationManager.updateVpnNotification(state, tunnel?.exitPoint, getExitGateways())
+		notificationManager.updateVpnNotification(
+			state,
+			tunnel?.entryPoint,
+			tunnel?.exitPoint,
+			getEntryGateways(),
+			getExitGateways(),
+		)
 	}
 }
