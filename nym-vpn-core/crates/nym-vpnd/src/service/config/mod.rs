@@ -25,8 +25,10 @@ use tokio::{
     io::{self, AsyncWriteExt},
 };
 
-use crate::service::config::entry_exit::v2::{EntryPoint, ExitPoint};
-use crate::service::config::network_stats::v1::NetworkStatisticsConfig;
+use crate::service::config::{
+    entry_exit::v2::{EntryPoint, ExitPoint},
+    network_stats::v1::NetworkStatisticsConfig,
+};
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
