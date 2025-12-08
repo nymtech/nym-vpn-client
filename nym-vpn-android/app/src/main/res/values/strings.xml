@@ -301,10 +301,10 @@
 	<string name="details_more_details_end">Nym Network Explorer</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
-	<string name="censorship_description">Enable these features if you\'re experiencing connection issues or NymVPN blocking in your location.</string>
+	<string name="censorship_description">Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking.</string>
 	<string name="censorship_quic_title">Enhanced connection (QUIC)</string>
 	<string name="censorship_quic_changes">Changes will apply after reconnect</string>
-	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
+	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3). Traffic will appear as regular web browsing, defeating Deep Packet Inspection (DPI) censorship systems.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
 	<string name="censorship_quic_link_text">How QUIC improves connections</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
