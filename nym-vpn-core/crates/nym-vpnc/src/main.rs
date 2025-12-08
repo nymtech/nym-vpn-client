@@ -383,4 +383,3 @@ pub fn or_not_set<T: ToString + Clone>(value: &Option<T>) -> String {
         .map(|v| v.to_string())
         .unwrap_or("not set".to_string())
 }
-
