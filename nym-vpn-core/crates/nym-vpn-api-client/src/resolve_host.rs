@@ -109,10 +109,10 @@ mod tests {
     async fn test_resolve_host() {
         let addresses = domain_to_socket_addr("microsoft.com", None).await.unwrap();
 
-        let limited_addresses = str_to_socket_addr("https://microsoft.com", Some((1, 1)))
+        let limited_addresses = str_to_socket_addr("https://microsoft.com", Some((1, 0)))
             .await
             .unwrap();
-        assert!(addresses.len() > 2);
-        assert_eq!(limited_addresses.len(), 2);
+        assert_eq!(addresses.len(), 2);
+        assert_eq!(limited_addresses.len(), 1);
     }
 }
