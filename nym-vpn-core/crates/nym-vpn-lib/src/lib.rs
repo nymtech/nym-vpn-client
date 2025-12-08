@@ -41,11 +41,9 @@ pub use crate::{
 
 /// Default DNS servers.
 static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<NameServerConfigGroup> = LazyLock::new(|| {
-    let mut name_servers = NameServerConfigGroup::quad9_tls();
-    name_servers.merge(NameServerConfigGroup::quad9_https());
-    name_servers.merge(NameServerConfigGroup::cloudflare_tls());
-    name_servers.merge(NameServerConfigGroup::cloudflare_https());
-    name_servers
+    NameServerConfigGroup::from(
+        nym_http_api_client::HickoryDnsResolver::default().all_configured_name_servers(),
+    )
 });
 
 /// Default DNS server IP addresses.

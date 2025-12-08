@@ -261,7 +261,16 @@ impl ConnectingState {
         {
             let gateway_config = shared_state.nym_config.gateway_config.clone();
 
+            // Start DNS trial on second retry attempt
+            let should_start_dns_trial = self.retry_attempt > 0;
             self.resolve_api_addrs_fut = async move {
+                if should_start_dns_trial {
+                    tracing::debug!("Starting DNS trial");
+                    let resolver = nym_http_api_client::HickoryDnsResolver::default();
+                    resolver.trial_nameservers().await;
+                    tracing::debug!("Finished DNS trial");
+                }
+
                 nym_gateway_directory::resolve_config(&gateway_config)
                     .await
                     .map_err(|err| Error::ResolveApiHostnames(Box::new(err)))

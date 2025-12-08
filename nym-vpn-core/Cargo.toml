@@ -41,7 +41,7 @@ default-members = [
 ]
 
 [workspace.package]
-version = "1.20.0"
+version = "1.20.1-beta"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymtech.net"
@@ -205,38 +205,38 @@ nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/incaberry-release-mozzarella-patch" }
 
 # For local development
 #[patch."https://github.com/nymtech/nym"]
