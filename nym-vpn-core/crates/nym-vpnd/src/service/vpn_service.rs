@@ -1602,5 +1602,3 @@ impl NymVpnService {
         self.stats_control_commands_sender.get_seed().await
     }
 }
-
-
