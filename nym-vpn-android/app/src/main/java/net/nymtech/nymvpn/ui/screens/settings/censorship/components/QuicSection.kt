@@ -39,7 +39,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) -> Unit, shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier.fillMaxWidth()) {
+fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) -> Unit, shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier) {
 	val context = LocalContext.current
 	val interactionSource = remember { MutableInteractionSource() }
 
@@ -117,6 +117,6 @@ fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) ->
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewQuicSection() {
 	NymVPNTheme(Theme.default()) {
-		QuicSection(true, {})
+		QuicSection(true, {}, modifier = Modifier.fillMaxWidth())
 	}
 }

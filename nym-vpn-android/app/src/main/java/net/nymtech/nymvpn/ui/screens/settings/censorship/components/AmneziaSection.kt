@@ -38,7 +38,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun AmneziaSection(shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier.fillMaxWidth()) {
+fun AmneziaSection(shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier) {
 	val context = LocalContext.current
 	val interactionSource = remember { MutableInteractionSource() }
 
@@ -111,6 +111,6 @@ fun AmneziaSection(shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier =
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewAmneziaSection() {
 	NymVPNTheme(Theme.default()) {
-		AmneziaSection()
+		AmneziaSection(modifier = Modifier.fillMaxWidth())
 	}
 }

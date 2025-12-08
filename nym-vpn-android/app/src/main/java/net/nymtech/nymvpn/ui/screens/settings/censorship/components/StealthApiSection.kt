@@ -35,7 +35,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier.fillMaxWidth()) {
+fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier) {
 	val context = LocalContext.current
 	val interactionSource = remember { MutableInteractionSource() }
 
@@ -104,6 +104,6 @@ fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp), modifier: Modifie
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewStealthApiSection() {
 	NymVPNTheme(Theme.default()) {
-		StealthApiSection()
+		StealthApiSection(modifier = Modifier.fillMaxWidth())
 	}
 }
