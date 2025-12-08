@@ -79,6 +79,7 @@ impl VpndClient {
     }
 
     /// Get the rpc client
+    /// TODO: Avoid creating a new client for every request!
     #[instrument(skip_all)]
     pub async fn vpnd(&self) -> Result<RpcClient, VpndError> {
         let client = RpcClient::new().await.map_err(|e| {
@@ -97,7 +98,7 @@ impl VpndClient {
     /// Get daemon info
     #[instrument(skip_all)]
     pub async fn vpnd_info(&mut self) -> Result<VpndInfo, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let info: VpndInfo = vpnd
             .get_info()
@@ -121,7 +122,7 @@ impl VpndClient {
     /// Get daemon log path
     #[instrument(skip_all)]
     pub async fn vpnd_log_path(&self) -> Result<PathBuf, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let log_path = vpnd
             .get_log_path()
@@ -138,7 +139,7 @@ impl VpndClient {
     /// Get the current tunnel state and update the app state
     #[instrument(skip_all)]
     pub async fn tunnel_state(&self, app: &AppHandle) -> Result<TunnelState, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let tun_state = vpnd.get_tunnel_state().await?;
         let tunnel = TunnelState::from_lib(tun_state);
@@ -167,8 +168,7 @@ impl VpndClient {
     /// Watch tunnel state, account state and vpn config updates
     #[instrument(skip_all)]
     pub async fn watch_events(&self, app: &AppHandle) -> Result<()> {
-        let mut vpnd = self.vpnd().await?;
-
+        let vpnd = self.vpnd().await?;
         let mut stream = vpnd.listen_to_events().await.inspect_err(|e| {
             error!("listen to events failed: {}", e);
         })?;
@@ -257,7 +257,7 @@ impl VpndClient {
     /// Get the current daemon configuration
     #[instrument(skip_all)]
     pub async fn config(&self) -> Result<VpndConfig, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
         let config = vpnd
             .get_config()
             .await
@@ -272,7 +272,7 @@ impl VpndClient {
 
     #[instrument(skip_all)]
     pub async fn set_entry_node(&self, node: Node) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         vpnd.set_entry_point(node.try_into()?)
             .await
@@ -286,8 +286,7 @@ impl VpndClient {
 
     #[instrument(skip_all)]
     pub async fn set_exit_node(&self, node: Node) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
-
+        let vpnd = self.vpnd().await?;
         vpnd.set_exit_point(node.try_into()?)
             .await
             .map_err(VpndError::RpcClient)
@@ -301,7 +300,7 @@ impl VpndClient {
     /// Enable or disable two-hop mode (aka wg)
     #[instrument(skip_all)]
     pub async fn set_two_hop(&self, enabled: bool) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
         vpnd.set_enable_two_hop(enabled)
             .await
             .map_err(VpndError::RpcClient)
@@ -315,7 +314,7 @@ impl VpndClient {
     /// Enable or disable QUIC mode (aka bridges)
     #[instrument(skip_all)]
     pub async fn set_quic(&self, enabled: bool) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
         vpnd.set_enable_bridges(enabled)
             .await
             .map_err(VpndError::RpcClient)
@@ -329,7 +328,7 @@ impl VpndClient {
     /// Enable or disable no-IPv6 mode
     #[instrument(skip_all)]
     pub async fn set_no_ipv6(&self, enabled: bool) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
         vpnd.set_disable_ipv6(enabled)
             .await
             .map_err(VpndError::RpcClient)
@@ -343,7 +342,7 @@ impl VpndClient {
     /// Allow or disallow LAN access while connected to the VPN
     #[instrument(skip_all)]
     pub async fn set_allow_lan(&self, enabled: bool) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
         vpnd.set_allow_lan(enabled)
             .await
             .map_err(VpndError::RpcClient)
@@ -358,7 +357,7 @@ impl VpndClient {
     #[instrument(skip_all)]
     #[allow(clippy::too_many_arguments)]
     pub async fn vpn_connect(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         vpnd.connect_tunnel()
             .await
@@ -372,8 +371,7 @@ impl VpndClient {
     /// Disconnect from the VPN
     #[instrument(skip_all)]
     pub async fn vpn_disconnect(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
-
+        let vpnd = self.vpnd().await?;
         vpnd.disconnect_tunnel()
             .await
             .map_err(VpndError::RpcClient)
@@ -387,7 +385,7 @@ impl VpndClient {
     /// Store an account
     #[instrument(skip_all)]
     pub async fn store_account(&self, mnemonic: String) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let response = vpnd
             .store_account(lib::StoreAccountRequest::Vpn { mnemonic })
@@ -408,7 +406,7 @@ impl VpndClient {
     /// credential storage, mixnet keys, gateway registrations
     #[instrument(skip_all)]
     pub async fn forget_account(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let response = vpnd
             .forget_account()
@@ -428,7 +426,7 @@ impl VpndClient {
     /// Check if an account is stored
     #[instrument(skip_all)]
     pub async fn is_account_stored(&self) -> Result<bool, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let is_stored = vpnd
             .is_account_stored()
@@ -445,7 +443,7 @@ impl VpndClient {
     /// public key derived from the mnemonic
     #[instrument(skip_all)]
     pub async fn account_id(&self) -> Result<Option<String>, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let id = vpnd
             .get_account_identity()
@@ -461,7 +459,7 @@ impl VpndClient {
     /// Get the device identity
     #[instrument(skip_all)]
     pub async fn device_id(&self) -> Result<Option<String>, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let id = vpnd
             .get_device_identity()
@@ -477,7 +475,7 @@ impl VpndClient {
     /// Get the account links
     #[instrument(skip_all)]
     pub async fn account_links(&self, _locale: &str) -> Result<AccountLinks, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         // TODO use the user local once website is i18n ready
         let locale = "en".to_string();
@@ -496,7 +494,7 @@ impl VpndClient {
     /// Get the list of available gateways
     #[instrument(skip(self))]
     pub async fn gateways(&self, gw_type: GatewayType) -> Result<Vec<Gateway>, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let options = lib::ListGatewaysOptions {
             gw_type: gw_type.into(),
@@ -545,7 +543,7 @@ impl VpndClient {
     /// ⚠ This requires to restart the daemon to take effect.
     #[instrument(skip(self))]
     pub async fn set_network(&self, network: &str) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         vpnd.set_network(network.to_owned())
             .await
@@ -560,7 +558,7 @@ impl VpndClient {
     /// Get messages affecting the whole system, fetched from nym-vpn-api
     #[instrument(skip_all)]
     pub async fn system_messages(&self) -> Result<Vec<SystemMessage>, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let messages = vpnd
             .get_system_messages()
@@ -576,7 +574,7 @@ impl VpndClient {
     /// Get the feature flags, fetched from nym-vpn-api
     #[instrument(skip_all)]
     pub async fn feature_flags(&self) -> Result<FeatureFlags, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let flags = vpnd
             .get_feature_flags()
@@ -592,7 +590,7 @@ impl VpndClient {
     /// Get the network compatibility versions of supported vpn-core and tauri client
     #[instrument(skip_all)]
     pub async fn network_compat(&self) -> Result<Option<NetworkCompatVersions>, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let net_compat = vpnd
             .get_network_compatibility()
@@ -608,7 +606,7 @@ impl VpndClient {
     /// Is sentry enabled at daemon level
     #[instrument(skip_all)]
     pub async fn sentry_enabled(&self) -> Result<bool, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let enabled = vpnd
             .is_sentry_enabled()
@@ -628,7 +626,7 @@ impl VpndClient {
     /// Enable sentry at daemon level
     #[instrument(skip_all)]
     pub async fn enable_sentry(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         vpnd.enable_sentry()
             .await
@@ -650,7 +648,7 @@ impl VpndClient {
         http_rpc_settings: HttpRpcSettings,
         exit_node: Node,
     ) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let exit_point: lib::ExitPoint = exit_node.try_into()?;
 
@@ -676,7 +674,7 @@ impl VpndClient {
     /// Disable SOCKS5 proxy
     #[instrument(skip_all)]
     pub async fn disable_socks5(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         vpnd.disable_socks5().await.map_err(|e| {
             error!("failed to disable SOCKS5 proxy: {}", e);
@@ -690,7 +688,7 @@ impl VpndClient {
     /// Get SOCKS5 proxy status
     #[instrument(skip_all)]
     pub async fn get_socks5_status(&self) -> Result<Socks5Status, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let response = vpnd.get_socks5_status().await.map_err(|e| {
             error!("failed to get SOCKS5 status: {}", e);
@@ -705,7 +703,7 @@ impl VpndClient {
     /// Disable sentry at daemon level
     #[instrument(skip_all)]
     pub async fn disable_sentry(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         vpnd.disable_sentry()
             .await
@@ -722,7 +720,7 @@ impl VpndClient {
     /// Is network statistics collection enabled at daemon level
     #[instrument(skip_all)]
     pub async fn netstats_enabled(&self) -> Result<bool, VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         let config = vpnd
             .get_config()
@@ -743,7 +741,7 @@ impl VpndClient {
     /// Enable network statistics collection at daemon level
     #[instrument(skip_all)]
     pub async fn enable_netstats(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         vpnd.network_stats_set_enabled(true)
             .await
@@ -759,7 +757,7 @@ impl VpndClient {
     /// Disable network statistics collection at daemon level
     #[instrument(skip_all)]
     pub async fn disable_netstats(&self) -> Result<(), VpndError> {
-        let mut vpnd = self.vpnd().await?;
+        let vpnd = self.vpnd().await?;
 
         vpnd.network_stats_set_enabled(false)
             .await
