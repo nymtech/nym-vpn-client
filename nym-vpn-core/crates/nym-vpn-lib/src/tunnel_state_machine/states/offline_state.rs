@@ -156,12 +156,9 @@ impl TunnelStateHandler for OfflineState {
                             }
                         }
 
-                        if diff.entry_point_changed() || diff.exit_point_changed() {
+                        if diff.entry_point_changed() || diff.exit_point_changed() || diff.quic_changed() {
                             self.selected_gateways = None;
                         };
-
-                        #[cfg(any(target_os = "android", target_os = "ios"))]
-                        let _ = diff;
 
                         shared_state.tunnel_settings = tunnel_settings;
                         NextTunnelState::SameState(self)
