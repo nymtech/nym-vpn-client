@@ -128,8 +128,7 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-swift
-          git: https://github.com/antoniusnaumann/cargo-swift
-          rev: 53b948e8f37dd018300ae3fee2d0fd5ece59e2cd
+          version: 0.10.0
 
       - name: Install cargo-license
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
@@ -333,7 +332,7 @@ jobs:
             --config crowdin-configs/macos-ios.yml \
             --project-id "$CROWDIN_PROJECT_ID" \
             --token "$CROWDIN_PERSONAL_TOKEN"
-      
+
       - name: Build core
         working-directory: nym-vpn-apple/scripts
         env:
@@ -993,7 +992,7 @@ jobs:
           # Export path for the release step (from repo root)
           echo "NIGHTLY_PKG_PATH=nym-vpn-apple/build/pkg/NymVPN-nightly.pkg" >> "$GITHUB_ENV"
           echo "✅ Nightly PKG prepared as NymVPN-nightly.pkg"
-      
+
       - name: Publish macOS nightly GitHub Release
         if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
         uses: softprops/action-gh-release@v2
