@@ -33,7 +33,7 @@ After installing Rust, install the following Rust targets and dependencies to en
 1. Install `cargo-swift` compatible with uniffi 0.30:
 
     ```sh
-    cargo install cargo-swift --git  https://github.com/antoniusnaumann/cargo-swift#53b948e8f37dd018300ae3fee2d0fd5ece59e2cd
+    cargo install cargo-swift@0.10.0
     ```
 1. Install iOS targets:
 
