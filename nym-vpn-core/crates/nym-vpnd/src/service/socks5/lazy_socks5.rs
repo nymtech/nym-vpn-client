@@ -10,10 +10,10 @@ use std::{
     time::Duration,
 };
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt, copy_bidirectional},
+    io::{copy_bidirectional, AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
     sync::RwLock,
-    time::{Instant, sleep},
+    time::{sleep, Instant},
 };
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, warn};
@@ -497,7 +497,6 @@ impl LazySocks5 {
                         "Removed old socks5 directory {}",
                         socks5_data_path.display()
                     );
-
                     true
                 }
                 Err(e) => {
