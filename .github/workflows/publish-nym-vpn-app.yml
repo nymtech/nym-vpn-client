@@ -10,7 +10,7 @@ on:
         default: nym-vpn-app-v1.2.3
       release_type:
         type: choice
-        description: 'Release type, "stable" for public releases (signed Windows only), "nightly" for nightly build, "dev" for any other releases'
+        description: 'Release type, "stable" for public releases, "nightly" for nightly build, "dev" for any other releases'
         options:
           - dev
           - nightly
@@ -23,7 +23,7 @@ on:
         type: boolean
         default: false
       updater:
-        description: "Enable updater (Windows only) and bump metadata (always enabled for stable releases)"
+        description: "Enable updater and bump metadata (always enabled for stable releases)"
         required: false
         type: boolean
         default: false
@@ -36,10 +36,6 @@ on:
         description: "For Windows daemon, nym-vpn-core GH release tag (leave empty if using direct link)"
         required: false
         type: string
-      core_artifact_url:
-        description: "For Windows daemon, direct link to nym-vpn-core windows zip archive, eg. https://.._windows_x86_64.zip (leave empty if using GH release tag)"
-        required: false
-        type: string
 
 jobs:
   build-linux:
@@ -47,16 +43,16 @@ jobs:
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true }}
     secrets: inherit
-  build-windows:
-    uses: ./.github/workflows/build-nym-vpn-app-windows.yml
-    with:
-      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
-      core_release_tag: ${{ inputs.core_release_tag }}
-      core_artifact_url: ${{ inputs.core_artifact_url }}
-      sign: ${{ inputs.release_type == 'stable' }}
-      updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
-      updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
-    secrets: inherit
+  # build-windows:
+  #   uses: ./.github/workflows/build-nym-vpn-app-windows.yml
+  #   with:
+  #     dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
+  #     core_release_tag: ${{ inputs.core_release_tag }}
+  #     core_artifact_url: ${{ inputs.core_artifact_url }}
+  #     sign: ${{ inputs.release_type == 'stable' }}
+  #     updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
+  #     updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
+  #   secrets: inherit
 
   generate-build-info-nym-vpn-app:
     uses: ./.github/workflows/generate-build-info-nym-vpn-app.yml
@@ -68,7 +64,7 @@ jobs:
   publish:
     needs:
       - build-linux
-      - build-windows
+      # - build-windows
       - generate-build-info-nym-vpn-app
     runs-on: arc-linux-latest
     outputs:
@@ -77,7 +73,7 @@ jobs:
       version: ${{ steps.cargo-get.outputs.metadata }}
       win_updater_exe: ${{ steps.win_updater.outputs.exe }}
       win_updater_sig: ${{ steps.win_updater.outputs.sig }}
-      core_build_url_path: ${{ needs.build-windows.outputs.core_build_url_path }}
+      # core_build_url_path: ${{ needs.build-windows.outputs.core_build_url_path }}
     env:
       # stable | nightly | dev
       RELEASE_TYPE: ${{ inputs.release_type || (github.event_name == 'schedule' && 'nightly' || 'dev') }}
@@ -86,7 +82,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PKG_VERSION: ${{ needs.build-linux.outputs.PKG_VERSION }}
       UPLOAD_DIR_UBUNTU_22: ${{ needs.build-linux.outputs.UPLOAD_DIR_LINUX }}
-      UPLOAD_DIR_WINDOWS: ${{ needs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
+      # UPLOAD_DIR_WINDOWS: ${{ needs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
       UPDATER_ENABLED: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
     permissions: write-all
     steps:
@@ -128,16 +124,16 @@ jobs:
         id: set_tag
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
-      - name: Set output for updater (Windows)
-        if: ${{ env.UPDATER_ENABLED == 'true' }}
-        id: win_updater
-        working-directory: ${{ env.UPLOAD_DIR_WINDOWS }}
-        run: |
-          shopt -s failglob
-          exe=(*setup.exe)
-          echo "exe=${exe[0]}" >> "$GITHUB_OUTPUT"
-          sig=$(head -n 1 *.exe.sig)
-          echo "sig=$sig" >> "$GITHUB_OUTPUT"
+      # - name: Set output for updater (Windows)
+      #   if: ${{ env.UPDATER_ENABLED == 'true' }}
+      #   id: win_updater
+      #   working-directory: ${{ env.UPLOAD_DIR_WINDOWS }}
+      #   run: |
+      #     shopt -s failglob
+      #     exe=(*setup.exe)
+      #     echo "exe=${exe[0]}" >> "$GITHUB_OUTPUT"
+      #     sig=$(head -n 1 *.exe.sig)
+      #     echo "sig=$sig" >> "$GITHUB_OUTPUT"
 
       - name: Remove previous nightly release
         if: ${{ env.RELEASE_TYPE == 'nightly' }}
@@ -150,13 +146,8 @@ jobs:
           pushd ${{ env.UPLOAD_DIR_UBUNTU_22 }} || exit 1
           for f in *; do sha256sum "$f" > "$f.sha256sum"; done
           popd
-          pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
-          exe=(*setup.exe)
-          sha256sum "${exe[0]}" > "${exe[0]}.sha256sum";
-          popd
           echo 'SHA256SUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_UBUNTU_22 }}/*.sha256sum >> $GITHUB_ENV
-          cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Build info
@@ -169,19 +160,19 @@ jobs:
         if: ${{ env.RELEASE_TYPE == 'stable' }}
         env:
           EMOJI: ":ship:"
-        run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux and Windows desktop app'" >> $GITHUB_ENV
+        run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux app'" >> $GITHUB_ENV
 
       - name: Set release notes header (dev)
         if: ${{ env.RELEASE_TYPE == 'dev' }}
         env:
           EMOJI: ":hammer_and_wrench:"
-        run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux and Windows desktop app, **dev** build'" >> $GITHUB_ENV
+        run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux app, **dev** build'" >> $GITHUB_ENV
 
       - name: Set release notes header (nightly)
         if: ${{ env.RELEASE_TYPE == 'nightly' }}
         env:
           EMOJI: ":night_with_stars:"
-        run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux and Windows desktop app, **nightly** build'" >> $GITHUB_ENV
+        run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux app, **nightly** build'" >> $GITHUB_ENV
 
       - name: Release notes
         run: |
@@ -212,18 +203,17 @@ jobs:
           target_commitish: ${{ github.sha }}
           files: |
             ${{ env.UPLOAD_DIR_UBUNTU_22}}/*
-            ${{ env.UPLOAD_DIR_WINDOWS}}/*
 
-  windows-updater:
-    uses: ./.github/workflows/tauri-updater.yml
-    needs: publish
-    if: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
-    with:
-      channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
-      version: ${{ needs.publish.outputs.version }}
-      platform: "windows-x86_64"
-      url: https://github.com/nymtech/nym-vpn-client/releases/download/${{ needs.publish.outputs.release_tag }}/${{ needs.publish.outputs.win_updater_exe }}
-      signature: ${{ needs.publish.outputs.win_updater_sig }}
+  # windows-updater:
+  #   uses: ./.github/workflows/tauri-updater.yml
+  #   needs: publish
+  #   if: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
+  #   with:
+  #     channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
+  #     version: ${{ needs.publish.outputs.version }}
+  #     platform: "windows-x86_64"
+  #     url: https://github.com/nymtech/nym-vpn-client/releases/download/${{ needs.publish.outputs.release_tag }}/${{ needs.publish.outputs.win_updater_exe }}
+  #     signature: ${{ needs.publish.outputs.win_updater_sig }}
 
   update-aur-app:
     uses: ./.github/workflows/publish-aur-nym-vpn-app.yml
@@ -278,8 +268,6 @@ jobs:
         run: |
           if [[ -n "${{ inputs.core_release_tag }}" ]]; then
             url=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
-          elif [[ -n "${{ inputs.core_artifact_url }}" ]]; then
-            url="$(dirname ${{ inputs.core_artifact_url }})/"
           elif [[ -n "$CORE_BUILD_URL_PATH" ]]; then
             url="${{ env.NYM_BUILDS_URL }}${{ env.CORE_BUILD_URL_PATH }}/"
           else
