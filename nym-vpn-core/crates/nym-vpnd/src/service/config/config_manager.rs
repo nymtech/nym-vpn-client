@@ -177,18 +177,18 @@ impl VpnServiceConfigManager {
     }
     #[allow(unused)]
     pub async fn set_poisson_parameter(&mut self, poisson: u32) {
-            self.config.poisson_parameter = Some(poisson);
-            self.save_config_and_send_event().await;
+        self.config.poisson_parameter = Some(poisson);
+        self.save_config_and_send_event().await;
     }
     #[allow(unused)]
     pub async fn set_message_sending_average_delay(&mut self, message_sending_delay: Option<u32>) {
-            self.config.message_sending_average_delay = message_sending_delay;
-            self.save_config_and_send_event().await;
+        self.config.message_sending_average_delay = message_sending_delay;
+        self.save_config_and_send_event().await;
     }
     #[allow(unused)]
     pub async fn set_average_packet_delay(&mut self, average_delay: Option<u32>) {
-            self.config.average_packet_delay = average_delay;
-            self.save_config_and_send_event().await;
+        self.config.average_packet_delay = average_delay;
+        self.save_config_and_send_event().await;
     }
     #[allow(unused)]
     pub async fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
