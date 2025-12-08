@@ -13,9 +13,9 @@ use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayType, HttpRpcSettings, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, Socks5Settings, Socks5Status, SystemMessage, TunnelEvent, TunnelState,
-    VpnServiceConfig, VpnServiceInfo,
+    GatewayType, HttpRpcSettings, LogPath, LoginSecret, NetworkCompatibility, NymVpnDevice,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status,
+    SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
@@ -324,7 +324,7 @@ impl RpcClient {
         Ok(status)
     }
 
-    pub async fn get_privy_derivation_message(&self) -> Result<String> {
+    pub async fn get_privy_derivation_message(&self) -> Result<PrivyDerivationMessage> {
         let message = self.inner.clone().get_privy_derivation_message().await?;
         Ok(message)
     }
