@@ -693,7 +693,7 @@ impl TunnelStateHandler for ConnectingState {
                         if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                             Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
                         } else {
-                            let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() {
+                            let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() || diff.quic_changed() {
                                 None
                             } else {
                                 self.selected_gateways

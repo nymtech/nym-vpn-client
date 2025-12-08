@@ -1,13 +1,13 @@
 package net.nymtech.nymvpn.ui.screens.settings.censorship
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +39,6 @@ import net.nymtech.nymvpn.ui.screens.settings.censorship.components.getConnectio
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
-import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
@@ -86,7 +85,6 @@ fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolea
 	val scrollState = rememberScrollState()
 	Column(
 		horizontalAlignment = Alignment.Start,
-		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
 		modifier = Modifier
 			.fillMaxSize()
 			.verticalScroll(scrollState)
@@ -102,12 +100,20 @@ fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolea
 				.fillMaxWidth()
 				.padding(top = 16.dp),
 		)
-		AmneziaSection()
 		if (showQUICSection) {
-			QuicSection(quicEnabled, onQuicEnable)
+			QuicSection(
+				quicEnabled,
+				onQuicEnable,
+				shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp),
+				modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+			)
+			AmneziaSection(
+				shape = RoundedCornerShape(0.dp, 0.dp, 8.dp, 8.dp),
+				modifier = Modifier.fillMaxWidth().padding(top = 1.dp),
+			)
 		}
 		if (showDomainFrontingSection) {
-			StealthApiSection()
+			StealthApiSection(modifier = Modifier.fillMaxWidth().padding(top = 24.dp))
 		}
 	}
 }
