@@ -47,6 +47,7 @@ tracing-subscriber = { workspace = true, features = ["env-filter", "ansi"] }
 tracing.workspace = true
 url.workspace = true
 nym-bin-common.workspace = true
+nym-privy.workspace = true
 nym-registration-client.workspace = true
 nym-http-api-client.workspace = true
 nym-sdk.workspace = true

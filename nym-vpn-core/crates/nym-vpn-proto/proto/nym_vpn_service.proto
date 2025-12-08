@@ -851,6 +851,10 @@ message NetworkStatisticsIdentity {
     string id = 2;
 }
 
+message PrivyDerivationMessage {
+    string message = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
@@ -991,4 +995,7 @@ service NymVpnService {
 
   // Get socks5 proxy status
   rpc GetSocks5Status (google.protobuf.Empty) returns (Socks5Status) {}
+
+  // Get Privy derivation message to be signed
+  rpc GetPrivyDerivationMessage (google.protobuf.Empty) returns (PrivyDerivationMessage) {}
 }

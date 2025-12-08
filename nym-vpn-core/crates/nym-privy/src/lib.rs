@@ -8,6 +8,12 @@ use crate::error::PrivyError;
 
 pub mod error;
 
+pub const PRIVY_DERIVATION_MESSAGE: &str = "DeriveAccount:NymVPN";
+
+pub fn message_to_sign() -> String {
+    hex::encode(PRIVY_DERIVATION_MESSAGE.as_bytes())
+}
+
 pub fn hex_signature_to_mnemonic(hex_signature: &str) -> Result<Mnemonic, PrivyError> {
     let bytes_signature = hex::decode(hex_signature)?;
 

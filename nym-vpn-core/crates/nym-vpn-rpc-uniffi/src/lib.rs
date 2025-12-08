@@ -299,6 +299,11 @@ impl RpcClient {
             .await?;
         Ok(())
     }
+
+    pub async fn get_privy_derivation_message(&self) -> Result<String> {
+        let message = self.inner.clone().get_privy_derivation_message().await?;
+        Ok(message)
+    }
 }
 
 #[derive(Debug)]

@@ -77,8 +77,8 @@ use tokio::{runtime::Runtime, sync::Mutex};
 
 use nym_vpn_lib_types::{
     AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, LoginSecret, Network,
-    NetworkCompatibility, ParsedAccountLinks, RegisterAccountResponse, SystemMessage, TunnelEvent,
-    UserAgent,
+    NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage, RegisterAccountResponse,
+    SystemMessage, TunnelEvent, UserAgent,
 };
 
 use account::AccountControllerHandle;
@@ -428,6 +428,15 @@ async fn get_account_id() -> Result<String, VpnError> {
 #[uniffi::export]
 pub fn getGateways(gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
     RUNTIME.block_on(get_gateways(gw_type))
+}
+
+/// Get the message to be signed using the Privy signing API.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getPrivyDerivationMessage() -> PrivyDerivationMessage {
+    PrivyDerivationMessage {
+        message: nym_privy::message_to_sign(),
+    }
 }
 
 async fn get_gateways(gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
