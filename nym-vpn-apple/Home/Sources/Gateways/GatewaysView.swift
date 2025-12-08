@@ -25,27 +25,10 @@ public struct GatewaysView: View {
             Spacer()
                 .frame(height: 24)
 
-            ScrollViewReader { proxy in
-                ScrollView {
-                    countriesGatewaysList()
-                    noSearchResultsView()
-                    foundCountriesList()
-                    foundRegionsList()
-                    foundGatewaysList()
-                }
-                .scrollDismissesKeyboard(.immediately)
-                .scrollIndicators(.hidden)
-                .frame(maxWidth: MagicNumbers.maxWidth)
-                .ignoresSafeArea(.all)
-                .onReceive(viewModel.$shouldScroll.filter { $0 }) { _ in
-                    Task { @MainActor in
-                        await Task.yield() // let SwiftUI lay out with the new data
-                        withAnimation {
-                            proxy.scrollTo(viewModel.scrollToModel.scrollToIdentifier, anchor: .top)
-                        }
-                        viewModel.shouldScroll = false
-                    }
-                }
+            if viewModel.isRefreshing {
+                refreshingView()
+            } else {
+                mainListView()
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -72,11 +55,29 @@ public struct GatewaysView: View {
 
 private extension GatewaysView {
     func navbar() -> some View {
+        #if os(macOS)
         CustomNavBar(
             title: viewModel.type.selectHopLocalizedTitle,
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateHome() }),
-            rightButton: CustomNavBarButton(type: .info, action: { viewModel.displayInfoTooltip() })
+            rightButtons: [
+                CustomNavBarButton(
+                    type: .refresh,
+                    action: {
+                        Task {
+                            await viewModel.refreshServersList()
+                        }
+                    }
+                ),
+                CustomNavBarButton(type: .info, action: { viewModel.displayInfoTooltip() })
+            ]
         )
+        #else
+        CustomNavBar(
+            title: viewModel.type.selectHopLocalizedTitle,
+            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateHome() }),
+            rightButtons: [CustomNavBarButton(type: .info, action: { viewModel.displayInfoTooltip() })]
+        )
+        #endif
     }
 
     @ViewBuilder
@@ -114,6 +115,53 @@ private extension GatewaysView {
     func searchView() -> some View {
         SearchView(searchText: $viewModel.searchText, isSearchFocused: $isSearchFocused)
             .padding(.horizontal, 16)
+    }
+
+    func refreshingView() -> some View {
+        VStack {
+            GenericImage(imageName: "refresh")
+                .frame(width: 24, height: 24)
+
+            VStack(spacing: 24) {
+                Text("gatewaysView.refreshingServerList.title".localizedString)
+                    .foregroundStyle(NymColor.primary)
+                    .textStyle(.Body.Large.regular)
+
+                Text("gatewaysView.refreshingServerList.description".localizedString)
+                    .foregroundStyle(NymColor.primary)
+                    .textStyle(.Body.Large.regular)
+                    .multilineTextAlignment(.center)
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: MagicNumbers.maxWidth)
+        .padding(EdgeInsets(top: 24, leading: 16, bottom: 24, trailing: 16))
+    }
+
+    func mainListView() -> some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                countriesGatewaysList()
+                noSearchResultsView()
+                foundCountriesList()
+                foundRegionsList()
+                foundGatewaysList()
+            }
+            .scrollDismissesKeyboard(.immediately)
+            .scrollIndicators(.hidden)
+            .frame(maxWidth: MagicNumbers.maxWidth)
+            .ignoresSafeArea(.all)
+            .onReceive(viewModel.$shouldScroll.filter { $0 }) { _ in
+                Task { @MainActor in
+                    await Task.yield() // let SwiftUI lay out with the new data
+                    withAnimation {
+                        proxy.scrollTo(viewModel.scrollToModel.scrollToIdentifier, anchor: .top)
+                    }
+                    viewModel.shouldScroll = false
+                }
+            }
+        }
     }
 
     @ViewBuilder

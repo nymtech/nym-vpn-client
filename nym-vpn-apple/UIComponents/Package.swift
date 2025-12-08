@@ -20,7 +20,8 @@ let package = Package(
         .package(path: "../Services"),
         .package(path: "../ServicesMutual"),
         .package(path: "../Theme"),
-        .package(url: "https://github.com/airbnb/lottie-spm.git", from: "4.5.2")
+        .package(url: "https://github.com/airbnb/lottie-spm.git", from: "4.5.2"),
+        .package(url: "https://github.com/pointfreeco/xctest-dynamic-overlay", exact: "1.8.0")
     ],
     targets: [
         .target(
@@ -36,7 +37,8 @@ let package = Package(
                 .product(name: "MessageModels", package: "ServicesMutual"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ImpactGenerator", package: "Services"),
-                .product(name: "Lottie", package: "lottie-spm")
+                .product(name: "Lottie", package: "lottie-spm"),
+                .product(name: "IssueReporting", package: "xctest-dynamic-overlay")
             ],
             resources: [
                 .process("Resources/Assets.xcassets")

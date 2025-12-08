@@ -17682,6 +17682,61 @@
         }
       }
     },
+    "gatewaysView.refreshingServerList.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This may take up to 30 seconds while we check Nym network performance worldwide."
+          }
+        }
+      }
+    },
+    "gatewaysView.refreshingServerList.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refreshing server list…"
+          }
+        }
+      }
+    },
+    "gatewaysView.serverListRefreshFailed.modal.refreshInSeconds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh server list in..."
+          }
+        }
+      }
+    },
+    "gatewaysView.serverListRefreshFailed.modal.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to reach Nym network servers. Check your connection or try again in 60 seconds."
+          }
+        }
+      }
+    },
+    "gatewaysView.serverListRefreshFailed.modal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server list refresh failed"
+          }
+        }
+      }
+    },
     "general.off" : {
       "extractionState" : "manual",
       "localizations" : {

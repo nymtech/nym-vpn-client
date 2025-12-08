@@ -1,13 +1,14 @@
 import SwiftUI
 import AppSettings
 import Theme
+import IssueReporting
 
 public struct CustomNavBar: View {
     private let title: String?
     private let useElevationBackground: Bool
     private let isLogoImageHidden: Bool
     @State private var leftButton: CustomNavBarButton?
-    @State private var rightButton: CustomNavBarButton?
+    @State private var rightButtons: [CustomNavBarButton]
 
     @EnvironmentObject private var appSettings: AppSettings
 
@@ -16,13 +17,20 @@ public struct CustomNavBar: View {
         useElevationBackground: Bool = false,
         isLogoImageHidden: Bool = false,
         leftButton: CustomNavBarButton? = CustomNavBarButton(type: .empty, action: {}),
-        rightButton: CustomNavBarButton? = CustomNavBarButton(type: .empty, action: {})
+        rightButtons: [CustomNavBarButton] = []
     ) {
         self.title = title
         self.useElevationBackground = useElevationBackground
         self.isLogoImageHidden = isLogoImageHidden
         _leftButton = State(initialValue: leftButton)
-        _rightButton = State(initialValue: rightButton)
+        #if os(macOS)
+        _rightButtons = State(initialValue: rightButtons)
+        #else
+        if rightButtons.count > 1 {
+            reportIssue("Multiple right buttons are supported on macOS only. The first one will be used.")
+        }
+        _rightButtons = State(initialValue: rightButtons.first.map { [$0] } ?? [])
+        #endif
     }
 
     public var body: some View {
@@ -38,12 +46,18 @@ public struct CustomNavBar: View {
                     .accessibilityLabel("NymVPN".localizedString)
             }
             Spacer()
-            rightButton
+            CustomNavBarButton(type: .empty, action: nil)
+                .accessibilityHidden(true)
         }
         .frame(height: appSettings.isSmallScreen ? 48 : 64)
         .background {
             backgroundColor()
                 .ignoresSafeArea()
+        }
+        .overlay(alignment: .trailing) {
+            HStack(spacing: 0) {
+                ForEach(Array(rightButtons), id: \.type) { $0 }
+            }
         }
     }
 }

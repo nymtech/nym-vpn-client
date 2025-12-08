@@ -96,6 +96,11 @@ import GRPCManager
         setupAutoUpdates()
         configureEnvironmentChange()
     }
+    
+    public func refresh() async {
+        isLoading = true
+        await fetchGateways()
+    }
 
     public func moniker(with gatewayId: String?) -> String? {
         entry.first(where: { $0.id == gatewayId })?.name

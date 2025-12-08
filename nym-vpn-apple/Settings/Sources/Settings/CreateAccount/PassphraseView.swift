@@ -105,13 +105,15 @@ private extension PassphraseView {
                     navigateBack()
                 }
             ),
-            rightButton: CustomNavBarButton(
-                type: .info,
-                action: {
-                    impactGenerator.softImpact()
-                    isInfoModalDisplayed.toggle()
-                }
-            )
+            rightButtons: [
+                CustomNavBarButton(
+                    type: .info,
+                    action: {
+                        impactGenerator.softImpact()
+                        isInfoModalDisplayed.toggle()
+                    }
+                )
+            ]
         )
     }
 

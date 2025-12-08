@@ -13,11 +13,15 @@ import UIComponents
     let gatewayManager: GatewayManager
     let type: HopType
     let minimumSearchSymbols = 2
+    
+    var lastError: Error?
 
     @ObservedObject var appSettings: AppSettings
     @ObservedObject var connectionManager: ConnectionManager
     @ObservedObject var featureFlagsManager: FeatureFlagsManager
     @Binding var path: NavigationPath
+    @Published var isRefreshing = false
+    @Published var isServerListRefreshFailedOverlayDisplayed = false
     @Published var isGeolocationModalDisplayed = false
     @Published var gateways = [GatewayNode]()
     @Published var countries = [NymCountry]()
@@ -72,6 +76,13 @@ extension GatewaysViewModel {
             ($0.performance?.score.rawValue ?? .max) < ($1.performance?.score.rawValue ?? .max)
         }
     }
+
+    @MainActor func refreshServersList() async {
+        isRefreshing = true
+        await gatewayManager.refresh()
+        updateGateways()
+        isRefreshing = false
+    }
 }
 
 // MARK: - Setup -
@@ -88,6 +99,13 @@ private extension GatewaysViewModel {
                 self?.updateGateways()
             }
             .store(in: &cancellables)
+    }
+    
+    func setupGatewayManagerObserver() {
+        gatewayManager.$lastError.sink { [weak self] error in
+            self?.lastError = error
+        }
+        .store(in: &cancellables)
     }
 }
 
@@ -107,77 +125,68 @@ extension GatewaysViewModel {
 // MARK: - Gateways -
 private extension GatewaysViewModel {
     func updateGateways() {
-        Task { [weak self] in
-            guard let self else { return }
-            switch connectionManager.connectionType {
-            case .mixnet5hop:
-                switch type {
-                case .entry:
-                    gateways = gatewayManager.entry
-                    countries = gatewayManager.entryCountries
-                case .exit:
-                    gateways = gatewayManager.exit
-                    countries = gatewayManager.exitCountries
-                }
-            case .wireguard:
-                if shouldShowQuic {
-                    gateways = gatewayManager.vpn.filter { $0.isQuicAvailable }
-                } else {
-                    gateways = gatewayManager.vpn
-                }
-                countries = gatewayManager.vpnCountries
+        switch connectionManager.connectionType {
+        case .mixnet5hop:
+            switch type {
+            case .entry:
+                gateways = gatewayManager.entry
+                countries = gatewayManager.entryCountries
+            case .exit:
+                gateways = gatewayManager.exit
+                countries = gatewayManager.exitCountries
             }
-            shouldScroll = true
+        case .wireguard:
+            if shouldShowQuic {
+                gateways = gatewayManager.vpn.filter { $0.isQuicAvailable }
+            } else {
+                gateways = gatewayManager.vpn
+            }
+            countries = gatewayManager.vpnCountries
         }
+        shouldScroll = true
     }
 
     func searchCountriesGateways() {
-        Task { [weak self] in
-            guard let self, searchText.count >= minimumSearchSymbols
-            else {
-                await MainActor.run {
-                    self?.foundCountries = [NymCountry]()
-                    self?.foundGateways = [GatewayNode]()
-                }
-                return
-            }
-            let newCountries = countries.filter {
-                $0.name.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
-                || $0.code.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
-            }
-
-            // TODO: city update to use new country with found regions or cities
-            var seen = Set<String>()
-            let newCountryRegionPairs: [(country: NymCountry, region: String)] = gateways
-                .compactMap { gateway -> (NymCountry, String)? in
-                    guard let location = gateway.location,
-                          self.gatewayManager.countriesSupportingRegions.contains(
-                            where: {
-                                $0.caseInsensitiveCompare(location.twoLetterIsoCountryCode) == .orderedSame
-                            }
-                          ),
-                          !location.region.isEmpty,
-                          location.region.range(
-                            of: self.searchText, options: [.caseInsensitive, .diacriticInsensitive]
-                          ) != nil,
-                          let country = self.gatewayManager.localizedCountry(with: location.twoLetterIsoCountryCode),
-                          seen.insert(location.region).inserted
-                    else {
-                        return nil
-                    }
-                    return (country, location.region)
-                }
-
-            let newGateways = gateways.filter {
-                $0.name?.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased()) ?? false
-                || $0.id.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
-            }
-            await MainActor.run {
-                self.foundCountries = newCountries
-                self.foundRegions = newCountryRegionPairs
-                self.foundGateways = newGateways
-            }
+        guard searchText.count >= minimumSearchSymbols
+        else {
+            foundCountries = [NymCountry]()
+            foundGateways = [GatewayNode]()
+            return
         }
+        let newCountries = countries.filter {
+            $0.name.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
+            || $0.code.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
+        }
+
+        // TODO: city update to use new country with found regions or cities
+        var seen = Set<String>()
+        let newCountryRegionPairs: [(country: NymCountry, region: String)] = gateways
+            .compactMap { gateway -> (NymCountry, String)? in
+                guard let location = gateway.location,
+                      self.gatewayManager.countriesSupportingRegions.contains(
+                        where: {
+                            $0.caseInsensitiveCompare(location.twoLetterIsoCountryCode) == .orderedSame
+                        }
+                      ),
+                      !location.region.isEmpty,
+                      location.region.range(
+                        of: self.searchText, options: [.caseInsensitive, .diacriticInsensitive]
+                      ) != nil,
+                      let country = self.gatewayManager.localizedCountry(with: location.twoLetterIsoCountryCode),
+                      seen.insert(location.region).inserted
+                else {
+                    return nil
+                }
+                return (country, location.region)
+            }
+
+        let newGateways = gateways.filter {
+            $0.name?.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased()) ?? false
+            || $0.id.lowercased().localizedCaseInsensitiveContains(self.searchText.lowercased())
+        }
+        foundCountries = newCountries
+        foundRegions = newCountryRegionPairs
+        foundGateways = newGateways
     }
 }
 
