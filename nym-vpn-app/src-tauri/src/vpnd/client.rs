@@ -390,9 +390,7 @@ impl VpndClient {
         let mut vpnd = self.vpnd().await?;
 
         let response = vpnd
-            .store_account(lib::StoreAccountRequest::Vpn {
-                secret: lib::LoginSecret::Mnemonic(mnemonic),
-            })
+            .store_account(lib::StoreAccountRequest::Vpn { mnemonic })
             .await
             .map_err(VpndError::RpcClient)
             .inspect_err(|e| {
