@@ -211,14 +211,9 @@ private extension ProxyView {
             customContent: {
                 VStack {
                     HStack {
-                        let socksListenAddr = (
-                            viewModel.proxyStatus?.socks5Settings.listenAddress ??
-                            viewModel.defaultSocks5ProxyListenAddress
-                        )
-                        .replacingEmpty(with: viewModel.defaultSocks5ProxyListenAddress)
-                        Text(socksListenAddr)
-                        .foregroundStyle(NymColor.gray1)
-                        .textStyle(.Body4.Medium.regular)
+                        Text(viewModel.socks5ProxyListenAddress)
+                            .foregroundStyle(NymColor.gray1)
+                            .textStyle(.Body4.Medium.regular)
                         Spacer()
                         GenericImage(imageName: "copy")
                             .frame(width: 24, height: 24)
@@ -287,12 +282,7 @@ private extension ProxyView {
             customContent: {
                 VStack {
                     HStack {
-                        let socksListenAddr = (
-                            viewModel.proxyStatus?.socks5Settings.listenAddress
-                            ?? viewModel.defaultSocks5ProxyListenAddress
-                        )
-                        .replacingEmpty(with: viewModel.defaultSocks5ProxyListenAddress)
-                        Text(AttributedString("socks5h://\(socksListenAddr)"))
+                        Text(AttributedString("socks5h://\(viewModel.socks5ProxyListenAddress)"))
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body4.Medium.regular)
                         Spacer()
@@ -327,12 +317,7 @@ private extension ProxyView {
             customContent: {
                 VStack {
                     HStack {
-                        let httpListenAddr = (
-                            viewModel.proxyStatus?.httpRpcSettings.listenAddress
-                            ?? viewModel.defaultHttpRpcProxyListenAddress
-                        )
-                        .replacingEmpty(with: viewModel.defaultHttpRpcProxyListenAddress)
-                        Text(httpListenAddr)
+                        Text(viewModel.httpRpcProxyListenAddress)
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body4.Medium.regular)
                         Spacer()
@@ -357,12 +342,7 @@ private extension ProxyView {
             customContent: {
                 VStack {
                     HStack {
-                        let httpListenAddr = (
-                            viewModel.proxyStatus?.httpRpcSettings.listenAddress
-                            ?? viewModel.defaultHttpRpcProxyListenAddress
-                        )
-                        .replacingEmpty(with: viewModel.defaultHttpRpcProxyListenAddress)
-                        Text(AttributedString("http://\(httpListenAddr)?p=<your-provider-url>"))
+                        Text(AttributedString("http://\(viewModel.httpRpcProxyListenAddress)?p=<your-provider-url>"))
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body4.Medium.regular)
                         Spacer()
@@ -419,12 +399,6 @@ private extension ProxyView {
                 topTrailingRadius: vm.topRadius
             )
         )
-    }
-}
-
-extension String {
-    func replacingEmpty(with defaultValue: String) -> String {
-        self.isEmpty ? defaultValue : self
     }
 }
 #endif

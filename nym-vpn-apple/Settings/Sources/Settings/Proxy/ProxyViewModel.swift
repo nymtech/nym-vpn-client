@@ -11,8 +11,8 @@ import Theme
 
 @MainActor public final class ProxyViewModel: ObservableObject {
 
-    let defaultSocks5ProxyListenAddress = "127.0.0.1:1080"
-    let defaultHttpRpcProxyListenAddress = "127.0.0.1:8545"
+    static let defaultSocks5ProxyListenAddress = "127.0.0.1:1080"
+    static let defaultHttpRpcProxyListenAddress = "127.0.0.1:8545"
 
     private let appSettings: AppSettings
 
@@ -22,8 +22,11 @@ import Theme
     @Binding private var path: NavigationPath
 
     @Published var proxyStatus: Socks5Status?
-    @Published var proxyIsOn = false
     @Published var proxyStatusLoading = false
+    
+    @Published var proxyIsOn = false
+    @Published var socks5ProxyListenAddress = defaultSocks5ProxyListenAddress
+    @Published var httpRpcProxyListenAddress = defaultHttpRpcProxyListenAddress
 
     @Published var isSnackbarDisplayed = false
     @Published var snackbarMessage: String?
@@ -48,6 +51,14 @@ import Theme
         do {
             proxyStatus = try await grpcManager.socks5Status()
             proxyIsOn = isProxyOn()
+            socks5ProxyListenAddress = (
+                proxyStatus?.socks5Settings.listenAddress
+                ?? ProxyViewModel.defaultSocks5ProxyListenAddress
+            ).replacingEmpty(with: ProxyViewModel.defaultSocks5ProxyListenAddress)
+            httpRpcProxyListenAddress = (
+                proxyStatus?.httpRpcSettings.listenAddress
+                ?? ProxyViewModel.defaultHttpRpcProxyListenAddress
+            ).replacingEmpty(with: ProxyViewModel.defaultHttpRpcProxyListenAddress)
             proxyStatusLoading = false
         } catch {
             proxyStatusLoading = false
@@ -83,15 +94,13 @@ import Theme
                 try await grpcManager.disableSocks5()
             } else {
                 try await grpcManager.enableSocks5(
-                    socks5Settings: Socks5Settings(listenAddress: defaultSocks5ProxyListenAddress),
-                    httpRpcSettings: HttpRpcSettings(listenAddress: defaultHttpRpcProxyListenAddress),
+                    socks5Settings: Socks5Settings(listenAddress: socks5ProxyListenAddress),
+                    httpRpcSettings: HttpRpcSettings(listenAddress: httpRpcProxyListenAddress),
                     exitPoint: connectionManager.connectionConfig.exitPoint
                 )
             }
 
-            proxyStatus = try await grpcManager.socks5Status()
-            proxyIsOn = isProxyOn()
-            proxyStatusLoading = false
+            await loadSocks5Status()
         } catch {
             proxyStatusLoading = false
             withAnimation {
@@ -116,6 +125,12 @@ private extension ProxyViewModel {
         case .some(.idle), .some(.connected):
             true
         }
+    }
+}
+
+extension String {
+    func replacingEmpty(with defaultValue: String) -> String {
+        self.isEmpty ? defaultValue : self
     }
 }
 
