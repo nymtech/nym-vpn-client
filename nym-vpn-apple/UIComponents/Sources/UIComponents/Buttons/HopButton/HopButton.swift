@@ -8,12 +8,16 @@ import Theme
 
 public struct HopButton: View {
     private let hopType: HopType
+    private let buttonAction: () -> Void
+    private let accessoryAction: () -> Void
+    private let accessoryAccessibilityText: String
 
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var gatewayManager: GatewayManager
     @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
-    @State private var isHovered = false
+    @State private var isButtonHovered = false
+    @State private var isAccessoryHovered = false
 
     private var gatewayType: NodeType {
         switch connectionManager.connectionType {
@@ -45,9 +49,9 @@ public struct HopButton: View {
     private var gatewayId: String? {
         switch hopType {
         case .entry:
-            connectionManager.connectionInfoData?.entryGatewayId
+            connectionManager.connectionInfoData?.entryGatewayId ?? connectionManager.entryGateway.gatewayId
         case .exit:
-            connectionManager.connectionInfoData?.exitGatewayId
+            connectionManager.connectionInfoData?.exitGatewayId ?? connectionManager.exitRouter.gatewayId
         }
     }
 
@@ -115,43 +119,27 @@ public struct HopButton: View {
         StrokeBorderView(
             strokeTitle: hopType.hopLocalizedTitle,
             strokeTitleLeftMargin: 30,
-            isHovered: $isHovered
+            isHovered: $isButtonHovered
         ) {
             HStack {
-                if isQuickest {
-                    BoltImage()
-                        .padding(12)
-                } else if let code = hopCountryCode {
-                    FlagImage(countryCode: code)
-                        .padding(12)
-                } else {
-                    GenericImage(imageName: "pin")
-                        .frame(width: 24, height: 24)
-                        .padding(12)
+                button().onHover { isButtonHovered = $0 }
+                if gatewayId != nil {
+                    accessory().onHover { isAccessoryHovered = $0 }
                 }
-
-                titleSubtitleText(with: titleText, subtitle: subtitleText)
-
-                Spacer()
-                if shouldShowQuic {
-                    QuicLabel()
-                } else if shouldShowStreaming {
-                    StreamingIcon()
-                }
-                Image("arrowRight", bundle: .module)
-                    .resizable()
-                    .frame(width: 24, height: 24)
-                    .padding(EdgeInsets(top: 16, leading: 4, bottom: 16, trailing: 16))
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits([.isButton])
-        .accessibilityLabel("\(hopType.hopLocalizedTitle) \(titleText)")
-        .onHover { isHovered = $0 }
     }
 
-    public init(hopType: HopType) {
+    public init(
+        hopType: HopType,
+        buttonAction: @escaping () -> Void,
+        accessoryAction: @escaping () -> Void,
+        accessoryAccessibilityText: String
+    ) {
         self.hopType = hopType
+        self.buttonAction = buttonAction
+        self.accessoryAction = accessoryAction
+        self.accessoryAccessibilityText = accessoryAccessibilityText
     }
 }
 
@@ -199,6 +187,37 @@ private extension HopButton {
 
 private extension HopButton {
     @ViewBuilder
+    func button() -> some View {
+        HStack {
+            if isQuickest {
+                BoltImage()
+                    .padding(12)
+            } else if let code = hopCountryCode {
+                FlagImage(countryCode: code)
+                    .padding(12)
+            } else {
+                GenericImage(imageName: "pin")
+                    .frame(width: 24, height: 24)
+                    .padding(12)
+            }
+
+            titleSubtitleText(with: titleText, subtitle: subtitleText)
+
+            Spacer()
+            if shouldShowQuic {
+                QuicLabel()
+            } else if shouldShowStreaming {
+                StreamingIcon()
+            }
+        }
+        .onTapGesture(perform: buttonAction)
+        .accessibilityElement(children: .combine)
+        .accessibilityAction(.default, buttonAction)
+        .accessibilityAddTraits([.isButton])
+        .accessibilityLabel("\(hopType.hopLocalizedTitle) \(titleText)")
+    }
+
+    @ViewBuilder
     func titleSubtitleText(with text: String, subtitle: String?) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(text)
@@ -214,5 +233,27 @@ private extension HopButton {
             }
         }
         .animation(.default, value: subtitle)
+    }
+
+    @ViewBuilder
+    func accessory() -> some View {
+        ZStack {
+            if isAccessoryHovered {
+                Circle()
+                    .fill(NymColor.backgroundHover)
+                    .frame(width: 40, height: 40)
+            }
+
+            Image("arrowRight", bundle: .module)
+                .resizable()
+                .frame(width: 24, height: 24)
+        }
+        .frame(width: 48, height: 48)
+        .padding(.trailing, 4)
+        .onTapGesture(perform: accessoryAction)
+        .accessibilityElement(children: .combine)
+        .accessibilityAction(.default, accessoryAction)
+        .accessibilityAddTraits([.isButton])
+        .accessibilityLabel("\(hopType.hopLocalizedTitle) \(titleText) \(accessoryAccessibilityText)")
     }
 }

@@ -14,7 +14,8 @@ public struct GatewayCountryCell: View {
     private let isSearching: Bool
 
     @EnvironmentObject private var gatewayManager: GatewayManager
-    @State private var isHovered = false
+    @State private var isButtonHovered = false
+    @State private var isAccessoryHovered = false
     @State private var isExpanded: Bool
     @State private var isCountrySelected = false
     @Binding private var path: NavigationPath
@@ -117,6 +118,10 @@ private extension GatewayCountryCell {
                 }
                 Spacer()
             }
+            .padding(.vertical, 12)
+            .onHover { newValue in
+                isButtonHovered = newValue
+            }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(country.name) \(servers.count) \("servers".localizedString)")
             .accessibilityValue(isCountrySelected ? "selected".localizedString : "")
@@ -128,9 +133,10 @@ private extension GatewayCountryCell {
             .accessibilityAction {
                 countryTapAction()
             }
-            HStack(spacing: 0) {
-                lineSeparator()
-                arrowDropDown()
+
+            arrowDropDown()
+            .onHover { newValue in
+                isAccessoryHovered = newValue
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("gatewaySelector.expandServers".localizedString)
@@ -143,11 +149,8 @@ private extension GatewayCountryCell {
                 expandDidTap()
             }
         }
-        .onHover { newValue in
-            if newValue != isHovered { isHovered = newValue }
-        }
         .background {
-            isHovered ? NymColor.elevationHover : NymColor.elevation
+            isButtonHovered ? NymColor.elevationHover : NymColor.elevation
         }
     }
 
@@ -178,11 +181,20 @@ private extension GatewayCountryCell {
     }
 
     func arrowDropDown() -> some View {
-        GenericImage(imageName: "arrowDropDown")
-            .frame(width: 24, height: 24)
-            .padding(16)
-            .rotationEffect(.degrees(isExpanded ? 180 : 0))
-            .animation(.easeInOut, value: isExpanded)
+        ZStack {
+            if isAccessoryHovered {
+                Circle()
+                    .fill(NymColor.elevationHover)
+                    .frame(width: 40, height: 40)
+            }
+
+            GenericImage(imageName: "arrowDropDown")
+                .frame(width: 24, height: 24)
+                .rotationEffect(.degrees(isExpanded ? 0 : 180))
+                .animation(.easeInOut, value: isExpanded)
+        }
+        .frame(width: 48, height: 48)
+        .padding(.trailing, 4)
     }
 }
 
