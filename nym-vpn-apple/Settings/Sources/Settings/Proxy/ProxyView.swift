@@ -2,7 +2,6 @@
 import SwiftUI
 import AppSettings
 import ConnectionManager
-import FeatureFlagsManager
 import Constants
 import MessageModels
 import NymVPNRpc
@@ -11,18 +10,7 @@ import Theme
 import UIComponents
 
 public struct ProxyView: View {
-    @EnvironmentObject private var appSettings: AppSettings
-    @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
-    @EnvironmentObject private var grpcManager: GRPCManager
-    @Binding private var path: NavigationPath
-
-    @State private var proxyStatusLoading = true
-    @State private var proxyIsOn: Bool = false
-    @State private var proxyStatus: Socks5Status?
-
-    @State private var isSnackbarDisplayed = false
-    @State private var snackbarMessage: String?
+    @StateObject private var viewModel: ProxyViewModel
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -37,8 +25,8 @@ public struct ProxyView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .snackbar(
-            isDisplayed: $isSnackbarDisplayed,
-            message: SnackBarMessage(text: snackbarMessage ?? "", style: .info)
+            isDisplayed: $viewModel.isSnackbarDisplayed,
+            message: SnackBarMessage(text: viewModel.snackbarMessage ?? "", style: .info)
         )
         .ignoresSafeArea(edges: [.bottom])
         .background {
@@ -46,28 +34,9 @@ public struct ProxyView: View {
                 .ignoresSafeArea()
         }
         .task {
-            do {
-                proxyStatus = try await grpcManager.socks5Status()
-            } catch GRPCError.daemonNotRunning {
-                print("Daemon not running")
-                proxyStatusLoading = false
-            } catch GRPCError.invalidData {
-                print("Invalid data")
-                proxyStatusLoading = false
-            } catch {
-                withAnimation {
-                    guard !isSnackbarDisplayed else { return }
-                    proxyStatusLoading = false
-                    snackbarMessage = "proxy.connectionError".localizedString
-                    isSnackbarDisplayed = true
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .seconds(3))
-                        isSnackbarDisplayed = false
-                    }
-                }
-            }
+            await viewModel.loadSocks5Status()
         }
-        .onChange(of: proxyStatus) { status in
+        .onChange(of: viewModel.proxyStatus) { status in
             let isOn = switch status?.state {
             case .none, .some(.disabled), .some(.error):
                 false
@@ -75,17 +44,17 @@ public struct ProxyView: View {
                 true
             }
 
-            proxyIsOn = isOn
-            proxyStatusLoading = false
+            viewModel.proxyIsOn = isOn
+            viewModel.proxyStatusLoading = false
         }
-        .onChange(of: proxyIsOn) { isOn in
-            guard !proxyStatusLoading else { return }
+        .onChange(of: viewModel.proxyIsOn) { isOn in
+            guard !viewModel.proxyStatusLoading else { return }
             print("Proxy is \(isOn ? "on" : "off")!")
         }
     }
 
-    public init(path: Binding<NavigationPath>) {
-        _path = path
+    public init(viewModel: ProxyViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 }
 
@@ -94,7 +63,7 @@ private extension ProxyView {
     func navbar() -> some View {
         CustomNavBar(
             title: "settings.proxy.title".localizedString,
-            leftButton: CustomNavBarButton(type: .back, action: { navigateBack() })
+            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
         )
     }
 
@@ -110,11 +79,10 @@ private extension ProxyView {
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
                     viewModel: ToggleViewModel(
-                        isOn: $proxyIsOn,
-                        isDisabled: connectionManager.currentTunnelStatus != .connected,
-                        action: { _ in
-                            guard connectionManager.currentTunnelStatus == .connected else { return }
-                        }
+                        isOn: $viewModel.proxyIsOn,
+                        isDisabled: viewModel.connectionManager.currentTunnelStatus != .connected,
+                        isInteractiveWhenDisabled: true,
+                        action: { _ in viewModel.toggleProxy() }
                     )
                 ),
                 title: "proxy.status.title".localizedString,
@@ -127,11 +95,19 @@ private extension ProxyView {
             }
         )
     }
+    
+    @ViewBuilder func proxySettingsList() -> some View {
+        VStack {
+            SettingsListItem(viewModel: <#T##SettingsListItemViewModel#>)
+        }
+    }
+}
 
+private extension ProxyView {
     func vpnAndProxyStatusDetails() -> some View {
         VStack {
             let statusButtonConfig = StatusButtonConfig(
-                tunnelStatus: connectionManager.currentTunnelStatus,
+                tunnelStatus: viewModel.connectionManager.currentTunnelStatus,
                 hasInternet: true
             )
             detailsSection(
@@ -179,7 +155,7 @@ private extension ProxyView {
     }
 
     func vpnStatusColor() -> Color {
-        switch connectionManager.currentTunnelStatus {
+        switch viewModel.connectionManager.currentTunnelStatus {
         case .connected:
             NymColor.action
         case .disconnected:
@@ -190,10 +166,10 @@ private extension ProxyView {
     }
 
     func proxyStatusText() -> String {
-        if proxyStatusLoading {
+        if viewModel.proxyStatusLoading {
             "proxy.proxyStatus.loading".localizedString
         } else {
-            switch proxyStatus?.state {
+            switch viewModel.proxyStatus?.state {
             case .none, .some(.disabled), .some(.error):
                 "proxy.proxyStatus.disabled".localizedString
             case .some(.idle), .some(.connected):
@@ -203,10 +179,10 @@ private extension ProxyView {
     }
 
     func proxyStatusColor() -> Color {
-        if proxyStatusLoading {
+        if viewModel.proxyStatusLoading {
             NymColor.primary
         } else {
-            switch proxyStatus?.state {
+            switch viewModel.proxyStatus?.state {
             case .none, .some(.disabled), .some(.error):
                 NymColor.error
             case .some(.idle), .some(.connected):
@@ -216,19 +192,12 @@ private extension ProxyView {
     }
 
     func proxyActiveConnectionsText() -> String {
-        switch proxyStatus?.activeConnections {
+        switch viewModel.proxyStatus?.activeConnections {
         case .none:
             "0"
         case let .some(connections):
             "\(connections)"
         }
-    }
-}
-
-// MARK: - Actions -
-private extension ProxyView {
-    func navigateBack() {
-        if !path.isEmpty { path.removeLast() }
     }
 }
 

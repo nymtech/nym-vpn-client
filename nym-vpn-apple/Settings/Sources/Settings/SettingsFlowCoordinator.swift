@@ -200,9 +200,17 @@ private extension SettingsFlowCoordinator {
 #if os(macOS)
     @ViewBuilder
     func proxyDestination() -> some View {
-        ProxyView(path: $flowState.path)
+        ProxyView(
+            viewModel: ProxyViewModel(
+                path: $flowState.path,
+                appSettings: .shared,
+                connectionManager: .shared,
+                grpcManager: .shared,
+                messagesManager: .shared
+            )
+        )
     }
-    
+
     @ViewBuilder
     func appModeDestination() -> some View {
         AppModeView(path: $flowState.path)
