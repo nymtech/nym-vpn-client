@@ -3,8 +3,28 @@
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+use std::net::SocketAddr;
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
+
+use crate::ExitPoint;
+
+/// SOCKS5 enable request
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct EnableSocks5Request {
+    pub socks5_settings: Socks5Settings,
+    pub http_rpc_settings: HttpRpcSettings,
+    pub exit_point: ExitPoint,
+}
 
 /// SOCKS5 proxy settings
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -18,8 +38,8 @@ use ts_rs::TS;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct Socks5Settings {
-    /// SOCKS5 listen address, e.g., "127.0.0.1:1080"
-    pub listen_address: String,
+    /// SOCKS5 listen address, e.g., 127.0.0.1:1080
+    pub listen_address: Option<SocketAddr>,
 }
 
 /// HTTP RPC proxy settings
@@ -35,7 +55,7 @@ pub struct Socks5Settings {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct HttpRpcSettings {
     /// HTTP RPC listen address, e.g., 127.0.0.1:8545
-    pub listen_address: String,
+    pub listen_address: Option<SocketAddr>,
 }
 
 /// SOCKS5 service state
