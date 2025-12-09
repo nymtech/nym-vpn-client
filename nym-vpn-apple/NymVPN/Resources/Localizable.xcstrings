@@ -28549,6 +28549,39 @@
         }
       }
     },
+    "proxy.httpRpc.instructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint."
+          }
+        }
+      }
+    },
+    "proxy.httpRpc.proxyTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HTTP RPC proxy (for wallets)"
+          }
+        }
+      }
+    },
+    "proxy.httpRpc.proxyUrlTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HTTP RPC URL (for wallets)"
+          }
+        }
+      }
+    },
     "proxy.proxyStatus" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28611,6 +28644,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connect to NymVPN before enabling the proxy."
+          }
+        }
+      }
+    },
+    "proxy.snackbar.successfullyEnabled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy successfully enabled"
+          }
+        }
+      }
+    },
+    "proxy.socks5.instructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add this to your browser's proxy settings to route traffic through the Nym mixnet"
+          }
+        }
+      }
+    },
+    "proxy.socks5.proxyTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOCKS5 proxy (for apps)"
+          }
+        }
+      }
+    },
+    "proxy.socks5.proxyUrlTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOCKS5 URL (for apps)"
           }
         }
       }

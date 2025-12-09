@@ -203,19 +203,19 @@ private extension ProxyView {
         SettingsListItemCustomContent(
             viewModel: SettingsListItemViewModel(
                 accessory: .empty,
-                title: "SOCKS5 proxy (for apps)",
+                title: "proxy.socks5.proxyTitle".localizedString,
                 systemImageName: "number",
                 position: SettingsListItemPosition(isFirst: true, isLast: !viewModel.proxyIsOn),
-                action: {}
+                action: { viewModel.copyListenAddress(for: .socks5, fullyQualified: false) }
             ),
             customContent: {
                 VStack {
                     HStack {
-                        Text(viewModel.socks5ProxyListenAddress)
+                        Text(viewModel.socks5ProxyListenAddress.url)
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body4.Medium.regular)
                         Spacer()
-                        GenericImage(imageName: "copy")
+                        GenericImage(imageName: viewModel.socks5Copied ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
                     }
                 }
@@ -235,7 +235,7 @@ private extension ProxyView {
 
         VStack(alignment: .center, spacing: 0) {
             HStack(spacing: 0) {
-                Text("ℹ️  Add this to your browser's proxy settings to route traffic through the Nym mixnet")
+                Text("ℹ️  \("proxy.socks5.instructions".localizedString)")
                     .foregroundStyle(NymColor.gray1)
                     .textStyle(.Body.Small.regular.withSpacing(1.4))
             }
@@ -274,19 +274,19 @@ private extension ProxyView {
         SettingsListItemCustomContent(
             viewModel: SettingsListItemViewModel(
                 accessory: .empty,
-                title: "SOCKS5 URL (for apps)",
+                title: "proxy.socks5.proxyUrlTitle".localizedString,
                 systemImageName: "number",
                 position: SettingsListItemPosition(isFirst: false, isLast: false),
-                action: {}
+                action: { viewModel.copyListenAddress(for: .socks5, fullyQualified: true) }
             ),
             customContent: {
                 VStack {
                     HStack {
-                        Text(AttributedString("socks5h://\(viewModel.socks5ProxyListenAddress)"))
+                        Text(AttributedString(viewModel.socks5ProxyListenAddress.fullyQualified))
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body4.Medium.regular)
                         Spacer()
-                        GenericImage(imageName: "copy")
+                        GenericImage(imageName: viewModel.socks5CopiedFullyQualified ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
                     }
                 }
@@ -309,19 +309,19 @@ private extension ProxyView {
         SettingsListItemCustomContent(
             viewModel: SettingsListItemViewModel(
                 accessory: .empty,
-                title: "HTTP RPC proxy (for wallets)",
+                title: "proxy.httpRpc.proxyTitle".localizedString,
                 systemImageName: "number",
                 position: SettingsListItemPosition(isFirst: true, isLast: !viewModel.proxyIsOn),
-                action: {}
+                action: { viewModel.copyListenAddress(for: .httpRpc, fullyQualified: false) }
             ),
             customContent: {
                 VStack {
                     HStack {
-                        Text(viewModel.httpRpcProxyListenAddress)
+                        Text(viewModel.httpRpcProxyListenAddress.url)
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body4.Medium.regular)
                         Spacer()
-                        GenericImage(imageName: "copy")
+                        GenericImage(imageName: viewModel.isHttpRpcCopied ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
                     }
                 }
@@ -334,19 +334,19 @@ private extension ProxyView {
         SettingsListItemCustomContent(
             viewModel: SettingsListItemViewModel(
                 accessory: .empty,
-                title: "HTTP RPC URL (for wallets)",
+                title: "proxy.httpRpc.proxyUrlTitle".localizedString,
                 systemImageName: "number",
                 position: SettingsListItemPosition(isFirst: false, isLast: false),
-                action: {}
+                action: { viewModel.copyListenAddress(for: .httpRpc, fullyQualified: true) }
             ),
             customContent: {
                 VStack {
                     HStack {
-                        Text(AttributedString("http://\(viewModel.httpRpcProxyListenAddress)?p=<your-provider-url>"))
+                        Text(AttributedString(viewModel.httpRpcProxyListenAddress.fullyQualified))
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body4.Medium.regular)
                         Spacer()
-                        GenericImage(imageName: "copy")
+                        GenericImage(imageName: viewModel.isHttpRpcCopiedFullyQualified ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
                     }
                 }
@@ -366,7 +366,7 @@ private extension ProxyView {
 
         VStack(alignment: .center, spacing: 0) {
             HStack(spacing: 0) {
-                Text("ℹ️  Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint.")
+                Text("ℹ️  \("proxy.httpRpc.instructions".localizedString)")
                     .foregroundStyle(NymColor.gray1)
                     .textStyle(.Body.Small.regular.withSpacing(1.4))
             }
