@@ -28604,6 +28604,17 @@
         }
       }
     },
+    "proxy.snackbar.connectionRequired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect to NymVPN before enabling the proxy."
+          }
+        }
+      }
+    },
     "proxy.status.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
