@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq)]
-pub enum PrivyError {
-    #[error(transparent)]
-    Hex(#[from] hex::FromHexError),
-
+pub enum LoginError {
     #[error(transparent)]
     Bip39(#[from] bip39::Error),
+
+    #[error(transparent)]
+    Hex(#[from] hex::FromHexError),
 }

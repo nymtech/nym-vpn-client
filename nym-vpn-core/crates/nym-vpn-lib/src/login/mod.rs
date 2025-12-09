@@ -1,19 +1,17 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use bip39::Mnemonic;
+use error::LoginError;
 use nym_vpn_lib_types::LoginSecret;
-
-use crate::error::UtilsError;
+use nym_vpn_store::account::Mnemonic;
 
 pub mod error;
+pub mod privy;
 
-pub fn parse_secret(secret: &LoginSecret) -> Result<Mnemonic, UtilsError> {
+pub fn parse_secret(secret: &LoginSecret) -> Result<Mnemonic, LoginError> {
     let mnemonic = match secret {
         LoginSecret::Mnemonic(mnemonic) => Mnemonic::parse(mnemonic)?,
-        LoginSecret::PrivyHexSignature(signature) => {
-            nym_privy::hex_signature_to_mnemonic(signature)?
-        }
+        LoginSecret::PrivyHexSignature(signature) => privy::hex_signature_to_mnemonic(signature)?,
     };
 
     Ok(mnemonic)

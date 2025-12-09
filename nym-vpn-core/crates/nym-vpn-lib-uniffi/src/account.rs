@@ -199,9 +199,10 @@ pub(super) async fn update_account_state() -> Result<(), VpnError> {
 }
 
 pub(super) async fn login(secret: &LoginSecret) -> Result<(), VpnError> {
-    let mnemonic = nym_utils::parse_secret(secret).map_err(|err| VpnError::InvalidSecret {
-        details: err.to_string(),
-    })?;
+    let mnemonic =
+        nym_vpn_lib::login::parse_secret(secret).map_err(|err| VpnError::InvalidSecret {
+            details: err.to_string(),
+        })?;
     get_command_sender()
         .await?
         .store_account(mnemonic.into())
@@ -318,9 +319,10 @@ pub(crate) mod raw {
     }
 
     pub(crate) async fn login_raw(secret: &LoginSecret, path: &str) -> Result<(), VpnError> {
-        let mnemonic = nym_utils::parse_secret(secret).map_err(|err| VpnError::InvalidSecret {
-            details: err.to_string(),
-        })?;
+        let mnemonic =
+            nym_vpn_lib::login::parse_secret(secret).map_err(|err| VpnError::InvalidSecret {
+                details: err.to_string(),
+            })?;
         login_inner(mnemonic, path).await
     }
 

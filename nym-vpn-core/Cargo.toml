@@ -12,8 +12,6 @@ members = [
     "crates/nym-macos",
     "crates/nym-offline-monitor",
     "crates/nym-platform-metadata",
-    "crates/nym-privy",
-    "crates/nym-utils",
     "crates/nym-routing",
     "crates/nym-setup",
     "crates/nym-statistics",
@@ -192,11 +190,9 @@ nym-ipc = { path = "crates/nym-ipc" }
 nym-macos = { path = "crates/nym-macos" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
-nym-privy = { path = "crates/nym-privy" }
 nym-routing = { path = "crates/nym-routing" }
 nym-statistics = { path = "crates/nym-statistics" }
 nym-statistics-api-client = { path = "crates/nym-statistics-api-client" }
-nym-utils = { path = "crates/nym-utils" }
 nym-vpn-account-controller = { path = "crates/nym-vpn-account-controller" }
 nym-vpn-api-client = { path = "crates/nym-vpn-api-client" }
 nym-vpn-lib = { path = "crates/nym-vpn-lib" }

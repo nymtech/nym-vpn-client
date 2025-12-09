@@ -435,7 +435,7 @@ pub fn getGateways(gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
 #[uniffi::export]
 pub fn getPrivyDerivationMessage() -> PrivyDerivationMessage {
     PrivyDerivationMessage {
-        message: nym_privy::message_to_sign(),
+        message: nym_vpn_lib::login::privy::message_to_sign(),
     }
 }
 

@@ -1285,14 +1285,14 @@ impl NymVpnService {
     ) -> Result<(), AccountCommandError> {
         match store_request {
             StoreAccountRequest::Vpn { secret } => {
-                let mnemonic = nym_utils::parse_secret(&secret)
+                let mnemonic = nym_vpn_lib::login::parse_secret(&secret)
                     .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
                 self.account_command_tx
                     .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
                     .await
             }
             StoreAccountRequest::Decentralised { secret } => {
-                let mnemonic = nym_utils::parse_secret(&secret)
+                let mnemonic = nym_vpn_lib::login::parse_secret(&secret)
                     .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
                 self.account_command_tx
                     .store_account(StorableAccount::new(

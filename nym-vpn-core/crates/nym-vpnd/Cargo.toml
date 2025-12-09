@@ -47,7 +47,6 @@ tracing-subscriber = { workspace = true, features = ["env-filter", "ansi"] }
 tracing.workspace = true
 url.workspace = true
 nym-bin-common.workspace = true
-nym-privy.workspace = true
 nym-registration-client.workspace = true
 nym-http-api-client.workspace = true
 nym-sdk.workspace = true
@@ -76,7 +75,6 @@ nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 nym-vpn-store = { workspace = true }
 nym-vpn-network-config = { workspace = true }
 nym-platform-metadata = { workspace = true }
-nym-utils.workspace = true
 nym-gateway-directory = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 

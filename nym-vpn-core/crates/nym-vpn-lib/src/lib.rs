@@ -5,6 +5,7 @@ pub mod storage;
 
 mod bandwidth_controller;
 mod error;
+pub mod login;
 mod mixnet;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod tunnel_provider;
