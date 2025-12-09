@@ -76,9 +76,9 @@ use sentry::ClientInitGuard;
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use nym_vpn_lib_types::{
-    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, LoginSecret, Network,
+    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
     NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage, RegisterAccountResponse,
-    SystemMessage, TunnelEvent, UserAgent,
+    StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent,
 };
 
 use account::AccountControllerHandle;
@@ -271,8 +271,8 @@ pub fn getAccountLinksRaw(
 /// Import the account mnemonic
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn login(secret: LoginSecret) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::login(&secret))
+pub fn login(request: StoreAccountRequest) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::login(&request))
 }
 
 /// Generate the account mnemonic locally and store it.
@@ -293,8 +293,8 @@ pub fn registerAccount(args: AccountRegistrationArgs) -> Result<RegisterAccountR
 /// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn loginRaw(secret: LoginSecret, path: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::raw::login_raw(&secret, &path))
+pub fn loginRaw(request: StoreAccountRequest, path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::raw::login_raw(&request, &path))
 }
 
 /// Generate the account mnemonic locally and store it.

@@ -683,23 +683,20 @@ message StoreAccountRequest {
   oneof request {
     VpnAccountStoreRequest vpn_account_store = 1;
     DecentralisedAccountStoreRequest decentralised_account_store = 2;
+    PrivyAccountStoreRequest privy_account_store = 3;
   }
 }
 
-message LoginSecret {
-  oneof login_type {
-    string mnemonic = 1;
-    string private_key_hex = 2;
-  }
-}
-
-// VPN variant with mnemonic
 message VpnAccountStoreRequest {
-  LoginSecret secret = 1;
+  string mnemonic = 1;
 }
 
 message DecentralisedAccountStoreRequest {
-  LoginSecret secret = 1;
+  string mnemonic = 1;
+}
+
+message PrivyAccountStoreRequest {
+  string hex_signature = 1;
 }
 
 message DecentralisedObtainTicketbooksRequest {

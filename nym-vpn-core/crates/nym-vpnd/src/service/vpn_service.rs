@@ -1283,24 +1283,19 @@ impl NymVpnService {
         &mut self,
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountCommandError> {
-        match store_request {
-            StoreAccountRequest::Vpn { secret } => {
-                let mnemonic = nym_vpn_lib::login::parse_secret(&secret)
-                    .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
-                self.account_command_tx
-                    .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
-                    .await
-            }
-            StoreAccountRequest::Decentralised { secret } => {
-                let mnemonic = nym_vpn_lib::login::parse_secret(&secret)
-                    .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
-                self.account_command_tx
-                    .store_account(StorableAccount::new(
-                        mnemonic,
-                        StoredAccountMode::Decentralised,
-                    ))
-                    .await
-            }
+        let mnemonic = nym_vpn_lib::login::parse_account_request(&store_request)
+            .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
+        if store_request.centralised() {
+            self.account_command_tx
+                .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
+                .await
+        } else {
+            self.account_command_tx
+                .store_account(StorableAccount::new(
+                    mnemonic,
+                    StoredAccountMode::Decentralised,
+                ))
+                .await
         }
     }
 

@@ -11,7 +11,7 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::{new_user_agent, storage::VpnClientOnDiskStorage};
-use nym_vpn_lib_types::{AccountControllerState, LoginSecret, RegisterAccountResponse};
+use nym_vpn_lib_types::{AccountControllerState, RegisterAccountResponse, StoreAccountRequest};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     account::Mnemonic,
@@ -198,11 +198,12 @@ pub(super) async fn update_account_state() -> Result<(), VpnError> {
         .map_err(VpnError::from)
 }
 
-pub(super) async fn login(secret: &LoginSecret) -> Result<(), VpnError> {
-    let mnemonic =
-        nym_vpn_lib::login::parse_secret(secret).map_err(|err| VpnError::InvalidSecret {
+pub(super) async fn login(request: &StoreAccountRequest) -> Result<(), VpnError> {
+    let mnemonic = nym_vpn_lib::login::parse_account_request(request).map_err(|err| {
+        VpnError::InvalidSecret {
             details: err.to_string(),
-        })?;
+        }
+    })?;
     get_command_sender()
         .await?
         .store_account(mnemonic.into())
@@ -318,11 +319,15 @@ pub(crate) mod raw {
         Ok(())
     }
 
-    pub(crate) async fn login_raw(secret: &LoginSecret, path: &str) -> Result<(), VpnError> {
-        let mnemonic =
-            nym_vpn_lib::login::parse_secret(secret).map_err(|err| VpnError::InvalidSecret {
+    pub(crate) async fn login_raw(
+        request: &StoreAccountRequest,
+        path: &str,
+    ) -> Result<(), VpnError> {
+        let mnemonic = nym_vpn_lib::login::parse_account_request(request).map_err(|err| {
+            VpnError::InvalidSecret {
                 details: err.to_string(),
-            })?;
+            }
+        })?;
         login_inner(mnemonic, path).await
     }
 

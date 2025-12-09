@@ -13,8 +13,8 @@ use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayType, HttpRpcSettings, LogPath, LoginSecret, NetworkCompatibility, NymVpnDevice,
-    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status,
+    GatewayType, HttpRpcSettings, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
+    ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status, StoreAccountRequest,
     SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 
@@ -177,12 +177,8 @@ impl RpcClient {
         Ok(gateways)
     }
 
-    pub async fn store_account(&self, secret: LoginSecret) -> Result<()> {
-        let response = self
-            .inner
-            .clone()
-            .store_account(nym_vpn_lib_types::StoreAccountRequest::Vpn { secret })
-            .await?;
+    pub async fn store_account(&self, request: StoreAccountRequest) -> Result<()> {
+        let response = self.inner.clone().store_account(request).await?;
 
         if let Some(err) = response.error {
             Err(RpcError::new(InnerRpcError::AccountCommand(Arc::new(err))))

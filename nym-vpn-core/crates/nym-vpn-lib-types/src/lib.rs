@@ -78,7 +78,7 @@ pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
 pub use privy::PrivyDerivationMessage;
 pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
-    ListGatewaysOptions, LoginSecret, StoreAccountRequest,
+    ListGatewaysOptions, StoreAccountRequest,
 };
 pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
 pub use socks5::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
