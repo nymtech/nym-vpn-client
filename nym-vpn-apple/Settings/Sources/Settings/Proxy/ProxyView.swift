@@ -39,21 +39,6 @@ public struct ProxyView: View {
         .task {
             await viewModel.loadSocks5Status()
         }
-        .onChange(of: viewModel.proxyStatus) { status in
-            let isOn = switch status?.state {
-            case .none, .some(.disabled), .some(.error):
-                false
-            case .some(.idle), .some(.connected):
-                true
-            }
-
-            viewModel.proxyIsOn = isOn
-            viewModel.proxyStatusLoading = false
-        }
-        .onChange(of: viewModel.proxyIsOn) { isOn in
-            guard !viewModel.proxyStatusLoading else { return }
-            print("Proxy is \(isOn ? "on" : "off")!")
-        }
     }
 
     public init(viewModel: ProxyViewModel) {
@@ -85,7 +70,7 @@ private extension ProxyView {
                         isOn: $viewModel.proxyIsOn,
                         isDisabled: viewModel.connectionManager.currentTunnelStatus != .connected,
                         isInteractiveWhenDisabled: true,
-                        action: { _ in viewModel.toggleProxy() }
+                        action: { _ in Task { await viewModel.toggleProxy() } }
                     )
                 ),
                 title: "proxy.status.title".localizedString,
@@ -123,22 +108,18 @@ private extension ProxyView {
                 color: vpnStatusColor()
             )
             .padding(.bottom, 12)
-
             Divider()
                 .frame(height: 1)
                 .overlay(NymColor.gray2)
-
             detailsSection(
                 title: "proxy.proxyStatus".localizedString,
                 details: proxyStatusText(),
                 color: proxyStatusColor()
             )
             .padding(.vertical, 12)
-
             Divider()
                 .frame(height: 1)
                 .overlay(NymColor.gray2)
-
             detailsSection(
                 title: "proxy.activeConnections".localizedString,
                 details: proxyActiveConnectionsText(),
@@ -210,8 +191,10 @@ private extension ProxyView {
     func socks5ProxySettings() -> some View {
         VStack(spacing: 0) {
             socksProxySection()
-            socksUrlSection()
-            socksInstructionsSection()
+            if viewModel.proxyIsOn {
+                socksUrlSection()
+                socksInstructionsSection()
+            }
         }
         .padding(.bottom, 24)
     }
@@ -222,15 +205,20 @@ private extension ProxyView {
                 accessory: .empty,
                 title: "SOCKS5 proxy (for apps)",
                 systemImageName: "number",
-                position: SettingsListItemPosition(isFirst: true, isLast: false),
+                position: SettingsListItemPosition(isFirst: true, isLast: !viewModel.proxyIsOn),
                 action: {}
             ),
             customContent: {
                 VStack {
                     HStack {
-                        Text("127.0.0.1:1080")
-                            .foregroundStyle(NymColor.gray1)
-                            .textStyle(.Body4.Medium.regular)
+                        let socksListenAddr = (
+                            viewModel.proxyStatus?.socks5Settings.listenAddress ??
+                            viewModel.defaultSocks5ProxyListenAddress
+                        )
+                        .replacingEmpty(with: viewModel.defaultSocks5ProxyListenAddress)
+                        Text(socksListenAddr)
+                        .foregroundStyle(NymColor.gray1)
+                        .textStyle(.Body4.Medium.regular)
                         Spacer()
                         GenericImage(imageName: "copy")
                             .frame(width: 24, height: 24)
@@ -299,7 +287,12 @@ private extension ProxyView {
             customContent: {
                 VStack {
                     HStack {
-                        Text(AttributedString("socks5h://127.0.0.1:1080"))
+                        let socksListenAddr = (
+                            viewModel.proxyStatus?.socks5Settings.listenAddress
+                            ?? viewModel.defaultSocks5ProxyListenAddress
+                        )
+                        .replacingEmpty(with: viewModel.defaultSocks5ProxyListenAddress)
+                        Text(AttributedString("socks5h://\(socksListenAddr)"))
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body4.Medium.regular)
                         Spacer()
@@ -315,8 +308,10 @@ private extension ProxyView {
     func httpRpcProxySettings() -> some View {
         VStack(spacing: 0) {
             httpRpcProxySection()
-            httpRpcUrlSection()
-            httpRpcInstructionsSection()
+            if viewModel.proxyIsOn {
+                httpRpcUrlSection()
+                httpRpcInstructionsSection()
+            }
         }
     }
 
@@ -326,13 +321,18 @@ private extension ProxyView {
                 accessory: .empty,
                 title: "HTTP RPC proxy (for wallets)",
                 systemImageName: "number",
-                position: SettingsListItemPosition(isFirst: true, isLast: false),
+                position: SettingsListItemPosition(isFirst: true, isLast: !viewModel.proxyIsOn),
                 action: {}
             ),
             customContent: {
                 VStack {
                     HStack {
-                        Text("127.0.0.1:8545")
+                        let httpListenAddr = (
+                            viewModel.proxyStatus?.httpRpcSettings.listenAddress
+                            ?? viewModel.defaultHttpRpcProxyListenAddress
+                        )
+                        .replacingEmpty(with: viewModel.defaultHttpRpcProxyListenAddress)
+                        Text(httpListenAddr)
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body4.Medium.regular)
                         Spacer()
@@ -357,7 +357,12 @@ private extension ProxyView {
             customContent: {
                 VStack {
                     HStack {
-                        Text(AttributedString("http://127.0.0.1:8545?p=<your-provider-url>"))
+                        let httpListenAddr = (
+                            viewModel.proxyStatus?.httpRpcSettings.listenAddress
+                            ?? viewModel.defaultHttpRpcProxyListenAddress
+                        )
+                        .replacingEmpty(with: viewModel.defaultHttpRpcProxyListenAddress)
+                        Text(AttributedString("http://\(httpListenAddr)?p=<your-provider-url>"))
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body4.Medium.regular)
                         Spacer()
@@ -417,4 +422,9 @@ private extension ProxyView {
     }
 }
 
+extension String {
+    func replacingEmpty(with defaultValue: String) -> String {
+        self.isEmpty ? defaultValue : self
+    }
+}
 #endif

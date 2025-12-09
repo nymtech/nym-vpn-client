@@ -205,8 +205,7 @@ private extension SettingsFlowCoordinator {
                 path: $flowState.path,
                 appSettings: .shared,
                 connectionManager: .shared,
-                grpcManager: .shared,
-                messagesManager: .shared
+                grpcManager: .shared
             )
         )
     }
