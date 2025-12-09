@@ -575,13 +575,13 @@ impl RpcClient {
             socks5_settings: Some(proto::Socks5Settings {
                 listen_address: match socks5_settings.listen_address {
                     Some(addr) => addr.to_string(),
-                    None => "".to_string(),
+                    None => String::new(),
                 },
             }),
             http_rpc_settings: Some(proto::HttpRpcSettings {
                 listen_address: match http_rpc_settings.listen_address {
                     Some(addr) => addr.to_string(),
-                    None => "".to_string(),
+                    None => String::new(),
                 },
             }),
             exit: Some(proto::ExitNode::from(exit_point)),

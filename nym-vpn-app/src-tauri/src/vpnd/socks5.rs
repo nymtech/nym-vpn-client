@@ -1,19 +1,20 @@
 use nym_vpn_lib_types as lib;
 use serde::{Deserialize, Serialize};
+use std::net::SocketAddr;
 use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct Socks5Settings {
-    pub listen_address: String,
+    pub listen_address: Option<SocketAddr>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
 pub struct HttpRpcSettings {
-    pub listen_address: String,
+    pub listen_address: Option<SocketAddr>,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
