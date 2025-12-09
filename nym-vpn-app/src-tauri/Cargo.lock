@@ -3518,7 +3518,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "1.20.1"
+version = "1.20.2"
 dependencies = [
  "dbus",
  "libc",
@@ -3529,7 +3529,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "1.20.1"
+version = "1.20.2"
 dependencies = [
  "async-stream",
  "hyper-util",
@@ -3553,7 +3553,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "1.20.1"
+version = "1.20.2"
 dependencies = [
  "nym-dbus",
  "objc2-foundation 0.3.2",
@@ -3573,7 +3573,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.20.1"
+version = "1.20.2"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3621,7 +3621,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "1.20.1"
+version = "1.20.2"
 dependencies = [
  "nym-crypto",
  "si-scale",
@@ -3633,7 +3633,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.20.1"
+version = "1.20.2"
 dependencies = [
  "nym-ipc",
  "nym-vpn-lib-types",
@@ -3650,7 +3650,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "1.20.1"
+version = "1.20.2"
 dependencies = [
  "bitflags 2.10.0",
  "futures",
