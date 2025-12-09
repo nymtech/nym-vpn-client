@@ -58,7 +58,7 @@ impl SendingConfig {
             SendingConfig::BIG_SENDING_DELAY_MAX_MINS,
         )
         .sample(&mut rand::thread_rng());
-        Duration::from_secs(random_delay_mins * 60)
+        Duration::from_mins(random_delay_mins)
     }
 
     // Return Some(new_value) if `allows_sending` changed, None otherwise
