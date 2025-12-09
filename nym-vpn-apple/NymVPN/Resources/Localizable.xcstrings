@@ -28549,17 +28549,6 @@
         }
       }
     },
-    "proxy.connectionError" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Proxy connection error. Check your app configuration or try restarting the proxy."
-          }
-        }
-      }
-    },
     "proxy.proxyStatus" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28600,6 +28589,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Loading…"
+          }
+        }
+      }
+    },
+    "proxy.snackbar.connectionFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy connection error. Check your app configuration or try restarting the proxy."
           }
         }
       }
