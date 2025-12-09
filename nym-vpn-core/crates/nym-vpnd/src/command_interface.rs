@@ -16,7 +16,8 @@ use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
 
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, GatewayFilters, ListGatewaysOptions, TargetState, TunnelEvent,
+    EnableSocks5Request, EntryPoint, ExitPoint, GatewayFilters, ListGatewaysOptions, TargetState,
+    TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -24,9 +25,7 @@ use nym_vpn_proto::proto::{
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
-use crate::service::{
-    HttpRpcSettings, SetNetworkError, Socks5Error, Socks5Settings, VpnServiceCommand,
-};
+use crate::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
 
@@ -774,44 +773,24 @@ impl NymVpnService for CommandInterface {
     ) -> Result<tonic::Response<()>> {
         let req = request.into_inner();
 
-        // Get exit node from proto request
-        let exit_node = req
-            .exit
-            .ok_or_else(|| tonic::Status::invalid_argument("Exit point is required"))?;
-
-        // Convert exit node to exit point
-        let exit_point = ExitPoint::try_from(exit_node)
-            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid exit point: {e}")))?;
-
-        // Extract other SOCKS5 settings from proto request
-        let socks5_settings = req
-            .socks5_settings
-            .map(Socks5Settings::from)
-            .ok_or_else(|| tonic::Status::invalid_argument("SOCKS5 settings are required"))?;
-
-        // Extract HTTP RPC settings from proto request
-        let http_rpc_settings = req
-            .http_rpc_settings
-            .map(HttpRpcSettings::from)
-            .ok_or_else(|| tonic::Status::invalid_argument("HTTP RPC settings are required"))?;
-
-        self.send_and_wait(
-            VpnServiceCommand::EnableSocks5,
-            (socks5_settings, http_rpc_settings, exit_point),
-        )
-        .await?
-        .map_err(|err| {
-            tracing::error!("Failed to enable SOCKS5 proxy: {err}");
-            match err {
-                Socks5Error::GatewayNotSupported => tonic::Status::failed_precondition(
-                    "Gateway does not support SOCKS5 network requester",
-                ),
-                Socks5Error::InvalidConfig(msg) => tonic::Status::failed_precondition(msg),
-                Socks5Error::LazySocks5Error(_) => {
-                    tonic::Status::internal(format!("Failed to enable SOCKS5 proxy: {err}"))
-                }
-            }
+        let enable_socks5_request: EnableSocks5Request = req.try_into().map_err(|e| {
+            tonic::Status::invalid_argument(format!("Invalid Enable SOCKS5 Request: {e}"))
         })?;
+
+        self.send_and_wait(VpnServiceCommand::EnableSocks5, enable_socks5_request)
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to enable SOCKS5 proxy: {err}");
+                match err {
+                    Socks5Error::GatewayNotSupported => tonic::Status::failed_precondition(
+                        "Gateway does not support SOCKS5 network requester",
+                    ),
+                    Socks5Error::InvalidConfig(msg) => tonic::Status::failed_precondition(msg),
+                    Socks5Error::LazySocks5Error(_) => {
+                        tonic::Status::internal(format!("Failed to enable SOCKS5 proxy: {err}"))
+                    }
+                }
+            })?;
 
         Ok(tonic::Response::new(()))
     }

@@ -573,10 +573,16 @@ impl RpcClient {
     ) -> Result<()> {
         let request = proto::EnableSocks5Request {
             socks5_settings: Some(proto::Socks5Settings {
-                listen_address: socks5_settings.listen_address,
+                listen_address: match socks5_settings.listen_address {
+                    Some(addr) => addr.to_string(),
+                    None => "".to_string(),
+                },
             }),
             http_rpc_settings: Some(proto::HttpRpcSettings {
-                listen_address: http_rpc_settings.listen_address,
+                listen_address: match http_rpc_settings.listen_address {
+                    Some(addr) => addr.to_string(),
+                    None => "".to_string(),
+                },
             }),
             exit: Some(proto::ExitNode::from(exit_point)),
         };

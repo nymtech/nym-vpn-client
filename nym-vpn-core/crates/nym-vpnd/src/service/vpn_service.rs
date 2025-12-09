@@ -13,7 +13,7 @@ use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    HttpRpcSettings, Socks5Error, Socks5Service, Socks5Settings, Socks5Status,
+    Socks5Error, Socks5Service, Socks5Status,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
@@ -22,6 +22,8 @@ use super::{
     socks5_idle_timeout, socks5_request_timeout,
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
+use bip39::Mnemonic;
+use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
 use nym_common::trace_err_chain;
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
@@ -38,14 +40,23 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
-    DecentralisedObtainTicketbooksRequest, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NetworkStatisticsIdentity,
-    NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks,
-    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig,
-    VpnServiceInfo,
+    DecentralisedObtainTicketbooksRequest, EnableSocks5Request, EntryPoint, ExitPoint,
+    FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility,
+    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
+    ParsedAccountLinks, StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState,
+    VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
+use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use tokio::{
+    sync::{RwLock, broadcast, mpsc, oneshot, watch},
+    task::JoinHandle,
+    time::{Duration, Instant},
+};
+use tokio_stream::wrappers::WatchStream;
+use tokio_util::sync::CancellationToken;
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -82,7 +93,7 @@ pub enum VpnServiceCommand {
     ),
     EnableSocks5(
         oneshot::Sender<Result<(), Socks5Error>>,
-        (Socks5Settings, HttpRpcSettings, ExitPoint),
+        EnableSocks5Request,
     ),
     DisableSocks5(oneshot::Sender<Result<(), Socks5Error>>, ()),
     GetSocks5Status(oneshot::Sender<Result<Socks5Status, Socks5Error>>, ()),
@@ -909,13 +920,8 @@ impl NymVpnService {
                 let identity = self.handle_get_network_stats_seed().await;
                 let _ = tx.send(identity);
             }
-            VpnServiceCommand::EnableSocks5(
-                tx,
-                (socks5_settings, http_rpc_settings, exit_point),
-            ) => {
-                let result = self
-                    .handle_enable_socks5(socks5_settings, http_rpc_settings, exit_point)
-                    .await;
+            VpnServiceCommand::EnableSocks5(tx, enable_socks5_request) => {
+                let result = self.handle_enable_socks5(enable_socks5_request).await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::DisableSocks5(tx, ()) => {
@@ -1133,12 +1139,9 @@ impl NymVpnService {
 
     async fn handle_enable_socks5(
         &mut self,
-        socks5_settings: Socks5Settings,
-        http_rpc_settings: HttpRpcSettings,
-        exit_point: ExitPoint,
+        enable_socks5_request: EnableSocks5Request,
     ) -> Result<(), Socks5Error> {
-        tracing::info!("Enabling SOCKS5 client");
-        tracing::info!("Using exit point: {:?}", exit_point);
+        tracing::info!("Enabling SOCKS5 client: {:?}", enable_socks5_request);
 
         // Get all exit gateways
         let exit_gateways: nym_gateway_directory::GatewayList = self
@@ -1166,7 +1169,8 @@ impl NymVpnService {
         );
 
         // Get exit node's identity depending on the exit point
-        let gateway_identity: NodeIdentity = match &exit_point {
+        let exit_point = &enable_socks5_request.exit_point;
+        let gateway_identity: NodeIdentity = match exit_point {
             // User has chosen a specific exit address (IPR address)
             ExitPoint::Address { address } => *address.gateway().inner(),
             // User has chosen a specific gateway identity
@@ -1248,8 +1252,8 @@ impl NymVpnService {
         self.socks5_service
             .enable(
                 self.data_dir.clone(),
-                socks5_settings.listen_address,
-                http_rpc_settings.listen_address,
+                enable_socks5_request.socks5_settings.listen_address,
+                enable_socks5_request.http_rpc_settings.listen_address,
                 nr_address,
                 request_timeout,
                 idle_timeout,

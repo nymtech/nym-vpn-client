@@ -807,6 +807,7 @@ message DeleteLogFileResponse {
 }
 
 // Enable SOCKS5 proxy request
+// TODO: Change arguments to EnableSocks5Request (at the time of writing I didn't want to disturb the client code)
 message EnableSocks5Request {
   Socks5Settings socks5_settings = 1;
   HttpRpcSettings http_rpc_settings = 2;

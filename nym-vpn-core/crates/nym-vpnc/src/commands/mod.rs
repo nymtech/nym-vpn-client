@@ -9,4 +9,5 @@ pub mod lan;
 pub mod network;
 pub mod network_stats;
 pub mod sentry;
+pub mod socks5;
 pub mod tunnel;
