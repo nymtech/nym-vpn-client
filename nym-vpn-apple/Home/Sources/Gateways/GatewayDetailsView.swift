@@ -298,7 +298,7 @@ private extension GatewayDetailsView {
             Spacer()
 
             if gateway.isQuicAvailable {
-                GenericImage(imageName: "quic")
+                GenericImage(systemImageName: "shippingbox")
                     .frame(width: 20, height: 20)
                     .foregroundStyle(NymColor.quic)
                     .padding(.horizontal, 4)
