@@ -11,7 +11,7 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::{new_user_agent, storage::VpnClientOnDiskStorage};
-use nym_vpn_lib_types::{AccountControllerState, RegisterAccountResponse};
+use nym_vpn_lib_types::{AccountControllerState, RegisterAccountResponse, StoreAccountRequest};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     account::Mnemonic,
@@ -198,14 +198,12 @@ pub(super) async fn update_account_state() -> Result<(), VpnError> {
         .map_err(VpnError::from)
 }
 
-async fn parse_mnemonic(mnemonic: &str) -> Result<Mnemonic, VpnError> {
-    Mnemonic::parse(mnemonic).map_err(|err| VpnError::InvalidMnemonic {
-        details: err.to_string(),
-    })
-}
-
-pub(super) async fn login(mnemonic: &str) -> Result<(), VpnError> {
-    let mnemonic = parse_mnemonic(mnemonic).await?;
+pub(super) async fn login(request: &StoreAccountRequest) -> Result<(), VpnError> {
+    let mnemonic = nym_vpn_lib::login::parse_account_request(request).map_err(|err| {
+        VpnError::InvalidSecret {
+            details: err.to_string(),
+        }
+    })?;
     get_command_sender()
         .await?
         .store_account(mnemonic.into())
@@ -313,13 +311,24 @@ pub(crate) mod raw {
         Ok(VpnClientOnDiskStorage::new(path))
     }
 
-    pub(crate) async fn login_raw(mnemonic: &str, path: &str) -> Result<(), VpnError> {
-        let mnemonic = parse_mnemonic(mnemonic).await?;
+    async fn login_inner(mnemonic: Mnemonic, path: &str) -> Result<(), VpnError> {
         get_account_by_mnemonic_raw(mnemonic.clone()).await?;
         let storage = setup_account_storage(path).await?;
         storage.store_account(mnemonic.into()).await?;
         storage.init_keys(None).await?;
         Ok(())
+    }
+
+    pub(crate) async fn login_raw(
+        request: &StoreAccountRequest,
+        path: &str,
+    ) -> Result<(), VpnError> {
+        let mnemonic = nym_vpn_lib::login::parse_account_request(request).map_err(|err| {
+            VpnError::InvalidSecret {
+                details: err.to_string(),
+            }
+        })?;
+        login_inner(mnemonic, path).await
     }
 
     pub(crate) async fn create_account_raw(path: &str) -> Result<(), VpnError> {

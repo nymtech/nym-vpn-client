@@ -28,11 +28,28 @@ impl From<proto::NetworkStatisticsIdentity> for nym_vpn_lib_types::NetworkStatis
         }
     }
 }
+
 impl From<nym_vpn_lib_types::NetworkStatisticsIdentity> for proto::NetworkStatisticsIdentity {
     fn from(identity: nym_vpn_lib_types::NetworkStatisticsIdentity) -> Self {
         Self {
             seed: identity.seed,
             id: identity.id,
+        }
+    }
+}
+
+impl From<proto::PrivyDerivationMessage> for nym_vpn_lib_types::PrivyDerivationMessage {
+    fn from(message: proto::PrivyDerivationMessage) -> Self {
+        Self {
+            message: message.message,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::PrivyDerivationMessage> for proto::PrivyDerivationMessage {
+    fn from(message: nym_vpn_lib_types::PrivyDerivationMessage) -> Self {
+        Self {
+            message: message.message,
         }
     }
 }

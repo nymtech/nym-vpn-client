@@ -39,6 +39,7 @@ mod gateway;
 mod log_path;
 mod network;
 mod network_stats;
+mod privy;
 mod rpc_requests;
 mod service;
 mod socks5;
@@ -74,6 +75,7 @@ pub use network::{
     SystemConfiguration, SystemMessage, ValidatorDetails,
 };
 pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
+pub use privy::PrivyDerivationMessage;
 pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
     ListGatewaysOptions, StoreAccountRequest,

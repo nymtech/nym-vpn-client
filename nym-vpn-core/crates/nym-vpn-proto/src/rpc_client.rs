@@ -5,8 +5,8 @@ use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
     EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, HttpRpcSettings,
     ListGatewaysOptions, LogPath, NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice,
-    NymVpnUsage, ParsedAccountLinks, Socks5Settings, Socks5Status, StoreAccountRequest,
-    SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status,
+    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use std::{net::IpAddr, path::PathBuf};
 use tokio_stream::{Stream, StreamExt};
@@ -615,6 +615,17 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
         Ok(NetworkStatisticsIdentity::from(response))
+    }
+
+    pub async fn get_privy_derivation_message(&mut self) -> Result<PrivyDerivationMessage> {
+        let response = self
+            .0
+            .get_privy_derivation_message(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+
+        Ok(PrivyDerivationMessage::from(response))
     }
 }
 

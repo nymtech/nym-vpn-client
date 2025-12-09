@@ -16,7 +16,7 @@ use super::{
 
 use anyhow::Result;
 use lib::UserAgent;
-use nym_vpn_lib_types as lib;
+use nym_vpn_lib_types::{self as lib};
 use nym_vpn_proto::rpc_client::RpcClient;
 use once_cell::sync::Lazy;
 use std::{

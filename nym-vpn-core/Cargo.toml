@@ -189,6 +189,7 @@ nym-gateway-directory = { path = "crates/nym-gateway-directory" }
 nym-ipc = { path = "crates/nym-ipc" }
 nym-macos = { path = "crates/nym-macos" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }
+nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 nym-routing = { path = "crates/nym-routing" }
 nym-statistics = { path = "crates/nym-statistics" }
 nym-statistics-api-client = { path = "crates/nym-statistics-api-client" }
@@ -202,7 +203,6 @@ nym-vpn-store = { path = "crates/nym-vpn-store" }
 nym-wg-go = { path = "crates/nym-wg-go" }
 nym-wg-metadata-client = { path = "crates/nym-wg-metadata-client" }
 nym-windows = { path = "crates/nym-windows" }
-nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 
 # For normal development
 nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "develop" }

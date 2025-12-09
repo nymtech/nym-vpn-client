@@ -20,7 +20,14 @@ pub struct ListGatewaysOptions {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum StoreAccountRequest {
     Vpn { mnemonic: String },
+    Privy { hex_signature: String },
     Decentralised { mnemonic: String },
+}
+
+impl StoreAccountRequest {
+    pub fn centralised(&self) -> bool {
+        !matches!(self, Self::Decentralised { .. })
+    }
 }
 
 impl std::fmt::Debug for StoreAccountRequest {

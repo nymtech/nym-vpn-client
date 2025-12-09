@@ -14,8 +14,8 @@ use tokio_util::sync::CancellationToken;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
     GatewayType, HttpRpcSettings, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, Socks5Settings, Socks5Status, SystemMessage, TunnelEvent, TunnelState,
-    VpnServiceConfig, VpnServiceInfo,
+    ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status, StoreAccountRequest,
+    SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
@@ -177,12 +177,8 @@ impl RpcClient {
         Ok(gateways)
     }
 
-    pub async fn store_account(&self, mnemonic: String) -> Result<()> {
-        let response = self
-            .inner
-            .clone()
-            .store_account(nym_vpn_lib_types::StoreAccountRequest::Vpn { mnemonic })
-            .await?;
+    pub async fn store_account(&self, request: StoreAccountRequest) -> Result<()> {
+        let response = self.inner.clone().store_account(request).await?;
 
         if let Some(err) = response.error {
             Err(RpcError::new(InnerRpcError::AccountCommand(Arc::new(err))))
@@ -322,6 +318,11 @@ impl RpcClient {
     pub async fn get_socks5_status(&self) -> Result<Socks5Status> {
         let status = self.inner.clone().get_socks5_status().await?;
         Ok(status)
+    }
+
+    pub async fn get_privy_derivation_message(&self) -> Result<PrivyDerivationMessage> {
+        let message = self.inner.clone().get_privy_derivation_message().await?;
+        Ok(message)
     }
 }
 

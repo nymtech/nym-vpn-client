@@ -64,6 +64,9 @@ pub enum AccountCommandError {
 
     #[error("invalid mnemonic: {0}")]
     InvalidMnemonic(String),
+
+    #[error("invalid secret: {0}")]
+    InvalidSecret(String),
 }
 
 impl AccountCommandError {

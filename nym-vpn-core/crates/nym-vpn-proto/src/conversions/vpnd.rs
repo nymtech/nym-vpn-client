@@ -475,13 +475,18 @@ impl TryFrom<proto::StoreAccountRequest> for StoreAccountRequest {
 
         Ok(match request {
             proto::store_account_request::Request::VpnAccountStore(account) => {
-                StoreAccountRequest::Vpn {
+                nym_vpn_lib_types::StoreAccountRequest::Vpn {
                     mnemonic: account.mnemonic,
                 }
             }
             proto::store_account_request::Request::DecentralisedAccountStore(account) => {
                 nym_vpn_lib_types::StoreAccountRequest::Decentralised {
                     mnemonic: account.mnemonic,
+                }
+            }
+            proto::store_account_request::Request::PrivyAccountStore(account) => {
+                nym_vpn_lib_types::StoreAccountRequest::Privy {
+                    hex_signature: account.hex_signature,
                 }
             }
         })
@@ -496,9 +501,14 @@ impl From<StoreAccountRequest> for proto::StoreAccountRequest {
                     proto::VpnAccountStoreRequest { mnemonic },
                 )
             }
-            nym_vpn_lib_types::StoreAccountRequest::Decentralised { mnemonic } => {
+            StoreAccountRequest::Decentralised { mnemonic } => {
                 proto::store_account_request::Request::DecentralisedAccountStore(
                     proto::DecentralisedAccountStoreRequest { mnemonic },
+                )
+            }
+            StoreAccountRequest::Privy { hex_signature } => {
+                proto::store_account_request::Request::PrivyAccountStore(
+                    proto::PrivyAccountStoreRequest { hex_signature },
                 )
             }
         };
