@@ -1,11 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use futures::{future::Fuse, pin_mut, FutureExt, StreamExt};
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
-use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
-    sync::{RwLock, broadcast, mpsc, oneshot, watch},
+    sync::{broadcast, mpsc, oneshot, watch, RwLock},
     task::JoinHandle,
     time::{Duration, Instant},
 };
@@ -13,17 +13,15 @@ use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    Socks5Error, Socks5Service, Socks5Status,
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
+    config::{NetworkEnvironments, VpnServiceConfigManager}, error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
-    },
-    socks5_idle_timeout, socks5_request_timeout,
+    }, socks5_idle_timeout,
+    socks5_request_timeout,
+    Socks5Error,
+    Socks5Service, Socks5Status,
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
-use bip39::Mnemonic;
-use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
 use nym_common::trace_err_chain;
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
@@ -34,9 +32,9 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
-    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyProvider,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
-    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine}, NodeIdentity, UserAgent,
+    VpnTopologyProvider,
+    DEFAULT_DNS_SERVERS,
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
@@ -48,15 +46,6 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
-use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
-use time::{OffsetDateTime, format_description::well_known::Rfc3339};
-use tokio::{
-    sync::{RwLock, broadcast, mpsc, oneshot, watch},
-    task::JoinHandle,
-    time::{Duration, Instant},
-};
-use tokio_stream::wrappers::WatchStream;
-use tokio_util::sync::CancellationToken;
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -1102,12 +1091,7 @@ impl NymVpnService {
                     gw_type: options.gw_type,
                     source,
                 })
-                .map(|gateways| {
-                    gateways
-                        .into_iter()
-                        .map(nym_vpn_lib_types::Gateway::from)
-                        .collect::<Vec<_>>()
-                });
+                .map(|gateways| gateways.into_iter().map(Gateway::from).collect::<Vec<_>>());
 
             completion_tx.send(result).ok();
         });
@@ -1123,15 +1107,10 @@ impl NymVpnService {
 
         tokio::spawn(async move {
             let result = gateway_client
-                .lookup_filtered_gateways(nym_gateway_directory::GatewayFilters::from(filters))
+                .lookup_filtered_gateways(filters.into())
                 .await
                 .map_err(|source| ListGatewaysError::GetFilteredGateways { gw_type, source })
-                .map(|gateways| {
-                    gateways
-                        .into_iter()
-                        .map(nym_vpn_lib_types::Gateway::from)
-                        .collect::<Vec<_>>()
-                });
+                .map(|gateways| gateways.into_iter().map(Gateway::from).collect::<Vec<_>>());
 
             completion_tx.send(result).ok();
         });
@@ -1169,12 +1148,13 @@ impl NymVpnService {
         );
 
         // Get exit node's identity depending on the exit point
+        // TODO: Avoid duplication with VPN exit node selection logic.
         let exit_point = &enable_socks5_request.exit_point;
         let gateway_identity: NodeIdentity = match exit_point {
             // User has chosen a specific exit address (IPR address)
-            ExitPoint::Address { address } => *address.gateway().inner(),
+            ExitPoint::Address { address } => NodeIdentity::from(*address.gateway().inner()),
             // User has chosen a specific gateway identity
-            ExitPoint::Gateway { identity } => *identity.inner(),
+            ExitPoint::Gateway { identity } => NodeIdentity::from(*identity.inner()),
             // User has chosen a specific exit country, region, or random
             ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
                 // For non-specific exit points, select a gateway the same way the VPN does
@@ -1184,7 +1164,7 @@ impl NymVpnService {
                 );
 
                 // Convert to gateway_directory types for lookup
-                let exit_point_dir = gateway_directory::ExitPoint::from(exit_point.clone());
+                let exit_point_dir: nym_gateway_directory::ExitPoint = exit_point.clone().into();
                 let residential_exit = self.config_manager.config().residential_exit;
 
                 // Try to find a high-performance gateway first
