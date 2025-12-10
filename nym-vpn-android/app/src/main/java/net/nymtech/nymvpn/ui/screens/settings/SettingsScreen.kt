@@ -27,7 +27,6 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.settings.components.AccountSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppVersionSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppearanceSection
@@ -50,7 +49,6 @@ import kotlin.Boolean
 @Composable
 fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSettings: Boolean = false, viewModel: SettingsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
-	val snackbar = SnackbarController.current
 	val navController = LocalNavController.current
 
 	var loggingOut by remember { mutableStateOf(false) }
@@ -148,6 +146,9 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 			},
 			onCensorshipClick = {
 				navController.navigate(Route.Censorship)
+			},
+			onDnsClick = {
+				navController.navigate(Route.Dns)
 			},
 			onAppearanceClick = {
 				navController.navigate(Route.Appearance)

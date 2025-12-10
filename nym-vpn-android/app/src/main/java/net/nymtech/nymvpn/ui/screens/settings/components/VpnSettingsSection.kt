@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.automirrored.outlined.CallSplit
+import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Power
 import androidx.compose.material3.Icon
@@ -206,6 +207,34 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 						)
 					},
 					onClick = actions.onSplitTunnelingClick,
+				),
+			)
+
+			add(
+				SelectionItem(
+					leading = {
+						Icon(
+							Icons.Outlined.Dns,
+							stringResource(R.string.settings_dns_title),
+							modifier = Modifier.size(iconSize.scaledWidth()),
+							tint = MaterialTheme.colorScheme.outline,
+						)
+					},
+					trailing = {
+						Icon(
+							Icons.AutoMirrored.Outlined.ArrowRight,
+							stringResource(R.string.go),
+							modifier = Modifier.size(iconSize),
+							tint = MaterialTheme.colorScheme.onBackground,
+						)
+					},
+					title = {
+						Text(
+							stringResource(R.string.settings_dns_title),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
+					onClick = actions.onDnsClick,
 				),
 			)
 
