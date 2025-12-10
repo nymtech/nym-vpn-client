@@ -4,7 +4,7 @@
 use anyhow::Result;
 use clap::Parser;
 use keyring::Entry;
-use nym_crypto::asymmetric::ed25519::{KeyPair, PrivateKey};
+use nym_crypto::asymmetric::ed25519::KeyPair;
 use rand::rngs::OsRng;
 
 #[tokio::main]
@@ -23,22 +23,39 @@ pub struct ProgramArgs {
 
 #[derive(clap::Subcommand, Debug)]
 pub enum Command {
+    #[cfg(feature = "vpnd")]
     /// Store a freshly generated keypair
     GenerateAndStore,
 
+    #[cfg(feature = "client")]
     /// Retrieve the vpnd keypair
     Get,
+
+    #[cfg(feature = "vpnd")]
+    /// Remove the vpnd keypair
+    Remove,
 }
 
 impl Command {
     pub async fn execute(self) -> Result<()> {
         match self {
-            Command::GenerateAndStore => Self::generate_and_store()?,
-            Command::Get => Self::get()?,
-        };
+            #[cfg(feature = "vpnd")]
+            Command::GenerateAndStore => {
+                Self::generate_and_store()?;
+            }
+            #[cfg(feature = "client")]
+            Command::Get => {
+                Self::get()?;
+            }
+            #[cfg(feature = "vpnd")]
+            Command::Remove => {
+                Self::remove()?;
+            }
+        }
         Ok(())
     }
 
+    #[cfg(feature = "vpnd")]
     fn generate_and_store() -> Result<KeyPair> {
         let keypair = KeyPair::new(&mut OsRng);
         let entry = Entry::new("nym-vpn", "vpnd")?;
@@ -51,16 +68,28 @@ impl Command {
         Ok(keypair)
     }
 
+    #[cfg(feature = "client")]
     fn get() -> Result<KeyPair> {
         let entry = Entry::new("nym-vpn", "vpnd")?;
         let keypair_bytes = entry.get_secret()?;
-        let keypair = KeyPair::from(PrivateKey::from_bytes(&keypair_bytes)?);
+        let keypair = KeyPair::from(nym_crypto::asymmetric::ed25519::PrivateKey::from_bytes(
+            &keypair_bytes,
+        )?);
         println!(
             "Retrieved secret for public key: {}",
             keypair.public_key().to_base58_string()
         );
 
         Ok(keypair)
+    }
+
+    #[cfg(feature = "vpnd")]
+    fn remove() -> Result<()> {
+        let entry = Entry::new("nym-vpn", "vpnd")?;
+        entry.delete_credential()?;
+        println!("Removed stored secret");
+
+        Ok(())
     }
 }
 
