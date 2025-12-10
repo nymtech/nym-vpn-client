@@ -63,7 +63,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
             .create(true)
             .truncate(true)
             .open(path)
-            .map_err(|e| VpnError::CreateLogFile {)
+            .map_err(|e| VpnError::CreateLogFile {
                 details: format!("Failed to open log file {}: {e}", path.display()),
             })?;
 
