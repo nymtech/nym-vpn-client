@@ -29,15 +29,15 @@ function NodeListPrevStateProvider({ children }: NodeListPrevStateProps) {
         return;
       }
       if (hop === 'entry') {
-        setEntryExpanded([...entryExpanded, value]);
+        setEntryExpanded((prev) => [...prev, value]);
       } else {
-        setExitExpanded([...exitExpanded, value]);
+        setExitExpanded((prev) => [...prev, value]);
       }
     },
     [entryExpanded, exitExpanded],
   );
 
-  const setFocused = useCallback((hop: Hop, focus: Focused) => {
+  const setFocused = useCallback((hop: Hop, focus: Focused | null) => {
     if (hop === 'entry') {
       setEntryFocused(focus);
     } else {

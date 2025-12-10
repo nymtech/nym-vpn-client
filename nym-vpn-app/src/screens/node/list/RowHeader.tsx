@@ -1,6 +1,12 @@
+import { useCallback } from 'react';
 import clsx from 'clsx';
 import { Accordion } from '@base-ui-components/react';
-import { SelectedKind, UiCountry, UiRegion } from '../../../contexts';
+import {
+  SelectedKind,
+  UiCountry,
+  UiRegion,
+  useNodeListState,
+} from '../../../contexts';
 import LocationInfo from './LocationInfo';
 import FoldButton from './FoldButton';
 
@@ -23,8 +29,33 @@ function RowHeader({
   i18n,
   sub,
 }: RowHeaderProps) {
+  const { exit: exitNodeList, entry: entryNodeList } = useNodeListState();
+
+  const focused =
+    hop === 'entry' ? entryNodeList.focused : exitNodeList.focused;
+
+  const scrollToRowRef = useCallback(
+    (htmlElement: HTMLDivElement) => {
+      if (!htmlElement) return;
+      const isFocused =
+        focused?.type === node.nodeType &&
+        ((node.nodeType === 'country' && focused.key === node.code) ||
+          (node.nodeType === 'region' && focused.key === node.name));
+
+      if (isFocused) {
+        htmlElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'center',
+        });
+      }
+    },
+    [focused, node],
+  );
+
   return (
     <div
+      ref={scrollToRowRef}
       className={clsx(
         'flex flex-row justify-between rounded-r-lg',
         !sub
