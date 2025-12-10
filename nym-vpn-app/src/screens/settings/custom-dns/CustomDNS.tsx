@@ -1,22 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
-import {
-  CardSwitch,
-  Link,
-  PageAnim,
-  SettingsMenuCard,
-  SettingsMenuCardBig,
-} from '../../../ui';
+import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
 import { CustomDnsHelpUrl } from '../../../constants';
 import useCustomDns from '../../../hooks/useCustomDns';
-import { useInAppNotify, useMainState, useTopBar } from '../../../contexts';
-import { routes } from '../../../router';
+import { useInAppNotify } from '../../../contexts';
+import { ConfirmationDialog } from '../../../components';
 import { CustomDnsServers } from './CustomDnsServers';
 import { DefaultDnsServers } from './DefaultDnsServers';
 import { DnsItem } from './DnsItemContent';
-import { ConfirmationDialog } from './ConfirmationDialog';
 
 function CustomDNS() {
   const { t } = useTranslation('settings');
@@ -27,62 +19,29 @@ function CustomDNS() {
     setCustomDns,
     customDns,
   } = useCustomDns();
-  const { state } = useMainState();
-  const { setCustomLeftNavHandler } = useTopBar();
   const { push } = useInAppNotify();
 
-  const [dnsEnabledLocal, setDnsEnabledLocal] = useState(
-    () => customDnsEnabled,
-  );
   const [customDnsList, setCustomDnsList] = useState<DnsItem[]>(() =>
     customDns.map((dns) => ({ id: dns, dns })),
   );
-  const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] =
-    useState(false);
 
   const hasUnsavedChanges = useMemo(() => {
-    if (dnsEnabledLocal !== customDnsEnabled) return true;
-
     if (customDnsList.length !== customDns.length) return true;
 
     return !customDnsList.every((dns, index) => dns.dns === customDns[index]);
-  }, [dnsEnabledLocal, customDnsEnabled, customDnsList, customDns]);
-
-  const description = dnsEnabledLocal
-    ? t('dns.details.on.description')
-    : t('dns.details.off.description');
+  }, [customDnsList, customDns]);
 
   const applyChanges = async () => {
-    await toggleCustomDns(dnsEnabledLocal);
     await setCustomDns(customDnsList.map((item) => item.dns));
-  };
-
-  const discardChanges = () => {
-    setIsConfirmationDialogOpen(false);
-    setDnsEnabledLocal(customDnsEnabled);
-    setCustomDnsList(customDns.map((dns) => ({ id: dns, dns })));
+    push({
+      message: t('dns.details.applied'),
+      close: true,
+      type: 'info',
+    });
   };
 
   const handleDnsSwitchChange = async () => {
-    const newState = !dnsEnabledLocal;
-    // User can switch off immediately. Switching on will show a confirmation dialog before applying changes.
-    if (newState === false) {
-      await toggleCustomDns(false);
-    }
-    setDnsEnabledLocal(newState);
-  };
-
-  const handleApply = async () => {
-    if (state === 'connected') {
-      setIsConfirmationDialogOpen(true);
-    } else {
-      await applyChanges();
-      push({
-        message: t('dns.details.applied'),
-        close: true,
-        type: 'info',
-      });
-    }
+    await toggleCustomDns(!customDnsEnabled);
   };
 
   const handleListChange = (dnsList: DnsItem[]) => {
@@ -91,81 +50,54 @@ function CustomDNS() {
 
   const handleConfirmation = async () => {
     await applyChanges();
-    if (state === 'connected') {
-      navigate(routes.root);
-    } else {
-      navigate(routes.settings);
-    }
+    navigate(-1);
   };
 
-  const handleBackNavigation = useCallback(() => {
-    if (hasUnsavedChanges && dnsEnabledLocal) {
-      setIsConfirmationDialogOpen(true);
-    } else {
-      navigate(-1);
-    }
-  }, [hasUnsavedChanges, navigate, dnsEnabledLocal]);
-
-  useEffect(() => {
-    setCustomLeftNavHandler(handleBackNavigation);
-    return () => {
-      setCustomLeftNavHandler(null);
-    };
-  }, [handleBackNavigation, setCustomLeftNavHandler]);
+  const handleCancel = () => {
+    navigate(-1);
+  };
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
+      <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+        {t('dns.top-description')}
+      </p>
+      <DefaultDnsServers />
+
       <SettingsMenuCardBig
         header={
           <CardSwitch
             header={t('dns.details.title')}
-            checked={dnsEnabledLocal}
+            checked={customDnsEnabled}
             onClick={handleDnsSwitchChange}
           />
         }
       >
         <div className="flex flex-col gap-6">
           <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
-            {description}
+            {t('dns.details.description')}
           </p>
 
-          {dnsEnabledLocal ? (
-            <CustomDnsServers
-              hasUnsavedChanges={hasUnsavedChanges}
-              onApplyDns={handleApply}
-              customDnsList={customDnsList}
-              onListChange={handleListChange}
-            />
-          ) : (
-            <DefaultDnsServers />
-          )}
-        </div>
-        <Link
-          className="w-fit text-sm mt-5"
-          text={t('dns.details.link')}
-          url={CustomDnsHelpUrl}
-          color="primary"
-          icon
-        />
-      </SettingsMenuCardBig>
-
-      {dnsEnabledLocal && (
-        <motion.div
-          initial={{ opacity: 0, translateY: -4 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ duration: 0.1, ease: 'easeIn' }}
-        >
-          <SettingsMenuCard
-            title={t('dns.details.warning')}
-            color="gray"
-            noHoverEffect
+          <CustomDnsServers
+            hasUnsavedChanges={hasUnsavedChanges}
+            onApplyDns={applyChanges}
+            customDnsList={customDnsList}
+            onListChange={handleListChange}
           />
-        </motion.div>
-      )}
+        </div>
+      </SettingsMenuCardBig>
+      <Link
+        className="w-fit text-sm"
+        text={t('dns.details.link')}
+        url={CustomDnsHelpUrl}
+        color="primary"
+        icon
+      />
+
       <ConfirmationDialog
-        isOpen={isConfirmationDialogOpen}
-        onClose={discardChanges}
+        hasUnsavedChanges={hasUnsavedChanges}
         onConfirm={handleConfirmation}
+        onCancel={handleCancel}
       />
     </PageAnim>
   );

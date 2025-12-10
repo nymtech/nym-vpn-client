@@ -35,40 +35,30 @@
   "dns": {
     "title": "Customize DNS",
     "topbar-title": "DNS customization",
+    "top-description": "By default, using Nym's recommended DNS servers. Configure custom servers below if needed.",
+    "view-default-dns": "View default DNS",
+    "hide-default-dns": "Hide default DNS",
     "details": {
-      "title": "Customize DNS",
-      "list-title": "List of DNS servers",
+      "title": "Use custom DNS servers",
+      "description": "Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity.",
       "add": "Add",
       "input-label": "DNS address",
       "input-placeholder": "IPv4 or IPv6 address",
-      "apply": "Apply changes",
-      "warning": "⚠️  Third-party DNS may limit features.",
+      "apply": "Save changes",
       "link": "Learn more about DNS",
-      "applied": "Custom DNS applied. Connect to use it.",
-      "on": {
-        "description": "Configure your DNS servers below. Servers will be tried in order as fallbacks. Drag to reorder priority."
-      },
-      "off": {
-        "description": "Using NymVPN's default DNS optimized for the Nym network."
-      }
-    },
-    "dialog": {
-      "title": "Apply DNS changes?",
-      "cancel": "Discard changes",
-      "connected": {
-        "description": "Custom DNS settings updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.",
-        "apply": "Apply and reconnect now"
-      },
-      "disconnected": {
-        "description": "Custom DNS settings updated.",
-        "apply": "Apply changes"
-      }
+      "applied": "Custom DNS saved."
     },
     "error": {
       "duplicate": "Duplicate DNS address",
       "invalid": "Invalid DNS address format",
       "failed": "Failed to apply DNS changes"
     }
+  },
+  "confirmation-dialog": {
+    "title": "Save changes?",
+    "description": "You have unsaved changes.",
+    "save": "Save changes",
+    "cancel": "Discard"
   },
   "legal": {
     "title": "Legal",

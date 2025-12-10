@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import clsx from 'clsx';
 import { Button, TextInput } from '../../../ui';
 import DraggableList from '../../../ui/DraggableList';
 import { ipv4Regex, ipv6Regex } from '../../../utils';
@@ -19,26 +20,31 @@ export function CustomDnsServers({
   onListChange: (dnsList: DnsItem[]) => void;
 }) {
   const { t } = useTranslation('settings');
+
   const [inputValue, setInputValue] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isApplyingDns, setIsApplyingDns] = useState(false);
 
+  const isInputValueValid = useMemo(
+    () =>
+      ipv4Regex.test(inputValue.trim()) || ipv6Regex.test(inputValue.trim()),
+    [inputValue],
+  );
+
   const handleAddDns = () => {
     const inputValueTrimmed = inputValue.trim();
+    if (inputValueTrimmed === '') return;
+
     const containsDuplicate = customDnsList.some(
       (item) => item.dns === inputValueTrimmed,
     );
-    const isValid =
-      ipv4Regex.test(inputValueTrimmed) || ipv6Regex.test(inputValueTrimmed);
-
-    if (inputValueTrimmed === '') return;
 
     if (containsDuplicate) {
       setErrorMessage(t('dns.error.duplicate'));
       return;
     }
 
-    if (!isValid) {
+    if (!isInputValueValid) {
       setErrorMessage(t('dns.error.invalid'));
       return;
     }
@@ -47,17 +53,13 @@ export function CustomDnsServers({
       ...customDnsList,
       { id: inputValueTrimmed, dns: inputValueTrimmed },
     ]);
-    setInputValue('');
-  };
-
-  const applyDns = async () => {
-    setIsApplyingDns(true);
-    await onApplyDns(customDnsList.map((item) => item.dns));
-    setIsApplyingDns(false);
+    handleTextInputChange('');
   };
 
   const handleTextInputChange = (value: string) => {
-    setInputValue(value);
+    const inputValueTrimmed = value.trim();
+
+    setInputValue(inputValueTrimmed);
     setErrorMessage('');
   };
 
@@ -72,7 +74,7 @@ export function CustomDnsServers({
   const handleApply = async () => {
     setIsApplyingDns(true);
     try {
-      await applyDns();
+      await onApplyDns(customDnsList.map((item) => item.dns));
     } finally {
       setIsApplyingDns(false);
     }
@@ -115,8 +117,20 @@ export function CustomDnsServers({
             )}
           </div>
           <div className="shrink">
-            <Button onClick={handleAddDns}>
-              <span className="text-lg text-black dark:text-baltic-sea">
+            <Button
+              disabled={!isInputValueValid}
+              onClick={handleAddDns}
+              color="gray"
+              outline
+              className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
+            >
+              <span
+                className={clsx(
+                  'text-lg text-black dark:text-white',
+                  isInputValueValid &&
+                    'group-hover:text-black/50 dark:group-hover:text-white/80',
+                )}
+              >
                 {t('dns.details.add')}
               </span>
             </Button>
@@ -125,18 +139,12 @@ export function CustomDnsServers({
       )}
 
       <Button
-        disabled={
-          !hasUnsavedChanges || customDnsList.length === 0 || isApplyingDns
-        }
+        disabled={!hasUnsavedChanges || isApplyingDns}
         onClick={handleApply}
-        outline
-        color="gray"
+        color="malachite"
         spinner={isApplyingDns}
-        className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
       >
-        <span className="text-lg text-black group-hover:text-black/80 dark:text-white dark:group-hover:text-white/80">
-          {t('dns.details.apply')}
-        </span>
+        <span>{t('dns.details.apply')}</span>
       </Button>
     </>
   );
