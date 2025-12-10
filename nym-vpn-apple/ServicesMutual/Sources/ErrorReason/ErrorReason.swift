@@ -12,6 +12,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case offline
     case noAccountStored
     case noDeviceStored
+    // PacketTunnelProvider
+    case createLogFailed(String)
     // Tunnel
     case setFirewallPolicy
     case setRouting
@@ -114,6 +116,8 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .noAccountStored
         case .noDeviceStored:
             self = .noDeviceStored
+        case .createLogFailed:
+            self = .createLogFailed("Unknown")
         case .setFirewallPolicy:
             self = .setFirewallPolicy
         case .setRouting:
@@ -201,6 +205,8 @@ extension ErrorReason {
 private extension ErrorReason {
     var description: String {
         switch self {
+        case .createLogFailed(let message):
+            "errorReason.createLogFailed".localizedString + ": " + message
         case .setFirewallPolicy:
             "errorReason.firewall".localizedString
         case .setRouting:
@@ -285,6 +291,7 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case offline
     case noAccountStored
     case noDeviceStored
+    case createLogFailed
     case setFirewallPolicy
     case setRouting
     case setDns
@@ -323,6 +330,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .noAccountStored
         case .noDeviceStored:
             self = .noDeviceStored
+        case .createLogFailed:
+            self = .createLogFailed
         case .internalUnknown:
             self = .internalUnknown
         case .sameEntryAndExitGateway:

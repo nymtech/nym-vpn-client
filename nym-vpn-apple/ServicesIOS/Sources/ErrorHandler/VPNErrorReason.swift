@@ -5,6 +5,7 @@ import Theme
 
 public enum VPNErrorReason: LocalizedError {
     case initialization(details: String)
+    case createLogFile(details: String)
     case internalError(details: String)
     case storage(details: String)
     case networkConnectionError(details: String)
@@ -44,6 +45,8 @@ public enum VPNErrorReason: LocalizedError {
         switch vpnError {
         case let .Initialization(details: details):
             self = .initialization(details: details)
+        case let .CreateLogFile(details: details):
+            self = .createLogFile(details: details)
         case let .InternalError(details: details):
             self = .internalError(details: details)
         case let .Storage(details: details):
@@ -231,6 +234,8 @@ public enum VPNErrorReason: LocalizedError {
         switch errorReason {
         case .initialization:
             self = .initialization(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .createLogFile:
+            self = .createLogFile(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .internalError:
             self = .internalError(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .storage:
@@ -317,6 +322,8 @@ extension VPNErrorReason {
         switch self {
         case let .internalError(details):
             details
+        case let .createLogFile(details):
+            details
         case let .storage(details):
             details
         case let .networkConnectionError(details):
@@ -384,6 +391,7 @@ extension VPNErrorReason: Equatable {
 /// The VPNErrorReasonCode mirrors the error codes as raw integers and can be constructed from a VPNErrorReason.
 enum VPNErrorReasonCode: Int, RawRepresentable {
     case initialization
+    case createLogFile
     case internalError
     case storage
     case networkConnectionError
@@ -416,6 +424,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
         switch vpnErrorReason {
         case .initialization:
             self = .initialization
+        case .createLogFile:
+            self = .createLogFile
         case .internalError:
             self = .internalError
         case .storage:
