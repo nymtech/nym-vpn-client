@@ -1,0 +1,2 @@
+What's new:
+- Fix split tunneling routing for excluded apps
