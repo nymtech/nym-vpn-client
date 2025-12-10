@@ -10,4 +10,5 @@ public enum AppSettingsSectionKind: SettingsSectionKind {
     case legal
     case systemStatus
     case logout
+    case proxy
 }

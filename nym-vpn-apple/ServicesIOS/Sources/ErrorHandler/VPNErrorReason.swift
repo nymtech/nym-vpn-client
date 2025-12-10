@@ -32,6 +32,7 @@ public enum VPNErrorReason: LocalizedError {
     case zkNymAcquisitionFailure(details: String)
     case nyxdConnectionFailure(details: String)
     case nyxdQueryFailure(details: String)
+    case invalidSecret(details: String)
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -219,6 +220,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .nyxdConnectionFailure(details: details)
         case let .NyxdQueryFailure(details: details):
             self = .nyxdQueryFailure(details: details)
+        case let .InvalidSecret(details: details):
+            self = .invalidSecret(details: details)
         }
     }
 
@@ -292,6 +295,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .nyxdQueryFailure(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .nyxdQueryFailure:
             self = .nyxdQueryFailure(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .invalidSecret:
+            self = .invalidSecret(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -378,6 +383,8 @@ extension VPNErrorReason {
             details
         case let .initialization(details: details):
             details
+        case let .invalidSecret(details: details):
+            details
         }
     }
 }
@@ -419,6 +426,7 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case zkNymAcquisitionFailure
     case nyxdConnectionFailure
     case nyxdQueryFailure
+    case invalidSecret
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -480,6 +488,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .nyxdConnectionFailure
         case .nyxdQueryFailure:
             self = .nyxdQueryFailure
+        case .invalidSecret:
+            self = .invalidSecret
         }
     }
 }

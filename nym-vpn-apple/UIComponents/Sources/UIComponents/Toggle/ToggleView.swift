@@ -11,7 +11,7 @@ struct ToggleView: View {
             .frame(width: 52, height: 32)
             .background(viewModel.backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: 100))
-            .disabled(viewModel.isDisabled)
+            .disabled(viewModel.isDisabled && !viewModel.isInteractiveWhenDisabled)
             .opacity(viewModel.isDisabled ? 0.6 : 1.0)
             .overlay {
                 Circle()
@@ -40,9 +40,10 @@ struct ToggleView: View {
 
 private extension ToggleView {
     func action() {
-        guard !viewModel.isDisabled else { return }
-        withAnimation {
-            viewModel.onTap()
+        if !viewModel.isDisabled || viewModel.isInteractiveWhenDisabled {
+            withAnimation {
+                viewModel.onTap()
+            }
         }
     }
 }
