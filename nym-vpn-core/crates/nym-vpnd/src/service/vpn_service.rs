@@ -23,6 +23,7 @@ use super::{
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
+use nym_gateway_directory::GatewayFilter;
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
 };
@@ -1148,14 +1149,10 @@ impl NymVpnService {
         );
 
         // Get exit node's identity depending on the exit point
-        // TODO: Avoid duplication with VPN exit node selection logic.
         let exit_point = &enable_socks5_request.exit_point;
         let gateway_identity: NodeIdentity = match exit_point {
-            // User has chosen a specific exit address (IPR address)
             ExitPoint::Address { address } => NodeIdentity::from(*address.gateway().inner()),
-            // User has chosen a specific gateway identity
             ExitPoint::Gateway { identity } => NodeIdentity::from(*identity.inner()),
-            // User has chosen a specific exit country, region, or random
             ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
                 // For non-specific exit points, select a gateway the same way the VPN does
                 tracing::info!(
@@ -1165,33 +1162,17 @@ impl NymVpnService {
 
                 // Convert to gateway_directory types for lookup
                 let exit_point_dir: nym_gateway_directory::ExitPoint = exit_point.clone().into();
-                let residential_exit = self.config_manager.config().residential_exit;
 
-                // Try to find a high-performance gateway first
-                let selected_gateway = exit_point_dir
-                    .lookup_gateway(
-                        &socks5_gateways,
-                        Some(gateway_directory::ScoreValue::High),
-                        residential_exit,
-                    )
-                    .or_else(|err| {
-                        // When no gateways could be found, lower performance tier and try again
-                        if err.is_unmatched_non_specific_gateway() {
-                            tracing::debug!(
-                                "Could not locate high quality SOCKS5 exit gateway. \
-                                Lowering performance filter to medium and trying again"
-                            );
-                            exit_point_dir.lookup_gateway(
-                                &socks5_gateways,
-                                Some(gateway_directory::ScoreValue::Medium),
-                                residential_exit,
-                            )
-                        } else {
-                            Err(err)
-                        }
-                    })
+                let exit_filters = if self.config_manager.config().residential_exit {
+                    vec![GatewayFilter::Residential, GatewayFilter::Exit]
+                } else {
+                    vec![]
+                };
+
+                let selected_gateway = socks5_gateways
+                    .find_best_exit_gateway(&exit_point_dir, &exit_filters)
                     .map_err(|e| {
-                        Socks5Error::InvalidConfig(format!("Failed to select exit gateway: {}", e))
+                        Socks5Error::InvalidConfig(format!("Failed to select exit gateway: {e}"))
                     })?;
 
                 tracing::info!(

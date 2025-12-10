@@ -15,11 +15,11 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     str::FromStr,
 };
-use tracing::error;
 use typed_builder::TypedBuilder;
 
 use crate::{
-    AuthAddress, BlacklistedGateways, Country, Error, IpPacketRouterAddress, error::Result, helpers,
+    AuthAddress, BlacklistedGateways, Country, EntryPoint, Error, ExitPoint, IpPacketRouterAddress,
+    error::Result, helpers,
 };
 
 pub type NymNode = Gateway;
@@ -82,7 +82,7 @@ impl Gateway {
             .as_ref()
             .and_then(|ipr| {
                 IpPacketRouterAddress::try_from_base58_string(&ipr.address)
-                    .inspect_err(|err| error!("Failed to parse IPR address: {err}"))
+                    .inspect_err(|err| tracing::error!("Failed to parse IPR address: {err}"))
                     .ok()
             });
         let authenticator_address = node_description
@@ -91,7 +91,9 @@ impl Gateway {
             .as_ref()
             .and_then(|a| {
                 AuthAddress::try_from_base58_string(&a.address)
-                    .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
+                    .inspect_err(|err| {
+                        tracing::error!("Failed to parse authenticator address: {err}")
+                    })
                     .ok()
             });
         let nr_address = node_description
@@ -652,6 +654,266 @@ impl GatewayList {
     pub fn into_inner(self) -> Vec<Gateway> {
         self.gateways
     }
+
+    pub fn find_entry_gateway(
+        &self,
+        entry_point: &EntryPoint,
+        base_filters: &[GatewayFilter],
+    ) -> Result<Gateway> {
+        match &entry_point {
+            EntryPoint::Gateway { identity } => {
+                tracing::debug!("Selecting gateway by identity: {identity}");
+                self.gateway_with_identity(identity)
+                    .ok_or_else(|| Error::NoMatchingGateway {
+                        requested_identity: identity.to_string(),
+                    })
+                    .cloned()
+            }
+            EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => {
+                tracing::debug!(
+                    "Selecting entry gateway by country: {two_letter_iso_country_code}"
+                );
+
+                let filters = base_filters
+                    .iter()
+                    .chain(&vec![GatewayFilter::Country(
+                        two_letter_iso_country_code.clone(),
+                    )])
+                    .cloned()
+                    .collect::<Vec<_>>();
+
+                self.choose_random(&filters).ok_or_else(|| {
+                    Error::NoMatchingEntryGatewayForLocation {
+                        requested_location: two_letter_iso_country_code.clone(),
+                        available_countries: self.all_iso_codes(),
+                    }
+                })
+            }
+            EntryPoint::Region { region } => {
+                tracing::debug!("Selecting entry gateway by region/state: {region}");
+
+                // Currently only supported in the US
+                let filters = base_filters
+                    .iter()
+                    .chain(&vec![
+                        GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
+                        GatewayFilter::Region(region.to_string()),
+                    ])
+                    .cloned()
+                    .collect::<Vec<_>>();
+
+                self.choose_random(&filters).ok_or_else(|| {
+                    Error::NoMatchingEntryGatewayForLocation {
+                        requested_location: region.clone(),
+                        available_countries: self.all_iso_codes(),
+                    }
+                })
+            }
+            EntryPoint::Random => {
+                tracing::debug!("Selecting a random entry gateway");
+
+                self.choose_random(base_filters)
+                    .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
+            }
+        }
+    }
+
+    pub fn find_best_entry_gateway(
+        &self,
+        entry_point: &EntryPoint,
+        base_filters: &[GatewayFilter],
+    ) -> Result<Gateway> {
+        for score in [ScoreValue::High, ScoreValue::Medium, ScoreValue::Low] {
+            tracing::debug!("Looking for entry gateway with minimum score: {score}");
+
+            let mut filters = base_filters.to_vec();
+            filters.push(GatewayFilter::MinScore(score));
+
+            match self.find_entry_gateway(entry_point, &filters) {
+                Ok(gateway) => {
+                    return Ok(gateway);
+                }
+                Err(err) => {
+                    if !err.is_unmatched_non_specific_gateway() {
+                        return Err(err);
+                    }
+                    // continue
+                }
+            }
+        }
+        match entry_point {
+            EntryPoint::Gateway { identity } => Err(Error::NoMatchingGateway {
+                requested_identity: identity.to_string(),
+            }),
+            EntryPoint::Country {
+                two_letter_iso_country_code,
+            } => Err(Error::NoMatchingEntryGatewayForLocation {
+                requested_location: two_letter_iso_country_code.clone(),
+                available_countries: self.all_iso_codes(),
+            }),
+            EntryPoint::Region { region } => Err(Error::NoMatchingEntryGatewayForLocation {
+                requested_location: region.clone(),
+                available_countries: self.all_iso_codes(),
+            }),
+            EntryPoint::Random => Err(Error::FailedToSelectGatewayRandomly),
+        }
+    }
+
+    pub fn find_exit_gateway(
+        &self,
+        exit_point: &ExitPoint,
+        base_filters: &[GatewayFilter],
+    ) -> Result<Gateway> {
+        match &exit_point {
+            ExitPoint::Address { address } => {
+                tracing::debug!("Selecting gateway by address: {address}");
+                // There is no validation done when a ip packet router is specified by address
+                // since it might be private and not available in any directory.
+                let ipr_address = IpPacketRouterAddress::from(**address);
+                let gateway_address = ipr_address.gateway();
+
+                // Now fetch the gateway that the IPR is connected to, and override its IPR address
+                let mut gateway = self
+                    .gateway_with_identity(&gateway_address)
+                    .ok_or_else(|| Error::NoMatchingGateway {
+                        requested_identity: gateway_address.to_string(),
+                    })
+                    .cloned()?;
+                gateway.ipr_address = Some(ipr_address);
+                Ok(gateway)
+            }
+            ExitPoint::Gateway { identity } => {
+                tracing::debug!("Selecting exit gateway by identity: {identity}");
+                self.gateway_with_identity(identity)
+                    .ok_or_else(|| Error::NoMatchingGateway {
+                        requested_identity: identity.to_string(),
+                    })
+                    .cloned()
+            }
+            ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => {
+                tracing::debug!("Selecting exit gateway by country: {two_letter_iso_country_code}");
+
+                let filters = base_filters
+                    .iter()
+                    .chain(&vec![GatewayFilter::Country(
+                        two_letter_iso_country_code.clone(),
+                    )])
+                    .cloned()
+                    .collect::<Vec<_>>();
+
+                self.choose_random(&filters).ok_or_else(|| {
+                    Error::NoMatchingExitGatewayForLocation {
+                        requested_location: two_letter_iso_country_code.clone(),
+                        available_countries: self.all_iso_codes(),
+                    }
+                })
+            }
+            ExitPoint::Region { region } => {
+                tracing::debug!("Selecting exit gateway by region/state: {region}");
+
+                // Currently only supported in the US
+                let filters = base_filters
+                    .iter()
+                    .chain(&vec![
+                        GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
+                        GatewayFilter::Region(region.to_string()),
+                    ])
+                    .cloned()
+                    .collect::<Vec<_>>();
+
+                self.choose_random(&filters).ok_or_else(|| {
+                    Error::NoMatchingExitGatewayForLocation {
+                        requested_location: region.clone(),
+                        available_countries: self.all_iso_codes(),
+                    }
+                })
+            }
+            ExitPoint::Random => {
+                tracing::debug!("Selecting a random exit gateway");
+
+                self.choose_random(base_filters)
+                    .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
+            }
+        }
+    }
+
+    pub fn find_best_exit_gateway(
+        &self,
+        exit_point: &ExitPoint,
+        base_filters: &[GatewayFilter],
+    ) -> Result<Gateway> {
+        for score in [ScoreValue::High, ScoreValue::Medium, ScoreValue::Low] {
+            tracing::debug!("Looking for entry gateway with minimum score: {score}");
+
+            let mut filters = base_filters.to_vec();
+            filters.push(GatewayFilter::MinScore(score));
+            match self.find_exit_gateway(exit_point, &filters) {
+                Ok(gateway) => {
+                    return Ok(gateway);
+                }
+                Err(err) => {
+                    if !err.is_unmatched_non_specific_gateway() {
+                        return Err(err);
+                    }
+                    // continue
+                }
+            }
+        }
+        match exit_point {
+            ExitPoint::Address { address } => Err(Error::NoMatchingGateway {
+                requested_identity: address.to_string(),
+            }),
+            ExitPoint::Gateway { identity } => Err(Error::NoMatchingGateway {
+                requested_identity: identity.to_string(),
+            }),
+            ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => Err(Error::NoMatchingEntryGatewayForLocation {
+                requested_location: two_letter_iso_country_code.clone(),
+                available_countries: self.all_iso_codes(),
+            }),
+            ExitPoint::Region { region } => Err(Error::NoMatchingEntryGatewayForLocation {
+                requested_location: region.clone(),
+                available_countries: self.all_iso_codes(),
+            }),
+            ExitPoint::Random => Err(Error::FailedToSelectGatewayRandomly),
+        }
+    }
+
+    pub fn build_entry_filters(
+        min_score: Option<ScoreValue>,
+        blacklisted_gateways: &BlacklistedGateways,
+    ) -> Vec<GatewayFilter> {
+        let mut filters = Vec::new();
+        if let Some(min_score) = min_score {
+            filters.push(GatewayFilter::MinScore(min_score));
+        }
+        if blacklisted_gateways.is_empty().unwrap_or(true) {
+            tracing::warn!("Error checking blacklisted gateways is empty");
+        } else {
+            filters.push(GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()));
+        }
+        filters
+    }
+
+    pub fn build_exit_filters(
+        min_score: Option<ScoreValue>,
+        residential_exit: bool,
+    ) -> Vec<GatewayFilter> {
+        let mut filters = Vec::new();
+        if let Some(min_score) = min_score {
+            filters.push(GatewayFilter::MinScore(min_score));
+        }
+        if residential_exit {
+            filters.push(GatewayFilter::Residential);
+            filters.push(GatewayFilter::Exit);
+        }
+        filters
+    }
 }
 
 impl IntoIterator for GatewayList {
@@ -1045,8 +1307,9 @@ mod tests {
                 .is_none()
         );
     }
+
     #[test]
-    fn test_gateway_whitelisting() {
+    fn test_gateway_non_blacklisted() {
         let gateway_list = sample_gateway_list(GatewayType::MixnetExit);
 
         let blacklisted = gateway_list.gateways[3].identity;
@@ -1165,5 +1428,64 @@ mod tests {
             })
             .collect();
         GatewayList::new(Some(gw_type), gateways)
+    }
+
+    fn create_test_gateway(identity: &str, country: &str, score: ScoreValue) -> Gateway {
+        Gateway {
+            identity: NodeIdentity::from_base58_string(identity).unwrap(),
+            name: format!("Test Gateway {}", country),
+            description: None,
+            location: Some(Location {
+                two_letter_iso_country_code: country.to_string(),
+                ..Default::default()
+            }),
+            ipr_address: None,
+            authenticator_address: None,
+            nr_address: None,
+            bridge_params: None,
+            last_probe: None,
+            ips: Vec::new(),
+            host: None,
+            clients_ws_port: None,
+            clients_wss_port: None,
+            mixnet_performance: None,
+            performance: Some(Performance {
+                last_updated_utc: "2025-10-22T00:00:00Z".to_string(),
+                score,
+                mixnet_score: ScoreValue::High,
+                load: ScoreValue::Low,
+                uptime_percentage_last_24_hours: 0.99,
+            }),
+            version: None,
+        }
+    }
+
+    #[test]
+    fn test_low_performance_fallback_for_country_selection() {
+        // Previously High -> Medium before failing
+        // Now tries High -> Medium -> Low which allows connection to more gateways
+        let entry_point = EntryPoint::Country {
+            two_letter_iso_country_code: "VN".to_string(),
+        };
+
+        let gateways = GatewayList::new(
+            Some(GatewayType::Wg),
+            vec![create_test_gateway(
+                "DoezvC92kAVDhFpBbsRj52rErhikj2vtPi1Lup2EhbZ4",
+                "VN",
+                ScoreValue::Low,
+            )],
+        );
+
+        // Without Low fallback, this would fail
+        let blacklisted_gateways = BlacklistedGateways::new();
+        let base_filters =
+            GatewayList::build_entry_filters(Some(ScoreValue::Low), &blacklisted_gateways);
+        let result = gateways.find_entry_gateway(&entry_point, &base_filters);
+        assert!(result.is_ok());
+        assert_eq!(
+            result.unwrap().performance.as_ref().unwrap().score,
+            ScoreValue::Low
+        );
     }
 }
