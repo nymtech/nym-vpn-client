@@ -221,13 +221,17 @@ async fn init_logger(
     }
 
     #[cfg(target_os = "ios")]
-    let result = ios::init_logs(log_level, path, sentry_monitoring);
+    {
+        ios::init_logs(log_level, path, sentry_monitoring)
+    }
     #[cfg(target_os = "android")]
-    let result = android::init_logs(log_level);
+    {
+        android::init_logs(log_level)
+    }
     #[cfg(not(any(target_os = "ios", target_os = "android")))]
-    let result = Ok(());
-
-    result
+    {
+        Ok(())
+    }
 }
 
 /// Additional extra function for when only want to set the logger without initializing the

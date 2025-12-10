@@ -132,7 +132,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			startNetworkMonitorJob()
 
 			initLogger(storagePath, LOG_LEVEL, config.sentryMonitoringEnabled)
-				?: Timber.e("Failed to initialize backed logger")
+				?: Timber.e("Failed to initialize backend logger")
 
 			initEnvironment(environment)
 			configureLib(config, userAgent)

@@ -7,8 +7,8 @@ use sentry::integrations::tracing as sentry_tracing;
 use tracing::Level;
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
-    Layer, Registry, filter::LevelFilter, fmt::Layer as fmtLayer, layer::SubscriberExt,
-    util::SubscriberInitExt,
+    filter::LevelFilter, fmt::Layer as fmtLayer, layer::SubscriberExt, util::SubscriberInitExt, Layer,
+    Registry,
 };
 
 use crate::error::VpnError;
@@ -47,7 +47,6 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
     if let Some(path) = &path {
         // Ensure log directory exists
         if let Some(parent) = path.parent()
-            && !parent.exists()
             && let Err(e) = std::fs::create_dir_all(parent)
         {
             return Err(VpnError::CreateLogFile {
@@ -64,14 +63,9 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
             .create(true)
             .truncate(true)
             .open(path)
-        {
-            Ok(file) => file,
-            Err(e) => {
-                return Err(VpnError::CreateLogFile {
-                    details: format!("Failed to open log file {}: {e}", path.display()),
-                });
-            }
-        };
+            .map_err(|e| VpnError::CreateLogFile {)
+                details: format!("Failed to open log file {}: {e}", path.display()),
+            })?;
 
         let file_layer = fmtLayer::default()
             .with_writer(file)
@@ -95,6 +89,6 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
         .with(filter)
         .try_init()
         .map_err(|err| VpnError::CreateLogFile {
-            details: format!("Failed to initialize OsLogger: {err}"),
+            details: format!("Failed to initialize logger: {err}"),
         })
 }
