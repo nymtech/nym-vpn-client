@@ -28637,17 +28637,6 @@
         }
       }
     },
-    "proxy.snackbar.connectionRequired" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connect to NymVPN before enabling the proxy."
-          }
-        }
-      }
-    },
     "proxy.snackbar.successfullyEnabled" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28692,17 +28681,6 @@
         }
       }
     },
-    "proxy.status.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Requires an active NymVPN connection"
-          }
-        }
-      }
-    },
     "proxy.status.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28721,17 +28699,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Routes app and wallet traffic through the Nym mixnet for enhanced privacy via a SOCKS5 proxy for apps and HTTP RPC proxy for wallets."
-          }
-        }
-      }
-    },
-    "proxy.vpnStatus" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPN status:"
           }
         }
       }

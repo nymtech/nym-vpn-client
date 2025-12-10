@@ -108,18 +108,6 @@ import Theme
     }
 
     func toggleProxy() async {
-        guard connectionManager.currentTunnelStatus == .connected else {
-            if !isSnackbarDisplayed {
-                isSnackbarDisplayed = true
-                snackbarMessage = "proxy.snackbar.connectionRequired".localizedString
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(3))
-                    isSnackbarDisplayed = false
-                }
-            }
-            return
-        }
-
         do {
             proxyStatusLoading = true
             if proxyIsOn {
