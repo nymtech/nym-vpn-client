@@ -13,7 +13,7 @@ use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    HttpRpcSettings, Socks5Error, Socks5Service, Socks5Settings, Socks5Status,
+    Socks5Error, Socks5Service, Socks5Status,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
@@ -38,11 +38,11 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
-    DecentralisedObtainTicketbooksRequest, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility, NetworkStatisticsIdentity,
-    NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks,
-    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnServiceConfig,
-    VpnServiceInfo,
+    DecentralisedObtainTicketbooksRequest, EnableSocks5Request, EntryPoint, ExitPoint,
+    FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility,
+    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
+    ParsedAccountLinks, StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState,
+    VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -82,7 +82,7 @@ pub enum VpnServiceCommand {
     ),
     EnableSocks5(
         oneshot::Sender<Result<(), Socks5Error>>,
-        (Socks5Settings, HttpRpcSettings, ExitPoint),
+        EnableSocks5Request,
     ),
     DisableSocks5(oneshot::Sender<Result<(), Socks5Error>>, ()),
     GetSocks5Status(oneshot::Sender<Result<Socks5Status, Socks5Error>>, ()),
@@ -909,13 +909,8 @@ impl NymVpnService {
                 let identity = self.handle_get_network_stats_seed().await;
                 let _ = tx.send(identity);
             }
-            VpnServiceCommand::EnableSocks5(
-                tx,
-                (socks5_settings, http_rpc_settings, exit_point),
-            ) => {
-                let result = self
-                    .handle_enable_socks5(socks5_settings, http_rpc_settings, exit_point)
-                    .await;
+            VpnServiceCommand::EnableSocks5(tx, enable_socks5_request) => {
+                let result = self.handle_enable_socks5(enable_socks5_request).await;
                 let _ = tx.send(result);
             }
             VpnServiceCommand::DisableSocks5(tx, ()) => {
@@ -1096,12 +1091,7 @@ impl NymVpnService {
                     gw_type: options.gw_type,
                     source,
                 })
-                .map(|gateways| {
-                    gateways
-                        .into_iter()
-                        .map(nym_vpn_lib_types::Gateway::from)
-                        .collect::<Vec<_>>()
-                });
+                .map(|gateways| gateways.into_iter().map(Gateway::from).collect::<Vec<_>>());
 
             completion_tx.send(result).ok();
         });
@@ -1117,15 +1107,10 @@ impl NymVpnService {
 
         tokio::spawn(async move {
             let result = gateway_client
-                .lookup_filtered_gateways(nym_gateway_directory::GatewayFilters::from(filters))
+                .lookup_filtered_gateways(filters.into())
                 .await
                 .map_err(|source| ListGatewaysError::GetFilteredGateways { gw_type, source })
-                .map(|gateways| {
-                    gateways
-                        .into_iter()
-                        .map(nym_vpn_lib_types::Gateway::from)
-                        .collect::<Vec<_>>()
-                });
+                .map(|gateways| gateways.into_iter().map(Gateway::from).collect::<Vec<_>>());
 
             completion_tx.send(result).ok();
         });
@@ -1133,12 +1118,9 @@ impl NymVpnService {
 
     async fn handle_enable_socks5(
         &mut self,
-        socks5_settings: Socks5Settings,
-        http_rpc_settings: HttpRpcSettings,
-        exit_point: ExitPoint,
+        enable_socks5_request: EnableSocks5Request,
     ) -> Result<(), Socks5Error> {
-        tracing::info!("Enabling SOCKS5 client");
-        tracing::info!("Using exit point: {:?}", exit_point);
+        tracing::info!("Enabling SOCKS5 client: {:?}", enable_socks5_request);
 
         // Get all exit gateways
         let exit_gateways: nym_gateway_directory::GatewayList = self
@@ -1166,11 +1148,13 @@ impl NymVpnService {
         );
 
         // Get exit node's identity depending on the exit point
-        let gateway_identity: NodeIdentity = match &exit_point {
+        // TODO: Avoid duplication with VPN exit node selection logic.
+        let exit_point = &enable_socks5_request.exit_point;
+        let gateway_identity: NodeIdentity = match exit_point {
             // User has chosen a specific exit address (IPR address)
-            ExitPoint::Address { address } => *address.gateway().inner(),
+            ExitPoint::Address { address } => NodeIdentity::from(*address.gateway().inner()),
             // User has chosen a specific gateway identity
-            ExitPoint::Gateway { identity } => *identity.inner(),
+            ExitPoint::Gateway { identity } => NodeIdentity::from(*identity.inner()),
             // User has chosen a specific exit country, region, or random
             ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
                 // For non-specific exit points, select a gateway the same way the VPN does
@@ -1180,7 +1164,7 @@ impl NymVpnService {
                 );
 
                 // Convert to gateway_directory types for lookup
-                let exit_point_dir = gateway_directory::ExitPoint::from(exit_point.clone());
+                let exit_point_dir: nym_gateway_directory::ExitPoint = exit_point.clone().into();
                 let residential_exit = self.config_manager.config().residential_exit;
 
                 // Try to find a high-performance gateway first
@@ -1248,8 +1232,8 @@ impl NymVpnService {
         self.socks5_service
             .enable(
                 self.data_dir.clone(),
-                socks5_settings.listen_address,
-                http_rpc_settings.listen_address,
+                enable_socks5_request.socks5_settings.listen_address,
+                enable_socks5_request.http_rpc_settings.listen_address,
                 nr_address,
                 request_timeout,
                 idle_timeout,

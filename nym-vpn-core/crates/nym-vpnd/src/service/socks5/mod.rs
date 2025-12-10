@@ -26,8 +26,8 @@ pub use nym_vpn_lib_types::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5
 /// Configuration for enabling SOCKS5 service
 struct Socks5EnableConfig {
     data_dir: PathBuf,
-    socks5_listen_address: String,
-    http_rpc_proxy_listen_address: String,
+    socks5_listen_address: Option<SocketAddr>,
+    http_rpc_proxy_listen_address: Option<SocketAddr>,
     network_requester_address: String,
     request_timeout: Duration,
     idle_timeout: Duration,
@@ -53,9 +53,9 @@ struct Socks5ServiceState {
     /// Shared tunnel state
     tunnel_state: Arc<RwLock<TunnelState>>,
     /// SOCKS5 listen address
-    socks5_listen_address: String,
+    socks5_listen_address: Option<SocketAddr>,
     /// HTTP RPC listen address
-    http_rpc_proxy_listen_address: String,
+    http_rpc_proxy_listen_address: Option<SocketAddr>,
     /// Network requester address
     network_requester_address: String,
     /// Error message
@@ -75,8 +75,8 @@ impl Socks5ServiceState {
         Self {
             state: Socks5State::Disabled,
             tunnel_state,
-            socks5_listen_address: String::new(),
-            http_rpc_proxy_listen_address: String::new(),
+            socks5_listen_address: None,
+            http_rpc_proxy_listen_address: None,
             network_requester_address: String::new(),
             error_message: None,
             cancel_token: None,
@@ -108,10 +108,10 @@ impl Socks5ServiceState {
         Socks5Status {
             state,
             socks5_settings: Socks5Settings {
-                listen_address: self.socks5_listen_address.clone(),
+                listen_address: self.socks5_listen_address,
             },
             http_rpc_settings: HttpRpcSettings {
-                listen_address: self.http_rpc_proxy_listen_address.clone(),
+                listen_address: self.http_rpc_proxy_listen_address,
             },
             active_connections,
             error_message: self.error_message.clone(),
@@ -153,21 +153,28 @@ impl Socks5ServiceState {
             }
         }
 
+        let Some(socks5_listen_address) = socks5_listen_address else {
+            return Err(Socks5Error::InvalidConfig(
+                "SOCKS5 listen address must be specified".to_string(),
+            ));
+        };
+
+        // Internal SOCKS5 address (where Nym SDK will bind)
+        let internal_socks5_addr: SocketAddr = "127.0.0.1:1081".parse().unwrap();
+
+        if socks5_listen_address == internal_socks5_addr {
+            return Err(Socks5Error::InvalidConfig(format!(
+                "SOCKS5 listen address cannot be the same as internal Nym SDK address ({internal_socks5_addr})"
+            )));
+        }
+
         info!(
-            "Enabling lazy SOCKS5 service: network_requester={}, socks5_listen={}, http_rpc_listen={}, idle_timeout={}s",
+            "Enabling lazy SOCKS5 service: network_requester={}, socks5_listen={}, http_rpc_listen={:?}, idle_timeout={}s",
             network_requester_address,
             socks5_listen_address,
             http_rpc_proxy_listen_address,
             idle_timeout.as_secs()
         );
-
-        // Parse listen addresses
-        let socks5_listen_addr: SocketAddr = socks5_listen_address.parse().map_err(|e| {
-            Socks5Error::InvalidConfig(format!("Invalid SOCKS5 listen address: {}", e))
-        })?;
-
-        // Internal SOCKS5 address (where Nym SDK will bind)
-        let internal_socks5_addr: SocketAddr = "127.0.0.1:1081".parse().unwrap();
 
         // Create an independent cancellation token for this enable operation.
         // Both the wrapper and HTTP proxy share this token to ensure synchronized lifecycles.
@@ -176,7 +183,7 @@ impl Socks5ServiceState {
         // Create lazy SOCKS5 wrapper
         let config = LazySocks5Config {
             mixnet_data_path: data_dir,
-            listen_address: socks5_listen_addr,
+            listen_address: socks5_listen_address,
             internal_listen_address: internal_socks5_addr,
             request_timeout,
             idle_timeout,
@@ -203,19 +210,13 @@ impl Socks5ServiceState {
         );
 
         // Optionally start HTTP RPC proxy
-        let http_rpc_proxy_handle = if !http_rpc_proxy_listen_address.is_empty() {
-            let http_rpc_addr: SocketAddr = http_rpc_proxy_listen_address.parse().map_err(|e| {
-                Socks5Error::InvalidConfig(format!("Invalid HTTP RPC listen address: {}", e))
-            })?;
-
-            info!(
-                "Starting HTTP RPC proxy on {}",
-                http_rpc_proxy_listen_address
-            );
+        let http_rpc_proxy_handle = http_rpc_proxy_listen_address.map(|http_rpc_address| {
+            info!("Starting HTTP RPC proxy on {}", http_rpc_address);
 
             // Use the same service_cancel_token to ensure HTTP proxy and wrapper
             // have synchronized lifecycles
-            let mut http_proxy = HttpRpc::new(http_rpc_addr, request_timeout, cancel_token.clone());
+            let mut http_proxy =
+                HttpRpc::new(http_rpc_address, request_timeout, cancel_token.clone());
 
             let lazy_socks5_clone = lazy_socks5.clone();
             let handle = tokio::spawn(async move {
@@ -225,13 +226,11 @@ impl Socks5ServiceState {
             });
 
             info!("HTTP RPC proxy enabled successfully");
-            Some(handle)
-        } else {
-            None
-        };
+            handle
+        });
 
         // Store state
-        self.socks5_listen_address = socks5_listen_address;
+        self.socks5_listen_address = Some(socks5_listen_address);
         self.http_rpc_proxy_listen_address = http_rpc_proxy_listen_address;
         self.network_requester_address = network_requester_address;
         self.state = Socks5State::Idle;
@@ -308,8 +307,8 @@ impl Socks5Service {
     pub async fn enable(
         &self,
         data_dir: PathBuf,
-        socks5_listen_address: String,
-        http_rpc_proxy_listen_address: String,
+        socks5_listen_address: Option<SocketAddr>,
+        http_rpc_proxy_listen_address: Option<SocketAddr>,
         network_requester_address: String,
         request_timeout: Duration,
         idle_timeout: Duration,

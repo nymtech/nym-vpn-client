@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add custom DNS setting for mobile platforms (https://github.com/nymtech/nym-vpn-client/pull/4106)
 - Login with signature string in addition to mnemonic (https://github.com/nymtech/nym-vpn-client/pull/4117)
+- SOCKS5 proxy can now be controlled via `nym-vpnc` (https://github.com/nymtech/nym-vpn-client/pull/4148)
 
 ### Fixed
 
