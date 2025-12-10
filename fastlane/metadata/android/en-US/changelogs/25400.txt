@@ -1,2 +1,2 @@
 What's new:
-- Fixed connection issue with tunnel lifecycle.
+- Fix split tunneling routing for excluded apps
