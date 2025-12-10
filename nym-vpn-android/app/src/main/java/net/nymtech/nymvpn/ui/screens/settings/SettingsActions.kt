@@ -18,6 +18,7 @@ data class SettingsActions(
 	val onAutoselectServerEnable: (enabled: Boolean) -> Unit = {},
 	val onKillSwitchClick: () -> Unit = {},
 	val onCensorshipClick: () -> Unit = {},
+	val onDnsClick: () -> Unit = {},
 	val onAppearanceClick: () -> Unit = {},
 	val onPrivacyClick: () -> Unit = {},
 	val onLogsClick: () -> Unit = {},

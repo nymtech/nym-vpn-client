@@ -23,6 +23,9 @@ sealed class Route {
 	data object Censorship : Route()
 
 	@Serializable
+	data object Dns : Route()
+
+	@Serializable
 	data object Appearance : Route()
 
 	@Serializable
