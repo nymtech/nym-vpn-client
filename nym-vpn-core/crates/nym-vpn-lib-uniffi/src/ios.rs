@@ -58,7 +58,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
         // Falling back to a more basic solution that does not support log rotation, for now.
 
         // Attempt to open the log file for writing
-        let file = match OpenOptions::new()
+        let file = OpenOptions::new()
             .write(true)
             .create(true)
             .truncate(true)
