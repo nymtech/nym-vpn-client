@@ -7,8 +7,8 @@ use sentry::integrations::tracing as sentry_tracing;
 use tracing::Level;
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
-    filter::LevelFilter, fmt::Layer as fmtLayer, layer::SubscriberExt, util::SubscriberInitExt, Layer,
-    Registry,
+    Layer, Registry, filter::LevelFilter, fmt::Layer as fmtLayer, layer::SubscriberExt,
+    util::SubscriberInitExt,
 };
 
 use crate::error::VpnError;
