@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add Exit and Entry points to notification (https://github.com/nymtech/nym-vpn-client/pull/4133)
+- Let user view Server details from home screen (https://github.com/nymtech/nym-vpn-client/pull/4163)
 
 ### Changed
 - Reorder for Censorship screen sections (https://github.com/nymtech/nym-vpn-client/pull/4131)
