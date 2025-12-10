@@ -1,9 +1,10 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::SocketAddr;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::net::SocketAddr;
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
@@ -39,6 +40,7 @@ pub struct EnableSocks5Request {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct Socks5Settings {
     /// SOCKS5 listen address, e.g., 127.0.0.1:1080
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "Option<String>"))]
     pub listen_address: Option<SocketAddr>,
 }
 
@@ -55,6 +57,7 @@ pub struct Socks5Settings {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct HttpRpcSettings {
     /// HTTP RPC listen address, e.g., 127.0.0.1:8545
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "Option<String>"))]
     pub listen_address: Option<SocketAddr>,
 }
 
