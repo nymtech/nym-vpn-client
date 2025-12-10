@@ -26,7 +26,7 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
     showStreamOptimized,
     showFastest,
   }) => {
-    if (!countryCode) {
+    if (!countryCode && !showFastest) {
       return (
         <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
           <Skeleton className="w-7 h-7" rounded="full" />
