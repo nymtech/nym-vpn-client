@@ -187,10 +187,12 @@ private extension SettingsViewModel {
         path.append(SettingLink.passphrase)
     }
 
+    #if os(macOS)
     func navigateToProxy() {
         impactGenerator.softImpact()
         path.append(SettingLink.proxy)
     }
+    #endif
 
     func navigateToCensorship() {
         impactGenerator.softImpact()

@@ -69,7 +69,7 @@ private extension ProxyView {
                     viewModel: ToggleViewModel(
                         isOn: $viewModel.proxyIsOn,
                         isDisabled: viewModel.connectionManager.currentTunnelStatus != .connected,
-                        isInteractiveWhenDisabled: true,
+                        isInteractiveWhenDisabled: !viewModel.proxyStatusLoading,
                         action: { _ in Task { await viewModel.toggleProxy() } }
                     )
                 ),
