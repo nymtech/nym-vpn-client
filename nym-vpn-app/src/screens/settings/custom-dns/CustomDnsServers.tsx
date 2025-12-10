@@ -85,7 +85,8 @@ export function CustomDnsServers({
       {customDnsList.length > 0 && (
         <div className="flex flex-col">
           <p className="text-xs">
-            Custom DNS servers ({customDnsList.length}/{MAX_DNS_SERVERS})
+            {t('dns.details.list-header')} ({customDnsList.length}/
+            {MAX_DNS_SERVERS})
           </p>
           <div className="my-3">
             <DraggableList

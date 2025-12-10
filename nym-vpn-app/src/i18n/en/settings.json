@@ -41,6 +41,7 @@
     "details": {
       "title": "Use custom DNS servers",
       "description": "Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity.",
+      "list-header": "Custom DNS servers",
       "add": "Add",
       "input-label": "DNS address",
       "input-placeholder": "IPv4 or IPv6 address",
