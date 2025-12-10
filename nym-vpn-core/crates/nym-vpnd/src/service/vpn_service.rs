@@ -1,11 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{future::Fuse, pin_mut, FutureExt, StreamExt};
+use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
-    sync::{broadcast, mpsc, oneshot, watch, RwLock},
+    sync::{RwLock, broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
     time::{Duration, Instant},
 };
@@ -13,13 +13,13 @@ use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    config::{NetworkEnvironments, VpnServiceConfigManager}, error::{
+    Socks5Error, Socks5Service, Socks5Status,
+    config::{NetworkEnvironments, VpnServiceConfigManager},
+    error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
-    }, socks5_idle_timeout,
-    socks5_request_timeout,
-    Socks5Error,
-    Socks5Service, Socks5Status,
+    },
+    socks5_idle_timeout, socks5_request_timeout,
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
@@ -32,9 +32,9 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine}, NodeIdentity, UserAgent,
-    VpnTopologyProvider,
-    DEFAULT_DNS_SERVERS,
+    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyProvider,
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
+    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
