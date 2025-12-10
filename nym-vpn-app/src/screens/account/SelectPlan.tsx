@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { Button, MsIcon, PageAnim } from '../../ui';
-import { NymVpnPricingUrl } from '../../constants';
+import { NymVpnAccountLoginUrl } from '../../constants';
 import { routes } from '../../router';
 
 function SelectPlan() {
@@ -10,7 +10,7 @@ function SelectPlan() {
   const { t } = useTranslation('account');
 
   const handleClick = () => {
-    openUrl(NymVpnPricingUrl).finally(() => {
+    openUrl(NymVpnAccountLoginUrl).finally(() => {
       navigate(routes.root);
     });
   };
