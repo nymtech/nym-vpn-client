@@ -8,10 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Exit and Entry points added to notification (https://github.com/nymtech/nym-vpn-client/pull/4133)
+- Add Exit and Entry points to notification (https://github.com/nymtech/nym-vpn-client/pull/4133)
 
 ### Changed
-- Sections in Censorship updated (https://github.com/nymtech/nym-vpn-client/pull/4131)
+- Reorder for Censorship screen sections (https://github.com/nymtech/nym-vpn-client/pull/4131)
+- More informative logs with steps for tunnel configuration (https://github.com/nymtech/nym-vpn-client/pull/4162)
+
+### Fixed
+- Add restricted apps for tunnel configurations (https://github.com/nymtech/nym-vpn-client/pull/4162)
 
 ## [2.5.0] - 2025-12-03
 

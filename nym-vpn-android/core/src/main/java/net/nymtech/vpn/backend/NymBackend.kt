@@ -47,6 +47,7 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Network
 import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
+import nym_vpn_lib_types.StoreAccountRequest
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.UserAgent
@@ -219,7 +220,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override suspend fun storeMnemonic(mnemonic: String) {
 		withContext(ioDispatcher) {
 			initialized.await()
-			login(mnemonic)
+			login(StoreAccountRequest.Vpn(mnemonic))
 		}
 	}
 
