@@ -81,7 +81,7 @@ private extension ProxyView {
                 vpnAndProxyStatusDetails()
             }
         )
-        .padding(.bottom, 24)
+        .padding(.bottom, 16)
     }
 
     @ViewBuilder
@@ -113,7 +113,8 @@ private extension ProxyView {
             )
             .padding(.top, 12)
         }
-        .padding(.vertical, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 16)
     }
 
     func detailsSection(title: String, details: String, color: Color) -> some View {
