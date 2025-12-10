@@ -30,7 +30,7 @@ members = [
     "crates/nym-windows",
     "crates/uniffi-bindgen",
     "crates/nym-vpn-lib-uniffi",
-    "crates/nym-vpn-rpc-uniffi",
+    "crates/nym-vpn-rpc-uniffi", "crates/keyring-poc",
 ]
 
 default-members = [

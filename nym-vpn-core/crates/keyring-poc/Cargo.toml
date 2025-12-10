@@ -1,0 +1,22 @@
+[package]
+name = "keyring-poc"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive", "wrap_help"] }
+keyring = { version = "3.6.3", features = ["apple-native", "windows-native", "linux-native"] }
+nym-crypto = { workspace = true, features = ["asymmetric", "rand", "stream_cipher"] }
+rand = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[lints]
+workspace = true
+
