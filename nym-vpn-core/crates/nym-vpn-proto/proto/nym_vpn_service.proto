@@ -583,6 +583,7 @@ message AccountCommandError {
     bool no_device_stored = 6;
     bool existing_account = 7;
     bool offline = 8;
+    string invalid_secret = 9;
     string invalid_mnemonic = 10;
     string nyxd_connection_failure = 11;
     string nyxd_query_failure = 12;
@@ -682,16 +683,20 @@ message StoreAccountRequest {
   oneof request {
     VpnAccountStoreRequest vpn_account_store = 1;
     DecentralisedAccountStoreRequest decentralised_account_store = 2;
+    PrivyAccountStoreRequest privy_account_store = 3;
   }
 }
 
-// VPN variant with mnemonic
 message VpnAccountStoreRequest {
   string mnemonic = 1;
 }
 
 message DecentralisedAccountStoreRequest {
   string mnemonic = 1;
+}
+
+message PrivyAccountStoreRequest {
+  string hex_signature = 1;
 }
 
 message DecentralisedObtainTicketbooksRequest {
@@ -843,6 +848,10 @@ message NetworkStatisticsIdentity {
     string id = 2;
 }
 
+message PrivyDerivationMessage {
+    string message = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
@@ -983,4 +992,7 @@ service NymVpnService {
 
   // Get socks5 proxy status
   rpc GetSocks5Status (google.protobuf.Empty) returns (Socks5Status) {}
+
+  // Get Privy derivation message to be signed
+  rpc GetPrivyDerivationMessage (google.protobuf.Empty) returns (PrivyDerivationMessage) {}
 }

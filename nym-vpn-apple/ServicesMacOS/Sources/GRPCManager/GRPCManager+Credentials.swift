@@ -3,9 +3,9 @@ import Constants
 import ErrorReason
 
 extension GRPCManager {
-    public func storeAccount(with mnemonic: String) async throws {
+    public func storeAccount(with request: StoreAccountRequest) async throws {
         try await Task.detached { [weak self] in
-            try await self?.rpcClient?.storeAccount(mnemonic: mnemonic)
+            try await self?.rpcClient?.storeAccount(request: request)
         }.value
     }
 

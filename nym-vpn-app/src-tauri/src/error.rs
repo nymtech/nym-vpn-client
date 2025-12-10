@@ -129,6 +129,7 @@ pub enum ErrorKey {
     MixnetNoBandwidth,
     // Some specific account management errors
     AccountInvalidMnemonic,
+    AccountInvalidSecret,
     NoAccountStored,
     NoDeviceStored,
     ExistingAccount,

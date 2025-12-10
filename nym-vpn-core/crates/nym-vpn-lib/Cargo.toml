@@ -15,8 +15,10 @@ workspace = true
 
 async-trait.workspace = true
 bincode.workspace = true
+bip39.workspace = true
 bytes.workspace = true
 futures.workspace = true
+hex.workspace = true
 hickory-resolver = { workspace = true, features = [
     "tokio",
     "tls-ring",

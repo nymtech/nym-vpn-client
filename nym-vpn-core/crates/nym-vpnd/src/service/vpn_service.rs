@@ -1,7 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use bip39::Mnemonic;
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
@@ -992,15 +991,34 @@ impl NymVpnService {
     }
 
     async fn handle_set_enable_custom_dns(&mut self, enable_custom_dns: bool) {
-        self.config_manager
+        if self
+            .config_manager
             .set_enable_custom_dns(enable_custom_dns)
-            .await;
-        self.update_tunnel_settings_with_throttle();
+            .await
+        {
+            let config = self.config_manager.config();
+            // Ignore reconnect if custom DNS is enabled but custom DNS addresses aren't set
+            if !enable_custom_dns || !config.custom_dns.is_empty() {
+                self.update_tunnel_settings_with_throttle();
+            }
+        }
     }
 
-    async fn handle_set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) {
-        self.config_manager.set_custom_dns(custom_dns).await;
-        self.update_tunnel_settings_with_throttle();
+    async fn handle_set_custom_dns(&mut self, mut custom_dns: Vec<IpAddr>) {
+        const MAX_CUSTOM_DNS_SERVERS: usize = 5;
+
+        if custom_dns.len() > MAX_CUSTOM_DNS_SERVERS {
+            tracing::warn!("Only the first {MAX_CUSTOM_DNS_SERVERS} DNS servers will be used");
+            custom_dns.truncate(MAX_CUSTOM_DNS_SERVERS);
+        }
+
+        if self.config_manager.set_custom_dns(custom_dns).await {
+            let config = self.config_manager.config();
+            // Only issue reconnect if custom DNS is enabled
+            if config.enable_custom_dns {
+                self.update_tunnel_settings_with_throttle();
+            }
+        }
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
@@ -1265,24 +1283,19 @@ impl NymVpnService {
         &mut self,
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountCommandError> {
-        match store_request {
-            StoreAccountRequest::Vpn { mnemonic } => {
-                let mnemonic = Mnemonic::parse::<String>(mnemonic)
-                    .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
-                self.account_command_tx
-                    .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
-                    .await
-            }
-            StoreAccountRequest::Decentralised { mnemonic } => {
-                let mnemonic = Mnemonic::parse::<String>(mnemonic)
-                    .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
-                self.account_command_tx
-                    .store_account(StorableAccount::new(
-                        mnemonic,
-                        StoredAccountMode::Decentralised,
-                    ))
-                    .await
-            }
+        let mnemonic = nym_vpn_lib::login::parse_account_request(&store_request)
+            .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
+        if store_request.centralised() {
+            self.account_command_tx
+                .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
+                .await
+        } else {
+            self.account_command_tx
+                .store_account(StorableAccount::new(
+                    mnemonic,
+                    StoredAccountMode::Decentralised,
+                ))
+                .await
         }
     }
 

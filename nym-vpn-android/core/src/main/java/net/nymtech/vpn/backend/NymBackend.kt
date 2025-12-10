@@ -47,6 +47,7 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Network
 import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
+import nym_vpn_lib_types.StoreAccountRequest
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.UserAgent
@@ -68,6 +69,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	private lateinit var settingConfig: NymVpnLibConfig
 
+	private var cachedEntryGateways: List<NymGateway>? = null
 	private var cachedExitGateways: List<NymGateway>? = null
 
 	init {
@@ -218,7 +220,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override suspend fun storeMnemonic(mnemonic: String) {
 		withContext(ioDispatcher) {
 			initialized.await()
-			login(mnemonic)
+			login(StoreAccountRequest.Vpn(mnemonic))
 		}
 	}
 
@@ -298,6 +300,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			val list = nym_vpn_lib.getGateways(type).map(NymGateway::from)
 			if (type == GatewayType.MIXNET_EXIT) {
 				cachedExitGateways = list
+			}
+			if (type == GatewayType.MIXNET_ENTRY) {
+				cachedEntryGateways = list
 			}
 			list
 		}
@@ -400,7 +405,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	val notification = notificationManager.buildVpnNotification(
 		getState(),
+		tunnel?.entryPoint,
 		tunnel?.exitPoint,
+		getEntryGateways(),
 		getExitGateways(),
 	)
 
@@ -409,7 +416,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 		val initialNotification = notificationManager.buildVpnNotification(
 			getState(),
+			tunnel?.entryPoint,
 			tunnel?.exitPoint,
+			getEntryGateways(),
 			getExitGateways(),
 		)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -432,7 +441,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		notificationManager.withNotificationPermission {
 			val updatedNotification = notificationManager.buildVpnNotification(
 				getState(),
+				tunnel?.entryPoint,
 				tunnel?.exitPoint,
+				getEntryGateways(),
 				getExitGateways(),
 			)
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -457,6 +468,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override fun getState(): Tunnel.State {
 		return state
 	}
+
+	fun getEntryGateways() = cachedEntryGateways
 
 	fun getExitGateways() = cachedExitGateways
 
@@ -487,6 +500,12 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		this.state = state
 		tunnel?.onStateChange(state)
 
-		notificationManager.updateVpnNotification(state, tunnel?.exitPoint, getExitGateways())
+		notificationManager.updateVpnNotification(
+			state,
+			tunnel?.entryPoint,
+			tunnel?.exitPoint,
+			getEntryGateways(),
+			getExitGateways(),
+		)
 	}
 }

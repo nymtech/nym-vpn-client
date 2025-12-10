@@ -77,8 +77,8 @@ use tokio::{runtime::Runtime, sync::Mutex};
 
 use nym_vpn_lib_types::{
     AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
-    NetworkCompatibility, ParsedAccountLinks, RegisterAccountResponse, SystemMessage, TunnelEvent,
-    UserAgent,
+    NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage, RegisterAccountResponse,
+    StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent,
 };
 
 use account::AccountControllerHandle;
@@ -271,8 +271,8 @@ pub fn getAccountLinksRaw(
 /// Import the account mnemonic
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn login(mnemonic: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::login(&mnemonic))
+pub fn login(request: StoreAccountRequest) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::login(&request))
 }
 
 /// Generate the account mnemonic locally and store it.
@@ -293,8 +293,8 @@ pub fn registerAccount(args: AccountRegistrationArgs) -> Result<RegisterAccountR
 /// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn loginRaw(mnemonic: String, path: String) -> Result<(), VpnError> {
-    RUNTIME.block_on(account::raw::login_raw(&mnemonic, &path))
+pub fn loginRaw(request: StoreAccountRequest, path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::raw::login_raw(&request, &path))
 }
 
 /// Generate the account mnemonic locally and store it.
@@ -428,6 +428,15 @@ async fn get_account_id() -> Result<String, VpnError> {
 #[uniffi::export]
 pub fn getGateways(gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {
     RUNTIME.block_on(get_gateways(gw_type))
+}
+
+/// Get the message to be signed using the Privy signing API.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getPrivyDerivationMessage() -> PrivyDerivationMessage {
+    PrivyDerivationMessage {
+        message: nym_vpn_lib::login::privy::message_to_sign(),
+    }
 }
 
 async fn get_gateways(gw_type: GatewayType) -> Result<Vec<Gateway>, VpnError> {

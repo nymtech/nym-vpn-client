@@ -5,8 +5,8 @@ use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
     EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, HttpRpcSettings,
     ListGatewaysOptions, LogPath, NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice,
-    NymVpnUsage, ParsedAccountLinks, Socks5Settings, Socks5Status, StoreAccountRequest,
-    SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status,
+    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use std::{net::IpAddr, path::PathBuf};
 use tokio_stream::{Stream, StreamExt};
@@ -21,8 +21,6 @@ type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
 pub struct RpcClient(ServiceClient);
 
 impl RpcClient {
-    const MAX_CUSTOM_DNS_SERVERS: usize = 5;
-
     pub async fn new() -> Result<RpcClient> {
         let socket_path = get_rpc_socket_path();
         let channel = Endpoint::from_static("unix://placeholder")
@@ -142,11 +140,9 @@ impl RpcClient {
     }
 
     pub async fn set_custom_dns(&mut self, ips: Vec<IpAddr>) -> Result<()> {
-        let request: proto::IpAddrList = ips
-            .into_iter()
-            .take(Self::MAX_CUSTOM_DNS_SERVERS)
-            .collect::<Vec<_>>()
-            .into();
+        let request = proto::IpAddrList {
+            ips: ips.into_iter().map(proto::IpAddr::from).collect(),
+        };
 
         self.0
             .set_custom_dns(request)
@@ -619,6 +615,17 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
         Ok(NetworkStatisticsIdentity::from(response))
+    }
+
+    pub async fn get_privy_derivation_message(&mut self) -> Result<PrivyDerivationMessage> {
+        let response = self
+            .0
+            .get_privy_derivation_message(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+
+        Ok(PrivyDerivationMessage::from(response))
     }
 }
 

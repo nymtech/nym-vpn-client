@@ -130,7 +130,8 @@ impl ConnectingState {
                     .map(|v| v.entry_gateway().endpoints())
                     .unwrap_or_default(),
                 api_endpoints: Vec::new(),
-                dns_servers: shared_state.tunnel_settings.dns_ips(),
+                // Allow default DNS servers since hickory does not rely on custom DNS
+                dns_servers: shared_state.tunnel_settings.default_dns_ips(),
                 tunnel_interface: None,
             };
 
@@ -692,7 +693,7 @@ impl TunnelStateHandler for ConnectingState {
                         if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                             Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
                         } else {
-                            let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() {
+                            let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() || diff.quic_changed() {
                                 None
                             } else {
                                 self.selected_gateways

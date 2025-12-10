@@ -844,6 +844,15 @@ impl NymVpnService for CommandInterface {
 
         Ok(tonic::Response::new(proto_status))
     }
+
+    async fn get_privy_derivation_message(
+        &self,
+        _: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::PrivyDerivationMessage>> {
+        Ok(tonic::Response::new(proto::PrivyDerivationMessage {
+            message: nym_vpn_lib::login::privy::message_to_sign(),
+        }))
+    }
 }
 
 pub async fn start_command_interface(

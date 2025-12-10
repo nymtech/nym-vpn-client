@@ -8,6 +8,7 @@ use std::{
 use itertools::{Either, Itertools};
 use tokio::task::JoinSet;
 
+use nym_common::ErrorExt;
 use nym_http_api_client::Url;
 use nym_network_defaults::ApiUrl;
 
@@ -46,7 +47,12 @@ impl ResolverOverrides {
                 let result = url_to_socket_addr(&url, Some((1, 1)))
                     .await
                     .inspect_err(|err| {
-                        tracing::warn!("Failed to resolve domain {}: {}", domain, err);
+                        tracing::warn!(
+                            "{}",
+                            err.display_chain_with_msg(format!(
+                                "Failed to resolve domain {domain}"
+                            ))
+                        );
                     });
                 (domain, result)
             });

@@ -4,6 +4,7 @@ import AppSettings
 import ConnectionManager
 import Constants
 import ConfigurationManager
+import CountriesManagerTypes
 import CredentialsManager
 import ExternalLinkManager
 import GatewayManager
@@ -178,6 +179,25 @@ public extension HomeViewModel {
     @MainActor func navigateToExitGateways() {
         impactGenerator.softImpact()
         path.append(HomeLink.exitGateways)
+    }
+
+    @MainActor func navigateToGatewayDetails(for hopType: HopType) {
+        switch hopType {
+        case .entry:
+            if let entryGatewayId = connectionInfoData?.entryGatewayId ?? connectionManager.entryGateway.gatewayId,
+               let entryGateway = gatewayManager.gateway(with: entryGatewayId, gatewayType: .entry) {
+                navigateToGatewayDetails(gateway: entryGateway, hopType: hopType)
+            }
+        case .exit:
+            if let exitGatewayId = connectionInfoData?.exitGatewayId ?? connectionManager.exitRouter.gatewayId,
+               let exitGateway = gatewayManager.gateway(with: exitGatewayId, gatewayType: .exit) {
+                navigateToGatewayDetails(gateway: exitGateway, hopType: hopType)
+            }
+        }
+    }
+
+    @MainActor private func navigateToGatewayDetails(gateway: GatewayNode, hopType: HopType) {
+        path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: hopType))
     }
 
     @MainActor func navigateToAddCredentials() {

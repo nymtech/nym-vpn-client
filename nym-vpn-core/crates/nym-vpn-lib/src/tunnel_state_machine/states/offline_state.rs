@@ -156,8 +156,9 @@ impl TunnelStateHandler for OfflineState {
                             }
                         }
 
-                        #[cfg(any(target_os = "android", target_os = "ios"))]
-                        let _ = diff;
+                        if diff.entry_point_changed() || diff.exit_point_changed() || diff.quic_changed() {
+                            self.selected_gateways = None;
+                        };
 
                         shared_state.tunnel_settings = tunnel_settings;
                         NextTunnelState::SameState(self)
@@ -165,8 +166,6 @@ impl TunnelStateHandler for OfflineState {
                 }
             }
             Some(connectivity) = shared_state.connectivity_handle.next() => {
-                // See: https://github.com/rust-lang/rust-clippy/issues/14799
-                #[allow(clippy::collapsible_else_if)]
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else {

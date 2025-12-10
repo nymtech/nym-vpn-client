@@ -127,7 +127,6 @@ pub struct RouteManagerImpl {
 
 impl RouteManagerImpl {
     /// Create new route manager
-    #[allow(clippy::unused_async)]
     pub(crate) async fn new(
         manage_tx: Weak<tokio::sync::mpsc::UnboundedSender<RouteManagerCommand>>,
     ) -> Result<Self> {

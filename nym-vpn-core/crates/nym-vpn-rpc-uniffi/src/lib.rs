@@ -13,7 +13,8 @@ use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayType, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    GatewayType, HttpRpcSettings, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
+    ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status, StoreAccountRequest,
     SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 
@@ -176,12 +177,8 @@ impl RpcClient {
         Ok(gateways)
     }
 
-    pub async fn store_account(&self, mnemonic: String) -> Result<()> {
-        let response = self
-            .inner
-            .clone()
-            .store_account(nym_vpn_lib_types::StoreAccountRequest::Vpn { mnemonic })
-            .await?;
+    pub async fn store_account(&self, request: StoreAccountRequest) -> Result<()> {
+        let response = self.inner.clone().store_account(request).await?;
 
         if let Some(err) = response.error {
             Err(RpcError::new(InnerRpcError::AccountCommand(Arc::new(err))))
@@ -298,6 +295,34 @@ impl RpcClient {
             .network_stats_allow_disconnected(allow_disconnected)
             .await?;
         Ok(())
+    }
+
+    pub async fn enable_socks5(
+        &self,
+        socks5_settings: Socks5Settings,
+        http_rpc_settings: HttpRpcSettings,
+        exit_point: ExitPoint,
+    ) -> Result<()> {
+        self.inner
+            .clone()
+            .enable_socks5(socks5_settings, http_rpc_settings, exit_point)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn disable_socks5(&self) -> Result<()> {
+        self.inner.clone().disable_socks5().await?;
+        Ok(())
+    }
+
+    pub async fn get_socks5_status(&self) -> Result<Socks5Status> {
+        let status = self.inner.clone().get_socks5_status().await?;
+        Ok(status)
+    }
+
+    pub async fn get_privy_derivation_message(&self) -> Result<PrivyDerivationMessage> {
+        let message = self.inner.clone().get_privy_derivation_message().await?;
+        Ok(message)
     }
 }
 

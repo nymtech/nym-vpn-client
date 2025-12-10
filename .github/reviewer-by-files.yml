@@ -1,12 +1,9 @@
 ---
-# proto changes
-"nym-vpn-core/crates/nym-vpn-proto/**":
-  - rokas-ambrazevicius
+# core changes
+"nym-vpn-core/**":
   - neacsu
-  - agentpietrucha
   - pronebird
-  - mrkiwi
-
+  - trojanfoe
 # client app changes
 "nym-vpn-app/*":
   - agentpietrucha

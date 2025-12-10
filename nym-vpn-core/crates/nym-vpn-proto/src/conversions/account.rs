@@ -31,6 +31,9 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::InvalidMnemonic(message) => {
                 Self::InvalidMnemonic(message)
             }
+            proto::account_command_error::ErrorDetail::InvalidSecret(message) => {
+                Self::InvalidSecret(message)
+            }
             proto::account_command_error::ErrorDetail::NyxdConnectionFailure(err) => {
                 Self::NyxdConnectionFailure(err)
             }
@@ -129,6 +132,11 @@ impl From<AccountCommandError> for proto::AccountCommandError {
             },
             AccountCommandError::InvalidMnemonic(err) => proto::AccountCommandError {
                 error_detail: Some(proto::account_command_error::ErrorDetail::InvalidMnemonic(
+                    err,
+                )),
+            },
+            AccountCommandError::InvalidSecret(err) => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::InvalidSecret(
                     err,
                 )),
             },
