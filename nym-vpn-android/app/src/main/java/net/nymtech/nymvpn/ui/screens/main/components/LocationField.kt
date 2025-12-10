@@ -41,10 +41,12 @@ fun LocationField(
 	countryCode: String?,
 	gatewayLocation: String?,
 	onClick: () -> Unit,
+	onTrailingClick: () -> Unit,
 	enabled: Boolean,
 	modifier: Modifier = Modifier,
 	showGatewayStreamIcon: Boolean = false,
 	showQuicLabel: Boolean = false,
+	showTrailingIcon: Boolean = true,
 ) {
 	val context = LocalContext.current
 	val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
@@ -57,39 +59,67 @@ fun LocationField(
 		label = { Text(label, style = MaterialTheme.typography.bodySmall) },
 		leading = {
 			val (image, description) = countryCode?.let {
-				Pair(ImageVector.vectorResource(context.getFlagImageVectorByName(it)), stringResource(R.string.country_flag, it))
-			} ?: Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
+				Pair(
+					ImageVector.vectorResource(context.getFlagImageVectorByName(it)),
+					stringResource(R.string.country_flag, it),
+				)
+			} ?: Pair(
+				ImageVector.vectorResource(R.drawable.faq),
+				stringResource(R.string.unknown),
+			)
+
 			Image(
 				image,
 				description,
 				modifier = Modifier
-					.padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight())
+					.padding(
+						horizontal = 16.dp.scaledWidth(),
+						vertical = 16.dp.scaledHeight(),
+					)
 					.size(iconSize),
 			)
 		},
 		trailing = {
-			Row(
-				verticalAlignment = Alignment.CenterVertically,
-				modifier = Modifier.then(
-					if (showGatewayStreamIcon || showQuicLabel) { // Need to push left due to big size of trailing content in basic textField
-						Modifier.padding(horizontal = 12.dp)
-					} else {
-						Modifier
-					},
-				),
-			) {
-				if (showGatewayStreamIcon) {
-					Icon(
-						imageVector = ImageVector.vectorResource(R.drawable.smart_display),
-						contentDescription = stringResource(R.string.stream_display),
-						modifier = Modifier.size(iconSize),
-						tint = Color.Unspecified,
-					)
-					Spacer(modifier = Modifier.width(4.dp))
-				} else if (showQuicLabel) {
-					QuickLabel()
+			if (showGatewayStreamIcon || showQuicLabel || showTrailingIcon) {
+				Row(
+					verticalAlignment = Alignment.CenterVertically,
+					modifier = Modifier.then(
+						if (showGatewayStreamIcon || showQuicLabel) {
+							Modifier.padding(horizontal = 12.dp)
+						} else {
+							Modifier
+						},
+					),
+				) {
+					if (showGatewayStreamIcon) {
+						Icon(
+							imageVector = ImageVector.vectorResource(R.drawable.smart_display),
+							contentDescription = stringResource(R.string.stream_display),
+							modifier = Modifier.size(iconSize),
+							tint = Color.Unspecified,
+						)
+						Spacer(modifier = Modifier.width(4.dp))
+					} else if (showQuicLabel) {
+						QuickLabel()
+					}
+
+					if (showTrailingIcon) {
+						Icon(
+							imageVector = trailingIcon,
+							contentDescription = stringResource(R.string.go),
+							tint = MaterialTheme.colorScheme.onSurface,
+							modifier = Modifier
+								.size(iconSize)
+								.clickable(
+									interactionSource = remember { MutableInteractionSource() },
+									indication = indication,
+									enabled = enabled,
+								) {
+									onTrailingClick()
+								},
+						)
+					}
 				}
-				Icon(trailingIcon, stringResource(R.string.go), tint = MaterialTheme.colorScheme.onSurface)
 			}
 		},
 		singleLine = true,
@@ -108,6 +138,11 @@ fun LocationField(
 			.fillMaxWidth()
 			.height(60.dp.scaledHeight())
 			.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
-			.clickable(remember { MutableInteractionSource() }, indication = indication) { if (enabled) onClick() },
+			.clickable(
+				interactionSource = remember { MutableInteractionSource() },
+				indication = indication,
+			) {
+				if (enabled) onClick()
+			},
 	)
 }

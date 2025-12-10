@@ -59,6 +59,7 @@ import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage.Error
 import net.nymtech.nymvpn.ui.model.StateMessage.StartError
+import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionButton
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
 import net.nymtech.nymvpn.ui.screens.main.components.LocationField
@@ -76,6 +77,9 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AsnKind
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.GatewayType
 
 @Composable
 fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
@@ -202,6 +206,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		viewModel.onStreamingServerBannerDisplayed()
 		showBanner = false
 	}
+
 	fun dismissPerAppSecurityBanner() {
 		viewModel.onPerAppSecurityBannerDisplayed()
 		showPerAppSecurityBanner = false
@@ -214,12 +219,14 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 			else -> snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 		}
 	}
+
 	fun onExitClick() {
 		when (uiState.connectionState) {
 			ConnectionState.Disconnected, ConnectionState.Offline -> {
 				dismissStreamingBanner()
 				navController.goFromRoot(Route.ExitLocation)
 			}
+
 			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
 			else -> snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 		}
@@ -299,6 +306,12 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						onClick = { onEntryClick() },
 						enabled = true,
 						showQuicLabel = shouldShowQuic,
+						showTrailingIcon = appUiState.settings.entryPoint is EntryPoint.Gateway,
+						onTrailingClick = {
+							appUiState.entryPointGateway?.let { gateway ->
+								navController.goFromRoot(Route.ServerDetails(gateway.identity, GatewayType.MIXNET_ENTRY, GatewayLocation.ENTRY.name))
+							}
+						},
 					)
 					LocationField(
 						value = appUiState.exitPointName,
@@ -308,6 +321,12 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						onClick = { onExitClick() },
 						enabled = true,
 						showGatewayStreamIcon = appUiState.exitPointGateway?.asnKind == AsnKind.RESIDENTIAL,
+						showTrailingIcon = appUiState.settings.exitPoint is ExitPoint.Gateway,
+						onTrailingClick = {
+							appUiState.exitPointGateway?.let { gateway ->
+								navController.goFromRoot(Route.ServerDetails(gateway.identity, GatewayType.MIXNET_EXIT, GatewayLocation.EXIT.name))
+							}
+						},
 					)
 				}
 				ConnectionButton(
