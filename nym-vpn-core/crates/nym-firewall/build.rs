@@ -1,7 +1,10 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{env, fs, path::PathBuf};
+use std::{
+    env,
+    path::{self, PathBuf},
+};
 
 fn main() {
     let target_os = env::var("CARGO_CFG_TARGET_OS").expect("target os is not set");
@@ -13,16 +16,8 @@ fn main() {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").expect("target arch is not set");
     let profile = env::var("PROFILE").expect("profile is not set");
 
-    let build_dir = PathBuf::from(manifest_path).join("../../../build/winfw");
-
-    // canonicalize() will fail if the build directory does not exist
-    if !build_dir.exists() {
-        fs::create_dir_all(&build_dir).expect("failed to create build dir");
-    }
-
-    let build_dir = build_dir
-        .canonicalize()
-        .expect("failed to canonicalize build dir path");
+    let build_dir = path::absolute(PathBuf::from(manifest_path).join("../../../build/winfw"))
+        .expect("failed to get absolute path to build directory");
 
     let cpp_arch = match arch.as_str() {
         "x86_64" => "x64",

@@ -27,7 +27,7 @@ import {
   NetworkExplorerNodeUrl,
   SupportServerLocationUrl,
 } from '../../../constants';
-import { uiNodeToSelectedNode } from '../../../contexts/node-list/util';
+import { isSelectedNodeType } from '../../../contexts/node-list/util';
 import { routes } from '../../../router';
 import { ScoreIndicator } from '../ScoreIndicator';
 import DataCard from './DataCard';
@@ -38,7 +38,7 @@ type RouteState = {
 };
 
 function NodeDetails() {
-  const { backendFlags } = useMainState();
+  const { backendFlags, entryNode, exitNode } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const location = useLocation() as H.Location<RouteState>;
   const { t } = useTranslation('nodeLocation');
@@ -65,8 +65,8 @@ function NodeDetails() {
   const asnValue = asn?.asn;
   const asnName = asn?.name;
   const showCard3 = exitIpv4 || exitIpv6 || asnValue || asnName;
-  const isSelected =
-    gateway.isSelected === 'exit' || gateway.isSelected === 'entry';
+  const selectedNode = isSelectedNodeType(gateway, entryNode, exitNode);
+  const isSelected = selectedNode === 'exit' || selectedNode === 'entry';
   const quic = backendFlags.quic && gateway.quic;
 
   const DataRow = ({
@@ -152,10 +152,9 @@ function NodeDetails() {
   );
 
   const handleSelect = async () => {
-    if (isSelected) {
-      return;
-    }
-    const node = uiNodeToSelectedNode(gateway);
+    if (isSelected) return;
+
+    const node = { gateway: { id: gateway.id } };
     try {
       await invoke('set_node', {
         node,

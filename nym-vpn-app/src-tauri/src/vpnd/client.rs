@@ -21,6 +21,7 @@ use nym_vpn_proto::rpc_client::RpcClient;
 use once_cell::sync::Lazy;
 use std::{
     env::consts::{ARCH, OS},
+    net::IpAddr,
     path::PathBuf,
     sync::Mutex,
 };
@@ -769,6 +770,46 @@ impl VpndClient {
             })?;
 
         debug!("disabled vpnd network statistics collection");
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let dns = vpnd.get_default_dns().await.map_err(|e| {
+            error!("failed to get default DNS: {}", e);
+            VpndError::RpcClient(e)
+        })?;
+
+        Ok(dns)
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_custom_dns_enabled(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_enable_custom_dns(enabled)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("failed to set custom DNS enabled: {}", e);
+            })?;
+
+        Ok(())
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_custom_dns(&self, dns: Vec<IpAddr>) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_custom_dns(dns)
+            .await
+            .map_err(VpndError::RpcClient)
+            .inspect_err(|e| {
+                error!("failed to set custom DNS: {}", e);
+            })?;
+
         Ok(())
     }
 

@@ -12,18 +12,11 @@ import {
   useNodeList,
   useNodeListState,
 } from '../../contexts';
-import {
-  NodeHop,
-  StateDispatch,
-  isCountry,
-  isGateway,
-  isRegion,
-} from '../../types';
+import { NodeHop, StateDispatch, isGateway } from '../../types';
 import { Link, PageAnim, TextInput } from '../../ui';
 import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
-import { regionToCountryCode } from '../home/util';
 import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
@@ -48,8 +41,6 @@ function Node({ node }: { node: NodeHop }) {
   const search = node === 'entry' ? entryNodeList.search : exitNodeList.search;
 
   const { tE } = useI18nError();
-  const { entryNode, exitNode } = useMainState();
-  const selectedNode = node === 'entry' ? entryNode : exitNode;
 
   const quicFilter =
     vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
@@ -65,25 +56,6 @@ function Node({ node }: { node: NodeHop }) {
   useEffect(() => {
     if (searchRef.current) searchRef.current.focus();
   }, []);
-
-  useEffect(() => {
-    // if there's already a focused node, don't do anything
-    // when navigating to node details new focused is set
-    if (focused) {
-      return;
-    }
-    if (isCountry(selectedNode)) {
-      setFocused(node, { type: 'country', key: selectedNode.country.code });
-    }
-    if (isRegion(selectedNode)) {
-      const code = regionToCountryCode(selectedNode.region);
-      if (code) {
-        addToExpanded(node, code);
-        setFocused(node, { type: 'region', key: selectedNode.region });
-      }
-    }
-    // TODO handle US regions auto-expand and focus
-  }, [selectedNode, node, addToExpanded, setFocused, focused]);
 
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
@@ -133,7 +105,7 @@ function Node({ node }: { node: NodeHop }) {
         data-testid="node-error-container"
       >
         <div
-          className="w-4/5 h-2/3 overflow-auto break-words text-center"
+          className="w-4/5 h-2/3 overflow-auto wrap-break-word text-center"
           data-testid="node-error-message"
         >
           <p

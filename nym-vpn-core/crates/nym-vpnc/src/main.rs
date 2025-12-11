@@ -113,6 +113,12 @@ pub enum Command {
         subcommand: commands::sentry::Command,
     },
 
+    /// SOCKS5 proxy
+    Socks5 {
+        #[command(subcommand)]
+        subcommand: commands::socks5::Command,
+    },
+
     /// Anonymous network statistics collection
     NetworkStats {
         #[command(subcommand)]
@@ -137,6 +143,7 @@ impl Command {
             Command::Account { subcommand } => subcommand.execute(rpc_client).await,
             Command::Device(args) => args.execute(rpc_client).await,
             Command::Sentry { subcommand } => subcommand.execute(rpc_client).await,
+            Command::Socks5 { subcommand } => subcommand.execute(rpc_client).await,
             Command::NetworkStats { subcommand } => subcommand.execute(rpc_client).await,
         }
     }

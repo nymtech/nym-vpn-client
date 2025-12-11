@@ -42,7 +42,7 @@ import GRPCManager
             do {
 #if os(iOS)
                 let dataFolderURL = try Self.dataFolderURL()
-                try loginRaw(mnemonic: credential, path: dataFolderURL.path())
+                try loginRaw(request: .vpn(mnemonic: credential), path: dataFolderURL.path())
 #elseif os(macOS)
                 try await grpcManager.storeAccount(with: .vpn(mnemonic: credential))
 #endif

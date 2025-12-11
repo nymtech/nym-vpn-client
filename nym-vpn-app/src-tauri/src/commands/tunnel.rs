@@ -9,6 +9,7 @@ use crate::{
         tunnel::{ConnectingState, TunnelState},
     },
 };
+use std::net::IpAddr;
 use tauri::{Manager, State};
 use tracing::{debug, info, instrument, warn};
 
@@ -151,5 +152,32 @@ pub async fn set_no_ipv6(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(
 #[tauri::command]
 pub async fn set_allow_lan(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
     vpnd.set_allow_lan(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn get_default_dns(vpnd: State<'_, VpndClient>) -> Result<Vec<IpAddr>, BackendError> {
+    let dns = vpnd.get_default_dns().await?;
+    Ok(dns)
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_custom_dns_enabled(
+    vpnd: State<'_, VpndClient>,
+    enabled: bool,
+) -> Result<(), BackendError> {
+    vpnd.set_custom_dns_enabled(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_custom_dns(
+    vpnd: State<'_, VpndClient>,
+    dns: Vec<IpAddr>,
+) -> Result<(), BackendError> {
+    vpnd.set_custom_dns(dns).await?;
     Ok(())
 }

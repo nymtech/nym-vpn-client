@@ -1,6 +1,7 @@
+import { useCallback } from 'react';
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
-import { UiGateway } from '../../../contexts';
+import { UiGateway, useNodeListState } from '../../../contexts';
 import { MsIcon } from '../../../ui';
 import { NodeHop, VpnMode } from '../../../types';
 import { useLang } from '../../../hooks';
@@ -9,7 +10,6 @@ import QuicTag from '../QuicTag';
 import { ScoreIndicator } from '../ScoreIndicator';
 
 type GatewayRowProps = {
-  ref?: React.Ref<HTMLDivElement>;
   gateway: UiGateway;
   onSelect: (gateway: UiGateway) => void;
   onNodeDetails: (node: UiGateway) => void;
@@ -20,7 +20,6 @@ type GatewayRowProps = {
 };
 
 const GatewayItem = ({
-  ref,
   gateway,
   node,
   vpnMode,
@@ -29,6 +28,10 @@ const GatewayItem = ({
   quicLabel,
   inSearchResult,
 }: GatewayRowProps) => {
+  const { exit: exitNodeList, entry: entryNodeList } = useNodeListState();
+  const focused =
+    node === 'entry' ? entryNodeList.focused : exitNodeList.focused;
+
   const { isSelected } = gateway;
   const score = vpnMode === 'mixnet' ? gateway.mxScore : gateway.wgScore;
   const { getCountryName } = useLang();
@@ -54,9 +57,23 @@ const GatewayItem = ({
     return gateway.location.city;
   };
 
+  const scrollToGatewayRef = useCallback(
+    (htmlElement: HTMLDivElement) => {
+      if (!htmlElement || inSearchResult) return;
+      if (focused?.type === 'gateway' && focused.key === gateway.id) {
+        htmlElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'center',
+        });
+      }
+    },
+    [focused, gateway.id, inSearchResult],
+  );
+
   return (
     <div
-      ref={ref}
+      ref={scrollToGatewayRef}
       className={clsx(
         'flex flex-row justify-between items-center select-none',
         'hover:bg-mercury hover:dark:bg-mine-shaft',

@@ -15,7 +15,7 @@ export type SettingsMenuCardProps = {
   className?: string;
   style?: CSSProperties;
   noHoverEffect?: boolean;
-  color?: 'normal' | 'red';
+  color?: 'normal' | 'red' | 'gray';
 };
 
 function SettingsMenuCard({
@@ -47,6 +47,11 @@ function SettingsMenuCard({
         color === 'red' &&
           !noHoverEffect &&
           'hover:bg-aphrodisiac/20 dark:hover:bg-aphrodisiac/20',
+        // gray color
+        color === 'gray' && 'bg-white dark:bg-mine-shaft',
+        color === 'gray' &&
+          !noHoverEffect &&
+          'hover:bg-white/60 dark:hover:bg-mine-shaft/85',
         'flex flex-row justify-between items-center gap-4 select-none',
         'px-5 rounded-lg min-h-16',
         description ? 'py-2' : 'py-4',

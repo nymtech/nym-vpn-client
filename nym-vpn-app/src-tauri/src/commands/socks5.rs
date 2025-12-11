@@ -14,7 +14,7 @@ pub async fn enable_socks5(
     http_rpc_settings: HttpRpcSettings,
     exit: Node,
 ) -> Result<(), BackendError> {
-    info!("enabling SOCKS5 proxy with exit_node: {}", exit);
+    info!("Enabling SOCKS5 proxy with exit_node: {exit}");
     vpnd.enable_socks5(socks5_settings, http_rpc_settings, exit)
         .await?;
     Ok(())
@@ -23,7 +23,7 @@ pub async fn enable_socks5(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn disable_socks5(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {
-    info!("disabling SOCKS5 proxy");
+    info!("Disabling SOCKS5 proxy");
     vpnd.disable_socks5().await?;
     Ok(())
 }

@@ -20,6 +20,7 @@ public enum SettingLink: Hashable, Identifiable {
     case privacyAndData
     case censorship
 #if os(macOS)
+    case proxy
     case appMode
     case daemonEnable
 #endif

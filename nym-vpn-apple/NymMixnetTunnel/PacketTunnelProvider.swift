@@ -12,9 +12,15 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     let tunnelActor: TunnelActor
 
     lazy var logger = Logger(label: "MixnetTunnel")
+    var logInitFailure: String?
 
     override init() {
-        Self.configureLogger()
+        tunnelActor = TunnelActor()
+
+        super.init()
+
+        self.configureLogger()
+        
         LoggingSystem.bootstrap { label in
             let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
 #if DEBUG
@@ -27,8 +33,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             return fileLogHandler
 #endif
         }
-
-        tunnelActor = TunnelActor()
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
@@ -125,16 +129,20 @@ extension PacketTunnelProvider {
         }
     }
 
-    static func configureLogger() {
+    func configureLogger() {
         let logPath = LogFileManager.logFileURL(logFileType: .library)?.path()
 
         Task {
             let logLevel = await MainActor.run { ConfigurationManager.shared.debugLevel }
-            await initLogger(
-                path: logPath,
-                debugLevel: logLevel,
-                sentryMonitoring: true
-            )
+            do {
+                try await initLogger(
+                    path: logPath,
+                    debugLevel: logLevel,
+                    sentryMonitoring: true
+                )
+            } catch {
+                self.logInitFailure = error.localizedDescription
+            }
         }
     }
 }

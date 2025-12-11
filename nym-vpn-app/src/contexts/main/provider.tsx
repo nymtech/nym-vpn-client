@@ -28,6 +28,8 @@ function MainStateProvider({ children, init }: Props) {
     quic: init.quic,
     ipv6Support: !init.noIpv6,
     allowLan: init.allowLan,
+    customDnsEnabled: init.customDnsEnabled,
+    customDns: init.customDns,
   });
 
   const { push } = useInAppNotify();

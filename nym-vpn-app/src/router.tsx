@@ -5,6 +5,7 @@ import {
   AntiCensorship,
   Appearance,
   AppearanceRouteIndex,
+  CustomDNS,
   DataAndPrivacy,
   Dev,
   Display,
@@ -40,6 +41,7 @@ export const routes = {
   display: '/settings/appearance/display',
   lang: '/settings/appearance/lang',
   logs: '/settings/logs',
+  dns: '/settings/dns',
   antiCensorship: '/settings/anti-censorship',
   socks5: '/settings/socks5',
   dataPrivacy: '/settings/data-privacy',
@@ -130,6 +132,11 @@ const router = createBrowserRouter([
           {
             path: routes.logs,
             Component: Logs,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.dns,
+            Component: CustomDNS,
             errorElement: <Error />,
           },
           {

@@ -46,10 +46,11 @@ uniffi::setup_scaffolding!();
 
 #[cfg(target_os = "android")]
 pub mod android;
+#[cfg(target_os = "ios")]
+pub mod ios;
+
 pub(crate) mod error;
 pub mod helpers;
-#[cfg(any(target_os = "ios", target_os = "macos"))]
-pub mod swift;
 
 mod account;
 mod environment;
@@ -204,7 +205,11 @@ async fn configure_lib_for_main_process(user_agent: UserAgent) -> Result<(), Vpn
     Ok(())
 }
 
-async fn init_logger(path: Option<PathBuf>, debug_level: Option<String>, sentry_monitoring: bool) {
+async fn init_logger(
+    path: Option<PathBuf>,
+    debug_level: Option<String>,
+    sentry_monitoring: bool,
+) -> Result<(), VpnError> {
     let default_log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     let log_level = debug_level.unwrap_or(default_log_level);
     tracing::info!("Setting log level: {log_level}, path?: {path:?}");
@@ -214,10 +219,19 @@ async fn init_logger(path: Option<PathBuf>, debug_level: Option<String>, sentry_
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
     }
+
     #[cfg(target_os = "ios")]
-    swift::init_logs(log_level, path, sentry_monitoring);
+    {
+        ios::init_logs(log_level, path, sentry_monitoring)
+    }
     #[cfg(target_os = "android")]
-    android::init_logs(log_level);
+    {
+        android::init_logs(log_level)
+    }
+    #[cfg(not(any(target_os = "ios", target_os = "android")))]
+    {
+        Ok(())
+    }
 }
 
 /// Additional extra function for when only want to set the logger without initializing the
@@ -228,8 +242,8 @@ pub async fn initLogger(
     path: Option<PathBuf>,
     debug_level: Option<String>,
     sentry_monitoring: bool,
-) {
-    init_logger(path, debug_level, sentry_monitoring).await;
+) -> Result<(), VpnError> {
+    init_logger(path, debug_level, sentry_monitoring).await
 }
 
 /// Returns the system messages for the current network environment

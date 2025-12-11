@@ -10,6 +10,10 @@ public struct NymTextStyle {
         self.lineSpacing = lineSpacing
         self.kerning = kerning
     }
+    
+    public func withSpacing(_ lineSpacing: CGFloat) -> NymTextStyle {
+        NymTextStyle(nymFont: self.nymFont, lineSpacing: lineSpacing, kerning: self.kerning)
+    }
 }
 
 // MARK: - Styles -
@@ -76,6 +80,14 @@ extension NymTextStyle {
 
             public static var bold: NymTextStyle {
                 NymTextStyle(nymFont: .labGrotesque(size: 12, weight: .bold), kerning: 0.24)
+            }
+        }
+    }
+
+    public struct Body4 {
+        public struct Medium {
+            public static var regular: NymTextStyle {
+                NymTextStyle(nymFont: .labGrotesqueMono(size: 14, weight: .bold), kerning: 0.8)
             }
         }
     }

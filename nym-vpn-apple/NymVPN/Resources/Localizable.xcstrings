@@ -28538,6 +28538,171 @@
         }
       }
     },
+    "proxy.activeConnections" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active connections"
+          }
+        }
+      }
+    },
+    "proxy.httpRpc.instructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint."
+          }
+        }
+      }
+    },
+    "proxy.httpRpc.proxyTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HTTP RPC proxy (for wallets)"
+          }
+        }
+      }
+    },
+    "proxy.httpRpc.proxyUrlTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HTTP RPC URL (for wallets)"
+          }
+        }
+      }
+    },
+    "proxy.proxyStatus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy status:"
+          }
+        }
+      }
+    },
+    "proxy.proxyStatus.connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
+    "proxy.proxyStatus.disabled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabled"
+          }
+        }
+      }
+    },
+    "proxy.proxyStatus.loading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading…"
+          }
+        }
+      }
+    },
+    "proxy.snackbar.connectionFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy connection error. Check your app configuration or try restarting the proxy."
+          }
+        }
+      }
+    },
+    "proxy.snackbar.successfullyEnabled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy successfully enabled"
+          }
+        }
+      }
+    },
+    "proxy.socks5.instructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add this to your browser's proxy settings to route traffic through the Nym mixnet"
+          }
+        }
+      }
+    },
+    "proxy.socks5.proxyTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOCKS5 proxy (for apps)"
+          }
+        }
+      }
+    },
+    "proxy.socks5.proxyUrlTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOCKS5 URL (for apps)"
+          }
+        }
+      }
+    },
+    "proxy.status.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable proxy"
+          }
+        }
+      }
+    },
+    "proxy.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routes app and wallet traffic through the Nym mixnet for enhanced privacy via a SOCKS5 proxy for apps and HTTP RPC proxy for wallets."
+          }
+        }
+      }
+    },
     "purchasePlan.fullyProtected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34177,6 +34342,28 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "隐私和数据"
+          }
+        }
+      }
+    },
+    "settings.proxy.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route app traffic through mixnet"
+          }
+        }
+      }
+    },
+    "settings.proxy.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App & Wallet proxy"
           }
         }
       }

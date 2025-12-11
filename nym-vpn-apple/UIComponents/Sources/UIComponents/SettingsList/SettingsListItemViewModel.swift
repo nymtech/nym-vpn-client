@@ -61,7 +61,7 @@ public final class SettingsListItemViewModel: Hashable {
         case regular
         case destructive
 
-        var backgroundColor: Color {
+        public var backgroundColor: Color {
             switch self {
             case .regular:
                 NymColor.elevation
@@ -70,7 +70,7 @@ public final class SettingsListItemViewModel: Hashable {
             }
         }
 
-        var strokeColor: Color {
+        public var strokeColor: Color {
             switch self {
             case .regular:
                 NymColor.elevation
@@ -85,7 +85,7 @@ public final class SettingsListItemViewModel: Hashable {
     let multilineText: AttributedString?
     let imageName: String?
     let systemImageName: String?
-    let type: ItemType
+    public let type: ItemType
     let accessory: Accessory
     let action: (() -> Void)
 
@@ -113,7 +113,7 @@ public final class SettingsListItemViewModel: Hashable {
         self.action = action
     }
 
-    var topRadius: CGFloat {
+    public var topRadius: CGFloat {
         if position.isFirst {
             return CGFloat(8)
         } else {
@@ -121,7 +121,7 @@ public final class SettingsListItemViewModel: Hashable {
         }
     }
 
-    var bottomRadius: CGFloat {
+    public var bottomRadius: CGFloat {
         if position.isLast {
             return CGFloat(8)
         } else {

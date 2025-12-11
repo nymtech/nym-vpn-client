@@ -11,7 +11,8 @@ import { sortByScore } from './util';
 
 export function useFilterList(hop: NodeHop) {
   const { nodes, gateways, vpnMode } = useNodeList();
-  const { addToExpanded, setExpanded, entry, exit } = useNodeListState();
+  const { addToExpanded, setExpanded, entry, exit, setFocused } =
+    useNodeListState();
   const search = hop === 'entry' ? entry.search : exit.search;
 
   const [filteredNodes, setFilteredNodes] =
@@ -25,6 +26,7 @@ export function useFilterList(hop: NodeHop) {
         setFilteredNodes(nodes);
         setFilteredGateways([]);
         setExpanded(hop, []);
+        setFocused(hop, null);
         return;
       }
 
@@ -68,7 +70,7 @@ export function useFilterList(hop: NodeHop) {
       setFilteredNodes(filteredNodes);
       setFilteredGateways(filteredGw);
     },
-    [gateways, nodes, vpnMode, addToExpanded, setExpanded, hop],
+    [gateways, nodes, vpnMode, addToExpanded, setExpanded, setFocused, hop],
   );
 
   // refresh the UI list whenever the backend gateway data changes

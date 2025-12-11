@@ -5,6 +5,7 @@ import Theme
 
 public enum VPNErrorReason: LocalizedError {
     case initialization(details: String)
+    case createLogFile(details: String)
     case internalError(details: String)
     case storage(details: String)
     case networkConnectionError(details: String)
@@ -31,6 +32,7 @@ public enum VPNErrorReason: LocalizedError {
     case zkNymAcquisitionFailure(details: String)
     case nyxdConnectionFailure(details: String)
     case nyxdQueryFailure(details: String)
+    case invalidSecret(details: String)
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -44,6 +46,8 @@ public enum VPNErrorReason: LocalizedError {
         switch vpnError {
         case let .Initialization(details: details):
             self = .initialization(details: details)
+        case let .CreateLogFile(details: details):
+            self = .createLogFile(details: details)
         case let .InternalError(details: details):
             self = .internalError(details: details)
         case let .Storage(details: details):
@@ -216,6 +220,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .nyxdConnectionFailure(details: details)
         case let .NyxdQueryFailure(details: details):
             self = .nyxdQueryFailure(details: details)
+        case let .InvalidSecret(details: details):
+            self = .invalidSecret(details: details)
         }
     }
 
@@ -231,6 +237,8 @@ public enum VPNErrorReason: LocalizedError {
         switch errorReason {
         case .initialization:
             self = .initialization(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .createLogFile:
+            self = .createLogFile(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .internalError:
             self = .internalError(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .storage:
@@ -287,6 +295,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .nyxdQueryFailure(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .nyxdQueryFailure:
             self = .nyxdQueryFailure(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .invalidSecret:
+            self = .invalidSecret(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -316,6 +326,8 @@ extension VPNErrorReason {
     var description: String {
         switch self {
         case let .internalError(details):
+            details
+        case let .createLogFile(details):
             details
         case let .storage(details):
             details
@@ -371,6 +383,8 @@ extension VPNErrorReason {
             details
         case let .initialization(details: details):
             details
+        case let .invalidSecret(details: details):
+            details
         }
     }
 }
@@ -384,6 +398,7 @@ extension VPNErrorReason: Equatable {
 /// The VPNErrorReasonCode mirrors the error codes as raw integers and can be constructed from a VPNErrorReason.
 enum VPNErrorReasonCode: Int, RawRepresentable {
     case initialization
+    case createLogFile
     case internalError
     case storage
     case networkConnectionError
@@ -411,11 +426,14 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case zkNymAcquisitionFailure
     case nyxdConnectionFailure
     case nyxdQueryFailure
+    case invalidSecret
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
         case .initialization:
             self = .initialization
+        case .createLogFile:
+            self = .createLogFile
         case .internalError:
             self = .internalError
         case .storage:
@@ -470,6 +488,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .nyxdConnectionFailure
         case .nyxdQueryFailure:
             self = .nyxdQueryFailure
+        case .invalidSecret:
+            self = .invalidSecret
         }
     }
 }

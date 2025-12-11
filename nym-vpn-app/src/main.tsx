@@ -95,6 +95,9 @@ dayjs.extend(duration);
       config?.disableIpv6 !== undefined ? config.disableIpv6 : defaultNoIpv6,
     allowLan:
       config?.allowLan !== undefined ? config.allowLan : defaultAllowLan,
+    customDnsEnabled:
+      config?.enableCustomDns !== undefined ? config.enableCustomDns : false,
+    customDns: !config?.customDns ? [] : config.customDns,
   };
   console.log('initial state:', initState);
 
