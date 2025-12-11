@@ -576,7 +576,6 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
         let performance = gateway.performance_v2.map(Performance::from);
 
         // If the SOCKS5 score is not available then take it from the mixnet score of the last probe.
-        // Note that we lift the value into its own field given it's difficult to access.
         let socks5_score_from_mixnet =
             |socks5: Option<Socks5>, performance: Option<&Performance>| -> Option<Socks5> {
                 if let Some(ref s) = socks5
