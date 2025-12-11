@@ -82,14 +82,28 @@ dayjs.extend(duration);
 
   const config = await invoke<VpndConfig | undefined>('get_vpn_config');
 
+  // Temporarily disable random node selection as default
+  const entryNode =
+    !config?.entryNode || config.entryNode === 'random'
+      ? DefaultNode
+      : config.entryNode;
+
+  const exitNode =
+    !config?.exitNode || config.exitNode === 'random'
+      ? DefaultNode
+      : config.exitNode;
+
   // pre-get and prepare some early stage state
   const initState: InitState = {
     vpnd: (await invoke<VpndStatus | undefined>('daemon_status')) || 'down',
     vpnMode: config?.vpnMode || defaultVpnMode,
     uiTheme: await getTheme(),
     welcomeChecked: (await kvGet<boolean>('welcome-screen-seen')) || false,
-    entryNode: config?.entryNode || DefaultNode,
-    exitNode: config?.exitNode || DefaultNode,
+    // Temporary
+    // entryNode: config?.entryNode || DefaultNode,
+    // exitNode: config?.exitNode || DefaultNode,
+    entryNode: entryNode,
+    exitNode: exitNode,
     quic: config?.bridges !== undefined ? config.bridges : defaultQuic,
     noIpv6:
       config?.disableIpv6 !== undefined ? config.disableIpv6 : defaultNoIpv6,
