@@ -79,7 +79,6 @@ pub struct SetParams {
         })
     )]
     pub message_sending_delay: Option<u32>,
-
     #[arg(
         long,
         help = "Disable Poisson process rate limiting for real traffic",
