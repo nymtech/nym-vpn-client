@@ -70,6 +70,7 @@ import net.nymtech.nymvpn.ui.screens.main.modal.NetworkStatsModal
 import net.nymtech.nymvpn.ui.screens.main.modal.ShowInfoModal
 import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.nymvpn.util.extensions.openWebUrl
@@ -111,13 +112,17 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	var didAutoStart by rememberSaveable { mutableStateOf(false) }
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
-	val connectionTime by viewModel.connectionTime.collectAsState()
+	val connectionSeconds by viewModel.connectionSeconds.collectAsState()
 	val isQuicFeatureFlagEnabled by viewModel.isQuicFeatureFlagEnabled.collectAsStateWithLifecycle()
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
 	var showBanner by remember { mutableStateOf(false) }
 	var showPerAppSecurityBanner by remember { mutableStateOf(false) }
+
+	val connectionTime = remember(connectionSeconds) {
+		connectionSeconds?.convertSecondsToTimeString()
+	}
 
 	with(appUiState.managerState) {
 		LaunchedEffect(tunnelState, connectionData?.connectedAt) {
