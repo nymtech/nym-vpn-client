@@ -156,8 +156,8 @@ function Home() {
       if (exitNode === 'random') {
         try {
           await invoke('set_node', {
-            node: window._APP.defaultVpnMode,
-            hop: DefaultNode,
+            node: DefaultNode,
+            hop: 'exit',
           });
           dispatch({
             type: 'set-node',
