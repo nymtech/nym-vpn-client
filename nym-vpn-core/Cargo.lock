@@ -5412,7 +5412,6 @@ dependencies = [
  "nym-network-defaults",
  "nym-offline-monitor",
  "nym-sdk",
- "nym-upgrade-mode-check",
  "nym-validator-client",
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
