@@ -12,7 +12,7 @@ import clsx from 'clsx';
 import { type } from '@tauri-apps/plugin-os';
 import { motion } from 'motion/react';
 import { NymVpnTextLogo } from '../assets';
-import { useDialog, useMainState } from '../contexts';
+import { useDialog, useMainState, useTopBar } from '../contexts';
 import { routes } from '../router';
 import { Routes } from '../types';
 import ButtonIcon from './ButtonIcon';
@@ -37,6 +37,7 @@ export default function TopBar() {
 
   const { uiTheme } = useMainState();
   const { show } = useDialog();
+  const { customLeftNavHandler } = useTopBar();
 
   const [currentNavLocation, setCurrentNavLocation] = useState<NavLocation>({
     title: '',
@@ -116,6 +117,13 @@ export default function TopBar() {
       },
       '/settings/logs': {
         title: t('logs'),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
+      '/settings/dns': {
+        title: t('dns.topbar-title', { ns: 'settings' }),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
@@ -243,6 +251,10 @@ export default function TopBar() {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);
   }, [location.pathname, navBarData]);
 
+  const defaultLeftNavHandler = () => {
+    navigate(-1);
+  };
+
   const renderTitle = (title?: string | ReactNode) => {
     if (typeof title === 'string') {
       return (
@@ -294,7 +306,11 @@ export default function TopBar() {
         >
           <ButtonIcon
             icon={currentNavLocation.leftIcon}
-            onClick={currentNavLocation.handleLeftNav!}
+            onClick={
+              customLeftNavHandler ??
+              currentNavLocation.handleLeftNav ??
+              defaultLeftNavHandler
+            }
             color="chalk"
             className="mx-4"
             noDefaultSize

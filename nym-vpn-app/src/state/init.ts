@@ -264,7 +264,18 @@ export async function initSecondBatch(
       },
     };
 
-  let requests: TauriReq<never>[] = [getAutostart];
+  const getDefaultDnsRq: TauriReq<() => Promise<string[] | undefined>> = {
+    name: 'getDefaultDnsRq',
+    request: () => invoke<string[]>('get_default_dns'),
+    onFulfilled: (dns) => {
+      dispatch({
+        type: 'set-default-dns',
+        dns: dns || [],
+      });
+    },
+  };
+
+  let requests: TauriReq<never>[] = [getAutostart, getDefaultDnsRq];
   if (initState.vpnd !== 'down') {
     requests = [getAccountLinksRq, getNetworkCompatRq, ...requests];
   }

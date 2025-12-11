@@ -21,6 +21,7 @@ export type TextInputProps = {
   leftIcon?: string;
   readonly?: boolean;
   clearable?: boolean;
+  color?: 'default' | 'gray';
 };
 
 function TextInput({
@@ -35,6 +36,7 @@ function TextInput({
   autoFocus,
   className,
   clearable = false,
+  color = 'default',
 }: TextInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
@@ -42,6 +44,15 @@ function TextInput({
 
   const handleClear = () => {
     onChange('');
+  };
+
+  const getColorClass = () => {
+    switch (color) {
+      case 'default':
+        return 'bg-faded-lavender dark:bg-ash';
+      case 'gray':
+        return 'bg-white dark:bg-charcoal';
+    }
   };
 
   return (
@@ -60,11 +71,12 @@ function TextInput({
         value={value}
         aria-multiline={true}
         className={clsx([
-          'text-base bg-faded-lavender dark:bg-ash transition',
+          'text-base transition',
           'w-full flex flex-row justify-between items-center py-3 px-4',
           'text-baltic-sea dark:text-white',
           'placeholder:text-iron dark:placeholder:text-bombay',
           ...inputStates,
+          getColorClass(),
           className,
           label && 'relative',
           leftIcon && 'pl-11',
@@ -81,7 +93,8 @@ function TextInput({
           className={clsx([
             'select-none absolute left-3 -top-2 px-1',
             'dark:text-white',
-            'bg-faded-lavender dark:bg-ash text-xs',
+            getColorClass(),
+            'text-xs',
           ])}
         >
           {label}

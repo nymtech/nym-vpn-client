@@ -32,6 +32,35 @@
       "description": "Make the app better in your language."
     }
   },
+  "dns": {
+    "title": "Customize DNS",
+    "topbar-title": "DNS customization",
+    "top-description": "By default, using Nym's recommended DNS servers. Configure custom servers below if needed.",
+    "view-default-dns": "View default DNS",
+    "hide-default-dns": "Hide default DNS",
+    "details": {
+      "title": "Use custom DNS servers",
+      "description": "Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity.",
+      "list-header": "Custom DNS servers",
+      "add": "Add",
+      "input-label": "DNS address",
+      "input-placeholder": "IPv4 or IPv6 address",
+      "apply": "Save changes",
+      "link": "Learn more about DNS",
+      "applied": "Custom DNS saved."
+    },
+    "error": {
+      "duplicate": "Duplicate DNS address",
+      "invalid": "Invalid DNS address format",
+      "failed": "Failed to apply DNS changes"
+    }
+  },
+  "confirmation-dialog": {
+    "title": "Save changes?",
+    "description": "You have unsaved changes.",
+    "save": "Save changes",
+    "cancel": "Discard"
+  },
   "legal": {
     "title": "Legal",
     "policy": "Privacy statement",

@@ -12,6 +12,7 @@ import {
   MainStateProvider,
   NodeListStateProvider,
   Socks5Provider,
+  TopBarProvider,
 } from './contexts';
 import { useLang } from './hooks';
 import { LngTag } from './i18n';
@@ -74,9 +75,11 @@ function App({ init }: { init: InitState }) {
                 <Socks5Provider>
                   <ThemeSetter>
                     <DialogProvider>
-                      <Suspense fallback={<RouteLoading />}>
-                        <RouterProvider router={router} />
-                      </Suspense>
+                      <TopBarProvider>
+                        <Suspense fallback={<RouteLoading />}>
+                          <RouterProvider router={router} />
+                        </Suspense>
+                      </TopBarProvider>
                     </DialogProvider>
                   </ThemeSetter>
                 </Socks5Provider>
