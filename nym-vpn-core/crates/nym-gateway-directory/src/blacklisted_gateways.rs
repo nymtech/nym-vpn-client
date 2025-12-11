@@ -2,6 +2,7 @@ use crate::NodeIdentity;
 use anyhow::{Result, anyhow};
 use std::{
     collections::HashMap,
+    hash::Hash,
     sync::{Arc, RwLock},
     time::{Duration, Instant},
 };
@@ -71,6 +72,14 @@ impl BlacklistedGateways {
 impl PartialEq for BlacklistedGateways {
     fn eq(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
+    }
+}
+
+impl Eq for BlacklistedGateways {}
+
+impl Hash for BlacklistedGateways {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        Arc::as_ptr(&self.0).hash(state);
     }
 }
 

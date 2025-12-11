@@ -11,6 +11,7 @@ use nym_vpn_api_client::{
 };
 use rand::seq::IteratorRandom;
 use std::{
+    collections::HashSet,
     fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     str::FromStr,
@@ -264,11 +265,11 @@ impl Gateway {
         }
     }
 
-    /// Tests whether the gateway matches all of the filters.
+    /// Tests whether the gateway matches all the filters.
     pub fn matches_all_filters(
         &self,
         gw_type: Option<GatewayType>,
-        filters: &[GatewayFilter],
+        filters: &GatewayFilters,
     ) -> bool {
         filters
             .iter()
@@ -309,7 +310,7 @@ pub struct Location {
     pub asn: Option<Asn>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ScoreValue {
     Offline,
     Low,
@@ -601,7 +602,7 @@ impl GatewayList {
             .collect()
     }
 
-    pub fn filter(&self, filters: &[GatewayFilter]) -> Vec<Gateway> {
+    pub fn filter(&self, filters: &GatewayFilters) -> Vec<Gateway> {
         self.gateways
             .iter()
             .filter(|gateway| gateway.matches_all_filters(self.gw_type, filters))
@@ -620,7 +621,7 @@ impl GatewayList {
         self.node_with_identity(identity)
     }
 
-    pub fn choose_random(&self, filters: &[GatewayFilter]) -> Option<Gateway> {
+    pub fn choose_random(&self, filters: &GatewayFilters) -> Option<Gateway> {
         self.filter(filters)
             .into_iter()
             .choose(&mut rand::thread_rng())
@@ -644,11 +645,17 @@ impl GatewayList {
     }
 
     pub fn into_exit_gateways(self) -> GatewayList {
-        Self::new(self.gw_type, self.filter(&[GatewayFilter::Exit]))
+        Self::new(
+            self.gw_type,
+            self.filter(&GatewayFilters::from(&[GatewayFilter::Exit])),
+        )
     }
 
     pub fn into_vpn_gateways(self) -> GatewayList {
-        Self::new(self.gw_type, self.filter(&[GatewayFilter::Vpn]))
+        Self::new(
+            self.gw_type,
+            self.filter(&GatewayFilters::from(&[GatewayFilter::Vpn])),
+        )
     }
 
     pub fn into_inner(self) -> Vec<Gateway> {
@@ -658,7 +665,7 @@ impl GatewayList {
     pub fn find_entry_gateway(
         &self,
         entry_point: &EntryPoint,
-        base_filters: &[GatewayFilter],
+        base_filters: &GatewayFilters,
     ) -> Result<Gateway> {
         match &entry_point {
             EntryPoint::Gateway { identity } => {
@@ -677,12 +684,7 @@ impl GatewayList {
                 );
 
                 let filters = base_filters
-                    .iter()
-                    .chain(&vec![GatewayFilter::Country(
-                        two_letter_iso_country_code.clone(),
-                    )])
-                    .cloned()
-                    .collect::<Vec<_>>();
+                    .with(&[GatewayFilter::Country(two_letter_iso_country_code.clone())]);
 
                 self.choose_random(&filters).ok_or_else(|| {
                     Error::NoMatchingEntryGatewayForLocation {
@@ -695,14 +697,10 @@ impl GatewayList {
                 tracing::debug!("Selecting entry gateway by region/state: {region}");
 
                 // Currently only supported in the US
-                let filters = base_filters
-                    .iter()
-                    .chain(&vec![
-                        GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
-                        GatewayFilter::Region(region.to_string()),
-                    ])
-                    .cloned()
-                    .collect::<Vec<_>>();
+                let filters = base_filters.with(&[
+                    GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
+                    GatewayFilter::Region(region.to_string()),
+                ]);
 
                 self.choose_random(&filters).ok_or_else(|| {
                     Error::NoMatchingEntryGatewayForLocation {
@@ -723,13 +721,12 @@ impl GatewayList {
     pub fn find_best_entry_gateway(
         &self,
         entry_point: &EntryPoint,
-        base_filters: &[GatewayFilter],
+        base_filters: &GatewayFilters,
     ) -> Result<Gateway> {
         for score in [ScoreValue::High, ScoreValue::Medium, ScoreValue::Low] {
             tracing::debug!("Looking for entry gateway with minimum score: {score}");
 
-            let mut filters = base_filters.to_vec();
-            filters.push(GatewayFilter::MinScore(score));
+            let filters = base_filters.with(&[GatewayFilter::MinScore(score)]);
 
             match self.find_entry_gateway(entry_point, &filters) {
                 Ok(gateway) => {
@@ -764,7 +761,7 @@ impl GatewayList {
     pub fn find_exit_gateway(
         &self,
         exit_point: &ExitPoint,
-        base_filters: &[GatewayFilter],
+        base_filters: &GatewayFilters,
     ) -> Result<Gateway> {
         match &exit_point {
             ExitPoint::Address { address } => {
@@ -798,12 +795,7 @@ impl GatewayList {
                 tracing::debug!("Selecting exit gateway by country: {two_letter_iso_country_code}");
 
                 let filters = base_filters
-                    .iter()
-                    .chain(&vec![GatewayFilter::Country(
-                        two_letter_iso_country_code.clone(),
-                    )])
-                    .cloned()
-                    .collect::<Vec<_>>();
+                    .with(&[GatewayFilter::Country(two_letter_iso_country_code.clone())]);
 
                 self.choose_random(&filters).ok_or_else(|| {
                     Error::NoMatchingExitGatewayForLocation {
@@ -816,14 +808,10 @@ impl GatewayList {
                 tracing::debug!("Selecting exit gateway by region/state: {region}");
 
                 // Currently only supported in the US
-                let filters = base_filters
-                    .iter()
-                    .chain(&vec![
-                        GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
-                        GatewayFilter::Region(region.to_string()),
-                    ])
-                    .cloned()
-                    .collect::<Vec<_>>();
+                let filters = base_filters.with(&[
+                    GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
+                    GatewayFilter::Region(region.to_string()),
+                ]);
 
                 self.choose_random(&filters).ok_or_else(|| {
                     Error::NoMatchingExitGatewayForLocation {
@@ -844,13 +832,12 @@ impl GatewayList {
     pub fn find_best_exit_gateway(
         &self,
         exit_point: &ExitPoint,
-        base_filters: &[GatewayFilter],
+        base_filters: &GatewayFilters,
     ) -> Result<Gateway> {
         for score in [ScoreValue::High, ScoreValue::Medium, ScoreValue::Low] {
             tracing::debug!("Looking for entry gateway with minimum score: {score}");
 
-            let mut filters = base_filters.to_vec();
-            filters.push(GatewayFilter::MinScore(score));
+            let filters = base_filters.with(&[GatewayFilter::MinScore(score)]);
             match self.find_exit_gateway(exit_point, &filters) {
                 Ok(gateway) => {
                     return Ok(gateway);
@@ -987,7 +974,7 @@ impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GatewayFilter {
     MinScore(ScoreValue),                // Mixnet or Wg score
     Country(String),                     // Two-letter ISO country code
@@ -999,10 +986,43 @@ pub enum GatewayFilter {
     NotBlacklisted(BlacklistedGateways), // Is not in the blacklist
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct GatewayFilters {
+#[derive(Debug, Clone, Default)]
+pub struct GatewayFilters(HashSet<GatewayFilter>);
+
+impl GatewayFilters {
+    pub fn from(filters: &[GatewayFilter]) -> Self {
+        GatewayFilters(filters.iter().cloned().collect())
+    }
+
+    pub fn with(&self, other: &[GatewayFilter]) -> Self {
+        let mut new_self = self.clone();
+        for filter in other {
+            new_self.0.insert(filter.clone());
+        }
+        new_self
+    }
+
+    pub fn add(&mut self, filter: GatewayFilter) {
+        self.0.insert(filter);
+    }
+
+    pub fn remove(&mut self, filter: &GatewayFilter) {
+        self.0.remove(filter);
+    }
+
+    pub fn contains(&self, filter: &GatewayFilter) -> bool {
+        self.0.contains(filter)
+    }
+
+    pub fn iter(&self) -> std::collections::hash_set::Iter<'_, GatewayFilter> {
+        self.0.iter()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LookupGatewayFilters {
     pub gw_type: GatewayType,
-    pub filters: Vec<GatewayFilter>,
+    pub filters: GatewayFilters,
 }
 
 #[cfg(test)]
@@ -1255,21 +1275,27 @@ mod tests {
 
         assert!(
             gateway_list
-                .choose_random(&[GatewayFilter::Country("US".into())])
+                .choose_random(&GatewayFilters::from(&[GatewayFilter::Country(
+                    "US".into()
+                )]))
                 .unwrap()
                 .is_in_country("US")
         );
 
         assert!(
             gateway_list
-                .choose_random(&[GatewayFilter::Country("DE".into())])
+                .choose_random(&GatewayFilters::from(&[GatewayFilter::Country(
+                    "DE".into()
+                )]))
                 .unwrap()
                 .is_in_country("DE")
         );
 
         assert!(
             gateway_list
-                .choose_random(&[GatewayFilter::Country("BE".into())])
+                .choose_random(&GatewayFilters::from(&[GatewayFilter::Country(
+                    "BE".into()
+                )]))
                 .is_none()
         );
     }
@@ -1280,30 +1306,30 @@ mod tests {
 
         assert!(
             gateway_list
-                .choose_random(&[
+                .choose_random(&GatewayFilters::from(&[
                     GatewayFilter::Country("US".into()),
                     GatewayFilter::Region("CA".into())
-                ])
+                ]))
                 .unwrap()
                 .is_in_region("CA")
         );
 
         assert!(
             gateway_list
-                .choose_random(&[
+                .choose_random(&GatewayFilters::from(&[
                     GatewayFilter::Country("GB".into()),
                     GatewayFilter::Region("Hampshire".into())
-                ])
+                ]))
                 .unwrap()
                 .is_in_region("Hampshire")
         );
 
         assert!(
             gateway_list
-                .choose_random(&[
+                .choose_random(&GatewayFilters::from(&[
                     GatewayFilter::Country("DE".into()),
                     GatewayFilter::Region("XZ".into())
-                ])
+                ]))
                 .is_none()
         );
     }
@@ -1318,7 +1344,9 @@ mod tests {
 
         for _ in 0..64 {
             let chosen = gateway_list
-                .choose_random(&[GatewayFilter::NotBlacklisted(blacklisted_gateways.clone())])
+                .choose_random(&GatewayFilters::from(&[GatewayFilter::NotBlacklisted(
+                    blacklisted_gateways.clone(),
+                )]))
                 .unwrap();
             assert_ne!(chosen.identity, blacklisted);
         }
@@ -1478,9 +1506,7 @@ mod tests {
         );
 
         // Without Low fallback, this would fail
-        let blacklisted_gateways = BlacklistedGateways::new();
-        let base_filters =
-            GatewayList::build_entry_filters(Some(ScoreValue::Low), &blacklisted_gateways);
+        let base_filters = GatewayFilters::from(&[GatewayFilter::MinScore(ScoreValue::Low)]);
         let result = gateways.find_entry_gateway(&entry_point, &base_filters);
         assert!(result.is_ok());
         assert_eq!(

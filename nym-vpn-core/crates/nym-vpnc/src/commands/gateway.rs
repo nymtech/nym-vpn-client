@@ -5,7 +5,7 @@ use anyhow::{Result, anyhow};
 use tabled::Table;
 
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, GatewayFilter, GatewayFilters, ListGatewaysOptions, NodeIdentity,
+    EntryPoint, ExitPoint, GatewayFilter, ListGatewaysOptions, LookupGatewayFilters, NodeIdentity,
     Recipient,
 };
 use nym_vpn_proto::rpc_client::RpcClient;
@@ -235,8 +235,8 @@ impl Args {
         Ok(())
     }
 
-    fn build_filters(gw_type: GatewayType, filters: FilterArgs) -> GatewayFilters {
-        let mut gateway_filters = GatewayFilters {
+    fn build_filters(gw_type: GatewayType, filters: FilterArgs) -> LookupGatewayFilters {
+        let mut gateway_filters = LookupGatewayFilters {
             gw_type: gw_type.into(),
             filters: Vec::new(),
         };

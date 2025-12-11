@@ -3,8 +3,8 @@
 
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
-    EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewayFilters, HttpRpcSettings,
-    ListGatewaysOptions, LogPath, NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice,
+    EntryPoint, ExitPoint, FeatureFlags, Gateway, HttpRpcSettings, ListGatewaysOptions, LogPath,
+    LookupGatewayFilters, NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice,
     NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status,
     StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
@@ -284,9 +284,9 @@ impl RpcClient {
 
     pub async fn list_filtered_gateways(
         &mut self,
-        filters: GatewayFilters,
+        filters: LookupGatewayFilters,
     ) -> Result<Vec<Gateway>> {
-        let request = proto::GatewayFilters::from(filters);
+        let request = proto::LookupGatewayFilters::from(filters);
 
         let gateways = self
             .0

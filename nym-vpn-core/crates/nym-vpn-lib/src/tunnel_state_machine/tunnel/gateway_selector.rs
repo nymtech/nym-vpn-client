@@ -6,7 +6,7 @@ use std::sync::Arc;
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{
     BlacklistedGateways, EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayFilter,
-    GatewayList, GatewayType,
+    GatewayFilters, GatewayList, GatewayType,
 };
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
@@ -122,9 +122,9 @@ pub async fn select_gateways(
     tracing::info!("Found {} exit gateways", exit_gateways.len());
 
     let exit_filters = if tunnel_settings.residential_exit {
-        vec![GatewayFilter::Residential, GatewayFilter::Exit]
+        GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
     } else {
-        vec![]
+        GatewayFilters::default()
     };
 
     let exit_gateway = exit_gateways
@@ -135,11 +135,11 @@ pub async fn select_gateways(
     entry_gateways.remove_gateway(&exit_gateway);
 
     let entry_filters = if blacklisted_entry_gateways.is_empty().unwrap_or(true) {
-        vec![]
+        GatewayFilters::default()
     } else {
-        vec![GatewayFilter::NotBlacklisted(
+        GatewayFilters::from(&[GatewayFilter::NotBlacklisted(
             blacklisted_entry_gateways.clone(),
-        )]
+        )])
     };
 
     let entry_gateway = entry_gateways

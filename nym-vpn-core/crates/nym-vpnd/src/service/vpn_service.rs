@@ -23,7 +23,7 @@ use super::{
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
-use nym_gateway_directory::GatewayFilter;
+use nym_gateway_directory::{GatewayFilter, GatewayFilters};
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
 };
@@ -40,10 +40,10 @@ use nym_vpn_lib::{
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
     DecentralisedObtainTicketbooksRequest, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility,
-    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState,
-    VpnServiceConfig, VpnServiceInfo,
+    FeatureFlags, Gateway, ListGatewaysOptions, LogPath, LookupGatewayFilters,
+    NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice,
+    NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest, SystemMessage,
+    TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -79,7 +79,7 @@ pub enum VpnServiceCommand {
     ),
     ListFilteredGateways(
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
-        GatewayFilters,
+        LookupGatewayFilters,
     ),
     EnableSocks5(
         oneshot::Sender<Result<(), Socks5Error>>,
@@ -1100,7 +1100,7 @@ impl NymVpnService {
 
     async fn handle_list_filtered_gateways(
         &self,
-        filters: GatewayFilters,
+        filters: LookupGatewayFilters,
         completion_tx: oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
     ) {
         let gateway_client = self.gateway_cache_handle.clone();
@@ -1133,7 +1133,7 @@ impl NymVpnService {
             })?;
 
         // Filter for gateways that support SOCKS5
-        let socks5_gateways = gateway_directory::GatewayList::new(
+        let exit_gateways = gateway_directory::GatewayList::new(
             Some(gateway_directory::GatewayType::MixnetExit),
             exit_gateways
                 .into_iter()
@@ -1161,16 +1161,16 @@ impl NymVpnService {
                 );
 
                 // Convert to gateway_directory types for lookup
-                let exit_point_dir: nym_gateway_directory::ExitPoint = exit_point.clone().into();
+                let exit_point: nym_gateway_directory::ExitPoint = exit_point.clone().into();
 
                 let exit_filters = if self.config_manager.config().residential_exit {
-                    vec![GatewayFilter::Residential, GatewayFilter::Exit]
+                    GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
                 } else {
-                    vec![]
+                    GatewayFilters::default()
                 };
 
-                let selected_gateway = socks5_gateways
-                    .find_best_exit_gateway(&exit_point_dir, &exit_filters)
+                let selected_gateway = exit_gateways
+                    .find_best_exit_gateway(&exit_point, &exit_filters)
                     .map_err(|e| {
                         Socks5Error::InvalidConfig(format!("Failed to select exit gateway: {e}"))
                     })?;

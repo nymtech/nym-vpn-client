@@ -14,8 +14,8 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    Error, Gateway, GatewayClient, GatewayFilters, GatewayList, GatewayType, NymNode, NymNodeList,
-    error::Result,
+    Error, Gateway, GatewayClient, GatewayList, GatewayType, LookupGatewayFilters, NymNode,
+    NymNodeList, error::Result,
 };
 
 /// The maximum age of the cache before it is considered stale.
@@ -47,7 +47,10 @@ impl GatewayCacheHandle {
         rx.await.map_err(|_| Error::Cancelled)?
     }
 
-    pub async fn lookup_filtered_gateways(&self, filters: GatewayFilters) -> Result<Vec<Gateway>> {
+    pub async fn lookup_filtered_gateways(
+        &self,
+        filters: LookupGatewayFilters,
+    ) -> Result<Vec<Gateway>> {
         let (tx, rx) = tokio::sync::oneshot::channel();
         self.tx
             .send(Command::LookupFilteredGateways(filters, tx))
@@ -88,7 +91,7 @@ enum Command {
         tokio::sync::oneshot::Sender<Result<GatewayList>>,
     ),
     LookupFilteredGateways(
-        GatewayFilters,
+        LookupGatewayFilters,
         tokio::sync::oneshot::Sender<Result<Vec<Gateway>>>,
     ),
     LookupGatewayIp(
@@ -307,7 +310,10 @@ impl GatewayCache {
         }
     }
 
-    async fn lookup_filtered_gateways(&mut self, filters: GatewayFilters) -> Result<Vec<Gateway>> {
+    async fn lookup_filtered_gateways(
+        &mut self,
+        filters: LookupGatewayFilters,
+    ) -> Result<Vec<Gateway>> {
         let gw_list = self.lookup_gateways(filters.gw_type).await?;
         Ok(gw_list.filter(&filters.filters))
     }

@@ -672,7 +672,7 @@ message GatewayFilter {
   }
 }
 
-message GatewayFilters {
+message LookupGatewayFilters {
   GatewayType kind = 1;
   repeated GatewayFilter filters = 2;
 }
@@ -845,12 +845,12 @@ message NetworkStatsResetSeedRequest {
 }
 
 message NetworkStatisticsIdentity {
-    string seed = 1;
-    string id = 2;
+  string seed = 1;
+  string id = 2;
 }
 
 message PrivyDerivationMessage {
-    string message = 1;
+  string message = 1;
 }
 
 service NymVpnService {
@@ -906,7 +906,7 @@ service NymVpnService {
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
 
   // Get a filtered list of gateways for the selected mode and filters
-  rpc ListFilteredGateways (GatewayFilters) returns (ListGatewaysResponse) {}
+  rpc ListFilteredGateways (LookupGatewayFilters) returns (ListGatewaysResponse) {}
 
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
