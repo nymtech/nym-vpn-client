@@ -950,6 +950,7 @@ jobs:
           mkdir -p "$PUBLISH_DIR"
 
           cp "$ZIP_FILE" "$PUBLISH_DIR/"
+          cp "$FINAL_PKG_PATH" "$PUBLISH_DIR/"
           cp appcast.xml "$PUBLISH_DIR/"
           cp sha256-hash.txt "$PUBLISH_DIR/"
 
