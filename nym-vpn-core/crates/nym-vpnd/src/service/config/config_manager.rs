@@ -162,38 +162,43 @@ impl VpnServiceConfigManager {
 
     #[allow(unused)]
     pub async fn set_disable_poisson_rate(&mut self, disable_poisson_rate: bool) {
-        if self.config.disable_poisson_rate != disable_poisson_rate {
-            self.config.disable_poisson_rate = disable_poisson_rate;
+        if self.config.mixnet_traffic.disable_poisson_rate != disable_poisson_rate {
+            self.config.mixnet_traffic.disable_poisson_rate = disable_poisson_rate;
             self.save_config_and_send_event().await;
         }
     }
 
     #[allow(unused)]
     pub async fn set_disable_background_cover_traffic(&mut self, disable: bool) {
-        if self.config.disable_background_cover_traffic != disable {
-            self.config.disable_background_cover_traffic = disable;
+        if self.config.mixnet_traffic.disable_background_cover_traffic != disable {
+            self.config.mixnet_traffic.disable_background_cover_traffic = disable;
             self.save_config_and_send_event().await;
         }
     }
+
     #[allow(unused)]
     pub async fn set_poisson_parameter(&mut self, poisson: u32) {
-        self.config.poisson_parameter = Some(poisson);
+        self.config.mixnet_traffic.poisson_parameter = Some(poisson);
         self.save_config_and_send_event().await;
     }
+
     #[allow(unused)]
     pub async fn set_message_sending_average_delay(&mut self, message_sending_delay: Option<u32>) {
-        self.config.message_sending_average_delay = message_sending_delay;
+        self.config.mixnet_traffic.message_sending_average_delay = message_sending_delay;
         self.save_config_and_send_event().await;
     }
+
     #[allow(unused)]
     pub async fn set_average_packet_delay(&mut self, average_delay: Option<u32>) {
-        self.config.average_packet_delay = average_delay;
+        self.config.mixnet_traffic.average_packet_delay = average_delay;
         self.save_config_and_send_event().await;
     }
+
     #[allow(unused)]
     pub async fn set_min_mixnode_performance(&mut self, min_mixnode_performance: Option<u8>) {
-        if self.config.min_mixnode_performance != min_mixnode_performance {
-            self.config.min_mixnode_performance = min_mixnode_performance.map(|u| u.min(100));
+        if self.config.mixnet_traffic.min_mixnode_performance != min_mixnode_performance {
+            self.config.mixnet_traffic.min_mixnode_performance =
+                min_mixnode_performance.map(|u| u.min(100));
             self.save_config_and_send_event().await;
         }
     }
@@ -203,8 +208,10 @@ impl VpnServiceConfigManager {
         &mut self,
         min_gateway_mixnet_performance: Option<u8>,
     ) {
-        if self.config.min_gateway_mixnet_performance != min_gateway_mixnet_performance {
-            self.config.min_gateway_mixnet_performance =
+        if self.config.mixnet_traffic.min_gateway_mixnet_performance
+            != min_gateway_mixnet_performance
+        {
+            self.config.mixnet_traffic.min_gateway_mixnet_performance =
                 min_gateway_mixnet_performance.map(|u| u.min(100));
             self.save_config_and_send_event().await;
         }
@@ -335,26 +342,31 @@ impl VpnServiceConfigManager {
         tracing::info!("Using config: {:?}", self.config);
 
         let gateway_options = GatewayPerformanceOptions {
-            mixnet_min_performance: self.config.min_gateway_mixnet_performance,
+            mixnet_min_performance: self.config.mixnet_traffic.min_gateway_mixnet_performance,
             vpn_min_performance: self.config.min_gateway_vpn_performance,
         };
 
         let mixnet_client_config = MixnetClientConfig {
-            disable_poisson_rate: self.config.disable_poisson_rate,
-            disable_background_cover_traffic: self.config.disable_background_cover_traffic,
+            disable_poisson_rate: self.config.mixnet_traffic.disable_poisson_rate,
+            disable_background_cover_traffic: self
+                .config
+                .mixnet_traffic
+                .disable_background_cover_traffic,
             min_mixnode_performance: Some(
                 self.config
+                    .mixnet_traffic
                     .min_mixnode_performance
                     .unwrap_or(DEFAULT_MIN_MIXNODE_PERFORMANCE),
             ),
             min_gateway_performance: Some(
                 self.config
+                    .mixnet_traffic
                     .min_gateway_mixnet_performance
                     .unwrap_or(DEFAULT_MIN_GATEWAY_PERFORMANCE),
             ),
-            poisson_rate: self.config.poisson_parameter,
-            average_packet_delay: self.config.average_packet_delay,
-            message_sending_average_delay: self.config.message_sending_average_delay,
+            poisson_rate: self.config.mixnet_traffic.poisson_parameter,
+            average_packet_delay: self.config.mixnet_traffic.average_packet_delay,
+            message_sending_average_delay: self.config.mixnet_traffic.message_sending_average_delay,
         };
 
         let tunnel_type = if self.config.enable_two_hop {

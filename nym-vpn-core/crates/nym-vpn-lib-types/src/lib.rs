@@ -78,7 +78,7 @@ pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
     ListGatewaysOptions, StoreAccountRequest,
 };
-pub use service::{TargetState, VpnServiceConfig, VpnServiceInfo};
+pub use service::{MixnetTrafficConfig, TargetState, VpnServiceConfig, VpnServiceInfo};
 pub use socks5::{HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 pub use tunnel_event::{
     BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,

@@ -245,25 +245,17 @@ message Threshold {
   uint32 min_performance = 1;
 }
 
-message ConnectRequest {
-  EntryNode entry = 1;
-  ExitNode exit = 2;
-  Dns dns = 3;
-  bool disable_ipv6 = 14;
-  bool enable_two_hop = 5;
-  bool enable_bridges = 21;
-  bool netstack = 13;
-  bool disable_poisson_rate = 6;
-  bool disable_background_cover_traffic = 7;
-  bool enable_credentials_mode = 8;
-  UserAgent user_agent = 12;
-}
+message MixnetTrafficConfig {
+  optional uint32 poisson_parameter = 1;
+  optional uint32 average_packet_delay = 2;
+  optional uint32 message_sending_average_delay = 3;
 
-message SetPoissonParameterRequest {
-  uint32 poisson_parameter = 1;
-}
+  bool disable_poisson_rate = 4;
+  bool disable_background_cover_traffic = 5;
 
-message SetPoissonParameterResponse {}
+  optional uint32 min_mixnode_performance = 6;
+  optional uint32 min_gateway_mixnet_performance = 7;
+}
 
 message VpnServiceConfig {
   EntryNode entry_point = 1;
@@ -274,17 +266,14 @@ message VpnServiceConfig {
   bool enable_bridges = 21;
   bool residential_exit = 15;
   bool netstack = 13;
-  bool disable_poisson_rate = 6;
-  bool disable_background_cover_traffic = 7;
-  optional uint32 min_mixnode_performance = 8;
-  optional uint32 min_gateway_mixnet_performance = 9;
-  optional uint32 min_gateway_vpn_performance = 10;
+
   bool enable_custom_dns = 17;
   IpAddrList custom_dns = 16;
+  optional uint32 min_gateway_vpn_performance = 10;
+
   NetworkStatsConfig network_stats = 18;
-  optional uint32 poisson_parameter = 24;
-  optional uint32 average_packet_delay = 22;
-  optional uint32 message_sending_average_delay = 23;
+
+  MixnetTrafficConfig mixnet_traffic = 25;
 }
 
 message NetworkStatsConfig {
@@ -823,9 +812,6 @@ message DeleteLogFileResponse {
   bool success = 1;
   DeleteLogFileError error = 2;
 }
-message SetAveragePacketDelayRequest {
-    uint32 delay_ms = 1;
-}
 
 // Enable SOCKS5 proxy request
 message EnableSocks5Request {
@@ -875,11 +861,16 @@ message SetMessageSendingAverageDelayRequest {
 message SetDisablePoissonRateRequest {
   bool disable = 1;
 }
+message SetPoissonParameterRequest {
+  uint32 poisson_parameter = 1;
+}
+message SetAveragePacketDelayRequest {
+    uint32 delay_ms = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
-  rpc SetPoissonParameter (SetPoissonParameterRequest) returns (google.protobuf.Empty);
-   rpc SetDisablePoissonRate (SetDisablePoissonRateRequest) returns (google.protobuf.Empty);
   // Get the VPN service configuration
   rpc GetConfig (google.protobuf.Empty) returns (GetConfigResponse) {}
 
@@ -894,6 +885,10 @@ service NymVpnService {
   rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableCustomDns (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetCustomDns (IpAddrList) returns (google.protobuf.Empty) {}
+  rpc SetPoissonParameter (SetPoissonParameterRequest) returns (google.protobuf.Empty);
+  rpc SetDisablePoissonRate (SetDisablePoissonRateRequest) returns (google.protobuf.Empty);
+  rpc SetAveragePacketDelay(SetAveragePacketDelayRequest) returns (google.protobuf.Empty);
+  rpc SetMessageSendingAverageDelay(SetMessageSendingAverageDelayRequest) returns (google.protobuf.Empty);
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
@@ -1016,6 +1011,4 @@ service NymVpnService {
 
   // Get socks5 proxy status
   rpc GetSocks5Status (google.protobuf.Empty) returns (Socks5Status) {}
-  rpc SetAveragePacketDelay(SetAveragePacketDelayRequest) returns (google.protobuf.Empty);
-  rpc SetMessageSendingAverageDelay(SetMessageSendingAverageDelayRequest) returns (google.protobuf.Empty);
 }
