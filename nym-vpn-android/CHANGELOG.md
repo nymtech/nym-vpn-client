@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Add restricted apps for tunnel configurations (https://github.com/nymtech/nym-vpn-client/pull/4162)
+- Fix for connection timer random reset (https://github.com/nymtech/nym-vpn-client/pull/4174)
 
 ## [2.5.0] - 2025-12-03
 
