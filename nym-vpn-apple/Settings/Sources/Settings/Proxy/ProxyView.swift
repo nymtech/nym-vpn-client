@@ -74,7 +74,6 @@ private extension ProxyView {
                     )
                 ),
                 title: "proxy.status.title".localizedString,
-                subtitle: "proxy.status.subtitle".localizedString,
                 position: .init(isFirst: true, isLast: true),
                 action: {}
             ),
@@ -82,7 +81,7 @@ private extension ProxyView {
                 vpnAndProxyStatusDetails()
             }
         )
-        .padding(.bottom, 24)
+        .padding(.bottom, 16)
     }
 
     @ViewBuilder
@@ -98,25 +97,12 @@ private extension ProxyView {
 private extension ProxyView {
     func vpnAndProxyStatusDetails() -> some View {
         VStack {
-            let statusButtonConfig = StatusButtonConfig(
-                tunnelStatus: viewModel.connectionManager.currentTunnelStatus,
-                hasInternet: true
-            )
-            detailsSection(
-                title: "proxy.vpnStatus".localizedString,
-                details: statusButtonConfig.title,
-                color: vpnStatusColor()
-            )
-            .padding(.bottom, 12)
-            Divider()
-                .frame(height: 1)
-                .overlay(NymColor.gray2)
             detailsSection(
                 title: "proxy.proxyStatus".localizedString,
                 details: proxyStatusText(),
                 color: proxyStatusColor()
             )
-            .padding(.vertical, 12)
+            .padding(.bottom, 12)
             Divider()
                 .frame(height: 1)
                 .overlay(NymColor.gray2)
@@ -127,7 +113,8 @@ private extension ProxyView {
             )
             .padding(.top, 12)
         }
-        .padding(.vertical, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 16)
     }
 
     func detailsSection(title: String, details: String, color: Color) -> some View {
@@ -139,17 +126,6 @@ private extension ProxyView {
             Text(details)
                 .foregroundStyle(color)
                 .textStyle(.Body.Medium.bold)
-        }
-    }
-
-    func vpnStatusColor() -> Color {
-        switch viewModel.connectionManager.currentTunnelStatus {
-        case .connected:
-            NymColor.action
-        case .disconnected:
-            NymColor.error
-        default:
-            NymColor.warning
         }
     }
 
