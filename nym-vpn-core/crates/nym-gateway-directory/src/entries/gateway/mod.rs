@@ -244,6 +244,19 @@ impl Gateway {
         }
     }
 
+    pub fn meets_socks5_score(&self, min_socks5_score: ScoreValue) -> bool {
+        self.last_probe
+            .as_ref()
+            .and_then(|probe| {
+                probe.outcome.as_exit.as_ref().and_then(|exit| {
+                    exit.socks5
+                        .as_ref()
+                        .and_then(|socks5| socks5.score.as_ref())
+                })
+            })
+            .is_some_and(|score| *score >= min_socks5_score)
+    }
+
     pub fn not_mixnet_blacklisted(&self) -> bool {
         // Currently the mixnet blacklisting threshold is 50%, so let's take a slightly bigger number
         // in case of caching differences between VPN API and mixnet API
@@ -256,6 +269,7 @@ impl Gateway {
     pub fn matches_filter(&self, gw_type: Option<GatewayType>, filter: &GatewayFilter) -> bool {
         match filter {
             GatewayFilter::MinScore(score) => self.meets_score(gw_type, *score),
+            GatewayFilter::MinSocks5Score(score) => self.meets_socks5_score(*score),
             GatewayFilter::Country(code) => self.is_in_country(code),
             GatewayFilter::Region(region) => self.is_in_region(region),
             GatewayFilter::Residential => self.is_residential_asn(),
@@ -388,6 +402,13 @@ pub struct ProbeOutcome {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct Socks5 {
+    pub can_proxy_https: bool,
+    pub score: Option<ScoreValue>,
+    pub errors: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Entry {
     pub can_connect: bool,
     pub can_route: bool,
@@ -400,6 +421,7 @@ pub struct Exit {
     pub can_route_ip_external_v4: bool,
     pub can_route_ip_v6: bool,
     pub can_route_ip_external_v6: bool,
+    pub socks5: Option<Socks5>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -503,6 +525,7 @@ impl From<nym_vpn_api_client::response::Exit> for Exit {
             can_route_ip_external_v4: exit.can_route_ip_external_v4,
             can_route_ip_v6: exit.can_route_ip_v6,
             can_route_ip_external_v6: exit.can_route_ip_external_v6,
+            socks5: None, // TODO: Fill from exit.socks5 when available
         }
     }
 }
@@ -548,6 +571,43 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             .map(|ip| ip.to_string());
         let host = hostname.or(first_ip_address);
 
+        let mut last_probe = gateway.last_probe.map(Probe::from);
+
+        let performance = gateway.performance_v2.map(Performance::from);
+
+        // If the SOCKS5 score is not available then take it from the mixnet score of the last probe.
+        // Note that we lift the value into its own field given it's difficult to access.
+        let socks5_score_from_mixnet =
+            |socks5: Option<Socks5>, performance: Option<&Performance>| -> Option<Socks5> {
+                if let Some(ref s) = socks5
+                    && s.score.is_some()
+                {
+                    // Already have a score, nothing to do here
+                    return socks5;
+                }
+
+                let performance = performance?;
+                let mixnet_score = Some(performance.mixnet_score);
+
+                match socks5 {
+                    Some(mut s) => {
+                        s.score = mixnet_score;
+                        Some(s)
+                    }
+                    None => Some(Socks5 {
+                        can_proxy_https: false,
+                        score: mixnet_score,
+                        errors: None,
+                    }),
+                }
+            };
+
+        if let Some(probe) = last_probe.as_mut()
+            && let Some(exit) = probe.outcome.as_exit.as_mut()
+        {
+            exit.socks5 = socks5_score_from_mixnet(exit.socks5.clone(), performance.as_ref());
+        }
+
         Ok(Gateway {
             identity,
             name: gateway.name,
@@ -557,13 +617,13 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             authenticator_address,
             nr_address: None,
             bridge_params: gateway.bridges,
-            last_probe: gateway.last_probe.map(Probe::from),
+            last_probe,
             ips: gateway.ip_addresses,
             host,
             clients_ws_port: Some(gateway.entry.ws_port),
             clients_wss_port: gateway.entry.wss_port,
             mixnet_performance: Some(gateway.performance),
-            performance: gateway.performance_v2.map(Performance::from),
+            performance,
             version: gateway.build_information.map(|info| info.build_version),
         })
     }
@@ -880,6 +940,50 @@ impl GatewayList {
         }
     }
 
+    /// Find the "best" SOCKS5 gateway that matches `exit_point` using a descending score system.
+    /// If no gateway matches the highest score, it will try the next lower score, and so on.
+    pub fn find_best_socks5_gateway(
+        &self,
+        exit_point: &ExitPoint,
+        base_filters: &GatewayFilters,
+    ) -> Result<Gateway> {
+        for score in [ScoreValue::High, ScoreValue::Medium, ScoreValue::Low] {
+            tracing::debug!("Looking for entry gateway with minimum score: {score}");
+
+            let filters = base_filters.with(&[GatewayFilter::MinSocks5Score(score)]);
+            match self.find_exit_gateway(exit_point, &filters) {
+                Ok(gateway) => {
+                    return Ok(gateway);
+                }
+                Err(err) => {
+                    if !err.is_unmatched_non_specific_gateway() {
+                        return Err(err);
+                    }
+                    // continue
+                }
+            }
+        }
+        match exit_point {
+            ExitPoint::Address { address } => Err(Error::NoMatchingGateway {
+                requested_identity: address.to_string(),
+            }),
+            ExitPoint::Gateway { identity } => Err(Error::NoMatchingGateway {
+                requested_identity: identity.to_string(),
+            }),
+            ExitPoint::Country {
+                two_letter_iso_country_code,
+            } => Err(Error::NoMatchingEntryGatewayForLocation {
+                requested_location: two_letter_iso_country_code.clone(),
+                available_countries: self.all_iso_codes(),
+            }),
+            ExitPoint::Region { region } => Err(Error::NoMatchingEntryGatewayForLocation {
+                requested_location: region.clone(),
+                available_countries: self.all_iso_codes(),
+            }),
+            ExitPoint::Random => Err(Error::FailedToSelectGatewayRandomly),
+        }
+    }
+
     pub fn build_entry_filters(
         min_score: Option<ScoreValue>,
         blacklisted_gateways: &BlacklistedGateways,
@@ -986,6 +1090,7 @@ impl From<GatewayType> for nym_vpn_api_client::types::GatewayType {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GatewayFilter {
     MinScore(ScoreValue),                // Mixnet or Wg score
+    MinSocks5Score(ScoreValue),          // SOCKS5 score
     Country(String),                     // Two-letter ISO country code
     Region(String),                      // Region name
     Residential,                         // Has a residential ASN

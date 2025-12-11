@@ -1155,10 +1155,7 @@ impl NymVpnService {
             ExitPoint::Gateway { identity } => NodeIdentity::from(*identity.inner()),
             ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
                 // For non-specific exit points, select a gateway the same way the VPN does
-                tracing::info!(
-                    "Selecting SOCKS5 exit node for exit point: {:?}",
-                    exit_point
-                );
+                tracing::debug!("Selecting SOCKS5 exit node for exit point: {exit_point:?}",);
 
                 // Convert to gateway_directory types for lookup
                 let exit_point: nym_gateway_directory::ExitPoint = exit_point.clone().into();
@@ -1170,9 +1167,11 @@ impl NymVpnService {
                 };
 
                 let selected_gateway = exit_gateways
-                    .find_best_exit_gateway(&exit_point, &exit_filters)
+                    .find_best_socks5_gateway(&exit_point, &exit_filters)
                     .map_err(|e| {
-                        Socks5Error::InvalidConfig(format!("Failed to select exit gateway: {e}"))
+                        Socks5Error::InvalidConfig(format!(
+                            "Failed to select SOCKS5 exit gateway: {e}"
+                        ))
                     })?;
 
                 tracing::info!(

@@ -1,5 +1,3 @@
-use nym_vpn_api_client::response::QuicClientOptions;
-
 use super::*;
 
 #[test]
@@ -151,11 +149,13 @@ fn test_matching_quic_enabled() {
         )
         .bridge_params(Some(BridgeInformation {
             version: String::from("1"),
-            transports: vec![BridgeParameters::QuicPlain(QuicClientOptions {
-                addresses: vec!["1.2.3.4:5".parse().unwrap()],
-                host: Some(String::from("test.host")),
-                id_pubkey: String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"),
-            })],
+            transports: vec![BridgeParameters::QuicPlain(
+                nym_vpn_api_client::response::QuicClientOptions {
+                    addresses: vec!["1.2.3.4:5".parse().unwrap()],
+                    host: Some(String::from("test.host")),
+                    id_pubkey: String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"),
+                },
+            )],
         }))
         .build();
 
@@ -319,6 +319,60 @@ fn test_gateway_non_blacklisted() {
     }
 }
 
+#[test]
+fn test_low_performance_fallback_for_country_selection() {
+    // Previously High -> Medium before failing
+    // Now tries High -> Medium -> Low which allows connection to more gateways
+    let entry_point = EntryPoint::Country {
+        two_letter_iso_country_code: "VN".to_string(),
+    };
+
+    let gateways = GatewayList::new(
+        Some(GatewayType::Wg),
+        vec![create_test_gateway(
+            "DoezvC92kAVDhFpBbsRj52rErhikj2vtPi1Lup2EhbZ4",
+            "VN",
+            ScoreValue::Low,
+        )],
+    );
+
+    // Without Low fallback, this would fail
+    let base_filters = GatewayFilters::from(&[GatewayFilter::MinScore(ScoreValue::Low)]);
+    let result = gateways.find_entry_gateway(&entry_point, &base_filters);
+    assert!(result.is_ok());
+    assert_eq!(
+        result.unwrap().performance.as_ref().unwrap().score,
+        ScoreValue::Low
+    );
+}
+
+#[test]
+fn test_socks5_score_from_mixnet_score() {
+    for score in &[
+        ScoreValue::High,
+        ScoreValue::Medium,
+        ScoreValue::Low,
+        ScoreValue::Offline,
+    ] {
+        let nym_gw = create_response_nym_gateway(
+            "HiVGQq2riqPFoPyYRYCZq3zFmFk15gnJzH4s9mHEbgKH",
+            match score {
+                ScoreValue::High => nym_vpn_api_client::response::ScoreValue::High,
+                ScoreValue::Medium => nym_vpn_api_client::response::ScoreValue::Medium,
+                ScoreValue::Low => nym_vpn_api_client::response::ScoreValue::Low,
+                ScoreValue::Offline => nym_vpn_api_client::response::ScoreValue::Offline,
+            },
+        );
+        let gw = Gateway::try_from(nym_gw).unwrap();
+        assert_eq!(
+            gw.performance.as_ref().unwrap().mixnet_score,
+            *score,
+            "Mixnet score should match for score {:?}",
+            score
+        );
+    }
+}
+
 // Create a list of Gateways with different properties set for testing
 fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
     let asn = Asn {
@@ -455,29 +509,42 @@ fn create_test_gateway(identity: &str, country: &str, score: ScoreValue) -> Gate
     }
 }
 
-#[test]
-fn test_low_performance_fallback_for_country_selection() {
-    // Previously High -> Medium before failing
-    // Now tries High -> Medium -> Low which allows connection to more gateways
-    let entry_point = EntryPoint::Country {
-        two_letter_iso_country_code: "VN".to_string(),
-    };
-
-    let gateways = GatewayList::new(
-        Some(GatewayType::Wg),
-        vec![create_test_gateway(
-            "DoezvC92kAVDhFpBbsRj52rErhikj2vtPi1Lup2EhbZ4",
-            "VN",
-            ScoreValue::Low,
-        )],
-    );
-
-    // Without Low fallback, this would fail
-    let base_filters = GatewayFilters::from(&[GatewayFilter::MinScore(ScoreValue::Low)]);
-    let result = gateways.find_entry_gateway(&entry_point, &base_filters);
-    assert!(result.is_ok());
-    assert_eq!(
-        result.unwrap().performance.as_ref().unwrap().score,
-        ScoreValue::Low
-    );
+fn create_response_nym_gateway(
+    identity: &str,
+    mixnet_score: nym_vpn_api_client::response::ScoreValue,
+) -> nym_vpn_api_client::response::NymDirectoryGateway {
+    nym_vpn_api_client::response::NymDirectoryGateway {
+        identity_key: identity.into(),
+        name: "test-gateway".into(),
+        description: None,
+        ip_packet_router: None,
+        authenticator: None,
+        location: nym_vpn_api_client::response::Location {
+            two_letter_iso_country_code: "US".into(),
+            latitude: 41.8781,
+            longitude: -87.6298,
+            city: "Chicago".into(),
+            region: "IL".into(),
+            asn: None,
+        },
+        last_probe: None,
+        ip_addresses: vec![],
+        mix_port: 0,
+        role: nym_vpn_api_client::response::Role::ExitGateway,
+        entry: nym_vpn_api_client::response::EntryInformation {
+            hostname: Some("tulips".into()),
+            ws_port: 9000,
+            wss_port: Some(9001),
+        },
+        bridges: None,
+        performance: Percent::zero(),
+        performance_v2: Some(nym_vpn_api_client::response::DVpnGatewayPerformance {
+            last_updated_utc: "2024-01-01T00:00:00Z".to_string(),
+            score: nym_vpn_api_client::response::ScoreValue::Low,
+            mixnet_score,
+            load: nym_vpn_api_client::response::ScoreValue::Low,
+            uptime_percentage_last_24_hours: 0.75,
+        }),
+        build_information: None,
+    }
 }
