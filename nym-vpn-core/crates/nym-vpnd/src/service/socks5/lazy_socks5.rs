@@ -16,7 +16,7 @@ use tokio::{
     time::{Instant, sleep},
 };
 use tokio_util::sync::CancellationToken;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info, trace, warn};
 
 /// Configuration for the LazySocks5
 #[derive(Debug, Clone)]
@@ -717,7 +717,7 @@ impl LazySocks5 {
                 }
             };
 
-            debug!("should_shutdown: {}", should_shutdown);
+            trace!("should_shutdown: {}", should_shutdown);
 
             if should_shutdown {
                 info!(

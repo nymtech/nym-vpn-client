@@ -218,8 +218,8 @@ impl TryFrom<proto::GatewayFilter> for nym_vpn_lib_types::GatewayFilter {
     }
 }
 
-impl From<nym_vpn_lib_types::GatewayFilters> for proto::GatewayFilters {
-    fn from(value: nym_vpn_lib_types::GatewayFilters) -> Self {
+impl From<nym_vpn_lib_types::LookupGatewayFilters> for proto::LookupGatewayFilters {
+    fn from(value: nym_vpn_lib_types::LookupGatewayFilters) -> Self {
         Self {
             kind: value.gw_type as i32,
             filters: value.filters.into_iter().map(Into::into).collect(),
@@ -227,10 +227,10 @@ impl From<nym_vpn_lib_types::GatewayFilters> for proto::GatewayFilters {
     }
 }
 
-impl TryFrom<proto::GatewayFilters> for nym_vpn_lib_types::GatewayFilters {
+impl TryFrom<proto::LookupGatewayFilters> for nym_vpn_lib_types::LookupGatewayFilters {
     type Error = ConversionError;
 
-    fn try_from(value: proto::GatewayFilters) -> Result<Self, ConversionError> {
+    fn try_from(value: proto::LookupGatewayFilters) -> Result<Self, ConversionError> {
         let proto_gw_type = proto::GatewayType::try_from(value.kind)
             .map_err(|err| ConversionError::Decode("GatewayFilters.kind", err))?;
         let gw_type = nym_vpn_lib_types::GatewayType::from(proto_gw_type);
