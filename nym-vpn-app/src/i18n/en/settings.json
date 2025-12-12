@@ -123,7 +123,7 @@
     "desc": "Always on to protect your data"
   },
   "app-proxy": {
-    "title": "App & wallet proxy",
+    "title": "App & wallet proxy (beta)",
     "menu-desc": "Route app traffic through mixnet",
     "label": "App & wallet proxy",
     "description": "Enable mixnet proxy for apps & wallets",
