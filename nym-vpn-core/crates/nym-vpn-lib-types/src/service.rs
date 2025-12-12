@@ -89,8 +89,12 @@ impl fmt::Display for VpnServiceConfig {
 impl Default for VpnServiceConfig {
     fn default() -> Self {
         Self {
-            entry_point: EntryPoint::Random,
-            exit_point: ExitPoint::Random,
+            entry_point: EntryPoint::Country {
+                two_letter_iso_country_code: "CH".to_owned(),
+            },
+            exit_point: ExitPoint::Country {
+                two_letter_iso_country_code: "CH".to_owned(),
+            },
             allow_lan: false,
             disable_ipv6: false,
             enable_two_hop: true,
