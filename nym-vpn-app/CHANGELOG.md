@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add custom DNS settings
 
+### Changed
+
+- Allow operating SOCKS5/RPC proxy independently from the main tunnel
+
 ## [1.20.3] - 2025-12-09
 
 ## [1.20.0] - 2025-12-02
