@@ -1,0 +1,240 @@
+package net.nymtech.nymvpn.ui.screens.settings.dns.components
+
+import android.content.res.Configuration
+import android.widget.Toast
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.ui.theme.Typography
+import net.nymtech.nymvpn.util.extensions.isValidIPv4
+import net.nymtech.nymvpn.util.extensions.isValidIPv6
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
+
+@Composable
+fun CustomDnsCard(
+	initialDns: List<String>,
+	dnsEnabled: Boolean,
+	onDnsEnable: (enabled: Boolean) -> Unit,
+	modifier: Modifier = Modifier,
+	onSave: (List<String>) -> Unit = {},
+	onUnsavedChangesChange: (Boolean) -> Unit = {},
+	onDnsListChange: (List<String>) -> Unit = {},
+) {
+	val context = LocalContext.current
+
+	val dnsItems = remember { mutableStateListOf<DnsEntry>() }
+	var nextItemId by remember { mutableLongStateOf(1L) }
+	var savedDnsSnapshot by remember { mutableStateOf(initialDns.toList()) }
+
+	LaunchedEffect(initialDns) {
+		dnsItems.clear()
+		nextItemId = 1L
+		initialDns.forEach { value ->
+			dnsItems.add(DnsEntry(nextItemId++, value))
+		}
+		savedDnsSnapshot = initialDns.toList()
+	}
+
+	var dnsInput by rememberSaveable { mutableStateOf("") }
+	val normalizedDnsInput = dnsInput.trim()
+
+	val isDnsInputValid = remember(normalizedDnsInput) {
+		normalizedDnsInput.isNotEmpty() &&
+			(isValidIPv4(normalizedDnsInput) || isValidIPv6(normalizedDnsInput))
+	}
+	val shouldShowInputError = remember(normalizedDnsInput, isDnsInputValid) {
+		normalizedDnsInput.isNotEmpty() && !isDnsInputValid
+	}
+	val canAddDns = isDnsInputValid && dnsItems.size < 5
+
+	val currentDnsValues by remember {
+		derivedStateOf { dnsItems.map { it.value } }
+	}
+
+	LaunchedEffect(currentDnsValues) {
+		onDnsListChange(currentDnsValues)
+	}
+
+	val hasUnsavedChanges by remember {
+		derivedStateOf { currentDnsValues != savedDnsSnapshot }
+	}
+
+	LaunchedEffect(hasUnsavedChanges) {
+		onUnsavedChangesChange(hasUnsavedChanges)
+	}
+
+	Card(
+		modifier = modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(8.dp),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+	) {
+		Column(modifier = Modifier.padding(16.dp)) {
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Text(
+					text = stringResource(R.string.dns_custom_title),
+					style = MaterialTheme.typography.titleMedium,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onBackground,
+					modifier = Modifier.weight(1f),
+				)
+				Switch(
+					checked = dnsEnabled,
+					onCheckedChange = onDnsEnable,
+				)
+			}
+
+			Text(
+				text = stringResource(R.string.dns_custom_description),
+				style = Typography.bodySmall,
+				color = MaterialTheme.colorScheme.outline,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				modifier = Modifier.padding(top = 16.dp),
+			)
+
+			if (dnsItems.isNotEmpty()) {
+				Spacer(Modifier.height(16.dp))
+
+				Text(
+					text = stringResource(R.string.dns_custom_list_entries, dnsItems.size),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				)
+
+				Spacer(Modifier.height(12.dp))
+				HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.60f))
+
+				DnsReorderableList(
+					dns = dnsItems,
+					onMove = { from, to -> dnsItems.move(from, to) },
+					onDelete = { index -> dnsItems.removeAt(index) },
+				)
+			}
+
+			if (dnsItems.size < 5) {
+				Spacer(Modifier.height(16.dp))
+
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					verticalAlignment = Alignment.CenterVertically,
+				) {
+					OutlinedTextField(
+						value = dnsInput,
+						onValueChange = { dnsInput = it },
+						modifier = Modifier
+							.weight(1f)
+							.height(60.dp.scaledHeight())
+							.padding(end = 16.dp),
+						singleLine = true,
+						label = {
+							Text(
+								text = stringResource(R.string.dns_custom_list_title),
+								fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+							)
+						},
+						placeholder = {
+							Text(
+								text = stringResource(R.string.dns_custom_list_hint),
+								fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+							)
+						},
+						isError = shouldShowInputError,
+						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
+						shape = ShapeDefaults.Small,
+					)
+
+					MainStyledButton(
+						onClick = {
+							dnsItems.add(DnsEntry(nextItemId++, normalizedDnsInput))
+							dnsInput = ""
+						},
+						enabled = canAddDns,
+						content = {
+							Text(
+								text = stringResource(R.string.button_add),
+								style = CustomTypography.buttonMain,
+							)
+						},
+						modifier = Modifier
+							.padding(top = 6.dp)
+							.height(52.dp.scaledHeight())
+							.width(62.dp.scaledWidth()),
+					)
+				}
+
+				if (shouldShowInputError) {
+					Spacer(Modifier.height(8.dp))
+					Text(
+						text = stringResource(R.string.dns_custom_list_error),
+						color = CustomColors.error,
+						style = MaterialTheme.typography.bodyMedium,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					)
+				}
+			}
+
+			Spacer(Modifier.height(18.dp))
+
+			MainStyledButton(
+				onClick = {
+					val snapshot = currentDnsValues
+					onSave(snapshot)
+					savedDnsSnapshot = snapshot
+					Toast.makeText(context, "Changes saved", Toast.LENGTH_SHORT).show()
+				},
+				enabled = hasUnsavedChanges,
+				content = {
+					Text(
+						text = stringResource(R.string.dns_custom_button_save),
+						style = CustomTypography.buttonMain,
+					)
+				},
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(56.dp.scaledHeight()),
+			)
+		}
+	}
+}
+
+data class DnsEntry(val id: Long, val value: String)
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun CustomDnsCardPreview() {
+	NymVPNTheme(Theme.default()) {
+		CustomDnsCard(
+			initialDns = listOf(
+				"192.168.1.1",
+				"10.0.0.1",
+				"208.67.222.222",
+			),
+			dnsEnabled = false,
+			onDnsEnable = {},
+			modifier = Modifier.padding(16.dp),
+			onSave = {},
+		)
+	}
+}

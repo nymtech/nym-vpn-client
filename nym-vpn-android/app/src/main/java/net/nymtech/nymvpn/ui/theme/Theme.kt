@@ -46,6 +46,7 @@ private val DarkColorScheme =
 		surfaceContainer = ThemeColors.Dark.surfaceContainer,
 		tertiary = ThemeColors.Dark.tertiary,
 		outline = ThemeColors.Dark.outline,
+		error = ThemeColors.Dark.error,
 	)
 
 private val LightColorScheme =
@@ -62,6 +63,7 @@ private val LightColorScheme =
 		surfaceContainer = ThemeColors.Light.surfaceContainer,
 		tertiary = ThemeColors.Light.tertiary,
 		outline = ThemeColors.Light.outline,
+		error = ThemeColors.Light.error,
 	)
 
 val LocalCustomColorsPalette = staticCompositionLocalOf { CustomColorsPalette() }

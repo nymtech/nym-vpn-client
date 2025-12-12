@@ -37,6 +37,9 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val quicEnabled = booleanPreferencesKey("QUIC_ENABLED")
 	private val isStreamingServerBannerDisplayed = booleanPreferencesKey("STREAMING_SERVER_DISPLAYED")
 	private val isPerAppSecurityBannerDisplayed = booleanPreferencesKey("DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED")
+	private val customDnsEnabled = booleanPreferencesKey("CUSTOM_DNS_ENABLED")
+
+	private val customDnsList = stringPreferencesKey("CUSTOM_DNS_LIST")
 
 	override suspend fun setEntryPoint(entry: EntryPoint) {
 		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
@@ -204,6 +207,35 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(this.isPerAppSecurityBannerDisplayed, displayed)
 	}
 
+	override suspend fun getCustomDnsEnabled(): Boolean {
+		return dataStoreManager.getFromStore(customDnsEnabled) ?: Settings.DEFAULT_CUSTOM_DNS_ENABLED
+	}
+
+	override suspend fun setCustomDnsEnabled(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(this.customDnsEnabled, enabled)
+	}
+
+	override suspend fun saveDnsList(list: List<String>) {
+		val normalized = list
+			.map { it.trim() }
+			.filter { it.isNotEmpty() }
+			.take(5)
+
+		val encoded = normalized.joinToString(separator = "|")
+		dataStoreManager.saveToDataStore(customDnsList, encoded)
+	}
+
+	override suspend fun getDnsList(): List<String> {
+		val encoded = dataStoreManager.getFromStore(customDnsList).orEmpty().trim()
+		if (encoded.isEmpty()) return emptyList()
+
+		return encoded
+			.split("|")
+			.map { it.trim() }
+			.filter { it.isNotEmpty() }
+			.take(5)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -233,6 +265,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						quicEnabled = pref[quicEnabled] ?: Settings.DEFAULT_QUIC_ENABLED,
 						isStreamingServerBannerDisplayed = pref[isStreamingServerBannerDisplayed] ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 						isPerAppSecurityBannerDisplayed = pref[isPerAppSecurityBannerDisplayed] ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
+						customDnsEnabled = pref[customDnsEnabled] ?: Settings.DEFAULT_CUSTOM_DNS_ENABLED,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

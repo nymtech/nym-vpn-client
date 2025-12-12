@@ -339,7 +339,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 @Composable
 internal fun QuicInfoMessage(onNavigateToQuicSettings: () -> Unit) {
 	val annotatedText = buildAnnotatedString {
-		append(stringResource(R.string.quic_gatway_filter_info_msg))
+		append(stringResource(R.string.quic_gateway_filter_info_msg))
 		append(" ")
 		withStyle(
 			style = SpanStyle(
