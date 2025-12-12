@@ -43,7 +43,7 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
         {countryCode && <FlagIcon code={countryCode} alt={countryCode} />}
         {showFastest && (
           <MsIcon
-            icon="electric_bolt"
+            icon="casino"
             className="text-2xl text-baltic-sea dark:text-white"
           />
         )}

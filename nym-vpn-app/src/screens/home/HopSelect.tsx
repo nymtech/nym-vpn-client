@@ -73,7 +73,7 @@ export default function HopSelect({
   ): SelectedNodeDisplayProps => {
     if (selected === 'random') {
       return {
-        name: t('fastest', { ns: 'common' }),
+        name: t('random', { ns: 'common' }),
         animate: false,
         showQuic: Boolean(quicTag && gateway?.quic),
         showStreamOptimized:
