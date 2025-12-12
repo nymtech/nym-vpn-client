@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{
-    BlacklistedGateways, EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayList,
-    GatewayType, ScoreValue,
+    BlacklistedGateways, EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayFilter,
+    GatewayFilters, GatewayList, GatewayType,
 };
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
@@ -121,71 +121,29 @@ pub async fn select_gateways(
     tracing::info!("Found {} entry gateways", entry_gateways.len());
     tracing::info!("Found {} exit gateways", exit_gateways.len());
 
-    let exit_gateway = exit_point
-        .lookup_gateway(&exit_gateways, Some(ScoreValue::High), tunnel_settings.residential_exit)
-        .or_else(|err| {
-            // When no gateways could be found, lower performance tier and try again
-            if err.is_unmatched_non_specific_gateway() {
-                tracing::debug!("Could not locate high quality exit gateway. Lowering performance filter to medium and trying again");
+    let exit_filters = if tunnel_settings.residential_exit {
+        GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
+    } else {
+        GatewayFilters::default()
+    };
 
-                exit_point.lookup_gateway(
-                    &exit_gateways,
-                    Some(ScoreValue::Medium),
-                    tunnel_settings.residential_exit
-                )
-            } else {
-                Err(err)
-            }
-        })
-        .or_else(|err| {
-            // When still no gateways found, try low performance as last resort
-            if err.is_unmatched_non_specific_gateway() {
-                tracing::debug!("Could not locate medium quality exit gateway. Lowering performance filter to low and trying again");
-
-                exit_point.lookup_gateway(
-                    &exit_gateways,
-                    Some(ScoreValue::Low),
-                    tunnel_settings.residential_exit
-                )
-            } else {
-                Err(err)
-            }
-        })
+    let exit_gateway = exit_gateways
+        .find_best_exit_gateway(&exit_point, &exit_filters)
         .map_err(GatewayDirectoryError::ExitGatewayUnavailable)?;
 
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
 
-    let entry_gateway = entry_point
-        .lookup_gateway(&entry_gateways, Some(ScoreValue::High), blacklisted_entry_gateways)
-        .or_else(|err| {
-            // When no gateways could be found, lower performance tier and try again
-            if err.is_unmatched_non_specific_gateway() {
-                tracing::debug!("Could not locate high quality entry gateway. Lowering performance filter to medium and trying again");
+    let entry_filters = if blacklisted_entry_gateways.is_empty().unwrap_or(true) {
+        GatewayFilters::default()
+    } else {
+        GatewayFilters::from(&[GatewayFilter::NotBlacklisted(
+            blacklisted_entry_gateways.clone(),
+        )])
+    };
 
-                entry_point.lookup_gateway(
-                    &entry_gateways,
-                    Some(ScoreValue::Medium),
-                    blacklisted_entry_gateways,
-                )
-            } else {
-                Err(err)
-            }
-        })
-        .or_else(|err| {
-            // When still no gateways found, try low performance as last resort
-            if err.is_unmatched_non_specific_gateway() {
-                tracing::debug!("Could not locate medium quality entry gateway. Lowering performance filter to low and trying again");
-
-                entry_point.lookup_gateway(
-                    &entry_gateways,
-                    Some(ScoreValue::Low),
-                    blacklisted_entry_gateways,
-                )
-            } else {
-                Err(err)
-            }
-        })
+    let entry_gateway = entry_gateways
+        .find_best_entry_gateway(&entry_point, &entry_filters)
         .map_err(GatewayDirectoryError::EntryGatewayUnavailable)?;
 
     let entry_keys = wg_keys_db

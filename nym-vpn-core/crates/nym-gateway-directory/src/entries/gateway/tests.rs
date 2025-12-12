@@ -1,0 +1,550 @@
+use super::*;
+
+#[test]
+fn test_matching_mixnet_score() {
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .performance(Performance {
+            last_updated_utc: "".to_owned(),
+            score: ScoreValue::Offline,
+            mixnet_score: ScoreValue::High,
+            load: ScoreValue::Medium,
+            uptime_percentage_last_24_hours: 1f32,
+        })
+        .build();
+
+    for gw_type in [GatewayType::MixnetEntry, GatewayType::MixnetExit] {
+        assert!(gateway.matches_filter(Some(gw_type), &GatewayFilter::MinScore(ScoreValue::Low)));
+    }
+
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .performance(Performance {
+            last_updated_utc: "".to_owned(),
+            score: ScoreValue::Offline,
+            mixnet_score: ScoreValue::Low,
+            load: ScoreValue::Medium,
+            uptime_percentage_last_24_hours: 1f32,
+        })
+        .build();
+
+    for gw_type in [GatewayType::MixnetEntry, GatewayType::MixnetExit] {
+        assert!(!gateway.matches_filter(Some(gw_type), &GatewayFilter::MinScore(ScoreValue::High)));
+    }
+}
+
+#[test]
+fn test_matching_wg_score() {
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .performance(Performance {
+            last_updated_utc: "".to_owned(),
+            score: ScoreValue::High,
+            mixnet_score: ScoreValue::Offline,
+            load: ScoreValue::Medium,
+            uptime_percentage_last_24_hours: 1f32,
+        })
+        .build();
+
+    assert!(gateway.matches_filter(
+        Some(GatewayType::Wg),
+        &GatewayFilter::MinScore(ScoreValue::Low)
+    ));
+
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .performance(Performance {
+            last_updated_utc: "".to_owned(),
+            score: ScoreValue::Low,
+            mixnet_score: ScoreValue::Offline,
+            load: ScoreValue::Medium,
+            uptime_percentage_last_24_hours: 1f32,
+        })
+        .build();
+
+    assert!(!gateway.matches_filter(
+        Some(GatewayType::Wg),
+        &GatewayFilter::MinScore(ScoreValue::High)
+    ));
+}
+
+#[test]
+fn test_matching_exit_node() {
+    let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .ipr_address(IpPacketRouterAddress::try_from_base58_string(
+                "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+            ).unwrap())
+            .build();
+
+    assert!(gateway.matches_filter(None, &GatewayFilter::Exit));
+
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .build();
+    assert!(!gateway.matches_filter(None, &GatewayFilter::Exit));
+}
+
+#[test]
+fn test_matching_residential() {
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .location(Location {
+            asn: Some(Asn {
+                kind: AsnKind::Residential,
+                asn: "".to_owned(),
+                name: "".to_owned(),
+            }),
+            ..Default::default()
+        })
+        .build();
+
+    assert!(gateway.matches_filter(None, &GatewayFilter::Residential));
+
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .location(Location {
+            asn: Some(Asn {
+                kind: AsnKind::Other,
+                asn: "".to_owned(),
+                name: "".to_owned(),
+            }),
+            ..Default::default()
+        })
+        .build();
+
+    assert!(!gateway.matches_filter(None, &GatewayFilter::Residential));
+}
+
+#[test]
+fn test_matching_quic_enabled() {
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .bridge_params(Some(BridgeInformation {
+            version: String::from("1"),
+            transports: vec![BridgeParameters::QuicPlain(
+                nym_vpn_api_client::response::QuicClientOptions {
+                    addresses: vec!["1.2.3.4:5".parse().unwrap()],
+                    host: Some(String::from("test.host")),
+                    id_pubkey: String::from("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"),
+                },
+            )],
+        }))
+        .build();
+
+    assert!(gateway.matches_filter(None, &GatewayFilter::QuicEnabled));
+
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .bridge_params(Some(BridgeInformation {
+            version: String::from("1"),
+            transports: vec![],
+        }))
+        .build();
+
+    assert!(!gateway.matches_filter(None, &GatewayFilter::QuicEnabled));
+}
+
+#[test]
+fn test_matching_vpn_nodes() {
+    let gateway = Gateway::builder()
+            .identity(
+                NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                    .unwrap(),
+            )
+            .authenticator_address(
+                AuthAddress::try_from_base58_string(
+                    "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+                ).unwrap()
+            )
+            .build();
+
+    assert!(gateway.matches_filter(None, &GatewayFilter::Vpn));
+
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .build();
+
+    assert!(!gateway.matches_filter(None, &GatewayFilter::Vpn));
+}
+
+#[test]
+fn test_matching_country() {
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .location(Location {
+            two_letter_iso_country_code: "CA".to_owned(),
+            ..Default::default()
+        })
+        .build();
+
+    assert!(gateway.matches_filter(None, &GatewayFilter::Country("CA".to_owned())));
+    assert!(!gateway.matches_filter(None, &GatewayFilter::Country("US".to_owned())));
+}
+
+#[test]
+fn test_matching_region() {
+    let gateway = Gateway::builder()
+        .identity(
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .unwrap(),
+        )
+        .location(Location {
+            two_letter_iso_country_code: "US".to_owned(),
+            region: "CA".to_owned(),
+            ..Default::default()
+        })
+        .build();
+
+    assert!(gateway.matches_filter(None, &GatewayFilter::Region("CA".to_owned())));
+    assert!(!gateway.matches_filter(None, &GatewayFilter::Region("FL".to_owned())));
+}
+
+#[test]
+fn test_gateway_random_country() {
+    let gateway_list = sample_gateway_list(GatewayType::MixnetEntry);
+
+    assert!(
+        gateway_list
+            .choose_random(&GatewayFilters::from(&[GatewayFilter::Country(
+                "US".into()
+            )]))
+            .unwrap()
+            .is_in_country("US")
+    );
+
+    assert!(
+        gateway_list
+            .choose_random(&GatewayFilters::from(&[GatewayFilter::Country(
+                "DE".into()
+            )]))
+            .unwrap()
+            .is_in_country("DE")
+    );
+
+    assert!(
+        gateway_list
+            .choose_random(&GatewayFilters::from(&[GatewayFilter::Country(
+                "BE".into()
+            )]))
+            .is_none()
+    );
+}
+
+#[test]
+fn test_gateway_random_region() {
+    let gateway_list = sample_gateway_list(GatewayType::MixnetExit);
+
+    assert!(
+        gateway_list
+            .choose_random(&GatewayFilters::from(&[
+                GatewayFilter::Country("US".into()),
+                GatewayFilter::Region("CA".into())
+            ]))
+            .unwrap()
+            .is_in_region("CA")
+    );
+
+    assert!(
+        gateway_list
+            .choose_random(&GatewayFilters::from(&[
+                GatewayFilter::Country("GB".into()),
+                GatewayFilter::Region("Hampshire".into())
+            ]))
+            .unwrap()
+            .is_in_region("Hampshire")
+    );
+
+    assert!(
+        gateway_list
+            .choose_random(&GatewayFilters::from(&[
+                GatewayFilter::Country("DE".into()),
+                GatewayFilter::Region("XZ".into())
+            ]))
+            .is_none()
+    );
+}
+
+#[test]
+fn test_gateway_non_blacklisted() {
+    let gateway_list = sample_gateway_list(GatewayType::MixnetExit);
+
+    let blacklisted = gateway_list.gateways[3].identity;
+    let blacklisted_gateways = BlacklistedGateways::new();
+    blacklisted_gateways.add(blacklisted).unwrap();
+
+    for _ in 0..64 {
+        let chosen = gateway_list
+            .choose_random(&GatewayFilters::from(&[GatewayFilter::NotBlacklisted(
+                blacklisted_gateways.clone(),
+            )]))
+            .unwrap();
+        assert_ne!(chosen.identity, blacklisted);
+    }
+}
+
+#[test]
+fn test_low_performance_fallback_for_country_selection() {
+    // Previously High -> Medium before failing
+    // Now tries High -> Medium -> Low which allows connection to more gateways
+    let entry_point = EntryPoint::Country {
+        two_letter_iso_country_code: "VN".to_string(),
+    };
+
+    let gateways = GatewayList::new(
+        Some(GatewayType::Wg),
+        vec![create_test_gateway(
+            "DoezvC92kAVDhFpBbsRj52rErhikj2vtPi1Lup2EhbZ4",
+            "VN",
+            ScoreValue::Low,
+        )],
+    );
+
+    // Without Low fallback, this would fail
+    let base_filters = GatewayFilters::from(&[GatewayFilter::MinScore(ScoreValue::Low)]);
+    let result = gateways.find_entry_gateway(&entry_point, &base_filters);
+    assert!(result.is_ok());
+    assert_eq!(
+        result.unwrap().performance.as_ref().unwrap().score,
+        ScoreValue::Low
+    );
+}
+
+#[test]
+fn test_socks5_score_from_mixnet_score() {
+    for score in &[
+        ScoreValue::High,
+        ScoreValue::Medium,
+        ScoreValue::Low,
+        ScoreValue::Offline,
+    ] {
+        let nym_gw = create_response_nym_gateway(
+            "HiVGQq2riqPFoPyYRYCZq3zFmFk15gnJzH4s9mHEbgKH",
+            match score {
+                ScoreValue::High => nym_vpn_api_client::response::ScoreValue::High,
+                ScoreValue::Medium => nym_vpn_api_client::response::ScoreValue::Medium,
+                ScoreValue::Low => nym_vpn_api_client::response::ScoreValue::Low,
+                ScoreValue::Offline => nym_vpn_api_client::response::ScoreValue::Offline,
+            },
+        );
+        let gw = Gateway::try_from(nym_gw).unwrap();
+        assert_eq!(
+            gw.performance.as_ref().unwrap().mixnet_score,
+            *score,
+            "Mixnet score should match for score {:?}",
+            score
+        );
+    }
+}
+
+// Create a list of Gateways with different properties set for testing
+fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
+    let asn = Asn {
+        asn: "AS12345".to_string(),
+        name: "Test ASN".to_string(),
+        kind: AsnKind::Residential,
+    };
+    let addr = "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e";
+    let ipr = IpPacketRouterAddress::try_from_base58_string(addr).unwrap();
+    let aa = AuthAddress::try_from_base58_string(addr).unwrap();
+    let variables = [
+        (
+            // Gateway 1
+            "HiVGQq2riqPFoPyYRYCZq3zFmFk15gnJzH4s9mHEbgKH",
+            "US",
+            "CA",
+            None,
+            Some(ipr),
+            Some(aa),
+        ),
+        (
+            // Gateway 2
+            "B4r2xMJYc4VgoEhPmccmNSawQWdYP9zGp9DJqjcz6PoX",
+            "US",
+            "NY",
+            Some(asn.clone()),
+            None,
+            None,
+        ),
+        (
+            // Gateway 3
+            "6tGNU195QKNMaTxkvm917d3NNGLkpTp8mTfxqLzATbtB",
+            "DE",
+            "BE",
+            None,
+            None,
+            Some(aa),
+        ),
+        (
+            // Gateway 4
+            "F618gw6jZaLR1VdMTeaH11MhHQJY5rdpYEDLrMKEHcjk",
+            "FR",
+            "Aquitaine",
+            Some(asn.clone()),
+            None,
+            Some(aa),
+        ),
+        (
+            // Gateway 5
+            "3UBiq22tkNSRhyRNjL5mnw5Yk4z6FvgvjizT4ukeEaeB",
+            "US",
+            "TX",
+            Some(asn.clone()),
+            Some(ipr),
+            None,
+        ),
+        (
+            // Gateway 6
+            "2djmrzZ62M8jpzpYb7MMq6QjP15CkbnKHf3ZV3kSCXUE",
+            "GB",
+            "Hampshire",
+            None,
+            None,
+            None,
+        ),
+    ];
+
+    let mut instance = 0;
+    let gateways: Vec<Gateway> = variables
+        .into_iter()
+        .map(|(identity, country, region, asn, ipr, aa)| {
+            instance += 1;
+            Gateway {
+                identity: NodeIdentity::from_base58_string(identity).unwrap(),
+                name: format!("Gateway {instance}"),
+                description: None,
+                location: Some(Location {
+                    two_letter_iso_country_code: country.to_string(),
+                    region: region.to_string(),
+                    asn,
+                    ..Default::default()
+                }),
+                ipr_address: ipr,
+                authenticator_address: aa,
+                nr_address: None,
+                bridge_params: None,
+                last_probe: None,
+                ips: Vec::new(),
+                host: None,
+                clients_ws_port: None,
+                clients_wss_port: None,
+                mixnet_performance: Some(Percent::from_percentage_value(75).unwrap()),
+                performance: Some(Performance {
+                    last_updated_utc: "2024-01-01T00:00:00Z".to_string(),
+                    score: ScoreValue::High,
+                    mixnet_score: ScoreValue::High,
+                    load: ScoreValue::Low,
+                    uptime_percentage_last_24_hours: 0.75,
+                }),
+                version: None,
+            }
+        })
+        .collect();
+    GatewayList::new(Some(gw_type), gateways)
+}
+
+fn create_test_gateway(identity: &str, country: &str, score: ScoreValue) -> Gateway {
+    Gateway {
+        identity: NodeIdentity::from_base58_string(identity).unwrap(),
+        name: format!("Test Gateway {}", country),
+        description: None,
+        location: Some(Location {
+            two_letter_iso_country_code: country.to_string(),
+            ..Default::default()
+        }),
+        ipr_address: None,
+        authenticator_address: None,
+        nr_address: None,
+        bridge_params: None,
+        last_probe: None,
+        ips: Vec::new(),
+        host: None,
+        clients_ws_port: None,
+        clients_wss_port: None,
+        mixnet_performance: None,
+        performance: Some(Performance {
+            last_updated_utc: "2025-10-22T00:00:00Z".to_string(),
+            score,
+            mixnet_score: ScoreValue::High,
+            load: ScoreValue::Low,
+            uptime_percentage_last_24_hours: 0.99,
+        }),
+        version: None,
+    }
+}
+
+fn create_response_nym_gateway(
+    identity: &str,
+    mixnet_score: nym_vpn_api_client::response::ScoreValue,
+) -> nym_vpn_api_client::response::NymDirectoryGateway {
+    nym_vpn_api_client::response::NymDirectoryGateway {
+        identity_key: identity.into(),
+        name: "test-gateway".into(),
+        description: None,
+        ip_packet_router: None,
+        authenticator: None,
+        location: nym_vpn_api_client::response::Location {
+            two_letter_iso_country_code: "US".into(),
+            latitude: 41.8781,
+            longitude: -87.6298,
+            city: "Chicago".into(),
+            region: "IL".into(),
+            asn: None,
+        },
+        last_probe: None,
+        ip_addresses: vec![],
+        mix_port: 0,
+        role: nym_vpn_api_client::response::Role::ExitGateway,
+        entry: nym_vpn_api_client::response::EntryInformation {
+            hostname: Some("tulips".into()),
+            ws_port: 9000,
+            wss_port: Some(9001),
+        },
+        bridges: None,
+        performance: Percent::zero(),
+        performance_v2: Some(nym_vpn_api_client::response::DVpnGatewayPerformance {
+            last_updated_utc: "2024-01-01T00:00:00Z".to_string(),
+            score: nym_vpn_api_client::response::ScoreValue::Low,
+            mixnet_score,
+            load: nym_vpn_api_client::response::ScoreValue::Low,
+            uptime_percentage_last_24_hours: 0.75,
+        }),
+        build_information: None,
+    }
+}

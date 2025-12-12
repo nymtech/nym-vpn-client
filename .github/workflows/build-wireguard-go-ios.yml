@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout nym-vpn-client
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Go
         uses: actions/setup-go@v6
@@ -28,7 +28,7 @@ jobs:
           cache: false
 
       - name: Cache Go modules
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/go/pkg/mod

@@ -23,6 +23,7 @@ use super::{
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
+use nym_gateway_directory::{GatewayFilter, GatewayFilters};
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
 };
@@ -39,10 +40,10 @@ use nym_vpn_lib::{
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
     DecentralisedObtainTicketbooksRequest, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, GatewayFilters, ListGatewaysOptions, LogPath, NetworkCompatibility,
-    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState,
-    VpnServiceConfig, VpnServiceInfo,
+    FeatureFlags, Gateway, ListGatewaysOptions, LogPath, LookupGatewayFilters,
+    NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice,
+    NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest, SystemMessage,
+    TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -78,7 +79,7 @@ pub enum VpnServiceCommand {
     ),
     ListFilteredGateways(
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
-        GatewayFilters,
+        LookupGatewayFilters,
     ),
     EnableSocks5(
         oneshot::Sender<Result<(), Socks5Error>>,
@@ -1099,7 +1100,7 @@ impl NymVpnService {
 
     async fn handle_list_filtered_gateways(
         &self,
-        filters: GatewayFilters,
+        filters: LookupGatewayFilters,
         completion_tx: oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
     ) {
         let gateway_client = self.gateway_cache_handle.clone();
@@ -1132,7 +1133,7 @@ impl NymVpnService {
             })?;
 
         // Filter for gateways that support SOCKS5
-        let socks5_gateways = gateway_directory::GatewayList::new(
+        let exit_gateways = gateway_directory::GatewayList::new(
             Some(gateway_directory::GatewayType::MixnetExit),
             exit_gateways
                 .into_iter()
@@ -1148,50 +1149,29 @@ impl NymVpnService {
         );
 
         // Get exit node's identity depending on the exit point
-        // TODO: Avoid duplication with VPN exit node selection logic.
         let exit_point = &enable_socks5_request.exit_point;
         let gateway_identity: NodeIdentity = match exit_point {
-            // User has chosen a specific exit address (IPR address)
             ExitPoint::Address { address } => NodeIdentity::from(*address.gateway().inner()),
-            // User has chosen a specific gateway identity
             ExitPoint::Gateway { identity } => NodeIdentity::from(*identity.inner()),
-            // User has chosen a specific exit country, region, or random
             ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
                 // For non-specific exit points, select a gateway the same way the VPN does
-                tracing::info!(
-                    "Selecting SOCKS5 exit node for exit point: {:?}",
-                    exit_point
-                );
+                tracing::debug!("Selecting SOCKS5 exit node for exit point: {exit_point:?}",);
 
                 // Convert to gateway_directory types for lookup
-                let exit_point_dir: nym_gateway_directory::ExitPoint = exit_point.clone().into();
-                let residential_exit = self.config_manager.config().residential_exit;
+                let exit_point: nym_gateway_directory::ExitPoint = exit_point.clone().into();
 
-                // Try to find a high-performance gateway first
-                let selected_gateway = exit_point_dir
-                    .lookup_gateway(
-                        &socks5_gateways,
-                        Some(gateway_directory::ScoreValue::High),
-                        residential_exit,
-                    )
-                    .or_else(|err| {
-                        // When no gateways could be found, lower performance tier and try again
-                        if err.is_unmatched_non_specific_gateway() {
-                            tracing::debug!(
-                                "Could not locate high quality SOCKS5 exit gateway. \
-                                Lowering performance filter to medium and trying again"
-                            );
-                            exit_point_dir.lookup_gateway(
-                                &socks5_gateways,
-                                Some(gateway_directory::ScoreValue::Medium),
-                                residential_exit,
-                            )
-                        } else {
-                            Err(err)
-                        }
-                    })
+                let exit_filters = if self.config_manager.config().residential_exit {
+                    GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
+                } else {
+                    GatewayFilters::default()
+                };
+
+                let selected_gateway = exit_gateways
+                    .find_best_socks5_gateway(&exit_point, &exit_filters)
                     .map_err(|e| {
-                        Socks5Error::InvalidConfig(format!("Failed to select exit gateway: {}", e))
+                        Socks5Error::InvalidConfig(format!(
+                            "Failed to select SOCKS5 exit gateway: {e}"
+                        ))
                     })?;
 
                 tracing::info!(

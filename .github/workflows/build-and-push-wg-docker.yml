@@ -8,7 +8,7 @@ jobs:
     runs-on: arc-linux-latest-dind
     steps:
       - name: Checkout nym-vpn-client
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx

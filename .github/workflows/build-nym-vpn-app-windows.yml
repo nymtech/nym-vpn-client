@@ -111,7 +111,7 @@ jobs:
           ls -la ./
 
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2

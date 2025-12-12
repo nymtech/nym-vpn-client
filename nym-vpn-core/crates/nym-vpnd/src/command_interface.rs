@@ -16,8 +16,8 @@ use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
 
 use nym_vpn_lib_types::{
-    EnableSocks5Request, EntryPoint, ExitPoint, GatewayFilters, ListGatewaysOptions, TargetState,
-    TunnelEvent,
+    EnableSocks5Request, EntryPoint, ExitPoint, ListGatewaysOptions, LookupGatewayFilters,
+    TargetState, TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -379,9 +379,9 @@ impl NymVpnService for CommandInterface {
 
     async fn list_filtered_gateways(
         &self,
-        request: tonic::Request<proto::GatewayFilters>,
+        request: tonic::Request<proto::LookupGatewayFilters>,
     ) -> Result<tonic::Response<proto::ListGatewaysResponse>> {
-        let filters = GatewayFilters::try_from(request.into_inner())
+        let filters = LookupGatewayFilters::try_from(request.into_inner())
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
 
         let gateways = self

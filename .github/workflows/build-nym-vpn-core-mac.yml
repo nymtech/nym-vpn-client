@@ -27,7 +27,7 @@ jobs:
       UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master

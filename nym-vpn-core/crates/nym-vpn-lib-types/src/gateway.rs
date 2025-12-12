@@ -470,7 +470,7 @@ impl From<GatewayFilter> for nym_gateway_directory::GatewayFilter {
 
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
-pub struct GatewayFilters {
+pub struct LookupGatewayFilters {
     pub gw_type: GatewayType,
     pub filters: Vec<GatewayFilter>,
 }
@@ -488,15 +488,16 @@ impl From<Score> for nym_gateway_directory::ScoreValue {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<GatewayFilters> for nym_gateway_directory::GatewayFilters {
-    fn from(value: GatewayFilters) -> Self {
-        let GatewayFilters { gw_type, filters } = value;
-        nym_gateway_directory::GatewayFilters {
+impl From<LookupGatewayFilters> for nym_gateway_directory::LookupGatewayFilters {
+    fn from(value: LookupGatewayFilters) -> Self {
+        let LookupGatewayFilters { gw_type, filters } = value;
+        let filters: Vec<nym_gateway_directory::GatewayFilter> = filters
+            .into_iter()
+            .map(nym_gateway_directory::GatewayFilter::from)
+            .collect();
+        nym_gateway_directory::LookupGatewayFilters {
             gw_type: nym_gateway_directory::GatewayType::from(gw_type),
-            filters: filters
-                .into_iter()
-                .map(nym_gateway_directory::GatewayFilter::from)
-                .collect(),
+            filters: nym_gateway_directory::GatewayFilters::from(&filters),
         }
     }
 }

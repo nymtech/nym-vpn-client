@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,9 +15,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
-import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.vpn.backend.Tunnel
-import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel
@@ -27,8 +26,8 @@ constructor(
 	private val environmentManager: EnvironmentManager,
 ) : ViewModel() {
 
-	private val _connectionTime = MutableStateFlow<String?>(null)
-	val connectionTime: StateFlow<String?> = _connectionTime.asStateFlow()
+	private val _connectionSeconds = MutableStateFlow<Long?>(null)
+	val connectionSeconds: StateFlow<Long?> = _connectionSeconds.asStateFlow()
 
 	private val _isQuicFeatureFlagEnabled = MutableStateFlow(false)
 	val isQuicFeatureFlagEnabled: StateFlow<Boolean> = _isQuicFeatureFlagEnabled.asStateFlow()
@@ -36,6 +35,7 @@ constructor(
 	val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground
 
 	private var timerJob: Job? = null
+	private var lastConnectedAt: Long? = null
 
 	init {
 		viewModelScope.launch {
@@ -58,7 +58,7 @@ constructor(
 
 	fun onDisconnect() = viewModelScope.launch {
 		backendManager.stopTunnel()
-		stopConnectionTimer()
+		handleTunnelStateChange(Tunnel.State.Down, null)
 	}
 
 	fun onBatteryOptSkipped() = viewModelScope.launch {
@@ -82,27 +82,60 @@ constructor(
 	}
 
 	fun onTunnelStateChanged(tunnelState: Tunnel.State, connectedAt: Long?) {
-		if (tunnelState == Tunnel.State.Up && connectedAt != null) {
-			startConnectionTimer(connectedAt)
-		} else {
-			stopConnectionTimer()
+		handleTunnelStateChange(tunnelState, connectedAt)
+	}
+
+	private fun handleTunnelStateChange(tunnelState: Tunnel.State, connectedAt: Long?) {
+		when (tunnelState) {
+			is Tunnel.State.Up -> {
+				val effectiveConnectedAt = connectedAt ?: lastConnectedAt
+				if (effectiveConnectedAt != null) {
+					lastConnectedAt = effectiveConnectedAt
+					startConnectionTimer(effectiveConnectedAt)
+				}
+			}
+
+			is Tunnel.State.Disconnecting,
+			is Tunnel.State.InitializingClient,
+			is Tunnel.State.EstablishingConnection,
+			is Tunnel.State.Offline,
+			-> {
+				when {
+					lastConnectedAt != null -> Unit
+					connectedAt != null -> {
+						lastConnectedAt = connectedAt
+						startConnectionTimer(connectedAt)
+					}
+
+					else -> {
+						stopConnectionTimerInternal()
+					}
+				}
+			}
+
+			is Tunnel.State.Down -> {
+				lastConnectedAt = null
+				stopConnectionTimerInternal()
+			}
 		}
 	}
 
-	private fun startConnectionTimer(connectedAt: Long) {
+	private fun startConnectionTimer(connectedAtSeconds: Long) {
 		timerJob?.cancel()
 		timerJob = viewModelScope.launch {
 			while (true) {
-				val elapsedSeconds = (System.currentTimeMillis() / 1000L - connectedAt)
-				_connectionTime.value = elapsedSeconds.convertSecondsToTimeString()
+				val nowSeconds = System.currentTimeMillis() / 1000L
+				val elapsedSeconds = nowSeconds - connectedAtSeconds
+				_connectionSeconds.value = elapsedSeconds.coerceAtLeast(0)
 				delay(1000)
 			}
 		}
 	}
 
-	private fun stopConnectionTimer() {
+	private fun stopConnectionTimerInternal() {
 		timerJob?.cancel()
-		_connectionTime.value = null
+		timerJob = null
+		_connectionSeconds.value = null
 	}
 
 	override fun onCleared() {
