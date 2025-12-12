@@ -171,11 +171,13 @@
 	<string name="join_telegram">Join us on Telegram</string>
 	<!-- Common -->
 	<string name="button_done">Done</string>
+	<string name="button_discard">Discard</string>
+	<string name="button_add">Add</string>
+	<string name="here">here</string>
+	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
 	<string name="streaming_server_banner_action">Check new\nexit servers</string>
-	<string name="quic_gatway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
-	<string name="here">here</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Cannot connect with the same entry and exit server. Change either the entry or exit server and reconnect.</string>
 	<string name="unexpected_error">An unexpected error occurred:</string>
@@ -211,6 +213,7 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censorship</string>
 	<string name="settings_passphrase_title">Passphrase</string>
+	<string name="settings_dns_title">Customize DNS</string>
 	<string name="settings_ipv6_title">Support IPv6</string>
 	<string name="settings_ipv6_description">Allow IPv6 connections</string>
 	<string name="settings_bypass_description">Allow direct local network access</string>
@@ -320,6 +323,7 @@
 	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current gateways.\n\nYour data stays protected during reconnection.</string>
 	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
 	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
+	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>
 	<string name="censorship_amnezia_link_text">How AmneziaWG prevents DPI</string>
@@ -421,4 +425,23 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
 	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
+	<!-- DNS customization screen -->
+	<string name="dns_title">DNS customization</string>
+	<string name="dns_description">By default, using Nym\'s recommended DNS servers. Configure custom servers below if needed.</string>
+	<string name="dns_view_list">View default DNS</string>
+	<string name="dns_hide_list">Hide default DNS</string>
+	<string name="dns_list_title">Nym\'s default DNS:</string>
+	<string name="dns_custom_title">Use custom DNS servers</string>
+	<string name="dns_custom_description">Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity. </string>
+	<string name="dns_custom_list_title">Enter DNS server</string>
+	<string name="dns_custom_list_entries">Custom DNS servers (%1$s/5)</string>
+	<string name="dns_custom_list_hint">IPv4 or IPv6 address</string>
+	<string name="dns_custom_list_error">Invalid DNS address format</string>
+	<string name="dns_custom_button_add">Add</string>
+	<string name="dns_custom_button_save">Save changes</string>
+	<string name="dns_custom_saved">Custom DNS saved.</string>
+	<string name="dns_save_dialog_title">Save changes?</string>
+	<string name="dns_save_dialog_description">You have unsaved changes.</string>
+	<string name="dns_learn_more_text">Learn more about DNS</string>
+	<string name="dns_learn_more_link" translatable="false">https://nymtechnologiessa.zendesk.com/hc/en-us/articles/41140533515665</string>
 </resources>

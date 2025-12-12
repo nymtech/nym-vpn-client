@@ -264,3 +264,40 @@ fun Int.addDaysToToday(): String {
 	val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 	return targetDate.format(formatter)
 }
+
+fun isValidIPv4(s: String): Boolean {
+	val parts = s.split(".")
+	if (parts.size != 4) return false
+	return parts.all { p ->
+		if (p.isEmpty()) return@all false
+		if (p.length > 1 && p.startsWith("0")) return@all false
+		val n = p.toIntOrNull() ?: return@all false
+		n in 0..255
+	}
+}
+
+fun isValidIPv6(s: String): Boolean {
+	if (s.count { it == ':' } < 2) return false
+	if (!s.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' || it == ':' || it == '.' }) return false
+
+	val hasDouble = s.contains("::")
+	if (hasDouble && s.indexOf("::") != s.lastIndexOf("::")) return false
+
+	val tail = s.substringAfterLast(':', missingDelimiterValue = "")
+	val hasV4Tail = tail.contains('.') && isValidIPv4(tail)
+
+	val groups = s.split(":")
+	val nonEmpty = groups.filter { it.isNotEmpty() }
+
+	val maxGroups = if (hasV4Tail) 6 else 8
+	if (!hasDouble) {
+		if (nonEmpty.size != (if (hasV4Tail) 7 else 8)) return false
+	} else {
+		if (nonEmpty.size > maxGroups) return false
+	}
+
+	val toCheck = if (hasV4Tail) nonEmpty.dropLast(1) else nonEmpty
+	return toCheck.all { g ->
+		g.length in 1..4 && g.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
+	}
+}

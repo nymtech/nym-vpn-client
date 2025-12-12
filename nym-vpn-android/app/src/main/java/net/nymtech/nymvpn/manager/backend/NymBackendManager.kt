@@ -146,6 +146,7 @@ class NymBackendManager @Inject constructor(
 				stateChange = ::onStateChange,
 				backendEvent = ::onBackendEvent,
 				bypassLan = settingsRepository.isBypassLanEnabled(),
+				dnsList = if (settingsRepository.getCustomDnsEnabled()) settingsRepository.getDnsList() else arrayListOf(),
 			)
 			val enableBridges = isQuicEnabled()
 			val restrictedAppsPackages = getRestrictedAppsPackages()

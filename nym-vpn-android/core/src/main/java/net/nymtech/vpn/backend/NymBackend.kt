@@ -350,7 +350,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 						credentialDataPath = storagePath,
 						tunStatusListener = this@NymBackend,
 						userAgent = userAgent,
-						customDns = listOf(),
+						customDns = tunnel.dnsList,
 						statisticsRecipient = null,
 					),
 				)

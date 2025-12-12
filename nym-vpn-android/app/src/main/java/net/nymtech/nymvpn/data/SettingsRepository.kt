@@ -81,5 +81,11 @@ interface SettingsRepository {
 	suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean
 	suspend fun setIsPerAppSecurityBannerDisplayed(displayed: Boolean)
 
+	suspend fun getCustomDnsEnabled(): Boolean
+
+	suspend fun setCustomDnsEnabled(enabled: Boolean)
+	suspend fun saveDnsList(list: List<String>)
+	suspend fun getDnsList(): List<String>
+
 	val settingsFlow: Flow<Settings>
 }

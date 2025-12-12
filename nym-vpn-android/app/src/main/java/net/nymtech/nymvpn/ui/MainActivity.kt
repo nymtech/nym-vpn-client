@@ -67,6 +67,7 @@ import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
 import net.nymtech.nymvpn.ui.screens.settings.censorship.CensorshipScreen
 import net.nymtech.nymvpn.ui.screens.settings.developer.DeveloperScreen
+import net.nymtech.nymvpn.ui.screens.settings.dns.DnsScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
 import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
@@ -254,6 +255,15 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.Censorship> {
 									CensorshipScreen(appState)
+								}
+								composable<Route.Dns> {
+									DnsScreen(
+										appUiState = appState,
+										onBackEventConsume = {
+											onBackClickEventFromRoute = null
+										},
+										onBackClickEventTriggered = onBackClickEventFromRoute == Route.Dns,
+									)
 								}
 								composable<Route.Appearance> {
 									AppearanceScreen()
