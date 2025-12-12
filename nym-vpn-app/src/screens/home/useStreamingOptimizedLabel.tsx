@@ -19,7 +19,7 @@ const StreamingOptimizedLabelContent = () => {
 
   return (
     <div className="flex flex-row justify-between gap-5 items-center">
-      <span className="dark:text-white text-baltic-sea">
+      <span className="text-white dark:text-baltic-sea">
         {t('streaming-optimized-label')}
       </span>
       <ButtonText color="malachite" onClick={handleClick}>

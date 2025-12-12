@@ -198,7 +198,7 @@ export default function HopSelect({
       <Button
         className={clsx([
           'flex flex-1 pl-4 items-center justify-center h-full py-3 rounded-none rounded-l-lg overflow-hidden',
-          !disabled && 'hover:text-white/80',
+          !disabled && 'hover:text-baltic-sea/80 dark:hover:text-white/80',
         ])}
         onClick={handleClick}
         onKeyDown={handleClick}
