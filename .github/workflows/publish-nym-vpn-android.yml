@@ -241,7 +241,7 @@ jobs:
             --key-pass 'pass:${{ env.SIGNING_KEY_PASSWORD }}'
 
       - name: Upload APKS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: app-apks
           path: app-fdroid-release.apks
