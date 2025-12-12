@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Increase the number of Windows firewall slots (https://github.com/nymtech/nym-vpn-client/pull/4072)
 - Enable two-hop by default (https://github.com/nymtech/nym-vpn-client/pull/4090)
 
+### Changed
+
+- Update default entry and exit points to Switzerland (https://github.com/nymtech/nym-vpn-client/pull/XXX)
+
 ### Removed
 
 - CLI: remove legacy call to connect the tunnel (https://github.com/nymtech/nym-vpn-client/pull/4094)
