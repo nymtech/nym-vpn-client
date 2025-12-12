@@ -378,6 +378,7 @@ private extension SettingsViewModel {
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.proxy.title".localizedString,
+                subtitle: "settings.proxy.subtitle".localizedString,
                 imageName: "proxy",
                 action: { [weak self] in
                     Task { @MainActor in
