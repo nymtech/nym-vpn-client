@@ -508,6 +508,16 @@ impl From<nym_vpn_api_client::response::ProbeOutcome> for ProbeOutcome {
     }
 }
 
+impl From<nym_vpn_api_client::response::Socks5> for Socks5 {
+    fn from(exit: nym_vpn_api_client::response::Socks5) -> Self {
+        Socks5 {
+            can_proxy_https: exit.can_proxy_https,
+            score: exit.score.map(ScoreValue::from),
+            errors: exit.errors,
+        }
+    }
+}
+
 impl From<nym_vpn_api_client::response::Entry> for Entry {
     fn from(entry: nym_vpn_api_client::response::Entry) -> Self {
         Entry {
@@ -525,7 +535,7 @@ impl From<nym_vpn_api_client::response::Exit> for Exit {
             can_route_ip_external_v4: exit.can_route_ip_external_v4,
             can_route_ip_v6: exit.can_route_ip_v6,
             can_route_ip_external_v6: exit.can_route_ip_external_v6,
-            socks5: None, // TODO: Fill from exit.socks5 when available
+            socks5: exit.socks5.map(Socks5::from),
         }
     }
 }
