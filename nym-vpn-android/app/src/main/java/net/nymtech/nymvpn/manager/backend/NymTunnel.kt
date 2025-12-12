@@ -10,6 +10,7 @@ class NymTunnel(
 	override var exitPoint: ExitPoint,
 	override var mode: Tunnel.Mode,
 	override var bypassLan: Boolean,
+	override val dnsList: List<String>,
 	val stateChange: (newState: Tunnel.State) -> Unit,
 	val backendEvent: (message: BackendEvent) -> Unit,
 ) : Tunnel {

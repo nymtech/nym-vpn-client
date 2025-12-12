@@ -24,6 +24,7 @@ data class Settings(
 	val quicEnabled: Boolean = DEFAULT_QUIC_ENABLED,
 	val isStreamingServerBannerDisplayed: Boolean = DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 	val isPerAppSecurityBannerDisplayed: Boolean = DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
+	val customDnsEnabled: Boolean = DEFAULT_CUSTOM_DNS_ENABLED,
 ) {
 	companion object {
 		const val AUTO_START_DEFAULT = false
@@ -32,6 +33,7 @@ data class Settings(
 		const val DEFAULT_SENTRY_ENABLED = false
 		const val DEFAULT_STATS_ENABLED = true
 		const val DEFAULT_QUIC_ENABLED = false
+		const val DEFAULT_CUSTOM_DNS_ENABLED = false
 		const val FLAG_BATTERY_DIALOG_SKIP = false
 		const val FLAG_STATS_DIALOG_SKIP = false
 		const val FLAG_WELCOME_SCREEN_COMPLETED = false

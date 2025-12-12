@@ -172,7 +172,7 @@
 	<!-- Common -->
 	<string name="button_done">Done</string>
 	<string name="button_discard">Discard</string>
-	<string name="button_add">Discard</string>
+	<string name="button_add">Add</string>
 	<string name="here">here</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
@@ -427,12 +427,14 @@
 	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">DNS customization</string>
-	<string name="dns_description">Use Nym\'s default DNS (recommended setting, active by default) or configure your own servers below.</string>
+	<string name="dns_description">By default, using Nym\'s recommended DNS servers. Configure custom servers below if needed.</string>
 	<string name="dns_view_list">View default DNS</string>
 	<string name="dns_hide_list">Hide default DNS</string>
+	<string name="dns_list_title">Nym\'s default DNS:</string>
 	<string name="dns_custom_title">Use custom DNS servers</string>
 	<string name="dns_custom_description">Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity. </string>
 	<string name="dns_custom_list_title">Enter DNS server</string>
+	<string name="dns_custom_list_entries">Custom DNS servers (%1$s/5)</string>
 	<string name="dns_custom_list_hint">IPv4 or IPv6 address</string>
 	<string name="dns_custom_list_error">Invalid DNS address format</string>
 	<string name="dns_custom_button_add">Add</string>

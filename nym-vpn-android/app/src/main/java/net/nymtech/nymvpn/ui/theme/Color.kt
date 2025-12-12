@@ -16,6 +16,7 @@ sealed class ThemeColors(
 	val surfaceContainer: Color,
 	val tertiary: Color,
 	val outline: Color,
+	val error: Color,
 ) {
 	data object Dark : ThemeColors(
 		background = Color(0xFF242B2D),
@@ -30,6 +31,7 @@ sealed class ThemeColors(
 		surfaceContainer = Color(0xFF313033),
 		tertiary = Color(0xFF14E76F),
 		outline = Color(0xFFB0ADB6),
+		error = Color(0xFFE33B5A),
 	)
 
 	data object Light : ThemeColors(
@@ -45,6 +47,7 @@ sealed class ThemeColors(
 		surfaceContainer = Color(0xFFFFFFFF),
 		tertiary = Color(0xFF0B8A42),
 		outline = Color(0xFF606060),
+		error = Color(0xFFE33B5A),
 	)
 }
 

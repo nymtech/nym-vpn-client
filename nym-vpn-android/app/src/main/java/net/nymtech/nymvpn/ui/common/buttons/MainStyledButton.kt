@@ -10,6 +10,7 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
@@ -22,6 +23,7 @@ fun MainStyledButton(
 	modifier: Modifier = Modifier,
 	enabled: Boolean = true,
 	borderStroke: BorderStroke? = null,
+	shape: Shape = ShapeDefaults.Small,
 ) {
 	Button(
 		onClick = { onClick() },
@@ -34,8 +36,7 @@ fun MainStyledButton(
 		contentPadding = PaddingValues(),
 		modifier =
 		modifier.testTag(testTag ?: "").defaultMinSize(1.dp, 1.dp),
-		shape =
-		ShapeDefaults.Small,
+		shape = shape,
 	) {
 		content()
 	}

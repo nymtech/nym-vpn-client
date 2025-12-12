@@ -257,7 +257,13 @@ class MainActivity : AppCompatActivity() {
 									CensorshipScreen(appState)
 								}
 								composable<Route.Dns> {
-									DnsScreen(appState)
+									DnsScreen(
+										appUiState = appState,
+										onBackEventConsume = {
+											onBackClickEventFromRoute = null
+										},
+										onBackClickEventTriggered = onBackClickEventFromRoute == Route.Dns,
+									)
 								}
 								composable<Route.Appearance> {
 									AppearanceScreen()
