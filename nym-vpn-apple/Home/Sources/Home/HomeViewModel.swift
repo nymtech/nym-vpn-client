@@ -11,6 +11,7 @@ import GatewayManager
 import MessagesManager
 import MessageModels
 import NetworkMonitor
+import NymVPNRpc
 import Settings
 import TunnelMixnet
 import TunnelStatus
@@ -249,7 +250,13 @@ private extension HomeViewModel {
             case .success, .none:
                 self?.resetStatusInfoState()
             case let .failure(error):
-                self?.updateStatusInfoState(with: .error(message: error.localizedDescription))
+                let errorDescription = if let rpcError = error as? RpcError {
+                    rpcError.message()
+                } else {
+                    error.localizedDescription
+                }
+                
+                self?.updateStatusInfoState(with: .error(message: errorDescription))
             }
         }
         .store(in: &cancellables)

@@ -5,6 +5,7 @@ import ErrorReason
 import MessageModels
 import UIComponents
 import TunnelStatus
+import NymVPNRpc
 
 extension HomeViewModel {
     func updateConnectButtonStateIfMnemonicImported() {
@@ -52,7 +53,12 @@ extension HomeViewModel {
 
     @MainActor func updateLastError(_ error: Error?) {
         if lastError == nil, let error {
-            updateStatusInfoState(with: .error(message: error.localizedDescription))
+            let errorDescription = if let rpcError = error as? RpcError {
+                rpcError.message()
+            } else {
+                error.localizedDescription
+            }
+            updateStatusInfoState(with: .error(message: errorDescription))
             navigateToAddCredetialsIfNeeded(error: error)
             lastError = error
         } else {
@@ -63,8 +69,14 @@ extension HomeViewModel {
             else {
                 return
             }
+            
+            let errorDescription = if let rpcError = lastError as? RpcError {
+                rpcError.message()
+            } else {
+                lastNsError.localizedDescription
+            }
 
-            updateStatusInfoState(with: .error(message: nsError.localizedDescription))
+            updateStatusInfoState(with: .error(message: errorDescription))
             navigateToAddCredetialsIfNeeded(error: error)
             lastError = error
         }

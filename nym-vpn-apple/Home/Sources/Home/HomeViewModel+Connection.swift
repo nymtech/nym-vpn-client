@@ -1,3 +1,5 @@
+import NymVPNRpc
+
 public extension HomeViewModel {
     @MainActor func connectDisconnect() async {
         guard connectionManager.currentTunnelStatus != .disconnecting
@@ -36,7 +38,13 @@ public extension HomeViewModel {
         do {
             try await connectionManager.connectDisconnect()
         } catch let error {
-            updateStatusInfoState(with: .error(message: error.localizedDescription))
+            let errorDescription = if let rpcError = error as? RpcError {
+                rpcError.message()
+            } else {
+                error.localizedDescription
+            }
+            
+            updateStatusInfoState(with: .error(message: errorDescription))
 #if os(iOS)
             impactGenerator.error()
 #endif
