@@ -124,9 +124,7 @@ export function CustomDnsServers({
               >
                 <span
                   className={clsx(
-                    'text-lg text-black dark:text-white',
-                    isInputValueValid &&
-                      'group-hover:text-black/50 dark:group-hover:text-white/80',
+                    'text-lg text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80',
                   )}
                 >
                   {t('dns.details.add')}
