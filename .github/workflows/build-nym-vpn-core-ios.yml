@@ -64,7 +64,7 @@ jobs:
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: wireguard-go_ios_universal
           path: build/lib
