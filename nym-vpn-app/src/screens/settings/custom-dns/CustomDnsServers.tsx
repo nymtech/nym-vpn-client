@@ -25,11 +25,11 @@ export function CustomDnsServers({
   const [errorMessage, setErrorMessage] = useState('');
   const [isApplyingDns, setIsApplyingDns] = useState(false);
 
-  const isInputValueValid = useMemo(
-    () =>
-      ipv4Regex.test(inputValue.trim()) || ipv6Regex.test(inputValue.trim()),
-    [inputValue],
-  );
+  const isInputValueValid = useMemo(() => {
+    const val = inputValue.trim();
+    if (val === '0.0.0.0' || val === '255.255.255.255') return false;
+    return ipv4Regex.test(val) || ipv6Regex.test(val);
+  }, [inputValue]);
 
   const handleAddDns = () => {
     const inputValueTrimmed = inputValue.trim();
