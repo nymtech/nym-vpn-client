@@ -45,8 +45,7 @@ function RowHeader({
       if (isFocused) {
         htmlElement.scrollIntoView({
           behavior: 'smooth',
-          block: 'center',
-          inline: 'center',
+          block: 'start',
         });
       }
     },

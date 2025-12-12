@@ -25,11 +25,11 @@ export function CustomDnsServers({
   const [errorMessage, setErrorMessage] = useState('');
   const [isApplyingDns, setIsApplyingDns] = useState(false);
 
-  const isInputValueValid = useMemo(
-    () =>
-      ipv4Regex.test(inputValue.trim()) || ipv6Regex.test(inputValue.trim()),
-    [inputValue],
-  );
+  const isInputValueValid = useMemo(() => {
+    const val = inputValue.trim();
+    if (val === '0.0.0.0' || val === '255.255.255.255') return false;
+    return ipv4Regex.test(val) || ipv6Regex.test(val);
+  }, [inputValue]);
 
   const handleAddDns = () => {
     const inputValueTrimmed = inputValue.trim();
@@ -104,38 +104,39 @@ export function CustomDnsServers({
         </div>
       )}
       {customDnsList.length < MAX_DNS_SERVERS && (
-        <div className="flex flex-row gap-2">
-          <div className="flex-1 flex flex-col gap-2 ">
-            <TextInput
-              placeholder={t('dns.details.input-placeholder')}
-              onChange={handleTextInputChange}
-              value={inputValue}
-              label={t('dns.details.input-label')}
-              color="gray"
-            />
-            {errorMessage && (
-              <p className="text-xs text-aphrodisiac">{errorMessage}</p>
-            )}
-          </div>
-          <div className="shrink">
-            <Button
-              disabled={!isInputValueValid}
-              onClick={handleAddDns}
-              color="gray"
-              outline
-              className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
-            >
-              <span
-                className={clsx(
-                  'text-lg text-black dark:text-white',
-                  isInputValueValid &&
-                    'group-hover:text-black/50 dark:group-hover:text-white/80',
-                )}
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-row gap-2">
+            <div className="flex-1 h-full">
+              <TextInput
+                placeholder={t('dns.details.input-placeholder')}
+                onChange={handleTextInputChange}
+                value={inputValue}
+                label={t('dns.details.input-label')}
+                color="gray"
+              />
+            </div>
+            <div className="h-full">
+              <Button
+                onClick={handleAddDns}
+                color="gray"
+                outline
+                className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0! py-2.5!"
               >
-                {t('dns.details.add')}
-              </span>
-            </Button>
+                <span
+                  className={clsx(
+                    'text-lg text-black dark:text-white',
+                    isInputValueValid &&
+                      'group-hover:text-black/50 dark:group-hover:text-white/80',
+                  )}
+                >
+                  {t('dns.details.add')}
+                </span>
+              </Button>
+            </div>
           </div>
+          {errorMessage && (
+            <p className="text-xs text-aphrodisiac">{errorMessage}</p>
+          )}
         </div>
       )}
 

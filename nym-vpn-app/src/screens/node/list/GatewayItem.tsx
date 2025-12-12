@@ -63,8 +63,7 @@ const GatewayItem = ({
       if (focused?.type === 'gateway' && focused.key === gateway.id) {
         htmlElement.scrollIntoView({
           behavior: 'smooth',
-          block: 'center',
-          inline: 'center',
+          block: 'start',
         });
       }
     },
