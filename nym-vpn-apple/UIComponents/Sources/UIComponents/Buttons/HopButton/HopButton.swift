@@ -121,7 +121,7 @@ public struct HopButton: View {
             strokeTitleLeftMargin: 30,
             isHovered: $isButtonHovered
         ) {
-            HStack {
+            HStack(spacing: 0) {
                 button().onHover { isButtonHovered = $0 }
                 if gatewayId != nil {
                     accessory().onHover { isAccessoryHovered = $0 }
@@ -204,12 +204,17 @@ private extension HopButton {
             titleSubtitleText(with: titleText, subtitle: subtitleText)
 
             Spacer()
-            if shouldShowQuic {
-                QuicLabel()
-            } else if shouldShowStreaming {
-                StreamingIcon()
+
+            HStack {
+                if shouldShowQuic {
+                    QuicLabel()
+                } else if shouldShowStreaming {
+                    StreamingIcon()
+                }
             }
+            .padding(.trailing, 12)
         }
+        .frame(maxWidth: .infinity)
         .overlay {
             Rectangle()
                 .fill((isButtonHovered ? NymColor.backgroundHover : NymColor.background).opacity(0.1))
