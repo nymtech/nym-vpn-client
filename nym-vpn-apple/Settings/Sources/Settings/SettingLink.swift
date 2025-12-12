@@ -18,6 +18,7 @@ public enum SettingLink: Hashable, Identifiable {
     case licence(details: LicenceDetails)
     case santasMenu
     case privacyAndData
+    case dns
     case censorship
 #if os(macOS)
     case proxy

@@ -115,6 +115,7 @@ private extension ProxyView {
         }
         .padding(.top, 8)
         .padding(.bottom, 16)
+        .padding(.horizontal, 16)
     }
 
     func detailsSection(title: String, details: String, color: Color) -> some View {
@@ -196,6 +197,7 @@ private extension ProxyView {
                     }
                 }
                 .padding(.bottom, 16)
+                .padding(.horizontal, 16)
             }
         )
     }
@@ -268,6 +270,7 @@ private extension ProxyView {
                     }
                 }
                 .padding(.bottom, 16)
+                .padding(.horizontal, 16)
             }
         )
     }
@@ -303,6 +306,7 @@ private extension ProxyView {
                     }
                 }
                 .padding(.bottom, 16)
+                .padding(.horizontal, 16)
             }
         )
     }
@@ -328,6 +332,7 @@ private extension ProxyView {
                     }
                 }
                 .padding(.bottom, 16)
+                .padding(.horizontal, 16)
             }
         )
     }

@@ -8721,6 +8721,83 @@
         }
       }
     },
+    "dns.custom.instructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity."
+          }
+        }
+      }
+    },
+    "dns.custom.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use custom DNS servers"
+          }
+        }
+      }
+    },
+    "dns.default.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nym’s default DNS:"
+          }
+        }
+      }
+    },
+    "dns.hideDefault" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide default DNS"
+          }
+        }
+      }
+    },
+    "dns.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By default, using Nym's recommended DNS servers. Configure custom servers below if needed."
+          }
+        }
+      }
+    },
+    "dns.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNS customization"
+          }
+        }
+      }
+    },
+    "dns.viewDefault" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View default DNS"
+          }
+        }
+      }
+    },
     "done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32963,6 +33040,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "显示主题"
+          }
+        }
+      }
+    },
+    "settings.dns.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customize DNS"
           }
         }
       }
