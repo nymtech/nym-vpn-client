@@ -1,0 +1,8 @@
+What’s new:
+- Added entry and exit node details to connection notifications
+- You can now view server details directly from the home screen
+- Introduced Custom DNS settings for greater network control
+- Reorganized sections on the Censorship screen for better clarity
+- Enhanced tunnel configuration logs with clearer, step-by-step details
+- Fixed restricted apps handling in tunnel configurations
+- Resolved an issue where the connection timer could reset randomly
