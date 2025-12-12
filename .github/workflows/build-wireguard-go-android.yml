@@ -46,7 +46,7 @@ jobs:
         run: ./wireguard/build-wireguard-go.sh --android
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wireguard-go_aarch64-linux-android
           path: build/lib/aarch64-linux-android

@@ -77,7 +77,7 @@ jobs:
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: wireguard-go_aarch64-linux-android
           path: build/lib/aarch64-linux-android
@@ -104,7 +104,7 @@ jobs:
           cp ${{ env.BUILD_DIR }}/libnym_vpn_lib_types.so ${{ env.UPLOAD_DIR_ANDROID }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ env.UPLOAD_DIR_ANDROID }}

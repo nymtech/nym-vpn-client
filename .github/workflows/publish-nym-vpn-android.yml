@@ -125,7 +125,7 @@ jobs:
         run: mkdir ${{ github.workspace }}/temp
 
       - name: Download artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
@@ -210,7 +210,7 @@ jobs:
         run: mkdir ${{ github.workspace }}/temp
 
       - name: Download artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
@@ -241,7 +241,7 @@ jobs:
             --key-pass 'pass:${{ env.SIGNING_KEY_PASSWORD }}'
 
       - name: Upload APKS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: app-apks
           path: app-fdroid-release.apks

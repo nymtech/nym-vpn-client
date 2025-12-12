@@ -75,13 +75,13 @@ jobs:
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go-windows artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: ${{ env.LIBS_PATH }}
 
       - name: Download winfw artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: winfw
           path: ${{ env.WINFW_PATH }}
@@ -124,7 +124,7 @@ jobs:
           cp -vpr ${{ env.WINTUN_DIST_DIR }}/wintun.dll ${{ env.UPLOAD_DIR_WINDOWS }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.UPLOAD_DIR_WINDOWS }}
           path: ${{ env.UPLOAD_DIR_WINDOWS }}

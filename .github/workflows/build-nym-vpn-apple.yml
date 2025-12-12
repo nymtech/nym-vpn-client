@@ -961,7 +961,7 @@ jobs:
 
       - name: Upload artifacts (QA)
         if: ${{ env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.renamed_pkg_relative_path }}
@@ -1013,7 +1013,7 @@ jobs:
 
       - name: Upload artifacts (Ship + appcast + hash)
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.publish_relative_path }}

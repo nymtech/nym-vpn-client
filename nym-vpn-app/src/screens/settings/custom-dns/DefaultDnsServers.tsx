@@ -33,11 +33,11 @@ export function DefaultDnsServers() {
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             style={{ overflow: 'hidden' }}
           >
-            <ul className="py-3 list-disc list-inside marker:text-iron dark:marker:text-bombay">
+            <ul className="py-3">
               {defaultDns.map((dns) => (
                 <li key={dns}>
                   <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
-                    {dns}
+                    - {dns}
                   </p>
                 </li>
               ))}
