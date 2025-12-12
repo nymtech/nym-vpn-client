@@ -155,8 +155,7 @@
 	<string name="stream_display">流媒体显示</string>
 	<string name="streaming_server_banner_title">新功能: 探索串流 -\n优化服务器 (▶️)</string>
 	<string name="streaming_server_banner_action">检查新的\n出口服务器</string>
-	<string name="quic_gatway_filter_info_msg">仅显示支持QUIC 协议的快速模式的国家和地区以及服务器。要显示所有服务器，请关闭 QUIC 协议</string>
-	<string name="here">在这里</string>
+    <string name="here">在这里</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">无法连接到相同的进出服务器。更改进入或退出服务器并重新连接。</string>
 	<string name="unexpected_error">出现意外错误：</string>

@@ -157,8 +157,7 @@
 	<string name="stream_display">Tela da transmissão</string>
 	<string name="streaming_server_banner_title">Novo: Descubra streaming-\nservidores otimizados (▶️)</string>
 	<string name="streaming_server_banner_action">Verificar novos servidores\nde saída</string>
-	<string name="quic_gatway_filter_info_msg">Mostrar apenas localizações e servidores rápidos que suportam o protocolo QUIC. Para revelar todos os servidores, desative o QUIC</string>
-	<string name="here">Aqui</string>
+    <string name="here">Aqui</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Não é possível conectar-se com a mesma entrada e sair do servidor. Altere a entrada ou saia do servidor e reconecte-se.</string>
 	<string name="unexpected_error">Ocorreu um erro inesperado:</string>

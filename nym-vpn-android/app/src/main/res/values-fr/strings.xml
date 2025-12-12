@@ -157,8 +157,7 @@
 	<string name="stream_display">Affichage du flux</string>
 	<string name="streaming_server_banner_title">Nouveau : Découvrez le streaming-\nserveurs optimisés (▶️)</string>
 	<string name="streaming_server_banner_action">Vérifier les nouveaux\nserveurs de sortie</string>
-	<string name="quic_gatway_filter_info_msg">Afficher uniquement les emplacements du mode rapide et les serveurs prenant en charge le protocole QUIC. Pour révéler tous les serveurs, désactiver QUIC</string>
-	<string name="here">ici</string>
+    <string name="here">ici</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Impossible de se connecter avec la même entrée et le même serveur de sortie. Modifiez l\'entrée ou le serveur de sortie et reconnectez-vous.</string>
 	<string name="unexpected_error">Une erreur inattendue s\'est produite:</string>

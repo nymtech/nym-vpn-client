@@ -157,8 +157,7 @@
 	<string name="stream_display">Показ стриминга</string>
 	<string name="streaming_server_banner_title">Новинка: Откройте для себя серверы,\nоптимизированные для стриминга (▶️)</string>
 	<string name="streaming_server_banner_action">Проверьте новые\nвыходные серверы</string>
-	<string name="quic_gatway_filter_info_msg">Показаны только локации в Быстром режиме и серверы, поддерживающие протокол QUIC. Чтобы показать все серверы, отключите QUIC</string>
-	<string name="here">здесь</string>
+    <string name="here">здесь</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Невозможно подключиться к одному и тому же входному и выходному шлюзу. Измените либо входной, либо выходной шлюз и повторно подключитесь.</string>
 	<string name="unexpected_error">Произошла непредвиденная ошибка:</string>

@@ -155,8 +155,7 @@
 	<string name="stream_display">Akış ekranı</string>
 	<string name="streaming_server_banner_title">Yeni: Yayın\niçin optimize edilmiş sunucuları keşfedin</string>
 	<string name="streaming_server_banner_action">Yeni\nçıkış sunucularına göz atın</string>
-	<string name="quic_gatway_filter_info_msg">Yalnızca Hızlı mod konumları ve QUIC protokolünü destekleyen sunucular gösteriliyor. Tüm sunucuları görmek için QUIC’i kapatın.</string>
-	<string name="here">burada</string>
+    <string name="here">burada</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Aynı giriş ve çıkış sunucusunu kullanarak bağlanamazsınız. Yeniden bağlanmak için ya giriş sunucusunu ya da çıkış sunucusunu değiştirin.</string>
 	<string name="unexpected_error">Beklenmedik bir hata oluştu:</string>
