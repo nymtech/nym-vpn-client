@@ -22,7 +22,6 @@ import {
 import { routes } from '../../router';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
-import { DefaultNode } from '../../constants';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
@@ -134,42 +133,6 @@ function Home() {
       navigate(routes.welcome);
     }
   }, [navigate, welcomeChecked]);
-
-  // Temporary 'random' mode skipping
-  useEffect(() => {
-    (async () => {
-      if (entryNode === 'random') {
-        try {
-          await invoke('set_node', {
-            node: DefaultNode,
-            hop: 'entry',
-          });
-          dispatch({
-            type: 'set-node',
-            payload: { hop: 'entry', node: DefaultNode },
-          });
-        } catch {
-          /* TODO notify the user something went wrong */
-        }
-      }
-
-      if (exitNode === 'random') {
-        try {
-          await invoke('set_node', {
-            node: DefaultNode,
-            hop: 'exit',
-          });
-          dispatch({
-            type: 'set-node',
-            payload: { hop: 'exit', node: DefaultNode },
-          });
-        } catch {
-          /* TODO notify the user something went wrong */
-        }
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
