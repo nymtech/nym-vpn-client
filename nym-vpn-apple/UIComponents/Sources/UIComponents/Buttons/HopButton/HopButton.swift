@@ -210,7 +210,13 @@ private extension HopButton {
                 StreamingIcon()
             }
         }
-        .onTapGesture(perform: buttonAction)
+        .overlay {
+            Rectangle()
+                .fill((isButtonHovered ? NymColor.backgroundHover : NymColor.background).opacity(0.1))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .onTapGesture(perform: buttonAction)
+                .accessibilityHidden(true)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityAction(.default, buttonAction)
         .accessibilityAddTraits([.isButton])
