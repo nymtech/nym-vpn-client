@@ -61,6 +61,9 @@ files:
     translation: "fastlane/metadata/android/%locale%/%original_file_name%"
     languages_mapping:
       locale: *play-locale
+    ignore:
+      - "fastlane/metadata/android/en-US/full_description.txt"
+      - "fastlane/metadata/android/en-US/short_description.txt"
 
   - source: "fastlane/metadata/android/en-US/changelogs/*.txt"
     translation: "fastlane/metadata/android/%locale%/changelogs/%original_file_name%"

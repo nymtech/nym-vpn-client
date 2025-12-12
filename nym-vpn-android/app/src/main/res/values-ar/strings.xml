@@ -157,8 +157,7 @@
 	<string name="stream_display">عرض البث</string>
 	<string name="streaming_server_banner_title">جديد: اكتشف البث -\nخوادم محسنة (▶️)</string>
 	<string name="streaming_server_banner_action">تحقق من خوادم خروج\nجديدة</string>
-	<string name="quic_gatway_filter_info_msg">عرض مواقع الوضع السريع والخوادم التي تدعم بروتوكول QUIC فقط. للكشف عن جميع الخوادم، إيقاف تشغيل QUIC</string>
-	<string name="here">هنا</string>
+    <string name="here">هنا</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">لا يمكن الاتصال بنفس خادم الدخول والخروج. قم بتغيير خادم الدخول أو الخروج وإعادة الاتصال.</string>
 	<string name="unexpected_error">حدث خطأ غير متوقع:</string>

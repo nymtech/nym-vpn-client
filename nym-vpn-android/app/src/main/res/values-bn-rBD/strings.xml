@@ -155,8 +155,7 @@
 	<string name="stream_display"></string>
 	<string name="streaming_server_banner_title"></string>
 	<string name="streaming_server_banner_action"></string>
-	<string name="quic_gatway_filter_info_msg"></string>
-	<string name="here">here</string>
+    <string name="here">here</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Cannot connect with the same entry and exit server. Change either the entry or exit server and reconnect.</string>
 	<string name="unexpected_error">An unexpected error occurred:</string>
