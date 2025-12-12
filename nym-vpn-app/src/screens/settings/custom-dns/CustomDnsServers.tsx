@@ -119,7 +119,6 @@ export function CustomDnsServers({
           </div>
           <div className="shrink">
             <Button
-              disabled={!isInputValueValid}
               onClick={handleAddDns}
               color="gray"
               outline
