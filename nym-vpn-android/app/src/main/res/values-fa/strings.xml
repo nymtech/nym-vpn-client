@@ -157,8 +157,7 @@
 	<string name="stream_display">نمایش جریان</string>
 	<string name="streaming_server_banner_title">جدید: سرورهای بهینه شده برای استریمینگ، بیشتر بدانید (▶️)</string>
 	<string name="streaming_server_banner_action">سرورهای جدید\خروجی را ببینید</string>
-	<string name="quic_gatway_filter_info_msg">فقط مکان‌ها و سرورهای حالت سریع که از پروتکل QUIC پشتیبانی می‌کنند را نشان می‌دهد. برای نمایش همه سرورها، QUIC را خاموش کنید </string>
-	<string name="here">اینجا</string>
+    <string name="here">اینجا</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">نمی‌توان با همان گره ورودی و خروجی متصل شد. محل گره ورودی یا خروجی را تغییر دهید.</string>
 	<string name="unexpected_error">یک خطای غیر‌منتظره رخ داد:</string>

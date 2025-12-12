@@ -155,8 +155,7 @@
 	<string name="stream_display">Hiển thị trực tuyến</string>
 	<string name="streaming_server_banner_title">Mới: Khám phá các máy chủ-\nđược tối ưu hóa cho phát trực tuyến (▶️)</string>
 	<string name="streaming_server_banner_action">Kiểm tra máy chủ thoát\nmới</string>
-	<string name="quic_gatway_filter_info_msg">Chỉ hiển thị các vị trí trong chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, hãy tắt QUIC</string>
-	<string name="here">tại đây</string>
+    <string name="here">tại đây</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Không thể kết nối với cùng một node vào và thoát. Vui lòng thay đổi vị trí node vào hoặc node thoát và kết nối lại.</string>
 	<string name="unexpected_error">Đã xảy ra lỗi không mong muốn:</string>

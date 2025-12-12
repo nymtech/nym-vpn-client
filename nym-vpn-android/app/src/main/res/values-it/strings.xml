@@ -157,8 +157,7 @@
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">Nuovo: Scopri lo streaming-\nserver ottimizzati (▶️)</string>
 	<string name="streaming_server_banner_action">Controlla i nuovi server di uscita\n</string>
-	<string name="quic_gatway_filter_info_msg">Mostra solo posizioni e server in modalità veloce che supportano il protocollo QUIC. Per rivelare tutti i server, disattiva QUIC</string>
-	<string name="here">qui</string>
+    <string name="here">qui</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Impossibile connettersi con lo stesso server di entrata ed uscita. Cambiare il server di entrata o uscita e riconnettersi.</string>
 	<string name="unexpected_error">An unexpected error occurred:</string>
