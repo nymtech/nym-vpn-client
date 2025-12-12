@@ -10,6 +10,7 @@ interface Tunnel {
 	val exitPoint: ExitPoint
 	val mode: Mode
 	val bypassLan: Boolean
+	val dnsList: List<String>
 
 	/**
 	 * React to a change in state of the tunnel. Should only be directly called by Backend.

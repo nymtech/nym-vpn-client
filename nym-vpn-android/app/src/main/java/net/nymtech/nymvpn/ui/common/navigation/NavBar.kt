@@ -159,7 +159,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
+						onBackClick(Route.Dns)
 					}
 				},
 			)

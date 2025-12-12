@@ -57,6 +57,8 @@ constructor(
 	}
 
 	fun onDisconnect() = viewModelScope.launch {
+		lastConnectedAt = null
+		stopConnectionTimerInternal()
 		backendManager.stopTunnel()
 		handleTunnelStateChange(Tunnel.State.Down, null)
 	}
@@ -100,16 +102,12 @@ constructor(
 			is Tunnel.State.EstablishingConnection,
 			is Tunnel.State.Offline,
 			-> {
-				when {
-					lastConnectedAt != null -> Unit
-					connectedAt != null -> {
-						lastConnectedAt = connectedAt
-						startConnectionTimer(connectedAt)
-					}
-
-					else -> {
-						stopConnectionTimerInternal()
-					}
+				if (connectedAt != null) {
+					lastConnectedAt = connectedAt
+					startConnectionTimer(connectedAt)
+				} else {
+					lastConnectedAt = null
+					stopConnectionTimerInternal()
 				}
 			}
 
