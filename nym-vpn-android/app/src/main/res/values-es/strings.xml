@@ -157,8 +157,7 @@
 	<string name="stream_display">Pantalla de flujo</string>
 	<string name="streaming_server_banner_title">Nuevo: Descubre streaming-\nservidores optimizados (▶️)</string>
 	<string name="streaming_server_banner_action">Comprueba nuevos servidores\nde salida</string>
-	<string name="quic_gatway_filter_info_msg">Sólo mostrando ubicaciones en modo rápido y servidores que soportan el protocolo QUIC. Para revelar todos los servidores, desactiva QUIC</string>
-	<string name="here">aqui</string>
+    <string name="here">aqui</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">No se puede conectar con la misma entrada y el servidor de salida. Cambie la entrada o el servidor de salida y vuelva a conectar.</string>
 	<string name="unexpected_error">Se produjo un error inesperado:</string>

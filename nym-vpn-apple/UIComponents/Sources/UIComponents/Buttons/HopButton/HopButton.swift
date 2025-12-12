@@ -215,7 +215,13 @@ private extension HopButton {
             .padding(.trailing, 12)
         }
         .frame(maxWidth: .infinity)
-        .onTapGesture(perform: buttonAction)
+        .overlay {
+            Rectangle()
+                .fill((isButtonHovered ? NymColor.backgroundHover : NymColor.background).opacity(0.1))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .onTapGesture(perform: buttonAction)
+                .accessibilityHidden(true)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityAction(.default, buttonAction)
         .accessibilityAddTraits([.isButton])

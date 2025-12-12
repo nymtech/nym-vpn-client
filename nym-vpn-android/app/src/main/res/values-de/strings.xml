@@ -157,8 +157,7 @@
 	<string name="stream_display">Stream-Anzeige</string>
 	<string name="streaming_server_banner_title">Neu: Entdecke Streaming-\noptimierte Server (▶️)</string>
 	<string name="streaming_server_banner_action">Überprüfe neue\nServer verlassen</string>
-	<string name="quic_gatway_filter_info_msg">Nur die Anzeige von schnellen Standorten und Servern, die das QUIC-Protokoll unterstützen. Um alle Server freizugeben, schalten Sie QUIC aus</string>
-	<string name="here">hier</string>
+    <string name="here">hier</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Kann sich nicht mit dem gleichen Eintrag verbinden und Server verlassen. Ändern Sie entweder den Eintrag oder beenden Sie den Server und verbinden Sie sich erneut.</string>
 	<string name="unexpected_error">Ein unerwarteter Fehler ist aufgetreten:</string>

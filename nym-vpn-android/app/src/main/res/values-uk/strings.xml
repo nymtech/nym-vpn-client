@@ -155,8 +155,7 @@
 	<string name="stream_display">Показ стріму</string>
 	<string name="streaming_server_banner_title">Нове: Відкрийте для себе сервери, оптимізовані для потокового передавання (▶️)</string>
 	<string name="streaming_server_banner_action">Перевірити нові\nвихідні сервери</string>
-	<string name="quic_gatway_filter_info_msg">Відображаються лише локації в швидкому режимі та сервери, що підтримують протокол QUIC. Щоб відобразити всі сервери, вимкніть QUIC.</string>
-	<string name="here">тут</string>
+    <string name="here">тут</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Неможливо підключитися до одного і того ж сервера входу та виходу. Змініть сервер входу або виходу та підключіться знову.</string>
 	<string name="unexpected_error">Виникла непередбачувана помилка:</string>

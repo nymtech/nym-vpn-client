@@ -155,8 +155,7 @@
 	<string name="stream_display">स्ट्रीम डिस्प्ले</string>
 	<string name="streaming_server_banner_title">नया: स्ट्रीमिंग के लिए तेज़ सर्वर पाएं (▶️)</string>
 	<string name="streaming_server_banner_action">Check new\nexit servers</string>
-	<string name="quic_gatway_filter_info_msg">सिर्फ फ़ास्ट मोड लोकेशन और QUIC प्रोटोकॉल सपोर्ट करने वाले सर्वर दिखाए जा रहे हैं। सभी सर्वर देखने के लिए QUIC बंद करें।</string>
-	<string name="here">यहाँ</string>
+    <string name="here">यहाँ</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">एक ही प्रवेश और निकासी नोड से कनेक्ट नहीं कर सकते। कृपया या तो प्रवेश या निकासी नोड स्थान बदलें।</string>
 	<string name="unexpected_error">एक अप्रत्याशित त्रुटि हुई:</string>
@@ -321,7 +320,7 @@
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है...</string>
 	<string name="account_payment_verifying">हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते</string>
-	<string name="account_payment_retrieving">आपके गुमनाम खाते की प्रमाणीकरण 
+	<string name="account_payment_retrieving">आपके गुमनाम खाते की प्रमाणीकरण
 जानकारी (zk-nyms) प्राप्त की जा रही है...</string>
 	<string name="account_payment_credentials">ये zero-knowledge क्रेडेंशियल इस बात को साबित करते हैं कि आपके पास पहुँच है बिना यह बताये कि आप कौन हैं</string>
 	<string name="account_payment_saving">डिवाइस पर आपके zk-nyms सहेजे जा रहे हैं...</string>
