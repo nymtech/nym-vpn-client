@@ -364,7 +364,7 @@ impl VpnServiceConfigManager {
         let to_duration_ms = |v: Option<u32>| v.map(|ms| Duration::from_millis(ms as u64));
 
         let mixnet_client_config = MixnetClientConfig {
-            disable_loop_cover_traffic_average_delay: self
+            disable_real_traffic_poisson_process: self
                 .config
                 .mixnet_traffic
                 .disable_poisson_rate,
