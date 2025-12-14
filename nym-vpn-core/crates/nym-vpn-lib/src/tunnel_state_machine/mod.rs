@@ -747,6 +747,7 @@ impl TunnelStateMachine {
                     &mut self.shared_state,
                 )
                 .await;
+
             match next_state {
                 NextTunnelState::NewState((new_state_handler, new_state)) => {
                     self.current_state_handler = new_state_handler;
