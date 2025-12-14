@@ -18,6 +18,7 @@ use nym_vpn_lib::{
         WireguardMultihopMode, WireguardTunnelOptions,
     },
 };
+use std::time::Duration;
 use std::{
     net::IpAddr,
     path::{Path, PathBuf},
@@ -360,8 +361,13 @@ impl VpnServiceConfigManager {
             vpn_min_performance: self.config.min_gateway_vpn_performance,
         };
 
+        let to_duration_ms = |v: Option<u32>| v.map(|ms| Duration::from_millis(ms as u64));
+
         let mixnet_client_config = MixnetClientConfig {
-            disable_poisson_rate: self.config.mixnet_traffic.disable_poisson_rate,
+            disable_loop_cover_traffic_average_delay: self
+                .config
+                .mixnet_traffic
+                .disable_poisson_rate,
             disable_background_cover_traffic: self
                 .config
                 .mixnet_traffic
@@ -378,12 +384,15 @@ impl VpnServiceConfigManager {
                     .min_gateway_mixnet_performance
                     .unwrap_or(DEFAULT_MIN_GATEWAY_PERFORMANCE),
             ),
-            poisson_rate: self
-                .config
-                .mixnet_traffic
-                .poisson_parameter_for_loop_cover_stream,
-            average_packet_delay: self.config.mixnet_traffic.average_packet_delay,
-            message_sending_average_delay: self.config.mixnet_traffic.message_sending_average_delay,
+            loop_cover_traffic_average_delay: to_duration_ms(
+                self.config
+                    .mixnet_traffic
+                    .poisson_parameter_for_loop_cover_stream,
+            ),
+            average_packet_delay: to_duration_ms(self.config.mixnet_traffic.average_packet_delay),
+            message_sending_average_delay: to_duration_ms(
+                self.config.mixnet_traffic.message_sending_average_delay,
+            ),
         };
 
         let tunnel_type = if self.config.enable_two_hop {
