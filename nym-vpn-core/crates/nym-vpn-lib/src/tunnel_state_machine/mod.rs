@@ -89,7 +89,6 @@ trait TunnelStateHandler: Send {
     ) -> NextTunnelState;
 }
 
-// todo: fix large enum; 248 byte enum is by no means a problem but clippy thinks we develop a firmware for Mars rovers.
 #[allow(clippy::large_enum_variant)]
 enum NextTunnelState {
     NewState((Box<dyn TunnelStateHandler>, PrivateTunnelState)),
@@ -217,6 +216,12 @@ impl TunnelSettings {
         }
         if self.wireguard_tunnel_options != other.wireguard_tunnel_options {
             diff.add(TunnelSettingsDiffFields::WireguardTunnelOptions);
+            // We care about just the QUIC setting changing.
+            if self.wireguard_tunnel_options.enable_bridges
+                != other.wireguard_tunnel_options.enable_bridges
+            {
+                diff.add(TunnelSettingsDiffFields::QUIC);
+            }
         }
         if self.gateway_performance_options != other.gateway_performance_options {
             diff.add(TunnelSettingsDiffFields::GatewayPerformanceOptions);
@@ -246,6 +251,7 @@ pub enum TunnelSettingsDiffFields {
     ResidentialExit,
     MixnetTunnelOptions,
     WireguardTunnelOptions,
+    QUIC,
     GatewayPerformanceOptions,
     MixnetClientConfig,
     EntryPoint,
@@ -291,6 +297,10 @@ impl TunnelSettingsDiff {
 
     pub fn exit_point_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::ExitPoint)
+    }
+
+    pub fn quic_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::QUIC)
     }
 }
 
@@ -737,6 +747,7 @@ impl TunnelStateMachine {
                     &mut self.shared_state,
                 )
                 .await;
+
             match next_state {
                 NextTunnelState::NewState((new_state_handler, new_state)) => {
                     self.current_state_handler = new_state_handler;
