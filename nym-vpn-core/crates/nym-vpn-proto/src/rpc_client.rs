@@ -114,7 +114,7 @@ impl RpcClient {
 
         Ok(())
     }
-    
+
     ///Sets if the real traffic stream will send packets based on the poisson distribution
     pub async fn set_disable_poisson_rate(&mut self, disable: bool) -> Result<()> {
         let request = proto::SetDisablePoissonRateRequest { disable };
