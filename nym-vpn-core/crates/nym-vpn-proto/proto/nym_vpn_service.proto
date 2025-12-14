@@ -246,7 +246,7 @@ message Threshold {
 }
 
 message MixnetTrafficConfig {
-  optional uint32 poisson_parameter = 1;
+  optional uint32 poisson_parameter_for_loop_cover_stream = 1;
   optional uint32 average_packet_delay = 2;
   optional uint32 message_sending_average_delay = 3;
 

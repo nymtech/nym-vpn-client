@@ -128,15 +128,19 @@ impl NymVpnService for CommandInterface {
 
         Ok(tonic::Response::new(()))
     }
-    async fn set_poisson_parameter(
+
+    async fn set_poisson_parameter_request_for_loop_cover_stream(
         &self,
-        request: tonic::Request<proto::SetPoissonParameterRequest>,
+        request: tonic::Request<proto::SetPoissonParameterForLoopCoverTrafficRequest>,
     ) -> Result<tonic::Response<()>> {
         let value = request.into_inner().poisson_parameter;
         tracing::debug!("Received set_poisson_parameter RPC with value: {}", value);
 
         let _ = self
-            .send_and_wait(VpnServiceCommand::SetPoissonParameter, value)
+            .send_and_wait(
+                VpnServiceCommand::SetPoissonParameterForLoopCoverStream,
+                value,
+            )
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to set Poisson parameter: {e}"))
@@ -144,6 +148,7 @@ impl NymVpnService for CommandInterface {
 
         Ok(tonic::Response::new(()))
     }
+
     async fn set_average_packet_delay(
         &self,
         request: tonic::Request<proto::SetAveragePacketDelayRequest>,
@@ -160,6 +165,7 @@ impl NymVpnService for CommandInterface {
 
         Ok(tonic::Response::new(()))
     }
+
     async fn set_disable_poisson_rate(
         &self,
         request: tonic::Request<proto::SetDisablePoissonRateRequest>,
@@ -175,6 +181,7 @@ impl NymVpnService for CommandInterface {
 
         Ok(tonic::Response::new(()))
     }
+
     async fn set_message_sending_average_delay(
         &self,
         request: tonic::Request<proto::SetMessageSendingAverageDelayRequest>,
@@ -191,6 +198,7 @@ impl NymVpnService for CommandInterface {
 
         Ok(tonic::Response::new(()))
     }
+
     async fn set_enable_two_hop(
         &self,
         request: tonic::Request<bool>,

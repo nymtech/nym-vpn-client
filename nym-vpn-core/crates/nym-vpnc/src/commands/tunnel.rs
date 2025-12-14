@@ -48,7 +48,7 @@ pub struct SetParams {
             Ok(val)
         })
     )]
-    pub loop_cover_stream_average_delay: Option<u32>,
+    loop_cover_stream_average_delay: Option<u32>,
 
     /// Set average packet delay at each mixnode (milliseconds)
     #[arg(
@@ -62,7 +62,7 @@ pub struct SetParams {
             Ok(val)
         })
     )]
-    pub average_packet_delay: Option<u32>,
+    average_packet_delay: Option<u32>,
 
     /// Set average real message sending delay (milliseconds)
     #[arg(
@@ -78,13 +78,13 @@ pub struct SetParams {
             Ok(val)
         })
     )]
-    pub message_sending_delay: Option<u32>,
+    message_sending_delay: Option<u32>,
     #[arg(
         long,
         help = "Disable Poisson process rate limiting for real traffic",
-        value_parser = BooleanOption::custom_parser("on","off")
+        value_parser = clap::value_parser!(BooleanOption),
     )]
-    pub disable_real_traffic_poisson_rate: Option<BooleanOption>,
+    disable_real_traffic_poisson_rate: Option<BooleanOption>,
 }
 
 impl Command {
@@ -128,7 +128,9 @@ impl Command {
                     rpc_client.set_enable_bridges(*enable_ct).await?;
                 }
                 if let Some(poisson) = loop_cover_stream_average_delay {
-                    rpc_client.set_poisson_parameter(poisson).await?;
+                    rpc_client
+                        .set_poisson_parameter_for_loop_cover_traffic(poisson)
+                        .await?;
                 }
                 if let Some(delay_ms) = average_packet_delay {
                     rpc_client.set_average_packet_delay(delay_ms).await?;

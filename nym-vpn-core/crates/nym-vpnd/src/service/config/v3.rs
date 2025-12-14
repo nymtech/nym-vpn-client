@@ -51,7 +51,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
                 .collect::<Result<_, _>>()?,
         };
         let mixnet_traffic = nym_vpn_lib_types::MixnetTrafficConfig {
-            poisson_parameter: None,
+            poisson_parameter_for_loop_cover_stream: None,
             average_packet_delay: None,
             message_sending_average_delay: None,
 
