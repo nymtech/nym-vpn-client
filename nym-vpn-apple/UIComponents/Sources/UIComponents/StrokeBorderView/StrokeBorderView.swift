@@ -5,6 +5,9 @@ public struct StrokeBorderView<Content: View>: View {
     @ViewBuilder private let content: Content
     private let strokeTitle: String
     private let strokeTitleLeftMargin: CGFloat
+    private let strokeColor: Color
+    private let backgroundColor: Color
+    private let backgrounsColorHover: Color
 
     @Binding private var isHovered: Bool
 
@@ -12,10 +15,16 @@ public struct StrokeBorderView<Content: View>: View {
         strokeTitle: String,
         strokeTitleLeftMargin: CGFloat,
         isHovered: Binding<Bool>,
+        strokeColor: Color = NymColor.gray2,
+        backgroundColor: Color = NymColor.background,
+        backgroundColorHover: Color = NymColor.backgroundHover,
         @ViewBuilder content: () -> Content
     ) {
         self.strokeTitle = strokeTitle
         self.strokeTitleLeftMargin = strokeTitleLeftMargin
+        self.strokeColor = strokeColor
+        self.backgroundColor = backgroundColor
+        self.backgrounsColorHover = backgroundColorHover
         self.content = content()
         _isHovered = isHovered
     }
@@ -25,12 +34,12 @@ public struct StrokeBorderView<Content: View>: View {
             content
         }
         .frame(height: 56)
-        .background(isHovered ? NymColor.backgroundHover : NymColor.background)
+        .background(isHovered ? backgrounsColorHover : backgroundColor)
         .cornerRadius(8)
         .overlay {
             RoundedRectangle(cornerRadius: 8)
                 .inset(by: 0.5)
-                .stroke(NymColor.gray2.opacity(isHovered ? 0.7 : 1), lineWidth: 1)
+                .stroke(strokeColor.opacity(isHovered ? 0.7 : 1), lineWidth: 1)
         }
         .overlay(alignment: .topLeading) {
             Text(strokeTitle)
