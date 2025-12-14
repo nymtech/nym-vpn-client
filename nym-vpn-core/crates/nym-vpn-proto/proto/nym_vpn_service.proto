@@ -246,7 +246,7 @@ message Threshold {
 }
 
 message MixnetTrafficConfig {
-  optional uint32 poisson_parameter = 1;
+  optional uint32 poisson_parameter_for_loop_cover_stream = 1;
   optional uint32 average_packet_delay = 2;
   optional uint32 message_sending_average_delay = 3;
 
@@ -854,16 +854,19 @@ message NetworkStatisticsIdentity {
     string seed = 1;
     string id = 2;
 }
-
+/// Sets the average delay (in milliseconds) between sending real user messages.
 message SetMessageSendingAverageDelayRequest {
     uint32 delay_ms = 1;
 }
+/// Enables or disables Poisson-based rate limiting for real user traffic.
 message SetDisablePoissonRateRequest {
   bool disable = 1;
 }
-message SetPoissonParameterRequest {
+/// Sets the λ (lambda) parameter for the Poisson process controlling loop-cover traffic
+message SetPoissonParameterForLoopCoverTrafficRequest {
   uint32 poisson_parameter = 1;
 }
+/// Sets the average packet delay (in milliseconds) applied at each mixnode in the path.
 message SetAveragePacketDelayRequest {
     uint32 delay_ms = 1;
 }
@@ -885,7 +888,7 @@ service NymVpnService {
   rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableCustomDns (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetCustomDns (IpAddrList) returns (google.protobuf.Empty) {}
-  rpc SetPoissonParameter (SetPoissonParameterRequest) returns (google.protobuf.Empty);
+  rpc SetPoissonParameterRequestForLoopCoverStream (SetPoissonParameterForLoopCoverTrafficRequest) returns (google.protobuf.Empty);
   rpc SetDisablePoissonRate (SetDisablePoissonRateRequest) returns (google.protobuf.Empty);
   rpc SetAveragePacketDelay(SetAveragePacketDelayRequest) returns (google.protobuf.Empty);
   rpc SetMessageSendingAverageDelay(SetMessageSendingAverageDelayRequest) returns (google.protobuf.Empty);

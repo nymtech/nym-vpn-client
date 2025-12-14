@@ -150,7 +150,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<NetworkStatisticsIdentity, StatisticsControllerError>>,
         (),
     ),
-    SetPoissonParameter(oneshot::Sender<()>, u32),
+    SetPoissonParameterForLoopCoverStream(oneshot::Sender<()>, u32),
     SetAveragePacketDelay(oneshot::Sender<()>, u32),
     SetMessageSendingAverageDelay(oneshot::Sender<()>, u32),
     SetDisablePoissonRate(oneshot::Sender<()>, bool),
@@ -931,8 +931,9 @@ impl NymVpnService {
                 let result = self.handle_get_socks5_status().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::SetPoissonParameter(tx, value) => {
-                self.handle_set_poisson_parameter(value).await;
+            VpnServiceCommand::SetPoissonParameterForLoopCoverStream(tx, value) => {
+                self.handle_set_poisson_parameter_for_loop_cover_stream(value)
+                    .await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetAveragePacketDelay(resp, delay_ms) => {
@@ -995,9 +996,11 @@ impl NymVpnService {
         self.config_manager.set_netstack(netstack).await;
         self.update_tunnel_settings_with_throttle();
     }
-    async fn handle_set_poisson_parameter(&mut self, value: u32) {
+    async fn handle_set_poisson_parameter_for_loop_cover_stream(&mut self, value: u32) {
         // Update the Poisson parameter inside the configuration manager
-        self.config_manager.set_poisson_parameter(value).await;
+        self.config_manager
+            .set_poisson_parameter_for_loop_cover_stream(value)
+            .await;
 
         // Update tunnel settings with throttle
         self.update_tunnel_settings_with_throttle();

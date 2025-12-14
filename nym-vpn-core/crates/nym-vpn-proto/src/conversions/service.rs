@@ -37,7 +37,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
         ))?;
 
         let mixnet_traffic = nym_vpn_lib_types::MixnetTrafficConfig {
-            poisson_parameter: mt.poisson_parameter,
+            poisson_parameter_for_loop_cover_stream: mt.poisson_parameter_for_loop_cover_stream,
             average_packet_delay: mt.average_packet_delay,
             message_sending_average_delay: mt.message_sending_average_delay,
             disable_poisson_rate: mt.disable_poisson_rate,
@@ -73,7 +73,9 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
         let exit_point = Some(proto::ExitNode::from(value.exit_point));
         let custom_dns = Some(proto::IpAddrList::from(value.custom_dns));
         let mixnet_traffic = Some(proto::MixnetTrafficConfig {
-            poisson_parameter: value.mixnet_traffic.poisson_parameter,
+            poisson_parameter_for_loop_cover_stream: value
+                .mixnet_traffic
+                .poisson_parameter_for_loop_cover_stream,
             average_packet_delay: value.mixnet_traffic.average_packet_delay,
             message_sending_average_delay: value.mixnet_traffic.message_sending_average_delay,
             disable_poisson_rate: value.mixnet_traffic.disable_poisson_rate,

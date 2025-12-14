@@ -177,8 +177,10 @@ impl VpnServiceConfigManager {
     }
 
     #[allow(unused)]
-    pub async fn set_poisson_parameter(&mut self, poisson: u32) {
-        self.config.mixnet_traffic.poisson_parameter = Some(poisson);
+    pub async fn set_poisson_parameter_for_loop_cover_stream(&mut self, poisson: u32) {
+        self.config
+            .mixnet_traffic
+            .poisson_parameter_for_loop_cover_stream = Some(poisson);
         self.save_config_and_send_event().await;
     }
 
@@ -364,7 +366,10 @@ impl VpnServiceConfigManager {
                     .min_gateway_mixnet_performance
                     .unwrap_or(DEFAULT_MIN_GATEWAY_PERFORMANCE),
             ),
-            poisson_rate: self.config.mixnet_traffic.poisson_parameter,
+            poisson_rate: self
+                .config
+                .mixnet_traffic
+                .poisson_parameter_for_loop_cover_stream,
             average_packet_delay: self.config.mixnet_traffic.average_packet_delay,
             message_sending_average_delay: self.config.mixnet_traffic.message_sending_average_delay,
         };

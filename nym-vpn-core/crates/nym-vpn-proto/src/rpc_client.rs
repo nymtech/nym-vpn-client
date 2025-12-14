@@ -77,17 +77,20 @@ impl RpcClient {
 
         Ok(())
     }
-    pub async fn set_poisson_parameter(&mut self, value: u32) -> Result<()> {
-        let request = proto::SetPoissonParameterRequest {
+
+    ///Sets the poisson parameter for the loop cover stream
+    pub async fn set_poisson_parameter_for_loop_cover_traffic(&mut self, value: u32) -> Result<()> {
+        let request = proto::SetPoissonParameterForLoopCoverTrafficRequest {
             poisson_parameter: value,
         };
 
         self.0
-            .set_poisson_parameter(request)
+            .set_poisson_parameter_request_for_loop_cover_stream(request)
             .await
             .map_err(Error::Rpc)?;
         Ok(())
     }
+
     /// Sets the average per-mixnode packet delay (in milliseconds)
     pub async fn set_average_packet_delay(&mut self, delay_ms: u32) -> Result<()> {
         let request = proto::SetAveragePacketDelayRequest { delay_ms };
@@ -113,6 +116,8 @@ impl RpcClient {
 
         Ok(())
     }
+    
+    ///Sets if the real traffic stream will send packets based on the poisson distribution
     pub async fn set_disable_poisson_rate(&mut self, disable: bool) -> Result<()> {
         let request = proto::SetDisablePoissonRateRequest { disable };
         self.0
@@ -122,6 +127,7 @@ impl RpcClient {
             .into_inner();
         Ok(())
     }
+
     pub async fn set_disable_ipv6(&mut self, disable_ipv6: bool) -> Result<()> {
         self.0
             .set_disable_ipv6(disable_ipv6)

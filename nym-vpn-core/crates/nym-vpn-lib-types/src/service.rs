@@ -13,7 +13,7 @@ use crate::{EntryPoint, ExitPoint, NetworkStatisticsConfig, NymNetworkDetails, N
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct MixnetTrafficConfig {
-    pub poisson_parameter: Option<u32>,
+    pub poisson_parameter_for_loop_cover_stream: Option<u32>,
     pub average_packet_delay: Option<u32>,
     pub message_sending_average_delay: Option<u32>,
 
@@ -26,7 +26,7 @@ pub struct MixnetTrafficConfig {
 impl Default for MixnetTrafficConfig {
     fn default() -> Self {
         Self {
-            poisson_parameter: None,
+            poisson_parameter_for_loop_cover_stream: None,
             average_packet_delay: None,
             message_sending_average_delay: None,
             disable_poisson_rate: false,
@@ -111,8 +111,11 @@ impl fmt::Display for VpnServiceConfig {
         writeln!(f, "networks stats config: {}", self.network_stats)?;
         writeln!(
             f,
-            "poisson_parameter: {:?}",
-            self.mixnet_traffic.poisson_parameter
+            "poisson_parameter_for_loop_cover_stream: {}",
+            self.mixnet_traffic
+                .poisson_parameter_for_loop_cover_stream
+                .map(|v| v.to_string())
+                .unwrap_or_else(|| "<Default>".to_string())
         )?;
         writeln!(
             f,
