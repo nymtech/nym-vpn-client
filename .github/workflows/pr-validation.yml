@@ -1,0 +1,59 @@
+name: pr-validation
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - "release/**"
+    paths-ignore:
+      - "documentation/**"
+    types:
+      - labeled
+      - unlabeled
+      - opened
+      - reopened
+      - synchronize
+      - edited
+
+env:
+  LABELS: ${{ join( github.event.pull_request.labels.*.name, ' ' ) }}
+
+jobs:
+  check-milestone:
+    name: Check Milestone
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if PR has milestone
+        run: |
+          MILESTONE_TITLE="${{ github.event.pull_request.milestone.title }}"
+          HAS_NO_MILESTONE_LABEL="${{ contains(env.LABELS, 'no-milestone') }}"
+          
+          if [[ -n "$MILESTONE_TITLE" ]] || [[ "$HAS_NO_MILESTONE_LABEL" == "true" ]]; then
+            echo "PR validation passed: milestone=$([ -n "$MILESTONE_TITLE" ] && echo "set" || echo "not set"), no-milestone label=$HAS_NO_MILESTONE_LABEL"
+            exit 0
+          else
+            echo "::error::PR must have a milestone assigned or be labeled with 'no-milestone'"
+            exit 1
+          fi
+
+  check-contributor-checklist:
+    name: Check Contributor Checklist Reference
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check PR description references checklist for external contributors
+        run: |
+          HEAD_REPO="${{ github.event.pull_request.head.repo.full_name }}"
+          BASE_REPO="${{ github.repository }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+          
+          # Only check for external contributors (PRs from forks)
+          if [[ "$HEAD_REPO" != "$BASE_REPO" ]]; then
+            if [[ -z "$PR_BODY" ]] || [[ ! "$PR_BODY" =~ "CONTRIBUTOR_ACCEPTANCE_CHECKLIST" ]] && [[ ! "$PR_BODY" =~ "contributor.*checklist" ]]; then
+              echo "::warning::PR description should reference .github/CONTRIBUTOR_ACCEPTANCE_CHECKLIST.md for external contributors"
+              echo "Please ensure you have reviewed and completed all items in the contributor acceptance checklist."
+            fi
+          else
+            echo "Internal contributor - checklist check skipped"
+          fi
+
