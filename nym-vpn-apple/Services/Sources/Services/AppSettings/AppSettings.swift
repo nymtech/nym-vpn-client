@@ -86,6 +86,9 @@ import CountriesManagerTypes
     public var shouldReconnect = false {
         didSet { shouldReconnectPublisher = shouldReconnect }
     }
+    
+    @AppStorage(AppSettingKey.customDns.rawValue)
+    public var customDns: [String] = []
 
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher: Bool
@@ -144,4 +147,23 @@ public enum AppSettingKey: String {
     case shouldReconnect
     case passphraseStored
     case connectionConfig
+    case customDns
+}
+
+extension Array: @retroactive RawRepresentable where Element: Codable {
+    public init?(rawValue: String) {
+        guard
+            let data = rawValue.data(using: .utf8),
+            let result = try? JSONDecoder().decode([Element].self, from: data)
+        else { return nil }
+        self = result
+    }
+
+    public var rawValue: String {
+        guard
+            let data = try? JSONEncoder().encode(self),
+            let result = String(data: data, encoding: .utf8)
+        else { return "" }
+        return result
+    }
 }

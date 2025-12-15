@@ -8732,6 +8732,17 @@
         }
       }
     },
+    "dns.button.saveChanges" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save changes"
+          }
+        }
+      }
+    },
     "dns.custom.instructions" : {
       "extractionState" : "manual",
       "localizations" : {

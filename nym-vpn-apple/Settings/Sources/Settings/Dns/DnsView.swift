@@ -3,14 +3,16 @@ import AppSettings
 import ConnectionManager
 import Constants
 import MessageModels
+#if os(macOS)
 import NymVPNRpc
 import GRPCManager
+#endif
 import Theme
 import UIComponents
 
 public struct DnsView: View {
     @StateObject private var viewModel: DnsViewModel
-    
+
     @FocusState private var isIpAddressTextFieldFocused: Bool
     @State private var isCustomDnsHovered = false
     @State private var isCustomDnsTextFieldHovered = false
@@ -86,31 +88,11 @@ private extension DnsView {
             Text("dns.default.title".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
-            // TODO ForEach
-            Text("• 192.0.2.44")
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
-            Text("• 192.0.2.45")
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
-            Text("• 192.0.2.46")
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
-            Text("• 192.0.2.48")
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
-            Text("• 192.0.2.44")
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
-            Text("• 192.0.2.45")
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
-            Text("• 192.0.2.46")
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
-            Text("• 192:0::2::48::0")
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+            ForEach(viewModel.defaultDns, id: \.self) { ip in
+                Text("• \(ip)")
+                    .textStyle(.Body.Medium.regular)
+                    .foregroundStyle(NymColor.gray1)
+            }
         }
     }
 
@@ -139,102 +121,126 @@ private extension DnsView {
     private static let dnsEntryHeight: CGFloat = 44
 
     func customDnsInstructionsAndList() -> some View {
-        VStack {
-            HStack {
-                Text("dns.custom.instructions".localizedString)
-                    .textStyle(.Body.Medium.regular)
-                    .foregroundStyle(NymColor.gray1)
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-
-            List {
-                ForEach(viewModel.ipAddresses, id: \.self) { ip in
-                    HStack {
-                        HStack {
-                            GenericImage(imageName: "dragIndicator")
-                                .frame(width: 20, height: 20)
-                                .foregroundStyle(NymColor.gray1)
-                            Text(ip)
-                        }
-                        Spacer()
-                        GenericImage(systemImageName: "trash")
-                            .frame(width: 20, height: 20)
-                            .foregroundStyle(NymColor.primary)
-                    }
-                    .frame(height: DnsView.dnsEntryHeight)
-                    .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
-                    .background(.clear)
-                }
-                .onMove { from, to in
-                    viewModel.ipAddresses.move(fromOffsets: from, toOffset: to)
-                }
-            }
-            .background(.clear)
-            .scrollContentBackground(.hidden)
-            .scrollDisabled(true)
-            .frame(maxWidth: .infinity)
-            .frame(height: DnsView.dnsEntryHeight * CGFloat(viewModel.ipAddresses.count))
-            dnsTextfield()
+        VStack(spacing: 0) {
+            customDnsInstructions()
+            customDnsList()
+            dnsTextFieldAndAddButton()
+            dnsSaveChangesButton()
         }
         .padding(.bottom, 16)
     }
 
     @ViewBuilder
-    func dnsTextfield() -> some View {
-        HStack(spacing: 16) {
-            StrokeBorderView(
-                strokeTitle: "dns.textfield.title".localizedString,
-                strokeTitleLeftMargin: 60,
-                isHovered: $isCustomDnsTextFieldHovered,
-                strokeColor: NymColor.primary,
-                backgroundColor: NymColor.elevation,
-                backgroundColorHover: NymColor.elevation.opacity(0.7)
-            ) {
-                HStack {
-                    ZStack(alignment: .leading) {
-                        TextField("", text: $viewModel.ipAddressTextField)
-                            .foregroundStyle(NymColor.gray1)
-                            .textFieldStyle(PlainTextFieldStyle())
-                            .background(NymColor.elevation.opacity(isCustomDnsHovered ? 0.7 : 1))
-                            .textStyle(.Body.Large.regular)
-                            .focused($isIpAddressTextFieldFocused)
-                            .padding(.horizontal, 16)
-
-                        if viewModel.ipAddressTextField.isEmpty {
-                            Text("dns.textfield.placeholder".localizedString)
-                                .foregroundStyle(NymColor.gray1)
-                                .textStyle(.Body.Large.regular)
-                                .padding(.leading, 16)
-                        }
-                    }
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .onTapGesture {
-                isIpAddressTextFieldFocused = true
-            }
-
-            Text("dns.button.add".localizedString)
-                .frame(height: 56)
-                .padding(.horizontal, 16)
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Large.regular)
-                .background(NymColor.elevation.opacity(isCustomDnsAddButtonHovered ? 0.7 : 1.0))
-                .cornerRadius(8)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 8)
-                        .inset(by: 0.5)
-                        .stroke(NymColor.primary.opacity(isCustomDnsAddButtonHovered ? 0.7 : 1), lineWidth: 1)
-                }
-                .onHover { newValue in
-                    isCustomDnsAddButtonHovered = newValue
-                }
-                .onTapGesture {
-                    print("Add!")
-                }
+    func customDnsInstructions() -> some View {
+        HStack {
+            Text("dns.custom.instructions".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+            Spacer()
         }
         .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    func customDnsList() -> some View {
+        List {
+            ForEach(viewModel.customDns, id: \.self) { ip in
+                HStack {
+                    HStack {
+                        GenericImage(imageName: "dragIndicator")
+                            .frame(width: 20, height: 20)
+                            .foregroundStyle(NymColor.gray1)
+                        Text(ip)
+                    }
+                    Spacer()
+                    GenericImage(systemImageName: "trash")
+                        .frame(width: 20, height: 20)
+                        .foregroundStyle(NymColor.primary)
+                }
+                .frame(height: DnsView.dnsEntryHeight)
+                .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
+                .background(.clear)
+            }
+            .onMove { from, to in
+                viewModel.customDns.move(fromOffsets: from, toOffset: to)
+            }
+        }
+        .background(.clear)
+        .scrollContentBackground(.hidden)
+        .scrollDisabled(true)
+        .frame(maxWidth: .infinity)
+        .frame(height: DnsView.dnsEntryHeight * CGFloat(viewModel.customDns.count))
+    }
+
+    @ViewBuilder
+    func dnsTextFieldAndAddButton() -> some View {
+        HStack(spacing: 16) {
+            dnsTextField()
+            dnsAddButton()
+        }
+        .padding(16)
+    }
+
+    @ViewBuilder
+    func dnsTextField() -> some View {
+        StrokeBorderView(
+            strokeTitle: "dns.textfield.title".localizedString,
+            strokeTitleLeftMargin: 60,
+            isHovered: $isCustomDnsTextFieldHovered,
+            strokeColor: NymColor.primary,
+            backgroundColor: .clear
+        ) {
+            HStack {
+                ZStack(alignment: .leading) {
+                    TextField("", text: $viewModel.customDnsTextField)
+                        .padding(.horizontal, 16)
+                        .foregroundStyle(NymColor.gray1)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .background(.clear)
+                        .textStyle(.Body.Large.regular)
+                        .focused($isIpAddressTextFieldFocused)
+
+                    if viewModel.customDnsTextField.isEmpty {
+                        Text("dns.textfield.placeholder".localizedString)
+                            .padding(.leading, 16)
+                            .foregroundStyle(NymColor.gray1)
+                            .textStyle(.Body.Large.regular)
+                            .background(.clear)
+                    }
+                }
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .onTapGesture {
+            isIpAddressTextFieldFocused = true
+        }
+    }
+
+    @ViewBuilder
+    func dnsAddButton() -> some View {
+        GenericButton(
+            title: "dns.button.add".localizedString,
+            style: .primaryBorderOnly,
+            isWidthExpanded: false
+        )
+        .onTapGesture {
+            print("Add!")
+        }
+        .accessibilityAction {
+            print("Add!")
+        }
+    }
+
+    @ViewBuilder
+    func dnsSaveChangesButton() -> some View {
+        GenericButton(title: "dns.button.saveChanges".localizedString)
+            .padding(.horizontal, 16)
+            .onTapGesture {
+                print("Save changes!")
+            }
+            .accessibilityAction {
+                print("Save changes!")
+            }
     }
 }
