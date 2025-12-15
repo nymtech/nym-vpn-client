@@ -41,7 +41,7 @@ class DnsViewModel @Inject constructor(
 
 	fun reconnect() {
 		viewModelScope.launch {
-			if(backendManager.getState() == Tunnel.State.Up) {
+			if (backendManager.getState() == Tunnel.State.Up) {
 				backendManager.stopTunnel()
 				backendManager.startTunnel()
 			}

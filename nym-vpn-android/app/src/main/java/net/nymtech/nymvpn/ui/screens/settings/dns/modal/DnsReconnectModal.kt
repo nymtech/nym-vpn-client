@@ -19,7 +19,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -87,4 +86,3 @@ private fun SaveChangesModalPreview() {
 		DnsReconnectModal(true, {}, {})
 	}
 }
-

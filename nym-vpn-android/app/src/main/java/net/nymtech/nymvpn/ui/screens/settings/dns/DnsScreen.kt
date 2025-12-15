@@ -61,8 +61,6 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib_types.TunnelState
-import timber.log.Timber
 
 @Composable
 fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: DnsViewModel = hiltViewModel()) {
@@ -241,7 +239,7 @@ private fun DnsScreen(
 			dnsEnabled = dnsEnabled,
 			onDnsEnable = {
 				onDnsEnable(it)
-				if(tunnelState == Tunnel.State.Up) {
+				if (tunnelState == Tunnel.State.Up) {
 					showReconnectDialog = true
 				}
 			},
