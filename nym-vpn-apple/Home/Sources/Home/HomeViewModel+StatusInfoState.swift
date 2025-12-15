@@ -70,7 +70,7 @@ extension HomeViewModel {
                 return
             }
             
-            let errorDescription = if let rpcError = lastError as? RpcError {
+            let errorDescription = if let rpcError = error as? RpcError {
                 rpcError.message()
             } else {
                 lastNsError.localizedDescription
