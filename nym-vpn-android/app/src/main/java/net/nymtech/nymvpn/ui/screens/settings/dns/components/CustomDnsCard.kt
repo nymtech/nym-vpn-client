@@ -45,6 +45,8 @@ fun CustomDnsCard(
 	var nextItemId by remember { mutableLongStateOf(1L) }
 	var savedDnsSnapshot by remember { mutableStateOf(initialDns.toList()) }
 
+	val validateList = arrayListOf("0.0.0.0", "255.255.255.255")
+
 	LaunchedEffect(initialDns) {
 		dnsItems.clear()
 		nextItemId = 1L
@@ -58,7 +60,7 @@ fun CustomDnsCard(
 	val normalizedDnsInput = dnsInput.trim()
 
 	val isDnsInputValid = remember(normalizedDnsInput) {
-		normalizedDnsInput.isNotEmpty() &&
+		normalizedDnsInput.isNotEmpty() && normalizedDnsInput !in validateList
 			(isValidIPv4(normalizedDnsInput) || isValidIPv6(normalizedDnsInput))
 	}
 	val shouldShowInputError = remember(normalizedDnsInput, isDnsInputValid) {
