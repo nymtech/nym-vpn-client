@@ -1,4 +1,8 @@
+#if os(iOS)
+import NymVPNLib
+#elseif os(macOS)
 import NymVPNRpc
+#endif
 
 public extension HomeViewModel {
     @MainActor func connectDisconnect() async {
@@ -38,12 +42,16 @@ public extension HomeViewModel {
         do {
             try await connectionManager.connectDisconnect()
         } catch let error {
+            #if os(macOS)
             let errorDescription = if let rpcError = error as? RpcError {
                 rpcError.message()
             } else {
                 error.localizedDescription
             }
-            
+            #else
+            let errorDescription = error.localizedDescription
+            #endif
+
             updateStatusInfoState(with: .error(message: errorDescription))
 #if os(iOS)
             impactGenerator.error()

@@ -11,7 +11,6 @@ import GatewayManager
 import MessagesManager
 import MessageModels
 import NetworkMonitor
-import NymVPNRpc
 import Settings
 import TunnelMixnet
 import TunnelStatus
@@ -20,6 +19,7 @@ import UIComponents
 import ImpactGenerator
 #if os(macOS)
 import GRPCManager
+import NymVPNRpc
 #endif
 
 @MainActor public class HomeViewModel: HomeFlowState {
@@ -250,12 +250,16 @@ private extension HomeViewModel {
             case .success, .none:
                 self?.resetStatusInfoState()
             case let .failure(error):
+#if os(macOS)
                 let errorDescription = if let rpcError = error as? RpcError {
                     rpcError.message()
                 } else {
                     error.localizedDescription
                 }
-                
+#else
+                let errorDescription = error.localizedDescription
+#endif
+
                 self?.updateStatusInfoState(with: .error(message: errorDescription))
             }
         }
