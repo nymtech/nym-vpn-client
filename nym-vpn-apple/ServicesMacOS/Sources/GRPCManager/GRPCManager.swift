@@ -53,6 +53,12 @@ import TunnelStatus
     }
 }
 
+extension RpcError: @retroactive CustomDebugStringConvertible {
+    public var debugDescription: String {
+        message()
+    }
+}
+
 private extension GRPCManager {
     func configureRpcClient() async throws {
         do {
