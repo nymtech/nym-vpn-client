@@ -225,12 +225,22 @@ private extension SettingsFlowCoordinator {
 
     @ViewBuilder
     func dnsDestination() -> some View {
+        #if os(macOS)
+        DnsView(
+            viewModel: DnsViewModel(
+                path: $flowState.path,
+                appSettings: .shared,
+                grpcManager: .shared
+            )
+        )
+        #elseif os(iOS)
         DnsView(
             viewModel: DnsViewModel(
                 path: $flowState.path,
                 appSettings: .shared
             )
         )
+        #endif
     }
 
     @ViewBuilder
