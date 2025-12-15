@@ -121,7 +121,7 @@ public struct HopButton: View {
             strokeTitleLeftMargin: 30,
             isHovered: $isButtonHovered
         ) {
-            HStack {
+            HStack(spacing: 0) {
                 button().onHover { isButtonHovered = $0 }
                 if gatewayId != nil {
                     accessory().onHover { isAccessoryHovered = $0 }
@@ -204,11 +204,15 @@ private extension HopButton {
             titleSubtitleText(with: titleText, subtitle: subtitleText)
 
             Spacer()
-            if shouldShowQuic {
-                QuicLabel()
-            } else if shouldShowStreaming {
-                StreamingIcon()
+
+            HStack {
+                if shouldShowQuic {
+                    QuicLabel()
+                } else if shouldShowStreaming {
+                    StreamingIcon()
+                }
             }
+            .padding(.trailing, 12)
         }
         .overlay {
             Rectangle()
@@ -217,6 +221,8 @@ private extension HopButton {
                 .onTapGesture(perform: buttonAction)
                 .accessibilityHidden(true)
         }
+        .frame(maxWidth: .infinity)
+        .onTapGesture(perform: buttonAction)
         .accessibilityElement(children: .combine)
         .accessibilityAction(.default, buttonAction)
         .accessibilityAddTraits([.isButton])
