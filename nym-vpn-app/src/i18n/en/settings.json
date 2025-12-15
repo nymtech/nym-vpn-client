@@ -126,27 +126,35 @@
     "title": "App & wallet proxy (beta)",
     "menu-desc": "Route app traffic through mixnet",
     "label": "App & wallet proxy",
-    "description": "Enable mixnet proxy for apps & wallets",
-    "connect-vpn-first": "Connect VPN first to enable proxy",
+    "switch-title": "Enable proxy",
+    "proxy-status": "Proxy status:",
+    "active-connections": "Active connections:",
+    "status": {
+      "connected": "Connected",
+      "disabled": "Disabled",
+      "enabling": "Enabling...",
+      "unknown": "Unknown"
+    },
+    "socks5": {
+      "proxy-title": "SOCKS5 configuration (for apps)",
+      "url-title": "SOCKS5 URL",
+      "listen-address": "SOCKS5 listen address",
+      "info": "ℹ️ Add this to your browser's proxy settings to route traffic through the Nym mixnet"
+    },
+    "http-rpc": {
+      "proxy-title": "HTTP RPC configuration (for wallets)",
+      "url-title": "HTTP RPC URL",
+      "listen-address": "HTTP RPC listen address",
+      "info": "ℹ️ Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint."
+    },
+    "listen-port": "Listen port",
+    "reset-to-default": "Reset to default",
     "intro": "Route app & wallet traffic through the Nym mixnet for enhanced privacy. This feature creates a local SOCKS5 proxy for apps, and a HTTP RPC proxy for wallets.",
-    "status": "Status",
-    "proxy-url": "Proxy URL",
-    "active-connections": "Active connections",
-    "copied-to-clipboard": "Proxy URL copied to clipboard",
-    "snackbar-enabled": "SOCKS5 proxy enabled",
-    "snackbar-disabled": "SOCKS5 proxy disabled",
     "error-gateway-not-supported": "Gateway does not support SOCKS5",
     "error-unknown": "Failed to toggle SOCKS5 proxy",
     "error-vpn-not-connected": "Please connect VPN first before enabling SOCKS5 proxy",
-    "socks5-address-label": "SOCKS5 Listen Address",
-    "socks5-address-placeholder": "127.0.0.1:1080",
-    "http-rpc-address-label": "HTTP RPC Listen Address",
-    "http-rpc-address-placeholder": "127.0.0.1:8545",
-    "configuration": "Configuration",
-    "enabling": "Enabling proxy...",
-    "disabling": "Disabling proxy...",
-    "add-to-browser-proxy-settings": "Add this URL to your browser's proxy settings to route traffic through the Nym mixnet",
-    "use-in-wallet": "Use this URL in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual provider URL."
+    "snackbar-enabled": "Proxy successfully enabled",
+    "snackbar-disabled": "Proxy successfully disabled"
   },
   "privacy": {
     "error-monitoring": {
