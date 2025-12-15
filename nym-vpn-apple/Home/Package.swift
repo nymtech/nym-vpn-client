@@ -23,7 +23,8 @@ let package = Package(
         .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
-        .package(path: "../Theme")
+        .package(path: "../Theme"),
+        .package(path: "../NymVPNRpc"),
     ],
     targets: [
         .target(
@@ -41,7 +42,8 @@ let package = Package(
                 .product(name: "NetworkMonitor", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "MessagesManager", package: "Services"),
-                .product(name: "Theme", package: "Theme")
+                .product(name: "Theme", package: "Theme"),
+                .product(name: "NymVPNRpc", package: "NymVPNRpc", condition: .when(platforms: [.macOS])),
             ],
             path: "Sources"
         ),

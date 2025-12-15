@@ -4,6 +4,7 @@ import Constants
 import Foundation
 import TunnelStatus
 import UIComponents
+import NymVPNRpc
 
 extension HomeViewModel {
     func setupGRPCManagerObservers() {
@@ -52,4 +53,11 @@ extension HomeViewModel {
             .store(in: &cancellables)
     }
 }
+
+extension RpcError: @retroactive CustomDebugStringConvertible {
+    public var debugDescription: String {
+        message()
+    }
+}
+
 #endif
