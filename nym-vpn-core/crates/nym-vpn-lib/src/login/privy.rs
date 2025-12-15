@@ -8,7 +8,6 @@ use nym_vpn_store::account::Mnemonic;
 use super::error::LoginError;
 
 pub const PRIVY_DERIVATION_MESSAGE: &str = "DeriveAccount:NymVPN";
-const HKDF_SALT: &str = "privy-bip44-derivation";
 const HKDF_INFO: &str = "cosmos-entropy";
 
 pub fn message_to_sign() -> String {
@@ -18,13 +17,9 @@ pub fn message_to_sign() -> String {
 pub fn hex_signature_to_mnemonic(hex_signature: &str) -> Result<Mnemonic, LoginError> {
     let bytes_signature = hex::decode(hex_signature)?;
 
-    let entropy = hkdf::extract_then_expand::<Sha256>(
-        Some(HKDF_SALT.as_bytes()),
-        &bytes_signature,
-        Some(HKDF_INFO.as_bytes()),
-        32,
-    )
-    .map_err(|_| LoginError::HkdfInvalidLength)?;
+    let entropy =
+        hkdf::extract_then_expand::<Sha256>(None, &bytes_signature, Some(HKDF_INFO.as_bytes()), 32)
+            .map_err(|_| LoginError::HkdfInvalidLength)?;
 
     let mnemonic = Mnemonic::from_entropy(&entropy)?;
 
