@@ -6,6 +6,7 @@ mod error;
 mod mixnet_listener;
 mod processor;
 mod topology_provider;
+mod topology_v2;
 
 pub use processor::start_processor;
 
