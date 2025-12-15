@@ -168,12 +168,6 @@ impl Network {
             })
     }
 
-    pub fn credential_mode(&self) -> Option<bool> {
-        self.feature_flags
-            .as_ref()
-            .and_then(|ff| ff.credential_mode())
-    }
-
     pub fn stats_recipient(&self) -> Option<Recipient> {
         self.feature_flags
             .as_ref()

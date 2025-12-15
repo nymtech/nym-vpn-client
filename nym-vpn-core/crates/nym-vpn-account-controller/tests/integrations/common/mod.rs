@@ -194,15 +194,6 @@ pub struct TestBench {
 impl TestBench {
     /// Sets up a new testbench. The VPN API has no route
     pub async fn new() -> anyhow::Result<TestBench> {
-        Self::new_with_credential(true).await
-    }
-
-    /// Sets up a new testbench without credential, for easier setup. The VPN API has no route
-    pub async fn new_no_credentials() -> anyhow::Result<TestBench> {
-        Self::new_with_credential(false).await
-    }
-
-    async fn new_with_credential(credential_enabled: bool) -> anyhow::Result<TestBench> {
         // Enable logging as early as possible so setup emits logs if needed
         init_tracing();
 
@@ -233,7 +224,6 @@ impl TestBench {
         let tempdir = tempfile::tempdir()?;
         let account_controller_config = AccountControllerConfig {
             data_dir: tempdir.path().to_owned(),
-            credentials_mode: Some(credential_enabled),
             network_env,
         };
 

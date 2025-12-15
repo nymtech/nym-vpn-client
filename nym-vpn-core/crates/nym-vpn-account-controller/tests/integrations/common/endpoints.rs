@@ -65,6 +65,14 @@ pub fn account_summary_with_device_403(error_response: NymErrorResponse) -> Mock
         .respond_with(ResponseTemplate::new(403).set_body_json(error_response))
 }
 
+pub fn account_update_device_200(response: NymVpnDevice) -> Mock {
+    Mock::given(method("PATCH"))
+        .and(path_regex(format!(
+            "^/public/v1/account/{ACCOUNT_REGEX}/device/{DEVICE_REGEX}$"
+        )))
+        .respond_with(ResponseTemplate::new(200).set_body_json(response))
+}
+
 pub fn register_account_200(response: NymVpnDevice) -> Mock {
     Mock::given(method("POST"))
         .and(path_regex(format!(

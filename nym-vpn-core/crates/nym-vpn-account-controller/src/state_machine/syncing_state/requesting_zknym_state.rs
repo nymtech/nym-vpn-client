@@ -81,14 +81,12 @@ impl RequestingZkNymsState {
 
         // can we make that unique to that state?
         let storage = shared_state.credential_storage.clone();
-        let credential_mode = shared_state.config.credentials_mode();
         let zk_nym_fetching_handle = tokio::spawn(async move {
             RequestingZkNymsState::fetch_zk_nyms(
                 vpn_api_client,
                 vpn_api_account,
                 device,
                 storage,
-                credential_mode,
                 fair_usage_left,
             )
             .await
@@ -109,13 +107,8 @@ impl RequestingZkNymsState {
         vpn_api_account: Arc<VpnAccount>,
         device: Device,
         storage: VpnCredentialStorage,
-        credential_mode: bool,
         fair_usage_left: bool,
     ) -> Result<ZkNymFetchResult, ZkNymError> {
-        if !credential_mode {
-            return Ok(ZkNymFetchResult::DisabledCredentials);
-        }
-
         if !fair_usage_left {
             return Err(ZkNymError::BandwidthExceeded);
         }
@@ -296,9 +289,7 @@ impl RequestingZkNymsState {
         };
 
         match retrieval_result {
-            ZkNymFetchResult::DisabledCredentials
-            | ZkNymFetchResult::SufficientBandwidth
-            | ZkNymFetchResult::FetchedTickets { .. } => {
+            ZkNymFetchResult::SufficientBandwidth | ZkNymFetchResult::FetchedTickets { .. } => {
                 NextAccountControllerState::NewState(ReadyState::enter())
             }
             ZkNymFetchResult::UpgradeMode => {
@@ -471,7 +462,6 @@ impl From<ZkNymError> for AccountControllerErrorStateReason {
 }
 
 enum ZkNymFetchResult {
-    DisabledCredentials,
     SufficientBandwidth,
     FetchedTickets {
         #[allow(unused)]

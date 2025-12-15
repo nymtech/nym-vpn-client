@@ -334,7 +334,6 @@ impl NymVpnService {
 
         let account_controller_config = AccountControllerConfig {
             data_dir: network_data_dir.clone(),
-            credentials_mode: None,
             network_env: *parameters.network_env.clone(),
         };
 

@@ -19,12 +19,20 @@ use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerStat
 #[tokio::test]
 async fn offline_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = TestBench::new_no_credentials().await?;
+    let mut test_bench = TestBench::new().await?;
+    let credential_proxy = test_bench.credential_proxy.clone();
 
     // Adding behavior to the VPN API
     let mocks = vec![
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+        endpoints::account_update_device_200(mock_api_device(NymVpnDeviceStatus::DeleteMe)),
     ];
     test_bench.register_vpn_api_mocks(mocks).await;
 
@@ -303,7 +311,7 @@ async fn e2e_new_device_test() -> anyhow::Result<()> {
 #[tokio::test]
 async fn decentralised_account_test() -> anyhow::Result<()> {
     // Get the test_bench
-    let mut test_bench = TestBench::new_no_credentials().await?;
+    let mut test_bench = TestBench::new().await?;
 
     let mocks = vec![nyxd_endpoints::get_account_exists()];
     test_bench.register_nyxd_mocks(mocks).await;
