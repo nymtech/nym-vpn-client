@@ -8,4 +8,7 @@ pub enum LoginError {
 
     #[error(transparent)]
     Hex(#[from] hex::FromHexError),
+
+    #[error("HKDF invalid length")]
+    HkdfInvalidLength,
 }
