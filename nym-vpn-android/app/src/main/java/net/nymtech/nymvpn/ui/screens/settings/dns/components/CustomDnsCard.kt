@@ -147,7 +147,7 @@ fun CustomDnsCard(
 						onValueChange = { dnsInput = it },
 						modifier = Modifier
 							.weight(1f)
-							.height(60.dp.scaledHeight())
+							.heightIn(min = 56.dp)
 							.padding(end = 16.dp),
 						singleLine = true,
 						label = {
@@ -181,7 +181,7 @@ fun CustomDnsCard(
 						},
 						modifier = Modifier
 							.padding(top = 6.dp)
-							.height(52.dp.scaledHeight())
+							.heightIn(52.dp)
 							.width(62.dp.scaledWidth()),
 					)
 				}
