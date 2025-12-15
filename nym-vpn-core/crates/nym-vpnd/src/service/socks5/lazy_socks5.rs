@@ -10,10 +10,10 @@ use std::{
     time::Duration,
 };
 use tokio::{
-    io::{copy_bidirectional, AsyncReadExt, AsyncWriteExt},
+    io::{AsyncReadExt, AsyncWriteExt, copy_bidirectional},
     net::{TcpListener, TcpStream},
     sync::RwLock,
-    time::{sleep, Instant},
+    time::{Instant, sleep},
 };
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, trace, warn};
