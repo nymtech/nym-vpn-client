@@ -222,7 +222,6 @@ private extension HopButton {
                 .accessibilityHidden(true)
         }
         .frame(maxWidth: .infinity)
-        .onTapGesture(perform: buttonAction)
         .accessibilityElement(children: .combine)
         .accessibilityAction(.default, buttonAction)
         .accessibilityAddTraits([.isButton])
