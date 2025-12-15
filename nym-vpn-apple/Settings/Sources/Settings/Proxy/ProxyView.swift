@@ -215,7 +215,8 @@ private extension ProxyView {
                     .foregroundStyle(NymColor.gray1)
                     .textStyle(.Body.Small.regular.withSpacing(1.4))
             }
-            .padding(16)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 16)
         }
         .frame(maxWidth: .infinity)
         .background {
@@ -346,7 +347,8 @@ private extension ProxyView {
                     .foregroundStyle(NymColor.gray1)
                     .textStyle(.Body.Small.regular.withSpacing(1.4))
             }
-            .padding(16)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 16)
         }
         .frame(maxWidth: .infinity)
         .background {
