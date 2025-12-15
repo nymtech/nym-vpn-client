@@ -3573,7 +3573,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.21.0-dev"
+version = "1.21.0-jackfruit-rc2"
 dependencies = [
  "anyhow",
  "build-info",
