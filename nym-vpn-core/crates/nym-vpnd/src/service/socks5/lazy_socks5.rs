@@ -128,30 +128,44 @@ impl LazySocks5 {
                             let wrapper = self.clone();
 
                             // Check tunnel state to determine routing method
+                            // 1. If the tunnel is mixnet and connected -> use existing tunnel
+                            // 2. If the tunnel is wireguard and connected -> create new tunnel
+                            // 3. If the tunnel is disconnected or error'd -> create new tunnel
+                            // 4. If the tunnel is connecting, disconnecting or offline -> reject connection
                             let tunnel_state = self.tunnel_state_shared.read().await.clone();
-                            let use_dvpn = matches!(
-                                tunnel_state,
-                                TunnelState::Connected { ref connection_data }
-                                if matches!(connection_data.tunnel, TunnelConnectionData::Mixnet(_))
-                            );
+                            let use_existing_tunnel =  match &tunnel_state {
+                                TunnelState::Connected { connection_data } => {
+                                    match &connection_data.tunnel {
+                                        TunnelConnectionData::Mixnet(_) => true, // 1
+                                        TunnelConnectionData::Wireguard(_) => false, // 2
+                                    }
+                                }
+                                TunnelState::Disconnected | TunnelState::Error(_) => {
+                                    false // 3
+                                }
+                                _ => {
+                                    warn!("Rejecting SOCKS5 connection from {addr} due to tunnel state: {tunnel_state:?}");
+                                    let mut stream = stream;
+                                    let _ = Self::send_socks5_error(&mut stream).await; // 4
+                                    continue;
+                                }
+                            };
 
                             // Spawn task to handle this connection
                             tokio::spawn(async move {
-                                let result = if use_dvpn {
-                                    info!("Routing connection from {} through dVPN tunnel", addr);
-                                    wrapper.handle_connection_with_dvpn(stream, addr).await
+                                let result = if use_existing_tunnel {
+                                    wrapper.route_via_existing_tunnel(stream, addr).await
                                 } else {
-                                    debug!("Routing connection from {} through mixnet", addr);
-                                    Box::pin(wrapper.handle_connection_with_mixnet(stream, addr)).await
+                                    Box::pin(wrapper.route_via_new_tunnel(stream, addr)).await
                                 };
 
                                 if let Err(e) = result {
-                                    error!("Connection handler error for {}: {}", addr, e);
+                                    error!("Connection handler error for {addr}: {e}");
                                 }
                             });
                         }
                         Err(e) => {
-                            error!("Failed to accept connection: {}", e);
+                            error!("Failed to accept connection: {e}");
                         }
                     }
                 }
@@ -171,14 +185,26 @@ impl LazySocks5 {
         Ok(())
     }
 
-    /// Handle a single connection with dVPN tunnel (direct connection)
-    async fn handle_connection_with_dvpn(
+    /// Handle the SOCKS5 connection via the existing mixnet tunnel
+    async fn route_via_existing_tunnel(
         &self,
         mut client_stream: TcpStream,
         client_addr: SocketAddr,
     ) -> Result<(), LazySocks5Error> {
+        info!("Routing connection from {client_addr} via existing Mixnet tunnel");
+
         // Create connection guard - will automatically decrement on drop
-        let _guard = ConnectionGuard::new(self.active_connections.clone()).await;
+        let (_guard, active_connections) =
+            ConnectionGuard::new_with_count(self.active_connections.clone()).await;
+        if active_connections > 1 {
+            warn!(
+                "Blocking new SOCKS5 connection as only one concurrent connection is currently supported"
+            );
+            let _ = Self::send_socks5_error(&mut client_stream).await;
+            return Err(LazySocks5Error::Internal(
+                "Too many concurrent connections".to_string(),
+            ));
+        }
 
         // Parse SOCKS5 handshake and request
         let target_addr = match Self::socks5_handshake(&mut client_stream).await {
@@ -403,14 +429,26 @@ impl LazySocks5 {
         Ok(())
     }
 
-    /// Handle a single connection with mixnet
-    async fn handle_connection_with_mixnet(
+    /// Handle the SOCKS5 connection via a new mixnet tunnel
+    async fn route_via_new_tunnel(
         &self,
         mut client_stream: TcpStream,
         client_addr: SocketAddr,
     ) -> Result<(), LazySocks5Error> {
+        info!("Routing connection from {client_addr} via new Mixnet tunnel");
+
         // Create connection guard - will automatically decrement on drop
-        let _guard = ConnectionGuard::new(self.active_connections.clone()).await;
+        let (_guard, active_connections) =
+            ConnectionGuard::new_with_count(self.active_connections.clone()).await;
+        if active_connections > 1 {
+            warn!(
+                "Blocking new SOCKS5 connection as only one concurrent connection is currently supported"
+            );
+            let _ = Self::send_socks5_error(&mut client_stream).await;
+            return Err(LazySocks5Error::Internal(
+                "Too many concurrent connections".to_string(),
+            ));
+        }
 
         // Ensure backend is started (lazy initialization) with retries
         if let Err(e) = Box::pin(self.ensure_backend_started_with_retry(client_addr)).await {
