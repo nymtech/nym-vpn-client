@@ -200,6 +200,9 @@ impl LazySocks5 {
                 "Blocking new SOCKS5 connection as only one concurrent connection is currently supported"
             );
             let _ = Self::send_socks5_error(&mut client_stream).await;
+            return Err(LazySocks5Error::Internal(
+                "Too many concurrent connections".to_string(),
+            ));
         }
 
         // Parse SOCKS5 handshake and request
@@ -441,6 +444,9 @@ impl LazySocks5 {
                 "Blocking new SOCKS5 connection as only one concurrent connection is currently supported"
             );
             let _ = Self::send_socks5_error(&mut client_stream).await;
+            return Err(LazySocks5Error::Internal(
+                "Too many concurrent connections".to_string(),
+            ));
         }
 
         // Ensure backend is started (lazy initialization) with retries
