@@ -78,7 +78,7 @@ private extension ProxyView {
                 action: {}
             ),
             customContent: {
-                vpnAndProxyStatusDetails()
+                proxyStatusDetails()
             }
         )
         .padding(.bottom, 16)
@@ -95,7 +95,7 @@ private extension ProxyView {
 }
 
 private extension ProxyView {
-    func vpnAndProxyStatusDetails() -> some View {
+    func proxyStatusDetails() -> some View {
         VStack {
             detailsSection(
                 title: "proxy.proxyStatus".localizedString,
@@ -125,7 +125,7 @@ private extension ProxyView {
             Spacer()
             Text(details)
                 .foregroundStyle(color)
-                .textStyle(.Body.Medium.bold)
+                .textStyle(.Body.Medium.regular)
         }
     }
 
@@ -188,8 +188,8 @@ private extension ProxyView {
                 VStack {
                     HStack {
                         Text(viewModel.socks5ProxyListenAddress.url)
+                            .textStyle(.Body.Medium.regular)
                             .foregroundStyle(NymColor.gray1)
-                            .textStyle(.Body4.Medium.regular)
                         Spacer()
                         GenericImage(imageName: viewModel.socks5Copied ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
@@ -259,8 +259,8 @@ private extension ProxyView {
                 VStack {
                     HStack {
                         Text(AttributedString(viewModel.socks5ProxyListenAddress.fullyQualified))
+                            .textStyle(.Body.Medium.regular)
                             .foregroundStyle(NymColor.gray1)
-                            .textStyle(.Body4.Medium.regular)
                         Spacer()
                         GenericImage(imageName: viewModel.socks5CopiedFullyQualified ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
@@ -294,8 +294,8 @@ private extension ProxyView {
                 VStack {
                     HStack {
                         Text(viewModel.httpRpcProxyListenAddress.url)
+                            .textStyle(.Body.Medium.regular)
                             .foregroundStyle(NymColor.gray1)
-                            .textStyle(.Body4.Medium.regular)
                         Spacer()
                         GenericImage(imageName: viewModel.isHttpRpcCopied ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
@@ -319,8 +319,8 @@ private extension ProxyView {
                 VStack {
                     HStack {
                         Text(AttributedString(viewModel.httpRpcProxyListenAddress.fullyQualified))
+                            .textStyle(.Body.Medium.regular)
                             .foregroundStyle(NymColor.gray1)
-                            .textStyle(.Body4.Medium.regular)
                         Spacer()
                         GenericImage(imageName: viewModel.isHttpRpcCopiedFullyQualified ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
