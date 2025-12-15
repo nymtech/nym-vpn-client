@@ -58,6 +58,15 @@ impl StatisticsController {
             );
         }
 
+        // iOS stats are disabled because they currently don't go through the tunnel
+        #[cfg(target_os = "ios")]
+        let mut config = config; // we need the config outside of the scope
+
+        #[cfg(target_os = "ios")]
+        {
+            config.enabled = false;
+        }
+
         let statistics_handler = if let Some(storage) = stats_storage.clone()
             && let Some(api_client) = stats_api_client
         {
@@ -95,8 +104,12 @@ impl StatisticsController {
                 tracing::info!("StatisticsController : Collection disabled");
             }
             ControllerCommand::Config(ConfigCommand::EnableCollection) => {
-                self.config.enabled = true;
-                tracing::info!("StatisticsController : Collection enabled");
+                // Impossible to enable stats on ios while the tunnel issue isn't fixed
+                #[cfg(not(target_os = "ios"))]
+                {
+                    self.config.enabled = true;
+                    tracing::info!("StatisticsController : Collection enabled");
+                }
             }
             ControllerCommand::Config(ConfigCommand::AllowDirectSending(status)) => {
                 self.config.allow_disconnected = status;
