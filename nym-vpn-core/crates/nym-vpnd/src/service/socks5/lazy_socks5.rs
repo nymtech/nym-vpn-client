@@ -144,6 +144,7 @@ impl LazySocks5 {
                                     false // 3
                                 }
                                 _ => {
+                                    warn!("Rejecting SOCKS5 connection from {addr} due to tunnel state: {tunnel_state:?}");
                                     let mut stream = stream;
                                     let _ = Self::send_socks5_error(&mut stream).await; // 4
                                     continue;
