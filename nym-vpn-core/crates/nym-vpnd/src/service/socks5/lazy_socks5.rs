@@ -194,17 +194,7 @@ impl LazySocks5 {
         info!("Routing connection from {client_addr} via existing Mixnet tunnel");
 
         // Create connection guard - will automatically decrement on drop
-        let (_guard, active_connections) =
-            ConnectionGuard::new_with_count(self.active_connections.clone()).await;
-        if active_connections > 1 {
-            warn!(
-                "Blocking new SOCKS5 connection as only one concurrent connection is currently supported"
-            );
-            let _ = Self::send_socks5_error(&mut client_stream).await;
-            return Err(LazySocks5Error::Internal(
-                "Too many concurrent connections".to_string(),
-            ));
-        }
+        let _guard = ConnectionGuard::new(self.active_connections.clone()).await;
 
         // Parse SOCKS5 handshake and request
         let target_addr = match Self::socks5_handshake(&mut client_stream).await {
@@ -438,17 +428,7 @@ impl LazySocks5 {
         info!("Routing connection from {client_addr} via new Mixnet tunnel");
 
         // Create connection guard - will automatically decrement on drop
-        let (_guard, active_connections) =
-            ConnectionGuard::new_with_count(self.active_connections.clone()).await;
-        if active_connections > 1 {
-            warn!(
-                "Blocking new SOCKS5 connection as only one concurrent connection is currently supported"
-            );
-            let _ = Self::send_socks5_error(&mut client_stream).await;
-            return Err(LazySocks5Error::Internal(
-                "Too many concurrent connections".to_string(),
-            ));
-        }
+        let _guard = ConnectionGuard::new(self.active_connections.clone()).await;
 
         // Ensure backend is started (lazy initialization) with retries
         if let Err(e) = Box::pin(self.ensure_backend_started_with_retry(client_addr)).await {
