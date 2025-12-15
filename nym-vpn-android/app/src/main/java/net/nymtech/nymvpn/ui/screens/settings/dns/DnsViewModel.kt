@@ -7,10 +7,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.vpn.backend.Tunnel
 import javax.inject.Inject
 
 @HiltViewModel
 class DnsViewModel @Inject constructor(
+	private val backendManager: BackendManager,
 	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
@@ -33,6 +36,15 @@ class DnsViewModel @Inject constructor(
 	fun saveDnsList(list: List<String>) {
 		viewModelScope.launch {
 			settingsRepository.saveDnsList(list)
+		}
+	}
+
+	fun reconnect() {
+		viewModelScope.launch {
+			if(backendManager.getState() == Tunnel.State.Up) {
+				backendManager.stopTunnel()
+				backendManager.startTunnel()
+			}
 		}
 	}
 

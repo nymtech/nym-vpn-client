@@ -60,7 +60,7 @@ fun CustomDnsCard(
 	val normalizedDnsInput = dnsInput.trim()
 
 	val isDnsInputValid = remember(normalizedDnsInput) {
-		normalizedDnsInput.isNotEmpty() && normalizedDnsInput !in validateList
+		normalizedDnsInput.isNotEmpty() && normalizedDnsInput !in validateList &&
 			(isValidIPv4(normalizedDnsInput) || isValidIPv6(normalizedDnsInput))
 	}
 	val shouldShowInputError = remember(normalizedDnsInput, isDnsInputValid) {
