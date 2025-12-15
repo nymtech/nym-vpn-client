@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -50,13 +51,16 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.settings.dns.DnsViewModel.Companion.DEFAULT_DNS_SERVERS
 import net.nymtech.nymvpn.ui.screens.settings.dns.components.CustomDnsCard
+import net.nymtech.nymvpn.ui.screens.settings.dns.modal.DnsReconnectModal
 import net.nymtech.nymvpn.ui.screens.settings.dns.modal.SaveChangesModal
+import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.vpn.backend.Tunnel
 
 @Composable
 fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: DnsViewModel = hiltViewModel()) {
@@ -79,6 +83,8 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 		onSave = { viewModel.saveDnsList(it) },
 		onBackClickEventTriggered = onBackClickEventTriggered,
 		onNavigateBack = onNavigateBack,
+		onReconnect = { viewModel.reconnect() },
+		tunnelState = appUiState.managerState.tunnelState,
 	)
 }
 
@@ -95,6 +101,8 @@ private fun DnsScreen(
 	onSave: (List<String>) -> Unit,
 	onBackClickEventTriggered: Boolean,
 	onNavigateBack: () -> Unit,
+	onReconnect: () -> Unit,
+	tunnelState: Tunnel.State,
 ) {
 	val scrollState = rememberScrollState()
 	var expanded by rememberSaveable { mutableStateOf(false) }
@@ -103,6 +111,8 @@ private fun DnsScreen(
 
 	var hasUnsavedChanges by rememberSaveable { mutableStateOf(false) }
 	var showSaveChangesDialog by remember { mutableStateOf(false) }
+	var showReconnectDialog by remember { mutableStateOf(false) }
+	var navigateBackAfterReconnect by remember { mutableStateOf(false) }
 	var pendingNavigation by remember { mutableStateOf<PendingNavigation?>(null) }
 
 	var customDnsDraft by rememberSaveable { mutableStateOf(customDns) }
@@ -143,7 +153,8 @@ private fun DnsScreen(
 			.fillMaxSize()
 			.verticalScroll(scrollState)
 			.padding(horizontal = 24.dp.scaledWidth())
-			.navigationBarsPadding(),
+			.navigationBarsPadding()
+			.imePadding(),
 	) {
 		Text(
 			text = stringResource(R.string.dns_description),
@@ -154,7 +165,14 @@ private fun DnsScreen(
 				.fillMaxWidth()
 				.padding(top = 16.dp),
 		)
-
+		Text(
+			text = stringResource(R.string.censorship_quic_changes),
+			style = MaterialTheme.typography.bodySmall,
+			color = CustomColors.warning,
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(top = 16.dp),
+		)
 		Text(
 			text = stringResource(if (expanded) R.string.dns_hide_list else R.string.dns_view_list),
 			style = Typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
@@ -219,7 +237,12 @@ private fun DnsScreen(
 		CustomDnsCard(
 			initialDns = customDns,
 			dnsEnabled = dnsEnabled,
-			onDnsEnable = onDnsEnable,
+			onDnsEnable = {
+				onDnsEnable(it)
+				if (tunnelState == Tunnel.State.Up) {
+					showReconnectDialog = true
+				}
+			},
 			onSave = onSave,
 			onUnsavedChangesChange = { hasUnsavedChanges = it },
 			onDnsListChange = { customDnsDraft = it },
@@ -254,13 +277,37 @@ private fun DnsScreen(
 		onClickSave = {
 			onSave(customDnsDraft)
 			showSaveChangesDialog = false
-			pendingNavigation = PendingNavigation.NavigateBack
+			if (tunnelState == Tunnel.State.Up && dnsEnabled) {
+				navigateBackAfterReconnect = true
+				showReconnectDialog = true
+			} else {
+				pendingNavigation = PendingNavigation.NavigateBack
+			}
 		},
 		onDiscard = {
 			showSaveChangesDialog = false
 			pendingNavigation = PendingNavigation.NavigateBack
 		},
 		onDismiss = { showSaveChangesDialog = false },
+	)
+
+	DnsReconnectModal(
+		showDnsReconnectModal = showReconnectDialog,
+		onReconnectClick = {
+			onReconnect()
+			showReconnectDialog = false
+			if (navigateBackAfterReconnect) {
+				pendingNavigation = PendingNavigation.NavigateBack
+			}
+			navigateBackAfterReconnect = false
+		},
+		onDismiss = {
+			showReconnectDialog = false
+			if (navigateBackAfterReconnect) {
+				pendingNavigation = PendingNavigation.NavigateBack
+			}
+			navigateBackAfterReconnect = false
+		},
 	)
 }
 
@@ -286,6 +333,8 @@ internal fun PreviewCensorshipScreen() {
 			onSave = {},
 			onBackClickEventTriggered = false,
 			onNavigateBack = {},
+			onReconnect = {},
+			tunnelState = Tunnel.State.Up,
 		)
 	}
 }
