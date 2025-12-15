@@ -83,7 +83,7 @@ jobs:
             ${{ runner.os }}-cargo-build-
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: wireguard-go_aarch64-linux-android
           path: build/lib/aarch64-linux-android
