@@ -8,6 +8,7 @@ pub struct ConnectionGuard {
 }
 
 impl ConnectionGuard {
+    #[allow(dead_code)]
     pub async fn new(active_connections: Arc<RwLock<u32>>) -> Self {
         {
             let mut count = active_connections.write().await;
@@ -15,6 +16,17 @@ impl ConnectionGuard {
             debug!("Active connections: {}", *count);
         }
         Self { active_connections }
+    }
+
+    pub async fn new_with_count(active_connections: Arc<RwLock<u32>>) -> (Self, u32) {
+        let current = {
+            let mut count = active_connections.write().await;
+            *count += 1;
+            let c = *count;
+            debug!("Active connections: {}", c);
+            c
+        };
+        (Self { active_connections }, current)
     }
 }
 
