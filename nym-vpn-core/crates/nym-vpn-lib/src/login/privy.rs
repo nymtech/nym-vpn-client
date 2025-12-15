@@ -40,4 +40,12 @@ mod tests {
         assert!(hex_signature_to_mnemonic("deadbeef").is_ok());
         assert!(hex_signature_to_mnemonic("invalidhex").is_err());
     }
+
+    #[test]
+    fn consistent_mnemonic_generation() {
+        let hex_signature = "2c21856a76b615ec37a65b4aa8eaa915e5674140b41b471bbd9e97d99f543f08";
+        let mnemonic1 = hex_signature_to_mnemonic(hex_signature).unwrap();
+        let mnemonic2 = hex_signature_to_mnemonic(hex_signature).unwrap();
+        assert_eq!(mnemonic1, mnemonic2);
+    }
 }
