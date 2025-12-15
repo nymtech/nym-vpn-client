@@ -365,7 +365,18 @@ fn test_socks5_score_from_mixnet_score() {
         );
         let gw = Gateway::try_from(nym_gw).unwrap();
         assert_eq!(
-            gw.performance.as_ref().unwrap().mixnet_score,
+            gw.last_probe
+                .as_ref()
+                .unwrap()
+                .outcome
+                .as_exit
+                .as_ref()
+                .unwrap()
+                .socks5
+                .as_ref()
+                .unwrap()
+                .score
+                .unwrap(),
             *score,
             "Mixnet score should match for score {:?}",
             score
@@ -527,7 +538,24 @@ fn create_response_nym_gateway(
             region: "IL".into(),
             asn: None,
         },
-        last_probe: None,
+        last_probe: Some(nym_vpn_api_client::response::Probe {
+            last_updated_utc: "2024-01-01T00:00:00Z".to_string(),
+            outcome: nym_vpn_api_client::response::ProbeOutcome {
+                as_entry: nym_vpn_api_client::response::Entry {
+                    can_connect: true,
+                    can_route: true,
+                },
+                as_exit: Some(nym_vpn_api_client::response::Exit {
+                    can_connect: false,
+                    can_route_ip_v4: false,
+                    can_route_ip_external_v4: false,
+                    can_route_ip_v6: false,
+                    can_route_ip_external_v6: false,
+                    //socks5: None,
+                }),
+                wg: None,
+            },
+        }),
         ip_addresses: vec![],
         mix_port: 0,
         role: nym_vpn_api_client::response::Role::ExitGateway,
