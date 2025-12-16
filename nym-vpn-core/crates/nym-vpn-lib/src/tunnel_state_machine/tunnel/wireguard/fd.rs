@@ -4,7 +4,7 @@ use std::{
 };
 
 use nix::fcntl::{self, FcntlArg, OFlag};
-use tun::AsyncDevice;
+use tun::AbstractDevice;
 
 pub trait DupFd {
     /// Duplicate tunnel file descriptor pointing to the same file description as the original one.
