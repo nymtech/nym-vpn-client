@@ -8,10 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added privy UI feature flag (https://github.com/nymtech/nym-vpn-client/pull/4223)
 
 ### Fixed
 
 ### Removed
+- Removed credentials mode feature flag from code base (https://github.com/nymtech/nym-vpn-client/pull/4223)
 
 ## [1.21.0] - 2025-12-15
 
