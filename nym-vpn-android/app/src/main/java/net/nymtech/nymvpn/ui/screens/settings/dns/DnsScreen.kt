@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.dns
 
 import android.content.res.Configuration
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -91,10 +90,7 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 		onSave = { viewModel.saveDnsList(it) },
 		onBackClickEventTriggered = onBackClickEventTriggered,
 		onNavigateBack = onNavigateBack,
-		onReconnect = {
-//			Toast.makeText(context, "Reconnecting…", Toast.LENGTH_SHORT).show()
-//			viewModel.reconnect()
-		},
+		onReconnect = {},
 		initialDnsEnabled = initialDnsEnabled,
 		initialCustomDns = initialCustomDns,
 	)
