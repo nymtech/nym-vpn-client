@@ -67,8 +67,8 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    GatewayDirectoryError, UserAgent, VpnTopologyProvider,
-    bandwidth_controller::Error as BandwidthControllerError,
+    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    mixnet::VpnTopologyServiceHandle,
 };
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -546,7 +546,7 @@ pub struct SharedState {
     account_controller_state: AccountStateReceiver,
     statistics_event_sender: StatisticsSender,
     gateway_cache_handle: GatewayCacheHandle,
-    topology_provider: VpnTopologyProvider,
+    topology_service: VpnTopologyServiceHandle,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     wg_keys_db: WireguardKeysDb,
     user_agent: UserAgent,
@@ -646,7 +646,7 @@ impl TunnelStateMachine {
         account_controller_state: AccountStateReceiver,
         statistics_event_sender: StatisticsSender,
         gateway_cache_handle: GatewayCacheHandle,
-        topology_provider: VpnTopologyProvider,
+        topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
         discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
         wg_keys_db: WireguardKeysDb,
@@ -702,7 +702,7 @@ impl TunnelStateMachine {
             account_controller_state,
             statistics_event_sender,
             gateway_cache_handle,
-            topology_provider,
+            topology_service,
             discovery_refresher_command_tx,
             wg_keys_db,
             user_agent,
