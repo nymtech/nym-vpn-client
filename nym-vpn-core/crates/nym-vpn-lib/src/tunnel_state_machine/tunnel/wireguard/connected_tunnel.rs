@@ -1,6 +1,15 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(unix)]
+use std::ops::Deref;
+#[cfg(target_os = "ios")]
+use std::time::Duration;
+use std::{
+    net::{IpAddr, SocketAddr},
+    sync::Arc,
+};
+
 #[cfg(target_os = "ios")]
 use dispatch2::{DispatchQueue, DispatchQueueAttr};
 use ipnetwork::IpNetwork;
@@ -14,14 +23,6 @@ use nym_wg_go::wireguard_go::WintunInterface;
 use nym_wg_go::{amnezia::AmneziaConfig, netstack, wireguard_go};
 #[cfg(windows)]
 use nym_windows::net::{self as winnet, AddressFamily};
-#[cfg(unix)]
-use std::ops::Deref;
-#[cfg(target_os = "ios")]
-use std::time::Duration;
-use std::{
-    net::{IpAddr, SocketAddr},
-    sync::Arc,
-};
 #[cfg(any(windows, target_os = "ios"))]
 use tokio::sync::mpsc;
 use tokio::task::{JoinError, JoinHandle};
