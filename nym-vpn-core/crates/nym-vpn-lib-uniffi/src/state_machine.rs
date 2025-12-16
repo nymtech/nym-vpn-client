@@ -8,7 +8,7 @@ use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
-    UserAgent, VpnTopologyProvider,
+    UserAgent, VpnTopologyService,
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelConstants, TunnelSettings, TunnelStateMachine, WireguardMultihopMode,
@@ -143,17 +143,12 @@ pub(super) async fn start_state_machine(
         })?;
     let urls = api_urls_to_urls(&api_urls).map_err(|e| VpnError::HttpClient(e.to_string()))?;
 
-    let topology_provider = VpnTopologyProvider::new(
-        urls,
-        user_agent.clone(),
-        false,
-        shutdown_token.child_token(),
-    )
-    .await
-    .map_err(|e| VpnError::Initialization {
-        details: format!("Failed to create topology provider: {e:?}"),
-    })?;
-    topology_provider.fetch().await;
+    let (topology_service, topology_service_handle) =
+        VpnTopologyService::spawn(urls, user_agent.clone(), None, shutdown_token.child_token());
+    let cloned_topology_service = topology_service.clone();
+    tokio::spawn(async move {
+        let _ = cloned_topology_service.fetch().await;
+    });
 
     let Some(config_path) = config.config_path.clone() else {
         return Err(VpnError::Storage {
@@ -213,7 +208,7 @@ pub(super) async fn start_state_machine(
         account_controller_state,
         statistics_event_sender.clone(),
         gateway_cache_handle,
-        topology_provider,
+        topology_service,
         connectivity_handle,
         discovery_refresher_command_tx,
         wireguard_key_db,
@@ -237,6 +232,7 @@ pub(super) async fn start_state_machine(
         discovery_watch_handle,
         command_sender,
         statistics_event_sender,
+        topology_service_handle,
         shutdown_token,
     })
 }
@@ -248,6 +244,7 @@ pub(super) struct StateMachineHandle {
     discovery_watch_handle: JoinHandle<()>,
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
     statistics_event_sender: StatisticsSender,
+    topology_service_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
@@ -276,6 +273,10 @@ impl StateMachineHandle {
 
         if let Err(e) = self.discovery_watch_handle.await {
             tracing::error!("Failed to join on discovery watch handle: {}", e);
+        }
+
+        if let Err(e) = self.topology_service_handle.await {
+            tracing::error!("Failed to join on topology service handle: {}", e);
         }
     }
 }

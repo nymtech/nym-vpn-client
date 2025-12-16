@@ -36,7 +36,7 @@ pub use crate::{
     error::GatewayDirectoryError,
     mixnet::{
         DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, MixnetError,
-        VpnTopologyProvider,
+        VpnTopologyProvider, VpnTopologyService, VpnTopologyServiceError, VpnTopologyServiceHandle,
     },
 };
 
