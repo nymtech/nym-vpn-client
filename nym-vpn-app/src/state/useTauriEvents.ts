@@ -126,6 +126,14 @@ export function useTauriEvents(
         type: 'update-tunnel-config',
         config: payload,
       });
+      dispatch({
+        type: 'set-custom-dns-enabled',
+        enabled: payload.enableCustomDns,
+      });
+      dispatch({
+        type: 'set-custom-dns',
+        dns: payload.customDns ?? [],
+      });
     });
   }, [dispatch]);
 
