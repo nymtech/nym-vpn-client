@@ -106,9 +106,6 @@ impl ConnectedState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.reset_resolver_overrides().await;
 
-        // We can use slower network fetches now
-        shared_state.topology_provider.use_network(true).await;
-
         (
             Box::new(connected_state),
             PrivateTunnelState::Connected { connection_data },

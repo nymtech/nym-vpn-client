@@ -16,8 +16,7 @@ use super::{
     Socks5Error, Socks5Service, Socks5Status,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
-        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
+        AccountLinksError, Error, GlobalConfigError, ListGatewaysError, Result, SetNetworkError,
     },
     socks5_idle_timeout, socks5_request_timeout,
 };
@@ -33,7 +32,7 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
-    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyProvider,
+    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
@@ -212,6 +211,9 @@ pub struct NymVpnService {
     // Statistics controller handle
     statistics_controller_handle: JoinHandle<()>,
 
+    // Topology service join handle
+    topology_service_join_handle: JoinHandle<()>,
+
     // Configuration Manager
     config_manager: VpnServiceConfigManager,
 
@@ -344,12 +346,7 @@ impl NymVpnService {
             None,
         )
         .await
-        .map_err(|err| {
-            trace_err_chain!(err, "Failed to create NymVPN API client");
-            AccountControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
+        .map_err(Error::CreateApiClient)?;
 
         let nyxd_client = NyxdClient::new(&parameters.network_env);
 
@@ -362,12 +359,7 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         )
         .await
-        .map_err(|err| {
-            tracing::error!("Failed to create account controller: {err:?}");
-            AccountControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
+        .map_err(|err| Error::CreateAccountController(err))?;
 
         // These are used to interact with the account controller
         let account_command_tx = account_controller.get_command_sender();
@@ -414,27 +406,18 @@ impl NymVpnService {
         let tunnel_settings = config_manager.generate_tunnel_settings();
         let nyxd_url = parameters.network_env.nyxd_url();
 
-        let Some(nym_api_urls) = parameters.network_env.nym_api_urls() else {
-            return Err(Error::AccountController(
-                AccountControllerError::Initialization {
-                    reason: "Nym API URLs are empty".to_string(),
-                },
-            ));
-        };
-
-        let Some(nym_vpn_api_urls) = parameters.network_env.nym_vpn_api_urls() else {
-            return Err(Error::AccountController(
-                AccountControllerError::Initialization {
-                    reason: "Nym VPN API URLs are empty".to_string(),
-                },
-            ));
-        };
+        let nym_api_urls = parameters
+            .network_env
+            .nym_api_urls()
+            .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
+        let nym_vpn_api_urls = parameters
+            .network_env
+            .nym_vpn_api_urls()
+            .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
 
         let gateway_config =
             gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)
-                .map_err(|e| AccountControllerError::Initialization {
-                    reason: e.to_string(),
-                })?;
+                .map_err(Error::CreateGatewayClient)?;
 
         let (network_tx, network_rx) = watch::channel(parameters.network_env.clone());
         let nym_config = NymConfig {
@@ -447,33 +430,26 @@ impl NymVpnService {
         let gateway_directory_client =
             GatewayClient::new(gateway_config, parameters.user_agent.clone())
                 .await
-                .map_err(|err| {
-                    tracing::error!("Failed to create gateway directory client: {err:?}");
-                    AccountControllerError::Initialization {
-                        reason: err.to_string(),
-                    }
-                })?;
+                .map_err(Error::CreateGatewayClient)?;
         let (gateway_cache_handle, gateway_cache_join_handle) = GatewayCache::spawn(
             gateway_directory_client.clone(),
             connectivity_handle.clone(),
             services_shutdown_token.child_token(),
         );
 
-        let urls = api_urls_to_urls(&nym_api_urls).map_err(|err| {
-            tracing::error!("Failed to convert Nym API URLs: {err:?}");
-            AccountControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
+        let urls = api_urls_to_urls(&nym_api_urls).map_err(Error::ConvertApiUrls)?;
 
-        let topology_provider = VpnTopologyProvider::new(
-            urls,
+        let (topology_service, topology_service_join_handle) = VpnTopologyService::spawn(
+            urls.clone(),
             parameters.user_agent.clone(),
-            false,
+            None,
             services_shutdown_token.child_token(),
-        )
-        .await?;
-        topology_provider.fetch().await;
+        );
+
+        let cloned_topology_service = topology_service.clone();
+        tokio::spawn(async move {
+            let _ = cloned_topology_service.fetch().await;
+        });
 
         let (discovery_refresher_event_tx, discovery_refresher_event_rx) =
             mpsc::unbounded_channel();
@@ -488,12 +464,7 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         )
         .await
-        .map_err(|err| {
-            tracing::error!("Failed to start Discovery Refresher: {err:?}");
-            AccountControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
+        .map_err(Error::StartDiscoveryRefresh)?;
 
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
@@ -505,7 +476,7 @@ impl NymVpnService {
             account_state_rx.clone(),
             statistics_event_sender.clone(),
             gateway_cache_handle.clone(),
-            topology_provider,
+            topology_service,
             connectivity_handle,
             discovery_refresher_command_tx,
             wireguard_keys_db,
@@ -533,6 +504,7 @@ impl NymVpnService {
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
             statistics_controller_handle,
+            topology_service_join_handle,
             config_manager,
             command_sender,
             event_receiver,
@@ -625,6 +597,10 @@ impl NymVpnService {
 
         if let Err(e) = self.discovery_refresher_join_handle.await {
             tracing::error!("Failed to join on discovery refresher handle: {e}");
+        }
+
+        if let Err(e) = self.topology_service_join_handle.await {
+            tracing::error!("Failed to join on statistics controller handle: {e}");
         }
 
         tracing::info!("Exiting vpn service run loop");
