@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix discovery propagation bug (https://github.com/nymtech/nym-vpn-client/pull/4226)
+
 ### Removed
 
 ## [1.21.0] - 2025-12-15
