@@ -1,17 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_http_api_client::HttpClientError;
+use nym_vpn_api_client::error::VpnApiClientError;
 use nym_vpn_lib::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
 use nym_vpn_lib_types::GatewayType;
 
 use super::config::ConfigSetupError;
-
-#[derive(Debug, thiserror::Error)]
-pub enum AccountControllerError {
-    #[error("failed to init account controller: {reason}")]
-    Initialization { reason: String },
-}
 
 #[derive(Debug, thiserror::Error)]
 pub enum SetNetworkError {
@@ -40,8 +34,11 @@ pub enum AccountLinksError {
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("account controller error")]
-    AccountController(#[from] AccountControllerError),
+    #[error("failed to create account controller")]
+    CreateAccountController(#[source] nym_vpn_account_controller::Error),
+
+    #[error("failed to create gateway client")]
+    CreateGatewayClient(#[source] nym_vpn_lib::gateway_directory::Error),
 
     #[error("config setup error")]
     ConfigSetup(#[source] ConfigSetupError),
@@ -52,8 +49,17 @@ pub enum Error {
     #[error("mixnet setup error")]
     MixnetSetup(#[from] MixnetError),
 
-    #[error("HTTP Client Error: {0}")]
-    HttpClient(#[from] Box<HttpClientError>),
+    #[error("failed to create api client")]
+    CreateApiClient(#[source] VpnApiClientError),
+
+    #[error("invalid environment: {0}")]
+    InvalidEnvironment(&'static str),
+
+    #[error("failed to convert API URLs")]
+    ConvertApiUrls(#[source] VpnApiClientError),
+
+    #[error("failed to start discovery refresh")]
+    StartDiscoveryRefresh(#[source] nym_vpn_network_config::Error),
 }
 
 #[derive(Clone, Debug, thiserror::Error)]

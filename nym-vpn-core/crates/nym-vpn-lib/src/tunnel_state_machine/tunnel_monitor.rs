@@ -73,8 +73,8 @@ use crate::tunnel_provider::AndroidTunProvider;
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
     DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
-    VpnTopologyProvider,
     bandwidth_controller::BandwidthController,
+    mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
@@ -235,7 +235,7 @@ pub struct TunnelMonitor {
     account_controller_state: AccountStateReceiver,
     account_command_tx: AccountCommandSender,
     gateway_cache_handle: GatewayCacheHandle,
-    custom_topology_provider: VpnTopologyProvider,
+    custom_topology_provider: VpnTopologyServiceHandle,
     wg_keys_db: WireguardKeysDb,
     shutdown_token: CancellationToken,
 }
@@ -247,7 +247,7 @@ impl TunnelMonitor {
         account_controller_state: AccountStateReceiver,
         account_command_tx: AccountCommandSender,
         gateway_cache_handle: GatewayCacheHandle,
-        custom_topology_provider: VpnTopologyProvider,
+        custom_topology_provider: VpnTopologyServiceHandle,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         wg_keys_db: WireguardKeysDb,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
@@ -532,7 +532,9 @@ impl TunnelMonitor {
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .two_hops(self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard)
             .user_agent(user_agent)
-            .custom_topology_provider(Box::new(self.custom_topology_provider.clone()))
+            .custom_topology_provider(Box::new(
+                self.custom_topology_provider.make_topology_provider(),
+            ))
             .network_env(nym_network)
             .cancel_token(self.shutdown_token.child_token());
 

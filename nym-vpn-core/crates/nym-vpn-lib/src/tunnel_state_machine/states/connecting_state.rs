@@ -371,9 +371,6 @@ impl ConnectingState {
             );
         };
 
-        // Make mixnet client use pre-fetched topology
-        shared_state.topology_provider.use_network(false).await;
-
         let tunnel_parameters = TunnelParameters {
             nym_config: shared_state.nym_config.clone(),
             resolved_gateway_config,
@@ -388,7 +385,7 @@ impl ConnectingState {
             shared_state.account_controller_state.clone(),
             shared_state.account_command_tx.clone(),
             shared_state.gateway_cache_handle.clone(),
-            shared_state.topology_provider.clone(),
+            shared_state.topology_service.clone(),
             tunnel_monitor_event_sender,
             shared_state.wg_keys_db.clone(),
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
