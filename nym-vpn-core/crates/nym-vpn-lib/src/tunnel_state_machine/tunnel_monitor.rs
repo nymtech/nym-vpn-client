@@ -1166,7 +1166,10 @@ impl TunnelMonitor {
             Some(conn_data.entry.private_ipv4.into()),
             exit_tun_mtu,
         )?;
-        let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
+        let exit_tun_name = exit_tun
+            .deref()
+            .tun_name()
+            .map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
         #[cfg(not(target_os = "linux"))]
@@ -1344,8 +1347,8 @@ impl TunnelMonitor {
             entry_mtu,
         )?;
         let entry_tun_name = entry_tun
-            .get_ref()
-            .name()
+            .deref()
+            .tun_name()
             .map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created entry tun device: {}", entry_tun_name);
 
@@ -1368,7 +1371,10 @@ impl TunnelMonitor {
             Some(conn_data.entry.private_ipv4.into()),
             exit_mtu,
         )?;
-        let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
+        let exit_tun_name = exit_tun
+            .deref()
+            .tun_name()
+            .map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
         let mut ips = vec![IpAddr::V4(conn_data.exit.private_ipv4)];
@@ -1699,13 +1705,8 @@ impl TunnelMonitor {
 
             tun_config.address(interface_ipv4).mtu(mtu).up();
 
-            #[cfg(target_os = "linux")]
-            tun_config.platform(|platform_config| {
-                platform_config.packet_information(false);
-            });
-
             #[cfg(target_os = "macos")]
-            tun_config.platform(|platform_config| {
+            tun_config.platform_config(|platform_config| {
                 platform_config.enable_routing(false);
             });
 
@@ -1755,20 +1756,15 @@ impl TunnelMonitor {
         tun_config
             .address(interface_ipv4)
             .netmask(Ipv4Addr::BROADCAST)
-            .mtu(i32::from(mtu))
+            .mtu(mtu)
             .up();
 
         if let Some(destination) = destination {
             tun_config.destination(destination);
         }
 
-        #[cfg(target_os = "linux")]
-        tun_config.platform(|platform_config| {
-            platform_config.packet_information(false);
-        });
-
         #[cfg(target_os = "macos")]
-        tun_config.platform(|platform_config| {
+        tun_config.platform_config(|platform_config| {
             platform_config.enable_routing(false);
         });
 
