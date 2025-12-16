@@ -73,7 +73,7 @@ function CustomDNS() {
             header={t('dns.details.title')}
             checked={customDnsEnabled}
             onClick={handleDnsSwitchChange}
-            disabled={customDns.length === 0 && customDnsList.length === 0}
+            disabled={customDns.length === 0}
           />
         }
       >
