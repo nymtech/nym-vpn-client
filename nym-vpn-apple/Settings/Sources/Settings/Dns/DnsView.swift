@@ -44,6 +44,9 @@ public struct DnsView: View {
             NymColor.background
                 .ignoresSafeArea()
         }
+        .task {
+            await viewModel.loadDefaultDns()
+        }
     }
 
     public init(viewModel: DnsViewModel) {
@@ -156,6 +159,9 @@ private extension DnsView {
                     GenericImage(systemImageName: "trash")
                         .frame(width: 20, height: 20)
                         .foregroundStyle(NymColor.primary)
+                        .onTapGesture {
+                            viewModel.deleteCustom(ipAddr: ip)
+                        }
                 }
                 .frame(height: DnsView.dnsEntryHeight)
                 .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
