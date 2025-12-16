@@ -1804,9 +1804,7 @@ impl TunnelMonitor {
         tun_config.raw_fd(owned_tun_fd.as_raw_fd());
 
         #[cfg(target_os = "ios")]
-        tun_config.platform_config(|platform_config| {
-            platform_config.close_fd_on_drop(false);
-        });
+        tun_config.close_fd_on_drop(false);
 
         #[cfg(target_os = "ios")]
         {
