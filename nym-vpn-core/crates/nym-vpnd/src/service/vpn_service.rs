@@ -359,7 +359,7 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         )
         .await
-        .map_err(|err| Error::CreateAccountController(err))?;
+        .map_err(Error::CreateAccountController)?;
 
         // These are used to interact with the account controller
         let account_command_tx = account_controller.get_command_sender();
