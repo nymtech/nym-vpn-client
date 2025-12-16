@@ -1763,9 +1763,9 @@ impl TunnelMonitor {
             tun_config.destination(destination);
         }
 
-        #[cfg(target_os = "macos")]
+        #[cfg(target_os = "ios")]
         tun_config.platform_config(|platform_config| {
-            platform_config.enable_routing(false);
+            platform_config.close_fd_on_drop(false);
         });
 
         let tun_device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
