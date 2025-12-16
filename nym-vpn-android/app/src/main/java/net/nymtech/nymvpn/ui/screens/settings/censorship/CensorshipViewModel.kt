@@ -37,9 +37,12 @@ class CensorshipViewModel @Inject constructor(
 		_uiState.update { it.copy() }
 	}
 
-	fun disconnect() {
+	fun reconnect() {
 		viewModelScope.launch {
-			backendManager.stopTunnel()
+			if (backendManager.getState() == Tunnel.State.Up) {
+				backendManager.stopTunnel()
+				backendManager.startTunnel()
+			}
 		}
 	}
 }
