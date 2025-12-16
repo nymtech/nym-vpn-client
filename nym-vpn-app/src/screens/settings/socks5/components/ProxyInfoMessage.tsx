@@ -4,11 +4,8 @@ export type ProxyInfoMessageProps = {
 
 function ProxyInfoMessage({ message }: ProxyInfoMessageProps) {
   return (
-    <div className="flex items-start gap-2 p-4">
-      <span className="text-iron dark:text-bombay text-sm">{message}</span>
-    </div>
+    <span className="text-iron dark:text-bombay text-sm p-4">{message}</span>
   );
 }
 
 export default ProxyInfoMessage;
-

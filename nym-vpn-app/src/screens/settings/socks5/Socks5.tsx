@@ -147,7 +147,7 @@ function Socks5() {
   };
 
   return (
-    <PageAnim className="relative h-full flex flex-col mt-2 gap-6 select-none">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
       <div className="text-iron dark:text-bombay">{t('app-proxy.intro')}</div>
 
       <SettingsMenuCardBig
@@ -208,7 +208,6 @@ function Socks5() {
         </div>
       </SettingsMenuCardBig>
 
-      {/* SOCKS5 Proxy Info Card */}
       <ProxyInfoCard>
         <ProxyFieldSection
           title={t('app-proxy.socks5.proxy-title')}
@@ -219,7 +218,6 @@ function Socks5() {
           showInput={true}
         />
 
-        {/* SOCKS5 URL (for apps) */}
         {isConnected && socks5Url && (
           <>
             <ProxyFieldSection
@@ -233,7 +231,6 @@ function Socks5() {
         )}
       </ProxyInfoCard>
 
-      {/* HTTP RPC Proxy Info Card */}
       <ProxyInfoCard>
         <ProxyFieldSection
           title={t('app-proxy.http-rpc.proxy-title')}
@@ -244,7 +241,6 @@ function Socks5() {
           showInput={true}
         />
 
-        {/* HTTP RPC URL (for wallets) */}
         {isConnected && httpRpcUrl && (
           <>
             <ProxyFieldSection
