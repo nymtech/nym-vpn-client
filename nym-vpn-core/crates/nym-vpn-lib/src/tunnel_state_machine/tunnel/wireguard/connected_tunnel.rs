@@ -2,13 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(target_os = "ios")]
-use std::time::Duration;
-use std::{
-    net::{IpAddr, SocketAddr},
-    sync::Arc,
-};
-
-#[cfg(target_os = "ios")]
 use dispatch2::{DispatchQueue, DispatchQueueAttr};
 use ipnetwork::IpNetwork;
 #[cfg(target_os = "ios")]
@@ -21,6 +14,14 @@ use nym_wg_go::wireguard_go::WintunInterface;
 use nym_wg_go::{amnezia::AmneziaConfig, netstack, wireguard_go};
 #[cfg(windows)]
 use nym_windows::net::{self as winnet, AddressFamily};
+#[cfg(unix)]
+use std::ops::Deref;
+#[cfg(target_os = "ios")]
+use std::time::Duration;
+use std::{
+    net::{IpAddr, SocketAddr},
+    sync::Arc,
+};
 #[cfg(any(windows, target_os = "ios"))]
 use tokio::sync::mpsc;
 use tokio::task::{JoinError, JoinHandle};
@@ -161,7 +162,7 @@ impl ConnectedTunnel {
         let mut entry_tunnel = wireguard_go::Tunnel::start(
             wg_entry_config.into_wireguard_config(),
             #[cfg(unix)]
-            options.entry_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
+            options.entry_tun.deref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.entry_tun_name,
             #[cfg(windows)]
@@ -174,7 +175,7 @@ impl ConnectedTunnel {
         let exit_tunnel = wireguard_go::Tunnel::start(
             wg_exit_config.into_wireguard_config(),
             #[cfg(unix)]
-            options.exit_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
+            options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.exit_tun_name,
             #[cfg(windows)]
@@ -325,7 +326,7 @@ impl ConnectedTunnel {
         let mut exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
             #[cfg(unix)]
-            options.exit_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
+            options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.exit_tun_name,
             #[cfg(windows)]
