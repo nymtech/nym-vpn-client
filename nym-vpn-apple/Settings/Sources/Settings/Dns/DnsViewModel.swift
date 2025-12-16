@@ -15,16 +15,20 @@ import AppSettings
 
     @Binding private var path: NavigationPath
 
-    @Published var defaultDns: [String] = []
+    
+    @Published var defaultDns: [String] = [
+        "9.9.9.9",
+        "149.112.112.112",
+        "2620:fe::fe",
+        "2620:fe::fe:9",
+        "1.1.1.1",
+        "1.0.0.1",
+        "2606:4700:4700::1111",
+        "2606:4700:4700::1001"
+    ]
     @Published var isDefaultDnsDisplayed = false
 
-    @Published var customDns: [String] = [
-        "192.168.1.1",
-        "10.0.0.1",
-        "208.67.222.222",
-        "208.67.220.220",
-        "208.67.220.221"
-    ]
+    @Published var customDns: [String] = []
     @Published var isCustomDnsEnabled = false
 
     @Published var customDnsTextField = ""
@@ -57,13 +61,24 @@ extension DnsViewModel {
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
     }
-    
-    #if os(macOS)
+
     func loadDefaultDns() async {
+        #if os(macOS)
         let dns = (try? await grpcManager.getDefaultDns()) ?? []
         defaultDns = dns.isEmpty ? defaultDns : dns
+        #endif
     }
-    #endif
+
+    func deleteCustom(ipAddr: String) {
+        customDns.removeAll { $0 == ipAddr }
+    }
+    
+    func saveChanges() {
+        appSettings.isCustomDnsEnabled = isCustomDnsEnabled
+        appSettings.customDns = customDns
+        
+        appSettings.shouldReconnect = true
+    }
 }
 
 private extension DnsViewModel {

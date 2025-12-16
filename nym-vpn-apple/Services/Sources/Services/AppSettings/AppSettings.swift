@@ -88,6 +88,9 @@ import CountriesManagerTypes
     }
     
     @AppStorage(AppSettingKey.customDns.rawValue)
+    public var isCustomDnsEnabled = false
+    
+    @AppStorage(AppSettingKey.customDns.rawValue)
     public var customDns: [String] = []
 
     // Observed values for view models
