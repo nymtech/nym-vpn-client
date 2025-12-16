@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import {
-  Button,
-  ButtonIcon,
-  CardSwitch,
-  MsIcon,
-  PageAnim,
-  SettingsMenuCardBig,
-  TextInput,
-} from '../../../ui';
+import { CardSwitch, PageAnim, SettingsMenuCardBig } from '../../../ui';
 import { useInAppNotify, useMainState, useSocks5 } from '../../../contexts';
 import { useClipboard } from '../../../hooks';
+import {
+  ProxyFieldSection,
+  ProxyInfoCard,
+  ProxyInfoMessage,
+} from './components';
 
 const DefaultSocks5Address = '127.0.0.1:1080';
 const DefaultHttpRpcAddress = '127.0.0.1:8545';
@@ -50,19 +47,30 @@ function Socks5() {
     ? `http://${status.httpRpcSettings.listenAddress}?p=<your-provider-url>`
     : null;
 
+  useEffect(() => {
+    if (hasError) {
+      push({
+        id: 'socks5-error',
+        message: status?.errorMessage ?? t('app-proxy.error-unknown'),
+        close: true,
+        type: 'error',
+      });
+    }
+  }, [hasError, status?.errorMessage, push, t]);
+
   const getStatusString = () => {
     if (isLoading) {
-      return 'Enabling...';
+      return t('app-proxy.status.enabling');
     }
     switch (status?.state) {
       case 'idle':
       case 'connected':
-        return 'Connected';
+        return t('app-proxy.status.connected');
       case 'error':
       case 'disabled':
-        return 'Disabled';
+        return t('app-proxy.status.disabled');
       default:
-        return 'Unknown';
+        return t('app-proxy.status.unknown');
     }
   };
 
@@ -138,25 +146,14 @@ function Socks5() {
     }
   };
 
-  // copy to clipboard
-  const handleCopy = async (url: string) => {
-    if (!url) return;
-
-    try {
-      await copy(url, true);
-    } catch (error) {
-      console.error('Failed to copy:', error);
-    }
-  };
-
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
+    <PageAnim className="relative h-full flex flex-col mt-2 gap-6 select-none">
       <div className="text-iron dark:text-bombay">{t('app-proxy.intro')}</div>
 
       <SettingsMenuCardBig
         header={
           <CardSwitch
-            header="Enable proxy"
+            header={t('app-proxy.switch-title')}
             checked={isEnabled}
             onClick={handleToggle}
             disabled={isLoading || (!isEnabled && isLoading)}
@@ -179,7 +176,7 @@ function Socks5() {
             >
               <div className="w-full flex items-center gap-2 justify-between">
                 <span className="text-iron dark:text-bombay truncate select-none">
-                  Proxy status:
+                  {t('app-proxy.proxy-status')}
                 </span>
                 <span className={clsx(getStatusColor())}>
                   {getStatusString()}
@@ -194,13 +191,13 @@ function Socks5() {
             >
               <div className="w-full flex items-center gap-2 justify-between">
                 <span className="text-iron dark:text-bombay truncate select-none">
-                  Active connections:
+                  {t('app-proxy.active-connections')}
                 </span>
                 <span
                   className={clsx(
                     status?.state === 'connected'
-                      ? 'text-malachite'
-                      : 'text-white',
+                      ? 'text-malachite-moss dark:text-malachite'
+                      : 'text-baltic-sea dark:text-white',
                   )}
                 >
                   {status?.activeConnections ?? 0}
@@ -212,312 +209,54 @@ function Socks5() {
       </SettingsMenuCardBig>
 
       {/* SOCKS5 Proxy Info Card */}
-      <div className="bg-charcoal rounded-xl flex flex-col gap-4">
-        {/* SOCKS5 proxy (for apps) */}
-        <div className="flex flex-col gap-2 border-b border-black p-4">
-          <div className="flex items-center gap-2">
-            <MsIcon icon="tag" className="text-bombay text-2xl" />
-            <p className="text-white text-base font-medium">
-              SOCKS5 proxy (for apps)
-            </p>
-          </div>
-          <div className="flex items-center justify-between gap-4">
-            {/* <p className="text-bombay font-mono text-sm">127.0.0.1:1080</p> */}
-            <TextInput
-              onChange={(e) => {
-                setSocks5Address(e);
-              }}
-              disabled={isEnabled}
-              value={socks5Address}
-              color="default"
-            />
-            <ButtonIcon
-              icon="content_copy"
-              color="chalk"
-              onClick={() => copy(socks5Address, false)}
-              clickFeedback
-              noDefaultSize
-            />
-          </div>
-        </div>
+      <ProxyInfoCard>
+        <ProxyFieldSection
+          title={t('app-proxy.socks5.proxy-title')}
+          value={socks5Address}
+          onValueChange={setSocks5Address}
+          onCopy={() => copy(socks5Address, false)}
+          disabled={isEnabled || isLoading}
+          showInput={true}
+        />
 
         {/* SOCKS5 URL (for apps) */}
         {isConnected && socks5Url && (
-          <div className="flex flex-col gap-2 border-b border-black p-4">
-            <div className="flex items-center gap-2">
-              <MsIcon icon="tag" className="text-bombay text-2xl" />
-              <p className="text-white text-base font-medium">
-                SOCKS5 URL (for apps)
-              </p>
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-bombay font-mono text-sm">
-                {/* socks5h://127.0.0.1:1080 */}
-                {socks5Url}
-              </p>
-              <ButtonIcon
-                icon="content_copy"
-                color="chalk"
-                // onClick={() => handleCopy('127.0.0.1:1080')}
-                onClick={() => copy(socks5Url, false)}
-                clickFeedback
-                noDefaultSize
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Info message */}
-        <div className="flex items-start gap-2 p-4">
-          <span className="text-bombay text-sm">
-            ℹ️ Add this to your browser's proxy settings to route traffic
-            through the Nym mixnet
-          </span>
-        </div>
-      </div>
-
-      {/* SOCKS5 Proxy Info Card */}
-      <div className="bg-charcoal rounded-xl flex flex-col gap-4">
-        {/* HTTP RPC proxy (for wallets) */}
-        <div className="flex flex-col gap-2 border-b border-black p-4">
-          <div className="flex items-center gap-2">
-            <MsIcon icon="tag" className="text-bombay text-2xl" />
-            <p className="text-white text-base font-medium">
-              HTTP RPC proxy (for wallets)
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-bombay font-mono text-sm">127.0.0.1:8545</p>
-            <ButtonIcon
-              icon="content_copy"
-              color="chalk"
-              onClick={() => copy(httpRpcAddress, false)}
-              clickFeedback
-              noDefaultSize
+          <>
+            <ProxyFieldSection
+              title={t('app-proxy.socks5.url-title')}
+              value={socks5Url}
+              onCopy={() => copy(socks5Url, false)}
+              showInput={false}
             />
-          </div>
-        </div>
+            <ProxyInfoMessage message={t('app-proxy.socks5.info')} />
+          </>
+        )}
+      </ProxyInfoCard>
+
+      {/* HTTP RPC Proxy Info Card */}
+      <ProxyInfoCard>
+        <ProxyFieldSection
+          title={t('app-proxy.http-rpc.proxy-title')}
+          value={httpRpcAddress}
+          onValueChange={setHttpRpcAddress}
+          onCopy={() => copy(httpRpcAddress, false)}
+          disabled={isEnabled || isLoading}
+          showInput={true}
+        />
 
         {/* HTTP RPC URL (for wallets) */}
         {isConnected && httpRpcUrl && (
-          <div className="flex flex-col gap-2 border-b border-black p-4">
-            <div className="flex items-center gap-2">
-              <MsIcon icon="tag" className="text-bombay text-2xl" />
-              <p className="text-white text-base font-medium">
-                HTTP RPC URL (for wallets)
-              </p>
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-bombay font-mono text-sm">
-                {/* {'http://127.0.0.1:8545?p=<your-provider-url>'} */}
-                {httpRpcUrl}
-              </p>
-              <ButtonIcon
-                icon="content_copy"
-                color="chalk"
-                // onClick={() => handleCopy('127.0.0.1:1080')}
-                onClick={() => copy(httpRpcUrl, false)}
-                clickFeedback
-                noDefaultSize
-              />
-            </div>
-          </div>
+          <>
+            <ProxyFieldSection
+              title={t('app-proxy.http-rpc.url-title')}
+              value={httpRpcUrl}
+              onCopy={() => copy(httpRpcUrl, false)}
+              showInput={false}
+            />
+            <ProxyInfoMessage message={t('app-proxy.http-rpc.info')} />
+          </>
         )}
-
-        {/* Info message */}
-        <div className="flex items-start gap-2 p-4">
-          <span className="text-bombay text-sm">
-            {
-              'ℹ️  Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint.'
-            }
-          </span>
-        </div>
-      </div>
-
-      <SettingsMenuCardBig
-        header={
-          <CardSwitch
-            header="Enable proxy"
-            checked={isEnabled}
-            onClick={handleToggle}
-            disabled={isLoading || (!isEnabled && isLoading)}
-          />
-        }
-      >
-        <div>
-          <ul
-            className={clsx([
-              'flex flex-col justify-center items-center gap-0',
-              'bg-white dark:bg-charcoal rounded-lg px-4',
-              'cursor-default',
-            ])}
-          >
-            <li
-              className={clsx(
-                'w-full flex border-b last:border-b-0',
-                'py-2 last:pb-0 first:pt-0 border-bombay dark:border-iron',
-              )}
-            >
-              <div className="w-full flex items-center gap-2 justify-between">
-                <span className="text-iron dark:text-bombay truncate select-none">
-                  Proxy status:
-                </span>
-                <span
-                  className={clsx(
-                    status?.state === 'connected'
-                      ? 'text-malachite'
-                      : 'text-white',
-                  )}
-                >
-                  {status ? status.state : 'unknown'}
-                </span>
-              </div>
-            </li>
-            <li
-              className={clsx(
-                'w-full flex border-b last:border-b-0',
-                'py-2 last:pb-0 first:pt-0 border-bombay dark:border-iron',
-              )}
-            >
-              <div className="w-full flex items-center gap-2 justify-between">
-                <span className="text-iron dark:text-bombay truncate select-none">
-                  Active connections:
-                </span>
-                <span
-                  className={clsx(
-                    status?.state === 'connected'
-                      ? 'text-malachite'
-                      : 'text-white',
-                  )}
-                >
-                  {status?.activeConnections ?? 0}
-                </span>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          {isConnected && socks5Url && (
-            <div className="flex flex-col gap-4">
-              {/* SOCKS5 URL Section */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-mine-shaft dark:text-mercury">
-                    SOCKS5 URL
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 bg-baltic dark:bg-shark rounded-lg p-3">
-                  <code className="flex-1 text-sm font-mono text-mine-shaft dark:text-mercury break-words">
-                    {socks5Url}
-                  </code>
-                  <Button
-                    onClick={() => handleCopy(socks5Url)}
-                    className="!w-8 !h-8 !p-0 !min-w-8 flex-shrink-0 flex items-center justify-center"
-                  >
-                    <MsIcon
-                      icon="content_copy"
-                      className="text-white dark:text-charcoal"
-                    />
-                  </Button>
-                </div>
-                <div className="flex items-start gap-2 mt-1">
-                  <MsIcon
-                    icon="info"
-                    className="text-cornflower text-sm mt-0.5 flex-shrink-0"
-                  />
-                  <span className="text-xs text-iron dark:text-bombay">
-                    {t('app-proxy.add-to-browser-proxy-settings')}
-                  </span>
-                </div>
-              </div>
-
-              {/* HTTP RPC URL Section */}
-              {httpRpcUrl && (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-mine-shaft dark:text-mercury">
-                      HTTP RPC URL
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 bg-baltic dark:bg-shark rounded-lg p-3">
-                    <code className="flex-1 text-sm font-mono text-mine-shaft dark:text-mercury break-words">
-                      {httpRpcUrl}
-                    </code>
-                    <Button
-                      onClick={() => handleCopy(httpRpcUrl)}
-                      className="!w-8 !h-8 !p-0 !min-w-8 flex-shrink-0 flex items-center justify-center"
-                    >
-                      <MsIcon
-                        icon="content_copy"
-                        className="text-white dark:text-charcoal"
-                      />
-                    </Button>
-                  </div>
-                  <div className="flex items-start gap-2 mt-1">
-                    <MsIcon
-                      icon="info"
-                      className="text-cornflower text-sm mt-0.5 flex-shrink-0"
-                    />
-                    <span className="text-xs text-iron dark:text-bombay">
-                      {t('app-proxy.use-in-wallet')}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </SettingsMenuCardBig>
-
-      <SettingsMenuCardBig
-        header={t('app-proxy.configuration')}
-        className="pt-4"
-      >
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-mine-shaft dark:text-mercury">
-              {t('app-proxy.socks5-address-label')}
-            </label>
-            <input
-              type="text"
-              value={socks5Address}
-              onChange={(e) => setSocks5Address(e.target.value)}
-              disabled={isEnabled}
-              placeholder={t('app-proxy.socks5-address-placeholder')}
-              className={clsx(
-                'px-3 py-2 bg-baltic rounded-lg text-sm font-mono',
-                'dark:bg-shark text-mine-shaft dark:text-mercury border border-transparent',
-                'focus:border-cornflower focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
-              )}
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-mine-shaft dark:text-mercury">
-              {t('app-proxy.http-rpc-address-label')}
-            </label>
-            <input
-              type="text"
-              value={httpRpcAddress}
-              onChange={(e) => setHttpRpcAddress(e.target.value)}
-              disabled={isEnabled}
-              placeholder={t('app-proxy.http-rpc-address-placeholder')}
-              className={clsx(
-                'px-3 py-2 bg-baltic rounded-lg text-sm font-mono',
-                'dark:bg-shark text-mine-shaft dark:text-mercury border border-transparent',
-                'focus:border-cornflower focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
-              )}
-            />
-          </div>
-
-          {hasError && status?.errorMessage && (
-            <div className="bg-malachite/10 border border-malabg-malachite rounded-lg p-3">
-              <p className="text-sm text-aphrodisiac">{status.errorMessage}</p>
-            </div>
-          )}
-        </div>
-      </SettingsMenuCardBig>
+      </ProxyInfoCard>
     </PageAnim>
   );
 }
