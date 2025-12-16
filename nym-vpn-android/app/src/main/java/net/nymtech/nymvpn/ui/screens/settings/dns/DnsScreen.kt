@@ -92,8 +92,8 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 		onBackClickEventTriggered = onBackClickEventTriggered,
 		onNavigateBack = onNavigateBack,
 		onReconnect = {
-			Toast.makeText(context, "Reconnecting…", Toast.LENGTH_SHORT).show()
-			viewModel.reconnect()
+//			Toast.makeText(context, "Reconnecting…", Toast.LENGTH_SHORT).show()
+//			viewModel.reconnect()
 		},
 		initialDnsEnabled = initialDnsEnabled,
 		initialCustomDns = initialCustomDns,
