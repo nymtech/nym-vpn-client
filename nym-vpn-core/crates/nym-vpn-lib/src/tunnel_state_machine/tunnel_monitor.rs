@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use std::net::{Ipv4Addr, Ipv6Addr};
+use std::{
+    net::{Ipv4Addr, Ipv6Addr},
+    ops::Deref,
+};
+
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
 use std::os::fd::BorrowedFd;
 #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -27,9 +31,9 @@ use nym_gateway_directory::{
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
-use tun::AsyncDevice;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use tun::Device;
+use tun::AbstractDevice;
+use tun::AsyncDevice;
 
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 use nym_common::{ErrorExt, trace_err_chain};
@@ -594,7 +598,7 @@ impl TunnelMonitor {
         let (exit_metadata_tx, exit_metadata_rx) = tokio::sync::oneshot::channel::<MetadataEvent>();
 
         let (entry_metadata_addr_tx, entry_metadata_addr_rx) = tokio::sync::oneshot::channel();
-        let (bridge_close_tx, mut bridge_close_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (bridge_close_tx, mut bridge_close_rx) = mpsc::unbounded_channel();
 
         // todo: refactor
         let (
@@ -940,8 +944,8 @@ impl TunnelMonitor {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let tun_name = tun_device
-            .get_ref()
-            .name()
+            .deref()
+            .tun_name()
             .map_err(Error::GetTunDeviceName)?;
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -1691,9 +1695,9 @@ impl TunnelMonitor {
 
             // rust-tun uses the same name for tunnel type.
             #[cfg(windows)]
-            tun_config.name(MIXNET_WINTUN_NAME);
+            tun_config.tun_name(MIXNET_WINTUN_NAME);
 
-            tun_config.address(interface_ipv4).mtu(i32::from(mtu)).up();
+            tun_config.address(interface_ipv4).mtu(mtu).up();
 
             #[cfg(target_os = "linux")]
             tun_config.platform(|platform_config| {
@@ -1704,8 +1708,8 @@ impl TunnelMonitor {
         };
 
         let tun_name = tun_device
-            .get_ref()
-            .name()
+            .deref()
+            .tun_name()
             .map_err(Error::GetTunDeviceName)?;
 
         #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -1761,8 +1765,8 @@ impl TunnelMonitor {
         let tun_device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
 
         let tun_name = tun_device
-            .get_ref()
-            .name()
+            .deref()
+            .tun_name()
             .map_err(Error::GetTunDeviceName)?;
 
         if let Some(interface_ipv6) = interface_ipv6 {
