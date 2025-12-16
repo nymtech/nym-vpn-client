@@ -20,9 +20,12 @@ function ProxyFieldSection({
   showInput = true,
 }: ProxyFieldSectionProps) {
   return (
-    <div className="flex flex-col gap-2 border-b border-bombay dark:border-baltic-sea p-4">
+    <div className="flex flex-col gap-2 not-first:border-t not-first:border-b border-bombay dark:border-baltic-sea p-4">
       <div className="flex items-center gap-2">
-        <MsIcon icon={icon} className="text-iron dark:text-bombay text-2xl" />
+        <MsIcon
+          icon={icon}
+          className="text-iron dark:text-bombay text-2xl leading-1"
+        />
         <p className="text-base font-medium">{title}</p>
       </div>
       <div className="flex items-center justify-between gap-4">
