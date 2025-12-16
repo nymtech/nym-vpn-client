@@ -57,6 +57,11 @@ impl FeatureFlags {
     pub fn quic_enabled(&self) -> Option<bool> {
         self.get_group_flag("quic", "enabled")
     }
+
+    /// If privy is enabled or not, if set
+    pub fn privy_enabled(&self) -> Option<bool> {
+        self.get_group_flag("privy", "enabled")
+    }
 }
 
 impl From<HashMap<String, FlagValue>> for FeatureFlags {

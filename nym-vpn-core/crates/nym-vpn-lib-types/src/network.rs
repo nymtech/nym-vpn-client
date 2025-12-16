@@ -175,6 +175,13 @@ impl FeatureFlags {
         self.get_group_flag("quic", "enabled")
     }
 
+    /// If privy is enabled or not, if set
+    #[uniffi::method]
+    pub fn is_privy_enabled(&self) -> Option<bool> {
+        // todo: harmonize with nym-vpn-network-config/src/feature_flags.rs
+        self.get_group_flag("privy", "enabled")
+    }
+
     fn get_group_flag(&self, group_name: &str, flag_name: &str) -> Option<bool> {
         if let Some(FlagValue::Group(group)) = self.flags.get(group_name)
             && let Some(value) = group.get(flag_name)
