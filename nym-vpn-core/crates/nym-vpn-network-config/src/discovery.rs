@@ -8,7 +8,7 @@ use std::{
 };
 
 use crate::{
-    AccountManagement, Error, FeatureFlags, MAX_FILE_AGE, NETWORKS_SUBDIR, Result, SystemMessages,
+    AccountManagement, Error, FeatureFlags, MAX_FILE_AGE, Result, SystemMessages,
     nym_network::NymNetwork, system_configuration::SystemConfiguration,
 };
 use nym_api_requests::NymNetworkDetailsResponse;
@@ -85,7 +85,7 @@ impl Discovery {
 
     fn path(config_dir: &Path, network_name: &str) -> PathBuf {
         config_dir
-            .join(NETWORKS_SUBDIR)
+            .join(network_name)
             .join(format!("{network_name}_{DISCOVERY_FILE}"))
     }
 

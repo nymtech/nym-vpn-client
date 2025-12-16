@@ -299,7 +299,7 @@ impl NymVpnService {
             .network_name
             .clone();
 
-        let config_dir = super::config::config_dir().join(&network_name);
+        let config_dir = super::config::config_dir();
         let data_dir = super::config::data_dir();
         let network_data_dir = data_dir.join(&network_name);
 
