@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use std::{
-    net::{Ipv4Addr, Ipv6Addr},
-    ops::Deref,
-};
+use std::net::{Ipv4Addr, Ipv6Addr};
+
+use std::ops::Deref;
 
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
 use std::os::fd::BorrowedFd;
@@ -950,7 +949,7 @@ impl TunnelMonitor {
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
         let tun_name = {
-            let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.get_ref().as_raw_fd()) };
+            let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.deref().as_raw_fd()) };
             tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?
         };
 
@@ -1629,7 +1628,7 @@ impl TunnelMonitor {
         };
 
         let tun_device = self.create_tun_device(packet_tunnel_settings).await?;
-        let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.get_ref().as_raw_fd()) };
+        let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.deref().as_raw_fd()) };
         let interface = tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?;
         let mut ips = vec![IpAddr::V4(conn_data.exit.private_ipv4)];
         if self.enable_ipv6() {
