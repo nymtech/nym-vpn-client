@@ -215,6 +215,7 @@ function Socks5() {
           onValueChange={setSocks5Address}
           onCopy={() => copy(socks5Address, false)}
           disabled={isEnabled || isLoading}
+          placeholder={DefaultSocks5Address}
           showInput={true}
         />
 
@@ -238,6 +239,7 @@ function Socks5() {
           onValueChange={setHttpRpcAddress}
           onCopy={() => copy(httpRpcAddress, false)}
           disabled={isEnabled || isLoading}
+          placeholder={DefaultHttpRpcAddress}
           showInput={true}
         />
 

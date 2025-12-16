@@ -7,6 +7,7 @@ export type ProxyFieldSectionProps = {
   onValueChange?: (value: string) => void;
   onCopy: () => void;
   disabled?: boolean;
+  placeholder?: string;
   showInput?: boolean;
 };
 
@@ -17,6 +18,7 @@ function ProxyFieldSection({
   onValueChange,
   onCopy,
   disabled = false,
+  placeholder,
   showInput = true,
 }: ProxyFieldSectionProps) {
   return (
@@ -35,6 +37,7 @@ function ProxyFieldSection({
             disabled={disabled}
             value={value}
             color="default"
+            placeholder={placeholder}
           />
         ) : (
           <p className="text-iron dark:text-bombay font-mono text-sm">
