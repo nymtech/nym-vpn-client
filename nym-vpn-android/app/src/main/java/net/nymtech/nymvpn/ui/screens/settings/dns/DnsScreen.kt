@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.dns
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -64,6 +65,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: DnsViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
+	val context = LocalContext.current
 	val customDns by viewModel.customDns.collectAsState()
 	var initialCustomDns by remember { mutableStateOf<List<String>?>(null) }
 	LaunchedEffect(customDns) {
@@ -89,7 +91,10 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 		onSave = { viewModel.saveDnsList(it) },
 		onBackClickEventTriggered = onBackClickEventTriggered,
 		onNavigateBack = onNavigateBack,
-		onReconnect = { viewModel.reconnect() },
+		onReconnect = {
+			Toast.makeText(context, "Reconnecting…", Toast.LENGTH_SHORT).show()
+			viewModel.reconnect()
+		},
 		initialDnsEnabled = initialDnsEnabled,
 		initialCustomDns = initialCustomDns,
 	)
