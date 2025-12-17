@@ -678,6 +678,16 @@ impl NymVpnService {
                     }
                 });
             }
+
+            // When VPN connects, if SOCKS5 is already enabled, warn that it may not work
+            // because SOCKS5 might be using a different gateway than VPN
+            if matches!(new_state, TunnelState::Connected { .. })
+                && self.socks5_service.is_enabled()
+            {
+                tracing::warn!(
+                    "VPN connected while SOCKS5 proxy was already active. SOCKS5 may be using a different gateway than VPN, which can cause connection failures. Consider disabling and re-enabling SOCKS5 to use the VPN's gateway."
+                );
+            }
         }
         if self.tunnel_event_tx.send(event).is_err() {
             tracing::error!("Failed to send tunnel event");
@@ -1130,35 +1140,111 @@ impl NymVpnService {
             ExitPoint::Address { address } => NodeIdentity::from(*address.gateway().inner()),
             ExitPoint::Gateway { identity } => NodeIdentity::from(*identity.inner()),
             ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
-                // For non-specific exit points, select a gateway the same way the VPN does
-                tracing::debug!("Selecting SOCKS5 exit node for exit point: {exit_point:?}",);
+                // For non-specific exit points, check if VPN is connected first
+                // If connected, use VPN's actual gateway to avoid firewall routing issues
+                let tunnel_state = self.tunnel_state.read().await.clone();
 
-                // Convert to gateway_directory types for lookup
-                let exit_point: nym_gateway_directory::ExitPoint = exit_point.clone().into();
+                let selected_identity = if let TunnelState::Connected { connection_data } =
+                    tunnel_state
+                {
+                    // VPN is connected - try to use its actual exit gateway
+                    let vpn_gateway_id = &connection_data.exit_gateway.id;
+                    tracing::info!(
+                        "VPN is connected to exit gateway {}, checking if it supports SOCKS5",
+                        vpn_gateway_id
+                    );
 
-                let exit_filters = if self.config_manager.config().residential_exit {
-                    GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
+                    // Validate that VPN's gateway supports SOCKS5 and has nr_address
+                    match NodeIdentity::from_base58_string(vpn_gateway_id) {
+                        Ok(vpn_gateway_identity) => {
+                            // Look up the gateway directly (VPN uses Wg type, but gateway might also support MixnetExit)
+                            let gateway_full = self
+                                .gateway_cache_handle
+                                .lookup_nymnode_by_identity(vpn_gateway_identity)
+                                .await
+                                .ok();
+
+                            if let Some(gateway_full) = gateway_full {
+                                // Check if gateway supports SOCKS5 (has nr_address and can connect as exit)
+                                let supports_socks5 = gateway_full.nr_address.is_some()
+                                    && gateway_full
+                                        .last_probe
+                                        .as_ref()
+                                        .and_then(|probe| probe.outcome.as_exit.as_ref())
+                                        .map(|exit_point| exit_point.can_connect)
+                                        .unwrap_or(false);
+
+                                if supports_socks5 {
+                                    // Gateway supports SOCKS5 - use it directly even if not in filtered MixnetExit list
+                                    // (VPN uses Wg gateways, but they may also support MixnetExit/SOCKS5)
+                                    tracing::info!(
+                                        "Using VPN's exit gateway {} for SOCKS5 (same gateway, firewall rules should allow connection)",
+                                        vpn_gateway_id
+                                    );
+                                    // Use VPN's gateway identity - skip selection
+                                    Some(vpn_gateway_identity)
+                                } else {
+                                    tracing::debug!(
+                                        "VPN's exit gateway {} does not support SOCKS5 (no nr_address or cannot connect as exit), selecting different gateway",
+                                        vpn_gateway_id
+                                    );
+                                    None
+                                }
+                            } else {
+                                tracing::debug!(
+                                    "VPN's exit gateway {} not found in cache, selecting different gateway",
+                                    vpn_gateway_id
+                                );
+                                None
+                            }
+                        }
+                        Err(e) => {
+                            tracing::warn!(
+                                "Failed to parse VPN's exit gateway identity {}: {}. Selecting new gateway.",
+                                vpn_gateway_id,
+                                e
+                            );
+                            None
+                        }
+                    }
                 } else {
-                    GatewayFilters::default()
+                    None
                 };
 
-                let selected_gateway = exit_gateways
-                    .find_best_socks5_gateway(&exit_point, &exit_filters)
-                    .map_err(|e| {
-                        Socks5Error::InvalidConfig(format!(
-                            "Failed to select SOCKS5 exit gateway: {e}"
-                        ))
-                    })?;
+                // Use VPN's gateway if available, otherwise do selection
+                if let Some(gateway_identity) = selected_identity {
+                    gateway_identity
+                } else {
+                    // VPN not connected or gateway doesn't support SOCKS5 - do selection
+                    tracing::debug!("Selecting SOCKS5 exit node for exit point: {exit_point:?}",);
 
-                tracing::info!(
-                    "Selected SOCKS5 exit gateway: {}, location: {}",
-                    selected_gateway.identity(),
-                    selected_gateway
-                        .two_letter_iso_country_code()
-                        .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
-                );
+                    // Convert to gateway_directory types for lookup
+                    let exit_point: nym_gateway_directory::ExitPoint = exit_point.clone().into();
 
-                selected_gateway.identity()
+                    let exit_filters = if self.config_manager.config().residential_exit {
+                        GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
+                    } else {
+                        GatewayFilters::default()
+                    };
+
+                    let selected_gateway = exit_gateways
+                        .find_best_socks5_gateway(&exit_point, &exit_filters)
+                        .map_err(|e| {
+                            Socks5Error::InvalidConfig(format!(
+                                "Failed to select SOCKS5 exit gateway: {e}"
+                            ))
+                        })?;
+
+                    tracing::info!(
+                        "Selected SOCKS5 exit gateway: {}, location: {}",
+                        selected_gateway.identity(),
+                        selected_gateway
+                            .two_letter_iso_country_code()
+                            .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
+                    );
+
+                    selected_gateway.identity()
+                }
             }
         };
 
