@@ -152,10 +152,13 @@
 	<string name="join_telegram">Telegram\'da bize katılın</string>
 	<!-- Common -->
 	<string name="button_done">Tamamlandı</string>
+	<string name="button_discard">Discard</string>
+	<string name="button_add">Add</string>
+	<string name="here">burada</string>
+	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Akış ekranı</string>
 	<string name="streaming_server_banner_title">Yeni: Yayın\niçin optimize edilmiş sunucuları keşfedin</string>
 	<string name="streaming_server_banner_action">Yeni\nçıkış sunucularına göz atın</string>
-    <string name="here">burada</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Aynı giriş ve çıkış sunucusunu kullanarak bağlanamazsınız. Yeniden bağlanmak için ya giriş sunucusunu ya da çıkış sunucusunu değiştirin.</string>
 	<string name="unexpected_error">Beklenmedik bir hata oluştu:</string>
@@ -191,6 +194,7 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Sansür Karşıtı</string>
 	<string name="settings_passphrase_title">Parola Cümlesi</string>
+	<string name="settings_dns_title">Customize DNS</string>
 	<string name="settings_ipv6_title">Support IPv6</string>
 	<string name="settings_ipv6_description">Allow IPv6 connections</string>
 	<string name="settings_bypass_description">Allow direct local network access</string>
@@ -205,6 +209,8 @@
 	<string name="settings_quit_title">Quit NymVPN</string>
 	<string name="settings_app_version_line">App version: %1$s</string>
 	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
+	<string name="settings_language_help_title">Help with translation</string>
+	<string name="settings_language_help_description">Make the app better in your language.</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">En iyi bağlantı için</string>
 	<string name="battery_opt_descr">Daha kararlı VPN bağlantıları için NymVPN’in pil optimizasyonlarını devre dışı bırakın.</string>
@@ -296,6 +302,7 @@
 	<string name="quick_info_modal_desc_non_quic">Bu işlem, QUIC protokolü etkin olmadan yeniden bağlanmanızı sağlar. Mevcut gateway\'leri korunur. \n\nYeniden bağlanma sırasında verileriniz güvende kalır.</string>
 	<string name="quic_primary_btn_text_non_quic">Şimdi QUIC olmadan yeniden bağlan</string>
 	<string name="quic_text_btn_text_non_quic">Sonraki bağlantıda QUIC’i kapat</string>
+	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">Minimum gizleme/karmaşıklaştırma (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">WireGuard trafiğinin tespit edilmesini zorlaştırır.
 Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kuralları bozmak için sahte paketler (decoy packets) ekler ve bu da kısıtlayıcı ortamlarda bağlantı güvenilirliğini artırır. \n\nNot: Yalnızca istemci tarafında uygulanmıştır.</string>
@@ -308,6 +315,7 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="account_welcome_open_source">Açık kaynak &amp; İsviçre gizlilik yasaları</string>
 	<string name="account_welcome_button">Gizliliğimi korumaya başla</string>
 	<string name="account_welcome_have_account">Zaten bir hesabınız mı var?</string>
+	<string name="account_welcome_free_trial">7 days free trial - no payment required</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">Zaten abone olmuşsunuz!</string>
 	<string name="account_subscription_description">Google Play hesabınıza bağlı aktif bir abonelik bulundu. Kayıt işlemini atlayın ve doğrudan NymVPN’i kullanmaya başlayın. Sadece 24 kelimelik parola ifadenizi hazır bulundurun.</string>
@@ -397,4 +405,22 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
 	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
+	<!-- DNS customization screen -->
+	<string name="dns_title">DNS customization</string>
+	<string name="dns_description">By default, using Nym\'s recommended DNS servers. Configure custom servers below if needed.</string>
+	<string name="dns_view_list">View default DNS</string>
+	<string name="dns_hide_list">Hide default DNS</string>
+	<string name="dns_list_title">Nym\'s default DNS:</string>
+	<string name="dns_custom_title">Use custom DNS servers</string>
+	<string name="dns_custom_description">Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity. </string>
+	<string name="dns_custom_list_title">Enter DNS server</string>
+	<string name="dns_custom_list_entries">Custom DNS servers (%1$s/5)</string>
+	<string name="dns_custom_list_hint">IPv4 or IPv6 address</string>
+	<string name="dns_custom_list_error">Invalid DNS address format</string>
+	<string name="dns_custom_button_add">Add</string>
+	<string name="dns_custom_button_save">Save changes</string>
+	<string name="dns_custom_saved">Custom DNS saved.</string>
+	<string name="dns_save_dialog_title">Save changes?</string>
+	<string name="dns_save_dialog_description">You have unsaved changes.</string>
+	<string name="dns_learn_more_text">Learn more about DNS</string>
 </resources>

@@ -1,0 +1,5 @@
+Was ist neu:
+- Knotendetails zu Schnelleinstellungen und einen neuen Kontobildschirm hinzugefügt
+- Zwei-Modus-Split-Tunneling auf Android eingeführt
+- Einstellungen, Privatsphäre, Zensur und Navigations-Oberfläche aktualisiert
+- Verbindungsstabilität und Fehlerbehandlung verbessert

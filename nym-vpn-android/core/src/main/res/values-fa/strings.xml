@@ -8,4 +8,6 @@
 	<string name="state_disconnected">اتصال قطع شده</string>
 	<string name="state_initializing">درحال راه‌اندازی کلاینت…</string>
 	<string name="state_establishing">در حال برقراری اتصال…</string>
+	<string name="notification_entry">Entry: %1$s</string>
+	<string name="notification_exit">Exit: %1$s</string>
 </resources>

@@ -1,0 +1,5 @@
+What's new:
+- Added In App purchases for Play Store
+- New locales added: BN, EL, VI
+- UI and UX improvements and fixes
+- Connection stability improvements 

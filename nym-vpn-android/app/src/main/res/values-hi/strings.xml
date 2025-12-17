@@ -7,7 +7,7 @@
 	<string name="connecting">कनेक्ट हो रहा है</string>
 	<string name="five_hop_mixnet">अनाम  (mixnet)</string>
 	<string name="five_hop_description">भुगतान, ईमेल और मेसेज के लिए</string>
-	<string name="two_hop_description">ब्राउज़िंग, स्ट्रीमिंग और साझाकरण के लिए</string>
+	<string name="two_hop_description">ब्राउज़िंग, स्ट्रीमिंग और डाउनलोड के लिए</string>
 	<string name="connect">कनेक्ट</string>
 	<string name="disconnect">डिस्कनेक्ट करें</string>
 	<string name="init_client">क्लाइंट प्रारंभ हो रहा है…</string>
@@ -25,7 +25,7 @@
 	<string name="is_selected">चयनित</string>
 	<string name="fastest">सबसे तेज़</string>
 	<string name="auto_connect">स्वचालित कनेक्ट</string>
-	<string name="auto_connect_description">रीबूट पर स्वचालित कनेक्ट</string>
+	<string name="auto_connect_description">ऐप खुलने पर कनेक्ट करें</string>
 	<string name="logs">लॉग्स</string>
 	<string name="support">समर्थन</string>
 	<string name="legal">कानूनी</string>
@@ -152,10 +152,13 @@
 	<string name="join_telegram">Telegram पर हमसे जुड़ें</string>
 	<!-- Common -->
 	<string name="button_done">पुर्ण हुआ</string>
+	<string name="button_discard">Discard</string>
+	<string name="button_add">Add</string>
+	<string name="here">यहाँ</string>
+	<!-- Dialogs & info messaged -->
 	<string name="stream_display">स्ट्रीम डिस्प्ले</string>
 	<string name="streaming_server_banner_title">नया: स्ट्रीमिंग के लिए तेज़ सर्वर पाएं (▶️)</string>
-	<string name="streaming_server_banner_action">Check new\nexit servers</string>
-    <string name="here">यहाँ</string>
+	<string name="streaming_server_banner_action">नए एग्जिट सर्वर\nकी जाँच करें</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">एक ही प्रवेश और निकासी नोड से कनेक्ट नहीं कर सकते। कृपया या तो प्रवेश या निकासी नोड स्थान बदलें।</string>
 	<string name="unexpected_error">एक अप्रत्याशित त्रुटि हुई:</string>
@@ -191,20 +194,23 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">एंटी-सेंसरशिप</string>
 	<string name="settings_passphrase_title">पासफ़्रेज़</string>
-	<string name="settings_ipv6_title">Support IPv6</string>
-	<string name="settings_ipv6_description">Allow IPv6 connections</string>
-	<string name="settings_bypass_description">Allow direct local network access</string>
-	<string name="settings_auto_select_title">Auto-select entry server</string>
-	<string name="settings_auto_select_description">Let app choose best entry location</string>
-	<string name="settings_device_startup_title">Launch on device startup</string>
-	<string name="settings_device_startup_description">Let app choose best entry location</string>
-	<string name="settings_system_tray_title">Run in system tray</string>
-	<string name="settings_system_tray_description">Keep app running when closed</string>
-	<string name="settings_reset_app_title">Reset app data</string>
-	<string name="settings_system_status_title">System status</string>
-	<string name="settings_quit_title">Quit NymVPN</string>
-	<string name="settings_app_version_line">App version: %1$s</string>
-	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
+	<string name="settings_dns_title">Customize DNS</string>
+	<string name="settings_ipv6_title">IPv6 सपोर्ट</string>
+	<string name="settings_ipv6_description">IPv6 कनेक्शन की अनुमति दें</string>
+	<string name="settings_bypass_description">डाएरेक्ट लोकल नेट्वर्क ऐक्सेस की अनुमति दें</string>
+	<string name="settings_auto_select_title">ऑटो सलेक्ट एंट्री सर्वर</string>
+	<string name="settings_auto_select_description">ऐप को बेस्ट एंट्री लोकेशन चुनने दें</string>
+	<string name="settings_device_startup_title">डिवाइस स्टार्टप पर लॉंच करें</string>
+	<string name="settings_device_startup_description">ऐप को बेस्ट एंट्री लोकेशन चुनने दें</string>
+	<string name="settings_system_tray_title">सिस्टम ट्रे में चलाएँ</string>
+	<string name="settings_system_tray_description">बंद होने पर भी ऐप चालू रखें</string>
+	<string name="settings_reset_app_title">ऐप डेटा रीसेट करें</string>
+	<string name="settings_system_status_title">सिस्टम स्टेटस</string>
+	<string name="settings_quit_title">NymVPN को बंद करें</string>
+	<string name="settings_app_version_line">ऐप वर्ज़न: %1$s</string>
+	<string name="settings_daemon_version_line">डेमॉन वर्ज़न: %1$s</string>
+	<string name="settings_language_help_title">अनुवाद में सहायता करें</string>
+	<string name="settings_language_help_description">अपनी भाषा में ऐप को बहतर बनाएँ।</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">सबसे अच्छे कनेक्शन के लिए</string>
 	<string name="battery_opt_descr">अधिक स्थिर VPN कनेक्शनों के लिए NymVPN बैटरी अनुकूलन अक्षम करें।</string>
@@ -296,10 +302,11 @@
 	<string name="quick_info_modal_desc_non_quic">यह आपको बिना QUIC प्रोटोकॉल के दोबारा कनेक्ट करेगा। आपके मौजूदा गेटवे वैसे ही रहेंगे।\n\nरीकनेक्शन के दौरान आपका डेटा सुरक्षित रहेगा।</string>
 	<string name="quic_primary_btn_text_non_quic">अभी बिना QUIC के दोबारा कनेक्ट करें</string>
 	<string name="quic_text_btn_text_non_quic">अगले कनेक्शन पर QUIC बंद करें</string>
-	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>
-	<string name="censorship_amnezia_link_text">How AmneziaWG prevents DPI</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
+	<string name="censorship_amnezia_title">मिनिमल ऑब्फ़स्केशन (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">WireGuard ट्रैफ़िक का पता लगाना कठिन बनाता है। डीप पैकेट इंस्पेक्शन (DPI) सेंसरशिप सिस्टम द्वारा अक्सर इस्तेमाल किए जाने वाले सरल नियमों को बाधित करने वाले डिकॉय पैकेट पेश करता है, जिससे प्रतिबंधात्मक वातावरण में कनेक्शन की विश्वसनीयता बेहतर होती है। \n\nनोट: केवल क्लाइंट-साइड पर इम्पलिमेंट किया जाता है।</string>
+	<string name="censorship_amnezia_link_text">AmneziaWG DPI को कैसे रोकता है</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-NymVPN-Wireguard-को-कैसे-उपयोग-करता-है</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">गुमनाम mixnet प्रौद्योगिकी</string>
 	<string name="account_welcome_countries">50+ देश दुनिया भर में</string>
@@ -307,6 +314,7 @@
 	<string name="account_welcome_open_source">ओपन सोर्स और स्विस गोपनीयता कानून</string>
 	<string name="account_welcome_button">मेरी गोपनीयता की रक्षा शुरू करें</string>
 	<string name="account_welcome_have_account">क्या आपके पास पहले से एक खाता है?</string>
+	<string name="account_welcome_free_trial">7 दिन का निःशुल्क परीक्षण - कोई भुगतान आवश्यक नहीं</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">आप पहले से ही सब्सक्राइब हैं!</string>
 	<string name="account_subscription_description">हमें आपके Google Play अकाउंट से जुड़ी एक सक्रिय सब्सक्रिप्शन मिली है। साइनअप छोड़ें और सीधे NymVPN इस्तेमाल करना शुरू करें। बस अपना 24 शब्दों वाला पासफ़्रेज़ तैयार रखें।</string>
@@ -320,7 +328,7 @@
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है...</string>
 	<string name="account_payment_verifying">हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते</string>
-	<string name="account_payment_retrieving">आपके गुमनाम खाते की प्रमाणीकरण
+	<string name="account_payment_retrieving">आपके गुमनाम खाते की प्रमाणीकरण 
 जानकारी (zk-nyms) प्राप्त की जा रही है...</string>
 	<string name="account_payment_credentials">ये zero-knowledge क्रेडेंशियल इस बात को साबित करते हैं कि आपके पास पहुँच है बिना यह बताये कि आप कौन हैं</string>
 	<string name="account_payment_saving">डिवाइस पर आपके zk-nyms सहेजे जा रहे हैं...</string>
@@ -331,12 +339,12 @@
 	<!-- Passphrase screen -->
 	<string name="passphrase_title">आपके खाते का पासफ़्रेज़</string>
 	<string name="passphrase_description">🔒आपका मास्टर खाता पासफ्रेज़: 24 शब्द जो आपको किसी भी डिवाइस से आपका खाता एक्सेस करने की अनुमति देते हैं।</string>
-	<string name="passphrase_description_first">🔒Your master account passphrase:</string>
-	<string name="passphrase_description_last">24 words that let you access your account from any device.</string>
+	<string name="passphrase_description_first">आपका मास्टर अकाउंट पास्फ़्रेज़:</string>
+	<string name="passphrase_description_last">24 शब्द जो आपको किसी भी डिवाइस से अपने अकाउंट तक पहुंचने देते हैं</string>
 	<string name="passphrase_show">मेरा पासफ़्रेज़ दिखाएं</string>
 	<string name="passphrase_copy">पासफ़्रेज़ कॉपी करें</string>
 	<string name="passphrase_save">पासवर्ड मैनेजर में सेव करें</string>
-	<string name="passphrase_download">Download</string>
+	<string name="passphrase_download">डाउनलोड</string>
 	<string name="passphrase_lose">⚠️ यदि ये शब्द खो दिए तो = आपका खाता हमेशा के लिए खो जाएगा।</string>
 	<string name="passphrase_never">इन्हें किसी के साथ भी साझा न करें, जिसमें Nym सपोर्ट भी शामिल है।</string>
 	<string name="passphrase_saved">मैंने इन 24 शब्दों को सुरक्षित रूप से सहेजा है और कभी भी इन्हें साझा नहीं करूंगा</string>
@@ -351,16 +359,16 @@
 	<string name="passphrase_info_keeps_anonymous">Is anonymous by design</string>
 	<string name="passphrase_info_belongs">केवल आपके लिए है (स्वयं-रक्षा)</string>
 	<!-- Account screen -->
-	<string name="account_title">Account and devices</string>
+	<string name="account_title">अकाउंट और डिवाइसेज़</string>
 	<string name="account_info_plan">प्लान</string>
 	<string name="account_info_payments">भुगतान</string>
 	<string name="account_info_devices">डिवाइस</string>
 	<string name="account_info_id_title">खाता पहचान</string>
 	<string name="account_info_id_description">सहायता के अनुरोधों के लिए इस आईडी का उपयोग करें</string>
 	<string name="account_info_id_important">⚠️ महत्वपूर्ण: Nym सपोर्ट कभी भी आपकी 24-शब्दों की पासफ़्रेज़ नहीं मांगेगा। इसे किसी के साथ साझा न करें।</string>
-	<string name="account_on_nym">Account on nym.com</string>
-	<string name="account_device_id_title">Device ID</string>
-	<string name="account_id_title">Account ID</string>
+	<string name="account_on_nym">Nym.com पर अकाउंट</string>
+	<string name="account_device_id_title">डिवाइस ID</string>
+	<string name="account_id_title">अकाउंट ID</string>
 	<!-- Logs screen -->
 	<string name="logs_share">साझा करें</string>
 	<string name="logs_download">डाउनलोड</string>
@@ -376,25 +384,43 @@
 	<string name="logs_download_button">फिर भी फ़ाइल के रूप में सहेजें</string>
 	<string name="logs_saved">लॉग्स Downloads फोल्डर में सहेजे गए</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Split tunneling</string>
-	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
-	<string name="split_tunneling_info_desc">Changes will apply after reconnect</string>
-	<string name="split_tunneling_search_apps_hint">Search apps</string>
-	<string name="split_tunneling_apps">Apps</string>
-	<string name="split_tunneling_direct">Direct</string>
-	<string name="split_tunneling_direct_desc">Bypass NymVPN</string>
-	<string name="split_tunneling_via_vpn">Via NymVPN</string>
-	<string name="split_tunneling_via_desc">Protected when connected</string>
+	<string name="split_tunneling">स्प्लिट टन्नलिंग</string>
+	<string name="split_tunneling_info_msg">प्रत्येक ऐप को NymVPN का उपयोग करने या सीधे कनेक्ट करने के लिए सेट करें।</string>
+	<string name="split_tunneling_info_desc">पुनः कनेक्ट होने के बाद परिवर्तन लागू होंगे</string>
+	<string name="split_tunneling_search_apps_hint">ऐप्स खोजें</string>
+	<string name="split_tunneling_apps">ऐप्स</string>
+	<string name="split_tunneling_direct">डाइरेक्ट</string>
+	<string name="split_tunneling_direct_desc">बाईपास NymVPN</string>
+	<string name="split_tunneling_via_vpn">NymVPN के माध्यम से</string>
+	<string name="split_tunneling_via_desc">कनेक्ट होने पर संरक्षित</string>
 	<string name="split_tunneling_nym_vpn">NymVPN</string>
-	<string name="split_tunneling_system_applications">System applications</string>
-	<string name="split_tunnel_info_modal_title">Using split tunneling</string>
-	<string name="split_tunnel_info_modal_desc">Split tunneling lets you optimize each app for either maximum speed or maximum privacy. You can easily change these settings anytime.</string>
-	<string name="split_tunnel_info_direct_desc">For services like banking, smart home devices, or work applications.</string>
-	<string name="split_tunnel_info_via_vpn_desc">Recommended setting. Will use the then-current mode (Fast or Anonymous), based on your needs.</string>
-	<string name="split_tunnel_changes_confirm_modal_title">Apply split tunneling settings?</string>
-	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.</string>
-	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Reconnect now</string>
-	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
-	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
-	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
+	<string name="split_tunneling_system_applications">सिस्टम एप्लिकेशन्स</string>
+	<string name="split_tunnel_info_modal_title">स्प्लिट टनलिंग का उपयोग</string>
+	<string name="split_tunnel_info_modal_desc">स्प्लिट टनलिंग आपको प्रत्येक ऐप को अधिकतम गति या अधिकतम प्राइवसी के लिए अनुकूलित करने की सुविधा देती है। आप इन सेटिंग्स को आसानी से कभी भी बदल सकते हैं</string>
+	<string name="split_tunnel_info_direct_desc">बैंकिंग, स्मार्ट होम डिवाइस या वर्क एप्लिकेशन्स जैसी सेवाओं के लिए।</string>
+	<string name="split_tunnel_info_via_vpn_desc">रिकमंडेड सेटिंग्स।आपकी ज़रूरतों के आधार पर, उस समय के मौजूदा मोड (तेज़ या अनोनिमस) का इस्तेमाल किया जाएगा।</string>
+	<string name="split_tunnel_changes_confirm_modal_title">स्प्लिट टन्नेलिंग सेटिंग्स को लागू करें?</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">स्प्लिट टनलिंग अपडेट की गई। बदलाव लागू करने के लिए दोबारा कनेक्ट करें। \n\nपुनः कनेक्शन के दौरान आपका डेटा सुरक्षित रहता है।</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">अभी पुनः कनेक्ट करें</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">अगले कनेक्शन पर आवेदन करें</string>
+	<string name="split_tunneling_per_app_security_banner_title">नया: चुनें प्रति ऐप सुरक्षा या सीधा कनेक्शन स्पीड के लिए</string>
+	<string name="split_tunneling_per_app_security_banner_action">कन्फ़िग्यर\nऐप्स</string>
+	<!-- DNS customization screen -->
+	<string name="dns_title">DNS customization</string>
+	<string name="dns_description">By default, using Nym\'s recommended DNS servers. Configure custom servers below if needed.</string>
+	<string name="dns_view_list">View default DNS</string>
+	<string name="dns_hide_list">Hide default DNS</string>
+	<string name="dns_list_title">Nym\'s default DNS:</string>
+	<string name="dns_custom_title">Use custom DNS servers</string>
+	<string name="dns_custom_description">Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity. </string>
+	<string name="dns_custom_list_title">Enter DNS server</string>
+	<string name="dns_custom_list_entries">Custom DNS servers (%1$s/5)</string>
+	<string name="dns_custom_list_hint">IPv4 or IPv6 address</string>
+	<string name="dns_custom_list_error">Invalid DNS address format</string>
+	<string name="dns_custom_button_add">Add</string>
+	<string name="dns_custom_button_save">Save changes</string>
+	<string name="dns_custom_saved">Custom DNS saved.</string>
+	<string name="dns_save_dialog_title">Save changes?</string>
+	<string name="dns_save_dialog_description">You have unsaved changes.</string>
+	<string name="dns_learn_more_text">Learn more about DNS</string>
 </resources>
