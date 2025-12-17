@@ -1,9 +1,9 @@
 {
   "title": "Willkommen bei NymVPN",
-  "description": "Helfen Sie NymVPN, technische Probleme zu identifizieren und zu beheben! Erwägen Sie, sich für die Fehlerüberwachung (über <sentryLink /> ) zu entscheiden und die Netzwerkstatistiken aktiv zu halten. Es ist immer anonym, Sie können sich jederzeit abmelden und Ihre Aktivitäten können niemals preisgegeben werden. Danke für eure Unterstützung!",
+  "description": "Hilf NymVPN dabei, technische Probleme zu erkennen und zu beheben! Erwäge das Einschalten von Fehler & Absturzberichten (via <sentryLink />) und das Aktivieren von Netzwerkstatistiken. Dies ist stets anonym, du kannst es jederzeit deaktivieren, und deine Aktivitäten können niemals offengelegt werden. Vielen Dank für deine Unterstützung!",
   "anon-toggle-desc": "Gilt beim Neustart der App",
-  "tos-notice": "Indem du fortfährst, stimmst du NymVPN's <tosLink /> zu und bestätigst NymVPN's <privacyLink />.",
+  "tos-notice": "Indem du fortfährst, akzeptierst du NymVPNs <tosLink /> und bestätigst NymVPNs <privacyLink />.",
   "continue-button": "Fortfahren",
-  "error-monitoring-label": "Anonymisierte Fehlerprotokolle",
+  "error-monitoring-label": "Anonymisierte Fehlerberichte",
   "network-statistic": "Anonyme Netzwerkstatistiken"
 }

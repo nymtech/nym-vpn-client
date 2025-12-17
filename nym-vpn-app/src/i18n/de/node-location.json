@@ -1,22 +1,26 @@
 {
   "loading": "Laden...",
-  "none-found": "Kein Ergebnis gefunden. Bitte erneut versuchen",
+  "none-found": "Keine Ergebnisse gefunden. Bitte versuche eine andere Suche",
   "list-loading": "Die Standortliste wird geladen…",
   "selected": "Ausgewählt",
   "search-country": "Standortsuche",
   "input-label": "Suche",
-  "quic-filter-note": "Nur die Anzeige von schnellen Standorten und Servern, die das QUIC-Protokoll unterstützen. Um alle Server freizugeben, schalten Sie QUIC <here /> aus.",
+  "quic-filter-note": "Es werden nur Fast Mode-Standorte und Server angezeigt, die das QUIC-Protokoll unterstützen. Um alle Server anzuzeigen, schalte QUIC <here /> aus.",
   "location-details": {
     "streaming": {
-      "title": "Stream",
-      "description": "<0>Wohn-IP-Servern</0> optimiert für Streaming- und Content-Zugriff. Kann aufgrund höherer Nachfrage und Hardware-Einschränkungen langsamere Geschwindigkeiten aufweisen."
+      "title": "Streaming",
+      "description": "<0>Server Wohnungs-IP</0>, die für Streaming- und Content-Zugriff optimiert sind. Aufgrund höherer Nachfrage und Hardwarebeschränkungen kann es zu langsameren Geschwindigkeiten kommen."
     },
     "location": {
       "title": "Standortgenauigkeit",
-      "description": "Angezeigte Standorte werden <1>von IP-Adressen ermittelt</1> und können nicht exakte physische Standorte wiedergeben."
+      "description": "Die angezeigten Standorte werden <1>aus den IP-Adressen</1> ermittelt und spiegeln möglicherweise nicht die genauen physischen Standorte wider."
     },
-    "entry-title": "Standorte des Eintrags auswählen",
-    "exit-title": "Ausstiegsorte werden ausgewählt"
+    "quic": {
+      "title": "QUIC-Protokoll",
+      "description": "Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken, indem <1>der WireGuard-Datenverkehr in QUIC</1> (HTTP/3) eingehüllt wird, damit er wie normales Web-Browsing aussieht."
+    },
+    "entry-title": "Auswahl der Eintrittsserver",
+    "exit-title": "Auswahl der Austrittsregion"
   },
   "location-not-available": {
     "entry": "Ausgewählte Eintrittsregion nicht verfügbar, gewechselt zu {{location}}",
@@ -26,19 +30,19 @@
     "id-label": "Identitätsschlüssel:",
     "data": {
       "advanced-privacy": "Erweiterte Privatsphäre",
-      "with-mixnet": "Mit Mix (5-Hop)",
+      "with-mixnet": "Mit Mixnet (5-Hop)",
       "ip-type": "Streaming & Inhalte",
-      "ip-residential": "Wohn-IP",
-      "ip-datacenter": "Datacenter IP",
-      "anti-censorship": "Anti-Zensur",
+      "ip-residential": "Wohnungs-IP",
+      "ip-datacenter": "Rechenzentrum-IP",
+      "anti-censorship": "Zensurumgehung",
       "quic-protocol": "QUIC-Protokoll",
-      "standard-protocol": "Standard protocol",
+      "standard-protocol": "Standard-Protokoll",
       "overall-performance": "Gesamtleistung",
       "server-load": "Serverlast",
       "speed": "Geschwindigkeit",
-      "uptime": "Laufzeit",
-      "exit-ipv4": "IPv4 beenden",
-      "exit-ipv6": "IPv6 beenden",
+      "uptime": "Verfügbarkeit",
+      "exit-ipv4": "Austritt IPv4",
+      "exit-ipv6": "Austritt IPv6",
       "asn": "ASN",
       "asn-name": "ASN Name",
       "build-version": "Nym Build-Version",
@@ -46,7 +50,7 @@
     },
     "perf-score": {
       "high": "Gut",
-      "medium": "Mid",
+      "medium": "Mittel",
       "low": "Niedrig",
       "offline": "Offline"
     },
@@ -57,13 +61,13 @@
       "offline": "Offline"
     },
     "notes": {
-      "anti-censorship": "<0>Aktivieren Sie \"QUIC-Protocol\"</0> in den Anti-Zensur-Einstellungen, um diese Funktion zu verwenden",
-      "performance_with_time": "Leistungspunkte berechnet aus Serverauslastung und Uptime. Laufzeit wie zuletzt 24 Stunden Durchschnitt. Letztes Update {{relativeTime}}.",
-      "performance": "Leistungspunkte berechnet aus Serverauslastung und Uptime. Laufzeit als 24-Stunden Durchschnitt."
+      "anti-censorship": "<0>Aktiviere das „QUIC-Protokoll“</0> in den Zensurumgehungs-Einstellungen, um diese Funktion zu nutzen",
+      "performance_with_time": "Die Gesamtleistung basiert auf Serverlast und Verfügbarkeit. Die Verfügbarkeit wurde als Durchschnitt der letzten 24 Stunden berechnet. Letzte Aktualisierung: {{relativeTime}}.",
+      "performance": "Die Gesamtleistung basiert auf Serverlast und Verfügbarkeit. Die Verfügbarkeit wurde als Durchschnitt der letzten 24 Stunden berechnet."
     },
     "links": {
       "missing-info": "Warum fehlende oder falsche Informationen vorhanden sind",
-      "explorer": "Mehr Details in der Nym <networkExplorerLink />"
+      "explorer": "Mehr Details im <networkExplorerLink />"
     },
     "select-button": "Server auswählen"
   },

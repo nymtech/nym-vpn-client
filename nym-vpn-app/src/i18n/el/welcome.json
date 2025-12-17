@@ -1,9 +1,9 @@
 {
-  "title": "Welcome to NymVPN",
-  "description": "Help NymVPN identify and fix technical issues! Consider opting-in for error monitoring (via <sentryLink />) and keeping network stats on. It's always anonymous, opt out anytime, and your activities can never be revealed. Thanks for your support!",
-  "anon-toggle-desc": "Applies on app restart",
-  "tos-notice": "By continuing, you agree to NymVPN's <tosLink /> and acknowledge NymVPN's <privacyLink />.",
-  "continue-button": "Continue",
-  "error-monitoring-label": "Anonymous error reports",
-  "network-statistic": "Anonymous network stats"
+  "title": "Καλώς ορίσατε στο NymVPN",
+  "description": "Βοηθήστε το NymVPN να εντοπίζει και να διορθώνει τεχνικά προβλήματα! Σκεφτείτε να ενεργοποιήσετε την παρακολούθηση σφαλμάτων (μέσω <sentryLink />) και να κρατήσετε τα στατιστικά δικτύου ενεργά. Όλα παραμένουν πλήρως ανώνυμα, μπορείτε να απενεργοποιήσετε τη λειτουργία οποιαδήποτε στιγμή, και οι δραστηριότητές σας δεν αποκαλύπτονται ποτέ. Σας ευχαριστούμε για την υποστήριξή σας!",
+  "anon-toggle-desc": "Θα ενεργοποιηθεί με την επανεκκίνηση της εφαρμογής",
+  "tos-notice": "Συνεχίζοντας, αποδέχεστε τους <tosLink /> του NymVPN και αναγνωρίζετε την <privacyLink /> του NymVPN.",
+  "continue-button": "Συνέχεια",
+  "error-monitoring-label": "Ανώνυμες αναφορές σφαλμάτων",
+  "network-statistic": "Ανώνυμα στατιστικά δικτύου"
 }

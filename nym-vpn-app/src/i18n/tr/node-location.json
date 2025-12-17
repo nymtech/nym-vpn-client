@@ -15,8 +15,12 @@
       "title": "Location accuracy",
       "description": "örüntülenen konumla <1>IP adreslerinden belirlenir</1> ve tam fiziksel konumları yansıtmayabilir."
     },
-    "entry-title": "Choosing entry locations",
-    "exit-title": "Choosing exit locations"
+    "quic": {
+      "title": "QUIC protocol",
+      "description": "Improves the Fast mode reliability in restrictive networks by <1>wrapping WireGuard traffic in QUIC</1> (HTTP/3) to appear as regular web browsing."
+    },
+    "entry-title": "Giriş sunucuları seçiliyor",
+    "exit-title": "Çıkış konumları seçiliyor"
   },
   "location-not-available": {
     "entry": "Seçilen giriş konumu kullanılamıyor, {{location}} konumuna geçildi",
