@@ -519,7 +519,10 @@ impl LazySocks5 {
         // Ensure parent directory exists (permissions will be checked when we try to write)
         if let Some(parent) = socks5_data_path.parent() {
             tokio::fs::create_dir_all(parent).await.map_err(|e| {
-                error!("Failed to create parent directory {}: {e}", parent.display());
+                error!(
+                    "Failed to create parent directory {}: {e}",
+                    parent.display()
+                );
                 LazySocks5Error::Internal(format!(
                     "Failed to create parent directory {}: {e}. Check directory permissions.",
                     parent.display()
