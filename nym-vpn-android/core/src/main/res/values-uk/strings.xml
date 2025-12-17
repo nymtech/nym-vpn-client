@@ -8,4 +8,6 @@
 	<string name="state_disconnected">Від\'єднано</string>
 	<string name="state_initializing">Ініціалізація клієнта…</string>
 	<string name="state_establishing">Встановлення з\'єднання…</string>
+	<string name="notification_entry">Вхід: %1$s</string>
+	<string name="notification_exit">Вихід: %1$s</string>
 </resources>

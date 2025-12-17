@@ -8,4 +8,6 @@
 	<string name="state_disconnected">Đã ngắt kết nối</string>
 	<string name="state_initializing">Đang khởi tạo máy khách…</string>
 	<string name="state_establishing">Đang thiết lập kết nối…</string>
+	<string name="notification_entry">Vào: %1$s</string>
+	<string name="notification_exit">Thoát: %1$s</string>
 </resources>

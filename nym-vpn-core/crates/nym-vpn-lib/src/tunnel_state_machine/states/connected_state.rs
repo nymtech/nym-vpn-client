@@ -47,12 +47,12 @@ impl ConnectedState {
         selected_gateways: SelectedGateways,
         tunnel_monitor_handle: TunnelMonitorHandle,
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
-        shared_state: &mut SharedState,
+        _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
-                if shared_state.tunnel_settings.bridges_enabled() {
+                if _shared_state.tunnel_settings.bridges_enabled() {
                     // this will be `Some` if we get to the connected state with bridges enabled.
                     wg.entry_bridge_addr.as_ref().map(|addr| addr.remote_addr)
                 } else {
@@ -63,13 +63,22 @@ impl ConnectedState {
             };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let firewall_policy_params = ConnectedPolicyParameters {
-            enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
-            allow_lan: shared_state.tunnel_settings.allow_lan,
-            wg_entry_endpoint,
-            ws_entry_endpoints: selected_gateways.entry_gateway().endpoints(),
-            dns_config: shared_state.tunnel_settings.resolved_dns_config(),
-            tunnel_interface: tunnel_interface.clone(),
+        let firewall_policy_params = {
+            // Include entry gateway WebSocket endpoints
+            let mut ws_endpoints = selected_gateways.entry_gateway().endpoints();
+            // Also include exit gateway WebSocket endpoints for SOCKS5 support in 2-hop mode.
+            // These endpoints are whitelisted in firewall rules (peer_endpoints), allowing SOCKS5
+            // to establish direct connections to the exit gateway
+            ws_endpoints.extend(selected_gateways.exit_gateway().endpoints());
+
+            ConnectedPolicyParameters {
+                enable_ipv6: _shared_state.tunnel_settings.enable_ipv6,
+                allow_lan: _shared_state.tunnel_settings.allow_lan,
+                wg_entry_endpoint,
+                ws_entry_endpoints: ws_endpoints,
+                dns_config: _shared_state.tunnel_settings.resolved_dns_config(),
+                tunnel_interface: tunnel_interface.clone(),
+            }
         };
 
         let connected_state = Self {
@@ -83,31 +92,28 @@ impl ConnectedState {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         if let Err(e) =
-            Self::set_firewall_policy(shared_state, &connected_state.firewall_policy_params)
+            Self::set_firewall_policy(_shared_state, &connected_state.firewall_policy_params)
         {
             trace_err_chain!(e, "failed to apply firewall policy");
             return DisconnectingState::enter(
                 PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
                 connected_state.tunnel_monitor_handle,
-                shared_state,
+                _shared_state,
             )
             .await;
-        } else if let Err(e) = connected_state.set_dns(shared_state).await {
+        } else if let Err(e) = connected_state.set_dns(_shared_state).await {
             trace_err_chain!(e, "failed to set dns");
             return DisconnectingState::enter(
                 PrivateActionAfterDisconnect::Error(ErrorStateReason::SetDns),
                 connected_state.tunnel_monitor_handle,
-                shared_state,
+                _shared_state,
             )
             .await;
         }
 
         // Reset DNS resolver overrides since connections can be established over the tunnel
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        shared_state.reset_resolver_overrides().await;
-
-        // We can use slower network fetches now
-        shared_state.topology_provider.use_network(true).await;
+        _shared_state.reset_resolver_overrides().await;
 
         (
             Box::new(connected_state),
@@ -376,5 +382,118 @@ impl ConnectedPolicyParameters {
             #[cfg(target_os = "macos")]
             redirect_interface: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nym_firewall::TransportProtocol;
+    use std::net::{IpAddr, Ipv4Addr};
+
+    fn create_mock_gateway_with_websocket_endpoints(
+        ip: Ipv4Addr,
+        ws_port: u16,
+        wss_port: u16,
+    ) -> nym_gateway_directory::Gateway {
+        use nym_gateway_directory::Gateway;
+        use nym_sdk::mixnet::NodeIdentity;
+
+        // Create a dummy identity for testing
+        let dummy_identity =
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .expect("Valid test identity");
+
+        Gateway::builder()
+            .identity(dummy_identity)
+            .ips(vec![IpAddr::V4(ip)])
+            .clients_ws_port(Some(ws_port))
+            .clients_wss_port(Some(wss_port))
+            .build()
+    }
+
+    #[test]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    fn test_firewall_policy_includes_exit_gateway_endpoints() {
+        // Create mock entry gateway with WebSocket on port 9000 (WS) and 9001 (WSS)
+        let entry_gateway =
+            create_mock_gateway_with_websocket_endpoints(Ipv4Addr::new(192, 168, 1, 1), 9000, 9001);
+        let entry_endpoints = entry_gateway.endpoints();
+
+        // Create mock exit gateway with WebSocket on port 9000 (WS) and 9001 (WSS)
+        let exit_gateway =
+            create_mock_gateway_with_websocket_endpoints(Ipv4Addr::new(192, 168, 1, 2), 9000, 9001);
+        let exit_endpoints = exit_gateway.endpoints();
+
+        // Create ConnectedPolicyParameters (simulating what happens in enter())
+        // We'll directly test with the endpoints without needing SelectedGateways
+        let mut ws_endpoints = entry_endpoints.clone();
+        ws_endpoints.extend(exit_endpoints.clone());
+
+        // Create a minimal TunnelInterface for testing
+        use crate::tunnel_state_machine::TunnelMetadata;
+        use ipnetwork::IpNetwork;
+        let tunnel_metadata = TunnelMetadata {
+            interface: "test0".to_string(),
+            ips: vec![
+                IpNetwork::new(Ipv4Addr::new(10, 0, 0, 1).into(), 24)
+                    .unwrap()
+                    .network(),
+            ],
+            ipv4_gateway: Some(Ipv4Addr::new(10, 0, 0, 1)),
+            ipv6_gateway: None,
+        };
+        let tunnel_interface = TunnelInterface::One(tunnel_metadata);
+
+        // Create ResolvedDnsConfig using DnsConfig::default().resolve()
+        use nym_dns::DnsConfig;
+        let dns_config = DnsConfig::default().resolve(
+            &[IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1))],
+            #[cfg(target_os = "macos")]
+            53,
+        );
+
+        let params = ConnectedPolicyParameters {
+            enable_ipv6: false,
+            allow_lan: false,
+            wg_entry_endpoint: None,
+            ws_entry_endpoints: ws_endpoints,
+            dns_config,
+            tunnel_interface,
+        };
+
+        // Build firewall policy
+        let policy = params.as_policy();
+
+        // Extract peer endpoints
+        let peer_endpoints = policy.peer_endpoints();
+
+        // Verify entry gateway endpoints are included
+        assert!(
+            entry_endpoints.iter().any(|entry_ep| {
+                peer_endpoints.iter().any(|allowed_ep| {
+                    allowed_ep.endpoint.address == *entry_ep
+                        && allowed_ep.endpoint.protocol == TransportProtocol::Tcp
+                })
+            }),
+            "Entry gateway endpoints should be in peer_endpoints"
+        );
+
+        // Verify exit gateway endpoints are included
+        assert!(
+            exit_endpoints.iter().any(|exit_ep| {
+                peer_endpoints.iter().any(|allowed_ep| {
+                    allowed_ep.endpoint.address == *exit_ep
+                        && allowed_ep.endpoint.protocol == TransportProtocol::Tcp
+                })
+            }),
+            "Exit gateway endpoints should be in peer_endpoints for SOCKS5 support"
+        );
+
+        // Verify we have endpoints from both gateways
+        assert!(
+            peer_endpoints.len() >= entry_endpoints.len() + exit_endpoints.len(),
+            "peer_endpoints should contain endpoints from both entry and exit gateways"
+        );
     }
 }

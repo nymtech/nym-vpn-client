@@ -573,20 +573,33 @@ impl LazySocks5 {
         );
 
         // Build the mixnet client with shared credentials but different identity
-        let mixnet_client: nym_sdk::mixnet::DisconnectedMixnetClient<
-            nym_sdk::mixnet::OnDiskPersistent,
-        > = MixnetClientBuilder::new_with_default_storage(socks5_storage_paths)
+        // When dVPN is connected (WireGuard mode), use entry gateway to ensure firewall compatibility.
+        // The firewall rules include the entry gateway endpoints, so using the same gateway
+        // prevents connection failures.
+        let tunnel_state = self.tunnel_state_shared.read().await.clone();
+        let mut builder = MixnetClientBuilder::new_with_default_storage(socks5_storage_paths)
             .await
             .map_err(|e| {
                 error!("Failed to create mixnet client builder: {}", e);
                 LazySocks5Error::Internal(e.to_string())
-            })?
-            .socks5_config(socks5_config)
-            .build()
-            .map_err(|e| {
-                error!("Failed to build mixnet client: {}", e);
-                LazySocks5Error::Internal(e.to_string())
             })?;
+
+        // Configure entry gateway if VPN is connected
+        if let TunnelState::Connected { connection_data } = tunnel_state {
+            let entry_gateway_id = &connection_data.entry_gateway.id;
+            info!(
+                "VPN is connected to entry gateway {}, configuring mixnet client to use same gateway for firewall compatibility",
+                entry_gateway_id
+            );
+            builder = builder.request_gateway(entry_gateway_id.clone());
+        }
+
+        let mixnet_client: nym_sdk::mixnet::DisconnectedMixnetClient<
+            nym_sdk::mixnet::OnDiskPersistent,
+        > = builder.socks5_config(socks5_config).build().map_err(|e| {
+            error!("Failed to build mixnet client: {}", e);
+            LazySocks5Error::Internal(e.to_string())
+        })?;
 
         // Connect to the mixnet via SOCKS5
         info!("Connecting to mixnet via SOCKS5...");
@@ -756,39 +769,81 @@ impl LazySocks5 {
         }
     }
 
-    /// Monitor tunnel state and shut down mixnet backend when dVPN is available
+    /// Monitor tunnel state and manage mixnet backend lifecycle
     async fn monitor_tunnel_state(&self) {
-        let mut last_dvpn_available = false;
+        let mut last_vpn_state: Option<TunnelState> = None;
+        let mut interval = tokio::time::interval(Duration::from_secs(2));
+        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
         loop {
-            // Wait a bit before checking
-            sleep(Duration::from_secs(2)).await;
+            interval.tick().await;
 
-            // Check if dVPN is currently available
-            let dvpn_available = {
-                let tunnel_state = self.tunnel_state_shared.read().await;
-                matches!(
-                    *tunnel_state,
-                    TunnelState::Connected { ref connection_data }
-                    if matches!(connection_data.tunnel, TunnelConnectionData::Mixnet(_))
-                )
-            };
+            let current_state = self.tunnel_state_shared.read().await.clone();
+
+            // Check if dVPN is currently available (Mixnet mode)
+            let dvpn_available = matches!(
+                current_state,
+                TunnelState::Connected { ref connection_data }
+                if matches!(connection_data.tunnel, TunnelConnectionData::Mixnet(_))
+            );
+
+            // Check if VPN is connected in WireGuard mode
+            let vpn_connected_wireguard = matches!(
+                current_state,
+                TunnelState::Connected { ref connection_data }
+                if matches!(connection_data.tunnel, TunnelConnectionData::Wireguard(_))
+            );
 
             // React to state transitions
+            let last_dvpn_available = last_vpn_state
+                .as_ref()
+                .map(|s| {
+                    matches!(
+                        s,
+                        TunnelState::Connected { connection_data }
+                        if matches!(connection_data.tunnel, TunnelConnectionData::Mixnet(_))
+                    )
+                })
+                .unwrap_or(false);
+
+            let last_vpn_connected_wireguard = last_vpn_state
+                .as_ref()
+                .map(|s| {
+                    matches!(
+                        s,
+                        TunnelState::Connected { connection_data }
+                        if matches!(connection_data.tunnel, TunnelConnectionData::Wireguard(_))
+                    )
+                })
+                .unwrap_or(false);
+
             if dvpn_available && !last_dvpn_available {
-                // dVPN just became available - shut down mixnet backend
+                // dVPN just became available (Mixnet mode) - shut down mixnet backend
                 info!(
-                    "dVPN tunnel is now available, shutting down mixnet SOCKS5 backend to save bandwidth"
+                    "dVPN tunnel is now available (Mixnet mode), shutting down mixnet SOCKS5 backend to save bandwidth"
                 );
                 self.shutdown_backend().await;
-            } else if !dvpn_available && last_dvpn_available {
-                // dVPN just became unavailable
+            } else if vpn_connected_wireguard && !last_vpn_connected_wireguard {
+                // VPN just connected in WireGuard mode - if mixnet client is running, shut it down
+                // so it will be recreated with VPN's entry gateway on next connection
+                let is_running = self.is_mixnet_running().await;
+                if is_running {
+                    info!(
+                        "VPN connected in WireGuard mode while mixnet client is running, shutting down mixnet client to ensure it uses VPN's entry gateway (firewall compatibility)"
+                    );
+                    self.shutdown_backend().await;
+                }
+            } else if !dvpn_available
+                && !vpn_connected_wireguard
+                && (last_dvpn_available || last_vpn_connected_wireguard)
+            {
+                // VPN just disconnected
                 info!(
-                    "dVPN tunnel is no longer available, mixnet SOCKS5 backend will be lazily initialized on next connection"
+                    "VPN disconnected, mixnet SOCKS5 backend will be lazily initialized on next connection"
                 );
             }
 
-            last_dvpn_available = dvpn_available;
+            last_vpn_state = Some(current_state);
 
             // Check for cancellation
             if self.cancel_token.is_cancelled() {

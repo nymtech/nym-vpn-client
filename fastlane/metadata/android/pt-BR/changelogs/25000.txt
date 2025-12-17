@@ -1,0 +1,5 @@
+O que há de novo:
+- Adicionados detalhes do nó às configurações rápidas e uma nova tela de Conta
+- Introduzido o túnel dividido bi-modo no Android
+- Configurações atualizadas, Privacidade, Censorship e interface de navegação
+- Melhoria na estabilidade e manipulação de erros da conexão

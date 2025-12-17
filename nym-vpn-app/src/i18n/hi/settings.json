@@ -7,18 +7,59 @@
     "title": "IPv6 ट्रैफ़िक टनलिंग",
     "desc": "केवल IPv4 का उपयोग करने के लिए अक्षम करें"
   },
+  "allow-lan": {
+    "title": "बाईपास LAN",
+    "desc": "डाएरेक्ट लोकल नेट्वर्क ऐक्सेस की अनुमति दें"
+  },
   "notifications": {
     "title": "डेस्कटॉप सूचनाएँ"
   },
   "monitoring-alert": "परिवर्तन लागू होने के लिए ऐप को फिरसे शुरू करें।",
   "support": {
+    "intro": {
+      "title": "अपने आप को स्कैम से बचाएँ",
+      "description": "केवल नीचे दिए गाए आधिकारिक चैनलों से ही NymVPN सपोर्ट से सम्पर्क करें। हम कभी भी आपका पासफ़्रेज़ नहीं पूछेंगे या डाएरेक्ट मेसिज से आपसे सम्पर्क नहीं करेंगे।\n\nक्या आपको अप्रत्याशित कांटैक्ट मिला है? यह संभवतः एक स्कैम है।"
+    },
     "title": "सहायता",
     "faq": "अक्सर पूछे जाने वाले प्रश्न (FAQ) देखें",
     "contact": "संपर्क करें",
     "telegram": "टेलीग्राम पर चैट करें",
     "github": "GitHub मुद्दा खोलें",
     "matrix": "Matrix पर हमसे जुड़ें",
-    "discord": "Discord पर हमसे जुड़ें"
+    "discord": "Discord पर हमसे जुड़ें",
+    "help": {
+      "title": "अनुवाद में सहायता।",
+      "description": "अपनी भाषा में ऐप को बेहतर बनाएं"
+    }
+  },
+  "dns": {
+    "title": "Customize DNS",
+    "topbar-title": "DNS customization",
+    "top-description": "By default, using Nym's recommended DNS servers. Configure custom servers below if needed.",
+    "view-default-dns": "View default DNS",
+    "hide-default-dns": "Hide default DNS",
+    "details": {
+      "title": "Use custom DNS servers",
+      "description": "Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity.",
+      "list-header": "Custom DNS servers",
+      "add": "Add",
+      "input-label": "DNS address",
+      "input-placeholder": "IPv4 or IPv6 address",
+      "apply": "Save changes",
+      "link": "Learn more about DNS",
+      "applied": "Custom DNS saved."
+    },
+    "error": {
+      "duplicate": "Duplicate DNS address",
+      "invalid": "Invalid DNS address format",
+      "failed": "Failed to apply DNS changes"
+    }
+  },
+  "confirmation-dialog": {
+    "title": "Save changes?",
+    "description": "You have unsaved changes.",
+    "save": "Save changes",
+    "cancel": "Discard"
   },
   "legal": {
     "title": "कानूनी सूचनायें",
@@ -31,7 +72,6 @@
   },
   "logs": {
     "title": "लॉग्स (locally stored)",
-    "desc": "लॉग्स कॉपी करें या मिटाएं",
     "app": "ऐप लॉग",
     "daemon": "डेमन लॉग्स"
   },
@@ -41,17 +81,22 @@
     "quic": {
       "label": "संशोधित कनेक्शन (QUIC)",
       "warning": "पुनः कनेक्ट करने के बाद परिवर्तन लागू होंगे",
-      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
+      "content": "नियमित वेब ब्राउज़िंग के रूप में प्रदर्शित करने के लिए WireGuard ट्रैफ़िक को QUIC (HTTP/3) में लपेटकर रेस्ट्रिक्टिव नेटवर्क में Fast मोड विश्वसनीयता में सुधार करता है।\n\nनोट: एंट्री सर्वर विकल्पों को QUIC-कम्पैटिबल गेटवे तक सीमित रखता है।",
       "link": "QUIC कनेक्शनों को कैसे बेहतर बनाता है"
     },
     "stealth-api": {
       "label": "स्टेल्थ API कनेक्ट",
       "warning": "पुनः कनेक्ट करने के बाद परिवर्तन लागू होंगे",
       "content": "API अनुरोधों को पॉपुलर, अनुमत डोमेन के पीछे छुपाता है ताकि VPN ब्लॉकिंग को बायपास किया जा सके। जब मानक API कनेक्शन प्रयास विफल हो जाते हैं, तो NymVPN इसे स्वचालित रूप से इसका उपयोग करता है।",
-      "link": "How the Stealth API connect mode works"
+      "link": "स्टेल्थ API कनेक्ट मोड कैसे काम करता है"
     },
-    "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
-    "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
+    "amneziawg": {
+      "label": "मिनिमल ऑब्फ़स्केशन(AmneziaWG)",
+      "content": "WireGuard ट्रैफ़िक का पता लगाना कठिन बनाता है। यह डिकॉय पैकेट्स को प्रस्तुत करता है, जो डीप पैकेट इंस्पेक्शन (DPI) सेंसरशिप प्रणालियों द्वारा अक्सर उपयोग किए जाने वाले सरल नियमों को बाधित करते हैं, तथा प्रतिबंधात्मक वातावरण में कनेक्शन की विश्वसनीयता में सुधार करते हैं।",
+      "link": "AmneziaWG DPI को कैसे रोकता है"
+    },
+    "snackbar-switch-on": "जब आप पुनः कनेक्ट करेंगे तो एन्हांस्ड कनेक्शन (QUIC प्रोटोकॉल) सक्रिय हो जाएगा।",
+    "snackbar-switch-off": "जब आप पुनः कनेक्ट करेंगे तो एन्हांस्ड कनेक्शन (QUIC प्रोटोकॉल) निष्क्रिय हो जाएगा।"
   },
   "faq": "अक्सर पूछे जाने वाले प्रश्न",
   "display-theme": "डिस्प्ले मोड",
@@ -77,6 +122,32 @@
     "title": "किल स्विच",
     "desc": "यदि इंटरनेट कट गया है तो डिस्कनेक्ट करें"
   },
+  "app-proxy": {
+    "title": "App & wallet proxy (beta)",
+    "menu-desc": "ऐप ट्रैफ़िक को मिक्सनेट के माध्यम से रूट करें",
+    "label": "ऐप और वॉलेट प्रॉक्सी",
+    "description": "ऐप्स और वॉलेट के लिए मिक्सनेट प्रॉक्सी एनेबल करें",
+    "connect-vpn-first": "प्रॉक्सी एनेबल करने के लिए पहले VPN कनेक्ट करें",
+    "intro": "बहतर प्राइवसी के लिए ऐप और वॉलेट ट्रैफ़िक को Nym Mixnet के माध्यम से रूट करें। यह सुविधा ऐप्स के लिए एक लोकल SOCKS5 प्रॉक्सी और वॉलेट्स के लिए एक HTTP RPC प्रॉक्सी बनाती है।",
+    "status": "स्टेटस",
+    "proxy-url": "प्रॉक्सी URL",
+    "active-connections": "ऐक्टिव कनेक्शन्स",
+    "copied-to-clipboard": "प्रॉक्सी URL क्लिपबोर्ड पर कॉपी किया गया है",
+    "snackbar-enabled": "SOCKS5 प्रॉक्सी एनेबल कर दी गई है",
+    "snackbar-disabled": "SOCKS5 प्रॉक्सी डिसेबल कर दी गई है",
+    "error-gateway-not-supported": "गेटवे SOCKS5 को सपोर्ट नहीं करता है",
+    "error-unknown": "SOCKS5 प्रॉक्सी को टॉगल करने में असफल",
+    "error-vpn-not-connected": "कृपया SOCKS5 प्रॉक्सी एनेबल करने से पहले VPN कनेक्ट करें",
+    "socks5-address-label": "SOCKS5 लिसन ऐड्रेस",
+    "socks5-address-placeholder": "127.0.0.1:1080",
+    "http-rpc-address-label": "HTTP RPC लिसन ऐड्रेस",
+    "http-rpc-address-placeholder": "127.0.0.1:8545",
+    "configuration": "कॉन्फ़िगरेशन",
+    "enabling": "प्रॉक्सी एनेबल की जा रही है...",
+    "disabling": "प्रॉक्सी डिसेबल की जा रही है...",
+    "add-to-browser-proxy-settings": "Nym mixnet के माध्यम से ट्रैफ़िक रूट करने के लिए इस URL को अपने ब्राउज़र की प्रॉक्सी सेटिंग्स में डालें",
+    "use-in-wallet": "Nym मिक्सनेट के ज़रिए RPC कॉल करने के लिए MetaMask या अन्य Web3 वॉलेट में इस URL का इस्तेमाल करें। <your-provider-url> को अपने वास्तविक प्रोवाइडर URL से बदलें।"
+  },
   "privacy": {
     "error-monitoring": {
       "label": "त्रुटि और क्रैश रिपोर्ट्स",
@@ -98,7 +169,7 @@
     "bandwidth-exceeded": "बैंडविड्थ ख़त्म है",
     "max-device-reached": "अधिकतम उपकरणों की सीमा ",
     "status-inactive": "खाता निष्क्रिय है",
-    "requesting-zknyms": "Requesting ZkNyms",
+    "requesting-zknyms": "ZkNyms का अनुरोध कर रहे हैं",
     "error": "अंदरूनी त्रुटि"
   }
 }

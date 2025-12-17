@@ -15,8 +15,12 @@
       "title": "Vị trí chính xác",
       "description": "Các vị trí được hiển thị <1>xác định từ địa chỉ IP</1> và có thể không phản ánh chính xác vị trí vật lý."
     },
-    "entry-title": "Choosing entry locations",
-    "exit-title": "Choosing exit locations"
+    "quic": {
+      "title": "Giao thức QUIC",
+      "description": "Cải thiện độ tin cậy của chế độ Nhanh trong các mạng bị hạn chế bằng cách <1>đóng gói lưu lượng WireGuard trong QUIC</1> (HTTP/3) để trông giống như duyệt web thông thường."
+    },
+    "entry-title": "Đang chọn máy chủ vào",
+    "exit-title": "Chọn vị trí thoát"
   },
   "location-not-available": {
     "entry": "Vị trí vào đã chọn không khả dụng, đã chuyển sang {{location}}",

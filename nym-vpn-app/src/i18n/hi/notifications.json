@@ -13,6 +13,6 @@
   "copied-to-clipboard": "क्लिपबोर्ड में कॉपी किया गया",
   "daemon-no-compat": "डेमॉन संस्करण ऐप संस्करण के साथ संगत नहीं है! डेमॉन संस्करण: {{version}}, अपेक्षित: {{required}}। कृपया ऐप या डेमॉन में से किसी एक को अपडेट करें।",
   "daemon-not-connected": "कोई डेमन कनेक्शन नहीं, कृपया हमारी सहायता टीम से संपर्क करें",
-  "streaming-optimized-label": "⏯️ Streaming-optimized servers now labelled",
-  "streaming-optimized-label-button": "Browse exit servers now"
+  "streaming-optimized-label": "स्ट्रीमिंग ऑप्टिमायज़्ड सर्वर्ज़ अब लेबल किए गाए हैं",
+  "streaming-optimized-label-button": "केवल निकास सर्वर ब्राउज़ करें"
 }

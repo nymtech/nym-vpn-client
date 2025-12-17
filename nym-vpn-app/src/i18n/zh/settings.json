@@ -4,21 +4,62 @@
     "desc": "应用启动时自动连接"
   },
   "ipv6-support": {
-    "title": "IPv6流量隧道",
+    "title": "支持IPv6",
     "desc": "禁用只能使用IPv4"
+  },
+  "allow-lan": {
+    "title": "访问本地局域网",
+    "desc": "允许直接访问本地网络"
   },
   "notifications": {
     "title": "桌面通知"
   },
   "monitoring-alert": "您必须重新启动应用才能使更改生效。",
   "support": {
+    "intro": {
+      "title": "⚠️ 保护您自己免遭诈骗",
+      "description": "只使用以下列出的官方渠道联系Nym支持团队。我们从来不会索要您的助记词或者主动通过私信联系您。\n\n收到预料之外的消息？很有可能是诈骗。"
+    },
     "title": "支持&反馈",
     "faq": "查看常见问题",
     "contact": "联系支持",
     "telegram": "在 Telegram 上聊天",
     "github": "打开 GitHub 问题",
     "matrix": "加入Matrix",
-    "discord": "加入Discord"
+    "discord": "加入Discord",
+    "help": {
+      "title": "帮助我们翻译",
+      "description": "让应用程序以更好的方式显示您的本地语言。"
+    }
+  },
+  "dns": {
+    "title": "自定义DNS",
+    "topbar-title": "DNS 自定义",
+    "top-description": "默认情况下，使用 Nym 推荐的DNS 服务器。如果需要在下方配置自定义服务器。",
+    "view-default-dns": "查看默认DNS",
+    "hide-default-dns": "隐藏默认DNS",
+    "details": {
+      "title": "使用自定义 DNS 服务器",
+      "description": "配置您自己的DNS用于广告拦截、内容过滤或首选供应商。拖动以重新排序优先级。警告：可能限制Nym连通性。",
+      "list-header": "自定义 DNS 服务器",
+      "add": "添加",
+      "input-label": "DNS地址",
+      "input-placeholder": "IPv4或IPv6地址",
+      "apply": "保存更改",
+      "link": "了解更多关于 DNS",
+      "applied": "自定义DNS已保存。"
+    },
+    "error": {
+      "duplicate": "复制DNS地址",
+      "invalid": "无效的 DNS 地址格式",
+      "failed": "应用DNS更改失败"
+    }
+  },
+  "confirmation-dialog": {
+    "title": "保存更改？",
+    "description": "您有未保存的更改。",
+    "save": "保存更改",
+    "cancel": "放弃..."
   },
   "legal": {
     "title": "法律条款",
@@ -31,7 +72,6 @@
   },
   "logs": {
     "title": "日志（本地存储）",
-    "desc": "复制或删除日志",
     "app": "App日志",
     "daemon": "守护进程日志"
   },
@@ -50,15 +90,20 @@
       "content": "伪装API请求，允许域绕过VPN 块。当标准连接尝试失败时，NymVPN 会自动使用。",
       "link": "SteomAPI连接模式工作方式"
     },
+    "amneziawg": {
+      "label": "最低限度的反审查保护（AmneziaWG）",
+      "content": "通过引入能够绕开深度包检测系统的基本检查规则的诱饵数据包，使得WireGuard流量更加难以被检测到，改善受限制的网络中连接的稳定性。\n\n注意：只实现了客户端。",
+      "link": "Amnezia WG是如何阻止DPI的"
+    },
     "snackbar-switch-on": "增强连接 (QUIC 协议) 将在您重新连接时激活。",
     "snackbar-switch-off": "增强连接 (QUIC 协议) 将在您重新连接时停用。"
   },
   "faq": "FAQ-常见问题",
   "display-theme": "显示模式",
   "logout-confirmation": {
-    "title": "您确定吗？",
-    "description": "您将需要您的访问代码来重新连接您的设备。",
-    "logging-out": "正在登出…"
+    "title": "确定要退出登录吗？",
+    "description": "您需要使用24个单词组成的助记词重新登录。",
+    "logging-out": "正在登出"
   },
   "quit": "退出 NymVPN",
   "login-button": "连接设备",
@@ -70,12 +115,38 @@
     "device-id": "设备 ID"
   },
   "autostart": {
-    "title": "自动启动",
-    "desc": "系统启动时启动 NymVPN"
+    "title": "开机时自动启动",
+    "desc": "设备重启后启动NymVPN"
   },
   "killswitch": {
     "title": "Killswitch",
     "desc": "您的数据始终处于保护状态"
+  },
+  "app-proxy": {
+    "title": "App & 钱包代理 (测试版)",
+    "menu-desc": "通过混合网络路由流量",
+    "label": "应用程序和钱包代理",
+    "description": "启用应用程序和钱包的混合网络代理",
+    "connect-vpn-first": "首先连接VPN以启用代理",
+    "intro": "通过Nym混合网络路由应用程序和钱包的网络流量以获得更好的隐私保护。 此功能为应用程序创建本地的SOCKS5代理，以及为数字钱包创建HTTP RPC代理。",
+    "status": "状态",
+    "proxy-url": "代理地址",
+    "active-connections": "有效连接",
+    "copied-to-clipboard": "代理地址已复制到剪贴板",
+    "snackbar-enabled": "SOCKS5代理已启用",
+    "snackbar-disabled": "SOCKS5代理已禁用",
+    "error-gateway-not-supported": "网关不支持SOCKS5",
+    "error-unknown": "切换SOCKS5代理失败",
+    "error-vpn-not-connected": "启用SOCKS5代理前请先连接 VPN",
+    "socks5-address-label": "SOCKS5监听地址",
+    "socks5-address-placeholder": "127.0.0.1:1080",
+    "http-rpc-address-label": "HTTP RPC监听地址",
+    "http-rpc-address-placeholder": "127.0.0.1:8545",
+    "configuration": "配置",
+    "enabling": "正在启用代理……",
+    "disabling": "正在禁用代理……",
+    "add-to-browser-proxy-settings": "通过将此URL添加到您的浏览器代理设置中来使用Nym混合网络路由流量",
+    "use-in-wallet": "在MetaMask或其他Web3钱包中使用此URL来通过Nym混合网络进行RPC 通话。使用您的实际提供商的URL来替换<your-provider-url>。"
   },
   "privacy": {
     "error-monitoring": {

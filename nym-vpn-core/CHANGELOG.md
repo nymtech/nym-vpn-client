@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix discovery propagation bug (https://github.com/nymtech/nym-vpn-client/pull/4226)
+- Ensure that vpn topology is refreshed periodically when connecting (https://github.com/nymtech/nym-vpn-client/pull/4228)
 
 ### Removed
 

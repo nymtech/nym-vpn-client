@@ -342,6 +342,7 @@ impl std::fmt::Display for InnerRpcError {
 }
 
 #[derive(Debug, uniffi::Object)]
+#[uniffi::export(Display)]
 pub struct RpcError {
     inner: InnerRpcError,
 }
@@ -354,11 +355,6 @@ impl RpcError {
 
 #[uniffi::export]
 impl RpcError {
-    /// Returns the error message.
-    pub fn message(&self) -> String {
-        self.inner.to_string()
-    }
-
     /// Returns the account error if the underlying error is an account error.
     pub fn account_error(&self) -> Option<AccountCommandError> {
         match &self.inner {

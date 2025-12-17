@@ -16,8 +16,7 @@ use super::{
     Socks5Error, Socks5Service, Socks5Status,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
-        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError,
+        AccountLinksError, Error, GlobalConfigError, ListGatewaysError, Result, SetNetworkError,
     },
     socks5_idle_timeout, socks5_request_timeout,
 };
@@ -33,7 +32,7 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
-    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyProvider,
+    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
@@ -212,6 +211,9 @@ pub struct NymVpnService {
     // Statistics controller handle
     statistics_controller_handle: JoinHandle<()>,
 
+    // Topology service join handle
+    topology_service_join_handle: JoinHandle<()>,
+
     // Configuration Manager
     config_manager: VpnServiceConfigManager,
 
@@ -344,12 +346,7 @@ impl NymVpnService {
             None,
         )
         .await
-        .map_err(|err| {
-            trace_err_chain!(err, "Failed to create NymVPN API client");
-            AccountControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
+        .map_err(Error::CreateApiClient)?;
 
         let nyxd_client = NyxdClient::new(&parameters.network_env);
 
@@ -362,12 +359,7 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         )
         .await
-        .map_err(|err| {
-            tracing::error!("Failed to create account controller: {err:?}");
-            AccountControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
+        .map_err(Error::CreateAccountController)?;
 
         // These are used to interact with the account controller
         let account_command_tx = account_controller.get_command_sender();
@@ -414,27 +406,18 @@ impl NymVpnService {
         let tunnel_settings = config_manager.generate_tunnel_settings();
         let nyxd_url = parameters.network_env.nyxd_url();
 
-        let Some(nym_api_urls) = parameters.network_env.nym_api_urls() else {
-            return Err(Error::AccountController(
-                AccountControllerError::Initialization {
-                    reason: "Nym API URLs are empty".to_string(),
-                },
-            ));
-        };
-
-        let Some(nym_vpn_api_urls) = parameters.network_env.nym_vpn_api_urls() else {
-            return Err(Error::AccountController(
-                AccountControllerError::Initialization {
-                    reason: "Nym VPN API URLs are empty".to_string(),
-                },
-            ));
-        };
+        let nym_api_urls = parameters
+            .network_env
+            .nym_api_urls()
+            .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
+        let nym_vpn_api_urls = parameters
+            .network_env
+            .nym_vpn_api_urls()
+            .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
 
         let gateway_config =
             gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)
-                .map_err(|e| AccountControllerError::Initialization {
-                    reason: e.to_string(),
-                })?;
+                .map_err(Error::CreateGatewayClient)?;
 
         let (network_tx, network_rx) = watch::channel(parameters.network_env.clone());
         let nym_config = NymConfig {
@@ -447,33 +430,26 @@ impl NymVpnService {
         let gateway_directory_client =
             GatewayClient::new(gateway_config, parameters.user_agent.clone())
                 .await
-                .map_err(|err| {
-                    tracing::error!("Failed to create gateway directory client: {err:?}");
-                    AccountControllerError::Initialization {
-                        reason: err.to_string(),
-                    }
-                })?;
+                .map_err(Error::CreateGatewayClient)?;
         let (gateway_cache_handle, gateway_cache_join_handle) = GatewayCache::spawn(
             gateway_directory_client.clone(),
             connectivity_handle.clone(),
             services_shutdown_token.child_token(),
         );
 
-        let urls = api_urls_to_urls(&nym_api_urls).map_err(|err| {
-            tracing::error!("Failed to convert Nym API URLs: {err:?}");
-            AccountControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
+        let urls = api_urls_to_urls(&nym_api_urls).map_err(Error::ConvertApiUrls)?;
 
-        let topology_provider = VpnTopologyProvider::new(
-            urls,
+        let (topology_service, topology_service_join_handle) = VpnTopologyService::spawn(
+            urls.clone(),
             parameters.user_agent.clone(),
-            false,
+            None,
             services_shutdown_token.child_token(),
-        )
-        .await?;
-        topology_provider.fetch().await;
+        );
+
+        let cloned_topology_service = topology_service.clone();
+        tokio::spawn(async move {
+            let _ = cloned_topology_service.fetch().await;
+        });
 
         let (discovery_refresher_event_tx, discovery_refresher_event_rx) =
             mpsc::unbounded_channel();
@@ -488,12 +464,7 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         )
         .await
-        .map_err(|err| {
-            tracing::error!("Failed to start Discovery Refresher: {err:?}");
-            AccountControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
+        .map_err(Error::StartDiscoveryRefresh)?;
 
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
@@ -505,7 +476,7 @@ impl NymVpnService {
             account_state_rx.clone(),
             statistics_event_sender.clone(),
             gateway_cache_handle.clone(),
-            topology_provider,
+            topology_service,
             connectivity_handle,
             discovery_refresher_command_tx,
             wireguard_keys_db,
@@ -533,6 +504,7 @@ impl NymVpnService {
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
             statistics_controller_handle,
+            topology_service_join_handle,
             config_manager,
             command_sender,
             event_receiver,
@@ -627,6 +599,10 @@ impl NymVpnService {
             tracing::error!("Failed to join on discovery refresher handle: {e}");
         }
 
+        if let Err(e) = self.topology_service_join_handle.await {
+            tracing::error!("Failed to join on statistics controller handle: {e}");
+        }
+
         tracing::info!("Exiting vpn service run loop");
 
         Ok(())
@@ -701,6 +677,16 @@ impl NymVpnService {
                         tracing::error!("Failed to auto-disable SOCKS5 on VPN disconnect: {}", e);
                     }
                 });
+            }
+
+            // When VPN connects, if SOCKS5 is already enabled, warn that it may not work
+            // because SOCKS5 might be using a different gateway than VPN
+            if matches!(new_state, TunnelState::Connected { .. })
+                && self.socks5_service.is_enabled()
+            {
+                tracing::warn!(
+                    "VPN connected while SOCKS5 proxy was already active. SOCKS5 may be using a different gateway than VPN, which can cause connection failures. Consider disabling and re-enabling SOCKS5 to use the VPN's gateway."
+                );
             }
         }
         if self.tunnel_event_tx.send(event).is_err() {
@@ -1154,35 +1140,111 @@ impl NymVpnService {
             ExitPoint::Address { address } => NodeIdentity::from(*address.gateway().inner()),
             ExitPoint::Gateway { identity } => NodeIdentity::from(*identity.inner()),
             ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
-                // For non-specific exit points, select a gateway the same way the VPN does
-                tracing::debug!("Selecting SOCKS5 exit node for exit point: {exit_point:?}",);
+                // For non-specific exit points, check if VPN is connected first
+                // If connected, use VPN's actual gateway to avoid firewall routing issues
+                let tunnel_state = self.tunnel_state.read().await.clone();
 
-                // Convert to gateway_directory types for lookup
-                let exit_point: nym_gateway_directory::ExitPoint = exit_point.clone().into();
+                let selected_identity = if let TunnelState::Connected { connection_data } =
+                    tunnel_state
+                {
+                    // VPN is connected - try to use its actual exit gateway
+                    let vpn_gateway_id = &connection_data.exit_gateway.id;
+                    tracing::info!(
+                        "VPN is connected to exit gateway {}, checking if it supports SOCKS5",
+                        vpn_gateway_id
+                    );
 
-                let exit_filters = if self.config_manager.config().residential_exit {
-                    GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
+                    // Validate that VPN's gateway supports SOCKS5 and has nr_address
+                    match NodeIdentity::from_base58_string(vpn_gateway_id) {
+                        Ok(vpn_gateway_identity) => {
+                            // Look up the gateway directly (VPN uses Wg type, but gateway might also support MixnetExit)
+                            let gateway_full = self
+                                .gateway_cache_handle
+                                .lookup_nymnode_by_identity(vpn_gateway_identity)
+                                .await
+                                .ok();
+
+                            if let Some(gateway_full) = gateway_full {
+                                // Check if gateway supports SOCKS5 (has nr_address and can connect as exit)
+                                let supports_socks5 = gateway_full.nr_address.is_some()
+                                    && gateway_full
+                                        .last_probe
+                                        .as_ref()
+                                        .and_then(|probe| probe.outcome.as_exit.as_ref())
+                                        .map(|exit_point| exit_point.can_connect)
+                                        .unwrap_or(false);
+
+                                if supports_socks5 {
+                                    // Gateway supports SOCKS5 - use it directly even if not in filtered MixnetExit list
+                                    // (VPN uses Wg gateways, but they may also support MixnetExit/SOCKS5)
+                                    tracing::info!(
+                                        "Using VPN's exit gateway {} for SOCKS5 (same gateway, firewall rules should allow connection)",
+                                        vpn_gateway_id
+                                    );
+                                    // Use VPN's gateway identity - skip selection
+                                    Some(vpn_gateway_identity)
+                                } else {
+                                    tracing::debug!(
+                                        "VPN's exit gateway {} does not support SOCKS5 (no nr_address or cannot connect as exit), selecting different gateway",
+                                        vpn_gateway_id
+                                    );
+                                    None
+                                }
+                            } else {
+                                tracing::debug!(
+                                    "VPN's exit gateway {} not found in cache, selecting different gateway",
+                                    vpn_gateway_id
+                                );
+                                None
+                            }
+                        }
+                        Err(e) => {
+                            tracing::warn!(
+                                "Failed to parse VPN's exit gateway identity {}: {}. Selecting new gateway.",
+                                vpn_gateway_id,
+                                e
+                            );
+                            None
+                        }
+                    }
                 } else {
-                    GatewayFilters::default()
+                    None
                 };
 
-                let selected_gateway = exit_gateways
-                    .find_best_socks5_gateway(&exit_point, &exit_filters)
-                    .map_err(|e| {
-                        Socks5Error::InvalidConfig(format!(
-                            "Failed to select SOCKS5 exit gateway: {e}"
-                        ))
-                    })?;
+                // Use VPN's gateway if available, otherwise do selection
+                if let Some(gateway_identity) = selected_identity {
+                    gateway_identity
+                } else {
+                    // VPN not connected or gateway doesn't support SOCKS5 - do selection
+                    tracing::debug!("Selecting SOCKS5 exit node for exit point: {exit_point:?}",);
 
-                tracing::info!(
-                    "Selected SOCKS5 exit gateway: {}, location: {}",
-                    selected_gateway.identity(),
-                    selected_gateway
-                        .two_letter_iso_country_code()
-                        .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
-                );
+                    // Convert to gateway_directory types for lookup
+                    let exit_point: nym_gateway_directory::ExitPoint = exit_point.clone().into();
 
-                selected_gateway.identity()
+                    let exit_filters = if self.config_manager.config().residential_exit {
+                        GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
+                    } else {
+                        GatewayFilters::default()
+                    };
+
+                    let selected_gateway = exit_gateways
+                        .find_best_socks5_gateway(&exit_point, &exit_filters)
+                        .map_err(|e| {
+                            Socks5Error::InvalidConfig(format!(
+                                "Failed to select SOCKS5 exit gateway: {e}"
+                            ))
+                        })?;
+
+                    tracing::info!(
+                        "Selected SOCKS5 exit gateway: {}, location: {}",
+                        selected_gateway.identity(),
+                        selected_gateway
+                            .two_letter_iso_country_code()
+                            .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
+                    );
+
+                    selected_gateway.identity()
+                }
             }
         };
 

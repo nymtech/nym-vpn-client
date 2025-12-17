@@ -9,8 +9,8 @@
     "error": "Fehler",
     "offline": "Kein Internet"
   },
-  "offline-message": "Ihr Gerät hat keine Internetverbindung",
-  "offline-reconnect-message": "Verbinden, sobald das Gerät online ist",
+  "offline-message": "Dein Gerät hat keine Internetverbindung",
+  "offline-reconnect-message": "Verbindet sich, sobald das Gerät online ist",
   "last-hop": "Austrittsregion",
   "first-hop": "Eintrittsregion",
   "connecting-message": "Verbindung wird hergestellt",
@@ -18,48 +18,48 @@
   "select-mode-label": "Modus wählen",
   "select-node-title": "Verbinden mit",
   "privacy-mode": {
-    "title": "Anonym",
-    "desc": "Ideal für Zahlungen, E-Mails, Nachrichten"
+    "title": "Anonym (Mixnet)",
+    "desc": "Maximale Privatsphäre für sensible Aufgaben"
   },
   "fast-mode": {
     "title": "Schnell (WireGuard)",
-    "desc": "Ideal zum surfen, streamen, file sharing"
+    "desc": "Surfen, Streamen, Downloads"
   },
   "last-node-select": {
     "label": "Letzter Knoten",
     "text": "Schnellzugriff ({{country}})"
   },
   "snackbar-disabled-message": {
-    "connected": "Deaktiviert während Verbindung zu VPN besteht",
-    "connecting": "Deaktiviert während Verbindung mit dem VPN besteht",
+    "connected": "Deaktiviert während einer VPN-Verbindung",
+    "connecting": "Deaktiviert während die Verbindung zum VPN aufgebaut wird",
     "disconnecting": "Deaktiviert während Verbindung vom VPN getrennt wird",
     "offline": "Deaktiviert, wenn keine Internetverbindung vorhanden ist",
     "error": "Deaktiviert, wenn ein Fehler auftritt"
   },
   "modes-dialog": {
     "title": "Modus auswählen",
-    "privacy-description": "Maximale Privatsphäre durch 5-Hop-Routing (bis zu 1-5 Mbit / s). Dummy-Verkehr und Timing-Verschleierung für mehr Anonymität. Perfekt für hochsensible Aktivitäten wie Zahlungen, E-Mails und Nachrichten.",
-    "fast-description": "Erlebe die maximale Geschwindigkeit mit dem 2-Server-Modus. Perfekt für schnelles surfen, streamen und File-Sharing.",
+    "privacy-description": "Maximale Privatsphäre durch 5-Hop-Routing (bis zu 1-5 Mbit/s). Dummy-Traffic und Timing-Verschleierung für verbesserte Anonymität. Perfekt für hochsensible Aktivitäten wie Zahlungen, E-Mails und Nachrichten.",
+    "fast-description": "Hochgeschwindigkeits-Surfen (250+ Mbit/s) mit 2-Hop-Routing. Verwendet AmneziaWG, eine zensurresistente Version von WireGuard, ideal für Streaming, schnelles Surfen und Downloads.",
     "link": "Weiter lesen"
   },
   "update-dialog": {
     "title": "Aktualisierung erforderlich!",
-    "description-1-app": "Ihre App wird nicht mehr unterstützt.",
-    "description-1-daemon": "Ihr Daemon wird nicht mehr unterstützt.",
-    "description-1-other": "Ihre App und Daemon werden nicht mehr unterstützt.",
-    "description-2": "Bitte aktualisieren Sie auf die neueste Version, um NymVPN weiter zu verwenden.",
-    "button-update": "Aktualisieren"
+    "description-1-app": "Deine App wird nicht mehr unterstützt.",
+    "description-1-daemon": "Dein Dienst wird nicht mehr unterstützt.",
+    "description-1-other": "Deine App und dein Dienst werden nicht mehr unterstützt.",
+    "description-2": "Bitte aktualisiere auf die neueste Version, um NymVPN weiter nutzen zu können.",
+    "button-update": "Update"
   },
   "app-update-available": {
     "title": "Update verfügbar",
-    "description": "Version {{version}} ist bereit mit Leistungsverbesserungen und neuen Features.",
+    "description": "Version {{version}} steht mit Leistungsverbesserungen und neuen Features zur Verfügung.",
     "restart-note": "Die App wird nach dem Update neu gestartet.",
     "button-update": "NymVPN aktualisieren",
     "button-close": "Schließen"
   },
   "app-update-progress": {
     "title": "Aktualisiere auf Version {{version}}…",
-    "description": "Aktualisierungen werden installiert - bitte die App nicht schließen.",
+    "description": "Aktualisierungen werden installiert - bitte schließe die App nicht.",
     "restart-note": "Die App wird nach dem Update neu gestartet.",
     "bar-label": "Download-Fortschritt"
   },

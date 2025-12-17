@@ -3,6 +3,9 @@
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
+
+use std::ops::Deref;
+
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
 use std::os::fd::BorrowedFd;
 #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -27,9 +30,9 @@ use nym_gateway_directory::{
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
-use tun::AsyncDevice;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use tun::Device;
+use tun::AbstractDevice;
+use tun::AsyncDevice;
 
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 use nym_common::{ErrorExt, trace_err_chain};
@@ -73,8 +76,8 @@ use crate::tunnel_provider::AndroidTunProvider;
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
     DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
-    VpnTopologyProvider,
     bandwidth_controller::BandwidthController,
+    mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
@@ -235,7 +238,7 @@ pub struct TunnelMonitor {
     account_controller_state: AccountStateReceiver,
     account_command_tx: AccountCommandSender,
     gateway_cache_handle: GatewayCacheHandle,
-    custom_topology_provider: VpnTopologyProvider,
+    custom_topology_provider: VpnTopologyServiceHandle,
     wg_keys_db: WireguardKeysDb,
     shutdown_token: CancellationToken,
 }
@@ -247,7 +250,7 @@ impl TunnelMonitor {
         account_controller_state: AccountStateReceiver,
         account_command_tx: AccountCommandSender,
         gateway_cache_handle: GatewayCacheHandle,
-        custom_topology_provider: VpnTopologyProvider,
+        custom_topology_provider: VpnTopologyServiceHandle,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         wg_keys_db: WireguardKeysDb,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
@@ -532,7 +535,9 @@ impl TunnelMonitor {
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .two_hops(self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard)
             .user_agent(user_agent)
-            .custom_topology_provider(Box::new(self.custom_topology_provider.clone()))
+            .custom_topology_provider(Box::new(
+                self.custom_topology_provider.make_topology_provider(),
+            ))
             .network_env(nym_network)
             .cancel_token(self.shutdown_token.child_token());
 
@@ -594,7 +599,7 @@ impl TunnelMonitor {
         let (exit_metadata_tx, exit_metadata_rx) = tokio::sync::oneshot::channel::<MetadataEvent>();
 
         let (entry_metadata_addr_tx, entry_metadata_addr_rx) = tokio::sync::oneshot::channel();
-        let (bridge_close_tx, mut bridge_close_rx) = tokio::sync::mpsc::unbounded_channel();
+        let (bridge_close_tx, mut bridge_close_rx) = mpsc::unbounded_channel();
 
         // todo: refactor
         let (
@@ -940,13 +945,13 @@ impl TunnelMonitor {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let tun_name = tun_device
-            .get_ref()
-            .name()
+            .deref()
+            .tun_name()
             .map_err(Error::GetTunDeviceName)?;
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
         let tun_name = {
-            let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.get_ref().as_raw_fd()) };
+            let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.deref().as_raw_fd()) };
             tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?
         };
 
@@ -1162,7 +1167,10 @@ impl TunnelMonitor {
             Some(conn_data.entry.private_ipv4.into()),
             exit_tun_mtu,
         )?;
-        let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
+        let exit_tun_name = exit_tun
+            .deref()
+            .tun_name()
+            .map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
         #[cfg(not(target_os = "linux"))]
@@ -1340,8 +1348,8 @@ impl TunnelMonitor {
             entry_mtu,
         )?;
         let entry_tun_name = entry_tun
-            .get_ref()
-            .name()
+            .deref()
+            .tun_name()
             .map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created entry tun device: {}", entry_tun_name);
 
@@ -1364,7 +1372,10 @@ impl TunnelMonitor {
             Some(conn_data.entry.private_ipv4.into()),
             exit_mtu,
         )?;
-        let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
+        let exit_tun_name = exit_tun
+            .deref()
+            .tun_name()
+            .map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
         let mut ips = vec![IpAddr::V4(conn_data.exit.private_ipv4)];
@@ -1619,7 +1630,7 @@ impl TunnelMonitor {
         };
 
         let tun_device = self.create_tun_device(packet_tunnel_settings).await?;
-        let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.get_ref().as_raw_fd()) };
+        let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.deref().as_raw_fd()) };
         let interface = tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?;
         let mut ips = vec![IpAddr::V4(conn_data.exit.private_ipv4)];
         if self.enable_ipv6() {
@@ -1691,21 +1702,21 @@ impl TunnelMonitor {
 
             // rust-tun uses the same name for tunnel type.
             #[cfg(windows)]
-            tun_config.name(MIXNET_WINTUN_NAME);
+            tun_config.tun_name(MIXNET_WINTUN_NAME);
 
-            tun_config.address(interface_ipv4).mtu(i32::from(mtu)).up();
+            tun_config.address(interface_ipv4).mtu(mtu).up();
 
-            #[cfg(target_os = "linux")]
-            tun_config.platform(|platform_config| {
-                platform_config.packet_information(false);
+            #[cfg(target_os = "macos")]
+            tun_config.platform_config(|platform_config| {
+                platform_config.enable_routing(false);
             });
 
             tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?
         };
 
         let tun_name = tun_device
-            .get_ref()
-            .name()
+            .deref()
+            .tun_name()
             .map_err(Error::GetTunDeviceName)?;
 
         #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -1746,23 +1757,23 @@ impl TunnelMonitor {
         tun_config
             .address(interface_ipv4)
             .netmask(Ipv4Addr::BROADCAST)
-            .mtu(i32::from(mtu))
+            .mtu(mtu)
             .up();
 
         if let Some(destination) = destination {
             tun_config.destination(destination);
         }
 
-        #[cfg(target_os = "linux")]
-        tun_config.platform(|platform_config| {
-            platform_config.packet_information(false);
+        #[cfg(target_os = "macos")]
+        tun_config.platform_config(|platform_config| {
+            platform_config.enable_routing(false);
         });
 
         let tun_device = tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?;
 
         let tun_name = tun_device
-            .get_ref()
-            .name()
+            .deref()
+            .tun_name()
             .map_err(Error::GetTunDeviceName)?;
 
         if let Some(interface_ipv6) = interface_ipv6 {
@@ -1793,6 +1804,9 @@ impl TunnelMonitor {
 
         let mut tun_config = tun::Configuration::default();
         tun_config.raw_fd(owned_tun_fd.as_raw_fd());
+
+        #[cfg(target_os = "ios")]
+        tun_config.close_fd_on_drop(false);
 
         #[cfg(target_os = "ios")]
         {

@@ -154,10 +154,13 @@
 	<string name="join_telegram">انضم إلينا على تيليجرام</string>
 	<!-- Common -->
 	<string name="button_done">تم</string>
+	<string name="button_discard">تجاهل</string>
+	<string name="button_add">إضافة</string>
+	<string name="here">هنا</string>
+	<!-- Dialogs & info messaged -->
 	<string name="stream_display">عرض البث</string>
 	<string name="streaming_server_banner_title">جديد: اكتشف البث -\nخوادم محسنة (▶️)</string>
 	<string name="streaming_server_banner_action">تحقق من خوادم خروج\nجديدة</string>
-    <string name="here">هنا</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">لا يمكن الاتصال بنفس خادم الدخول والخروج. قم بتغيير خادم الدخول أو الخروج وإعادة الاتصال.</string>
 	<string name="unexpected_error">حدث خطأ غير متوقع:</string>
@@ -193,6 +196,7 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">مكافحة الرقابة</string>
 	<string name="settings_passphrase_title">كلمة المرور</string>
+	<string name="settings_dns_title">تخصيص DNS</string>
 	<string name="settings_ipv6_title">دعم IPv6</string>
 	<string name="settings_ipv6_description">السماح باتصالات IPv6</string>
 	<string name="settings_bypass_description">السماح بالوصول المباشر إلى الشبكة المحلية</string>
@@ -207,6 +211,8 @@
 	<string name="settings_quit_title">الخروج من NymVPN</string>
 	<string name="settings_app_version_line">إصدار التطبيق: %1$s</string>
 	<string name="settings_daemon_version_line">إصدار دايمون: %1$s</string>
+	<string name="settings_language_help_title">المساعدة في الترجمة</string>
+	<string name="settings_language_help_description">جعل التطبيق أفضل بلغتك.</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">للحصول على أفضل اتصال</string>
 	<string name="battery_opt_descr">تعطيل تحسينات بطارية NymVPN لاتصالات VPN أكثر استقرارا.</string>
@@ -279,10 +285,10 @@
 	<string name="details_more_details_end">مستكشف شبكة Nym</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
-	<string name="censorship_description">تمكين هذه الميزات إذا كنت تواجه مشاكل في الاتصال أو حجب NymVPN في موقعك.</string>
+	<string name="censorship_description">ميزات متقدمة لتحسين الاتصال في الشبكات التقييدية أو عند تجربة حظر NymVPN.</string>
 	<string name="censorship_quic_title">تحسين الاتصال (QUIC)</string>
 	<string name="censorship_quic_changes">سيتم تطبيق التغييرات بعد إعادة الاتصال</string>
-	<string name="censorship_quic_description">تحسين موثوقية النمط السريع في الشبكات التقييدية عن طريق تغليف حركة WireGuard في QUIC (HTTP/3) للظهور كتصفح منتظم على شبكة الإنترنت.\n\nملاحظة: حدود خيارات خادم الدخول إلى بوابات متوافقة مع QUIC-فقط.</string>
+	<string name="censorship_quic_description">تحسين موثوقية النمط السريع في الشبكات التقييدية عن طريق تغليف حركة WireGuard في QUIC (HTTP/3). ستظهر حركة المرور كتصفح منتظم على شبكة الانترنت، وهزيمة أنظمة الرقابة على التفتيش العميق.\n\nملاحظة: حدود خيارات خادم الدخول إلى بوابات متوافقة مع QUIC-فقط.</string>
 	<string name="censorship_quic_link_text">كيف يحسن QUIC الاتصالات</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">توصيل API الثري</string>
@@ -298,6 +304,7 @@
 	<string name="quick_info_modal_desc_non_quic">سيؤدي هذا إلى إعادة الاتصال بك دون تمكين بروتوكول QUIC. ستحتفظ ببوابتك الحالية.\n\nتظل بياناتك محمية أثناء إعادة الاتصال.</string>
 	<string name="quic_primary_btn_text_non_quic">إعادة الاتصال بدون QUIC الآن</string>
 	<string name="quic_text_btn_text_non_quic">إيقاف تشغيل QUIC عند الاتصال التالي</string>
+	<string name="quic_gateway_filter_info_msg">عرض مواقع الوضع السريع والخوادم التي تدعم بروتوكول QUIC فقط. للكشف عن جميع الخوادم، إيقاف تشغيل QUIC</string>
 	<string name="censorship_amnezia_title">الحد الأدنى من التشويش</string>
 	<string name="censorship_amnezia_description">يجعل حركة مرور WireGuard أكثر صعوبة لكشفها. يقدم حزم مفككة تعطل القواعد البسيطة التي كثيرا ما تستخدمها نظم الرقابة على عمليات التفتيش العميقة (Deep Packet)، مما يحسن موثوقية الاتصال في البيئات التقييدية. \n\nملاحظة: تم تنفيذ جانب العميل فقط.</string>
 	<string name="censorship_amnezia_link_text">كيف يمنع أمنيزياي الفريق إدارة شؤون الإعلام</string>
@@ -309,6 +316,7 @@
 	<string name="account_welcome_open_source">قوانين الخصوصية مفتوحة المصدر &amp; السويسرية</string>
 	<string name="account_welcome_button">ابدأ في حماية خصوصيتي</string>
 	<string name="account_welcome_have_account">لديك حساب بالفعل؟</string>
+	<string name="account_welcome_free_trial">7 أيام تجربة مجانية - لا يتطلب دفع</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">أنت مشترك بالفعل!</string>
 	<string name="account_subscription_description">وجدنا اشتراك نشط مرتبط بحساب Google Play الخاص بك. تخطي التسجيل والقفز مباشرة إلى استخدام NymVPN. فقط جهز عبارة المرور 24 كلمة.</string>
@@ -398,4 +406,22 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">تطبيق على الاتصال التالي</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 جديد: اختر الحماية لكل تطبيق أو الاتصال المباشر للسرعة</string>
 	<string name="split_tunneling_per_app_security_banner_action">تكوين\nتطبيقات</string>
+	<!-- DNS customization screen -->
+	<string name="dns_title">تخصيص DNS</string>
+	<string name="dns_description">بشكل افتراضي، استخدام خوادم DNS الموصى بها لـ Nym. تكوين خوادم مخصصة أدناه إذا لزم الأمر.</string>
+	<string name="dns_view_list">عرض DNS الافتراضي</string>
+	<string name="dns_hide_list">إخفاء DNS الافتراضي</string>
+	<string name="dns_list_title">DNS الافتراضي لـ Nem:</string>
+	<string name="dns_custom_title">استخدام خوادم DNS المخصصة</string>
+	<string name="dns_custom_description">تكوين DNS الخاص بك لحجب الإعلانات، أو تصفية المحتوى، أو مقدمي الخدمات المفضلين. اسحب لإعادة ترتيب الأولوية. ⚠️ قد يحد من اتصال Nym. </string>
+	<string name="dns_custom_list_title">أدخل خادم DNS</string>
+	<string name="dns_custom_list_entries">خوادم DNS مخصصة (%1$s/5)</string>
+	<string name="dns_custom_list_hint">عنوان IPv4 أو IPv6</string>
+	<string name="dns_custom_list_error">تنسيق عنوان DNS غير صالح</string>
+	<string name="dns_custom_button_add">إضافة</string>
+	<string name="dns_custom_button_save">حفظ التغييرات</string>
+	<string name="dns_custom_saved">تم حفظ DNS مخصص.</string>
+	<string name="dns_save_dialog_title">حفظ التغييرات؟</string>
+	<string name="dns_save_dialog_description">لديك تغييرات غير محفوظة.</string>
+	<string name="dns_learn_more_text">تعرف على المزيد حول DNS</string>
 </resources>

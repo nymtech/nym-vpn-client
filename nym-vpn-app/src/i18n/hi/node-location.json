@@ -5,18 +5,22 @@
   "selected": "चयनित",
   "search-country": "सर्च लोकेशन",
   "input-label": "खोजें",
-  "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",
+  "quic-filter-note": "केवल QUIC प्रोटोकॉल का समर्थन करने वाले Fast मोड स्थान और सर्वर दिखाए जा रहे हैं। सभी सर्वर देखने के लिए, QUIC <here /> बंद करें।",
   "location-details": {
     "streaming": {
       "title": "Streaming Services",
-      "description": "<0>Residential IP servers</0> optimized for streaming and content access. May experience slower speeds due to higher demand and hardware limitations."
+      "description": "<0>आवासीय IP सर्वर</0> स्ट्रीमिंग और सामग्री एक्सेस के लिए अनुकूलित। अधिक माँग और हार्डवेयर सीमाओं के कारण धीमी गति का अनुभव हो सकता है।"
     },
     "location": {
       "title": "स्थिति की सटीकता",
-      "description": "Displayed locations are <1>determined from IP addresses</1> and may not reflect exact physical locations."
+      "description": "दिखाई गई लोकेशन <1>IP पते से निर्धारित होते हैं</1> और हो सकता है की वे सटीक भौतिक स्थान को प्रतिबिंबित न करें।"
+    },
+    "quic": {
+      "title": "QUIC प्रोटोकॉल",
+      "description": "नियमित वेब ब्राउज़िंग के रूप में प्रदर्शित करने के लिए WireGuard </1>ट्रैफ़िक को QUIC</1> (HTTP/3) में लपेटकर रेस्ट्रिक्टिव नेटवर्क में Fast मोड विश्वसनीयता में सुधार करता है।"
     },
     "entry-title": "Choosing entry locations",
-    "exit-title": "Choosing exit locations"
+    "exit-title": "निकास स्थान चुनना"
   },
   "location-not-available": {
     "entry": "चयनित प्रवेश स्थान उपलब्ध नहीं है, {{location}} पर स्विच किया गया है",
@@ -63,9 +67,9 @@
     },
     "links": {
       "missing-info": "जानकारी गायब या गलत क्यों है",
-      "explorer": "More details in the Nym <networkExplorerLink />"
+      "explorer": "अधिक जानकारी Nym <networkExplorerLink /> में"
     },
     "select-button": "सर्वर चुनें"
   },
-  "search-other-nodes": "Other search results"
+  "search-other-nodes": "अन्य सर्च परिणाम"
 }

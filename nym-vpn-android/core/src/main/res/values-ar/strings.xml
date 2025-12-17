@@ -8,4 +8,6 @@
 	<string name="state_disconnected">انفصال</string>
 	<string name="state_initializing">تهيئة العميل…</string>
 	<string name="state_establishing">إنشاء اتصال…</string>
+	<string name="notification_entry">إدخال: %1$s</string>
+	<string name="notification_exit">الخروج: %1$s</string>
 </resources>

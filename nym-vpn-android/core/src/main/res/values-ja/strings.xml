@@ -8,4 +8,6 @@
 	<string name="state_disconnected">切断されました</string>
 	<string name="state_initializing">クライアントを初期化中…</string>
 	<string name="state_establishing">Establishing connection…</string>
+	<string name="notification_entry">エントリー: %1$s</string>
+	<string name="notification_exit">終了: %1$s</string>
 </resources>

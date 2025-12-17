@@ -1,57 +1,98 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import {
-  Button,
-  CardSwitch,
-  MsIcon,
-  PageAnim,
-  PulseDot,
-  SettingsMenuCardBig,
-} from '../../../ui';
+import { CardSwitch, PageAnim, SettingsMenuCardBig } from '../../../ui';
 import { useInAppNotify, useMainState, useSocks5 } from '../../../contexts';
-import { useClipboard } from '../../../hooks';
+import ProxyInfoCard from './ProxyInfoCard';
+import { ProxyInfo, ProxyPortInput, ProxyUrl } from './components';
 
-const DefaultSocks5Address = '127.0.0.1:1080';
-const DefaultHttpRpcAddress = '127.0.0.1:8545';
+const DefaultSocks5Port = '1080';
+const DefaultSocks5Address = '127.0.0.1';
+const DefaultHttpRpcPort = '8545';
+const DefaultHttpRpcAddress = '127.0.0.1';
 
 function Socks5() {
   const { status, isLoading, enable, disable } = useSocks5();
+  console.log('status', status);
   const { exitNode } = useMainState();
   const { push } = useInAppNotify();
   const { t } = useTranslation('settings');
-  const { copy } = useClipboard();
 
-  // default listen addresses
   const [socks5Address, setSocks5Address] = useState(DefaultSocks5Address);
+  const [socks5Port, setSocks5Port] = useState(DefaultSocks5Port);
   const [httpRpcAddress, setHttpRpcAddress] = useState(DefaultHttpRpcAddress);
+  const [httpRpcPort, setHttpRpcPort] = useState(DefaultHttpRpcPort);
 
-  // sync input fields with actual values when status changes
+  const [socks5PortValid, setSocks5PortValid] = useState(true);
+  const [httpRpcPortValid, setHttpRpcPortValid] = useState(true);
+  const portValid = socks5PortValid && httpRpcPortValid;
+
   useEffect(() => {
-    if (status?.socks5Settings?.listenAddress) {
-      setSocks5Address(status.socks5Settings.listenAddress);
-    }
-    if (status?.httpRpcSettings?.listenAddress) {
-      setHttpRpcAddress(status.httpRpcSettings.listenAddress);
-    }
-  }, [status]);
+    const [socks5Address, socks5Port] =
+      status?.socks5Settings?.listenAddress?.split(':') || [];
+    setSocks5Address(socks5Address || DefaultSocks5Address);
+    setSocks5Port(socks5Port || DefaultSocks5Port);
+
+    const [httpRpcAddress, httpRpcPort] =
+      status?.httpRpcSettings?.listenAddress?.split(':') || [];
+    setHttpRpcAddress(httpRpcAddress || DefaultHttpRpcAddress);
+    setHttpRpcPort(httpRpcPort || DefaultHttpRpcPort);
+  }, [
+    status?.socks5Settings?.listenAddress,
+    status?.httpRpcSettings?.listenAddress,
+  ]);
 
   const isEnabled = !!status?.state && status?.state !== 'disabled';
   const isConnected = status?.state === 'idle' || status?.state === 'connected';
   const hasError = status?.state === 'error';
-  const socks5Url = status?.socks5Settings?.listenAddress
-    ? `socks5h://${status.socks5Settings.listenAddress}`
-    : null;
-  const httpRpcUrl = status?.httpRpcSettings?.listenAddress
-    ? `http://${status.httpRpcSettings.listenAddress}?p=<your-provider-url>`
-    : null;
+  const socks5Url = `socks5h://${socks5Address}:${socks5Port}`;
+  const httpRpcUrl = `http://${httpRpcAddress}:${httpRpcPort}?p=<your-provider-url>`;
 
-  // enable/disable socks5
-  const handleToggle = async () => {
-    // Prevent duplicate calls while loading
-    if (isLoading) {
-      return;
+  useEffect(() => {
+    if (hasError) {
+      push({
+        id: 'socks5-error',
+        message: status?.errorMessage ?? t('app-proxy.error-unknown'),
+        close: true,
+        type: 'error',
+      });
     }
+  }, [hasError, status?.errorMessage, push, t]);
+
+  const getStatusString = () => {
+    if (isLoading) {
+      return t('app-proxy.status.enabling');
+    }
+    switch (status?.state) {
+      case 'idle':
+      case 'connected':
+        return t('app-proxy.status.connected');
+      case 'error':
+      case 'disabled':
+        return t('app-proxy.status.disabled');
+      default:
+        return t('app-proxy.status.unknown');
+    }
+  };
+
+  const getStatusColor = () => {
+    if (isLoading) {
+      return 'text-baltic-sea dark:text-white';
+    }
+    switch (status?.state) {
+      case 'idle':
+      case 'connected':
+        return 'text-malachite-moss dark:text-malachite';
+      case 'error':
+      case 'disabled':
+        return 'text-aphrodisiac';
+      default:
+        return 'text-baltic-sea dark:text-white';
+    }
+  };
+
+  const handleToggle = async () => {
+    if (isLoading) return;
 
     try {
       if (isEnabled) {
@@ -64,8 +105,8 @@ function Socks5() {
         });
       } else {
         await enable(
-          { listenAddress: socks5Address || DefaultSocks5Address },
-          { listenAddress: httpRpcAddress || DefaultHttpRpcAddress },
+          { listenAddress: `${socks5Address}:${socks5Port}` },
+          { listenAddress: `${httpRpcAddress}:${httpRpcPort}` },
           exitNode,
         );
         push({
@@ -78,7 +119,6 @@ function Socks5() {
     } catch (error) {
       const explicitErrorMessage = String((error as Error)?.message) || '';
 
-      // Explicit error we want to show, show specific error
       if (explicitErrorMessage.includes('Gateway does not support')) {
         push({
           id: 'socks5-error',
@@ -87,9 +127,7 @@ function Socks5() {
           close: true,
           type: 'error',
         });
-      }
-      // Unknown error, show generic error
-      else {
+      } else {
         push({
           id: 'socks5-error',
           message: t('app-proxy.error-unknown'),
@@ -101,190 +139,124 @@ function Socks5() {
     }
   };
 
-  // copy to clipboard
-  const handleCopy = async (url: string) => {
-    if (!url) return;
-
-    try {
-      await copy(url, true);
-    } catch (error) {
-      console.error('Failed to copy:', error);
-    }
-  };
-
   return (
-    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6 select-none">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
       <div className="text-iron dark:text-bombay">{t('app-proxy.intro')}</div>
-
-      <SettingsMenuCardBig
-        header={t('app-proxy.configuration')}
-        className="pt-4"
-      >
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-mine-shaft dark:text-mercury">
-              {t('app-proxy.socks5-address-label')}
-            </label>
-            <input
-              type="text"
-              value={socks5Address}
-              onChange={(e) => setSocks5Address(e.target.value)}
-              disabled={isEnabled}
-              placeholder={t('app-proxy.socks5-address-placeholder')}
-              className={clsx(
-                'px-3 py-2 bg-baltic rounded-lg text-sm font-mono',
-                'dark:bg-shark text-mine-shaft dark:text-mercury border border-transparent',
-                'focus:border-cornflower focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
-              )}
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-mine-shaft dark:text-mercury">
-              {t('app-proxy.http-rpc-address-label')}
-            </label>
-            <input
-              type="text"
-              value={httpRpcAddress}
-              onChange={(e) => setHttpRpcAddress(e.target.value)}
-              disabled={isEnabled}
-              placeholder={t('app-proxy.http-rpc-address-placeholder')}
-              className={clsx(
-                'px-3 py-2 bg-baltic rounded-lg text-sm font-mono',
-                'dark:bg-shark text-mine-shaft dark:text-mercury border border-transparent',
-                'focus:border-cornflower focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed',
-              )}
-            />
-          </div>
-
-          {hasError && status?.errorMessage && (
-            <div className="bg-malachite/10 border border-malabg-malachite rounded-lg p-3">
-              <p className="text-sm text-aphrodisiac">{status.errorMessage}</p>
-            </div>
-          )}
-        </div>
-      </SettingsMenuCardBig>
 
       <SettingsMenuCardBig
         header={
           <CardSwitch
-            header={t('app-proxy.label')}
-            subheader={
-              !isEnabled
-                ? t('app-proxy.connect-vpn-first')
-                : t('app-proxy.description')
-            }
             checked={isEnabled}
             onClick={handleToggle}
-            disabled={isLoading || (!isEnabled && isLoading)}
+            header={t('app-proxy.switch-title')}
+            disabled={isLoading || !portValid}
           />
         }
       >
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-8">
-            <PulseDot color="cornflower" />
-            <span className="text-sm text-iron dark:text-bombay">
-              {isEnabled ? t('app-proxy.disabling') : t('app-proxy.enabling')}
-            </span>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-iron dark:text-bombay">
-                {t('app-proxy.status')}:
-              </span>
-              <span
-                className={clsx(
-                  'text-xs font-medium px-2 py-1 rounded',
-                  'text-iron dark:text-bombay',
-                  hasError && 'text-aphrodisiac dark:text-aphrodisiac',
-                )}
-              >
-                {status ? status.state : 'unknown'}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-iron dark:text-bombay">
-                {t('app-proxy.active-connections')}:
-              </span>
-              <span className="text-sm font-medium text-mine-shaft dark:text-mercury">
-                {status?.activeConnections ?? 0}
-              </span>
-            </div>
-
-            {isConnected && socks5Url && (
-              <div className="flex flex-col gap-4">
-                {/* SOCKS5 URL Section */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-mine-shaft dark:text-mercury">
-                      SOCKS5 URL
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 bg-baltic dark:bg-shark rounded-lg p-3">
-                    <code className="flex-1 text-sm font-mono text-mine-shaft dark:text-mercury break-words">
-                      {socks5Url}
-                    </code>
-                    <Button
-                      onClick={() => handleCopy(socks5Url)}
-                      className="!w-8 !h-8 !p-0 !min-w-8 flex-shrink-0 flex items-center justify-center"
-                    >
-                      <MsIcon
-                        icon="content_copy"
-                        className="text-white dark:text-charcoal"
-                      />
-                    </Button>
-                  </div>
-                  <div className="flex items-start gap-2 mt-1">
-                    <MsIcon
-                      icon="info"
-                      className="text-cornflower text-sm mt-0.5 flex-shrink-0"
-                    />
-                    <span className="text-xs text-iron dark:text-bombay">
-                      {t('app-proxy.add-to-browser-proxy-settings')}
-                    </span>
-                  </div>
-                </div>
-
-                {/* HTTP RPC URL Section */}
-                {httpRpcUrl && (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-mine-shaft dark:text-mercury">
-                        HTTP RPC URL
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-baltic dark:bg-shark rounded-lg p-3">
-                      <code className="flex-1 text-sm font-mono text-mine-shaft dark:text-mercury break-words">
-                        {httpRpcUrl}
-                      </code>
-                      <Button
-                        onClick={() => handleCopy(httpRpcUrl)}
-                        className="!w-8 !h-8 !p-0 !min-w-8 flex-shrink-0 flex items-center justify-center"
-                      >
-                        <MsIcon
-                          icon="content_copy"
-                          className="text-white dark:text-charcoal"
-                        />
-                      </Button>
-                    </div>
-                    <div className="flex items-start gap-2 mt-1">
-                      <MsIcon
-                        icon="info"
-                        className="text-cornflower text-sm mt-0.5 flex-shrink-0"
-                      />
-                      <span className="text-xs text-iron dark:text-bombay">
-                        {t('app-proxy.use-in-wallet')}
-                      </span>
-                    </div>
-                  </div>
-                )}
+        <div>
+          <ul
+            className={clsx([
+              'flex flex-col justify-center items-center gap-0',
+              'bg-white dark:bg-charcoal',
+              'cursor-default',
+            ])}
+          >
+            <li
+              className={clsx(
+                'w-full flex border-b last:border-b-0',
+                'py-2 last:pb-0 first:pt-0 border-bombay dark:border-iron',
+              )}
+            >
+              <div className="w-full flex items-center gap-2 justify-between">
+                <span className="text-iron dark:text-bombay truncate select-none">
+                  {t('app-proxy.proxy-status')}
+                </span>
+                <span className={clsx(getStatusColor())}>
+                  {getStatusString()}
+                </span>
               </div>
-            )}
-          </div>
-        )}
+            </li>
+            <li
+              className={clsx(
+                'w-full flex border-b last:border-b-0',
+                'py-2 last:pb-0 first:pt-0 border-bombay dark:border-iron',
+              )}
+            >
+              <div className="w-full flex items-center gap-2 justify-between">
+                <span className="text-iron dark:text-bombay truncate select-none">
+                  {t('app-proxy.active-connections')}
+                </span>
+                <span
+                  className={clsx(
+                    status?.state === 'connected'
+                      ? 'text-malachite-moss dark:text-malachite'
+                      : 'text-baltic-sea dark:text-white',
+                  )}
+                >
+                  {status?.activeConnections ?? 0}
+                </span>
+              </div>
+            </li>
+          </ul>
+        </div>
       </SettingsMenuCardBig>
+      <ProxyInfoCard title={t('app-proxy.socks5.proxy-title')}>
+        <div className="flex flex-col gap-4">
+          <ProxyPortInput
+            value={socks5Port}
+            defaultValue={DefaultSocks5Port}
+            disabled={isEnabled || isLoading}
+            onChange={(value, valid) => {
+              setSocks5Port(value);
+              setSocks5PortValid(valid);
+            }}
+          />
+          <ProxyUrl
+            value={`${socks5Address}:${socks5Port}`}
+            title={t('app-proxy.socks5.listen-address')}
+            borderBottom={isConnected}
+          />
+          {isConnected && (
+            <>
+              <ProxyUrl
+                value={socks5Url}
+                title={t('app-proxy.socks5.url-title')}
+                borderBottom={isConnected}
+              />
+              <ProxyInfo text={t('app-proxy.socks5.info')} />
+            </>
+          )}
+        </div>
+      </ProxyInfoCard>
+
+      <ProxyInfoCard title={t('app-proxy.http-rpc.proxy-title')}>
+        <div className="flex flex-col gap-4">
+          <ProxyPortInput
+            value={httpRpcPort}
+            defaultValue={DefaultHttpRpcPort}
+            disabled={isEnabled || isLoading}
+            onChange={(value, valid) => {
+              setHttpRpcPort(value);
+              setHttpRpcPortValid(valid);
+            }}
+          />
+          <ProxyUrl
+            value={`${httpRpcAddress}:${httpRpcPort}`}
+            title={t('app-proxy.http-rpc.listen-address')}
+            borderBottom={isConnected}
+          />
+          {isConnected && (
+            <>
+              <ProxyUrl
+                value={httpRpcUrl}
+                title={t('app-proxy.http-rpc.url-title')}
+                borderBottom={isConnected}
+              />
+              <ProxyInfo text={t('app-proxy.http-rpc.info')} />
+            </>
+          )}
+        </div>
+      </ProxyInfoCard>
     </PageAnim>
   );
 }

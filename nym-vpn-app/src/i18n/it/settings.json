@@ -7,18 +7,59 @@
     "title": "Tunneling traffico IPv6",
     "desc": "Disabilita per usare solo IPv4"
   },
+  "allow-lan": {
+    "title": "Bypass LAN",
+    "desc": "Consenti accesso diretto alla rete locale"
+  },
   "notifications": {
     "title": "Notifiche desktop"
   },
   "monitoring-alert": "Devi riavviare l'app per applicare la modifica.",
   "support": {
+    "intro": {
+      "title": "⚠️ Proteggiti dalle truffe",
+      "description": "Contatta solo il supporto NymVPN attraverso i canali ufficiali elencati di seguito. Non chiederemo mai la tua frase segreta o ti contatteremo prima tramite messaggi diretti.\n\nRicevuto un contatto inatteso? Probabilmente è una truffa."
+    },
     "title": "Supporto",
     "faq": "Controlla le FAQ",
     "contact": "Get in touch",
     "telegram": "Chatta su Telegram",
     "github": "Apri una issue GitHub",
     "matrix": "Unisciti a noi su Matrix",
-    "discord": "Unisciti a noi su Discord"
+    "discord": "Unisciti a noi su Discord",
+    "help": {
+      "title": "Aiuto con traduzione",
+      "description": "Rendere l'app migliore nella tua lingua."
+    }
+  },
+  "dns": {
+    "title": "Personalizza DNS",
+    "topbar-title": "Personalizzazione DNS",
+    "top-description": "Per impostazione predefinita, utilizzando i server DNS consigliati di Nym. Configura i server personalizzati qui sotto se necessario.",
+    "view-default-dns": "Visualizza DNS predefiniti",
+    "hide-default-dns": "Nascondi DNS predefiniti",
+    "details": {
+      "title": "Usa server DNS personalizzati",
+      "description": "Configura il tuo DNS per il blocco pubblicitario, il filtraggio dei contenuti o i provider preferiti. Trascina per riordinare la priorità. ⚠️ Può limitare la connettività Nym.",
+      "list-header": "Server DNS personalizzati",
+      "add": "Aggiungi",
+      "input-label": "Indirizzo DNS",
+      "input-placeholder": "Indirizzo IPv4 o IPv6",
+      "apply": "Salva modifiche",
+      "link": "Scopri di più su DNS",
+      "applied": "DNS personalizzato salvato."
+    },
+    "error": {
+      "duplicate": "Duplica indirizzo DNS",
+      "invalid": "Formato indirizzo DNS non valido",
+      "failed": "Applicazione delle modifiche DNS non riuscita"
+    }
+  },
+  "confirmation-dialog": {
+    "title": "Salvare le modifiche?",
+    "description": "Le modifiche non sono state salvate.",
+    "save": "Salva modifiche",
+    "cancel": "Scarta"
   },
   "legal": {
     "title": "Legale",
@@ -31,7 +72,6 @@
   },
   "logs": {
     "title": "Logs",
-    "desc": "Copia o elimina i log",
     "app": "Log app",
     "daemon": "Log del demone"
   },
@@ -49,6 +89,11 @@
       "warning": "Le modifiche verranno applicate dopo la riconnessione",
       "content": "Travestisce le richieste API dietro i domini popolari, permessi per bypassare il blocco VPN. Usato automaticamente da NymVPN quando i tentativi di connessione standard falliscono.",
       "link": "Come funziona la modalità di connessione Stealth API"
+    },
+    "amneziawg": {
+      "label": "Opacità minima (AmneziaWG)",
+      "content": "Rende il traffico WireGuard più difficile da rilevare. Introduce pacchetti di richiamo che disturbano semplici regole spesso utilizzate dai sistemi di censura Deep Packet Inspection (DPI), migliorando l'affidabilità della connessione in ambienti restrittivi.\n\nNote: Implementato solo lato client.",
+      "link": "Come AmneziaWG previene il DPI"
     },
     "snackbar-switch-on": "La connessione migliorata (protocollo QUIC) si attiverà quando ti riconnetterai.",
     "snackbar-switch-off": "La connessione migliorata (protocollo QUIC) disattiverà quando ti riconnetterai."
@@ -76,6 +121,32 @@
   "killswitch": {
     "title": "Killswitch",
     "desc": "Disconnetti se internet scende"
+  },
+  "app-proxy": {
+    "title": "App & wallet proxy (beta)",
+    "menu-desc": "Percorso traffico app tramite mixnet",
+    "label": "Promemoria app e portafoglio",
+    "description": "Abilita il proxy mixnet per app e portafogli",
+    "connect-vpn-first": "Connetti prima VPN per abilitare il proxy",
+    "intro": "Percorso il traffico di app e portafogli attraverso il mixnet Nym per una maggiore privacy. Questa funzione crea un proxy SOCKS5 locale per le app e un proxy HTTP RPC per i portafogli.",
+    "status": "Stato",
+    "proxy-url": "Url Del Proxy",
+    "active-connections": "Connessioni attive",
+    "copied-to-clipboard": "URL proxy copiato negli appunti",
+    "snackbar-enabled": "Proxy SOCKS5 abilitato",
+    "snackbar-disabled": "Proxy SOCKS5 disabilitato",
+    "error-gateway-not-supported": "Il gateway non supporta SOCKS5",
+    "error-unknown": "Attivazione del proxy SOCKS5 non riuscita",
+    "error-vpn-not-connected": "Per favore connetti prima VPN prima di abilitare il proxy SOCKS5",
+    "socks5-address-label": "Indirizzo Di Ascolto SOCks5",
+    "socks5-address-placeholder": "127.0.0.1:1080",
+    "http-rpc-address-label": "Indirizzo Di Ascolto Rpc Http",
+    "http-rpc-address-placeholder": "127.0.0.1:8545",
+    "configuration": "Configurazione",
+    "enabling": "Abilitazione proxy...",
+    "disabling": "Disattivazione del proxy...",
+    "add-to-browser-proxy-settings": "Aggiungi questo URL alle impostazioni del proxy del tuo browser per instradare il traffico attraverso il mixnet Nym",
+    "use-in-wallet": "Usa questo URL in MetaMask o altri portafogli Web3 per effettuare chiamate RPC attraverso il mixnet Nym. Sostituisci <your-provider-url> con il tuo attuale URL del provider."
   },
   "privacy": {
     "error-monitoring": {

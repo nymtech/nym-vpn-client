@@ -4,21 +4,62 @@
     "desc": "Connexion automatique au démarrage"
   },
   "ipv6-support": {
-    "title": "Mise en tunnel du trafic IPv6",
+    "title": "Prise en charge d'IPv6",
     "desc": "Désactiver pour basculer en IPv4"
+  },
+  "allow-lan": {
+    "title": "Bypass LAN",
+    "desc": "Autoriser l'accès direct au réseau local"
   },
   "notifications": {
     "title": "Notifications sur le bureau"
   },
   "monitoring-alert": "Redémarrez l'application et le service du daemon pour que le changement s'applique.",
   "support": {
+    "intro": {
+      "title": "⚠️ Protégez-vous des escroqueries",
+      "description": "Veuillez contacter l'assistance NymVPN uniquement via les canaux officiels indiqués ci-dessous. Nous ne vous demanderons jamais votre mot de passe et nous ne vous contacterons jamais par message privé.\n\nVous avez reçu un message inattendu ? Il s'agit probablement d'une arnaque."
+    },
     "title": "Support et commentaire",
     "faq": "Consulter la FAQ",
     "contact": "Contacter le support",
     "telegram": "Discuter sur Telegram",
     "github": "Créer un ticket GitHub",
     "matrix": "Rejoignez-nous sur Matrix",
-    "discord": "Rejoignez-nous sur Discord"
+    "discord": "Rejoignez-nous sur Discord",
+    "help": {
+      "title": "Aide à la traduction",
+      "description": "Améliorez l'application dans votre langue."
+    }
+  },
+  "dns": {
+    "title": "Personnaliser le DNS",
+    "topbar-title": "Personnalisation DNS",
+    "top-description": "Par défaut, en utilisant les serveurs DNS recommandés par Nym. Configurez les serveurs personnalisés ci-dessous si nécessaire.",
+    "view-default-dns": "Voir le DNS par défaut",
+    "hide-default-dns": "Masquer le DNS par défaut",
+    "details": {
+      "title": "Utiliser des serveurs DNS personnalisés",
+      "description": "Configurez votre propre DNS pour le blocage de publicité, le filtrage de contenu ou les fournisseurs préférés. Faites glisser pour réordonner la priorité. ⚠️ Peut limiter la connectivité Nym.",
+      "list-header": "Serveurs DNS personnalisés",
+      "add": "Ajouter",
+      "input-label": "Adresse DNS",
+      "input-placeholder": "Adresse IPv4 ou IPv6",
+      "apply": "Enregistrer les modifications",
+      "link": "En savoir plus sur le DNS",
+      "applied": "DNS personnalisé enregistré."
+    },
+    "error": {
+      "duplicate": "Dupliquer l'adresse DNS",
+      "invalid": "Format d'adresse DNS invalide",
+      "failed": "Impossible d'appliquer les modifications DNS"
+    }
+  },
+  "confirmation-dialog": {
+    "title": "Enregistrer les modifications ?",
+    "description": "Vous avez des modifications non enregistrées.",
+    "save": "Enregistrer les modifications",
+    "cancel": "Abandonner"
   },
   "legal": {
     "title": "Juridique",
@@ -31,7 +72,6 @@
   },
   "logs": {
     "title": "Journaux",
-    "desc": "Copier ou supprimer les journaux",
     "app": "Journaux de l'application",
     "daemon": "Journaux du démon"
   },
@@ -49,6 +89,11 @@
       "warning": "Les modifications s'appliqueront après la reconnexion",
       "content": "Déguiser les requêtes API derrière des domaines populaires et autorisés pour contourner le blocage du VPN. Utilisé automatiquement par NymVPN lorsque les tentatives de connexion standard échouent.",
       "link": "Comment fonctionne le mode de connexion de l'API furtive"
+    },
+    "amneziawg": {
+      "label": "obfuscation minimale (AmneziaWG)",
+      "content": "Rend le trafic WireGuard plus difficile à détecter. Introduit des paquets de leurre qui perturbent les règles simples souvent utilisées par les systèmes de censure Deep Packet Inspection (DPI), améliorant la fiabilité de la connexion dans les environnements restrictifs.\n\nNote : Seulement côté client implémenté.",
+      "link": "Comment AmneziaWG empêche les DPI"
     },
     "snackbar-switch-on": "La connexion améliorée (protocole QUIC) sera activée lorsque vous vous reconnecterez.",
     "snackbar-switch-off": "La connexion améliorée (protocole QUIC) sera désactivée lorsque vous vous reconnecterez."
@@ -76,6 +121,32 @@
   "killswitch": {
     "title": "Killswitch",
     "desc": "Se déconnecter en cas de coupure d'internet"
+  },
+  "app-proxy": {
+    "title": "Proxy de l'application et du portefeuille (bêta)",
+    "menu-desc": "Router le trafic de l'application à travers mixnet",
+    "label": "Proxy de l'application et du portefeuille",
+    "description": "Activer le proxy mixnet pour les applications et les portefeuilles",
+    "connect-vpn-first": "Connectez d'abord le VPN pour activer le proxy",
+    "intro": "Routez le trafic des applications et des portefeuilles à travers le mixnet Nym pour améliorer la confidentialité. Cette fonctionnalité crée un proxy SOCKS5 local pour les applications et un proxy RPC HTTP pour les portefeuilles.",
+    "status": "Statut",
+    "proxy-url": "URL du proxy",
+    "active-connections": "Connexions actives",
+    "copied-to-clipboard": "URL du proxy copiée dans le presse-papiers",
+    "snackbar-enabled": "Proxy SOCKS5 activé",
+    "snackbar-disabled": "Proxy SOCKS5 désactivé",
+    "error-gateway-not-supported": "La passerelle ne supporte pas SOCKS5",
+    "error-unknown": "Impossible d'activer/désactiver le proxy SOCKS5",
+    "error-vpn-not-connected": "Veuillez d'abord connecter le VPN avant d'activer le proxy SOCKS5",
+    "socks5-address-label": "Adresse d'écoute SOCKS5",
+    "socks5-address-placeholder": "127.0.0.1:1080",
+    "http-rpc-address-label": "Adresse d'écoute HTTP RPC",
+    "http-rpc-address-placeholder": "127.0.0.1:8545",
+    "configuration": "Configuration",
+    "enabling": "Activation du proxy...",
+    "disabling": "Désactivation du proxy...",
+    "add-to-browser-proxy-settings": "Ajoutez cette URL aux paramètres proxy de votre navigateur pour acheminer le trafic à travers le mixnet Nym",
+    "use-in-wallet": "Utilisez cette URL dans MetaMask ou d'autres portefeuilles Web3 pour passer des appels RPC via le mixnet Nym. Remplacez <your-provider-url> par l'URL de votre fournisseur réel."
   },
   "privacy": {
     "error-monitoring": {
