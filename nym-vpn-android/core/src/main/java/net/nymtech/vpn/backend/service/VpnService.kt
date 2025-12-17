@@ -4,11 +4,9 @@ import android.content.Intent
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import net.nymtech.vpn.backend.NymBackend
 import net.nymtech.vpn.backend.NymBackend.Companion.alwaysOnCallback
-import net.nymtech.vpn.backend.NymBackend.Companion.vpnService
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.util.LifecycleVpnService
 import nym_vpn_lib.AndroidTunProvider
@@ -24,19 +22,19 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	override fun onCreate() {
 		super.onCreate()
 		Timber.d("Vpn service created")
-		vpnService.complete(this)
+		NymBackend.publishVpnService(this)
 	}
 
 	override fun onDestroy() {
 		Timber.d("Vpn service destroyed")
 		closeInterfaceSafely()
-		vpnService = CompletableDeferred()
+		NymBackend.publishVpnService(null)
 		stopForeground(STOP_FOREGROUND_REMOVE)
 		super.onDestroy()
 	}
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-		vpnService.complete(this)
+		NymBackend.publishVpnService(this)
 
 		if (intent == null || intent.component == null || intent.component?.packageName != packageName) {
 			Timber.i("Always-on VPN starting tunnel")
@@ -224,7 +222,6 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	}
 
 	private fun newBuilder(): Builder {
-		return Builder().apply {
-		}
+		return Builder().apply { }
 	}
 }
