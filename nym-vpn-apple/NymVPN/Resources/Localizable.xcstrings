@@ -8754,6 +8754,17 @@
         }
       }
     },
+    "dns.custom.listTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom DNS Servers"
+          }
+        }
+      }
+    },
     "dns.custom.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8794,6 +8805,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "By default, using Nym's recommended DNS servers. Configure custom servers below if needed."
+          }
+        }
+      }
+    },
+    "dns.textfield.invalid" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid DNS address format"
           }
         }
       }
