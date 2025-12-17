@@ -6,7 +6,7 @@ use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_sdk::mixnet::{EventReceiver, MixTrafficEvent, MixnetClient, MixnetClientEvent};
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Framed, sync::CancellationToken};
-use tun::{AsyncDevice, TunPacket, TunPacketCodec};
+use tun::{AsyncDevice, TunPacketCodec};
 
 // The mixnet listener is responsible for listening for incoming mixnet messages from the mixnet
 // client, and if they contain IP packets, forward them to the tun device.
@@ -18,7 +18,7 @@ pub(super) struct MixnetListener {
     ipr_listener: IprListener,
 
     // Sink for sending packets to the tun device
-    tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
+    tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>,
 
     // Cancellation token
     shutdown_token: CancellationToken,
@@ -30,10 +30,10 @@ pub(super) struct MixnetListener {
 impl MixnetListener {
     pub(super) fn spawn(
         mixnet_client: MixnetClient,
-        tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>,
+        tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>,
         shutdown_token: CancellationToken,
         event_rx: EventReceiver,
-    ) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>> {
+    ) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>> {
         let ipr_listener = IprListener::new();
         let mixnet_listener = Self {
             mixnet_client,
@@ -50,7 +50,7 @@ impl MixnetListener {
     // - Mixnect client crashed
     // - We received the disconnect ack
     // - Mixnet stream ended (it crashed)
-    async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket> {
+    async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>> {
         let mixnet_cancel_token = self.mixnet_client.cancellation_token().clone();
         loop {
             tokio::select! {
@@ -77,7 +77,7 @@ impl MixnetListener {
                                     // Consider not including packets that are ICMP ping replies to our beacon
                                     // in the responses. We are defensive here just in case we incorrectly
                                     // label real packets as ping replies to our beacon.
-                                    if let Err(err) = self.tun_device_sink.send(TunPacket::new(packet.to_vec())).await {
+                                    if let Err(err) = self.tun_device_sink.send(packet.to_vec()).await {
                                         tracing::error!("Failed to send packet to tun device: {err}");
                                     }
                                 }

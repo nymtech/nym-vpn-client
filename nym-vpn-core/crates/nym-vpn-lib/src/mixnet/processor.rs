@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{result::Result, time::Duration};
+use std::{ops::Deref, result::Result, time::Duration};
 
 use bytes::{Bytes, BytesMut};
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
@@ -16,7 +16,7 @@ use nym_sdk::mixnet::{
 };
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Encoder, sync::CancellationToken};
-use tun::{AsyncDevice, Device};
+use tun::{AbstractDevice, AsyncDevice};
 
 use super::{MixnetError, backpressure::MixnetBackpressureMonitor};
 
@@ -90,7 +90,10 @@ impl MixnetProcessor {
     async fn run(self) -> Result<AsyncDevice, MixnetError> {
         tracing::info!(
             "Opened mixnet processor on tun device {}",
-            self.device.get_ref().name().unwrap(),
+            self.device
+                .deref()
+                .tun_name()
+                .unwrap_or("<unknown>".to_string()),
         );
 
         tracing::debug!("Splitting tun device into sink and stream");
@@ -201,7 +204,7 @@ impl MixnetProcessor {
                 tun_packet = tun_device_stream.next(), if !is_backpressure => match tun_packet {
                     Some(Ok(tun_packet)) => {
                         payload_topup_interval.reset();
-                        let packet = IprPacket::from(tun_packet.into_bytes());
+                        let packet = IprPacket::from(tun_packet);
                         tokio::select! {
                             ret = handle_packet(packet, &mut packet_bundler, &input_message_creator, &mixnet_sender) => {
                                 if ret.is_err() && !mixnet_client_shutdown_token.is_cancelled() {
