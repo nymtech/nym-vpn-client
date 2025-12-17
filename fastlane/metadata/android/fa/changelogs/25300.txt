@@ -1,0 +1,2 @@
+تغییرات نسخه جدید:
+- Fixed connection issue with tunnel lifecycle.

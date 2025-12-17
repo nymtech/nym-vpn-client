@@ -25,7 +25,7 @@
 	<string name="is_selected">已选择</string>
 	<string name="fastest">最快</string>
 	<string name="auto_connect">自动连接</string>
-	<string name="auto_connect_description">重启时自动连接</string>
+	<string name="auto_connect_description">应用程序打开时连接</string>
 	<string name="logs">日志</string>
 	<string name="support">支持</string>
 	<string name="legal">法律</string>
@@ -130,7 +130,7 @@
 	<string name="update_required">需要更新！</string>
 	<string name="update">更新</string>
 	<string name="log_out_title">确定要退出登录吗？</string>
-	<string name="log_out_body">您需要助记词才能重新登录。</string>
+	<string name="log_out_body">您需要使用24个单词组成的助记词重新登录。</string>
 	<string name="cancel">取消</string>
 	<string name="info">信息</string>
 	<string name="collapse">折叠</string>
@@ -152,10 +152,13 @@
 	<string name="join_telegram">加入Telegram</string>
 	<!-- Common -->
 	<string name="button_done">完成</string>
+	<string name="button_discard">放弃...</string>
+	<string name="button_add">添加</string>
+	<string name="here">在这里</string>
+	<!-- Dialogs & info messaged -->
 	<string name="stream_display">流媒体显示</string>
 	<string name="streaming_server_banner_title">新功能: 探索串流 -\n优化服务器 (▶️)</string>
 	<string name="streaming_server_banner_action">检查新的\n出口服务器</string>
-    <string name="here">在这里</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">无法连接到相同的进出服务器。更改进入或退出服务器并重新连接。</string>
 	<string name="unexpected_error">出现意外错误：</string>
@@ -191,13 +194,14 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">反检查</string>
 	<string name="settings_passphrase_title">助记词</string>
+	<string name="settings_dns_title">自定义DNS</string>
 	<string name="settings_ipv6_title">支持 IPv6</string>
 	<string name="settings_ipv6_description">允许IPv6连接</string>
-	<string name="settings_bypass_description">允许直接本地网络访问</string>
-	<string name="settings_auto_select_title">自动选择条目服务器</string>
-	<string name="settings_auto_select_description">让应用选择最佳的条目位置</string>
-	<string name="settings_device_startup_title">启动设备时启动</string>
-	<string name="settings_device_startup_description">让应用选择最佳的条目位置</string>
+	<string name="settings_bypass_description">允许直接访问本地网络</string>
+	<string name="settings_auto_select_title">自动选择入口服务器</string>
+	<string name="settings_auto_select_description">让应用程序选择最佳的入口位置</string>
+	<string name="settings_device_startup_title">开机时自动启动</string>
+	<string name="settings_device_startup_description">让应用选择最佳的入口位置</string>
 	<string name="settings_system_tray_title">在系统托盘中运行</string>
 	<string name="settings_system_tray_description">关闭时保持应用程序运行</string>
 	<string name="settings_reset_app_title">重置应用数据</string>
@@ -205,6 +209,8 @@
 	<string name="settings_quit_title">退出 NymVPN</string>
 	<string name="settings_app_version_line">应用版本: %1$s</string>
 	<string name="settings_daemon_version_line">守护进程版本: %1$s</string>
+	<string name="settings_language_help_title">帮助我们翻译</string>
+	<string name="settings_language_help_description">让应用程序以更好的方式显示您的本地语言。</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">最佳连接方式</string>
 	<string name="battery_opt_descr">禁用 NymVPN 电池优化以获得更稳定的 VPN 连接。</string>
@@ -296,6 +302,7 @@
 	<string name="quick_info_modal_desc_non_quic">这将在不启用QUIC 协议的情况下重新连接，您将重新连接到当前网关。\n\n您的数据在重新连接时依然受到保护。</string>
 	<string name="quic_primary_btn_text_non_quic">不使用QUIC重新连接</string>
 	<string name="quic_text_btn_text_non_quic">下次连接时再关闭QUIC</string>
+	<string name="quic_gateway_filter_info_msg">仅显示支持QUIC 协议的快速模式位置和服务器。要关闭所有服务器，请关闭 QUIC</string>
 	<string name="censorship_amnezia_title">最低限度的反审查保护（AmneziaWG）</string>
 	<string name="censorship_amnezia_description">通过引入能够绕开深度包检测系统的基本检查规则的诱饵数据包，使得WireGuard流量更加难以被检测到，改善受限制的网络中连接的稳定性。\n\n注意：只实现了客户端。</string>
 	<string name="censorship_amnezia_link_text">Amnezia WG是如何阻止DPI的</string>
@@ -307,6 +314,7 @@
 	<string name="account_welcome_open_source">开源 &amp; 遵守瑞士隐私法</string>
 	<string name="account_welcome_button">开始保护我的隐私</string>
 	<string name="account_welcome_have_account">已经有帐户？</string>
+	<string name="account_welcome_free_trial">7天免费试用- 无需付款</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">您已经订阅了！</string>
 	<string name="account_subscription_description">我们发现一个活跃的订阅链接到您的 Google Play 帐户。 请跳过注册环节并直接跳转到 NymVPN。只需输入您的24个单词助记词登录就可以了。</string>
@@ -350,14 +358,14 @@
 	<string name="passphrase_info_keeps_anonymous">保持您的匿名状态</string>
 	<string name="passphrase_info_belongs">仅属于您(自我托管)</string>
 	<!-- Account screen -->
-	<string name="account_title">帐户和设备</string>
+	<string name="account_title">账号和设备</string>
 	<string name="account_info_plan">计划</string>
 	<string name="account_info_payments">付款</string>
 	<string name="account_info_devices">设备</string>
 	<string name="account_info_id_title">帐户 ID</string>
 	<string name="account_info_id_description">将此ID用于联系Nym支持团队</string>
 	<string name="account_info_id_important">⚠️ 重要: Nym支持团队永远不会索要您的24个单词密组成的助记词。永远不要与包括Nym工作人员在内的任何人共享它。</string>
-	<string name="account_on_nym">账户 nym.com</string>
+	<string name="account_on_nym">在nym.com上查看账号信息</string>
 	<string name="account_device_id_title">设备ID</string>
 	<string name="account_id_title">帐户 ID</string>
 	<!-- Logs screen -->
@@ -375,25 +383,43 @@
 	<string name="logs_download_button">仍然保存为文件</string>
 	<string name="logs_saved">保存日志到下载文件夹</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">分割隧道中</string>
-	<string name="split_tunneling_info_msg">设置每个应用使用NymVPN 或直接连接。</string>
-	<string name="split_tunneling_info_desc">更改将在重新连接后应用</string>
+	<string name="split_tunneling">Split tunneling</string>
+	<string name="split_tunneling_info_msg">为每个应用程序设置通过NymVPN连接或者直接连接到网络。</string>
+	<string name="split_tunneling_info_desc">更改将在重新连接后生效</string>
 	<string name="split_tunneling_search_apps_hint">搜索应用</string>
 	<string name="split_tunneling_apps">应用程序</string>
-	<string name="split_tunneling_direct">直线</string>
-	<string name="split_tunneling_direct_desc">旁路 NymVPN</string>
-	<string name="split_tunneling_via_vpn">通过 NymVPN</string>
-	<string name="split_tunneling_via_desc">连接时保护</string>
+	<string name="split_tunneling_direct">直连</string>
+	<string name="split_tunneling_direct_desc">不通过NymVPN</string>
+	<string name="split_tunneling_via_vpn">通过NymVPN</string>
+	<string name="split_tunneling_via_desc">连接时受到保护</string>
 	<string name="split_tunneling_nym_vpn">NymVPN</string>
-	<string name="split_tunneling_system_applications">系统应用程序</string>
-	<string name="split_tunnel_info_modal_title">使用拆分隧道化</string>
-	<string name="split_tunnel_info_modal_desc">拆分隧道使您能够优化每个应用的最大速度或最大隐私。您可以随时轻松更改这些设置。</string>
-	<string name="split_tunnel_info_direct_desc">对于银行服务、智能家居设备或工作应用程序等服务。</string>
-	<string name="split_tunnel_info_via_vpn_desc">推荐设置。将根据您的需要使用当时的模式(快速或匿名)。</string>
-	<string name="split_tunnel_changes_confirm_modal_title">应用分割隧道设置？</string>
-	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.</string>
+	<string name="split_tunneling_system_applications">系统应用</string>
+	<string name="split_tunnel_info_modal_title">使用split tunneling</string>
+	<string name="split_tunnel_info_modal_desc">Split tunneling让您根据最大程度的隐私或者最快的网速来对每一个应用程序进行优化。您可以随时修改这些设置。</string>
+	<string name="split_tunnel_info_direct_desc">对于银行、智能家居设备或工作用的应用程序等。</string>
+	<string name="split_tunnel_info_via_vpn_desc">推荐设置。将根据您的需要使用当前的模式(快速或匿名)。</string>
+	<string name="split_tunnel_changes_confirm_modal_title">应用split tunneling设置？</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling已更新。重新连接以使这些改动生效。\n\n重新连接期间您的流量依然受到保护。</string>
 	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">现在重新连接</string>
-	<string name="split_tunnel_changes_confirm_modal_text_btn_label">应用到下一个连接</string>
-	<string name="split_tunneling_per_app_security_banner_title">:shuffle_tracks_buton: 新建: 选择单个应用保护或直接连接以获取速度</string>
-	<string name="split_tunneling_per_app_security_banner_action">配置\n应用</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">下次连接时生效</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 新功能: 选择基于单个应用程序的保护或直接连接互联网以获取最快的网速</string>
+	<string name="split_tunneling_per_app_security_banner_action">配置\n应用程序</string>
+	<!-- DNS customization screen -->
+	<string name="dns_title">DNS 自定义</string>
+	<string name="dns_description">默认情况下，使用 Nym 推荐的DNS 服务器。如果需要在下方配置自定义服务器。</string>
+	<string name="dns_view_list">查看默认DNS</string>
+	<string name="dns_hide_list">隐藏默认DNS</string>
+	<string name="dns_list_title">Nym 的默认 DNS：</string>
+	<string name="dns_custom_title">使用自定义 DNS 服务器</string>
+	<string name="dns_custom_description">配置您自己的DNS用于广告拦截、内容过滤或首选供应商。拖动以重新排序优先级。警告：可能限制Nym连通性。 </string>
+	<string name="dns_custom_list_title">输入 DNS 服务器</string>
+	<string name="dns_custom_list_entries">自定义 DNS 服务器 (%1$s/5)</string>
+	<string name="dns_custom_list_hint">IPv4或IPv6地址</string>
+	<string name="dns_custom_list_error">无效的 DNS 地址格式</string>
+	<string name="dns_custom_button_add">添加</string>
+	<string name="dns_custom_button_save">保存更改</string>
+	<string name="dns_custom_saved">自定义DNS已保存。</string>
+	<string name="dns_save_dialog_title">保存更改？</string>
+	<string name="dns_save_dialog_description">您有未保存的更改。</string>
+	<string name="dns_learn_more_text">了解更多关于 DNS</string>
 </resources>

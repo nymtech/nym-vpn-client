@@ -1,0 +1,4 @@
+What's new:
+- Logger bug fixes
+- Stability improvements
+- Client update messaging
