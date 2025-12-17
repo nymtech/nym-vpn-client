@@ -32,6 +32,9 @@ function CustomDNS() {
   }, [customDnsList, customDns]);
 
   const applyChanges = async () => {
+    if (customDnsList.length === 0) {
+      await toggleCustomDns(false);
+    }
     await setCustomDns(customDnsList.map((item) => item.dns));
     push({
       message: t('dns.details.applied'),
@@ -70,6 +73,7 @@ function CustomDNS() {
             header={t('dns.details.title')}
             checked={customDnsEnabled}
             onClick={handleDnsSwitchChange}
+            disabled={customDns.length === 0}
           />
         }
       >
