@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(unix)]
+use std::ops::Deref;
 #[cfg(target_os = "ios")]
 use std::time::Duration;
 use std::{
@@ -161,7 +163,7 @@ impl ConnectedTunnel {
         let mut entry_tunnel = wireguard_go::Tunnel::start(
             wg_entry_config.into_wireguard_config(),
             #[cfg(unix)]
-            options.entry_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
+            options.entry_tun.deref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.entry_tun_name,
             #[cfg(windows)]
@@ -174,7 +176,7 @@ impl ConnectedTunnel {
         let exit_tunnel = wireguard_go::Tunnel::start(
             wg_exit_config.into_wireguard_config(),
             #[cfg(unix)]
-            options.exit_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
+            options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.exit_tun_name,
             #[cfg(windows)]
@@ -325,7 +327,7 @@ impl ConnectedTunnel {
         let mut exit_tunnel = wireguard_go::Tunnel::start(
             two_hop_config.exit.into_wireguard_config(),
             #[cfg(unix)]
-            options.exit_tun.get_ref().dup_fd().map_err(Error::DupFd)?,
+            options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?,
             #[cfg(windows)]
             &options.exit_tun_name,
             #[cfg(windows)]
