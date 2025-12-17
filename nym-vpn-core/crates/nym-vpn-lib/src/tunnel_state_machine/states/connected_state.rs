@@ -63,13 +63,22 @@ impl ConnectedState {
             };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let firewall_policy_params = ConnectedPolicyParameters {
-            enable_ipv6: _shared_state.tunnel_settings.enable_ipv6,
-            allow_lan: _shared_state.tunnel_settings.allow_lan,
-            wg_entry_endpoint,
-            ws_entry_endpoints: selected_gateways.entry_gateway().endpoints(),
-            dns_config: _shared_state.tunnel_settings.resolved_dns_config(),
-            tunnel_interface: tunnel_interface.clone(),
+        let firewall_policy_params = {
+            // Include entry gateway WebSocket endpoints
+            let mut ws_endpoints = selected_gateways.entry_gateway().endpoints();
+            // Also include exit gateway WebSocket endpoints for SOCKS5 support in 2-hop mode.
+            // These endpoints are whitelisted in firewall rules (peer_endpoints), allowing SOCKS5
+            // to establish direct connections to the exit gateway
+            ws_endpoints.extend(selected_gateways.exit_gateway().endpoints());
+
+            ConnectedPolicyParameters {
+                enable_ipv6: _shared_state.tunnel_settings.enable_ipv6,
+                allow_lan: _shared_state.tunnel_settings.allow_lan,
+                wg_entry_endpoint,
+                ws_entry_endpoints: ws_endpoints,
+                dns_config: _shared_state.tunnel_settings.resolved_dns_config(),
+                tunnel_interface: tunnel_interface.clone(),
+            }
         };
 
         let connected_state = Self {
@@ -373,5 +382,118 @@ impl ConnectedPolicyParameters {
             #[cfg(target_os = "macos")]
             redirect_interface: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nym_firewall::TransportProtocol;
+    use std::net::{IpAddr, Ipv4Addr};
+
+    fn create_mock_gateway_with_websocket_endpoints(
+        ip: Ipv4Addr,
+        ws_port: u16,
+        wss_port: u16,
+    ) -> nym_gateway_directory::Gateway {
+        use nym_gateway_directory::Gateway;
+        use nym_sdk::mixnet::NodeIdentity;
+
+        // Create a dummy identity for testing
+        let dummy_identity =
+            NodeIdentity::from_base58_string("7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42")
+                .expect("Valid test identity");
+
+        Gateway::builder()
+            .identity(dummy_identity)
+            .ips(vec![IpAddr::V4(ip)])
+            .clients_ws_port(Some(ws_port))
+            .clients_wss_port(Some(wss_port))
+            .build()
+    }
+
+    #[test]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    fn test_firewall_policy_includes_exit_gateway_endpoints() {
+        // Create mock entry gateway with WebSocket on port 9000 (WS) and 9001 (WSS)
+        let entry_gateway =
+            create_mock_gateway_with_websocket_endpoints(Ipv4Addr::new(192, 168, 1, 1), 9000, 9001);
+        let entry_endpoints = entry_gateway.endpoints();
+
+        // Create mock exit gateway with WebSocket on port 9000 (WS) and 9001 (WSS)
+        let exit_gateway =
+            create_mock_gateway_with_websocket_endpoints(Ipv4Addr::new(192, 168, 1, 2), 9000, 9001);
+        let exit_endpoints = exit_gateway.endpoints();
+
+        // Create ConnectedPolicyParameters (simulating what happens in enter())
+        // We'll directly test with the endpoints without needing SelectedGateways
+        let mut ws_endpoints = entry_endpoints.clone();
+        ws_endpoints.extend(exit_endpoints.clone());
+
+        // Create a minimal TunnelInterface for testing
+        use crate::tunnel_state_machine::TunnelMetadata;
+        use ipnetwork::IpNetwork;
+        let tunnel_metadata = TunnelMetadata {
+            interface: "test0".to_string(),
+            ips: vec![
+                IpNetwork::new(Ipv4Addr::new(10, 0, 0, 1).into(), 24)
+                    .unwrap()
+                    .network(),
+            ],
+            ipv4_gateway: Some(Ipv4Addr::new(10, 0, 0, 1)),
+            ipv6_gateway: None,
+        };
+        let tunnel_interface = TunnelInterface::One(tunnel_metadata);
+
+        // Create ResolvedDnsConfig using DnsConfig::default().resolve()
+        use nym_dns::DnsConfig;
+        let dns_config = DnsConfig::default().resolve(
+            &[IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1))],
+            #[cfg(target_os = "macos")]
+            53,
+        );
+
+        let params = ConnectedPolicyParameters {
+            enable_ipv6: false,
+            allow_lan: false,
+            wg_entry_endpoint: None,
+            ws_entry_endpoints: ws_endpoints,
+            dns_config,
+            tunnel_interface,
+        };
+
+        // Build firewall policy
+        let policy = params.as_policy();
+
+        // Extract peer endpoints
+        let peer_endpoints = policy.peer_endpoints();
+
+        // Verify entry gateway endpoints are included
+        assert!(
+            entry_endpoints.iter().any(|entry_ep| {
+                peer_endpoints.iter().any(|allowed_ep| {
+                    allowed_ep.endpoint.address == *entry_ep
+                        && allowed_ep.endpoint.protocol == TransportProtocol::Tcp
+                })
+            }),
+            "Entry gateway endpoints should be in peer_endpoints"
+        );
+
+        // Verify exit gateway endpoints are included
+        assert!(
+            exit_endpoints.iter().any(|exit_ep| {
+                peer_endpoints.iter().any(|allowed_ep| {
+                    allowed_ep.endpoint.address == *exit_ep
+                        && allowed_ep.endpoint.protocol == TransportProtocol::Tcp
+                })
+            }),
+            "Exit gateway endpoints should be in peer_endpoints for SOCKS5 support"
+        );
+
+        // Verify we have endpoints from both gateways
+        assert!(
+            peer_endpoints.len() >= entry_endpoints.len() + exit_endpoints.len(),
+            "peer_endpoints should contain endpoints from both entry and exit gateways"
+        );
     }
 }
