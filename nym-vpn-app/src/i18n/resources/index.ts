@@ -1,10 +1,14 @@
+export { ar } from './ar';
 export { bn } from './bn';
+export { cs } from './cs';
 export { de } from './de';
 export { el } from './el';
 export { en } from './en';
 export { es } from './es';
+export { fa } from './fa';
 export { fr } from './fr';
 export { hi } from './hi';
+export { hu } from './hu';
 export { it } from './it';
 export { ja } from './ja';
 export { ptBR } from './pt-BR';
