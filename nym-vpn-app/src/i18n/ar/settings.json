@@ -7,18 +7,59 @@
     "title": "نفق حركة مرور IPv6",
     "desc": "تعطيل لاستخدام IPv4 فقط"
   },
+  "allow-lan": {
+    "title": "Bypass LAN",
+    "desc": "السماح بالوصول المباشر إلى الشبكة المحلية"
+  },
   "notifications": {
     "title": "إشعارات سطح المكتب"
   },
   "monitoring-alert": "يجب أن تعيد تشغيل التطبيق لتصبح التغييرات سارية المفعول.",
   "support": {
+    "intro": {
+      "title": "⚠️ حماية نفسك من الاحتيالات",
+      "description": "Only contact NymVPN support through the official channels listed below. We will never ask for your passphrase or contact you first via direct messages.\n\nReceived unexpected contact? It's likely a scam."
+    },
     "title": "الدعم",
     "faq": "تحقق من الأسئلة الشائعة",
     "contact": "Get in touch",
     "telegram": "الدردشة على تيليجرام",
     "github": "إرسال مشكلة إلى GitHub",
     "matrix": "انضم إلينا على Matrix",
-    "discord": "انضم إلينا على Discord"
+    "discord": "انضم إلينا على Discord",
+    "help": {
+      "title": "المساعدة في الترجمة",
+      "description": "جعل التطبيق أفضل بلغتك."
+    }
+  },
+  "dns": {
+    "title": "تخصيص DNS",
+    "topbar-title": "تخصيص DNS",
+    "top-description": "بشكل افتراضي، استخدام خوادم DNS الموصى بها لـ Nym. تكوين خوادم مخصصة أدناه إذا لزم الأمر.",
+    "view-default-dns": "عرض DNS الافتراضي",
+    "hide-default-dns": "إخفاء DNS الافتراضي",
+    "details": {
+      "title": "استخدام خوادم DNS المخصصة",
+      "description": "تكوين DNS الخاص بك لحجب الإعلانات، أو تصفية المحتوى، أو مقدمي الخدمات المفضلين. اسحب لإعادة ترتيب الأولوية. ⚠️ قد يحد من اتصال Nym.",
+      "list-header": "خوادم DNS مخصصة",
+      "add": "إضافة",
+      "input-label": "عنوان DNS",
+      "input-placeholder": "عنوان IPv4 أو IPv6",
+      "apply": "حفظ التغييرات",
+      "link": "تعرف على المزيد حول DNS",
+      "applied": "تم حفظ DNS مخصص."
+    },
+    "error": {
+      "duplicate": "تكرار عنوان DNS",
+      "invalid": "تنسيق عنوان DNS غير صالح",
+      "failed": "فشل في تطبيق تغييرات DNS"
+    }
+  },
+  "confirmation-dialog": {
+    "title": "حفظ التغييرات؟",
+    "description": "لديك تغييرات غير محفوظة.",
+    "save": "حفظ التغييرات",
+    "cancel": "تجاهل"
   },
   "legal": {
     "title": "قانوني",
@@ -31,7 +72,6 @@
   },
   "logs": {
     "title": "السجلات",
-    "desc": "نسخ أو مسح السجلات",
     "app": "سجلات التطبيق",
     "daemon": "سجلات دايمون"
   },
@@ -50,6 +90,11 @@
       "content": "إخفاء طلبات API خلف شعبية, النطاقات المسموح بها لتجاوز حظر VPN. يتم استخدامها تلقائياً من قبل NymVPN عند فشل محاولات الاتصال القياسية.",
       "link": "كيف يعمل واجهة برمجة تطبيقات ستثنى"
     },
+    "amneziawg": {
+      "label": "الحد الأدنى من التشويش",
+      "content": "Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments.\n\nNote: Only implemented client-side.",
+      "link": "كيف يمنع أمنيزياي الفريق إدارة شؤون الإعلام"
+    },
     "snackbar-switch-on": "تحسين الاتصال (بروتوكول QUIC) سيتم تفعيله عند إعادة الاتصال.",
     "snackbar-switch-off": "تحسين الاتصال (بروتوكول QUIC) سيؤدي إلى تعطيل عند إعادة الاتصال."
   },
@@ -57,8 +102,8 @@
   "display-theme": "نمط العرض",
   "logout-confirmation": {
     "title": "هل أنت متأكد؟",
-    "description": "يمكنك استخدام عبارة الاسترداد لتسجيل الدخول مرة أخرى.",
-    "logging-out": "تسجيل الخروج…"
+    "description": "سوف تحتاج إلى كلمة المرور 24 كلمة لتسجيل الدخول مرة أخرى.",
+    "logging-out": "تسجيل الخروج"
   },
   "quit": "اغلاق NymVPN",
   "login-button": "تسجيل الدخول",
@@ -70,12 +115,38 @@
     "device-id": "معرف الجهاز"
   },
   "autostart": {
-    "title": "Autostart",
-    "desc": "تشغيل NymVPN عند بدء تشغيل النظام"
+    "title": "تشغيل عند بدء تشغيل الجهاز",
+    "desc": "بدء تشغيل التطبيق عند تشغيل الجهاز"
   },
   "killswitch": {
     "title": "كيلتبديل",
     "desc": "قطع الاتصال إذا انخفض الإنترنت"
+  },
+  "app-proxy": {
+    "title": "التطبيق والحافظة الوكيل (بيتا)",
+    "menu-desc": "توجيه حركة مرور التطبيق من خلال ميكوست",
+    "label": "تطبيق & محفظة الوكيل",
+    "description": "تمكين وكيل المزيج للتطبيقات والمحافظ",
+    "connect-vpn-first": "قم بتوصيل VPN أولاً لتمكين الوكيل",
+    "intro": "توجيه حركة مرور التطبيق والمحفظة من خلال شبكة Nym mixnet لتحسين الخصوصية. هذه الميزة تنشئ وكيل SOCKS5 للتطبيقات، ووكيل HTTP RPC للمحفظات.",
+    "status": "الحالة",
+    "proxy-url": "رابط البروكسي",
+    "active-connections": "اتصالات نشطة",
+    "copied-to-clipboard": "تم نسخ عنوان URL الوكيل إلى الحافظة",
+    "snackbar-enabled": "تم تمكين وكيل SOCKS5",
+    "snackbar-disabled": "تم تعطيل وكيل SOCKS5",
+    "error-gateway-not-supported": "البوابة لا تدعم SOCKS5",
+    "error-unknown": "فشل تبديل وكيل SOCKS5",
+    "error-vpn-not-connected": "الرجاء الاتصال VPN أولاً قبل تمكين وكيل SOCKS5",
+    "socks5-address-label": "عنوان الاستماع SOCKS5",
+    "socks5-address-placeholder": "127.0.0.1:1080",
+    "http-rpc-address-label": "عنوان الاستماع لـ HTTP RPC",
+    "http-rpc-address-placeholder": "127.0.0.1:8545",
+    "configuration": "الإعدادات",
+    "enabling": "تمكين الوكيل...",
+    "disabling": "تعطيل البروكسي...",
+    "add-to-browser-proxy-settings": "أضف عنوان URL هذا إلى إعدادات البروكسي في المتصفح الخاص بك لتوجيه حركة المرور من خلال Nym mixnet",
+    "use-in-wallet": "استخدم عنوان URL هذا في MetaMask أو محافظ Web3 الأخرى لإجراء مكالمات RPC من خلال Mym mixnet. استبدل <your-provider-url> بعنوان URL الخاص بك المزود الفعلي."
   },
   "privacy": {
     "error-monitoring": {

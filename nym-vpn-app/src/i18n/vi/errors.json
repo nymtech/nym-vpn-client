@@ -2,7 +2,7 @@
   "unknown": "Lỗi không xác định",
   "internal": "Lỗi nội bộ",
   "daemon": {
-    "not-connected": "Không kết nối với daemon",
+    "not-connected": "Không kết nối với daemon (vpnd). Khởi động lại daemon hoặc khởi động lại ứng dụng.",
     "internal": "Lỗi nội bộ của daemon",
     "invalid-network": "Mạng không hợp lệ"
   },

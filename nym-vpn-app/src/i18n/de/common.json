@@ -1,11 +1,11 @@
 {
   "vpn-modes": {
-    "privacy": "Anonym",
-    "fast": "Schnell"
+    "privacy": "Anonym (Mixnet)",
+    "fast": "Schnell (WireGuard)"
   },
   "connect": "Verbinden",
   "disconnect": "Trennen",
-  "first-hop-selection": "Eingangsregion",
+  "first-hop-selection": "Eintrittsregion",
   "last-hop-selection": "Austrittsregion",
   "settings": "Einstellungen",
   "display-theme": "Anzeige",
@@ -13,15 +13,16 @@
   "logs": "Logs",
   "feedback": "Feedback",
   "legal": "Rechtliches",
-  "data-privacy": "Datenschutz & Daten",
-  "support": "Unterstützung",
+  "data-privacy": "Daten & Privatsphäre",
+  "support": "Support",
   "fastest": "Am schnellsten",
-  "sentry": "Wächter",
-  "tos": "Allgemeine Nutzungsbedingungen",
+  "random": "Zufällig",
+  "sentry": "Sentry",
+  "tos": "Nutzungsbedingungen",
   "privacy-statement": "Datenschutzerklärung",
   "ui-mode": {
     "dark": "Dunkler Modus",
-    "light": "Lichtmodus"
+    "light": "Heller Modus"
   },
   "appearance": "Erscheinungsbild",
   "language": "Sprache",

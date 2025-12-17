@@ -1,29 +1,70 @@
 {
   "auto-connect": {
     "title": "Automatisch verbinden",
-    "desc": "Beim Start der App automatisch verbinden"
+    "desc": "Bei App-Start automatisch verbinden"
   },
   "ipv6-support": {
-    "title": "IPv6 Verkehrstunnel",
-    "desc": "Deaktivieren, um nur IPv4 zu verwenden"
+    "title": "IPv6 unterstützen",
+    "desc": "IPv6-Verbindungen erlauben"
+  },
+  "allow-lan": {
+    "title": "Bypass LAN",
+    "desc": "Direktzugriff auf lokales Netzwerk erlauben"
   },
   "notifications": {
-    "title": "Bildschirmbenachrichtigungen"
+    "title": "Desktop-Benachrichtigungen"
   },
-  "monitoring-alert": "Du musst die App neu starten damit die Änderungen aktiv werden.",
+  "monitoring-alert": "Du musst die App und den Dienst neu starten, damit die Änderung wirksam wird.",
   "support": {
-    "title": "Support",
-    "faq": "Lies die FAQs",
-    "contact": "Support kontaktieren",
-    "telegram": "Chat auf Telegramm",
+    "intro": {
+      "title": "⚠️ Schütze dich vor Betrug",
+      "description": "Kontaktiere den NymVPN-Support nur über die unten aufgeführten offiziellen Kanäle. Wir werden dich niemals nach deiner Passphrase fragen oder dich zuerst über Direktnachrichten kontaktieren.\n\nDu hast unerwarteten Kontakt erhalten? Es ist wahrscheinlich ein Betrug."
+    },
+    "title": "Support & Feedback",
+    "faq": "Lies die FAQ",
+    "contact": "Kontaktiere uns",
+    "telegram": "Chatte auf Telegram",
     "github": "Problem auf GitHub melden",
-    "matrix": "Begleiten Sie uns auf Matrix",
-    "discord": "Tritt unserem Discord Channel bei"
+    "matrix": "Tritt unserem Matrix Chat bei",
+    "discord": "Tritt unserem Discord Channel bei",
+    "help": {
+      "title": "Hilf bei der Übersetzung",
+      "description": "Verbessere die App in deiner Sprache."
+    }
+  },
+  "dns": {
+    "title": "DNS anpassen",
+    "topbar-title": "DNS-Anpassung",
+    "top-description": "Standardmäßig werden die von Nym empfohlenen DNS-Server verwendet. Konfiguriere bei Bedarf unten benutzerdefinierte Server.",
+    "view-default-dns": "Standard DNS anzeigen",
+    "hide-default-dns": "Standard DNS ausblenden",
+    "details": {
+      "title": "Eigene DNS-Server verwenden",
+      "description": "Konfiguriere deine eigenen DNS für Werbeblockierung, Inhaltsfilterung oder bevorzugte Anbieter. Ziehe die Einträge, um die Priorität neu zu ordnen. ⚠️  Dies kann die Nym-Konnektivität einschränken.",
+      "list-header": "Benutzerdefinierte DNS-Server",
+      "add": "Hinzufügen",
+      "input-label": "DNS-Adresse",
+      "input-placeholder": "IPv4 oder IPv6 Adresse",
+      "apply": "Änderungen speichern",
+      "link": "Erfahre mehr über DNS",
+      "applied": "Eigenen DNS gespeichert."
+    },
+    "error": {
+      "duplicate": "DNS-Adresse duplizieren",
+      "invalid": "Ungültiges DNS-Adressformat",
+      "failed": "DNS-Änderungen konnten nicht angewendet werden"
+    }
+  },
+  "confirmation-dialog": {
+    "title": "Änderungen speichern?",
+    "description": "Du hast ungespeicherte Änderungen.",
+    "save": "Änderungen speichern",
+    "cancel": "Verwerfen"
   },
   "legal": {
-    "title": "Rechtlich",
+    "title": "Rechtliches",
     "policy": "Datenschutzerklärung",
-    "tos": "Allgemeine Nutzungsbedingungen",
+    "tos": "Nutzungsbedingungen",
     "license": "Lizenz",
     "licenses-rust": "Lizenzen (Rust)",
     "licenses-js": "Lizenzen (JS)",
@@ -31,74 +72,104 @@
   },
   "logs": {
     "title": "Protokolle (lokal gespeichert)",
-    "desc": "Protokolle kopieren oder löschen",
     "app": "App-Logs",
-    "daemon": "Daemon Logs"
+    "daemon": "Dienst-Logs"
   },
   "anti-censorship": {
-    "title": "Anti-Zensur",
-    "intro": "Aktiviere diese Funktionen, wenn du Verbindungsprobleme oder NymVPN blockierst.",
+    "title": "Zensurumgehung",
+    "intro": "Aktiviere diese Funktionen, wenn du Verbindungsprobleme hast oder NymVPN an deinem Standort blockiert ist.",
     "quic": {
-      "label": "Erweiterte Verbindung (QUIC)",
-      "warning": "Änderungen werden nach der erneuten Verbindung angewendet",
-      "content": "Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken durch das Einwickeln des WireGuard-Datenverkehrs in QUIC (HTTP/3) um als reguläres Surfen im Internet zu erscheinen.\n\nHinweis: Nur QUIC-kompatible Gateways für Eintragsserver Optionen einschränken.",
+      "label": "Verbesserte Verbindung (QUIC)",
+      "warning": "Änderungen werden nach dem erneuten Verbinden übernommen",
+      "content": "Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken, indem der WireGuard-Datenverkehr in QUIC (HTTP/3) eingehüllt wird, um als normales Webbrowsing zu erscheinen.\n\nHinweis: Begrenzt die Eintrittsserver-Optionen auf QUIC-kompatible Gateways.",
       "link": "Wie QUIC die Verbindungen verbessert"
     },
     "stealth-api": {
       "label": "Stealth-API-Verbindung",
-      "warning": "Änderungen werden nach der erneuten Verbindung angewendet",
-      "content": "Verschleiert API-Anfragen hinter populären, erlaubten Domains, VPN-Blockierungen zu umgehen. Wird automatisch von NymVPN verwendet, wenn Standardverbindungsversuche fehlschlagen.",
+      "warning": "Änderungen werden nach dem erneuten Verbinden übernommen",
+      "content": "Versteckt API-Anfragen hinter beliebten, zugelassenen Domains, um VPN-Blockierungen zu umgehen. Wird von NymVPN automatisch verwendet, wenn Standard-Verbindungsversuche fehlschlagen.",
       "link": "Wie der Stealth-API-Verbindungsmodus funktioniert"
     },
-    "snackbar-switch-on": "Erweiterte Verbindung (QUIC-Protokoll) wird aktiviert, wenn Sie sich neu verbinden.",
-    "snackbar-switch-off": "Erweiterte Verbindung (QUIC-Protocol) wird deaktiviert, wenn Sie sich neu verbinden."
+    "amneziawg": {
+      "label": "Minimale Verschleierung (AmneziaWG)",
+      "content": "Erschwert die Erkennung von WireGuard-Datenverkehr. Führt Scheinpakete ein, die einfache Regeln stören, die häufig von Deep Packet Inspection (DPI)-Zensursystemen verwendet werden. So wird die Verbindungszuverlässigkeit in restriktiven Umgebungen verbessert.\n\nHinweis: Nur clientseitig implementiert.",
+      "link": "Wie AmneziaWG DPI verhindert"
+    },
+    "snackbar-switch-on": "Die verbesserte Verbindung (QUIC-Protokoll) wird aktiviert, wenn du dich erneut verbindest.",
+    "snackbar-switch-off": "Die verbesserte Verbindung (QUIC-Protokoll) wird deaktiviert, wenn du dich erneut verbindest."
   },
   "faq": "FAQ",
   "display-theme": "Anzeigemodus",
   "logout-confirmation": {
-    "title": "Bist du sicher?",
-    "description": "Du benötigst deinen Zugangscode, um dein Gerät wieder zu verbinden.",
+    "title": "Von diesem Gerät abmelden?",
+    "description": "Du benötigst deine 24‑Wörter‑Passphrase, um dich wieder anzumelden.",
     "logging-out": "Abmelden…"
   },
   "quit": "NymVPN beenden",
-  "login-button": "Zum Verbinden Zugangsdaten hinzufügen",
+  "login-button": "Gerät verbinden",
   "info": {
-    "client-version": "Client Version",
-    "daemon-version": "Dienst Version",
+    "client-version": "App-Version",
+    "daemon-version": "Dienst-Version",
     "network-name": "Netzwerk",
     "account-id": "Konto-ID",
     "device-id": "Geräte-ID"
   },
   "autostart": {
-    "title": "Autostart",
-    "desc": "NymVPN beim Systemstart starten"
+    "title": "Beim Gerätestart starten",
+    "desc": "App beim Gerätestart starten"
   },
   "killswitch": {
-    "title": "Killswitch",
-    "desc": "Trenne die Verbindung, wenn das Internet abfällt"
+    "title": "Kill Switch",
+    "desc": "Immer an, um deine Daten zu schützen"
+  },
+  "app-proxy": {
+    "title": "App & Wallet-Proxy (Beta)",
+    "menu-desc": "App-Traffic über Mixnet leiten",
+    "label": "App & Wallet-Proxy",
+    "description": "Aktiviere den Mixnet-Proxy für Apps und Wallets",
+    "connect-vpn-first": "Zuerst VPN verbinden, um Proxy zu aktivieren",
+    "intro": "Leite den Datenverkehr von Apps und Wallets durch das Nym-Mixnet, um die Privatsphäre zu verbessern. Diese Funktion erstellt einen lokalen SOCKS5 Proxy für Apps und einen HTTP RPC Proxy für Wallets.",
+    "status": "Status",
+    "proxy-url": "Proxy-URL",
+    "active-connections": "Aktive Verbindungen",
+    "copied-to-clipboard": "Proxy-URL in die Zwischenablage kopiert",
+    "snackbar-enabled": "SOCKS5 Proxy aktiviert",
+    "snackbar-disabled": "SOCKS5 Proxy deaktiviert",
+    "error-gateway-not-supported": "Gateway unterstützt SOCKS5 nicht",
+    "error-unknown": "Umschalten des SOCKS5-Proxys fehlgeschlagen",
+    "error-vpn-not-connected": "Bitte erst eine VPN-Verbindung herstellen, bevor du den SOCKS5-Proxy aktivierst",
+    "socks5-address-label": "SOCKS5 Listen-Adresse",
+    "socks5-address-placeholder": "127.0.0.1:1080",
+    "http-rpc-address-label": "HTTP-RPC-Listen-Adresse",
+    "http-rpc-address-placeholder": "127.0.0.1:8545",
+    "configuration": "Konfiguration",
+    "enabling": "Proxy aktivieren...",
+    "disabling": "Proxy deaktivieren...",
+    "add-to-browser-proxy-settings": "Füge diese URL zu den Proxy-Einstellungen deines Browsers hinzu, um den Datenverkehr über das Nym-Mixnet zu leiten",
+    "use-in-wallet": "Verwende diese URL in MetaMask oder anderen Web3-Wallets, um RPC-Aufrufe über das Nym-Mixnet zu tätigen. Ersetze <your-provider-url> durch deine tatsächliche Provider-URL."
   },
   "privacy": {
     "error-monitoring": {
       "label": "Fehler & Absturzberichte",
-      "sublabel": "Änderungen werden nach dem Neustart der App und des Daemon angewendet.",
-      "desc": "Senden Sie Absturzinformationen, um uns zu helfen, Fehler schneller zu beheben. Berichte gehen durch das sichere System von Sentry und enthalten nur technische Debugging-Daten.",
+      "sublabel": "Die Änderungen werden nach dem Neustart von App und Dienst wirksam.",
+      "desc": "Sende uns Informationen über Abstürze, damit wir Fehler schneller beheben können. Die Berichte laufen über das sichere System von Sentry und enthalten nur Daten zur technischen Fehlerbehebung.",
       "link": "Sentry-Datenschutzerklärung anzeigen"
     },
     "network-stats": {
       "label": "Anonyme Netzwerkstatistiken",
-      "sublabel": "Änderungen werden nach einem Neustart des Daemon angewendet.",
-      "desc": "Helfen Sie uns, ein schnelleres Netzwerk zu bauen, indem Sie anonyme Leistungsdaten aus Ihrer Region teilen. Wir verwenden dies, um die Geschwindigkeit zu optimieren, die Trennung zu reduzieren und die Serverabdeckung dort zu steuern, wo sie am meisten benötigt wird.\n\nEs werden nur Daten über die Leistung des Netzwerks geteilt - niemals Ihre Surfaktivität oder Ihre persönlichen Daten.",
-      "link": "Erfahren Sie genau, was geteilt wird"
+      "sublabel": "Die Änderungen werden nach dem Neustart des Diensts wirksam.",
+      "desc": "Hilf uns, ein schnelleres Netzwerk aufzubauen, indem du anonyme Leistungsdaten aus deiner Region teilst. Wir nutzen diese, um die Geschwindigkeiten zu optimieren, Verbindungsabbrüche zu verringern und die Serverabdeckung gezielt zu verbessern. \n\nEs werden nur Netzwerkleistungsdaten geteilt – niemals dein Surfverhalten oder persönliche Daten.",
+      "link": "Erfahre genau, was geteilt wird"
     }
   },
   "account": {
     "get-started": "Los geht's",
     "syncing": "Synchronisiere…",
-    "no-plan": "Kein aktives Paket",
+    "no-plan": "Du hast keinen aktiven Tarif",
     "bandwidth-exceeded": "Bandbreite überschritten",
     "max-device-reached": "Max. Geräte erreicht",
     "status-inactive": "Konto ist inaktiv",
-    "requesting-zknyms": "ZkNym anfordern",
+    "requesting-zknyms": "ZkNyms anfordern",
     "error": "Interner Fehler"
   }
 }

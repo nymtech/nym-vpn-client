@@ -6,7 +6,7 @@
     "internal": "خطای داخلی Daemon",
     "invalid-network": "شبکه نامعتبر"
   },
-  "vpnd-client": "Internal Vpnd Client error",
+  "vpnd-client": "خطای داخلی کلاینت Vpnd",
   "tunnel": {
     "internal": "خطای داخلی",
     "firewall": "خطای Firewall",

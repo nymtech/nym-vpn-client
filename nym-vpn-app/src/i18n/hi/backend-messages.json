@@ -2,7 +2,7 @@
   "connection-progress": {
     "canceling": "कैंसल हो रहा है…",
     "resolving-api-addresses": "API पतों का समाधान कर रहा है…",
-    "awaiting-account-readiness": "खाते की तैयारी की प्रतीक्षा हो रही है…",
+    "awaiting-account-readiness": "अकाउंट की तैयारी की प्रतीक्षा हो रही है (2/6)",
     "refreshing-gateways": "गेटवे लिस्ट को ताज़ा किया जा रहा है…",
     "selecting-gateways": "गेटवे का चयन हो रहा हैं…",
     "registering-with-gateways": "Registering with gateways…",

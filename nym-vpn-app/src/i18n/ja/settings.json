@@ -7,18 +7,59 @@
     "title": "IPv6 トラフィックトンネル",
     "desc": "IPv4のみ使用するよう無効にする"
   },
+  "allow-lan": {
+    "title": "Bypass LAN",
+    "desc": "ローカルネットワークへの直接アクセスを許可する"
+  },
   "notifications": {
     "title": "デスクトップ通知"
   },
   "monitoring-alert": "変更を反映させるには、アプリを再起動する必要があります。",
   "support": {
+    "intro": {
+      "title": "⚠️ 詐欺から身を守る",
+      "description": "以下の公式チャンネルからNymVPNサポートに連絡してください。 パスフレーズを要求したり、ダイレクトメッセージで最初に連絡したりすることは決してありません。\n\n予期しない連絡先を受信しましたか？おそらく詐欺です。"
+    },
     "title": "サポート&フィードバック",
     "faq": "FAQをチェック",
     "contact": "お問い合わせ",
     "telegram": "Telegramでチャット",
     "github": "Githubでissueを作成",
     "matrix": "Matrixに参加",
-    "discord": "Discordに参加"
+    "discord": "Discordに参加",
+    "help": {
+      "title": "翻訳のヘルプ",
+      "description": "あなたの言語でアプリをより良くします。"
+    }
+  },
+  "dns": {
+    "title": "DNS をカスタマイズする",
+    "topbar-title": "DNS カスタマイズ",
+    "top-description": "デフォルトでは、Nymの推奨DNSサーバーを使用しています。必要に応じて以下のカスタムサーバーを設定してください。",
+    "view-default-dns": "デフォルトのDNSを表示",
+    "hide-default-dns": "デフォルトのDNSを隠す",
+    "details": {
+      "title": "カスタム DNS サーバーを使用",
+      "description": "広告ブロック、コンテンツフィルタリング、または優先プロバイダ用に独自のDNSを設定します。優先順位を変更するにはドラッグしてください。⚠️ Nym接続を制限する可能性があります。",
+      "list-header": "カスタムDNSサーバー",
+      "add": "追加",
+      "input-label": "DNS アドレス",
+      "input-placeholder": "IPv4 または IPv6 アドレス",
+      "apply": "変更を保存",
+      "link": "DNS についてもっと知る",
+      "applied": "カスタムDNSを保存しました。"
+    },
+    "error": {
+      "duplicate": "DNSアドレスを複製",
+      "invalid": "DNSアドレス形式が無効です",
+      "failed": "DNS変更の適用に失敗しました"
+    }
+  },
+  "confirmation-dialog": {
+    "title": "変更を保存しますか？",
+    "description": "保存していない変更があります。",
+    "save": "変更を保存",
+    "cancel": "破棄する"
   },
   "legal": {
     "title": "法務情報",
@@ -31,7 +72,6 @@
   },
   "logs": {
     "title": "ログ (ローカルに保存)",
-    "desc": "ログをコピーまたは削除する",
     "app": "アプリのログ",
     "daemon": "デーモンログ"
   },
@@ -49,6 +89,11 @@
       "warning": "再接続後に変更が適用されます",
       "content": "一般的なドメインの背後にある API 要求を偽装してVPNブロックを回避します。標準接続の失敗時に自動的にNymVPN で使用されます。",
       "link": "ステルスAPI接続モードの仕組み"
+    },
+    "amneziawg": {
+      "label": "最小難読化(AmneziaWG)",
+      "content": "WireGuard のトラフィックを検出するのが難しくなります。 Deep Packet Inspection(DPI)検閲システムによって頻繁に使用される単純なルールを破壊するおとりパケットを導入し、制限環境での接続信頼性を向上させます。\n\nNote: 実装されたクライアント側のみ。",
+      "link": "AmneziaWGがDPIを防ぐ方法"
     },
     "snackbar-switch-on": "拡張接続(QUICプロトコル)は再接続時に有効になります。",
     "snackbar-switch-off": "拡張接続(QUICプロトコル)は再接続すると無効になります。"
@@ -76,6 +121,32 @@
   "killswitch": {
     "title": "キルスイッチ",
     "desc": "インターネットが切断された場合は切断します"
+  },
+  "app-proxy": {
+    "title": "アプリとウォレットのプロキシ (ベータ版)",
+    "menu-desc": "mixnet経由でアプリのトラフィックをルート",
+    "label": "アプリ＆ウォレットプロキシ",
+    "description": "アプリとウォレットのmixnetプロキシを有効にする",
+    "connect-vpn-first": "プロキシを有効にするにはVPNを先に接続してください",
+    "intro": "プライバシーを強化するために、Nym mixnetを介したアプリとウォレットトラフィックをルート化します。 この機能により、アプリ用のローカル SOCKS5 プロキシとウォレット用の HTTP RPCプロキシが作成されます。",
+    "status": "ステータス",
+    "proxy-url": "プロキシ URL",
+    "active-connections": "アクティブなコネクション",
+    "copied-to-clipboard": "プロキシ URL をクリップボードにコピーしました",
+    "snackbar-enabled": "SOCKS5 プロキシが有効です",
+    "snackbar-disabled": "SOCKS5 プロキシは無効です",
+    "error-gateway-not-supported": "ゲートウェイはSOCKS5をサポートしていません",
+    "error-unknown": "SOCKS5 プロキシの切り替えに失敗しました",
+    "error-vpn-not-connected": "SOCKS5プロキシを有効にする前にVPNに接続してください",
+    "socks5-address-label": "SOCKS5 受信アドレス",
+    "socks5-address-placeholder": "127.0.0.1:1080",
+    "http-rpc-address-label": "HTTP RPC Listen Address",
+    "http-rpc-address-placeholder": "127.0.0.1:8545",
+    "configuration": "設定",
+    "enabling": "プロキシを有効にしています...",
+    "disabling": "プロキシを無効にしています...",
+    "add-to-browser-proxy-settings": "Nym mixnet 経由でトラフィックをルーティングするために、このURLをブラウザのプロキシ設定に追加します",
+    "use-in-wallet": "このURLをMetaMaskまたは他のWeb3ウォレットで使用して、Nym mixnetを介してRPCコールを行います。実際のプロバイダURLに <your-provider-url> を置き換えてください。"
   },
   "privacy": {
     "error-monitoring": {
