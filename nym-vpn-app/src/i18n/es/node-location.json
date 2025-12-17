@@ -15,6 +15,10 @@
       "title": "Precisión de ubicación",
       "description": "Las ubicaciones mostradas son <1>determinadas a partir de direcciones IP</1> y pueden no reflejar ubicaciones físicas exactas."
     },
+    "quic": {
+      "title": "Protocolo QUIC",
+      "description": "Mejora la fiabilidad del modo rápido en redes restrictivas mediante <1>envoltura del tráfico de WireGuard en QUIC</1> (HTTP/3) para que aparezca como navegación normal por la web."
+    },
     "entry-title": "Elegir ubicaciones de entradas",
     "exit-title": "Elegir ubicaciones de salida"
   },

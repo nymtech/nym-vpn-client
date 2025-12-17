@@ -4,21 +4,62 @@
     "desc": "Tự động kết nối khi khởi động ứng dụng"
   },
   "ipv6-support": {
-    "title": "Tunneling lưu lượng IPv6",
-    "desc": "Vô hiệu hóa để chỉ sử dụng IPv4"
+    "title": "Hỗ trợ IPv6",
+    "desc": "Cho phép kết nối IPv6"
+  },
+  "allow-lan": {
+    "title": "Bỏ qua LAN",
+    "desc": "Cho phép truy cập mạng cục bộ trực tiếp"
   },
   "notifications": {
     "title": "Thông báo trên máy tính"
   },
   "monitoring-alert": "Bạn phải khởi động lại ứng dụng để thay đổi có hiệu lực.",
   "support": {
+    "intro": {
+      "title": "⚠️ Bảo vệ bản thân khỏi lừa đảo",
+      "description": "Chỉ liên hệ với bộ phận hỗ trợ của NymVPN qua các kênh chính thức được liệt kê bên dưới. Chúng tôi sẽ không bao giờ yêu cầu mật khẩu hoặc liên hệ với bạn trước qua tin nhắn trực tiếp.\n\nBạn nhận được liên hệ đáng ngờ? Rất có thể đây là lừa đảo."
+    },
     "title": "Hỗ trợ & phản hồi",
     "faq": "Đọc các câu hỏi thường gặp",
-    "contact": "Liên hệ hỗ trợ",
+    "contact": "Liên hệ với chúng tôi",
     "telegram": "Trò chuyện trên Telegram",
     "github": "Mở một issue trên GitHub",
     "matrix": "Tham gia Matrix của chúng tôi",
-    "discord": "Tham gia Discord của chúng tôi"
+    "discord": "Tham gia Discord của chúng tôi",
+    "help": {
+      "title": "Hỗ trợ dịch",
+      "description": "Tối ưu ứng dụng theo ngôn ngữ của bạn."
+    }
+  },
+  "dns": {
+    "title": "Tùy chỉnh DNS",
+    "topbar-title": "Tùy chỉnh DNS",
+    "top-description": "Mặc định, hệ thống sử dụng các máy chủ DNS được Nym đề xuất. Cấu hình các máy chủ tùy chỉnh bên dưới nếu cần.",
+    "view-default-dns": "Xem DNS mặc định",
+    "hide-default-dns": "Ẩn DNS mặc định",
+    "details": {
+      "title": "Sử dụng máy chủ DNS tùy chỉnh",
+      "description": "Cấu hình DNS riêng của bạn để chặn quảng cáo, lọc nội dung hoặc chọn nhà cung cấp ưu tiên. Kéo để sắp xếp lại thứ tự ưu tiên. ⚠️ Có thể hạn chế khả năng kết nối của Nym.",
+      "list-header": "Máy chủ DNS tùy chỉnh",
+      "add": "Thêm",
+      "input-label": "địa chỉ DNS",
+      "input-placeholder": "Địa chỉ IPv4 hoặc IPv6",
+      "apply": "Lưu thay đổi",
+      "link": "Tìm hiểu thêm về DNS",
+      "applied": "Đã lưu DNS tùy chỉnh."
+    },
+    "error": {
+      "duplicate": "Nhân bản địa chỉ DNS",
+      "invalid": "Định dạng địa chỉ DNS không hợp lệ",
+      "failed": "Không thể áp dụng các thay đổi DNS"
+    }
+  },
+  "confirmation-dialog": {
+    "title": "Lưu thay đổi?",
+    "description": "Bạn có thay đổi chưa lưu.",
+    "save": "Lưu thay đổi",
+    "cancel": "Bỏ qua"
   },
   "legal": {
     "title": "Pháp lý",
@@ -31,7 +72,6 @@
   },
   "logs": {
     "title": "Nhật ký (lưu trữ cục bộ)",
-    "desc": "Sao chép hoặc xóa nhật ký",
     "app": "Nhật ký ứng dụng",
     "daemon": "Nhật ký daemon"
   },
@@ -50,14 +90,19 @@
       "content": "Ẩn yêu cầu API phía sau các tên miền phổ biến, được phép để vượt qua chặn VPN. Tự động được NymVPN sử dụng khi các lần thử kết nối tiêu chuẩn thất bại.",
       "link": "Cách chế độ kết nối API Ẩn danh hoạt động"
     },
+    "amneziawg": {
+      "label": "Mức độ che giấu tối thiểu (AmneziaWG)",
+      "content": "Giúp lưu lượng WireGuard khó bị phát hiện hơn. Đưa vào các gói tin mồi nhử phá vỡ các quy tắc đơn giản thường được sử dụng bởi các hệ thống kiểm duyệt Kiểm tra gói sâu (DPI), cải thiện độ tin cậy của kết nối trong các môi trường hạn chế.\n\nLưu ý: Chỉ được triển khai ở phía máy khách.",
+      "link": "AmneziaWG ngăn chặn DPI như thế nào"
+    },
     "snackbar-switch-on": "Kết nối nâng cao (giao thức QUIC) sẽ được kích hoạt khi bạn kết nối lại.",
     "snackbar-switch-off": "Kết nối nâng cao (giao thức QUIC) sẽ bị vô hiệu khi bạn kết nối lại."
   },
   "faq": "Câu hỏi thường gặp",
   "display-theme": "Chế độ hiển thị",
   "logout-confirmation": {
-    "title": "Bạn có chắc không?",
-    "description": "Bạn sẽ cần mã truy cập để kết nối lại thiết bị.",
+    "title": "Bạn muốn đăng xuất khỏi thiết bị này?",
+    "description": "Bạn sẽ cần cụm từ mật khẩu 24 từ của mình để đăng nhập lại.",
     "logging-out": "Đang đăng xuất…"
   },
   "quit": "Đóng NymVPN",
@@ -70,12 +115,38 @@
     "device-id": "ID thiết bị"
   },
   "autostart": {
-    "title": "Tự khởi động",
-    "desc": "Khởi chạy NymVPN khi hệ thống khởi động"
+    "title": "Khởi chạy khi khởi động thiết bị",
+    "desc": "Khởi động ứng dụng khi thiết bị khởi động"
   },
   "killswitch": {
     "title": "Killswitch",
     "desc": "Luôn bật để bảo vệ dữ liệu của bạn"
+  },
+  "app-proxy": {
+    "title": "Proxy ứng dụng & ví (phiên bản beta)",
+    "menu-desc": "Định tuyến lưu lượng truy cập ứng dụng thông qua mixnet",
+    "label": "Proxy ứng dụng và ví",
+    "description": "Bật proxy mixnet cho ứng dụng và ví",
+    "connect-vpn-first": "Kết nối VPN trước để bật proxy",
+    "intro": "Định tuyến lưu lượng ứng dụng và ví qua mixnet Nym để tăng cường quyền riêng tư. Tính năng này tạo proxy SOCKS5 cục bộ cho ứng dụng và proxy HTTP RPC cho ví.",
+    "status": "Trạng thái",
+    "proxy-url": "Proxy URL",
+    "active-connections": "Kết nối đang hoạt động",
+    "copied-to-clipboard": "Proxy URL đã được sao chép vào clipboard",
+    "snackbar-enabled": "Đã bật proxy SOCKS5",
+    "snackbar-disabled": "Đã tắt proxy SOCKS5",
+    "error-gateway-not-supported": "Cổng không hỗ trợ SOCKS5",
+    "error-unknown": "Không thể chuyển đổi proxy SOCKS5",
+    "error-vpn-not-connected": "Vui lòng kết nối VPN trước khi bật proxy SOCKS5",
+    "socks5-address-label": "SOCKS5 Listen Address",
+    "socks5-address-placeholder": "127.0.0.1:1080",
+    "http-rpc-address-label": "HTTP RPC Listen Address",
+    "http-rpc-address-placeholder": "127.0.0.1:8545",
+    "configuration": "Cấu hình",
+    "enabling": "Đang bật proxy...",
+    "disabling": "Đang tắt proxy...",
+    "add-to-browser-proxy-settings": "Thêm URL này vào cài đặt proxy của trình duyệt để định tuyến lưu lượng truy cập qua Nym mixnet",
+    "use-in-wallet": "Sử dụng URL này trong MetaMask hoặc các ví Web3 khác để thực hiện lệnh gọi RPC thông qua mạng hỗn hợp Nym. Thay <your-provider-url> bằng URL nhà cung cấp thực tế của bạn."
   },
   "privacy": {
     "error-monitoring": {

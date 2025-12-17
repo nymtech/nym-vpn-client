@@ -1,12 +1,12 @@
 {
   "vpn-modes": {
-    "privacy": "ناشناس",
-    "fast": "سریع"
+    "privacy": "ِمیکس‌نتِ ناشناس",
+    "fast": "پر سرعت (WireGuard)"
   },
   "connect": "اتصال",
   "disconnect": "قطع ارتباط",
-  "first-hop-selection": "ورودی",
-  "last-hop-selection": "خروج ",
+  "first-hop-selection": "منطقه ورودی",
+  "last-hop-selection": "منطقه خروجی",
   "settings": "تنظیمات",
   "display-theme": "نمایش",
   "notifications": "اعلانات",
@@ -16,6 +16,7 @@
   "data-privacy": "حریم خصوصی و داده‌ها",
   "support": "حمایت",
   "fastest": "سریع‌ترین",
+  "random": "Random",
   "sentry": "پاسدار",
   "tos": "شرایط استفاده از",
   "privacy-statement": "بیانیه حریم خصوصی",

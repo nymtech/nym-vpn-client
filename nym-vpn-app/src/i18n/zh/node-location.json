@@ -15,8 +15,12 @@
       "title": "位置精度",
       "description": "显示的位置是 <1>通过 IP 地址</1> 决定，可能无法反映确切的实际位置。"
     },
-    "entry-title": "选择入口位置",
-    "exit-title": "选择退出地点"
+    "quic": {
+      "title": "QUIC 协议",
+      "description": "通过<1>使用QUIC协议（HTTP/3）来包装WireGuard流量</1>使得您的连接看起来像普通的网络流量，从而改善快速模式在受审查的网络环境中的稳定性。"
+    },
+    "entry-title": "选择入口网关",
+    "exit-title": "选择出口位置"
   },
   "location-not-available": {
     "entry": "所选条目位置不可用，切换到 {{location}}",
