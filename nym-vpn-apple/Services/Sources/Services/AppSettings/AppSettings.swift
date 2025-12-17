@@ -86,10 +86,12 @@ import CountriesManagerTypes
     public var shouldReconnect = false {
         didSet { shouldReconnectPublisher = shouldReconnect }
     }
-    
-    @AppStorage(AppSettingKey.customDns.rawValue)
-    public var isCustomDnsEnabled = false
-    
+
+    @AppStorage(AppSettingKey.customDnsIsEnabled.rawValue)
+    public var isCustomDnsEnabled = false {
+        didSet { isCustomDnsEnabledPublisher = isCustomDnsEnabled }
+    }
+
     @AppStorage(AppSettingKey.customDns.rawValue)
     public var customDns: [String] = []
 
@@ -98,6 +100,8 @@ import CountriesManagerTypes
     @Published public var isCredentialImportedPublisher: Bool
     @Published public var isQuicEnabledPublisher: Bool
     @Published public var shouldReconnectPublisher: Bool
+    @Published public var isCustomDnsEnabledPublisher: Bool
+    @Published public var customDnsPublisher: [String]
     @Published public var isLanBypassEnabledPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
@@ -106,12 +110,16 @@ import CountriesManagerTypes
         self.isCredentialImportedPublisher = false
         self.isQuicEnabledPublisher = false
         self.shouldReconnectPublisher = false
+        self.isCustomDnsEnabledPublisher = false
+        self.customDnsPublisher = []
         self.isLanBypassEnabledPublisher = false
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
         self.isQuicEnabledPublisher = self.isQuicEnabled
         self.shouldReconnectPublisher = self.shouldReconnect
+        self.isCustomDnsEnabledPublisher = self.isCustomDnsEnabled
+        self.customDnsPublisher = self.customDns
         self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
     }
 }
@@ -150,6 +158,7 @@ public enum AppSettingKey: String {
     case shouldReconnect
     case passphraseStored
     case connectionConfig
+    case customDnsIsEnabled
     case customDns
 }
 

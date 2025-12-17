@@ -66,6 +66,7 @@ public struct GenericButton: View {
     }
 
     private let title: String
+    private let titleColor: Color?
     private let style: Style
     private let height: CGFloat
     private let isDisabled: Bool
@@ -78,6 +79,7 @@ public struct GenericButton: View {
 
     public init(
         title: String,
+        titleColor: Color? = nil,
         style: Style = .normal,
         height: CGFloat = 56,
         isDisabled: Bool = false,
@@ -87,6 +89,7 @@ public struct GenericButton: View {
         isSystemImageFlipped: Bool = false
     ) {
         self.title = title
+        self.titleColor = titleColor
         self.style = style
         self.height = height
         self.isDisabled = isDisabled
@@ -113,7 +116,7 @@ public struct GenericButton: View {
                 }
 
                 Text(title)
-                    .foregroundStyle(style.textTitleColor(isDisabled: isDisabled))
+                    .foregroundStyle(titleColor ?? style.textTitleColor(isDisabled: isDisabled))
                     .textStyle(.Headline.Small.regular)
                     .minimumScaleFactor(0.8)
             }

@@ -45,10 +45,17 @@ public struct DnsView: View {
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .snackbar(
+            isDisplayed: $viewModel.isSnackbarDisplayed,
+            message: SnackBarMessage(text: viewModel.snackbarMessage ?? "", style: .info)
+        )
         .ignoresSafeArea(edges: [.bottom])
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .overlay {
+            saveChangesOverlay()
         }
         .task {
             await viewModel.loadDefaultDns()
@@ -65,7 +72,7 @@ private extension DnsView {
     func navbar() -> some View {
         CustomNavBar(
             title: "dns.title".localizedString,
-            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
+            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack(discardChanges: false) })
         )
     }
 
@@ -112,7 +119,7 @@ private extension DnsView {
                     viewModel: ToggleViewModel(
                         isOn: $viewModel.isCustomDnsEnabled,
                         isDisabled: viewModel.customDns.isEmpty,
-                        action: { _ in }
+                        action: { _ in Task { await viewModel.toggleCustomDns() } }
                     )
                 ),
                 title: "dns.custom.title".localizedString,
@@ -375,10 +382,29 @@ private extension DnsView {
             isDisabled: viewModel.isSaveChangesButtonDisabled
         )        .padding(.horizontal, 16)
         .onTapGesture {
-            viewModel.saveChanges()
+            Task {
+                await viewModel.saveChanges()
+            }
         }
         .accessibilityAction {
-            viewModel.saveChanges()
+            Task {
+                await viewModel.saveChanges()
+            }
+        }
+    }
+
+    @ViewBuilder
+    func saveChangesOverlay() -> some View {
+        if viewModel.isSaveChangesModalDisplayed {
+            ActionDialogView(
+                viewModel: ActionDialogViewModel(
+                    isDisplayed: $viewModel.isSaveChangesModalDisplayed,
+                    configuration: viewModel.saveChangesModalConfiguration,
+                    impactGenerator: .shared
+                )
+            )
+            .transition(.opacity)
+            .animation(.easeInOut, value: viewModel.isSaveChangesModalDisplayed)
         }
     }
 }

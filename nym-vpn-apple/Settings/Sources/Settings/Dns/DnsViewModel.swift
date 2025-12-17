@@ -1,11 +1,13 @@
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
+import NymVPNRpc
 import GRPCManager
 #endif
 import SwiftUI
 import AppSettings
 import Network
+import UIComponents
 
 @MainActor public final class DnsViewModel: ObservableObject {
     private let appSettings: AppSettings
@@ -46,6 +48,7 @@ import Network
     }
 
     public var isSaveChangesButtonDisabled: Bool { customDns == appSettings.customDns }
+    @Published var isSaveChangesModalDisplayed = false
 
     @Published var isSnackbarDisplayed = false
     @Published var snackbarMessage: String?
@@ -59,6 +62,7 @@ import Network
         _path = path
         self.appSettings = appSettings
         self.grpcManager = grpcManager
+        self.customDns = appSettings.customDns
     }
     #elseif os(iOS)
     init(
@@ -67,12 +71,44 @@ import Network
     ) {
         _path = path
         self.appSettings = appSettings
+        self.customDns = appSettings.customDns
     }
     #endif
 }
 
 extension DnsViewModel {
-    func navigateBack() {
+    var saveChangesModalConfiguration: ActionDialogConfiguration {
+        ActionDialogConfiguration(
+            systemIconImageName: "gearshape",
+            titleLocalizedString: "dns.modals.saveChanges.title".localizedString,
+            subtitleLocalizedString: "dns.modals.saveChanges.subtitle".localizedString,
+            yesLocalizedString: "dns.button.saveChanges".localizedString,
+            noLocalizedString: "dns.modals.saveChanges.discard".localizedString,
+            isNoDestructive: true,
+            yesAction: {
+                Task {
+                    await self.saveChanges()
+                    self.isSaveChangesModalDisplayed = false
+                    self.navigateBack(discardChanges: false)
+                }
+            },
+            noAction: {
+                self.navigateBack(discardChanges: true)
+            },
+            verticalButtonsLayout: true
+        )
+    }
+
+    func navigateBack(discardChanges: Bool) {
+        guard isSaveChangesButtonDisabled else {
+            if discardChanges {
+                if !path.isEmpty { path.removeLast() }
+            } else {
+                isSaveChangesModalDisplayed = true
+            }
+            return
+        }
+
         if !path.isEmpty { path.removeLast() }
     }
 
@@ -93,11 +129,64 @@ extension DnsViewModel {
         customDnsTextField = ""
     }
 
-    func saveChanges() {
+    func saveChanges() async {
         guard !isSaveChangesButtonDisabled else { return }
+        if isCustomDnsEnabled && customDns.isEmpty {
+            await toggleCustomDns()
+        }
+
         appSettings.customDns = customDns
+        #if os(macOS)
+        do {
+            try await grpcManager.setCustomDns(dnsServers: customDns)
+        } catch {
+            withAnimation {
+                guard !isSnackbarDisplayed else { return }
+                snackbarMessage = "generalNymError.somethingWentWrong".localizedString
+                isSnackbarDisplayed = true
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(3))
+                    isSnackbarDisplayed = false
+                }
+            }
+            return
+        }
+        #endif
 
         appSettings.shouldReconnect = true
+
+        withAnimation {
+            guard !isSnackbarDisplayed else { return }
+            snackbarMessage = "dns.snackbar.saved".localizedString
+            isSnackbarDisplayed = true
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(3))
+                isSnackbarDisplayed = false
+            }
+        }
+    }
+
+    func toggleCustomDns() async {
+        guard !appSettings.customDns.isEmpty else { return }
+
+        isCustomDnsEnabled.toggle()
+        appSettings.isCustomDnsEnabled = isCustomDnsEnabled
+        #if os(macOS)
+        do {
+            try await grpcManager.setEnableCustomDns(enable: isCustomDnsEnabled)
+        } catch {
+            isCustomDnsEnabled.toggle()
+            withAnimation {
+                guard !isSnackbarDisplayed else { return }
+                snackbarMessage = "generalNymError.somethingWentWrong".localizedString
+                isSnackbarDisplayed = true
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(3))
+                    isSnackbarDisplayed = false
+                }
+            }
+        }
+        #endif
     }
 }
 
