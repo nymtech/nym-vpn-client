@@ -22,6 +22,7 @@ export type TextInputProps = {
   readonly?: boolean;
   clearable?: boolean;
   color?: 'default' | 'gray';
+  disabled?: boolean;
 };
 
 function TextInput({
@@ -37,6 +38,7 @@ function TextInput({
   className,
   clearable = false,
   color = 'default',
+  disabled = false,
 }: TextInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
@@ -73,7 +75,8 @@ function TextInput({
         className={clsx([
           'text-base transition',
           'w-full flex flex-row justify-between items-center py-3 px-4',
-          'text-baltic-sea dark:text-white',
+          !disabled && 'text-baltic-sea dark:text-white',
+          disabled && 'text-iron dark:text-bombay',
           'placeholder:text-iron dark:placeholder:text-bombay',
           ...inputStates,
           getColorClass(),
@@ -87,6 +90,7 @@ function TextInput({
         spellCheck={spellCheck}
         autoFocus={autoFocus}
         data-test-has-left-icon={leftIcon ? 'true' : 'false'}
+        disabled={disabled}
       />
       {label && (
         <Label
