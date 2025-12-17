@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, TextInput } from '../../../../ui';
 import { portRegex } from '../utils';
@@ -7,7 +8,7 @@ type MyInputProps = {
   value: string;
   defaultValue: string;
   disabled: boolean;
-  onChange: (value: string) => void;
+  onChange: (value: string, valid: boolean) => void;
 };
 
 function ProxyPortInput({
@@ -16,16 +17,17 @@ function ProxyPortInput({
   disabled,
   onChange,
 }: MyInputProps) {
+  const [error, setError] = useState<string | null>(null);
   const { t } = useTranslation('settings');
 
   const handleChange = (value: string) => {
-    if (portRegex.test(value) || value === '') {
-      onChange(value);
-    }
+    const valid = portRegex.test(value);
+    onChange(value, valid);
+    setError(valid ? null : t('app-proxy.invalid-port'));
   };
 
   const handleReset = () => {
-    onChange(defaultValue);
+    onChange(defaultValue, true);
   };
 
   return (
@@ -39,6 +41,7 @@ function ProxyPortInput({
           label={t('app-proxy.listen-port')}
           onChange={handleChange}
         />
+        {error && <p className="mt-2 text-xs text-aphrodisiac">{error}</p>}
       </div>
       <div className="h-full">
         <Button

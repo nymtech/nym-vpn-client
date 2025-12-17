@@ -23,6 +23,10 @@ function Socks5() {
   const [httpRpcAddress, setHttpRpcAddress] = useState(DefaultHttpRpcAddress);
   const [httpRpcPort, setHttpRpcPort] = useState(DefaultHttpRpcPort);
 
+  const [socks5PortValid, setSocks5PortValid] = useState(true);
+  const [httpRpcPortValid, setHttpRpcPortValid] = useState(true);
+  const portValid = socks5PortValid && httpRpcPortValid;
+
   useEffect(() => {
     const [socks5Address, socks5Port] =
       status?.socks5Settings?.listenAddress?.split(':') || [];
@@ -145,7 +149,7 @@ function Socks5() {
             checked={isEnabled}
             onClick={handleToggle}
             header={t('app-proxy.switch-title')}
-            disabled={isLoading}
+            disabled={isLoading || !portValid}
           />
         }
       >
@@ -202,7 +206,10 @@ function Socks5() {
             value={socks5Port}
             defaultValue={DefaultSocks5Port}
             disabled={isEnabled || isLoading}
-            onChange={setSocks5Port}
+            onChange={(value, valid) => {
+              setSocks5Port(value);
+              setSocks5PortValid(valid);
+            }}
           />
           <ProxyUrl
             value={`${socks5Address}:${socks5Port}`}
@@ -226,7 +233,10 @@ function Socks5() {
             value={httpRpcPort}
             defaultValue={DefaultHttpRpcPort}
             disabled={isEnabled || isLoading}
-            onChange={setHttpRpcPort}
+            onChange={(value, valid) => {
+              setHttpRpcPort(value);
+              setHttpRpcPortValid(valid);
+            }}
           />
           <ProxyUrl
             value={`${httpRpcAddress}:${httpRpcPort}`}

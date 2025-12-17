@@ -147,6 +147,7 @@
       "listen-address": "HTTP RPC listen address",
       "info": "ℹ️ Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint."
     },
+    "invalid-port": "Invalid port number",
     "listen-port": "Listen port",
     "reset-to-default": "Reset to default",
     "intro": "Route app & wallet traffic through the Nym mixnet for enhanced privacy. This feature creates a local SOCKS5 proxy for apps, and a HTTP RPC proxy for wallets.",
