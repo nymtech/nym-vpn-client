@@ -12,7 +12,7 @@ use std::{
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt, copy_bidirectional},
     net::{TcpListener, TcpStream},
-    sync::RwLock,
+    sync::{Mutex, RwLock},
     time::{Instant, sleep},
 };
 use tokio_util::sync::CancellationToken;
@@ -64,6 +64,8 @@ pub struct LazySocks5 {
     is_mixnet_running: Arc<RwLock<bool>>,
     /// Mixnet client
     mixnet_client: Arc<RwLock<Option<Socks5MixnetClient>>>,
+    /// Mutex to prevent concurrent initialization
+    init_mutex: Arc<Mutex<()>>,
 }
 
 impl LazySocks5 {
@@ -87,6 +89,7 @@ impl LazySocks5 {
             last_connection_closed: Arc::new(RwLock::new(None)),
             is_mixnet_running: Arc::new(RwLock::new(false)),
             mixnet_client: Arc::new(RwLock::new(None)),
+            init_mutex: Arc::new(Mutex::new(())),
         })
     }
 
@@ -477,7 +480,15 @@ impl LazySocks5 {
 
     /// Ensure the backend is started (lazy initialization)
     async fn ensure_backend_started(&self) -> Result<(), LazySocks5Error> {
-        // Client already initialized
+        // Client already initialized - quick check without mutex
+        if self.mixnet_client.read().await.is_some() {
+            return Ok(());
+        }
+
+        // Acquire init mutex to prevent concurrent initialization
+        let _init_guard = self.init_mutex.lock().await;
+
+        // Double-check after acquiring mutex (another task might have initialized it)
         if self.mixnet_client.read().await.is_some() {
             return Ok(());
         }
@@ -504,6 +515,17 @@ impl LazySocks5 {
             .parent()
             .unwrap_or_else(|| std::path::Path::new("."))
             .join(format!("{}_socks5", mixnet_folder_name));
+
+        // Ensure parent directory exists (permissions will be checked when we try to write)
+        if let Some(parent) = socks5_data_path.parent() {
+            tokio::fs::create_dir_all(parent).await.map_err(|e| {
+                error!("Failed to create parent directory {}: {e}", parent.display());
+                LazySocks5Error::Internal(format!(
+                    "Failed to create parent directory {}: {e}. Check directory permissions.",
+                    parent.display()
+                ))
+            })?;
+        }
 
         // Remove old socks5 directory if it exists
         // - to get fresh identity each time
