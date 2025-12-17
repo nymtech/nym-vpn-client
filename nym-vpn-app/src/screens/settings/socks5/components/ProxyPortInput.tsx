@@ -28,6 +28,7 @@ function ProxyPortInput({
 
   const handleReset = () => {
     onChange(defaultValue, true);
+    setError(null);
   };
 
   return (
