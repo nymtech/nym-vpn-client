@@ -80,9 +80,8 @@ function Socks5() {
       case 'connected':
         return 'text-malachite-moss dark:text-malachite';
       case 'error':
-        return 'text-aphrodisiac';
       case 'disabled':
-        return 'text-baltic-sea dark:text-white';
+        return 'text-aphrodisiac';
       default:
         return 'text-baltic-sea dark:text-white';
     }
