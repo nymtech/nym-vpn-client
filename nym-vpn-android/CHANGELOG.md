@@ -13,14 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Exit and Entry points to notification (https://github.com/nymtech/nym-vpn-client/pull/4133)
 - Let user view Server details from home screen (https://github.com/nymtech/nym-vpn-client/pull/4163)
 - Add Custom DNS settings (https://github.com/nymtech/nym-vpn-client/pull/4189)
+- Add restartTunnel with proper VpnService lifecycle handling (https://github.com/nymtech/nym-vpn-client/pull/4237)
 
 ### Changed
 - Reorder for Censorship screen sections (https://github.com/nymtech/nym-vpn-client/pull/4131)
 - More informative logs with steps for tunnel configuration (https://github.com/nymtech/nym-vpn-client/pull/4162)
+- Refactor service CompletableDeferred with StateFlow to fix VPN restart race (https://github.com/nymtech/nym-vpn-client/pull/4237)
 
 ### Fixed
 - Add restricted apps for tunnel configurations (https://github.com/nymtech/nym-vpn-client/pull/4162)
 - Fix for connection timer random reset (https://github.com/nymtech/nym-vpn-client/pull/4174)
+- Fir for QUIC reconnection logic (https://github.com/nymtech/nym-vpn-client/pull/4237)
 
 ## [2.5.0] - 2025-12-03
 

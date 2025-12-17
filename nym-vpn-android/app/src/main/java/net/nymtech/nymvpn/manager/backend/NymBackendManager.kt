@@ -8,11 +8,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
@@ -164,6 +168,21 @@ class NymBackendManager @Inject constructor(
 				Timber.e(it)
 			}
 		}
+	}
+
+	private val restartMutex = Mutex()
+	override suspend fun restartTunnel() = restartMutex.withLock {
+		if (getState() != Tunnel.State.Down) {
+			stopTunnel()
+			try {
+				withTimeout(15_000) {
+					stateFlow.first { it.tunnelState == Tunnel.State.Down }
+				}
+			} catch (e: Exception) {
+				Timber.e("Tunnel did not stop in time")
+			}
+		}
+		startTunnel()
 	}
 
 	private suspend fun getRestrictedAppsPackages() = splitTunnelingRepository.getAppInfoList().filter { !it.passThroughVpn }.map { it.packageName }

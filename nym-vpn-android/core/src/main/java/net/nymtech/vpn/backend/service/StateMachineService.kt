@@ -4,9 +4,7 @@ import android.content.Intent
 import android.os.PowerManager
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
-import kotlinx.coroutines.CompletableDeferred
 import net.nymtech.vpn.backend.NymBackend
-import net.nymtech.vpn.backend.NymBackend.Companion.stateMachineService
 import net.nymtech.vpn.util.notifications.VpnNotificationManager
 import timber.log.Timber
 
@@ -25,14 +23,20 @@ internal class StateMachineService : LifecycleService(), TunnelOwner {
 
 	override fun onCreate() {
 		super.onCreate()
-		stateMachineService.complete(this)
+		NymBackend.publishStateMachineService(this)
 
 		// Immediately start foreground with minimal notification to satisfy Android
 		startForeground(FOREGROUND_NOTIFICATION_ID, notificationManager.buildMinimalNotification())
 
 		// Then update with the richer notification if permission granted
 		notificationManager.withNotificationPermission {
-			val richNotification = notificationManager.buildVpnNotification(getCurrentState(), getCurrentEntryPoint(), getCurrentExitPoint(), getEntryGateways(), getExitGateways())
+			val richNotification = notificationManager.buildVpnNotification(
+				getCurrentState(),
+				getCurrentEntryPoint(),
+				getCurrentExitPoint(),
+				getEntryGateways(),
+				getExitGateways(),
+			)
 			ServiceCompat.startForeground(
 				this,
 				FOREGROUND_NOTIFICATION_ID,
@@ -45,14 +49,20 @@ internal class StateMachineService : LifecycleService(), TunnelOwner {
 	}
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-		stateMachineService.complete(this)
+		NymBackend.publishStateMachineService(this)
 
 		// Same here: call startForeground synchronously with minimal notification first
 		startForeground(FOREGROUND_NOTIFICATION_ID, notificationManager.buildMinimalNotification())
 
 		// Then update notification if permission granted
 		notificationManager.withNotificationPermission {
-			val richNotification = notificationManager.buildVpnNotification(getCurrentState(), getCurrentEntryPoint(), getCurrentExitPoint(), getEntryGateways(), getExitGateways())
+			val richNotification = notificationManager.buildVpnNotification(
+				getCurrentState(),
+				getCurrentEntryPoint(),
+				getCurrentExitPoint(),
+				getEntryGateways(),
+				getExitGateways(),
+			)
 			ServiceCompat.startForeground(
 				this,
 				FOREGROUND_NOTIFICATION_ID,
@@ -65,12 +75,12 @@ internal class StateMachineService : LifecycleService(), TunnelOwner {
 	}
 
 	override fun onDestroy() {
-		stateMachineService = CompletableDeferred()
+		NymBackend.publishStateMachineService(null)
+
 		wakeLock?.let {
-			if (it.isHeld) {
-				it.release()
-			}
+			if (it.isHeld) it.release()
 		}
+
 		ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
 		super.onDestroy()
 	}
