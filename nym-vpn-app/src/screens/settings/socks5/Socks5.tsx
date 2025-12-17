@@ -214,12 +214,14 @@ function Socks5() {
           <ProxyUrl
             value={`${socks5Address}:${socks5Port}`}
             title={t('app-proxy.socks5.listen-address')}
+            borderBottom={isConnected}
           />
           {isConnected && (
             <>
               <ProxyUrl
                 value={socks5Url}
                 title={t('app-proxy.socks5.url-title')}
+                borderBottom={isConnected}
               />
               <ProxyInfo text={t('app-proxy.socks5.info')} />
             </>
@@ -241,12 +243,14 @@ function Socks5() {
           <ProxyUrl
             value={`${httpRpcAddress}:${httpRpcPort}`}
             title={t('app-proxy.http-rpc.listen-address')}
+            borderBottom={isConnected}
           />
           {isConnected && (
             <>
               <ProxyUrl
                 value={httpRpcUrl}
                 title={t('app-proxy.http-rpc.url-title')}
+                borderBottom={isConnected}
               />
               <ProxyInfo text={t('app-proxy.http-rpc.info')} />
             </>
