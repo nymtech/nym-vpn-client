@@ -8798,6 +8798,50 @@
         }
       }
     },
+    "dns.modals.saveChanges.discard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard"
+          }
+        }
+      }
+    },
+    "dns.modals.saveChanges.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have unsaved changes."
+          }
+        }
+      }
+    },
+    "dns.modals.saveChanges.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save changes?"
+          }
+        }
+      }
+    },
+    "dns.snackbar.saved" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom DNS saved."
+          }
+        }
+      }
+    },
     "dns.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {

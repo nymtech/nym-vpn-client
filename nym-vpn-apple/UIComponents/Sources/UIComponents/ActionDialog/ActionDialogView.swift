@@ -134,14 +134,18 @@ private extension ActionDialogView {
 
     @ViewBuilder
     func noButton(text: String) -> some View {
-        GenericButton(title: text, style: .textOnly)
-            .onTapGesture {
+        GenericButton(
+            title: text,
+            titleColor: viewModel.configuration.isNoDestructive ? NymColor.error : nil,
+            style: .textOnly
+        )
+        .onTapGesture {
 #if os(iOS)
-                viewModel.impactGenerator.impact()
+            viewModel.impactGenerator.impact()
 #endif
-                viewModel.configuration.noAction?()
-                viewModel.isDisplayed = false
-            }
+            viewModel.configuration.noAction?()
+            viewModel.isDisplayed = false
+        }
     }
 
     @ViewBuilder
