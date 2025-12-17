@@ -9,12 +9,14 @@ languages_mapping:
   android_code: &android-code
     ar:    ar
     bn:    bn-rBD
+    cs:    cs
     de:    de
     el:    el-rGR
     es-ES: es
     fa:    fa
     fr:    fr
     hi:    hi
+    hu:    hu
     it:    it
     ja:    ja
     pt-BR: pt-rBR
@@ -29,6 +31,7 @@ languages_mapping:
   locale: &play-locale
     ar:    ar
     bn:    bn-BD
+    cs:    cs-CZ
     de:    de-DE
     el:    el-GR
     en-US: en-US
@@ -36,6 +39,7 @@ languages_mapping:
     fa:    fa
     fr:    fr-FR
     hi:    hi-IN
+    hu:    hu-HU    
     it:    it-IT
     ja:    ja-JP
     pt-BR: pt-BR
