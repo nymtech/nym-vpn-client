@@ -25,7 +25,7 @@
 	<string name="is_selected">Sélectionné</string>
 	<string name="fastest">Le plus rapide</string>
 	<string name="auto_connect">Auto-connexion</string>
-	<string name="auto_connect_description">Auto-connexion au redémarrage</string>
+	<string name="auto_connect_description">Se connecter lorsque l\'application s\'ouvre</string>
 	<string name="logs">Journaux</string>
 	<string name="support">Soutien</string>
 	<string name="legal">Juridique</string>
@@ -154,10 +154,13 @@
 	<string name="join_telegram">Rejoignez-nous sur Telegram</string>
 	<!-- Common -->
 	<string name="button_done">Fait</string>
+	<string name="button_discard">Abandonner</string>
+	<string name="button_add">Ajouter</string>
+	<string name="here">ici</string>
+	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Affichage du flux</string>
 	<string name="streaming_server_banner_title">Nouveau : Découvrez le streaming-\nserveurs optimisés (▶️)</string>
 	<string name="streaming_server_banner_action">Vérifier les nouveaux\nserveurs de sortie</string>
-    <string name="here">ici</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Impossible de se connecter avec la même entrée et le même serveur de sortie. Modifiez l\'entrée ou le serveur de sortie et reconnectez-vous.</string>
 	<string name="unexpected_error">Une erreur inattendue s\'est produite:</string>
@@ -193,6 +196,7 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censure</string>
 	<string name="settings_passphrase_title">Phrase de passe</string>
+	<string name="settings_dns_title">Personnaliser le DNS</string>
 	<string name="settings_ipv6_title">Prise en charge IPv6</string>
 	<string name="settings_ipv6_description">Autoriser les connexions IPv6</string>
 	<string name="settings_bypass_description">Autoriser l\'accès direct au réseau local</string>
@@ -207,6 +211,8 @@
 	<string name="settings_quit_title">Quitter NymVPN</string>
 	<string name="settings_app_version_line">Version de l\'application: %1$s</string>
 	<string name="settings_daemon_version_line">Version du Daemon : %1$s</string>
+	<string name="settings_language_help_title">Aide à la traduction</string>
+	<string name="settings_language_help_description">Améliorez l\'application dans votre langue.</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Pour une meilleure connexion</string>
 	<string name="battery_opt_descr">Désactiver les optimisations de batterie pour NymVPN afin de permettre des connexions VPN plus stables.</string>
@@ -298,6 +304,7 @@
 	<string name="quick_info_modal_desc_non_quic">Cela vous reconnectera sans protocole QUIC activé. Vous conserverez vos passerelles actuelles.\n\nVos données restent protégées pendant la reconnexion.</string>
 	<string name="quic_primary_btn_text_non_quic">Se reconnecter sans QUIC maintenant</string>
 	<string name="quic_text_btn_text_non_quic">Désactiver QUIC lors de la prochaine connexion</string>
+	<string name="quic_gateway_filter_info_msg">Afficher uniquement les emplacements du mode rapide et les serveurs prenant en charge le protocole QUIC. Pour révéler tous les serveurs, désactiver QUIC</string>
 	<string name="censorship_amnezia_title">obfuscation minimale (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Rend le trafic WireGuard plus difficile à détecter. Introduit des paquets de leurre qui perturbent les règles simples souvent utilisées par les systèmes de censure Deep Packet Inspection (DPI), améliorant la fiabilité de la connexion dans les environnements restrictifs. \n\nRemarque : uniquement côté client implémenté.</string>
 	<string name="censorship_amnezia_link_text">Comment AmneziaWG empêche les DPI</string>
@@ -309,6 +316,7 @@
 	<string name="account_welcome_open_source">Lois de la protection de la vie privée en Suisse &amp; Open source</string>
 	<string name="account_welcome_button">Commencez à protéger ma vie privée</string>
 	<string name="account_welcome_have_account">Vous avez déjà un compte ?</string>
+	<string name="account_welcome_free_trial">7 jours d\'essai gratuit - aucun paiement n\'est requis</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">Vous êtes déjà abonné !</string>
 	<string name="account_subscription_description">Nous avons trouvé un abonnement actif lié à votre compte Google Play. Sautez l\'inscription et sautez directement à l\'aide de NymVPN. Ayez juste votre mot de passe de 24 mots prêt.</string>
@@ -398,4 +406,22 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Appliquer à la prochaine connexion</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 Nouveau : Choisir la protection par application ou la connexion directe pour la vitesse</string>
 	<string name="split_tunneling_per_app_security_banner_action">Configurer les applis\n</string>
+	<!-- DNS customization screen -->
+	<string name="dns_title">Personnalisation DNS</string>
+	<string name="dns_description">Par défaut, en utilisant les serveurs DNS recommandés par Nym. Configurez les serveurs personnalisés ci-dessous si nécessaire.</string>
+	<string name="dns_view_list">Voir le DNS par défaut</string>
+	<string name="dns_hide_list">Masquer le DNS par défaut</string>
+	<string name="dns_list_title">DNS par défaut de Nym :</string>
+	<string name="dns_custom_title">Utiliser des serveurs DNS personnalisés</string>
+	<string name="dns_custom_description">Configurez votre propre DNS pour le blocage de publicité, le filtrage de contenu ou les fournisseurs préférés. Faites glisser pour réordonner la priorité. ⚠️ Peut limiter la connectivité Nym. </string>
+	<string name="dns_custom_list_title">Entrez le serveur DNS</string>
+	<string name="dns_custom_list_entries">Serveurs DNS personnalisés (%1$s/5)</string>
+	<string name="dns_custom_list_hint">Adresse IPv4 ou IPv6</string>
+	<string name="dns_custom_list_error">Format d\'adresse DNS invalide</string>
+	<string name="dns_custom_button_add">Ajouter</string>
+	<string name="dns_custom_button_save">Enregistrer les modifications</string>
+	<string name="dns_custom_saved">DNS personnalisé enregistré.</string>
+	<string name="dns_save_dialog_title">Enregistrer les modifications ?</string>
+	<string name="dns_save_dialog_description">Vous avez des modifications non enregistrées.</string>
+	<string name="dns_learn_more_text">En savoir plus sur le DNS</string>
 </resources>

@@ -1,0 +1,2 @@
+What's new:
+- Fixed connection issue with tunnel lifecycle.

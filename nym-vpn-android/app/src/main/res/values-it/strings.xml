@@ -154,10 +154,13 @@
 	<string name="join_telegram">Join us on Telegram</string>
 	<!-- Common -->
 	<string name="button_done">Fatto</string>
+	<string name="button_discard">Scarta</string>
+	<string name="button_add">Aggiungi</string>
+	<string name="here">qui</string>
+	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">Nuovo: Scopri lo streaming-\nserver ottimizzati (▶️)</string>
 	<string name="streaming_server_banner_action">Controlla i nuovi server di uscita\n</string>
-    <string name="here">qui</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Impossibile connettersi con lo stesso server di entrata ed uscita. Cambiare il server di entrata o uscita e riconnettersi.</string>
 	<string name="unexpected_error">An unexpected error occurred:</string>
@@ -193,6 +196,7 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censura</string>
 	<string name="settings_passphrase_title">Passphrase</string>
+	<string name="settings_dns_title">Personalizza DNS</string>
 	<string name="settings_ipv6_title">Supporto IPv6</string>
 	<string name="settings_ipv6_description">Consenti connessioni IPv6</string>
 	<string name="settings_bypass_description">Consenti accesso diretto alla rete locale</string>
@@ -207,6 +211,8 @@
 	<string name="settings_quit_title">Esci Da NymVPN</string>
 	<string name="settings_app_version_line">Versione dell\'app: %1$s</string>
 	<string name="settings_daemon_version_line">Versione demone: %1$s</string>
+	<string name="settings_language_help_title">Aiuto con traduzione</string>
+	<string name="settings_language_help_description">Rendere l\'app migliore nella tua lingua.</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -298,6 +304,7 @@
 	<string name="quick_info_modal_desc_non_quic">Questo ti ricollegherà senza il protocollo QUIC abilitato. Mantieni i tuoi gateway correnti.\n\nI tuoi dati rimangono protetti durante la riconnessione.</string>
 	<string name="quic_primary_btn_text_non_quic">Riconnetti senza QUIC ora</string>
 	<string name="quic_text_btn_text_non_quic">Disattiva QUIC alla prossima connessione</string>
+	<string name="quic_gateway_filter_info_msg">Mostra solo posizioni e server in modalità veloce che supportano il protocollo QUIC. Per rivelare tutti i server, disattiva QUIC</string>
 	<string name="censorship_amnezia_title">Opacità minima (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Rende il traffico WireGuard più difficile da rilevare. Introduce pacchetti di richiamo che disturbano semplici regole spesso utilizzate dai sistemi di censura Deep Packet Inspection (DPI), migliorando l\'affidabilità della connessione in ambienti restrittivi. \n\nNota: Solo lato client implementato.</string>
 	<string name="censorship_amnezia_link_text">Come AmneziaWG previene il DPI</string>
@@ -309,6 +316,7 @@
 	<string name="account_welcome_open_source">Open source &amp; Leggi svizzere sulla privacy</string>
 	<string name="account_welcome_button">Inizia a proteggere la mia privacy</string>
 	<string name="account_welcome_have_account">Hai già un account?</string>
+	<string name="account_welcome_free_trial">7 giorni di prova gratuita - nessun pagamento richiesto</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">Sei già iscritto!</string>
 	<string name="account_subscription_description">Abbiamo trovato un abbonamento attivo collegato al tuo account Google Play. Salta la registrazione e salta direttamente utilizzando NymVPN. Basta che la frase segreta di 24 parole sia pronta.</string>
@@ -398,4 +406,22 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Applica alla prossima connessione</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 Nuovo: Scegli la protezione per app o la connessione diretta per la velocità</string>
 	<string name="split_tunneling_per_app_security_banner_action">Configura\napp</string>
+	<!-- DNS customization screen -->
+	<string name="dns_title">Personalizzazione DNS</string>
+	<string name="dns_description">Per impostazione predefinita, utilizzando i server DNS consigliati di Nym. Configura i server personalizzati qui sotto se necessario.</string>
+	<string name="dns_view_list">Visualizza DNS predefiniti</string>
+	<string name="dns_hide_list">Nascondi DNS predefiniti</string>
+	<string name="dns_list_title">Nym\'s default DNS:</string>
+	<string name="dns_custom_title">Usa server DNS personalizzati</string>
+	<string name="dns_custom_description">Configura il tuo DNS per il blocco pubblicitario, il filtraggio dei contenuti o i provider preferiti. Trascina per riordinare la priorità. ⚠️ Può limitare la connettività Nym. </string>
+	<string name="dns_custom_list_title">Inserisci server DNS</string>
+	<string name="dns_custom_list_entries">Server DNS personalizzati (%1$s/5)</string>
+	<string name="dns_custom_list_hint">Indirizzo IPv4 o IPv6</string>
+	<string name="dns_custom_list_error">Formato indirizzo DNS non valido</string>
+	<string name="dns_custom_button_add">Aggiungi</string>
+	<string name="dns_custom_button_save">Salva modifiche</string>
+	<string name="dns_custom_saved">DNS personalizzato salvato.</string>
+	<string name="dns_save_dialog_title">Salvare le modifiche?</string>
+	<string name="dns_save_dialog_description">Le modifiche non sono state salvate.</string>
+	<string name="dns_learn_more_text">Scopri di più su DNS</string>
 </resources>

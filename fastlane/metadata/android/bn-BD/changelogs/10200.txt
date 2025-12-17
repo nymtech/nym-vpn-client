@@ -1,5 +1,5 @@
-What's new:
-- Fixed connection state sync
-- Improved error messaging
-- Added permission denied flow
-- Removed debug logs from release
+নতুন কী আছে :
+- সংযোগ স্টেট সিঙ্ক ঠিক করা হয়েছে
+- ত্রুটির বার্তা উন্নত করা হয়েছে
+- 'অনুমতি অস্বীকৃত' ফ্লো যোগ করা হয়েছে
+- রিলিজ থেকে ডিবাগ লগ সরানো হয়েছে

@@ -1,0 +1,5 @@
+Có gì mới:
+- Thêm chi tiết node vào cài đặt nhanh và màn hình Tài khoản mới
+- Giới thiệu tính năng split tunnel hai chế độ trên Android
+- Cập nhật giao diện người dùng Cài đặt, Quyền riêng tư, Kiểm duyệt và điều hướng
+- Cải thiện độ ổn định của kết nối và xử lý lỗi
