@@ -5,6 +5,7 @@ import GRPCManager
 #endif
 import SwiftUI
 import AppSettings
+import Network
 
 @MainActor public final class DnsViewModel: ObservableObject {
     private let appSettings: AppSettings
@@ -15,7 +16,6 @@ import AppSettings
 
     @Binding private var path: NavigationPath
 
-    
     @Published var defaultDns: [String] = [
         "9.9.9.9",
         "149.112.112.112",
@@ -32,6 +32,20 @@ import AppSettings
     @Published var isCustomDnsEnabled = false
 
     @Published var customDnsTextField = ""
+    public var isAddButtonDisabled: Bool {
+        !isIPAddress(customDnsTextField)
+        || customDns.contains(customDnsTextField)
+        || customDns.count == maxDnsEntries
+    }
+    public var customDnsValidationError: String? {
+        if !isIPAddress(customDnsTextField) {
+            "dns.textfield.invalid".localizedString
+        } else {
+            nil
+        }
+    }
+
+    public var isSaveChangesButtonDisabled: Bool { customDns == appSettings.customDns }
 
     @Published var isSnackbarDisplayed = false
     @Published var snackbarMessage: String?
@@ -72,14 +86,23 @@ extension DnsViewModel {
     func deleteCustom(ipAddr: String) {
         customDns.removeAll { $0 == ipAddr }
     }
-    
+
+    func add() {
+        guard !isAddButtonDisabled else { return }
+        customDns.append(customDnsTextField)
+        customDnsTextField = ""
+    }
+
     func saveChanges() {
-        appSettings.isCustomDnsEnabled = isCustomDnsEnabled
+        guard !isSaveChangesButtonDisabled else { return }
         appSettings.customDns = customDns
-        
+
         appSettings.shouldReconnect = true
     }
 }
 
 private extension DnsViewModel {
+    func isIPAddress(_ string: String) -> Bool {
+        IPv4Address(string) != nil || IPv6Address(string) != nil
+    }
 }

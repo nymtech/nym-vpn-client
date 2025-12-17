@@ -13,9 +13,12 @@ import UIComponents
 public struct DnsView: View {
     @StateObject private var viewModel: DnsViewModel
 
-    @FocusState private var isIpAddressTextFieldFocused: Bool
     @State private var isCustomDnsHovered = false
+
+    @FocusState private var isCustomDnsTextFieldFocused: Bool
     @State private var isCustomDnsTextFieldHovered = false
+    @State private var isCustomDnsTextFieldDirty = false
+
     @State private var isCustomDnsAddButtonHovered = false
 
     public var body: some View {
@@ -35,6 +38,9 @@ public struct DnsView: View {
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
             .padding(.horizontal, 16)
+            .onTapGesture {
+                isCustomDnsTextFieldFocused = false
+            }
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
@@ -105,6 +111,7 @@ private extension DnsView {
                 accessory: .toggle(
                     viewModel: ToggleViewModel(
                         isOn: $viewModel.isCustomDnsEnabled,
+                        isDisabled: viewModel.customDns.isEmpty,
                         action: { _ in }
                     )
                 ),
@@ -121,7 +128,11 @@ private extension DnsView {
         }
     }
 
+    #if os(macOS)
     private static let dnsEntryHeight: CGFloat = 44
+    #elseif os(iOS)
+    private static let dnsEntryHeight: CGFloat = 28
+    #endif
 
     func customDnsInstructionsAndList() -> some View {
         VStack(spacing: 0) {
@@ -144,47 +155,152 @@ private extension DnsView {
         .padding(.horizontal, 16)
     }
 
+    #if os(macOS)
     @ViewBuilder
     func customDnsList() -> some View {
-        List {
-            ForEach(viewModel.customDns, id: \.self) { ip in
+        VStack(spacing: 0) {
+            if !viewModel.customDns.isEmpty {
                 HStack {
-                    HStack {
-                        GenericImage(imageName: "dragIndicator")
-                            .frame(width: 20, height: 20)
-                            .foregroundStyle(NymColor.gray1)
-                        Text(ip)
-                    }
-                    Spacer()
-                    GenericImage(systemImageName: "trash")
-                        .frame(width: 20, height: 20)
+                    Text("\("dns.custom.listTitle".localizedString) (\(viewModel.customDns.count)/\(viewModel.maxDnsEntries))")
+                        .textStyle(.Body.Medium.regular)
                         .foregroundStyle(NymColor.primary)
-                        .onTapGesture {
-                            viewModel.deleteCustom(ipAddr: ip)
-                        }
+                        .padding(.vertical, 12)
+                    Spacer()
                 }
-                .frame(height: DnsView.dnsEntryHeight)
-                .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
-                .background(.clear)
+                .padding(.horizontal, 16)
+                Divider()
+                    .frame(height: 1)
+                    .overlay(NymColor.gray2)
+                    .padding(.horizontal, 16)
             }
-            .onMove { from, to in
-                viewModel.customDns.move(fromOffsets: from, toOffset: to)
+            List {
+                ForEach(viewModel.customDns, id: \.self) { ip in
+                    VStack {
+                        HStack {
+                            HStack {
+                                GenericImage(imageName: "dragIndicator")
+                                    .frame(width: 20, height: 20)
+                                    .foregroundStyle(NymColor.gray1)
+                                Text(ip)
+                            }
+                            Spacer()
+                            GenericImage(systemImageName: "trash")
+                                .frame(width: 20, height: 20)
+                                .foregroundStyle(NymColor.primary)
+                                .onTapGesture {
+                                    viewModel.deleteCustom(ipAddr: ip)
+                                }
+                        }
+                        .frame(height: DnsView.dnsEntryHeight)
+                        .background(.clear)
+                        .padding(.horizontal, 16)
+                        Divider()
+                            .frame(height: 1)
+                            .overlay(NymColor.gray2)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 8)
+                    }
+                    .listRowSeparator(.hidden)
+                }
+                .onMove { from, to in
+                    viewModel.customDns.move(fromOffsets: from, toOffset: to)
+                }
             }
+            .listStyle(.plain)
+            .background(.clear)
+            .scrollContentBackground(.hidden)
+            .scrollDisabled(true)
+            .frame(maxWidth: .infinity)
+            .frame(height: (DnsView.dnsEntryHeight * CGFloat(viewModel.customDns.count)) * 1.45)
         }
-        .background(.clear)
-        .scrollContentBackground(.hidden)
-        .scrollDisabled(true)
-        .frame(maxWidth: .infinity)
-        .frame(height: DnsView.dnsEntryHeight * CGFloat(viewModel.customDns.count))
     }
+    #elseif os(iOS)
+    func customDnsList() -> some View {
+        VStack(spacing: 0) {
+            if !viewModel.customDns.isEmpty {
+                HStack {
+                    Text("\("dns.custom.listTitle".localizedString) (\(viewModel.customDns.count)/\(viewModel.maxDnsEntries))")
+                        .textStyle(.Body.Medium.regular)
+                        .foregroundStyle(NymColor.primary)
+                        .padding(.vertical, 12)
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                Divider()
+                    .frame(height: 1)
+                    .overlay(NymColor.gray2)
+                    .padding(.horizontal, 16)
+            }
+            List {
+                ForEach(viewModel.customDns, id: \.self) { ip in
+                    VStack {
+                        HStack {
+                            HStack {
+                                GenericImage(imageName: "dragIndicator")
+                                    .frame(width: 20, height: 20)
+                                    .foregroundStyle(NymColor.gray1)
+                                Text(ip)
+                            }
+                            .padding(.leading, 16)
+                            Spacer()
+                            GenericImage(systemImageName: "trash")
+                                .frame(width: 20, height: 20)
+                                .foregroundStyle(NymColor.primary)
+                                .onTapGesture {
+                                    viewModel.deleteCustom(ipAddr: ip)
+                                }
+                                .padding(.trailing, 16)
+                        }
+                        .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
+                    }
+                    .frame(height: DnsView.dnsEntryHeight)
+                    .listRowSeparatorTint(NymColor.gray2)
+                    .listRowBackground(NymColor.elevation)
+                }
+                .onMove { from, to in
+                    viewModel.customDns.move(fromOffsets: from, toOffset: to)
+                }
+                .listRowInsets(
+                    EdgeInsets(
+                        top: 0,
+                        leading: 16,
+                        bottom: 0,
+                        trailing: 16
+                    )
+                )
+            }
+            .listStyle(.plain)
+            .background(NymColor.elevation)
+            .scrollContentBackground(.hidden)
+            .scrollDisabled(true)
+            .frame(maxWidth: .infinity)
+            .frame(height: (DnsView.dnsEntryHeight * CGFloat(viewModel.customDns.count)) * 2)
+        }
+    }
+    #endif
 
     @ViewBuilder
     func dnsTextFieldAndAddButton() -> some View {
-        HStack(spacing: 16) {
-            dnsTextField()
-            dnsAddButton()
+        if viewModel.customDns.count < viewModel.maxDnsEntries {
+            VStack {
+                HStack(spacing: 16) {
+                    dnsTextField()
+                    dnsAddButton()
+                }
+
+                if let validationError = viewModel.customDnsValidationError,
+                   !isCustomDnsTextFieldFocused,
+                    isCustomDnsTextFieldDirty {
+                    HStack {
+                        Text(validationError)
+                            .textStyle(.Body.Medium.regular)
+                            .foregroundStyle(NymColor.error)
+                        Spacer()
+                    }
+                }
+            }
+            .padding(16)
         }
-        .padding(16)
     }
 
     @ViewBuilder
@@ -193,18 +309,22 @@ private extension DnsView {
             strokeTitle: "dns.textfield.title".localizedString,
             strokeTitleLeftMargin: 60,
             isHovered: $isCustomDnsTextFieldHovered,
-            strokeColor: NymColor.primary,
+            strokeColor: viewModel.customDnsValidationError != nil
+                && !isCustomDnsTextFieldFocused
+                && isCustomDnsTextFieldDirty
+                    ? NymColor.error
+                    : NymColor.primary,
             backgroundColor: .clear
         ) {
             HStack {
                 ZStack(alignment: .leading) {
                     TextField("", text: $viewModel.customDnsTextField)
                         .padding(.horizontal, 16)
-                        .foregroundStyle(NymColor.gray1)
+                        .foregroundStyle(NymColor.primary)
                         .textFieldStyle(PlainTextFieldStyle())
                         .background(.clear)
                         .textStyle(.Body.Large.regular)
-                        .focused($isIpAddressTextFieldFocused)
+                        .focused($isCustomDnsTextFieldFocused)
 
                     if viewModel.customDnsTextField.isEmpty {
                         Text("dns.textfield.placeholder".localizedString)
@@ -219,7 +339,12 @@ private extension DnsView {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .onTapGesture {
-            isIpAddressTextFieldFocused = true
+            isCustomDnsTextFieldFocused = true
+        }
+        .onChange(of: viewModel.customDnsTextField) { newValue in
+            if !newValue.isEmpty {
+                isCustomDnsTextFieldDirty = true
+            }
         }
     }
 
@@ -228,25 +353,32 @@ private extension DnsView {
         GenericButton(
             title: "dns.button.add".localizedString,
             style: .primaryBorderOnly,
+            isDisabled: viewModel.isAddButtonDisabled,
             isWidthExpanded: false
         )
         .onTapGesture {
-            print("Add!")
+            guard !viewModel.isAddButtonDisabled else { return }
+            viewModel.add()
+            isCustomDnsTextFieldDirty = false
         }
         .accessibilityAction {
-            print("Add!")
+            guard !viewModel.isAddButtonDisabled else { return }
+            viewModel.add()
+            isCustomDnsTextFieldDirty = false
         }
     }
 
     @ViewBuilder
     func dnsSaveChangesButton() -> some View {
-        GenericButton(title: "dns.button.saveChanges".localizedString)
-            .padding(.horizontal, 16)
-            .onTapGesture {
-                print("Save changes!")
-            }
-            .accessibilityAction {
-                print("Save changes!")
-            }
+        GenericButton(
+            title: "dns.button.saveChanges".localizedString,
+            isDisabled: viewModel.isSaveChangesButtonDisabled
+        )        .padding(.horizontal, 16)
+        .onTapGesture {
+            viewModel.saveChanges()
+        }
+        .accessibilityAction {
+            viewModel.saveChanges()
+        }
     }
 }
