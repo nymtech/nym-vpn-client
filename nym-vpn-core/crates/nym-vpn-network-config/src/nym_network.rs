@@ -11,7 +11,7 @@ use nym_network_defaults::NymNetworkDetails;
 
 use crate::MAX_FILE_AGE;
 
-use super::{Error, NETWORKS_SUBDIR, Result, discovery::Discovery};
+use super::{Error, Result, discovery::Discovery};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct NymNetwork {
@@ -25,7 +25,7 @@ impl NymNetwork {
 
     fn path(config_dir: &Path, network_name: &str) -> PathBuf {
         config_dir
-            .join(NETWORKS_SUBDIR)
+            .join(network_name)
             .join(format!("{network_name}.json"))
     }
 
@@ -131,6 +131,6 @@ mod tests {
         let config_dir = Path::new("/tmp");
         let network_name = "mainnet";
         let path = NymNetwork::path(config_dir, network_name);
-        assert_eq!(path, Path::new("/tmp/networks/mainnet.json"));
+        assert_eq!(path, Path::new("/tmp/mainnet/mainnet.json"));
     }
 }

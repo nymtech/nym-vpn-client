@@ -8,7 +8,7 @@ use std::{
     time::SystemTime,
 };
 
-use crate::{Error, MAX_FILE_AGE, NETWORKS_SUBDIR, Result, discovery::Discovery};
+use crate::{Error, MAX_FILE_AGE, Result, discovery::Discovery};
 use itertools::Itertools;
 use nym_common::trace_err_chain;
 use nym_sdk::UserAgent;
@@ -16,6 +16,7 @@ use nym_vpn_api_client::{VpnApiClient, api_urls_to_urls};
 
 // TODO: integrate with nym-vpn-api-client
 
+const NETWORKS_SUBDIR: &str = "networks";
 const ENVS_FILE: &str = "envs.json";
 static DEFAULT_ENVS_JSON: &[u8] = include_bytes!("../default/envs.json");
 
