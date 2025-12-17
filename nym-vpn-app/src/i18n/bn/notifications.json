@@ -12,7 +12,7 @@
   },
   "copied-to-clipboard": "Copied to clipboard",
   "daemon-no-compat": "Daemon version is not compatible with the app version! Daemon version: {{version}}, expected: {{required}}. Please update either the app or the daemon.",
-  "daemon-not-connected": "No daemon connection, please contact our support team",
+  "daemon-not-connected": "ডেমন-এ সংযোগ করা যাচ্ছে না। অ্যাপ বা ডিভাইস রিস্টার্ট করুন। সমস্যা অব্যাহত থাকলে NymVPN পুনরায় ইনস্টল করুন।",
   "streaming-optimized-label": "⏯️ Streaming-optimized servers now labelled",
   "streaming-optimized-label-button": "Browse exit servers now"
 }

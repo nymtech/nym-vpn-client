@@ -1,13 +1,13 @@
 {
   "connection-progress": {
     "canceling": "Abbrechen…",
-    "resolving-api-addresses": "Auflösen der API-Adressen…",
-    "awaiting-account-readiness": "Warte auf Kontoreife…",
-    "refreshing-gateways": "Aktualisierung der Serverliste (3/6)",
+    "resolving-api-addresses": "Initialisiere NymVPN (1/6)",
+    "awaiting-account-readiness": "Einrichtung deines Kontos (2/6)",
+    "refreshing-gateways": "Serverliste wird aktualisiert (3/6)",
     "selecting-gateways": "Auswahl der besten Server (4/6)",
-    "registering-with-gateways": "Anonyme Registrierung bei Servern (5/6)",
-    "connecting-tunnel": "Herstellen einer Serververbindung (6/6)"
+    "registering-with-gateways": "Anonym bei Servern registrieren (5/6)",
+    "connecting-tunnel": "Serververbindung wird hergestellt (6/6)"
   },
-  "connection-attempt_one": "Retrying… versuch {{count}}",
-  "connection-attempt_other": "Retrying… versuch  {{count}}"
+  "connection-attempt_one": "Wiederhole… Versuch {{count}}",
+  "connection-attempt_other": "Wiederhole… Versuch {{count}}"
 }

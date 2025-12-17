@@ -1,0 +1,175 @@
+{
+  "auto-connect": {
+    "title": "Auto-connect",
+    "desc": "Auto connect at app startup"
+  },
+  "ipv6-support": {
+    "title": "Support IPv6",
+    "desc": "Allow IPv6 connections"
+  },
+  "allow-lan": {
+    "title": "Bypass LAN",
+    "desc": "Allow direct local network access"
+  },
+  "notifications": {
+    "title": "Desktop notifications"
+  },
+  "monitoring-alert": "You should restart the app and daemon service for the change to take effect.",
+  "support": {
+    "intro": {
+      "title": "⚠️ Protect yourself from scams",
+      "description": "Only contact NymVPN support through the official channels listed below. We will never ask for your passphrase or contact you first via direct messages.\n\nReceived unexpected contact? It's likely a scam."
+    },
+    "title": "Support & feedback",
+    "faq": "Check the FAQ",
+    "contact": "Contact us",
+    "telegram": "Chat on Telegram",
+    "github": "Open a GitHub issue",
+    "matrix": "Join us on Matrix",
+    "discord": "Join us on Discord",
+    "help": {
+      "title": "Help with translation",
+      "description": "Make the app better in your language."
+    }
+  },
+  "dns": {
+    "title": "Customize DNS",
+    "topbar-title": "DNS customization",
+    "top-description": "By default, using Nym's recommended DNS servers. Configure custom servers below if needed.",
+    "view-default-dns": "View default DNS",
+    "hide-default-dns": "Hide default DNS",
+    "details": {
+      "title": "Use custom DNS servers",
+      "description": "Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity.",
+      "list-header": "Custom DNS servers",
+      "add": "Add",
+      "input-label": "DNS address",
+      "input-placeholder": "IPv4 or IPv6 address",
+      "apply": "Save changes",
+      "link": "Learn more about DNS",
+      "applied": "Custom DNS saved."
+    },
+    "error": {
+      "duplicate": "Duplicate DNS address",
+      "invalid": "Invalid DNS address format",
+      "failed": "Failed to apply DNS changes"
+    }
+  },
+  "confirmation-dialog": {
+    "title": "Save changes?",
+    "description": "You have unsaved changes.",
+    "save": "Save changes",
+    "cancel": "Discard"
+  },
+  "legal": {
+    "title": "Legal",
+    "policy": "Privacy statement",
+    "tos": "Terms of use",
+    "license": "License",
+    "licenses-rust": "Licenses (Rust)",
+    "licenses-js": "Licenses (JS)",
+    "emptyData": "No license data available"
+  },
+  "logs": {
+    "title": "Logs (stored locally)",
+    "app": "App logs",
+    "daemon": "Daemon logs"
+  },
+  "anti-censorship": {
+    "title": "Anti-censorship",
+    "intro": "Enable these features if you're experiencing connection issues or NymVPN is blocked in your location.",
+    "quic": {
+      "label": "Enhanced connection (QUIC)",
+      "warning": "Changes will apply after reconnect",
+      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
+      "link": "How QUIC improves connections"
+    },
+    "stealth-api": {
+      "label": "Stealth API connect",
+      "warning": "Changes will apply after reconnect",
+      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
+      "link": "How the Stealth API connect mode works"
+    },
+    "amneziawg": {
+      "label": "Minimal obfuscation (AmneziaWG)",
+      "content": "Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments.\n\nNote: Only implemented client-side.",
+      "link": "How AmneziaWG prevents DPI"
+    },
+    "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
+    "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
+  },
+  "faq": "FAQ",
+  "display-theme": "Display mode",
+  "logout-confirmation": {
+    "title": "Log out of this device?",
+    "description": "You’ll need your 24-word passphrase to sign in again.",
+    "logging-out": "Logging out"
+  },
+  "quit": "Quit NymVPN",
+  "login-button": "Connect device",
+  "info": {
+    "client-version": "App version",
+    "daemon-version": "Daemon version",
+    "network-name": "Network",
+    "account-id": "Account ID",
+    "device-id": "Device ID"
+  },
+  "autostart": {
+    "title": "Launch on device startup",
+    "desc": "Start app when device boots"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "Always on to protect your data"
+  },
+  "app-proxy": {
+    "title": "App & wallet proxy (beta)",
+    "menu-desc": "Route app traffic through mixnet",
+    "label": "App & wallet proxy",
+    "description": "Enable mixnet proxy for apps & wallets",
+    "connect-vpn-first": "Connect VPN first to enable proxy",
+    "intro": "Route app & wallet traffic through the Nym mixnet for enhanced privacy. This feature creates a local SOCKS5 proxy for apps, and a HTTP RPC proxy for wallets.",
+    "status": "Status",
+    "proxy-url": "Proxy URL",
+    "active-connections": "Active connections",
+    "copied-to-clipboard": "Proxy URL copied to clipboard",
+    "snackbar-enabled": "SOCKS5 proxy enabled",
+    "snackbar-disabled": "SOCKS5 proxy disabled",
+    "error-gateway-not-supported": "Gateway does not support SOCKS5",
+    "error-unknown": "Failed to toggle SOCKS5 proxy",
+    "error-vpn-not-connected": "Please connect VPN first before enabling SOCKS5 proxy",
+    "socks5-address-label": "SOCKS5 Listen Address",
+    "socks5-address-placeholder": "127.0.0.1:1080",
+    "http-rpc-address-label": "HTTP RPC Listen Address",
+    "http-rpc-address-placeholder": "127.0.0.1:8545",
+    "configuration": "Configuration",
+    "enabling": "Enabling proxy...",
+    "disabling": "Disabling proxy...",
+    "add-to-browser-proxy-settings": "Add this URL to your browser's proxy settings to route traffic through the Nym mixnet",
+    "use-in-wallet": "Use this URL in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual provider URL."
+  },
+  "privacy": {
+    "error-monitoring": {
+      "label": "Error & crash reports",
+      "sublabel": "Changes will apply after app and daemon restart.",
+      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
+      "link": "View Sentry Privacy Policy"
+    },
+    "network-stats": {
+      "label": "Anonymous network stats",
+      "sublabel": "Changes will apply after daemon restart.",
+      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
+      "link": "Learn exactly what's shared"
+    }
+  },
+  "account": {
+    "get-started": "Get started",
+    "syncing": "Syncing…",
+    "no-plan": "No active plan",
+    "bandwidth-exceeded": "Bandwidth exceeded",
+    "max-device-reached": "Max devices reached",
+    "status-inactive": "Account is inactive",
+    "requesting-zknyms": "Requesting ZkNyms",
+    "error": "Internal error"
+  }
+}
