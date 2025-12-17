@@ -8,4 +8,6 @@
 	<string name="state_disconnected">डिस्कनेक्टेड</string>
 	<string name="state_initializing">क्लाइंट प्रारंभ हो रहा है…</string>
 	<string name="state_establishing">कनेक्शन स्थापित किया जा रहा है…</string>
+	<string name="notification_entry">प्रवेश: %1$s</string>
+	<string name="notification_exit">बाहर निकलें: %1$s</string>
 </resources>

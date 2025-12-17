@@ -25,7 +25,7 @@
 	<string name="is_selected">Đã chọn</string>
 	<string name="fastest">Nhanh nhất</string>
 	<string name="auto_connect">Tự động kết nối</string>
-	<string name="auto_connect_description">Tự động kết nối khi khởi động lại</string>
+	<string name="auto_connect_description">Kết nối khi khởi động lại</string>
 	<string name="logs">Nhật Ký</string>
 	<string name="support">Hỗ trợ</string>
 	<string name="legal">Pháp lý</string>
@@ -129,8 +129,8 @@
 	<string name="app_update_required">Ứng dụng của bạn không còn được hỗ trợ. Vui lòng cập nhật lên phiên bản mới nhất để tiếp tục sử dụng NymVPN.    </string>
 	<string name="update_required">Cần cập nhật!</string>
 	<string name="update">Cập nhật</string>
-	<string name="log_out_title">Bạn có chắc chắn muốn đăng xuất?</string>
-	<string name="log_out_body">Bạn sẽ cần cụm từ khôi phục của mình để đăng nhập lại.</string>
+	<string name="log_out_title">Bạn muốn đăng xuất khỏi thiết bị này?</string>
+	<string name="log_out_body">Bạn sẽ cần cụm từ mật khẩu 24 từ của mình để đăng nhập lại.</string>
 	<string name="cancel">Hủy</string>
 	<string name="info">Thông tin</string>
 	<string name="collapse">Thu nhỏ</string>
@@ -152,10 +152,13 @@
 	<string name="join_telegram">Tham gia Telegram của chúng tôi</string>
 	<!-- Common -->
 	<string name="button_done">Hoàn thành</string>
+	<string name="button_discard">Bỏ qua</string>
+	<string name="button_add">Thêm</string>
+	<string name="here">tại đây</string>
+	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Hiển thị trực tuyến</string>
 	<string name="streaming_server_banner_title">Mới: Khám phá các máy chủ-\nđược tối ưu hóa cho phát trực tuyến (▶️)</string>
 	<string name="streaming_server_banner_action">Kiểm tra máy chủ thoát\nmới</string>
-    <string name="here">tại đây</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Không thể kết nối với cùng một node vào và thoát. Vui lòng thay đổi vị trí node vào hoặc node thoát và kết nối lại.</string>
 	<string name="unexpected_error">Đã xảy ra lỗi không mong muốn:</string>
@@ -191,20 +194,23 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Chống kiểm duyệt</string>
 	<string name="settings_passphrase_title">Cụm từ mật khẩu</string>
-	<string name="settings_ipv6_title">Support IPv6</string>
-	<string name="settings_ipv6_description">Allow IPv6 connections</string>
-	<string name="settings_bypass_description">Allow direct local network access</string>
-	<string name="settings_auto_select_title">Auto-select entry server</string>
-	<string name="settings_auto_select_description">Let app choose best entry location</string>
-	<string name="settings_device_startup_title">Launch on device startup</string>
-	<string name="settings_device_startup_description">Let app choose best entry location</string>
-	<string name="settings_system_tray_title">Run in system tray</string>
-	<string name="settings_system_tray_description">Keep app running when closed</string>
-	<string name="settings_reset_app_title">Reset app data</string>
-	<string name="settings_system_status_title">System status</string>
-	<string name="settings_quit_title">Quit NymVPN</string>
-	<string name="settings_app_version_line">App version: %1$s</string>
-	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
+	<string name="settings_dns_title">Tùy chỉnh DNS</string>
+	<string name="settings_ipv6_title">Hỗ trợ IPv6</string>
+	<string name="settings_ipv6_description">Cho phép kết nối IPv6</string>
+	<string name="settings_bypass_description">Cho phép truy cập mạng cục bộ trực tiếp</string>
+	<string name="settings_auto_select_title">Tự động chọn máy chủ vào</string>
+	<string name="settings_auto_select_description">Cho phép ứng dụng chọn vị trí vào tốt nhất</string>
+	<string name="settings_device_startup_title">Khởi chạy khi khởi động thiết bị</string>
+	<string name="settings_device_startup_description">Cho phép ứng dụng chọn vị trí vào tốt nhất</string>
+	<string name="settings_system_tray_title">Chạy trong khay hệ thống</string>
+	<string name="settings_system_tray_description">Giữ ứng dụng chạy khi đóng</string>
+	<string name="settings_reset_app_title">Đặt lại dữ liệu ứng dụng</string>
+	<string name="settings_system_status_title">Trạng thái hệ thống</string>
+	<string name="settings_quit_title">Thoát NymVPN</string>
+	<string name="settings_app_version_line">Phiên bản ứng dụng: %1$s</string>
+	<string name="settings_daemon_version_line">Phiên bản daemon: %1$s</string>
+	<string name="settings_language_help_title">Hỗ trợ dịch</string>
+	<string name="settings_language_help_description">Tối ưu ứng dụng theo ngôn ngữ của bạn.</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Để có kết nối tốt nhất</string>
 	<string name="battery_opt_descr">Vô hiệu hóa chế độ tối ưu hóa pin NymVPN để có kết nối VPN ổn định hơn.</string>
@@ -296,9 +302,10 @@
 	<string name="quick_info_modal_desc_non_quic">Thao tác này sẽ kết nối lại mà không cần bật giao thức QUIC. Bạn sẽ giữ nguyên các cổng kết nối hiện tại.\n\nDữ liệu của bạn sẽ được bảo vệ trong quá trình kết nối lại.</string>
 	<string name="quic_primary_btn_text_non_quic">Kết nối lại ngay bây giờ mà không dùng QUIC</string>
 	<string name="quic_text_btn_text_non_quic">Tắt QUIC trong kết nối tiếp theo</string>
-	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>
-	<string name="censorship_amnezia_link_text">How AmneziaWG prevents DPI</string>
+	<string name="quic_gateway_filter_info_msg">Chỉ hiển thị các vị trí trong chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, hãy tắt QUIC</string>
+	<string name="censorship_amnezia_title">Mức độ che giấu tối thiểu (AmneziaWG)</string>
+	<string name="censorship_amnezia_description">Giúp lưu lượng WireGuard khó bị phát hiện hơn. Đưa vào các gói tin mồi nhử phá vỡ các quy tắc đơn giản thường được sử dụng bởi các hệ thống kiểm duyệt Kiểm tra gói sâu (DPI), cải thiện độ tin cậy của kết nối trong các môi trường hạn chế. \n\nLưu ý: Chỉ được triển khai ở phía máy khách.</string>
+	<string name="censorship_amnezia_link_text">AmneziaWG ngăn chặn DPI như thế nào</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Công nghệ mixnet ẩn danh</string>
@@ -307,6 +314,7 @@
 	<string name="account_welcome_open_source">Mã nguồn mở &amp; luật bảo mật của Thụy Sĩ</string>
 	<string name="account_welcome_button">Bắt đầu bảo vệ quyền riêng tư của tôi</string>
 	<string name="account_welcome_have_account">Bạn đã có tài khoản?</string>
+	<string name="account_welcome_free_trial">Dùng thử miễn phí 7 ngày - không cần thanh toán</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">Bạn đã đăng ký!</string>
 	<string name="account_subscription_description">Chúng tôi đã tìm thấy một gói đăng ký đang hoạt động được liên kết với tài khoản Google Play của bạn. Bỏ qua bước đăng ký và bắt đầu sử dụng NymVPN ngay. Chỉ cần chuẩn bị sẵn cụm từ mật khẩu 24 từ.</string>
@@ -350,16 +358,16 @@
 	<string name="passphrase_info_keeps_anonymous">Giúp bạn duy trì tính ẩn danh</string>
 	<string name="passphrase_info_belongs">Chỉ thuộc về bạn (tự quản lý)</string>
 	<!-- Account screen -->
-	<string name="account_title">Account and devices</string>
+	<string name="account_title">Tài khoản và thiết bị</string>
 	<string name="account_info_plan">Gói</string>
 	<string name="account_info_payments">Thanh toán</string>
 	<string name="account_info_devices">Thiết bị</string>
 	<string name="account_info_id_title">ID tài khoản</string>
 	<string name="account_info_id_description">Sử dụng ID này cho các yêu cầu hỗ trợ</string>
 	<string name="account_info_id_important">⚠️ Quan trọng: Hỗ trợ Nym sẽ không bao giờ yêu cầu cụm từ mật khẩu 24 từ của bạn. Đừng bao giờ chia sẻ nó với bất kỳ ai.</string>
-	<string name="account_on_nym">Account on nym.com</string>
-	<string name="account_device_id_title">Device ID</string>
-	<string name="account_id_title">Account ID</string>
+	<string name="account_on_nym">Tài khoản trên nym.com</string>
+	<string name="account_device_id_title">ID thiết bị</string>
+	<string name="account_id_title">ID tài khoản</string>
 	<!-- Logs screen -->
 	<string name="logs_share">Chia sẻ</string>
 	<string name="logs_download">Tải xuống</string>
@@ -376,24 +384,42 @@
 	<string name="logs_saved">Nhật ký được lưu vào thư mục tải xuống\"</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling">Split tunneling</string>
-	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
-	<string name="split_tunneling_info_desc">Changes will apply after reconnect</string>
-	<string name="split_tunneling_search_apps_hint">Search apps</string>
-	<string name="split_tunneling_apps">Apps</string>
-	<string name="split_tunneling_direct">Direct</string>
-	<string name="split_tunneling_direct_desc">Bypass NymVPN</string>
-	<string name="split_tunneling_via_vpn">Via NymVPN</string>
-	<string name="split_tunneling_via_desc">Protected when connected</string>
+	<string name="split_tunneling_info_msg">Thiết lập từng ứng dụng để sử dụng NymVPN hoặc kết nối trực tiếp.</string>
+	<string name="split_tunneling_info_desc">Thay đổi sẽ có hiệu lực sau khi kết nối lại</string>
+	<string name="split_tunneling_search_apps_hint">Tìm kiếm ứng dụng</string>
+	<string name="split_tunneling_apps">Ứng Dụng</string>
+	<string name="split_tunneling_direct">Trực tiếp</string>
+	<string name="split_tunneling_direct_desc">Bỏ qua NymVPN</string>
+	<string name="split_tunneling_via_vpn">Qua NymVPN</string>
+	<string name="split_tunneling_via_desc">Được bảo vệ khi kết nối</string>
 	<string name="split_tunneling_nym_vpn">NymVPN</string>
-	<string name="split_tunneling_system_applications">System applications</string>
-	<string name="split_tunnel_info_modal_title">Using split tunneling</string>
-	<string name="split_tunnel_info_modal_desc">Split tunneling lets you optimize each app for either maximum speed or maximum privacy. You can easily change these settings anytime.</string>
-	<string name="split_tunnel_info_direct_desc">For services like banking, smart home devices, or work applications.</string>
-	<string name="split_tunnel_info_via_vpn_desc">Recommended setting. Will use the then-current mode (Fast or Anonymous), based on your needs.</string>
-	<string name="split_tunnel_changes_confirm_modal_title">Apply split tunneling settings?</string>
-	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.</string>
-	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Reconnect now</string>
-	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
-	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
-	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
+	<string name="split_tunneling_system_applications">Ứng dụng hệ thống</string>
+	<string name="split_tunnel_info_modal_title">Sử dụng split tunneling</string>
+	<string name="split_tunnel_info_modal_desc">Split tunneling cho phép bạn tối ưu hóa từng ứng dụng để đạt tốc độ hoặc quyền riêng tư tối đa. Bạn có thể dễ dàng thay đổi các cài đặt này bất cứ lúc nào.</string>
+	<string name="split_tunnel_info_direct_desc">Dành cho các dịch vụ như ngân hàng, thiết bị gia dụng thông minh hoặc ứng dụng công việc.</string>
+	<string name="split_tunnel_info_via_vpn_desc">Cài đặt được đề xuất. Sẽ sử dụng chế độ hiện hành (Nhanh hoặc Ẩn danh) dựa trên nhu cầu của bạn.</string>
+	<string name="split_tunnel_changes_confirm_modal_title">Áp dụng cài đặt split tunneling?</string>
+	<string name="split_tunnel_changes_confirm_modal_desc">Đã cập nhật split tunneling. Kết nối lại để áp dụng các thay đổi.\n\nDữ liệu của bạn vẫn được bảo vệ trong quá trình kết nối lại.</string>
+	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Kết nối lại ngay</string>
+	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Áp dụng cho kết nối tiếp theo</string>
+	<string name="split_tunneling_per_app_security_banner_title">🔀 Mới: Chọn bảo vệ theo từng ứng dụng hoặc kết nối trực tiếp để tăng tốc độ</string>
+	<string name="split_tunneling_per_app_security_banner_action">Cấu hình\nứng dụng</string>
+	<!-- DNS customization screen -->
+	<string name="dns_title">Tùy chỉnh DNS</string>
+	<string name="dns_description">Mặc định, hệ thống sử dụng các máy chủ DNS được Nym đề xuất. Cấu hình các máy chủ tùy chỉnh bên dưới nếu cần.</string>
+	<string name="dns_view_list">Xem DNS mặc định</string>
+	<string name="dns_hide_list">Ẩn DNS mặc định</string>
+	<string name="dns_list_title">DNS mặc định của Nym:</string>
+	<string name="dns_custom_title">Sử dụng máy chủ DNS tùy chỉnh</string>
+	<string name="dns_custom_description">Cấu hình DNS riêng của bạn để chặn quảng cáo, lọc nội dung hoặc chọn nhà cung cấp ưu tiên. Kéo để sắp xếp lại thứ tự ưu tiên. ⚠️ Có thể hạn chế khả năng kết nối của Nym. </string>
+	<string name="dns_custom_list_title">Nhập máy chủ DNS</string>
+	<string name="dns_custom_list_entries">Máy chủ DNS tùy chỉnh (%1$s/5)</string>
+	<string name="dns_custom_list_hint">Địa chỉ IPv4 hoặc IPv6</string>
+	<string name="dns_custom_list_error">Định dạng địa chỉ DNS không hợp lệ</string>
+	<string name="dns_custom_button_add">Thêm</string>
+	<string name="dns_custom_button_save">Lưu thay đổi</string>
+	<string name="dns_custom_saved">Đã lưu DNS tùy chỉnh.</string>
+	<string name="dns_save_dialog_title">Lưu thay đổi?</string>
+	<string name="dns_save_dialog_description">Bạn có thay đổi chưa lưu.</string>
+	<string name="dns_learn_more_text">Tìm hiểu thêm về DNS</string>
 </resources>

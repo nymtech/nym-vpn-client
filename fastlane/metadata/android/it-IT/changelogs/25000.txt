@@ -1,0 +1,5 @@
+Cosa c'è di nuovo:
+- Aggiunti i dettagli del nodo alle impostazioni rapide e a una nuova schermata dell'account
+- Introduzione di split tunneling bi-mode su Android
+- Impostazioni aggiornate, Privacy, Censura e interfaccia utente di navigazione
+- Migliorata stabilità di connessione e gestione degli errori

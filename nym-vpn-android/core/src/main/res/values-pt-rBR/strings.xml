@@ -8,4 +8,6 @@
 	<string name="state_disconnected">Desconectado</string>
 	<string name="state_initializing">Iniciando cliente…</string>
 	<string name="state_establishing">Estabilizando conexão…</string>
+	<string name="notification_entry">Entrada: %1$s</string>
+	<string name="notification_exit">Saída: %1$s</string>
 </resources>

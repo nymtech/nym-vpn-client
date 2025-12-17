@@ -154,10 +154,13 @@
 	<string name="join_telegram">Присоединяйтесь к нам в Telegram</string>
 	<!-- Common -->
 	<string name="button_done">Готово</string>
+	<string name="button_discard">Сбросить</string>
+	<string name="button_add">Добавить</string>
+	<string name="here">здесь</string>
+	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Показ стриминга</string>
 	<string name="streaming_server_banner_title">Новинка: Откройте для себя серверы,\nоптимизированные для стриминга (▶️)</string>
 	<string name="streaming_server_banner_action">Проверьте новые\nвыходные серверы</string>
-    <string name="here">здесь</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Невозможно подключиться к одному и тому же входному и выходному шлюзу. Измените либо входной, либо выходной шлюз и повторно подключитесь.</string>
 	<string name="unexpected_error">Произошла непредвиденная ошибка:</string>
@@ -193,6 +196,7 @@
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Антицензура</string>
 	<string name="settings_passphrase_title">Кодовая фраза</string>
+	<string name="settings_dns_title">Настроить DNS</string>
 	<string name="settings_ipv6_title">Поддержка IPv6</string>
 	<string name="settings_ipv6_description">Разрешить IPv6 соединения</string>
 	<string name="settings_bypass_description">Разрешить прямой доступ к локальной сети</string>
@@ -207,6 +211,8 @@
 	<string name="settings_quit_title">Выйти из NymVPN</string>
 	<string name="settings_app_version_line">Версия приложения: %1$s</string>
 	<string name="settings_daemon_version_line">Версия демона: %1$s</string>
+	<string name="settings_language_help_title">Помощь с переводом</string>
+	<string name="settings_language_help_description">Сделайте приложение лучше на вашем языке.</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Для лучшего соединения</string>
 	<string name="battery_opt_descr">Отключите оптимизацию энергопотребления для NymVPN, чтобы обеспечить более стабильное подключение VPN.</string>
@@ -279,10 +285,10 @@
 	<string name="details_more_details_end">Эксплорер сети Nym</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
-	<string name="censorship_description">Включите эти функции, если у вас возникают проблемы с подключением или блокировкой NymVPN в вашем регионе.</string>
+	<string name="censorship_description">Продвинутые функции для улучшения подключения в сетях с ограничениями или при блокировке NymVPN.</string>
 	<string name="censorship_quic_title">Расширенное соединение (QUIC)</string>
 	<string name="censorship_quic_changes">Изменения будут применены после переподключения</string>
-	<string name="censorship_quic_description">Улучшает надежность быстрого режима в ограничительных сетях путем обёртки трафика WireGuard в QUIC (HTTP/3) на обычный просмотр веб-страниц.\n\nПримечание: Ограничивает параметры сервера входа только для QUIC-совместимых шлюзов.</string>
+	<string name="censorship_quic_description">Повышает надёжность работы в Быстром режиме в сетях с ограничениями, оборачивая трафик WireGuard в QUIC (HTTP/3). Трафик будет выглядеть как обычный веб-сёрфинг, что обходит системы цензуры с глубоким анализом пакетов (DPI).\n\n**Примечание:** Ограничивает выбор входных серверов только шлюзами, совместимыми с QUIC.</string>
 	<string name="censorship_quic_link_text">Как QUIC улучшает соединения</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API соединение</string>
@@ -298,6 +304,7 @@
 	<string name="quick_info_modal_desc_non_quic">Это подключит вас заново без включенного протокола QUIC. Вы сохраните свои текущие шлюзы.\n\nВаши данные останутся защищёнными во время переподключения.</string>
 	<string name="quic_primary_btn_text_non_quic">Переподключиться без QUIC</string>
 	<string name="quic_text_btn_text_non_quic">Выключить QUIC при следующем подключении</string>
+	<string name="quic_gateway_filter_info_msg">Отображение только быстрого режима местоположения и серверов, поддерживающих протокол QUIC. Чтобы открыть все серверы, выключите QUIC</string>
 	<string name="censorship_amnezia_title">Минимальное обфускация (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Делает трафик WireGuard менее заметным. Вводит пакеты-приманки, которые нарушают работу простых правил, часто используемых системами цензуры с глубоким анализом пакетов (DPI), повышая надежность соединения в условиях ограничительных сред. \n\nПримечание: Реализовано только на стороне клиента.</string>
 	<string name="censorship_amnezia_link_text">Как AmneziaWG предотвращает DPI</string>
@@ -309,6 +316,7 @@
 	<string name="account_welcome_open_source">Открытый исходный код &amp; швейцарские законы о конфиденциальности</string>
 	<string name="account_welcome_button">Начните защищать свою конфиденциальность</string>
 	<string name="account_welcome_have_account">Уже есть аккаунт?</string>
+	<string name="account_welcome_free_trial">7 дней бесплатной пробной версии - оплата не требуется</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">Вы уже подписаны!</string>
 	<string name="account_subscription_description">Мы нашли активную подписку, связанную с вашей учётной записью Google Play. Пропустите регистрацию и сразу начните использовать NymVPN. Просто подготовьте свою кодовую фразу из 24 слов.</string>
@@ -398,4 +406,22 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Применить при следующем подключении</string>
 	<string name="split_tunneling_per_app_security_banner_title">🛡️ Новая функция: Выберите защиту для каждого приложения или прямое подключение для скорости</string>
 	<string name="split_tunneling_per_app_security_banner_action">Настроить\nприложения</string>
+	<!-- DNS customization screen -->
+	<string name="dns_title">Настройка DNS</string>
+	<string name="dns_description">По умолчанию используются рекомендуемые DNS-серверы Nym. При необходимости настройте пользовательские серверы ниже.</string>
+	<string name="dns_view_list">Просмотр DNS по умолчанию</string>
+	<string name="dns_hide_list">Скрыть DNS по умолчанию</string>
+	<string name="dns_list_title">DNS Nym по умолчанию:</string>
+	<string name="dns_custom_title">Использовать пользовательские DNS серверы</string>
+	<string name="dns_custom_description">Настройте собственные DNS-серверы для блокировки рекламы, фильтрации контента или использования предпочтительных провайдеров. Перетаскивайте для изменения приоритета. ⚠️  Может ограничить доступность Nym. </string>
+	<string name="dns_custom_list_title">Введите DNS сервер</string>
+	<string name="dns_custom_list_entries">Пользовательские DNS-сервера (%1$s/5)</string>
+	<string name="dns_custom_list_hint">IPv4 или IPv6 адрес</string>
+	<string name="dns_custom_list_error">Неверный формат DNS-адреса</string>
+	<string name="dns_custom_button_add">Добавить</string>
+	<string name="dns_custom_button_save">Сохранить изменения</string>
+	<string name="dns_custom_saved">Пользовательский DNS сохранен.</string>
+	<string name="dns_save_dialog_title">Сохранить изменения?</string>
+	<string name="dns_save_dialog_description">У вас есть несохраненные изменения.</string>
+	<string name="dns_learn_more_text">Подробнее о DNS</string>
 </resources>

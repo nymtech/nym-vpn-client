@@ -1,0 +1,5 @@
+What's new:
+- Added node details to quick settings and a new Account screen
+- Introduced bi-mode split tunneling on Android
+- Updated Settings, Privacy, Censorship, and navigation UI
+- Improved connection stability and error handling

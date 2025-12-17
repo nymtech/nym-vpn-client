@@ -8,4 +8,6 @@
 	<string name="state_disconnected">Отключено</string>
 	<string name="state_initializing">Инициализация клиента…</string>
 	<string name="state_establishing">Устанавливаем соединение…</string>
+	<string name="notification_entry">Вход: %1$s</string>
+	<string name="notification_exit">Выход: %1$s</string>
 </resources>

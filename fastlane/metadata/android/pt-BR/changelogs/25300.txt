@@ -1,0 +1,2 @@
+O que há de novo:
+- Falha de conexão corrigida com o ciclo de vida dos túneis.
