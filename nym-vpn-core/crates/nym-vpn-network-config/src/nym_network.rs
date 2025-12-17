@@ -131,6 +131,6 @@ mod tests {
         let config_dir = Path::new("/tmp");
         let network_name = "mainnet";
         let path = NymNetwork::path(config_dir, network_name);
-        assert_eq!(path, Path::new("/tmp/networks/mainnet.json"));
+        assert_eq!(path, Path::new("/tmp/mainnet/mainnet.json"));
     }
 }
