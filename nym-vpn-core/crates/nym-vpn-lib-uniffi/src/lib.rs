@@ -184,7 +184,6 @@ async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
     .await?;
     Box::pin(account::init_account_controller(
         PathBuf::from(config.data_dir),
-        config.credential_mode,
         network,
     ))
     .await?;
@@ -577,7 +576,6 @@ pub trait TunnelStatusListener: Send + Sync {
 #[derive(uniffi::Record)]
 pub struct NymVpnLibConfig {
     pub data_dir: String,
-    pub credential_mode: Option<bool>,
     pub sentry_monitoring: bool,
     pub statistics_enabled: bool,
     #[cfg(target_os = "android")]

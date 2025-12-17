@@ -4,7 +4,7 @@
 use crate::common::{TestBench, account_summary::*, endpoints, mock_account, mock_account_id};
 
 use nym_vpn_account_controller::AvailableTicketbooks;
-use nym_vpn_api_client::ResolverOverrides;
+use nym_vpn_api_client::{ResolverOverrides, response::NymVpnDeviceStatus};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
 };
@@ -13,12 +13,20 @@ use nym_vpn_store::account::StoredAccountMode;
 #[tokio::test]
 async fn logged_out_state_command() -> anyhow::Result<()> {
     // Get the test_bench without credential for easier testing
-    let mut test_bench = TestBench::new_no_credentials().await?;
+    let mut test_bench = TestBench::new().await?;
+    let credential_proxy = test_bench.credential_proxy.clone();
 
     // Adding behavior to the VPN API
     let mocks = vec![
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+        endpoints::account_update_device_200(mock_api_device(NymVpnDeviceStatus::DeleteMe)),
     ];
     test_bench.register_vpn_api_mocks(mocks).await;
 
@@ -100,12 +108,19 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
 #[tokio::test]
 async fn offline_state_command() -> anyhow::Result<()> {
     // Get the test_bench without credential for easier testing
-    let mut test_bench = TestBench::new_no_credentials().await?;
+    let mut test_bench = TestBench::new().await?;
+    let credential_proxy = test_bench.credential_proxy.clone();
 
     // Adding behavior to the VPN API
     let mocks = vec![
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_ready_to_connect()),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
     ];
     test_bench.register_vpn_api_mocks(mocks).await;
 
@@ -226,7 +241,8 @@ async fn offline_state_command() -> anyhow::Result<()> {
 #[tokio::test]
 async fn ready_state_command() -> anyhow::Result<()> {
     // Get the test_bench without credential for easier testing
-    let mut test_bench = TestBench::new_no_credentials().await?;
+    let mut test_bench = TestBench::new().await?;
+    let credential_proxy = test_bench.credential_proxy.clone();
 
     // Adding behavior to the VPN API
     let mocks = vec![
@@ -235,6 +251,13 @@ async fn ready_state_command() -> anyhow::Result<()> {
         endpoints::get_usage_200(),
         endpoints::get_devices_200(),
         endpoints::get_active_devices_200(),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+        endpoints::account_update_device_200(mock_api_device(NymVpnDeviceStatus::DeleteMe)),
     ];
     test_bench.register_vpn_api_mocks(mocks).await;
 
@@ -286,10 +309,14 @@ async fn ready_state_command() -> anyhow::Result<()> {
         Ok(mock_usage_response().items)
     );
     assert_eq!(
-        test_bench.command_sender.get_available_tickets().await,
-        Ok(AvailableTicketbooks {
-            ticketbooks: Vec::new()
-        })
+        test_bench
+            .command_sender
+            .get_available_tickets()
+            .await
+            .unwrap()
+            .ticketbooks
+            .len(),
+        3
     );
 
     assert_eq!(
@@ -336,7 +363,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
 #[tokio::test]
 async fn error_state_command() -> anyhow::Result<()> {
     // Get the test_bench without credential for easier testing
-    let mut test_bench = TestBench::new_no_credentials().await?;
+    let mut test_bench = TestBench::new().await?;
 
     // Adding behavior to the VPN API
     let mocks = vec![

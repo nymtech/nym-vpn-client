@@ -23,7 +23,6 @@ use crate::offline_monitor;
 
 pub(super) async fn init_account_controller(
     data_dir: PathBuf,
-    credential_mode: Option<bool>,
     network: Network,
 ) -> Result<(), VpnError> {
     let mut guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
@@ -31,7 +30,6 @@ pub(super) async fn init_account_controller(
     if guard.is_none() {
         let account_controller_handle = start_account_controller(
             data_dir,
-            credential_mode,
             network,
             offline_monitor::get_connectivity_handle().await?,
         )
@@ -61,7 +59,6 @@ pub(super) async fn stop_account_controller() -> Result<(), VpnError> {
 
 async fn start_account_controller(
     data_dir: PathBuf,
-    credential_mode: Option<bool>,
     network_env: Network,
     connectivity_handle: ConnectivityHandle,
 ) -> Result<AccountControllerHandle, VpnError> {
@@ -84,7 +81,6 @@ async fn start_account_controller(
 
     let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
         data_dir,
-        credentials_mode: credential_mode,
         network_env,
     };
 

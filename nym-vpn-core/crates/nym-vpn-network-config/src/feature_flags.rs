@@ -38,11 +38,6 @@ impl FeatureFlags {
         self.flags
     }
 
-    /// If credential mode is enabled or not, if set
-    pub fn credential_mode(&self) -> Option<bool> {
-        self.get_group_flag("zkNyms", "credentialMode")
-    }
-
     /// Get statistics recipient, if set
     pub fn stats_recipient(&self) -> Option<Recipient> {
         self.get_group_flag("statistics", "recipient")
@@ -61,6 +56,11 @@ impl FeatureFlags {
     /// If quic is enabled or not, if set
     pub fn quic_enabled(&self) -> Option<bool> {
         self.get_group_flag("quic", "enabled")
+    }
+
+    /// If privy is enabled or not, if set
+    pub fn privy_enabled(&self) -> Option<bool> {
+        self.get_group_flag("privy", "enabled")
     }
 }
 
