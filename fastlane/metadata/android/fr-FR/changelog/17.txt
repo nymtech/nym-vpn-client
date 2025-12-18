@@ -1,3 +1,0 @@
-Quoi de neuf :
-- Correction du problème de mise en cache du pays
-- Améliorations des performances de la poignée

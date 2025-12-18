@@ -1,3 +1,0 @@
-Quais as novidades:
-- Idiomas adicionados PT, FR, ES
-- Correção de erros

@@ -1,3 +1,0 @@
-Quoi de neuf :
-- Contournez la fonctionnalité LAN
-- Corrections de bugs et améliorations

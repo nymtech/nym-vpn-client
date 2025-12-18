@@ -1,4 +1,0 @@
-Quoi de neuf :
-- Ajouter un écran de logs
-- Améliorer l'affichage de l'état du VPN
-- Ajouter un sentinelle

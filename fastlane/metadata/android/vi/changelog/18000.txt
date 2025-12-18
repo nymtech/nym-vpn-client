@@ -1,3 +1,0 @@
-Có gì mới:
-- Sửa lỗi bị treo và cải tiến độ ổn định
-- Điều chỉnh điều hướng
