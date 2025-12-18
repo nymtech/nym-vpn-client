@@ -34,6 +34,7 @@ public struct DnsView: View {
                     }
 
                     customDnsSection()
+                    learnMoreLink()
                 }
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
@@ -405,6 +406,29 @@ private extension DnsView {
             )
             .transition(.opacity)
             .animation(.easeInOut, value: viewModel.isSaveChangesModalDisplayed)
+        }
+    }
+
+    @ViewBuilder
+    func learnMoreLink() -> some View {
+        HStack(spacing: 4) {
+            Text("dns.learnMore".localizedString)
+                .textStyle(.Body.Small.regular)
+                .foregroundStyle(NymColor.primary)
+                .underline()
+
+            GenericImage(imageName: "externalLink")
+                .frame(width: 12, height: 12)
+                .padding(4)
+                .foregroundStyle(NymColor.primary)
+
+            Spacer()
+        }
+        .onTapGesture {
+            viewModel.learnMore()
+        }
+        .accessibilityAction {
+            viewModel.learnMore()
         }
     }
 }

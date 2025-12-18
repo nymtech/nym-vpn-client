@@ -8,6 +8,8 @@ import SwiftUI
 import AppSettings
 import Network
 import UIComponents
+import ExternalLinkManager
+import Constants
 
 @MainActor public final class DnsViewModel: ObservableObject {
     private let appSettings: AppSettings
@@ -186,6 +188,10 @@ extension DnsViewModel {
         }
         #endif
         appSettings.shouldReconnect = true
+    }
+
+    func learnMore() {
+        try? ExternalLinkManager.shared.openExternalURL(urlString: Constants.dnsLearnMoreURL.rawValue)
     }
 }
 
