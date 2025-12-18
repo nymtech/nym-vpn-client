@@ -211,11 +211,10 @@ class NymBackend private constructor(private val context: Context) :
 	private suspend fun configureLib(settings: SettingsConfig, userAgent: UserAgent) {
 		withContext(ioDispatcher) {
 			settingConfig = NymVpnLibConfig(
-				storagePath,
-				settings.credentialsMode,
-				settings.sentryMonitoringEnabled,
-				settings.statisticsEnabled,
-				this@NymBackend,
+				dataDir = storagePath,
+				sentryMonitoring = settings.sentryMonitoringEnabled,
+				statisticsEnabled = settings.statisticsEnabled,
+				connectivityMonitor = this@NymBackend,
 				userAgent,
 			)
 			nym_vpn_lib.configureLib(settingConfig)
