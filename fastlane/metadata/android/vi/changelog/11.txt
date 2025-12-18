@@ -1,2 +1,0 @@
-Có gì mới:
-- Tăng mạnh phiên bản API

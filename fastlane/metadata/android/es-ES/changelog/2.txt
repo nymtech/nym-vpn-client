@@ -1,3 +1,0 @@
-Novedades:
-- Arreglado proguard
-- Actualizada la IU

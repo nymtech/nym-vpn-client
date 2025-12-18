@@ -1,4 +1,0 @@
-What's new:
-- Added abi splitting for apk size optimization
-- Added smoke test
-- Fixed minification bug
