@@ -10,6 +10,7 @@ import GRPCManager
 import Theme
 import UIComponents
 import Device
+import KeyboardManager
 
 public struct DnsView: View {
     @StateObject private var viewModel: DnsViewModel
@@ -27,22 +28,13 @@ public struct DnsView: View {
             navbar()
             Spacer()
                 .frame(height: 24)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    subtitleSection()
-                    if viewModel.isDefaultDnsDisplayed {
-                        defaultDnsSection()
-                    }
-
-                    customDnsSection()
-                    learnMoreLink()
+#if os(iOS)
+                KeyboardHostView {
+                    scrollViewContent()
                 }
-            }
-            .frame(maxWidth: MagicNumbers.maxWidth)
-            .padding(.horizontal, 16)
-            .onTapGesture {
-                isCustomDnsTextFieldFocused = false
-            }
+#elseif os(macOS)
+                scrollViewContent()
+#endif
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
@@ -76,6 +68,26 @@ private extension DnsView {
             title: "dns.title".localizedString,
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack(discardChanges: false) })
         )
+    }
+    
+    @ViewBuilder
+    func scrollViewContent() -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                subtitleSection()
+                if viewModel.isDefaultDnsDisplayed {
+                    defaultDnsSection()
+                }
+
+                customDnsSection()
+                learnMoreLink()
+            }
+        }
+        .frame(maxWidth: MagicNumbers.maxWidth)
+        .padding(.horizontal, 16)
+        .onTapGesture {
+            isCustomDnsTextFieldFocused = false
+        }
     }
 
     func subtitleSection() -> some View {
@@ -137,11 +149,7 @@ private extension DnsView {
         }
     }
 
-    #if os(macOS)
     private static let dnsEntryHeight: CGFloat = Device.isMacOS ? 44 : 28
-    #elseif os(iOS)
-    private static let dnsEntryHeight: CGFloat = 28
-    #endif
 
     func customDnsInstructionsAndList() -> some View {
         VStack(spacing: 0) {
@@ -361,11 +369,13 @@ private extension DnsView {
             guard !viewModel.isAddButtonDisabled else { return }
             viewModel.add()
             isCustomDnsTextFieldDirty = false
+            KeyboardManager.shared.hideKeyboard()
         }
         .accessibilityAction {
             guard !viewModel.isAddButtonDisabled else { return }
             viewModel.add()
             isCustomDnsTextFieldDirty = false
+            KeyboardManager.shared.hideKeyboard()
         }
     }
 
