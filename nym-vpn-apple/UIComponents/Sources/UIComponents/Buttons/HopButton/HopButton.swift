@@ -123,7 +123,7 @@ public struct HopButton: View {
         ) {
             HStack(spacing: 0) {
                 button().onHover { isButtonHovered = $0 }
-                if gatewayId != nil {
+                if gatewayId != nil, gatewayManager.gateway(with: gatewayId, gatewayType: gatewayType) != nil {
                     accessory().onHover { isAccessoryHovered = $0 }
                 }
             }

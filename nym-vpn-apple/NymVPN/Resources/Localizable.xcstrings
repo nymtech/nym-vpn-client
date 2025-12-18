@@ -23964,25 +23964,25 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "تصفح عالي السرعة (250+ ميغابايت ) مع مسار 2 هوب . يستخدم AmneziaWG، نسخة مقاومة للرقابة من WireGuard، مثالية للبث والتصفح السريع والتنزيلات.."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Highspeed browsing (250+ Mbps) mit 2-Hop-Routing und verwendet AmneziaWG, eine zensurgeschützte Version von WireGuard, ideal zum Streamen, schnelles Surfen und Downloaden."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing, and downloads.."
+            "value" : "High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing and downloads.."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Navegación a alta velocidad (250+ Mbps) con enrutamiento de 2 saltos. Utiliza AmneziaWG, una versión resistente a la censura de WireGuard, ideal para streaming, navegación rápida y descargas."
           }
         },
@@ -23994,43 +23994,43 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "La navigation à haute vitesse (250Mbps) avec routage à 2 sauts utilise AmneziaWG, une version résistante à la censure de WireGuard, idéale pour le streaming, la navigation rapide et les téléchargements..."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "सबसे अधिक गति का लाभ 2-सर्वर से पाएं। यह मोड AmneziaWG का उपयोग करता है, जो WireGuard का सेंसरशिप-प्रतिरोधी संस्करण है - जो तेज़ ब्राउज़िंग, स्ट्रीमिंग और फ़ाइल साझाकरण के लिए आदर्श है।"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Navigazione ad alta velocità (250 + Mbps) con routing 2-hop. Utilizza AmneziaWG, una versione resistente alla censura di WireGuard, ideale per lo streaming, la navigazione veloce e il download.."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "2ホップルーティング付きの高速ブラウジング(250+Mbps)。検閲に強いWireGuardのAmneziaWGを使用しており、ストリーミング、高速ブラウジング、ダウンロードに最適です。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Navegação de alta velocidade (250+ Mbps) com roteamento de 2 hop. Usa AmneziaWG, uma versão resistente à censura do WireGuard, ideal para streaming, navegação rápida e downloads.."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Navegação de alta velocidade (250+ Mbps) com roteamento de 2 hop. Usa AmneziaWG, uma versão resistente à censura do WireGuard, ideal para streaming, navegação rápida e downloads.."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Высокоскоростной браузинг (250+ Мбит/с) с 2-ступенчатой маршрутизацией. Использует AmneziaWG — устойчивую к цензуре версию WireGuard, идеальную для стриминга, быстрого просмотра и загрузок.."
           }
         },
@@ -24042,19 +24042,19 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Високошвидкісний перегляд веб-сторінок (250+ Мбіт/с) із 2-ступеневою маршрутизацією. Використовує AmneziaWG, версію WireGuard, стійку до цензури, яка ідеально підходить для потокового передавання, швидкого перегляду веб-сторінок та завантаження файлів.."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Trải nghiệm tốc độ duyệt web nhanh (250+ Mbps) với kết nối 2 máy chủ. Chế độ này tận dụng AmneziaWG, phiên bản chống kiểm duyệt của WireGuard, lý tưởng cho phát trực tuyến, việc duyệt web và tải xuống nhanh.."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "高速浏览(250+Mbps) 带有双节连接路径。使用 AmneziaWG, 一个防检查版本的 WireGuard, 理想的流、快速浏览和下载。"
           }
         }
