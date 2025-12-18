@@ -3,12 +3,16 @@ package net.nymtech.nymvpn.ui.screens.hop
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.util.extensions.isQuicSupported
@@ -28,8 +32,10 @@ import javax.inject.Inject
 class HopViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val gatewayCacheService: GatewayCacheService,
+	private val backendManager: BackendManager,
 	private val gatewayRepository: GatewayRepository,
 	private val environmentManager: EnvironmentManager,
+	@ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(HopUiState())
@@ -152,12 +158,35 @@ class HopViewModel @Inject constructor(
 
 	fun onSelected(id: String, gatewayLocation: GatewayLocation) = viewModelScope.launch {
 		runCatching {
+			Timber.d("onSelected: gateway $id, location $gatewayLocation")
+			
+			// Save new gateway selection first
 			when (gatewayLocation) {
-				GatewayLocation.ENTRY -> settingsRepository.setEntryPoint(id.asEntryPoint())
-				GatewayLocation.EXIT -> settingsRepository.setExitPoint(id.asExitPoint())
+				GatewayLocation.ENTRY -> {
+					settingsRepository.setEntryPoint(id.asEntryPoint())
+					Timber.d("onSelected: saved new entry point: ${id.asEntryPoint()}")
+				}
+				GatewayLocation.EXIT -> {
+					settingsRepository.setExitPoint(id.asExitPoint())
+					Timber.d("onSelected: saved new exit point: ${id.asExitPoint()}")
+				}
+			}
+			
+			// If connected, reconnect to apply new gateway selection
+			val currentState = backendManager.stateFlow.first().tunnelState
+			Timber.d("onSelected: current VPN state from stateFlow: $currentState")
+			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
+			
+			if (wasConnected) {
+				Timber.d("onSelected: VPN is connected, calling restartTunnel() to apply new ${gatewayLocation.name} gateway selection")
+				applicationScope.launch {
+					backendManager.restartTunnel(shouldResetConnectionTime = true)
+				}
+			} else {
+				Timber.d("onSelected: VPN is not connected (state: $currentState), no restart needed")
 			}
 		}.onFailure {
-			Timber.e(it)
+			Timber.e(it, "Failed to update gateway selection and reconnect")
 		}
 	}
 

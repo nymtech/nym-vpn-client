@@ -14,7 +14,7 @@ interface BackendManager {
 	suspend fun getBackend(): Backend
 	suspend fun stopTunnel()
 	suspend fun startTunnel()
-	suspend fun restartTunnel()
+	suspend fun restartTunnel(shouldResetConnectionTime: Boolean = false)
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()

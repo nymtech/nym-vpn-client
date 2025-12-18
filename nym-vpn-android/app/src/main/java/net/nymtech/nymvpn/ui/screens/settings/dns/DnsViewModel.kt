@@ -36,6 +36,7 @@ class DnsViewModel @Inject constructor(
 	fun saveDnsList(list: List<String>) {
 		viewModelScope.launch {
 			settingsRepository.saveDnsList(list)
+			_customDns.value = list
 		}
 	}
 
