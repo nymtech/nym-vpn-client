@@ -168,20 +168,7 @@ private extension DnsView {
     @ViewBuilder
     func customDnsList() -> some View {
         VStack(spacing: 0) {
-            if !viewModel.customDns.isEmpty {
-                HStack {
-                    Text("\("dns.custom.listTitle".localizedString) (\(viewModel.customDns.count)/\(viewModel.maxDnsEntries))")
-                        .textStyle(.Body.Medium.regular)
-                        .foregroundStyle(NymColor.primary)
-                        .padding(.vertical, 12)
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-                Divider()
-                    .frame(height: 1)
-                    .overlay(NymColor.gray2)
-                    .padding(.horizontal, 16)
-            }
+            dnsListTitle()
             List {
                 ForEach(viewModel.customDns, id: \.self) { ip in
                     VStack {
@@ -226,20 +213,7 @@ private extension DnsView {
     #elseif os(iOS)
     func customDnsList() -> some View {
         VStack(spacing: 0) {
-            if !viewModel.customDns.isEmpty {
-                HStack {
-                    Text("\("dns.custom.listTitle".localizedString) (\(viewModel.customDns.count)/\(viewModel.maxDnsEntries))")
-                        .textStyle(.Body.Medium.regular)
-                        .foregroundStyle(NymColor.primary)
-                        .padding(.vertical, 12)
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-                Divider()
-                    .frame(height: 1)
-                    .overlay(NymColor.gray2)
-                    .padding(.horizontal, 16)
-            }
+            dnsListTitle()
             List {
                 ForEach(viewModel.customDns, id: \.self) { ip in
                     VStack {
@@ -287,6 +261,24 @@ private extension DnsView {
         }
     }
     #endif
+    
+    @ViewBuilder
+    func dnsListTitle() -> some View {
+        if !viewModel.customDns.isEmpty {
+            HStack {
+                Text("\("dns.custom.listTitle".localizedString) (\(viewModel.customDns.count)/\(viewModel.maxDnsEntries))")
+                    .textStyle(.Body.Medium.regular)
+                    .foregroundStyle(NymColor.primary)
+                    .padding(.vertical, 12)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            Divider()
+                .frame(height: 1)
+                .overlay(NymColor.gray2)
+                .padding(.horizontal, 16)
+        }
+    }
 
     @ViewBuilder
     func dnsTextFieldAndAddButton() -> some View {
