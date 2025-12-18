@@ -800,6 +800,7 @@ jobs:
 
           # Export absolute zip path for the Sparkle/sign_update step
           echo "zip_archive_path=$ARCHIVE_DIR/$NOTARISATION_ARCHIVE" >> "$GITHUB_ENV"
+          echo "FINAL_PKG_PATH=$FINAL_PKG_PATH" >> "$GITHUB_ENV"
 
       - name: Generate Sparkle appcast & SHA-256 hash (sign_update)
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
