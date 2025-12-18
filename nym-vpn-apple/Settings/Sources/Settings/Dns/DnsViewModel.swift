@@ -168,8 +168,6 @@ extension DnsViewModel {
 
     func toggleCustomDns() async {
         guard !appSettings.customDns.isEmpty else { return }
-
-        isCustomDnsEnabled.toggle()
         appSettings.isCustomDnsEnabled = isCustomDnsEnabled
         #if os(macOS)
         do {
@@ -187,6 +185,7 @@ extension DnsViewModel {
             }
         }
         #endif
+        appSettings.shouldReconnect = true
     }
 }
 
