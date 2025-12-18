@@ -1,3 +1,0 @@
-Có gì mới:
-- Thêm các ngôn ngữ PT, FR, ES
-- Sửa lỗi

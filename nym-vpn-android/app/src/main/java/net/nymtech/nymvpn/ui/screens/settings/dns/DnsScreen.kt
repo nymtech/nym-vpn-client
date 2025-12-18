@@ -64,12 +64,13 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: DnsViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
-	val context = LocalContext.current
 	val customDns by viewModel.customDns.collectAsState()
+
 	var initialCustomDns by remember { mutableStateOf<List<String>?>(null) }
 	LaunchedEffect(customDns) {
 		if (initialCustomDns == null) initialCustomDns = customDns.toList()
 	}
+
 	var initialDnsEnabled by remember { mutableStateOf<Boolean?>(null) }
 	LaunchedEffect(appUiState.settings.customDnsEnabled) {
 		if (initialDnsEnabled == null) initialDnsEnabled = appUiState.settings.customDnsEnabled
@@ -90,7 +91,7 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 		onSave = { viewModel.saveDnsList(it) },
 		onBackClickEventTriggered = onBackClickEventTriggered,
 		onNavigateBack = onNavigateBack,
-		onReconnect = {},
+		onReconnect = { viewModel.reconnect() },
 		initialDnsEnabled = initialDnsEnabled,
 		initialCustomDns = initialCustomDns,
 	)
@@ -124,12 +125,27 @@ private fun DnsScreen(
 
 	var showSaveChangesDialog by remember { mutableStateOf(false) }
 	var customDnsDraft by rememberSaveable { mutableStateOf(customDns) }
+
 	LaunchedEffect(customDns) {
 		customDnsDraft = customDns
 	}
 
-	val hasUnsavedListChanges by remember(customDnsDraft, customDns) {
-		derivedStateOf { customDnsDraft != customDns }
+	var lastSavedDns by rememberSaveable { mutableStateOf(customDns) }
+	LaunchedEffect(customDns) {
+		lastSavedDns = customDns
+	}
+
+	var lastSavedEnabled by rememberSaveable { mutableStateOf(dnsEnabled) }
+	LaunchedEffect(dnsEnabled) {
+		lastSavedEnabled = dnsEnabled
+	}
+
+	val hasUnsavedListChanges by remember(customDnsDraft, lastSavedDns) {
+		derivedStateOf { customDnsDraft != lastSavedDns }
+	}
+
+	val hasUnsavedToggleChange by remember(dnsEnabled, lastSavedEnabled) {
+		derivedStateOf { dnsEnabled != lastSavedEnabled }
 	}
 
 	fun leaveScreenWithReconnectIfNeeded(currentList: List<String>) {
@@ -140,10 +156,10 @@ private fun DnsScreen(
 	}
 
 	fun requestBack() {
-		if (hasUnsavedListChanges) {
+		if (hasUnsavedListChanges || hasUnsavedToggleChange) {
 			showSaveChangesDialog = true
 		} else {
-			leaveScreenWithReconnectIfNeeded(customDns)
+			leaveScreenWithReconnectIfNeeded(lastSavedDns)
 		}
 	}
 
@@ -243,11 +259,12 @@ private fun DnsScreen(
 		Spacer(Modifier.height(24.dp))
 
 		CustomDnsCard(
-			initialDns = customDns,
+			initialDns = lastSavedDns,
 			dnsEnabled = dnsEnabled,
 			onDnsEnable = onDnsEnable,
 			onSave = { listToSave ->
 				onSave(listToSave)
+				lastSavedDns = listToSave
 				customDnsDraft = listToSave
 			},
 			onDnsListChange = { customDnsDraft = it },
@@ -282,15 +299,15 @@ private fun DnsScreen(
 		onClickSave = {
 			val toSave = customDnsDraft
 			onSave(toSave)
+			lastSavedDns = toSave
+			customDnsDraft = toSave
+			lastSavedEnabled = dnsEnabled
+
 			showSaveChangesDialog = false
 			leaveScreenWithReconnectIfNeeded(toSave)
 		},
 		onDiscard = {
 			showSaveChangesDialog = false
-			val initEnabled = initialDnsEnabled
-			val shouldReconnectOnlyByToggle = initEnabled != null && dnsEnabled != initEnabled
-			if (shouldReconnectOnlyByToggle) onReconnect()
-
 			onNavigateBack()
 		},
 		onDismiss = { showSaveChangesDialog = false },

@@ -1,50 +1,49 @@
-Stop being tracked online. The only VPN that can't spy on you, even if it wanted to. Made in Switzerland, trusted by privacy advocates worldwide.
+Σταματήστε να σας παρακολουθούν στο διαδίκτυο. Το μοναδικό VPN που δεν μπορεί να σας κατασκοπεύσει, ακόμη κι αν το ήθελε. Κατασκευασμένο στην Ελβετία, με την εμπιστοσύνη υπερασπιστών της ιδιωτικότητας παγκοσμίως.
 
-⭐️ As seen in: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+⭐️ Όπως παρουσιάστηκε σε: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
 
-BROWSE WITHOUT LEAVING A TRACE
+ΠΛΟΗΓΗΘΕΙΤΕ ΧΩΡΙΣ ΝΑ ΑΦΗΝΕΤΕ ΙΧΝΗ
 
-Tired of wondering who's watching? Traditional VPNs can theoretically log your activity. NymVPN is fundamentally different: our decentralized network makes centralized logging impossible by design. This isn't a "no-logs policy"—it's a "can't log" architecture.
+Κουραστήκατε να αναρωτιέστε ποιος σας παρακολουθεί; Τα παραδοσιακά VPN μπορούν θεωρητικά να καταγράφουν τη δραστηριότητά σας. Το NymVPN είναι θεμελιωδώς διαφορετικό: το αποκεντρωμένο μας δίκτυο καθιστά την κεντρική καταγραφή αδύνατη από τον σχεδιασμό του. Δεν πρόκειται για «πολιτική μη καταγραφής» — είναι μια αρχιτεκτονική που «δεν μπορεί να καταγράφει».
 
-✓ True anonymity: Pay with crypto or cash, no email required
-✓ 50+ countries, hundreds of independent servers
-✓ Multi-device protection: 10 devices with one anonymous code
-✓ Swiss-based with academic-grade privacy standards
+✓ Πραγματική ανωνυμία: Πληρωμή με κρυπτονομίσματα ή μετρητά, χωρίς email
+✓ 50+ χώρες, εκατοντάδες ανεξάρτητοι διακομιστές
+✓ Προστασία πολλών συσκευών: 10 συσκευές με έναν ανώνυμο κωδικό
+✓ Ελβετική βάση με ακαδημαϊκά πρότυπα ιδιωτικότητας
 
-CHOOSE YOUR PRIVACY LEVEL
+ΕΠΙΛΕΞΤΕ ΤΟ ΕΠΙΠΕΔΟ ΙΔΙΩΤΙΚΟΤΗΤΑΣ ΣΑΣ
 
-⚡ Fast Mode – Lightning-fast speeds for streaming and browsing. 2-hop by default so one server knows who you are, another knows what you're doing—but never both.
-🔒 Anonymous Mode – Maximum privacy through a 5-hop mixnet with noise-generating technology and up to 5 layers of encryption. Designed to resist even AI-powered traffic analysis and advanced surveillance.
+⚡ Γρήγορη λειτουργία – Αστραπιαίες ταχύτητες για streaming και περιήγηση. 2-hop από προεπιλογή: ένας διακομιστής γνωρίζει ποιος είστε, ένας άλλος τι κάνετε — ποτέ και τα δύο.
+🔒 Ανώνυμη λειτουργία – Μέγιστη ιδιωτικότητα μέσω mixnet 5 hops με τεχνολογία παραγωγής θορύβου και έως 5 επίπεδα κρυπτογράφησης. Σχεδιασμένη να αντέχει ακόμη και ανάλυση κίνησης με AI και προηγμένη επιτήρηση.
 
-WHY NYMVPN IS DIFFERENT
+ΓΙΑΤΙ ΤΟ NYMVPN ΕΙΝΑΙ ΔΙΑΦΟΡΕΤΙΚΟ
 
-• Metadata protection – Unlike other VPNs, we protect not just your data but the patterns you leave behind
-• Censorship resistant – Access blocked information in restrictive environments with AmneziaWG, QUIC and stealth protocols
-• Zero-knowledge payments – Your subscription is cryptographically unlinked from your activity
-• University-designed – Built by PhD cryptographers from KU Leuven and EPFL with 20+ peer-reviewed publications
+• Προστασία μεταδεδομένων – Δεν προστατεύουμε μόνο τα δεδομένα σας, αλλά και τα μοτίβα που αφήνετε πίσω
+• Ανθεκτικό στη λογοκρισία – Πρόσβαση σε μπλοκαρισμένες πληροφορίες με AmneziaWG, QUIC και stealth πρωτόκολλα
+• Πληρωμές μηδενικής γνώσης – Η συνδρομή σας δεν συνδέεται κρυπτογραφικά με τη δραστηριότητά σας
+• Σχεδιασμένο από πανεπιστήμια – Δημιουργήθηκε από διδάκτορες κρυπτογραφίας των KU Leuven και EPFL με 20+ αξιολογημένες δημοσιεύσεις
 
-INDEPENDENTLY VERIFIED
+ΑΝΕΞΑΡΤΗΤΑ ΕΠΑΛΗΘΕΥΜΕΝΟ
 
-• 4 security audits (2021-2024) by JP Aumasson, Oak Security, Cryspen, Cure53
-• Open-source and transparent ("Signals of Trustworthy VPNs")
-• 10,000+ users already trust NymVPN for their privacy
+• 4 έλεγχοι ασφαλείας (2021-2024) από JP Aumasson, Oak Security, Cryspen, Cure53
+• Ανοιχτού κώδικα και διαφανές («Σήματα Αξιόπιστων VPN»)
+• 10.000+ χρήστες εμπιστεύονται ήδη το NymVPN για την ιδιωτικότητά τους
 
-ESSENTIAL FEATURES
+ΒΑΣΙΚΑ ΧΑΡΑΚΤΗΡΙΣΤΙΚΑ
 
-• High-speed connections with 50+ country selection
-• Kill switch prevents data leaks
-• Completely ad-free experience
-• State-of-the-art cryptographic stack
+• Υψηλές ταχύτητες με επιλογή 50+ χωρών
+• Kill switch που αποτρέπει διαρροές δεδομένων
+• Εντελώς χωρίς διαφημίσεις
+• Σύγχρονη κρυπτογραφική υποδομή αιχμής
 
+ΙΔΑΝΙΚΟ ΓΙΑ
 
-PERFECT FOR
+→ Streaming και περιήγηση χωρίς παρακολούθηση από διαφημιστές
+→ Ασφαλείς συνδέσεις σε δημόσια Wi-Fi (καφέ, αεροδρόμια, ξενοδοχεία)
+→ Άτομα σε περιοριστικές χώρες που χρειάζονται αξιόπιστη πρόσβαση
+→ Όσους θέλουν πραγματική ανωνυμία, όχι απλώς κρυφή IP
+→ Δημοσιογράφους και ακτιβιστές που χρειάζονται μη ανιχνεύσιμη επικοινωνία
 
-→ Streaming and browsing without being tracked by advertisers
-→ Secure public WiFi connections at cafes, airports, hotels
-→ Anyone in restrictive countries needing reliable access
-→ People who want true anonymity, not just hidden IP addresses
-→ Journalists and activists needing untraceable communication
+Κατεβάστε τώρα. Συνδεθείτε σε δευτερόλεπτα. Εξαφανιστείτε στο διαδίκτυο.
 
-Download now. Connect in seconds. Disappear online.
-
-🎁 7-day free trial | 💯 30-day money-back guarantee | 🌐 Trusted by 10,000+ users worldwide
+🎁 Δωρεάν δοκιμή 7 ημερών | 💯 Εγγύηση επιστροφής χρημάτων 30 ημερών | 🌐 Εμπιστοσύνη από 10.000+ χρήστες παγκοσμίως

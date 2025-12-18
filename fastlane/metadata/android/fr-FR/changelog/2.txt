@@ -1,3 +1,0 @@
-Quoi de neuf :
-- Corriger le proguard
-- Mise à jour de l'interface

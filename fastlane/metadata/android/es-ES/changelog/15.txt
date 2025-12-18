@@ -1,3 +1,0 @@
-Novedades:
-- Agregar verificación de credenciales
-- Añadir almacenamiento cifrado para credenciales

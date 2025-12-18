@@ -1,3 +1,0 @@
-Có gì mới:
-- Cải thiện màn hình nhật ký
-- Sửa lỗi

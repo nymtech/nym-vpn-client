@@ -1,4 +1,0 @@
-Yenilikler:
-- Logger hata düzeltmeleri
-- Stabilite iyileştirmeleri
-- Müşteri güncelleme mesajlaşması
