@@ -188,10 +188,10 @@ class NymBackendManager @Inject constructor(
 
 		val preservedConnectionData = if (shouldResetConnectionTime) null else _state.value.connectionData
 		
-		_state.update { 
+		_state.update {
 			it.copy(
 				isRestarting = true,
-				connectionData = preservedConnectionData
+				connectionData = preservedConnectionData,
 			)
 		}
 
@@ -446,9 +446,9 @@ class NymBackendManager @Inject constructor(
 			// Clear isRestarting flag only when we're actually connecting/connected
 			val shouldClearRestarting = if (isRestarting) {
 				// Clear on Up or when starting to connect; keep true during Down (restart in progress)
-				state == Tunnel.State.Up || 
-				state == Tunnel.State.InitializingClient || 
-				state == Tunnel.State.EstablishingConnection
+				state == Tunnel.State.Up ||
+					state == Tunnel.State.InitializingClient ||
+					state == Tunnel.State.EstablishingConnection
 			} else {
 				false
 			}

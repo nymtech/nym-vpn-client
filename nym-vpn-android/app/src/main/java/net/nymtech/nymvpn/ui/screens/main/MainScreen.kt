@@ -90,12 +90,23 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 				// Prevent "Connect" button during restart; offline takes precedence
 				managerState.isRestarting && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
 				managerState.isRestarting && managerState.tunnelState == Tunnel.State.Down -> ConnectionState.Disconnecting
-				managerState.isRestarting && managerState.tunnelState == Tunnel.State.InitializingClient -> 
-					ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
-				managerState.isRestarting -> ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
+				managerState.isRestarting && managerState.tunnelState == Tunnel.State.InitializingClient ->
+					ConnectionState.from(
+						managerState.tunnelState,
+						managerState.establishConnectionState,
+					)
+				managerState.isRestarting ->
+					ConnectionState.from(
+						managerState.tunnelState,
+						managerState.establishConnectionState,
+					)
 				managerState.tunnelState != Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
 				managerState.tunnelState == Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
-				else -> ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
+				else ->
+					ConnectionState.from(
+						managerState.tunnelState,
+						managerState.establishConnectionState,
+					)
 			}
 			val stateMessage = when (val event = managerState.backendUiEvent) {
 				is BackendUiEvent.BandwidthAlert, null -> connectionState.stateMessage
