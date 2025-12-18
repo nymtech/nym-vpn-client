@@ -17,6 +17,7 @@ import Constants
     private let grpcManager: GRPCManager
     #endif
     let maxDnsEntries = 5
+    let disallowedDnsEntries = ["0.0.0.0", "255.255.255.255"]
 
     @Binding private var path: NavigationPath
 
@@ -40,9 +41,10 @@ import Constants
         !isIPAddress(customDnsTextField)
         || customDns.contains(customDnsTextField)
         || customDns.count == maxDnsEntries
+        || disallowedDnsEntries.contains(customDnsTextField)
     }
     public var customDnsValidationError: String? {
-        if !isIPAddress(customDnsTextField) {
+        if !isIPAddress(customDnsTextField) || disallowedDnsEntries.contains(customDnsTextField) {
             "dns.textfield.invalid".localizedString
         } else {
             nil

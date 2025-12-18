@@ -9,6 +9,7 @@ import GRPCManager
 #endif
 import Theme
 import UIComponents
+import Device
 
 public struct DnsView: View {
     @StateObject private var viewModel: DnsViewModel
