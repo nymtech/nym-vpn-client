@@ -346,7 +346,10 @@ impl ConnectedPolicyParameters {
             .map(|addr| {
                 AllowedEndpoint::new(
                     Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
@@ -359,7 +362,10 @@ impl ConnectedPolicyParameters {
             if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
                 let allow_wg_endpoint = AllowedEndpoint::new(
                     Endpoint::from_socket_address(addr, TransportProtocol::Udp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
