@@ -8743,13 +8743,24 @@
         }
       }
     },
-    "dns.custom.instructions" : {
+    "dns.custom.instructions1" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity."
+            "value" : "Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority."
+          }
+        }
+      }
+    },
+    "dns.custom.instructions2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "May limit Nym connectivity."
           }
         }
       }

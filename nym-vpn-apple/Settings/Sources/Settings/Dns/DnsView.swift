@@ -156,7 +156,7 @@ private extension DnsView {
     @ViewBuilder
     func customDnsInstructions() -> some View {
         HStack {
-            Text("dns.custom.instructions".localizedString)
+            Text("\("dns.custom.instructions1".localizedString) ⚠️ \("dns.custom.instructions2".localizedString)")
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
             Spacer()
