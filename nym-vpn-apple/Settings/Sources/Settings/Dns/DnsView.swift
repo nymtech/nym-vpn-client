@@ -10,7 +10,9 @@ import GRPCManager
 import Theme
 import UIComponents
 import Device
+#if os(iOS)
 import KeyboardManager
+#endif
 
 public struct DnsView: View {
     @StateObject private var viewModel: DnsViewModel
@@ -369,14 +371,20 @@ private extension DnsView {
             guard !viewModel.isAddButtonDisabled else { return }
             viewModel.add()
             isCustomDnsTextFieldDirty = false
-            KeyboardManager.shared.hideKeyboard()
+            hideKeyboard()
         }
         .accessibilityAction {
             guard !viewModel.isAddButtonDisabled else { return }
             viewModel.add()
             isCustomDnsTextFieldDirty = false
-            KeyboardManager.shared.hideKeyboard()
+            hideKeyboard()
         }
+    }
+
+    func hideKeyboard() {
+        #if os(iOS)
+        KeyboardManager.shared.hideKeyboard()
+        #endif
     }
 
     @ViewBuilder

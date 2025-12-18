@@ -93,6 +93,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         do {
             let config = NymVpnLibConfig(
                 dataDir: credentialDataPath,
+                credentialMode: nil,
                 sentryMonitoring: isErrorReportingEnabled,
                 statisticsEnabled: isStatisticsEnabled,
                 userAgent: .appUserAgent
