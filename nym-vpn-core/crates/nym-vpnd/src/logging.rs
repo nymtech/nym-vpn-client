@@ -21,7 +21,7 @@ use nym_vpn_lib_types::LogPath;
 
 use crate::service;
 
-static INFO_CRATES: &[&str; 13] = &[
+static INFO_TARGETS: [&str; 14] = [
     "hyper",
     "netlink_proto",
     "hickory_proto",
@@ -35,9 +35,10 @@ static INFO_CRATES: &[&str; 13] = &[
     "nym_task::manager",
     "nym_client_core::client::real_messages_control",
     "nym_client_core::client::received_buffer",
+    "tonic::transport::server",
 ];
 
-static WARN_CRATES: &[&str; 2] = &["hickory_server", "quinn::connection"];
+static WARN_TARGETS: [&str; 2] = ["hickory_server", "quinn::connection"];
 
 pub struct Options {
     pub verbosity_level: Level,
@@ -228,14 +229,14 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         .with_default_directive(options.verbosity_level.into())
         .from_env_lossy();
 
-    for crate_name in INFO_CRATES {
+    for crate_name in INFO_TARGETS {
         env_filter = env_filter.add_directive(
             format!("{crate_name}=info")
                 .parse()
                 .expect("failed to parse directive"),
         );
     }
-    for crate_name in WARN_CRATES {
+    for crate_name in WARN_TARGETS {
         env_filter = env_filter.add_directive(
             format!("{crate_name}=warn")
                 .parse()
