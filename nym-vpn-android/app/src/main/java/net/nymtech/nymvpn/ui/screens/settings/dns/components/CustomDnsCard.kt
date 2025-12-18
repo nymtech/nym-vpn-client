@@ -2,12 +2,34 @@ package net.nymtech.nymvpn.ui.screens.settings.dns.components
 
 import android.content.res.Configuration
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ShapeDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -35,15 +57,13 @@ fun CustomDnsCard(
 	dnsEnabled: Boolean,
 	onDnsEnable: (enabled: Boolean) -> Unit,
 	modifier: Modifier = Modifier,
-	onSave: (List<String>) -> Unit = {},
-	onUnsavedChangesChange: (Boolean) -> Unit = {},
-	onDnsListChange: (List<String>) -> Unit = {},
+	onSave: (List<String>) -> Unit,
+	onDnsListChange: (List<String>) -> Unit,
 ) {
 	val context = LocalContext.current
-
 	val dnsItems = remember { mutableStateListOf<DnsEntry>() }
 	var nextItemId by remember { mutableLongStateOf(1L) }
-	var savedDnsSnapshot by remember { mutableStateOf(initialDns.toList()) }
+	val validateList = remember { listOf("0.0.0.0", "255.255.255.255") }
 
 	LaunchedEffect(initialDns) {
 		dnsItems.clear()
@@ -51,7 +71,6 @@ fun CustomDnsCard(
 		initialDns.forEach { value ->
 			dnsItems.add(DnsEntry(nextItemId++, value))
 		}
-		savedDnsSnapshot = initialDns.toList()
 	}
 
 	var dnsInput by rememberSaveable { mutableStateOf("") }
@@ -59,12 +78,13 @@ fun CustomDnsCard(
 
 	val isDnsInputValid = remember(normalizedDnsInput) {
 		normalizedDnsInput.isNotEmpty() &&
+			normalizedDnsInput !in validateList &&
 			(isValidIPv4(normalizedDnsInput) || isValidIPv6(normalizedDnsInput))
 	}
+
 	val shouldShowInputError = remember(normalizedDnsInput, isDnsInputValid) {
 		normalizedDnsInput.isNotEmpty() && !isDnsInputValid
 	}
-	val canAddDns = isDnsInputValid && dnsItems.size < 5
 
 	val currentDnsValues by remember {
 		derivedStateOf { dnsItems.map { it.value } }
@@ -74,12 +94,12 @@ fun CustomDnsCard(
 		onDnsListChange(currentDnsValues)
 	}
 
-	val hasUnsavedChanges by remember {
-		derivedStateOf { currentDnsValues != savedDnsSnapshot }
+	val hasUnsavedChanges by remember(initialDns, currentDnsValues) {
+		derivedStateOf { currentDnsValues != initialDns }
 	}
 
-	LaunchedEffect(hasUnsavedChanges) {
-		onUnsavedChangesChange(hasUnsavedChanges)
+	val canAddDns by remember(isDnsInputValid, dnsItems.size) {
+		derivedStateOf { isDnsInputValid && dnsItems.size < 5 }
 	}
 
 	Card(
@@ -145,7 +165,7 @@ fun CustomDnsCard(
 						onValueChange = { dnsInput = it },
 						modifier = Modifier
 							.weight(1f)
-							.height(60.dp.scaledHeight())
+							.heightIn(min = 56.dp)
 							.padding(end = 16.dp),
 						singleLine = true,
 						label = {
@@ -179,7 +199,7 @@ fun CustomDnsCard(
 						},
 						modifier = Modifier
 							.padding(top = 6.dp)
-							.height(52.dp.scaledHeight())
+							.heightIn(52.dp)
 							.width(62.dp.scaledWidth()),
 					)
 				}
@@ -201,7 +221,6 @@ fun CustomDnsCard(
 				onClick = {
 					val snapshot = currentDnsValues
 					onSave(snapshot)
-					savedDnsSnapshot = snapshot
 					Toast.makeText(context, "Changes saved", Toast.LENGTH_SHORT).show()
 				},
 				enabled = hasUnsavedChanges,
@@ -235,6 +254,7 @@ private fun CustomDnsCardPreview() {
 			onDnsEnable = {},
 			modifier = Modifier.padding(16.dp),
 			onSave = {},
+			onDnsListChange = {},
 		)
 	}
 }

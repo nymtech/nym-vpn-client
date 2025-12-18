@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,12 +29,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +53,7 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.settings.dns.DnsViewModel.Companion.DEFAULT_DNS_SERVERS
 import net.nymtech.nymvpn.ui.screens.settings.dns.components.CustomDnsCard
 import net.nymtech.nymvpn.ui.screens.settings.dns.modal.SaveChangesModal
+import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -61,8 +64,16 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: DnsViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
-
+	val context = LocalContext.current
 	val customDns by viewModel.customDns.collectAsState()
+	var initialCustomDns by remember { mutableStateOf<List<String>?>(null) }
+	LaunchedEffect(customDns) {
+		if (initialCustomDns == null) initialCustomDns = customDns.toList()
+	}
+	var initialDnsEnabled by remember { mutableStateOf<Boolean?>(null) }
+	LaunchedEffect(appUiState.settings.customDnsEnabled) {
+		if (initialDnsEnabled == null) initialDnsEnabled = appUiState.settings.customDnsEnabled
+	}
 
 	val onNavigateBack = remember {
 		{
@@ -79,11 +90,18 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 		onSave = { viewModel.saveDnsList(it) },
 		onBackClickEventTriggered = onBackClickEventTriggered,
 		onNavigateBack = onNavigateBack,
+		onReconnect = {},
+		initialDnsEnabled = initialDnsEnabled,
+		initialCustomDns = initialCustomDns,
 	)
 }
 
-private enum class PendingNavigation {
-	NavigateBack,
+private fun shouldReconnect(initialEnabled: Boolean?, initialList: List<String>?, currentEnabled: Boolean, currentList: List<String>): Boolean {
+	if (initialEnabled == null || initialList == null) return false
+
+	val toggleChanged = currentEnabled != initialEnabled
+	val listChangedWhileEnabled = currentEnabled && (currentList != initialList)
+	return toggleChanged || listChangedWhileEnabled
 }
 
 @Composable
@@ -95,46 +113,44 @@ private fun DnsScreen(
 	onSave: (List<String>) -> Unit,
 	onBackClickEventTriggered: Boolean,
 	onNavigateBack: () -> Unit,
+	onReconnect: () -> Unit,
+	initialDnsEnabled: Boolean?,
+	initialCustomDns: List<String>?,
 ) {
 	val scrollState = rememberScrollState()
 	var expanded by rememberSaveable { mutableStateOf(false) }
 	val context = LocalContext.current
 	val interactionSource = remember { MutableInteractionSource() }
 
-	var hasUnsavedChanges by rememberSaveable { mutableStateOf(false) }
 	var showSaveChangesDialog by remember { mutableStateOf(false) }
-	var pendingNavigation by remember { mutableStateOf<PendingNavigation?>(null) }
-
 	var customDnsDraft by rememberSaveable { mutableStateOf(customDns) }
+	LaunchedEffect(customDns) {
+		customDnsDraft = customDns
+	}
 
-	val onBackRequested = remember(hasUnsavedChanges) {
-		{
-			if (hasUnsavedChanges) {
-				showSaveChangesDialog = true
-			} else {
-				pendingNavigation = PendingNavigation.NavigateBack
-			}
+	val hasUnsavedListChanges by remember(customDnsDraft, customDns) {
+		derivedStateOf { customDnsDraft != customDns }
+	}
+
+	fun leaveScreenWithReconnectIfNeeded(currentList: List<String>) {
+		if (shouldReconnect(initialDnsEnabled, initialCustomDns, dnsEnabled, currentList)) {
+			onReconnect()
+		}
+		onNavigateBack()
+	}
+
+	fun requestBack() {
+		if (hasUnsavedListChanges) {
+			showSaveChangesDialog = true
+		} else {
+			leaveScreenWithReconnectIfNeeded(customDns)
 		}
 	}
 
-	BackHandler {
-		onBackRequested()
-	}
+	BackHandler { requestBack() }
 
 	LaunchedEffect(onBackClickEventTriggered) {
-		if (onBackClickEventTriggered) {
-			onBackRequested()
-		}
-	}
-
-	LaunchedEffect(pendingNavigation) {
-		when (pendingNavigation) {
-			PendingNavigation.NavigateBack -> {
-				pendingNavigation = null
-				onNavigateBack()
-			}
-			null -> Unit
-		}
+		if (onBackClickEventTriggered) requestBack()
 	}
 
 	Column(
@@ -143,13 +159,23 @@ private fun DnsScreen(
 			.fillMaxSize()
 			.verticalScroll(scrollState)
 			.padding(horizontal = 24.dp.scaledWidth())
-			.navigationBarsPadding(),
+			.navigationBarsPadding()
+			.imePadding(),
 	) {
 		Text(
 			text = stringResource(R.string.dns_description),
 			style = Typography.bodyMedium,
 			color = MaterialTheme.colorScheme.outline,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(top = 16.dp),
+		)
+
+		Text(
+			text = stringResource(R.string.censorship_quic_changes),
+			style = MaterialTheme.typography.bodySmall,
+			color = CustomColors.warning,
 			modifier = Modifier
 				.fillMaxWidth()
 				.padding(top = 16.dp),
@@ -220,8 +246,9 @@ private fun DnsScreen(
 			initialDns = customDns,
 			dnsEnabled = dnsEnabled,
 			onDnsEnable = onDnsEnable,
-			onSave = onSave,
-			onUnsavedChangesChange = { hasUnsavedChanges = it },
+			onSave = { listToSave ->
+				onSave(listToSave)
+			},
 			onDnsListChange = { customDnsDraft = it },
 		)
 
@@ -252,13 +279,18 @@ private fun DnsScreen(
 	SaveChangesModal(
 		showSaveChangesDialog = showSaveChangesDialog,
 		onClickSave = {
-			onSave(customDnsDraft)
+			val toSave = customDnsDraft
+			onSave(toSave)
 			showSaveChangesDialog = false
-			pendingNavigation = PendingNavigation.NavigateBack
+			leaveScreenWithReconnectIfNeeded(toSave)
 		},
 		onDiscard = {
 			showSaveChangesDialog = false
-			pendingNavigation = PendingNavigation.NavigateBack
+			val initEnabled = initialDnsEnabled
+			val shouldReconnectOnlyByToggle = initEnabled != null && dnsEnabled != initEnabled
+			if (shouldReconnectOnlyByToggle) onReconnect()
+
+			onNavigateBack()
 		},
 		onDismiss = { showSaveChangesDialog = false },
 	)
@@ -266,17 +298,12 @@ private fun DnsScreen(
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-internal fun PreviewCensorshipScreen() {
+internal fun PreviewDnsScreen() {
 	NymVPNTheme(Theme.default()) {
-		val list = arrayListOf<String>()
-		list.add("192.0.2.44")
-		list.add("192.0.2.44")
-		list.add("192.0.2.44")
-		list.add("192.0.2.44")
-		list.add("192.0.2.44")
-		list.add("192.0.2.44")
-		list.add("192:0::2::48::0")
-		list.add("192:0::2::48::0")
+		val list = arrayListOf<String>().apply {
+			repeat(6) { add("192.0.2.44") }
+			add("2606:4700:4700::1111")
+		}
 
 		DnsScreen(
 			defaultDns = list,
@@ -286,6 +313,9 @@ internal fun PreviewCensorshipScreen() {
 			onSave = {},
 			onBackClickEventTriggered = false,
 			onNavigateBack = {},
+			onReconnect = {},
+			initialDnsEnabled = true,
+			initialCustomDns = emptyList(),
 		)
 	}
 }
