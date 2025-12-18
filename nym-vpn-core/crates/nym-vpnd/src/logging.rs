@@ -21,7 +21,7 @@ use nym_vpn_lib_types::LogPath;
 
 use crate::service;
 
-static INFO_CRATES: &[&str; 13] = &[
+static INFO_CRATES: &[&str; 14] = &[
     "hyper",
     "netlink_proto",
     "hickory_proto",
@@ -35,6 +35,7 @@ static INFO_CRATES: &[&str; 13] = &[
     "nym_task::manager",
     "nym_client_core::client::real_messages_control",
     "nym_client_core::client::received_buffer",
+    "tonic::transport::server",
 ];
 
 static WARN_CRATES: &[&str; 2] = &["hickory_server", "quinn::connection"];
