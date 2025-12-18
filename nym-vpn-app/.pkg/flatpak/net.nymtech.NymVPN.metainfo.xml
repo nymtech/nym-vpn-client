@@ -49,6 +49,9 @@
         </p>
     </description>
     <releases>
+        <release version="1.21.0" date="2025-12-18">
+            <url type="details">https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v1.21.0</url>
+        </release>
         <release version="1.20.3" date="2025-12-09">
             <url type="details">https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v1.20.3</url>
         </release>
