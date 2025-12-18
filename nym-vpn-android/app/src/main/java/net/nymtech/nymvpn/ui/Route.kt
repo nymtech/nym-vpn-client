@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui
 
 import kotlinx.serialization.Serializable
-import nym_vpn_lib_types.GatewayType
 
 sealed class Route {
 	@Serializable
@@ -88,7 +87,6 @@ sealed class Route {
 	@Serializable
 	data class ServerDetails(
 		val id: String,
-		val type: GatewayType,
 		val location: String,
 	) : Route()
 

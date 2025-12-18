@@ -45,23 +45,35 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.topBorder
+import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Score
 
 @Composable
-fun DetailsScreen(appUiState: AppUiState, id: String, type: GatewayType, gatewayLocation: String, viewModel: DetailsViewModel = hiltViewModel()) {
+fun DetailsScreen(appUiState: AppUiState, id: String, gatewayLocation: String, viewModel: DetailsViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
 	val location = GatewayLocation.valueOf(gatewayLocation)
+	val gatewayType = remember {
+		when (appUiState.settings.vpnMode) {
+			Tunnel.Mode.FIVE_HOP_MIXNET -> {
+				when (location) {
+					GatewayLocation.EXIT -> GatewayType.MIXNET_EXIT
+					GatewayLocation.ENTRY -> GatewayType.MIXNET_ENTRY
+				}
+			}
+			Tunnel.Mode.TWO_HOP_MIXNET -> GatewayType.WG
+		}
+	}
 	val initialGateways = remember {
-		when (type) {
+		when (gatewayType) {
 			GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
 			GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
 			GatewayType.WG -> appUiState.gateways.wgGateways
 		}
 	}
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-	LaunchedEffect(type, initialGateways) {
+	LaunchedEffect(gatewayType, initialGateways) {
 		viewModel.filterGateways(id, initialGateways)
 	}
 	DetailsScreen(
