@@ -48,10 +48,10 @@ public struct StrokeBorderView<Content: View>: View {
                 .padding(.horizontal, 4)
                 .background(
                     Rectangle()
-                        .fill(NymColor.background)
-                        .frame(height: 3)
+                        .fill(backgroundColor)
+                        .frame(height: 2)
                 )
-                .position(x: strokeTitleLeftMargin, y: 0)
+                .position(x: strokeTitleLeftMargin, y: 1)
                 .accessibilityHidden(true)
         }
     }

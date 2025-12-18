@@ -315,7 +315,7 @@ private extension DnsView {
                 && isCustomDnsTextFieldDirty
                     ? NymColor.error
                     : NymColor.primary,
-            backgroundColor: .clear
+            backgroundColor: NymColor.elevation
         ) {
             HStack {
                 ZStack(alignment: .leading) {
