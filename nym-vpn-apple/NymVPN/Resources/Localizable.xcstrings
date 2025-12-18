@@ -8798,6 +8798,17 @@
         }
       }
     },
+    "dns.learnMore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn more about DNS"
+          }
+        }
+      }
+    },
     "dns.modals.saveChanges.discard" : {
       "extractionState" : "manual",
       "localizations" : {
