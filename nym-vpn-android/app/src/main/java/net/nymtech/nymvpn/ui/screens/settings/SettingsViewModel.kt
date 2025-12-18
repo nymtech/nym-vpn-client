@@ -22,7 +22,6 @@ class SettingsViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
-	private val environmentManager: EnvironmentManager,
 	private val backendManager: BackendManager,
 	@ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
@@ -32,10 +31,8 @@ constructor(
 
 	init {
 		viewModelScope.launch {
-			val domainFronting = environmentManager.isDomainFrontingEnabled()
-			val quic = environmentManager.isQuicEnabled()
 			val daemonVersion = backendManager.getDaemonVersion()
-			_uiState.update { it.copy(showCensorshipSection = (domainFronting || quic), daemonVersion = daemonVersion) }
+			_uiState.update { it.copy(daemonVersion = daemonVersion) }
 		}
 	}
 
@@ -50,12 +47,12 @@ constructor(
 	fun onBypassLanSelected(selected: Boolean) = viewModelScope.launch {
 		runCatching {
 			settingsRepository.setBypassLan(selected)
-			
+
 			// If connected, reconnect to apply new bypass LAN setting
 			val currentState = backendManager.stateFlow.first().tunnelState
 			Timber.d("onBypassLanSelected: current VPN state from stateFlow: $currentState")
 			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
-			
+
 			if (wasConnected) {
 				Timber.d("onBypassLanSelected: VPN is connected, reconnecting to apply new bypass LAN setting: $selected")
 				applicationScope.launch {

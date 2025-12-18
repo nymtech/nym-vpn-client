@@ -237,36 +237,33 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 					onClick = actions.onDnsClick,
 				),
 			)
-
-			if (values.showCensorshipSection) {
-				add(
-					SelectionItem(
-						leading = {
-							Icon(
-								Icons.Outlined.Campaign,
-								stringResource(R.string.settings_censorship_title),
-								modifier = Modifier.size(iconSize.scaledWidth()),
-								tint = MaterialTheme.colorScheme.outline,
-							)
-						},
-						trailing = {
-							Icon(
-								Icons.AutoMirrored.Outlined.ArrowRight,
-								stringResource(R.string.go),
-								modifier = Modifier.size(iconSize),
-								tint = MaterialTheme.colorScheme.onBackground,
-							)
-						},
-						title = {
-							Text(
-								stringResource(R.string.settings_censorship_title),
-								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-							)
-						},
-						onClick = actions.onCensorshipClick,
-					),
-				)
-			}
+			add(
+				SelectionItem(
+					leading = {
+						Icon(
+							Icons.Outlined.Campaign,
+							stringResource(R.string.settings_censorship_title),
+							modifier = Modifier.size(iconSize.scaledWidth()),
+							tint = MaterialTheme.colorScheme.outline,
+						)
+					},
+					trailing = {
+						Icon(
+							Icons.AutoMirrored.Outlined.ArrowRight,
+							stringResource(R.string.go),
+							modifier = Modifier.size(iconSize),
+							tint = MaterialTheme.colorScheme.onBackground,
+						)
+					},
+					title = {
+						Text(
+							stringResource(R.string.settings_censorship_title),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
+					onClick = actions.onCensorshipClick,
+				),
+			)
 		},
 	)
 }
@@ -276,7 +273,7 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 internal fun PreviewVpnSections() {
 	NymVPNTheme(Theme.default()) {
 		VpnSettingsSection(
-			SettingsValues(showCensorshipSection = true),
+			SettingsValues(),
 			SettingsActions(),
 		)
 	}
