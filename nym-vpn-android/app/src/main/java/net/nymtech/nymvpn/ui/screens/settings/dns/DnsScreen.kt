@@ -248,6 +248,7 @@ private fun DnsScreen(
 			onDnsEnable = onDnsEnable,
 			onSave = { listToSave ->
 				onSave(listToSave)
+				customDnsDraft = listToSave
 			},
 			onDnsListChange = { customDnsDraft = it },
 		)

@@ -87,6 +87,12 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	val uiState = remember(appUiState.managerState, appUiState.networkStatus) {
 		with(appUiState) {
 			val connectionState = when {
+				// Prevent "Connect" button during restart; offline takes precedence
+				managerState.isRestarting && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
+				managerState.isRestarting && managerState.tunnelState == Tunnel.State.Down -> ConnectionState.Disconnecting
+				managerState.isRestarting && managerState.tunnelState == Tunnel.State.InitializingClient -> 
+					ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
+				managerState.isRestarting -> ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
 				managerState.tunnelState != Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
 				managerState.tunnelState == Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
 				else -> ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
@@ -125,8 +131,8 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	}
 
 	with(appUiState.managerState) {
-		LaunchedEffect(tunnelState, connectionData?.connectedAt) {
-			viewModel.onTunnelStateChanged(tunnelState, connectionData?.connectedAt)
+		LaunchedEffect(tunnelState, connectionData?.connectedAt, appUiState.networkStatus) {
+			viewModel.onTunnelStateChanged(tunnelState, connectionData?.connectedAt, appUiState.networkStatus)
 		}
 	}
 
@@ -219,21 +225,18 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 
 	fun onEntryClick() {
 		when (uiState.connectionState) {
-			ConnectionState.Disconnected, ConnectionState.Offline -> navController.goFromRoot(Route.EntryLocation)
-			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
-			else -> snackbar.showMessage(context.getString(R.string.disabled_while_connected))
+			ConnectionState.WaitingForConnection -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
+			else -> navController.goFromRoot(Route.EntryLocation)
 		}
 	}
 
 	fun onExitClick() {
 		when (uiState.connectionState) {
-			ConnectionState.Disconnected, ConnectionState.Offline -> {
+			ConnectionState.WaitingForConnection -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
+			else -> {
 				dismissStreamingBanner()
 				navController.goFromRoot(Route.ExitLocation)
 			}
-
-			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
-			else -> snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 		}
 	}
 

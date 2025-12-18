@@ -13,6 +13,7 @@ import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.vpn.backend.Tunnel
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,8 +37,21 @@ class CensorshipViewModel @Inject constructor(
 	}
 
 	fun onQUICEnabled(enabled: Boolean) = viewModelScope.launch {
-		settingsRepository.setQUICEnabled(enabled)
-		_uiState.update { it.copy() }
+		runCatching {
+			settingsRepository.setQUICEnabled(enabled)
+			_uiState.update { it.copy() }
+			
+			// If connected, reconnect to apply new QUIC setting
+			val currentState = backendManager.getState()
+			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
+			
+			if (wasConnected) {
+				Timber.d("VPN is connected, reconnecting to apply new QUIC setting: $enabled")
+				backendManager.restartTunnel()
+			}
+		}.onFailure {
+			Timber.e(it, "Failed to update QUIC setting and reconnect")
+		}
 	}
 
 	fun requestReconnect() {

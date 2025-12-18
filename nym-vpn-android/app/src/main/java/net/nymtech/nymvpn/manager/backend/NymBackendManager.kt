@@ -8,11 +8,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -140,12 +142,16 @@ class NymBackendManager @Inject constructor(
 	}
 
 	override suspend fun startTunnel() {
+		Timber.d("startTunnel: called")
+		val entryPoint = getEntryPoint()
+		val exitPoint = getExitPoint()
+		Timber.d("startTunnel: using entryPoint: $entryPoint, exitPoint: $exitPoint")
 		notificationService.clearNotifications()
 		runCatching {
 			emitBackendUiEvent(null)
 			val tunnel = NymTunnel(
-				entryPoint = getEntryPoint(),
-				exitPoint = getExitPoint(),
+				entryPoint = entryPoint,
+				exitPoint = exitPoint,
 				mode = settingsRepository.getVpnMode(),
 				stateChange = ::onStateChange,
 				backendEvent = ::onBackendEvent,
@@ -154,35 +160,67 @@ class NymBackendManager @Inject constructor(
 			)
 			val enableBridges = isQuicEnabled()
 			val restrictedAppsPackages = getRestrictedAppsPackages()
+			Timber.d("startTunnel: calling backend.start()")
 			backend.await().start(tunnel, context.toUserAgent(), enableBridges, restrictedAppsPackages)
+			Timber.d("startTunnel: backend.start() completed successfully")
 		}.onFailure {
 			if (it is BackendException) {
 				when (it) {
-					is BackendException.VpnAlreadyRunning -> Timber.w("Vpn already running")
+					is BackendException.VpnAlreadyRunning -> {
+						Timber.w("startTunnel: Vpn already running - backend state may be out of sync")
+					}
 					is BackendException.VpnPermissionDenied -> {
+						Timber.w("startTunnel: Vpn permission denied")
 						launchVpnPermissionNotification()
 						stopTunnel()
 					}
 				}
 			} else {
-				Timber.e(it)
+				Timber.e(it, "startTunnel: failed with exception")
 			}
 		}
 	}
 
 	private val restartMutex = Mutex()
-	override suspend fun restartTunnel() = restartMutex.withLock {
-		if (getState() != Tunnel.State.Down) {
-			stopTunnel()
-			try {
-				withTimeout(15_000) {
-					stateFlow.first { it.tunnelState == Tunnel.State.Down }
-				}
-			} catch (e: Exception) {
-				Timber.e("Tunnel did not stop in time")
-			}
+	override suspend fun restartTunnel(shouldResetConnectionTime: Boolean) = restartMutex.withLock {
+		val currentState = getState()
+		Timber.d("restartTunnel: current state is $currentState, shouldResetConnectionTime: $shouldResetConnectionTime")
+
+		val preservedConnectionData = if (shouldResetConnectionTime) null else _state.value.connectionData
+		
+		_state.update { 
+			it.copy(
+				isRestarting = true,
+				connectionData = preservedConnectionData
+			)
 		}
+
+		if (currentState != Tunnel.State.Down) {
+			Timber.d("restartTunnel: stopping tunnel (current state: $currentState)")
+			val initialState = _state.value.tunnelState
+			stopTunnel()
+
+			if (initialState != Tunnel.State.Down) {
+				try {
+					withTimeout(15_000) {
+						stateFlow.dropWhile { it.tunnelState != Tunnel.State.Down }.first()
+						Timber.d("restartTunnel: tunnel is now Down")
+					}
+				} catch (e: Exception) {
+					Timber.e(e, "restartTunnel: tunnel did not stop in time, proceeding anyway")
+				}
+			}
+		} else {
+			Timber.d("restartTunnel: tunnel is already Down")
+		}
+
+		// Delay to allow database cleanup (sqlx_pool_guard timeout is 2s, so wait 2.5s to be safe)
+		// Issue is being looked at for registration lockups // Remove once fixed
+		kotlinx.coroutines.delay(2_500)
+
+		Timber.d("restartTunnel: starting tunnel with entryPoint: ${settingsRepository.getEntryPoint()}, exitPoint: ${settingsRepository.getExitPoint()}")
 		startTunnel()
+		// Note: isRestarting is cleared in emitState() when tunnel reaches InitializingClient/EstablishingConnection/Up
 	}
 
 	private suspend fun getRestrictedAppsPackages() = splitTunnelingRepository.getAppInfoList().filter { !it.passThroughVpn }.map { it.packageName }
@@ -323,8 +361,22 @@ class NymBackendManager @Inject constructor(
 	}
 
 	private fun emitConnectedData(connectionData: ConnectionData?) {
-		_state.update {
-			it.copy(connectionData = connectionData?.toInfo())
+		_state.update { currentState ->
+			val newConnectionInfo = connectionData?.toInfo()
+			// During restart, preserve the original connection time
+			// For new connections (isRestarting = false), use the new connection time
+			val preservedConnectionInfo = if (currentState.isRestarting && currentState.connectionData?.connectedAt != null && newConnectionInfo != null) {
+				// Keep the original connectedAt timestamp during restart
+				Timber.d("Restart: preserving connection time ${currentState.connectionData!!.connectedAt}")
+				newConnectionInfo.copy(connectedAt = currentState.connectionData!!.connectedAt)
+			} else {
+				// New connection: use the new connection time
+				if (newConnectionInfo != null && !currentState.isRestarting) {
+					Timber.d("New connection: using new connection time ${newConnectionInfo.connectedAt}")
+				}
+				newConnectionInfo
+			}
+			currentState.copy(connectionData = preservedConnectionInfo)
 		}
 	}
 
@@ -389,9 +441,25 @@ class NymBackendManager @Inject constructor(
 	}
 
 	private fun emitState(state: Tunnel.State) {
-		_state.update {
-			it.copy(
+		_state.update { currentState ->
+			val isRestarting = currentState.isRestarting
+			// Clear isRestarting flag only when we're actually connecting/connected
+			val shouldClearRestarting = if (isRestarting) {
+				// Clear on Up or when starting to connect; keep true during Down (restart in progress)
+				state == Tunnel.State.Up || 
+				state == Tunnel.State.InitializingClient || 
+				state == Tunnel.State.EstablishingConnection
+			} else {
+				false
+			}
+			currentState.copy(
 				tunnelState = state,
+				isRestarting = if (shouldClearRestarting) {
+					Timber.d("Clearing isRestarting flag (state: $state, previous: ${currentState.tunnelState})")
+					false
+				} else {
+					isRestarting
+				},
 			)
 		}
 	}

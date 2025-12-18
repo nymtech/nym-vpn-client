@@ -77,9 +77,16 @@ fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, success
 				}
 			},
 			value = mnemonic,
-			onValueChange = {
-				if (success == false) viewModel.resetSuccess()
-				mnemonic = it
+			onValueChange = { newValue ->
+				try {
+					if (success == false) {
+						viewModel.resetSuccess()
+					}
+					mnemonic = newValue
+				} catch (e: Exception) {
+					Timber.e(e, "Error handling text input change")
+					mnemonic = newValue
+				}
 			},
 			keyboardActions = KeyboardActions(
 				onDone = {
