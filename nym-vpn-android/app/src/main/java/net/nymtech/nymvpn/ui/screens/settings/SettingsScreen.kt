@@ -88,7 +88,6 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 			bypassLanEnabled = appUiState.settings.isBypassLanEnabled,
 			supportIPv6Enabled = false,
 			autoselectServerEnabled = false,
-			showCensorshipSection = uiState.showCensorshipSection,
 			appShortcutsEnabled = appUiState.settings.isShortcutsEnabled,
 			appDeviceStartupEnabled = false,
 			appSystemTrayEnabled = false,

@@ -6,7 +6,6 @@ data class SettingsValues(
 	val bypassLanEnabled: Boolean = false,
 	val supportIPv6Enabled: Boolean = false,
 	val autoselectServerEnabled: Boolean = false,
-	val showCensorshipSection: Boolean = false,
 	val appShortcutsEnabled: Boolean = false,
 	val appDeviceStartupEnabled: Boolean = false,
 	val appSystemTrayEnabled: Boolean = false,
