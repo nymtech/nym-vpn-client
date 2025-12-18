@@ -369,7 +369,10 @@ jobs:
             --workspace "NymVPN.xcworkspace" \
             --scheme "NymVPN" \
             --config "Release" \
-            --clean
+            --clean \
+            --no-color \
+            --log-stream stdout \
+            2>&1 | xcbeautify --renderer github-actions
 
           echo "✅ Signed archive + .ipa exported"
 
