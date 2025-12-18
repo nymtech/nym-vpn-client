@@ -136,7 +136,7 @@ private extension DnsView {
     }
 
     #if os(macOS)
-    private static let dnsEntryHeight: CGFloat = 44
+    private static let dnsEntryHeight: CGFloat = Device.isMacOS ? 44 : 28
     #elseif os(iOS)
     private static let dnsEntryHeight: CGFloat = 28
     #endif
