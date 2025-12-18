@@ -298,7 +298,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.ServerDetails> {
 									val args = it.toRoute<Route.ServerDetails>()
 									runCatching {
-										DetailsScreen(appState, args.id, args.type, args.location)
+										DetailsScreen(appState, args.id, args.location)
 									}
 								}
 								composable<Route.Payment> {

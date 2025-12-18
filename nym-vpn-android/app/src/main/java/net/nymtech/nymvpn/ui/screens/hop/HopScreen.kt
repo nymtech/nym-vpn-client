@@ -265,7 +265,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 								navController.safePopBackStack()
 							},
 							onGatewayDetails = { gateway ->
-								navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
+								navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayLocation.name))
 							},
 							modifier = Modifier
 								.padding(top = if (uiState.items.indexOf(item) == 0) 24.dp.scaledHeight() else 0.dp)
@@ -300,7 +300,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 											showStreamDisplay = showStreamDisplay,
 											showQuicLabel = canShowQuicLabel && gateway.isQuicSupported(),
 										) {
-											navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayType, gatewayLocation.name))
+											navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayLocation.name))
 										}
 									},
 									title = {
