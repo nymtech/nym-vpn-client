@@ -236,6 +236,7 @@
 	<string name="settings_language_crowdin_link" translatable="false">https://crowdin.com/editor/nymvpn-apps</string>
 	<string name="settings_language_help_title">Help with translation</string>
 	<string name="settings_language_help_description">Make the app better in your language.</string>
+	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings...</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
