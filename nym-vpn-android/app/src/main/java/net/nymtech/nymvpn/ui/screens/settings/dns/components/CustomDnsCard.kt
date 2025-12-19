@@ -203,7 +203,7 @@ fun CustomDnsCard(
 								softWrap = false,
 								overflow = TextOverflow.Ellipsis,
 								modifier = Modifier
-									.padding(horizontal = 8.dp)
+									.padding(horizontal = 8.dp),
 							)
 						},
 						modifier = Modifier
