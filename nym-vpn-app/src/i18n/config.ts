@@ -85,6 +85,7 @@ i18n
       'welcome',
       'glossary',
       'notifications',
+      'login',
     ],
 
     interpolation: {

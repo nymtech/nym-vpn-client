@@ -268,6 +268,7 @@ async fn main() -> Result<()> {
             tunnel::set_custom_dns_enabled,
             tunnel::set_no_ipv6,
             tunnel::set_allow_lan,
+            tunnel::get_privy_derivation_message,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_del,

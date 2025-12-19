@@ -13,6 +13,8 @@ function Account() {
   const { daemonStatus, account, accountState, accountSyncing, accountLinks } =
     useMainState();
 
+  console.log('mainstate', useMainState());
+
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');

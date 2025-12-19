@@ -11,6 +11,7 @@ import errors from '../en/errors.json';
 import welcome from '../en/welcome.json';
 import glossary from '../en/glossary.json';
 import notifications from '../en/notifications.json';
+import login from '../en/login.json';
 
 export const en = {
   account,
@@ -26,4 +27,5 @@ export const en = {
   welcome,
   glossary,
   notifications,
+  login,
 } as const;

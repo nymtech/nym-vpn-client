@@ -181,3 +181,10 @@ pub async fn set_custom_dns(
     vpnd.set_custom_dns(dns).await?;
     Ok(())
 }
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn get_privy_derivation_message(vpnd: State<'_, VpndClient>) -> Result<String, BackendError> {
+    let message = vpnd.get_privy_derivation_message().await?;
+    Ok(message)
+}

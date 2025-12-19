@@ -304,6 +304,7 @@ jobs:
           UPDATER_ENABLED: ${{ inputs.updater_bundle == true }}
           UPDATER_ENDPOINT: ${{ inputs.updater_channel == 'stable' && env.UPDATER_URL_STABLE || env.UPDATER_URL_DEV }}
           CI: true
+          VITE_PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
         run: |
           echo "signing: ${{ inputs.sign }}"
           echo "generate updater bundle: ${{ env.UPDATER_ENABLED }}"

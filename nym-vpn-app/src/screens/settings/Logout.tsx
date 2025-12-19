@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { DialogTitle } from '@headlessui/react';
+import { usePrivy } from '@privy-io/react-auth';
 import { capFirst } from '../../util';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { Button, Dialog, MsIcon, SettingsMenuCard } from '../../ui';
@@ -20,6 +21,8 @@ function Logout() {
   const { t } = useTranslation('settings');
   const { tE } = useI18nError();
   const { push } = useInAppNotify();
+  const { logout: logoutPrivy } = usePrivy();
+
   const logoutCopy = capFirst(t('logout', { ns: 'glossary' }));
 
   useEffect(() => {
@@ -30,6 +33,7 @@ function Logout() {
       (async () => {
         try {
           console.info('logging out');
+          await logoutPrivy();
           await invoke('forget_account');
           dispatch({ type: 'set-account', stored: false });
           await CCache.del('cache-account-id');

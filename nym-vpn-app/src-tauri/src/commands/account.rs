@@ -19,7 +19,8 @@ pub async fn get_account_state(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn add_account(
-    mnemonic: String,
+    mnemonic: Option<String>,
+    signature: Option<String>,
     vpnd: State<'_, VpndClient>,
     app_state: State<'_, SharedAppState>,
 ) -> Result<(), BackendError> {
@@ -32,7 +33,7 @@ pub async fn add_account(
     };
     drop(state);
 
-    vpnd.store_account(mnemonic)
+    vpnd.store_account(mnemonic, signature)
         .await
         .map_err(|e| {
             error!("failed to add account: {}", e);
