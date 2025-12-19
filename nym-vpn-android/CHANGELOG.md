@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.6.0]
+### Added
+- Locale for high/low copy on Details screen (https://github.com/nymtech/nym-vpn-client/pull/4274)
+
+### Changed
+- Replace mnemonic and access code with passphrase (https://github.com/nymtech/nym-vpn-client/pull/4274)
+- Replace gateway with server (https://github.com/nymtech/nym-vpn-client/pull/4274)
+
+## [2.6.0] - 2025.12.18
 
 ### Added
 - Add Exit and Entry points to notification (https://github.com/nymtech/nym-vpn-client/pull/4133)
