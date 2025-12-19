@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.dns.components
 
 import android.content.res.Configuration
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +31,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -56,13 +54,13 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun CustomDnsCard(
 	initialDns: List<String>,
 	dnsEnabled: Boolean,
+	connectedForUi: Boolean,
 	onDnsEnable: (enabled: Boolean) -> Unit,
 	modifier: Modifier = Modifier,
 	onSave: (List<String>) -> Unit,
 	onDnsListChange: (List<String>) -> Unit,
 	toggleEnabled: Boolean,
 ) {
-	val context = LocalContext.current
 	val dnsItems = remember { mutableStateListOf<DnsEntry>() }
 	var nextItemId by remember { mutableLongStateOf(1L) }
 	val validateList = remember { listOf("0.0.0.0", "255.255.255.255") }
@@ -103,6 +101,13 @@ fun CustomDnsCard(
 	val canAddDns by remember(isDnsInputValid, dnsItems.size) {
 		derivedStateOf { isDnsInputValid && dnsItems.size < 5 }
 	}
+
+	val saveTextRes =
+		if (connectedForUi && dnsEnabled) {
+			R.string.dns_custom_button_save_reconnect
+		} else {
+			R.string.dns_custom_button_save
+		}
 
 	Card(
 		modifier = modifier.fillMaxWidth(),
@@ -202,8 +207,7 @@ fun CustomDnsCard(
 								maxLines = 1,
 								softWrap = false,
 								overflow = TextOverflow.Ellipsis,
-								modifier = Modifier
-									.padding(horizontal = 8.dp),
+								modifier = Modifier.padding(horizontal = 8.dp),
 							)
 						},
 						modifier = Modifier
@@ -230,12 +234,11 @@ fun CustomDnsCard(
 				onClick = {
 					val snapshot = currentDnsValues
 					onSave(snapshot)
-					Toast.makeText(context, "Changes saved", Toast.LENGTH_SHORT).show()
 				},
 				enabled = hasUnsavedChanges,
 				content = {
 					Text(
-						text = stringResource(R.string.dns_custom_button_save),
+						text = stringResource(saveTextRes),
 						style = CustomTypography.buttonMain,
 					)
 				},
@@ -260,6 +263,7 @@ private fun CustomDnsCardPreview() {
 				"208.67.222.222",
 			),
 			dnsEnabled = false,
+			connectedForUi = true,
 			onDnsEnable = {},
 			modifier = Modifier.padding(16.dp),
 			onSave = {},

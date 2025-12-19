@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmapOrNull
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppInfo
-import net.nymtech.nymvpn.ui.screens.settings.tunneling.UiEvent
 import net.nymtech.nymvpn.ui.theme.CustomColorsPalette
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.ui.theme.iconSize
@@ -39,7 +38,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onUiEvent: (UiEvent) -> Unit, mutableInteraction: MutableInteractionSource = MutableInteractionSource()) {
+fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableInteraction: MutableInteractionSource = MutableInteractionSource()) {
 	Row(
 		modifier = Modifier.fillMaxWidth(),
 		verticalAlignment = Alignment.CenterVertically,
@@ -62,12 +61,11 @@ fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onUiEv
 			modifier = Modifier.weight(1f),
 		)
 		Row(
-			modifier = Modifier
-				.clickable(
-					indication = null,
-					interactionSource = mutableInteraction,
-					onClick = { onUiEvent(UiEvent.ChangeSelection(appInfo.packageName)) },
-				),
+			modifier = Modifier.clickable(
+				indication = null,
+				interactionSource = mutableInteraction,
+				onClick = { onTogglePassThrough(appInfo.packageName) },
+			),
 			verticalAlignment = Alignment.CenterVertically,
 		) {
 			Box(
@@ -80,10 +78,9 @@ fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onUiEv
 				contentAlignment = Alignment.Center,
 			) {
 				Icon(
-					painterResource(R.drawable.split),
+					painter = painterResource(R.drawable.split),
 					contentDescription = null,
-					modifier = Modifier
-						.size(16.dp.scaledHeight()),
+					modifier = Modifier.size(16.dp.scaledHeight()),
 					tint = if (!appInfo.passThroughVpn) customColorPalette.redIcon else customColorPalette.greyIcon,
 				)
 			}
@@ -98,10 +95,9 @@ fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onUiEv
 				contentAlignment = Alignment.Center,
 			) {
 				Icon(
-					Icons.Filled.Shield,
+					imageVector = Icons.Filled.Shield,
 					contentDescription = null,
-					modifier = Modifier
-						.size(16.dp.scaledHeight()),
+					modifier = Modifier.size(16.dp.scaledHeight()),
 					tint = if (appInfo.passThroughVpn) customColorPalette.greenIcon else customColorPalette.greyIcon,
 				)
 			}

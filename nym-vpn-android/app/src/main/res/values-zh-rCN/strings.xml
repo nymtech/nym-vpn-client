@@ -294,15 +294,7 @@
 	<string name="censorship_stealth_link_text">SteomAPI连接模式工作方式</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">启用增强连接(QUIC)？</string>
-	<string name="quick_info_modal_desc">一旦启用QUIC协议您需要重新连接。如果当前选中的节点本身支持QUIC协议你将会重新连接到当前节点，否则需要重新选择一个支持QUIC的节点。\n\n在重新连接的过程中，你的数据将会继续被保护。</string>
-	<string name="quic_primary_btn_text">现在使用QUIC协议重新连接</string>
-	<string name="quic_text_btn_text">对下次连接应用QUIC</string>
-	<string name="quick_info_modal_title_non_quic">禁用增强连接(QUIC)？</string>
-	<string name="quick_info_modal_desc_non_quic">这将在不启用QUIC 协议的情况下重新连接，您将重新连接到当前网关。\n\n您的数据在重新连接时依然受到保护。</string>
-	<string name="quic_primary_btn_text_non_quic">不使用QUIC重新连接</string>
-	<string name="quic_text_btn_text_non_quic">下次连接时再关闭QUIC</string>
-	<string name="quic_gateway_filter_info_msg">仅显示支持QUIC 协议的快速模式位置和服务器。要关闭所有服务器，请关闭 QUIC</string>
+    <string name="quic_gateway_filter_info_msg">仅显示支持QUIC 协议的快速模式位置和服务器。要关闭所有服务器，请关闭 QUIC</string>
 	<string name="censorship_amnezia_title">最低限度的反审查保护（AmneziaWG）</string>
 	<string name="censorship_amnezia_description">通过引入能够绕开深度包检测系统的基本检查规则的诱饵数据包，使得WireGuard流量更加难以被检测到，改善受限制的网络中连接的稳定性。\n\n注意：只实现了客户端。</string>
 	<string name="censorship_amnezia_link_text">Amnezia WG是如何阻止DPI的</string>

@@ -298,15 +298,7 @@
 	<string name="censorship_stealth_link_text">چگونه حالت اتصال Stealth API کار می‌کند</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC </string>
-	<string name="quick_info_modal_title">اتصال بهبود یافته (QUIC) فعال شود؟</string>
-	<string name="quick_info_modal_desc">با فعال بودن پروتکل QUIC، اتصال شما دوباره برقرار خواهد شد. اگر گِیت‌وی‌های فعلی شما از QUIC پشتیبانی کنند، آنها را خواهید داشت، یا در صورت نیاز گِیت‌وی‌های سازگار را انتخاب کنید.\n\nاطلاعات شما در طول اتصال مجدد محافظت شده باقی می‌ماند.</string>
-	<string name="quic_primary_btn_text">اکنون دوباره با QUIC متصل شوید</string>
-	<string name="quic_text_btn_text">اعمال QUIC در اتصال بعدی</string>
-	<string name="quick_info_modal_title_non_quic">اتصال پیشرفته (QUIC) غیرفعال شود؟</string>
-	<string name="quick_info_modal_desc_non_quic">اتصال شما بدون فعال بودن پروتکل QUIC دوباره برقرار خواهد شد. شما گِیت‌وی‌های فعلی خود را خواهید داشت.\n\nاطلاعات شما در طول اتصال مجدد محافظت شده باقی می‌ماند.</string>
-	<string name="quic_primary_btn_text_non_quic">اکنون بدون QUIC دوباره وصل شوید</string>
-	<string name="quic_text_btn_text_non_quic">خاموش کردن QUIC در اتصال بعدی</string>
-	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
+    <string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">حداقل ابهام (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">تشخیص ترافیک WireGuard را دشوارتر می‌کند. بسته‌های فریب‌دهنده را وارد ترافیک می‌کند که قوانین سادهٔ مورد استفاده در سامانه‌های سانسور مبتنی بر بازرسی عمیق بسته‌ها (DPI) را مختل کرده و پایداری اتصال را در محیط‌های محدودکننده افزایش می‌دهد.\n\nتوجه: فقط در سمت کاربر (Client-side) پیاده‌سازی شده است.</string>
 	<string name="censorship_amnezia_link_text">چگونه AmneziaWG از DPI جلوگیری می‌کند</string>

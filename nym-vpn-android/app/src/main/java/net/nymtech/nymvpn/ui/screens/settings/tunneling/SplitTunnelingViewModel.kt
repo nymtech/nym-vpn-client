@@ -6,14 +6,17 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.SplitTunnelingRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.ui.common.events.UiEvent as CommonUiEvent
 import net.nymtech.nymvpn.util.SplitTunnelingHelper
 import net.nymtech.nymvpn.util.filterAllPassThroughValue
 import net.nymtech.nymvpn.util.totalAppCounts
@@ -29,34 +32,89 @@ class SplitTunnelingViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val helper: SplitTunnelingHelper,
 ) : ViewModel() {
+
 	private val packageManager = context.packageManager
+
 	private val _uiState = MutableStateFlow(SplitTunnelingUiState())
 	val uiState = _uiState.asStateFlow()
+
+	private val _backendUi = MutableStateFlow(SplitTunnelingBackendUiState())
+	val backendUi = _backendUi.asStateFlow()
+
+	private val _events = MutableSharedFlow<CommonUiEvent>(
+		extraBufferCapacity = 1,
+		onBufferOverflow = BufferOverflow.DROP_OLDEST,
+	)
+	val events = _events.asSharedFlow()
+
 	private var initialAppInfoList: List<AppInfo> = emptyList()
 
-	private fun getInitData() {
+	init {
+		viewModelScope.launch {
+			backendManager.restartStartedEvents.collect {
+				_events.tryEmit(CommonUiEvent.ReconnectStarted)
+			}
+		}
+		viewModelScope.launch {
+			backendManager.stateFlow.collect { s ->
+				_backendUi.value = SplitTunnelingBackendUiState(
+					tunnelState = s.tunnelState,
+					isRestarting = s.isRestarting,
+				)
+			}
+		}
+	}
+
+	fun loadData() {
 		getAllInstalledAppList()
 		onPerAppSecurityBannerDisplayed()
 	}
 
-	fun onUiEvent(event: UiEvent) {
-		when (event) {
-			is UiEvent.QueryChange -> filterApps(event.query)
-			UiEvent.SelectAllDirectAppsClick -> filterAllDirectApps()
-			UiEvent.SelectAllVpnPassThroughClick -> filterAllVpnPassThroughApps()
-			is UiEvent.ChangeSelection -> changeChoiceSelection(event.packageName)
-			is UiEvent.OnBackClick -> onBackClick(event.tunnelState)
-			is UiEvent.ClearNavigation -> _uiState.update { it.copy(pendingNavigation = null) }
-			is UiEvent.ClearDialog -> _uiState.update { it.copy(pendingDialog = null) }
-			is UiEvent.NavigateBack -> _uiState.update { it.copy(pendingNavigation = SplitTunnelingUiState.PendingNavigation.NavigateBack) }
-			UiEvent.LoadData -> getInitData()
+	fun onQueryChange(query: String) {
+		filterApps(query)
+	}
+
+	fun onSelectAllDirectAppsClick() {
+		filterAllDirectApps()
+	}
+
+	fun onSelectAllVpnPassThroughClick() {
+		filterAllVpnPassThroughApps()
+	}
+
+	fun onChangeSelection(packageName: String) {
+		changeChoiceSelection(packageName)
+	}
+
+	fun clearSaveDialog() {
+		_uiState.update { it.copy(showSaveChangesDialog = false) }
+	}
+
+	fun requestBack() {
+		if (_uiState.value.hasUnsavedChanges) {
+			_uiState.update { it.copy(showSaveChangesDialog = true) }
+		} else {
+			_uiState.update { it.copy(navigateBack = true) }
 		}
 	}
 
-	fun disconnect() {
-		viewModelScope.launch {
-			backendManager.stopTunnel()
-			_uiState.update { it.copy(pendingDialog = null, pendingNavigation = SplitTunnelingUiState.PendingNavigation.NavigateToHome) }
+	fun consumeNavigateBack() {
+		_uiState.update { it.copy(navigateBack = false) }
+	}
+
+	fun discardAndNavigateBack() {
+		_uiState.update { it.copy(showSaveChangesDialog = false, navigateBack = true) }
+	}
+
+	fun saveChangesAndMaybeReconnect(isActuallyConnected: Boolean) {
+		viewModelScope.launch(Dispatchers.IO) {
+			val toSave = _uiState.value.systemApps + _uiState.value.normalApps
+			splitTunnelingRepository.saveAppInfoList(toSave)
+			initialAppInfoList = toSave
+			_uiState.update { it.copy(hasUnsavedChanges = false, showSaveChangesDialog = false) }
+			if (isActuallyConnected) {
+				backendManager.requestRestartDebounced()
+			}
 		}
 	}
 
@@ -79,9 +137,12 @@ class SplitTunnelingViewModel @Inject constructor(
 						filteredNormalApps = sortedNormalApps,
 						directAppsCount = sortedSystemApps.totalAppCounts(false) + sortedNormalApps.totalAppCounts(false),
 						vpnPassThroughAppsCount = sortedSystemApps.totalAppCounts(true) + sortedNormalApps.totalAppCounts(true),
+						hasUnsavedChanges = false,
 					)
 				}
-			}.onFailure { _uiState.update { it.copy(isLoading = false) } }
+			}.onFailure {
+				_uiState.update { it.copy(isLoading = false) }
+			}
 		}
 	}
 
@@ -151,16 +212,13 @@ class SplitTunnelingViewModel @Inject constructor(
 		viewModelScope.launch {
 			val updatedSystemApps = _uiState.value.systemApps.updatePassThroughValue(packageName)
 			val updatedNormalApps = _uiState.value.normalApps.updatePassThroughValue(packageName)
-			withContext(Dispatchers.IO) {
-				splitTunnelingRepository.saveAppInfoList(updatedSystemApps + updatedNormalApps)
-			}
+
 			_uiState.update {
-				val filteredSystemApps = it.filteredSystemApps.updatePassThroughValue(
-					packageName,
-				).filter { app -> it.appliedFilter == AppFilter.None || app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough) }
-				val filteredNormalApps = it.filteredNormalApps.updatePassThroughValue(
-					packageName,
-				).filter { app -> it.appliedFilter == AppFilter.None || app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough) }
+				val filteredSystemApps = it.filteredSystemApps.updatePassThroughValue(packageName)
+					.filter { app -> it.appliedFilter == AppFilter.None || app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough) }
+				val filteredNormalApps = it.filteredNormalApps.updatePassThroughValue(packageName)
+					.filter { app -> it.appliedFilter == AppFilter.None || app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough) }
+
 				val directAppsCount = if (it.appliedFilter == AppFilter.VpnPassThrough) {
 					updatedSystemApps.totalAppCounts(false) + updatedNormalApps.totalAppCounts(false)
 				} else {
@@ -172,6 +230,9 @@ class SplitTunnelingViewModel @Inject constructor(
 					filteredSystemApps.totalAppCounts(true) + filteredNormalApps.totalAppCounts(true)
 				}
 
+				val currentList = updatedSystemApps + updatedNormalApps
+				val hasUnsavedChanges = currentList != initialAppInfoList
+
 				it.copy(
 					systemApps = updatedSystemApps,
 					normalApps = updatedNormalApps,
@@ -179,22 +240,14 @@ class SplitTunnelingViewModel @Inject constructor(
 					filteredNormalApps = filteredNormalApps,
 					directAppsCount = directAppsCount,
 					vpnPassThroughAppsCount = vpnPassThroughAppsCount,
+					hasUnsavedChanges = hasUnsavedChanges,
 				)
 			}
 		}
 	}
 
-	private fun onBackClick(tunnelState: Tunnel.State) {
-		_uiState.update { it.copy(pendingNavigation = SplitTunnelingUiState.PendingNavigation.NavigateBack) }
-		/*if (tunnelState != Tunnel.State.Up) {
-			_uiState.update { it.copy(pendingNavigation = SplitTunnelingUiState.PendingNavigation.NavigateBack) }
-			Timber.d("onBackClick: NavigateBack ${_uiState.value}")
-		} else {
-			if (initialAppInfoList != uiState.value.systemApps + uiState.value.normalApps) {
-				_uiState.update { it.copy(pendingDialog = SplitTunnelingUiState.PendingDialog.AppListChangeDialog) }
-			} else {
-				_uiState.update { it.copy(pendingNavigation = SplitTunnelingUiState.PendingNavigation.NavigateBack) }
-			}
-		}*/
-	}
+	data class SplitTunnelingBackendUiState(
+		val tunnelState: Tunnel.State = Tunnel.State.Down,
+		val isRestarting: Boolean = false,
+	)
 }

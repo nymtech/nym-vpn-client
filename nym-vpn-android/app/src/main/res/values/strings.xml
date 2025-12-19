@@ -178,7 +178,6 @@
 	<string name="score_text_medium">Medium</string>
 	<string name="score_text_low">Low</string>
 	<string name="score_text_offline">Offline</string>
-	<string name="text_changes_saved">Changes saved</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
@@ -236,6 +235,7 @@
 	<string name="settings_language_crowdin_link" translatable="false">https://crowdin.com/editor/nymvpn-apps</string>
 	<string name="settings_language_help_title">Help with translation</string>
 	<string name="settings_language_help_description">Make the app better in your language.</string>
+	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings...</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -319,15 +319,8 @@
 	<string name="censorship_stealth_description">Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard API connection attempts fail.</string>
 	<string name="censorship_stealth_link_text">How the Stealth API connect mode works</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_event_reconnecting">Reconnecting to apply QUIC settings...</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">Enable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current servers if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text">Reconnect with QUIC now</string>
-	<string name="quic_text_btn_text">Apply QUIC on next connection</string>
-	<string name="quick_info_modal_title_non_quic">Disable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current servers.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
-	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
 	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>
@@ -430,6 +423,8 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
 	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
+	<string name="split_tunneling_event_saved">Split tunneling settings saved</string>
+	<string name="split_tunneling_event_reconnecting">Reconnecting to apply split tunneling settings...</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">DNS customization</string>
 	<string name="dns_description">By default, using Nym\'s recommended DNS servers. Configure custom servers below if needed.</string>
@@ -444,9 +439,12 @@
 	<string name="dns_custom_list_error">Invalid DNS address format</string>
 	<string name="dns_custom_button_add">Add</string>
 	<string name="dns_custom_button_save">Save changes</string>
+	<string name="dns_custom_button_save_reconnect">Save changes &amp; reconnect</string>
 	<string name="dns_custom_saved">Custom DNS saved.</string>
 	<string name="dns_save_dialog_title">Save changes?</string>
 	<string name="dns_save_dialog_description">You have unsaved changes.</string>
 	<string name="dns_learn_more_text">Learn more about DNS</string>
 	<string name="dns_learn_more_link" translatable="false">https://nymtechnologiessa.zendesk.com/hc/en-us/articles/41140533515665</string>
+	<string name="dns_event_saved">Custom DNS saved</string>
+	<string name="dns_event_reconnecting">Reconnecting to apply custom DNS settings...</string>
 </resources>

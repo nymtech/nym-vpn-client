@@ -295,15 +295,7 @@
 	<string name="censorship_stealth_link_text">স্টেলথ API সংযোগ মোড কীভাবে কাজ করে</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">উন্নত সংযোগ (QUIC) চালু করবেন ?</string>
-	<string name="quick_info_modal_desc">এতে QUIC প্রটোকল সক্রিয় রেখে আপনাকে পুনরায় সংযুক্ত করা হবে। যদি আপনার বর্তমান গেটওয়ে QUIC সমর্থন করে, সেগুলোই রাখা হবে; নাহলে উপযুক্ত গেটওয়ে নির্বাচিত হবে। পুনরায় সংযোগের সময় আপনার ডেটা সুরক্ষিত থাকবে।</string>
-	<string name="quic_primary_btn_text">এখনই QUIC-সহ পুনরায় সংযুক্ত করুন</string>
-	<string name="quic_text_btn_text">পরবর্তী সংযোগে QUIC প্রয়োগ করুন</string>
-	<string name="quick_info_modal_title_non_quic">উন্নত সংযোগ (QUIC) অক্ষম করবেন?</string>
-	<string name="quick_info_modal_desc_non_quic">এতে QUIC ছাড়া আপনাকে পুনরায় সংযুক্ত করা হবে। আপনার বর্তমান গেটওয়ে রাখা হবে (যদি প্রযোজ্য) এবং পুনরায় সংযোগের সময় আপনার ডেটা সুরক্ষিত থাকবে।</string>
-	<string name="quic_primary_btn_text_non_quic">এখনই QUIC ছাড়া পুনরায় সংযুক্ত করুন</string>
-	<string name="quic_text_btn_text_non_quic">পরবর্তী সংযোগে QUIC বন্ধ করুন</string>
-	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
+    <string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">ন্যূনতম ওবফাসকেশন (Amnezia WG)</string>
 	<string name="censorship_amnezia_description">WireGuard ট্রাফিক শনাক্ত করা কঠিন করে তোলে। এটি ডিকয় (প্রতারণামূলক) প্যাকেট প্রয়োগ করে যা সাধারণত Deep Packet Inspection (DPI) সিস্টেমে ব্যবহৃত সরল নিয়মগুলো ব্যাহত করে, ফলে সীমাবদ্ধ নেটওয়ার্কে সংযোগের নির্ভরযোগ্যতা বাড়ে। নোট: শুধুমাত্র ক্লায়েন্ট-সাইডে বাস্তবায়িত</string>
 	<string name="censorship_amnezia_link_text">Amnezia WG কীভাবে DPI প্রতিহত করে</string>

@@ -26,7 +26,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun SaveChangesModal(showSaveChangesDialog: Boolean, onClickSave: () -> Unit, onDiscard: () -> Unit, onDismiss: () -> Unit) {
+fun SaveChangesModal(showSaveChangesDialog: Boolean, confirmTextResId: Int, onClickSave: () -> Unit, onDiscard: () -> Unit, onDismiss: () -> Unit) {
 	Modal(
 		show = showSaveChangesDialog,
 		icon = Icons.Outlined.Settings,
@@ -52,7 +52,7 @@ fun SaveChangesModal(showSaveChangesDialog: Boolean, onClickSave: () -> Unit, on
 				onClick = onClickSave,
 				content = {
 					Text(
-						stringResource(R.string.dns_custom_button_save),
+						stringResource(confirmTextResId),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						color = Color.Black,
 					)
@@ -84,6 +84,12 @@ fun SaveChangesModal(showSaveChangesDialog: Boolean, onClickSave: () -> Unit, on
 @Composable
 private fun SaveChangesModalPreview() {
 	NymVPNTheme(Theme.default()) {
-		SaveChangesModal(true, {}, {}, {})
+		SaveChangesModal(
+			showSaveChangesDialog = true,
+			confirmTextResId = R.string.dns_custom_button_save,
+			onClickSave = {},
+			onDiscard = {},
+			onDismiss = {},
+		)
 	}
 }

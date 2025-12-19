@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.screens.settings
 
 import android.app.Activity
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,10 +23,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.BuildConfig
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.settings.components.AccountSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppVersionSection
@@ -54,6 +58,15 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+	LaunchedEffect(viewModel) {
+		viewModel.events.collectLatest { event ->
+			when (event) {
+				UiEvent.ReconnectStarted ->
+					Toast.makeText(context, context.getString(R.string.settings_event_lan_reconnecting), Toast.LENGTH_SHORT).show()
+			}
+		}
+	}
 
 	if (showVpnSettings) {
 		LaunchedEffect(Unit) {

@@ -296,15 +296,7 @@
 	<string name="censorship_stealth_link_text">كيف يعمل واجهة برمجة تطبيقات ستثنى</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-Connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">تمكين الاتصال المعزز (QUIC)؟</string>
-	<string name="quick_info_modal_desc">سيؤدي هذا إلى إعادة الاتصال مع بروتوكول QUIC المفعل. ستحتفظ ببوابتك الحالية إذا كانت تدعم QUIC، أو اختر واحدة متوافقة إذا لزم الأمر.\n\nتظل بياناتك محمية أثناء إعادة الاتصال.</string>
-	<string name="quic_primary_btn_text">إعادة الاتصال مع QUIC الآن</string>
-	<string name="quic_text_btn_text">تطبيق QUIC على الاتصال التالي</string>
-	<string name="quick_info_modal_title_non_quic">تعطيل الاتصال المحسن (QUIC)؟</string>
-	<string name="quick_info_modal_desc_non_quic">سيؤدي هذا إلى إعادة الاتصال بك دون تمكين بروتوكول QUIC. ستحتفظ ببوابتك الحالية.\n\nتظل بياناتك محمية أثناء إعادة الاتصال.</string>
-	<string name="quic_primary_btn_text_non_quic">إعادة الاتصال بدون QUIC الآن</string>
-	<string name="quic_text_btn_text_non_quic">إيقاف تشغيل QUIC عند الاتصال التالي</string>
-	<string name="quic_gateway_filter_info_msg">عرض مواقع الوضع السريع والخوادم التي تدعم بروتوكول QUIC فقط. للكشف عن جميع الخوادم، إيقاف تشغيل QUIC</string>
+    <string name="quic_gateway_filter_info_msg">عرض مواقع الوضع السريع والخوادم التي تدعم بروتوكول QUIC فقط. للكشف عن جميع الخوادم، إيقاف تشغيل QUIC</string>
 	<string name="censorship_amnezia_title">الحد الأدنى من التشويش</string>
 	<string name="censorship_amnezia_description">يجعل حركة مرور WireGuard أكثر صعوبة لكشفها. يقدم حزم مفككة تعطل القواعد البسيطة التي كثيرا ما تستخدمها نظم الرقابة على عمليات التفتيش العميقة (Deep Packet)، مما يحسن موثوقية الاتصال في البيئات التقييدية. \n\nملاحظة: تم تنفيذ جانب العميل فقط.</string>
 	<string name="censorship_amnezia_link_text">كيف يمنع أمنيزياي الفريق إدارة شؤون الإعلام</string>

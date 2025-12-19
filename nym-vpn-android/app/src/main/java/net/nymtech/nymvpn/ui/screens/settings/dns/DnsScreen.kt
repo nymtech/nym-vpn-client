@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.dns
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -47,24 +48,50 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
+import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.settings.dns.DnsViewModel.Companion.DEFAULT_DNS_SERVERS
 import net.nymtech.nymvpn.ui.screens.settings.dns.components.CustomDnsCard
 import net.nymtech.nymvpn.ui.screens.settings.dns.modal.SaveChangesModal
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.vpn.backend.Tunnel
 
 @Composable
 fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: DnsViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
+	val context = LocalContext.current
+
 	val customDns by viewModel.customDns.collectAsState()
+	val backendUi by viewModel.backendUi.collectAsState()
+
+	val dnsEnabled = appUiState.settings.customDnsEnabled
+
+	val isActuallyConnected =
+		backendUi.tunnelState == Tunnel.State.Up ||
+			backendUi.tunnelState == Tunnel.State.EstablishingConnection
+
+	val connectedForUi =
+		backendUi.isRestarting ||
+			backendUi.tunnelState == Tunnel.State.Up ||
+			backendUi.tunnelState == Tunnel.State.InitializingClient ||
+			backendUi.tunnelState == Tunnel.State.EstablishingConnection
+
+	LaunchedEffect(viewModel) {
+		viewModel.events.collectLatest { event ->
+			when (event) {
+				UiEvent.ReconnectStarted ->
+					Toast.makeText(context, context.getString(R.string.dns_event_reconnecting), Toast.LENGTH_SHORT).show()
+			}
+		}
+	}
 
 	var initialCustomDns by remember { mutableStateOf<List<String>?>(null) }
 	LaunchedEffect(customDns) {
@@ -72,8 +99,8 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 	}
 
 	var initialDnsEnabled by remember { mutableStateOf<Boolean?>(null) }
-	LaunchedEffect(appUiState.settings.customDnsEnabled) {
-		if (initialDnsEnabled == null) initialDnsEnabled = appUiState.settings.customDnsEnabled
+	LaunchedEffect(dnsEnabled) {
+		if (initialDnsEnabled == null) initialDnsEnabled = dnsEnabled
 	}
 
 	val onNavigateBack = remember {
@@ -86,12 +113,23 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 	DnsScreen(
 		defaultDns = DEFAULT_DNS_SERVERS,
 		customDns = customDns,
-		dnsEnabled = appUiState.settings.customDnsEnabled,
-		onDnsEnable = { viewModel.onCustomDnsEnable(it) },
-		onSave = { viewModel.saveDnsList(it) },
+		dnsEnabled = dnsEnabled,
+		connectedForUi = connectedForUi,
+		isActuallyConnected = isActuallyConnected,
+		onDnsEnable = { enabled -> viewModel.onCustomDnsEnable(enabled, isActuallyConnected) },
+		onSave = { listToSave ->
+			viewModel.saveDnsListReconnectIfNeeded(
+				list = listToSave,
+				dnsEnabled = dnsEnabled,
+				isActuallyConnected = isActuallyConnected,
+			)
+			if (!isActuallyConnected) {
+				Toast.makeText(context, context.getString(R.string.dns_event_saved), Toast.LENGTH_SHORT).show()
+			}
+		},
 		onBackClickEventTriggered = onBackClickEventTriggered,
 		onNavigateBack = onNavigateBack,
-		onReconnect = { viewModel.reconnect() },
+		onReconnectIfConnect = { viewModel.requestReconnectIfConnected(isActuallyConnected) },
 		initialDnsEnabled = initialDnsEnabled,
 		initialCustomDns = initialCustomDns,
 	)
@@ -99,7 +137,6 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 
 private fun shouldReconnect(initialEnabled: Boolean?, initialList: List<String>?, currentEnabled: Boolean, currentList: List<String>): Boolean {
 	if (initialEnabled == null || initialList == null) return false
-
 	val toggleChanged = currentEnabled != initialEnabled
 	val listChangedWhileEnabled = currentEnabled && (currentList != initialList)
 	return toggleChanged || listChangedWhileEnabled
@@ -110,11 +147,13 @@ private fun DnsScreen(
 	defaultDns: List<String>,
 	customDns: List<String>,
 	dnsEnabled: Boolean,
+	connectedForUi: Boolean,
+	isActuallyConnected: Boolean,
 	onDnsEnable: (enabled: Boolean) -> Unit,
 	onSave: (List<String>) -> Unit,
 	onBackClickEventTriggered: Boolean,
 	onNavigateBack: () -> Unit,
-	onReconnect: () -> Unit,
+	onReconnectIfConnect: () -> Unit,
 	initialDnsEnabled: Boolean?,
 	initialCustomDns: List<String>?,
 ) {
@@ -137,7 +176,6 @@ private fun DnsScreen(
 	val hasUnsavedListChanges by remember(customDnsDraft, lastSavedDns) {
 		derivedStateOf { customDnsDraft != lastSavedDns }
 	}
-
 	val hasUnsavedToggleChange by remember(dnsEnabled, lastSavedEnabled) {
 		derivedStateOf { dnsEnabled != lastSavedEnabled }
 	}
@@ -147,8 +185,8 @@ private fun DnsScreen(
 	}
 
 	fun leaveScreenWithReconnectIfNeeded(currentList: List<String>) {
-		if (shouldReconnect(initialDnsEnabled, initialCustomDns, dnsEnabled, currentList)) {
-			onReconnect()
+		if (isActuallyConnected && shouldReconnect(initialDnsEnabled, initialCustomDns, dnsEnabled, currentList)) {
+			onReconnectIfConnect()
 		}
 		onNavigateBack()
 	}
@@ -181,15 +219,6 @@ private fun DnsScreen(
 			style = Typography.bodyMedium,
 			color = MaterialTheme.colorScheme.outline,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(top = 16.dp),
-		)
-
-		Text(
-			text = stringResource(R.string.censorship_quic_changes),
-			style = MaterialTheme.typography.bodySmall,
-			color = CustomColors.warning,
 			modifier = Modifier
 				.fillMaxWidth()
 				.padding(top = 16.dp),
@@ -259,17 +288,18 @@ private fun DnsScreen(
 		CustomDnsCard(
 			initialDns = lastSavedDns,
 			dnsEnabled = dnsEnabled,
+			connectedForUi = connectedForUi,
 			onDnsEnable = onDnsEnable,
 			toggleEnabled = toggleEnabled,
 			onSave = { listToSave ->
 				onSave(listToSave)
+
 				if (listToSave.isEmpty() && dnsEnabled) {
 					onDnsEnable(false)
 				}
 
 				lastSavedDns = listToSave
 				customDnsDraft = listToSave
-
 				lastSavedEnabled = if (listToSave.isEmpty()) false else dnsEnabled
 			},
 			onDnsListChange = { customDnsDraft = it },
@@ -301,6 +331,12 @@ private fun DnsScreen(
 
 	SaveChangesModal(
 		showSaveChangesDialog = showSaveChangesDialog,
+		confirmTextResId =
+		if (connectedForUi && dnsEnabled) {
+			R.string.dns_custom_button_save_reconnect
+		} else {
+			R.string.dns_custom_button_save
+		},
 		onClickSave = {
 			val toSave = customDnsDraft
 			onSave(toSave)
@@ -336,11 +372,13 @@ internal fun PreviewDnsScreen() {
 			defaultDns = list,
 			customDns = arrayListOf(),
 			dnsEnabled = true,
+			connectedForUi = true,
+			isActuallyConnected = true,
 			onDnsEnable = {},
 			onSave = {},
 			onBackClickEventTriggered = false,
 			onNavigateBack = {},
-			onReconnect = {},
+			onReconnectIfConnect = {},
 			initialDnsEnabled = true,
 			initialCustomDns = emptyList(),
 		)

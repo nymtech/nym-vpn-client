@@ -294,15 +294,7 @@
 	<string name="censorship_stealth_link_text">Cách chế độ kết nối API Ẩn danh hoạt động</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">Bật kết nối nâng cao (QUIC)?</string>
-	<string name="quick_info_modal_desc">Thao tác này sẽ kết nối lại bạn với giao thức QUIC khả dụng. Bạn sẽ giữ nguyên các cổng hiện tại nếu chúng hỗ trợ QUIC, hoặc chọn các cổng tương thích nếu cần.\n\nDữ liệu của bạn sẽ được bảo vệ trong quá trình kết nối lại.</string>
-	<string name="quic_primary_btn_text">Kết nối lại với QUIC ngay bây giờ</string>
-	<string name="quic_text_btn_text">Áp dụng QUIC cho kết nối tiếp theo</string>
-	<string name="quick_info_modal_title_non_quic">Tắt kết nối nâng cao (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">Thao tác này sẽ kết nối lại mà không cần bật giao thức QUIC. Bạn sẽ giữ nguyên các cổng kết nối hiện tại.\n\nDữ liệu của bạn sẽ được bảo vệ trong quá trình kết nối lại.</string>
-	<string name="quic_primary_btn_text_non_quic">Kết nối lại ngay bây giờ mà không dùng QUIC</string>
-	<string name="quic_text_btn_text_non_quic">Tắt QUIC trong kết nối tiếp theo</string>
-	<string name="quic_gateway_filter_info_msg">Chỉ hiển thị các vị trí trong chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, hãy tắt QUIC</string>
+    <string name="quic_gateway_filter_info_msg">Chỉ hiển thị các vị trí trong chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, hãy tắt QUIC</string>
 	<string name="censorship_amnezia_title">Mức độ che giấu tối thiểu (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Giúp lưu lượng WireGuard khó bị phát hiện hơn. Đưa vào các gói tin mồi nhử phá vỡ các quy tắc đơn giản thường được sử dụng bởi các hệ thống kiểm duyệt Kiểm tra gói sâu (DPI), cải thiện độ tin cậy của kết nối trong các môi trường hạn chế. \n\nLưu ý: Chỉ được triển khai ở phía máy khách.</string>
 	<string name="censorship_amnezia_link_text">AmneziaWG ngăn chặn DPI như thế nào</string>

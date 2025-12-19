@@ -1,15 +1,20 @@
 package net.nymtech.nymvpn.ui.screens.settings.tunneling
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,112 +25,157 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.screens.settings.dns.modal.SaveChangesModal
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.AppInfoRow
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.LoadingDialog
-import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.SplitTunnelingSettingModal
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.StaticContent
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.LocalCustomColorsPalette
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.vpn.backend.Tunnel
 
 @Composable
 internal fun SplitTunnelingScreen(appState: AppUiState, onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: SplitTunnelingViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+	val backendUi by viewModel.backendUi.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
+	val context = LocalContext.current
+
+	val isActuallyConnected =
+		backendUi.tunnelState == Tunnel.State.Up ||
+			backendUi.tunnelState == Tunnel.State.EstablishingConnection
+
+	val connectedForUi =
+		backendUi.isRestarting ||
+			backendUi.tunnelState == Tunnel.State.Up ||
+			backendUi.tunnelState == Tunnel.State.InitializingClient ||
+			backendUi.tunnelState == Tunnel.State.EstablishingConnection
+
+	LaunchedEffect(viewModel) {
+		viewModel.events.collectLatest { event ->
+			when (event) {
+				UiEvent.ReconnectStarted ->
+					Toast.makeText(context, context.getString(R.string.split_tunneling_event_reconnecting), Toast.LENGTH_SHORT).show()
+			}
+		}
+	}
 
 	val onNavigateBack = remember {
 		{
 			onBackEventConsume()
-			viewModel.onUiEvent(UiEvent.ClearNavigation)
 			navController.safePopBackStack()
-		}
-	}
-	val onNavigateHome = remember {
-		{
-			onBackEventConsume()
-			viewModel.onUiEvent(UiEvent.ClearNavigation)
-			val route = Route.Main()
-			navController.navigate(route = route) {
-				popUpTo(route) {
-					inclusive = true
-				}
-				launchSingleTop = true
-			}
-		}
-	}
-	val onApplyNowClick = remember {
-		{
-			viewModel.disconnect()
-		}
-	}
-	val onNextConnectionApplyClick = remember {
-		{
-			viewModel.onUiEvent(UiEvent.ClearDialog)
-			viewModel.onUiEvent(UiEvent.NavigateBack)
 		}
 	}
 
 	BackHandler {
-		viewModel.onUiEvent(UiEvent.OnBackClick(appState.managerState.tunnelState))
+		viewModel.requestBack()
 	}
 
 	LaunchedEffect(Unit) {
-		viewModel.onUiEvent(UiEvent.LoadData)
+		viewModel.loadData()
 	}
+
 	LaunchedEffect(onBackClickEventTriggered) {
-		if (onBackClickEventTriggered) {
-			viewModel.onUiEvent(UiEvent.OnBackClick(appState.managerState.tunnelState))
+		if (onBackClickEventTriggered) viewModel.requestBack()
+	}
+
+	LaunchedEffect(uiState.navigateBack) {
+		if (uiState.navigateBack) {
+			viewModel.consumeNavigateBack()
+			onNavigateBack()
 		}
 	}
 
-	LaunchedEffect(uiState.pendingNavigation) {
-		handleNavigation(
-			pendingNavigation = uiState.pendingNavigation,
-			onNavigateBack = onNavigateBack,
-			onNavigateHome = onNavigateHome,
-		)
-	}
+	SplitTunnelingContent(
+		uiState = uiState,
+		connectedForUi = connectedForUi,
+		onQueryChange = viewModel::onQueryChange,
+		onSelectAllDirectAppsClick = viewModel::onSelectAllDirectAppsClick,
+		onSelectAllVpnPassThroughClick = viewModel::onSelectAllVpnPassThroughClick,
+		onChangeSelection = viewModel::onChangeSelection,
+		onSave = {
+			viewModel.saveChangesAndMaybeReconnect(isActuallyConnected)
+			if (!isActuallyConnected) {
+				Toast.makeText(context, context.getString(R.string.split_tunneling_event_saved), Toast.LENGTH_SHORT).show()
+			}
+		},
+	)
 
-	uiState.pendingDialog?.let {
-		when (it) {
-			SplitTunnelingUiState.PendingDialog.AppListChangeDialog -> SplitTunnelingSettingModal(
-				showModal = true,
-				onApplyNowClick = onApplyNowClick,
-				onNextConnectionApplyClick = onNextConnectionApplyClick,
-			)
-		}
-	}
+	SaveChangesModal(
+		showSaveChangesDialog = uiState.showSaveChangesDialog,
+		confirmTextResId = if (connectedForUi) R.string.dns_custom_button_save_reconnect else R.string.dns_custom_button_save,
+		onClickSave = {
+			viewModel.saveChangesAndMaybeReconnect(isActuallyConnected)
+			viewModel.consumeNavigateBack()
+			onNavigateBack()
+		},
+		onDiscard = {
+			viewModel.discardAndNavigateBack()
+		},
+		onDismiss = {
+			viewModel.clearSaveDialog()
+		},
+	)
 
-	SplitTunnelingScreen(uiState, viewModel::onUiEvent)
+	if (uiState.isLoading) {
+		LoadingDialog()
+	}
 }
 
 @Composable
-private fun SplitTunnelingScreen(uiState: SplitTunnelingUiState, onUiEvent: (UiEvent) -> Unit) {
+private fun SplitTunnelingContent(
+	uiState: SplitTunnelingUiState,
+	connectedForUi: Boolean,
+	onQueryChange: (String) -> Unit,
+	onSelectAllDirectAppsClick: () -> Unit,
+	onSelectAllVpnPassThroughClick: () -> Unit,
+	onChangeSelection: (String) -> Unit,
+	onSave: () -> Unit,
+) {
 	val customColorPalette = LocalCustomColorsPalette.current
 	val interactionSource = remember { MutableInteractionSource() }
+
+	val saveTextRes = if (connectedForUi) R.string.dns_custom_button_save_reconnect else R.string.dns_custom_button_save
+
 	Box(modifier = Modifier.fillMaxSize()) {
 		LazyColumn(
 			modifier = Modifier
 				.fillMaxSize()
 				.windowInsetsPadding(WindowInsets.navigationBars)
 				.imePadding(),
-			contentPadding = PaddingValues(16.dp.scaledHeight()),
+			contentPadding = PaddingValues(
+				start = 16.dp.scaledHeight(),
+				end = 16.dp.scaledHeight(),
+				top = 16.dp.scaledHeight(),
+				bottom = 120.dp.scaledHeight(),
+			),
 		) {
 			item {
-				StaticContent(uiState, onUiEvent)
+				StaticContent(
+					uiState = uiState,
+					onQueryChange = onQueryChange,
+					onSelectAllDirectAppsClick = onSelectAllDirectAppsClick,
+					onSelectAllVpnPassThroughClick = onSelectAllVpnPassThroughClick,
+				)
 			}
 
 			items(
@@ -133,7 +183,12 @@ private fun SplitTunnelingScreen(uiState: SplitTunnelingUiState, onUiEvent: (UiE
 				key = { app -> app.packageName },
 			) { app ->
 				Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
-				AppInfoRow(customColorPalette, app, onUiEvent, interactionSource)
+				AppInfoRow(
+					customColorPalette = customColorPalette,
+					appInfo = app,
+					onTogglePassThrough = onChangeSelection,
+					mutableInteraction = interactionSource,
+				)
 				Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
 			}
 
@@ -153,22 +208,38 @@ private fun SplitTunnelingScreen(uiState: SplitTunnelingUiState, onUiEvent: (UiE
 					key = { app -> app.packageName },
 				) { app ->
 					Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
-					AppInfoRow(customColorPalette, app, onUiEvent, interactionSource)
+					AppInfoRow(
+						customColorPalette = customColorPalette,
+						appInfo = app,
+						onTogglePassThrough = onChangeSelection,
+						mutableInteraction = interactionSource,
+					)
 					Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
 				}
 			}
 		}
-		if (uiState.isLoading) {
-			LoadingDialog()
-		}
-	}
-}
 
-private fun handleNavigation(pendingNavigation: SplitTunnelingUiState.PendingNavigation?, onNavigateBack: () -> Unit, onNavigateHome: () -> Unit) {
-	pendingNavigation?.let {
-		when (it) {
-			SplitTunnelingUiState.PendingNavigation.NavigateBack -> onNavigateBack()
-			SplitTunnelingUiState.PendingNavigation.NavigateToHome -> onNavigateHome()
+		Box(
+			modifier = Modifier
+				.align(Alignment.BottomCenter)
+				.fillMaxWidth()
+				.background(Color.White)
+				.navigationBarsPadding()
+				.padding(horizontal = 16.dp.scaledHeight(), vertical = 16.dp.scaledHeight()),
+		) {
+			MainStyledButton(
+				onClick = onSave,
+				enabled = uiState.hasUnsavedChanges,
+				content = {
+					Text(
+						text = stringResource(saveTextRes),
+						style = CustomTypography.buttonMain,
+					)
+				},
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(56.dp.scaledHeight()),
+			)
 		}
 	}
 }
@@ -176,11 +247,9 @@ private fun handleNavigation(pendingNavigation: SplitTunnelingUiState.PendingNav
 @PreviewLightDark
 @Composable
 internal fun SplitTunnelingPreview() {
-	NymVPNTheme(
-		Theme.default(),
-	) {
+	NymVPNTheme(Theme.default()) {
 		Surface {
-			SplitTunnelingScreen(
+			SplitTunnelingContent(
 				uiState = SplitTunnelingUiState(
 					isLoading = false,
 					filteredNormalApps = listOf(
@@ -195,35 +264,8 @@ internal fun SplitTunnelingPreview() {
 							icon = R.drawable.ic_launcher_foreground,
 							packageName = "net.nymtech.nymvpn14",
 						),
-						AppInfo(
-							name = "App 3",
-							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn13",
-							passThroughVpn = false,
-						),
-						AppInfo(
-							name = "App 4",
-							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn12",
-							passThroughVpn = false,
-						),
-						AppInfo(
-							name = "App 5",
-							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn11",
-						),
 					),
 					filteredSystemApps = listOf(
-						AppInfo(
-							name = "App 1",
-							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn1",
-						),
-						AppInfo(
-							name = "App 2",
-							icon = R.drawable.ic_launcher_foreground,
-							packageName = "net.nymtech.nymvpn2",
-						),
 						AppInfo(
 							name = "App 3",
 							icon = R.drawable.ic_launcher_foreground,
@@ -232,8 +274,14 @@ internal fun SplitTunnelingPreview() {
 					),
 					directAppsCount = 3,
 					vpnPassThroughAppsCount = 5,
+					hasUnsavedChanges = true,
 				),
-				onUiEvent = {},
+				connectedForUi = true,
+				onQueryChange = {},
+				onSelectAllDirectAppsClick = {},
+				onSelectAllVpnPassThroughClick = {},
+				onChangeSelection = {},
+				onSave = {},
 			)
 		}
 	}
