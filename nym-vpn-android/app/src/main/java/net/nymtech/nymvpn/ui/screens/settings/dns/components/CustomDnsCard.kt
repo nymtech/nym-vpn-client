@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
@@ -198,12 +199,17 @@ fun CustomDnsCard(
 							Text(
 								text = stringResource(R.string.button_add),
 								style = CustomTypography.buttonMain,
+								maxLines = 1,
+								softWrap = false,
+								overflow = TextOverflow.Ellipsis,
+								modifier = Modifier
+									.padding(horizontal = 8.dp)
 							)
 						},
 						modifier = Modifier
 							.padding(top = 6.dp)
 							.heightIn(52.dp)
-							.width(62.dp.scaledWidth()),
+							.widthIn(min = 62.dp.scaledWidth()),
 					)
 				}
 
