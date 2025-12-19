@@ -302,6 +302,14 @@ impl TunnelSettingsDiff {
     pub fn quic_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::QUIC)
     }
+
+    pub fn mixnet_client_config_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::MixnetClientConfig)
+    }
+
+    pub fn only_mixnet_client_config_changed(&self) -> bool {
+        self.only_field_changed(&TunnelSettingsDiffFields::MixnetClientConfig)
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq)]
