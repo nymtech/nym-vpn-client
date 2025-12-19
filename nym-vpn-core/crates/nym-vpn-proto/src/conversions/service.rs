@@ -61,25 +61,15 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
 impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
     fn from(value: nym_vpn_lib_types::VpnServiceConfig) -> Self {
         let entry_point = Some(proto::EntryNode::from(value.entry_point));
+
         let exit_point = Some(proto::ExitNode::from(value.exit_point));
+
         let custom_dns = Some(proto::IpAddrList::from(value.custom_dns));
-        let mixnet_traffic = Some(proto::MixnetTrafficConfig {
-            poisson_parameter_for_loop_cover_stream: value
-                .mixnet_traffic
-                .poisson_parameter_for_loop_cover_stream,
-            average_packet_delay: value.mixnet_traffic.average_packet_delay,
-            message_sending_average_delay: value.mixnet_traffic.message_sending_average_delay,
-            disable_poisson_rate: value.mixnet_traffic.disable_poisson_rate,
-            disable_background_cover_traffic: value.mixnet_traffic.disable_background_cover_traffic,
-            min_mixnode_performance: value
-                .mixnet_traffic
-                .min_mixnode_performance
-                .map(|u| u as u32),
-            min_gateway_mixnet_performance: value
-                .mixnet_traffic
-                .min_gateway_mixnet_performance
-                .map(|u| u as u32),
-        });
+
+        let mixnet_traffic = Some(proto::MixnetTrafficConfig::from(value.mixnet_traffic));
+
+        let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
+
         proto::VpnServiceConfig {
             entry_point,
             exit_point,
@@ -88,15 +78,12 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             enable_two_hop: value.enable_two_hop,
             enable_bridges: value.enable_bridges,
             netstack: value.netstack,
+            min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
             residential_exit: value.residential_exit,
             enable_custom_dns: value.enable_custom_dns,
             custom_dns,
-
-            network_stats: Some(proto::NetworkStatsConfig::from(value.network_stats)),
-
-            min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
-
             mixnet_traffic,
+            network_stats,
         }
     }
 }
