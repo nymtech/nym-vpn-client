@@ -97,7 +97,12 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 	)
 }
 
-private fun shouldReconnect(initialEnabled: Boolean?, initialList: List<String>?, currentEnabled: Boolean, currentList: List<String>): Boolean {
+private fun shouldReconnect(
+	initialEnabled: Boolean?,
+	initialList: List<String>?,
+	currentEnabled: Boolean,
+	currentList: List<String>,
+): Boolean {
 	if (initialEnabled == null || initialList == null) return false
 
 	val toggleChanged = currentEnabled != initialEnabled
@@ -124,21 +129,15 @@ private fun DnsScreen(
 	val interactionSource = remember { MutableInteractionSource() }
 
 	var showSaveChangesDialog by remember { mutableStateOf(false) }
-	var customDnsDraft by rememberSaveable { mutableStateOf(customDns) }
 
-	LaunchedEffect(customDns) {
-		customDnsDraft = customDns
-	}
+	var customDnsDraft by rememberSaveable { mutableStateOf(customDns) }
+	LaunchedEffect(customDns) { customDnsDraft = customDns }
 
 	var lastSavedDns by rememberSaveable { mutableStateOf(customDns) }
-	LaunchedEffect(customDns) {
-		lastSavedDns = customDns
-	}
+	LaunchedEffect(customDns) { lastSavedDns = customDns }
 
 	var lastSavedEnabled by rememberSaveable { mutableStateOf(dnsEnabled) }
-	LaunchedEffect(dnsEnabled) {
-		lastSavedEnabled = dnsEnabled
-	}
+	LaunchedEffect(dnsEnabled) { lastSavedEnabled = dnsEnabled }
 
 	val hasUnsavedListChanges by remember(customDnsDraft, lastSavedDns) {
 		derivedStateOf { customDnsDraft != lastSavedDns }
@@ -146,6 +145,10 @@ private fun DnsScreen(
 
 	val hasUnsavedToggleChange by remember(dnsEnabled, lastSavedEnabled) {
 		derivedStateOf { dnsEnabled != lastSavedEnabled }
+	}
+
+	val toggleEnabled by remember(lastSavedDns) {
+		derivedStateOf { lastSavedDns.isNotEmpty() }
 	}
 
 	fun leaveScreenWithReconnectIfNeeded(currentList: List<String>) {
@@ -262,10 +265,17 @@ private fun DnsScreen(
 			initialDns = lastSavedDns,
 			dnsEnabled = dnsEnabled,
 			onDnsEnable = onDnsEnable,
+			toggleEnabled = toggleEnabled,
 			onSave = { listToSave ->
 				onSave(listToSave)
+				if (listToSave.isEmpty() && dnsEnabled) {
+					onDnsEnable(false)
+				}
+
 				lastSavedDns = listToSave
 				customDnsDraft = listToSave
+
+				lastSavedEnabled = if (listToSave.isEmpty()) false else dnsEnabled
 			},
 			onDnsListChange = { customDnsDraft = it },
 		)
@@ -299,9 +309,13 @@ private fun DnsScreen(
 		onClickSave = {
 			val toSave = customDnsDraft
 			onSave(toSave)
+			if (toSave.isEmpty() && dnsEnabled) {
+				onDnsEnable(false)
+			}
+
 			lastSavedDns = toSave
 			customDnsDraft = toSave
-			lastSavedEnabled = dnsEnabled
+			lastSavedEnabled = if (toSave.isEmpty()) false else dnsEnabled
 
 			showSaveChangesDialog = false
 			leaveScreenWithReconnectIfNeeded(toSave)
