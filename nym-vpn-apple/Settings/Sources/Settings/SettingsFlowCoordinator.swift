@@ -66,6 +66,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
 #endif
         case .privacyAndData:
             privacyAndDataDestination()
+        case .dns:
+            dnsDestination()
         case .censorship:
             censorshipDestination()
         case .accountAndDevices:
@@ -219,6 +221,26 @@ private extension SettingsFlowCoordinator {
     @ViewBuilder
     func privacyAndDataDestination() -> some View {
         PrivacyAndDataView(path: $flowState.path)
+    }
+
+    @ViewBuilder
+    func dnsDestination() -> some View {
+        #if os(macOS)
+        DnsView(
+            viewModel: DnsViewModel(
+                path: $flowState.path,
+                appSettings: .shared,
+                grpcManager: .shared
+            )
+        )
+        #elseif os(iOS)
+        DnsView(
+            viewModel: DnsViewModel(
+                path: $flowState.path,
+                appSettings: .shared
+            )
+        )
+        #endif
     }
 
     @ViewBuilder

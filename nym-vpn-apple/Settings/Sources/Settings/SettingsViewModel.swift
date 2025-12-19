@@ -194,6 +194,11 @@ private extension SettingsViewModel {
     }
     #endif
 
+    func navigateToDns() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.dns)
+    }
+
     func navigateToCensorship() {
         impactGenerator.softImpact()
         path.append(SettingLink.censorship)
@@ -388,6 +393,19 @@ private extension SettingsViewModel {
             )
         )
 #endif
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.dns.title".localizedString,
+                imageName: "dns",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToDns()
+                    }
+                }
+            )
+        )
+        
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,

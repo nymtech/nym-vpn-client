@@ -14,6 +14,7 @@ public struct MixnetConfig: Codable, Equatable {
 #if os(iOS)
     let credentialsDataPath: String
     let configPath: String
+    let customDns: [IpAddr]
 #endif
     public let entryGateway: EntryGateway
     public let exitRouter: ExitRouter
@@ -30,6 +31,7 @@ public struct MixnetConfig: Codable, Equatable {
         exitRouter: ExitRouter,
         credentialsDataPath: String,
         configPath: String,
+        customDns: [IpAddr],
         isErrorReportingEnabled: Bool,
         isStatisticsEnabled: Bool,
         isQuicEnabled: Bool,
@@ -41,6 +43,7 @@ public struct MixnetConfig: Codable, Equatable {
         self.exitRouter = exitRouter
         self.credentialsDataPath = credentialsDataPath
         self.configPath = configPath
+        self.customDns = customDns
         self.isErrorReportingEnabled = isErrorReportingEnabled
         self.isStatisticsEnabled = isStatisticsEnabled
         self.isQuicEnabled = isQuicEnabled
@@ -62,7 +65,7 @@ extension MixnetConfig {
             enableTwoHop: isTwoHopEnabled,
             enableBridges: isQuicEnabled,
             residentialExit: false,
-            customDns: [],
+            customDns: customDns,
             tunProvider: tunProvider,
             configPath: configPath,
             credentialDataPath: credentialsDataPath,

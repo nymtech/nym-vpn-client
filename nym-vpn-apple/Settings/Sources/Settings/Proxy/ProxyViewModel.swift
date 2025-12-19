@@ -97,7 +97,7 @@ import Theme
             withAnimation {
                 guard !isSnackbarDisplayed else { return }
                 proxyStatusLoading = false
-                snackbarMessage = "proxy.connectionError".localizedString
+                snackbarMessage = "proxy.snackbar.connectionFailed".localizedString
                 isSnackbarDisplayed = true
                 Task { @MainActor in
                     try? await Task.sleep(for: .seconds(3))
