@@ -17,12 +17,7 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.Typography
 
 @Composable
-internal fun DetailsTopSection(
-	name: String,
-	location: String,
-	countryCode: String?,
-	description: String?,
-) {
+internal fun DetailsTopSection(name: String, location: String, countryCode: String?, description: String?) {
 	Text(
 		text = name,
 		style = CustomTypography.titleMediumPlus,

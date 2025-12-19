@@ -97,12 +97,7 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 	)
 }
 
-private fun shouldReconnect(
-	initialEnabled: Boolean?,
-	initialList: List<String>?,
-	currentEnabled: Boolean,
-	currentList: List<String>,
-): Boolean {
+private fun shouldReconnect(initialEnabled: Boolean?, initialList: List<String>?, currentEnabled: Boolean, currentList: List<String>): Boolean {
 	if (initialEnabled == null || initialList == null) return false
 
 	val toggleChanged = currentEnabled != initialEnabled
