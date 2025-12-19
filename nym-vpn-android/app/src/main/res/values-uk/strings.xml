@@ -294,15 +294,7 @@
 	<string name="censorship_stealth_link_text">Як працює режим підключення Stealth API</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">Увімкнути розширене з\'єднання (QUIC)?</string>
-	<string name="quick_info_modal_desc">Це дозволить вам знову підключитися з увімкненим протоколом QUIC. Ви збережете свої поточні шлюзи, якщо вони підтримують QUIC, або виберете сумісні, якщо це необхідно. \n\nВаші дані залишаються захищеними під час повторного підключення.</string>
-	<string name="quic_primary_btn_text">Відновіть з\'єднання з QUIC зараз</string>
-	<string name="quic_text_btn_text">Застосувати QUIC при наступному з\'єднанні</string>
-	<string name="quick_info_modal_title_non_quic">Вимкнути розширене з\'єднання (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">Це дозволить вам знову підключитися без увімкненого протоколу QUIC. Ви збережете свої поточні шлюзи.\n\nВаші дані залишаться захищеними під час повторного підключення.</string>
-	<string name="quic_primary_btn_text_non_quic">Підключитися знову без QUIC зараз</string>
-	<string name="quic_text_btn_text_non_quic">Вимкнути QUIC при наступному з\'єднанні</string>
-	<string name="quic_gateway_filter_info_msg">Відображаються лише локації в швидкому режимі та сервери, що підтримують протокол QUIC. Щоб відобразити всі сервери, вимкніть QUIC.</string>
+    <string name="quic_gateway_filter_info_msg">Відображаються лише локації в швидкому режимі та сервери, що підтримують протокол QUIC. Щоб відобразити всі сервери, вимкніть QUIC.</string>
 	<string name="censorship_amnezia_title">Мінімальне заплутування (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Ускладнює виявлення трафіку WireGuard. Впроваджує пакети-приманки, які порушують прості правила, що часто використовуються системами цензури Deep Packet Inspection (DPI), покращуючи надійність з\'єднання в обмежувальних середовищах. \n\nПримітка: реалізовано тільки на стороні клієнта.</string>
 	<string name="censorship_amnezia_link_text">Як AmneziaWG запобігає DPI</string>

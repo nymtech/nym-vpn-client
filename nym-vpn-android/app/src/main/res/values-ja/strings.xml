@@ -294,14 +294,6 @@
 	<string name="censorship_stealth_link_text">ステルスAPI接続モードの仕組み</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">拡張接続を有効にしますか？</string>
-	<string name="quick_info_modal_desc">QUICプロトコルを有効にして再接続します。QUICをサポートしている場合は現在のゲートウェイを維持するか、必要に応じて互換性のあるゲートウェイを選択します。\n\n再接続中はデータは保護されたままです。</string>
-	<string name="quic_primary_btn_text">QUICで今すぐ再接続する</string>
-	<string name="quic_text_btn_text">次の接続時にQUICを適用する</string>
-	<string name="quick_info_modal_title_non_quic">拡張接続（QUIC）を無効にしますか？</string>
-	<string name="quick_info_modal_desc_non_quic">QUICプロトコルが有効になっていない状態で再接続されます。現在のゲートウェイを維持します。\n\n再接続中はデータは保護されたままです。</string>
-	<string name="quic_primary_btn_text_non_quic">QUICなしで今再接続する</string>
-	<string name="quic_text_btn_text_non_quic">次回接続時にQUICをオフにする</string>
 	<string name="quic_gateway_filter_info_msg">QUICプロトコルをサポートするファストモードの場所とサーバーのみを表示します。すべてのサーバーを表示するには、QUICをオフにしてください。</string>
 	<string name="censorship_amnezia_title">最小難読化(AmneziaWG)</string>
 	<string name="censorship_amnezia_description">WireGuard のトラフィックを検出するのが難しくなります。 Deep Packet Inspection(DPI)検閲システムによって頻繁に使用される単純なルールを破壊するおとりパケットを導入し、制限環境での接続信頼性を向上させます。 \n\n注意: 実装されたクライアント側のみ。</string>

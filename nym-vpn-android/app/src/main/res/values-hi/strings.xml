@@ -294,14 +294,6 @@
 	<string name="censorship_stealth_link_text">Stealth API कनेक्ट मोड कैसे काम करता है</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">संशोधित कनेक्शन (QUIC)?</string>
-	<string name="quick_info_modal_desc">यह आपको QUIC प्रोटोकॉल के साथ दोबारा कनेक्ट करेगा। आपके मौजूदा गेटवे QUIC सपोर्ट करते हैं तो बने रहेंगे, वरना अपने-आप उपयुक्त गेटवे चुने जाएंगे।\n\nरीकनेक्शन के दौरान आपका डेटा सुरक्षित रहेगा।</string>
-	<string name="quic_primary_btn_text">अभी QUIC के साथ दोबारा कनेक्ट करें</string>
-	<string name="quic_text_btn_text">अगले कनेक्शन पर QUIC लागू करें</string>
-	<string name="quick_info_modal_title_non_quic">संशोधित कनेक्शन (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">यह आपको बिना QUIC प्रोटोकॉल के दोबारा कनेक्ट करेगा। आपके मौजूदा गेटवे वैसे ही रहेंगे।\n\nरीकनेक्शन के दौरान आपका डेटा सुरक्षित रहेगा।</string>
-	<string name="quic_primary_btn_text_non_quic">अभी बिना QUIC के दोबारा कनेक्ट करें</string>
-	<string name="quic_text_btn_text_non_quic">अगले कनेक्शन पर QUIC बंद करें</string>
 	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">मिनिमल ऑब्फ़स्केशन (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">WireGuard ट्रैफ़िक का पता लगाना कठिन बनाता है। डीप पैकेट इंस्पेक्शन (DPI) सेंसरशिप सिस्टम द्वारा अक्सर इस्तेमाल किए जाने वाले सरल नियमों को बाधित करने वाले डिकॉय पैकेट पेश करता है, जिससे प्रतिबंधात्मक वातावरण में कनेक्शन की विश्वसनीयता बेहतर होती है। \n\nनोट: केवल क्लाइंट-साइड पर इम्पलिमेंट किया जाता है।</string>
@@ -328,7 +320,7 @@
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है...</string>
 	<string name="account_payment_verifying">हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते</string>
-	<string name="account_payment_retrieving">आपके गुमनाम खाते की प्रमाणीकरण 
+	<string name="account_payment_retrieving">आपके गुमनाम खाते की प्रमाणीकरण
 जानकारी (zk-nyms) प्राप्त की जा रही है...</string>
 	<string name="account_payment_credentials">ये zero-knowledge क्रेडेंशियल इस बात को साबित करते हैं कि आपके पास पहुँच है बिना यह बताये कि आप कौन हैं</string>
 	<string name="account_payment_saving">डिवाइस पर आपके zk-nyms सहेजे जा रहे हैं...</string>

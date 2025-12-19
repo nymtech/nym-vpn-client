@@ -319,15 +319,8 @@
 	<string name="censorship_stealth_description">Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard API connection attempts fail.</string>
 	<string name="censorship_stealth_link_text">How the Stealth API connect mode works</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_event_reconnecting">Reconnecting to apply QUIC settings...</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">Enable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current servers if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text">Reconnect with QUIC now</string>
-	<string name="quic_text_btn_text">Apply QUIC on next connection</string>
-	<string name="quick_info_modal_title_non_quic">Disable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current servers.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
-	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
 	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>

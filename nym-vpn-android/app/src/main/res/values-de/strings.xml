@@ -296,15 +296,7 @@
 	<string name="censorship_stealth_link_text">Wie der Stealth-API-Verbindungsmodus funktioniert</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">Verbesserte Verbindung aktivieren (QUIC)?</string>
-	<string name="quick_info_modal_desc">Dadurch wird die Verbindung mit aktiviertem QUIC-Protokoll wiederhergestellt. Du behältst dein aktuelles Gateway, insofern dieses QUIC unterstützt, oder wählst bei Bedarf kompatible Gateways aus.\n\nDeine Daten bleiben während der Wiederherstellung der Verbindung geschützt.</string>
-	<string name="quic_primary_btn_text">Jetzt mit QUIC neu verbinden</string>
-	<string name="quic_text_btn_text">QUIC bei der nächsten Verbindung anwenden</string>
-	<string name="quick_info_modal_title_non_quic">Verbesserte Verbindung deaktivieren (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">Dies wird Sie wieder verbinden, ohne dass das QUIC-Protokoll aktiviert ist. Sie werden Ihre aktuellen Gateways behalten.\n\nIhre Daten bleiben bei einer erneuten Verbindung geschützt.</string>
-	<string name="quic_primary_btn_text_non_quic">Jetzt ohne QUIC erneut verbinden</string>
-	<string name="quic_text_btn_text_non_quic">QUIC bei der nächsten Verbindung ausschalten</string>
-	<string name="quic_gateway_filter_info_msg">Es werden nur Server angezeigt, die den Schnellmodus und das QUIC-Protokoll unterstützen. Um alle Server anzuzeigen, deaktiviere QUIC</string>
+    <string name="quic_gateway_filter_info_msg">Es werden nur Server angezeigt, die den Schnellmodus und das QUIC-Protokoll unterstützen. Um alle Server anzuzeigen, deaktiviere QUIC</string>
 	<string name="censorship_amnezia_title">Minimale Verschleierung (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Erschwert die Erkennung von WireGuard-Datenverkehr. Führt Scheinpakete ein, die einfache Regeln stören, die häufig von Deep Packet Inspection (DPI)-Zensursystemen verwendet werden. So wird die Verbindungszuverlässigkeit in restriktiven Umgebungen verbessert. \n\nHinweis: Nur clientseitig implementiert.</string>
 	<string name="censorship_amnezia_link_text">Wie AmneziaWG DPI verhindert</string>

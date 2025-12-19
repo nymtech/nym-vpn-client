@@ -32,7 +32,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -68,11 +67,6 @@ fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) ->
 					onClick = { onQuicEnabledEnable(it) },
 				)
 			}
-			Text(
-				text = stringResource(R.string.censorship_quic_changes),
-				style = MaterialTheme.typography.bodySmall,
-				color = CustomColors.warning,
-			)
 			Text(
 				text = stringResource(R.string.censorship_quic_description),
 				style = Typography.bodySmall,

@@ -5,6 +5,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,6 +16,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -77,6 +80,50 @@ class NymBackendManager @Inject constructor(
 	private val _state = MutableStateFlow(TunnelManagerState())
 	override val stateFlow: Flow<TunnelManagerState> = _state
 		.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.Eagerly, TunnelManagerState())
+
+	private data class RestartRequest(val shouldResetConnectionTime: Boolean)
+
+	private val restartRequests = MutableSharedFlow<RestartRequest>(
+		extraBufferCapacity = 1,
+		onBufferOverflow = BufferOverflow.DROP_OLDEST,
+	)
+	private val _restartStartedEvents = MutableSharedFlow<Unit>(
+		extraBufferCapacity = 1,
+		onBufferOverflow = BufferOverflow.DROP_OLDEST,
+	)
+
+	override val restartStartedEvents: Flow<Unit> = _restartStartedEvents
+
+	private val restartMutex = Mutex()
+
+	init {
+		applicationScope.launch(ioDispatcher) {
+			restartRequests
+				.debounce(500)
+				.collect { req ->
+					if (_state.value.isRestarting || restartMutex.isLocked) {
+						Timber.d("requestRestartDebounced: restart already in progress, skipping")
+						return@collect
+					}
+
+					val s = getState()
+					val connectedOrConnecting =
+						s == Tunnel.State.Up || s == Tunnel.State.EstablishingConnection
+
+					if (!connectedOrConnecting) {
+						Timber.d("requestRestartDebounced: tunnel not connected/connecting (state=$s), skipping")
+						return@collect
+					}
+					_restartStartedEvents.tryEmit(Unit)
+					Timber.d("requestRestartDebounced: performing restart (resetTime=${req.shouldResetConnectionTime})")
+					restartTunnel(req.shouldResetConnectionTime)
+				}
+		}
+	}
+
+	override fun requestRestartDebounced(shouldResetConnectionTime: Boolean) {
+		restartRequests.tryEmit(RestartRequest(shouldResetConnectionTime))
+	}
 
 	override fun initialize() {
 		applicationScope.launch {
@@ -181,13 +228,12 @@ class NymBackendManager @Inject constructor(
 		}
 	}
 
-	private val restartMutex = Mutex()
 	override suspend fun restartTunnel(shouldResetConnectionTime: Boolean) = restartMutex.withLock {
 		val currentState = getState()
 		Timber.d("restartTunnel: current state is $currentState, shouldResetConnectionTime: $shouldResetConnectionTime")
 
 		val preservedConnectionData = if (shouldResetConnectionTime) null else _state.value.connectionData
-		
+
 		_state.update {
 			it.copy(
 				isRestarting = true,
@@ -213,14 +259,10 @@ class NymBackendManager @Inject constructor(
 		} else {
 			Timber.d("restartTunnel: tunnel is already Down")
 		}
-
-		// Delay to allow database cleanup (sqlx_pool_guard timeout is 2s, so wait 2.5s to be safe)
-		// Issue is being looked at for registration lockups // Remove once fixed
-		kotlinx.coroutines.delay(2_500)
+		delay(2_500)
 
 		Timber.d("restartTunnel: starting tunnel with entryPoint: ${settingsRepository.getEntryPoint()}, exitPoint: ${settingsRepository.getExitPoint()}")
 		startTunnel()
-		// Note: isRestarting is cleared in emitState() when tunnel reaches InitializingClient/EstablishingConnection/Up
 	}
 
 	private suspend fun getRestrictedAppsPackages() = splitTunnelingRepository.getAppInfoList().filter { !it.passThroughVpn }.map { it.packageName }

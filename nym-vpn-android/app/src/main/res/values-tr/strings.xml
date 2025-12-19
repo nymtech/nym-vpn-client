@@ -294,15 +294,7 @@
 	<string name="censorship_stealth_link_text">Stealth API bağlantı modu nasıl çalışır</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">Geliştirilmiş bağlantıyı (QUIC) etkinleştirmek ister misiniz?</string>
-	<string name="quick_info_modal_desc">Bu işlem, QUIC protokolü etkinleştirilmiş şekilde yeniden bağlanmanızı sağlar. Mevcut gateway\'ler QUIC’i destekliyorsa korunur; desteklemiyorsa uyumlu olanlar seçilir.\n\nYeniden bağlanma sırasında verileriniz güvende kalır.</string>
-	<string name="quic_primary_btn_text">Şimdi QUIC ile yeniden bağlan</string>
-	<string name="quic_text_btn_text">Sonraki bağlantıda QUIC’i uygula</string>
-	<string name="quick_info_modal_title_non_quic">Geliştirilmiş bağlantıyı (QUIC) devre dışı mı bırakmak istiyorsunuz?</string>
-	<string name="quick_info_modal_desc_non_quic">Bu işlem, QUIC protokolü etkin olmadan yeniden bağlanmanızı sağlar. Mevcut gateway\'leri korunur. \n\nYeniden bağlanma sırasında verileriniz güvende kalır.</string>
-	<string name="quic_primary_btn_text_non_quic">Şimdi QUIC olmadan yeniden bağlan</string>
-	<string name="quic_text_btn_text_non_quic">Sonraki bağlantıda QUIC’i kapat</string>
-	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
+    <string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">Minimum gizleme/karmaşıklaştırma (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">WireGuard trafiğinin tespit edilmesini zorlaştırır.
 Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kuralları bozmak için sahte paketler (decoy packets) ekler ve bu da kısıtlayıcı ortamlarda bağlantı güvenilirliğini artırır. \n\nNot: Yalnızca istemci tarafında uygulanmıştır.</string>

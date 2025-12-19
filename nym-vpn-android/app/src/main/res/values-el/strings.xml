@@ -276,15 +276,7 @@
 	<string name="censorship_stealth_link_text">How the Stealth API connect mode works</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">Enable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current gateways if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text">Reconnect with QUIC now</string>
-	<string name="quic_text_btn_text">Apply QUIC on next connection</string>
-	<string name="quick_info_modal_title_non_quic">Disable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current gateways.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
-	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
-	<!-- Account Welcome screen -->
+    <!-- Account Welcome screen -->
 	<string name="account_welcome_anonymous">Anonymous mixnet technology</string>
 	<string name="account_welcome_countries">50+ countries worldwide</string>
 	<string name="account_welcome_payments">Payments and activity stay unlinked</string>

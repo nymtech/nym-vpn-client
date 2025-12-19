@@ -296,15 +296,7 @@
 	<string name="censorship_stealth_link_text">Cómo funciona el modo de conexión de API de sigilo</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
-	<string name="quick_info_modal_title">¿Habilitar conexión mejorada (QUIC)?</string>
-	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current gateways if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
-	<string name="quic_primary_btn_text">Volver a conectar con QUIC ahora</string>
-	<string name="quic_text_btn_text">Aplicar QUIC en la siguiente conexión</string>
-	<string name="quick_info_modal_title_non_quic">¿Deshabilitar conexión mejorada (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">Esto lo reconectará sin el protocolo QUIC activado. Mantendrá sus pasarelas actuales.\n\nSus datos permanecen protegidos durante la reconexión.</string>
-	<string name="quic_primary_btn_text_non_quic">Volver a conectar sin QUIC ahora</string>
-	<string name="quic_text_btn_text_non_quic">Desactivar QUIC en la siguiente conexión</string>
-	<string name="quic_gateway_filter_info_msg">Sólo mostrando ubicaciones en modo rápido y servidores que soportan el protocolo QUIC. Para revelar todos los servidores, desactiva QUIC</string>
+    <string name="quic_gateway_filter_info_msg">Sólo mostrando ubicaciones en modo rápido y servidores que soportan el protocolo QUIC. Para revelar todos los servidores, desactiva QUIC</string>
 	<string name="censorship_amnezia_title">Ofuscación mínima (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Hace que el tráfico de Wirex sea más difícil de detectar. Introducir paquetes señuelos que interrumpen reglas simples a menudo utilizadas por sistemas de censura de Deep Packet Inspection (DPI), mejorando la fiabilidad de la conexión en entornos restrictivos. \n\nNota: Solo implementado el lado del cliente.</string>
 	<string name="censorship_amnezia_link_text">Cómo AmneziaWG previene DPI</string>
