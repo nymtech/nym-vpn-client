@@ -20,7 +20,7 @@
       "description": "Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken, indem <1>der WireGuard-Datenverkehr in QUIC</1> (HTTP/3) eingehüllt wird, damit er wie normales Web-Browsing aussieht."
     },
     "entry-title": "Auswahl der Eintrittsserver",
-    "exit-title": "Auswahl der Austrittsregion"
+    "exit-title": "Auswahl der Austrittsregionen"
   },
   "location-not-available": {
     "entry": "Ausgewählte Eintrittsregion nicht verfügbar, gewechselt zu {{location}}",
@@ -41,8 +41,8 @@
       "server-load": "Serverlast",
       "speed": "Geschwindigkeit",
       "uptime": "Verfügbarkeit",
-      "exit-ipv4": "Austritt IPv4",
-      "exit-ipv6": "Austritt IPv6",
+      "exit-ipv4": "IPv4 Austritt",
+      "exit-ipv6": "IPv6 Austritt",
       "asn": "ASN",
       "asn-name": "ASN Name",
       "build-version": "Nym Build-Version",
@@ -66,7 +66,7 @@
       "performance": "Die Gesamtleistung basiert auf Serverlast und Verfügbarkeit. Die Verfügbarkeit wurde als Durchschnitt der letzten 24 Stunden berechnet."
     },
     "links": {
-      "missing-info": "Warum fehlende oder falsche Informationen vorhanden sind",
+      "missing-info": "Warum fehlende oder falsche Informationen vorhanden sein können",
       "explorer": "Mehr Details im <networkExplorerLink />"
     },
     "select-button": "Server auswählen"

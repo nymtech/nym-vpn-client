@@ -2,7 +2,7 @@
   "unknown": "Unknown error",
   "internal": "Internal error",
   "daemon": {
-    "not-connected": "Not connected to the daemon",
+    "not-connected": "ডেমন (vpnd)-এর সাথে সংযোগ করা যাচ্ছে না। ডেমনটি পুনরায় চালু করুন অথবা অ্যাপটি রিস্টার্ট করুন.",
     "internal": "Daemon internal error",
     "invalid-network": "Invalid network"
   },

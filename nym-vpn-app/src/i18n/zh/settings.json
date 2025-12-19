@@ -126,27 +126,36 @@
     "title": "App & 钱包代理 (测试版)",
     "menu-desc": "通过混合网络路由流量",
     "label": "应用程序和钱包代理",
-    "description": "启用应用程序和钱包的混合网络代理",
-    "connect-vpn-first": "首先连接VPN以启用代理",
+    "switch-title": "启用代理",
+    "proxy-status": "代理状态：",
+    "active-connections": "活动连接：",
+    "status": {
+      "connected": "已连接",
+      "disabled": "已禁用",
+      "enabling": "启用...",
+      "unknown": "未知的"
+    },
+    "socks5": {
+      "proxy-title": "SOCKS5 配置 (适用于应用)",
+      "url-title": "SOCKS5 URL",
+      "listen-address": "SOCKS5 监听地址",
+      "info": "i 将此添加到您浏览器的代理设置中，以通过Nym mixnet路由流量"
+    },
+    "http-rpc": {
+      "proxy-title": "HTTP RPC 配置 (用于钱包)",
+      "url-title": "HTTP RPC URL",
+      "listen-address": "HTTP RPC 监听地址",
+      "info": "i 在MetaMask或其他 Web3 钱包中使用它来通过 Nym mixnet进行RPC 通话。使用 <your-provider-url> 来替换实际的 RPC 端点。"
+    },
+    "invalid-port": "无效的端口号",
+    "listen-port": "监听端口",
+    "reset-to-default": "重置为默认值",
     "intro": "通过Nym混合网络路由应用程序和钱包的网络流量以获得更好的隐私保护。 此功能为应用程序创建本地的SOCKS5代理，以及为数字钱包创建HTTP RPC代理。",
-    "status": "状态",
-    "proxy-url": "代理地址",
-    "active-connections": "有效连接",
-    "copied-to-clipboard": "代理地址已复制到剪贴板",
-    "snackbar-enabled": "SOCKS5代理已启用",
-    "snackbar-disabled": "SOCKS5代理已禁用",
     "error-gateway-not-supported": "网关不支持SOCKS5",
     "error-unknown": "切换SOCKS5代理失败",
     "error-vpn-not-connected": "启用SOCKS5代理前请先连接 VPN",
-    "socks5-address-label": "SOCKS5监听地址",
-    "socks5-address-placeholder": "127.0.0.1:1080",
-    "http-rpc-address-label": "HTTP RPC监听地址",
-    "http-rpc-address-placeholder": "127.0.0.1:8545",
-    "configuration": "配置",
-    "enabling": "正在启用代理……",
-    "disabling": "正在禁用代理……",
-    "add-to-browser-proxy-settings": "通过将此URL添加到您的浏览器代理设置中来使用Nym混合网络路由流量",
-    "use-in-wallet": "在MetaMask或其他Web3钱包中使用此URL来通过Nym混合网络进行RPC 通话。使用您的实际提供商的URL来替换<your-provider-url>。"
+    "snackbar-enabled": "已成功启用代理",
+    "snackbar-disabled": "代理已成功禁用"
   },
   "privacy": {
     "error-monitoring": {

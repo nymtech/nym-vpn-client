@@ -126,27 +126,36 @@
     "title": "Proxy de aplicación y cartera (beta)",
     "menu-desc": "Ruta de tráfico de la aplicación a través de mixnet",
     "label": "Proxy de App & Wallet",
-    "description": "Habilitar proxy mixnet para aplicaciones y billeteras",
-    "connect-vpn-first": "Conectar VPN primero para habilitar proxy",
+    "switch-title": "Activar proxy",
+    "proxy-status": "Estado del proxy:",
+    "active-connections": "Conexiones activas:",
+    "status": {
+      "connected": "Conectado",
+      "disabled": "Deshabilitado",
+      "enabling": "Activando...",
+      "unknown": "Desconocido"
+    },
+    "socks5": {
+      "proxy-title": "Configuración SOCKS5 (para aplicaciones)",
+      "url-title": "SOCKS5 URL",
+      "listen-address": "Dirección de escucha SOCKS5",
+      "info": "Añado esto a la configuración del proxy de su navegador para enrutar el tráfico a través de la mixnet de Nym"
+    },
+    "http-rpc": {
+      "proxy-title": "Configuración HTTP RPC (para carteras)",
+      "url-title": "URL RPC HTTP",
+      "listen-address": "Dirección de escucha RPC HTTP",
+      "info": "Utiliza esto en MetaMask u otros monederos Web3 para hacer llamadas RPC a través de la red mixta Nym. Reemplaza <your-provider-url> con tu punto final real de RPC."
+    },
+    "invalid-port": "Número de puerto inválido",
+    "listen-port": "Puerto de escucha",
+    "reset-to-default": "Restablecer por defecto",
     "intro": "Aplicación de ruta y tráfico de cartera a través de la mixnet de Nym para mayor privacidad. Esta característica crea un proxy SOCKS5 local para aplicaciones, y un proxy RPC HTTP para carteras.",
-    "status": "Estado",
-    "proxy-url": "URL del proxy",
-    "active-connections": "Conexiones activas",
-    "copied-to-clipboard": "URL del proxy copiado al portapapeles",
-    "snackbar-enabled": "Proxy SOCKS5 habilitado",
-    "snackbar-disabled": "Proxy SOCKS5 desactivado",
     "error-gateway-not-supported": "Gateway no soporta SOCKS5",
     "error-unknown": "Error al cambiar el proxy SOCKS5",
     "error-vpn-not-connected": "Por favor, conecte primero la VPN antes de activar el proxy SOCKS5",
-    "socks5-address-label": "Dirección de escucha SOCKS5",
-    "socks5-address-placeholder": "127.0.0.1:1080",
-    "http-rpc-address-label": "Dirección de escucha RPC HTTP",
-    "http-rpc-address-placeholder": "127.0.0.1:8545",
-    "configuration": "Configuración",
-    "enabling": "Activando proxy...",
-    "disabling": "Deshabilitando proxy...",
-    "add-to-browser-proxy-settings": "Añadir esta URL a la configuración del proxy de su navegador para enrutar el tráfico a través de la mixnet de Nym",
-    "use-in-wallet": "Utilice esta URL en MetaMask u otros monederos Web3 para hacer llamadas RPC a través de la red mixta Nym. Reemplace <your-provider-url> con su URL actual de proveedor."
+    "snackbar-enabled": "Proxy habilitado con éxito",
+    "snackbar-disabled": "Proxy desactivado correctamente"
   },
   "privacy": {
     "error-monitoring": {

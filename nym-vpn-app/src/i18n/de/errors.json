@@ -2,8 +2,8 @@
   "unknown": "Unbekannter Fehler",
   "internal": "Interner Fehler",
   "daemon": {
-    "not-connected": "Keine Verbindung zum Dienst (vpnd) möglich. Starte den Dienst oder die App neu.",
-    "internal": "Interner Fehler des Dienstes",
+    "not-connected": "Keine Verbindung zum Daemon (vpnd) möglich. Starte den Daemon oder die App neu.",
+    "internal": "Interner Fehler des Daemons",
     "invalid-network": "Ungültiges Netzwerk"
   },
   "vpnd-client": "Interner Vpnd-Client-Fehler",

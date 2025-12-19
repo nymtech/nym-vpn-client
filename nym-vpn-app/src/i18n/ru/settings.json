@@ -126,27 +126,36 @@
     "title": "Прокси для приложений и кошельков (бета-версия)",
     "menu-desc": "Направлять трафик приложения через микснет",
     "label": "Прокси для приложений и кошельков",
-    "description": "Включить микснет-прокси для приложений и кошельков",
-    "connect-vpn-first": "Для активации прокси сначала подключите VPN",
+    "switch-title": "Включить прокси",
+    "proxy-status": "Статус прокси:",
+    "active-connections": "Активные подключения:",
+    "status": {
+      "connected": "Подключено",
+      "disabled": "Отключено",
+      "enabling": "Включение...",
+      "unknown": "Неизвестно"
+    },
+    "socks5": {
+      "proxy-title": "Настройка SOCKS5 (для приложений)",
+      "url-title": "SOCKS5 URL",
+      "listen-address": "Адрес прослушивания SOCKS5",
+      "info": "ℹ️ Добавьте это в настройки прокси вашего браузера, чтобы направлять трафик через микснет Nym"
+    },
+    "http-rpc": {
+      "proxy-title": "Конфигурация HTTP RPC (для кошельков)",
+      "url-title": "URL HTTP RPC",
+      "listen-address": "Адрес прослушивания HTTP RPC",
+      "info": "ℹ️ Используйте эту строку в MetaMask или других Web3-кошельках для выполнения RPC-вызовов через микснет Nym. Замените <your-provider-url> на ваш фактический RPC-эндпоинт."
+    },
+    "invalid-port": "Неверный номер порта",
+    "listen-port": "Прослушать порт",
+    "reset-to-default": "Сброс по умолчанию",
     "intro": "Направляйте трафик приложений и кошельков через микснет Nym для улучшенной конфиденциальности. Эта функция создаёт локальный прокси SOCKS5 для приложений и HTTP RPC прокси для кошельков.",
-    "status": "Статус",
-    "proxy-url": "URL прокси",
-    "active-connections": "Активные подключения",
-    "copied-to-clipboard": "URL прокси скопирован в буфер обмена",
-    "snackbar-enabled": "Прокси SOCKS5 активирован",
-    "snackbar-disabled": "Прокси SOCKS5 отключен",
     "error-gateway-not-supported": "Шлюз не поддерживает SOCKS5",
     "error-unknown": "Не удалось переключить прокси SOCKS5",
     "error-vpn-not-connected": "Пожалуйста, перед включением прокси SOCKS5 подключите VPN",
-    "socks5-address-label": "Адрес прослушивания SOCKS5",
-    "socks5-address-placeholder": "127.0.0.1:1080",
-    "http-rpc-address-label": "Адрес прослушивания HTTP RPC",
-    "http-rpc-address-placeholder": "127.0.0.1:8545",
-    "configuration": "Конфигурация",
-    "enabling": "Включение прокси...",
-    "disabling": "Отключение прокси...",
-    "add-to-browser-proxy-settings": "Добавьте этот URL в настройки прокси вашего браузера, чтобы направлять трафик через микснет Nym",
-    "use-in-wallet": "Используйте этот URL в MetaMask или других Web3-кошельках для выполнения RPC-вызовов через микснет Nym. Замените `<your-provider-url>` на URL вашего провайдера."
+    "snackbar-enabled": "Прокси успешно включен",
+    "snackbar-disabled": "Прокси успешно отключен"
   },
   "privacy": {
     "error-monitoring": {
