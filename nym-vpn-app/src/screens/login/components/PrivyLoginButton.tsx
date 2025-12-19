@@ -26,7 +26,7 @@ function PrivyLoginButton({ outline, color }: PrivyLoginButtonProps) {
   const { state } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { push } = useInAppNotify();
-  const { t } = useTranslation('addCredential');
+  const { t } = useTranslation('login');
 
   const [loading, setLoading] = useState(false);
 
@@ -41,13 +41,10 @@ function PrivyLoginButton({ outline, color }: PrivyLoginButtonProps) {
       return;
     }
 
-    setLoading(true);
     try {
       login();
     } catch (e) {
       console.error('Privy login error:', e);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -61,18 +58,17 @@ function PrivyLoginButton({ outline, color }: PrivyLoginButtonProps) {
 
     if (!embeddedWallet) throw new Error('No embedded wallet found');
 
-    const message = await invoke<string>('get_privy_derivation_message');
-    const messageBytes = new TextEncoder().encode(message);
-    const hashToSign = `0x${Buffer.from(messageBytes).toString('hex')}`;
-
-    const provider = await embeddedWallet.getEthereumProvider();
-
     try {
+      setLoading(true);
+
+      const message = await invoke<string>('get_privy_derivation_message');
+      const hashToSign = `0x${message}`;
+      const provider = await embeddedWallet.getEthereumProvider();
+
       const signatureHex = (await provider.request({
         method: 'secp256k1_sign',
         params: [hashToSign],
       })) as string;
-
       await invoke<number | null>('add_account', {
         signature: signatureHex.slice(2),
       });
@@ -80,11 +76,16 @@ function PrivyLoginButton({ outline, color }: PrivyLoginButtonProps) {
       navigate(routes.root);
       dispatch({ type: 'set-account', stored: true });
       push({
-        message: t('added-notification'),
+        message: t('notification.added'),
         close: true,
       });
     } catch (e) {
       console.error('Privy login error:', e);
+      push({
+        message: t('privy.error.login'),
+        close: true,
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -112,10 +113,10 @@ function PrivyLoginButton({ outline, color }: PrivyLoginButtonProps) {
     >
       {outline ? (
         <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-          Continue with social account
+          {t('social-account-button')}
         </span>
       ) : (
-        <>Log in with Privy</>
+        <>{t('privy.login-button')}</>
       )}
     </Button>
   );

@@ -59,7 +59,7 @@ function PassphraseLogin() {
       navigate(routes.root);
       dispatch({ type: 'set-account', stored: true });
       push({
-        message: t('passphrase.added-notification'),
+        message: t('notification.added'),
         close: true,
       });
       await CCache.del('cache-account-id');
