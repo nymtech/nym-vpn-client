@@ -87,11 +87,21 @@ import CountriesManagerTypes
         didSet { shouldReconnectPublisher = shouldReconnect }
     }
 
+    @AppStorage(AppSettingKey.customDnsIsEnabled.rawValue)
+    public var isCustomDnsEnabled = false {
+        didSet { isCustomDnsEnabledPublisher = isCustomDnsEnabled }
+    }
+
+    @AppStorage(AppSettingKey.customDns.rawValue)
+    public var customDns: [String] = []
+
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher: Bool
     @Published public var isCredentialImportedPublisher: Bool
     @Published public var isQuicEnabledPublisher: Bool
     @Published public var shouldReconnectPublisher: Bool
+    @Published public var isCustomDnsEnabledPublisher: Bool
+    @Published public var customDnsPublisher: [String]
     @Published public var isLanBypassEnabledPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
@@ -100,12 +110,16 @@ import CountriesManagerTypes
         self.isCredentialImportedPublisher = false
         self.isQuicEnabledPublisher = false
         self.shouldReconnectPublisher = false
+        self.isCustomDnsEnabledPublisher = false
+        self.customDnsPublisher = []
         self.isLanBypassEnabledPublisher = false
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
         self.isQuicEnabledPublisher = self.isQuicEnabled
         self.shouldReconnectPublisher = self.shouldReconnect
+        self.isCustomDnsEnabledPublisher = self.isCustomDnsEnabled
+        self.customDnsPublisher = self.customDns
         self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
     }
 }
@@ -144,4 +158,24 @@ public enum AppSettingKey: String {
     case shouldReconnect
     case passphraseStored
     case connectionConfig
+    case customDnsIsEnabled
+    case customDns
+}
+
+extension Array: @retroactive RawRepresentable where Element: Codable {
+    public init?(rawValue: String) {
+        guard
+            let data = rawValue.data(using: .utf8),
+            let result = try? JSONDecoder().decode([Element].self, from: data)
+        else { return nil }
+        self = result
+    }
+
+    public var rawValue: String {
+        guard
+            let data = try? JSONEncoder().encode(self),
+            let result = String(data: data, encoding: .utf8)
+        else { return "" }
+        return result
+    }
 }

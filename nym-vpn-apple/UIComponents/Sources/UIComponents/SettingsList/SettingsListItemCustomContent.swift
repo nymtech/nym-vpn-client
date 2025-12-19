@@ -152,7 +152,6 @@ private extension SettingsListItemCustomContent {
     func optionalCustomContent() -> some View {
         if let customContent {
             customContent()
-                .padding(.horizontal, 16)
         }
     }
 }
