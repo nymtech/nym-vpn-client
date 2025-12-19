@@ -37,6 +37,7 @@ import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionBottom
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionIP
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionIdentity
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionPerformance
+import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionPrivacy
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsTopSection
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -109,14 +110,16 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 				name = detailsUiState.name,
 				countryCode = detailsUiState.countryCode,
 				location = detailsUiState.location,
+				description = detailsUiState.description,
+			)
+			DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
+			DetailsSectionPrivacy(
 				asnKind = detailsUiState.asnKind,
 				isQuicFeatureFlagEnabled = detailsUiState.isQuicFeatureFlagEnabled,
-				isQuickSupportedByGateway = detailsUiState.isQuickSupportedByGateway,
-				description = detailsUiState.description,
+				isQuicSupportedByGateway = detailsUiState.isQuickSupportedByGateway,
 				onEnableQuicProtocolClick = onEnableQuicProtocolClick,
 			)
 			DetailsSectionPerformance(detailsUiState.score, detailsUiState.load, detailsUiState.uptime, detailsUiState.lastUpdated)
-			DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
 			DetailsSectionIdentity(detailsUiState.identity, detailsUiState.buildVersion)
 			DetailsSectionBottom(detailsUiState.identity)
 		}
