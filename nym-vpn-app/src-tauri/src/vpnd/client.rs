@@ -387,13 +387,24 @@ impl VpndClient {
 
     /// Store an account
     #[instrument(skip_all)]
-    pub async fn store_account(&self, mnemonic: Option<String>, signature: Option<String>) -> Result<(), VpndError> {
+    pub async fn store_account(
+        &self,
+        mnemonic: Option<String>,
+        signature: Option<String>,
+    ) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let request = match (mnemonic, signature) {
             (Some(mnemonic), None) => lib::StoreAccountRequest::Vpn { mnemonic },
-            (None, Some(signature)) => lib::StoreAccountRequest::Privy { hex_signature: signature },
-            _ => return Err(VpndError::Response(BackendError::internal("either mnemonic or signature must be provided", None))),
+            (None, Some(signature)) => lib::StoreAccountRequest::Privy {
+                hex_signature: signature,
+            },
+            _ => {
+                return Err(VpndError::Response(BackendError::internal(
+                    "either mnemonic or signature must be provided",
+                    None,
+                )));
+            }
         };
 
         let response = vpnd
@@ -823,16 +834,13 @@ impl VpndClient {
     pub async fn get_privy_derivation_message(&self) -> Result<String, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let message = vpnd.get_privy_derivation_message()
-        .await
-        .map_err(|e| {
+        let message = vpnd.get_privy_derivation_message().await.map_err(|e| {
             error!("failed to get Privy derivation message: {}", e);
             VpndError::RpcClient(e)
         })?;
 
         Ok(message.message)
     }
-
 
     pub fn reset_log_flag() {
         let mut logged = VPND_DOWN_LOGGED.lock().unwrap();

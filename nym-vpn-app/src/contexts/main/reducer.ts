@@ -116,6 +116,7 @@ export const initialState: AppState = {
     quic: false,
     domainFronting: false,
     zknymCredential: false,
+    privy: false,
   },
   streamingOptimizedLabelSeen: false,
   customDnsEnabled: false,
