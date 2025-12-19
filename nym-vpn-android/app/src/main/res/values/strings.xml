@@ -132,7 +132,7 @@
 	<string name="exit_location">Exit location</string>
 	<string name="entry_location">Entry location</string>
 	<string name="no_results_found">No results found.</string>
-	<string name="how_to_run_gateway">how to run a gateway.</string>
+	<string name="how_to_run_gateway">how to run a server.</string>
 	<string name="or_learn">or learn</string>
 	<string name="contact_for_help">Contact us for help</string>
 	<string name="try_another_server_name">Try another location or check the server name.</string>
@@ -307,7 +307,7 @@
 	<string name="censorship_description">Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking.</string>
 	<string name="censorship_quic_title">Enhanced connection (QUIC)</string>
 	<string name="censorship_quic_changes">Changes will apply after reconnect</string>
-	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3). Traffic will appear as regular web browsing, defeating Deep Packet Inspection (DPI) censorship systems.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
+	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3). Traffic will appear as regular web browsing, defeating Deep Packet Inspection (DPI) censorship systems.\n\nNote: Limits entry server options to QUIC-compatible servers only.</string>
 	<string name="censorship_quic_link_text">How QUIC improves connections</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
@@ -316,11 +316,11 @@
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
 	<string name="quick_info_modal_title">Enable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current gateways if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
+	<string name="quick_info_modal_desc">This will reconnect you with QUIC protocol enabled. You will keep your current servers if they support QUIC, or choose compatible ones if needed.\n\nYour data stays protected during reconnection.</string>
 	<string name="quic_primary_btn_text">Reconnect with QUIC now</string>
 	<string name="quic_text_btn_text">Apply QUIC on next connection</string>
 	<string name="quick_info_modal_title_non_quic">Disable enhanced connection (QUIC)?</string>
-	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current gateways.\n\nYour data stays protected during reconnection.</string>
+	<string name="quick_info_modal_desc_non_quic">This will reconnect you without QUIC protocol enabled. You will keep your current servers.\n\nYour data stays protected during reconnection.</string>
 	<string name="quic_primary_btn_text_non_quic">Reconnect without QUIC now</string>
 	<string name="quic_text_btn_text_non_quic">Turn off QUIC on next connection</string>
 	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
