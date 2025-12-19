@@ -1,3 +1,0 @@
-What's new:
-- Added languages PT, FR, ES
-- Bug fixes

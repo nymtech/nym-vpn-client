@@ -1,3 +1,0 @@
-What's new:
-- Add more languages
-- Add home screen improvements

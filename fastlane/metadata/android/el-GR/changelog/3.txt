@@ -1,4 +1,0 @@
-What's new:
-- Add vpn lib integration
-- Splash screen
-Λίστα χωρών

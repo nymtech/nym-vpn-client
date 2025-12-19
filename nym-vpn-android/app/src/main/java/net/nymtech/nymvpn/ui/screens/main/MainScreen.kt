@@ -80,7 +80,6 @@ import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
-import nym_vpn_lib_types.GatewayType
 
 @Composable
 fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
@@ -325,10 +324,10 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						onClick = { onEntryClick() },
 						enabled = true,
 						showQuicLabel = shouldShowQuic,
-						showTrailingIcon = appUiState.settings.entryPoint is EntryPoint.Gateway,
+						showTrailingIcon = appUiState.settings.entryPoint is EntryPoint.Gateway || appUiState.managerState.tunnelState == Tunnel.State.Up,
 						onTrailingClick = {
 							appUiState.entryPointGateway?.let { gateway ->
-								navController.goFromRoot(Route.ServerDetails(gateway.identity, GatewayType.MIXNET_ENTRY, GatewayLocation.ENTRY.name))
+								navController.goFromRoot(Route.ServerDetails(gateway.identity, GatewayLocation.ENTRY.name))
 							}
 						},
 					)
@@ -340,10 +339,10 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						onClick = { onExitClick() },
 						enabled = true,
 						showGatewayStreamIcon = appUiState.exitPointGateway?.asnKind == AsnKind.RESIDENTIAL,
-						showTrailingIcon = appUiState.settings.exitPoint is ExitPoint.Gateway,
+						showTrailingIcon = appUiState.settings.exitPoint is ExitPoint.Gateway || appUiState.managerState.tunnelState == Tunnel.State.Up,
 						onTrailingClick = {
 							appUiState.exitPointGateway?.let { gateway ->
-								navController.goFromRoot(Route.ServerDetails(gateway.identity, GatewayType.MIXNET_EXIT, GatewayLocation.EXIT.name))
+								navController.goFromRoot(Route.ServerDetails(gateway.identity, GatewayLocation.EXIT.name))
 							}
 						},
 					)
