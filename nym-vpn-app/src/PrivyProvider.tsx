@@ -1,16 +1,12 @@
 import { mainnet } from '@privy-io/chains';
-import { PrivyProvider } from '@privy-io/react-auth';
+import { PrivyProvider as PrivyProviderComponent } from '@privy-io/react-auth';
 import { useMainState } from './contexts';
 
-export const MyPrivyProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const PrivyProvider = ({ children }: { children: React.ReactNode }) => {
   const { uiTheme } = useMainState();
 
   return (
-    <PrivyProvider
+    <PrivyProviderComponent
       appId={import.meta.env.VITE_PRIVY_APP_ID}
       config={{
         loginMethods: ['google', 'twitter', 'github'],
@@ -32,6 +28,6 @@ export const MyPrivyProvider = ({
       }}
     >
       {children}
-    </PrivyProvider>
+    </PrivyProviderComponent>
   );
 };
