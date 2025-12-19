@@ -41,11 +41,15 @@ fun ModeSelector(
 ) {
 	val context = LocalContext.current
 
-	fun whenDisconnected(callback: () -> Unit) {
+	// Only prevent mode changes while connecting (not while connected - restart will handle it)
+	fun handleModeClick(callback: () -> Unit) {
 		when (connectionState) {
-			ConnectionState.Disconnected, ConnectionState.Offline -> callback.invoke()
-			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
-			else -> snackbar.showMessage(context.getString(R.string.disabled_while_connected))
+			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> {
+				snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
+			}
+			else -> {
+				callback.invoke()
+			}
 		}
 	}
 
@@ -74,7 +78,7 @@ fun ModeSelector(
 			},
 			title = stringResource(R.string.two_hop_title),
 			description = stringResource(R.string.two_hop_description),
-			onClick = { whenDisconnected(onTwoHopClick) },
+			onClick = { handleModeClick(onTwoHopClick) },
 			selected = vpnMode == Tunnel.Mode.TWO_HOP_MIXNET,
 		)
 		IconSurfaceButton(
@@ -88,7 +92,7 @@ fun ModeSelector(
 			},
 			title = stringResource(R.string.five_hop_mixnet),
 			description = stringResource(R.string.five_hop_description),
-			onClick = { whenDisconnected(onFiveHopClick) },
+			onClick = { handleModeClick(onFiveHopClick) },
 			selected = vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET,
 		)
 	}

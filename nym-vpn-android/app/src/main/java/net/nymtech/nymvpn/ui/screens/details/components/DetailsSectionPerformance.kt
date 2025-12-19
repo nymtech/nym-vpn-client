@@ -16,9 +16,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.Typography
-import net.nymtech.nymvpn.util.extensions.capitalizeFirstLowerRest
 import net.nymtech.nymvpn.util.extensions.colorLoad
 import net.nymtech.nymvpn.util.extensions.colorPerformance
+import net.nymtech.nymvpn.util.extensions.displayText
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.relativeTimeSpan
 import nym_vpn_lib_types.Score
@@ -38,7 +38,7 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 						)
 						Spacer(modifier = Modifier.width(6.dp))
 						Text(
-							text = s.name.capitalizeFirstLowerRest(),
+							text = s.displayText(),
 							style = Typography.bodyMedium,
 							color = s.colorPerformance(),
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
@@ -53,7 +53,7 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 				stringResource(R.string.details_server_load) to {
 					Row(verticalAlignment = Alignment.CenterVertically) {
 						Text(
-							text = l.name.capitalizeFirstLowerRest(),
+							text = l.displayText(),
 							style = Typography.bodyMedium,
 							color = l.colorLoad(),
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),

@@ -230,9 +230,14 @@ fun Score.colorPerformance(): Color {
 	}
 }
 
-fun String.capitalizeFirstLowerRest(): String {
-	return this.lowercase()
-		.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+@Composable
+fun Score.displayText(): String {
+	return when (this) {
+		Score.HIGH -> stringResource(R.string.score_text_high)
+		Score.MEDIUM -> stringResource(R.string.score_text_medium)
+		Score.LOW -> stringResource(R.string.score_text_low)
+		Score.OFFLINE -> stringResource(R.string.score_text_offline)
+	}
 }
 
 fun formatUtcString(utcString: String?): String {
