@@ -423,6 +423,8 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
 	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
+	<string name="split_tunneling_event_saved">Split tunneling settings saved</string>
+	<string name="split_tunneling_event_reconnecting">Reconnecting to apply split tunneling settings...</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">DNS customization</string>
 	<string name="dns_description">By default, using Nym\'s recommended DNS servers. Configure custom servers below if needed.</string>

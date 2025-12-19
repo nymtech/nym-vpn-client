@@ -123,6 +123,9 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 				dnsEnabled = dnsEnabled,
 				isActuallyConnected = isActuallyConnected,
 			)
+			if (!isActuallyConnected) {
+				Toast.makeText(context, context.getString(R.string.dns_event_saved), Toast.LENGTH_SHORT).show()
+			}
 		},
 		onBackClickEventTriggered = onBackClickEventTriggered,
 		onNavigateBack = onNavigateBack,

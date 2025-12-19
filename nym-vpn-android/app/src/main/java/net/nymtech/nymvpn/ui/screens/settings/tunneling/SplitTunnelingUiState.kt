@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.tunneling
 
 import kotlinx.serialization.Serializable
-import net.nymtech.vpn.backend.Tunnel
 
 data class SplitTunnelingUiState(
 	val isLoading: Boolean = false,
@@ -13,30 +12,10 @@ data class SplitTunnelingUiState(
 	val directAppsCount: Int = 0,
 	val vpnPassThroughAppsCount: Int = 0,
 	val appliedFilter: AppFilter = AppFilter.None,
-	val pendingNavigation: PendingNavigation? = null,
-	val pendingDialog: PendingDialog? = null,
-) {
-	sealed interface PendingNavigation {
-		data object NavigateBack : PendingNavigation
-		data object NavigateToHome : PendingNavigation
-	}
-
-	sealed interface PendingDialog {
-		data object AppListChangeDialog : PendingDialog
-	}
-}
-
-sealed interface UiEvent {
-	data class QueryChange(val query: String) : UiEvent
-	data class ChangeSelection(val packageName: String) : UiEvent
-	data class OnBackClick(val tunnelState: Tunnel.State) : UiEvent
-	data object ClearNavigation : UiEvent
-	data object ClearDialog : UiEvent
-	data object NavigateBack : UiEvent
-	data object LoadData : UiEvent
-	data object SelectAllDirectAppsClick : UiEvent
-	data object SelectAllVpnPassThroughClick : UiEvent
-}
+	val hasUnsavedChanges: Boolean = false,
+	val showSaveChangesDialog: Boolean = false,
+	val navigateBack: Boolean = false,
+)
 
 @Serializable
 data class AppInfo(
