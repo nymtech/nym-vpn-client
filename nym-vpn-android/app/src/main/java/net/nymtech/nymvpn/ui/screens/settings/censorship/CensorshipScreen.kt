@@ -50,7 +50,6 @@ fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hi
 
 	CensorshipScreen(
 		showQUICSection = uiState.showQUICSection,
-		showDomainFrontingSection = uiState.showDomainSection,
 		appUiState.settings.quicEnabled,
 		onQuicEnable = {
 			val connectionStatus = getConnectionStatus(!it, appUiState)
@@ -81,7 +80,7 @@ fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hi
 }
 
 @Composable
-fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolean, quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> Unit) {
+fun CensorshipScreen(showQUICSection: Boolean, quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> Unit) {
 	val scrollState = rememberScrollState()
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -107,14 +106,12 @@ fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolea
 				shape = RoundedCornerShape(8.dp, 8.dp, 0.dp, 0.dp),
 				modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
 			)
-			AmneziaSection(
-				shape = RoundedCornerShape(0.dp, 0.dp, 8.dp, 8.dp),
-				modifier = Modifier.fillMaxWidth().padding(top = 1.dp),
-			)
 		}
-		if (showDomainFrontingSection) {
-			StealthApiSection(modifier = Modifier.fillMaxWidth().padding(top = 24.dp))
-		}
+		AmneziaSection(
+			shape = RoundedCornerShape(0.dp, 0.dp, 8.dp, 8.dp),
+			modifier = Modifier.fillMaxWidth().padding(top = 1.dp),
+		)
+		StealthApiSection(modifier = Modifier.fillMaxWidth().padding(top = 24.dp))
 	}
 }
 
@@ -122,6 +119,6 @@ fun CensorshipScreen(showQUICSection: Boolean, showDomainFrontingSection: Boolea
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewCensorshipScreen() {
 	NymVPNTheme(Theme.default()) {
-		CensorshipScreen(showQUICSection = true, showDomainFrontingSection = true, true, onQuicEnable = {})
+		CensorshipScreen(showQUICSection = true, true, onQuicEnable = {})
 	}
 }

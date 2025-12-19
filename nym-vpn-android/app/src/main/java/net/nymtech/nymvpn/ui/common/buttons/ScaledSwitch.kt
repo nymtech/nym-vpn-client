@@ -15,16 +15,28 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
 fun ScaledSwitch(checked: Boolean, onClick: (checked: Boolean) -> Unit, enabled: Boolean = true) {
+	val primary = MaterialTheme.colorScheme.primary
+	val surface = MaterialTheme.colorScheme.surface
+
 	Switch(
-		checked,
-		{ onClick(it) },
-		Modifier.scale((52.dp.scaledHeight() / 52.dp)),
+		checked = checked,
+		onCheckedChange = onClick,
+		enabled = enabled,
+		modifier = Modifier.scale(52.dp.scaledHeight() / 52.dp),
 		colors = SwitchDefaults.colors(
-			checkedBorderColor = MaterialTheme.colorScheme.primary,
-			checkedThumbColor = MaterialTheme.colorScheme.surface,
-			checkedTrackColor = MaterialTheme.colorScheme.primary,
+			checkedTrackColor = primary,
+			checkedThumbColor = surface,
+			checkedBorderColor = primary,
 			uncheckedBorderColor = MaterialTheme.colorScheme.outline,
 			uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+
+			disabledCheckedTrackColor = primary.copy(alpha = 0.2f),
+			disabledCheckedThumbColor = surface,
+			disabledCheckedBorderColor = primary.copy(alpha = 0.6f),
+
+			disabledUncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+			disabledUncheckedThumbColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+			disabledUncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
 		),
 	)
 }

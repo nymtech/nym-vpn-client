@@ -178,6 +178,7 @@
 	<string name="score_text_medium">Medium</string>
 	<string name="score_text_low">Low</string>
 	<string name="score_text_offline">Offline</string>
+	<string name="text_changes_saved">Changes saved</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>

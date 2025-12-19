@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Replace mnemonic and access code with passphrase (https://github.com/nymtech/nym-vpn-client/pull/4274)
 - Replace gateway with server (https://github.com/nymtech/nym-vpn-client/pull/4274)
+- Grey-out AmneziaWG and Stealth API toggles on Censorship screen (https://github.com/nymtech/nym-vpn-client/pull/4277)
+- Change sections order on Server Details screen (https://github.com/nymtech/nym-vpn-client/pull/4277)
+- Disable Custom DNS toggle if DNS list is empty (https://github.com/nymtech/nym-vpn-client/pull/4277)
+
+### Fixed
+- "Add" button on DNS screen now expand to the left for verbose languages (https://github.com/nymtech/nym-vpn-client/pull/4277)
+- Censorship screen blank on Chinese phones (https://github.com/nymtech/nym-vpn-client/pull/4277)
 
 ## [2.6.0] - 2025.12.18
 

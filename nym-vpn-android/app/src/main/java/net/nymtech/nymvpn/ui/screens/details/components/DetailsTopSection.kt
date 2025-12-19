@@ -15,19 +15,9 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.Typography
-import nym_vpn_lib_types.AsnKind
 
 @Composable
-internal fun DetailsTopSection(
-	name: String,
-	location: String,
-	isQuicFeatureFlagEnabled: Boolean,
-	isQuickSupportedByGateway: Boolean,
-	countryCode: String?,
-	description: String?,
-	asnKind: AsnKind?,
-	onEnableQuicProtocolClick: () -> Unit,
-) {
+internal fun DetailsTopSection(name: String, location: String, countryCode: String?, description: String?) {
 	Text(
 		text = name,
 		style = CustomTypography.titleMediumPlus,
@@ -57,10 +47,4 @@ internal fun DetailsTopSection(
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		)
 	}
-	DetailsSectionPrivacy(
-		asnKind,
-		isQuicFeatureFlagEnabled,
-		isQuickSupportedByGateway,
-		onEnableQuicProtocolClick,
-	)
 }
