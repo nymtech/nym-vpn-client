@@ -801,6 +801,7 @@ jobs:
           # Export absolute zip path for the Sparkle/sign_update step
           echo "zip_archive_path=$ARCHIVE_DIR/$NOTARISATION_ARCHIVE" >> "$GITHUB_ENV"
           echo "FINAL_PKG_PATH=$FINAL_PKG_PATH" >> "$GITHUB_ENV"
+          echo "MACOS_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Generate Sparkle appcast & SHA-256 hash (sign_update)
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
@@ -1011,6 +1012,26 @@ jobs:
           files: ${{ env.NIGHTLY_PKG_PATH }}
           body: |
             Nightly macOS build of NymVPN.
+            - Branch: ${{ github.ref_name }}
+            - Commit: ${{ github.sha }}
+            - Built at: ${{ github.run_started_at }}
+      
+      - name: Publish macOS GitHub Release
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nym-vpn-macOS-v${{ env.MACOS_VERSION }}
+          name: "NymVPN macOS v${{ env.MACOS_VERSION }}"
+          prerelease: false
+          draft: false
+          files: |
+            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.zip
+            nym-vpn-apple/build/pkg/publish/sha256-hash.txt
+          body: |
+            Release macOS build of NymVPN.
+            - Version: ${{ env.MACOS_VERSION }}
             - Branch: ${{ github.ref_name }}
             - Commit: ${{ github.sha }}
             - Built at: ${{ github.run_started_at }}
