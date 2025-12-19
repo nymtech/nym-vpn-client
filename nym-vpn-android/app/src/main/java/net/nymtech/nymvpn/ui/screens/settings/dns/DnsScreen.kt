@@ -129,7 +129,7 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 		},
 		onBackClickEventTriggered = onBackClickEventTriggered,
 		onNavigateBack = onNavigateBack,
-		onReconnectIfConnected = { viewModel.requestReconnectIfConnected(isActuallyConnected) },
+		onReconnectIfConnect = { viewModel.requestReconnectIfConnected(isActuallyConnected) },
 		initialDnsEnabled = initialDnsEnabled,
 		initialCustomDns = initialCustomDns,
 	)
@@ -153,7 +153,7 @@ private fun DnsScreen(
 	onSave: (List<String>) -> Unit,
 	onBackClickEventTriggered: Boolean,
 	onNavigateBack: () -> Unit,
-	onReconnectIfConnected: () -> Unit,
+	onReconnectIfConnect: () -> Unit,
 	initialDnsEnabled: Boolean?,
 	initialCustomDns: List<String>?,
 ) {
@@ -186,7 +186,7 @@ private fun DnsScreen(
 
 	fun leaveScreenWithReconnectIfNeeded(currentList: List<String>) {
 		if (isActuallyConnected && shouldReconnect(initialDnsEnabled, initialCustomDns, dnsEnabled, currentList)) {
-			onReconnectIfConnected()
+			onReconnectIfConnect()
 		}
 		onNavigateBack()
 	}
@@ -378,7 +378,7 @@ internal fun PreviewDnsScreen() {
 			onSave = {},
 			onBackClickEventTriggered = false,
 			onNavigateBack = {},
-			onReconnectIfConnected = {},
+			onReconnectIfConnect = {},
 			initialDnsEnabled = true,
 			initialCustomDns = emptyList(),
 		)
