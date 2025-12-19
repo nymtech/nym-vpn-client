@@ -67,6 +67,7 @@ import Constants
         self.appSettings = appSettings
         self.grpcManager = grpcManager
         self.customDns = appSettings.customDns
+        self.isCustomDnsEnabled = appSettings.isCustomDnsEnabled
     }
     #elseif os(iOS)
     init(
@@ -76,6 +77,7 @@ import Constants
         _path = path
         self.appSettings = appSettings
         self.customDns = appSettings.customDns
+        self.isCustomDnsEnabled = appSettings.isCustomDnsEnabled
     }
     #endif
 }
