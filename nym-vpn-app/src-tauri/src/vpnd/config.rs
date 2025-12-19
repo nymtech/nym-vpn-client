@@ -19,12 +19,9 @@ pub struct VpndConfig {
     pub vpn_mode: VpnMode,
     pub bridges: bool,
     pub netstack: bool,
-    pub disable_poisson_rate: bool,
-    pub disable_background_cover_traffic: bool,
-    pub min_mixnode_performance: Option<u8>,
-    pub min_gateway_mixnet_performance: Option<u8>,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
+    //pub mixnet_traffic: lib::MixnetTrafficConfig,
 }
 
 impl VpndConfig {
@@ -45,12 +42,9 @@ impl VpndConfig {
             vpn_mode,
             bridges: config.enable_bridges,
             netstack: config.netstack,
-            disable_poisson_rate: config.disable_poisson_rate,
-            disable_background_cover_traffic: config.disable_background_cover_traffic,
-            min_mixnode_performance: config.min_mixnode_performance,
-            min_gateway_mixnet_performance: config.min_gateway_mixnet_performance,
             min_gateway_vpn_performance: config.min_gateway_vpn_performance,
             residential_exit: config.residential_exit,
+            //mixnet_traffic: config.mixnet_traffic,
         })
     }
 }

@@ -266,13 +266,10 @@ message VpnServiceConfig {
   bool enable_bridges = 21;
   bool residential_exit = 15;
   bool netstack = 13;
-
   bool enable_custom_dns = 17;
   IpAddrList custom_dns = 16;
   optional uint32 min_gateway_vpn_performance = 10;
-
   NetworkStatsConfig network_stats = 18;
-
   MixnetTrafficConfig mixnet_traffic = 25;
 }
 
@@ -864,14 +861,11 @@ message NetworkStatisticsIdentity {
 message PrivyDerivationMessage {
   string message = 1;
 }
-message SetDisablePoissonRateRequest {
-  bool disable = 1;
-}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
-  rpc SetPoissonParameter (SetPoissonParameterRequest) returns (google.protobuf.Empty);
-   rpc SetDisablePoissonRate (SetDisablePoissonRateRequest) returns (google.protobuf.Empty);
+
   // Get the VPN service configuration
   rpc GetConfig (google.protobuf.Empty) returns (GetConfigResponse) {}
 
@@ -886,6 +880,7 @@ service NymVpnService {
   rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableCustomDns (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetCustomDns (IpAddrList) returns (google.protobuf.Empty) {}
+  rpc SetMixnetTrafficConfig (MixnetTrafficConfig) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}

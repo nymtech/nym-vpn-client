@@ -99,6 +99,7 @@ impl Command {
                     "Circumvention transports: {}",
                     display_on_off(config.enable_bridges)
                 );
+                println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
 
                 Ok(())
             }
@@ -127,23 +128,22 @@ impl Command {
                 if let Some(enable_ct) = circumvention_transports {
                     rpc_client.set_enable_bridges(*enable_ct).await?;
                 }
-                if let Some(poisson) = loop_cover_stream_average_delay {
-                    rpc_client
-                        .set_poisson_parameter_for_loop_cover_traffic(poisson)
-                        .await?;
-                }
-                if let Some(delay_ms) = average_packet_delay {
-                    rpc_client.set_average_packet_delay(delay_ms).await?;
+
+                let mut config = rpc_client.get_config().await?;
+
+                config
+                    .mixnet_traffic
+                    .poisson_parameter_for_loop_cover_stream = loop_cover_stream_average_delay;
+                config.mixnet_traffic.average_packet_delay = average_packet_delay;
+                config.mixnet_traffic.message_sending_average_delay = message_sending_delay;
+                if let Some(disable_poisson_rate) = disable_real_traffic_poisson_rate {
+                    config.mixnet_traffic.disable_poisson_rate = *disable_poisson_rate;
                 }
 
-                if let Some(delay_ms) = message_sending_delay {
-                    rpc_client
-                        .set_message_sending_average_delay(delay_ms)
-                        .await?;
-                }
-                if let Some(disable) = disable_real_traffic_poisson_rate {
-                    rpc_client.set_disable_poisson_rate(*disable).await?;
-                }
+                rpc_client
+                    .set_mixnet_traffic_config(config.mixnet_traffic)
+                    .await?;
+
                 Ok(())
             }
         }

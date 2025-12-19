@@ -76,56 +76,6 @@ impl RpcClient {
         Ok(())
     }
 
-    ///Sets the poisson parameter for the loop cover stream
-    pub async fn set_poisson_parameter_for_loop_cover_traffic(&mut self, value: u32) -> Result<()> {
-        let request = proto::SetPoissonParameterForLoopCoverTrafficRequest {
-            poisson_parameter: value,
-        };
-
-        self.0
-            .set_poisson_parameter_request_for_loop_cover_stream(request)
-            .await
-            .map_err(Error::Rpc)?;
-        Ok(())
-    }
-
-    /// Sets the average per-mixnode packet delay (in milliseconds)
-    pub async fn set_average_packet_delay(&mut self, delay_ms: u32) -> Result<()> {
-        let request = proto::SetAveragePacketDelayRequest { delay_ms };
-
-        self.0
-            .set_average_packet_delay(request)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-
-        Ok(())
-    }
-
-    /// Sets the average real traffic message-sending delay (in milliseconds)
-    pub async fn set_message_sending_average_delay(&mut self, delay_ms: u32) -> Result<()> {
-        let request = proto::SetMessageSendingAverageDelayRequest { delay_ms };
-
-        self.0
-            .set_message_sending_average_delay(request)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-
-        Ok(())
-    }
-
-    ///Sets if the real traffic stream will send packets based on the poisson distribution
-    pub async fn set_disable_poisson_rate(&mut self, disable: bool) -> Result<()> {
-        let request = proto::SetDisablePoissonRateRequest { disable };
-        self.0
-            .set_disable_poisson_rate(request)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
     pub async fn set_disable_ipv6(&mut self, disable_ipv6: bool) -> Result<()> {
         self.0
             .set_disable_ipv6(disable_ipv6)
@@ -196,6 +146,20 @@ impl RpcClient {
 
         self.0
             .set_custom_dns(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn set_mixnet_traffic_config(
+        &mut self,
+        mixnet_traffic: nym_vpn_lib_types::MixnetTrafficConfig,
+    ) -> Result<()> {
+        let request = proto::MixnetTrafficConfig::from(mixnet_traffic);
+
+        self.0
+            .set_mixnet_traffic_config(request)
             .await
             .map_err(Error::Rpc)?
             .into_inner();

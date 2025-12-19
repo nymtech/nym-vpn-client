@@ -25,26 +25,19 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             None => vec![],
         };
 
+        let mixnet_traffic: nym_vpn_lib_types::MixnetTrafficConfig = value
+            .mixnet_traffic
+            .ok_or(ConversionError::NoValueSet(
+                "VpnServiceConfig.mixnet_traffic",
+            ))?
+            .into();
+
         let network_stats = value
             .network_stats
             .ok_or(ConversionError::NoValueSet(
                 "VpnServiceConfig.network_stats",
             ))?
             .into();
-
-        let mt = value.mixnet_traffic.ok_or(ConversionError::NoValueSet(
-            "VpnServiceConfig.mixnet_traffic",
-        ))?;
-
-        let mixnet_traffic = nym_vpn_lib_types::MixnetTrafficConfig {
-            poisson_parameter_for_loop_cover_stream: mt.poisson_parameter_for_loop_cover_stream,
-            average_packet_delay: mt.average_packet_delay,
-            message_sending_average_delay: mt.message_sending_average_delay,
-            disable_poisson_rate: mt.disable_poisson_rate,
-            disable_background_cover_traffic: mt.disable_background_cover_traffic,
-            min_mixnode_performance: mt.min_mixnode_performance.map(|u| u as u8),
-            min_gateway_mixnet_performance: mt.min_gateway_mixnet_performance.map(|u| u as u8),
-        };
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -54,14 +47,12 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_two_hop: value.enable_two_hop,
             enable_bridges: value.enable_bridges,
             netstack: value.netstack,
-
+            min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
             residential_exit: value.residential_exit,
             enable_custom_dns: value.enable_custom_dns,
             custom_dns,
-            network_stats,
-
-            min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
             mixnet_traffic,
+            network_stats,
         };
         Ok(config)
     }
@@ -106,6 +97,34 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
 
             mixnet_traffic,
+        }
+    }
+}
+
+impl From<proto::MixnetTrafficConfig> for nym_vpn_lib_types::MixnetTrafficConfig {
+    fn from(value: proto::MixnetTrafficConfig) -> Self {
+        nym_vpn_lib_types::MixnetTrafficConfig {
+            poisson_parameter_for_loop_cover_stream: value.poisson_parameter_for_loop_cover_stream,
+            average_packet_delay: value.average_packet_delay,
+            message_sending_average_delay: value.message_sending_average_delay,
+            disable_poisson_rate: value.disable_poisson_rate,
+            disable_background_cover_traffic: value.disable_background_cover_traffic,
+            min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u8),
+            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u8),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::MixnetTrafficConfig> for proto::MixnetTrafficConfig {
+    fn from(value: nym_vpn_lib_types::MixnetTrafficConfig) -> Self {
+        proto::MixnetTrafficConfig {
+            poisson_parameter_for_loop_cover_stream: value.poisson_parameter_for_loop_cover_stream,
+            average_packet_delay: value.average_packet_delay,
+            message_sending_average_delay: value.message_sending_average_delay,
+            disable_poisson_rate: value.disable_poisson_rate,
+            disable_background_cover_traffic: value.disable_background_cover_traffic,
+            min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u32),
+            min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
         }
     }
 }
