@@ -114,9 +114,9 @@
 	<string name="credential_modal_description">To add this device, go to your account\'s \'Devices\' page, remove one of the existing devices, and then log in on this device with your recovery phrase.</string>
 	<string name="manage_devices">Manage your devices</string>
 	<string name="close">Close</string>
-	<string name="enter_access_code">Please enter your anonymous Access Code.</string>
+	<string name="enter_access_code">Please enter your anonymous Passphrase.</string>
 	<string name="welcome_to_nym">Welcome to NymVPN</string>
-	<string name="get_access_code">Get Access Code</string>
+	<string name="get_access_code">Get Passphrase</string>
 	<string name="access_code">24-word-access-code</string>
 	<string name="support_and_feedback" translatable="false"><![CDATA[Support & feedback]]></string>
 	<string name="get_in_touch">Contact support</string>
