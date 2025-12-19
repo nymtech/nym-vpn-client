@@ -39,7 +39,7 @@ use nym_vpn_lib::{
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
     DecentralisedObtainTicketbooksRequest, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, ListGatewaysOptions, LogPath, LookupGatewayFilters,
+    FeatureFlags, Gateway, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
     NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice,
     NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest, SystemMessage,
     TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
@@ -67,6 +67,7 @@ pub enum VpnServiceCommand {
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
+    SetMixnetTrafficConfig(oneshot::Sender<()>, MixnetTrafficConfig),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -149,10 +150,6 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<NetworkStatisticsIdentity, StatisticsControllerError>>,
         (),
     ),
-    SetPoissonParameterForLoopCoverStream(oneshot::Sender<()>, u32),
-    SetAveragePacketDelay(oneshot::Sender<()>, u32),
-    SetMessageSendingAverageDelay(oneshot::Sender<()>, u32),
-    SetDisablePoissonRate(oneshot::Sender<()>, bool),
 }
 
 pub struct NymVpnServiceParameters {
@@ -780,6 +777,11 @@ impl NymVpnService {
                 self.handle_set_custom_dns(custom_dns).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetMixnetTrafficConfig(tx, mixnet_traffic_config) => {
+                self.handle_set_mixnet_traffic_config(mixnet_traffic_config)
+                    .await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -911,25 +913,6 @@ impl NymVpnService {
                 let result = self.handle_get_socks5_status().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::SetPoissonParameterForLoopCoverStream(tx, value) => {
-                self.handle_set_poisson_parameter_for_loop_cover_stream(value)
-                    .await;
-                let _ = tx.send(());
-            }
-            VpnServiceCommand::SetAveragePacketDelay(resp, delay_ms) => {
-                self.handle_set_average_packet_delay(delay_ms).await;
-                let _ = resp.send(());
-            }
-
-            VpnServiceCommand::SetMessageSendingAverageDelay(resp, delay_ms) => {
-                self.handle_set_message_sending_average_delay(delay_ms)
-                    .await;
-                let _ = resp.send(());
-            }
-            VpnServiceCommand::SetDisablePoissonRate(tx, disable) => {
-                self.handle_set_disable_poisson_rate(disable).await;
-                let _ = tx.send(());
-            }
         }
     }
 
@@ -974,40 +957,6 @@ impl NymVpnService {
 
     async fn handle_set_netstack(&mut self, netstack: bool) {
         self.config_manager.set_netstack(netstack).await;
-        self.update_tunnel_settings_with_throttle();
-    }
-    async fn handle_set_poisson_parameter_for_loop_cover_stream(&mut self, value: u32) {
-        // Update the Poisson parameter inside the configuration manager
-        self.config_manager
-            .set_poisson_parameter_for_loop_cover_stream(value)
-            .await;
-
-        // Update tunnel settings with throttle
-        self.update_tunnel_settings_with_throttle();
-    }
-    async fn handle_set_disable_poisson_rate(&mut self, disable: bool) {
-        // Update the disable_poisson_rate flag in the configuration manager
-        self.config_manager.set_disable_poisson_rate(disable).await;
-
-        // Update tunnel settings accordingly
-        self.update_tunnel_settings_with_throttle();
-    }
-    pub async fn handle_set_message_sending_average_delay(&mut self, delay_ms: u32) {
-        // Update config
-        self.config_manager
-            .set_message_sending_average_delay(Some(delay_ms))
-            .await;
-
-        // Update tunnel settings (with throttle)
-        self.update_tunnel_settings_with_throttle();
-    }
-    pub async fn handle_set_average_packet_delay(&mut self, delay_ms: u32) {
-        // Update config
-        self.config_manager
-            .set_average_packet_delay(Some(delay_ms))
-            .await;
-
-        // Update tunnel settings (with throttle)
         self.update_tunnel_settings_with_throttle();
     }
 
@@ -1057,6 +1006,16 @@ impl NymVpnService {
                 self.update_tunnel_settings_with_throttle();
             }
         }
+    }
+
+    async fn handle_set_mixnet_traffic_config(
+        &mut self,
+        mixnet_traffic_config: MixnetTrafficConfig,
+    ) {
+        self.config_manager
+            .set_mixnet_traffic_config(mixnet_traffic_config)
+            .await;
+        self.update_tunnel_settings_with_throttle();
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {

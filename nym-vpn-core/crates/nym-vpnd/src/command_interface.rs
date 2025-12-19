@@ -13,7 +13,7 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tonic::transport::Server;
+use tonic::{Request, Response, Status, transport::Server};
 
 use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, ListGatewaysOptions, LookupGatewayFilters,
@@ -21,7 +21,7 @@ use nym_vpn_lib_types::{
 };
 
 use nym_vpn_proto::proto::{
-    self,
+    self, MixnetTrafficConfig,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
@@ -129,76 +129,6 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
-    async fn set_poisson_parameter_request_for_loop_cover_stream(
-        &self,
-        request: tonic::Request<proto::SetPoissonParameterForLoopCoverTrafficRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let value = request.into_inner().poisson_parameter;
-        tracing::debug!("Received set_poisson_parameter RPC with value: {}", value);
-
-        let _ = self
-            .send_and_wait(
-                VpnServiceCommand::SetPoissonParameterForLoopCoverStream,
-                value,
-            )
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set Poisson parameter: {e}"))
-            })?;
-
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn set_average_packet_delay(
-        &self,
-        request: tonic::Request<proto::SetAveragePacketDelayRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let delay_ms = request.into_inner().delay_ms;
-        tracing::debug!("Received SetAveragePacketDelay: {} ms", delay_ms);
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetAveragePacketDelay, delay_ms)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set average packet delay: {e}"))
-            })?;
-
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn set_disable_poisson_rate(
-        &self,
-        request: tonic::Request<proto::SetDisablePoissonRateRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let disable_poisson_rate = request.into_inner().disable;
-
-        self.send_and_wait(
-            VpnServiceCommand::SetDisablePoissonRate,
-            disable_poisson_rate,
-        )
-        .await
-        .map_err(|e| tonic::Status::internal(format!("Failed to set disable Poisson rate: {e}")))?;
-
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn set_message_sending_average_delay(
-        &self,
-        request: tonic::Request<proto::SetMessageSendingAverageDelayRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let delay_ms = request.into_inner().delay_ms;
-        tracing::debug!("Received SetMessageSendingAverageDelay: {} ms", delay_ms);
-
-        let _ = self
-            .send_and_wait(VpnServiceCommand::SetMessageSendingAverageDelay, delay_ms)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set message sending average delay: {e}"))
-            })?;
-
-        Ok(tonic::Response::new(()))
-    }
-
     async fn set_enable_two_hop(
         &self,
         request: tonic::Request<bool>,
@@ -294,6 +224,24 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::SetCustomDns, custom_dns)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to set custom DNS: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_mixnet_traffic_config(
+        &self,
+        request: Request<MixnetTrafficConfig>,
+    ) -> std::result::Result<Response<()>, Status> {
+        let mixnet_traffic_config: nym_vpn_lib_types::MixnetTrafficConfig =
+            request.into_inner().into();
+
+        let _ = self
+            .send_and_wait(
+                VpnServiceCommand::SetMixnetTrafficConfig,
+                mixnet_traffic_config,
+            )
+            .await
+            .map_err(|e| Status::internal(format!("Failed to set mixnet traffic config: {e}")))?;
 
         Ok(tonic::Response::new(()))
     }

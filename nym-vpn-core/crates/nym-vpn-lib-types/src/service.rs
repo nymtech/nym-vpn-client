@@ -6,36 +6,11 @@ use std::{fmt, net::IpAddr};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
 use crate::{EntryPoint, ExitPoint, NetworkStatisticsConfig, NymNetworkDetails, NymVpnNetwork};
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
-#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
-pub struct MixnetTrafficConfig {
-    pub poisson_parameter_for_loop_cover_stream: Option<u32>,
-    pub average_packet_delay: Option<u32>,
-    pub message_sending_average_delay: Option<u32>,
-
-    pub disable_poisson_rate: bool,
-    pub disable_background_cover_traffic: bool,
-
-    pub min_mixnode_performance: Option<u8>,
-    pub min_gateway_mixnet_performance: Option<u8>,
-}
-impl Default for MixnetTrafficConfig {
-    fn default() -> Self {
-        Self {
-            poisson_parameter_for_loop_cover_stream: None,
-            average_packet_delay: None,
-            message_sending_average_delay: None,
-            disable_poisson_rate: false,
-            disable_background_cover_traffic: false,
-            min_mixnode_performance: None,
-            min_gateway_mixnet_performance: None,
-        }
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
@@ -60,8 +35,8 @@ pub struct VpnServiceConfig {
     pub residential_exit: bool,
     pub enable_custom_dns: bool,
     pub custom_dns: Vec<IpAddr>,
-    pub network_stats: NetworkStatisticsConfig,
     pub mixnet_traffic: MixnetTrafficConfig,
+    pub network_stats: NetworkStatisticsConfig,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -78,24 +53,8 @@ impl fmt::Display for VpnServiceConfig {
         )?;
         writeln!(
             f,
-            "disable_poisson_rate: {}, disable_background_cover_traffic: {}",
-            self.mixnet_traffic.disable_poisson_rate,
-            self.mixnet_traffic.disable_background_cover_traffic
-        )?;
-        writeln!(
-            f,
-            "min_mixnode_performance: {}, min_gateway_mixnet_performance: {}, min_gateway_vpn_performance: {}",
-            self.mixnet_traffic
-                .min_mixnode_performance
-                .map(|p| p.to_string())
-                .unwrap_or_else(|| "<None>".to_string()),
-            self.mixnet_traffic
-                .min_gateway_mixnet_performance
-                .map(|p| p.to_string())
-                .unwrap_or_else(|| "<None>".to_string()),
+            "min_gateway_vpn_performance: {:?}",
             self.min_gateway_vpn_performance
-                .map(|p| p.to_string())
-                .unwrap_or_else(|| "<None>".to_string())
         )?;
         writeln!(f, "residential_exit: {}", self.residential_exit)?;
         writeln!(
@@ -108,31 +67,13 @@ impl fmt::Display for VpnServiceConfig {
                 .collect::<Vec<_>>()
                 .join(", ")
         )?;
+        writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
-        writeln!(
-            f,
-            "poisson_parameter_for_loop_cover_stream: {}",
-            self.mixnet_traffic
-                .poisson_parameter_for_loop_cover_stream
-                .map(|v| v.to_string())
-                .unwrap_or_else(|| "<Default>".to_string())
-        )?;
-        writeln!(
-            f,
-            "average_packet_delay: {} ms, message_sending_average_delay: {} ms",
-            self.mixnet_traffic
-                .average_packet_delay
-                .map(|v| format!("{v}"))
-                .unwrap_or_else(|| "<Default>".to_string()),
-            self.mixnet_traffic
-                .message_sending_average_delay
-                .map(|v| format!("{v}"))
-                .unwrap_or_else(|| "<Default>".to_string())
-        )?;
 
         Ok(())
     }
 }
+
 impl Default for VpnServiceConfig {
     fn default() -> Self {
         Self {
@@ -165,6 +106,51 @@ uniffi::custom_type!(BoxedVpnServiceConfig, VpnServiceConfig, {
     try_lift: |val| Ok(Box::new(val)),
     lower: |val| *val
 });
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct MixnetTrafficConfig {
+    pub poisson_parameter_for_loop_cover_stream: Option<u32>,
+    pub average_packet_delay: Option<u32>,
+    pub message_sending_average_delay: Option<u32>,
+
+    pub disable_poisson_rate: bool,
+    pub disable_background_cover_traffic: bool,
+
+    pub min_mixnode_performance: Option<u8>,
+    pub min_gateway_mixnet_performance: Option<u8>,
+}
+
+impl fmt::Display for MixnetTrafficConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "poisson_parameter_for_loop_cover_stream: {:?}, average_packet_delay: {:?}, message_sending_average_delay: {:?}",
+            self.poisson_parameter_for_loop_cover_stream,
+            self.average_packet_delay,
+            self.message_sending_average_delay,
+        )?;
+        writeln!(
+            f,
+            "disable_poisson_rate: {}, disable_background_cover_traffic: {}",
+            self.disable_poisson_rate, self.disable_background_cover_traffic
+        )?;
+        writeln!(
+            f,
+            "min_mixnode_performance: {:?}, min_gateway_mixnet_performance: {:?}",
+            self.min_mixnode_performance, self.min_gateway_mixnet_performance
+        )?;
+        Ok(())
+    }
+}
 
 /// The target tunnel state.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
