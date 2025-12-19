@@ -22,7 +22,6 @@ use crate::{EntryPoint, ExitPoint, NetworkStatisticsConfig, NymNetworkDetails, N
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-
 pub struct VpnServiceConfig {
     pub entry_point: EntryPoint,
     pub exit_point: ExitPoint,
