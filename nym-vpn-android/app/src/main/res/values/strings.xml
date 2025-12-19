@@ -178,7 +178,6 @@
 	<string name="score_text_medium">Medium</string>
 	<string name="score_text_low">Low</string>
 	<string name="score_text_offline">Offline</string>
-	<string name="text_changes_saved">Changes saved</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
@@ -438,9 +437,12 @@
 	<string name="dns_custom_list_error">Invalid DNS address format</string>
 	<string name="dns_custom_button_add">Add</string>
 	<string name="dns_custom_button_save">Save changes</string>
+	<string name="dns_custom_button_save_reconnect">Save changes &amp; reconnect</string>
 	<string name="dns_custom_saved">Custom DNS saved.</string>
 	<string name="dns_save_dialog_title">Save changes?</string>
 	<string name="dns_save_dialog_description">You have unsaved changes.</string>
 	<string name="dns_learn_more_text">Learn more about DNS</string>
 	<string name="dns_learn_more_link" translatable="false">https://nymtechnologiessa.zendesk.com/hc/en-us/articles/41140533515665</string>
+	<string name="dns_event_saved">Custom DNS saved</string>
+	<string name="dns_event_reconnecting">Reconnecting to apply custom DNS settings...</string>
 </resources>
