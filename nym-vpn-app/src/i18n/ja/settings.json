@@ -126,27 +126,36 @@
     "title": "アプリとウォレットのプロキシ (ベータ版)",
     "menu-desc": "mixnet経由でアプリのトラフィックをルート",
     "label": "アプリ＆ウォレットプロキシ",
-    "description": "アプリとウォレットのmixnetプロキシを有効にする",
-    "connect-vpn-first": "プロキシを有効にするにはVPNを先に接続してください",
+    "switch-title": "プロキシを有効化",
+    "proxy-status": "プロキシの状態:",
+    "active-connections": "アクティブな接続:",
+    "status": {
+      "connected": "接続しました",
+      "disabled": "無効",
+      "enabling": "有効化中...",
+      "unknown": "不明"
+    },
+    "socks5": {
+      "proxy-title": "SOCKS5 設定 (アプリ用)",
+      "url-title": "SOCKS5 URL",
+      "listen-address": "SOCKS5 listen アドレス",
+      "info": "私はこれをブラウザのプロキシ設定に追加して、Nym mixnet経由でトラフィックをルーティングします"
+    },
+    "http-rpc": {
+      "proxy-title": "HTTP RPC設定 (ウォレット用)",
+      "url-title": "HTTP RPC URL",
+      "listen-address": "HTTP RPCリッスンアドレス",
+      "info": "私はこれをMetaMaskや他のWeb3ウォレットで使用して、Nym mixnetを介してRPCコールを行います。実際のRPCエンドポイントに <your-provider-url> を置き換えてください。"
+    },
+    "invalid-port": "無効なポート番号",
+    "listen-port": "リッスンポート",
+    "reset-to-default": "既定にリセット",
     "intro": "プライバシーを強化するために、Nym mixnetを介したアプリとウォレットトラフィックをルート化します。 この機能により、アプリ用のローカル SOCKS5 プロキシとウォレット用の HTTP RPCプロキシが作成されます。",
-    "status": "ステータス",
-    "proxy-url": "プロキシ URL",
-    "active-connections": "アクティブなコネクション",
-    "copied-to-clipboard": "プロキシ URL をクリップボードにコピーしました",
-    "snackbar-enabled": "SOCKS5 プロキシが有効です",
-    "snackbar-disabled": "SOCKS5 プロキシは無効です",
     "error-gateway-not-supported": "ゲートウェイはSOCKS5をサポートしていません",
     "error-unknown": "SOCKS5 プロキシの切り替えに失敗しました",
     "error-vpn-not-connected": "SOCKS5プロキシを有効にする前にVPNに接続してください",
-    "socks5-address-label": "SOCKS5 受信アドレス",
-    "socks5-address-placeholder": "127.0.0.1:1080",
-    "http-rpc-address-label": "HTTP RPC Listen Address",
-    "http-rpc-address-placeholder": "127.0.0.1:8545",
-    "configuration": "設定",
-    "enabling": "プロキシを有効にしています...",
-    "disabling": "プロキシを無効にしています...",
-    "add-to-browser-proxy-settings": "Nym mixnet 経由でトラフィックをルーティングするために、このURLをブラウザのプロキシ設定に追加します",
-    "use-in-wallet": "このURLをMetaMaskまたは他のWeb3ウォレットで使用して、Nym mixnetを介してRPCコールを行います。実際のプロバイダURLに <your-provider-url> を置き換えてください。"
+    "snackbar-enabled": "プロキシが正常に有効になりました",
+    "snackbar-disabled": "プロキシが正常に無効になりました"
   },
   "privacy": {
     "error-monitoring": {

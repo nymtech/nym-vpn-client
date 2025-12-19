@@ -126,27 +126,36 @@
     "title": "Проксі для додатків та гаманців (бета-версія)",
     "menu-desc": "Маршрутизація трафіку додатків через мікснет",
     "label": "Проксі для додатків та гаманців",
-    "description": "Увімкнути проксі-сервер Mixnet для додатків та гаманців",
-    "connect-vpn-first": "Спочатку підключіть VPN, щоб увімкнути проксі",
+    "switch-title": "Увімкнути проксі",
+    "proxy-status": "Статус проксі:",
+    "active-connections": "Активні з'єднання:",
+    "status": {
+      "connected": "Підключено",
+      "disabled": "Відключено",
+      "enabling": "Увімкнення...",
+      "unknown": "Невідомо"
+    },
+    "socks5": {
+      "proxy-title": "Налаштування SOCKS5 (для додатків)",
+      "url-title": "SOCKS5 URL",
+      "listen-address": "Адреса прослуховування SOCKS5",
+      "info": "ℹ️ Додайте це до налаштувань проксі-сервера вашого браузера, щоб маршрутизувати трафік через мікснет Nym."
+    },
+    "http-rpc": {
+      "proxy-title": "Конфігурація HTTP RPC (для гаманців)",
+      "url-title": "HTTP RPC URL",
+      "listen-address": "Адреса HTTP RPC Listen",
+      "info": "ℹ️ Використовуйте це в MetaMask або інших гаманцях Web3, щоб здійснювати RPC-виклики через мікснет Nym. Замініть <your-provider-url> на ваш фактичний кінцевий пункт RPC."
+    },
+    "invalid-port": "Неправильний номер порту",
+    "listen-port": "Слухаючий порт",
+    "reset-to-default": "Скинути за умовчанням",
     "intro": "Маршрутизуйте трафік додатків і гаманців через мікснет Nym для підвищення рівня конфіденційності. Ця функція створює локальний проксі SOCKS5 для додатків і проксі HTTP RPC для гаманців.",
-    "status": "Статус",
-    "proxy-url": "URL-адреса проксі-сервера",
-    "active-connections": "Активні з'єднання",
-    "copied-to-clipboard": "URL-адреса проксі скопійована в буфер обміну",
-    "snackbar-enabled": "Увімкнено проксі SOCKS5",
-    "snackbar-disabled": "Вимкнено проксі SOCKS5",
     "error-gateway-not-supported": "Шлюз не підтримує SOCKS5",
     "error-unknown": "Не вдалося переключити проксі SOCKS5",
     "error-vpn-not-connected": "Будь ласка, спершу під'єднайте VPN перед увімкненням SOCKS5 проксі",
-    "socks5-address-label": "Адреса прослуховування SOCKS5",
-    "socks5-address-placeholder": "127.0.0.1:1080",
-    "http-rpc-address-label": "Адреса HTTP RPC Listen",
-    "http-rpc-address-placeholder": "127.0.0.1:8545",
-    "configuration": "Конфігурація",
-    "enabling": "Увімкнення проксі...",
-    "disabling": "Вимкнення проксі...",
-    "add-to-browser-proxy-settings": "Додайте цю URL-адресу до налаштувань проксі-сервера вашого браузера, щоб маршрутизувати трафік через мікснет Nym.",
-    "use-in-wallet": "Використовуйте цю URL-адресу в MetaMask або інших гаманцях Web3, щоб здійснювати RPC-виклики через мікснет Nym. Замініть <your-provider-url> на фактичну URL-адресу вашого провайдера."
+    "snackbar-enabled": "Проксі успішно увімкнено",
+    "snackbar-disabled": "Проксі успішно вимкнуто"
   },
   "privacy": {
     "error-monitoring": {

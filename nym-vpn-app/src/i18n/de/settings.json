@@ -1,7 +1,7 @@
 {
   "auto-connect": {
     "title": "Automatisch verbinden",
-    "desc": "Bei App-Start automatisch verbinden"
+    "desc": "Beim Start der App automatisch verbinden"
   },
   "ipv6-support": {
     "title": "IPv6 unterstützen",
@@ -14,7 +14,7 @@
   "notifications": {
     "title": "Desktop-Benachrichtigungen"
   },
-  "monitoring-alert": "Du musst die App und den Dienst neu starten, damit die Änderung wirksam wird.",
+  "monitoring-alert": "Du musst die App und den Daemon neu starten, damit die Änderung wirksam wird.",
   "support": {
     "intro": {
       "title": "⚠️ Schütze dich vor Betrug",
@@ -33,7 +33,7 @@
     }
   },
   "dns": {
-    "title": "DNS anpassen",
+    "title": "DNS-Anpassung",
     "topbar-title": "DNS-Anpassung",
     "top-description": "Standardmäßig werden die von Nym empfohlenen DNS-Server verwendet. Konfiguriere bei Bedarf unten benutzerdefinierte Server.",
     "view-default-dns": "Standard DNS anzeigen",
@@ -50,7 +50,7 @@
       "applied": "Eigenen DNS gespeichert."
     },
     "error": {
-      "duplicate": "DNS-Adresse duplizieren",
+      "duplicate": "DNS-Adresse doppelt",
       "invalid": "Ungültiges DNS-Adressformat",
       "failed": "DNS-Änderungen konnten nicht angewendet werden"
     }
@@ -71,9 +71,9 @@
     "emptyData": "Keine Lizenzdaten verfügbar"
   },
   "logs": {
-    "title": "Protokolle (lokal gespeichert)",
+    "title": "Logs (lokal gespeichert)",
     "app": "App-Logs",
-    "daemon": "Dienst-Logs"
+    "daemon": "Daemon-Logs"
   },
   "anti-censorship": {
     "title": "Zensurumgehung",
@@ -109,13 +109,13 @@
   "login-button": "Gerät verbinden",
   "info": {
     "client-version": "App-Version",
-    "daemon-version": "Dienst-Version",
+    "daemon-version": "Daemon-Version",
     "network-name": "Netzwerk",
     "account-id": "Konto-ID",
     "device-id": "Geräte-ID"
   },
   "autostart": {
-    "title": "Beim Gerätestart starten",
+    "title": "Autostart",
     "desc": "App beim Gerätestart starten"
   },
   "killswitch": {
@@ -126,39 +126,48 @@
     "title": "App & Wallet-Proxy (Beta)",
     "menu-desc": "App-Traffic über Mixnet leiten",
     "label": "App & Wallet-Proxy",
-    "description": "Aktiviere den Mixnet-Proxy für Apps und Wallets",
-    "connect-vpn-first": "Zuerst VPN verbinden, um Proxy zu aktivieren",
+    "switch-title": "Proxy aktivieren",
+    "proxy-status": "Proxy-Status:",
+    "active-connections": "Aktive Verbindungen:",
+    "status": {
+      "connected": "Verbunden",
+      "disabled": "Deaktiviert",
+      "enabling": "Aktivieren...",
+      "unknown": "Unbekannt"
+    },
+    "socks5": {
+      "proxy-title": "SOCKS5 Konfiguration (für Apps)",
+      "url-title": "SOCKS5 URL",
+      "listen-address": "SOCKS5-Adresse",
+      "info": "ℹ️ Füge dies zu den Proxy-Einstellungen deines Browsers hinzu, um den Datenverkehr durch das Nym-Mixnet zu leiten"
+    },
+    "http-rpc": {
+      "proxy-title": "HTTP-RPC-Konfiguration (für Wallets)",
+      "url-title": "HTTP-RPC-URL",
+      "listen-address": "HTTP-RPC-Adresse",
+      "info": "ℹ️ Verwende dies in MetaMask oder anderen Web3-Wallets, um RPC-Aufrufe über das Nym-Mixnet zu tätigen. Ersetze <your-provider-url> mit deinem tatsächlichen RPC-Endpunkt."
+    },
+    "invalid-port": "Ungültige Portnummer",
+    "listen-port": "Listen-Port",
+    "reset-to-default": "Auf Standard zurücksetzen",
     "intro": "Leite den Datenverkehr von Apps und Wallets durch das Nym-Mixnet, um die Privatsphäre zu verbessern. Diese Funktion erstellt einen lokalen SOCKS5 Proxy für Apps und einen HTTP RPC Proxy für Wallets.",
-    "status": "Status",
-    "proxy-url": "Proxy-URL",
-    "active-connections": "Aktive Verbindungen",
-    "copied-to-clipboard": "Proxy-URL in die Zwischenablage kopiert",
-    "snackbar-enabled": "SOCKS5 Proxy aktiviert",
-    "snackbar-disabled": "SOCKS5 Proxy deaktiviert",
     "error-gateway-not-supported": "Gateway unterstützt SOCKS5 nicht",
     "error-unknown": "Umschalten des SOCKS5-Proxys fehlgeschlagen",
     "error-vpn-not-connected": "Bitte erst eine VPN-Verbindung herstellen, bevor du den SOCKS5-Proxy aktivierst",
-    "socks5-address-label": "SOCKS5 Listen-Adresse",
-    "socks5-address-placeholder": "127.0.0.1:1080",
-    "http-rpc-address-label": "HTTP-RPC-Listen-Adresse",
-    "http-rpc-address-placeholder": "127.0.0.1:8545",
-    "configuration": "Konfiguration",
-    "enabling": "Proxy aktivieren...",
-    "disabling": "Proxy deaktivieren...",
-    "add-to-browser-proxy-settings": "Füge diese URL zu den Proxy-Einstellungen deines Browsers hinzu, um den Datenverkehr über das Nym-Mixnet zu leiten",
-    "use-in-wallet": "Verwende diese URL in MetaMask oder anderen Web3-Wallets, um RPC-Aufrufe über das Nym-Mixnet zu tätigen. Ersetze <your-provider-url> durch deine tatsächliche Provider-URL."
+    "snackbar-enabled": "Proxy erfolgreich aktiviert",
+    "snackbar-disabled": "Proxy erfolgreich deaktiviert"
   },
   "privacy": {
     "error-monitoring": {
       "label": "Fehler & Absturzberichte",
-      "sublabel": "Die Änderungen werden nach dem Neustart von App und Dienst wirksam.",
+      "sublabel": "Die Änderungen werden nach dem Neustart von App und Daemon wirksam.",
       "desc": "Sende uns Informationen über Abstürze, damit wir Fehler schneller beheben können. Die Berichte laufen über das sichere System von Sentry und enthalten nur Daten zur technischen Fehlerbehebung.",
       "link": "Sentry-Datenschutzerklärung anzeigen"
     },
     "network-stats": {
       "label": "Anonyme Netzwerkstatistiken",
-      "sublabel": "Die Änderungen werden nach dem Neustart des Diensts wirksam.",
-      "desc": "Hilf uns, ein schnelleres Netzwerk aufzubauen, indem du anonyme Leistungsdaten aus deiner Region teilst. Wir nutzen diese, um die Geschwindigkeiten zu optimieren, Verbindungsabbrüche zu verringern und die Serverabdeckung gezielt zu verbessern. \n\nEs werden nur Netzwerkleistungsdaten geteilt – niemals dein Surfverhalten oder persönliche Daten.",
+      "sublabel": "Die Änderungen werden nach dem Neustart des Daemons wirksam.",
+      "desc": "Hilf uns, ein schnelleres Netzwerk aufzubauen, indem du anonyme Leistungsdaten aus deiner Region teilst. Wir nutzen diese, um die Geschwindigkeit zu optimieren, Verbindungsabbrüche zu verringern und die Serverabdeckung gezielt zu verbessern. \n\nEs werden nur Netzwerkleistungsdaten geteilt – niemals dein Surfverhalten oder persönliche Daten.",
       "link": "Erfahre genau, was geteilt wird"
     }
   },

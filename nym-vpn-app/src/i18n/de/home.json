@@ -45,8 +45,8 @@
   "update-dialog": {
     "title": "Aktualisierung erforderlich!",
     "description-1-app": "Deine App wird nicht mehr unterstützt.",
-    "description-1-daemon": "Dein Dienst wird nicht mehr unterstützt.",
-    "description-1-other": "Deine App und dein Dienst werden nicht mehr unterstützt.",
+    "description-1-daemon": "Dein Daemon wird nicht mehr unterstützt.",
+    "description-1-other": "Deine App und dein Daemon werden nicht mehr unterstützt.",
     "description-2": "Bitte aktualisiere auf die neueste Version, um NymVPN weiter nutzen zu können.",
     "button-update": "Update"
   },

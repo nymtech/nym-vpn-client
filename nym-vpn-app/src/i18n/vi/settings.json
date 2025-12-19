@@ -126,27 +126,36 @@
     "title": "Proxy ứng dụng & ví (phiên bản beta)",
     "menu-desc": "Định tuyến lưu lượng truy cập ứng dụng thông qua mixnet",
     "label": "Proxy ứng dụng và ví",
-    "description": "Bật proxy mixnet cho ứng dụng và ví",
-    "connect-vpn-first": "Kết nối VPN trước để bật proxy",
+    "switch-title": "Enable proxy",
+    "proxy-status": "Proxy status:",
+    "active-connections": "Active connections:",
+    "status": {
+      "connected": "Connected",
+      "disabled": "Disabled",
+      "enabling": "Enabling...",
+      "unknown": "Unknown"
+    },
+    "socks5": {
+      "proxy-title": "SOCKS5 configuration (for apps)",
+      "url-title": "SOCKS5 URL",
+      "listen-address": "SOCKS5 listen address",
+      "info": "ℹ️ Add this to your browser's proxy settings to route traffic through the Nym mixnet"
+    },
+    "http-rpc": {
+      "proxy-title": "HTTP RPC configuration (for wallets)",
+      "url-title": "HTTP RPC URL",
+      "listen-address": "HTTP RPC listen address",
+      "info": "ℹ️ Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint."
+    },
+    "invalid-port": "Invalid port number",
+    "listen-port": "Listen port",
+    "reset-to-default": "Reset to default",
     "intro": "Định tuyến lưu lượng ứng dụng và ví qua mixnet Nym để tăng cường quyền riêng tư. Tính năng này tạo proxy SOCKS5 cục bộ cho ứng dụng và proxy HTTP RPC cho ví.",
-    "status": "Trạng thái",
-    "proxy-url": "Proxy URL",
-    "active-connections": "Kết nối đang hoạt động",
-    "copied-to-clipboard": "Proxy URL đã được sao chép vào clipboard",
-    "snackbar-enabled": "Đã bật proxy SOCKS5",
-    "snackbar-disabled": "Đã tắt proxy SOCKS5",
     "error-gateway-not-supported": "Cổng không hỗ trợ SOCKS5",
     "error-unknown": "Không thể chuyển đổi proxy SOCKS5",
     "error-vpn-not-connected": "Vui lòng kết nối VPN trước khi bật proxy SOCKS5",
-    "socks5-address-label": "SOCKS5 Listen Address",
-    "socks5-address-placeholder": "127.0.0.1:1080",
-    "http-rpc-address-label": "HTTP RPC Listen Address",
-    "http-rpc-address-placeholder": "127.0.0.1:8545",
-    "configuration": "Cấu hình",
-    "enabling": "Đang bật proxy...",
-    "disabling": "Đang tắt proxy...",
-    "add-to-browser-proxy-settings": "Thêm URL này vào cài đặt proxy của trình duyệt để định tuyến lưu lượng truy cập qua Nym mixnet",
-    "use-in-wallet": "Sử dụng URL này trong MetaMask hoặc các ví Web3 khác để thực hiện lệnh gọi RPC thông qua mạng hỗn hợp Nym. Thay <your-provider-url> bằng URL nhà cung cấp thực tế của bạn."
+    "snackbar-enabled": "Proxy successfully enabled",
+    "snackbar-disabled": "Proxy successfully disabled"
   },
   "privacy": {
     "error-monitoring": {

@@ -126,27 +126,36 @@
     "title": "التطبيق والحافظة الوكيل (بيتا)",
     "menu-desc": "توجيه حركة مرور التطبيق من خلال ميكوست",
     "label": "تطبيق & محفظة الوكيل",
-    "description": "تمكين وكيل المزيج للتطبيقات والمحافظ",
-    "connect-vpn-first": "قم بتوصيل VPN أولاً لتمكين الوكيل",
+    "switch-title": "تمكين الوكيل",
+    "proxy-status": "حالة الوكيل:",
+    "active-connections": "اتصالات نشطة:",
+    "status": {
+      "connected": "متصل",
+      "disabled": "معطل",
+      "enabling": "تفعيل...",
+      "unknown": "غير معروف"
+    },
+    "socks5": {
+      "proxy-title": "إعدادات SOCKS5 (للتطبيقات)",
+      "url-title": "SOCKS5 URL",
+      "listen-address": "SOCKS5 عنوان الاستماع",
+      "info": "(ط) أضف هذا إلى إعدادات البروكسي في المتصفح الخاص بك لتوجيه حركة المرور من خلال Nym mixnet"
+    },
+    "http-rpc": {
+      "proxy-title": "تهيئة HTTP RPC (للمحفظات)",
+      "url-title": "رابط HTTP RPC",
+      "listen-address": "عنوان الاستماع لـ HTTP",
+      "info": "(ط) استخدم هذا في MetaMask أو غيرها من محافظ Web3 لإجراء مكالمات RPC من خلال Mym mixnet. استبدل <your-provider-url> بنقطة نهاية RPC الفعلية الخاصة بك."
+    },
+    "invalid-port": "رقم المنفذ غير صالح",
+    "listen-port": "منفذ الاستماع",
+    "reset-to-default": "إعادة التعيين إلى الافتراضي",
     "intro": "توجيه حركة مرور التطبيق والمحفظة من خلال شبكة Nym mixnet لتحسين الخصوصية. هذه الميزة تنشئ وكيل SOCKS5 للتطبيقات، ووكيل HTTP RPC للمحفظات.",
-    "status": "الحالة",
-    "proxy-url": "رابط البروكسي",
-    "active-connections": "اتصالات نشطة",
-    "copied-to-clipboard": "تم نسخ عنوان URL الوكيل إلى الحافظة",
-    "snackbar-enabled": "تم تمكين وكيل SOCKS5",
-    "snackbar-disabled": "تم تعطيل وكيل SOCKS5",
     "error-gateway-not-supported": "البوابة لا تدعم SOCKS5",
     "error-unknown": "فشل تبديل وكيل SOCKS5",
     "error-vpn-not-connected": "الرجاء الاتصال VPN أولاً قبل تمكين وكيل SOCKS5",
-    "socks5-address-label": "عنوان الاستماع SOCKS5",
-    "socks5-address-placeholder": "127.0.0.1:1080",
-    "http-rpc-address-label": "عنوان الاستماع لـ HTTP RPC",
-    "http-rpc-address-placeholder": "127.0.0.1:8545",
-    "configuration": "الإعدادات",
-    "enabling": "تمكين الوكيل...",
-    "disabling": "تعطيل البروكسي...",
-    "add-to-browser-proxy-settings": "أضف عنوان URL هذا إلى إعدادات البروكسي في المتصفح الخاص بك لتوجيه حركة المرور من خلال Nym mixnet",
-    "use-in-wallet": "استخدم عنوان URL هذا في MetaMask أو محافظ Web3 الأخرى لإجراء مكالمات RPC من خلال Mym mixnet. استبدل <your-provider-url> بعنوان URL الخاص بك المزود الفعلي."
+    "snackbar-enabled": "تم تمكين البروكسي بنجاح",
+    "snackbar-disabled": "تم تعطيل الوكيل بنجاح"
   },
   "privacy": {
     "error-monitoring": {
