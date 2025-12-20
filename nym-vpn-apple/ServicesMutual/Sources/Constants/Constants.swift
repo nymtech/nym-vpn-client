@@ -20,6 +20,7 @@ public enum Constants: String {
     case sentryPrivacyURL = "https://sentry.io/privacy/"
     case sentryURL = "https://sentry.io"
     case quicURL = "https://support.nym.com/hc/en-us/articles/39648047741457-QUIC-transport-mode"
+    case amneziaWGURL = "https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard"
     case stealhApiConnectURL = "https://support.nym.com/hc/en-us/articles/39652289741329-Stealth-API-connect"
     case ipInfoURL = "https://ipinfo.io/"
     case explorerURL = "https://nym.com/explorer/nym-node/"

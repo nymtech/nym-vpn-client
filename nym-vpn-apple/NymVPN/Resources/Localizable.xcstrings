@@ -3528,6 +3528,50 @@
         }
       }
     },
+    "censorship.amneziawg.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How AmneziaWG prevents DPI"
+          }
+        }
+      }
+    },
+    "censorship.amneziawg.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments."
+          }
+        }
+      }
+    },
+    "censorship.amneziawg.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note: Only implemented client-side."
+          }
+        }
+      }
+    },
+    "censorship.amneziawg.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimal obfuscation (AmneziaWG)"
+          }
+        }
+      }
+    },
     "censorship.quic.disable.alert.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4442,37 +4486,37 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "تحسين موثوقية النمط السريع في الشبكات التقييدية عن طريق تغليف حركة WireGuard في QUIC (HTTP/3) للظهور كتصفح منتظم على شبكة الإنترنت."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken durch das Einwickeln des WireGuard-Datenverkehrs in QUIC (HTTP/3) um als reguläres Surfen im Internet zu erscheinen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing."
+            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3). Traffic will appear as regular web browsing, defeating Deep Packet Inspection (DPI) censorship systems."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Mejora la fiabilidad del modo Rápido en redes restrictivas envolviendo el tráfico de Wirex en QUIC (HTTP/3) para que aparezca como navegación normal por la web."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "قابلیت اطمینان حالت سریع (Fast Mode) را در شبکه‌های محدود بهبود می‌بخشد؛ با پوشاندن ترافیک WireGuard در پروتکل QUIC ‏(HTTP/3) تا شبیه ترافیک معمول در وب گردی به‌نظر برسد."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Améliore la fiabilité du mode rapide dans les réseaux restrictifs en enveloppant le trafic WireGuard dans QUIC (HTTP/3) pour qu'il apparaisse comme une navigation Web ordinaire."
           }
         },
@@ -4484,55 +4528,55 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Migliora l'affidabilità della modalità veloce nelle reti restrittive avvolgendo il traffico WireGuard in QUIC (HTTP/3) per apparire come normale navigazione web."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "WireGuard トラフィックを QUIC (HTTP/3) でラップすることで、制限的なネットワークにおける高速モードの信頼性を向上させ、通常の Web ブラウジングとして表示させます。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Melhora a confiabilidade do modo rápido em redes restritivas envolvendo o tráfego do WireGuard na QUIC (HTTP/3) para aparecer como navegação na web regular."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Melhora a confiabilidade do modo rápido em redes restritivas envolvendo o tráfego do WireGuard na QUIC (HTTP/3) para aparecer como navegação na web regular."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Повышает надёжность Быстрого режима в сетях с ограниченным доступом, оборачивая трафик WireGuard в QUIC (HTTP/3), чтобы он выглядел как обычный веб-сёрфинг."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Kısıtlı ağlarda Hızlı Modun güvenilirliğini artırır; WireGuard trafiğini QUIC (HTTP/3) ile sararak normal web gezintisi gibi görünmesini sağlar."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Покращує надійність швидкого режиму в обмежених мережах, обертаючи трафік WireGuard в QUIC (HTTP/3), щоб він виглядав як звичайний веб-перегляд."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Cải thiện độ tin cậy của chế độ Nhanh trong các mạng bị hạn chế bằng cách đóng gói lưu lượng WireGuard trong QUIC (HTTP/3) để trông giống như duyệt web thông thường."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "使用 QUIC (HTTP/3) 包装无线保真流量以作为常规浏览器来提高限制性网络中的快速模式可靠性。"
           }
         }
@@ -5039,6 +5083,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隐身API连接"
+          }
+        }
+      }
+    },
+    "censorship.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking."
           }
         }
       }

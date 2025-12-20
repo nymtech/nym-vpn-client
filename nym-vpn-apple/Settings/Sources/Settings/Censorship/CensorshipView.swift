@@ -19,10 +19,16 @@ public struct CensorshipView: View {
             Spacer()
                 .frame(height: 24)
             VStack(spacing: 0) {
-                quicSection()
-                Spacer()
-                    .frame(height: 24)
-                stealhApiSection()
+                ScrollView {
+                    subtitleSection()
+                    VStack(spacing: 0) {
+                        quicSection()
+                        amneziaWGSection()
+                    }
+                    Spacer()
+                        .frame(height: 24)
+                    stealthApiSection()
+                }
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
             .padding(.horizontal, 16)
@@ -54,6 +60,13 @@ private extension CensorshipView {
         )
     }
 
+    func subtitleSection() -> some View {
+        Text("censorship.subtitle".localizedString)
+            .textStyle(.Body.Medium.regular)
+            .foregroundStyle(NymColor.gray1)
+            .padding(.bottom, 12)
+    }
+
     // MARK: - QUIC -
     func quicSection() -> some View {
         SettingsListItem(
@@ -63,7 +76,7 @@ private extension CensorshipView {
                         isOn: $appSettings.isQuicEnabled,
                         controlInAlert: true,
                         isDisplayingAlert: $isConfirmationDisplayed,
-                        action: { isOn in
+                        action: { _ in
                             guard connectionManager.currentTunnelStatus == .connected ||
                                     connectionManager.currentTunnelStatus == .connecting
                             else {
@@ -76,7 +89,7 @@ private extension CensorshipView {
                 ),
                 title: "censorship.quic.title".localizedString,
                 multilineText: quicMultilineText(),
-                position: .init(isFirst: true, isLast: true),
+                position: .init(isFirst: true, isLast: false),
                 action: {}
             )
         )
@@ -104,8 +117,48 @@ private extension CensorshipView {
         return text
     }
 
-    // MARK: - Stealh API -
-    func stealhApiSection() -> some View {
+    // MARK: - AmneziaWG
+    func amneziaWGSection() -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .toggle(
+                    viewModel: ToggleViewModel(
+                        isOn: .constant(true),
+                        isDisabled: true
+                    )
+                ),
+                title: "censorship.amneziawg.title".localizedString,
+                multilineText: amneziaWGMultilineText(),
+                position: .init(isFirst: false, isLast: true),
+                action: {}
+            )
+        )
+    }
+
+    func amneziaWGMultilineText() -> AttributedString? {
+        let first = "censorship.amneziawg.subtitle1".localizedString
+        let second = "censorship.amneziawg.subtitle2".localizedString
+        let link = Constants.amneziaWGURL.rawValue
+        let linkText = "censorship.amneziawg.link".localizedString
+        let markdown = """
+\(first)
+
+\(second)
+
+[\(linkText)](\(link))
+"""
+
+        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
+        if let range = text.range(of: linkText) {
+            text[range].underlineStyle = .single
+            text[range].foregroundColor = NymColor.primary
+        }
+        return text
+    }
+
+    // MARK: - Stealth API -
+    func stealthApiSection() -> some View {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
@@ -115,14 +168,14 @@ private extension CensorshipView {
                     )
                 ),
                 title: "censorship.stealhapi.title".localizedString,
-                multilineText: stealhApiMultilineText(),
+                multilineText: stealthApiMultilineText(),
                 position: .init(isFirst: true, isLast: true),
                 action: {}
             )
         )
     }
 
-    func stealhApiMultilineText() -> AttributedString? {
+    func stealthApiMultilineText() -> AttributedString? {
         let first = "censorship.stealhapi.subtitle1".localizedString
         // TODO: update link
         let link = Constants.stealhApiConnectURL.rawValue
