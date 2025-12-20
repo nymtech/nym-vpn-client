@@ -333,7 +333,11 @@ extension HomeViewModel {
                 hasInternet: networkMonitor.isAvailable,
                 subscriptionDidExpire: isLastErrorSubscriptionExpired()
             )
+            #if os(iOS)
             connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
+            #elseif os(macOS)
+            updateConnectButtonStateIfMnemonicImported()
+            #endif
 
             if let lastError {
                 statusInfoState = .error(message: lastError.localizedDescription)
@@ -351,13 +355,6 @@ extension HomeViewModel {
             }
 
             displayEnableStatisticsSnackBarCTAIfNeeded()
-        }
-    }
-
-    func updateConnectButtonState(with newState: ConnectButtonState) {
-        Task { @MainActor in
-            guard newState != connectButtonState else { return }
-            connectButtonState = newState
         }
     }
 }
