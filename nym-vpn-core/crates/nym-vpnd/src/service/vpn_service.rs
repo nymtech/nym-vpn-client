@@ -67,7 +67,7 @@ pub enum VpnServiceCommand {
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
-    SetMixnetTrafficConfig(oneshot::Sender<()>, MixnetTrafficConfig),
+    SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -778,9 +778,10 @@ impl NymVpnService {
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetMixnetTrafficConfig(tx, mixnet_traffic_config) => {
-                self.handle_set_mixnet_traffic_config(mixnet_traffic_config)
+                let res = self
+                    .handle_set_mixnet_traffic_config(mixnet_traffic_config)
                     .await;
-                let _ = tx.send(());
+                let _ = tx.send(res);
             }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
@@ -1011,11 +1012,17 @@ impl NymVpnService {
     async fn handle_set_mixnet_traffic_config(
         &mut self,
         mixnet_traffic_config: MixnetTrafficConfig,
-    ) {
-        self.config_manager
+    ) -> Result<(), String> {
+        let res = self
+            .config_manager
             .set_mixnet_traffic_config(mixnet_traffic_config)
             .await;
-        self.update_tunnel_settings_with_throttle();
+
+        if res.is_ok() {
+            self.update_tunnel_settings_with_throttle();
+        }
+
+        res
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
