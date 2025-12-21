@@ -25,6 +25,10 @@ use std::{
 };
 use tokio::{fs, sync::broadcast};
 
+const LOOP_COVER_DELAY_RANGE: std::ops::RangeInclusive<u32> = 0..=200;
+const AVG_PACKET_DELAY_RANGE: std::ops::RangeInclusive<u32> = 0..=200;
+const MESSAGE_SENDING_DELAY_RANGE: std::ops::RangeInclusive<u32> = 5..=50;
+
 pub struct VpnServiceConfigManager {
     json_config_path: PathBuf,
     config: nym_vpn_lib_types::VpnServiceConfig,
@@ -173,14 +177,56 @@ impl VpnServiceConfigManager {
         }
     }
 
+    fn validate_mixnet_traffic_config(
+        &self,
+        cfg: &nym_vpn_lib_types::MixnetTrafficConfig,
+    ) -> Result<(), String> {
+        if let Some(v) = cfg.poisson_parameter_for_loop_cover_stream {
+            if !LOOP_COVER_DELAY_RANGE.contains(&v) {
+                return Err(format!(
+                    "poisson_parameter_for_loop_cover_stream must be between {} and {} ms (got {})",
+                    LOOP_COVER_DELAY_RANGE.start(),
+                    LOOP_COVER_DELAY_RANGE.end(),
+                    v
+                ));
+            }
+        }
+
+        if let Some(v) = cfg.average_packet_delay {
+            if !AVG_PACKET_DELAY_RANGE.contains(&v) {
+                return Err(format!(
+                    "average_packet_delay must be between {} and {} ms (got {})",
+                    AVG_PACKET_DELAY_RANGE.start(),
+                    AVG_PACKET_DELAY_RANGE.end(),
+                    v
+                ));
+            }
+        }
+
+        if let Some(v) = cfg.message_sending_average_delay {
+            if !MESSAGE_SENDING_DELAY_RANGE.contains(&v) {
+                return Err(format!(
+                    "message_sending_average_delay must be between {} and {} ms (got {})",
+                    MESSAGE_SENDING_DELAY_RANGE.start(),
+                    MESSAGE_SENDING_DELAY_RANGE.end(),
+                    v
+                ));
+            }
+        }
+
+        Ok(())
+    }
+
     pub async fn set_mixnet_traffic_config(
         &mut self,
         mixnet_traffic: nym_vpn_lib_types::MixnetTrafficConfig,
-    ) {
+    ) -> Result<(), String> {
+        self.validate_mixnet_traffic_config(&mixnet_traffic)?;
         if self.config.mixnet_traffic != mixnet_traffic {
             self.config.mixnet_traffic = mixnet_traffic;
             self.save_config_and_send_event().await;
         }
+        Ok(())
     }
 
     #[allow(unused)]

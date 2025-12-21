@@ -39,46 +39,32 @@ pub struct SetParams {
 
     /// Set the average delay for a loop cover packet (milliseconds)
     #[arg(
-        long,
-        value_name = "MILLISECONDS",
-        value_parser = ValueParser::from(|s: &str| -> Result<u32, String> {
-            let val: u32 = s.parse().map_err(|_| format!("Invalid integer: {}", s))?;
-            if !(0..=200).contains(&val) {
-                return Err(format!("Value must be between 0 and 200 (got {val})"));
-            }
-            Ok(val)
-        })
-    )]
+    long,
+    value_name = "MILLISECONDS",
+    value_parser = ValueParser::from(|s: &str| -> Result<u32, String> {
+        s.parse().map_err(|_| format!("Invalid integer: {}", s))
+    })
+)]
     loop_cover_stream_average_delay: Option<u32>,
 
     /// Set average packet delay at each mixnode (milliseconds)
     #[arg(
-        long,
-        value_name = "MILLISECONDS",
-        value_parser = ValueParser::from(|s: &str| -> Result<u32, String> {
-            let val: u32 = s.parse().map_err(|_| format!("Invalid integer: {}", s))?;
-            if !(0..=200).contains(&val) {
-                return Err(format!("Packet delay must be between 0 and 200 (got {val})"));
-            }
-            Ok(val)
-        })
-    )]
+    long,
+    value_name = "MILLISECONDS",
+    value_parser = ValueParser::from(|s: &str| -> Result<u32, String> {
+        s.parse().map_err(|_| format!("Invalid integer: {}", s))
+    })
+)]
     average_packet_delay: Option<u32>,
 
     /// Set average real message sending delay (milliseconds)
     #[arg(
-        long,
-        value_name = "MILLISECONDS",
-        value_parser = ValueParser::from(|s: &str| -> Result<u32, String> {
-            let val: u32 = s.parse().map_err(|_| format!("Invalid integer: {}", s))?;
-            if !(5..=50).contains(&val) {
-                return Err(format!(
-                    "Message sending delay must be between 5 and 50 (got {val})"
-                ));
-            }
-            Ok(val)
-        })
-    )]
+    long,
+    value_name = "MILLISECONDS",
+    value_parser = ValueParser::from(|s: &str| -> Result<u32, String> {
+        s.parse().map_err(|_| format!("Invalid integer: {}", s))
+    })
+)]
     message_sending_delay: Option<u32>,
     #[arg(
         long,

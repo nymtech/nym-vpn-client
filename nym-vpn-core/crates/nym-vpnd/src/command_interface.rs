@@ -235,15 +235,28 @@ impl NymVpnService for CommandInterface {
         let mixnet_traffic_config: nym_vpn_lib_types::MixnetTrafficConfig =
             request.into_inner().into();
 
-        let _ = self
+        let result = self
             .send_and_wait(
                 VpnServiceCommand::SetMixnetTrafficConfig,
                 mixnet_traffic_config,
             )
             .await
-            .map_err(|e| Status::internal(format!("Failed to set mixnet traffic config: {e}")))?;
+            .map_err(|e| {
+                tracing::error!("[set_mixnet_traffic_config] transport error: {e}");
+                Status::internal(format!("[set_mixnet_traffic_config] transport error: {e}"))
+            })?;
 
-        Ok(tonic::Response::new(()))
+        if let Err(err) = &result {
+            tracing::warn!("[set_mixnet_traffic_config] validation error: {err}");
+        }
+
+        result.map_err(|err| {
+            Status::invalid_argument(format!(
+                "[set_mixnet_traffic_config] validation failed: {err}"
+            ))
+        })?;
+
+        Ok(Response::new(()))
     }
 
     async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
