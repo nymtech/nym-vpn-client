@@ -1,7 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::ops::RangeInclusive;
 use std::{fmt, net::IpAddr};
+
+const LOOP_COVER_DELAY_RANGE: RangeInclusive<u32> = 0..=200;
+const AVG_PACKET_DELAY_RANGE: RangeInclusive<u32> = 0..=200;
+const MESSAGE_SENDING_DELAY_RANGE: RangeInclusive<u32> = 5..=50;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -147,6 +152,45 @@ impl fmt::Display for MixnetTrafficConfig {
             "min_mixnode_performance: {:?}, min_gateway_mixnet_performance: {:?}",
             self.min_mixnode_performance, self.min_gateway_mixnet_performance
         )?;
+        Ok(())
+    }
+}
+
+impl MixnetTrafficConfig {
+    pub fn validate(&self) -> Result<(), String> {
+        if let Some(v) = self.poisson_parameter_for_loop_cover_stream
+            && !LOOP_COVER_DELAY_RANGE.contains(&v)
+        {
+            return Err(format!(
+                "poisson_parameter_for_loop_cover_stream must be between {} and {} ms (got {})",
+                LOOP_COVER_DELAY_RANGE.start(),
+                LOOP_COVER_DELAY_RANGE.end(),
+                v
+            ));
+        }
+
+        if let Some(v) = self.average_packet_delay
+            && !AVG_PACKET_DELAY_RANGE.contains(&v)
+        {
+            return Err(format!(
+                "average_packet_delay must be between {} and {} ms (got {})",
+                AVG_PACKET_DELAY_RANGE.start(),
+                AVG_PACKET_DELAY_RANGE.end(),
+                v
+            ));
+        }
+
+        if let Some(v) = self.message_sending_average_delay
+            && !MESSAGE_SENDING_DELAY_RANGE.contains(&v)
+        {
+            return Err(format!(
+                "message_sending_average_delay must be between {} and {} ms (got {})",
+                MESSAGE_SENDING_DELAY_RANGE.start(),
+                MESSAGE_SENDING_DELAY_RANGE.end(),
+                v
+            ));
+        }
+
         Ok(())
     }
 }

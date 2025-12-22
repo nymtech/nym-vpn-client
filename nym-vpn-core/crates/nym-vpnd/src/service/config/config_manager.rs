@@ -25,10 +25,6 @@ use std::{
 };
 use tokio::{fs, sync::broadcast};
 
-const LOOP_COVER_DELAY_RANGE: std::ops::RangeInclusive<u32> = 0..=200;
-const AVG_PACKET_DELAY_RANGE: std::ops::RangeInclusive<u32> = 0..=200;
-const MESSAGE_SENDING_DELAY_RANGE: std::ops::RangeInclusive<u32> = 5..=50;
-
 pub struct VpnServiceConfigManager {
     json_config_path: PathBuf,
     config: nym_vpn_lib_types::VpnServiceConfig,
@@ -177,51 +173,11 @@ impl VpnServiceConfigManager {
         }
     }
 
-    fn validate_mixnet_traffic_config(
-        &self,
-        cfg: &nym_vpn_lib_types::MixnetTrafficConfig,
-    ) -> Result<(), String> {
-        if let Some(v) = cfg.poisson_parameter_for_loop_cover_stream {
-            if !LOOP_COVER_DELAY_RANGE.contains(&v) {
-                return Err(format!(
-                    "poisson_parameter_for_loop_cover_stream must be between {} and {} ms (got {})",
-                    LOOP_COVER_DELAY_RANGE.start(),
-                    LOOP_COVER_DELAY_RANGE.end(),
-                    v
-                ));
-            }
-        }
-
-        if let Some(v) = cfg.average_packet_delay {
-            if !AVG_PACKET_DELAY_RANGE.contains(&v) {
-                return Err(format!(
-                    "average_packet_delay must be between {} and {} ms (got {})",
-                    AVG_PACKET_DELAY_RANGE.start(),
-                    AVG_PACKET_DELAY_RANGE.end(),
-                    v
-                ));
-            }
-        }
-
-        if let Some(v) = cfg.message_sending_average_delay {
-            if !MESSAGE_SENDING_DELAY_RANGE.contains(&v) {
-                return Err(format!(
-                    "message_sending_average_delay must be between {} and {} ms (got {})",
-                    MESSAGE_SENDING_DELAY_RANGE.start(),
-                    MESSAGE_SENDING_DELAY_RANGE.end(),
-                    v
-                ));
-            }
-        }
-
-        Ok(())
-    }
-
     pub async fn set_mixnet_traffic_config(
         &mut self,
         mixnet_traffic: nym_vpn_lib_types::MixnetTrafficConfig,
     ) -> Result<(), String> {
-        self.validate_mixnet_traffic_config(&mixnet_traffic)?;
+        mixnet_traffic.validate()?;
         if self.config.mixnet_traffic != mixnet_traffic {
             self.config.mixnet_traffic = mixnet_traffic;
             self.save_config_and_send_event().await;
@@ -358,8 +314,6 @@ impl VpnServiceConfigManager {
             vpn_min_performance: self.config.min_gateway_vpn_performance,
         };
 
-        let to_duration_ms = |v: Option<u32>| v.map(|ms| Duration::from_millis(ms as u64));
-
         let mixnet_client_config = MixnetClientConfig {
             disable_real_traffic_poisson_process: self.config.mixnet_traffic.disable_poisson_rate,
             disable_background_cover_traffic: self
@@ -378,15 +332,23 @@ impl VpnServiceConfigManager {
                     .min_gateway_mixnet_performance
                     .unwrap_or(DEFAULT_MIN_GATEWAY_PERFORMANCE),
             ),
-            loop_cover_traffic_average_delay: to_duration_ms(
-                self.config
-                    .mixnet_traffic
-                    .poisson_parameter_for_loop_cover_stream,
-            ),
-            average_packet_delay: to_duration_ms(self.config.mixnet_traffic.average_packet_delay),
-            message_sending_average_delay: to_duration_ms(
-                self.config.mixnet_traffic.message_sending_average_delay,
-            ),
+            loop_cover_traffic_average_delay: self
+                .config
+                .mixnet_traffic
+                .poisson_parameter_for_loop_cover_stream
+                .map(|ms| Duration::from_millis(ms.into())),
+
+            average_packet_delay: self
+                .config
+                .mixnet_traffic
+                .average_packet_delay
+                .map(|ms| Duration::from_millis(ms.into())),
+
+            message_sending_average_delay: self
+                .config
+                .mixnet_traffic
+                .message_sending_average_delay
+                .map(|ms| Duration::from_millis(ms.into())),
         };
 
         let tunnel_type = if self.config.enable_two_hop {
