@@ -1,0 +1,162 @@
+import { invoke } from '@tauri-apps/api/core';
+import clsx from 'clsx';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
+import { useNavigate } from 'react-router';
+import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
+import { useI18nError } from '../../hooks';
+import { routes } from '../../router';
+import { BackendError, StateDispatch } from '../../types';
+import { Button, Link, PageAnim, TextArea } from '../../ui';
+import { CCache } from '../../cache';
+import { NymVpnPricingUrl } from '../../constants';
+
+type AddError = {
+  error: string;
+  details?: string;
+};
+
+function OGLogin() {
+  const [phrase, setPhrase] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<AddError | null>(null);
+
+  const { daemonStatus, state } = useMainState();
+
+  const { push } = useInAppNotify();
+  const navigate = useNavigate();
+  const { t } = useTranslation('addCredential');
+  const { tE } = useI18nError();
+  const dispatch = useMainDispatch() as StateDispatch;
+
+  const onChange = (phrase: string) => {
+    setPhrase(phrase);
+    if (phrase.length === 0) {
+      setError(null);
+    }
+  };
+
+  const handleClick = async () => {
+    if (phrase.length === 0 || loading) {
+      return;
+    }
+    // kinda overkill but who knows?
+    if (state !== 'disconnected') {
+      console.warn(`cannot login while tunnel state is ${state}`);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.info('logging in');
+      await invoke<number | null>('add_account', { mnemonic: phrase.trim() });
+      navigate(routes.root);
+      dispatch({ type: 'set-account', stored: true });
+      push({
+        message: t('added-notification'),
+        close: true,
+      });
+      await CCache.del('cache-account-id');
+      await CCache.del('cache-device-id');
+      dispatch({ type: 'reset-error' });
+    } catch (e: unknown) {
+      const eT = e as BackendError;
+      setError({
+        error: tE(eT.key),
+        details: eT.data?.reason,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <PageAnim
+      className="h-full flex flex-col justify-end items-center gap-6 select-none cursor-default"
+      data-testid="login-page"
+    >
+      <div className="grow w-full" />
+      <div className="flex flex-col items-center gap-4 px-4">
+        <h1
+          className="text-2xl dark:text-white"
+          data-testid="login-welcome-text"
+        >
+          {t('welcome')}
+        </h1>
+        <h2
+          className="text-center text-iron dark:text-bombay w-11/12"
+          data-testid="login-description"
+        >
+          {t('description')}
+        </h2>
+      </div>
+      <div className="w-full grow flex flex-col justify-end gap-3">
+        <div className="w-full">
+          <TextArea
+            value={phrase}
+            onChange={onChange}
+            spellCheck={false}
+            resize="none"
+            rows={6}
+            label={t('input-label')}
+            placeholder={t('input-placeholder')}
+            className="sentry-ignore"
+            data-testid="login-mnemonic-input"
+          />
+          {error ? (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.15, ease: 'easeInOut' }}
+              className={clsx([
+                'text-aphrodisiac overflow-y-scroll max-h-16 mt-3 mb-3 break-words',
+                'select-text',
+              ])}
+              data-testid="login-error-message"
+            >
+              {error.error}
+              {error.details && `: ${error.details}`}
+            </motion.div>
+          ) : (
+            <div className="h-4"></div>
+          )}
+        </div>
+        <div className="w-full flex flex-col justify-center items-center gap-6 mb-2">
+          <Button
+            onClick={handleClick}
+            disabled={daemonStatus === 'down' || state !== 'disconnected'}
+            className={clsx(
+              'h-14',
+              daemonStatus === 'down' &&
+                'opacity-50 disabled:opacity-50 hover:opacity-50',
+            )}
+            spinner={loading}
+            data-testid="login-submit-button"
+          >
+            {t('login-button')}
+          </Button>
+          <div
+            className="flex flex-row justify-center items-center gap-2"
+            data-testid="login-create-account-section"
+          >
+            <span
+              className="dark:text-white truncate"
+              data-testid="login-create-account-text"
+            >
+              {t('create-account.text')}
+            </span>
+            <Link
+              text={t('create-account.link')}
+              url={NymVpnPricingUrl}
+              icon
+              data-testid="login-create-account-link"
+            />
+          </div>
+        </div>
+      </div>
+    </PageAnim>
+  );
+}
+
+export default OGLogin;

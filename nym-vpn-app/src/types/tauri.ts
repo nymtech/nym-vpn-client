@@ -95,6 +95,7 @@ export type ErrorKey =
   | 'exit-gw-routing-error-ipv6'
   | 'mixnet-no-bandwidth'
   | 'account-invalid-mnemonic'
+  | 'account-invalid-secret'
   | 'no-account-stored'
   | 'no-device-stored'
   | 'existing-account'
@@ -111,6 +112,7 @@ export type FeatureFlags = {
   quic: boolean;
   domainFronting: boolean;
   zknymCredential: boolean;
+  privy: boolean;
 };
 
 export type Gateway = {
@@ -144,7 +146,7 @@ export type GpuType = 'nvidia' | 'amd' | 'intel' | { unknown: string | null };
 
 export type Hop = 'entry' | 'exit';
 
-export type HttpRpcSettings = { listenAddress: string };
+export type HttpRpcSettings = { listenAddress: string | null };
 
 export type JsEnv = {
   devMode: boolean;
@@ -230,7 +232,7 @@ export type SelectedNode =
   | { region: string }
   | 'random';
 
-export type Socks5Settings = { listenAddress: string };
+export type Socks5Settings = { listenAddress: string | null };
 
 export type Socks5State = 'disabled' | 'idle' | 'connected' | 'error';
 
