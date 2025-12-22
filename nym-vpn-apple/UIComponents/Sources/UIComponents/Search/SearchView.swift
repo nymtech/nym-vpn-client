@@ -19,7 +19,6 @@ public struct SearchView: View {
     public var body: some View {
         StrokeBorderView(
             strokeTitle: strokeTitle,
-            strokeTitleLeftMargin: 40,
             isHovered: $isHovered
         ) {
             HStack {

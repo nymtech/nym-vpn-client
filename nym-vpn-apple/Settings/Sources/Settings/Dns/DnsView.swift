@@ -318,7 +318,6 @@ private extension DnsView {
     func dnsTextField() -> some View {
         StrokeBorderView(
             strokeTitle: "dns.textfield.title".localizedString,
-            strokeTitleLeftMargin: 60,
             isHovered: $isCustomDnsTextFieldHovered,
             strokeColor: viewModel.customDnsValidationError != nil
                 && !isCustomDnsTextFieldFocused

@@ -118,7 +118,6 @@ public struct HopButton: View {
     public var body: some View {
         StrokeBorderView(
             strokeTitle: hopType.hopLocalizedTitle,
-            strokeTitleLeftMargin: 30,
             isHovered: $isButtonHovered
         ) {
             HStack(spacing: 0) {

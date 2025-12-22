@@ -4,7 +4,6 @@ import Theme
 public struct StrokeBorderView<Content: View>: View {
     @ViewBuilder private let content: Content
     private let strokeTitle: String
-    private let strokeTitleLeftMargin: CGFloat
     private let strokeColor: Color
     private let backgroundColor: Color
     private let backgrounsColorHover: Color
@@ -13,7 +12,6 @@ public struct StrokeBorderView<Content: View>: View {
 
     public init(
         strokeTitle: String,
-        strokeTitleLeftMargin: CGFloat,
         isHovered: Binding<Bool>,
         strokeColor: Color = NymColor.gray2,
         backgroundColor: Color = NymColor.background,
@@ -21,7 +19,6 @@ public struct StrokeBorderView<Content: View>: View {
         @ViewBuilder content: () -> Content
     ) {
         self.strokeTitle = strokeTitle
-        self.strokeTitleLeftMargin = strokeTitleLeftMargin
         self.strokeColor = strokeColor
         self.backgroundColor = backgroundColor
         self.backgrounsColorHover = backgroundColorHover
@@ -42,17 +39,21 @@ public struct StrokeBorderView<Content: View>: View {
                 .stroke(strokeColor.opacity(isHovered ? 0.7 : 1), lineWidth: 1)
         }
         .overlay(alignment: .topLeading) {
-            Text(strokeTitle)
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Small.regular)
-                .padding(.horizontal, 4)
-                .background(
-                    Rectangle()
-                        .fill(backgroundColor)
-                        .frame(height: 2)
-                )
-                .position(x: strokeTitleLeftMargin, y: 1)
-                .accessibilityHidden(true)
+            HStack {
+                Text(strokeTitle)
+                    .foregroundStyle(NymColor.primary)
+                    .textStyle(.Body.Small.regular)
+                    .padding(.horizontal, 4)
+                    .background(
+                        Rectangle()
+                            .fill(backgroundColor)
+                            .frame(height: 2)
+                    )
+                    .offset(x: 8, y: -7)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityHidden(true)
         }
     }
 }
