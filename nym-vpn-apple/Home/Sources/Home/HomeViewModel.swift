@@ -233,11 +233,11 @@ private extension HomeViewModel {
         setupUpdateRequiredObserver()
         setupGatewayManagerObserver()
         setupSystemMessageObservers()
+        setupIsMnemonicImportedObserver()
 
 #if os(iOS)
         setupConnectionErrorObservers()
         setupNetworkMonitorObservers()
-        setupIsMnemonicImportedObserver()
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
@@ -304,6 +304,18 @@ private extension HomeViewModel {
         }
         .store(in: &cancellables)
     }
+    
+    func setupIsMnemonicImportedObserver() {
+        appSettings.$isCredentialImportedPublisher
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.updateConnectButtonStateIfMnemonicImported()
+                }
+            }
+            .store(in: &cancellables)
+    }
 }
 
 extension HomeViewModel {
@@ -333,11 +345,7 @@ extension HomeViewModel {
                 hasInternet: networkMonitor.isAvailable,
                 subscriptionDidExpire: isLastErrorSubscriptionExpired()
             )
-            #if os(iOS)
             connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
-            #elseif os(macOS)
-            updateConnectButtonStateIfMnemonicImported()
-            #endif
 
             if let lastError {
                 statusInfoState = .error(message: lastError.localizedDescription)

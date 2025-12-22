@@ -28,18 +28,6 @@ extension HomeViewModel {
             .store(in: &cancellables)
     }
 
-    func setupIsMnemonicImportedObserver() {
-        appSettings.$isCredentialImportedPublisher
-            .removeDuplicates()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                MainActor.assumeIsolated {
-                    self?.updateConnectButtonStateIfMnemonicImported()
-                }
-            }
-            .store(in: &cancellables)
-    }
-
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
         tunnelStatusUpdateCancellable = tunnel.$status
             .removeDuplicates()
