@@ -3539,92 +3539,92 @@
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Dies wird dich wieder verbinden, ohne dass das QUIC-Protokoll aktiviert ist. Du wirst \ndeine aktuellen Gateways behalten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current servers."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
+            "state" : "translated",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current servers."
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "این گزینه، شما را بدون فعال بودن پروتکل QUIC دوباره متصل می‌کند.\nدر این حالت، درگاه‌های فعلی (gateways) شما حفظ خواهند شد."
+            "value" : "این گزینه، شما را بدون فعال بودن پروتکل QUIC دوباره متصل می‌کند.\nدر این حالت، درگاه‌های فعلی (servers) شما حفظ خواهند شد."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Cela vous reconnectera sans le protocole QUIC activé. Vous conserverez vos passerelles actuelles."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "For changes to take effect, you need to reconnect."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Questo ti ricollegherà senza il protocollo QUIC abilitato. \nmanterrà i tuoi gateway correnti."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
+            "state" : "translated",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current servers."
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
+            "state" : "translated",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current servers."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Isso irá reconectá-lo sem o protocolo QUIC habilitado. Você manterá \nseus gateways atuais."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Это переподключит вас без включенного протокола QUIC. Вы \nсохраните свои текущие шлюзы."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
+            "state" : "translated",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current servers."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Це дозволить вам знову підключитися без увімкненого протоколу QUIC. Ви \nзбережете свої поточні шлюзи."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Thao tác này sẽ kết nối lại mà không bật giao thức QUIC. Bạn sẽ giữ nguyên các cổng hiện tại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current gateways."
+            "state" : "translated",
+            "value" : "This will reconnect you without QUIC protocol enabled. You will \nkeep your current servers."
           }
         }
       }
@@ -4543,37 +4543,37 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "ملاحظة: الحد من خيارات خادم الدخول إلى البوابات المتوافقة مع QUIC-فقط."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Hinweis: Nur QUIC-kompatible Gateways für Eintragsserver Optionen einschränken."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Note: Limits entry server options to QUIC-compatible gateways only."
+            "value" : "Note: Limits entry server options to QUIC-compatible servers only."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Nota: Limita las opciones del servidor de entradas a las pasarelas compatibles con QUIC."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "توجه: گزینه‌های سرور ورودی را به گِیت‌وی‌هایی که با QUIC سازگار هستند محدود می‌کند."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Note : Limite les options du serveur d'entrée aux passerelles compatibles QUIC."
           }
         },
@@ -4585,55 +4585,55 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Nota: Limita le opzioni del server di entrata solo ai gateway compatibili con QUIC."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "注: QUIC互換ゲートウェイのみエントリサーバーオプションを制限します。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Nota: Limita as opções do servidor de entrada apenas para gateways compatíveis com QUIC."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Nota: Limita as opções do servidor de entrada apenas para gateways compatíveis com QUIC."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Примечание: ограничивает выбор входных серверов только шлюзами, совместимыми с QUIC."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Not: Bu, giriş sunucusu seçeneklerini sadece QUIC uyumlu gatewayler'le sınırlamaktadır."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Примітка: обмежує параметри сервера входу тільки шлюзами, сумісними з QUIC."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Lưu ý: Giới hạn tùy chọn máy chủ vào chỉ dành cho các cổng tương thích QUIC."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "注意：将条目服务器选项限制为只兼容QUIC网关。"
           }
         }
@@ -9148,97 +9148,97 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "حدث خطأ ما في دليل البوابة"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong with the Gateway Directory"
+            "state" : "translated",
+            "value" : "Something went wrong with the Server Directory"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Something went wrong with the Gateway Directory"
+            "value" : "Something went wrong with the Server Directory"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Algo salió mal con el Directorio de Gateways"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "یک چیزی در دایرکتوری گیت‌وی اشتباه است"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Erreur avec l'annuaire des passerelles"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "गेटवे निर्देशिका के साथ कुछ गलत हुआ"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Qualcosa è andato storto con la directory di Gateway"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Gatewayディレクトリに問題が発生しました。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Algo deu errado com o Diretório do Gateway"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Algo deu errado com o Diretório do Gateway"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Что-то пошло не так с каталогом шлюзов"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Gateway Dizini ile ilgili bir şeyler ters gitti."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Щось пішло не так з каталогом шлюзу"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Đã xảy ra sự cố với Thư mục Cổng"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "网关目录发现错误"
           }
         }
@@ -13188,97 +13188,97 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "للخصوصية، لن يستخدم NymVPN نفس البوابة للدخول والخروج. أعد الاتصال أو اختر مواقع مختلفة."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Aus Gründen der Privatsphäre wird NymVPN nicht das gleiche Gateway für Ein- und Ausgänge nutzen. Verbinde dich erneut oder wähle verschiedene Standorte."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "For privacy, NymVPN won't use the same gateway for entry and exit. Reconnect or choose different locations."
+            "value" : "For privacy, NymVPN won't use the same server for entry and exit. Reconnect or choose different locations."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Por motivos de privacidad, NymVPN no utilizará el mismo gateway para la entrada y la salida. Vuelve a conectarte o elige ubicaciones diferentes."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "به منظور حفظ حریم شخصی NymVPN از گیت‌وی ورودی و خروجی یکسان استفاده نخواهد کرد. دوباره وصل شوید یا مکان دیگری را انتخاب کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Pour des raisons de sécurité, NymVPN ne peut utiliser la même passerelle pour l'entrée et la sortie. Reconnectez-vous ou choisissez d'autres passerelles."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "गोपनीयता के लिए, NymVPN प्रवेश और निकास के लिए समान गेटवे का उपयोग नहीं करेगा। फिर से कनेक्ट करें या विभिन्न स्थान चुनें।"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Per la privacy, NymVPN non utilizzerà lo stesso gateway per l'ingresso e l'uscita. Riconnetti o scegli posizioni diverse."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "プライバシーを守るため、NymVPNはエントリーと出口に同じgatewayを使用しません。再接続または異なる場所を選択してください"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Por motivos de privacidade, o NymVPN não utilizará o mesmo gateway para entrada e saída. Volte a ligar-se ou escolha localizações diferentes."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Para fins de privacidade, o NymVPN não usará o mesmo gateway para entrada e saída. Reconecte-se ou escolha locais diferentes."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Для обеспечения конфиденциальности NymVPN не использует один и тот же шлюз для входа и выхода. Переподключитесь или выберите другие местоположения."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Gizliliğiniz için NymVPN, giriş ve çıkışta aynı gateway kullanmaz. Yeniden bağlanın veya farklı konumlar seçin."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Для забезпечення конфіденційності NymVPN не використовує один і той самий шлюз для входу і виходу. Повторно підключіться або виберіть інші місця."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Để đảm bảo quyền riêng tư, NymVPN sẽ không sử dụng cùng một cổng cho điểm vào và điểm thoát. Vui lòng kết nối lại hoặc chọn các vị trí khác nhau."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "为保障隐私，NymVPN 不允许入口与出口使用同一网关。请重新连接或选择不同位置。"
           }
         }
@@ -30948,97 +30948,97 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "كيفية تشغيل البوابة"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "how to run a gateway"
+            "state" : "translated",
+            "value" : "how to run a server"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "how to run a gateway"
+            "value" : "how to run a server"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "cómo montar un gateway"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "چگونه یک گیت‌وی را اجرا کنیم"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "comment mettre en place une passerelle"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "गेटवे को कैसे चलाएँ।"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "come eseguire un gateway"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "gatewayの実行方法"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "como gerir um gateway"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "como executar um gateway"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "как запустить шлюз"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Gateway nasıl çalıştırılır"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "як запустити шлюз"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "cách chạy một cổng"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "如何运行网关"
           }
         }
@@ -36626,7 +36626,7 @@
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registering with gateways"
+            "value" : "Registering with servers"
           }
         },
         "it" : {
