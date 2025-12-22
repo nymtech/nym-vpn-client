@@ -9,10 +9,10 @@ public struct GenericButton: View {
         case textOnly
         case destructive
 
-        var backgroundColor: Color {
+        func backgroundColor(isDisabled: Bool) -> Color {
             switch self {
             case .normal:
-                NymColor.accent
+                isDisabled ? NymColor.gray1 : NymColor.accent
             case .accentBorderOnly, .textOnly, .primaryBorderOnly:
                 .clear
             case .destructive:
@@ -31,14 +31,14 @@ public struct GenericButton: View {
             }
         }
 
-        var textTitleColor: Color {
+        func textTitleColor(isDisabled: Bool) -> Color {
             switch self {
             case .normal:
                 NymColor.black
             case .accentBorderOnly:
                 NymColor.accent
             case .textOnly, .primaryBorderOnly, .destructive:
-                NymColor.primary
+                isDisabled ? NymColor.gray1 : NymColor.primary
             }
         }
 
@@ -51,14 +51,14 @@ public struct GenericButton: View {
             }
         }
 
-        var strokeColor: Color {
+        func strokeColor(isDisabled: Bool) -> Color {
             switch self {
             case .normal, .textOnly:
-                    .clear
+                .clear
             case .accentBorderOnly:
                 NymColor.accent
             case .primaryBorderOnly:
-                NymColor.primary
+                isDisabled ? NymColor.gray1 : NymColor.primary
             case .destructive:
                 NymColor.error
             }
@@ -66,8 +66,10 @@ public struct GenericButton: View {
     }
 
     private let title: String
+    private let titleColor: Color?
     private let style: Style
     private let height: CGFloat
+    private let isDisabled: Bool
     private let isWidthExpanded: Bool
     private let systemImageName: String?
     private let isSystemImageFlipped: Bool
@@ -77,16 +79,20 @@ public struct GenericButton: View {
 
     public init(
         title: String,
+        titleColor: Color? = nil,
         style: Style = .normal,
         height: CGFloat = 56,
+        isDisabled: Bool = false,
         isLoading: Binding<Bool> = .constant(false),
         isWidthExpanded: Bool = true,
         systemImageName: String? = nil,
         isSystemImageFlipped: Bool = false
     ) {
         self.title = title
+        self.titleColor = titleColor
         self.style = style
         self.height = height
+        self.isDisabled = isDisabled
         self.isWidthExpanded = isWidthExpanded
         self.systemImageName = systemImageName
         self.isSystemImageFlipped = isSystemImageFlipped
@@ -110,7 +116,7 @@ public struct GenericButton: View {
                 }
 
                 Text(title)
-                    .foregroundStyle(style.textTitleColor)
+                    .foregroundStyle(titleColor ?? style.textTitleColor(isDisabled: isDisabled))
                     .textStyle(.Headline.Small.regular)
                     .minimumScaleFactor(0.8)
             }
@@ -121,11 +127,11 @@ public struct GenericButton: View {
         .frame(maxWidth: isWidthExpanded ? .infinity : nil)
         .frame(height: height)
         .background {
-            style.backgroundColor.opacity(isHovered ? 0.7 : 1)
+            style.backgroundColor(isDisabled: isDisabled).opacity(isHovered ? 0.7 : 1)
         }
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(style.strokeColor, lineWidth: style.strokeLineWidth)
+                .stroke(style.strokeColor(isDisabled: isDisabled), lineWidth: style.strokeLineWidth)
         )
         .contentShape(RoundedRectangle(cornerRadius: 8))
         .cornerRadius(8)

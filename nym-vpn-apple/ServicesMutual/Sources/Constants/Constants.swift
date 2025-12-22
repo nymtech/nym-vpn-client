@@ -23,6 +23,7 @@ public enum Constants: String {
     case stealhApiConnectURL = "https://support.nym.com/hc/en-us/articles/39652289741329-Stealth-API-connect"
     case ipInfoURL = "https://ipinfo.io/"
     case explorerURL = "https://nym.com/explorer/nym-node/"
+    case dnsLearnMoreURL = "https://nymtechnologiessa.zendesk.com/hc/en-us/articles/41140533515665"
 
     case telegramLink = "https://nym.com/go/telegram"
     case discordLink = "https://nym.com/go/discord"
