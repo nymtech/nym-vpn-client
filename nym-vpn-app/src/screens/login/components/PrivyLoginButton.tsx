@@ -1,26 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
-import clsx from 'clsx';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { routes } from '../../../router';
 import { StateDispatch } from '../../../types';
-import { Button, ButtonProps } from '../../../ui';
+import { Button } from '../../../ui';
 import {
   useInAppNotify,
   useMainDispatch,
   useMainState,
 } from '../../../contexts';
 
-type PrivyLoginButtonProps = {
-  outline: ButtonProps['outline'];
-  color: ButtonProps['color'];
-};
-
-function PrivyLoginButton({ outline, color }: PrivyLoginButtonProps) {
-  const { ready, authenticated, login } = usePrivy();
-  const { wallets } = useWallets();
+function PrivyLoginButton() {
+  const { ready: privyReady, authenticated, login } = usePrivy();
+  const { wallets, ready: walletsReady } = useWallets();
   const navigate = useNavigate();
 
   const { state } = useMainState();
@@ -36,30 +30,31 @@ function PrivyLoginButton({ outline, color }: PrivyLoginButtonProps) {
       return;
     }
 
-    if (!ready) {
-      console.warn('Privy not ready');
-      return;
-    }
-
     try {
       login();
     } catch (e) {
-      console.error('Privy login error:', e);
+      console.error('[handleLogin] Privy login error:', e);
+      push({
+        message: t('privy.error.login'),
+        close: true,
+        type: 'error',
+      });
     }
   };
 
-  const handlePrivyLogin = useCallback(async () => {
-    const embeddedWallet = wallets.find(
-      (w) =>
-        w.walletClientType === 'privy' ||
-        w.connectorType === 'privy' ||
-        w.connectorType === 'embedded',
-    );
-
-    if (!embeddedWallet) throw new Error('No embedded wallet found');
+  const handlePrivyLogin = async () => {
+    if (loading) return;
+    setLoading(true);
 
     try {
-      setLoading(true);
+      const embeddedWallet = wallets.find(
+        (w) =>
+          w.walletClientType === 'privy' ||
+          w.connectorType === 'privy' ||
+          w.connectorType === 'embedded',
+      );
+
+      if (!embeddedWallet) throw new Error('No embedded wallet found');
 
       const message = await invoke<string>('get_privy_derivation_message');
       const hashToSign = `0x${message}`;
@@ -80,7 +75,7 @@ function PrivyLoginButton({ outline, color }: PrivyLoginButtonProps) {
         close: true,
       });
     } catch (e) {
-      console.error('Privy login error:', e);
+      console.error('[handlePrivyLogin Privy login error:', e);
       push({
         message: t('privy.error.login'),
         close: true,
@@ -89,35 +84,29 @@ function PrivyLoginButton({ outline, color }: PrivyLoginButtonProps) {
     } finally {
       setLoading(false);
     }
-  }, [wallets, navigate, dispatch, push, t]);
+  };
 
   useEffect(() => {
-    if (authenticated) {
-      handlePrivyLogin().catch((e: unknown) =>
-        console.error('Privy login handler error:', e),
-      );
+    if (privyReady && authenticated && walletsReady && wallets.length > 0) {
+      handlePrivyLogin();
     }
-  }, [authenticated, handlePrivyLogin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [privyReady, authenticated, walletsReady, wallets]);
 
   return (
     <Button
-      outline={outline}
-      color={color}
+      outline
+      color="gray"
       onClick={handleLogin}
       spinner={loading}
       disabled={loading}
-      className={clsx(
-        outline &&
-          'group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!',
-      )}
+      className={
+        'group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!'
+      }
     >
-      {outline ? (
-        <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-          {t('social-account-button')}
-        </span>
-      ) : (
-        <>{t('privy.login-button')}</>
-      )}
+      <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
+        {t('social-account-button')}
+      </span>
     </Button>
   );
 }

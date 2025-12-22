@@ -23,7 +23,7 @@ function Spinner() {
       className={clsx([
         'loader h-[22px] w-[22px]',
         os !== 'linux' && 'border-4',
-        'border:white dark:border-[#252426] border-b-transparent dark:border-b-transparent',
+        'border-baltic-sea dark:border-white border-b-transparent dark:border-b-transparent',
       ])}
       data-testid="button-spinner"
     ></span>

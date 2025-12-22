@@ -127,7 +127,7 @@ function PassphraseLogin() {
       >
         {t('passphrase.login-button')}
       </Button>
-      <PrivyLoginButton outline color="gray" />
+      <PrivyLoginButton />
       <p className="text-iron dark:text-bombay">
         {t('passphrase.new-to-nymvpn')}
       </p>

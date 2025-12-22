@@ -45,7 +45,7 @@ function NewLogin() {
             {t('privy.quick-setup.description')}
           </p>
           <div className="mt-4">
-            <PrivyLoginButton outline color="gray" />
+            <PrivyLoginButton />
           </div>
         </div>
 
