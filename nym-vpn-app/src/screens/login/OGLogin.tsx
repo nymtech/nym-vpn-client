@@ -32,7 +32,7 @@ function OGLogin() {
 
   const onChange = (phrase: string) => {
     setPhrase(phrase);
-    if (phrase.length == 0) {
+    if (phrase.length === 0) {
       setError(null);
     }
   };

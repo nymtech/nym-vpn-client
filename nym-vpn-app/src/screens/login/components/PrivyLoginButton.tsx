@@ -75,7 +75,7 @@ function PrivyLoginButton() {
         close: true,
       });
     } catch (e) {
-      console.error('[handlePrivyLogin Privy login error:', e);
+      console.error('[handlePrivyLogin] Privy login error:', e);
       push({
         message: t('privy.error.login'),
         close: true,
