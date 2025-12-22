@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updates for Split tunneling screen: reconnect and save changes logic (https://github.com/nymtech/nym-vpn-client/pull/4282)
 - Changes for Custom DNS screen reconnecting logic (https://github.com/nymtech/nym-vpn-client/pull/4282)
 - Remove reconnect modals for QUIC on Censorship screen, add snack bar and debounce (https://github.com/nymtech/nym-vpn-client/pull/4282)
+- Promote VPN to foreground immediately at service entry (https://github.com/nymtech/nym-vpn-client/pull/4291)
 
 ### Fixed
 - "Add" button on DNS screen now expand to the left for verbose languages (https://github.com/nymtech/nym-vpn-client/pull/4277)

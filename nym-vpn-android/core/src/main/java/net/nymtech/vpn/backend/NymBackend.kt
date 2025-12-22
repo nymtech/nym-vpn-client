@@ -438,7 +438,6 @@ class NymBackend private constructor(private val context: Context) :
 
 	private suspend fun ensureNotificationAndStartForeground() {
 		val vpn = awaitVpnService()
-
 		val initialNotification = notificationManager.buildVpnNotification(
 			getState(),
 			tunnel?.entryPoint,
@@ -447,46 +446,24 @@ class NymBackend private constructor(private val context: Context) :
 			getExitGateways(),
 		)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			vpn.startForeground(
-				VpnNotificationManager.VPN_FOREGROUND_ID,
-				initialNotification,
+			val type =
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
 					ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
 				} else {
 					0
-				},
-			)
+				}
+			vpn.startForeground(VpnNotificationManager.VPN_FOREGROUND_ID, initialNotification, type)
 		} else {
-			vpn.startForeground(
-				VpnNotificationManager.VPN_FOREGROUND_ID,
-				initialNotification,
-			)
+			vpn.startForeground(VpnNotificationManager.VPN_FOREGROUND_ID, initialNotification)
 		}
-
 		notificationManager.withNotificationPermission {
-			val updatedNotification = notificationManager.buildVpnNotification(
+			notificationManager.updateVpnNotification(
 				getState(),
 				tunnel?.entryPoint,
 				tunnel?.exitPoint,
 				getEntryGateways(),
 				getExitGateways(),
 			)
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-				vpn.startForeground(
-					VpnNotificationManager.VPN_FOREGROUND_ID,
-					updatedNotification,
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-						ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
-					} else {
-						0
-					},
-				)
-			} else {
-				vpn.startForeground(
-					VpnNotificationManager.VPN_FOREGROUND_ID,
-					updatedNotification,
-				)
-			}
 		}
 	}
 

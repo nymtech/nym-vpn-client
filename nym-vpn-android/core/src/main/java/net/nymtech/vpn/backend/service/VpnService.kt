@@ -1,7 +1,9 @@
 package net.nymtech.vpn.backend.service
 
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -9,6 +11,7 @@ import net.nymtech.vpn.backend.NymBackend
 import net.nymtech.vpn.backend.NymBackend.Companion.alwaysOnCallback
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.util.LifecycleVpnService
+import net.nymtech.vpn.util.notifications.VpnNotificationManager
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.TunnelNetworkSettings
 import timber.log.Timber
@@ -35,6 +38,9 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		NymBackend.publishVpnService(this)
+		if (intent?.action == SERVICE_INTERFACE || isAlwaysOnHeuristic(intent)) {
+			promoteToForegroundMinimal("onStartCommand")
+		}
 
 		if (intent == null || intent.component == null || intent.component?.packageName != packageName) {
 			Timber.i("Always-on VPN starting tunnel")
@@ -44,6 +50,22 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 		}
 
 		return super.onStartCommand(intent, flags, startId)
+	}
+
+	override fun onBind(intent: Intent?): IBinder? {
+		val binder = super.onBind(intent)
+		if (intent?.action == SERVICE_INTERFACE) {
+			promoteToForegroundMinimal("onBind")
+		}
+
+		return binder
+	}
+
+	override fun onRebind(intent: Intent?) {
+		super.onRebind(intent)
+		if (intent?.action == SERVICE_INTERFACE) {
+			promoteToForegroundMinimal("onRebind")
+		}
 	}
 
 	override fun bypass(socket: Int) {
@@ -223,5 +245,29 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 
 	private fun newBuilder(): Builder {
 		return Builder().apply { }
+	}
+
+	private fun promoteToForegroundMinimal(source: String) {
+		try {
+			val nm = VpnNotificationManager.getInstance(this)
+			val notification = nm.buildMinimalNotification()
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+				val type =
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+						ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
+					} else {
+						0
+					}
+				startForeground(VpnNotificationManager.VPN_FOREGROUND_ID, notification, type)
+			} else {
+				startForeground(VpnNotificationManager.VPN_FOREGROUND_ID, notification)
+			}
+		} catch (t: Throwable) {
+			Timber.e(t, "Failed to promote to foreground (source=$source)")
+		}
+	}
+
+	private fun isAlwaysOnHeuristic(intent: Intent?): Boolean {
+		return intent == null || intent.component == null || intent.component?.packageName != packageName
 	}
 }

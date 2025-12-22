@@ -21,7 +21,6 @@ import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.extensions.toDisplayCountry
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
-import kotlin.let
 
 @SuppressLint("MissingPermission")
 internal class VpnNotificationManager private constructor(private val context: Context) {
@@ -80,17 +79,13 @@ internal class VpnNotificationManager private constructor(private val context: C
 					)
 				}
 
-				is EntryPoint.Country -> {
-					Triple(
-						toDisplayCountry(e.twoLetterIsoCountryCode),
-						null,
-						null,
-					)
-				}
+				is EntryPoint.Country -> Triple(
+					toDisplayCountry(e.twoLetterIsoCountryCode),
+					null,
+					null,
+				)
 
-				is EntryPoint.Random -> {
-					Triple("random", null, null)
-				}
+				is EntryPoint.Random -> Triple("random", null, null)
 			}
 
 			val formatted = formatNodeLocation(nodeName, city, countryIso)
@@ -117,21 +112,15 @@ internal class VpnNotificationManager private constructor(private val context: C
 					)
 				}
 
-				is ExitPoint.Country -> {
-					Triple(
-						toDisplayCountry(e.twoLetterIsoCountryCode),
-						null,
-						null,
-					)
-				}
+				is ExitPoint.Country -> Triple(
+					toDisplayCountry(e.twoLetterIsoCountryCode),
+					null,
+					null,
+				)
 
-				is ExitPoint.Address -> {
-					Triple(e.address, null, null)
-				}
+				is ExitPoint.Address -> Triple(e.address, null, null)
 
-				is ExitPoint.Random -> {
-					Triple("random", null, null)
-				}
+				is ExitPoint.Random -> Triple("random", null, null)
 			}
 
 			val formatted = formatNodeLocation(nodeName, city, countryIso)
@@ -154,7 +143,6 @@ internal class VpnNotificationManager private constructor(private val context: C
 		val fullText = lines.joinToString("\n")
 
 		val stopIntent = Intent(context, StopVpnReceiver::class.java)
-
 		val pending = PendingIntent.getBroadcast(
 			context,
 			0,
@@ -195,7 +183,7 @@ internal class VpnNotificationManager private constructor(private val context: C
 			} else {
 				notificationManager.notify(
 					VPN_FOREGROUND_ID,
-					buildVpnNotification(state, entry, exit, gatewaysEntry, gatewaysEntry),
+					buildVpnNotification(state, entry, exit, gatewaysEntry, gatewaysExit),
 				)
 			}
 		}
