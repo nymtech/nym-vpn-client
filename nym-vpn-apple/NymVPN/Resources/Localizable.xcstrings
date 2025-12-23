@@ -25435,6 +25435,127 @@
         }
       }
     },
+    "onboarding.next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        }
+      }
+    },
+    "onboarding.skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        }
+      }
+    },
+    "onboarding1.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The only VPN that can't spy on you, even if it wanted to."
+          }
+        }
+      }
+    },
+    "onboarding1.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decentralized architecture makes centralized logging impossible by design not a \"no-log policy,\" a \"can't log\" architecture."
+          }
+        }
+      }
+    },
+    "onboarding1.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop being tracked online"
+          }
+        }
+      }
+    },
+    "onboarding2.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay with card, crypto, or cash—no email required. Zero-knowledge proofs cryptographically separate your payment from your online activities."
+          }
+        }
+      }
+    },
+    "onboarding2.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Made in Switzerland with peer-reviewed academic research."
+          }
+        }
+      }
+    },
+    "onboarding2.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "True anonymity, not just hidden IPs"
+          }
+        }
+      }
+    },
+    "onboarding3.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fast mode: 250+ Mbps for streaming and browsing"
+          }
+        }
+      }
+    },
+    "onboarding3.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonymous mode: Maximum protection through 5-hop mixnet"
+          }
+        }
+      }
+    },
+    "onboarding3.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speed when you need it. Privacy when it matters."
+          }
+        }
+      }
+    },
     "pasphrase.showMyPassphrase" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31913,7 +32034,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Account on nym.com"
+            "value" : "S"
           }
         }
       }

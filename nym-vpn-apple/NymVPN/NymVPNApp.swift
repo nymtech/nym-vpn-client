@@ -66,7 +66,9 @@ struct NymVPNApp: App {
 //                if !splashScreenDidDisplay {
 //                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
 //                } else
-            if !appSettings.welcomeScreenDidDisplay {
+                if !appSettings.onboardingDidDisplay {
+                    OnboardingView()
+                } else if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {

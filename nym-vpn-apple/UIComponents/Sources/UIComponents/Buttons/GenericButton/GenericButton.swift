@@ -4,6 +4,7 @@ import Theme
 public struct GenericButton: View {
     public enum Style {
         case normal
+        case borderless
         case accentBorderOnly
         case primaryBorderOnly
         case textOnly
@@ -13,7 +14,7 @@ public struct GenericButton: View {
             switch self {
             case .normal:
                 isDisabled ? NymColor.gray1 : NymColor.accent
-            case .accentBorderOnly, .textOnly, .primaryBorderOnly:
+            case .accentBorderOnly, .textOnly, .primaryBorderOnly, .borderless:
                 .clear
             case .destructive:
                 NymColor.error.opacity(0.1)
@@ -22,7 +23,7 @@ public struct GenericButton: View {
 
         var imageForegroundColor: Color {
             switch self {
-            case .normal:
+            case .normal, .borderless:
                 NymColor.black
             case .accentBorderOnly, .textOnly:
                 NymColor.accent
@@ -35,6 +36,8 @@ public struct GenericButton: View {
             switch self {
             case .normal:
                 NymColor.black
+            case .borderless:
+                NymColor.primary
             case .accentBorderOnly:
                 NymColor.accent
             case .textOnly, .primaryBorderOnly, .destructive:
@@ -44,7 +47,7 @@ public struct GenericButton: View {
 
         var strokeLineWidth: CGFloat {
             switch self {
-            case .normal, .textOnly:
+            case .normal, .textOnly, .borderless:
                 0
             case .accentBorderOnly, .primaryBorderOnly, .destructive:
                 1
@@ -53,7 +56,7 @@ public struct GenericButton: View {
 
         func strokeColor(isDisabled: Bool) -> Color {
             switch self {
-            case .normal, .textOnly:
+            case .normal, .textOnly, .borderless:
                 .clear
             case .accentBorderOnly:
                 NymColor.accent
