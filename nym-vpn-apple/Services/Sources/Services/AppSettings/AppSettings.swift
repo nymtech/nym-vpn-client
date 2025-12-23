@@ -37,6 +37,9 @@ import CountriesManagerTypes
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
     public var welcomeScreenDidDisplay = false
 
+    @AppStorage(AppSettingKey.onboardingDidDisplay.rawValue)
+    public var onboardingDidDisplay = false
+
     @AppStorage(AppSettingKey.entryGateway.rawValue)
     public var entryGateway: String?
 
@@ -142,6 +145,7 @@ public enum AppSettingKey: String {
     case credenitalExists
     case smallScreen
     case welcomeScreenDidDisplay
+    case onboardingDidDisplay
     case entryGateway
     case exitRouter
     case connectionType
