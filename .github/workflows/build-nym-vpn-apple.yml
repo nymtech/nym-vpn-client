@@ -920,7 +920,7 @@ jobs:
           echo "✅ sha256-hash.txt:"
           cat sha256-hash.txt
 
-          DOWNLOAD_URL="https://builds.ci.nymte.ch/nym-vpn-client/macOS/publish/$ZIP_FILE"
+          DOWNLOAD_URL="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-macOS-v${MACOS_VERSION}/NymVPN-${MACOS_VERSION}.zip"
           HOST_LINK="https://nymvpn.com"
           PUB_DATE="$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S %z')"
 
@@ -928,22 +928,22 @@ jobs:
           {
             echo '<?xml version="1.0" standalone="yes"?>'
             echo '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">'
-            echo '  <channel>'
-            echo '    <title>NymVPN</title>'
-            echo "    <link>${HOST_LINK}</link>"
-            echo '    <item>'
-            echo "      <title>${SHORT_VERSION}</title>"
-            echo "      <pubDate>${PUB_DATE}</pubDate>"
-            echo "      <sparkle:version>${BUNDLE_VERSION}</sparkle:version>"
-            echo "      <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>"
-            echo "      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>"
-            echo '      <enclosure'
-            echo "        url=\"${DOWNLOAD_URL}\""
-            echo '        sparkle:os="macos" sparkle:installationType="package"'
-            echo '        type="application/octet-stream"'
-            printf '        %s />\n' "${SPARKLE_ATTRS}"
-            echo '    </item>'
-            echo '  </channel>'
+            echo '    <channel>'
+            echo '        <title>NymVPN</title>'
+            echo "        <link>${HOST_LINK}</link>"
+            echo '        <item>'
+            echo "            <title>${SHORT_VERSION}</title>"
+            echo "            <pubDate>${PUB_DATE}</pubDate>"
+            echo "            <sparkle:version>${BUNDLE_VERSION}</sparkle:version>"
+            echo "            <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>"
+            echo "            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>"
+            echo '            <enclosure'
+            echo "                url=\"${DOWNLOAD_URL}\""
+            echo '                sparkle:os="macos" sparkle:installationType="package"'
+            echo '                type="application/octet-stream"'
+            printf '                %s />\n' "${SPARKLE_ATTRS}"
+            echo '        </item>'
+            echo '    </channel>'
             echo '</rss>'
           } > appcast.xml
 
@@ -963,6 +963,20 @@ jobs:
           ls -la "$PUBLISH_DIR"
 
           echo "publish_relative_path=nym-vpn-apple/build/pkg/$PUBLISH_DIR" >> "$GITHUB_ENV"
+          
+          echo "🧩 Extracting <item> block for nym-websites…"
+          awk '
+            BEGIN { p=0 }
+            /<item>/{ p=1 }
+            p { print }
+            /<\/item>/{ p=0 }
+          ' appcast.xml > appcast-item.xml
+
+          echo "✅ appcast-item.xml:"
+          cat appcast-item.xml
+
+          # Export for later steps
+          echo "APPCAST_ITEM_RELATIVE_PATH=nym-vpn-apple/build/pkg/appcast-item.xml" >> "$GITHUB_ENV"
 
       - name: Upload artifacts (QA)
         if: ${{ env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
@@ -1073,6 +1087,54 @@ jobs:
           REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
           TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/
           SOURCE: ${{ env.UPLOAD_SOURCE }}
+
+      - name: Checkout nym-websites
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        uses: actions/checkout@v6
+        with:
+          repository: nymtech/nym-websites
+          token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
+          path: nym-websites
+
+      - name: Insert new Sparkle <item> into nym-websites appcast.xml
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        working-directory: nym-websites
+        env:
+          ITEM_FILE: ${{ github.workspace }}/${{ env.APPCAST_ITEM_RELATIVE_PATH }}
+          VERSION: ${{ env.MACOS_VERSION }}
+        run: |
+          set -euo pipefail
+
+          TARGET="websites/nym/www/public/.wellknown/macos-vpn/appcast.xml"
+
+          test -f "$ITEM_FILE" || { echo "❌ Missing ITEM_FILE: $ITEM_FILE"; exit 1; }
+          test -f "$TARGET" || { echo "❌ Missing TARGET: $TARGET"; exit 1; }
+
+          tmp="$(mktemp)"
+          {
+            head -n 4 "$TARGET"
+            cat "$ITEM_FILE"
+            tail -n +5 "$TARGET"
+          } > "$tmp"
+          mv "$tmp" "$TARGET"
+
+          echo "✅ Updated $TARGET (inserted after line 4)"
+          sed -n '1,40p' "$TARGET" || true
+
+      - name: Create PR in nym-websites
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
+          path: nym-websites
+          commit-message: Update Appcast.xml with v${{ env.MACOS_VERSION }}
+          title: Update Appcast.xml with v${{ env.MACOS_VERSION }}
+          body: |
+            Automated Sparkle appcast update for macOS v${{ env.MACOS_VERSION }}.
+            Source: nym-vpn-client build-nym-vpn-apple (ship).
+          branch: automation/update-macos-appcast-v${{ env.MACOS_VERSION }}
+          base: main
+          delete-branch: true
 
       - name: Cleanup Keychain
         if: always()
