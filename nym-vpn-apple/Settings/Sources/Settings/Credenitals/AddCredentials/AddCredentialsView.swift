@@ -135,7 +135,7 @@ private extension AddCredentialsView {
 
     @ViewBuilder
     func welcomeText() -> some View {
-        Text(viewModel.welcomeTitle)
+        Text("\(viewModel.welcomeTitle) NymVPN")
             .textStyle(.Headline.Large.regular)
     }
 
