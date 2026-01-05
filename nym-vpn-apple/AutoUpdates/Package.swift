@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "AutoUpdates",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v14)
     ],
     products: [
         .library(name: "AutoUpdates", targets: ["AutoUpdates"])

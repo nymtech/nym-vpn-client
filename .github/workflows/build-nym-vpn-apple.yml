@@ -434,7 +434,7 @@ jobs:
         id: archive-macos
         working-directory: nym-vpn-apple
         env:
-          MACOSX_DEPLOYMENT_TARGET: 13.0
+          MACOSX_DEPLOYMENT_TARGET: 14.0
           DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
           DEVELOPER_ID_APP_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
         run: |
@@ -936,7 +936,7 @@ jobs:
             echo "            <pubDate>${PUB_DATE}</pubDate>"
             echo "            <sparkle:version>${BUNDLE_VERSION}</sparkle:version>"
             echo "            <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>"
-            echo "            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>"
+            echo "            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>"
             echo '            <enclosure'
             echo "                url=\"${DOWNLOAD_URL}\""
             echo '                sparkle:os="macos" sparkle:installationType="package"'
