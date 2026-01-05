@@ -1123,7 +1123,7 @@ jobs:
 
       - name: Create PR in nym-websites
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
           path: nym-websites
