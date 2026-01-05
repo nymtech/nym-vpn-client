@@ -165,7 +165,11 @@ private extension HomeView {
                 viewModel.navigateToEntryGateways()
             },
             accessoryAction: {
-                viewModel.navigateToGatewayDetails(for: .entry)
+                viewModel
+                    .navigateToGatewayDetails(
+                        for: .entry,
+                        gatewayType: viewModel.connectionManager.entryGatewayType
+                    )
             },
             accessoryAccessibilityText: "home.serverDetails".localizedString
         )
@@ -182,7 +186,10 @@ private extension HomeView {
                 viewModel.navigateToExitGateways()
             },
             accessoryAction: {
-                viewModel.navigateToGatewayDetails(for: .exit)
+                viewModel.navigateToGatewayDetails(
+                    for: .exit,
+                    gatewayType: viewModel.connectionManager.exitGatewayType
+                )
             },
             accessoryAccessibilityText: "home.serverDetails".localizedString
         )

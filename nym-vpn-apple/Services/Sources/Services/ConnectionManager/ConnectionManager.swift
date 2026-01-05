@@ -3,6 +3,7 @@ import Foundation
 import NetworkExtension
 import AppSettings
 import ConnectionTypes
+import CountriesManagerTypes
 import CredentialsManager
 import TunnelMixnet
 import Tunnels
@@ -76,6 +77,8 @@ import GRPCManager
             updateConnectionConfig()
         }
     }
+    public var entryGatewayType: NodeType { connectionType == .wireguard ? .vpn : .entry }
+    public var exitGatewayType: NodeType { connectionType == .wireguard ? .vpn : .exit }
     @Published public var isTunnelManagerLoaded: Result<Void, Error>?
 #if os(iOS)
     @Published public var activeTunnel: Tunnel? {
