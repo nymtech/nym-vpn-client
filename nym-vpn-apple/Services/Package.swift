@@ -74,6 +74,7 @@ let package = Package(
             dependencies: [
                 "CredentialsManager",
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 "GatewayManager",
                 "NotificationMessages",
                 "Tunnels",
