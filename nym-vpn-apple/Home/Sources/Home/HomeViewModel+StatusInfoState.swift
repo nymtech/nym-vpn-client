@@ -82,6 +82,8 @@ extension HomeViewModel {
     }
 
     func displayEnableStatisticsSnackBarCTAIfNeeded() {
+// TODO: statistics
+#if os(macOS)
         guard lastTunnelStatus == .disconnected,
               !appSettings.isStatisticsEnabled,
               appSettings.statisticsConnectionCount == 1 || appSettings.statisticsConnectionCount.isMultiple(of: 10),
@@ -99,5 +101,6 @@ extension HomeViewModel {
                 }
             )
         )
+#endif
     }
 }

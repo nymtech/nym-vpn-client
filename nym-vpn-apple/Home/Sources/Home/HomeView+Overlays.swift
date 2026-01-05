@@ -50,6 +50,8 @@ extension HomeView {
 
     @ViewBuilder
     func statisticsEnableOverlay() -> some View {
+// TODO: statistics
+#if os(macOS)
         if viewModel.isStatisticsOverlayDisplayed,
            !viewModel.appSettings.isStatisticsEnabled,
            Device.isMacOS {
@@ -59,6 +61,7 @@ extension HomeView {
             .transition(.opacity)
             .animation(.easeInOut, value: viewModel.isStatisticsOverlayDisplayed)
         }
+#endif
     }
 
     @ViewBuilder
