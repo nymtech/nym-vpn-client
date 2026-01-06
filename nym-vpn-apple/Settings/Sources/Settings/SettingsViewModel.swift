@@ -341,6 +341,7 @@ private extension SettingsViewModel {
                 title: "settings.killswitch.title".localizedString,
                 subtitle: "settings.killswitch.subtitle".localizedString,
                 systemImageName: "power",
+                isHoveredHighlightDisabled: true,
                 action: {}
             )
         )
