@@ -13,10 +13,6 @@ public final class ConnectionConfig: Codable {
     public var enableTwoHop: Bool
     public var enableBridges: Bool
     public var netstack: Bool
-    public var disablePoissonRate: Bool
-    public var disableBackgroundCoverTraffic: Bool
-    public var minMixnodePerformance: UInt8?
-    public var minGatewayMixnetPerformance: UInt8?
     public var minGatewayVpnPerformance: UInt8?
     public var residentialExit: Bool
 
@@ -41,10 +37,6 @@ public final class ConnectionConfig: Codable {
         enableTwoHop: Bool,
         enableBridges: Bool,
         netstack: Bool,
-        disablePoissonRate: Bool,
-        disableBackgroundCoverTraffic: Bool,
-        minMixnodePerformance: UInt8? = nil,
-        minGatewayMixnetPerformance: UInt8? = nil,
         minGatewayVpnPerformance: UInt8? = nil,
         residentialExit: Bool
     ) {
@@ -56,10 +48,6 @@ public final class ConnectionConfig: Codable {
         self.enableTwoHop = enableTwoHop
         self.enableBridges = enableBridges
         self.netstack = netstack
-        self.disablePoissonRate = disablePoissonRate
-        self.disableBackgroundCoverTraffic = disableBackgroundCoverTraffic
-        self.minMixnodePerformance = minMixnodePerformance
-        self.minGatewayMixnetPerformance = minGatewayMixnetPerformance
         self.minGatewayVpnPerformance = minGatewayVpnPerformance
         self.residentialExit = residentialExit
     }
@@ -76,10 +64,6 @@ public final class ConnectionConfig: Codable {
         self.enableTwoHop = config.enableTwoHop
         self.enableBridges = config.enableBridges
         self.netstack = config.netstack
-        self.disablePoissonRate = config.disablePoissonRate
-        self.disableBackgroundCoverTraffic = config.disableBackgroundCoverTraffic
-        self.minMixnodePerformance = config.minMixnodePerformance
-        self.minGatewayMixnetPerformance = config.minGatewayMixnetPerformance
         self.minGatewayVpnPerformance = config.minGatewayVpnPerformance
         self.residentialExit = config.residentialExit
     }
@@ -158,10 +142,6 @@ extension ConnectionConfig: Equatable {
         lhs.enableTwoHop == rhs.enableTwoHop &&
         lhs.enableBridges == rhs.enableBridges &&
         lhs.netstack == rhs.netstack &&
-        lhs.disablePoissonRate == rhs.disablePoissonRate &&
-        lhs.disableBackgroundCoverTraffic == rhs.disableBackgroundCoverTraffic &&
-        lhs.minMixnodePerformance == rhs.minMixnodePerformance &&
-        lhs.minGatewayMixnetPerformance == rhs.minGatewayMixnetPerformance &&
         lhs.minGatewayVpnPerformance == rhs.minGatewayVpnPerformance &&
         lhs.residentialExit == rhs.residentialExit
     }

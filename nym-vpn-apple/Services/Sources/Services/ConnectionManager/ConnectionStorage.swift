@@ -72,8 +72,6 @@ private extension ConnectionStorage {
             enableTwoHop: connectionType == .wireguard,
             enableBridges: appSettings.isQuicEnabled,
             netstack: false,
-            disablePoissonRate: false,
-            disableBackgroundCoverTraffic: false,
             residentialExit: false
         )
     }
