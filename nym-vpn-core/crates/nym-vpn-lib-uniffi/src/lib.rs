@@ -79,7 +79,7 @@ use tokio::{runtime::Runtime, sync::Mutex};
 use nym_vpn_lib_types::{
     AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
     NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage, RegisterAccountResponse,
-    StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent,
+    StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent, NymVpnUsage
 };
 
 use account::AccountControllerHandle;
@@ -428,6 +428,12 @@ pub fn updateAccountState() -> Result<(), VpnError> {
 #[uniffi::export]
 pub fn getAccountState() -> Result<AccountControllerState, VpnError> {
     RUNTIME.block_on(account::get_account_state())
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getAccountUsage() -> Result<Vec<NymVpnUsage>, VpnError> {
+    RUNTIME.block_on(account::get_account_usage())
 }
 
 async fn get_account_id() -> Result<String, VpnError> {
