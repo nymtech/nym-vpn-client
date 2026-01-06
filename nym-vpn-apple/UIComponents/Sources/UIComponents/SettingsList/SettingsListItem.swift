@@ -84,11 +84,13 @@ private extension SettingsListItem {
             Image(imageName, bundle: .module)
                 .renderingMode(.template)
                 .foregroundStyle(NymColor.gray1)
+                .frame(width: 24, height: 24)
         } else if let systemImageName = viewModel.systemImageName {
             Image(systemName: systemImageName)
                 .renderingMode(.template)
                 .foregroundStyle(NymColor.gray1)
                 .font(.system(size: 18, weight: .bold))
+                .frame(width: 24, height: 24)
         }
     }
 
