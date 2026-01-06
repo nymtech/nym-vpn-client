@@ -39,7 +39,7 @@ use nym_vpn_lib::{
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
     DecentralisedObtainTicketbooksRequest, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, ListGatewaysOptions, LogPath, LookupGatewayFilters,
+    FeatureFlags, Gateway, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
     NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice,
     NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest, SystemMessage,
     TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
@@ -67,6 +67,7 @@ pub enum VpnServiceCommand {
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
+    SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -776,6 +777,12 @@ impl NymVpnService {
                 self.handle_set_custom_dns(custom_dns).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetMixnetTrafficConfig(tx, mixnet_traffic_config) => {
+                let res = self
+                    .handle_set_mixnet_traffic_config(mixnet_traffic_config)
+                    .await;
+                let _ = tx.send(res);
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -1000,6 +1007,22 @@ impl NymVpnService {
                 self.update_tunnel_settings_with_throttle();
             }
         }
+    }
+
+    async fn handle_set_mixnet_traffic_config(
+        &mut self,
+        mixnet_traffic_config: MixnetTrafficConfig,
+    ) -> Result<(), String> {
+        let res = self
+            .config_manager
+            .set_mixnet_traffic_config(mixnet_traffic_config)
+            .await;
+
+        if res.is_ok() {
+            self.update_tunnel_settings_with_throttle();
+        }
+
+        res
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {

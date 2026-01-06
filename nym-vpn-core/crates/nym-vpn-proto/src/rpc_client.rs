@@ -152,6 +152,20 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_mixnet_traffic_config(
+        &mut self,
+        mixnet_traffic: nym_vpn_lib_types::MixnetTrafficConfig,
+    ) -> Result<()> {
+        let request = proto::MixnetTrafficConfig::from(mixnet_traffic);
+
+        self.0
+            .set_mixnet_traffic_config(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_network(&mut self, network: String) -> Result<()> {
         self.0
             .set_network(network)

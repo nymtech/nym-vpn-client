@@ -42,7 +42,9 @@ use nym_firewall::{
 use nym_gateway_directory::ResolvedConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
-use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayLightInfo};
+use nym_vpn_lib_types::{
+    EstablishConnectionData, EstablishConnectionState, GatewayLightInfo, TunnelType,
+};
 
 /// Initial delay between retry attempts.
 const INITIAL_WAIT_DELAY: Duration = Duration::from_secs(2);
@@ -676,19 +678,18 @@ impl TunnelStateHandler for ConnectingState {
                                     trace_err_chain!(e, "failed to set firewall policy");
                                     return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
                                 }
-
-                                // If the only change was Allow LAN, then don't restart the tunnel.
-                                if diff.only_allow_lan_changed() {
-                                    shared_state.tunnel_settings.allow_lan = tunnel_settings.allow_lan;
-                                    return NextTunnelState::SameState(self);
-                                }
                             }
                         }
 
                         shared_state.tunnel_settings = tunnel_settings;
 
+                        // Not all changes require the tunnel to be reconnected
+                        if diff.only_allow_lan_changed() || (diff.only_mixnet_performance_options_changed() && shared_state.tunnel_settings.tunnel_type == TunnelType::Wireguard) {
+                            return NextTunnelState::SameState(self);
+                        }
+
                         if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                            Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
+                           Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
                         } else {
                             let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() || diff.quic_changed() {
                                 None

@@ -6,7 +6,7 @@ use std::net::SocketAddr;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
-use nym_vpn_lib_types::ErrorStateReason;
+use nym_vpn_lib_types::{ErrorStateReason, TunnelType};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -266,20 +266,17 @@ impl TunnelStateHandler for ConnectedState {
                                     trace_err_chain!(e, "failed to set firewall policy");
                                     return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
                                 }
-
-                                // If the only change was Allow LAN, then don't restart the tunnel.
-                                if diff.only_allow_lan_changed() {
-                                    shared_state.tunnel_settings.allow_lan = tunnel_settings.allow_lan;
-                                    return NextTunnelState::SameState(self);
-                                }
                             }
                         }
 
-                        #[cfg(any(target_os = "android", target_os = "ios"))]
-                        let _ = diff;
-
                         shared_state.tunnel_settings = tunnel_settings;
-                        self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
+
+                        // Not all changes require the tunnel to be reconnected
+                        if diff.only_allow_lan_changed() || (diff.only_mixnet_performance_options_changed() && shared_state.tunnel_settings.tunnel_type == TunnelType::Wireguard) {
+                            NextTunnelState::SameState(self)
+                        } else {
+                            self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
+                        }
                     }
                 }
             }

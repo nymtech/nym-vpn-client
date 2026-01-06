@@ -225,9 +225,15 @@ impl TunnelSettings {
         }
         if self.gateway_performance_options != other.gateway_performance_options {
             diff.add(TunnelSettingsDiffFields::GatewayPerformanceOptions);
+            // We care about just the mixnet performance setting changing.
+            if self.gateway_performance_options.mixnet_min_performance
+                != other.gateway_performance_options.mixnet_min_performance
+            {
+                diff.add(TunnelSettingsDiffFields::MixnetPerformanceOptions);
+            }
         }
         if self.mixnet_client_config != other.mixnet_client_config {
-            diff.add(TunnelSettingsDiffFields::MixnetClientConfig);
+            diff.add(TunnelSettingsDiffFields::MixnetPerformanceOptions);
         }
         if self.entry_point != other.entry_point {
             diff.add(TunnelSettingsDiffFields::EntryPoint);
@@ -253,7 +259,7 @@ pub enum TunnelSettingsDiffFields {
     WireguardTunnelOptions,
     QUIC,
     GatewayPerformanceOptions,
-    MixnetClientConfig,
+    MixnetPerformanceOptions,
     EntryPoint,
     ExitPoint,
     Dns,
@@ -301,6 +307,10 @@ impl TunnelSettingsDiff {
 
     pub fn quic_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::QUIC)
+    }
+
+    pub fn only_mixnet_performance_options_changed(&self) -> bool {
+        self.only_field_changed(&TunnelSettingsDiffFields::MixnetPerformanceOptions)
     }
 }
 

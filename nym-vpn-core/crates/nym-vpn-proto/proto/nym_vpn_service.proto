@@ -245,6 +245,18 @@ message Threshold {
   uint32 min_performance = 1;
 }
 
+message MixnetTrafficConfig {
+  optional uint32 poisson_parameter_for_loop_cover_stream = 1;
+  optional uint32 average_packet_delay = 2;
+  optional uint32 message_sending_average_delay = 3;
+
+  bool disable_poisson_rate = 4;
+  bool disable_background_cover_traffic = 5;
+
+  optional uint32 min_mixnode_performance = 6;
+  optional uint32 min_gateway_mixnet_performance = 7;
+}
+
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
@@ -254,14 +266,11 @@ message VpnServiceConfig {
   bool enable_bridges = 21;
   bool residential_exit = 15;
   bool netstack = 13;
-  bool disable_poisson_rate = 6;
-  bool disable_background_cover_traffic = 7;
-  optional uint32 min_mixnode_performance = 8;
-  optional uint32 min_gateway_mixnet_performance = 9;
-  optional uint32 min_gateway_vpn_performance = 10;
   bool enable_custom_dns = 17;
   IpAddrList custom_dns = 16;
+  optional uint32 min_gateway_vpn_performance = 10;
   NetworkStatsConfig network_stats = 18;
+  MixnetTrafficConfig mixnet_traffic = 25;
 }
 
 message NetworkStatsConfig {
@@ -871,6 +880,7 @@ service NymVpnService {
   rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableCustomDns (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetCustomDns (IpAddrList) returns (google.protobuf.Empty) {}
+  rpc SetMixnetTrafficConfig (MixnetTrafficConfig) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}

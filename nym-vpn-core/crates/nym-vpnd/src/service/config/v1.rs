@@ -26,9 +26,13 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
     type Error = ConfigSetupError;
 
     fn try_from(value: VpnServiceConfig) -> Result<Self, Self::Error> {
+        let entry_point = nym_vpn_lib_types::EntryPoint::try_from(value.entry_point)?;
+
+        let exit_point = nym_vpn_lib_types::ExitPoint::try_from(value.exit_point)?;
+
         let config = nym_vpn_lib_types::VpnServiceConfig {
-            entry_point: nym_vpn_lib_types::EntryPoint::try_from(value.entry_point)?,
-            exit_point: nym_vpn_lib_types::ExitPoint::try_from(value.exit_point)?,
+            entry_point,
+            exit_point,
             ..Default::default()
         };
         Ok(config)

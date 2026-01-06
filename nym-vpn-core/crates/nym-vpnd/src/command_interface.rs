@@ -13,7 +13,7 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tonic::transport::Server;
+use tonic::{Request, Response, Status, transport::Server};
 
 use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, ListGatewaysOptions, LookupGatewayFilters,
@@ -21,7 +21,7 @@ use nym_vpn_lib_types::{
 };
 
 use nym_vpn_proto::proto::{
-    self,
+    self, MixnetTrafficConfig,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
@@ -226,6 +226,28 @@ impl NymVpnService for CommandInterface {
             .map_err(|e| tonic::Status::internal(format!("Failed to set custom DNS: {e}")))?;
 
         Ok(tonic::Response::new(()))
+    }
+
+    async fn set_mixnet_traffic_config(
+        &self,
+        request: Request<MixnetTrafficConfig>,
+    ) -> std::result::Result<Response<()>, Status> {
+        let mixnet_traffic_config: nym_vpn_lib_types::MixnetTrafficConfig =
+            request.into_inner().into();
+
+        self.send_and_wait(
+            VpnServiceCommand::SetMixnetTrafficConfig,
+            mixnet_traffic_config,
+        )
+        .await
+        .map_err(|e| Status::internal(format!("[set_mixnet_traffic_config] transport error: {e}")))?
+        .map_err(|err| {
+            Status::invalid_argument(format!(
+                "[set_mixnet_traffic_config] validation failed: {err}"
+            ))
+        })?;
+
+        Ok(Response::new(()))
     }
 
     async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
