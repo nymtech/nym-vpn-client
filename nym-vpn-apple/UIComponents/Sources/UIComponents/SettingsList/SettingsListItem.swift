@@ -58,6 +58,7 @@ public struct SettingsListItem: View {
             viewModel.action()
         }
         .onHover { newValue in
+            guard !viewModel.isHoveredHighlightDisabled else { return }
             isHovered = newValue
         }
         .accessibilityElement(children: .combine)

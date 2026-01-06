@@ -86,6 +86,7 @@ public final class SettingsListItemViewModel: Hashable {
     let imageName: String?
     let systemImageName: String?
     public let type: ItemType
+    let isHoveredHighlightDisabled: Bool
     let accessory: Accessory
     let action: (() -> Void)
 
@@ -99,6 +100,7 @@ public final class SettingsListItemViewModel: Hashable {
         imageName: String? = nil,
         systemImageName: String? = nil,
         type: ItemType = .regular,
+        isHoveredHighlightDisabled: Bool = false,
         position: SettingsListItemPosition = SettingsListItemPosition(isFirst: false, isLast: false),
         action: @escaping (() -> Void)
     ) {
@@ -109,6 +111,7 @@ public final class SettingsListItemViewModel: Hashable {
         self.systemImageName = systemImageName
         self.type = type
         self.accessory = accessory
+        self.isHoveredHighlightDisabled = isHoveredHighlightDisabled
         self.position = position
         self.action = action
     }
