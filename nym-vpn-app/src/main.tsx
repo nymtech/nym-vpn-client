@@ -88,6 +88,8 @@ dayjs.extend(duration);
     vpnMode: config?.vpnMode || defaultVpnMode,
     uiTheme: await getTheme(),
     welcomeChecked: (await kvGet<boolean>('welcome-screen-seen')) || false,
+    onboardingCompleted:
+      (await kvGet<boolean>('onboarding-completed')) || false,
     entryNode: config?.entryNode || DefaultNode,
     exitNode: config?.exitNode || DefaultNode,
     quic: config?.bridges !== undefined ? config.bridges : defaultQuic,

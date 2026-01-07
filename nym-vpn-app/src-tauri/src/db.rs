@@ -41,6 +41,7 @@ pub enum Key {
     CacheAccountId,
     CacheDeviceId,
     StreamingOptimizedLabelSeen,
+    OnboardingCompleted,
 }
 
 impl Display for Key {

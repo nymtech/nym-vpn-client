@@ -5,12 +5,16 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { Button, PageAnim } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import { routes } from '../../router';
+import { useMainDispatch } from '../../contexts/main';
+import { StateDispatch } from '../../types';
+import { kvSet } from '../../kvStore';
 import { Speed, Tracking, Welcome, ZeroKnowledge } from './slides';
 import { DotButton, useDotButton } from './CarouselDotButton';
 
-const slides = [Welcome, Tracking, ZeroKnowledge, Speed];
+const slides = [Welcome, Speed, Tracking, ZeroKnowledge];
 
 function Onboarding() {
+  const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('onboarding');
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -24,12 +28,10 @@ function Onboarding() {
     if (emblaApi?.canScrollNext()) {
       emblaApi?.scrollNext();
     } else {
-      handleSkip();
+      dispatch({ type: 'set-onboarding-completed', completed: true });
+      kvSet('onboarding-completed', true);
+      navigate(routes.login, { state: { skip: true } });
     }
-  };
-
-  const handleSkip = () => {
-    navigate(routes.welcome);
   };
 
   return (
@@ -65,16 +67,6 @@ function Onboarding() {
 
         <div className="flex flex-col items-center gap-4 w-full">
           <Button onClick={handleNext}>{t('controls.next')}</Button>
-          <Button
-            outline
-            color="gray"
-            onClick={handleSkip}
-            className="group border-none hover:ring-0! dark:hover:ring-0! w-fit!"
-          >
-            <span className="flex items-center gap-2 text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-              {t('controls.skip')}
-            </span>
-          </Button>
         </div>
       </section>
     </PageAnim>

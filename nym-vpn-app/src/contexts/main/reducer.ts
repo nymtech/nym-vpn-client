@@ -72,6 +72,7 @@ export type StateAction =
   | { type: 'set-account-state'; state: AccountState }
   | { type: 'set-account-syncing'; syncing: boolean }
   | { type: 'set-welcome-checked'; checked: boolean }
+  | { type: 'set-onboarding-completed'; completed: boolean }
   | { type: 'set-account-error'; error: AppError | null }
   | { type: 'set-backend-flags'; flags: FeatureFlags }
   | { type: 'set-quic'; enabled: boolean }
@@ -109,6 +110,7 @@ export const initialState: AppState = {
   ipv6Support: true,
   networkStats: false,
   welcomeChecked: false,
+  onboardingCompleted: false,
   quic: false,
   allowLan: false,
   domainFronting: false,
@@ -366,6 +368,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         welcomeChecked: action.checked,
+      };
+    case 'set-onboarding-completed':
+      return {
+        ...state,
+        onboardingCompleted: action.completed,
       };
     case 'set-streaming-optimized-label-seen':
       return {

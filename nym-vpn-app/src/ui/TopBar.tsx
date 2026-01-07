@@ -12,16 +12,24 @@ import clsx from 'clsx';
 import { type } from '@tauri-apps/plugin-os';
 import { motion } from 'motion/react';
 import { NymVpnTextLogo } from '../assets';
-import { useDialog, useMainState, useTopBar } from '../contexts';
+import {
+  useDialog,
+  useMainDispatch,
+  useMainState,
+  useTopBar,
+} from '../contexts';
 import { routes } from '../router';
-import { Routes } from '../types';
+import { Routes, StateDispatch } from '../types';
+import { kvSet } from '../kvStore/kv';
 import ButtonIcon from './ButtonIcon';
+import Button from './Button';
 
 type NavLocation = {
   title?: string | ReactNode;
   leftIcon?: string;
   handleLeftNav?: () => void;
   rightIcon?: string;
+  rightComponent?: ReactNode;
   rightIconClassName?: string;
   handleRightNav?: () => void;
   noBackground?: boolean;
@@ -35,6 +43,7 @@ export default function TopBar() {
   const { t } = useTranslation();
   const os = type();
 
+  const dispatch = useMainDispatch() as StateDispatch;
   const { uiTheme } = useMainState();
   const { show } = useDialog();
   const { customLeftNavHandler } = useTopBar();
@@ -74,6 +83,44 @@ export default function TopBar() {
         noBackground: true,
       },
       '/login': {
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+        rightComponent: (location.state as { skip: boolean })?.skip ? (
+          <Button
+            outline
+            color="gray"
+            onClick={() => navigate(routes.root)}
+            className="group border-none hover:ring-0! dark:hover:ring-0! w-fit!"
+          >
+            <span className="flex items-center gap-2 text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
+              {t('skip', { ns: 'common' })}
+            </span>
+          </Button>
+        ) : undefined,
+        noBackground: true,
+      },
+      '/onboarding': {
+        rightComponent: (
+          <Button
+            outline
+            color="gray"
+            onClick={() => {
+              navigate(routes.login, { state: { skip: true } });
+              dispatch({ type: 'set-onboarding-completed', completed: true });
+              kvSet('onboarding-completed', true);
+            }}
+            className="group border-none hover:ring-0! dark:hover:ring-0! w-fit!"
+          >
+            <span className="flex items-center gap-2 text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
+              {t('skip', { ns: 'common' })}
+            </span>
+          </Button>
+        ),
+        noBackground: true,
+      },
+      '/login/passphrase': {
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
@@ -242,11 +289,10 @@ export default function TopBar() {
       // these screens do not use the TopBar
       '/hideout': {},
       '/hideout/welcome': {},
-      '/hideout/onboarding': {},
       // TODO
       '/account': {},
     };
-  }, [t, navigate, getMainScreenTitle, show]);
+  }, [t, navigate, getMainScreenTitle, show, location.state, dispatch]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);
@@ -323,20 +369,24 @@ export default function TopBar() {
       <div data-testid="top-bar-title-container" className="text-xl">
         {renderTitle(currentNavLocation.title)}
       </div>
-      {currentNavLocation.rightIcon ? (
+      {currentNavLocation.rightIcon || currentNavLocation.rightComponent ? (
         <motion.div
           initial={{ translateX: 4, opacity: 0.6 }}
           animate={{ translateX: 0, opacity: 1 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-right-button-container"
         >
-          <ButtonIcon
-            icon={currentNavLocation.rightIcon}
-            onClick={currentNavLocation.handleRightNav!}
-            color="chalk"
-            className="mx-4"
-            noDefaultSize
-          />
+          {currentNavLocation.rightComponent &&
+            currentNavLocation.rightComponent}
+          {currentNavLocation.rightIcon && (
+            <ButtonIcon
+              icon={currentNavLocation.rightIcon}
+              onClick={currentNavLocation.handleRightNav!}
+              color="chalk"
+              className="mx-4"
+              noDefaultSize
+            />
+          )}
         </motion.div>
       ) : (
         <div className="w-6 mx-4" data-testid="top-bar-right-spacer" />

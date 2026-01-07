@@ -71,7 +71,8 @@ export type DbKey =
   | 'cache-wg-gateways'
   | 'cache-account-id'
   | 'cache-device-id'
-  | 'streaming-optimized-label-seen';
+  | 'streaming-optimized-label-seen'
+  | 'onboarding-completed';
 
 export type DisplayServer = 'x11' | 'wayland' | { unknown: string | null };
 
@@ -362,10 +363,6 @@ export type VpndConfig = {
   vpnMode: VpnMode;
   bridges: boolean;
   netstack: boolean;
-  disablePoissonRate: boolean;
-  disableBackgroundCoverTraffic: boolean;
-  minMixnodePerformance: number | null;
-  minGatewayMixnetPerformance: number | null;
   minGatewayVpnPerformance: number | null;
   residentialExit: boolean;
 };

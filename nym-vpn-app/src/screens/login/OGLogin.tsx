@@ -22,7 +22,7 @@ function OGLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AddError | null>(null);
 
-  const { daemonStatus, state } = useMainState();
+  const { daemonStatus, state, welcomeChecked } = useMainState();
 
   const { push } = useInAppNotify();
   const navigate = useNavigate();
@@ -51,7 +51,11 @@ function OGLogin() {
     try {
       console.info('logging in');
       await invoke<number | null>('add_account', { mnemonic: phrase.trim() });
-      navigate(routes.root);
+      if (!welcomeChecked) {
+        navigate(routes.welcome);
+      } else {
+        navigate(routes.root);
+      }
       dispatch({ type: 'set-account', stored: true });
       push({
         message: t('added-notification'),
