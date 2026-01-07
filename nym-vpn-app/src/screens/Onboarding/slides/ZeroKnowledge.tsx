@@ -5,7 +5,7 @@ function ZeroKnowledge() {
   const { t } = useTranslation('onboarding');
   return (
     <div className="flex flex-col items-center gap-4">
-      <ZeroKnowledgeAsset className="h-fit w-full max-w-72" />
+      <ZeroKnowledgeAsset className="h-full max-h-72 w-fit" />
       <h1 className="text-2xl text-baltic-sea dark:text-white">
         {t('zero-knowledge.title')}
       </h1>

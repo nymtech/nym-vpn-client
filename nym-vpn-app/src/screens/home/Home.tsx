@@ -72,7 +72,7 @@ function Home() {
 
   const handleClick = () => {
     if (state === 'disconnected' && !account) {
-      navigate(routes.login, { state: { skip: false } });
+      navigate(routes.login);
       return;
     }
     if (needAPlan) {
