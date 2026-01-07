@@ -1,8 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::ops::RangeInclusive;
-use std::{fmt, net::IpAddr};
+use std::{fmt, net::IpAddr, ops::RangeInclusive};
 
 const LOOP_COVER_DELAY_RANGE: RangeInclusive<u32> = 0..=200;
 const AVG_PACKET_DELAY_RANGE: RangeInclusive<u32> = 0..=200;

@@ -11,7 +11,9 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::{new_user_agent, storage::VpnClientOnDiskStorage};
-use nym_vpn_lib_types::{AccountControllerState, RegisterAccountResponse, StoreAccountRequest, NymVpnUsage};
+use nym_vpn_lib_types::{
+    AccountControllerState, NymVpnUsage, RegisterAccountResponse, StoreAccountRequest,
+};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     account::Mnemonic,

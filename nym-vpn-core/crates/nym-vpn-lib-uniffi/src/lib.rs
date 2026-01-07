@@ -78,8 +78,8 @@ use tokio::{runtime::Runtime, sync::Mutex};
 
 use nym_vpn_lib_types::{
     AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
-    NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage, RegisterAccountResponse,
-    StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent, NymVpnUsage
+    NetworkCompatibility, NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage,
+    RegisterAccountResponse, StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent,
 };
 
 use account::AccountControllerHandle;
