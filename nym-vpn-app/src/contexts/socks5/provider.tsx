@@ -21,7 +21,7 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
     try {
       const result = await invoke<Socks5Status>('get_socks5_status');
       setStatus(result);
-    } catch (error) {}
+    } catch (_error) {}
   }, []);
 
   // enable socks5
