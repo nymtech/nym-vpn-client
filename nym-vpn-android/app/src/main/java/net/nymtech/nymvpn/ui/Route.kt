@@ -64,10 +64,10 @@ sealed class Route {
 	data object LoginScanner : Route()
 
 	@Serializable
-	data object Welcome : Route()
+	data object Technical : Route()
 
 	@Serializable
-	data object WelcomeAccount : Route()
+	data class WelcomeAccount(val showSkip: Boolean = false) : Route()
 
 	@Serializable
 	data object SelectPlan : Route()
@@ -92,4 +92,7 @@ sealed class Route {
 
 	@Serializable
 	data object SplitTunneling : Route()
+
+	@Serializable
+	data object Onboarding : Route()
 }

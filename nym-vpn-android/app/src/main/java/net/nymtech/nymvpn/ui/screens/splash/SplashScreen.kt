@@ -47,7 +47,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 			if (appUiState.settings.welcomeScreenCompleted) {
 				navController.navigateAndForget(Route.Main())
 			} else {
-				navController.navigateAndForget(Route.Welcome)
+				navController.navigateAndForget(Route.Onboarding)
 			}
 		}
 	}

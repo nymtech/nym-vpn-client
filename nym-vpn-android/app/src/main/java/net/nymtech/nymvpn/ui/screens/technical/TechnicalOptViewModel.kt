@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.welcome
+package net.nymtech.nymvpn.ui.screens.technical
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,7 +8,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class WelcomeViewModel
+class TechnicalOptViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
