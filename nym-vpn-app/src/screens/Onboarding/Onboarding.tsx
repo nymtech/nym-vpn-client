@@ -5,7 +5,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { Button, PageAnim } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import { routes } from '../../router';
-import { Welcome, Tracking, ZeroKnowledge, Speed } from './slides';
+import { Speed, Tracking, Welcome, ZeroKnowledge } from './slides';
 import { DotButton, useDotButton } from './CarouselDotButton';
 
 const slides = [Welcome, Tracking, ZeroKnowledge, Speed];
