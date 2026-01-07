@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, str::FromStr, sync::OnceLock};
+use std::{str::FromStr, sync::OnceLock};
 
 use clap::{ArgAction, Parser, Subcommand};
 
@@ -19,13 +19,6 @@ pub struct CliArgs {
     /// Logging verbosity.
     #[arg(long, short = 'v', action = clap::ArgAction::Count)]
     pub verbose: u8,
-
-    /// Path pointing to an env file describing the network.
-    #[arg(short, long, value_parser = check_path)]
-    pub config_env_file: Option<PathBuf>,
-
-    #[arg(short, long, hide = true)]
-    pub network: Option<String>,
 
     /// Override the default user agent string.
     #[arg(long, value_parser = parse_user_agent)]
@@ -75,17 +68,6 @@ pub enum Command {
     #[default]
     #[clap(skip)]
     RunStandalone,
-}
-
-fn check_path(path: &str) -> Result<PathBuf, String> {
-    let path = PathBuf::from(path);
-    if !path.exists() {
-        return Err(format!("Path {} does not exist", path.display()));
-    }
-    if !path.is_file() {
-        return Err(format!("Path {} is not a file", path.display()));
-    }
-    Ok(path)
 }
 
 fn parse_user_agent(user_agent: &str) -> Result<UserAgent, String> {

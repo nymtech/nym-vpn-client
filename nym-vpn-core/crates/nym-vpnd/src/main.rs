@@ -3,31 +3,27 @@
 
 mod cli;
 mod command_interface;
-mod config;
 mod environment;
-mod logging;
-mod sentry;
-mod service;
+mod paths;
 mod shutdown_handler;
 #[cfg(windows)]
 mod windows_service;
 
-use std::path::PathBuf;
-
 use anyhow::Context;
 use clap::Parser;
-use tokio::{sync::broadcast, task::JoinHandle};
+use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
 
-use nym_vpn_lib::{UserAgent, new_user_agent};
-use nym_vpn_lib_types::LogPath;
-
-use crate::{
-    cli::{CliArgs, Command},
+use nym_platform_metadata::new_user_agent;
+use nym_vpn_lib::{
+    UserAgent,
     config::GlobalConfig,
     logging::LogFileRemoverHandle,
+    service::{NymVpnService, NymVpnServiceParameters, ServiceConfigStorageType},
 };
-use service::{NymVpnService, NymVpnServiceParameters};
+use nym_vpn_lib_types::LogPath;
+
+use crate::cli::{CliArgs, Command};
 
 fn main() -> anyhow::Result<()> {
     // COM must be initialized on main thread to prevent crash in firewall
@@ -76,40 +72,69 @@ async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
     // It would be better to call `init_sentry()` much later, as it forces a double-read
     // of the global configuration file, however there is a chicken-and-egg problem WRT
     // logging setup and reading the config file.
-    let _sentry_guard = sentry::init_sentry().await;
+    let global_config = GlobalConfig::read_from_config_dir(&paths::config_dir())
+        .await
+        .unwrap_or_default();
+
+    let _sentry_guard = if global_config.sentry_monitoring {
+        nym_vpn_lib::sentry::init_sentry()
+    } else {
+        None
+    };
     let sentry_enabled = _sentry_guard.is_some();
 
     let shutdown_token = CancellationToken::new();
     let run_as_service = args.is_run_as_service();
-    let options = logging::Options {
+    let options = nym_vpn_lib::logging::Options {
         verbosity_level: args.verbosity_level(),
         enable_file_log: run_as_service,
         enable_stdout_log: !run_as_service,
         enable_json_log: args.json_output || run_as_service,
+        log_dir: Some(crate::paths::log_dir()),
         sentry: sentry_enabled,
     };
-    let logging_setup =
-        logging::setup_logging_with_file_remover(options, shutdown_token.child_token());
+    let logging_setup = nym_vpn_lib::logging::setup_logging_with_file_remover(
+        options,
+        shutdown_token.child_token(),
+    );
     let log_path = logging_setup.as_ref().map(|s| s.log_path.clone());
     let remove_log_file_signal = logging_setup
         .as_ref()
         .map(|s| s.log_file_remover_handle.clone());
     let run_parameters = RunParameters::new_with_cli_args(args, log_path, sentry_enabled);
 
-    log_software_and_os_version();
+    nym_vpn_lib::log_software_and_os_version();
     if sentry_enabled {
         tracing::info!("Sentry monitoring enabled");
     }
 
     #[cfg(windows)]
     if run_as_service {
-        windows_service::start(run_parameters, remove_log_file_signal, shutdown_token).await?;
+        windows_service::start(
+            run_parameters,
+            global_config,
+            remove_log_file_signal,
+            shutdown_token,
+        )
+        .await?;
     } else {
-        run_standalone(run_parameters, remove_log_file_signal, shutdown_token).await?;
+        run_standalone(
+            global_config,
+            run_parameters,
+            remove_log_file_signal,
+            shutdown_token,
+        )
+        .await?;
     }
 
     #[cfg(not(windows))]
-    run_standalone(run_parameters, remove_log_file_signal, shutdown_token).await?;
+    run_standalone(
+        run_parameters,
+        global_config,
+        remove_log_file_signal,
+        shutdown_token,
+    )
+    .await?;
 
     let _worker_guard = if let Some(setup) = logging_setup {
         if setup.log_file_remover_join_handle.await.is_err() {
@@ -126,8 +151,6 @@ async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
 #[derive(Debug, Clone)]
 struct RunParameters {
     log_path: Option<LogPath>,
-    network: Option<String>,
-    config_env_file: Option<PathBuf>,
     sentry_enabled: bool,
     user_agent: UserAgent,
 }
@@ -136,8 +159,6 @@ impl RunParameters {
     fn new_with_cli_args(args: CliArgs, log_path: Option<LogPath>, sentry_enabled: bool) -> Self {
         Self {
             log_path,
-            network: args.network,
-            config_env_file: args.config_env_file,
             sentry_enabled,
             user_agent: args.user_agent.unwrap_or_else(|| new_user_agent!()),
         }
@@ -147,78 +168,24 @@ impl RunParameters {
 /// Run vpn service as a standalone process.
 async fn run_standalone(
     parameters: RunParameters,
+    global_config_file: GlobalConfig,
     log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
-    let global_config_file = setup_global_config(parameters.network).await?;
-
     // Migrate global configuration here, where we will have more information about the environment.
 
-    let network_env =
-        environment::setup_environment(&global_config_file, parameters.config_env_file.as_deref())
-            .await?;
+    let network_env = environment::setup_environment(&global_config_file).await?;
 
     let vpn_service_params = NymVpnServiceParameters {
         log_path: parameters.log_path,
+        config_dir: paths::config_dir(),
+        data_dir: paths::data_dir(),
         network_env: Box::new(network_env),
         sentry_enabled: parameters.sentry_enabled,
         user_agent: parameters.user_agent,
+        service_storage_type: ServiceConfigStorageType::Persistent,
     };
 
-    let vpn_service_handle = setup_vpn_service(
-        vpn_service_params,
-        log_file_remover_handle,
-        shutdown_token.child_token(),
-    )
-    .await?;
-
-    let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
-    vpn_service_handle.wait_until_shutdown().await;
-    shutdown_join_set.shutdown().await;
-
-    Ok(())
-}
-
-/// Provides a way to wait for vpn service and command interface termination.
-struct VpnServiceHandle {
-    vpn_service_handle: JoinHandle<()>,
-    command_handle: JoinHandle<()>,
-    command_shutdown_token: CancellationToken,
-}
-
-impl VpnServiceHandle {
-    /// Initialize with vpn service handle and command handle.
-    /// `command_shutdown_token` must propagate cancellation to `command_handle`.
-    pub fn new(
-        vpn_service_handle: JoinHandle<()>,
-        command_handle: JoinHandle<()>,
-        command_shutdown_token: CancellationToken,
-    ) -> Self {
-        Self {
-            vpn_service_handle,
-            command_handle,
-            command_shutdown_token,
-        }
-    }
-
-    pub async fn wait_until_shutdown(self) {
-        if let Err(e) = self.vpn_service_handle.await {
-            tracing::error!("Failed to join on vpn service: {}", e);
-        }
-
-        self.command_shutdown_token.cancel();
-
-        if let Err(e) = self.command_handle.await {
-            tracing::error!("Failed to join on command interface: {}", e);
-        }
-    }
-}
-
-async fn setup_vpn_service(
-    parameters: NymVpnServiceParameters,
-    log_file_remover_handle: Option<LogFileRemoverHandle>,
-    shutdown_token: CancellationToken,
-) -> anyhow::Result<VpnServiceHandle> {
     let command_shutdown_token = CancellationToken::new();
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
@@ -231,35 +198,22 @@ async fn setup_vpn_service(
         vpn_command_rx,
         tunnel_event_tx,
         log_file_remover_handle,
-        parameters,
+        vpn_service_params,
         shutdown_token.child_token(),
     );
 
-    Ok(VpnServiceHandle::new(
-        vpn_service_handle,
-        command_handle,
-        command_shutdown_token,
-    ))
-}
+    let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
 
-async fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfig> {
-    let mut global_config_file = GlobalConfig::read_from_default_config_dir().await?;
-    if let Some(network) = network {
-        global_config_file.network_name = network;
-        global_config_file.write_to_default_config_dir().await?;
+    if let Err(e) = vpn_service_handle.await {
+        tracing::error!("Failed to join on vpn service: {}", e);
     }
-    Ok(global_config_file)
-}
 
-fn log_software_and_os_version() {
-    let build_info = nym_bin_common::bin_info_local_vergen!();
-    tracing::info!(
-        "{} {} ({})",
-        build_info.binary_name,
-        build_info.build_version,
-        build_info.commit_sha
-    );
+    command_shutdown_token.cancel();
+    if let Err(e) = command_handle.await {
+        tracing::error!("Failed to join on command interface: {}", e);
+    }
 
-    let os = nym_platform_metadata::SysInfo::new();
-    tracing::info!("OS information: {}", os);
+    shutdown_join_set.shutdown().await;
+
+    Ok(())
 }

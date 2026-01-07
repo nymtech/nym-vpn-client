@@ -55,9 +55,6 @@ pub enum VpnError {
     #[error("failed to parse secret with error: {details}")]
     InvalidSecret { details: String },
 
-    #[error("invalid account storage path: {details}")]
-    InvalidAccountStoragePath { details: String },
-
     #[error("failed to remove device from nym vpn api: {details}")]
     UnregisterDevice { details: String },
 

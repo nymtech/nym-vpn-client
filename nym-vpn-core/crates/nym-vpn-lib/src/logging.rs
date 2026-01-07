@@ -51,6 +51,7 @@ pub struct Options {
     pub enable_file_log: bool,
     pub enable_stdout_log: bool,
     pub enable_json_log: bool,
+    pub log_dir: Option<PathBuf>,
     pub sentry: bool,
 }
 
@@ -62,8 +63,7 @@ pub struct FileAppender {
 }
 
 impl FileAppender {
-    pub fn new() -> Self {
-        let log_dir = service::log_dir();
+    pub fn new(log_dir: PathBuf) -> Self {
         let log_file = service::DEFAULT_LOG_FILE.to_string();
 
         let mut log_file_path = log_dir.clone();
@@ -191,13 +191,6 @@ pub struct LoggingSetupWithFileRemover {
     pub worker_guard: WorkerGuard,
 }
 
-pub fn default_log_path() -> LogPath {
-    LogPath {
-        dir: service::log_dir(),
-        filename: service::DEFAULT_LOG_FILE.to_string(),
-    }
-}
-
 struct FileManager {
     file_appender: FileAppender,
 }
@@ -302,13 +295,23 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
 
     let mut layers = Vec::new();
 
-    // Create oslog output on macOS for debugging purposes
-    #[cfg(target_os = "macos")]
-    layers.push(OsLogger::new("net.nymtech.vpn.agent", "default").boxed());
+    // Create oslog output on macOS and iOS for debugging purposes
+    #[cfg(target_os = "android")]
+    layers.push(
+        tracing_android::layer("libnymvpn")
+            .expect("tag contains nul terminator")
+            .boxed(),
+    );
+
+    // Create oslog output on macOS and iOS for debugging purposes
+    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    layers.push(tracing_oslog::OsLogger::new("net.nymtech.vpn.agent", "default").boxed());
 
     // Create file logger but only when running as a service on windows or macos
-    let worker_guard = if options.enable_file_log {
-        let file_appender = FileAppender::new();
+    let worker_guard = if let Some(log_dir) = options.log_dir
+        && options.enable_file_log
+    {
+        let file_appender = FileAppender::new(log_dir);
         let file_manager = FileManager::new(file_appender.clone());
         let (file_writer, worker_guard) = tracing_appender::non_blocking(file_manager);
         let file_layer = tracing_subscriber::fmt::layer()

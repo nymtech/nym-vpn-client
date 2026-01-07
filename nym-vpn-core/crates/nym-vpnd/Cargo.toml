@@ -22,8 +22,6 @@ hyper = { workspace = true, features = ["server", "http1"] }
 hyper-util = { workspace = true, features = ["tokio"] }
 http-body-util = { workspace = true }
 log-panics.workspace = true
-opentelemetry.workspace = true
-opentelemetry_sdk.workspace = true
 sentry = { workspace = true, features = [
     "backtrace",
     "contexts",
@@ -51,10 +49,6 @@ tokio-stream.workspace = true
 tokio-util.workspace = true
 toml.workspace = true
 tonic.workspace = true
-tracing-appender.workspace = true
-tracing-opentelemetry.workspace = true
-tracing-oslog.workspace = true
-tracing-subscriber = { workspace = true, features = ["env-filter", "ansi", "json"] }
 tracing.workspace = true
 urlencoding = { workspace = true }
 url.workspace = true
@@ -78,7 +72,7 @@ nym-vpn-lib = { workspace = true }
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 nym-vpn-store = { workspace = true }
 nym-vpn-network-config = { workspace = true }
-nym-platform-metadata = { workspace = true }
+nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-gateway-directory = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 

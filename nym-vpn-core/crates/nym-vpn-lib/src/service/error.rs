@@ -1,8 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
 use nym_vpn_api_client::error::VpnApiClientError;
-use nym_vpn_lib::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
 use nym_vpn_lib_types::GatewayType;
 
 use super::config::ConfigSetupError;
@@ -38,7 +38,7 @@ pub enum Error {
     CreateAccountController(#[source] nym_vpn_account_controller::Error),
 
     #[error("failed to create gateway client")]
-    CreateGatewayClient(#[source] nym_vpn_lib::gateway_directory::Error),
+    CreateGatewayClient(#[source] crate::gateway_directory::Error),
 
     #[error("config setup error")]
     ConfigSetup(#[source] ConfigSetupError),
@@ -75,13 +75,13 @@ pub enum ListGatewaysError {
     #[error("failed to get gateways ({gw_type:?})")]
     GetGateways {
         gw_type: GatewayType,
-        source: nym_vpn_lib::gateway_directory::Error,
+        source: crate::gateway_directory::Error,
     },
 
     #[error("failed to get filtered gateways ({gw_type:?})")]
     GetFilteredGateways {
         gw_type: GatewayType,
-        source: nym_vpn_lib::gateway_directory::Error,
+        source: crate::gateway_directory::Error,
     },
 }
 

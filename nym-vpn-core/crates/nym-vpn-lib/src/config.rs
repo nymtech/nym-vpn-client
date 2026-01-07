@@ -1,10 +1,43 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::{Context, anyhow};
-use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
+use std::path::{Path, PathBuf};
+
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+
+use crate::{
+    nym_config::defaults::NymNetworkDetails,
+    service::{ConfigSetupError, DEFAULT_GLOBAL_CONFIG_FILE_JSON, DEFAULT_GLOBAL_CONFIG_FILE_TOML},
+};
+
+#[derive(Debug, thiserror::Error)]
+pub enum GlobalConfigError {
+    #[error("failed to write global config file: {file_path}")]
+    Write {
+        file_path: PathBuf,
+        #[source]
+        source: ConfigSetupError,
+    },
+
+    #[error("failed to read global config file: {file_path}")]
+    Read {
+        file_path: PathBuf,
+        #[source]
+        source: ConfigSetupError,
+    },
+
+    #[error("failed to parse global config file: {file_path}")]
+    Parse {
+        file_path: PathBuf,
+        #[source]
+        source: ConfigSetupError,
+    },
+
+    #[error("failed to convert global config to external representation for writing")]
+    ExtRepr(#[source] ConfigSetupError),
+}
+
+pub type Result<T, E = GlobalConfigError> = std::result::Result<T, E>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GlobalConfig {
@@ -22,54 +55,48 @@ impl Default for GlobalConfig {
 }
 
 impl GlobalConfig {
-    pub async fn read_from_default_config_dir() -> anyhow::Result<Self> {
-        let config_dir = crate::service::config_dir();
-        Self::read_from_config_dir(&config_dir).await
+    pub async fn read_from_config_dir(config_dir: &Path) -> Result<Self> {
+        match Self::read_config(config_dir).await {
+            Ok(config) => Ok(config),
+            Err(err) => {
+                tracing::error!("Failed to read global config file; using default : {err}");
+                let config = GlobalConfig::default();
+                config.write_to_config_dir(config_dir).await?;
+                Ok(config)
+            }
+        }
     }
 
-    pub async fn read_from_config_dir(config_dir: &Path) -> anyhow::Result<Self> {
-        let config = Self::read_config(config_dir).await.unwrap_or_else(|err| {
-            tracing::error!("Failed to read global config file; using default : {err}");
-            GlobalConfig::default()
-        });
-
-        // Always write back config file back using the latest JSON version
-        // TODO: Avoid doing this as it's double-writing the config file.
-        config.write_to_config_dir(config_dir).await?;
-
-        Ok(config)
-    }
-
-    async fn read_config(config_dir: &Path) -> anyhow::Result<Self> {
-        let json_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
+    async fn read_config(config_dir: &Path) -> Result<Self> {
+        let json_config_path = config_dir.join(DEFAULT_GLOBAL_CONFIG_FILE_JSON);
         let json_config_exists = json_config_path.exists();
-        let toml_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
+        let toml_config_path = config_dir.join(DEFAULT_GLOBAL_CONFIG_FILE_TOML);
         let toml_config_exists = toml_config_path.exists();
 
         let config = if json_config_exists {
             let ext_config =
                 crate::service::read_json_config_file::<GlobalConfigExt>(&json_config_path)
                     .await
-                    .context(anyhow!(
-                        "Failed to read global config file {}",
-                        json_config_path.display()
-                    ))?;
-            GlobalConfig::try_from(ext_config).context(anyhow!(
-                "Failed to parse global config file {}",
-                json_config_path.display()
-            ))?
+                    .map_err(|err| GlobalConfigError::Read {
+                        file_path: json_config_path.clone(),
+                        source: err,
+                    })?;
+            GlobalConfig::try_from(ext_config).map_err(|err| GlobalConfigError::Parse {
+                file_path: json_config_path,
+                source: err,
+            })?
         } else if toml_config_exists {
             let legacy_config =
                 crate::service::read_toml_config_file::<LegacyGlobalConfig>(&toml_config_path)
                     .await
-                    .context(anyhow!(
-                        "Failed to read global config file {}",
-                        toml_config_path.display()
-                    ))?;
-            GlobalConfig::try_from(legacy_config).context(anyhow!(
-                "Failed to parse global config file {}",
-                toml_config_path.display()
-            ))?
+                    .map_err(|err| GlobalConfigError::Read {
+                        file_path: toml_config_path.clone(),
+                        source: err,
+                    })?;
+            GlobalConfig::try_from(legacy_config).map_err(|err| GlobalConfigError::Parse {
+                file_path: toml_config_path.clone(),
+                source: err,
+            })?
         } else {
             GlobalConfig::default()
         };
@@ -79,38 +106,24 @@ impl GlobalConfig {
                 "Removing deprecated global config file {}",
                 toml_config_path.display()
             );
-            let _ = std::fs::remove_file(&toml_config_path);
+            if let Err(e) = tokio::fs::remove_file(&toml_config_path).await {
+                tracing::error!("Failed to remove deprecated global config file: {e}");
+            }
         }
 
         Ok(config)
     }
 
-    pub async fn write_to_default_config_dir(&self) -> anyhow::Result<()> {
-        let config_dir = crate::service::config_dir();
-        self.write_to_config_dir(&config_dir).await
-    }
-
-    pub async fn write_to_config_dir(&self, config_dir: &Path) -> anyhow::Result<()> {
+    pub async fn write_to_config_dir(&self, config_dir: &Path) -> Result<()> {
         let json_config_path = config_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
-
-        let ext_config = GlobalConfigExt::try_from(self).context(anyhow!(
-            "Failed to convert global config to external representation for writing"
-        ))?;
+        let ext_config = GlobalConfigExt::try_from(self).map_err(GlobalConfigError::ExtRepr)?;
 
         crate::service::write_json_config_file(&json_config_path, &ext_config)
             .await
-            .context(anyhow!(
-                "Failed to write global config file {}",
-                json_config_path.display()
-            ))
-    }
-
-    // Calling this means the global configuration file is read twice 😒
-    pub async fn sentry_enabled() -> bool {
-        let config = Self::read_from_default_config_dir()
-            .await
-            .unwrap_or_default();
-        config.sentry_monitoring
+            .map_err(|err| GlobalConfigError::Write {
+                file_path: json_config_path,
+                source: err,
+            })
     }
 }
 

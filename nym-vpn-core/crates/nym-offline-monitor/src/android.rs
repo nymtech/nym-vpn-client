@@ -39,6 +39,13 @@ pub trait NativeConnectivityAdapter: Send + Sync {
     async fn next_connectivity(&mut self) -> Option<bool>;
 }
 
+#[async_trait::async_trait]
+impl<T: ?Sized + NativeConnectivityAdapter> NativeConnectivityAdapter for Box<T> {
+    async fn next_connectivity(&mut self) -> Option<bool> {
+        self.as_mut().next_connectivity().await
+    }
+}
+
 #[derive(Debug)]
 pub struct Error;
 

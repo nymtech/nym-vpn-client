@@ -277,7 +277,7 @@ impl RpcClient {
             .collect())
     }
 
-    pub async fn get_log_path(&self) -> Result<LogPath> {
+    pub async fn get_log_path(&self) -> Result<Option<LogPath>> {
         let log_path = self.inner.clone().get_log_path().await?;
         Ok(log_path)
     }

@@ -55,18 +55,21 @@ enum ServiceEvent {
 struct SharedServiceState {
     runtime_handle: tokio::runtime::Handle,
     run_parameters: RunParameters,
+    global_config: GlobalConfig,
     log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 }
 
 pub async fn start(
     run_parameters: RunParameters,
+    global_config: GlobalConfig,
     log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let initial_state = SharedServiceState {
         runtime_handle: tokio::runtime::Handle::current(),
         run_parameters,
+        global_config,
         log_file_remover_handle,
         shutdown_token,
     };
@@ -116,28 +119,23 @@ async fn run_service() -> anyhow::Result<()> {
     tracing::info!("Service is starting...");
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
-    let global_config_file = crate::setup_global_config(run_params.network.clone()).await?;
-    let network_env = match crate::environment::setup_environment(
-        &global_config_file,
-        run_params.config_env_file.as_deref(),
-    )
-    .await
-    {
-        Ok(network_env) => network_env,
-        Err(err) => {
-            tracing::error!(
-                "Failed to fetch network environment for {}: {}",
-                run_params.network.as_deref().unwrap_or("mainnet"),
-                err
-            );
+    let network_env =
+        match crate::environment::setup_environment(&service_state.global_config).await {
+            Ok(network_env) => network_env,
+            Err(err) => {
+                tracing::error!(
+                    "Failed to fetch network environment for {}: {}",
+                    run_params.network.as_deref().unwrap_or("mainnet"),
+                    err
+                );
 
-            persistent_status.set_stopped(ServiceExitCode::from(
-                ServiceSpecificExitCode::FetchNetworkEnvironment,
-            ))?;
+                persistent_status.set_stopped(ServiceExitCode::from(
+                    ServiceSpecificExitCode::FetchNetworkEnvironment,
+                ))?;
 
-            return Err(err).with_context(|| "Failed to fetch network environment");
-        }
-    };
+                return Err(err).with_context(|| "Failed to fetch network environment");
+            }
+        };
 
     let vpn_service_params = NymVpnServiceParameters {
         log_path: run_params.log_path,

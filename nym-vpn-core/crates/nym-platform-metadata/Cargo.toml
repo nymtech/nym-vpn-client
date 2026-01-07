@@ -13,7 +13,8 @@ workspace = true
 
 [features]
 default = ["network-manager"]
-network-manager = ["nym-dbus"]
+network-manager = ["dep:nym-dbus"]
+user-agent-macro = ["dep:nym-sdk", "dep:nym-bin-common"]
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 objc2-foundation = { workspace = true, features = ["NSProcessInfo"] }
@@ -34,3 +35,5 @@ features = [
 [dependencies]
 sha2.workspace = true
 sysinfo.workspace = true
+nym-bin-common = { workspace = true, optional = true }
+nym-sdk = { workspace = true, optional = true }

@@ -3,8 +3,8 @@
 
 use crate::{diagnostic::build_api_client, error::Result};
 
+use nym_platform_metadata::new_user_agent;
 use nym_validator_client::nym_api::NymApiClientExt;
-use nym_vpn_lib::new_user_agent;
 use nym_vpn_lib_types::{ApiTimeSkew, HttpReport};
 use nym_vpn_network_config::Network;
 

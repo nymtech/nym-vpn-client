@@ -399,8 +399,8 @@ impl From<VpnServiceInfo> for proto::InfoResponse {
     }
 }
 
-impl From<proto::GetLogPathResponse> for nym_vpn_lib_types::LogPath {
-    fn from(value: proto::GetLogPathResponse) -> Self {
+impl From<proto::LogPath> for nym_vpn_lib_types::LogPath {
+    fn from(value: proto::LogPath) -> Self {
         Self {
             dir: PathBuf::from(value.dir),
             filename: value.filename,
@@ -408,12 +408,11 @@ impl From<proto::GetLogPathResponse> for nym_vpn_lib_types::LogPath {
     }
 }
 
-impl TryFrom<LogPath> for proto::GetLogPathResponse {
+impl TryFrom<LogPath> for proto::LogPath {
     type Error = ConversionError;
 
     fn try_from(value: LogPath) -> Result<Self, Self::Error> {
         Ok(Self {
-            // todo: consider TryFrom instead to raise encoding issues
             dir: value
                 .dir
                 .into_os_string()

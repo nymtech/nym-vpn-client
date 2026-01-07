@@ -5,9 +5,13 @@ pub mod storage;
 
 mod bandwidth_controller;
 pub mod cache_refresh;
+pub mod config;
 mod error;
+pub mod logging;
 pub mod login;
 mod mixnet;
+pub mod sentry;
+pub mod service;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod tunnel_provider;
 pub mod tunnel_state_machine;
@@ -26,12 +30,6 @@ pub use nym_sdk::{
     UserAgent,
     mixnet::{NodeIdentity, Recipient, StoragePaths},
 };
-
-// Re-exports used by new_user_agent macros
-#[doc(hidden)]
-pub use nym_bin_common;
-#[doc(hidden)]
-pub use nym_platform_metadata;
 
 pub use crate::{
     error::GatewayDirectoryError,
@@ -67,21 +65,15 @@ pub const TUNNEL_TABLE_ID: u32 = 0x14d;
 #[cfg(target_os = "linux")]
 pub const TUNNEL_FWMARK: u32 = 0x14d;
 
-/// Macro that creates `UserAgent` from compiled in vergen metadata.
-#[macro_export]
-macro_rules! new_user_agent {
-    () => {{
-        let bin_info = $crate::nym_bin_common::bin_info_local_vergen!();
-        let sys_info = $crate::nym_platform_metadata::SysInfo::new();
-        let platform = format!(
-            "{}; {}; {}",
-            sys_info.system_name, sys_info.os_version, sys_info.arch
-        );
-        $crate::UserAgent {
-            application: bin_info.binary_name.to_string(),
-            version: bin_info.build_version.to_string(),
-            platform,
-            git_commit: bin_info.commit_sha.to_string(),
-        }
-    }};
+pub fn log_software_and_os_version() {
+    let build_info = nym_bin_common::bin_info_local_vergen!();
+    tracing::info!(
+        "{} {} ({})",
+        build_info.binary_name,
+        build_info.build_version,
+        build_info.commit_sha
+    );
+
+    let os = nym_platform_metadata::SysInfo::new();
+    tracing::info!("OS information: {}", os);
 }

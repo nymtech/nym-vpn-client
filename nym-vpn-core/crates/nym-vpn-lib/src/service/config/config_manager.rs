@@ -1,23 +1,23 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::service::{
-    config::{
-        DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
-        VpnServiceConfigVersion, legacy,
-    },
-    error::{Error, Result},
-    read_json_config_file, read_toml_config_file, write_json_config_file,
-};
-use nym_common::trace_err_chain;
-use nym_registration_client::MixnetClientConfig;
-use nym_vpn_lib::{
+use crate::{
     DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE,
+    service::{
+        config::{
+            DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
+            VpnServiceConfigVersion, legacy,
+        },
+        error::{Error, Result},
+        read_json_config_file, read_toml_config_file, write_json_config_file,
+    },
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
         WireguardMultihopMode, WireguardTunnelOptions,
     },
 };
+use nym_common::trace_err_chain;
+use nym_registration_client::MixnetClientConfig;
 use std::{
     net::IpAddr,
     path::{Path, PathBuf},
@@ -26,8 +26,8 @@ use std::{
 use tokio::{fs, sync::broadcast};
 
 pub struct VpnServiceConfigManager {
-    json_config_path: PathBuf,
-    config: nym_vpn_lib_types::VpnServiceConfig,
+    json_config_path: Option<PathBuf>,
+    config: Box<nym_vpn_lib_types::VpnServiceConfig>,
 
     // Used to send `ConfigChanged` events when the config is updated.
     // It's only optional to simplify testing.
@@ -35,6 +35,18 @@ pub struct VpnServiceConfigManager {
 }
 
 impl VpnServiceConfigManager {
+    /// Returns ephemeral config manager that does not persist the config on disk.
+    pub fn new_ephermeral(
+        initial_config: Box<nym_vpn_lib_types::VpnServiceConfig>,
+        tunnel_event_tx: Option<broadcast::Sender<nym_vpn_lib_types::TunnelEvent>>,
+    ) -> Self {
+        Self {
+            json_config_path: None,
+            config: initial_config,
+            tunnel_event_tx,
+        }
+    }
+
     pub async fn new(
         network_config_dir: &Path,
         tunnel_event_tx: Option<broadcast::Sender<nym_vpn_lib_types::TunnelEvent>>,
@@ -55,8 +67,8 @@ impl VpnServiceConfigManager {
             };
 
         let config_manager = Self {
-            json_config_path,
-            config,
+            json_config_path: Some(json_config_path),
+            config: Box::new(config),
             tunnel_event_tx,
         };
 
@@ -224,9 +236,9 @@ impl VpnServiceConfigManager {
 
         // Notify all clients that the config has changed
         if let Some(tx) = self.tunnel_event_tx.as_ref() {
-            match tx.send(nym_vpn_lib_types::TunnelEvent::ConfigChanged(Box::new(
+            match tx.send(nym_vpn_lib_types::TunnelEvent::ConfigChanged(
                 self.config.clone(),
-            ))) {
+            )) {
                 Ok(recv_count) => {
                     tracing::info!("Sent config changed event to {recv_count} receivers");
                 }
@@ -282,8 +294,12 @@ impl VpnServiceConfigManager {
 
     // Only public for unit tests
     pub(crate) async fn write_to_file(&self) -> bool {
+        let Some(json_config_path) = self.json_config_path.as_ref() else {
+            return true;
+        };
+
         let ext_config =
-            match VpnServiceConfigExt::try_from(&self.config).map_err(Error::ConfigSetup) {
+            match VpnServiceConfigExt::try_from(&*self.config).map_err(Error::ConfigSetup) {
                 Ok(ext_config) => ext_config,
                 Err(e) => {
                     tracing::error!("Failed to convert service config to JSON: {e}");
@@ -292,21 +308,22 @@ impl VpnServiceConfigManager {
             };
         let version = ext_config.version();
 
-        match write_json_config_file(&self.json_config_path, &ext_config)
+        match write_json_config_file(json_config_path, &ext_config)
             .await
             .map_err(Error::ConfigSetup)
         {
             Ok(_) => {
                 tracing::info!(
                     "Writing service config version {version} to {}",
-                    self.json_config_path.display()
+                    json_config_path.display()
                 );
                 true
             }
             Err(e) => {
-                tracing::error!(
-                    "Failed to write service config version {version} to {}: {e}",
-                    self.json_config_path.display()
+                trace_err_chain!(
+                    e,
+                    "failed to write service config version {version} to {}",
+                    json_config_path.display()
                 );
                 false
             }
@@ -377,11 +394,14 @@ impl VpnServiceConfigManager {
             tunnel_type,
             mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },
             wireguard_tunnel_options: WireguardTunnelOptions {
+                #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 multihop_mode: if self.config.netstack {
                     WireguardMultihopMode::Netstack
                 } else {
                     WireguardMultihopMode::TunTun
                 },
+                #[cfg(any(target_os = "android", target_os = "ios"))]
+                multihop_mode: WireguardMultihopMode::Netstack,
                 enable_bridges: self.config.enable_bridges,
             },
             gateway_performance_options: gateway_options,
