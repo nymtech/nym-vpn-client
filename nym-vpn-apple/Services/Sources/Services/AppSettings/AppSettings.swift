@@ -68,7 +68,9 @@ import CountriesManagerTypes
     public var isPassphraseStored: Bool = false
 
     @AppStorage(AppSettingKey.ipv6TrafficIsEnabled.rawValue)
-    public var isIPv6TrafficEnabled = true
+    public var isIPv6TrafficEnabled = true {
+        didSet { isIPv6TrafficEnabledPublisher = isIPv6TrafficEnabled }
+    }
 
     @AppStorage(AppSettingKey.lanBypass.rawValue)
     public var isLanBypassEnabled = false {
@@ -105,6 +107,7 @@ import CountriesManagerTypes
     @Published public var shouldReconnectPublisher: Bool
     @Published public var isCustomDnsEnabledPublisher: Bool
     @Published public var customDnsPublisher: [String]
+    @Published public var isIPv6TrafficEnabledPublisher: Bool
     @Published public var isLanBypassEnabledPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
@@ -115,6 +118,7 @@ import CountriesManagerTypes
         self.shouldReconnectPublisher = false
         self.isCustomDnsEnabledPublisher = false
         self.customDnsPublisher = []
+        self.isIPv6TrafficEnabledPublisher = true
         self.isLanBypassEnabledPublisher = false
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
@@ -123,6 +127,7 @@ import CountriesManagerTypes
         self.shouldReconnectPublisher = self.shouldReconnect
         self.isCustomDnsEnabledPublisher = self.isCustomDnsEnabled
         self.customDnsPublisher = self.customDns
+        self.isIPv6TrafficEnabledPublisher = self.isIPv6TrafficEnabled
         self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
     }
 }

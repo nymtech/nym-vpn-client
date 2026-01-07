@@ -230,6 +230,14 @@ private extension ConnectionManager {
             }
             .store(in: &cancellables)
 
+        appSettings.$isIPv6TrafficEnabledPublisher
+            .removeDuplicates()
+            .sink { [weak self] newValue in
+                self?.connectionConfig.disableIpv6 = !newValue
+                self?.updateConnectionConfig()
+            }
+            .store(in: &cancellables)
+
         appSettings.$isLanBypassEnabledPublisher
             .removeDuplicates()
             .sink { [weak self] newValue in
