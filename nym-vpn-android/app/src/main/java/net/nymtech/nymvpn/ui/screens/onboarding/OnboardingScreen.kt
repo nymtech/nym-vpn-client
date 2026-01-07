@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
@@ -48,17 +49,18 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun OnboardingScreen() {
+fun OnboardingScreen(viewModel: OnboardingViewModel = hiltViewModel()) {
 	val navigator = LocalNavController.current
 	OnboardingScreen(
-		onSkipClick = {
+		onContinueClick = {
+			viewModel.onContinueClicked()
 			navigator.goFromRoot(Route.WelcomeAccount(true))
 		},
 	)
 }
 
 @Composable
-fun OnboardingScreen(onSkipClick: () -> Unit) {
+fun OnboardingScreen(onContinueClick: () -> Unit) {
 	val scope = rememberCoroutineScope()
 	val pages = getPages()
 
@@ -87,7 +89,7 @@ fun OnboardingScreen(onSkipClick: () -> Unit) {
 				style = MaterialTheme.typography.titleMedium,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				color = MaterialTheme.colorScheme.onBackground,
-				modifier = Modifier.clickable { onSkipClick() },
+				modifier = Modifier.clickable { onContinueClick() },
 			)
 		}
 
@@ -146,7 +148,7 @@ fun OnboardingScreen(onSkipClick: () -> Unit) {
 					if (pagerState.currentPage < lastIndex) {
 						scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
 					} else {
-						onSkipClick()
+						onContinueClick()
 					}
 				},
 				content = {
