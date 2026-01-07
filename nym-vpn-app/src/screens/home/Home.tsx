@@ -130,7 +130,7 @@ function Home() {
     }
     welcomeInit = true;
     if (!welcomeChecked) {
-      navigate(routes.welcome);
+      navigate(routes.onboarding);
     }
   }, [navigate, welcomeChecked]);
 

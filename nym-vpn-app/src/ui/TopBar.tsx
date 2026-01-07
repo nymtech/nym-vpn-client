@@ -257,6 +257,7 @@ export default function TopBar() {
       // these screens do not use the TopBar
       '/hideout': {},
       '/hideout/welcome': {},
+      '/hideout/onboarding': {},
       // TODO
       '/account': {},
     };

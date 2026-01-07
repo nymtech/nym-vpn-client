@@ -9,6 +9,7 @@ import addCredential from '../en/add-credential.json';
 import licenses from '../en/licenses.json';
 import errors from '../en/errors.json';
 import welcome from '../en/welcome.json';
+import onboarding from '../en/onboarding.json';
 import glossary from '../en/glossary.json';
 import notifications from '../en/notifications.json';
 import login from '../en/login.json';
@@ -25,6 +26,7 @@ export const en = {
   licenses,
   errors,
   welcome,
+  onboarding,
   glossary,
   notifications,
   login,

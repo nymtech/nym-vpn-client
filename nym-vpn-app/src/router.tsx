@@ -20,6 +20,7 @@ import {
   MainLayout,
   NodeDetails,
   NodeEntry,
+  Onboarding,
   PassphraseLogin,
   SelectPlan,
   Settings,
@@ -58,6 +59,7 @@ export const routes = {
   nodeDetails: '/node-details',
   hideout: '/hideout',
   welcome: '/hideout/welcome',
+  onboarding: '/hideout/onboarding',
 } as const;
 
 // ⚠ router instance creation must remain outside of React
@@ -214,6 +216,11 @@ const router = createBrowserRouter([
       {
         path: routes.welcome,
         Component: Welcome,
+        errorElement: <Error />,
+      },
+      {
+        path: routes.onboarding,
+        Component: Onboarding,
         errorElement: <Error />,
       },
     ],
