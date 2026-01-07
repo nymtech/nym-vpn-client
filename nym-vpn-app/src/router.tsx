@@ -21,7 +21,6 @@ import {
   NodeDetails,
   NodeEntry,
   Onboarding,
-  PassphraseLogin,
   SelectPlan,
   Settings,
   SettingsRouteIndex,
@@ -36,7 +35,6 @@ const Home = lazy(() => import('./screens/home/Home'));
 export const routes = {
   root: '/',
   login: '/login',
-  passphrase: '/login/passphrase',
   account: '/account',
   selectPlan: '/account/select-a-plan',
   settings: '/settings',
@@ -77,11 +75,6 @@ const router = createBrowserRouter([
       {
         path: routes.login,
         Component: Login,
-        errorElement: <Error />,
-      },
-      {
-        path: routes.passphrase,
-        Component: PassphraseLogin,
         errorElement: <Error />,
       },
       {

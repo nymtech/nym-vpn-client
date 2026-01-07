@@ -114,7 +114,6 @@ jobs:
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           DEV_MODE: ${{ inputs.dev_mode == true }}
           UPDATER_ENABLED: false
-          VITE_PRIVY_APP_ID: ${{ secrets.PRIVY_APP_ID }}
         run: |
           npm run tauri build -- --bundles deb,appimage
           ls -la target/release/ || true

@@ -23,7 +23,6 @@ import { RouteLoading, ThemeSetter } from './ui';
 import { GatewaysProvider } from './contexts/gateways';
 import { IntroAnim, IntroSplash } from './screens';
 import { InitState } from './types';
-import { PrivyProvider } from './PrivyProvider';
 
 let initialized = false;
 const noSplash = window._APP.noSplash;
@@ -71,23 +70,21 @@ function App({ init }: { init: InitState }) {
       <InAppNotificationProvider>
         <Toast.Provider>
           <MainStateProvider init={init}>
-            <PrivyProvider>
-              <GatewaysProvider>
-                <NodeListStateProvider>
-                  <Socks5Provider>
-                    <ThemeSetter>
-                      <DialogProvider>
-                        <TopBarProvider>
-                          <Suspense fallback={<RouteLoading />}>
-                            <RouterProvider router={router} />
-                          </Suspense>
-                        </TopBarProvider>
-                      </DialogProvider>
-                    </ThemeSetter>
-                  </Socks5Provider>
-                </NodeListStateProvider>
-              </GatewaysProvider>
-            </PrivyProvider>
+            <GatewaysProvider>
+              <NodeListStateProvider>
+                <Socks5Provider>
+                  <ThemeSetter>
+                    <DialogProvider>
+                      <TopBarProvider>
+                        <Suspense fallback={<RouteLoading />}>
+                          <RouterProvider router={router} />
+                        </Suspense>
+                      </TopBarProvider>
+                    </DialogProvider>
+                  </ThemeSetter>
+                </Socks5Provider>
+              </NodeListStateProvider>
+            </GatewaysProvider>
           </MainStateProvider>
         </Toast.Provider>
       </InAppNotificationProvider>
