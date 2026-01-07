@@ -80,21 +80,6 @@ export default function TopBar() {
         },
         noBackground: true,
       },
-      '/login/passphrase': {
-        title: (
-          <NymVpnTextLogo
-            className={clsx(
-              'w-24 h-6',
-              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
-            )}
-          />
-        ),
-        leftIcon: 'arrow_back',
-        handleLeftNav: () => {
-          navigate(-1);
-        },
-        noBackground: true,
-      },
       '/settings': {
         title: t('settings'),
         leftIcon: 'arrow_back',
