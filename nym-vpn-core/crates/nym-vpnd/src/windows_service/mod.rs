@@ -18,7 +18,9 @@ use windows_service::{
     service_dispatcher,
 };
 
-use crate::{RunParameters, logging::LogFileRemoverHandle, service::NymVpnServiceParameters};
+use nym_vpn_lib::{config::GlobalConfig, logging::LogFileRemoverHandle};
+
+use crate::RunParameters;
 use persistent_service_status::PersistentServiceStatus;
 
 windows_service::define_windows_service!(ffi_service_main, service_main);
@@ -55,18 +57,21 @@ enum ServiceEvent {
 struct SharedServiceState {
     runtime_handle: tokio::runtime::Handle,
     run_parameters: RunParameters,
+    global_config: GlobalConfig,
     log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 }
 
 pub async fn start(
     run_parameters: RunParameters,
+    global_config: GlobalConfig,
     log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let initial_state = SharedServiceState {
         runtime_handle: tokio::runtime::Handle::current(),
         run_parameters,
+        global_config,
         log_file_remover_handle,
         shutdown_token,
     };
@@ -116,63 +121,53 @@ async fn run_service() -> anyhow::Result<()> {
     tracing::info!("Service is starting...");
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
-    let global_config_file = crate::setup_global_config(run_params.network.clone()).await?;
-    let network_cache = match crate::environment::setup_environment(
-        &global_config_file.network_name,
+    let network_cache = crate::environment::setup_environment(
+        &service_state.global_config.network_name,
         run_params.user_agent.clone(),
     )
     .await
-    {
-        Ok(network_cache) => network_cache,
-        Err(err) => {
-            tracing::error!(
-                "Failed to fetch network environment for {}: {}",
-                run_params.network.as_deref().unwrap_or("mainnet"),
-                err
-            );
+    .or_else(|err| {
+        tracing::error!(
+            "Failed to fetch network environment for {}: {}",
+            service_state.global_config.network_name,
+            err
+        );
 
-            persistent_status.set_stopped(ServiceExitCode::from(
-                ServiceSpecificExitCode::FetchNetworkEnvironment,
-            ))?;
+        persistent_status.set_stopped(ServiceExitCode::from(
+            ServiceSpecificExitCode::FetchNetworkEnvironment,
+        ))?;
 
-            return Err(err).with_context(|| "Failed to fetch network environment");
-        }
-    };
+        Err(err).with_context(|| "Failed to fetch network environment")
+    })?;
 
-    let vpn_service_params = NymVpnServiceParameters {
-        log_path: run_params.log_path,
-        sentry_enabled: run_params.sentry_enabled,
-        user_agent: run_params.user_agent,
+    let join_handle = crate::spawn_vpn_service(
+        run_params,
         network_cache,
-    };
-
-    match crate::setup_vpn_service(
-        vpn_service_params,
         service_state.log_file_remover_handle,
-        shutdown_token,
+        shutdown_token.child_token(),
     )
     .await
-    {
-        Ok(vpn_service_handle) => {
-            tracing::info!("Service has started");
-            persistent_status.set_running()?;
+    .or_else(|err| {
+        tracing::error!("Failed to setup vpn service: {err}");
 
-            vpn_service_handle.wait_until_shutdown().await;
-            persistent_status.set_stopped(ServiceExitCode::NO_ERROR)?;
-            tracing::info!("Service has stopped!");
+        persistent_status.set_stopped(ServiceExitCode::from(
+            ServiceSpecificExitCode::SetupVpnService,
+        ))?;
 
-            Ok(())
-        }
-        Err(err) => {
-            tracing::error!("Failed to setup vpn service: {err}");
+        Err(err)
+    })?;
 
-            persistent_status.set_stopped(ServiceExitCode::from(
-                ServiceSpecificExitCode::SetupVpnService,
-            ))?;
+    tracing::info!("Service has started");
+    persistent_status.set_running()?;
 
-            Err(err)
-        }
+    if let Err(err) = join_handle.await {
+        tracing::error!("Failed to join on vpn service task: {err}");
     }
+
+    persistent_status.set_stopped(ServiceExitCode::NO_ERROR)?;
+    tracing::info!("Service has stopped!");
+
+    Ok(())
 }
 
 fn register_service_event_handler(

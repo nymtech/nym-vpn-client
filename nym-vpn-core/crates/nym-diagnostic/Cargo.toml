@@ -31,10 +31,11 @@ nym-vpn-lib-types = { workspace = true, features = [
     "serde",
     "nym-type-conversions",
 ] }
+nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-vpn-api-client.workspace = true
-nym-vpn-lib.workspace = true
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
+nym-common.workspace = true
 
 anyhow.workspace = true
 async-trait.workspace = true

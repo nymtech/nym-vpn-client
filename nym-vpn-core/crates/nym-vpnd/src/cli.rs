@@ -20,9 +20,6 @@ pub struct CliArgs {
     #[arg(long, short = 'v', action = clap::ArgAction::Count)]
     pub verbose: u8,
 
-    #[arg(short, long, hide = true)]
-    pub network: Option<String>,
-
     /// Override the default user agent string.
     #[arg(long, value_parser = parse_user_agent)]
     pub user_agent: Option<UserAgent>,

@@ -7,17 +7,16 @@ use std::{collections::HashMap, env, fmt::Display};
 use sha2::{Digest, Sha256};
 use sysinfo::System;
 
-#[cfg(any(target_os = "android", target_os = "linux"))]
-mod command;
-
 #[cfg(target_os = "android")]
 mod android;
-
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 mod apple;
-
+#[cfg(any(target_os = "android", target_os = "linux"))]
+mod command;
 #[cfg(target_os = "linux")]
 mod linux;
+#[cfg(feature = "user-agent-macro")]
+pub mod user_agent;
 
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 pub use apple::AppleVersion;

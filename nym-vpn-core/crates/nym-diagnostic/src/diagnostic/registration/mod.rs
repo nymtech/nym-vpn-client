@@ -6,17 +6,20 @@ use nym_authenticator_client::{AuthClientMixnetListener, AuthenticatorClient, Re
 use nym_bandwidth_controller::{BandwidthController, BandwidthTicketProvider};
 use nym_client_core::client::topology_control::nym_api_provider::Config;
 use nym_credentials_interface::TicketType;
+use nym_platform_metadata::new_user_agent;
 use nym_registration_common::GatewayData;
 use nym_sdk::{
     DebugConfig, NymApiTopologyProvider, NymNetworkDetails, TopologyProvider,
-    mixnet::{DisconnectedMixnetClient, Ephemeral, MixnetClient, MixnetClientBuilder, x25519},
+    mixnet::{
+        DisconnectedMixnetClient, Ephemeral, MixnetClient, MixnetClientBuilder, Recipient,
+        StoragePaths, x25519,
+    },
 };
 use nym_topology::HardcodedTopologyProvider;
 use nym_validator_client::{
     client::NymApiClientExt,
     nyxd::{Config as NyxdClientConfig, NyxdClient},
 };
-use nym_vpn_lib::{Recipient, StoragePaths, new_user_agent};
 use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
 use nym_vpn_network_config::Network;
 

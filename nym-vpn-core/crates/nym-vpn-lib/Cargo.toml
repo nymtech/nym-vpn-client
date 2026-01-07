@@ -12,7 +12,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-
+anyhow.workspace = true
 async-trait.workspace = true
 bincode.workspace = true
 bip39.workspace = true
@@ -24,11 +24,31 @@ hickory-resolver = { workspace = true, features = [
     "tls-ring",
     "https-ring",
 ] }
+hyper = { workspace = true, features = ["server", "http1"] }
+hyper-util = { workspace = true, features = ["tokio"] }
+http-body-util = { workspace = true }
 ipnetwork.workspace = true
 itertools.workspace = true
+log-panics.workspace = true
+opentelemetry.workspace = true
+opentelemetry_sdk.workspace = true
 rand.workspace = true
+reqwest = { workspace = true, features = ["socks", "rustls-tls"] }
 serial_test.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 semver = { workspace = true }
+sentry = { workspace = true, features = [
+    "backtrace",
+    "contexts",
+    "panic",
+    "reqwest",
+    "rustls",
+    "tracing",
+    "logs",
+] }
+strum.workspace = true
+toml.workspace = true
 thiserror.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = [
@@ -39,10 +59,19 @@ tokio = { workspace = true, features = [
 ] }
 tokio-stream.workspace = true
 tokio-util = { workspace = true, features = ["codec", "rt"] }
+tracing-appender.workspace = true
+tracing-subscriber = { workspace = true, features = [
+    "env-filter",
+    "ansi",
+    "json",
+] }
 tracing.workspace = true
+tracing-opentelemetry.workspace = true
 tun = { workspace = true, features = ["async"] }
 typed-builder.workspace = true
 url.workspace = true
+urlencoding.workspace = true
+
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
@@ -58,7 +87,8 @@ nym-wireguard-types.workspace = true
 nym-apple-network.workspace = true
 nym-authenticator-client.workspace = true
 nym-common.workspace = true
-nym-platform-metadata.workspace = true
+nym-diagnostic.workspace = true
+nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-connection-monitor.workspace = true
 nym-gateway-directory.workspace = true
 nym-ip-packet-client.workspace = true
@@ -67,6 +97,7 @@ nym-offline-monitor.workspace = true
 nym-registration-client.workspace = true
 nym-registration-common.workspace = true
 nym-statistics.workspace = true
+nym-statistics-api-client.workspace = true
 nym-vpn-api-client.workspace = true
 nym-vpn-account-controller.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
@@ -119,6 +150,7 @@ nym-firewall.workspace = true
 nym-firewall-config.workspace = true
 
 [target.'cfg(target_os = "android")'.dependencies]
+tracing-android.workspace = true
 rand.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
@@ -127,6 +159,10 @@ tracing-oslog.workspace = true
 [target.'cfg(target_os = "ios")'.dependencies]
 debounced.workspace = true
 dispatch2.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+pretty_assertions.workspace = true
 
 [build-dependencies]
 vergen-gitcl = { workspace = true, default-features = false, features = [
