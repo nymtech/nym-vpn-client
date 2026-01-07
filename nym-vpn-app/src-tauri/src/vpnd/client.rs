@@ -15,14 +15,15 @@ use super::{
 };
 
 use anyhow::Result;
+use futures::future::TryFutureExt;
 use lib::UserAgent;
 use nym_vpn_lib_types as lib;
 use nym_vpn_proto::rpc_client::RpcClient;
-use std::sync::Arc;
 use std::{
     env::consts::{ARCH, OS},
     net::IpAddr,
     path::PathBuf,
+    sync::Arc,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::Mutex;
@@ -92,9 +93,13 @@ impl VpndClient {
 
         // slow path: create new client
         let client = match RpcClient::new().await {
-            Ok(c) => c,
+            Ok(c) => {
+                self.reset_log_connect_failed().await;
+                c
+            }
             Err(e) => {
-                self.log_connect_failed().await;
+                self.log_connect_failed("failed to connect to the daemon")
+                    .await;
                 return Err(VpndError::FailedToConnectIpc(e.into()));
             }
         };
@@ -108,20 +113,14 @@ impl VpndClient {
 
     async fn drop_rpc_client(&self) {
         let mut guard = self.rpc_client.lock().await;
-        if guard.is_some() {
-            *guard = None;
-            debug!("dropped daemon connection");
-        } else {
-            debug!("daemon connection already dropped");
-        }
-
-        self.reset_log_connect_failed().await;
+        *guard = None;
+        debug!("dropped daemon connection");
     }
 
-    async fn log_connect_failed(&self) {
+    async fn log_connect_failed(&self, message: &str) {
         let mut guard = self.connect_fail_logged.lock().await;
         if !*guard {
-            warn!("failed to connect to the daemon");
+            warn!(message);
             *guard = true;
         }
     }
@@ -133,19 +132,32 @@ impl VpndClient {
         }
     }
 
+    async fn handle_rpc_error<T>(
+        &self,
+        func: &str,
+        e: nym_vpn_proto::rpc_client::Error,
+    ) -> Result<T, VpndError> {
+        if matches!(
+            e,
+            nym_vpn_proto::rpc_client::Error::Rpc(_)
+                | nym_vpn_proto::rpc_client::Error::Transport(_)
+        ) {
+            self.drop_rpc_client().await;
+        }
+        error!("vpnd.{func}() failed: {e}");
+        Err(VpndError::RpcClient(e))
+    }
+
     /// Get daemon info
     #[instrument(skip_all)]
     pub async fn vpnd_info(&mut self) -> Result<VpndInfo, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let info: VpndInfo = match vpnd.get_info().await {
-            Ok(res) => res.into(),
-            Err(e) => {
-                error!("rpc: {e}");
-                self.drop_rpc_client().await;
-                return Err(VpndError::RpcClient(e));
-            }
-        };
+        let info: VpndInfo = vpnd
+            .get_info()
+            .or_else(async |e| self.handle_rpc_error("get_info", e).await)
+            .await?
+            .into();
 
         info!(
             "vpnd version: {}, network env: {}",
@@ -161,14 +173,10 @@ impl VpndClient {
     pub async fn vpnd_log_path(&self) -> Result<PathBuf, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let log_path = match vpnd.get_log_path().await {
-            Ok(res) => res,
-            Err(e) => {
-                error!("rpc: {e}");
-                self.drop_rpc_client().await;
-                return Err(VpndError::RpcClient(e));
-            }
-        };
+        let log_path = vpnd
+            .get_log_path()
+            .or_else(async |e| self.handle_rpc_error("get_log_path", e).await)
+            .await?;
 
         debug!("vpnd log path: {:?}", log_path);
         Ok(log_path.dir)
@@ -179,14 +187,10 @@ impl VpndClient {
     pub async fn tunnel_state(&self, app: &AppHandle) -> Result<TunnelState, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let tun_state = match vpnd.get_tunnel_state().await {
-            Ok(state) => state,
-            Err(e) => {
-                error!("rpc: {e}");
-                self.drop_rpc_client().await;
-                return Err(VpndError::RpcClient(e));
-            }
-        };
+        let tun_state = vpnd
+            .get_tunnel_state()
+            .or_else(async |e| self.handle_rpc_error("get_tunnel_state", e).await)
+            .await?;
 
         let tunnel = TunnelState::from_lib(tun_state);
         info!("tunnel state [{}]", tunnel);
@@ -213,12 +217,15 @@ impl VpndClient {
 
     /// Watch tunnel state, account state and vpn config updates
     #[instrument(skip_all)]
-    pub async fn watch_events(&mut self, app: &AppHandle) -> Result<()> {
+    pub async fn watch_events(&mut self, app: &AppHandle) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let mut stream = vpnd.listen_to_events().await.inspect_err(|e| {
-            error!("listen to events failed: {}", e);
-        })?;
+        let mut stream = vpnd
+            .listen_to_events()
+            .or_else(async |e| self.handle_rpc_error("listen_to_events", e).await)
+            .await?;
+
+        trace!("started listening to tunnel events");
 
         while let Some(event) = stream.next().await {
             match event {
@@ -300,43 +307,35 @@ impl VpndClient {
     pub async fn config(&self) -> Result<VpndConfig, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.get_config().await {
-            Ok(config) => Ok(VpndConfig::from_lib(config)
-                .inspect_err(|e| error!("failed to parse vpnd config: {e}"))?),
-            Err(e) => {
-                error!("vpnd.get_config() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let config = vpnd
+            .get_config()
+            .or_else(async |e| self.handle_rpc_error("get_config", e).await)
+            .await?;
+
+        Ok(VpndConfig::from_lib(config)
+            .inspect_err(|e| error!("failed to parse vpnd config: {e}"))?)
     }
 
     #[instrument(skip_all)]
     pub async fn set_entry_node(&self, node: Node) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.set_entry_point(node.try_into()?).await {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("vpnd.set_entry_point() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let node = node.try_into()?;
+
+        vpnd.set_entry_point(node)
+            .or_else(async |e| self.handle_rpc_error("set_entry_point", e).await)
+            .await
     }
 
     #[instrument(skip_all)]
     pub async fn set_exit_node(&self, node: Node) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.set_exit_point(node.try_into()?).await {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("vpnd.set_exit_point() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let node = node.try_into()?;
+
+        vpnd.set_exit_point(node)
+            .or_else(async |e| self.handle_rpc_error("set_exit_point", e).await)
+            .await
     }
 
     /// Enable or disable two-hop mode (aka wg)
@@ -344,14 +343,9 @@ impl VpndClient {
     pub async fn set_two_hop(&self, enabled: bool) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.set_enable_two_hop(enabled).await {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("vpnd.set_enable_two_hop() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.set_enable_two_hop(enabled)
+            .or_else(async |e| self.handle_rpc_error("set_enable_two_hop", e).await)
+            .await
     }
 
     /// Enable or disable QUIC mode (aka bridges)
@@ -359,14 +353,9 @@ impl VpndClient {
     pub async fn set_quic(&self, enabled: bool) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.set_enable_bridges(enabled).await {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("vpnd.set_enable_bridges() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.set_enable_bridges(enabled)
+            .or_else(async |e| self.handle_rpc_error("set_enable_bridges", e).await)
+            .await
     }
 
     /// Enable or disable no-IPv6 mode
@@ -374,14 +363,9 @@ impl VpndClient {
     pub async fn set_no_ipv6(&self, enabled: bool) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.set_disable_ipv6(enabled).await {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("vpnd.set_disable_ipv6() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.set_disable_ipv6(enabled)
+            .or_else(async |e| self.handle_rpc_error("set_disable_ipv6", e).await)
+            .await
     }
 
     /// Allow or disallow LAN access while connected to the VPN
@@ -389,14 +373,9 @@ impl VpndClient {
     pub async fn set_allow_lan(&self, enabled: bool) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.set_allow_lan(enabled).await {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("vpnd.set_allow_lan() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.set_allow_lan(enabled)
+            .or_else(async |e| self.handle_rpc_error("set_allow_lan", e).await)
+            .await
     }
 
     /// Connect to the VPN
@@ -405,14 +384,17 @@ impl VpndClient {
     pub async fn vpn_connect(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.connect_tunnel().await {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("vpnd.connect_tunnel() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
+        let ok = vpnd
+            .connect_tunnel()
+            .or_else(async |e| self.handle_rpc_error("connect_tunnel", e).await)
+            .await?;
+
+        // TODO: return the bool and handle this in the caller
+        if !ok {
+            warn!("vpn_connect: connect_tunnel returned false");
         }
+
+        Ok(())
     }
 
     /// Disconnect from the VPN
@@ -420,14 +402,17 @@ impl VpndClient {
     pub async fn vpn_disconnect(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.disconnect_tunnel().await {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("vpnd.disconnect_tunnel() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
+        let ok = vpnd
+            .disconnect_tunnel()
+            .or_else(async |e| self.handle_rpc_error("disconnect_tunnel", e).await)
+            .await?;
+
+        // TODO: return the bool and handle this in the caller
+        if !ok {
+            warn!("vpn_disconnect: disconnect_tunnel returned false");
         }
+
+        Ok(())
     }
 
     /// Store an account
@@ -452,20 +437,16 @@ impl VpndClient {
             }
         };
 
-        match vpnd.store_account(request).await {
-            Ok(res) => {
-                debug!("store account response: {res:?}");
-                if let Some(error) = res.error.map(BackendError::from) {
-                    Err(VpndError::Response(error))
-                } else {
-                    Ok(())
-                }
-            }
-            Err(e) => {
-                error!("vpnd.store_account() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
+        let response = vpnd
+            .store_account(request)
+            .or_else(async |e| self.handle_rpc_error("store_account", e).await)
+            .await?;
+
+        debug!("store account response: {response:?}");
+        if let Some(error) = response.error.map(BackendError::from) {
+            Err(VpndError::Response(error))
+        } else {
+            Ok(())
         }
     }
 
@@ -475,20 +456,16 @@ impl VpndClient {
     pub async fn forget_account(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.forget_account().await {
-            Ok(res) => {
-                debug!("forget account response: {res:?}");
-                if let Some(error) = res.error.map(BackendError::from) {
-                    Err(VpndError::Response(error))
-                } else {
-                    Ok(())
-                }
-            }
-            Err(e) => {
-                error!("vpnd.forget_account() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
+        let response = vpnd
+            .forget_account()
+            .or_else(async |e| self.handle_rpc_error("forget_account", e).await)
+            .await?;
+
+        debug!("forget account response: {response:?}");
+        if let Some(error) = response.error.map(BackendError::from) {
+            Err(VpndError::Response(error))
+        } else {
+            Ok(())
         }
     }
 
@@ -497,17 +474,13 @@ impl VpndClient {
     pub async fn is_account_stored(&self) -> Result<bool, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.is_account_stored().await {
-            Ok(is_stored) => {
-                debug!("account stored: {is_stored}");
-                Ok(is_stored)
-            }
-            Err(e) => {
-                error!("vpnd.is_account_stored() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let is_stored = vpnd
+            .is_account_stored()
+            .or_else(async |e| self.handle_rpc_error("is_account_stored", e).await)
+            .await?;
+
+        debug!("account stored: {is_stored}");
+        Ok(is_stored)
     }
 
     /// Get the account identity \
@@ -516,17 +489,13 @@ impl VpndClient {
     pub async fn account_id(&self) -> Result<Option<String>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.get_account_identity().await {
-            Ok(id) => {
-                debug!("account id: {id:?}");
-                Ok(id)
-            }
-            Err(e) => {
-                error!("vpnd.get_account_identity() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let id = vpnd
+            .get_account_identity()
+            .or_else(async |e| self.handle_rpc_error("get_account_identity", e).await)
+            .await?;
+
+        debug!("account id: {id:?}");
+        Ok(id)
     }
 
     /// Get the device identity
@@ -534,17 +503,13 @@ impl VpndClient {
     pub async fn device_id(&self) -> Result<Option<String>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.get_device_identity().await {
-            Ok(id) => {
-                debug!("device id: {id:?}");
-                Ok(id)
-            }
-            Err(e) => {
-                error!("vpnd.get_device_identity() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let id = vpnd
+            .get_device_identity()
+            .or_else(async |e| self.handle_rpc_error("get_device_identity", e).await)
+            .await?;
+
+        debug!("device id: {id:?}");
+        Ok(id)
     }
 
     /// Get the account links
@@ -555,17 +520,13 @@ impl VpndClient {
         // TODO use the user local once website is i18n ready
         let locale = "en".to_string();
 
-        match vpnd.get_account_links(locale).await {
-            Ok(links) => {
-                debug!("links: {links:?}");
-                Ok(links.into())
-            }
-            Err(e) => {
-                error!("vpnd.get_account_links() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let links = vpnd
+            .get_account_links(locale)
+            .or_else(async |e| self.handle_rpc_error("get_account_links", e).await)
+            .await?;
+
+        debug!("links: {links:?}");
+        Ok(links.into())
     }
 
     /// Get the list of available gateways
@@ -578,28 +539,24 @@ impl VpndClient {
             user_agent: Some(self.user_agent.clone()),
         };
 
-        match vpnd.list_gateways(options).await {
-            Ok(gateways) => {
-                debug!("vpnd gateways count: {}", gateways.len());
+        let gateways = vpnd
+            .list_gateways(options)
+            .or_else(async |e| self.handle_rpc_error("list_gateways", e).await)
+            .await?;
 
-                let gateways: Vec<Gateway> = gateways
-                    .into_iter()
-                    .filter_map(|gateway| {
-                        Gateway::from_lib(gateway, gw_type)
-                            .inspect_err(|e| warn!("failed to parse gateway from lib: {e}"))
-                            .ok()
-                    })
-                    .collect();
+        debug!("vpnd gateways count: {}", gateways.len());
 
-                debug!("parsed gateway #{}", gateways.len());
-                Ok(gateways)
-            }
-            Err(e) => {
-                error!("vpnd.list_gateways_failed(): {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let gateways: Vec<Gateway> = gateways
+            .into_iter()
+            .filter_map(|gateway| {
+                Gateway::from_lib(gateway, gw_type)
+                    .inspect_err(|e| warn!("failed to parse gateway from lib: {e}"))
+                    .ok()
+            })
+            .collect();
+
+        debug!("parsed gateway #{}", gateways.len());
+        Ok(gateways)
     }
 
     #[instrument(skip(self, app))]
@@ -625,17 +582,12 @@ impl VpndClient {
     pub async fn set_network(&self, network: &str) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.set_network(network.to_owned()).await {
-            Ok(_) => {
-                info!("vpnd network set to {network} ⚠ restart vpnd!");
-                Ok(())
-            }
-            Err(e) => {
-                error!("vpnd.set_network() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.set_network(network.to_owned())
+            .or_else(async |e| self.handle_rpc_error("set_network", e).await)
+            .await?;
+
+        info!("vpnd network set to {network} ⚠ restart vpnd!");
+        Ok(())
     }
 
     /// Get messages affecting the whole system, fetched from nym-vpn-api
@@ -643,17 +595,13 @@ impl VpndClient {
     pub async fn system_messages(&self) -> Result<Vec<SystemMessage>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.get_system_messages().await {
-            Ok(messages) => {
-                debug!("system messages: {messages:?}");
-                Ok(messages.into_iter().map(Into::into).collect())
-            }
-            Err(e) => {
-                error!("vpnd.get_system_messages() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let messages = vpnd
+            .get_system_messages()
+            .or_else(async |e| self.handle_rpc_error("get_system_messages", e).await)
+            .await?;
+
+        debug!("system messages: {messages:?}");
+        Ok(messages.into_iter().map(Into::into).collect())
     }
 
     /// Get the feature flags, fetched from nym-vpn-api
@@ -661,17 +609,13 @@ impl VpndClient {
     pub async fn feature_flags(&self) -> Result<FeatureFlags, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.get_feature_flags().await {
-            Ok(flags) => {
-                debug!("feature flags: {flags:?}");
-                Ok(flags.into())
-            }
-            Err(e) => {
-                error!("vpnd.get_feature_flags() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let flags = vpnd
+            .get_feature_flags()
+            .or_else(async |e| self.handle_rpc_error("get_feature_flags", e).await)
+            .await?;
+
+        debug!("feature flags: {flags:?}");
+        Ok(flags.into())
     }
 
     /// Get the network compatibility versions of supported vpn-core and tauri client
@@ -679,17 +623,13 @@ impl VpndClient {
     pub async fn network_compat(&self) -> Result<Option<NetworkCompatVersions>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.get_network_compatibility().await {
-            Ok(net_compat) => {
-                debug!("network compat: {net_compat:?}");
-                Ok(net_compat.map(NetworkCompatVersions::from))
-            }
-            Err(e) => {
-                error!("vpnd.get_network_compatibility() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let net_compat = vpnd
+            .get_network_compatibility()
+            .or_else(async |e| self.handle_rpc_error("get_network_compatibility", e).await)
+            .await?;
+
+        debug!("network compat: {net_compat:?}");
+        Ok(net_compat.map(NetworkCompatVersions::from))
     }
 
     /// Is sentry enabled at daemon level
@@ -697,20 +637,16 @@ impl VpndClient {
     pub async fn sentry_enabled(&self) -> Result<bool, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.is_sentry_enabled().await {
-            Ok(enabled) => {
-                debug!("sentry enabled: {enabled}");
-                if enabled {
-                    info!("⚠ vpnd sentry monitoring is enabled ⚠");
-                }
-                Ok(enabled)
-            }
-            Err(e) => {
-                error!("vpnd.is_sentry_enabled() failed: {e}");
-                self.drop_rpc_client().await;
-                return Err(VpndError::RpcClient(e));
-            }
+        let enabled = vpnd
+            .is_sentry_enabled()
+            .or_else(async |e| self.handle_rpc_error("is_entry_enabled", e).await)
+            .await?;
+
+        debug!("sentry enabled: {enabled}");
+        if enabled {
+            info!("⚠ vpnd sentry monitoring is enabled ⚠");
         }
+        Ok(enabled)
     }
 
     /// Enable sentry at daemon level
@@ -718,17 +654,12 @@ impl VpndClient {
     pub async fn enable_sentry(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.enable_sentry().await {
-            Ok(_) => {
-                info!("sentry enabled ⚠ restart vpnd!");
-                Ok(())
-            }
-            Err(e) => {
-                error!("vpnd.enable_sentry() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.enable_sentry()
+            .or_else(async |e| self.handle_rpc_error("enable_sentry", e).await)
+            .await?;
+
+        info!("sentry enabled ⚠ restart vpnd!");
+        Ok(())
     }
 
     /// Disable sentry at daemon level
@@ -736,17 +667,12 @@ impl VpndClient {
     pub async fn disable_sentry(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.disable_sentry().await {
-            Ok(_) => {
-                info!("sentry disabled ⚠ restart vpnd!");
-                Ok(())
-            }
-            Err(e) => {
-                error!("vpnd.disable_sentry() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.disable_sentry()
+            .or_else(async |e| self.handle_rpc_error("disable_sentry", e).await)
+            .await?;
+
+        info!("sentry disabled ⚠ restart vpnd!");
+        Ok(())
     }
 
     /// Enable SOCKS5 proxy
@@ -769,20 +695,12 @@ impl VpndClient {
             listen_address: http_rpc_settings.listen_address,
         };
 
-        match vpnd
-            .enable_socks5(lib_socks5_settings, lib_http_rpc_settings, exit_point)
-            .await
-        {
-            Ok(_) => {
-                info!("SOCKS5 proxy enabled");
-                Ok(())
-            }
-            Err(e) => {
-                error!("vpnd.enable_socks5() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.enable_socks5(lib_socks5_settings, lib_http_rpc_settings, exit_point)
+            .or_else(async |e| self.handle_rpc_error("enable_socks5", e).await)
+            .await?;
+
+        info!("SOCKS5 proxy enabled");
+        Ok(())
     }
 
     /// Disable SOCKS5 proxy
@@ -790,17 +708,12 @@ impl VpndClient {
     pub async fn disable_socks5(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.disable_socks5().await {
-            Ok(_) => {
-                info!("SOCKS5 proxy disabled");
-                Ok(())
-            }
-            Err(e) => {
-                error!("vpnd.disable_socks5() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.disable_socks5()
+            .or_else(async |e| self.handle_rpc_error("disable_socks5", e).await)
+            .await?;
+
+        info!("SOCKS5 proxy disabled");
+        Ok(())
     }
 
     /// Get SOCKS5 proxy status
@@ -808,17 +721,13 @@ impl VpndClient {
     pub async fn get_socks5_status(&self) -> Result<Socks5Status, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.get_socks5_status().await {
-            Ok(res) => {
-                debug!("SOCKS5 status: {res:?}");
-                Ok(res.into())
-            }
-            Err(e) => {
-                error!("vpnd.get_socks5_status() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let status = vpnd
+            .get_socks5_status()
+            .or_else(async |e| self.handle_rpc_error("get_socks5_status", e).await)
+            .await?;
+
+        debug!("SOCKS5 status: {status:?}");
+        Ok(status.into())
     }
 
     /// Is network statistics collection enabled at daemon level
@@ -826,21 +735,17 @@ impl VpndClient {
     pub async fn netstats_enabled(&self) -> Result<bool, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.get_config().await {
-            Ok(config) => {
-                let enabled = config.network_stats.enabled;
-                debug!("network statistics collection enabled: {enabled}");
-                if enabled {
-                    info!("⚠ vpnd network statistics collection enabled ⚠");
-                }
-                Ok(enabled)
-            }
-            Err(e) => {
-                error!("vpnd.get_config() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
+        let config = vpnd
+            .get_config()
+            .or_else(async |e| self.handle_rpc_error("get_config", e).await)
+            .await?;
+
+        let enabled = config.network_stats.enabled;
+        debug!("network statistics collection enabled: {enabled}");
+        if enabled {
+            info!("⚠ vpnd network statistics collection enabled ⚠");
         }
+        Ok(enabled)
     }
 
     /// Enable network statistics collection at daemon level
@@ -848,17 +753,12 @@ impl VpndClient {
     pub async fn enable_netstats(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.network_stats_set_enabled(true).await {
-            Ok(_) => {
-                debug!("enabled vpnd network statistics collection");
-                Ok(())
-            }
-            Err(e) => {
-                error!("vpnd.network_stats.set_enabled() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.network_stats_set_enabled(true)
+            .or_else(async |e| self.handle_rpc_error("network_stats_set_enabled", e).await)
+            .await?;
+
+        debug!("enabled vpnd network statistics collection");
+        Ok(())
     }
 
     /// Disable network statistics collection at daemon level
@@ -866,72 +766,53 @@ impl VpndClient {
     pub async fn disable_netstats(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.network_stats_set_enabled(false).await {
-            Ok(_) => {
-                debug!("disabled vpnd network statistics collection");
-                Ok(())
-            }
-            Err(e) => {
-                error!("vpnd.network_stats_set_enabled() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.network_stats_set_enabled(false)
+            .or_else(async |e| self.handle_rpc_error("network_stats_set_enabled", e).await)
+            .await?;
+
+        debug!("disabled vpnd network statistics collection");
+        Ok(())
     }
 
     #[instrument(skip_all)]
     pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.get_default_dns().await {
-            Ok(res) => Ok(res),
-            Err(e) => {
-                error!("vpnd.get_default_dns() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.get_default_dns()
+            .or_else(async |e| self.handle_rpc_error("get_default_dns", e).await)
+            .await
     }
 
     #[instrument(skip_all)]
     pub async fn set_custom_dns_enabled(&self, enabled: bool) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.set_enable_bridges(enabled).await {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("vpnd.set_enable_bridges() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.set_enable_custom_dns(enabled)
+            .or_else(async |e| self.handle_rpc_error("set_enable_custom_dns", e).await)
+            .await
     }
 
     #[instrument(skip_all)]
     pub async fn set_custom_dns(&self, dns: Vec<IpAddr>) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.set_custom_dns(dns).await {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                error!("vpnd.set_custom_dns() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        vpnd.set_custom_dns(dns)
+            .or_else(async |e| self.handle_rpc_error("set_custom_dns", e).await)
+            .await
     }
 
     #[instrument(skip_all)]
     pub async fn get_privy_derivation_message(&self) -> Result<String, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        match vpnd.get_privy_derivation_message().await {
-            Ok(message) => Ok(message.message),
-            Err(e) => {
-                error!("vpnd.get_privy_derivation_message() failed: {e}");
-                self.drop_rpc_client().await;
-                Err(VpndError::RpcClient(e))
-            }
-        }
+        let message = vpnd
+            .get_privy_derivation_message()
+            .or_else(async |e| {
+                self.handle_rpc_error("get_privy_derivation_message", e)
+                    .await
+            })
+            .await?;
+
+        Ok(message.message)
     }
 }

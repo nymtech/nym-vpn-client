@@ -3581,6 +3581,7 @@ dependencies = [
  "clap",
  "dirs 6.0.0",
  "dotenvy",
+ "futures",
  "itertools",
  "nym-platform-metadata",
  "nym-vpn-lib-types",
