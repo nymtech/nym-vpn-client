@@ -40,6 +40,7 @@ import net.nymtech.nymvpn.ui.screens.settings.login.components.MaxDevicesModal
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewModel()) {
@@ -50,14 +51,11 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 	val context = LocalContext.current
 	val navController = LocalNavController.current
 
-	val success by viewModel.success.collectAsStateWithLifecycle(null)
-	val showMaxDevicesModal by viewModel.showMaxDevicesModal.collectAsStateWithLifecycle(null)
-	var showModal by remember { mutableStateOf(false) }
+	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	var loading by remember { mutableStateOf(false) }
 
 	val activity = context as? MainActivity
 
-	// Secure screen due to sensitive information
 	DisposableEffect(Unit) {
 		activity?.window?.setFlags(
 			WindowManager.LayoutParams.FLAG_SECURE,
@@ -68,10 +66,20 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 		}
 	}
 
-	LaunchedEffect(success) {
-		loading = false
-		if (success == true) navController.replaceCurrentWith(Route.Main())
-		if (success == false && showMaxDevicesModal == true) showModal = true
+	LaunchedEffect(uiState.success, uiState.showTechnicalOptScreen) {
+		if (uiState.success != null) loading = false
+
+		if (uiState.success == true) {
+			if (uiState.showTechnicalOptScreen) {
+				navController.replaceCurrentWith(Route.Technical)
+				viewModel.consumeTechnicalOptFlag()
+			} else {
+				navController.replaceCurrentWith(Route.Main())
+			}
+			viewModel.consumeResult()
+		} else if (uiState.success == false) {
+			viewModel.consumeResult()
+		}
 	}
 
 	LaunchedEffect(imeState.value) {
@@ -80,10 +88,13 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 		}
 	}
 
+	val permissionRequiredText =
+		stringResource(id = R.string.permission_required)
+
 	val requestPermissionLauncher = rememberLauncherForActivityResult(
 		ActivityResultContracts.RequestPermission(),
 	) { isGranted ->
-		if (!isGranted) return@rememberLauncherForActivityResult snackbar.showMessage(context.getString(R.string.permission_required))
+		if (!isGranted) return@rememberLauncherForActivityResult snackbar.showMessage(permissionRequiredText)
 		navController.navigate(Route.LoginScanner)
 	}
 
@@ -101,7 +112,7 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 		LoginInputSection(
 			appUiState = appUiState,
 			viewModel = viewModel,
-			success = success,
+			uiState = uiState,
 			loading = loading,
 			onLoadingChange = { loading = it },
 			onRequestCameraPermission = { requestPermissionLauncher.launch(Manifest.permission.CAMERA) },
@@ -109,8 +120,8 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 	}
 
 	MaxDevicesModal(
-		show = showModal,
+		show = uiState.showMaxDevicesModal,
 		accountLinks = appUiState.managerState.accountLinks,
-		onDismiss = { showModal = false },
+		onDismiss = { viewModel.dismissMaxDevicesModal() },
 	)
 }

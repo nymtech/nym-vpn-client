@@ -186,8 +186,7 @@
 	<string name="error_invalid_entry_gateway_identity">خادم الإدخال غير متصل. اختر آخر وإعادة الاتصال.</string>
 	<string name="error_invalid_exit_gateway_identity">الخروج من الخادم دون اتصال. اختر آخر وإعادة الاتصال.</string>
 	<!-- Main Screen -->
-	<string name="main_get_started_button">بدء التشغيل</string>
-	<string name="connection_state_resolving_addresses">تهيئة NymVPN (1/6)</string>
+    <string name="connection_state_resolving_addresses">تهيئة NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">إعداد حسابك (2/6)</string>
 	<string name="connection_state_refreshing_gateways">تحديث قائمة الخوادم (3/6)</string>
 	<string name="connection_state_selecting_gateways">اختيار أفضل الخوادم (4/6)</string>
@@ -239,13 +238,7 @@
 	<string name="notification_stats_enabled">الإحصائيات مفعلة! بياناتك المجهولة تساعد على تحسين شبكتنا.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">المتابعة</string>
-	<string name="welcome_descr_start">ساعد في تحديد NymVPN وإصلاح المشكلات التقنية! فكّر في اختيار خيار مراقبة الأخطاء (عبر </string>
-	<string name="welcome_descr_sentry_link_text">سينتاري</string>
-	<string name="welcome_descr_end">) and keeping network stats on. It\'s always anonymous, opt out anytime, and your activities can never be revealed. \n\nThanks for your support!</string>
-	<string name="welcome_terms_privacy_text_start">من خلال الاستمرار، فإنك توافق على شروط وأحكام NymVPN</string>
-	<string name="welcome_terms_privacy_text_middle">والإقرار بشروط وأحكام NymVPN</string>
-	<string name="welcome_error_toggle_descr">عبر الحراسة</string>
-	<!-- Select Plan screen -->
+    <!-- Select Plan screen -->
 	<string name="select_plan_title">اختر مستوى الحماية \nالخاص بك 🛡️</string>
 	<string name="select_plan_descr">حدد خطة الآن لتفعيل حماية \n\n\nلا يمكن ربط الدفعة القادمة \nبنشاط التصفح الخاص بك في المستقبل</string>
 	<string name="select_plan_button">اختر خطة NymVPN الخاصة بي</string>
@@ -302,14 +295,7 @@
 	<string name="censorship_amnezia_link_text">كيف يمنع أمنيزياي الفريق إدارة شؤون الإعلام</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-★ NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_anonymous">تكنولوجيا المزيج المجهولة</string>
-	<string name="account_welcome_countries">50 دولة في جميع أنحاء العالم</string>
-	<string name="account_welcome_payments">المدفوعات والأنشطة تبقى غير مرتبطة</string>
-	<string name="account_welcome_open_source">قوانين الخصوصية مفتوحة المصدر &amp; السويسرية</string>
-	<string name="account_welcome_button">ابدأ في حماية خصوصيتي</string>
-	<string name="account_welcome_have_account">لديك حساب بالفعل؟</string>
-	<string name="account_welcome_free_trial">7 أيام تجربة مجانية - لا يتطلب دفع</string>
-	<!-- Existing subscription -->
+    <!-- Existing subscription -->
 	<string name="account_subscription_title">أنت مشترك بالفعل!</string>
 	<string name="account_subscription_description">وجدنا اشتراك نشط مرتبط بحساب Google Play الخاص بك. تخطي التسجيل والقفز مباشرة إلى استخدام NymVPN. فقط جهز عبارة المرور 24 كلمة.</string>
 	<string name="account_subscription_button">تسجيل الدخول باستخدام كلمة مرور Nym</string>

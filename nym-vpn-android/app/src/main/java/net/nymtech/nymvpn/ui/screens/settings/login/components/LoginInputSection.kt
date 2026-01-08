@@ -36,6 +36,7 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
+import net.nymtech.nymvpn.ui.screens.settings.login.LoginUiState
 import net.nymtech.nymvpn.ui.screens.settings.login.LoginViewModel
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
@@ -45,7 +46,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
 
 @Composable
-fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, success: Boolean?, loading: Boolean, onLoadingChange: (Boolean) -> Unit, onRequestCameraPermission: () -> Unit) {
+fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, uiState: LoginUiState, loading: Boolean, onLoadingChange: (Boolean) -> Unit, onRequestCameraPermission: () -> Unit) {
 	val context = LocalContext.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 	var mnemonic by remember { mutableStateOf("") }
@@ -78,15 +79,11 @@ fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, success
 			},
 			value = mnemonic,
 			onValueChange = { newValue ->
-				try {
-					if (success == false) {
-						viewModel.resetSuccess()
-					}
-					mnemonic = newValue
-				} catch (e: Exception) {
-					Timber.e(e, "Error handling text input change")
-					mnemonic = newValue
+				// If an error was shown, clear it as soon as the user edits.
+				if (uiState.success == false) {
+					viewModel.consumeResult() // clears success back to null
 				}
+				mnemonic = newValue
 			},
 			keyboardActions = KeyboardActions(
 				onDone = {
@@ -98,7 +95,7 @@ fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, success
 				.width(358.dp.scaledWidth())
 				.height(212.dp.scaledHeight()),
 			supportingText = {
-				if (success == false) {
+				if (uiState.success == false) {
 					Text(
 						modifier = Modifier.fillMaxWidth(),
 						text = stringResource(R.string.invalid_recovery_phrase),
@@ -106,7 +103,7 @@ fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, success
 					)
 				}
 			},
-			isError = success == false,
+			isError = uiState.success == false,
 			label = {
 				Text(
 					text = stringResource(R.string.recovery_phrase),
@@ -117,6 +114,7 @@ fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, success
 				color = MaterialTheme.colorScheme.onSurface,
 			),
 		)
+
 		Row(
 			horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth(), Alignment.CenterHorizontally),
 			modifier = Modifier
@@ -131,7 +129,7 @@ fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, success
 					testTag = Constants.LOGIN_TEST_TAG,
 					onClick = { onSubmit() },
 					content = {
-						if (loading && success == null) {
+						if (loading && uiState.success == null) {
 							SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
 						} else {
 							Text(
@@ -146,21 +144,7 @@ fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, success
 						.fillMaxWidth()
 						.height(56.dp.scaledHeight()),
 				)
-				// Scanner button (disabled for now)
-				/*
-				MainStyledButton(
-					onClick = onRequestCameraPermission,
-					content = {
-						Icon(
-							Icons.Outlined.QrCodeScanner,
-							"QR Scanner",
-							modifier = Modifier.size(iconSize.scaledWidth())
-						)
-					},
-					color = MaterialTheme.colorScheme.primary,
-					modifier = Modifier.width(56.dp.scaledWidth())
-				)
-				 */
+
 				Text(
 					text = buildAnnotatedString {
 						append(stringResource(R.string.new_to_nym))

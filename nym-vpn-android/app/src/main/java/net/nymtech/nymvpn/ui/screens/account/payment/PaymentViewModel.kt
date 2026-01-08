@@ -14,16 +14,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.nymtech.billing.model.BillingCode
 import net.nymtech.billing.model.PurchaseState
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
+import net.nymtech.nymvpn.ui.Route
+import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import timber.log.Timber
 import javax.inject.Inject
-import kotlinx.coroutines.isActive
-import nym_vpn_lib_types.AccountControllerErrorStateReason
 
 @HiltViewModel
 class PaymentViewModel
@@ -31,6 +33,7 @@ class PaymentViewModel
 constructor(
 	private val billingManager: BillingManager,
 	private val backendManager: BackendManager,
+	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
 	private val _events = MutableSharedFlow<PaymentUiEvent>(
@@ -42,6 +45,9 @@ constructor(
 
 	private val _accountState = MutableStateFlow<AccountControllerState?>(null)
 	val accountState: StateFlow<AccountControllerState?> = _accountState.asStateFlow()
+
+	private val _nextRoute = MutableStateFlow<Route?>(null)
+	val nextRoute: StateFlow<Route?> = _nextRoute.asStateFlow()
 
 	private var accountId: String? = null
 	private val processedTokens = mutableSetOf<String>()
@@ -57,9 +63,8 @@ constructor(
 					if (pending) {
 						_events.tryEmit(PaymentUiEvent.PaymentPending)
 					}
-					val purchased = state.billingPurchase.firstOrNull {
-						it.state == PurchaseState.PURCHASED
-					}
+
+					val purchased = state.billingPurchase.firstOrNull { it.state == PurchaseState.PURCHASED }
 					purchased?.let { purchase ->
 						val token = purchase.token
 						if (processedTokens.add(token)) {
@@ -67,10 +72,16 @@ constructor(
 								runCatching {
 									backendManager.registerAccount(token)
 									backendManager.refreshAccount()
+
+									_nextRoute.value = decidePostPaymentRoute()
+
 									_events.tryEmit(PaymentUiEvent.PaymentSuccess)
 									startAccountStatesUpdate()
 								}.onFailure { e ->
-									_events.tryEmit(PaymentUiEvent.PaymentError(e.message ?: "Register account failed"))
+									Timber.e(e, "Register account failed")
+									_events.tryEmit(
+										PaymentUiEvent.PaymentError(e.message ?: "Register account failed"),
+									)
 								}
 							}
 						} else {
@@ -78,22 +89,31 @@ constructor(
 						}
 					}
 				}
+
 				state.billingInfo?.let { br ->
 					when (br.responseCode) {
 						BillingCode.OK -> {
 							Timber.d("Billing OK: code=${br.responseCode}, msg=${br.debugMessage}")
 						}
+
 						BillingCode.ITEM_ALREADY_OWNED -> {
 							Timber.d("Item already owned: ${br.debugMessage}")
+
+							_nextRoute.value = decidePostPaymentRoute()
+
 							_events.tryEmit(PaymentUiEvent.SubscriptionOwned)
+							startAccountStatesUpdate()
 						}
+
 						BillingCode.USER_CANCELED -> {
 							Timber.w("User canceled: ${br.debugMessage}")
 							_events.tryEmit(PaymentUiEvent.UserCanceled)
 						}
+
 						BillingCode.SERVICE_DISCONNECTED -> {
 							Timber.w("Billing service disconnected: ${br.debugMessage}")
 						}
+
 						BillingCode.SERVICE_UNAVAILABLE,
 						BillingCode.BILLING_UNAVAILABLE,
 						BillingCode.ERROR,
@@ -104,6 +124,7 @@ constructor(
 							Timber.e("Billing error ${br.responseCode}: ${br.debugMessage}")
 							_events.tryEmit(PaymentUiEvent.PaymentError(br.debugMessage))
 						}
+
 						else -> {
 							Timber.w("Unhandled billing code ${br.responseCode}: ${br.debugMessage}")
 						}
@@ -111,6 +132,11 @@ constructor(
 				}
 			}
 		}
+	}
+
+	private suspend fun decidePostPaymentRoute(): Route {
+		val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
+		return if (shouldShowTechnical) Route.Technical else Route.Main()
 	}
 
 	fun startPurchaseFlow(activity: Activity, productId: String, userId: String?) {
@@ -152,5 +178,9 @@ constructor(
 				delay(2_000)
 			}
 		}
+	}
+
+	fun consumeNextRoute() {
+		_nextRoute.value = null
 	}
 }

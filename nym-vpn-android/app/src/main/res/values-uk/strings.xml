@@ -184,8 +184,7 @@
 	<string name="error_invalid_entry_gateway_identity">Сервер входу не працює. Виберіть інший і підключіться знову.</string>
 	<string name="error_invalid_exit_gateway_identity">Сервер виходу не працює. Виберіть інший і підключіться знову.</string>
 	<!-- Main Screen -->
-	<string name="main_get_started_button">Почати</string>
-	<string name="connection_state_resolving_addresses">Ініціалізація NymVPN (1/6)</string>
+    <string name="connection_state_resolving_addresses">Ініціалізація NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Налаштування облікового запису (2/6)</string>
 	<string name="connection_state_refreshing_gateways">Оновлення списку серверів (3/6)</string>
 	<string name="connection_state_selecting_gateways">Вибір кращих серверів (4/6)</string>
@@ -237,13 +236,7 @@
 	<string name="notification_stats_enabled">Статистика увімкнена! Ваші анонімні дані допомагають оптимізувати нашу мережу.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Продовжити</string>
-	<string name="welcome_descr_start">Допоможіть NymVPN виявити та виправити технічні проблеми! Розгляньте можливість підключення моніторингу помилок (через</string>
-	<string name="welcome_descr_sentry_link_text">Вартового</string>
-	<string name="welcome_descr_end">) та збереження статистики мережі. Це завжди анонімно, ви можете відмовитися в будь-який момент, і ваші дії ніколи не будуть розкриті. \n\nДякуємо за вашу підтримку!</string>
-	<string name="welcome_terms_privacy_text_start">Продовжуючи, ви погоджуєтеся</string>
-	<string name="welcome_terms_privacy_text_middle">з політикою конфіденційності NymVPN</string>
-	<string name="welcome_error_toggle_descr">через Вартового</string>
-	<!-- Select Plan screen -->
+    <!-- Select Plan screen -->
 	<string name="select_plan_title">Виберіть рівень захисту 🛡️</string>
 	<string name="select_plan_descr">Виберіть план зараз, щоб активувати захист. Ваш майбутній платіж не може бути пов\'язаний з вашою майбутньою активністю в Інтернеті.</string>
 	<string name="select_plan_button">Виберіть мій план NymVPN</string>
@@ -300,14 +293,7 @@
 	<string name="censorship_amnezia_link_text">Як AmneziaWG запобігає DPI</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_anonymous">Анонімна технологія змішаних мереж</string>
-	<string name="account_welcome_countries">50 + країни по всьому світу</string>
-	<string name="account_welcome_payments">Платежі та діяльність залишаються не пов\'язаними</string>
-	<string name="account_welcome_open_source">Відкритий код та швейцарське законодавство про конфіденційність</string>
-	<string name="account_welcome_button">Почніть захищати мою конфіденційність</string>
-	<string name="account_welcome_have_account">Вже є обліковий запис?</string>
-	<string name="account_welcome_free_trial">7 днів безкоштовного пробного періоду - оплата не потрібна</string>
-	<!-- Existing subscription -->
+    <!-- Existing subscription -->
 	<string name="account_subscription_title">Ви вже підписані!</string>
 	<string name="account_subscription_description">Ми знайшли активну підписку, пов\'язану з вашим обліковим записом Google Play. Пропустіть реєстрацію та відразу перейдіть до використання NymVPN. Просто підготуйте свою 24-слівну парольну фразу.</string>
 	<string name="account_subscription_button">Увійдіть за допомогою парольної фрази Nym</string>

@@ -184,8 +184,7 @@
 	<string name="error_invalid_entry_gateway_identity">এন্ট্রি সার্ভার অফলাইন। অন্যটি নির্বাচন করে পুনরায় সংযোগ করুন।</string>
 	<string name="error_invalid_exit_gateway_identity">এক্সিট সার্ভার অফলাইন। অন্যটি নির্বাচন করে পুনরায় সংযোগ করুন।</string>
 	<!-- Main Screen -->
-	<string name="main_get_started_button">শুরু করুন</string>
-	<string name="connection_state_resolving_addresses">NymVPN ইনিশিয়ালাইজ করা হচ্ছে (1/6)</string>
+    <string name="connection_state_resolving_addresses">NymVPN ইনিশিয়ালাইজ করা হচ্ছে (1/6)</string>
 	<string name="connection_state_awaiting_readiness">আপনার অ্যাকাউন্ট সেটআপ করা হচ্ছে (2/6)</string>
 	<string name="connection_state_refreshing_gateways">সার্ভার তালিকা আপডেট হচ্ছে (3/6)</string>
 	<string name="connection_state_selecting_gateways">সেরা সার্ভার নির্বাচন করা হচ্ছে (4/6)</string>
@@ -237,14 +236,7 @@
 	<string name="notification_stats_enabled">পরিসংখ্যান সক্রিয় হয়েছে। আপনার গোপন ডেটা আমাদের নেটওয়ার্ক অপ্টিমাইজ করতে সাহায্য করে।</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">চালিয়ে যান</string>
-	<string name="welcome_descr_start">NymVPN-কে প্রযুক্তিগত সমস্যাগুলি শনাক্ত করতে এবং ঠিক করতে সাহায্য করুন! ত্রুটি পর্যবেক্ষণে (error monitoring) অংশগ্রহণ করার কথা ভাবতে পারেন (মাধ্যমে </string>
-	<string name="welcome_descr_sentry_link_text">Sentry</string>
-	<string name="welcome_descr_end">এবং নেটওয়ার্ক পরিসংখ্যান চালু রাখুন। এটি সবসময় সম্পূর্ণ গোপনীয় থাকে, যে কোনো সময় বন্ধ করতে পারেন, এবং আপনার কার্যকলাপ কখনোই প্রকাশ করা হবে না।
-আপনার সমর্থনের জন্য ধন্যবাদ!</string>
-	<string name="welcome_terms_privacy_text_start">অগ্রসর হলে, আপনি NymVPN-এর প্রতি সম্মতি জানাচ্ছেন</string>
-	<string name="welcome_terms_privacy_text_middle">এবং আপনি NymVPN-এর বিষয়টি স্বীকার করছেন</string>
-	<string name="welcome_error_toggle_descr">Sentry-এর মাধ্যমে</string>
-	<!-- Select Plan screen -->
+    <!-- Select Plan screen -->
 	<string name="select_plan_title">আপনার সুরক্ষা স্তর নির্বাচন করুন</string>
 	<string name="select_plan_descr">আপনার সুরক্ষা সক্রিয় করতে এখন একটি প্ল্যান নির্বাচন করুন। আপনার পরবর্তী পেমেন্ট কখনো আপনার ভবিষ্যত ব্রাউজিং কার্যকলাপের সঙ্গে যুক্ত করা যাবে না</string>
 	<string name="select_plan_button">আমার NymVPN প্ল্যান নির্বাচন করুন</string>
@@ -301,14 +293,7 @@
 	<string name="censorship_amnezia_link_text">Amnezia WG কীভাবে DPI প্রতিহত করে</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_anonymous">গোপনীয় মিক্সনেট প্রযুক্তি</string>
-	<string name="account_welcome_countries">বিশ্বজুড়ে ৫০+ দেশ</string>
-	<string name="account_welcome_payments">পেমেন্ট ও কার্যক্রম আলাদা রাখা হয় (সংযুক্ত করা হয় না)</string>
-	<string name="account_welcome_open_source">ওপেন সোর্স; সুইস গোপনীয়তা আইন অনুসরণ করে</string>
-	<string name="account_welcome_button">আমার গোপনীয়তা রক্ষা শুরু করুন</string>
-	<string name="account_welcome_have_account">আপনার কি ইতিমধ্যেই অ্যাকাউন্ট আছে?</string>
-	<string name="account_welcome_free_trial">7 days free trial - no payment required</string>
-	<!-- Existing subscription -->
+    <!-- Existing subscription -->
 	<string name="account_subscription_title">আপনার সাবস্ক্রিপশন ইতিমধ্যেই সক্রিয় আছে</string>
 	<string name="account_subscription_description">আমরা আপনার Google Play অ্যাকাউন্টে একটি সক্রিয় সাবস্ক্রিপশন খুঁজে পেয়েছি। সাইনআপ বাদ দিয়ে সরাসরি NymVPN ব্যবহার শুরু করুন। শুধু আপনার ২৪-শব্দের পাসফ্রেজটি পাশে রাখুন।</string>
 	<string name="account_subscription_button">Nym পাসফ্রেজ দিয়ে লগ ইন করুন</string>

@@ -186,8 +186,7 @@
 	<string name="error_invalid_entry_gateway_identity">Servidor de entrada fuera de línea. Elija otro y vuelva a conectar.</string>
 	<string name="error_invalid_exit_gateway_identity">Salir del servidor sin conexión. Elija otro y vuelva a conectar.</string>
 	<!-- Main Screen -->
-	<string name="main_get_started_button">Empezar</string>
-	<string name="connection_state_resolving_addresses">Inicializando NymVPN (1/6)</string>
+    <string name="connection_state_resolving_addresses">Inicializando NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Configurando tu cuenta (2/6)</string>
 	<string name="connection_state_refreshing_gateways">Actualizando lista de servidores (3/6)</string>
 	<string name="connection_state_selecting_gateways">Elegir los mejores servidores (4/6)</string>
@@ -239,13 +238,7 @@
 	<string name="notification_stats_enabled">¡Estadísticas habilitadas! Tus datos anónimos ayudan a optimizar nuestra red.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Continuar</string>
-	<string name="welcome_descr_start">¡Ayuda a NymVPN a identificar y solucionar problemas técnicos! Considera la opción de iniciar la monitorización de errores (a través de </string>
-	<string name="welcome_descr_sentry_link_text">Sentry</string>
-	<string name="welcome_descr_end">) y mantener las estadísticas de red. Siempre es anónimo, opta por fuera en cualquier momento y tus actividades nunca pueden ser reveladas. \n\n¡Gracias por tu apoyo!</string>
-	<string name="welcome_terms_privacy_text_start">Al continuar, aceptas los NymVPN</string>
-	<string name="welcome_terms_privacy_text_middle">y reconoces los NymVPN</string>
-	<string name="welcome_error_toggle_descr">vía Sentry</string>
-	<!-- Select Plan screen -->
+    <!-- Select Plan screen -->
 	<string name="select_plan_title">Elige tu nivel \nde protección 🛡️</string>
 	<string name="select_plan_descr">Selecciona un plan ahora para activar tu \nprotección\n\nTu próximo pago no se puede vincular \na tu actividad de navegación futura</string>
 	<string name="select_plan_button">Elegir mi plan NymVPN</string>
@@ -302,14 +295,7 @@
 	<string name="censorship_amnezia_link_text">Cómo AmneziaWG previene DPI</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/es/articles/28104383231121-Cómo hacer-implementar-NymVPN-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_anonymous">Tecnología mixnet anónima</string>
-	<string name="account_welcome_countries">Más de 50 países en todo el mundo</string>
-	<string name="account_welcome_payments">Los pagos y la actividad permanecen desvinculados</string>
-	<string name="account_welcome_open_source">Código abierto &amp; leyes de privacidad suizas</string>
-	<string name="account_welcome_button">Empezar a proteger mi privacidad</string>
-	<string name="account_welcome_have_account">¿Ya tienes cuenta?</string>
-	<string name="account_welcome_free_trial">Prueba gratuita de 7 días - no se requiere pago</string>
-	<!-- Existing subscription -->
+    <!-- Existing subscription -->
 	<string name="account_subscription_title">¡Ya estás suscrito!</string>
 	<string name="account_subscription_description">Encontramos una suscripción activa vinculada a tu cuenta de Google Play. Omita el registro y salte directamente al uso de NymVPN. Sólo tiene listo su contraseña de 24 palabras.</string>
 	<string name="account_subscription_button">Iniciar sesión con la contraseña de Nym</string>

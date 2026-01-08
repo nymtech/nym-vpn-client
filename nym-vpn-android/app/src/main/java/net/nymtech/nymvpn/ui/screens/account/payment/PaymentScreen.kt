@@ -60,8 +60,8 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 	val userId = appUiState.managerState.accountId
 
 	var animationStart by rememberSaveable { mutableStateOf(false) }
-	var latestEvent by remember { mutableStateOf<PaymentUiEvent?>(null) }
 	val accountState by viewModel.accountState.collectAsState()
+	val nextRoute by viewModel.nextRoute.collectAsState()
 
 	LaunchedEffect(activity, productId) {
 		activity?.let {
@@ -71,19 +71,24 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 
 	LaunchedEffect(Unit) {
 		viewModel.events.collect { event ->
-			latestEvent = event
 			when (event) {
-				is PaymentUiEvent.PaymentError, is PaymentUiEvent.UserCanceled -> {
+				is PaymentUiEvent.PaymentError,
+				is PaymentUiEvent.UserCanceled,
+				-> {
 					SnackbarController.showMessage(StringValue.StringResource(R.string.account_payment_error))
 					navController.replaceCurrentWith(Route.SelectPlan)
 				}
+
 				is PaymentUiEvent.PaymentSuccess -> {
 					animationStart = true
 					viewModel.refreshAccountState()
 				}
+
 				is PaymentUiEvent.SubscriptionOwned -> {
-					navController.replaceCurrentWith(Route.Main())
+					animationStart = true
+					viewModel.refreshAccountState()
 				}
+
 				PaymentUiEvent.PaymentPending -> {
 					animationStart = true
 				}
@@ -95,7 +100,9 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 		start = animationStart,
 		accountState = accountState,
 		onAnimationEnd = {
-			navController.navigateAndForget(Route.Main())
+			val destination = nextRoute ?: Route.Main()
+			viewModel.consumeNextRoute()
+			navController.navigateAndForget(destination)
 		},
 	)
 }
@@ -131,20 +138,22 @@ fun PaymentScreen(accountState: AccountControllerState?, start: Boolean, onAnima
 				delay(1_000)
 				onAnimationEnd()
 			}
+
 			is AccountControllerState.RequestingZkNyms -> {
 				textData = Pair(
 					R.string.account_payment_saving,
 					R.string.account_payment_anonymous,
 				)
 			}
+
 			is AccountControllerState.Syncing -> {
 				textData = Pair(
 					R.string.account_payment_retrieving,
 					R.string.account_payment_credentials,
 				)
 			}
-			else -> {
-			}
+
+			else -> Unit
 		}
 	}
 

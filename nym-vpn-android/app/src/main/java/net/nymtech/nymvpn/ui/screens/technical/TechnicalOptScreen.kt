@@ -49,7 +49,7 @@ fun TechnicalOptScreen(appUiState: AppUiState, viewModel: TechnicalOptViewModel 
 		},
 		onContinueClick = {
 			viewModel.onContinueClicked()
-			navController.replaceCurrentWith(Route.WelcomeAccount(true))
+			navController.replaceCurrentWith(Route.Main())
 		},
 	)
 }
