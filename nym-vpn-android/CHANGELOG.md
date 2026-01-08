@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - "Add" button on DNS screen now expand to the left for verbose languages (https://github.com/nymtech/nym-vpn-client/pull/4277)
 - Censorship screen blank on Chinese phones (https://github.com/nymtech/nym-vpn-client/pull/4277)
+- Clear notifications after successful connection (https://github.com/nymtech/nym-vpn-client/pull/4327)
+- Clear notifications when another VPN started (https://github.com/nymtech/nym-vpn-client/pull/4327)
 
 ## [2.6.0] - 2025.12.18
 
