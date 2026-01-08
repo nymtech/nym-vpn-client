@@ -64,6 +64,9 @@ public struct GatewaysView: View {
         .onTapGesture {
             isSearchFocused = false
         }
+        .onAppear {
+            isSearchFocused = true
+        }
     }
 }
 
