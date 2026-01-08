@@ -230,9 +230,6 @@ async fn main() -> Result<()> {
                 info!("starting vpnd spy");
                 loop {
                     if let Ok(info) = c_vpnd.vpnd_info().await {
-                        // connected to the daemon
-                        VpndClient::reset_log_flag();
-
                         c_vpnd.update_vpnd_state(info, &handle).await.ok();
                         // initialize vpn config and state
                         c_vpnd.update_config(&handle).await.ok();

@@ -48,6 +48,7 @@ function Home() {
     account,
     networkCompat,
     welcomeChecked,
+    onboardingCompleted,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { setFocused, setSearch, setExpanded } = useNodeListState();
@@ -129,15 +130,17 @@ function Home() {
       return;
     }
     welcomeInit = true;
-    if (!welcomeChecked) {
+    if (!onboardingCompleted) {
+      navigate(routes.onboarding);
+    } else if (!welcomeChecked && account) {
       navigate(routes.welcome);
     }
-  }, [navigate, welcomeChecked]);
+  }, [navigate, welcomeChecked, onboardingCompleted, account]);
 
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
     const cancel = capFirst(t('cancel', { ns: 'glossary' }));
-    if (needAPlan) {
+    if (needAPlan || !account) {
       return t('get-started');
     }
     switch (state) {
@@ -157,7 +160,7 @@ function Home() {
       case 'error':
         return cancel;
     }
-  }, [state, t, needAPlan]);
+  }, [state, t, needAPlan, account]);
 
   const getButtonColor = () => {
     switch (state) {

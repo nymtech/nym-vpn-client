@@ -26,16 +26,8 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
     try {
       const result = await invoke<Socks5Status>('get_socks5_status');
       setStatus(result);
-    } catch (error) {
-      if (
-        !(
-          error !== null &&
-          typeof error === 'object' &&
-          'not-connected-to-daemon' in error
-        )
-      ) {
-        console.error('Failed to get SOCKS5 status:', error);
-      }
+    } catch {
+      // silently ignore - status polling may fail intermittently
     }
   }, []);
 

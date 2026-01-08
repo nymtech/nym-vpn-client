@@ -20,6 +20,7 @@ import {
   MainLayout,
   NodeDetails,
   NodeEntry,
+  Onboarding,
   PassphraseLogin,
   SelectPlan,
   Settings,
@@ -35,7 +36,7 @@ const Home = lazy(() => import('./screens/home/Home'));
 export const routes = {
   root: '/',
   login: '/login',
-  passphrase: '/login/passphrase',
+  passphraseLogin: '/login/passphrase',
   account: '/account',
   selectPlan: '/account/select-a-plan',
   settings: '/settings',
@@ -58,6 +59,7 @@ export const routes = {
   nodeDetails: '/node-details',
   hideout: '/hideout',
   welcome: '/hideout/welcome',
+  onboarding: '/onboarding',
 } as const;
 
 // ⚠ router instance creation must remain outside of React
@@ -78,8 +80,13 @@ const router = createBrowserRouter([
         errorElement: <Error />,
       },
       {
-        path: routes.passphrase,
+        path: routes.passphraseLogin,
         Component: PassphraseLogin,
+        errorElement: <Error />,
+      },
+      {
+        path: routes.onboarding,
+        Component: Onboarding,
         errorElement: <Error />,
       },
       {
