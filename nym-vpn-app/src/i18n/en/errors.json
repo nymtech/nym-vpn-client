@@ -35,7 +35,7 @@
     "internal": "Internal account error",
     "max-devices-reached": "Account device limit exceeded.",
     "bandwidth-exceeded": "Monthly data limit reached. Contact Support for a quick data boost.",
-    "invalid-recovery-phrase": "Invalid access code",
+    "invalid-recovery-phrase": "Invalid passphrase",
     "storage": "Storage backend error",
     "is-connected": "Unable to proceed while connected",
     "no-account-stored": "No account stored",
