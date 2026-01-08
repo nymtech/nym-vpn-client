@@ -6,6 +6,10 @@ import android.os.Build
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import net.nymtech.vpn.backend.NymBackend
 import net.nymtech.vpn.backend.NymBackend.Companion.alwaysOnCallback
@@ -22,6 +26,9 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	override var owner: NymBackend? = null
 	private var disallowedApps: List<String> = emptyList()
 
+	private val revokeScope: CoroutineScope =
+		CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
 	override fun onCreate() {
 		super.onCreate()
 		Timber.d("Vpn service created")
@@ -30,9 +37,17 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 
 	override fun onDestroy() {
 		Timber.d("Vpn service destroyed")
+		runCatching { revokeScope.cancel() }
 		closeInterfaceSafely()
 		NymBackend.publishVpnService(null)
-		stopForeground(STOP_FOREGROUND_REMOVE)
+		runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
+		runCatching {
+			val nm = VpnNotificationManager.getInstance(this)
+			nm.withNotificationPermission {
+				androidx.core.app.NotificationManagerCompat.from(this)
+					.cancel(VpnNotificationManager.VPN_FOREGROUND_ID)
+			}
+		}
 		super.onDestroy()
 	}
 
@@ -57,7 +72,6 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 		if (intent?.action == SERVICE_INTERFACE) {
 			promoteToForegroundMinimal("onBind")
 		}
-
 		return binder
 	}
 
@@ -211,20 +225,22 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	}
 
 	override fun onRevoke() {
-		lifecycleScope.launch {
-			try {
-				owner?.let { backend ->
-					backend.stop()
-				}
-			} catch (e: Exception) {
-				Timber.e(e, "Error while stopping tunnel on revoke")
+		Timber.w("VPN revoked by system")
+		runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
+		runCatching {
+			val nm = VpnNotificationManager.getInstance(this)
+			nm.withNotificationPermission {
+				androidx.core.app.NotificationManagerCompat.from(this)
+					.cancel(VpnNotificationManager.VPN_FOREGROUND_ID)
 			}
 		}
-
 		closeInterfaceSafely()
-		stopForeground(STOP_FOREGROUND_REMOVE)
-		stopSelf()
-
+		val backend = owner
+		revokeScope.launch {
+			runCatching { backend?.stop() }
+				.onFailure { Timber.e(it, "Error while stopping backend on revoke") }
+				.also { runCatching { stopSelf() } }
+		}
 		super.onRevoke()
 	}
 
