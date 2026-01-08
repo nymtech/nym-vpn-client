@@ -5805,6 +5805,17 @@
         }
       }
     },
+    "createAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create account"
+          }
+        }
+      }
+    },
     "createAccount.alreadyHaveAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22809,6 +22820,17 @@
         }
       }
     },
+    "login" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in"
+          }
+        }
+      }
+    },
     "logs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -25446,6 +25468,17 @@
         }
       }
     },
+    "onboarding.previous" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous"
+          }
+        }
+      }
+    },
     "onboarding.skip" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -25457,24 +25490,46 @@
         }
       }
     },
+    "onboarding0.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The world’s most private VPN"
+          }
+        }
+      }
+    },
+    "onboarding0.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try for 7 days free:  All features included, no ads."
+          }
+        }
+      }
+    },
+    "onboarding0.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to NymVPN"
+          }
+        }
+      }
+    },
     "onboarding1.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The only VPN that can't spy on you, even if it wanted to."
-          }
-        }
-      }
-    },
-    "onboarding1.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Decentralized architecture makes centralized logging impossible by design not a \"no-log policy,\" a \"can't log\" architecture."
+            "value" : "Nym’s decentralized network makes \"no-log\" promises obsolete."
           }
         }
       }
@@ -25496,18 +25551,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pay with card, crypto, or cash—no email required. Zero-knowledge proofs cryptographically separate your payment from your online activities."
-          }
-        }
-      }
-    },
-    "onboarding2.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Made in Switzerland with peer-reviewed academic research."
+            "value" : "Pay with card, crypto, or cash - no email required. Zero-knowledge proofs make your payments unlinkable to your online activities."
           }
         }
       }
@@ -25529,7 +25573,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fast mode: 250+ Mbps for streaming and browsing"
+            "value" : "Fast: 250+ Mbps with dVPN."
           }
         }
       }
@@ -25540,7 +25584,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anonymous mode: Maximum protection through 5-hop mixnet"
+            "value" : "Anonymous: 5-hop Noise Generating Mixnet."
           }
         }
       }

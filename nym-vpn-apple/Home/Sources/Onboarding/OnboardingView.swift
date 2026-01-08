@@ -17,8 +17,14 @@ public struct OnboardingView: View {
                 Spacer()
                 onboardingStepsView()
                 Spacer()
-                nextButton()
-                skipButton()
+                createAccountButton()
+                Spacer()
+                    .frame(height: 24)
+                loginButton()
+#if os(macOS)
+                Spacer()
+                    .frame(height: 24)
+#endif
             }
             .frame(maxWidth: MagicNumbers.maxWidth, alignment: .top)
             .padding(.horizontal, 24)
@@ -34,19 +40,24 @@ public struct OnboardingView: View {
 
     var pages = [
         OnboardingStepView(
-            imageName: "dataMixing",
-            title: "onboarding1.title".localizedString,
-            subtitle: "onboarding1.subtitle1".localizedString + "\n\n" + "onboarding1.subtitle2".localizedString
-        ),
-        OnboardingStepView(
-            imageName: "zeroKnowledge",
-            title: "onboarding2.title".localizedString,
-            subtitle: "onboarding2.subtitle1".localizedString + "\n\n" + "onboarding2.subtitle2".localizedString
+            imageName: "7daysNoCommitment",
+            title: "onboarding0.title".localizedString,
+            subtitle: "onboarding0.subtitle1".localizedString + "\n\n" + "onboarding0.subtitle2".localizedString
         ),
         OnboardingStepView(
             imageName: "speed",
             title: "onboarding3.title".localizedString,
-            subtitle: "onboarding3.subtitle1".localizedString + "\n\n" + "onboarding3.subtitle2".localizedString
+            subtitle: "onboarding3.subtitle1".localizedString + "\n" + "onboarding3.subtitle2".localizedString
+        ),
+        OnboardingStepView(
+            imageName: "stopBeingTracked",
+            title: "onboarding1.title".localizedString,
+            subtitle: "onboarding1.subtitle1".localizedString
+        ),
+        OnboardingStepView(
+            imageName: "zeroKnowledge",
+            title: "onboarding2.title".localizedString,
+            subtitle: "onboarding2.subtitle1".localizedString
         )
     ]
 }
@@ -69,37 +80,33 @@ private extension OnboardingView {
         PageIndicator(pageCount: pages.count, selection: $selection)
     }
 
-    func nextButton() -> some View {
-        GenericButton(title: "onboarding.next".localizedString)
+    func createAccountButton() -> some View {
+        GenericButton(title: "createAccount".localizedString)
             .onTapGesture {
-                nextAction()
+                navigateToCreateAccount()
             }
             .accessibilityAction {
-                nextAction()
+                navigateToCreateAccount()
             }
     }
 
-    func skipButton() -> some View {
-        GenericButton(title: "onboarding.skip".localizedString, style: .borderless)
+    func loginButton() -> some View {
+        GenericButton(title: "login".localizedString, style: .primaryBorderOnly)
             .onTapGesture {
-                skipAction()
+                navigateTologin()
             }
             .accessibilityAction {
-                skipAction()
+                navigateTologin()
             }
     }
 }
 
 private extension OnboardingView {
-    func nextAction() {
-        if selection < pageCount - 1 {
-            selection += 1
-        } else {
-            appSettings.onboardingDidDisplay = true
-        }
+    func navigateToCreateAccount() {
+        appSettings.onboardingDidDisplay = true
     }
 
-    func skipAction() {
+    func navigateTologin() {
         appSettings.onboardingDidDisplay = true
     }
 }

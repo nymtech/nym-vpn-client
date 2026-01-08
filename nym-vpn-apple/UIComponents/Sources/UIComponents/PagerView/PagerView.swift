@@ -97,9 +97,9 @@ public struct PagerView<Page: View>: View {
         }
         .frame(height: measuredHeight == 0 ? nil : measuredHeight)
         .onAppear { currentFloatIndex = CGFloat(currentIndex) }
-        .onChange(of: currentIndex) { value in
+        .onChange(of: currentIndex) { _, newValue in
             withAnimation(.easeOut) {
-                currentFloatIndex = CGFloat(value)
+                currentFloatIndex = CGFloat(newValue)
             }
         }
     }
