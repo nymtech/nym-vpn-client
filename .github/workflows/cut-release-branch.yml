@@ -1,4 +1,4 @@
-name: Cut release branch
+name: cut-release-branch
 
 on:
   workflow_dispatch:
