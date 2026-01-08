@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
@@ -10,7 +10,7 @@ import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
 import { Button, Link, PageAnim, TextArea } from '../../ui';
 import { CCache } from '../../cache';
-import { NymVpnPricingUrl } from '../../constants';
+import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { NymSplash } from '../../assets/index';
 
 type AddError = {
@@ -83,7 +83,7 @@ function Login() {
       />
       <h1 className="text-2xl mt-12">{t('title')}</h1>
 
-      <div className="w-full flex flex-col gap-3">
+      <div className="py-6 w-full flex flex-col gap-3">
         <div className="w-full">
           <p className="mb-8 text-left text-iron dark:text-bombay w-11/12">
             {t('description')}
@@ -149,6 +149,35 @@ function Login() {
           </div>
         </div>
       </div>
+      <p
+        className="text-xs text-center text-iron dark:text-bombay w-80"
+        data-testid="welcome-tos-notice"
+      >
+        <Trans
+          i18nKey="tos-notice"
+          ns="welcome"
+          components={{
+            tosLink: (
+              <Link
+                text={t('tos', { ns: 'common' })}
+                url={ToSUrl}
+                className="text-black dark:text-white"
+                textClassName="underline-offset-2"
+                data-testid="welcome-tos-link"
+              />
+            ),
+            privacyLink: (
+              <Link
+                text={t('privacy-statement', { ns: 'common' })}
+                url={PrivacyPolicyUrl}
+                className="text-black dark:text-white"
+                textClassName="underline-offset-2"
+                data-testid="welcome-privacy-link"
+              />
+            ),
+          }}
+        />
+      </p>
     </PageAnim>
   );
 }

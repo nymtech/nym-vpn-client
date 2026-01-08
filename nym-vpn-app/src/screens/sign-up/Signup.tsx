@@ -1,11 +1,11 @@
 import clsx from 'clsx';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { NymSplash } from '../../assets';
-import { Button, ButtonText, PageAnim } from '../../ui';
+import { Button, Link, PageAnim } from '../../ui';
 import { useMainState } from '../../contexts';
-import { NymVpnPricingUrl } from '../../constants';
+import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
 
 function Login() {
@@ -32,16 +32,57 @@ function Login() {
             }}
             className="mt-4"
           >
-            {t('signup.create-account')}
+            <div className="flex items-center gap-2">
+              {t('signup.create-account')}
+            </div>
+          </Button>
+        </div>
+
+        <div className="py-6 flex flex-col gap-4">
+          <h2>{t('signup.already-have-an-account.title')}</h2>
+          <Button
+            outline
+            color="gray"
+            onClick={() => {
+              navigate(routes.login);
+            }}
+            className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
+          >
+            <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
+              {t('signup.already-have-an-account.button')}
+            </span>
           </Button>
         </div>
       </div>
-      <div>
-        <span>{t('signup.already-have-an-account.title')}</span>
-        <ButtonText onClick={() => navigate(routes.login)} color="malachite">
-          {t('signup.already-have-an-account.button')}
-        </ButtonText>
-      </div>
+      <p
+        className="text-xs text-center text-iron dark:text-bombay w-80"
+        data-testid="welcome-tos-notice"
+      >
+        <Trans
+          i18nKey="tos-notice"
+          ns="welcome"
+          components={{
+            tosLink: (
+              <Link
+                text={t('tos', { ns: 'common' })}
+                url={ToSUrl}
+                className="text-black dark:text-white"
+                textClassName="underline-offset-2"
+                data-testid="welcome-tos-link"
+              />
+            ),
+            privacyLink: (
+              <Link
+                text={t('privacy-statement', { ns: 'common' })}
+                url={PrivacyPolicyUrl}
+                className="text-black dark:text-white"
+                textClassName="underline-offset-2"
+                data-testid="welcome-privacy-link"
+              />
+            ),
+          }}
+        />
+      </p>
     </PageAnim>
   );
 }
