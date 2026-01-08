@@ -16,22 +16,14 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.MainActivity
 import javax.inject.Inject
 
-class VpnAlertNotifications
-@Inject
-constructor(
-	@ApplicationContext
-	private val context: Context,
-) :
-	NotificationService {
+class VpnAlertNotifications @Inject constructor(
+	@ApplicationContext private val context: Context,
+) : NotificationService {
 
 	override val channelName: String = context.getString(R.string.vpn_alerts_channel_id)
 	override val channelDescription: String = context.getString(R.string.vpn_alerts_channel_description)
-
-	override val builder: NotificationCompat.Builder =
-		NotificationCompat.Builder(
-			context,
-			channelName,
-		)
+	override val builder: NotificationCompat.Builder
+		get() = NotificationCompat.Builder(context, channelName)
 
 	override fun showNotification(
 		title: String,
@@ -46,26 +38,23 @@ constructor(
 		onlyAlertOnce: Boolean,
 	) {
 		val notificationManager = NotificationManagerCompat.from(context)
-		// Create notification channel for Android Oreo and above
+
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			val channel = NotificationChannel(
 				channelName,
 				channelName,
 				importance,
-			)
-				.let {
-					it.description = title
-					it.enableLights(lights)
-					it.lightColor = Color.RED
-					it.enableVibration(vibration)
-					it.vibrationPattern = longArrayOf(100, 200, 300)
-					it
-				}
+			).apply {
+				this.description = channelDescription
+				enableLights(lights)
+				lightColor = Color.RED
+				enableVibration(vibration)
+				vibrationPattern = longArrayOf(100, 200, 300)
+			}
 			notificationManager.createNotificationChannel(channel)
-		} else {
-			Unit
 		}
-		val pendingIntent: PendingIntent =
+
+		val contentPendingIntent: PendingIntent =
 			Intent(context, MainActivity::class.java).let { notificationIntent ->
 				PendingIntent.getActivity(
 					context,
@@ -75,31 +64,27 @@ constructor(
 				)
 			}
 
-		val notification = builder.let {
-			if (action != null && actionText != null) {
-				it.addAction(
-					NotificationCompat.Action.Builder(0, actionText, action).build(),
-				)
-				it.setAutoCancel(true)
-			}
-			it.setContentTitle(title)
-				.setContentText(description)
-				.setOnlyAlertOnce(onlyAlertOnce)
-				.setContentIntent(pendingIntent)
-				.setOngoing(onGoing)
-				.setPriority(NotificationCompat.PRIORITY_HIGH)
-				.setShowWhen(showTimestamp)
-				.setSmallIcon(net.nymtech.vpn.R.drawable.ic_stat_name)
-				.build()
+		val b = builder
+			.setContentTitle(title)
+			.setContentText(description)
+			.setOnlyAlertOnce(onlyAlertOnce)
+			.setContentIntent(contentPendingIntent)
+			.setOngoing(onGoing)
+			.setPriority(NotificationCompat.PRIORITY_HIGH)
+			.setShowWhen(showTimestamp)
+			.setSmallIcon(net.nymtech.vpn.R.drawable.ic_stat_name)
+
+		if (action != null && actionText != null) {
+			b.addAction(NotificationCompat.Action.Builder(0, actionText, action).build())
+			b.setAutoCancel(true)
 		}
-		with(notificationManager) {
-			if (ActivityCompat.checkSelfPermission(
-					context,
-					Manifest.permission.POST_NOTIFICATIONS,
-				) == PackageManager.PERMISSION_GRANTED
-			) {
-				notify(NOTIFICATION_ID, notification)
-			}
+
+		if (ActivityCompat.checkSelfPermission(
+				context,
+				Manifest.permission.POST_NOTIFICATIONS,
+			) == PackageManager.PERMISSION_GRANTED
+		) {
+			notificationManager.notify(NOTIFICATION_ID, b.build())
 		}
 	}
 

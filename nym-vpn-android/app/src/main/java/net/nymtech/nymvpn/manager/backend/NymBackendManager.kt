@@ -216,6 +216,7 @@ class NymBackendManager @Inject constructor(
 					is BackendException.VpnAlreadyRunning -> {
 						Timber.w("startTunnel: Vpn already running - backend state may be out of sync")
 					}
+
 					is BackendException.VpnPermissionDenied -> {
 						Timber.w("startTunnel: Vpn permission denied")
 						launchVpnPermissionNotification()
@@ -451,8 +452,16 @@ class NymBackendManager @Inject constructor(
 			}
 
 			is BackendEvent.Tunnel -> when (val state = backendEvent.state) {
-				is TunnelState.Connected -> emitConnectedData(state.connectionData)
-				is TunnelState.Connecting -> emitConnectionData(state.connectionData, state.state)
+				is TunnelState.Connected -> {
+					notificationService.clearNotifications()
+					emitConnectedData(state.connectionData)
+				}
+
+				is TunnelState.Connecting -> {
+					notificationService.clearNotifications()
+					emitConnectionData(state.connectionData, state.state)
+				}
+
 				is TunnelState.Disconnecting -> Timber.d("After disconnect status: ${state.afterDisconnect.name}")
 				is TunnelState.Error -> {
 					Timber.d("Shutting tunnel down on fatal error")
@@ -470,6 +479,7 @@ class NymBackendManager @Inject constructor(
 				emitAccountState(backendEvent.event)
 				Timber.d("AccountState: ${backendEvent.event}")
 			}
+
 			is BackendEvent.ConfigChanged -> {
 				Timber.d("ConfigChanged")
 			}
@@ -478,6 +488,15 @@ class NymBackendManager @Inject constructor(
 
 	private fun onStateChange(state: Tunnel.State) {
 		Timber.d("Requesting tile update with new state: $state")
+		when (state) {
+			Tunnel.State.InitializingClient,
+			Tunnel.State.EstablishingConnection,
+			Tunnel.State.Up,
+			-> notificationService.clearNotifications()
+
+			else -> Unit
+		}
+
 		emitState(state)
 		context.requestTileServiceStateUpdate()
 	}
