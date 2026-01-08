@@ -30,6 +30,7 @@ export type StateDispatch = Dispatch<StateAction>;
 export type InitState = {
   uiTheme: UiTheme;
   welcomeChecked: boolean;
+  onboardingCompleted: boolean;
   vpnMode: VpnMode;
   vpnd: VpndStatus;
   entryNode: SelectedNode;
@@ -86,6 +87,8 @@ export type AppState = {
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   welcomeChecked: boolean;
+  // whether the user has completed the onboarding process
+  onboardingCompleted: boolean;
   // aka bridges mode
   quic: boolean;
   // current user setting
