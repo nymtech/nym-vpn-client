@@ -1,19 +1,19 @@
 {
   "welcome": {
     "title": "Welcome to NymVPN",
-    "description": "The world’s most private VPN. 7 days free, all features, no payment required. Create an anonymous account to start."
+    "description": "<large>The world’s most private VPN</large>\n\nTry for 7 days free:\nAll features included, no ads."
   },
   "tracking": {
     "title": "Stop being tracked online",
-    "description": "Decentralized architecture makes centralized logging impossible by design—not a \"no-log policy,\" a \"can't log\" architecture."
+    "description": "Nym’s decentralized network makes \"no-log\" promises obsolete."
   },
   "zero-knowledge": {
-    "title": "True anonymity, not just hidden IPs",
-    "description": "Pay with card, crypto, or cash—no email required. Zero-knowledge proofs cryptographically separate your payment from your online activities."
+    "title": "Anonymity from payment to web",
+    "description": "Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities."
   },
   "speed": {
     "title": "Speed when you need it.\nPrivacy when it matters.",
-    "description": "<bold>Fast mode:</bold> 250+ Mbps for streaming and browsing\n<bold>Anonymous mode:</bold> Maximum protection through 5-hop mixnet"
+    "description": "<bold>Fast mode:</bold> 250+ Mbps with dVPN.\n<bold>Anonymous mode:</bold> 5-hop Noise Generating Mixnet."
   },
   "controls": {
     "next": "Next",
