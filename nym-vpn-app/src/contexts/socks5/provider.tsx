@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import type { HttpRpcSettings, SelectedNode, Socks5Settings, Socks5Status } from '../../types';
+import type {
+  HttpRpcSettings,
+  SelectedNode,
+  Socks5Settings,
+  Socks5Status,
+} from '../../types';
 import { Socks5Context } from './context';
 
 export type Socks5ProviderProps = {

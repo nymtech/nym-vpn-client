@@ -33,7 +33,7 @@ function IntroSplash({ theme }: { theme: 'light' | 'dark' }) {
             exit={{ opacity: 0, x: 5 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
           >
-            <NymSplash className="w-36 fill-malachite" />
+            <NymSplash className="w-36 fill-baltic-sea dark:fill-white" />
           </motion.div>
         )}
       </AnimatePresence>
