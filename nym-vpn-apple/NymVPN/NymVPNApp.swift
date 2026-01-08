@@ -62,11 +62,9 @@ struct NymVPNApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                // DISABLED until we figure out where the crash is coming from
-//                if !splashScreenDidDisplay {
-//                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
-//                } else
-                if !appSettings.onboardingDidDisplay {
+                if !splashScreenDidDisplay {
+                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+                } else if !appSettings.onboardingDidDisplay {
                     OnboardingView()
                 } else if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)

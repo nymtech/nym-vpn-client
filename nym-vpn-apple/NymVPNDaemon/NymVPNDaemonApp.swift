@@ -77,10 +77,9 @@ struct NymVPNDaemonApp: App {
     var body: some Scene {
         Window(windowId, id: windowId) {
             NavigationStack {
-//                if !splashScreenDidDisplay {
-//                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
-//                } else
-                if !appSettings.onboardingDidDisplay {
+                if !splashScreenDidDisplay {
+                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+                } else if !appSettings.onboardingDidDisplay {
                     OnboardingView()
                 } else if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)
