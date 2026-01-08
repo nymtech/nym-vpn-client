@@ -16,6 +16,8 @@
     "description": "<bold>Fast mode:</bold> 250+ Mbps with dVPN.\n<bold>Anonymous mode:</bold> 5-hop Noise Generating Mixnet."
   },
   "controls": {
+    "login": "Log in",
+    "create-account": "Create account",
     "next": "Next",
     "skip": "Skip"
   }

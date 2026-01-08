@@ -6,9 +6,6 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { Button, MsIcon, PageAnim } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import { routes } from '../../router';
-import { useMainDispatch } from '../../contexts/main';
-import { StateDispatch } from '../../types';
-import { kvSet } from '../../kvStore';
 import { Speed, Tracking, Welcome, ZeroKnowledge } from './slides';
 import { DotButton, useDotButton } from './CarouselDotButton';
 
@@ -27,15 +24,15 @@ const ArrowButton = ({
     <HuButton
       onClick={onClick}
       className={clsx(
-        'h-11 w-11 my-2 mr-2 flex items-center justify-center rounded-full bg-mercury hover:bg-bombay dark:bg-mine-shaft dark:hover:bg-charcoal',
+        'h-11 w-11 my-2 mr-2 flex items-center justify-center rounded-full bg-mercury dark:bg-mine-shaft',
+        !disabled && 'hover:bg-bombay dark:hover:bg-charcoal',
       )}
     >
       <MsIcon
         icon={icon}
         className={clsx(
-          !disabled
-            ? 'text-baltic-sea dark:text-white leading-none'
-            : 'text-bombay',
+          'leading-none',
+          !disabled ? 'text-baltic-sea dark:text-white' : 'text-bombay',
         )}
       />
     </HuButton>
@@ -43,7 +40,6 @@ const ArrowButton = ({
 };
 
 function Onboarding() {
-  const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('onboarding');
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -52,16 +48,6 @@ function Onboarding() {
 
   const { selectedIndex, scrollSnaps, onDotButtonClick } =
     useDotButton(emblaApi);
-
-  const handleNext = () => {
-    if (emblaApi?.canScrollNext()) {
-      emblaApi?.scrollNext();
-    } else {
-      dispatch({ type: 'set-onboarding-completed', completed: true });
-      kvSet('onboarding-completed', true);
-      navigate(routes.login, { state: { skip: true } });
-    }
-  };
 
   return (
     <PageAnim className="h-full flex flex-col justify-end items-center gap-8 select-none cursor-default">
@@ -107,7 +93,21 @@ function Onboarding() {
         </div>
 
         <div className="flex flex-col items-center gap-4 w-full">
-          <Button onClick={handleNext}>{t('controls.next')}</Button>
+          <Button onClick={() => navigate(routes.signup)}>
+            {t('controls.create-account')}
+          </Button>
+          <Button
+            outline
+            color="gray"
+            onClick={() => {
+              navigate(routes.login);
+            }}
+            className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
+          >
+            <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
+              {t('controls.login')}
+            </span>
+          </Button>
         </div>
       </section>
     </PageAnim>
