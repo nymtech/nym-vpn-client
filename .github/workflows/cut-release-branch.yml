@@ -46,7 +46,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
         with:
-          branch: develop
+          ref: develop
 
       - name: Install cargo-edit
         uses: baptiste0928/cargo-install@v3
