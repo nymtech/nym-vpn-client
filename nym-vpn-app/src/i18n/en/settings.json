@@ -81,7 +81,7 @@
     "quic": {
       "label": "Enhanced connection (QUIC)",
       "warning": "Changes will apply after reconnect",
-      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.",
+      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible servers only.",
       "link": "How QUIC improves connections"
     },
     "stealth-api": {
@@ -151,7 +151,7 @@
     "listen-port": "Listen port",
     "reset-to-default": "Reset to default",
     "intro": "Route app & wallet traffic through the Nym mixnet for enhanced privacy. This feature creates a local SOCKS5 proxy for apps, and a HTTP RPC proxy for wallets.",
-    "error-gateway-not-supported": "Gateway does not support SOCKS5",
+    "error-gateway-not-supported": "Server does not support SOCKS5",
     "error-unknown": "Failed to toggle SOCKS5 proxy",
     "error-vpn-not-connected": "Please connect VPN first before enabling SOCKS5 proxy",
     "snackbar-enabled": "Proxy successfully enabled",

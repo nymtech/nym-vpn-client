@@ -34,6 +34,7 @@ function useI18nError() {
         case 'not-connected-to-daemon':
           return t('daemon.not-connected');
         case 'account-invalid-mnemonic':
+        case 'account-invalid-secret':
           return t('account.invalid-recovery-phrase');
         case 'get-mixnet-entry-countries-query':
           return t('countries-request.entry');

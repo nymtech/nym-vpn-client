@@ -8,7 +8,7 @@ use crate::sys::OsInfo;
 static EXCLUDED_ERRORS: [&str; 10] = [
     "failed to connect to the daemon: transport error",
     "vpnd down",
-    "invalid mnemonic",
+    "invalid passphrase",
     "no device stored",
     "no account stored",
     "ac is offline",

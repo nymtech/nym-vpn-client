@@ -334,12 +334,12 @@ function NodeDetails() {
         {gateway.description && (
           <p className="text-iron dark:text-bombay">{gateway.description}</p>
         )}
+        {showCard3 && <DataCard rows={card3} />}
         <DataCard
           rows={card1}
           footer={hop === 'entry' && quic && Card1Footer}
         />
         <DataCard rows={card2} footer={card2Footer} />
-        {showCard3 && <DataCard rows={card3} />}
         <DataCard rows={card4} />
         <div className="flex flex-col gap-2 select-none">
           <Link

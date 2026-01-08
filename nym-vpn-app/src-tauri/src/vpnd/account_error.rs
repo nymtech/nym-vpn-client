@@ -29,9 +29,9 @@ impl From<lib::AccountCommandError> for BackendError {
             }
             lib::AccountCommandError::Offline => BackendError::internal("AC is offline", None),
             lib::AccountCommandError::InvalidMnemonic(e) => BackendError::with_detail(
-                "invalid mnemonic",
+                "invalid passphrase",
                 ErrorKey::AccountInvalidMnemonic,
-                format!("invalid mnemonic: {e}"),
+                format!("invalid passphrase: {e}"),
             ),
             lib::AccountCommandError::InvalidSecret(e) => BackendError::with_detail(
                 "invalid secret",
