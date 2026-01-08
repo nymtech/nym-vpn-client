@@ -130,6 +130,14 @@ import CountriesManagerTypes
         self.isIPv6TrafficEnabledPublisher = self.isIPv6TrafficEnabled
         self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
     }
+
+    public func resetUserDefaults() {
+        let defaults = UserDefaults.standard
+        let dictionary = defaults.dictionaryRepresentation()
+        dictionary.keys.forEach { key in
+            defaults.removeObject(forKey: key)
+        }
+    }
 }
 
 #if os(iOS)
