@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-app"
-version = "1.22.0-dev"
+version = "1.23.0-dev"
 description = "NymVPN desktop client"
 authors = [
     "Nym Technologies SA",
@@ -19,7 +19,13 @@ toml = "0.9.5"
 
 [dependencies]
 tauri = { version = "2.9.2", features = ["tray-icon", "image-png"] }
-tokio = { version = "1.47.1", features = ["rt", "sync", "time", "fs", "macros"] }
+tokio = { version = "1.47.1", features = [
+    "rt",
+    "sync",
+    "time",
+    "fs",
+    "macros",
+] }
 serde = { version = "1.0", features = ["derive"] }
 futures = "0.3"
 serde_json = "1.0"
@@ -51,7 +57,9 @@ tokio-stream = "0.1.17"
 
 # nym deps
 nym-platform-metadata = { path = "../../nym-vpn-core/crates/nym-platform-metadata" }
-nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto", features = ["rpc_client"] }
+nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto", features = [
+    "rpc_client",
+] }
 nym-vpn-lib-types = { path = "../../nym-vpn-core/crates/nym-vpn-lib-types" }
 
 # tauri deps
