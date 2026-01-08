@@ -836,7 +836,7 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::GetSocks5Status, ())
             .await?
             .map_err(|err| {
-                tracing::error!("Failed to get SOCKS5 status: {err}");
+                tracing::debug!("Failed to get SOCKS5 status: {err}");
                 tonic::Status::internal(format!("Failed to get SOCKS5 status: {err}"))
             })?;
 

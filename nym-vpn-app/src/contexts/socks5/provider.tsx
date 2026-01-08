@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import type {
-  HttpRpcSettings,
-  SelectedNode,
-  Socks5Settings,
-  Socks5Status,
-} from '../../types';
+import type { HttpRpcSettings, SelectedNode, Socks5Settings, Socks5Status } from '../../types';
 import { Socks5Context } from './context';
 
 export type Socks5ProviderProps = {
@@ -26,16 +21,8 @@ export function Socks5Provider({ children }: Socks5ProviderProps) {
     try {
       const result = await invoke<Socks5Status>('get_socks5_status');
       setStatus(result);
-    } catch (error) {
-      if (
-        !(
-          error !== null &&
-          typeof error === 'object' &&
-          'not-connected-to-daemon' in error
-        )
-      ) {
-        console.error('Failed to get SOCKS5 status:', error);
-      }
+    } catch {
+      // silently ignore - status polling may fail intermittently
     }
   }, []);
 
