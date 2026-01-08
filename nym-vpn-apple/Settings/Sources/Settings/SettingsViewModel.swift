@@ -127,7 +127,7 @@ import UIComponents
         if credentialsManager.isValidCredentialImported {
             navigateToAccount()
         } else {
-            path.append(SettingLink.addCredentials)
+            path.append(SettingLink.addCredentials(navigationSource: .settings))
         }
 #elseif os(iOS)
         impactGenerator.softImpact()
@@ -406,7 +406,7 @@ private extension SettingsViewModel {
                 }
             )
         )
-        
+
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,

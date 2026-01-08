@@ -30,8 +30,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             supportDestination()
         case .legal:
             legalDestination()
-        case .addCredentials:
-            addCredentialsDestination()
+        case let .addCredentials(navigationSource: navigationSource):
+            addCredentialsDestination(navigationSource: navigationSource)
         case .createAccountWelcome:
             createAccountWelcomeDestination()
         case .generatePassphrase:
@@ -117,7 +117,7 @@ private extension SettingsFlowCoordinator {
     }
 
     @ViewBuilder
-    func addCredentialsDestination() -> some View {
+    func addCredentialsDestination(navigationSource: AddCredentialsNavigationSource) -> some View {
 #if os(iOS)
         AddCredentialsView(
             viewModel:
@@ -135,7 +135,8 @@ private extension SettingsFlowCoordinator {
                 path: $flowState.path,
                 appSettings: .shared,
                 configurationManager: .shared,
-                credentialsManager: .shared
+                credentialsManager: .shared,
+                navigationSource: navigationSource
             )
         )
 #endif

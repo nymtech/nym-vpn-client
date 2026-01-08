@@ -52,7 +52,6 @@ struct NymVPNApp: App {
     )
     @ObservedObject private var welcomeViewModel = WelcomeViewModel(appSettings: .shared)
 
-    @State private var splashScreenDidDisplay = false
     @State private var isSecureScreenVisible = false
 
     init() {

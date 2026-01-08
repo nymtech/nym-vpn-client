@@ -2,6 +2,7 @@ import SwiftUI
 #if os(macOS)
 import GRPCManager
 #endif
+import Routes
 import Settings
 import UIComponents
 
@@ -82,6 +83,10 @@ private extension HomeFlowCoordinator {
 #endif
         case let .gatewayDetails(gateway: gateway, hopType: hopType):
             GatewayDetailsView(path: $state.path, gateway: gateway, hopType: hopType, externalLinkManager: .shared)
+        case .launchView:
+            LaunchView(splashScreenDidDisplay: $state.splashScreenDidDisplay, path: $state.path)
+        case .onboarding:
+            OnboardingView(path: $state.path)
         }
     }
 }

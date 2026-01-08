@@ -1,10 +1,13 @@
 import SwiftUI
 import AppSettings
+import Routes
+import Settings
 import UIComponents
 import Theme
 
 public struct OnboardingView: View {
     @EnvironmentObject private var appSettings: AppSettings
+    @Binding private var path: NavigationPath
     @State private var selection: Int = 0
     @State private var pageCount = 3
 
@@ -29,6 +32,7 @@ public struct OnboardingView: View {
             .frame(maxWidth: MagicNumbers.maxWidth, alignment: .top)
             .padding(.horizontal, 24)
         }
+        .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, alignment: .top)
         .background {
             NymColor.background
@@ -36,7 +40,9 @@ public struct OnboardingView: View {
         }
     }
 
-    public init() {}
+    public init(path: Binding<NavigationPath>) {
+        _path = path
+    }
 
     var pages = [
         OnboardingStepView(
@@ -104,13 +110,18 @@ private extension OnboardingView {
 private extension OnboardingView {
     func navigateToCreateAccount() {
         appSettings.onboardingDidDisplay = true
+        path = NavigationPath([HomeLink.settings])
+        path.append(SettingLink.createAccountWelcome)
     }
 
     func navigateTologin() {
         appSettings.onboardingDidDisplay = true
+        path = NavigationPath([HomeLink.settings])
+        path.append(SettingLink.addCredentials(navigationSource: .onboarding))
     }
 }
 
 #Preview {
-    OnboardingView()
+    @Previewable @State var path = NavigationPath()
+    return OnboardingView(path: $path)
 }
