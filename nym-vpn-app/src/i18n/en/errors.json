@@ -52,14 +52,14 @@
   },
   "mixnet": {
     "no-bandwidth": "No data allowance remaining",
-    "entry-gateway-down": "Entry gateway is down",
+    "entry-gateway-down": "Entry server is down",
     "exit-gateway-down": {
-      "ipv4": "Exit gateway is down (IPv4)",
-      "ipv6": "Exit gateway is down (IPv6)"
+      "ipv4": "Exit server is down (IPv4)",
+      "ipv6": "Exit server is down (IPv6)"
     },
     "exit-gateway-routing": {
-      "ipv4": "Exit gateway routing error (IPv4)",
-      "ipv6": "Exit gateway routing error (IPv6)"
+      "ipv4": "Exit server routing error (IPv4)",
+      "ipv6": "Exit server routing error (IPv6)"
     }
   }
 }
