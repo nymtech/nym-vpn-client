@@ -1,0 +1,142 @@
+name: Cut release branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: "Enter release name (🍌🍉🥝🍍)"
+        type: string
+        required: true
+      bump_type:
+        description: Which component of version to bump (MAJOR.MINOR.PATCH)
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+        default: "minor"
+      dry_run:
+        description: "Test run that will only print git diff and all changes being made"
+        required: true
+        type: boolean
+        default: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cut-release-branch:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Configure git
+        run: |
+          git config --global user.name "NYM CI"
+          git config --global user.email "ci@nymtech.net"
+
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          branch: develop
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Install toml-cli
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: toml-cli
+
+      - name: Compute next version
+        id: next-version
+        working-directory: nym-vpn-core
+        run: |
+          VERSION=$(cargo get workspace.package.version)
+
+          # remove -beta suffix
+          RELEASE_VERSION=$(echo "$VERSION" | cut -d '-' -f 1)
+
+          # this would strip -beta suffix
+          cargo set-version --bump ${{ inputs.release_type }}
+
+          # fetch bumped version
+          VERSION=$(cargo get workspace.package.version)
+
+          # put -beta suffix back
+          BETA_VERSION="$VERSION-beta"
+          cargo set-version "$BETA_VERSION"
+
+          echo "release_version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "next_version=$BETA_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create release branch
+        env:
+          RELEASE_BRANCH: release/${{ steps.next-version.outputs.release_version }}-${{ inputs.release_name }}
+        run: |
+          if git branch -r | grep -qn origin/${{ env.RELEASE_BRANCH }}$; then
+              echo "::error:: ${{ env.RELEASE_BRANCH }} branch already exists but it must not!"
+              exit 1
+          fi
+
+          # create release branch and push it to remote
+          git checkout -b "${{ env.RELEASE_BRANCH }}"
+          if [ '${{ inputs.dry_run }}' == 'true' ]; then
+            echo "Dry run, skipping push to origin/${{ steps.create-release-branch.outputs.branch_name }}"
+          else
+            git push origin "${{ steps.create-release-branch.outputs.branch_name }}"
+          fi
+
+          # Switch back to develop to apply the remainder of changes
+          git checkout develop
+
+      - name: Update nym-vpn-core/Cargo.toml
+        working-directory: nym-vpn-core
+        run: |
+          cargo set-version "${{ steps.next-version.outputs.next_version }}"
+          # dry-run will update Cargo.lock with new workspace version, without any other changes
+          cargo update --dry-run
+
+      - name: Update nym-vpn-app/src-tauri/Cargo.toml
+        working-directory: nym-vpn-app/src-tauri
+        run: |
+          cargo set-version "${{ steps.next-version.outputs.next_version }}"
+          # dry-run will update Cargo.lock with new package version, without any other changes
+          cargo update --dry-run
+
+      - name: Update nym-vpn-app/vpnd_compat.toml
+        working-directory: nym-vpn-app
+        run: |
+          toml set vpnd_compat.toml version ">=${{ steps.next-version.outputs.next_version }}" > new_vpnd_compat.toml
+          mv new_vpnd_compat.toml vpnd_compat.toml
+
+      - name: Create PR to bump develop to v${{ steps.next-version.outputs.next_version }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: "ci/bump-develop-to-v${{ steps.next-version.outputs.next_version }}"
+        run: |
+          git diff
+          if [ '${{ inputs.dry_run }}' == 'true' ]; then
+            echo "Dry run, skipping commit and PR creation"
+          else
+            git commit -a -m "ci: bump develop to v${{ steps.next-version.outputs.next_version }}"
+            git push origin "${{ env.BRANCH_NAME }}"
+            gh pr create \
+                --title "Bump develop to v${{ steps.next-version.outputs.next_version }}" \
+                --body "This PR bumps develop to v${{ steps.next-version.outputs.next_version }}"
+          fi
