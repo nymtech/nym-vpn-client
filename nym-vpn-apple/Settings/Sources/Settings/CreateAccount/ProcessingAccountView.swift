@@ -1,11 +1,3 @@
-//
-//  ProcessingAccountView.swift
-//  Settings
-//
-//  Created by Rokas on 05/11/2025.
-//
-
-
 import SwiftUI
 import Theme
 import UIComponents
@@ -35,7 +27,7 @@ public struct ProcessingAccountView: View {
             NymColor.background
                 .ignoresSafeArea()
         }
-        .onChange(of: didFinishAnimatingText) { _ in
+        .onChange(of: didFinishAnimatingText) { _, _ in
             navigateHome()
         }
     }

@@ -45,7 +45,7 @@ public struct StepView: View {
                 }
             )
         }
-        .onChange(of: currentStep) { _ in
+        .onChange(of: currentStep) { _, _ in
             animateFill = false
             DispatchQueue.main.asyncAfter(
                 deadline: .now() + 0.3,

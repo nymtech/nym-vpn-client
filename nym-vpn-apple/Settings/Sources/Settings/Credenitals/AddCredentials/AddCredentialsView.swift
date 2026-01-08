@@ -56,8 +56,8 @@ struct AddCredentialsView: View {
 //        .onAppear {
 //            isFocused = viewModel.isFocused
 //        }
-        .onChange(of: isFocused) {
-            viewModel.isFocused = $0
+        .onChange(of: isFocused) { _, newValue in
+            viewModel.isFocused = newValue
         }
     }
 }
@@ -157,7 +157,7 @@ private extension AddCredentialsView {
 //                    viewModel.importCredentials()
 //                    isFocused = false
 //                }
-                .onChange(of: viewModel.credentialText) { [weak viewModel] _ in
+                .onChange(of: viewModel.credentialText) { [weak viewModel] _, _ in
                     if viewModel?.credentialText.last?.isNewline == .some(true) {
                         login()
                     }

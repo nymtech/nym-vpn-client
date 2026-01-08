@@ -52,10 +52,10 @@ public struct GeneratePassphraseView: View {
                 }
             }
         }
-        .onChange(of: didFinishAnimatingText) { _ in
+        .onChange(of: didFinishAnimatingText) { _, _ in
             navigateToPlanSelectIfNeeded()
         }
-        .onChange(of: didRegisterAccount) { _ in
+        .onChange(of: didRegisterAccount) { _, _ in
             navigateToPlanSelectIfNeeded()
         }
     }
