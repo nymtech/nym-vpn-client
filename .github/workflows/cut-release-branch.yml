@@ -99,9 +99,9 @@ jobs:
           # create release branch and push it to remote
           git checkout -b "${{ env.RELEASE_BRANCH }}"
           if [ '${{ inputs.dry_run }}' == 'true' ]; then
-            echo "Dry run, skipping push to origin/${{ steps.create-release-branch.outputs.branch_name }}"
+            echo "Dry run, skipping push to origin/${{ env.RELEASE_BRANCH }}"
           else
-            git push origin "${{ steps.create-release-branch.outputs.branch_name }}"
+            git push origin "${{ env.RELEASE_BRANCH }}"
           fi
 
           # Switch back to develop to apply the remainder of changes
