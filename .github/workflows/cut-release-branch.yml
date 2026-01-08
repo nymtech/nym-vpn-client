@@ -73,7 +73,7 @@ jobs:
           RELEASE_VERSION=$(echo "$VERSION" | cut -d '-' -f 1)
 
           # this would strip -beta suffix
-          cargo set-version --bump ${{ inputs.release_type }}
+          cargo set-version --bump ${{ inputs.bump_type }}
 
           # fetch bumped version
           VERSION=$(cargo get workspace.package.version)
