@@ -1136,6 +1136,80 @@ jobs:
           base: main
           delete-branch: true
 
+      - name: Install Sentry (nightly)
+        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_IOS == 'true' }}
+        run: |
+          brew install sentry-cli || brew upgrade sentry-cli || true
+          sentry-cli --version
+
+      - name: Upload iOS dSYMs to Sentry (nightly)
+        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_IOS == 'true' }}
+        working-directory: nym-vpn-apple
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.APPLE_SENTRY_CLI_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.APPLE_SENTRY_CLI_ORG }}
+          SENTRY_PROJECT: ${{ secrets.APPLE_SENTRY_CLI_PROJECT }}
+        run: |
+          set -euo pipefail
+
+          BASE="$PWD/build/ios/xcarchive"
+          echo "🔎 Locating iOS xcarchive under: $BASE"
+
+          IOS_XCARCHIVE="$(find "$BASE" -maxdepth 1 -type d -name "*.xcarchive" -print -quit 2>/dev/null || true)"
+
+          if [[ -z "${IOS_XCARCHIVE:-}" || ! -d "$IOS_XCARCHIVE" ]]; then
+            echo "❌ No iOS .xcarchive found in $BASE"
+            ls -la "$BASE" || true
+            exit 1
+          fi
+
+          DSYMS_DIR="$IOS_XCARCHIVE/dSYMs"
+          if [[ ! -d "$DSYMS_DIR" ]]; then
+            echo "No debug symbols dir found at $DSYMS_DIR, skip publishing to Sentry"
+            exit 0
+          fi
+
+          if ! find "$DSYMS_DIR" -name "*.dSYM" -print -quit | grep -q .; then
+            echo "No .dSYM bundles found in $DSYMS_DIR, skip publishing to Sentry"
+            exit 0
+          fi
+
+          echo "📤 Uploading iOS debug files from: $DSYMS_DIR"
+          sentry-cli debug-files upload  \
+            --auth-token "$SENTRY_AUTH_TOKEN" \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --include-sources "$DSYMS_DIR"
+
+      - name: Upload macOS dSYMs to Sentry (nightly)
+        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        working-directory: nym-vpn-apple
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.APPLE_SENTRY_CLI_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.APPLE_SENTRY_CLI_ORG }}
+          SENTRY_PROJECT: ${{ secrets.APPLE_SENTRY_CLI_PROJECT }}
+        run: |
+          set -euo pipefail
+
+          DSYMS_DIR="$PWD/build/NymVPN.xcarchive/dSYMs"
+          if [[ ! -d "$DSYMS_DIR" ]]; then
+            echo "No debug symbols dir found at $DSYMS_DIR, skip publishing to Sentry"
+            ls -la "$PWD/build" || true
+            exit 0
+          fi
+
+          if ! find "$DSYMS_DIR" -name "*.dSYM" -print -quit | grep -q .; then
+            echo "No .dSYM bundles found in $DSYMS_DIR, skip publishing to Sentry"
+            exit 0
+          fi
+
+          echo "📤 Uploading macOS debug files from: $DSYMS_DIR"
+          sentry-cli debug-files upload  \
+            --auth-token "$SENTRY_AUTH_TOKEN" \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --include-sources "$DSYMS_DIR"
+
       - name: Cleanup Keychain
         if: always()
         run: |
