@@ -47,6 +47,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: develop
+          ssh-key: ${{ secrets.CI_RELEASE_DEPLOY_KEY }}
 
       - name: Install cargo-edit
         uses: baptiste0928/cargo-install@v3
