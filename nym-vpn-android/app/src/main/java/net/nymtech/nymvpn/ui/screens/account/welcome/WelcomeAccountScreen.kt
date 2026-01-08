@@ -3,26 +3,19 @@ package net.nymtech.nymvpn.ui.screens.account.welcome
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.VerifiedUser
-import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,16 +26,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,16 +48,17 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.account.welcome.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
 
 @Composable
@@ -113,201 +110,195 @@ fun WelcomeAccountScreen(appUiState: AppUiState, viewModel: WelcomeAccountViewMo
 }
 
 @Composable
-fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onStartClick: () -> Unit) {
+fun WelcomeAccountScreen(
+	loading: Boolean,
+	onLogInClick: () -> Unit,
+	onStartClick: () -> Unit,
+	onContinueWithSocialClick: () -> Unit = onStartClick,
+	onLoginWithPassphraseClick: () -> Unit = onLogInClick,
+) {
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
 		modifier = Modifier
 			.fillMaxSize()
-			.background(color = MaterialTheme.colorScheme.background)
-			.padding(WindowInsets.systemBars.asPaddingValues()),
+			.background(MaterialTheme.colorScheme.background)
+			.padding(horizontal = 24.dp.scaledWidth(), vertical = 24.dp.scaledHeight()),
 	) {
-		Column(
-			horizontalAlignment = Alignment.CenterHorizontally,
-			verticalArrangement = Arrangement.Bottom,
+		Image(
+			painter = painterResource(R.drawable.app_label),
+			contentDescription = stringResource(R.string.app_name),
+			colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
 			modifier = Modifier
-				.weight(1f)
-				.padding(horizontal = 24.dp),
-		) {
-			Box {
-				Image(
-					painter = painterResource(id = R.drawable.background),
-					contentDescription = null,
-					modifier = Modifier
-						.width(660.dp)
-						.scale(1.2f),
-					contentScale = ContentScale.None,
-				)
-				Icon(
-					imageVector = ImageVector.vectorResource(R.drawable.app_label),
-					contentDescription = "",
-					modifier = Modifier
-						.width(88.dp)
-						.align(Alignment.Center),
-					tint = MaterialTheme.colorScheme.onBackground,
-				)
-			}
-			Text(
-				text = stringResource(R.string.welcome_to_nym),
-				style = MaterialTheme.typography.headlineLarge,
-				color = MaterialTheme.colorScheme.onBackground,
-				modifier = Modifier.padding(top = 40.dp),
-				textAlign = TextAlign.Center,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			)
-			Column {
-				Row(
-					modifier = Modifier.padding(top = 24.dp),
-					verticalAlignment = Alignment.CenterVertically,
-				) {
-					Icon(
-						imageVector = ImageVector.vectorResource(id = R.drawable.ic_money_bag),
-						contentDescription = "",
-						modifier = Modifier.width(15.dp),
-						tint = MaterialTheme.colorScheme.primary,
-					)
-					Spacer(modifier = Modifier.width(6.dp))
-					Text(
-						text = stringResource(R.string.account_welcome_free_trial),
-						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				}
-				Row(
-					modifier = Modifier.padding(top = 16.dp),
-					verticalAlignment = Alignment.CenterVertically,
-				) {
-					Icon(
-						imageVector = Icons.Default.VerifiedUser,
-						contentDescription = "",
-						modifier = Modifier.width(15.dp),
-						tint = MaterialTheme.colorScheme.primary,
-					)
-					Spacer(modifier = Modifier.width(6.dp))
-					Text(
-						text = stringResource(R.string.account_welcome_anonymous),
-						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				}
-				Row(
-					modifier = Modifier.padding(top = 16.dp),
-					verticalAlignment = Alignment.CenterVertically,
-				) {
-					Icon(
-						imageVector = Icons.Default.Public,
-						contentDescription = "",
-						modifier = Modifier.width(15.dp),
-						tint = MaterialTheme.colorScheme.primary,
-					)
-					Spacer(modifier = Modifier.width(6.dp))
-					Text(
-						text = stringResource(R.string.account_welcome_countries),
-						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				}
-				Row(
-					modifier = Modifier.padding(top = 16.dp),
-					verticalAlignment = Alignment.CenterVertically,
-				) {
-					Icon(
-						imageVector = Icons.Default.AccountBalanceWallet,
-						contentDescription = "",
-						modifier = Modifier.width(15.dp),
-						tint = MaterialTheme.colorScheme.primary,
-					)
-					Spacer(modifier = Modifier.width(6.dp))
-					Text(
-						text = stringResource(R.string.account_welcome_payments),
-						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				}
-				Row(
-					modifier = Modifier.padding(top = 16.dp),
-					verticalAlignment = Alignment.CenterVertically,
-				) {
-					Icon(
-						imageVector = Icons.Default.Code,
-						contentDescription = "",
-						modifier = Modifier.width(15.dp),
-						tint = MaterialTheme.colorScheme.primary,
-					)
-					Spacer(modifier = Modifier.width(6.dp))
-					Text(
-						text = stringResource(R.string.account_welcome_open_source),
-						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				}
-			}
-		}
-		Column(
-			horizontalAlignment = Alignment.CenterHorizontally,
-			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom),
-			modifier = Modifier.padding(
-				top = 44.dp,
-				bottom = 24.dp,
-				start = 16.dp,
-				end = 16.dp,
-			),
-		) {
-			MainStyledButton(
-				onClick = {
-					onStartClick()
-				},
-				content = {
-					if (loading) {
-						SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
-					} else {
-						Text(
-							stringResource(R.string.account_welcome_button),
-							style = CustomTypography.buttonMain,
-						)
-					}
-				},
-				color = MaterialTheme.colorScheme.primary,
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(54.dp.scaledHeight()),
-			)
-			Row(
-				modifier = Modifier
-					.fillMaxWidth()
-					.padding(vertical = 10.dp),
-				horizontalArrangement = Arrangement.Center,
-				verticalAlignment = Alignment.CenterVertically,
-			) {
-				Text(
-					text = stringResource(R.string.account_welcome_have_account),
-					style = Typography.titleMedium,
-					color = MaterialTheme.colorScheme.outline,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-				)
-				Spacer(modifier = Modifier.width(6.dp))
-				Text(
-					text = stringResource(R.string.log_in),
-					style = Typography.titleMedium,
-					color = MaterialTheme.colorScheme.primary,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					modifier = Modifier.clickable {
-						onLogInClick()
+				.width(110.dp.scaledHeight()),
+		)
+		Spacer(modifier = Modifier.height(48.dp.scaledHeight()))
+		Text(
+			text = stringResource(R.string.get_started),
+			style = MaterialTheme.typography.headlineSmall,
+			color = MaterialTheme.colorScheme.onBackground,
+			textAlign = TextAlign.Center,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		)
+
+		Spacer(modifier = Modifier.height(48.dp.scaledHeight()))
+
+		WelcomeAccountBlock(
+			title = stringResource(R.string.account_welcome_create_title),
+			description = stringResource(R.string.account_welcome_create_description),
+			button = {
+				MainStyledButton(
+					onClick = onStartClick,
+					content = {
+						if (loading) {
+							SpinningIcon(Icons.Outlined.Lock, "")
+						} else {
+							Text(
+								text = stringResource(R.string.account_welcome_create_button),
+								style = CustomTypography.buttonMain,
+							)
+						}
 					},
+					color = MaterialTheme.colorScheme.primary,
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(54.dp.scaledHeight()),
 				)
-			}
-		}
+			},
+		)
+		HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
+		WelcomeAccountBlock(
+			title = stringResource(R.string.account_welcome_social_title),
+			description = stringResource(R.string.account_welcome_social_description),
+			button = {
+				OutlineStyledButton(
+					onClick = onContinueWithSocialClick,
+					content = {
+						Text(
+							text = stringResource(R.string.account_welcome_social_button),
+							style = CustomTypography.buttonMain,
+							color = MaterialTheme.colorScheme.onBackground,
+						)
+						Icon(
+							Icons.AutoMirrored.Outlined.OpenInNew,
+							stringResource(R.string.go),
+							modifier = Modifier.padding(start = 4.dp).size(16.dp),
+							tint = MaterialTheme.colorScheme.onBackground,
+						)
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(54.dp.scaledHeight()),
+					borderColor = MaterialTheme.colorScheme.onBackground,
+					backgroundColor = MaterialTheme.colorScheme.background,
+				)
+			},
+		)
+		HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
+		WelcomeAccountBlock(
+			title = stringResource(R.string.account_welcome_login_title),
+			button = {
+				OutlineStyledButton(
+					onClick = onLoginWithPassphraseClick,
+					content = {
+						Text(
+							text = stringResource(R.string.account_welcome_login_button),
+							style = CustomTypography.buttonMain,
+							color = MaterialTheme.colorScheme.onBackground,
+						)
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(54.dp.scaledHeight()),
+					borderColor = MaterialTheme.colorScheme.onBackground,
+					backgroundColor = MaterialTheme.colorScheme.background,
+				)
+			},
+		)
+
+		Spacer(modifier = Modifier.weight(1f))
+
+		Text(
+			text = buildAnnotatedString {
+				append(stringResource(R.string.account_welcome_privacy_start))
+				append("\n")
+				withStyle(
+					style = SpanStyle(
+						color = MaterialTheme.colorScheme.onBackground,
+						textDecoration = TextDecoration.Underline,
+					),
+				) {
+					withLink(LinkAnnotation.Url(stringResource(R.string.terms_link))) {
+						append(stringResource(R.string.terms_of_use))
+					}
+				}
+				append(" ")
+				append(stringResource(R.string.account_welcome_privacy_middle))
+				append(" ")
+				withStyle(
+					style = SpanStyle(
+						color = MaterialTheme.colorScheme.onBackground,
+						textDecoration = TextDecoration.Underline,
+					),
+				) {
+					withLink(LinkAnnotation.Url(stringResource(R.string.privacy_link))) {
+						append(stringResource(R.string.privacy_policy))
+					}
+				}
+				append(".")
+			},
+			textAlign = TextAlign.Center,
+			style = MaterialTheme.typography.bodySmall.copy(
+				color = MaterialTheme.colorScheme.outline,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			),
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(bottom = 12.dp.scaledHeight()),
+		)
 	}
 }
 
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, locale = "fr", widthDp = 400)
-internal fun PreviewWelcomeAccountScreen() {
+private fun WelcomeAccountBlock(title: String, description: String? = null, button: @Composable () -> Unit) {
+	Column(
+		modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+	) {
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+			modifier = Modifier.fillMaxWidth(),
+		) {
+			Text(
+				text = title,
+				style = MaterialTheme.typography.titleMedium,
+				color = MaterialTheme.colorScheme.onBackground,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			)
+		}
+		description?.let { text ->
+			Spacer(modifier = Modifier.height(8.dp.scaledHeight()))
+			Text(
+				text = text,
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.outline,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				modifier = Modifier.padding(start = 2.dp),
+			)
+		}
+		Spacer(modifier = Modifier.height(16.dp.scaledHeight()))
+		button()
+	}
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+internal fun PreviewWelcomeAccountScreenRebuilt() {
 	NymVPNTheme(Theme.default()) {
-		WelcomeAccountScreen(true, onStartClick = {}, onLogInClick = {})
+		WelcomeAccountScreen(
+			loading = false,
+			onLogInClick = {},
+			onStartClick = {},
+			onContinueWithSocialClick = {},
+			onLoginWithPassphraseClick = {},
+		)
 	}
 }

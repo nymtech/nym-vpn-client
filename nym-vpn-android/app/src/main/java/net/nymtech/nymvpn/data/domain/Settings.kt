@@ -20,7 +20,8 @@ data class Settings(
 	val statsEnabled: Boolean = DEFAULT_STATS_ENABLED,
 	val sentryEnabled: Boolean = DEFAULT_SENTRY_ENABLED,
 	val statsDialogSkip: Boolean = FLAG_STATS_DIALOG_SKIP,
-	val welcomeScreenCompleted: Boolean = FLAG_WELCOME_SCREEN_COMPLETED,
+	val onboardingCompleted: Boolean = FLAG_ONBOARDING_COMPLETED,
+	val technicalOptCompleted: Boolean = FLAG_TECHNICAL_OPT_COMPLETED,
 	val quicEnabled: Boolean = DEFAULT_QUIC_ENABLED,
 	val isStreamingServerBannerDisplayed: Boolean = DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 	val isPerAppSecurityBannerDisplayed: Boolean = DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
@@ -36,7 +37,8 @@ data class Settings(
 		const val DEFAULT_CUSTOM_DNS_ENABLED = false
 		const val FLAG_BATTERY_DIALOG_SKIP = false
 		const val FLAG_STATS_DIALOG_SKIP = false
-		const val FLAG_WELCOME_SCREEN_COMPLETED = false
+		const val FLAG_ONBOARDING_COMPLETED = false
+		const val FLAG_TECHNICAL_OPT_COMPLETED = false
 		const val DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED = false
 		const val DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED = false
 		val DEFAULT_ENVIRONMENT = Tunnel.Environment.MAINNET

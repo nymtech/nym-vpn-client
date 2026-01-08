@@ -44,10 +44,10 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 
 	LaunchedEffect(splashFinished, appUiState.managerState.isInitialized, isAppReady) {
 		if (splashFinished && appUiState.managerState.isInitialized && isAppReady) {
-			if (appUiState.settings.welcomeScreenCompleted) {
+			if (appUiState.settings.onboardingCompleted) {
 				navController.navigateAndForget(Route.Main())
 			} else {
-				navController.navigateAndForget(Route.Welcome)
+				navController.navigateAndForget(Route.Onboarding)
 			}
 		}
 	}

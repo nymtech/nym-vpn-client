@@ -184,8 +184,7 @@
 	<string name="error_invalid_entry_gateway_identity">Máy chủ vào ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại.</string>
 	<string name="error_invalid_exit_gateway_identity">Máy chủ thoát ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại.</string>
 	<!-- Main Screen -->
-	<string name="main_get_started_button">Bắt đầu</string>
-	<string name="connection_state_resolving_addresses">Đang khởi tạo NymVPN (1/6)</string>
+    <string name="connection_state_resolving_addresses">Đang khởi tạo NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Đang thiết lập tài khoản của bạn (2/6)</string>
 	<string name="connection_state_refreshing_gateways">Đang cập nhật danh sách máy chủ (3/6)</string>
 	<string name="connection_state_selecting_gateways">Đang chọn máy chủ tốt nhất (4/6)</string>
@@ -237,13 +236,7 @@
 	<string name="notification_stats_enabled">Đã bật thống kê! Dữ liệu ẩn danh của bạn giúp tối ưu hóa mạng của chúng tôi.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Tiếp tục</string>
-	<string name="welcome_descr_start">Hãy giúp NymVPN xác định và khắc phục các sự cố kỹ thuật! Cân nhắc việc tham gia theo dõi lỗi (thông qua </string>
-	<string name="welcome_descr_sentry_link_text">Sentry</string>
-	<string name="welcome_descr_end">) và tiếp tục cho phép thống kê mạng. Tất cả đều ẩn danh, bạn có thể chọn tắt bất cứ lúc nào, và hoạt động của bạn sẽ không bao giờ được tiết lộ. \n\nCảm ơn bạn đã ủng hộ!</string>
-	<string name="welcome_terms_privacy_text_start">Bằng cách tiếp tục, bạn đồng ý với</string>
-	<string name="welcome_terms_privacy_text_middle">và thừa nhận với NymVPN</string>
-	<string name="welcome_error_toggle_descr">thông qua Sentry</string>
-	<!-- Select Plan screen -->
+    <!-- Select Plan screen -->
 	<string name="select_plan_title">Chọn mức độ\nbảo vệ của bạn 🛡️</string>
 	<string name="select_plan_descr">Chọn một gói ngay bây giờ để \nđược bảo vệ \n\nKhoản thanh toán sắp tới của bạn không thể bị liên kết \nvới hoạt động duyệt web trong tương lai của bạn</string>
 	<string name="select_plan_button">Chọn gói NymVPN</string>
@@ -300,14 +293,7 @@
 	<string name="censorship_amnezia_link_text">AmneziaWG ngăn chặn DPI như thế nào</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_anonymous">Công nghệ mixnet ẩn danh</string>
-	<string name="account_welcome_countries">Hơn 50 quốc gia trên toàn thế giới</string>
-	<string name="account_welcome_payments">Thanh toán và hoạt động không bị liên kết</string>
-	<string name="account_welcome_open_source">Mã nguồn mở &amp; luật bảo mật của Thụy Sĩ</string>
-	<string name="account_welcome_button">Bắt đầu bảo vệ quyền riêng tư của tôi</string>
-	<string name="account_welcome_have_account">Bạn đã có tài khoản?</string>
-	<string name="account_welcome_free_trial">Dùng thử miễn phí 7 ngày - không cần thanh toán</string>
-	<!-- Existing subscription -->
+    <!-- Existing subscription -->
 	<string name="account_subscription_title">Bạn đã đăng ký!</string>
 	<string name="account_subscription_description">Chúng tôi đã tìm thấy một gói đăng ký đang hoạt động được liên kết với tài khoản Google Play của bạn. Bỏ qua bước đăng ký và bắt đầu sử dụng NymVPN ngay. Chỉ cần chuẩn bị sẵn cụm từ mật khẩu 24 từ.</string>
 	<string name="account_subscription_button">Đăng nhập bằng cụm từ mật khẩu Nym</string>

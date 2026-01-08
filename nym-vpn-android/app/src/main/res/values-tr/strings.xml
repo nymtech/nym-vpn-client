@@ -184,8 +184,7 @@
 	<string name="error_invalid_entry_gateway_identity">Giriş sunucusu çevrimdışı. Başka bir sunucu seçip yeniden bağlanın.</string>
 	<string name="error_invalid_exit_gateway_identity">Çıkış sunucusu çevrimdışı. Başka bir sunucu seçip yeniden bağlanın.</string>
 	<!-- Main Screen -->
-	<string name="main_get_started_button">Başlayın</string>
-	<string name="connection_state_resolving_addresses">NymVPN başlatılıyor (1/6)</string>
+    <string name="connection_state_resolving_addresses">NymVPN başlatılıyor (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Hesabınız hazırlanıyor (2/6)</string>
 	<string name="connection_state_refreshing_gateways">Sunucu listesi güncelleniyor (3/6)</string>
 	<string name="connection_state_selecting_gateways">En iyi sunucular seçiliyor (4/6)</string>
@@ -237,13 +236,7 @@
 	<string name="notification_stats_enabled">İstatistikler etkinleştirildi! Anonim verileriniz ağımızı optimize etmemize yardımcı oluyor.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Devam et</string>
-	<string name="welcome_descr_start">NymVPN’in teknik sorunları tespit edip çözmesine yardımcı olun! Hata izlemeyi (… aracılığıyla) etkinleştirmeyi düşünün.</string>
-	<string name="welcome_descr_sentry_link_text">Sentry</string>
-	<string name="welcome_descr_end">) ve ağ istatistiklerini açık tutmayı düşünün. Tüm veriler daima anonimdir, dilediğiniz zaman devre dışı bırakabilirsiniz ve etkinlikleriniz asla ortaya çıkarılamaz. \n\nDesteğiniz için teşekkürler!</string>
-	<string name="welcome_terms_privacy_text_start">Devam ederek, NymVPN\'in şartlarını kabul etmiş olursunuz</string>
-	<string name="welcome_terms_privacy_text_middle">ve NymVPN\'i tanı</string>
-	<string name="welcome_error_toggle_descr">Sentry aracılığıyla</string>
-	<!-- Select Plan screen -->
+    <!-- Select Plan screen -->
 	<string name="select_plan_title">\nKoruma seviyenizi seçin 🛡️</string>
 	<string name="select_plan_descr">\nKorumanızı\n\n etkinleştirmek için şimdi bir plan seçin. Ödemeniz, \ngelecekteki gezinme etkinliğinizle ilişkilendirilemez.</string>
 	<string name="select_plan_button">NymVPN planımı seç</string>
@@ -301,14 +294,7 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="censorship_amnezia_link_text">AmneziaWG, DPI’yi nasıl engeller?</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_anonymous">Anonim mixnet teknolojisi</string>
-	<string name="account_welcome_countries">Dünya genelinde 50’den fazla ülke</string>
-	<string name="account_welcome_payments">Ödemeler ve faaliyetler birbiriyle ilişkilendirilemez</string>
-	<string name="account_welcome_open_source">Açık kaynak &amp; İsviçre gizlilik yasaları</string>
-	<string name="account_welcome_button">Gizliliğimi korumaya başla</string>
-	<string name="account_welcome_have_account">Zaten bir hesabınız mı var?</string>
-	<string name="account_welcome_free_trial">7 days free trial - no payment required</string>
-	<!-- Existing subscription -->
+    <!-- Existing subscription -->
 	<string name="account_subscription_title">Zaten abone olmuşsunuz!</string>
 	<string name="account_subscription_description">Google Play hesabınıza bağlı aktif bir abonelik bulundu. Kayıt işlemini atlayın ve doğrudan NymVPN’i kullanmaya başlayın. Sadece 24 kelimelik parola ifadenizi hazır bulundurun.</string>
 	<string name="account_subscription_button">Nym parola ifadenizle giriş yapın</string>

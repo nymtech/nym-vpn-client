@@ -184,8 +184,7 @@
 	<string name="error_invalid_entry_gateway_identity">条目服务器离线。选择另一个并重新连接。</string>
 	<string name="error_invalid_exit_gateway_identity">离线退出服务器。选择另一个并重新连接。</string>
 	<!-- Main Screen -->
-	<string name="main_get_started_button">开始使用</string>
-	<string name="connection_state_resolving_addresses">正在初始化 NymVPN (1/6)</string>
+    <string name="connection_state_resolving_addresses">正在初始化 NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">设置您的帐户 (2/6)</string>
 	<string name="connection_state_refreshing_gateways">更新服务器列表 (3/6)</string>
 	<string name="connection_state_selecting_gateways">选择最佳服务器 (4/6)</string>
@@ -237,13 +236,7 @@
 	<string name="notification_stats_enabled">您已允许收集数据报告！这些匿名数据有助于我们优化网络。</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">继续</string>
-	<string name="welcome_descr_start">帮助NymVPN识别和修复技术性问题！考虑开启错误日志监视功能（通过 </string>
-	<string name="welcome_descr_sentry_link_text">Sentry</string>
-	<string name="welcome_descr_end">）并允许收集网络数据报告。这些数据始终是匿名的，任何时候均可启用或关闭，并且您的网络活动永远不会被收集。\n\n感谢您的支持！</string>
-	<string name="welcome_terms_privacy_text_start">点击“继续”代表你同意NymVPN的</string>
-	<string name="welcome_terms_privacy_text_middle">以及同意NymVPN的</string>
-	<string name="welcome_error_toggle_descr">通过Sentry</string>
-	<!-- Select Plan screen -->
+    <!-- Select Plan screen -->
 	<string name="select_plan_title">选择您的 \n保护级别 🛡️</string>
 	<string name="select_plan_descr">现在选择一个订阅方案开始享受你的\n隐私保护\n\n你的付款信息永远不会关联到\n你未来的上网记录</string>
 	<string name="select_plan_button">选择我的 NymVPN 计划</string>
@@ -300,14 +293,7 @@
 	<string name="censorship_amnezia_link_text">Amnezia WG是如何阻止DPI的</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_anonymous">匿名混合网络技术</string>
-	<string name="account_welcome_countries">全世界50多个国家</string>
-	<string name="account_welcome_payments">付款信息和线上活动无法关联</string>
-	<string name="account_welcome_open_source">开源 &amp; 遵守瑞士隐私法</string>
-	<string name="account_welcome_button">开始保护我的隐私</string>
-	<string name="account_welcome_have_account">已经有帐户？</string>
-	<string name="account_welcome_free_trial">7天免费试用- 无需付款</string>
-	<!-- Existing subscription -->
+    <!-- Existing subscription -->
 	<string name="account_subscription_title">您已经订阅了！</string>
 	<string name="account_subscription_description">我们发现一个活跃的订阅链接到您的 Google Play 帐户。 请跳过注册环节并直接跳转到 NymVPN。只需输入您的24个单词助记词登录就可以了。</string>
 	<string name="account_subscription_button">用 Nym 助记词登录</string>

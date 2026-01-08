@@ -186,8 +186,7 @@
 	<string name="error_invalid_entry_gateway_identity">گره ورودی آفلاین است. گره دیگری انتخاب کرده و دوباره متصل شوید.</string>
 	<string name="error_invalid_exit_gateway_identity">گره خروجی آفلاین است. گره دیگری انتخاب کرده و دوباره متصل شوید.</string>
 	<!-- Main Screen -->
-	<string name="main_get_started_button">شروع کنید</string>
-	<string name="connection_state_resolving_addresses">در حال آماده‌سازی NymVPN ‏(۱/۶)</string>
+    <string name="connection_state_resolving_addresses">در حال آماده‌سازی NymVPN ‏(۱/۶)</string>
 	<string name="connection_state_awaiting_readiness">در حال تنظیم حساب کاربری شما ‏(۲/۶)</string>
 	<string name="connection_state_refreshing_gateways">در حال به‌روزرسانی لیست سرورها ‏(۳/۶)</string>
 	<string name="connection_state_selecting_gateways">در حال انتخاب بهترین سرورها ‏(۴/۶)</string>
@@ -240,13 +239,7 @@
 	<string name="notification_stats_enabled">آمار فعال شد! داده‌های ناشناس شما به بهینه‌سازی عملکرد شبکه ما کمک می‌کند.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">ادامه</string>
-	<string name="welcome_descr_start">کمک کنید تا NymVPN مشکلات فنی را شناسایی و برطرف کند! در نظر بگیرید برای نظارت بر خطاها (از طریق </string>
-	<string name="welcome_descr_sentry_link_text">پاسدار</string>
-	<string name="welcome_descr_end">) و روشن نگه داشتن آمار شبکه. شما همیشه ناشناس هستید، هر زمان می‌توانید انصراف دهید، و فعالیت‌های شما هرگز فاش نخواهد شد. \n\nاز حمایت شما متشکریم!</string>
-	<string name="welcome_terms_privacy_text_start">با ادامه دادن، شما NymVPN موافقت میکنید</string>
-	<string name="welcome_terms_privacy_text_middle">با دانش و آگاهی از NymVPN</string>
-	<string name="welcome_error_toggle_descr">توسط پاسدار</string>
-	<!-- Select Plan screen -->
+    <!-- Select Plan screen -->
 	<string name="select_plan_title">سطح محافظت از خود \n را انتخاب کنید 🛡️</string>
 	<string name="select_plan_descr">اکنون یک طرح را انتخاب کنید تا \nحفاظت\n\n از شما برایتان فعال شود، پرداختی که انجام خواهد شد نمی‌تواند به \nفعالیت وب گردی آتی شما ربط داده شود</string>
 	<string name="select_plan_button">بسته خرید NymVPN خود را انتخاب کنید</string>
@@ -304,14 +297,7 @@
 	<string name="censorship_amnezia_link_text">چگونه AmneziaWG از DPI جلوگیری می‌کند</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_anonymous">فناوری میکس‌نت ناشناس</string>
-	<string name="account_welcome_countries">بیش از ۵۰ کشور در سراسر جهان</string>
-	<string name="account_welcome_payments">پرداخت‌ها و فعالیت‌ها بدون پیوند باقی می‌مانند</string>
-	<string name="account_welcome_open_source">اُپِن‌سورس و مطابق با قوانین حریم خصوصی سوئیس</string>
-	<string name="account_welcome_button">شروع به محافظت از حریم خصوصی من کنید</string>
-	<string name="account_welcome_have_account">آیا قبلاً ثبت نام کرده اید؟</string>
-	<string name="account_welcome_free_trial">7 days free trial - no payment required</string>
-	<!-- Existing subscription -->
+    <!-- Existing subscription -->
 	<string name="account_subscription_title">شما در حال حاضر مشترک هستید!</string>
 	<string name="account_subscription_description">ما یک اشتراک فعال پیوند شده با حساب Google Play شما پیدا کردیم. از مرحله ثبت نام عبور کنید و مستقیماً به سراغ استفاده از NymVPN بروید. فقط کافی است رمز عبور ۲۴ کلمه‌ای خود را آماده داشته باشید.</string>
 	<string name="account_subscription_button">با عبارت عبور Nym وارد شوید</string>

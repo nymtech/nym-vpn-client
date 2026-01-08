@@ -59,6 +59,7 @@ import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
+import net.nymtech.nymvpn.ui.screens.onboarding.OnboardingScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.scanner.ScannerScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
@@ -76,7 +77,7 @@ import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingScreen
-import net.nymtech.nymvpn.ui.screens.welcome.WelcomeScreen
+import net.nymtech.nymvpn.ui.screens.technical.TechnicalOptScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
@@ -283,8 +284,8 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.LoginScanner> {
 									ScannerScreen()
 								}
-								composable<Route.Welcome> {
-									WelcomeScreen(appState)
+								composable<Route.Technical> {
+									TechnicalOptScreen(appState)
 								}
 								composable<Route.SelectPlan> {
 									SelectPlanScreen(appState)
@@ -325,6 +326,9 @@ class MainActivity : AppCompatActivity() {
 										},
 										onBackClickEventTriggered = onBackClickEventFromRoute == Route.SplitTunneling,
 									)
+								}
+								composable<Route.Onboarding> {
+									OnboardingScreen()
 								}
 							}
 						}

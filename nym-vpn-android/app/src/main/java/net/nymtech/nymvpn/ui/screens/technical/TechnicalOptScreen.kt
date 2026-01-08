@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.welcome
+package net.nymtech.nymvpn.ui.screens.technical
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -7,21 +7,28 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.screens.welcome.components.ContinueButtonSection
-import net.nymtech.nymvpn.ui.screens.welcome.components.SettingsSection
-import net.nymtech.nymvpn.ui.screens.welcome.components.WelcomeSection
+import net.nymtech.nymvpn.ui.screens.technical.components.SettingsSection
+import net.nymtech.nymvpn.ui.screens.technical.components.WelcomeSection
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
@@ -29,9 +36,9 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun WelcomeScreen(appUiState: AppUiState, viewModel: WelcomeViewModel = hiltViewModel()) {
+fun TechnicalOptScreen(appUiState: AppUiState, viewModel: TechnicalOptViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
-	WelcomeScreen(
+	TechnicalOptScreen(
 		statsEnabled = appUiState.settings.statsEnabled,
 		sentryEnabled = appUiState.settings.sentryEnabled,
 		onNetworkStatsEnable = {
@@ -48,7 +55,7 @@ fun WelcomeScreen(appUiState: AppUiState, viewModel: WelcomeViewModel = hiltView
 }
 
 @Composable
-fun WelcomeScreen(
+fun TechnicalOptScreen(
 	statsEnabled: Boolean,
 	sentryEnabled: Boolean,
 	onNetworkStatsEnable: (enabled: Boolean) -> Unit,
@@ -71,7 +78,24 @@ fun WelcomeScreen(
 			modifier = Modifier.padding(vertical = 24.dp.scaledHeight()),
 		) {
 			SettingsSection(statsEnabled, sentryEnabled, onNetworkStatsEnable, onMonitoringEnable)
-			ContinueButtonSection(onContinueClick)
+			Column(
+				horizontalAlignment = Alignment.CenterHorizontally,
+				modifier = Modifier.padding(top = 8.dp),
+			) {
+				MainStyledButton(
+					onClick = onContinueClick,
+					content = {
+						Text(
+							text = stringResource(R.string.welcome_continue),
+							style = CustomTypography.buttonMain,
+						)
+					},
+					color = MaterialTheme.colorScheme.primary,
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(54.dp.scaledHeight()),
+				)
+			}
 		}
 	}
 }
@@ -80,7 +104,7 @@ fun WelcomeScreen(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewWelcomeScreen() {
 	NymVPNTheme(Theme.default()) {
-		WelcomeScreen(
+		TechnicalOptScreen(
 			statsEnabled = true,
 			sentryEnabled = true,
 			onMonitoringEnable = {},

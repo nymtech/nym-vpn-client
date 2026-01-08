@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.welcome
+package net.nymtech.nymvpn.ui.screens.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,21 +8,13 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class WelcomeViewModel
+class OnboardingViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
-	fun onNetworkStatsEnabled(enabled: Boolean) = viewModelScope.launch {
-		settingsRepository.setStatisticsEnabled(enabled)
-	}
-
-	fun onMonitoringEnabled(enabled: Boolean) = viewModelScope.launch {
-		settingsRepository.setSentryMonitoring(enabled)
-	}
-
 	fun onContinueClicked() = viewModelScope.launch {
-		settingsRepository.setWelcomeScreenCompleted()
+		settingsRepository.setOnboardingCompleted()
 	}
 }

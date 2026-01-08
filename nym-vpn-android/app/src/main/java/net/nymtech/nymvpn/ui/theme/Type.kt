@@ -33,13 +33,13 @@ val Typography =
 		TextStyle(
 			fontSize = 24.sp.scaled(),
 			lineHeight = 28.8.sp.scaled(),
-			fontWeight = FontWeight(400),
+			fontWeight = FontWeight(500),
 		),
 		titleMedium =
 		TextStyle(
 			fontSize = 16.sp.scaled(),
 			lineHeight = 24.sp.scaled(),
-			fontWeight = FontWeight(400),
+			fontWeight = FontWeight(500),
 			letterSpacing = 0.15.sp.scaled(),
 		),
 		bodyMedium =

@@ -67,9 +67,11 @@ interface SettingsRepository {
 
 	suspend fun isStatsDialogSkipped(): Boolean
 
-	suspend fun setWelcomeScreenCompleted()
+	suspend fun setOnboardingCompleted()
+	suspend fun setTechnicalOptScreenCompleted()
 
-	suspend fun isWelcomeScreenCompleted(): Boolean
+	suspend fun isOnboardingCompleted(): Boolean
+	suspend fun isTechnicalOptScreenCompleted(): Boolean
 
 	suspend fun getQUICEnabled(): Boolean
 
