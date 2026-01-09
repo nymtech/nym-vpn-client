@@ -7,9 +7,9 @@ use nym_vpn_store::account::StorableAccount;
 use crate::AvailableTicketbooks;
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
+    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::{Platform, VpnAccountSummary},
-    ResolverOverrides,
 };
 use tokio::sync::oneshot;
 

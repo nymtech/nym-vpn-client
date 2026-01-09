@@ -50,12 +50,13 @@ mod uniffi_std_types;
 mod user_agent;
 
 pub use account::{
-    AccountCommandError, RegisterAccountResponse, VpnApiError, VpnApiErrorResponse,
+    AccountCommandError, RegisterAccountResponse, VpnAccountSummary, VpnApiError,
+    VpnApiErrorResponse,
     controller_error::{AccountControllerError, AccountControllerErrorStateReason},
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
-    ticketbooks::AvailableTickets, VpnAccountSummary
+    ticketbooks::AvailableTickets,
 };
 pub use connection_data::{
     BridgeAddress, ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,

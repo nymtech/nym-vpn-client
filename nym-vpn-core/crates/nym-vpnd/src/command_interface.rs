@@ -3,7 +3,7 @@
 
 use std::{net::IpAddr, path::PathBuf};
 
-use futures::{stream::BoxStream, StreamExt};
+use futures::{StreamExt, stream::BoxStream};
 use tokio::{
     sync::{
         broadcast,
@@ -13,7 +13,7 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tonic::{transport::Server, Request, Response, Status};
+use tonic::{Request, Response, Status, transport::Server};
 
 use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, ListGatewaysOptions, LookupGatewayFilters,
@@ -21,8 +21,8 @@ use nym_vpn_lib_types::{
 };
 
 use nym_vpn_proto::proto::{
-    self, nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
-    MixnetTrafficConfig,
+    self, MixnetTrafficConfig,
+    nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
 use crate::service::{SetNetworkError, Socks5Error, VpnServiceCommand};

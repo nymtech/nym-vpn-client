@@ -9,12 +9,11 @@ use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
-    types::Platform,
+    types::{Platform, VpnAccountSummary},
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::types::StorableAccount;
 use tokio::sync::mpsc::UnboundedSender;
-use nym_vpn_api_client::types::VpnAccountSummary;
 
 #[derive(Clone)]
 pub struct AccountCommandSender {
@@ -152,16 +151,16 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
+    pub async fn get_account_summary(
+        &self,
+    ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::Common(CommonCommand::GetAccountSummary(
-                tx,
-            )))
+            .send(AccountCommand::Common(CommonCommand::GetAccountSummary(tx)))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
-    
+
     pub async fn set_resolver_overrides(
         &self,
         resolver_overrides: Option<ResolverOverrides>,

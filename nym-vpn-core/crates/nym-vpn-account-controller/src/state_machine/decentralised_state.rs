@@ -3,8 +3,8 @@
 
 use crate::{
     commands::{
-        common_handler, decentralised_zknym_handler, handler, AccountCommand, CommonCommand,
-        ReturnSender, UpgradeModeCommand,
+        AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand, common_handler,
+        decentralised_zknym_handler, handler,
     },
     shared_state::SharedAccountState,
     state_machine::{

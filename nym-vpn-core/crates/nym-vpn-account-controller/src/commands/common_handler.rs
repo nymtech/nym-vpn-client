@@ -3,16 +3,16 @@
 
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
+    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::VpnAccountSummary,
-    ResolverOverrides,
 };
 use nym_vpn_lib_types::AccountCommandError;
 
 use crate::{
-    commands::{dispatch::CommonCommand, ReturnSender}, storage::AccountStorageOp,
-    AvailableTicketbooks,
-    SharedAccountState,
+    AvailableTicketbooks, SharedAccountState,
+    commands::{ReturnSender, dispatch::CommonCommand},
+    storage::AccountStorageOp,
 };
 use nym_vpn_store::account::StorableAccount;
 
