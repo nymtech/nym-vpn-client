@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    SharedAccountState,
-    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
+    commands::{common_handler, handler, AccountCommand, UpgradeModeCommand},
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
         NextAccountControllerState, OfflineState, PrivateAccountControllerState,
     },
+    SharedAccountState,
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
-    VpnApiClient,
     error::VpnApiClientError,
     response::NymErrorResponse,
     types::{Device, VpnAccount, VpnAccountSummary},
+    VpnApiClient,
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use requesting_zknym_state::RequestingZkNymsState;
@@ -141,8 +141,6 @@ impl SyncingState {
                 .map_err(|e| SyncError::ApiResponseError {
                     details: format!("Failed to create account summary from API response: {e}"),
                 })?;
-
-                tracing::debug!("Account summary: {vpn_account_summary:?}");
 
                 // Checking that the account is active
                 if !summary.account_active() {

@@ -3,8 +3,8 @@
 
 use crate::{
     commands::{
-        AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand, common_handler,
-        decentralised_zknym_handler, handler,
+        common_handler, decentralised_zknym_handler, handler, AccountCommand, CommonCommand,
+        ReturnSender, UpgradeModeCommand,
     },
     shared_state::SharedAccountState,
     state_machine::{
@@ -88,6 +88,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                             CommonCommand::GetDevices(return_sender) => return_decentralised(return_sender),
                             CommonCommand::GetActiveDevices(return_sender) => return_decentralised(return_sender),
                             CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(common_handler::handle_get_available_tickets(shared_state).await),
+                            CommonCommand::GetAccountSummary(return_sender) => return_sender.send(common_handler::handle_get_account_summary(shared_state).await),
                         }
                     },
                    AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {

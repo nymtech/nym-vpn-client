@@ -3,15 +3,16 @@
 
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
-    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
+    types::VpnAccountSummary,
+    ResolverOverrides,
 };
 use nym_vpn_lib_types::AccountCommandError;
 
 use crate::{
-    AvailableTicketbooks, SharedAccountState,
-    commands::{ReturnSender, dispatch::CommonCommand},
-    storage::AccountStorageOp,
+    commands::{dispatch::CommonCommand, ReturnSender}, storage::AccountStorageOp,
+    AvailableTicketbooks,
+    SharedAccountState,
 };
 use nym_vpn_store::account::StorableAccount;
 
@@ -43,6 +44,9 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         }
         CommonCommand::SetResolverOverrides(result_tx, resolver_overrides) => {
             result_tx.send(handle_set_resolver_overrides(shared_state, resolver_overrides).await);
+        }
+        CommonCommand::GetAccountSummary(result_tx) => {
+            result_tx.send(handle_get_account_summary(shared_state).await);
         }
     };
 }
@@ -167,4 +171,10 @@ pub(crate) async fn handle_set_resolver_overrides<C: ConnectivityMonitor>(
         .map_err(|e| {
             AccountCommandError::internal(format!("Failed to set resolver overrides: {e}"))
         })
+}
+
+pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
+    Ok(shared_state.vpn_account_summary.clone())
 }

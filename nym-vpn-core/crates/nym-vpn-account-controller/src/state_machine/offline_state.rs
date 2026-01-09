@@ -91,6 +91,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                             CommonCommand::GetDevices(return_sender) => return_no_connectivity(return_sender),
                             CommonCommand::GetActiveDevices(return_sender) => return_no_connectivity(return_sender),
                             CommonCommand::GetAvailableTickets(return_sender) => return_no_connectivity(return_sender),
+                            CommonCommand::GetAccountSummary(return_sender) => return_sender.send(common_handler::handle_get_account_summary(shared_state).await),
                         }
 
                     },

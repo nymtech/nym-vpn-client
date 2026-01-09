@@ -96,6 +96,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             CommonCommand::GetDevices(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetActiveDevices(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetAvailableTickets(return_sender) => return_no_account(return_sender),
+                            CommonCommand::GetAccountSummary(return_sender) => return_no_account(return_sender),
                         }
                     },
                     AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {

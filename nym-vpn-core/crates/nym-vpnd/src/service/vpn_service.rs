@@ -1,11 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use futures::{future::Fuse, pin_mut, FutureExt, StreamExt};
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
-use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
-    sync::{RwLock, broadcast, mpsc, oneshot, watch},
+    sync::{broadcast, mpsc, oneshot, watch, RwLock},
     task::JoinHandle,
     time::{Duration, Instant},
 };
@@ -13,12 +13,12 @@ use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    Socks5Error, Socks5Service, Socks5Status,
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
+    config::{NetworkEnvironments, VpnServiceConfigManager}, error::{
         AccountLinksError, Error, GlobalConfigError, ListGatewaysError, Result, SetNetworkError,
-    },
-    socks5_idle_timeout, socks5_request_timeout,
+    }, socks5_idle_timeout,
+    socks5_request_timeout,
+    Socks5Error,
+    Socks5Service, Socks5Status,
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
@@ -30,11 +30,11 @@ use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks, NyxdClient,
 };
-use nym_vpn_api_client::api_urls_to_urls;
+use nym_vpn_api_client::{api_urls_to_urls, types::VpnAccountSummary};
 use nym_vpn_lib::{
-    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
-    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine}, NodeIdentity, UserAgent,
+    VpnTopologyService,
+    DEFAULT_DNS_SERVERS,
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
@@ -134,6 +134,10 @@ pub enum VpnServiceCommand {
     ),
     GetAvailableTickets(
         oneshot::Sender<Result<AvailableTicketbooks, AccountCommandError>>,
+        (),
+    ),
+    GetAccountSummary(
+        oneshot::Sender<Result<Option<VpnAccountSummary>, AccountCommandError>>,
         (),
     ),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
@@ -870,6 +874,9 @@ impl NymVpnService {
             VpnServiceCommand::GetAvailableTickets(tx, ()) => {
                 let _ = tx.send(self.handle_get_available_tickets().await);
             }
+            VpnServiceCommand::GetAccountSummary(tx, ()) => {
+                let _ = tx.send(self.handle_get_account_summary().await);
+            }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.log_path.clone());
             }
@@ -1504,6 +1511,12 @@ impl NymVpnService {
         &self,
     ) -> Result<AvailableTicketbooks, AccountCommandError> {
         self.account_command_tx.get_available_tickets().await
+    }
+
+    async fn handle_get_account_summary(
+        &self,
+    ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
+        self.account_command_tx.get_account_summary().await
     }
 
     async fn handle_delete_log_file(&self) {

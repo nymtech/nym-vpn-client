@@ -4,15 +4,14 @@
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
 use nym_vpn_store::account::StorableAccount;
 
+use crate::AvailableTicketbooks;
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
-    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
-    types::Platform,
+    types::{Platform, VpnAccountSummary},
+    ResolverOverrides,
 };
 use tokio::sync::oneshot;
-
-use crate::AvailableTicketbooks;
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
@@ -85,6 +84,7 @@ impl AccountCommand {
                 CommonCommand::SetResolverOverrides(return_sender, _) => {
                     return_sender.send(Err(error))
                 }
+                CommonCommand::GetAccountSummary(return_sender) => return_sender.send(Err(error)),
             },
             AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
                 UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
@@ -127,6 +127,9 @@ pub enum CommonCommand {
         ReturnSender<(), AccountCommandError>,
         Option<ResolverOverrides>,
     ),
+
+    /// Returns the VPN account summary if the account is logged-in
+    GetAccountSummary(ReturnSender<Option<VpnAccountSummary>, AccountCommandError>),
 }
 
 /// Commands relating to the upgrade mode
