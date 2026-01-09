@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: "Enter release version `YYYY.{n}` (ex: `2026.1`)"
+        description: "Enter release version YYYY.{n} (ex: 2026.1)"
         type: string
         required: true
       release_name:
@@ -55,11 +55,13 @@ jobs:
 
       - name: Validate release version
         run: |
-          if echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}\.[0-9]{1,2}$'; then
-            echo "Valid release version format"
-          else
-            echo "::error:: Invalid release version format"
+          if ! echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}\.[0-9]{1,2}$'; then
+            echo "::error:: Invalid release version format (expected: YYYY.{n})"
             exit 1
+          fi
+          if ! echo "${{ inputs.release_name }}" | grep -P '^[a-z]+$'; then
+            echo "::error:: Invalid release name format (expected lowercase letters only)"
+            exit 2
           fi
 
       - name: Create release branch
