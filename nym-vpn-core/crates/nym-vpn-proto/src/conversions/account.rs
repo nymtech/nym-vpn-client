@@ -249,6 +249,7 @@ impl From<VpnApiErrorResponse> for proto::VpnApiErrorResponse {
 
 impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
     type Error = ConversionError;
+
     fn try_from(value: proto::VpnAccountSummary) -> Result<Self, Self::Error> {
         let subscription_valid_until = value
             .subscription_valid_until
@@ -262,7 +263,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             .traffic_reset_time
             .map(|ts| {
                 prost_timestamp_into_offset_datetime(ts).map_err(|e| {
-                    ConversionError::ConvertTime("VpnAccountSummary.subscription_valid_until", e)
+                    ConversionError::ConvertTime("VpnAccountSummary.traffic_reset_time", e)
                 })
             })
             .transpose()?;
