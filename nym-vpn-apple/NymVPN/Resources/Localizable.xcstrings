@@ -5917,107 +5917,6 @@
         }
       }
     },
-    "createAccount.anonymousMixnetTechnology" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تكنولوجيا المزيج المجهولة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonymous mixnet technology"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tecnología de mixnet anónima"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "فناوری میکس‌نت ناشناس"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Technologie d'anonymisation mixnet"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "गुमनाम mixnet प्रौद्योगिकी"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tecnologia mixnet anonima"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tecnologia anônima de mixnet"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tecnologia de mixnet anônima"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонимная технология микснета"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonim mixnet teknolojisi"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонімна технологія змішаних мереж"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Công nghệ mixnet ẩn danh"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匿名混合网络技术"
-          }
-        }
-      }
-    },
     "createAccount.continue" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6119,113 +6018,12 @@
         }
       }
     },
-    "createAccount.countries" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50 دولة في جميع أنحاء العالم"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50+ countries worldwide"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Más de 50 países en todo el mundo"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "بیش از ۵۰ کشور در سراسر جهان"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plus de 50 pays dans le monde"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50+ देश दुनिया भर में"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50+ paesi nel mondo"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mais de 50 países no mundo"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mais de 50 países no mundo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Более 50 стран по всему миру"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dünya genelinde 50’den fazla ülke"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50 + країни по всьому світу"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hơn 50 quốc gia trên toàn thế giới"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "全世界50多个国家"
-          }
-        }
-      }
-    },
     "createAccount.createAccountButtonTitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "ابدأ في حماية خصوصيتي"
           }
         },
@@ -6238,36 +6036,36 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start protecting my privacy"
+            "value" : "Create anonymous account"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Comenzar a proteger mi privacidad"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "شروع به حفظ حریم خصوصی من کن"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Commencer à protéger ma vie privée"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "मेरी गोपनीयता की रक्षा शुरू करें"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Inizia a proteggere la mia privacy"
           }
         },
@@ -6279,43 +6077,43 @@
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Comece a proteger a minha privacidade"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Começar a proteger minha privacidade"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Начните защищать свою конфиденциальность"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Gizliliğimi korumaya başla"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Почніть захищати мою конфіденційність"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Bắt đầu bảo vệ quyền riêng tư của tôi"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "开始保护我的隐私"
           }
         }
@@ -7140,6 +6938,28 @@
         }
       }
     },
+    "createAccount.maximumPrivacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximum privacy"
+          }
+        }
+      }
+    },
+    "createAccount.maximumPrivacy.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create an anonymous Nym account, no personal info required"
+          }
+        }
+      }
+    },
     "createAccount.noPassphraseNoAccess" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7237,107 +7057,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我理解：没有密码，没有访问权限。"
-          }
-        }
-      }
-    },
-    "createAccount.openSource" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "قوانين الخصوصية المفتوحة المصدر والسويسرية."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source & Swiss privacy laws"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Código abierto y leyes suizas de privacidad"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اُپن‌سورس و قوانین حریم خصوصی سوئیس"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Logiciel open source et protection des données en Suisse"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ओपन सोर्स और स्विस गोपनीयता कानून"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source & Swiss privacy laws"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leis de código aberto e privacidade suíça"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Código aberto e leis de privacidade suíças"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Открытый исходный код и швейцарские законы о конфиденциальности"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Açık kaynak ve İsviçre gizlilik yasaları"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Відкритий код та швейцарське законодавство про конфіденційність"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mã nguồn mở & luật bảo mật của Thụy Sĩ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开源与瑞士隐私法"
           }
         }
       }
@@ -7540,107 +7259,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择您的 NymVPN 计划"
-          }
-        }
-      }
-    },
-    "createAccount.unlikedData" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المدفوعات والأنشطة تبقى غير مرتبطة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Payments and activity stay unlinked"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los pagos y la actividad permanecen desvinculados"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "پرداخت‌ها و فعالیت‌ها غیرمرتبط باقی می‌مانند"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les paiements et l'activité restent non liés"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "भुगतान और गतिविधि जोड़ी नहीं जा सकती"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pagamenti e attività rimangono scollegati"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pagamentos e atividades permanecem desvinculados"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pagamentos e atividades permanecem desvinculados"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Платежи и активность не связаны"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ödemeler ve faaliyetler birbiriyle ilişkilendirilemez"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Платежі та діяльність залишаються не пов'язаними"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thanh toán và hoạt động không bị liên kết"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "付款和活动没有链接"
           }
         }
       }
@@ -37608,107 +37226,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "周"
-          }
-        }
-      }
-    },
-    "welcome.acknowledgement" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "من خلال المتابعة، أنت توافق على [شروط الاستخدام] لـ NymVPN( (https://nym.com/vpn-termsوتقر بـ [سياسة الخصوصية](https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Al continuar, aceptas los [Términos de uso] de NymVPN (https://nym.com/vpn-terms) y reconoces la [Política de privacidad] de NymVPN (https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "با ادامه دادن، شما با [شرایط استفاده از](https://nym.com/vpn-terms) NymVPN موافقت کرده و [سیاست حفظ حریم خصوصی](https://nym.com/vpn-privacy-statement) NymVPN را تایید می‌کنید."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En cliquant « Continuer », vous accepter les [Conditions générales](https://nym.com/vpn-terms) de NymVPN et avez pris connaissance de la [Politique de confidentialité](https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "जारी रखने पर, आप NymVPN के [उपयोग की शर्तों](https://nym.com/vpn-terms) से सहमत होते हैं और NymVPN की [गोपनीयता नीति](https://nym.com/vpn-privacy-statement) को मान्यता देते हैं।"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continuando accetti i [Termini di utilizzo](https://nym.com/vpn-terms) di NymVPN e riconosci la [Informativa sulla privacy](https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "続けることにより、NymVPNの「利用規約」(https://nym.com/vpn-terms)に同意し、NymVPNの「プライバシーポリシー」(https://nym.com/vpn-privacy-statement)に同意したことになります。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ao continuar, você concorda com os [Termos de uso] da NymVPN (https://nym.com/vpn-terms) e reconhece a [Política de privacidade] da NymVPN (https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ao continuar, você concorda com os [Termos de uso] da NymVPN (https://nym.com/vpn-terms) e reconhece a [Política de privacidade] da NymVPN (https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Продолжая, вы соглашаетесь с [Условиями использования](https://nym.com/vpn-terms) NymVPN и подтверждаете ознакомление с [Политикой конфиденциальности](https://nym.com/vpn-privacy-statement) NymVPN."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Devam ederek, NymVPN'in [Kullanım Şartları'nı](https://nym.com/vpn-terms) kabul ettiğinizi ve NymVPN'in [Gizlilik Politikasını](https://nym.com/vpn-privacy-statement) okuduğunuzu onaylamış olursunuz."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Продовжуючи, ви погоджуєтеся з [Умовами використання] NymVPN (https://nym.com/vpn-terms) і визнаєте [Політику конфіденційності] NymVPN (https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bằng cách tiếp tục, bạn đồng ý với [Điều khoản sử dụng](https://nym.com/vpn-terms) của NymVPN và thừa nhận [Chính sách bảo mật](https://nym.com/vpn-privacy-statement) của NymVPN."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "继续即表示您同意 NymVPN 的 [使用条款](https://nym.com/vpn-terms) 并认可 NymVPN 的 [隐私政策](https://nym.com/vpn-privacy-statement)。"
           }
         }
       }
