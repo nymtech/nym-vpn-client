@@ -139,9 +139,6 @@ export function mockTauriIPC() {
         case 'welcome-screen-seen':
           res = !showWelcome;
           break;
-        case 'onboarding-completed':
-          res = !showOnboarding;
-          break;
 
         /* 1740391345259 */
         case 'cache-mx-entry-gateways':

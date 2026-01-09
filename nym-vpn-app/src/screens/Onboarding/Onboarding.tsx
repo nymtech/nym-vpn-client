@@ -6,9 +6,6 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { Button, MsIcon, PageAnim } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import { routes } from '../../router';
-import { kvSet } from '../../kvStore';
-import { useMainDispatch } from '../../contexts';
-import { StateDispatch } from '../../types';
 import { Speed, Tracking, Welcome, ZeroKnowledge } from './slides';
 import { DotButton, useDotButton } from './CarouselDotButton';
 
@@ -43,8 +40,6 @@ const ArrowButton = ({
 };
 
 function Onboarding() {
-  const dispatch = useMainDispatch() as StateDispatch;
-
   const navigate = useNavigate();
   const { t } = useTranslation('onboarding');
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -56,8 +51,6 @@ function Onboarding() {
 
   const handleNavigate = (route: string) => {
     navigate(route);
-    dispatch({ type: 'set-onboarding-completed', completed: true });
-    kvSet('onboarding-completed', true);
   };
 
   return (

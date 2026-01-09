@@ -33,7 +33,6 @@ import { regionToCountryCode, setStreamOptimizedLabelSeen } from './util';
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
 const os = type();
-let onboardingInit = false;
 let compatChecked = false;
 
 function Home() {
@@ -47,8 +46,6 @@ function Home() {
     daemonStatus,
     account,
     networkCompat,
-    welcomeChecked,
-    onboardingCompleted,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { setFocused, setSearch, setExpanded } = useNodeListState();
@@ -72,7 +69,7 @@ function Home() {
 
   const handleClick = () => {
     if (state === 'disconnected' && !account) {
-      navigate(routes.signup);
+      navigate(routes.onboarding);
       return;
     }
     if (needAPlan) {
@@ -124,16 +121,6 @@ function Home() {
       setIsDialogUpdateOpen(true);
     }
   }, [networkCompat]);
-
-  useEffect(() => {
-    if (onboardingInit) {
-      return;
-    }
-    onboardingInit = true;
-    if (!onboardingCompleted) {
-      navigate(routes.onboarding);
-    }
-  }, [navigate, onboardingCompleted]);
 
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
@@ -214,7 +201,7 @@ function Home() {
 
   return (
     <>
-      {welcomeChecked && updaterEnabled && <UpdateDialog />}
+      {updaterEnabled && <UpdateDialog />}
       {os !== 'windows' && (
         <NetworkUpdateDialog
           isOpen={isDialogUpdateOpen}
