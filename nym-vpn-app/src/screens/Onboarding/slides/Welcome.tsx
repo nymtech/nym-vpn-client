@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Welcome as WelcomeAsset } from '../../../assets';
 
 function Welcome() {
@@ -9,8 +9,12 @@ function Welcome() {
       <h1 className="text-2xl text-baltic-sea dark:text-white">
         {t('welcome.title')}
       </h1>
-      <p className="text-center text-base text-iron dark:text-bombay">
-        {t('welcome.description')}
+      <p className="text-center text-sm whitespace-pre-line text-iron dark:text-bombay">
+        <Trans
+          i18nKey="welcome.description"
+          ns="onboarding"
+          components={{ large: <span className="text-base!" /> }}
+        />
       </p>
     </div>
   );
