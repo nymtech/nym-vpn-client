@@ -17,20 +17,23 @@ public struct CreateAccountWelcomeView: View {
             navbar
             Spacer()
             VStack(spacing: 0) {
-                backgroundDots
+                logoView
                 Spacer()
                     .frame(height: 40)
-                welcomeTitle
-                nymVpnTitle
+                createAccountTitle
+                Spacer()
+                createAccountSection
                 Spacer()
                     .frame(height: 24)
-                benefitsList
+                separatorLine
                 Spacer()
-                    .frame(height: 32)
-                createAccountButton
-                Spacer()
-                    .frame(height: 32)
+                    .frame(height: 24)
                 alreadyHaveAnAccount
+                Spacer()
+                    .frame(height: 24)
+                TermsAndConditionsView()
+                Spacer()
+                    .frame(height: 24)
             }
             .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
@@ -64,65 +67,56 @@ private extension CreateAccountWelcomeView {
             .accessibilityAddTraits([.isImage])
     }
 
-    var backgroundDots: some View {
-        ZStack {
-            GenericImage(imageName: "createAccountWelcomeDots")
-            logoView
-        }
-    }
-
-    var welcomeTitle: some View {
-        Text("addCredentials.welcome.Title".localizedString)
-            .textStyle(.Headline.ExtraLarge.bold)
+    var createAccountTitle: some View {
+        Text("createAccount".localizedString)
+            .textStyle(.Headline.Large.regular)
             .foregroundStyle(NymColor.primary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
     }
 
-    var nymVpnTitle: some View {
-        Text("NymVPN".localizedString)
-            .textStyle(.Headline.ExtraLarge.bold)
-            .foregroundStyle(NymColor.primary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
-    }
-
-    var benefitsList: some View {
-        VStack(alignment: .leading, spacing: 8) {
-#if os(iOS)
-            if !purchasesManager.isEligibleForIntroOffer.isEmpty {
-                benefitListItem(titleKey: "createAccount.introOffer", imageName: "moneyBag")
-            }
-#endif
-            benefitListItem(titleKey: "createAccount.anonymousMixnetTechnology", imageName: "verifiedUser")
-            benefitListItem(titleKey: "createAccount.countries", imageName: "world")
-            benefitListItem(titleKey: "createAccount.unlikedData", imageName: "accountBalance")
-            benefitListItem(titleKey: "createAccount.openSource", imageName: "code")
-        }
-    }
-
-    func benefitListItem(titleKey: String, imageName: String) -> some View {
-        HStack(spacing: 0) {
-            GenericImage(imageName: imageName)
-                .frame(width: 20, height: 20)
-                .foregroundStyle(NymColor.accent)
+    var createAccountSection: some View {
+        VStack(spacing: 8) {
+            maximumPrivacyTitle
+            maximumPrivacySubtitle
             Spacer()
-                .frame(width: 8)
-            Text(titleKey.localizedString)
+                .frame(height: 8)
+            createAccountButton
+        }
+        .padding(.horizontal, 24)
+    }
+
+    var maximumPrivacyTitle: some View {
+        HStack {
+            Text("🔒 \("createAccount.maximumPrivacy".localizedString)")
+                .textStyle(.Headline.Small.regular)
+                .foregroundStyle(NymColor.primary)
+            Spacer()
+        }
+    }
+
+    var maximumPrivacySubtitle: some View {
+        HStack {
+            Text("createAccount.maximumPrivacy.subtitle".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
+            Spacer()
         }
     }
 
     var createAccountButton: some View {
         GenericButton(title: "createAccount.createAccountButtonTitle".localizedString)
-            .padding(.horizontal, 16)
             .onTapGesture {
                 navigateToCreateAccount()
             }
             .accessibilityAction {
                 navigateToCreateAccount()
             }
+    }
+
+    var separatorLine: some View {
+        Rectangle()
+            .foregroundColor(NymColor.gray2)
+            .frame(height: 1)
+            .padding(.horizontal, 24)
     }
 
     @ViewBuilder var alreadyHaveAnAccount: some View {
