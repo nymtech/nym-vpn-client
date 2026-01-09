@@ -55,7 +55,12 @@ jobs:
 
       - name: Validate release version
         run: |
-          echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}-[0-9]{1,2}$'
+          if echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}-[0-9]{1,2}$'; then
+            echo "::info:: Valid release version format"
+          else
+            echo "::error:: Invalid release version format"
+            exit 1
+          fi
 
       - name: Create release branch
         env:
