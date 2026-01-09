@@ -80,7 +80,7 @@ import Theme
     }
 
     func logFileURL() -> URL? {
-        LogFileManager.logFileURL(logFileType: currentLogFileType)
+        LogFileManager.zippedLogFilesURL()
     }
 
     func copyToPasteboard(index: Int) {

@@ -50,9 +50,9 @@ public struct LogsView: View {
         }
         .fileExporter(
             isPresented: $viewModel.isFileExporterPresented,
-            document: TextFile(lineArray: viewModel.logLines),
-            contentType: .plainText,
-            defaultFilename: Constants.logFileName.rawValue
+            document: viewModel.logFileURL().map { ZipFile(url: $0) },
+            contentType: .zip,
+            defaultFilename: "nym-vpn-logs.zip"
         ) { _ in }
     }
 }
@@ -130,21 +130,15 @@ private extension LogsView {
     func buttonsSection() -> some View {
         HStack {
             Spacer()
-            if #available(iOS 17.0, *), #available(macOS 14.0, *) {
-                exportButton()
-                    .onHover { newValue in
-                        isExportButtonHovered = newValue
-                    }
-                Spacer()
-                deleteButton()
-                    .onHover { newValue in
-                        isDeleteButtonHovered = newValue
-                    }
-            } else {
-                exportButton()
-                Spacer()
-                deleteButton()
-            }
+            exportButton()
+                .onHover { newValue in
+                    isExportButtonHovered = newValue
+                }
+            Spacer()
+            deleteButton()
+                .onHover { newValue in
+                    isDeleteButtonHovered = newValue
+                }
             Spacer()
         }
         .background {
