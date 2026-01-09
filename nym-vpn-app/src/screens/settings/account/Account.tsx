@@ -91,10 +91,10 @@ function Account() {
   if (!account) {
     return (
       <Button
-        onClick={() => navigate(routes.login)}
+        onClick={() => navigate(routes.signup)}
         disabled={daemonStatus === 'down'}
       >
-        {t('login-button')}
+        {t('account.get-started')}
       </Button>
     );
   }

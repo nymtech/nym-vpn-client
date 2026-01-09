@@ -21,10 +21,10 @@ import {
   NodeDetails,
   NodeEntry,
   Onboarding,
-  PassphraseLogin,
   SelectPlan,
   Settings,
   SettingsRouteIndex,
+  Signup,
   Socks5,
   Support,
   Welcome,
@@ -36,7 +36,7 @@ const Home = lazy(() => import('./screens/home/Home'));
 export const routes = {
   root: '/',
   login: '/login',
-  passphraseLogin: '/login/passphrase',
+  signup: '/signup',
   account: '/account',
   selectPlan: '/account/select-a-plan',
   settings: '/settings',
@@ -80,8 +80,8 @@ const router = createBrowserRouter([
         errorElement: <Error />,
       },
       {
-        path: routes.passphraseLogin,
-        Component: PassphraseLogin,
+        path: routes.signup,
+        Component: Signup,
         errorElement: <Error />,
       },
       {

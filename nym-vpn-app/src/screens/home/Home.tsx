@@ -33,7 +33,7 @@ import { regionToCountryCode, setStreamOptimizedLabelSeen } from './util';
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
 const os = type();
-let welcomeInit = false;
+let onboardingInit = false;
 let compatChecked = false;
 
 function Home() {
@@ -72,7 +72,7 @@ function Home() {
 
   const handleClick = () => {
     if (state === 'disconnected' && !account) {
-      navigate(routes.login);
+      navigate(routes.signup);
       return;
     }
     if (needAPlan) {
@@ -126,16 +126,14 @@ function Home() {
   }, [networkCompat]);
 
   useEffect(() => {
-    if (welcomeInit) {
+    if (onboardingInit) {
       return;
     }
-    welcomeInit = true;
+    onboardingInit = true;
     if (!onboardingCompleted) {
       navigate(routes.onboarding);
-    } else if (!welcomeChecked && account) {
-      navigate(routes.welcome);
     }
-  }, [navigate, welcomeChecked, onboardingCompleted, account]);
+  }, [navigate, onboardingCompleted]);
 
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));

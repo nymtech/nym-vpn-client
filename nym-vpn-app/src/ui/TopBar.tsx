@@ -22,7 +22,6 @@ import { routes } from '../router';
 import { Routes, StateDispatch } from '../types';
 import { kvSet } from '../kvStore/kv';
 import ButtonIcon from './ButtonIcon';
-import Button from './Button';
 
 type NavLocation = {
   title?: string | ReactNode;
@@ -82,48 +81,26 @@ export default function TopBar() {
         },
         noBackground: true,
       },
+      '/signup': {
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+        noBackground: true,
+      },
       '/login': {
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
         },
-        rightComponent: (location.state as { skip: boolean })?.skip ? (
-          <Button
-            outline
-            color="gray"
-            onClick={() => navigate(routes.root)}
-            className="group border-none hover:ring-0! dark:hover:ring-0! w-fit!"
-          >
-            <span className="flex items-center gap-2 text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-              {t('skip', { ns: 'common' })}
-            </span>
-          </Button>
-        ) : undefined,
         noBackground: true,
       },
       '/onboarding': {
-        rightComponent: (
-          <Button
-            outline
-            color="gray"
-            onClick={() => {
-              navigate(routes.login, { state: { skip: true } });
-              dispatch({ type: 'set-onboarding-completed', completed: true });
-              kvSet('onboarding-completed', true);
-            }}
-            className="group border-none hover:ring-0! dark:hover:ring-0! w-fit!"
-          >
-            <span className="flex items-center gap-2 text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-              {t('skip', { ns: 'common' })}
-            </span>
-          </Button>
-        ),
-        noBackground: true,
-      },
-      '/login/passphrase': {
-        leftIcon: 'arrow_back',
-        handleLeftNav: () => {
-          navigate(-1);
+        rightIcon: 'close',
+        handleRightNav: () => {
+          dispatch({ type: 'set-onboarding-completed', completed: true });
+          kvSet('onboarding-completed', true);
+          navigate(routes.root);
         },
         noBackground: true,
       },
