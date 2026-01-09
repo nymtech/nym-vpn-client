@@ -56,7 +56,7 @@ jobs:
       - name: Validate release version
         run: |
           if echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}\.[0-9]{1,2}$'; then
-            echo "::info:: Valid release version format"
+            echo "::notice:: Valid release version format"
           else
             echo "::error:: Invalid release version format"
             exit 1
@@ -73,7 +73,7 @@ jobs:
           else
             # create release branch and push it to remote
             git checkout -b "${{ env.RELEASE_BRANCH }}"
-            echo "::info:: Created release branch: ${{ env.RELEASE_BRANCH }}"
+            echo "::notice:: Created release branch: ${{ env.RELEASE_BRANCH }}"
             if [ '${{ inputs.dry_run }}' == 'true' ]; then
               echo "Dry run, skipping push to origin/${{ env.RELEASE_BRANCH }}"
             else
@@ -131,7 +131,7 @@ jobs:
           toml set Cargo.toml workspace.package.version "$BETA_VERSION" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
 
-          echo "::info:: Next version: $BETA_VERSION"
+          echo "::notice:: Next version: $BETA_VERSION"
           echo "next_version=$BETA_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Update nym-vpn-core/Cargo.toml
