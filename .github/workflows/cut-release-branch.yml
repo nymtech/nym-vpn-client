@@ -50,6 +50,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: develop
+          fetch-depth: 0 # may need this for `git branch -r`
           ssh-key: ${{ secrets.CI_RELEASE_DEPLOY_KEY }}
 
       - name: Validate release version
