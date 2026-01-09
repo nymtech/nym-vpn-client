@@ -28,6 +28,56 @@ public final class LogFileManager: ObservableObject, @unchecked Sendable {
         }
     }
 
+    public static func zippedLogFilesURL() -> URL? {
+        let fileManager = FileManager.default
+
+        guard let tempDirectory = try? fileManager.url(
+            for: .itemReplacementDirectory,
+            in: .userDomainMask,
+            appropriateFor: fileManager.temporaryDirectory,
+            create: true
+        ) else {
+            return nil
+        }
+
+        let logsDirectory = tempDirectory.appendingPathComponent("nym-vpn-logs")
+        try? fileManager.createDirectory(at: logsDirectory, withIntermediateDirectories: true)
+
+        var hasLogFiles = false
+        for logFileType in LogFileType.allCases {
+            if let logURL = logFileURL(logFileType: logFileType),
+                fileManager.fileExists(atPath: logURL.path(percentEncoded: false)) {
+                let destinationURL = logsDirectory.appendingPathComponent(logURL.lastPathComponent)
+                try? fileManager.copyItem(at: logURL, to: destinationURL)
+                hasLogFiles = true
+            }
+        }
+
+        guard hasLogFiles else {
+            return nil
+        }
+
+        let zipURL = tempDirectory.appendingPathComponent("nym-vpn-logs.zip")
+        do {
+            var error: NSError?
+            NSFileCoordinator().coordinate(
+                readingItemAt: logsDirectory,
+                options: [.forUploading],
+                error: &error
+            ) { zipItemURL in
+                try? fileManager.moveItem(at: zipItemURL, to: zipURL)
+            }
+
+            if let error = error {
+                print("Failed to create zip archive: \(error)")
+                return nil
+            }
+
+            try? fileManager.removeItem(at: logsDirectory)
+            return zipURL
+        }
+    }
+
     // Pure, non-isolated helper
     public static func logFileURL(logFileType: LogFileType) -> URL? {
         let fileManager = FileManager.default
