@@ -246,6 +246,14 @@ export default function TopBar() {
         },
       },
       '/account/select-a-plan': {
+        title: (
+          <NymVpnTextLogo
+            className={clsx(
+              'w-24 h-6',
+              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+            )}
+          />
+        ),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
@@ -258,7 +266,7 @@ export default function TopBar() {
       // TODO
       '/account': {},
     };
-  }, [t, navigate, getMainScreenTitle, show]);
+  }, [t, navigate, getMainScreenTitle, show, uiTheme]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);

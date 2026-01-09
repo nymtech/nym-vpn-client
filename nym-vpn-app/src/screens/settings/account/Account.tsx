@@ -88,6 +88,13 @@ function Account() {
     return 'normal';
   };
 
+  const getAccountButtonText = () => {
+    if (needAPlan) {
+      return t('account.choose-plan');
+    }
+    return t('account.get-started');
+  };
+
   if (!account) {
     return (
       <Button
@@ -106,7 +113,7 @@ function Account() {
           onClick={() => navigate(routes.selectPlan)}
           disabled={daemonStatus === 'down' || accountSyncing}
         >
-          {t('account.get-started')}
+          {getAccountButtonText()}
         </Button>
       )}
       <SettingsMenuCard

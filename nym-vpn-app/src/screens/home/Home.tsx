@@ -125,8 +125,11 @@ function Home() {
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
     const cancel = capFirst(t('cancel', { ns: 'glossary' }));
-    if (needAPlan || !account) {
+    if (!account) {
       return t('get-started');
+    }
+    if (needAPlan) {
+      return t('choose-plan');
     }
     switch (state) {
       case 'connected':
