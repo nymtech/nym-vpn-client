@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    commands::{common_handler, handler, AccountCommand, UpgradeModeCommand},
+    SharedAccountState,
+    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
         NextAccountControllerState, OfflineState, PrivateAccountControllerState,
     },
-    SharedAccountState,
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
+    VpnApiClient,
     error::VpnApiClientError,
     response::NymErrorResponse,
     types::{Device, VpnAccount, VpnAccountSummary},
-    VpnApiClient,
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use requesting_zknym_state::RequestingZkNymsState;
@@ -46,7 +46,7 @@ const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
 /// - OfflineState : the connectivity monitor is telling we're not connected
 /// - DecentralisedState : The loaded account is set to "decentralised" mode
 pub struct SyncingState {
-    syncing_state_handle: JoinHandle<Result<bool, SyncError>>,
+    syncing_state_handle: JoinHandle<Result<VpnAccountSummary, SyncError>>,
     attempts: u32,
 }
 
@@ -73,7 +73,7 @@ impl SyncingState {
         let vpn_api_client = shared_state.vpn_api_client.clone();
 
         let syncing_state_handle = tokio::spawn(async move {
-            SyncingState::syncing_account(&vpn_api_client, &vpn_api_account, &device, shared_state).await
+            SyncingState::syncing_account(&vpn_api_client, &vpn_api_account, &device).await
         });
 
         (
@@ -89,9 +89,8 @@ impl SyncingState {
         vpn_api_client: &VpnApiClient,
         vpn_api_account: &VpnAccount,
         device: &Device,
-        shared_state: &SharedAccountState<C>,
-    ) -> Result<bool, SyncError> {
-        let handle_vpn_api_error = |e: VpnApiClientError| -> Result<bool, SyncError> {
+    ) -> Result<VpnAccountSummary, SyncError> {
+        let handle_vpn_api_error = |e: VpnApiClientError| -> Result<VpnAccountSummary, SyncError> {
             let error_response = NymErrorResponse::try_from(e)?;
             // SW Use UUID when it will be available
             if error_response.status == "access_denied"
@@ -128,8 +127,7 @@ impl SyncingState {
             Ok(summary) => {
                 tracing::debug!("{summary:#?}");
 
-                // Make a copy of the account summary for use by the app
-                match VpnAccountSummary::new(
+                let vpn_account_summary = VpnAccountSummary::new(
                     summary
                         .account_summary
                         .subscription
@@ -139,14 +137,12 @@ impl SyncingState {
                     summary.account_summary.fair_usage.usedGB,
                     summary.account_summary.fair_usage.limitGB,
                     summary.account_summary.fair_usage.resetsOnUtc.clone(),
-                ) {
-                    Ok(account_summary) => {
-                        shared_state.vpn_api_account_summary = Some(account_summary);
-                    }
-                    Err(e) => {
-                        tracing::error!("Failed to create account summary: {e}");
-                    }
-                }
+                )
+                .map_err(|e| SyncError::ApiResponseError {
+                    details: format!("Failed to create account summary from API response: {e}"),
+                })?;
+
+                tracing::debug!("Account summary: {vpn_account_summary:?}");
 
                 // Checking that the account is active
                 if !summary.account_active() {
@@ -160,7 +156,7 @@ impl SyncingState {
                     return Err(SyncError::InactiveSubscription);
                 }
 
-                let fair_usage_left = summary.bandwidth_limit() != summary.used_bandwidth();
+                let fair_usage_left = vpn_account_summary.fair_usage_left();
 
                 // that the device is registered or there is a spot left for it with fair usage
                 if summary.active_device.is_none() {
@@ -172,10 +168,16 @@ impl SyncingState {
                     if !fair_usage_left {
                         Err(SyncError::FairUsageDepleted)
                     } else {
-                        SyncingState::register_device(vpn_api_client, vpn_api_account, device).await
+                        SyncingState::register_device(
+                            vpn_api_client,
+                            vpn_api_account,
+                            device,
+                            vpn_account_summary,
+                        )
+                        .await
                     }
                 } else {
-                    Ok(fair_usage_left)
+                    Ok(vpn_account_summary)
                 }
             }
 
@@ -187,11 +189,12 @@ impl SyncingState {
         vpn_api_client: &VpnApiClient,
         vpn_api_account: &VpnAccount,
         device: &Device,
-    ) -> Result<bool, SyncError> {
+        vpn_account_summary: VpnAccountSummary,
+    ) -> Result<VpnAccountSummary, SyncError> {
         vpn_api_client
             .register_device(vpn_api_account, device)
             .await?;
-        Ok(true) // We can register a device, we have fair usage
+        Ok(vpn_account_summary) // We can register a device, we have fair usage
     }
 }
 
@@ -213,7 +216,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                 match syncing_result {
                     Ok(result) => {
                         match result {
-                            Ok(fair_usage) => { NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, fair_usage, false))},
+                            Ok(vpn_account_summary) => {
+                                shared_state.vpn_account_summary = Some(vpn_account_summary);
+                                NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, false))
+                            },
                             Err(e) if e.is_retryable() => {
                                 if self.attempts > MAX_SYNCING_ATTEMPTS {
                                     tracing::debug!("Error trying to get account summary, exhausted retries : {}", e.to_string());

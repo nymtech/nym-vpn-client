@@ -5,9 +5,9 @@ use crate::jwt::Jwt;
 use chrono::{DateTime, Utc};
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
 use nym_validator_client::{
-    nyxd::{bip32::DerivationPath, AccountId},
-    signing::signer::OfflineSigner as _,
     DirectSecp256k1HdWallet,
+    nyxd::{AccountId, bip32::DerivationPath},
+    signing::signer::OfflineSigner as _,
 };
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use std::fmt;
@@ -223,6 +223,10 @@ impl VpnAccountSummary {
             traffic_limit_gb,
             traffic_reset_time,
         })
+    }
+
+    pub fn fair_usage_left(&self) -> bool {
+        self.traffic_used_gb != self.traffic_limit_gb
     }
 }
 
