@@ -2,9 +2,11 @@ import SwiftUI
 import ImpactGenerator
 import PurchasesManager
 import UIComponents
+import Routes
 import Theme
 
 public struct CreateAccountWelcomeView: View {
+    private let navigationSource: CreateAccountNavigationSource
 #if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
 #endif
@@ -40,8 +42,9 @@ public struct CreateAccountWelcomeView: View {
         }
     }
 
-    public init(path: Binding<NavigationPath>) {
+    public init(path: Binding<NavigationPath>, navigationSource: CreateAccountNavigationSource) {
         _path = path
+        self.navigationSource = navigationSource
     }
 }
 
@@ -50,7 +53,7 @@ private extension CreateAccountWelcomeView {
         CustomNavBar(
             useElevationBackground: true,
             isLogoImageHidden: true,
-            leftButton: CustomNavBarButton(type: .back, action: { navigateHome() })
+            leftButton: CustomNavBarButton(type: .back, action: { navigateBack() })
         )
     }
 
@@ -141,8 +144,15 @@ private extension CreateAccountWelcomeView {
 
 // MARK: - Actions -
 private extension CreateAccountWelcomeView {
-    func navigateHome() {
-        path = .init()
+    func navigateBack() {
+        switch navigationSource {
+        case .onboarding:
+            path = .init([HomeLink.onboarding])
+        case .settings:
+            if !path.isEmpty { path.removeLast() }
+        case .home:
+            path = .init()
+        }
     }
 
     func navigateToCreateAccount() {

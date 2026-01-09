@@ -32,8 +32,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             legalDestination()
         case let .addCredentials(navigationSource: navigationSource):
             addCredentialsDestination(navigationSource: navigationSource)
-        case .createAccountWelcome:
-            createAccountWelcomeDestination()
+        case let .createAccountWelcome(navigationSource: navigationSource):
+            createAccountWelcomeDestination(navigationSource: navigationSource)
         case .generatePassphrase:
             GeneratePassphraseView(path: $flowState.path)
         case let .planPurchase(shouldDisplayBackButton: shouldDisplayBackButton):
@@ -143,8 +143,8 @@ private extension SettingsFlowCoordinator {
     }
 
     @ViewBuilder
-    func createAccountWelcomeDestination() -> some View {
-        CreateAccountWelcomeView(path: $flowState.path)
+    func createAccountWelcomeDestination(navigationSource: CreateAccountNavigationSource) -> some View {
+        CreateAccountWelcomeView(path: $flowState.path, navigationSource: navigationSource)
     }
 
     @ViewBuilder

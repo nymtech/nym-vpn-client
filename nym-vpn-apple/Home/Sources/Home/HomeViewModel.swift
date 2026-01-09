@@ -193,7 +193,7 @@ public extension HomeViewModel {
 
     @MainActor func navigateToAddCredentials() {
         path.append(HomeLink.settings)
-        path.append(SettingLink.createAccountWelcome)
+        path.append(SettingLink.createAccountWelcome(navigationSource: .home))
     }
 
     @MainActor func navigateToPlanPurchase() {
