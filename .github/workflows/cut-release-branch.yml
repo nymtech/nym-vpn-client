@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: "Enter release version `YYYY.{n}` (ex: `2026.1`)"
+        description: "Enter release version YYYY.{n} (ex: 2026.1)"
         type: string
         required: true
       release_name:
@@ -41,6 +41,17 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Validate input
+        run: |
+          if ! echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}\.[0-9]{1,2}$'; then
+            echo "::error:: Invalid release version format (expected: YYYY.{n})"
+            exit 1
+          fi
+          if ! echo "${{ inputs.release_name }}" | grep -P '^[a-z]+$'; then
+            echo "::error:: Invalid release name format (expected lowercase letters only)"
+            exit 2
+          fi
+
       - name: Configure git
         run: |
           git config --global user.name "${{ env.GIT_USER }}"
@@ -52,15 +63,6 @@ jobs:
           ref: develop
           fetch-depth: 0 # may need this for `git branch -r`
           ssh-key: ${{ secrets.CI_RELEASE_DEPLOY_KEY }}
-
-      - name: Validate release version
-        run: |
-          if echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}\.[0-9]{1,2}$'; then
-            echo "Valid release version format"
-          else
-            echo "::error:: Invalid release version format"
-            exit 1
-          fi
 
       - name: Create release branch
         env:
@@ -75,7 +77,7 @@ jobs:
             git checkout -b "${{ env.RELEASE_BRANCH }}"
             echo "::notice:: Created release branch: ${{ env.RELEASE_BRANCH }}"
             if [ '${{ inputs.dry_run }}' == 'true' ]; then
-              echo "Dry run, skipping push to origin/${{ env.RELEASE_BRANCH }}"
+              echo "::warning:: Dry run, skipping push to origin/${{ env.RELEASE_BRANCH }}"
             else
               git push origin "${{ env.RELEASE_BRANCH }}"
             fi
@@ -161,7 +163,7 @@ jobs:
         run: |
           git diff
           if [ '${{ inputs.dry_run }}' == 'true' ]; then
-            echo "Dry run, skipping commit and PR creation"
+            echo "::warning:: Dry run, skipping commit and PR creation"
           else
             git checkout -b "${{ env.BRANCH_NAME }}"
             git commit -a -m "ci: bump develop to v${{ steps.next-version.outputs.next_version }}"
