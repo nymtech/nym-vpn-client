@@ -3,7 +3,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { NymSplash } from '../../assets';
-import { Button, Link, PageAnim } from '../../ui';
+import { Button, ButtonText, Link, PageAnim } from '../../ui';
 import { useMainState } from '../../contexts';
 import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
@@ -20,7 +20,7 @@ function Login() {
       />
       <h1 className="text-2xl mt-12">{t('signup.title')}</h1>
       <div className="flex flex-col p-4">
-        <div className="py-6 border-b border-bombay dark:border-iron">
+        <div className="py-6">
           <h2>{t('signup.maximum-privacy.title')}</h2>
           <p className="mt-2 text-iron dark:text-bombay">
             {t('signup.maximum-privacy.description')}
@@ -38,20 +38,13 @@ function Login() {
           </Button>
         </div>
 
-        <div className="py-6 flex flex-col gap-4">
-          <h2>{t('signup.already-have-an-account.title')}</h2>
-          <Button
-            outline
-            color="gray"
-            onClick={() => {
-              navigate(routes.login);
-            }}
-            className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
-          >
-            <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-              {t('signup.already-have-an-account.button')}
-            </span>
-          </Button>
+        <div className="my-8 mx-auto font-bold">
+          <span className="text-iron dark:text-bombay">
+            {t('signup.already-have-an-account.title')}
+          </span>
+          <ButtonText onClick={() => navigate(routes.login)} color="malachite">
+            {t('signup.already-have-an-account.button')}
+          </ButtonText>
         </div>
       </div>
       <p
@@ -64,18 +57,18 @@ function Login() {
           components={{
             tosLink: (
               <Link
+                color="primary"
                 text={t('tos', { ns: 'common' })}
                 url={ToSUrl}
-                className="text-black dark:text-white"
                 textClassName="underline-offset-2"
                 data-testid="welcome-tos-link"
               />
             ),
             privacyLink: (
               <Link
+                color="primary"
                 text={t('privacy-statement', { ns: 'common' })}
                 url={PrivacyPolicyUrl}
-                className="text-black dark:text-white"
                 textClassName="underline-offset-2"
                 data-testid="welcome-privacy-link"
               />

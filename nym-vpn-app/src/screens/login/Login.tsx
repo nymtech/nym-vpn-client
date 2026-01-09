@@ -159,18 +159,18 @@ function Login() {
           components={{
             tosLink: (
               <Link
+                color="primary"
                 text={t('tos', { ns: 'common' })}
                 url={ToSUrl}
-                className="text-black dark:text-white"
                 textClassName="underline-offset-2"
                 data-testid="welcome-tos-link"
               />
             ),
             privacyLink: (
               <Link
+                color="primary"
                 text={t('privacy-statement', { ns: 'common' })}
                 url={PrivacyPolicyUrl}
-                className="text-black dark:text-white"
                 textClassName="underline-offset-2"
                 data-testid="welcome-privacy-link"
               />
