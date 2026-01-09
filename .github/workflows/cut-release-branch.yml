@@ -41,6 +41,17 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Validate input
+        run: |
+          if ! echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}\.[0-9]{1,2}$'; then
+            echo "::error:: Invalid release version format (expected: YYYY.{n})"
+            exit 1
+          fi
+          if ! echo "${{ inputs.release_name }}" | grep -P '^[a-z]+$'; then
+            echo "::error:: Invalid release name format (expected lowercase letters only)"
+            exit 2
+          fi
+
       - name: Configure git
         run: |
           git config --global user.name "${{ env.GIT_USER }}"
@@ -52,17 +63,6 @@ jobs:
           ref: develop
           fetch-depth: 0 # may need this for `git branch -r`
           ssh-key: ${{ secrets.CI_RELEASE_DEPLOY_KEY }}
-
-      - name: Validate release version
-        run: |
-          if ! echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}\.[0-9]{1,2}$'; then
-            echo "::error:: Invalid release version format (expected: YYYY.{n})"
-            exit 1
-          fi
-          if ! echo "${{ inputs.release_name }}" | grep -P '^[a-z]+$'; then
-            echo "::error:: Invalid release name format (expected lowercase letters only)"
-            exit 2
-          fi
 
       - name: Create release branch
         env:
