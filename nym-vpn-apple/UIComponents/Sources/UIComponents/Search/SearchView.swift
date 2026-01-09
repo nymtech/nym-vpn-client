@@ -25,6 +25,7 @@ public struct SearchView: View {
                 searchImage()
                 searchTextfield()
                 Spacer()
+                clearSearch()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -63,6 +64,20 @@ extension SearchView {
                 .textFieldStyle(PlainTextFieldStyle())
                 .textStyle(.Body.Large.regular)
                 .focused($isSearchFocused)
+        }
+    }
+
+    @ViewBuilder
+    func clearSearch() -> some View {
+        if !searchText.isEmpty {
+            Image(systemName: "xmark.circle")
+                .resizable()
+                .frame(width: 20, height: 20)
+                .cornerRadius(50)
+                .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
+                .onTapGesture {
+                    searchText = ""
+                }
         }
     }
 }
