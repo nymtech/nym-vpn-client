@@ -55,7 +55,7 @@ jobs:
 
       - name: Validate release version
         run: |
-          if echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}-[0-9]{1,2}$'; then
+          if echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}\.[0-9]{1,2}$'; then
             echo "::info:: Valid release version format"
           else
             echo "::error:: Invalid release version format"
@@ -66,7 +66,8 @@ jobs:
         env:
           RELEASE_BRANCH: release/${{ inputs.release_version }}-${{ inputs.release_name }}
         run: |
-          if git branch -r | grep -qn origin/${{ env.RELEASE_BRANCH }}$; then
+          # match any i.e `yyyy.xx-*`
+          if git branch -r | grep -qn origin/release/${{ inputs.release_version }}-; then
               echo "::error:: ${{ env.RELEASE_BRANCH }} branch already exists but it must not!"
               exit 1
           else
