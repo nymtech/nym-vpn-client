@@ -5,17 +5,17 @@ use std::sync::Arc;
 
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
+    types::{Device, VpnAccount, VpnAccountSummary},
     VpnApiClient,
-    types::{Device, VpnAccount},
 };
 
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::sync::mpsc;
 
 use crate::{
-    AccountControllerConfig, AccountControllerEventSender,
-    nyxd_client::NyxdClient,
-    storage::{AccountStorageOp, VpnCredentialStorage},
+    nyxd_client::NyxdClient, storage::{AccountStorageOp, VpnCredentialStorage},
+    AccountControllerConfig,
+    AccountControllerEventSender,
 };
 
 /// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
@@ -42,6 +42,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
 
     /// Stored account
     pub(crate) vpn_api_account: Option<Arc<VpnAccount>>,
+
+    /// Account summary
+    pub(crate) vpn_api_account_summary: Option<VpnAccountSummary>,
 
     /// Registered device
     pub(crate) device: Option<Device>,
@@ -78,6 +81,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             vpn_api_client,
             nyxd_client,
             vpn_api_account: vpn_api_account.map(Arc::new),
+            vpn_api_account_summary: None,
             device,
             firewall_active: false,
             storage_op_sender,

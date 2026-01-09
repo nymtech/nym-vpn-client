@@ -1,16 +1,16 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
-
 use crate::jwt::Jwt;
+use chrono::{DateTime, Utc};
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
 use nym_validator_client::{
-    DirectSecp256k1HdWallet,
-    nyxd::{AccountId, bip32::DerivationPath},
+    nyxd::{bip32::DerivationPath, AccountId},
     signing::signer::OfflineSigner as _,
+    DirectSecp256k1HdWallet,
 };
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
+use std::fmt;
 use time::{Duration, OffsetDateTime};
 use zeroize::Zeroizing;
 
@@ -24,6 +24,12 @@ pub enum Error {
 
     #[error("no accounts in wallet")]
     NoAccounts,
+
+    #[error("subscription expiry parse error: {0}")]
+    SubscriptionExpiryParseError(chrono::ParseError),
+
+    #[error("traffic reset time parse error: {0}")]
+    TrafficResetTimeParseError(chrono::ParseError),
 }
 
 /// Defines the mode of operation of the associated account.
@@ -177,6 +183,46 @@ impl TryFrom<StorableAccount> for VpnAccount {
 
     fn try_from(account: StorableAccount) -> Result<Self, Self::Error> {
         Self::new(account.mnemonic, account.mode.into())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct VpnAccountSummary {
+    pub subscription_valid_until: Option<DateTime<Utc>>,
+    pub traffic_used_gb: u64,
+    pub traffic_limit_gb: u64,
+    pub traffic_reset_time: Option<DateTime<Utc>>,
+}
+
+impl VpnAccountSummary {
+    pub fn new(
+        subscription_expiry_time: Option<String>,
+        traffic_used_gb: u64,
+        traffic_limit_gb: u64,
+        traffic_reset_time: Option<String>,
+    ) -> Result<Self, Error> {
+        let subscription_valid_until = subscription_expiry_time
+            .map(|time| {
+                DateTime::parse_from_rfc3339(&time)
+                    .map_err(Error::SubscriptionExpiryParseError)
+                    .map(|dt| dt.with_timezone(&Utc))
+            })
+            .transpose()?;
+
+        let traffic_reset_time = traffic_reset_time
+            .map(|time| {
+                DateTime::parse_from_rfc3339(&time)
+                    .map_err(Error::TrafficResetTimeParseError)
+                    .map(|dt| dt.with_timezone(&Utc))
+            })
+            .transpose()?;
+
+        Ok(Self {
+            subscription_valid_until,
+            traffic_used_gb,
+            traffic_limit_gb,
+            traffic_reset_time,
+        })
     }
 }
 

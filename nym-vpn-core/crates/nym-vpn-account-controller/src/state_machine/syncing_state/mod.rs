@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    SharedAccountState,
-    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
+    commands::{common_handler, handler, AccountCommand, UpgradeModeCommand},
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
         NextAccountControllerState, OfflineState, PrivateAccountControllerState,
     },
+    SharedAccountState,
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
-    VpnApiClient,
     error::VpnApiClientError,
     response::NymErrorResponse,
-    types::{Device, VpnAccount},
+    types::{Device, VpnAccount, VpnAccountSummary},
+    VpnApiClient,
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use requesting_zknym_state::RequestingZkNymsState;
@@ -73,7 +73,7 @@ impl SyncingState {
         let vpn_api_client = shared_state.vpn_api_client.clone();
 
         let syncing_state_handle = tokio::spawn(async move {
-            SyncingState::syncing_account(&vpn_api_client, &vpn_api_account, &device).await
+            SyncingState::syncing_account(&vpn_api_client, &vpn_api_account, &device, shared_state).await
         });
 
         (
@@ -89,6 +89,7 @@ impl SyncingState {
         vpn_api_client: &VpnApiClient,
         vpn_api_account: &VpnAccount,
         device: &Device,
+        shared_state: &SharedAccountState<C>,
     ) -> Result<bool, SyncError> {
         let handle_vpn_api_error = |e: VpnApiClientError| -> Result<bool, SyncError> {
             let error_response = NymErrorResponse::try_from(e)?;
@@ -126,6 +127,26 @@ impl SyncingState {
         {
             Ok(summary) => {
                 tracing::debug!("{summary:#?}");
+
+                // Make a copy of the account summary for use by the app
+                match VpnAccountSummary::new(
+                    summary
+                        .account_summary
+                        .subscription
+                        .active
+                        .as_ref()
+                        .map(|a| a.valid_until_utc.clone()),
+                    summary.account_summary.fair_usage.usedGB,
+                    summary.account_summary.fair_usage.limitGB,
+                    summary.account_summary.fair_usage.resetsOnUtc.clone(),
+                ) {
+                    Ok(account_summary) => {
+                        shared_state.vpn_api_account_summary = Some(account_summary);
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to create account summary: {e}");
+                    }
+                }
 
                 // Checking that the account is active
                 if !summary.account_active() {

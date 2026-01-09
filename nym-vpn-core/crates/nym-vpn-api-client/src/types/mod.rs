@@ -11,7 +11,8 @@ mod resolver_overrides;
 mod test_fixtures;
 
 pub use account::{
-    Error as AccountError, VpnAccount, VpnAccountMode, VpnApiTime, VpnApiTimeSynced,
+    Error as AccountError, VpnAccount, VpnAccountMode, VpnAccountSummary, VpnApiTime,
+    VpnApiTimeSynced,
 };
 pub use device::{Device, DeviceStatus};
 pub use gateway::{GatewayMinPerformance, GatewayType, ScoreThresholds};
