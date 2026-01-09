@@ -68,7 +68,7 @@ jobs:
         run: |
           # match any i.e `yyyy.xx-*`
           if git branch -r | grep -qn origin/release/${{ inputs.release_version }}-; then
-              echo "::error:: ${{ env.RELEASE_BRANCH }} branch already exists but it must not!"
+              echo "::error:: 'release/${{ inputs.release_version }}-*' branch already exists but it must not!"
               exit 1
           else
             # create release branch and push it to remote
