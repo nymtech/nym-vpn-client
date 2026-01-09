@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
-import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
+import { useMainDispatch, useMainState } from '../../contexts';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
@@ -25,7 +25,6 @@ function Login() {
 
   const { daemonStatus, state, welcomeChecked, uiTheme } = useMainState();
 
-  const { push } = useInAppNotify();
   const navigate = useNavigate();
   const { t } = useTranslation('addCredential');
   const { tE } = useI18nError();
@@ -58,10 +57,6 @@ function Login() {
         navigate(routes.root);
       }
       dispatch({ type: 'set-account', stored: true });
-      push({
-        message: t('added-notification'),
-        close: true,
-      });
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
