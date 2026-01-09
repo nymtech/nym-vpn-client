@@ -55,7 +55,7 @@ pub use account::{
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
-    ticketbooks::AvailableTickets,
+    ticketbooks::AvailableTickets, VpnAccountSummary
 };
 pub use connection_data::{
     BridgeAddress, ConnectionData, EstablishConnectionData, EstablishConnectionState, GatewayId,

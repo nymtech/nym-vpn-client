@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::jwt::Jwt;
-use chrono::{DateTime, Utc};
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
 use nym_validator_client::{
-    DirectSecp256k1HdWallet,
-    nyxd::{AccountId, bip32::DerivationPath},
+    nyxd::{bip32::DerivationPath, AccountId},
     signing::signer::OfflineSigner as _,
+    DirectSecp256k1HdWallet,
 };
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use std::fmt;
@@ -26,10 +25,10 @@ pub enum Error {
     NoAccounts,
 
     #[error("subscription expiry parse error: {0}")]
-    SubscriptionExpiryParseError(chrono::ParseError),
+    SubscriptionExpiryParseError(time::error::Parse),
 
     #[error("traffic reset time parse error: {0}")]
-    TrafficResetTimeParseError(chrono::ParseError),
+    TrafficResetTimeParseError(time::error::Parse),
 }
 
 /// Defines the mode of operation of the associated account.
@@ -188,10 +187,10 @@ impl TryFrom<StorableAccount> for VpnAccount {
 
 #[derive(Debug, Clone)]
 pub struct VpnAccountSummary {
-    pub subscription_valid_until: Option<DateTime<Utc>>,
+    pub subscription_valid_until: Option<OffsetDateTime>,
     pub traffic_used_gb: u64,
     pub traffic_limit_gb: u64,
-    pub traffic_reset_time: Option<DateTime<Utc>>,
+    pub traffic_reset_time: Option<OffsetDateTime>,
 }
 
 impl VpnAccountSummary {
@@ -203,17 +202,15 @@ impl VpnAccountSummary {
     ) -> Result<Self, Error> {
         let subscription_valid_until = subscription_expiry_time
             .map(|time| {
-                DateTime::parse_from_rfc3339(&time)
+                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
                     .map_err(Error::SubscriptionExpiryParseError)
-                    .map(|dt| dt.with_timezone(&Utc))
             })
             .transpose()?;
 
         let traffic_reset_time = traffic_reset_time
             .map(|time| {
-                DateTime::parse_from_rfc3339(&time)
+                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
                     .map_err(Error::TrafficResetTimeParseError)
-                    .map(|dt| dt.with_timezone(&Utc))
             })
             .transpose()?;
 

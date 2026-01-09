@@ -3,7 +3,7 @@
 
 use std::{net::IpAddr, path::PathBuf};
 
-use futures::{StreamExt, stream::BoxStream};
+use futures::{stream::BoxStream, StreamExt};
 use tokio::{
     sync::{
         broadcast,
@@ -13,16 +13,16 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tonic::{Request, Response, Status, transport::Server};
+use tonic::{transport::Server, Request, Response, Status};
 
 use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, ListGatewaysOptions, LookupGatewayFilters,
-    TargetState, TunnelEvent,
+    TargetState, TunnelEvent, VpnAccountSummary,
 };
 
 use nym_vpn_proto::proto::{
-    self, MixnetTrafficConfig,
-    nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
+    self, nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
+    MixnetTrafficConfig,
 };
 
 use crate::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
@@ -670,6 +670,34 @@ impl NymVpnService for CommandInterface {
 
         let available_tickets = nym_vpn_lib_types::AvailableTickets::from(available_ticketbooks);
         let response = proto::AvailableTickets::from(available_tickets);
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_account_summary(
+        &self,
+        request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::VpnAccountSummaryResponse>> {
+        let account_summary = self
+            .send_and_wait(VpnServiceCommand::GetAccountSummary, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get account summary: {err}"))
+            })?;
+
+        let lib_account_summary: Option<nym_vpn_lib_types::VpnAccountSummary> =
+            account_summary.map(VpnAccountSummary::from);
+        let proto_account_summary: Option<proto::VpnAccountSummary> = lib_account_summary
+            .map(|asum| {
+                proto::VpnAccountSummary::try_from(asum).map_err(|e| {
+                    tonic::Status::internal(format!("Failed to convert account summary: {e}"))
+                })
+            })
+            .transpose()?;
+
+        let response = proto::VpnAccountSummaryResponse {
+            account_summary: proto_account_summary,
+        };
 
         Ok(tonic::Response::new(response))
     }

@@ -1,9 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::{AccountCommandError, AvailableTickets, VpnApiError, VpnApiErrorResponse};
+use nym_vpn_lib_types::{
+    AccountCommandError, AvailableTickets, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
+};
 
 use crate::{conversions::ConversionError, proto};
+use crate::conversions::prost::prost_timestamp_into_offset_datetime;
 
 impl TryFrom<proto::AccountCommandError> for AccountCommandError {
     type Error = ConversionError;
@@ -238,6 +241,39 @@ impl From<VpnApiErrorResponse> for proto::VpnApiErrorResponse {
             message: value.message,
             message_id: value.message_id,
             code_reference_id: value.code_reference_id,
+        }
+    }
+}
+
+impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
+    type Error = ConversionError;
+    fn try_from(value: proto::VpnAccountSummary) -> Result<Self, Self::Error> {
+        let subscription_valid_until = value.subscription_valid_until.map(|ts| prost_timestamp_into_offset_datetime(ts).map_err(|e| ConversionError::ConvertTime("VpnAccountSummary.subscription_valid_until", e))).transpose()?;
+        let traffic_reset_time = value.traffic_reset_time.map(|ts| prost_timestamp_into_offset_datetime(ts).map_err(|e| ConversionError::ConvertTime("VpnAccountSummary.subscription_valid_until", e))).transpose()?;
+        Ok(Self {
+            subscription_valid_until,
+            traffic_used_gb: value.traffic_used_gb,
+            traffic_limit_gb: value.traffic_limit_gb,
+            traffic_reset_time,
+        })
+    }
+}
+
+impl From<VpnAccountSummary> for proto::VpnAccountSummary {
+    fn from(value: VpnAccountSummary) -> Self {
+        let subscription_valid_until = value.subscription_valid_until.map(|dt| prost_types::Timestamp {
+            seconds: dt.unix_timestamp(),
+            nanos: dt.nanosecond() as i32,
+        });
+        let traffic_reset_time = value.traffic_reset_time.map(|dt| prost_types::Timestamp {
+            seconds: dt.unix_timestamp(),
+            nanos: dt.nanosecond() as i32,
+        });
+        Self {
+            subscription_valid_until,
+            traffic_used_gb: value.traffic_used_gb,
+            traffic_limit_gb: value.traffic_limit_gb,
+            traffic_reset_time,
         }
     }
 }

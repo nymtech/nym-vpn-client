@@ -7,6 +7,10 @@ pub mod controller_state;
 pub mod request_zknym;
 pub mod ticketbooks;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
+
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct RegisterAccountResponse {
@@ -199,6 +203,54 @@ impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiErrorRespons
             message: err.message,
             message_id: err.message_id,
             code_reference_id: err.code_reference_id,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct VpnAccountSummary {
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
+    pub subscription_valid_until: Option<OffsetDateTime>,
+
+    pub traffic_used_gb: u64,
+
+    pub traffic_limit_gb: u64,
+
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
+    pub traffic_reset_time: Option<OffsetDateTime>,
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_api_client::types::VpnAccountSummary> for VpnAccountSummary {
+    fn from(value: nym_vpn_api_client::types::VpnAccountSummary) -> Self {
+        Self {
+            subscription_valid_until: value.subscription_valid_until,
+            traffic_used_gb: value.traffic_used_gb,
+            traffic_limit_gb: value.traffic_limit_gb,
+            traffic_reset_time: value.traffic_reset_time,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<VpnAccountSummary> for nym_vpn_api_client::types::VpnAccountSummary {
+    fn from(value: VpnAccountSummary) -> Self {
+        Self {
+            subscription_valid_until: value.subscription_valid_until,
+            traffic_used_gb: value.traffic_used_gb,
+            traffic_limit_gb: value.traffic_limit_gb,
+            traffic_reset_time: value.traffic_reset_time,
         }
     }
 }
