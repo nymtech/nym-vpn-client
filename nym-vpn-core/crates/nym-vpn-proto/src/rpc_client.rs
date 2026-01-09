@@ -6,7 +6,8 @@ use nym_vpn_lib_types::{
     EntryPoint, ExitPoint, FeatureFlags, Gateway, HttpRpcSettings, ListGatewaysOptions, LogPath,
     LookupGatewayFilters, NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice,
     NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status,
-    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 use std::{net::IpAddr, path::PathBuf};
 use tokio_stream::{Stream, StreamExt};
@@ -497,6 +498,7 @@ impl RpcClient {
 
         Ok(devices)
     }
+
     pub async fn get_available_tickets(&mut self) -> Result<AvailableTickets> {
         let response = self
             .0
@@ -506,6 +508,23 @@ impl RpcClient {
             .into_inner();
 
         Ok(AvailableTickets::from(response))
+    }
+
+    pub async fn get_account_summary(&mut self) -> Result<Option<VpnAccountSummary>> {
+        let response = self
+            .0
+            .get_account_summary(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        let account_summary = response
+            .account_summary
+            .map(VpnAccountSummary::try_from)
+            .transpose()
+            .map_err(Error::InvalidResponse)?;
+
+        Ok(account_summary)
     }
 
     pub async fn get_log_path(&mut self) -> Result<LogPath> {

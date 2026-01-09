@@ -45,6 +45,8 @@ pub enum Command {
     /// Get account usage
     #[clap(hide = true)]
     Usage,
+    /// Get account summary
+    Summary,
 }
 
 impl Command {
@@ -156,6 +158,11 @@ impl Command {
             }
             Command::Usage => {
                 let response = rpc_client.get_account_usage().await?;
+                println!("{response:#?}");
+                Ok(())
+            }
+            Command::Summary => {
+                let response = rpc_client.get_account_summary().await?;
                 println!("{response:#?}");
                 Ok(())
             }
