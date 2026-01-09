@@ -19,8 +19,6 @@ function InitialNavigation() {
 
     if (!account) {
       navigate(routes.onboarding, { replace: true });
-    } else {
-      navigate(routes.root, { replace: true });
     }
   }, [account, initialized, navigate]);
 

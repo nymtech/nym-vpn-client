@@ -1,9 +1,10 @@
 {
   "title": "Help us improve NymVPN",
   "description": "Choose what anonymous data to share. All data is stripped of identifying information before being sent.",
-  "anon-toggle-desc": "Applies on app restart",
+  "anon-toggle-desc": "Helps us fix bugs faster, no personal data collected (via <sentryLink />)",
   "tos-notice": "By continuing, you agree to NymVPN's <tosLink /> and acknowledge NymVPN's <privacyLink />.",
   "continue-button": "Continue",
   "error-monitoring-label": "Anonymous error reports",
-  "network-statistic": "Anonymous network stats"
+  "network-statistic": "Share usage analytics",
+  "network-statistic-toggle-desc": "Helps us improve the Nym network. No logging or activity tracked."
 }
