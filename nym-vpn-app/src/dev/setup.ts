@@ -31,7 +31,6 @@ const appVersion = '0.0.0';
 const uiTheme: UiTheme = 'dark';
 const lang = 'en';
 const showWelcome = false;
-const showOnboarding = false;
 // const daemon: VpndStatus = 'down';
 const daemon: VpndStatus = {
   ok: {
