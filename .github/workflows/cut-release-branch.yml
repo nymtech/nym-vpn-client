@@ -56,7 +56,7 @@ jobs:
       - name: Validate release version
         run: |
           if echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}\.[0-9]{1,2}$'; then
-            echo "::notice:: Valid release version format"
+            echo "Valid release version format"
           else
             echo "::error:: Invalid release version format"
             exit 1
