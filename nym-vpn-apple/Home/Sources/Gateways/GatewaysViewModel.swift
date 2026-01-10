@@ -13,15 +13,20 @@ import UIComponents
     let gatewayManager: GatewayManager
     let type: HopType
     let minimumSearchSymbols = 2
-    
+
     var lastError: Error?
+
+    @AppStorage(RefreshErrorView.refreshCooldownIsActiveKey)
+    private var refreshCooldownIsActive: Bool = false
+    @AppStorage(RefreshErrorView.refreshCooldownEndTimeKey)
+    private var refreshCooldownEndTime: Double = 0
 
     @ObservedObject var appSettings: AppSettings
     @ObservedObject var connectionManager: ConnectionManager
     @ObservedObject var featureFlagsManager: FeatureFlagsManager
     @Binding var path: NavigationPath
     @Published var isRefreshing = false
-    @Published var isServerListRefreshFailedOverlayDisplayed = false
+    @Published var isServerListRefreshFailedModalDisplayed = false
     @Published var isGeolocationModalDisplayed = false
     @Published var gateways = [GatewayNode]()
     @Published var countries = [NymCountry]()
@@ -78,10 +83,25 @@ extension GatewaysViewModel {
     }
 
     @MainActor func refreshServersList() async {
+        let endTime = refreshCooldownEndTime > 0 ? Date(timeIntervalSince1970: refreshCooldownEndTime) : nil
+        var timerHasExpired = endTime == nil
+        if let endTime, Date() > endTime {
+            timerHasExpired = true
+            refreshCooldownIsActive = false
+        }
+
+        guard timerHasExpired else {
+            isServerListRefreshFailedModalDisplayed = true
+            return
+        }
+
         isRefreshing = true
         await gatewayManager.refresh()
         updateGateways()
         isRefreshing = false
+        if lastError != nil {
+            isServerListRefreshFailedModalDisplayed = true
+        }
     }
 }
 
@@ -90,6 +110,8 @@ private extension GatewaysViewModel {
     func setup() {
         updateGateways()
         setupQuicToggleObserver()
+        setupGatewayManagerObserver()
+        setupIsServerListRefreshFailedModalDisplayedObserver()
     }
 
     func setupQuicToggleObserver() {
@@ -100,10 +122,19 @@ private extension GatewaysViewModel {
             }
             .store(in: &cancellables)
     }
-    
+
     func setupGatewayManagerObserver() {
         gatewayManager.$lastError.sink { [weak self] error in
             self?.lastError = error
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupIsServerListRefreshFailedModalDisplayedObserver() {
+        $isServerListRefreshFailedModalDisplayed.sink { [weak self] isRefreshErrorDisplayed in
+            if !isRefreshErrorDisplayed {
+                self?.lastError = nil
+            }
         }
         .store(in: &cancellables)
     }

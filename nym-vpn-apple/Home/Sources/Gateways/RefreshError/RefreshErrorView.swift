@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import Constants
 import ExternalLinkManager
 import UIComponents
@@ -6,9 +7,23 @@ import Theme
 
 struct RefreshErrorView: View {
     @Binding private var isDisplayed: Bool
+    private let refresh: (() -> Void)
+    private let refreshCooldownDuration: TimeInterval
 
-    init(isDisplayed: Binding<Bool>) {
+    @State private var remainingSeconds: Int = 0
+    @State private var timer: AnyCancellable?
+
+    static let refreshCooldownIsActiveKey = "refreshCooldownIsActive"
+    @AppStorage(refreshCooldownIsActiveKey)
+    private var refreshCooldownIsActive: Bool = false
+    static let refreshCooldownEndTimeKey = "refreshCooldownEndTime"
+    @AppStorage(refreshCooldownEndTimeKey)
+    private var refreshCooldownEndTime: Double = 0
+
+    init(isDisplayed: Binding<Bool>, refresh: @escaping () -> Void, refreshCooldownDuration: TimeInterval = 60.0) {
         _isDisplayed = isDisplayed
+        self.refresh = refresh
+        self.refreshCooldownDuration = refreshCooldownDuration
     }
 
     var body: some View {
@@ -26,13 +41,11 @@ struct RefreshErrorView: View {
                 VStack {
                     icon()
                     title()
-                    streamingOrQuicSectionTitle()
-                    streamingOrQuicSubtitle()
                     Spacer()
                         .frame(height: 16)
-                    locationAccuracySectionTitle()
-                    locationAccuracySubtitle()
+                    subtitle()
                     okButton()
+                    countdownLabel()
                 }
                 .padding(.horizontal, 24)
                 .background(NymColor.elevation)
@@ -43,6 +56,9 @@ struct RefreshErrorView: View {
             }
         }
         .edgesIgnoringSafeArea(.all)
+        .onAppear {
+            restoreOrStartTimer()
+        }
     }
 }
 
@@ -52,9 +68,9 @@ private extension RefreshErrorView {
         Spacer()
             .frame(height: 24)
 
-        Image(systemName: "info.circle")
-            .foregroundStyle(NymColor.error)
+        GenericImage(imageName: "errorReporting")
             .frame(width: 24, height: 24)
+            .foregroundStyle(NymColor.error)
 
         Spacer()
             .frame(height: 16)
@@ -62,7 +78,7 @@ private extension RefreshErrorView {
 
     @ViewBuilder
     func title() -> some View {
-        Text(titleText())
+        Text("gatewaysView.serverListRefreshFailed.modal.title".localizedString)
             .textStyle(.Headline.Medium.regular)
             .foregroundStyle(NymColor.primary)
 
@@ -70,161 +86,108 @@ private extension RefreshErrorView {
             .frame(height: 16)
     }
 
-    func streamingOrQuicSectionTitle() -> some View {
-        HStack(spacing: 0) {
-            GenericImage(systemImageName: streamingOrQuickImageName())
-                .frame(width: 16, height: 16)
-                .foregroundStyle(NymColor.primary)
-            Spacer()
-                .frame(width: 8)
-            Text(streamingOrQuicTitle())
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.primary)
-            Spacer()
-        }
-    }
-
-    func streamingOrQuickImageName() -> String {
-        switch type {
-        case .entry:
-            "shippingbox.fill"
-        case .exit:
-            "play.rectangle"
-        }
-    }
-
-    func streamingOrQuicTitle() -> String {
-        switch type {
-        case .entry:
-            "locationModal.quic".localizedString
-        case .exit:
-            "locationModal.streaming".localizedString
-        }
-    }
-
-    func streamingOrQuicSubtitle() -> some View {
-        HStack(spacing: 0) {
-            Text(quicOrStreamingAttributtedString())
-                .tint(NymColor.gray1)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
-
-            Spacer()
-        }
-        .environment(\.openURL, OpenURLAction { url in
-            if url == URL(string: Constants.streamingServicesURL.rawValue)
-                || url == URL(string: Constants.quicURL.rawValue) {
-                externalLinkManager.openExternalURL(url)
-                return .handled
-            }
-            return .systemAction
-        })
-    }
-
-    func quicOrStreamingAttributtedString() -> AttributedString {
-        switch type {
-        case .entry:
-            quicAttributtedString()
-        case .exit:
-            streamingAttributtedString()
-        }
-    }
-
-    func quicAttributtedString() -> AttributedString {
-        let first = AttributedString("locationModal.quic.subtitle1".localizedString)
-        var second = AttributedString("locationModal.quic.subtitle2".localizedString)
-        let third = AttributedString("locationModal.quic.subtitle3".localizedString)
-        second.underlineStyle = .single
-        second.foregroundColor = NymColor.primary
-        second.link = URL(string: Constants.quicURL.rawValue)
-        return first + AttributedString(" ") + second + AttributedString(" ") + third
-    }
-
-    func streamingAttributtedString() -> AttributedString {
-        var first = AttributedString("locationModal.streaming.subtitle1".localizedString)
-        let second = AttributedString("locationModal.streaming.subtitle2".localizedString)
-        first.underlineStyle = .single
-        first.foregroundColor = NymColor.primary
-        first.link = URL(string: Constants.streamingServicesURL.rawValue)
-        return first + AttributedString(" ") + second
-    }
-
-    func locationAccuracySectionTitle() -> some View {
-        HStack(spacing: 0) {
-            GenericImage(imageName: "pin")
-                .frame(width: 16, height: 16)
-                .foregroundStyle(NymColor.primary)
-            Spacer()
-                .frame(width: 8)
-            Text("locationModal.locationAccuracy".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.primary)
-            Spacer()
-        }
-    }
-
-    func locationAccuracySubtitle() -> some View {
-        HStack(spacing: 0) {
-            Text(locationAccuracyattributedString())
-                .tint(NymColor.gray1)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
-
-            Spacer()
-        }
-        .environment(\.openURL, OpenURLAction { url in
-            if url == URL(string: Constants.locationAccuracyURL.rawValue) {
-                externalLinkManager.openExternalURL(url)
-                return .handled
-            }
-            return .systemAction
-        })
-    }
-
-    func locationAccuracyattributedString() -> AttributedString {
-        let first = AttributedString("locationModal.accuracy.subtitle1".localizedString)
-        var second = AttributedString("locationModal.accuracy.subtitle2".localizedString)
-        let third = AttributedString("locationModal.accuracy.subtitle3".localizedString)
-        second.underlineStyle = .single
-        second.foregroundColor = NymColor.primary
-        second.link = URL(string: Constants.locationAccuracyURL.rawValue)
-        return first + AttributedString(" ") + second + AttributedString(" ") + third
+    @ViewBuilder
+    func subtitle() -> some View {
+        Text("gatewaysView.serverListRefreshFailed.modal.subtitle".localizedString)
+            .textStyle(.Body.Medium.regular)
+            .foregroundStyle(NymColor.gray1)
+            .multilineTextAlignment(.center)
     }
 
     @ViewBuilder
     func okButton() -> some View {
-        GenericButton(title: "ok".localizedString)
+        GenericButton(title: "ok".localizedString, style: .primaryBorderOnly)
             .padding(.vertical, 24)
             .onTapGesture {
                 isDisplayed.toggle()
             }
     }
-}
 
-private extension RefreshErrorView {
-    func titleText() -> String {
-        switch type {
-        case .exit:
-            "locationModal.exit.title".localizedString
-        case .entry:
-            "locationModal.entry.title".localizedString
+    @ViewBuilder
+    func countdownLabel() -> some View {
+        VStack {
+            if remainingSeconds > 0 {
+                Text("\("gatewaysView.serverListRefreshFailed.modal.refreshInSeconds".localizedString) \(remainingSeconds) \("gatewaysView.serverListRefreshFailed.modal.seconds".localizedString)")
+                    .textStyle(.Body.Medium.bold)
+                    .foregroundStyle(NymColor.gray1)
+            } else {
+                GenericButton(
+                    title: "gatewaysView.serverListRefreshFailed.modal.refreshServerListButton".localizedString,
+                    style: .textOnly
+                )
+                .onTapGesture {
+                    refresh()
+                    isDisplayed.toggle()
+                }
+            }
         }
+        .padding(.bottom, 24)
     }
 }
 
-/*
- 
- var updateAvailableOverlayConfiguration: ActionDialogConfiguration {
-     ActionDialogConfiguration(
-         systemIconImageName: "exclamationmark.circle",
-         titleLocalizedString: "gatewaysView.serverListRefreshFailed.modal.title".localizedString,
-         subtitleLocalizedString: "gatewaysView.serverListRefreshFailed.modal.subtitle".localizedString,
-         yesLocalizedString: "ok".localizedString,
-         yesAction: {
-//                try? ExternalLinkManager.shared.openExternalURL(urlString: Constants.downloadLink.rawValue)
-         }
-     )
- }
- 
- */
+private extension RefreshErrorView {
+    var endTime: Date? {
+        get {
+            refreshCooldownEndTime > 0 ? Date(timeIntervalSince1970: refreshCooldownEndTime) : nil
+        }
+        nonmutating set {
+            refreshCooldownEndTime = newValue?.timeIntervalSince1970 ?? 0
+        }
+    }
 
+    func restoreOrStartTimer() {
+        if refreshCooldownIsActive, let endTime {
+            let now = Date()
+            if now < endTime {
+                refreshCooldownIsActive = true
+                startTimer()
+            } else {
+                cleanup()
+            }
+        } else {
+            start()
+        }
+    }
+
+    func start() {
+        let newEndTime = Date().addingTimeInterval(refreshCooldownDuration)
+        endTime = newEndTime
+        refreshCooldownIsActive = true
+        startTimer()
+    }
+
+    func startTimer() {
+        timer?.cancel()
+        updateRemainingTime()
+
+        timer = Timer.publish(every: 0.1, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                updateRemainingTime()
+            }
+    }
+
+    func updateRemainingTime() {
+        guard let endTime = endTime else {
+            cleanup()
+            return
+        }
+
+        let now = Date()
+        let remaining = endTime.timeIntervalSince(now)
+
+        if remaining > 0 {
+            remainingSeconds = Int(ceil(remaining))
+        } else {
+            remainingSeconds = 0
+            cleanup()
+        }
+    }
+
+    func cleanup() {
+        timer?.cancel()
+        timer = nil
+        endTime = nil
+        refreshCooldownIsActive = false
+    }
+}

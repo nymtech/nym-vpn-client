@@ -17715,6 +17715,28 @@
         }
       }
     },
+    "gatewaysView.serverListRefreshFailed.modal.refreshServerListButton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh server list"
+          }
+        }
+      }
+    },
+    "gatewaysView.serverListRefreshFailed.modal.seconds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "seconds"
+          }
+        }
+      }
+    },
     "gatewaysView.serverListRefreshFailed.modal.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {

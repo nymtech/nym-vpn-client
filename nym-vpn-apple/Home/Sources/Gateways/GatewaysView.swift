@@ -44,6 +44,20 @@ public struct GatewaysView: View {
                     .animation(.easeInOut, value: viewModel.isGeolocationModalDisplayed)
             }
         }
+        .overlay {
+            if viewModel.isServerListRefreshFailedModalDisplayed {
+                RefreshErrorView(
+                    isDisplayed: $viewModel.isServerListRefreshFailedModalDisplayed,
+                    refresh: {
+                        Task {
+                            await viewModel.refreshServersList()
+                        }
+                    }
+                )
+                .transition(.opacity)
+                .animation(.easeInOut, value: viewModel.isServerListRefreshFailedModalDisplayed)
+            }
+        }
         .onTapGesture {
             isSearchFocused = false
         }
@@ -159,6 +173,11 @@ private extension GatewaysView {
                         proxy.scrollTo(viewModel.scrollToModel.scrollToIdentifier, anchor: .top)
                     }
                     viewModel.shouldScroll = false
+                }
+            }
+            .refreshable {
+                Task {
+                    await viewModel.refreshServersList()
                 }
             }
         }
