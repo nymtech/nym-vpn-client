@@ -263,7 +263,7 @@ extension GatewayManager {
 // MARK: - Updating countries -
 extension GatewayManager {
     func fetchGateways() async {
-        do {            
+        do {
             let result = try await Task.detached { [worker] in
                 try await worker.fetchGateways()
             }.value
