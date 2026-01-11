@@ -12,15 +12,9 @@ import clsx from 'clsx';
 import { type } from '@tauri-apps/plugin-os';
 import { motion } from 'motion/react';
 import { NymVpnTextLogo } from '../assets';
-import {
-  useDialog,
-  useMainDispatch,
-  useMainState,
-  useTopBar,
-} from '../contexts';
+import { useDialog, useMainState, useTopBar } from '../contexts';
 import { routes } from '../router';
-import { Routes, StateDispatch } from '../types';
-import { kvSet } from '../kvStore/kv';
+import { Routes } from '../types';
 import ButtonIcon from './ButtonIcon';
 
 type NavLocation = {
@@ -42,7 +36,6 @@ export default function TopBar() {
   const { t } = useTranslation();
   const os = type();
 
-  const dispatch = useMainDispatch() as StateDispatch;
   const { uiTheme } = useMainState();
   const { show } = useDialog();
   const { customLeftNavHandler } = useTopBar();
@@ -97,11 +90,7 @@ export default function TopBar() {
       },
       '/onboarding': {
         rightIcon: 'close',
-        handleRightNav: () => {
-          dispatch({ type: 'set-onboarding-completed', completed: true });
-          kvSet('onboarding-completed', true);
-          navigate(routes.root);
-        },
+        handleRightNav: () => navigate(routes.root),
         noBackground: true,
       },
       '/settings': {
@@ -257,6 +246,14 @@ export default function TopBar() {
         },
       },
       '/account/select-a-plan': {
+        title: (
+          <NymVpnTextLogo
+            className={clsx(
+              'w-24 h-6',
+              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+            )}
+          />
+        ),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
@@ -269,7 +266,7 @@ export default function TopBar() {
       // TODO
       '/account': {},
     };
-  }, [t, navigate, getMainScreenTitle, show, location.state, dispatch]);
+  }, [t, navigate, getMainScreenTitle, show, uiTheme]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);

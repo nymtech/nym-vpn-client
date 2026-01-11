@@ -6,4 +6,5 @@ export { default as ElementIcon } from './element.svg?react';
 export { default as TelegramIcon } from './telegram.svg?react';
 export { default as NymVpnTextLogo } from './nymvpn-text-logo.svg?react';
 export { default as NymSplash } from './nym-splash.svg?react';
+export { default as CheckCircleIcon } from './check-circle.svg?react';
 export * from './node-score';
