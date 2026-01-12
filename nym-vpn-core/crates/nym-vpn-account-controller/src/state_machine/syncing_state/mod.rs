@@ -154,8 +154,6 @@ impl SyncingState {
                     return Err(SyncError::InactiveSubscription);
                 }
 
-                let fair_usage_left = vpn_account_summary.fair_usage_left();
-
                 // that the device is registered or there is a spot left for it with fair usage
                 if summary.active_device.is_none() {
                     if summary.remaining_devices() == 0 {
@@ -163,20 +161,14 @@ impl SyncingState {
                     }
 
                     // Unregistered device and no fair usage
-                    if !fair_usage_left {
-                        Err(SyncError::FairUsageDepleted)
+                    if !vpn_account_summary.fair_usage_left() {
+                        return Err(SyncError::FairUsageDepleted);
                     } else {
-                        SyncingState::register_device(
-                            vpn_api_client,
-                            vpn_api_account,
-                            device,
-                            vpn_account_summary,
-                        )
-                        .await
+                        SyncingState::register_device(vpn_api_client, vpn_api_account, device)
+                            .await?
                     }
-                } else {
-                    Ok(vpn_account_summary)
                 }
+                Ok(vpn_account_summary)
             }
 
             Err(e) => handle_vpn_api_error(e),
@@ -187,12 +179,11 @@ impl SyncingState {
         vpn_api_client: &VpnApiClient,
         vpn_api_account: &VpnAccount,
         device: &Device,
-        vpn_account_summary: VpnAccountSummary,
-    ) -> Result<VpnAccountSummary, SyncError> {
+    ) -> Result<(), SyncError> {
         vpn_api_client
             .register_device(vpn_api_account, device)
             .await?;
-        Ok(vpn_account_summary) // We can register a device, we have fair usage
+        Ok(()) // We can register a device, we have fair usage
     }
 }
 
