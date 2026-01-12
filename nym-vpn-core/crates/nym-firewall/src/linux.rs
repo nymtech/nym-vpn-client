@@ -20,12 +20,10 @@ use nix::net::if_::if_nametoindex;
 
 use super::{
     FirewallArguments, FirewallPolicy,
-    net::{
-        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS, AllowedEndpoint, AllowedTunnelTraffic,
-        Endpoint, TransportProtocol, TunnelMetadata,
-    },
+    net::{AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol, TunnelMetadata},
     split_tunnel,
 };
+use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
 
 use crate::{AllowedClients, DNS_TCP_PORTS, TunnelInterface};
 
