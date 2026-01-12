@@ -8,6 +8,7 @@ import CredentialsManager
 import ExternalLinkManager
 import FeatureFlagsManager
 import ImpactGenerator
+import Routes
 import UIComponents
 
 @MainActor public class SettingsViewModel: SettingsFlowState {
@@ -117,7 +118,7 @@ import UIComponents
         path.removeLast()
     }
 
-    func navigateToAddCredentialsOrCredential() {
+    func navigateToOnboardingOrCredential() {
 #if os(macOS)
         guard isServing
         else {
@@ -127,14 +128,14 @@ import UIComponents
         if credentialsManager.isValidCredentialImported {
             navigateToAccount()
         } else {
-            path.append(SettingLink.addCredentials(navigationSource: .settings))
+            path.append(HomeLink.onboarding)
         }
 #elseif os(iOS)
         impactGenerator.softImpact()
         if credentialsManager.isValidCredentialImported {
             navigateToAccount()
         } else {
-            path.append(SettingLink.createAccountWelcome)
+            path.append(HomeLink.onboarding)
         }
 #endif
     }

@@ -1,5 +1,7 @@
 import SwiftUI
 import AppSettings
+import Constants
+import ExternalLinkManager
 import Routes
 import Settings
 import UIComponents
@@ -7,16 +9,15 @@ import Theme
 
 public struct OnboardingView: View {
     @EnvironmentObject private var appSettings: AppSettings
+    @EnvironmentObject private var externalLinkManager: ExternalLinkManager
     @Binding private var path: NavigationPath
     @State private var selection: Int = 0
     @State private var pageCount = 3
 
     public var body: some View {
         VStack(spacing: 0) {
+            navbar
             VStack(spacing: 0) {
-                Spacer()
-                    .frame(height: 36)
-                logo()
                 Spacer()
                 onboardingStepsView()
                 Spacer()
@@ -69,6 +70,19 @@ public struct OnboardingView: View {
 }
 
 private extension OnboardingView {
+    var navbar: some View {
+        CustomNavBar(
+            useElevationBackground: true,
+            rightButton:
+                CustomNavBarButton(
+                    type: .close,
+                    action: {
+                        path = .init()
+                    }
+                )
+        )
+    }
+
     func logo() -> some View {
         HStack(spacing: 0) {
             GenericImage(imageName: "logoText")
@@ -109,9 +123,14 @@ private extension OnboardingView {
 
 private extension OnboardingView {
     func navigateToCreateAccount() {
+#if os(iOS)
         appSettings.onboardingDidDisplay = true
         path = NavigationPath([HomeLink.settings])
         path.append(SettingLink.createAccountWelcome(navigationSource: .onboarding))
+#elseif os(macOS)
+        try? externalLinkManager.openExternalURL(urlString: Constants.pricingURL.rawValue)
+        navigateTologin()
+#endif
     }
 
     func navigateTologin() {

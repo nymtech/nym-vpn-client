@@ -61,17 +61,8 @@ struct NymVPNApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                if !splashScreenDidDisplay {
-                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
-                } else if !appSettings.onboardingDidDisplay {
-                    OnboardingView()
-                } else if !appSettings.welcomeScreenDidDisplay {
-                    WelcomeView(viewModel: welcomeViewModel)
-                        .transition(.slide)
-                } else {
-                    HomeView(viewModel: homeViewModel)
-                        .transition(.slide)
-                }
+                HomeView(viewModel: homeViewModel)
+                    .transition(.slide)
             }
             .onChange(of: scenePhase) { _, newPhase in
                 configureSecureScreen(with: newPhase)

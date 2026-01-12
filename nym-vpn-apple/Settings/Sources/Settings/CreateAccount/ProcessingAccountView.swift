@@ -12,7 +12,7 @@ public struct ProcessingAccountView: View {
             Spacer()
                 .frame(height: 24)
 
-            StepView(stepCount: 2, currentStep: 2)
+            StepView(stepCount: 4, currentStep: .constant(4))
             Spacer()
             dotsAnimationView
             Spacer()
@@ -55,7 +55,7 @@ private extension ProcessingAccountView {
                 ("processingAccount.title4".localizedString, "processingAccount.subtitle4".localizedString),
                 ("processingAccount.title5".localizedString, "processingAccount.subtitle5".localizedString)
             ],
-            didFinishAnimating: $didFinishAnimatingText
+            didFinishAnimating: $didFinishAnimatingText, timerDidTick: {}
         )
     }
 }

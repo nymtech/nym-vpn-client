@@ -126,7 +126,8 @@ private extension SettingsFlowCoordinator {
                     appSettings: .shared,
                     credentialsManager: .shared,
                     configurationManager: .shared,
-                    keyboardManager: .shared
+                    keyboardManager: .shared,
+                    navigationSource: navigationSource
                 )
         )
 #elseif os(macOS)

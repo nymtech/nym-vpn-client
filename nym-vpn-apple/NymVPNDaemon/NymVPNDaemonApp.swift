@@ -77,17 +77,8 @@ struct NymVPNDaemonApp: App {
     var body: some Scene {
         Window(windowId, id: windowId) {
             NavigationStack {
-                if !splashScreenDidDisplay {
-                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
-                } else if !appSettings.onboardingDidDisplay {
-                    OnboardingView()
-                } else if !appSettings.welcomeScreenDidDisplay {
-                    WelcomeView(viewModel: welcomeViewModel)
-                        .transition(.slide)
-                } else {
-                    HomeView(viewModel: homeViewModel)
-                        .transition(.slide)
-                }
+                HomeView(viewModel: homeViewModel)
+                    .transition(.slide)
             }
             .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
             .onAppear {
@@ -119,7 +110,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(impactGenerator)
             .environmentObject(nymLogger.logFileManager)
         }
-        .onChange(of: appSettings.appMode) { newMode in
+        .onChange(of: appSettings.appMode) { _, newMode in
             appDelegate.configureActivationPolicy(with: newMode)
             configureApp(for: AppSettings.shared.appMode)
         }
@@ -202,22 +193,16 @@ private extension NymVPNDaemonApp {
                 .foregroundStyle(.primary)
         }
         .menuBarExtraStyle(.menu)
-        .onChange(of: connectionManager.currentTunnelStatus) { status in
+        .onChange(of: connectionManager.currentTunnelStatus) { _, status in
             updateImageName(with: status)
             menuBarConnectButtonState = ConnectButtonState(tunnelStatus: status)
         }
     }
 
     func closeWindow() {
-        if #available(macOS 14.0, *) {
-            @Environment(\.dismissWindow)
-            var dismissWindow
-            dismissWindow(id: windowId)
-        } else {
-            NSApplication.shared.windows
-                .first(where: { $0.identifier?.rawValue == windowId })?
-                .close()
-        }
+        @Environment(\.dismissWindow)
+        var dismissWindow
+        dismissWindow(id: windowId)
     }
 
     func quitApp() {

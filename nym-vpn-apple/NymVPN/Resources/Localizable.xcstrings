@@ -1003,107 +1003,6 @@
         }
       }
     },
-    "addCredentials.createAccount" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "الحصول على رمز الوصول"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Zugangscode erhalten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get Passphrase"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Obtener código de acceso"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "کد دسترسی دریافت کنید"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Générer un code d'accès"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "एक्सेस कोड प्राप्त करें"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Ottieni Codice Accesso"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "アクセスコードを取得"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Obter Código de Acesso"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Obter Código de Acesso"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Получите код доступа"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Erişim Kodu Alın"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Отримати код доступу"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Lấy Mã Truy Cập"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "获取访问代码"
-          }
-        }
-      }
-    },
     "addCredentials.Credential" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1930,7 +1829,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please enter your anonymous Passphrase."
+            "value" : "Enter or paste your passphrase: 24 words separated by spaces"
           }
         },
         "es" : {
@@ -2009,107 +1908,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "请输入您的匿名访问代码。"
-          }
-        }
-      }
-    },
-    "addCredentials.Login.Title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تسجيل الدخول"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zugangsdaten hinzufügen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Siguiente"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "بعدی"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suivant"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "अगला"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aggiungi credenziali"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "次へ"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Próximo"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Próximo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Далее"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Devam edin"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Далі"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tiếp theo"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下一步"
           }
         }
       }
@@ -2220,7 +2018,7 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "رمز الوصول\n\nعلى سبيل المثال دخان الطلاء الجمجمة الجمجمة لقصر الضبابية الضارة..."
           }
         },
@@ -2233,84 +2031,84 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "24-word-access-code\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
+            "value" : "word1 word2 word3 word4... (24 words)"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "código de acceso de 24 palabras\n\npor ejemplo smoke artefact velvet skull pop palace tortoise damage rough…"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "کد دسترسی ۲۴ کلمه‌ای\n\nبرای مثال: smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Code d'accès de 24 mots\n\nPar ex. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24-शब्द-एक्सेस-कोड\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24-word-access-code\n\nad esempio fumo artefact velluto cranio pop palace tartaruga danneggia..."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24語で構成されるアクセスコード\n\n例：smoke artefact velvet skull pop palace tortoise damage rough…..."
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Código de acesso 24-palavra\n\npor exemplo, fumaça de crânio de palácio pop tortoise damage rough..."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Código de acesso 24-palavras\n\nex.: smoke artefact velvet skull pop palace tortoise damage rough…"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Код доступа из 24 слов\n\nнапример, smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24 Kelimelik Erişim Kodu\n\nörneğin: smoke artefact velvet skull pop palace tortoise damage rough…..."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24-слівний код доступу\n\nнаприклад, дим артефакт оксамитовий череп поп-палац черепаха пошкодження грубий..."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Mã-truy-cập-24-từ\n\nVí dụ: smoke artefact velvet skull pop palace tortoise damage rough…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24词访问代码\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         }
@@ -2720,107 +2518,6 @@
         }
       }
     },
-    "addCredentials.welcome.Title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مرحبا بكم في"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Welcome to"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenido/a a"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "خوش آمدید به"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenue sur"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPN में आपका स्वागत है"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Benvenuto in"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bem-vindo a"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bem-vindo ao"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Добро пожаловать в"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hoş geldiniz"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ласкаво просимо до"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chào mừng đến với"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "欢迎来到"
-          }
-        }
-      }
-    },
     "addCredtenials.mnemonic" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2839,7 +2536,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Passphrase"
+            "value" : "24 word-passphrase"
           }
         },
         "es" : {

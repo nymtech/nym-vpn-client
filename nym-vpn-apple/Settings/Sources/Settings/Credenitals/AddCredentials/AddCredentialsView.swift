@@ -66,7 +66,7 @@ private extension AddCredentialsView {
     @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
-            title: "NymVPN",
+            useElevationBackground: true,
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
         )
     }
@@ -74,8 +74,9 @@ private extension AddCredentialsView {
     @ViewBuilder
     func scrollViewContent(geometry: GeometryProxy) -> some View {
         ScrollView {
-            VStack {
+            VStack(spacing: 0) {
                 content(safeAreaInsets: geometry.safeAreaInsets)
+                    .padding(.horizontal, 24)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
@@ -112,11 +113,15 @@ private extension AddCredentialsView {
 // #endif
         }
         .padding(.vertical, 16)
-#if os(macOS)
+
         createAccount()
-#endif
+
         Spacer()
-            .frame(height: viewModel.appSettings.isSmallScreen ? 24 : 40)
+            .frame(height: 24)
+        TermsAndConditionsView()
+        Spacer()
+            .frame(height: 24)
+//            .frame(height: viewModel.appSettings.isSmallScreen ? 24 : 40)
     }
 
     @ViewBuilder
@@ -124,34 +129,40 @@ private extension AddCredentialsView {
         Spacer()
             .frame(height: 40)
 
-        welcomeText()
+        loginTitle()
         Spacer()
             .frame(height: 16)
 
-        getStartedTitleText()
+        enterPassphraseTitleText()
         Spacer()
             .frame(height: 16)
     }
 
     @ViewBuilder
-    func welcomeText() -> some View {
-        Text("\(viewModel.welcomeTitle) NymVPN")
-            .textStyle(.Headline.Large.regular)
+    func loginTitle() -> some View {
+        HStack {
+            Spacer()
+            Text("login".localizedString)
+                .textStyle(.Headline.Large.regular)
+            Spacer()
+        }
     }
 
     @ViewBuilder
-    func getStartedTitleText() -> some View {
-        Text(viewModel.getStartedTitle)
-            .textStyle(.Body.Large.regular)
-            .foregroundStyle(NymColor.gray1)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
+    func enterPassphraseTitleText() -> some View {
+        HStack {
+            Text("addCredentials.getStarted.Title".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+                .multilineTextAlignment(.leading)
+            Spacer()
+        }
     }
 
     @ViewBuilder
     func inputView() -> some View {
         LazyVStack(alignment: .leading) {
-            TextField(viewModel.credentialsPlaceholderTitle, text: $viewModel.credentialText, axis: .vertical)
+            TextField("addCredentials.placeholder".localizedString, text: $viewModel.credentialText, axis: .vertical)
 // https://stackoverflow.com/questions/74989806/how-to-dismiss-keyboard-in-swiftui-keyboard-when-pressing-done
 //                .onSubmit {
 //                    viewModel.importCredentials()
@@ -166,7 +177,7 @@ private extension AddCredentialsView {
                 .submitLabel(.done)
                 .textStyle(NymTextStyle.Body.Large.regular)
                 .padding(16)
-                .lineLimit(8, reservesSpace: true)
+                .lineLimit(4, reservesSpace: true)
                 .focused($isFocused)
                 .textFieldStyle(PlainTextFieldStyle())
                 .autocorrectionDisabled()
@@ -176,7 +187,7 @@ private extension AddCredentialsView {
             RoundedRectangle(cornerRadius: 8)
                 .inset(by: 0.5)
         )
-        .frame(height: 212)
+        .frame(height: 104)
         .cornerRadius(8)
         .overlay {
             RoundedRectangle(cornerRadius: 8)
@@ -184,14 +195,14 @@ private extension AddCredentialsView {
                 .stroke(viewModel.textFieldStrokeColor, lineWidth: 1)
         }
         .overlay(alignment: .topLeading) {
-            Text(viewModel.mnemonicSubtitle)
+            Text("addCredtenials.mnemonic".localizedString)
                 .foregroundStyle(viewModel.credentialSubtitleColor)
                 .textStyle(.Body.Small.regular)
                 .padding(4)
                 .background(NymColor.background)
-                .position(x: 55, y: 0)
+                .position(x: 70, y: 0)
         }
-        .padding(EdgeInsets(top: 12, leading: 16, bottom: viewModel.bottomPadding, trailing: 16))
+        .padding(EdgeInsets(top: 12, leading: 0, bottom: viewModel.bottomPadding, trailing: 0))
     }
 
     @ViewBuilder
@@ -199,17 +210,16 @@ private extension AddCredentialsView {
         HStack {
             Text(title)
                 .foregroundStyle(NymColor.error)
+                .multilineTextAlignment(.leading)
                 .lineLimit(nil)
                 .textStyle(.Body.Small.regular)
             Spacer()
         }
-        .padding(EdgeInsets(top: 0, leading: 28, bottom: 16, trailing: 28))
     }
 
     @ViewBuilder
     func loginButton() -> some View {
-        GenericButton(title: viewModel.loginButtonTitle)
-            .padding(.horizontal, 16)
+        GenericButton(title: "login".localizedString)
             .onTapGesture {
                 login()
             }
@@ -238,13 +248,20 @@ private extension AddCredentialsView {
                 .textStyle(.Body.Large.regular)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
+                .environment(\.openURL, OpenURLAction { url in
+                    if url == URL(string: viewModel.createAccounAppLink) {
+                        viewModel.navigateToCreateAccount()
+                        return .handled
+                    }
+                    return .systemAction
+                })
         }
     }
 }
 
 private extension AddCredentialsView {
     func login() {
-        viewModel.importCredentials()
         isFocused = false
+        viewModel.importCredentials()
     }
 }

@@ -1,6 +1,10 @@
 import SwiftUI
+import Constants
 import ImpactGenerator
+import ExternalLinkManager
+#if os(iOS)
 import PurchasesManager
+#endif
 import UIComponents
 import Routes
 import Theme
@@ -10,6 +14,7 @@ public struct CreateAccountWelcomeView: View {
 #if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
 #endif
+    @EnvironmentObject private var externalLinkManager: ExternalLinkManager
     @Binding private var path: NavigationPath
 
     public var body: some View {
@@ -17,11 +22,10 @@ public struct CreateAccountWelcomeView: View {
             navbar
             Spacer()
             VStack(spacing: 0) {
-                logoView
                 Spacer()
-                    .frame(height: 40)
                 createAccountTitle
                 Spacer()
+                    .frame(height: 24)
                 createAccountSection
                 Spacer()
                     .frame(height: 24)
@@ -55,16 +59,8 @@ private extension CreateAccountWelcomeView {
     var navbar: some View {
         CustomNavBar(
             useElevationBackground: true,
-            isLogoImageHidden: true,
             leftButton: CustomNavBarButton(type: .back, action: { navigateBack() })
         )
-    }
-
-    var logoView: some View {
-        GenericImage(imageName: "logoText")
-            .frame(height: 24)
-            .accessibilityLabel("NymVPN".localizedString)
-            .accessibilityAddTraits([.isImage])
     }
 
     var createAccountTitle: some View {
@@ -140,7 +136,7 @@ private extension CreateAccountWelcomeView {
 private extension CreateAccountWelcomeView {
     func navigateBack() {
         switch navigationSource {
-        case .onboarding:
+        case .onboarding, .addCredential:
             path = .init([HomeLink.onboarding])
         case .settings:
             if !path.isEmpty { path.removeLast() }
@@ -150,8 +146,13 @@ private extension CreateAccountWelcomeView {
     }
 
     func navigateToCreateAccount() {
+#if os(iOS)
         ImpactGenerator.shared.impact()
         path.append(SettingLink.generatePassphrase)
+#elseif os(macOS)
+        try? externalLinkManager.openExternalURL(urlString: Constants.pricingURL.rawValue)
+        navigateToLogin()
+#endif
     }
 
     func navigateToLogin() {

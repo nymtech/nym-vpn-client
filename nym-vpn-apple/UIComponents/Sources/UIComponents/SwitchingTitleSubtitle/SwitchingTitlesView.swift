@@ -4,15 +4,17 @@ import Theme
 
 public struct SwitchingTitlesView: View {
     private let pairs: [(title: String, subtitle: String)]
+    private let timerDidTick: () -> Void
 
     @State private var currentIndex = 0
     @State private var timerCancellable: AnyCancellable?
 
     @Binding var didFinishAnimating: Bool
 
-    public init(pairs: [(String, String)], didFinishAnimating: Binding<Bool>) {
+    public init(pairs: [(String, String)], didFinishAnimating: Binding<Bool>, timerDidTick: @escaping () -> Void) {
         self.pairs = pairs.map { (title: $0.0, subtitle: $0.1) }
         _didFinishAnimating = didFinishAnimating
+        self.timerDidTick = timerDidTick
     }
 
     public var body: some View {
@@ -44,6 +46,7 @@ private extension SwitchingTitlesView {
             .autoconnect()
             .sink { _ in
                 advanceIndex()
+                timerDidTick()
             }
     }
 

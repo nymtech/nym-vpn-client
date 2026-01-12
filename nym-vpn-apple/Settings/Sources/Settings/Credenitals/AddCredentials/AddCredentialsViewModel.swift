@@ -17,18 +17,15 @@ import Theme
     private let keyboardManager: KeyboardManager
 #endif
     private let newToNymVPNTitle = "addCredentials.newToNymVPN".localizedString
-    private let createAccountTitle = "addCredentials.createAccount".localizedString
+    private let createAccountTitle = "createAccount".localizedString
+
 
     @Binding private var path: NavigationPath
 
     let appSettings: AppSettings
-    let loginButtonTitle = "addCredentials.Login.Title".localizedString
-    let welcomeTitle = "addCredentials.welcome.Title".localizedString
-    let getStartedTitle = "addCredentials.getStarted.Title".localizedString
-    let mnemonicSubtitle = "addCredtenials.mnemonic".localizedString
-    let credentialsPlaceholderTitle = "addCredentials.placeholder".localizedString
     let scannerIconName = "qrcode.viewfinder"
     let navigationSource: AddCredentialsNavigationSource
+    let createAccounAppLink = "app://createAccount"
 
     var signUpLink: String {
         if let link = configurationManager.accountLinks?.signUp, !link.isEmpty {
@@ -53,7 +50,7 @@ import Theme
     }
     @Published var textFieldStrokeColor = NymColor.gray2
     @Published var credentialSubtitleColor = NymColor.primary
-    @Published var bottomPadding: CGFloat = 12
+    @Published var bottomPadding: CGFloat = 8
     @Published var errorMessageTitle = ""
     @MainActor @Published var isScannerDisplayed = false
     @Published var isFocused = true
@@ -91,7 +88,7 @@ import Theme
 #endif
 
     func createAnAccountAttributedString() -> AttributedString? {
-        try? AttributedString(markdown: "\(newToNymVPNTitle) [\(createAccountTitle)](\(signUpLink))")
+        try? AttributedString(markdown: "\(newToNymVPNTitle) [\(createAccountTitle)](\(createAccounAppLink))")
     }
 
     @MainActor func importCredentials() {
@@ -119,11 +116,18 @@ extension AddCredentialsViewModel {
         case .onboarding:
             path = .init([HomeLink.onboarding])
         case .createAccountWelcome:
-            path = .init([HomeLink.settings])
-            path.append(SettingLink.createAccountWelcome)
+//            path = .init([HomeLink.settings])
+//            // TODO: check if true
+//            path.append(SettingLink.createAccountWelcome(navigationSource: .home))
+            if !path.isEmpty { path.removeLast() }
         case .settings:
             if !path.isEmpty { path.removeLast() }
         }
+    }
+
+    func navigateToCreateAccount() {
+        path = NavigationPath([HomeLink.settings])
+        path.append(SettingLink.createAccountWelcome(navigationSource: .addCredential))
     }
 
     func navigateHome() {
@@ -138,7 +142,7 @@ extension AddCredentialsViewModel {
 
         textFieldStrokeColor = error == .noError ? NymColor.gray2 : NymColor.error
         credentialSubtitleColor = error == .noError ? NymColor.primary : NymColor.error
-        bottomPadding = error != .noError ? 4 : 12
+        bottomPadding = error != .noError ? 4 : 8
 
         errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)
         ?? (CredentialsManagerError.generalError("").localizedTitle ?? "Error".localizedString)

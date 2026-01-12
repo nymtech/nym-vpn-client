@@ -6,6 +6,7 @@ public struct CustomNavBarButton: View {
         case back
         case settings
         case info
+        case close
         case empty
 
         var imageName: String? {
@@ -16,6 +17,8 @@ public struct CustomNavBarButton: View {
                 "settingsGear"
             case .info:
                 "info"
+            case .close:
+                "xmark"
             case .empty:
                 nil
             }
@@ -32,15 +35,8 @@ public struct CustomNavBarButton: View {
     }
 
     public var body: some View {
-        if #available(iOS 17.0, macOS 14.0, *) {
-            genericButton()
-                .focusEffectDisabled()
-        } else {
-            genericButton()
-#if os(macOS)
-                .focusable(false)
-#endif
-        }
+        genericButton()
+            .focusEffectDisabled()
     }
 }
 
@@ -51,8 +47,15 @@ private extension CustomNavBarButton {
             action?()
         } label: {
             if let imageName = type.imageName {
-                Image(imageName, bundle: .module)
-                    .foregroundStyle(NymColor.gray1)
+                switch type {
+                case .back, .settings, .info, .empty:
+                    Image(imageName, bundle: .module)
+                        .foregroundStyle(NymColor.gray1)
+
+                case .close:
+                    Image(systemName: imageName)
+                        .foregroundStyle(NymColor.gray1)
+                }
             }
         }
         .buttonStyle(PlainButtonStyle())
