@@ -2,8 +2,8 @@ import Foundation
 
 public enum SettingLink: Hashable, Identifiable {
     case accountAndDevices
-    case addCredentials
-    case createAccountWelcome
+    case addCredentials(navigationSource: AddCredentialsNavigationSource)
+    case createAccountWelcome(navigationSource: CreateAccountNavigationSource)
     case generatePassphrase
     case planPurchase(shouldDisplayBackButton: Bool)
     case processingAccount

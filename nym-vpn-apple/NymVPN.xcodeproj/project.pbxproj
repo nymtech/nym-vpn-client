@@ -36,6 +36,8 @@
 		D9391F0F2E4624D6002BE10F /* MessageModels in Frameworks */ = {isa = PBXBuildFile; productRef = D9391F0E2E4624D6002BE10F /* MessageModels */; };
 		D939CB652DE0911500AA2F9C /* PurchasesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D939CB642DE0911500AA2F9C /* PurchasesManager */; };
 		D944053F2BAC4CBD0076EEDB /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
+		D94510932F104CD200E2EE5E /* Routes in Frameworks */ = {isa = PBXBuildFile; productRef = D94510922F104CD200E2EE5E /* Routes */; };
+		D94510952F104CD800E2EE5E /* Routes in Frameworks */ = {isa = PBXBuildFile; productRef = D94510942F104CD800E2EE5E /* Routes */; };
 		D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D94866FE2BE035C300F5331B /* CredentialsManager */; };
 		D94867012BE035FB00F5331B /* Constants in Frameworks */ = {isa = PBXBuildFile; productRef = D94867002BE035FB00F5331B /* Constants */; };
 		D953CFEA2C8ED73C008A942B /* NotificationsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D953CFE92C8ED73C008A942B /* NotificationsManager */; };
@@ -196,8 +198,6 @@
 		D955FA002B73CF6F005BA27D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D956711D2D5144A6003BB2EA /* PacketTunneProvider+Messaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PacketTunneProvider+Messaging.swift"; sourceTree = "<group>"; };
 		D9643C6D2CEBC53A00F6B9A7 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.1.sdk/System/Library/Frameworks/UserNotifications.framework; sourceTree = DEVELOPER_DIR; };
-		D977F1F02EA2D11F00E8A6C0 /* background_dmg@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "background_dmg@2x.png"; sourceTree = "<group>"; };
-		D977F1F12EA2D13200E8A6C0 /* macDmgIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = macDmgIcon.icns; sourceTree = "<group>"; };
 		D9879AF52CFE166400CF1B5D /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D98B32F12C58F682005A15A3 /* Package.resolved */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Package.resolved; path = NymVPN.xcworkspace/xcshareddata/swiftpm/Package.resolved; sourceTree = SOURCE_ROOT; };
 		D990950D2BC6B31900C98E3F /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = DEVELOPER_DIR; };
@@ -260,6 +260,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D94510932F104CD200E2EE5E /* Routes in Frameworks */,
 				D9A1C1292D3E68CF00D33C0F /* NetworkMonitor in Frameworks */,
 				D93214412B84D29200FFDC5E /* Logging in Frameworks */,
 				D968BDCB2B6BC98E003F42E5 /* AppVersionProvider in Frameworks */,
@@ -312,6 +313,7 @@
 				D9FFC1F92C40F65F00A4766C /* AutoUpdates in Frameworks */,
 				D9FB33E82BECFD1F009C3419 /* ServiceManagement.framework in Frameworks */,
 				D92FBA2B2C6B6AB300D743DF /* ConfigurationManager in Frameworks */,
+				D94510952F104CD800E2EE5E /* Routes in Frameworks */,
 				D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */,
 				D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */,
 				D96680D32CC4FC7800267FA1 /* Device in Frameworks */,
@@ -370,8 +372,6 @@
 		D967402C2B56CA1A001F6891 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				D977F1F12EA2D13200E8A6C0 /* macDmgIcon.icns */,
-				D977F1F02EA2D11F00E8A6C0 /* background_dmg@2x.png */,
 				D9DE89442CFE54F7006C4071 /* LaunchLogo */,
 				D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */,
 				D9CACB0A2D67B7090004F9E0 /* gatewaysExit.json */,
@@ -578,6 +578,7 @@
 				D9391F0E2E4624D6002BE10F /* MessageModels */,
 				D93466CC2E57A1FE00BEF458 /* NymVPNLib */,
 				D9D381322E7B1683006DAFBB /* FeatureFlagsManager */,
+				D94510922F104CD200E2EE5E /* Routes */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -623,6 +624,7 @@
 				D9391F0A2E461E1C002BE10F /* MessagesManager */,
 				D9391F0C2E4624CD002BE10F /* MessageModels */,
 				D99035872E9063D600E42A82 /* ImpactGenerator */,
+				D94510942F104CD800E2EE5E /* Routes */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -687,11 +689,7 @@
 				"zh-Hans",
 				de,
 				hi,
-				it,
-				ja,
 				fa,
-				"pt-BR",
-				"pt-PT",
 				es,
 				tr,
 				uk,
@@ -1446,6 +1444,14 @@
 		D939CB642DE0911500AA2F9C /* PurchasesManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PurchasesManager;
+		};
+		D94510922F104CD200E2EE5E /* Routes */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Routes;
+		};
+		D94510942F104CD800E2EE5E /* Routes */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Routes;
 		};
 		D94866FE2BE035C300F5331B /* CredentialsManager */ = {
 			isa = XCSwiftPackageProductDependency;

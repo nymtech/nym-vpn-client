@@ -71,7 +71,7 @@ private extension DnsView {
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack(discardChanges: false) })
         )
     }
-    
+
     @ViewBuilder
     func scrollViewContent() -> some View {
         ScrollView {
@@ -271,7 +271,7 @@ private extension DnsView {
         }
     }
     #endif
-    
+
     @ViewBuilder
     func dnsListTitle() -> some View {
         if !viewModel.customDns.isEmpty {
@@ -351,7 +351,7 @@ private extension DnsView {
         .onTapGesture {
             isCustomDnsTextFieldFocused = true
         }
-        .onChange(of: viewModel.customDnsTextField) { newValue in
+        .onChange(of: viewModel.customDnsTextField) { _, newValue in
             if !newValue.isEmpty {
                 isCustomDnsTextFieldDirty = true
             }

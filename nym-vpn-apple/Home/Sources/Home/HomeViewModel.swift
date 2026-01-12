@@ -11,6 +11,7 @@ import GatewayManager
 import MessagesManager
 import MessageModels
 import NetworkMonitor
+import Routes
 import Settings
 import TunnelMixnet
 import TunnelStatus
@@ -106,8 +107,6 @@ import GRPCManager
         )
     }
 
-    @MainActor @Published public var splashScreenDidDisplay = false
-
 #if os(iOS)
     public init(
         appSettings: AppSettings,
@@ -194,11 +193,7 @@ public extension HomeViewModel {
 
     @MainActor func navigateToAddCredentials() {
         path.append(HomeLink.settings)
-#if os(iOS)
-        path.append(SettingLink.createAccountWelcome)
-#elseif os(macOS)
-        path.append(SettingLink.addCredentials)
-#endif
+        path.append(SettingLink.createAccountWelcome(navigationSource: .home))
     }
 
     @MainActor func navigateToPlanPurchase() {
@@ -296,7 +291,7 @@ private extension HomeViewModel {
         }
         .store(in: &cancellables)
     }
-    
+
     func setupIsMnemonicImportedObserver() {
         appSettings.$isCredentialImportedPublisher
             .removeDuplicates()

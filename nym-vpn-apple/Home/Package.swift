@@ -17,13 +17,14 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../UIComponents"),
+        .package(path: "../Routes"),
         .package(path: "../Settings"),
         .package(path: "../Services"),
         .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
-        .package(path: "../Theme")
+        .package(path: "../Theme"),
+        .package(path: "../UIComponents")
     ],
     targets: [
         .target(
@@ -41,6 +42,7 @@ let package = Package(
                 .product(name: "NetworkMonitor", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "MessagesManager", package: "Services"),
+                .product(name: "Routes", package: "Routes"),
                 .product(name: "Theme", package: "Theme")
             ],
             path: "Sources"

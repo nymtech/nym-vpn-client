@@ -7,6 +7,7 @@ import ConfigurationManager
 #if os(iOS)
 import KeyboardManager
 #endif
+import Routes
 import Theme
 
 @MainActor final class AddCredentialsViewModel: ObservableObject {
@@ -16,26 +17,23 @@ import Theme
     private let keyboardManager: KeyboardManager
 #endif
     private let newToNymVPNTitle = "addCredentials.newToNymVPN".localizedString
-    private let createAccountTitle = "addCredentials.createAccount".localizedString
+    private let createAccountTitle = "createAccount".localizedString
 
-    var signUpLink: String {
-        // TODO: readd once the link is updated in the api
-//        if let link = configurationManager.accountLinks?.signUp, !link.isEmpty {
-//            return link
-//        } else {
-            Constants.pricingURL.rawValue
-//        }
-    }
-
-    let appSettings: AppSettings
-    let loginButtonTitle = "addCredentials.Login.Title".localizedString
-    let welcomeTitle = "addCredentials.welcome.Title".localizedString
-    let getStartedTitle = "addCredentials.getStarted.Title".localizedString
-    let mnemonicSubtitle = "addCredtenials.mnemonic".localizedString
-    let credentialsPlaceholderTitle = "addCredentials.placeholder".localizedString
-    let scannerIconName = "qrcode.viewfinder"
 
     @Binding private var path: NavigationPath
+
+    let appSettings: AppSettings
+    let scannerIconName = "qrcode.viewfinder"
+    let navigationSource: AddCredentialsNavigationSource
+    let createAccounAppLink = "app://createAccount"
+
+    var signUpLink: String {
+        if let link = configurationManager.accountLinks?.signUp, !link.isEmpty {
+            link
+        } else {
+            Constants.pricingURL.rawValue
+        }
+    }
 
     @MainActor @Published var credentialText = "" {
         willSet(newText) {
@@ -52,7 +50,7 @@ import Theme
     }
     @Published var textFieldStrokeColor = NymColor.gray2
     @Published var credentialSubtitleColor = NymColor.primary
-    @Published var bottomPadding: CGFloat = 12
+    @Published var bottomPadding: CGFloat = 8
     @Published var errorMessageTitle = ""
     @MainActor @Published var isScannerDisplayed = false
     @Published var isFocused = true
@@ -63,30 +61,34 @@ import Theme
         appSettings: AppSettings,
         credentialsManager: CredentialsManager,
         configurationManager: ConfigurationManager,
-        keyboardManager: KeyboardManager
+        keyboardManager: KeyboardManager,
+        navigationSource: AddCredentialsNavigationSource
     ) {
         _path = path
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.configurationManager = configurationManager
         self.keyboardManager = keyboardManager
+        self.navigationSource = navigationSource
     }
 #elseif os(macOS)
     init(
         path: Binding<NavigationPath>,
         appSettings: AppSettings,
         configurationManager: ConfigurationManager,
-        credentialsManager: CredentialsManager
+        credentialsManager: CredentialsManager,
+        navigationSource: AddCredentialsNavigationSource
     ) {
         _path = path
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.credentialsManager = credentialsManager
+        self.navigationSource = navigationSource
     }
 #endif
 
     func createAnAccountAttributedString() -> AttributedString? {
-        try? AttributedString(markdown: "\(newToNymVPNTitle) [\(createAccountTitle)](\(signUpLink))")
+        try? AttributedString(markdown: "\(newToNymVPNTitle) [\(createAccountTitle)](\(createAccounAppLink))")
     }
 
     @MainActor func importCredentials() {
@@ -110,7 +112,22 @@ import Theme
 // MARK: - Navigation -
 extension AddCredentialsViewModel {
     func navigateBack() {
-        if !path.isEmpty { path.removeLast() }
+        switch navigationSource {
+        case .onboarding:
+            path = .init([HomeLink.onboarding])
+        case .createAccountWelcome:
+//            path = .init([HomeLink.settings])
+//            // TODO: check if true
+//            path.append(SettingLink.createAccountWelcome(navigationSource: .home))
+            if !path.isEmpty { path.removeLast() }
+        case .settings:
+            if !path.isEmpty { path.removeLast() }
+        }
+    }
+
+    func navigateToCreateAccount() {
+        path = NavigationPath([HomeLink.settings])
+        path.append(SettingLink.createAccountWelcome(navigationSource: .addCredential))
     }
 
     func navigateHome() {
@@ -125,7 +142,7 @@ extension AddCredentialsViewModel {
 
         textFieldStrokeColor = error == .noError ? NymColor.gray2 : NymColor.error
         credentialSubtitleColor = error == .noError ? NymColor.primary : NymColor.error
-        bottomPadding = error != .noError ? 4 : 12
+        bottomPadding = error != .noError ? 4 : 8
 
         errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)
         ?? (CredentialsManagerError.generalError("").localizedTitle ?? "Error".localizedString)

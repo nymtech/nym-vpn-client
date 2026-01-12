@@ -17,6 +17,7 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../Routes"),
         .package(path: "../Services"),
         .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMutual"),
@@ -43,6 +44,7 @@ let package = Package(
                 .product(name: "PurchasesManager", package: "Services"),
                 .product(name: "SentryManager", package: "Services"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
+                .product(name: "Routes", package: "Routes"),
                 .product(name: "Theme", package: "Theme"),
                 .product(name: "UIComponents", package: "UIComponents"),
                 .product(name: "AcknowList", package: "AcknowList")

@@ -8,6 +8,7 @@ import ExternalLinkManager
 import FeatureFlagsManager
 import GatewayManager
 import ImpactGenerator
+import Routes
 import Settings
 import Theme
 import UIComponents
