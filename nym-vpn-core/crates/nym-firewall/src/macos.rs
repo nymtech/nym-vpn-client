@@ -12,13 +12,13 @@ use std::{
 
 use ipnetwork::IpNetwork;
 use libc::{c_int, sysctlbyname};
+use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
 use pfctl::{DropAction, FilterRuleAction, Ip, Uid};
 
 use super::{
     DNS_TCP_PORTS, FirewallArguments, FirewallPolicy,
     net::{
-        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS, AllowedEndpoint, AllowedTunnelTraffic,
-        TransportProtocol, TunnelInterface, TunnelMetadata,
+        AllowedEndpoint, AllowedTunnelTraffic, TransportProtocol, TunnelInterface, TunnelMetadata,
     },
 };
 

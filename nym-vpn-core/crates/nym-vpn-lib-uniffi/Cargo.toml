@@ -66,6 +66,7 @@ tracing-oslog.workspace = true
 android_logger.workspace = true
 log.workspace = true
 rand.workspace = true
+nym-firewall-config.workspace = true
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
