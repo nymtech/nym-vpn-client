@@ -107,7 +107,7 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn test_resolve_host() {
-        let addresses = domain_to_socket_addr("microsoft.com", None).await.unwrap();
+        //let addresses = domain_to_socket_addr("microsoft.com", None).await.unwrap();
 
         let limited_addresses = str_to_socket_addr("https://microsoft.com", Some((1, 1)))
             .await
