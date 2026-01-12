@@ -2,6 +2,7 @@ import SwiftUI
 import Constants
 import CountriesManagerTypes
 import ExternalLinkManager
+import Routes
 import Settings
 import Theme
 import UIComponents

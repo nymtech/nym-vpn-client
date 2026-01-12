@@ -30,10 +30,10 @@ struct SettingsFlowCoordinator<Content: View>: View {
             supportDestination()
         case .legal:
             legalDestination()
-        case .addCredentials:
-            addCredentialsDestination()
-        case .createAccountWelcome:
-            createAccountWelcomeDestination()
+        case let .addCredentials(navigationSource: navigationSource):
+            addCredentialsDestination(navigationSource: navigationSource)
+        case let .createAccountWelcome(navigationSource: navigationSource):
+            createAccountWelcomeDestination(navigationSource: navigationSource)
         case .generatePassphrase:
             GeneratePassphraseView(path: $flowState.path)
         case let .planPurchase(shouldDisplayBackButton: shouldDisplayBackButton):
@@ -117,7 +117,7 @@ private extension SettingsFlowCoordinator {
     }
 
     @ViewBuilder
-    func addCredentialsDestination() -> some View {
+    func addCredentialsDestination(navigationSource: AddCredentialsNavigationSource) -> some View {
 #if os(iOS)
         AddCredentialsView(
             viewModel:
@@ -126,7 +126,8 @@ private extension SettingsFlowCoordinator {
                     appSettings: .shared,
                     credentialsManager: .shared,
                     configurationManager: .shared,
-                    keyboardManager: .shared
+                    keyboardManager: .shared,
+                    navigationSource: navigationSource
                 )
         )
 #elseif os(macOS)
@@ -135,15 +136,16 @@ private extension SettingsFlowCoordinator {
                 path: $flowState.path,
                 appSettings: .shared,
                 configurationManager: .shared,
-                credentialsManager: .shared
+                credentialsManager: .shared,
+                navigationSource: navigationSource
             )
         )
 #endif
     }
 
     @ViewBuilder
-    func createAccountWelcomeDestination() -> some View {
-        CreateAccountWelcomeView(path: $flowState.path)
+    func createAccountWelcomeDestination(navigationSource: CreateAccountNavigationSource) -> some View {
+        CreateAccountWelcomeView(path: $flowState.path, navigationSource: navigationSource)
     }
 
     @ViewBuilder

@@ -1,7 +1,19 @@
 import SwiftUI
+import AppSettings
+import Routes
 
+@Observable
 public class HomeFlowState: ObservableObject {
-    @MainActor @Published var path = NavigationPath()
-    @MainActor @Published var presentedItem: HomeLink?
-    @MainActor @Published var coverItem: HomeLink?
+    var splashScreenDidDisplay = false
+
+    var path = NavigationPath()
+    var presentedItem: HomeLink?
+    var coverItem: HomeLink?
+
+    init() {
+        self.path = NavigationPath()
+        if !splashScreenDidDisplay {
+            path.append(HomeLink.launchView)
+        }
+    }
 }

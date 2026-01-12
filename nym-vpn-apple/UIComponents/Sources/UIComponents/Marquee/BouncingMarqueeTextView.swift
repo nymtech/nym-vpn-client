@@ -25,7 +25,7 @@ public struct BouncingMarqueeTextView: View {
                             containerWidth = geometry.size.width
                             startAnimationIfNeeded()
                         }
-                        .onChange(of: geometry.size.width) { width in
+                        .onChange(of: geometry.size.width) { _, width in
                             containerWidth = width
                             resetAnimationIfNeeded()
                         }
@@ -55,7 +55,7 @@ public struct BouncingMarqueeTextView: View {
                                         textWidth = geometry.size.width
                                         startAnimationIfNeeded()
                                     }
-                                    .onChange(of: geometry.size.width) { width in
+                                    .onChange(of: geometry.size.width) { _, width in
                                         textWidth = width
                                         resetAnimationIfNeeded()
                                     }
@@ -65,7 +65,7 @@ public struct BouncingMarqueeTextView: View {
                 .frame(width: containerWidth, alignment: .leading)
                 .clipped()
             }
-            .onChange(of: text) { _ in
+            .onChange(of: text) { _, _ in
                 resetAnimationIfNeeded()
             }
     }

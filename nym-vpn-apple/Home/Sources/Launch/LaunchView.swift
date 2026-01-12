@@ -1,35 +1,42 @@
 import SwiftUI
 import AppSettings
+import CredentialsManager
+import Routes
 import Theme
 import UIComponents
 
 public struct LaunchView: View {
+    @EnvironmentObject private var appSettings: AppSettings
+    @EnvironmentObject private var credentialsManager: CredentialsManager
     @Binding private var splashScreenDidDisplay: Bool
+    @Binding private var path: NavigationPath
+    @State private var logoOpacity: Double = 0.0
 
-    public init(splashScreenDidDisplay: Binding<Bool>) {
+    public init(splashScreenDidDisplay: Binding<Bool>, path: Binding<NavigationPath>) {
         _splashScreenDidDisplay = splashScreenDidDisplay
+        _path = path
     }
 
     public var body: some View {
-        VStack {
-            Spacer()
-            HStack {
-                Spacer()
-                SplashAnimationView(
-                    viewModel:
-                        SplashAnimationViewModel(
-                            splashScreenDidDisplay: $splashScreenDidDisplay,
-                            appSettings: .shared
-                        )
-                )
-                .frame(maxWidth: MagicNumbers.maxWidth)
-                Spacer()
+        LogoView()
+            .navigationBarBackButtonHidden(true)
+            .opacity(logoOpacity)
+            .background {
+                NymColor.background
+                    .ignoresSafeArea()
             }
-            Spacer()
-        }
-        .background {
-            NymColor.background
-                .ignoresSafeArea()
-        }
+            .task {
+                withAnimation(.easeOut(duration: 0.7)) {
+                    logoOpacity = 1.0
+                } completion: {
+                    Task {
+                        try? await Task.sleep(for: .seconds(0.3))
+                        splashScreenDidDisplay = true
+                        path = (
+                            !appSettings.onboardingDidDisplay && credentialsManager.isValidCredentialImported
+                        ) ? NavigationPath([HomeLink.onboarding]) : .init()
+                    }
+                }
+            }
     }
 }

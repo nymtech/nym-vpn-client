@@ -81,7 +81,7 @@ private extension SettingsView {
             .frame(height: 64)
             .padding(EdgeInsets(top: 24, leading: 0, bottom: 0, trailing: 0))
             .onTapGesture {
-                viewModel.navigateToAddCredentialsOrCredential()
+                viewModel.navigateToOnboardingOrCredential()
             }
     }
 

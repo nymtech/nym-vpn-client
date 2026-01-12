@@ -49,8 +49,8 @@ public struct ActionDialogView: View {
                 isSpinning = true
             }
         }
-        .onChange(of: viewModel.isLoading) { isLoading in
-            isSpinning = isLoading
+        .onChange(of: viewModel.isLoading) { _, newValue in
+            isSpinning = newValue
         }
     }
 }
