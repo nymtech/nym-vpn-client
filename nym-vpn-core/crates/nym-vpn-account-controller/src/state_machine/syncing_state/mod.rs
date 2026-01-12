@@ -160,7 +160,6 @@ impl SyncingState {
                         return Err(SyncError::MaxDeviceReached); // Early detection of max device reached
                     }
 
-                    // Unregistered device and no fair usage
                     if !vpn_account_summary.fair_usage_left() {
                         return Err(SyncError::FairUsageDepleted);
                     } else {

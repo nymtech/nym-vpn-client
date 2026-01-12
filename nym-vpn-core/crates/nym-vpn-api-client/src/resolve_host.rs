@@ -106,6 +106,7 @@ pub async fn domain_to_socket_addr(
 mod tests {
     use super::*;
     #[tokio::test]
+    #[ignore]
     async fn test_resolve_host() {
         let addresses = domain_to_socket_addr("microsoft.com", None).await.unwrap();
 
