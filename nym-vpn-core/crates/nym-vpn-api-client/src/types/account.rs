@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
-
 use crate::jwt::Jwt;
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
 use nym_validator_client::{
@@ -11,6 +9,7 @@ use nym_validator_client::{
     signing::signer::OfflineSigner as _,
 };
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
+use std::fmt;
 use time::{Duration, OffsetDateTime};
 use zeroize::Zeroizing;
 
@@ -24,6 +23,12 @@ pub enum Error {
 
     #[error("no accounts in wallet")]
     NoAccounts,
+
+    #[error("subscription expiry parse error: {0}")]
+    SubscriptionExpiryParseError(time::error::Parse),
+
+    #[error("traffic reset time parse error: {0}")]
+    TrafficResetTimeParseError(time::error::Parse),
 }
 
 /// Defines the mode of operation of the associated account.

@@ -8,6 +8,7 @@ use nym_vpn_api_client::{
     VpnApiClient,
     types::{Device, VpnAccount},
 };
+use nym_vpn_lib_types::VpnAccountSummary;
 
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::sync::mpsc;
@@ -42,6 +43,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
 
     /// Stored account
     pub(crate) vpn_api_account: Option<Arc<VpnAccount>>,
+
+    /// Account summary
+    pub(crate) vpn_account_summary: Option<VpnAccountSummary>,
 
     /// Registered device
     pub(crate) device: Option<Device>,
@@ -78,6 +82,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             vpn_api_client,
             nyxd_client,
             vpn_api_account: vpn_api_account.map(Arc::new),
+            vpn_account_summary: None,
             device,
             firewall_active: false,
             storage_op_sender,

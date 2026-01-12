@@ -42,7 +42,7 @@ use nym_vpn_lib_types::{
     FeatureFlags, Gateway, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
     NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice,
     NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest, SystemMessage,
-    TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    TargetState, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -134,6 +134,10 @@ pub enum VpnServiceCommand {
     ),
     GetAvailableTickets(
         oneshot::Sender<Result<AvailableTicketbooks, AccountCommandError>>,
+        (),
+    ),
+    GetAccountSummary(
+        oneshot::Sender<Result<Option<VpnAccountSummary>, AccountCommandError>>,
         (),
     ),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
@@ -870,6 +874,9 @@ impl NymVpnService {
             VpnServiceCommand::GetAvailableTickets(tx, ()) => {
                 let _ = tx.send(self.handle_get_available_tickets().await);
             }
+            VpnServiceCommand::GetAccountSummary(tx, ()) => {
+                let _ = tx.send(self.handle_get_account_summary().await);
+            }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.log_path.clone());
             }
@@ -1504,6 +1511,12 @@ impl NymVpnService {
         &self,
     ) -> Result<AvailableTicketbooks, AccountCommandError> {
         self.account_command_tx.get_available_tickets().await
+    }
+
+    async fn handle_get_account_summary(
+        &self,
+    ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
+        self.account_command_tx.get_account_summary().await
     }
 
     async fn handle_delete_log_file(&self) {

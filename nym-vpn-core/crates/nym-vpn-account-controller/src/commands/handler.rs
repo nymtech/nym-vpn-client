@@ -175,6 +175,7 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     // Once we have removed or reset all storage, we need to reset the account state
     shared_state.vpn_api_account = None;
     shared_state.device = None;
+    shared_state.vpn_account_summary = None;
     shared_state.nyxd_client.disconnect();
 
     if let Err(err) = remove_files_result {

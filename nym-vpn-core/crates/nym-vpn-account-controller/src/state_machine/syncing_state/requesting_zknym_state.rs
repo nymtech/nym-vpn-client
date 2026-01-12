@@ -53,7 +53,6 @@ const ZK_NYM_STATE_CONTEXT: &str = "ZK_NYM_STATE";
 pub(crate) struct RequestingZkNymsState {
     zk_nym_fetching_handle: JoinHandle<Result<ZkNymFetchResult, ZkNymError>>,
     attempts: u32,
-    fair_usage_left: bool,
     entered_through_upgrade_mode: bool,
 }
 
@@ -61,7 +60,6 @@ impl RequestingZkNymsState {
     pub(crate) fn enter<C: ConnectivityMonitor>(
         shared_state: &SharedAccountState<C>,
         attempts: u32,
-        fair_usage_left: bool, // Syncing state telling us the fair usage state
         entered_through_upgrade_mode: bool,
     ) -> (
         Box<dyn AccountControllerStateHandler<C>>,
@@ -76,8 +74,15 @@ impl RequestingZkNymsState {
                 details: "Logged in, but no device keys".into(),
             });
         };
+        let Some(ref vpn_account_summary) = shared_state.vpn_account_summary else {
+            return ErrorState::enter(AccountControllerErrorStateReason::Internal {
+                context: ZK_NYM_STATE_CONTEXT.to_string(),
+                details: "Logged in, but no account summary".into(),
+            });
+        };
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
+        let fair_usage_left = vpn_account_summary.fair_usage_left();
 
         // can we make that unique to that state?
         let storage = shared_state.credential_storage.clone();
@@ -96,7 +101,6 @@ impl RequestingZkNymsState {
             Box::new(Self {
                 zk_nym_fetching_handle,
                 attempts,
-                fair_usage_left,
                 entered_through_upgrade_mode,
             }),
             PrivateAccountControllerState::RequestingZkNyms,
@@ -256,7 +260,6 @@ impl RequestingZkNymsState {
                         NextAccountControllerState::NewState(RequestingZkNymsState::enter(
                             shared_state,
                             ZK_NYM_MAX_FAILS + 1,
-                            self.fair_usage_left,
                             false,
                         ))
                     }
@@ -265,7 +268,6 @@ impl RequestingZkNymsState {
                         NextAccountControllerState::NewState(RequestingZkNymsState::enter(
                             shared_state,
                             self.attempts + 1,
-                            self.fair_usage_left,
                             false,
                         ))
                     }
@@ -361,7 +363,6 @@ impl RequestingZkNymsState {
                     return NextAccountControllerState::NewState(RequestingZkNymsState::enter(
                         shared_state,
                         self.attempts,
-                        self.fair_usage_left,
                         false,
                     ));
                 }

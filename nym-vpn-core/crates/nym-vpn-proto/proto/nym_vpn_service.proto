@@ -810,6 +810,17 @@ message AvailableTickets {
   string vpn_exit_data_si = 12;
 }
 
+message VpnAccountSummaryResponse {
+  optional VpnAccountSummary account_summary = 1;
+}
+
+message VpnAccountSummary {
+  optional google.protobuf.Timestamp subscription_valid_until = 1;
+  uint64 traffic_used_gb = 2;
+  uint64 traffic_limit_gb = 3;
+  optional google.protobuf.Timestamp traffic_reset_time = 4;
+}
+
 message DeleteLogFileResponse {
   bool success = 1;
   DeleteLogFileError error = 2;
@@ -965,8 +976,12 @@ service NymVpnService {
 
   // Get the list of active devices associated with this account from the nym-vpn-api
   rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
+
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets (google.protobuf.Empty) returns (AvailableTickets) {}
+
+  // Get the account summary
+  rpc GetAccountSummary (google.protobuf.Empty) returns (VpnAccountSummaryResponse) {}
 
   // Get the log file path
   rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}

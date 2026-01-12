@@ -11,7 +11,7 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
-use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
+use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
 use nym_vpn_store::types::StorableAccount;
 use tokio::sync::mpsc::UnboundedSender;
 
@@ -147,6 +147,16 @@ impl AccountCommandSender {
             .send(AccountCommand::Common(CommonCommand::GetAvailableTickets(
                 tx,
             )))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn get_account_summary(
+        &self,
+    ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(CommonCommand::GetAccountSummary(tx)))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

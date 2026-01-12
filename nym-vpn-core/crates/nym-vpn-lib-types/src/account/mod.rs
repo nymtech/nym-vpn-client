@@ -7,6 +7,10 @@ pub mod controller_state;
 pub mod request_zknym;
 pub mod ticketbooks;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
+
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct RegisterAccountResponse {
@@ -200,5 +204,61 @@ impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiErrorRespons
             message_id: err.message_id,
             code_reference_id: err.code_reference_id,
         }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct VpnAccountSummary {
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
+    pub subscription_valid_until: Option<OffsetDateTime>,
+
+    pub traffic_used_gb: u64,
+
+    pub traffic_limit_gb: u64,
+
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
+    pub traffic_reset_time: Option<OffsetDateTime>,
+}
+
+impl VpnAccountSummary {
+    pub fn new(
+        subscription_expiry_time: Option<String>,
+        traffic_used_gb: u64,
+        traffic_limit_gb: u64,
+        traffic_reset_time: Option<String>,
+    ) -> Result<Self, time::Error> {
+        let subscription_valid_until = subscription_expiry_time
+            .map(|time| {
+                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
+            })
+            .transpose()?;
+
+        let traffic_reset_time = traffic_reset_time
+            .map(|time| {
+                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
+            })
+            .transpose()?;
+
+        Ok(Self {
+            subscription_valid_until,
+            traffic_used_gb,
+            traffic_limit_gb,
+            traffic_reset_time,
+        })
+    }
+
+    pub fn fair_usage_left(&self) -> bool {
+        self.traffic_used_gb != self.traffic_limit_gb
     }
 }

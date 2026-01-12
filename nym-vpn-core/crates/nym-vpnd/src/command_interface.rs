@@ -674,6 +674,24 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn get_account_summary(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::VpnAccountSummaryResponse>> {
+        let account_summary = self
+            .send_and_wait(VpnServiceCommand::GetAccountSummary, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get account summary: {err}"))
+            })?;
+
+        let response = proto::VpnAccountSummaryResponse {
+            account_summary: account_summary.map(proto::VpnAccountSummary::from),
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn get_log_path(
         &self,
         _: tonic::Request<()>,
