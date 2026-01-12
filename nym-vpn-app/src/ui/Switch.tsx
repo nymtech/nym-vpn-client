@@ -35,7 +35,7 @@ function Switch({
       <span
         className={clsx([
           checked ? 'translate-x-5' : 'translate-x-1',
-          'bg-faded-lavender h-5 w-5',
+          'bg-white h-5 w-5',
           'inline-block transform rounded-full transition',
         ])}
         data-testid={`${testId}-thumb`}
