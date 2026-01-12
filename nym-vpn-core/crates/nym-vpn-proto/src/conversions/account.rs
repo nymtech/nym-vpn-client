@@ -6,7 +6,10 @@ use nym_vpn_lib_types::{
 };
 
 use crate::{
-    conversions::{ConversionError, prost::prost_timestamp_into_offset_datetime},
+    conversions::{
+        ConversionError,
+        prost::{offset_datetime_into_proto_timestamp, prost_timestamp_into_offset_datetime},
+    },
     proto,
 };
 
@@ -278,17 +281,12 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
 
 impl From<VpnAccountSummary> for proto::VpnAccountSummary {
     fn from(value: VpnAccountSummary) -> Self {
-        let subscription_valid_until =
-            value
-                .subscription_valid_until
-                .map(|dt| prost_types::Timestamp {
-                    seconds: dt.unix_timestamp(),
-                    nanos: dt.nanosecond() as i32,
-                });
-        let traffic_reset_time = value.traffic_reset_time.map(|dt| prost_types::Timestamp {
-            seconds: dt.unix_timestamp(),
-            nanos: dt.nanosecond() as i32,
-        });
+        let subscription_valid_until = value
+            .subscription_valid_until
+            .map(offset_datetime_into_proto_timestamp);
+        let traffic_reset_time = value
+            .traffic_reset_time
+            .map(offset_datetime_into_proto_timestamp);
         Self {
             subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
