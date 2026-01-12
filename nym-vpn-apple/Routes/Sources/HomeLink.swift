@@ -2,14 +2,15 @@ import Foundation
 import CountriesManagerTypes
 import UIComponents
 
-enum HomeLink: Hashable, Identifiable {
+public enum HomeLink: Hashable, Identifiable, Codable {
     case gatewayDetails(gateway: GatewayNode, hopType: HopType)
     case entryGateways
     case exitGateways
     case settings
+    case launchView
+    case onboarding
 
-
-    var id: String {
+    public var id: String {
         String(describing: self)
     }
 }

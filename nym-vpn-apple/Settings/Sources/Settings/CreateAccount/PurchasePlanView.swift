@@ -28,7 +28,7 @@ public struct PurchasePlanView: View {
                 Spacer()
                     .frame(height: 24)
 
-                StepView(stepCount: 2, currentStep: 1)
+                StepView(stepCount: 2, currentStep: .constant(1))
                 Spacer()
                 checkmarkImage
                 Spacer()

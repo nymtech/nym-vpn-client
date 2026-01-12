@@ -1,11 +1,20 @@
 import SwiftUI
+import Constants
 import ImpactGenerator
+import ExternalLinkManager
+#if os(iOS)
 import PurchasesManager
+#endif
 import UIComponents
+import Routes
 import Theme
 
 public struct CreateAccountWelcomeView: View {
+    private let navigationSource: CreateAccountNavigationSource
+#if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
+#endif
+    @EnvironmentObject private var externalLinkManager: ExternalLinkManager
     @Binding private var path: NavigationPath
 
     public var body: some View {
@@ -13,20 +22,22 @@ public struct CreateAccountWelcomeView: View {
             navbar
             Spacer()
             VStack(spacing: 0) {
-                backgroundDots
                 Spacer()
-                    .frame(height: 40)
-                welcomeTitle
-                nymVpnTitle
+                createAccountTitle
                 Spacer()
                     .frame(height: 24)
-                benefitsList
+                createAccountSection
                 Spacer()
-                    .frame(height: 32)
-                createAccountButton
+                    .frame(height: 24)
+                separatorLine
                 Spacer()
-                    .frame(height: 32)
+                    .frame(height: 24)
                 alreadyHaveAnAccount
+                Spacer()
+                    .frame(height: 24)
+                TermsAndConditionsView()
+                Spacer()
+                    .frame(height: 24)
             }
             .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
@@ -38,8 +49,9 @@ public struct CreateAccountWelcomeView: View {
         }
     }
 
-    public init(path: Binding<NavigationPath>) {
+    public init(path: Binding<NavigationPath>, navigationSource: CreateAccountNavigationSource) {
         _path = path
+        self.navigationSource = navigationSource
     }
 }
 
@@ -47,75 +59,60 @@ private extension CreateAccountWelcomeView {
     var navbar: some View {
         CustomNavBar(
             useElevationBackground: true,
-            isLogoImageHidden: true,
-            leftButton: CustomNavBarButton(type: .back, action: { navigateHome() })
+            leftButton: CustomNavBarButton(type: .back, action: { navigateBack() })
         )
     }
 
-    var logoView: some View {
-        GenericImage(imageName: "logoText")
-            .frame(height: 24)
-            .accessibilityLabel("NymVPN".localizedString)
-            .accessibilityAddTraits([.isImage])
-    }
-
-    var backgroundDots: some View {
-        ZStack {
-            GenericImage(imageName: "createAccountWelcomeDots")
-            logoView
-        }
-    }
-
-    var welcomeTitle: some View {
-        Text("addCredentials.welcome.Title".localizedString)
-            .textStyle(.Headline.ExtraLarge.bold)
+    var createAccountTitle: some View {
+        Text("createAccount".localizedString)
+            .textStyle(.Headline.Large.regular)
             .foregroundStyle(NymColor.primary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
     }
 
-    var nymVpnTitle: some View {
-        Text("NymVPN".localizedString)
-            .textStyle(.Headline.ExtraLarge.bold)
-            .foregroundStyle(NymColor.primary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
-    }
-
-    var benefitsList: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if !purchasesManager.isEligibleForIntroOffer.isEmpty {
-                benefitListItem(titleKey: "createAccount.introOffer", imageName: "moneyBag")
-            }
-            benefitListItem(titleKey: "createAccount.anonymousMixnetTechnology", imageName: "verifiedUser")
-            benefitListItem(titleKey: "createAccount.countries", imageName: "world")
-            benefitListItem(titleKey: "createAccount.unlikedData", imageName: "accountBalance")
-            benefitListItem(titleKey: "createAccount.openSource", imageName: "code")
-        }
-    }
-
-    func benefitListItem(titleKey: String, imageName: String) -> some View {
-        HStack(spacing: 0) {
-            GenericImage(imageName: imageName)
-                .frame(width: 20, height: 20)
-                .foregroundStyle(NymColor.accent)
+    var createAccountSection: some View {
+        VStack(spacing: 8) {
+            maximumPrivacyTitle
+            maximumPrivacySubtitle
             Spacer()
-                .frame(width: 8)
-            Text(titleKey.localizedString)
+                .frame(height: 8)
+            createAccountButton
+        }
+        .padding(.horizontal, 24)
+    }
+
+    var maximumPrivacyTitle: some View {
+        HStack {
+            Text("🔒 \("createAccount.maximumPrivacy".localizedString)")
+                .textStyle(.Headline.Small.regular)
+                .foregroundStyle(NymColor.primary)
+            Spacer()
+        }
+    }
+
+    var maximumPrivacySubtitle: some View {
+        HStack {
+            Text("createAccount.maximumPrivacy.subtitle".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
+            Spacer()
         }
     }
 
     var createAccountButton: some View {
         GenericButton(title: "createAccount.createAccountButtonTitle".localizedString)
-            .padding(.horizontal, 16)
             .onTapGesture {
                 navigateToCreateAccount()
             }
             .accessibilityAction {
                 navigateToCreateAccount()
             }
+    }
+
+    var separatorLine: some View {
+        Rectangle()
+            .foregroundColor(NymColor.gray2)
+            .frame(height: 1)
+            .padding(.horizontal, 24)
     }
 
     @ViewBuilder var alreadyHaveAnAccount: some View {
@@ -137,18 +134,30 @@ private extension CreateAccountWelcomeView {
 
 // MARK: - Actions -
 private extension CreateAccountWelcomeView {
-    func navigateHome() {
-        path = .init()
+    func navigateBack() {
+        switch navigationSource {
+        case .onboarding, .addCredential:
+            path = .init([HomeLink.onboarding])
+        case .settings:
+            if !path.isEmpty { path.removeLast() }
+        case .home:
+            path = .init()
+        }
     }
 
     func navigateToCreateAccount() {
+#if os(iOS)
         ImpactGenerator.shared.impact()
         path.append(SettingLink.generatePassphrase)
+#elseif os(macOS)
+        try? externalLinkManager.openExternalURL(urlString: Constants.pricingURL.rawValue)
+        navigateToLogin()
+#endif
     }
 
     func navigateToLogin() {
         ImpactGenerator.shared.impact()
-        path.append(SettingLink.addCredentials)
+        path.append(SettingLink.addCredentials(navigationSource: .createAccountWelcome))
     }
 }
 

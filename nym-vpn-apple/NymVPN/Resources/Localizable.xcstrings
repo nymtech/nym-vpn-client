@@ -1003,107 +1003,6 @@
         }
       }
     },
-    "addCredentials.createAccount" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "الحصول على رمز الوصول"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Zugangscode erhalten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get Passphrase"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Obtener código de acceso"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "کد دسترسی دریافت کنید"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Générer un code d'accès"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "एक्सेस कोड प्राप्त करें"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Ottieni Codice Accesso"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "アクセスコードを取得"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Obter Código de Acesso"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Obter Código de Acesso"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Получите код доступа"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Erişim Kodu Alın"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Отримати код доступу"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Lấy Mã Truy Cập"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "获取访问代码"
-          }
-        }
-      }
-    },
     "addCredentials.Credential" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1930,7 +1829,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please enter your anonymous Passphrase."
+            "value" : "Enter or paste your passphrase: 24 words separated by spaces"
           }
         },
         "es" : {
@@ -2009,107 +1908,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "请输入您的匿名访问代码。"
-          }
-        }
-      }
-    },
-    "addCredentials.Login.Title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تسجيل الدخول"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zugangsdaten hinzufügen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Siguiente"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "بعدی"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suivant"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "अगला"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aggiungi credenziali"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "次へ"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Próximo"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Próximo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Далее"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Devam edin"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Далі"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tiếp theo"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下一步"
           }
         }
       }
@@ -2220,7 +2018,7 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "رمز الوصول\n\nعلى سبيل المثال دخان الطلاء الجمجمة الجمجمة لقصر الضبابية الضارة..."
           }
         },
@@ -2233,84 +2031,84 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "24-word-access-code\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
+            "value" : "word1 word2 word3 word4... (24 words)"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "código de acceso de 24 palabras\n\npor ejemplo smoke artefact velvet skull pop palace tortoise damage rough…"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "کد دسترسی ۲۴ کلمه‌ای\n\nبرای مثال: smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Code d'accès de 24 mots\n\nPar ex. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24-शब्द-एक्सेस-कोड\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24-word-access-code\n\nad esempio fumo artefact velluto cranio pop palace tartaruga danneggia..."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24語で構成されるアクセスコード\n\n例：smoke artefact velvet skull pop palace tortoise damage rough…..."
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Código de acesso 24-palavra\n\npor exemplo, fumaça de crânio de palácio pop tortoise damage rough..."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Código de acesso 24-palavras\n\nex.: smoke artefact velvet skull pop palace tortoise damage rough…"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Код доступа из 24 слов\n\nнапример, smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24 Kelimelik Erişim Kodu\n\nörneğin: smoke artefact velvet skull pop palace tortoise damage rough…..."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24-слівний код доступу\n\nнаприклад, дим артефакт оксамитовий череп поп-палац черепаха пошкодження грубий..."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Mã-truy-cập-24-từ\n\nVí dụ: smoke artefact velvet skull pop palace tortoise damage rough…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "24词访问代码\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         }
@@ -2720,107 +2518,6 @@
         }
       }
     },
-    "addCredentials.welcome.Title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مرحبا بكم في"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Welcome to"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenido/a a"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "خوش آمدید به"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenue sur"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPN में आपका स्वागत है"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Benvenuto in"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bem-vindo a"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bem-vindo ao"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Добро пожаловать в"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hoş geldiniz"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ласкаво просимо до"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chào mừng đến với"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "欢迎来到"
-          }
-        }
-      }
-    },
     "addCredtenials.mnemonic" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2839,7 +2536,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Passphrase"
+            "value" : "24 word-passphrase"
           }
         },
         "es" : {
@@ -5805,6 +5502,17 @@
         }
       }
     },
+    "createAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create account"
+          }
+        }
+      }
+    },
     "createAccount.alreadyHaveAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5902,107 +5610,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已经有账户了？"
-          }
-        }
-      }
-    },
-    "createAccount.anonymousMixnetTechnology" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تكنولوجيا المزيج المجهولة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonymous mixnet technology"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tecnología de mixnet anónima"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "فناوری میکس‌نت ناشناس"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Technologie d'anonymisation mixnet"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "गुमनाम mixnet प्रौद्योगिकी"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tecnologia mixnet anonima"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tecnologia anônima de mixnet"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tecnologia de mixnet anônima"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонимная технология микснета"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonim mixnet teknolojisi"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонімна технологія змішаних мереж"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Công nghệ mixnet ẩn danh"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匿名混合网络技术"
           }
         }
       }
@@ -6108,113 +5715,12 @@
         }
       }
     },
-    "createAccount.countries" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50 دولة في جميع أنحاء العالم"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50+ countries worldwide"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Más de 50 países en todo el mundo"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "بیش از ۵۰ کشور در سراسر جهان"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plus de 50 pays dans le monde"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50+ देश दुनिया भर में"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50+ paesi nel mondo"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mais de 50 países no mundo"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mais de 50 países no mundo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Более 50 стран по всему миру"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dünya genelinde 50’den fazla ülke"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "50 + країни по всьому світу"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hơn 50 quốc gia trên toàn thế giới"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "全世界50多个国家"
-          }
-        }
-      }
-    },
     "createAccount.createAccountButtonTitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "ابدأ في حماية خصوصيتي"
           }
         },
@@ -6227,36 +5733,36 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start protecting my privacy"
+            "value" : "Create anonymous account"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Comenzar a proteger mi privacidad"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "شروع به حفظ حریم خصوصی من کن"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Commencer à protéger ma vie privée"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "मेरी गोपनीयता की रक्षा शुरू करें"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Inizia a proteggere la mia privacy"
           }
         },
@@ -6268,43 +5774,43 @@
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Comece a proteger a minha privacidade"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Começar a proteger minha privacidade"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Начните защищать свою конфиденциальность"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Gizliliğimi korumaya başla"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Почніть захищати мою конфіденційність"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Bắt đầu bảo vệ quyền riêng tư của tôi"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "开始保护我的隐私"
           }
         }
@@ -7129,6 +6635,28 @@
         }
       }
     },
+    "createAccount.maximumPrivacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximum privacy"
+          }
+        }
+      }
+    },
+    "createAccount.maximumPrivacy.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create an anonymous Nym account, no personal info required"
+          }
+        }
+      }
+    },
     "createAccount.noPassphraseNoAccess" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7226,107 +6754,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我理解：没有密码，没有访问权限。"
-          }
-        }
-      }
-    },
-    "createAccount.openSource" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "قوانين الخصوصية المفتوحة المصدر والسويسرية."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source & Swiss privacy laws"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Código abierto y leyes suizas de privacidad"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اُپن‌سورس و قوانین حریم خصوصی سوئیس"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Logiciel open source et protection des données en Suisse"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ओपन सोर्स और स्विस गोपनीयता कानून"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open source & Swiss privacy laws"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leis de código aberto e privacidade suíça"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Código aberto e leis de privacidade suíças"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Открытый исходный код и швейцарские законы о конфиденциальности"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Açık kaynak ve İsviçre gizlilik yasaları"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Відкритий код та швейцарське законодавство про конфіденційність"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mã nguồn mở & luật bảo mật của Thụy Sĩ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开源与瑞士隐私法"
           }
         }
       }
@@ -7529,107 +6956,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择您的 NymVPN 计划"
-          }
-        }
-      }
-    },
-    "createAccount.unlikedData" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المدفوعات والأنشطة تبقى غير مرتبطة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Payments and activity stay unlinked"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los pagos y la actividad permanecen desvinculados"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "پرداخت‌ها و فعالیت‌ها غیرمرتبط باقی می‌مانند"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les paiements et l'activité restent non liés"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "भुगतान और गतिविधि जोड़ी नहीं जा सकती"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pagamenti e attività rimangono scollegati"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pagamentos e atividades permanecem desvinculados"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pagamentos e atividades permanecem desvinculados"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Платежи и активность не связаны"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ödemeler ve faaliyetler birbiriyle ilişkilendirilemez"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Платежі та діяльність залишаються не пов'язаними"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thanh toán và hoạt động không bị liên kết"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "付款和活动没有链接"
           }
         }
       }
@@ -22809,6 +22135,17 @@
         }
       }
     },
+    "login" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in"
+          }
+        }
+      }
+    },
     "logs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -25446,6 +24783,17 @@
         }
       }
     },
+    "onboarding.previous" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous"
+          }
+        }
+      }
+    },
     "onboarding.skip" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -25457,24 +24805,46 @@
         }
       }
     },
+    "onboarding0.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The world’s most private VPN"
+          }
+        }
+      }
+    },
+    "onboarding0.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try for 7 days free:  All features included, no ads."
+          }
+        }
+      }
+    },
+    "onboarding0.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to NymVPN"
+          }
+        }
+      }
+    },
     "onboarding1.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The only VPN that can't spy on you, even if it wanted to."
-          }
-        }
-      }
-    },
-    "onboarding1.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Decentralized architecture makes centralized logging impossible by design not a \"no-log policy,\" a \"can't log\" architecture."
+            "value" : "Nym’s decentralized network makes \"no-log\" promises obsolete."
           }
         }
       }
@@ -25496,18 +24866,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pay with card, crypto, or cash—no email required. Zero-knowledge proofs cryptographically separate your payment from your online activities."
-          }
-        }
-      }
-    },
-    "onboarding2.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Made in Switzerland with peer-reviewed academic research."
+            "value" : "Pay with card, crypto, or cash - no email required. Zero-knowledge proofs make your payments unlinkable to your online activities."
           }
         }
       }
@@ -25529,7 +24888,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fast mode: 250+ Mbps for streaming and browsing"
+            "value" : "Fast: 250+ Mbps with dVPN."
           }
         }
       }
@@ -25540,7 +24899,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anonymous mode: Maximum protection through 5-hop mixnet"
+            "value" : "Anonymous: 5-hop Noise Generating Mixnet."
           }
         }
       }
@@ -37564,107 +36923,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "周"
-          }
-        }
-      }
-    },
-    "welcome.acknowledgement" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "من خلال المتابعة، أنت توافق على [شروط الاستخدام] لـ NymVPN( (https://nym.com/vpn-termsوتقر بـ [سياسة الخصوصية](https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Al continuar, aceptas los [Términos de uso] de NymVPN (https://nym.com/vpn-terms) y reconoces la [Política de privacidad] de NymVPN (https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "با ادامه دادن، شما با [شرایط استفاده از](https://nym.com/vpn-terms) NymVPN موافقت کرده و [سیاست حفظ حریم خصوصی](https://nym.com/vpn-privacy-statement) NymVPN را تایید می‌کنید."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En cliquant « Continuer », vous accepter les [Conditions générales](https://nym.com/vpn-terms) de NymVPN et avez pris connaissance de la [Politique de confidentialité](https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "जारी रखने पर, आप NymVPN के [उपयोग की शर्तों](https://nym.com/vpn-terms) से सहमत होते हैं और NymVPN की [गोपनीयता नीति](https://nym.com/vpn-privacy-statement) को मान्यता देते हैं।"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continuando accetti i [Termini di utilizzo](https://nym.com/vpn-terms) di NymVPN e riconosci la [Informativa sulla privacy](https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "続けることにより、NymVPNの「利用規約」(https://nym.com/vpn-terms)に同意し、NymVPNの「プライバシーポリシー」(https://nym.com/vpn-privacy-statement)に同意したことになります。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ao continuar, você concorda com os [Termos de uso] da NymVPN (https://nym.com/vpn-terms) e reconhece a [Política de privacidade] da NymVPN (https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ao continuar, você concorda com os [Termos de uso] da NymVPN (https://nym.com/vpn-terms) e reconhece a [Política de privacidade] da NymVPN (https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Продолжая, вы соглашаетесь с [Условиями использования](https://nym.com/vpn-terms) NymVPN и подтверждаете ознакомление с [Политикой конфиденциальности](https://nym.com/vpn-privacy-statement) NymVPN."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Devam ederek, NymVPN'in [Kullanım Şartları'nı](https://nym.com/vpn-terms) kabul ettiğinizi ve NymVPN'in [Gizlilik Politikasını](https://nym.com/vpn-privacy-statement) okuduğunuzu onaylamış olursunuz."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Продовжуючи, ви погоджуєтеся з [Умовами використання] NymVPN (https://nym.com/vpn-terms) і визнаєте [Політику конфіденційності] NymVPN (https://nym.com/vpn-privacy-statement)."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bằng cách tiếp tục, bạn đồng ý với [Điều khoản sử dụng](https://nym.com/vpn-terms) của NymVPN và thừa nhận [Chính sách bảo mật](https://nym.com/vpn-privacy-statement) của NymVPN."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "继续即表示您同意 NymVPN 的 [使用条款](https://nym.com/vpn-terms) 并认可 NymVPN 的 [隐私政策](https://nym.com/vpn-privacy-statement)。"
           }
         }
       }

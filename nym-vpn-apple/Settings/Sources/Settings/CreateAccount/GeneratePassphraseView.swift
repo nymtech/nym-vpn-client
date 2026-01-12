@@ -17,6 +17,7 @@ public struct GeneratePassphraseView: View {
     @State private var alertTitle: String = ""
     @State private var isAlertDisplayed = false
     @State private var didRegisterAccount = false
+    @State private var currentStep = 1
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -24,7 +25,7 @@ public struct GeneratePassphraseView: View {
             Spacer()
                 .frame(height: 24)
 
-            StepView(stepCount: 2, currentStep: 1)
+            StepView(stepCount: 4, currentStep: $currentStep)
             Spacer()
 
             dotsAnimationView
@@ -52,11 +53,17 @@ public struct GeneratePassphraseView: View {
                 }
             }
         }
-        .onChange(of: didFinishAnimatingText) { _ in
-            navigateToPlanSelectIfNeeded()
+        .onChange(of: didFinishAnimatingText) { _, _ in
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                navigateToPlanSelectIfNeeded()
+            }
         }
-        .onChange(of: didRegisterAccount) { _ in
-            navigateToPlanSelectIfNeeded()
+        .onChange(of: didRegisterAccount) { _, _ in
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                navigateToPlanSelectIfNeeded()
+            }
         }
     }
 
@@ -82,7 +89,10 @@ private extension GeneratePassphraseView {
                 ("generatePassphrase.title2".localizedString, "generatePassphrase.subtitle2".localizedString),
                 ("generatePassphrase.title3".localizedString, "generatePassphrase.subtitle3".localizedString)
             ],
-            didFinishAnimating: $didFinishAnimatingText
+            didFinishAnimating: $didFinishAnimatingText,
+            timerDidTick: {
+                currentStep += 1
+            }
         )
     }
 }
@@ -114,7 +124,9 @@ private extension GeneratePassphraseView {
     }
 
     func navigateToPlanSelectIfNeeded() {
-        guard didFinishAnimatingText, didRegisterAccount else { return }
-        path.append(SettingLink.planPurchase(shouldDisplayBackButton: false))
+        Task { @MainActor in
+            guard didFinishAnimatingText, didRegisterAccount else { return }
+            path.append(SettingLink.planPurchase(shouldDisplayBackButton: false))
+        }
     }
 }
