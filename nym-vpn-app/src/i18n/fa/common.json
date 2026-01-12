@@ -16,7 +16,7 @@
   "data-privacy": "حریم خصوصی و داده‌ها",
   "support": "حمایت",
   "fastest": "سریع‌ترین",
-  "random": "Random",
+  "random": "تصادفی",
   "sentry": "پاسدار",
   "tos": "شرایط استفاده از",
   "privacy-statement": "بیانیه حریم خصوصی",
@@ -26,5 +26,6 @@
   },
   "appearance": "شکل ظاهری",
   "language": "زبان",
-  "server-details": "جزئیات سرور"
+  "server-details": "جزئیات سرور",
+  "skip": "رد کردن"
 }

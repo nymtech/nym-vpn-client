@@ -63,5 +63,6 @@
     "restart-note": "O aplicativo será reiniciado após a atualização.",
     "bar-label": "Progresso do download"
   },
-  "get-started": "Começar"
+  "get-started": "Começar",
+  "choose-plan": "Escolher plano"
 }

@@ -1,8 +1,11 @@
 {
   "select-a-plan": {
     "title": "保護レベルを選択",
-    "description-1": "Select a plan now to activate your protection",
-    "description-2": "Your upcoming payment cannot be linked to your future browsing activity",
+    "features": {
+      "all-included": "すべての機能が含まれています",
+      "no-ads": "広告なし",
+      "cancel-anytime": "いつでもキャンセル"
+    },
     "button": "Choose my NymVPN plan"
   }
 }

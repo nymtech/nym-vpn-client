@@ -1,0 +1,24 @@
+{
+  "welcome": {
+    "title": "欢迎使用 NymVPN",
+    "description": "<large>The world’s most private VPN</large>\n\nTry for 7 days free:\nAll features included, no ads."
+  },
+  "tracking": {
+    "title": "停止在线跟踪",
+    "description": "尼姆分散的网络使得“无日志”许诺过时。"
+  },
+  "zero-knowledge": {
+    "title": "匿名付款到 web",
+    "description": "使用卡、加密或现金支付 — 无需电子邮件。零知识证明使您的付款无法连接到您的在线活动。"
+  },
+  "speed": {
+    "title": "当你需要它时速度.\n事关隐私.",
+    "description": "<bold>快速模式：</bold> 250+ Mbps 与 dVPN。\n<bold>匿名模式：</bold> 5-hop 噪音生成混合物。"
+  },
+  "controls": {
+    "login": "登录",
+    "create-account": "创建帐户",
+    "next": "下一个",
+    "skip": "跳过"
+  }
+}

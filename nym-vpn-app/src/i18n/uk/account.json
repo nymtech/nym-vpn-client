@@ -1,8 +1,11 @@
 {
   "select-a-plan": {
     "title": "Оберіть рівень захисту",
-    "description-1": "Виберіть тарифний план зараз для активації вашого захисту",
-    "description-2": "Ваш майбутній платіж не може бути пов'язаний з вашою майбутньою активністю в Інтернеті",
+    "features": {
+      "all-included": "All features included",
+      "no-ads": "No ads",
+      "cancel-anytime": "Cancel anytime"
+    },
     "button": "Виберіть Ваш тарифний план NymVPN"
   }
 }

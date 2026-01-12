@@ -1,0 +1,50 @@
+{
+  "privy": {
+    "title": "Welcome to NymVPN",
+    "login-button": "Log in with Privy",
+    "maximum-privacy": {
+      "title": "🔒 Maximum privacy",
+      "description": "Create an anonymous Nym account, no personal info required"
+    },
+    "quick-setup": {
+      "title": "⚡️ Quick setup",
+      "description": "Use existing account like Google or crypto wallet through our login partner Privy"
+    },
+    "already-have-an-account": {
+      "title": "Already have an account?",
+      "button": "Log in with 24-word passphrase"
+    },
+    "error": {
+      "login": "Failed to login using social account"
+    }
+  },
+  "signup": {
+    "title": "Create account",
+    "create-account": "Create anonymous account",
+    "maximum-privacy": {
+      "title": "🔒 Maximum privacy",
+      "description": "Create an anonymous Nym account, no personal info required"
+    },
+    "quick-setup": {
+      "title": "⚡️ Quick setup",
+      "description": "Use existing account like Google or crypto wallet through our login partner Privy"
+    },
+    "already-have-an-account": {
+      "title": "Already have an account?",
+      "button": "Log in"
+    }
+  },
+  "passphrase": {
+    "title": "Log in",
+    "description": "Enter or paste your passphrase: 24 words separated by spaces",
+    "input-label": "Passphrase",
+    "input-placeholder": "24-word-passphrase\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough…",
+    "login-button": "Log in",
+    "new-to-nymvpn": "New to NymVPN?"
+  },
+  "social-account-button": "Continue with social account",
+  "create-account": "Create anonymous account",
+  "notification": {
+    "added": "Device successfully added to your account"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "privy": {
+    "title": "Bienvenido a NymVPN",
+    "login-button": "Iniciar sesión con Privado",
+    "maximum-privacy": {
+      "title": "🔒 Máxima privacidad",
+      "description": "Crear una cuenta anónima de Nym, no se requiere información personal"
+    },
+    "quick-setup": {
+      "title": "⚡ Configuración rápida",
+      "description": "Usar cuenta existente como Google o criptocartera a través de nuestro socio Privado"
+    },
+    "already-have-an-account": {
+      "title": "¿Ya tienes una cuenta?",
+      "button": "Iniciar sesión con contraseña de 24 palabras"
+    },
+    "error": {
+      "login": "Error al iniciar sesión usando la cuenta social"
+    }
+  },
+  "signup": {
+    "title": "Crear cuenta",
+    "create-account": "Crear una cuenta anónima",
+    "maximum-privacy": {
+      "title": "🔒 Máxima privacidad",
+      "description": "Crear una cuenta anónima de Nym, no se requiere información personal"
+    },
+    "quick-setup": {
+      "title": "⚡ Configuración rápida",
+      "description": "Usar cuenta existente como Google o criptocartera a través de nuestro socio Privado"
+    },
+    "already-have-an-account": {
+      "title": "¿Ya tienes una cuenta?",
+      "button": "Iniciar sesión"
+    }
+  },
+  "passphrase": {
+    "title": "Iniciar sesión",
+    "description": "Introduzca o pegue su contraseña: 24 palabras separadas por espacios",
+    "input-label": "Contraseña",
+    "input-placeholder": "24-word-passphrase\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough…",
+    "login-button": "Iniciar sesión",
+    "new-to-nymvpn": "¿Nuevo en NymVPN?"
+  },
+  "social-account-button": "Continuar con la cuenta social",
+  "create-account": "Crear una cuenta anónima",
+  "notification": {
+    "added": "Dispositivo añadido correctamente a tu cuenta"
+  }
+}

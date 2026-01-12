@@ -1,0 +1,24 @@
+{
+  "welcome": {
+    "title": "NymVPN में आपका स्वागत है",
+    "description": "<large>The world’s most private VPN</large>\n\nTry for 7 days free:\nAll features included, no ads."
+  },
+  "tracking": {
+    "title": "ऑनलाइन ट्रैकिंग से बचें",
+    "description": "Nym’s decentralized network makes \"no-log\" promises obsolete."
+  },
+  "zero-knowledge": {
+    "title": "Anonymity from payment to web",
+    "description": "Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities."
+  },
+  "speed": {
+    "title": "ज़रूरत के समय गति।\nमहत्व के समय प्राइवेसी।",
+    "description": "<bold>Fast mode:</bold> 250+ Mbps with dVPN.\n<bold>Anonymous mode:</bold> 5-hop Noise Generating Mixnet."
+  },
+  "controls": {
+    "login": "Log in",
+    "create-account": "Create account",
+    "next": "अगला",
+    "skip": "छोड़ें"
+  }
+}

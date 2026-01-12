@@ -16,7 +16,7 @@
   "data-privacy": "数据和隐私",
   "support": "支持",
   "fastest": "最快",
-  "random": "随机播放",
+  "random": "随机",
   "sentry": "Sentry",
   "tos": "使用条款",
   "privacy-statement": "隐私声明",
@@ -26,5 +26,6 @@
   },
   "appearance": "外观",
   "language": "语言",
-  "server-details": "服务器详细信息"
+  "server-details": "服务器详细信息",
+  "skip": "跳过"
 }

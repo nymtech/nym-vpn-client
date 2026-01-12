@@ -5,5 +5,6 @@
   "tos-notice": "Συνεχίζοντας, αποδέχεστε τους <tosLink /> του NymVPN και αναγνωρίζετε την <privacyLink /> του NymVPN.",
   "continue-button": "Συνέχεια",
   "error-monitoring-label": "Ανώνυμες αναφορές σφαλμάτων",
-  "network-statistic": "Ανώνυμα στατιστικά δικτύου"
+  "network-statistic": "Ανώνυμα στατιστικά δικτύου",
+  "network-statistic-toggle-desc": "Helps us improve the Nym network. No logging or activity tracked."
 }

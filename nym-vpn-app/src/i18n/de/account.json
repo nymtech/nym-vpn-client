@@ -1,8 +1,11 @@
 {
   "select-a-plan": {
     "title": "Wähle deine Schutzstufe",
-    "description-1": "Wähle jetzt einen Tarif, um deinen Schutz zu aktivieren",
-    "description-2": "Deine bevorstehende Zahlung lässt sich nicht mit deinen zukünftigen Surf‑Aktivitäten verknüpfen",
+    "features": {
+      "all-included": "Alle Funktionen enthalten",
+      "no-ads": "Keine Werbung",
+      "cancel-anytime": "Jederzeit abbrechen"
+    },
     "button": "Wähle meinen NymVPN-Tarif"
   }
 }

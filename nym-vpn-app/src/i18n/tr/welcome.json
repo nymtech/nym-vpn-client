@@ -5,5 +5,6 @@
   "tos-notice": "Devam ederek, NymVPN'in <tosLink />'ine onay verir ve NymVPN'in <privacyLink />'ini kabul etmiş olursunuz.",
   "continue-button": "Devam et",
   "error-monitoring-label": "Anonim hata raporları",
-  "network-statistic": "Anonim ağ istatistikleri"
+  "network-statistic": "Anonim ağ istatistikleri",
+  "network-statistic-toggle-desc": "Helps us improve the Nym network. No logging or activity tracked."
 }
