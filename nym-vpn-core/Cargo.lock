@@ -4395,6 +4395,7 @@ dependencies = [
  "nix 0.30.1",
  "nym-common",
  "nym-dns",
+ "nym-firewall-config",
  "nym-platform-metadata",
  "pfctl",
  "thiserror 2.0.17",
@@ -4402,6 +4403,13 @@ dependencies = [
  "widestring",
  "windows 0.62.2",
  "wmi",
+]
+
+[[package]]
+name = "nym-firewall-config"
+version = "1.23.0-beta"
+dependencies = [
+ "ipnetwork",
 ]
 
 [[package]]
@@ -5554,6 +5562,7 @@ dependencies = [
  "nym-crypto",
  "nym-dns",
  "nym-firewall",
+ "nym-firewall-config",
  "nym-gateway-directory",
  "nym-http-api-client",
  "nym-ip-packet-client",
@@ -5635,6 +5644,7 @@ dependencies = [
  "log",
  "nym-bin-common",
  "nym-common",
+ "nym-firewall-config",
  "nym-gateway-directory",
  "nym-http-api-client",
  "nym-offline-monitor",

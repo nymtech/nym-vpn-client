@@ -31,6 +31,7 @@ members = [
     "crates/uniffi-bindgen",
     "crates/nym-vpn-lib-uniffi",
     "crates/nym-vpn-rpc-uniffi",
+    "crates/nym-firewall-config",
 ]
 
 default-members = [
@@ -185,6 +186,7 @@ nym-connection-monitor = { path = "crates/nym-connection-monitor" }
 nym-dbus = { path = "crates/nym-dbus" }
 nym-dns = { path = "crates/nym-dns" }
 nym-firewall = { path = "crates/nym-firewall" }
+nym-firewall-config = { path = "crates/nym-firewall-config" }
 nym-gateway-directory = { path = "crates/nym-gateway-directory" }
 nym-ipc = { path = "crates/nym-ipc" }
 nym-macos = { path = "crates/nym-macos" }
