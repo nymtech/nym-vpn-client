@@ -32,10 +32,10 @@ const DEFAULT_CLIENT_RETRIES: usize = 1;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("entry gateway error")]
-    EntryGateway(SpecificGatewayError),
+    EntryGateway(#[source] SpecificGatewayError),
 
     #[error("exit gateway error")]
-    ExitGateway(SpecificGatewayError),
+    ExitGateway(#[source] SpecificGatewayError),
 
     #[error("nyxd client error")]
     Nyxd(#[from] CredentialNyxdClientError),
