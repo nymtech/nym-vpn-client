@@ -11,7 +11,9 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::{new_user_agent, storage::VpnClientOnDiskStorage};
-use nym_vpn_lib_types::{AccountControllerState, RegisterAccountResponse, StoreAccountRequest};
+use nym_vpn_lib_types::{
+    AccountControllerState, RegisterAccountResponse, StoreAccountRequest, VpnAccountSummary,
+};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     account::Mnemonic,
@@ -277,6 +279,14 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
         .get_device_identity()
         .await?
         .ok_or(VpnError::NoAccountStored)
+}
+
+pub(super) async fn get_account_summary() -> Result<Option<VpnAccountSummary>, VpnError> {
+    get_command_sender()
+        .await?
+        .get_account_summary()
+        .await
+        .map_err(VpnError::from)
 }
 
 // Raw API that directly accesses storage without going through the account controller.
