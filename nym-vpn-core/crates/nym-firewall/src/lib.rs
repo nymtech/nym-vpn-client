@@ -1,13 +1,11 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    borrow::Cow,
-    fmt,
-    net::{IpAddr, Ipv6Addr},
-    sync::LazyLock,
-};
+use std::{borrow::Cow, fmt, net::IpAddr};
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use std::{net::Ipv6Addr, sync::LazyLock};
 
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use ipnetwork::Ipv6Network;
 #[cfg(not(target_os = "android"))]
 use nym_dns::ResolvedDnsConfig;

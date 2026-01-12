@@ -26,6 +26,7 @@ use super::{
     },
     split_tunnel,
 };
+use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
 
 use crate::{AllowedClients, DNS_TCP_PORTS, TunnelInterface};
 
