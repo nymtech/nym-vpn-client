@@ -40,7 +40,6 @@ pub enum Key {
     CacheWgGateways,
     CacheAccountId,
     CacheDeviceId,
-    StreamingOptimizedLabelSeen,
 }
 
 impl Display for Key {

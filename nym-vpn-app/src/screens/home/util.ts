@@ -2,8 +2,7 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { allCountries } from 'country-region-data';
 import { useInAppNotify, useMainState } from '../../contexts';
-import { StateDispatch, TunnelData, isWireguardData } from '../../types';
-import { kvSet } from '../../kvStore';
+import { TunnelData, isWireguardData } from '../../types';
 
 // find country code (lowercase) for a given region name
 export function regionToCountryCode(region: string): string | null {
@@ -59,11 +58,6 @@ export function useActionToast(action: 'node-select' | 'mode-select') {
 
   return toast;
 }
-
-export const setStreamOptimizedLabelSeen = (dispatch: StateDispatch) => {
-  dispatch({ type: 'set-streaming-optimized-label-seen', seen: true });
-  kvSet('streaming-optimized-label-seen', true);
-};
 
 export function isBridgeMode(data?: TunnelData | null) {
   if (!data) {
