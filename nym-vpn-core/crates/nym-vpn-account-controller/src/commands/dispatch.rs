@@ -1,16 +1,15 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
-use nym_vpn_store::account::StorableAccount;
-
 use crate::AvailableTicketbooks;
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
-    types::{Platform, VpnAccountSummary},
+    types::Platform,
 };
+use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
+use nym_vpn_store::account::StorableAccount;
 use tokio::sync::oneshot;
 
 #[derive(Debug, strum::Display)]

@@ -5,9 +5,8 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
-    types::VpnAccountSummary,
 };
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::{AccountCommandError, VpnAccountSummary};
 
 use crate::{
     AvailableTicketbooks, SharedAccountState,

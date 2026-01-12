@@ -9,9 +9,9 @@ use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
-    types::{Platform, VpnAccountSummary},
+    types::Platform,
 };
-use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse};
+use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
 use nym_vpn_store::types::StorableAccount;
 use tokio::sync::mpsc::UnboundedSender;
 

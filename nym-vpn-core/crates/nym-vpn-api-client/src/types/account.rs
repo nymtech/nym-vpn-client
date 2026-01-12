@@ -185,48 +185,6 @@ impl TryFrom<StorableAccount> for VpnAccount {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct VpnAccountSummary {
-    pub subscription_valid_until: Option<OffsetDateTime>,
-    pub traffic_used_gb: u64,
-    pub traffic_limit_gb: u64,
-    pub traffic_reset_time: Option<OffsetDateTime>,
-}
-
-impl VpnAccountSummary {
-    pub fn new(
-        subscription_expiry_time: Option<String>,
-        traffic_used_gb: u64,
-        traffic_limit_gb: u64,
-        traffic_reset_time: Option<String>,
-    ) -> Result<Self, Error> {
-        let subscription_valid_until = subscription_expiry_time
-            .map(|time| {
-                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
-                    .map_err(Error::SubscriptionExpiryParseError)
-            })
-            .transpose()?;
-
-        let traffic_reset_time = traffic_reset_time
-            .map(|time| {
-                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
-                    .map_err(Error::TrafficResetTimeParseError)
-            })
-            .transpose()?;
-
-        Ok(Self {
-            subscription_valid_until,
-            traffic_used_gb,
-            traffic_limit_gb,
-            traffic_reset_time,
-        })
-    }
-
-    pub fn fair_usage_left(&self) -> bool {
-        self.traffic_used_gb != self.traffic_limit_gb
-    }
-}
-
 fn cosmos_derivation_path() -> DerivationPath {
     nym_config::defaults::COSMOS_DERIVATION_PATH
         .parse()

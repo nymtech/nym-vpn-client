@@ -17,7 +17,7 @@ use tonic::{Request, Response, Status, transport::Server};
 
 use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, ListGatewaysOptions, LookupGatewayFilters,
-    TargetState, TunnelEvent, VpnAccountSummary,
+    TargetState, TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -686,9 +686,7 @@ impl NymVpnService for CommandInterface {
             })?;
 
         let response = proto::VpnAccountSummaryResponse {
-            account_summary: account_summary
-                .map(VpnAccountSummary::from)
-                .map(proto::VpnAccountSummary::from),
+            account_summary: account_summary.map(proto::VpnAccountSummary::from),
         };
 
         Ok(tonic::Response::new(response))

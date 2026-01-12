@@ -30,7 +30,7 @@ use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
     AvailableTicketbooks, NyxdClient,
 };
-use nym_vpn_api_client::{api_urls_to_urls, types::VpnAccountSummary};
+use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib::{
     DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
@@ -42,7 +42,7 @@ use nym_vpn_lib_types::{
     FeatureFlags, Gateway, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
     NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice,
     NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest, SystemMessage,
-    TargetState, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    TargetState, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};

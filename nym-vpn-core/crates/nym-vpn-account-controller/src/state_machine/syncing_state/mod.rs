@@ -14,9 +14,11 @@ use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
     response::NymErrorResponse,
-    types::{Device, VpnAccount, VpnAccountSummary},
+    types::{Device, VpnAccount},
 };
-use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
+use nym_vpn_lib_types::{
+    AccountCommandError, AccountControllerErrorStateReason, VpnAccountSummary,
+};
 use requesting_zknym_state::RequestingZkNymsState;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;

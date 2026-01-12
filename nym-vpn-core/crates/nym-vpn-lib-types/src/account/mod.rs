@@ -231,26 +231,34 @@ pub struct VpnAccountSummary {
     pub traffic_reset_time: Option<OffsetDateTime>,
 }
 
-#[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_api_client::types::VpnAccountSummary> for VpnAccountSummary {
-    fn from(value: nym_vpn_api_client::types::VpnAccountSummary) -> Self {
-        Self {
-            subscription_valid_until: value.subscription_valid_until,
-            traffic_used_gb: value.traffic_used_gb,
-            traffic_limit_gb: value.traffic_limit_gb,
-            traffic_reset_time: value.traffic_reset_time,
-        }
-    }
-}
+impl VpnAccountSummary {
+    pub fn new(
+        subscription_expiry_time: Option<String>,
+        traffic_used_gb: u64,
+        traffic_limit_gb: u64,
+        traffic_reset_time: Option<String>,
+    ) -> Result<Self, time::Error> {
+        let subscription_valid_until = subscription_expiry_time
+            .map(|time| {
+                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
+            })
+            .transpose()?;
 
-#[cfg(feature = "nym-type-conversions")]
-impl From<VpnAccountSummary> for nym_vpn_api_client::types::VpnAccountSummary {
-    fn from(value: VpnAccountSummary) -> Self {
-        Self {
-            subscription_valid_until: value.subscription_valid_until,
-            traffic_used_gb: value.traffic_used_gb,
-            traffic_limit_gb: value.traffic_limit_gb,
-            traffic_reset_time: value.traffic_reset_time,
-        }
+        let traffic_reset_time = traffic_reset_time
+            .map(|time| {
+                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
+            })
+            .transpose()?;
+
+        Ok(Self {
+            subscription_valid_until,
+            traffic_used_gb,
+            traffic_limit_gb,
+            traffic_reset_time,
+        })
+    }
+
+    pub fn fair_usage_left(&self) -> bool {
+        self.traffic_used_gb != self.traffic_limit_gb
     }
 }

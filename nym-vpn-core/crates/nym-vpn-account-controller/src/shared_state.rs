@@ -6,8 +6,9 @@ use std::sync::Arc;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
-    types::{Device, VpnAccount, VpnAccountSummary},
+    types::{Device, VpnAccount},
 };
+use nym_vpn_lib_types::VpnAccountSummary;
 
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::sync::mpsc;
