@@ -3,7 +3,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { NymSplash } from '../../assets';
-import { Button, ButtonText, Link, PageAnim } from '../../ui';
+import { Button, ButtonText, Link, MsIcon, PageAnim } from '../../ui';
 import { useMainState } from '../../contexts';
 import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
@@ -22,7 +22,7 @@ function Login() {
       <div className="flex flex-col p-4">
         <div className="py-6">
           <h2>{t('signup.maximum-privacy.title')}</h2>
-          <p className="mt-2 text-iron dark:text-bombay">
+          <p className="mt-2 text-iron dark:text-bombay whitespace-pre-line">
             {t('signup.maximum-privacy.description')}
           </p>
           <Button
@@ -33,13 +33,13 @@ function Login() {
             className="mt-4"
           >
             <div className="flex items-center gap-2">
-              {t('signup.create-account')}
+              {t('signup.create-account')} <MsIcon icon="open_in_new" />
             </div>
           </Button>
         </div>
 
-        <div className="my-8 mx-auto font-bold">
-          <span className="text-iron dark:text-bombay">
+        <div className="flex flex-row justify-center items-center">
+          <span className="dark:text-white truncate">
             {t('signup.already-have-an-account.title')}
           </span>
           <ButtonText onClick={() => navigate(routes.login)} color="malachite">
