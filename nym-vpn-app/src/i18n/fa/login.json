@@ -1,0 +1,50 @@
+{
+  "privy": {
+    "title": "به NymVPN خوش آمدید",
+    "login-button": "ورود با Privy",
+    "maximum-privacy": {
+      "title": "🔒 حداکثر حریم خصوصی",
+      "description": "یک حساب ناشناس Nym بسازید؛ بدون نیاز به اطلاعات شخصی"
+    },
+    "quick-setup": {
+      "title": "⚡️ راه‌اندازی سریع",
+      "description": "با استفاده از حساب موجودتان — مثل Google یا کیف‌پول رمزارزی — از طریق پارتنر ورود ما، Privy، وارد شوید"
+    },
+    "already-have-an-account": {
+      "title": "از قبل حساب دارید؟",
+      "button": "ورود با عبارتِ عبور ۲۴ کلمه‌ای"
+    },
+    "error": {
+      "login": "ورود با حساب شبکهٔ اجتماعی ناموفق بود"
+    }
+  },
+  "signup": {
+    "title": "Create account",
+    "create-account": "Create anonymous account",
+    "maximum-privacy": {
+      "title": "🔒 Maximum privacy",
+      "description": "Create an anonymous Nym account, no personal info required"
+    },
+    "quick-setup": {
+      "title": "⚡️ Quick setup",
+      "description": "Use existing account like Google or crypto wallet through our login partner Privy"
+    },
+    "already-have-an-account": {
+      "title": "Already have an account?",
+      "button": "Log in"
+    }
+  },
+  "passphrase": {
+    "title": "Log in",
+    "description": "عبارتِ عبور خود را وارد کنید یا جای‌گذاری کنید: ۲۴ کلمه که با فاصله از هم جدا شده‌اند",
+    "input-label": "عبارت بازیابی",
+    "input-placeholder": "عبارت بازیابی 24 کلمه‌ای\n\nمثلاً smoke artefact velvet skull pop palace tortoise damage rough…",
+    "login-button": "ورود",
+    "new-to-nymvpn": "به NymVPN تازه وارد هستید؟"
+  },
+  "social-account-button": "ادامه با حساب شبکهٔ اجتماعی",
+  "create-account": "ایجاد حساب ناشناس",
+  "notification": {
+    "added": "دستگاه با موفقیت به حساب کاربری شما اضافه شد"
+  }
+}

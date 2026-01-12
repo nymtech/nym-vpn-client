@@ -173,6 +173,7 @@
   },
   "account": {
     "get-started": "開始する",
+    "choose-plan": "プランを選択",
     "syncing": "Syncing…",
     "no-plan": "アクティブなプランがありません",
     "bandwidth-exceeded": "帯域幅を超えました",

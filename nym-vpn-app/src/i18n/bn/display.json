@@ -1,10 +1,10 @@
 {
-  "theme-section-title": "Theme",
-  "zoom-section-title": "Zoom level",
+  "theme-section-title": "থিম",
+  "zoom-section-title": "জুম স্তর",
   "options": {
-    "system": "Automatic",
-    "light": "Light theme",
-    "dark": "Dark theme"
+    "system": "স্বয়ংক্রিয়",
+    "light": "হালকা থিম",
+    "dark": "গাঢ় থিম"
   },
-  "system-desc": "Use device theme"
+  "system-desc": "ডিভাইস থিম ব্যবহার করুন"
 }

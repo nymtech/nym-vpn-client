@@ -173,6 +173,7 @@
   },
   "account": {
     "get-started": "Começar",
+    "choose-plan": "Escolher plano",
     "syncing": "Sincronizando…",
     "no-plan": "Nenhum plano ativo",
     "bandwidth-exceeded": "Largura de banda excedida",

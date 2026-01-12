@@ -1,14 +1,14 @@
 {
-  "account": "account",
-  "cancel": "cancel",
-  "left": "left",
-  "login": "login",
+  "account": "অ্যাকাউন্ট",
+  "cancel": "ক্যানসেল",
+  "left": "বাম",
+  "login": "লগইন",
   "logout": "লগ আউট",
-  "ok": "ok",
-  "selected": "selected",
-  "via": "via",
-  "stop": "stop",
-  "server_one": "server",
-  "server_other": "servers",
-  "here": "here"
+  "ok": "ঠিক আছে",
+  "selected": "নির্বাচিত ",
+  "via": "হয়ে",
+  "stop": "বন্ধ",
+  "server_one": "সার্ভার",
+  "server_other": "সার্ভার",
+  "here": "এখানে"
 }

@@ -18,7 +18,7 @@
   "support": {
     "intro": {
       "title": "⚠️ حماية نفسك من الاحتيالات",
-      "description": "Only contact NymVPN support through the official channels listed below. We will never ask for your passphrase or contact you first via direct messages.\n\nReceived unexpected contact? It's likely a scam."
+      "description": "تواصل مع دعم NymVPN فقط عبر القنوات الرسمية المذكورة أدناه. لن نطلب منك كلمة مرورك أو نتواصل معك عبر الرسائل الخاصة.\n\nهل تلقيت اتصالاً غير متوقع؟ من المحتمل أن يكون عملية احتيال."
     },
     "title": "الدعم",
     "faq": "تحقق من الأسئلة الشائعة",
@@ -92,7 +92,7 @@
     },
     "amneziawg": {
       "label": "الحد الأدنى من التشويش",
-      "content": "Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments.\n\nNote: Only implemented client-side.",
+      "content": "يجعل هذا الإجراء اكتشاف حركة مرور WireGuard أكثر صعوبة. فهو يُدخل حزم بيانات وهمية تُعطّل القواعد البسيطة التي تستخدمها أنظمة الرقابة القائمة على فحص الحزم العميق (DPI)، مما يُحسّن موثوقية الاتصال في البيئات ذات القيود الصارمة.\n\nملاحظة: يُطبّق هذا الإجراء على جانب العميل فقط.",
       "link": "كيف يمنع أمنيزياي الفريق إدارة شؤون الإعلام"
     },
     "snackbar-switch-on": "تحسين الاتصال (بروتوكول QUIC) سيتم تفعيله عند إعادة الاتصال.",
@@ -167,12 +167,13 @@
     "network-stats": {
       "label": "إحصائيات الشبكة المجهولة",
       "sublabel": "سيتم تطبيق التغييرات بعد إعادة تشغيل daemon.",
-      "desc": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.\n\nOnly network performance data is shared - never your browsing activity or personal data.",
+      "desc": "ساعدنا في بناء شبكة أسرع من خلال مشاركة بيانات الأداء المجهولة من منطقتك. نستخدم هذه البيانات لتحسين السرعات، وتقليل حالات انقطاع الاتصال، وتوجيه تغطية الخوادم إلى المناطق الأكثر احتياجًا.\n\nيتم مشاركة بيانات أداء الشبكة فقط، ولا يتم مشاركة أي بيانات عن نشاط التصفح أو البيانات الشخصية.",
       "link": "تعلم بالضبط ما هو مشترك"
     }
   },
   "account": {
     "get-started": "بدء التشغيل",
+    "choose-plan": "اختر الخطة",
     "syncing": "مزامنة…",
     "no-plan": "لا توجد خطة نشطة",
     "bandwidth-exceeded": "تم تجاوز العرض الترددي",

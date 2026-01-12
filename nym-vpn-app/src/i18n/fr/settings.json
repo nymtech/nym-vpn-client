@@ -173,6 +173,7 @@
   },
   "account": {
     "get-started": "Démarrer",
+    "choose-plan": "Choisissez une offre",
     "syncing": "Synchronisation…",
     "no-plan": "Aucun abonnement actif",
     "bandwidth-exceeded": "La bande passante est dépassée",

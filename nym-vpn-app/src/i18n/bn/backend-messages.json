@@ -1,13 +1,13 @@
 {
   "connection-progress": {
-    "canceling": "Canceling…",
-    "resolving-api-addresses": "Initializing NymVPN (1/6)",
-    "awaiting-account-readiness": "Setting up your account (2/6)",
-    "refreshing-gateways": "Updating server list (3/6)",
-    "selecting-gateways": "Choosing best servers (4/6)",
-    "registering-with-gateways": "Registering anonymously with servers (5/6)",
-    "connecting-tunnel": "Establishing server connection (6/6)"
+    "canceling": "বাতিল করা হচ্ছে…",
+    "resolving-api-addresses": "NymVPN ইনিশিয়ালাইজ করা হচ্ছে (1/6)",
+    "awaiting-account-readiness": "আপনার অ্যাকাউন্ট সেটআপ করা হচ্ছে (2/6)",
+    "refreshing-gateways": "সার্ভার তালিকা আপডেট হচ্ছে (3/6)",
+    "selecting-gateways": "সেরা সার্ভার নির্বাচন করা হচ্ছে (4/6)",
+    "registering-with-gateways": "সার্ভারগুলোর সাথে গোপনভাবে রেজিস্টার করা হচ্ছে (5/6)",
+    "connecting-tunnel": "সার্ভারের সাথে সংযোগ স্থাপন করা হচ্ছে (6/6)"
   },
-  "connection-attempt_one": "Retrying… attempt {{count}}",
-  "connection-attempt_other": "Retrying… attempt {{count}}"
+  "connection-attempt_one": "পুনরায় চেষ্টা করা হচ্ছে {{count}}",
+  "connection-attempt_other": "পুনরায় চেষ্টা করা হচ্ছে {{count}}"
 }

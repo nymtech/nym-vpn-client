@@ -11,8 +11,8 @@
   },
   "offline-message": "دستگاه شما به اینترنت متصل نیست",
   "offline-reconnect-message": "زمانی که دستگاه آنلاین شد متصل خواهد شد",
-  "last-hop": "مکان خروجی",
-  "first-hop": "مکان ورودی",
+  "last-hop": "خروجی",
+  "first-hop": "ورودی",
   "connecting-message": "راه‌اندازی اتصال",
   "connection-time": "زمان سپری شده اتصال",
   "select-mode-label": "انتخاب حالت",
@@ -63,5 +63,6 @@
     "restart-note": "بعد از به‌روزرسانی، برنامه مجدداً راه‌اندازی خواهد شد.",
     "bar-label": "پیشروی دانلود"
   },
-  "get-started": "شروع کنید"
+  "get-started": "شروع کنید",
+  "choose-plan": "Choose plan"
 }

@@ -26,5 +26,6 @@
   },
   "appearance": "Aspetto",
   "language": "Lingua",
-  "server-details": "Dettagli del server"
+  "server-details": "Dettagli del server",
+  "skip": "Salta"
 }

@@ -63,5 +63,6 @@
     "restart-note": "Ứng dụng sẽ khởi động lại sau khi cập nhật.",
     "bar-label": "Tiến độ tải xuống"
   },
-  "get-started": "Bắt đầu"
+  "get-started": "Bắt đầu",
+  "choose-plan": "Choose plan"
 }

@@ -1,0 +1,24 @@
+{
+  "welcome": {
+    "title": "Willkommen bei NymVPN",
+    "description": "<large>Das privateste VPN der Welt</large>\n\n7 Tage lang kostenlos testen:\nAlle Funktionen inklusive, keine Werbung."
+  },
+  "tracking": {
+    "title": "Nicht mehr online getrackt werden",
+    "description": "Das dezentrale Netzwerk von Nym macht „No-Log“-Versprechen überflüssig."
+  },
+  "zero-knowledge": {
+    "title": "Anonymität von der Zahlung bis zum Web",
+    "description": "Bezahl mit Karte, Kryptowährung oder Bargeld – keine E-Mail-Adresse nötig. Zero-Knowledge-Proofs sorgen dafür, dass deine Zahlungen nicht mit deinen Online-Aktivitäten in Verbindung gebracht werden können."
+  },
+  "speed": {
+    "title": "Geschwindigkeit, wenn du sie brauchst.\nPrivatsphäre, wenn sie wichtig ist.",
+    "description": "<bold>Schneller Modus:</bold> 250+ Mbit/s mit dVPN.\n<bold>Anonymer Modus:</bold> 5-Hop-Rauschgenerierendes Mixnet."
+  },
+  "controls": {
+    "login": "Anmelden",
+    "create-account": "Konto erstellen",
+    "next": "Weiter",
+    "skip": "Überspringen"
+  }
+}

@@ -26,5 +26,6 @@
   },
   "appearance": "Aparência",
   "language": "Idioma",
-  "server-details": "Detalhes do servidor"
+  "server-details": "Detalhes do servidor",
+  "skip": "Ignorar"
 }

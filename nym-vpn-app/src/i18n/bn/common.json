@@ -1,30 +1,31 @@
 {
   "vpn-modes": {
-    "privacy": "Anonymous (mixnet)",
-    "fast": "Fast (WireGuard)"
+    "privacy": "গোপন (মিক্সনেট)",
+    "fast": "ফাস্ট (WireGuard)"
   },
-  "connect": "Connect",
-  "disconnect": "Disconnect",
-  "first-hop-selection": "Entry location",
-  "last-hop-selection": "Exit location",
-  "settings": "Settings",
-  "display-theme": "Display",
-  "notifications": "Notifications",
-  "logs": "Logs",
-  "feedback": "Feedback",
-  "legal": "Legal",
+  "connect": "সংযোগ",
+  "disconnect": "সংযোগ বিচ্ছিন্ন",
+  "first-hop-selection": "প্রবেশ অবস্থান",
+  "last-hop-selection": "প্রবেশ অবস্থান",
+  "settings": "সেটিংস",
+  "display-theme": "ডিসপ্লে",
+  "notifications": "নোটিফিকেশন",
+  "logs": "লগস",
+  "feedback": "মতামত",
+  "legal": "আইনগত তথ্য",
   "data-privacy": "ডাটা ও গোপনীয়তা",
-  "support": "Support",
-  "fastest": "Fastest",
-  "random": "Random",
-  "sentry": "Sentry",
-  "tos": "Terms of use",
-  "privacy-statement": "Privacy statement",
+  "support": "সহায়তা",
+  "fastest": "দ্রুততম",
+  "random": "এলোমেলো",
+  "sentry": "সেন্ট্রি",
+  "tos": "ব্যবহারের শর্তাবলি",
+  "privacy-statement": "গোপনীয়তা নীতিমালা",
   "ui-mode": {
-    "dark": "Dark mode",
-    "light": "Light mode"
+    "dark": "ডার্ক মোড",
+    "light": "লাইট মোড"
   },
-  "appearance": "Appearance",
-  "language": "Language",
-  "server-details": "Server details"
+  "appearance": "প্রদর্শন ",
+  "language": "ভাষা",
+  "server-details": "সার্ভারের বিস্তারিত",
+  "skip": "Skip"
 }

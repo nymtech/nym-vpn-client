@@ -1,0 +1,24 @@
+{
+  "welcome": {
+    "title": "Bienvenido a NymVPN",
+    "description": "<large>The world’s most private VPN</large>\n\nTry for 7 days free:\nAll features included, no ads."
+  },
+  "tracking": {
+    "title": "Dejar de ser rastreado en línea",
+    "description": "La descentralizada red de Nym hace que las promesas de \"no-log\" sean obsoletas."
+  },
+  "zero-knowledge": {
+    "title": "Anonimato de pago a web",
+    "description": "Paga con tarjeta, cripto o efectivo, sin necesidad de correo electrónico. Las pruebas de conocimiento cero hacen que tus pagos sean invinculables a tus actividades en línea."
+  },
+  "speed": {
+    "title": "Velocidad cuando la necesites.\nprivacidad cuando importa.",
+    "description": "<bold>Modo rápido:</bold> +250 Mbps con dVPN.\n<bold>Modo anónimo:</bold> ruido de 5 saltos Generando Mixnet."
+  },
+  "controls": {
+    "login": "Iniciar sesión",
+    "create-account": "Crear cuenta",
+    "next": "Siguiente",
+    "skip": "Saltar"
+  }
+}

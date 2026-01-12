@@ -1,8 +1,11 @@
 {
   "select-a-plan": {
     "title": "Elige tu nivel de protección",
-    "description-1": "Selecciona un plan ahora para activar tu protección",
-    "description-2": "Tu próximo pago no podrá ser vinculado a tu actividad de navegación",
+    "features": {
+      "all-included": "Todas las características incluidas",
+      "no-ads": "Sin anuncios",
+      "cancel-anytime": "Cancelar en cualquier momento"
+    },
     "button": "Elige tu plan NymVPN"
   }
 }

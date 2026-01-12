@@ -63,5 +63,6 @@
     "restart-note": "Güncelleme tamamlandıktan sonra uygulama yeniden başlayacaktır.",
     "bar-label": "İndirme durumu"
   },
-  "get-started": "Başlayın"
+  "get-started": "Başlayın",
+  "choose-plan": "Choose plan"
 }

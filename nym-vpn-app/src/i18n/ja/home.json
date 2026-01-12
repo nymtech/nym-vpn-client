@@ -63,5 +63,6 @@
     "restart-note": "アップデート後にアプリが再起動します。",
     "bar-label": "ダウンロードの進捗状況"
   },
-  "get-started": "開始する"
+  "get-started": "開始する",
+  "choose-plan": "プランを選択"
 }

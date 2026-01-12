@@ -63,5 +63,6 @@
     "restart-note": "L'application redémarrera après la mise à jour.",
     "bar-label": "Téléchargement en cours"
   },
-  "get-started": "Démarrer"
+  "get-started": "Démarrer",
+  "choose-plan": "Choisissez une offre"
 }

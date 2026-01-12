@@ -126,36 +126,36 @@
     "title": "Proxy ứng dụng & ví (phiên bản beta)",
     "menu-desc": "Định tuyến lưu lượng truy cập ứng dụng thông qua mixnet",
     "label": "Proxy ứng dụng và ví",
-    "switch-title": "Enable proxy",
-    "proxy-status": "Proxy status:",
-    "active-connections": "Active connections:",
+    "switch-title": "Bật proxy",
+    "proxy-status": "Trạng thái proxy:",
+    "active-connections": "Kết nối đang hoạt động:",
     "status": {
-      "connected": "Connected",
-      "disabled": "Disabled",
-      "enabling": "Enabling...",
-      "unknown": "Unknown"
+      "connected": "Đã kết nối",
+      "disabled": "Đã tắt",
+      "enabling": "Đang bật...",
+      "unknown": "Không xác định"
     },
     "socks5": {
-      "proxy-title": "SOCKS5 configuration (for apps)",
+      "proxy-title": "Cấu hình SOCKS5 (cho ứng dụng)",
       "url-title": "SOCKS5 URL",
-      "listen-address": "SOCKS5 listen address",
-      "info": "ℹ️ Add this to your browser's proxy settings to route traffic through the Nym mixnet"
+      "listen-address": "SOCKS5 Listen Address",
+      "info": "ℹ️ Thêm vào cài đặt proxy của trình duyệt để định tuyến lưu lượng truy cập qua Nym mixnet"
     },
     "http-rpc": {
-      "proxy-title": "HTTP RPC configuration (for wallets)",
+      "proxy-title": "Cấu hình HTTP RPC (cho ví điện tử)",
       "url-title": "HTTP RPC URL",
       "listen-address": "HTTP RPC listen address",
-      "info": "ℹ️ Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint."
+      "info": "ℹ️ Sử dụng URL này trong MetaMask hoặc các ví Web3 khác để thực hiện lệnh gọi RPC thông qua Nym mixnet. Thay <your-provider-url> bằng điểm cuối RPC thực tế của bạn."
     },
-    "invalid-port": "Invalid port number",
-    "listen-port": "Listen port",
-    "reset-to-default": "Reset to default",
+    "invalid-port": "Số cổng không hợp lệ",
+    "listen-port": "Cổng lắng nghe",
+    "reset-to-default": "Đặt về mặc định",
     "intro": "Định tuyến lưu lượng ứng dụng và ví qua mixnet Nym để tăng cường quyền riêng tư. Tính năng này tạo proxy SOCKS5 cục bộ cho ứng dụng và proxy HTTP RPC cho ví.",
     "error-gateway-not-supported": "Cổng không hỗ trợ SOCKS5",
     "error-unknown": "Không thể chuyển đổi proxy SOCKS5",
     "error-vpn-not-connected": "Vui lòng kết nối VPN trước khi bật proxy SOCKS5",
-    "snackbar-enabled": "Proxy successfully enabled",
-    "snackbar-disabled": "Proxy successfully disabled"
+    "snackbar-enabled": "Đã bật proxy thành công",
+    "snackbar-disabled": "Đã tắt proxy thành công"
   },
   "privacy": {
     "error-monitoring": {
@@ -173,6 +173,7 @@
   },
   "account": {
     "get-started": "Bắt đầu",
+    "choose-plan": "Choose plan",
     "syncing": "Đang đồng bộ…",
     "no-plan": "Không có gói dịch vụ khả dụng",
     "bandwidth-exceeded": "Vượt quá giới hạn băng thông",

@@ -35,18 +35,18 @@
   "dns": {
     "title": "自定义DNS",
     "topbar-title": "DNS 自定义",
-    "top-description": "默认情况下，使用 Nym 推荐的DNS 服务器。如果需要在下方配置自定义服务器。",
+    "top-description": "默认情况下，程序使用 Nym 推荐的DNS 服务器。如果需要请在下方配置自定义服务器。",
     "view-default-dns": "查看默认DNS",
     "hide-default-dns": "隐藏默认DNS",
     "details": {
       "title": "使用自定义 DNS 服务器",
-      "description": "配置您自己的DNS用于广告拦截、内容过滤或首选供应商。拖动以重新排序优先级。警告：可能限制Nym连通性。",
+      "description": "配置您自己的DNS用于广告拦截、内容过滤或使用您喜欢的DNS供应商。拖动以重新排序优先级。⚠️ 可能限制Nym连接能力。",
       "list-header": "自定义 DNS 服务器",
       "add": "添加",
       "input-label": "DNS地址",
       "input-placeholder": "IPv4或IPv6地址",
       "apply": "保存更改",
-      "link": "了解更多关于 DNS",
+      "link": "了解更多关于DNS的信息",
       "applied": "自定义DNS已保存。"
     },
     "error": {
@@ -59,7 +59,7 @@
     "title": "保存更改？",
     "description": "您有未保存的更改。",
     "save": "保存更改",
-    "cancel": "放弃..."
+    "cancel": "取消"
   },
   "legal": {
     "title": "法律条款",
@@ -123,7 +123,7 @@
     "desc": "您的数据始终处于保护状态"
   },
   "app-proxy": {
-    "title": "App & 钱包代理 (测试版)",
+    "title": "应用程序和数字钱包代理 (beta)",
     "menu-desc": "通过混合网络路由流量",
     "label": "应用程序和钱包代理",
     "switch-title": "启用代理",
@@ -132,20 +132,20 @@
     "status": {
       "connected": "已连接",
       "disabled": "已禁用",
-      "enabling": "启用...",
-      "unknown": "未知的"
+      "enabling": "启用中……",
+      "unknown": "未知"
     },
     "socks5": {
-      "proxy-title": "SOCKS5 配置 (适用于应用)",
+      "proxy-title": "SOCKS5 配置 (适用于应用程序)",
       "url-title": "SOCKS5 URL",
       "listen-address": "SOCKS5 监听地址",
-      "info": "i 将此添加到您浏览器的代理设置中，以通过Nym mixnet路由流量"
+      "info": "ℹ️ 将此添加到您浏览器的代理设置中以通过Nym混合网络来路由流量"
     },
     "http-rpc": {
-      "proxy-title": "HTTP RPC 配置 (用于钱包)",
+      "proxy-title": "HTTP RPC 配置 (用于数字钱包)",
       "url-title": "HTTP RPC URL",
       "listen-address": "HTTP RPC 监听地址",
-      "info": "i 在MetaMask或其他 Web3 钱包中使用它来通过 Nym mixnet进行RPC 通话。使用 <your-provider-url> 来替换实际的 RPC 端点。"
+      "info": "ℹ️ 使用该功能使MetaMask或其他Web3钱包通过Nym混合网络进行RPC会话。使用您的实际的RPC端点URL来替换<your-provider-url>。"
     },
     "invalid-port": "无效的端口号",
     "listen-port": "监听端口",
@@ -155,7 +155,7 @@
     "error-unknown": "切换SOCKS5代理失败",
     "error-vpn-not-connected": "启用SOCKS5代理前请先连接 VPN",
     "snackbar-enabled": "已成功启用代理",
-    "snackbar-disabled": "代理已成功禁用"
+    "snackbar-disabled": "代理已成功关闭"
   },
   "privacy": {
     "error-monitoring": {
@@ -173,6 +173,7 @@
   },
   "account": {
     "get-started": "开始使用",
+    "choose-plan": "选择计划",
     "syncing": "同步中…",
     "no-plan": "没有可用的订阅",
     "bandwidth-exceeded": "带宽已达上限",
