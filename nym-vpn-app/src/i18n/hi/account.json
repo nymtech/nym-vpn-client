@@ -1,8 +1,11 @@
 {
   "select-a-plan": {
     "title": "अपना सुरक्षा स्तर चुनें",
-    "description-1": "अपना संरक्षण सक्रिय करने के लिए अभी एक योजना चुनें",
-    "description-2": "आपका आगामी भुगतान आपकी भविष्य की ब्राउज़िंग गतिविधि से जोड़ी नहीं जा सकती",
+    "features": {
+      "all-included": "All features included",
+      "no-ads": "No ads",
+      "cancel-anytime": "Cancel anytime"
+    },
     "button": "अपना NymVPN योजना चुनें"
   }
 }

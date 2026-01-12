@@ -1,10 +1,10 @@
 {
-  "licenses": "licenses",
-  "license-texts": "license texts",
-  "name": "name",
-  "version": "version",
-  "authors": "authors",
-  "repository": "repository",
-  "language": "Programming language",
-  "no-data": "No license data"
+  "licenses": "লাইসেন্স",
+  "license-texts": "লাইসেন্স টেক্সটসমূহ",
+  "name": "নাম",
+  "version": "সংস্করণ",
+  "authors": "মালিকগণ",
+  "repository": "রিপোজিটরি",
+  "language": "প্রোগ্রামিং ল্যাঙ্গুয়েজ",
+  "no-data": "কোনো লাইসেন্স তথ্য উপলব্ধ নয়"
 }

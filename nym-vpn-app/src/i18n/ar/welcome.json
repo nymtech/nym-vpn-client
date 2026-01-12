@@ -2,8 +2,9 @@
   "title": "مرحبا بكم في NymVPN",
   "description": "Help us improve the app by identifying and resolving issues. Opt-in for anonymous error monitoring (via <sentryLink />) and analytics, you can opt out anytime. Thanks for your support!",
   "anon-toggle-desc": "ينطبق على إعادة تشغيل التطبيق",
-  "tos-notice": "By continuing, you agree to NymVPN's <tosLink /> and acknowledge NymVPN's <privacyLink />.",
+  "tos-notice": "بالإستمرار, أنت توافق لـ<tosLink /> لـNymVPN وتقر بـ<privacyLink /> لـNymVPN.",
   "continue-button": "المتابعة",
   "error-monitoring-label": "تقارير الأخطاء مجهولة المصدر",
-  "network-statistic": "إحصائيات الشبكة المجهولة"
+  "network-statistic": "إحصائيات الشبكة المجهولة",
+  "network-statistic-toggle-desc": "يساعدنا على تحسين شبكة نيم. لا تسجيل أو تتبع النشاط."
 }

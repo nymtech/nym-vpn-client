@@ -173,6 +173,7 @@
   },
   "account": {
     "get-started": "Başlayın",
+    "choose-plan": "Choose plan",
     "syncing": "Senkronize ediliyor...",
     "no-plan": "Aktif plan yok",
     "bandwidth-exceeded": "Bant genişliği aşıldı",

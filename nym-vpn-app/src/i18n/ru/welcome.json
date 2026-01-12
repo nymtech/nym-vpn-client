@@ -5,5 +5,6 @@
   "tos-notice": "Продолжая, вы соглашаетесь с <tosLink /> NymVPN и подтверждаете ознакомление с <privacyLink /> NymVPN.",
   "continue-button": "Продолжить",
   "error-monitoring-label": "Анонимные отчеты об ошибках",
-  "network-statistic": "Анонимная статистика сети"
+  "network-statistic": "Анонимная статистика сети",
+  "network-statistic-toggle-desc": "Помогает нам улучшить сеть Nym. Никаких журналов и отслеживание активности."
 }

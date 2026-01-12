@@ -3,7 +3,7 @@
   "none-found": "نتیجه‌ای یافت نشد. لطفا جستجو دیگری را امحتان کنید",
   "list-loading": "لیست مناطق در حال بارگذاری…",
   "selected": "انتخاب‌شده",
-  "search-country": "جستجوی منطقه",
+  "search-country": "جستجوی لوکیشن",
   "input-label": "جست‌وجو",
   "quic-filter-note": "فقط مکان‌ها و سرورهایی را نمایش می‌دهد که از حالت سریع (Fast Mode) و پروتکل QUIC پشتیبانی می‌کنند.\nبرای نمایش تمام سرورها، گزینه‌ی QUIC را غیرفعال کنید.<here />.",
   "location-details": {
@@ -16,10 +16,10 @@
       "description": "مکان‌های نمایش داده شده <1>با آدرس‌های IP تعیین شده‌اند</1>ممکن است اطلاعات مکانی آنها دقیق نباشد."
     },
     "quic": {
-      "title": "QUIC protocol",
-      "description": "Improves the Fast mode reliability in restrictive networks by <1>wrapping WireGuard traffic in QUIC</1> (HTTP/3) to appear as regular web browsing."
+      "title": "پروتکل QUIC",
+      "description": "با <1>قرار دادن ترافیک WireGuard درون QUICکوییک</1> (HTTP/3)، پایداری حالت Fast در شبکه‌های محدود شده را بهبود می‌دهد تا ترافیک شبیه وبگردی عادی به نظر برسد."
     },
-    "entry-title": "Choosing entry locations",
+    "entry-title": "در حال انتخاب سرورهای ورودی",
     "exit-title": "انتخاب مناطق خروجی"
   },
   "location-not-available": {

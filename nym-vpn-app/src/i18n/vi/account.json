@@ -1,8 +1,11 @@
 {
   "select-a-plan": {
     "title": "Chọn mức độ bảo vệ của bạn",
-    "description-1": "Chọn một gói dịch vụ ngay bây giờ để được dữ liệu của bạn được bảo vệ",
-    "description-2": "Các khoản thanh toán của bạn sẽ không bị liên kết với hoạt động duyệt web trong tương lai",
+    "features": {
+      "all-included": "All features included",
+      "no-ads": "No ads",
+      "cancel-anytime": "Cancel anytime"
+    },
     "button": "Chọn gói NymVPN"
   }
 }

@@ -8,8 +8,8 @@
     "desc": "اتصالات IPv6 را مجاز کنید"
   },
   "allow-lan": {
-    "title": "Bypass LAN",
-    "desc": "Allow direct local network access"
+    "title": "عبور ندادن ترافیک شبکهٔ LAN از VPN",
+    "desc": "اجازهٔ دسترسی مستقیم به شبکهٔ محلی"
   },
   "notifications": {
     "title": "اعلانات دسکتاپ"
@@ -33,33 +33,33 @@
     }
   },
   "dns": {
-    "title": "Customize DNS",
-    "topbar-title": "DNS customization",
-    "top-description": "By default, using Nym's recommended DNS servers. Configure custom servers below if needed.",
-    "view-default-dns": "View default DNS",
-    "hide-default-dns": "Hide default DNS",
+    "title": "سفارشی‌ کردن DNS",
+    "topbar-title": "دلخواه DNS",
+    "top-description": "به‌طور پیش‌فرض از سرورهای DNS پیشنهادی Nym استفاده می‌شود. در صورت نیاز می‌توانید سرورهای دلخواه خود را در قسمت پایین تنظیم کنید.",
+    "view-default-dns": "مشاهدهٔ DNS پیش‌فرض",
+    "hide-default-dns": "پنهان‌کردن DNS پیش‌فرض",
     "details": {
-      "title": "Use custom DNS servers",
-      "description": "Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity.",
-      "list-header": "Custom DNS servers",
-      "add": "Add",
-      "input-label": "DNS address",
-      "input-placeholder": "IPv4 or IPv6 address",
-      "apply": "Save changes",
-      "link": "Learn more about DNS",
-      "applied": "Custom DNS saved."
+      "title": "استفاده از سرورهای DNS دلخواه",
+      "description": "DNS دلخواه خود را برای مسدودسازی تبلیغات، فیلتر محتوا یا بروی سرویس‌دهندهٔ دلخواه خود  تنظیم کنید. برای تغییر اولویت، بکشید و جابه‌جا کنید. ⚠️ ممکن است اتصال Nym را محدود کند.",
+      "list-header": "سرورهای DNS سفارشی",
+      "add": "افزودن",
+      "input-label": "آدرس DNS",
+      "input-placeholder": "آدرس IPv4 یا IPv6",
+      "apply": "ذخیرهٔ تغییرات",
+      "link": "دربارهٔ DNS بیشتر بدانید",
+      "applied": "DNS سفارشی ذخیره شد."
     },
     "error": {
-      "duplicate": "Duplicate DNS address",
-      "invalid": "Invalid DNS address format",
-      "failed": "Failed to apply DNS changes"
+      "duplicate": "آدرس DNS تکراری است",
+      "invalid": "فرمت آدرس DNS نامعتبر است",
+      "failed": "اعمال تغییرات DNS ناموفق بود"
     }
   },
   "confirmation-dialog": {
-    "title": "Save changes?",
-    "description": "You have unsaved changes.",
-    "save": "Save changes",
-    "cancel": "Discard"
+    "title": "تغییرات ذخیره شوند؟",
+    "description": "تغییرات ذخیره‌نشده دارید.",
+    "save": "ذخیرهٔ تغییرات",
+    "cancel": "انصراف"
   },
   "legal": {
     "title": "قانونی",
@@ -81,7 +81,7 @@
     "quic": {
       "label": "اتصال بهبود یافته (QUIC)",
       "warning": "تغییرات پس از اتصال مجدد اعمال خواهند شد",
-      "content": "قابلیت اطمینان حالت سریع (Fast Mode) را در شبکه‌های محدود بهبود می‌بخشد؛ با پوشاندن ترافیک WireGuard در پروتکل QUIC ‏(HTTP/3) تا شبیه ترافیک معمول در وب گردی به‌نظر برسد.\n\nنکته: گزینه‌های سرور ورودی را فقط به گِت‌وی سازگار با QUIC محدود می‌کند.",
+      "content": "قابلیت اطمینانِ حالت سریع (Fast Mode) را در شبکه‌های محدودکننده بهبود می‌بخشد؛ با کپسوله‌کردنِ ترافیک WireGuard در QUIC ‏(HTTP/3) تا شبیه وب‌گردیِ معمول به نظر برسد.\n\nنکته: گزینه‌های گِیت‌وی ورودی را فقط به سرورهای سازگار با QUIC محدود می‌کند.",
       "link": "QUIC چگونه کیفیت اتصال‌ها را بهتر می‌کند"
     },
     "stealth-api": {
@@ -123,39 +123,39 @@
     "desc": "همیشه فعال برای محافظت از داده‌های شما"
   },
   "app-proxy": {
-    "title": "App & wallet proxy (beta)",
-    "menu-desc": "Route app traffic through mixnet",
-    "label": "App & wallet proxy",
-    "switch-title": "Enable proxy",
-    "proxy-status": "Proxy status:",
-    "active-connections": "Active connections:",
+    "title": "پروکسی اپ و کیف‌پول (بتا)",
+    "menu-desc": "هدایت ترافیک اپ‌ها از طریق mixnet",
+    "label": "پروکسی اپ و کیف‌پول",
+    "switch-title": "فعال‌سازی پروکسی",
+    "proxy-status": "وضعیت پروکسی:",
+    "active-connections": "اتصال‌های فعال:",
     "status": {
-      "connected": "Connected",
-      "disabled": "Disabled",
-      "enabling": "Enabling...",
-      "unknown": "Unknown"
+      "connected": "متصل",
+      "disabled": "غیرفعال",
+      "enabling": "در حال فعال‌سازی...",
+      "unknown": "نامشخص"
     },
     "socks5": {
-      "proxy-title": "SOCKS5 configuration (for apps)",
+      "proxy-title": "پیکربندی SOCKS5 (برای اپ‌ها)",
       "url-title": "SOCKS5 URL",
       "listen-address": "SOCKS5 listen address",
-      "info": "ℹ️ Add this to your browser's proxy settings to route traffic through the Nym mixnet"
+      "info": "ℹ️ این مورد را به تنظیمات پروکسی مرورگر خود اضافه کنید تا ترافیک از طریق میکس‌نت Nym هدایت شود"
     },
     "http-rpc": {
-      "proxy-title": "HTTP RPC configuration (for wallets)",
+      "proxy-title": "پیکربندی HTTP RPC (برای کیف‌پول‌ها)",
       "url-title": "HTTP RPC URL",
       "listen-address": "HTTP RPC listen address",
-      "info": "ℹ️ Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint."
+      "info": "ℹ️ از این مورد در MetaMask یا سایر کیف‌پول‌های Web3 استفاده کنید تا فراخوانی‌های RPC از طریق میکس‌نت Nym انجام شود. مقدار <your-provider-url> را با نقطهٔ پایانی فعلی RPC خود جایگزین کنید."
     },
-    "invalid-port": "Invalid port number",
+    "invalid-port": "شمارهٔ پورت نامعتبر است",
     "listen-port": "Listen port",
-    "reset-to-default": "Reset to default",
-    "intro": "Route app & wallet traffic through the Nym mixnet for enhanced privacy. This feature creates a local SOCKS5 proxy for apps, and a HTTP RPC proxy for wallets.",
-    "error-gateway-not-supported": "Gateway does not support SOCKS5",
-    "error-unknown": "Failed to toggle SOCKS5 proxy",
-    "error-vpn-not-connected": "Please connect VPN first before enabling SOCKS5 proxy",
-    "snackbar-enabled": "Proxy successfully enabled",
-    "snackbar-disabled": "Proxy successfully disabled"
+    "reset-to-default": "بازنشانی به حالت پیش‌فرض",
+    "intro": "برای افزایش حریم خصوصی، ترافیک اپ‌ها و کیف‌ پول‌ها را از طریق میکس‌نت Nym هدایت کنید. این قابلیت یک پروکسی محلی SOCKS5 برای اپ‌ها و یک پروکسی HTTP RPC برای کیف‌ پول‌ها ایجاد می‌کند.",
+    "error-gateway-not-supported": "سرور از SOCKS5 پشتیبانی نمی‌کند",
+    "error-unknown": "تغییر وضعیت پروکسی SOCKS5 ناموفق بود",
+    "error-vpn-not-connected": "لطفاً پیش از فعال‌سازی پروکسی SOCKS5 ابتدا به VPN متصل شوید",
+    "snackbar-enabled": "پروکسی با موفقیت فعال شد",
+    "snackbar-disabled": "پروکسی با موفقیت غیرفعال شد"
   },
   "privacy": {
     "error-monitoring": {
@@ -173,6 +173,7 @@
   },
   "account": {
     "get-started": "شروع کنید",
+    "choose-plan": "Choose plan",
     "syncing": "در حال همگام سازی…",
     "no-plan": "طرح فعال وجود ندارد",
     "bandwidth-exceeded": "حجم ترافیک شما تمام شده است",
