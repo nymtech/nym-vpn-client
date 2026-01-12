@@ -63,5 +63,6 @@
     "restart-note": "Die App wird nach dem Update neu gestartet.",
     "bar-label": "Download-Fortschritt"
   },
-  "get-started": "Los geht's"
+  "get-started": "Los geht's",
+  "choose-plan": "Plan auswählen"
 }

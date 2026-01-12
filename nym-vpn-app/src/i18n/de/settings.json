@@ -35,19 +35,19 @@
   "dns": {
     "title": "DNS-Anpassung",
     "topbar-title": "DNS-Anpassung",
-    "top-description": "Standardmäßig werden die von Nym empfohlenen DNS-Server verwendet. Konfiguriere bei Bedarf unten benutzerdefinierte Server.",
+    "top-description": "Standardmäßig werden die von Nym empfohlenen DNS-Server verwendet. Konfiguriere bei Bedarf unten eigene Server.",
     "view-default-dns": "Standard DNS anzeigen",
     "hide-default-dns": "Standard DNS ausblenden",
     "details": {
       "title": "Eigene DNS-Server verwenden",
       "description": "Konfiguriere deine eigenen DNS für Werbeblockierung, Inhaltsfilterung oder bevorzugte Anbieter. Ziehe die Einträge, um die Priorität neu zu ordnen. ⚠️  Dies kann die Nym-Konnektivität einschränken.",
-      "list-header": "Benutzerdefinierte DNS-Server",
+      "list-header": "Eigene DNS-Server",
       "add": "Hinzufügen",
       "input-label": "DNS-Adresse",
       "input-placeholder": "IPv4 oder IPv6 Adresse",
       "apply": "Änderungen speichern",
       "link": "Erfahre mehr über DNS",
-      "applied": "Eigenen DNS gespeichert."
+      "applied": "Eigene DNS gespeichert."
     },
     "error": {
       "duplicate": "DNS-Adresse doppelt",
@@ -81,7 +81,7 @@
     "quic": {
       "label": "Verbesserte Verbindung (QUIC)",
       "warning": "Änderungen werden nach dem erneuten Verbinden übernommen",
-      "content": "Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken, indem der WireGuard-Datenverkehr in QUIC (HTTP/3) eingehüllt wird, um als normales Webbrowsing zu erscheinen.\n\nHinweis: Begrenzt die Eintrittsserver-Optionen auf QUIC-kompatible Gateways.",
+      "content": "Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken, indem der WireGuard-Datenverkehr in QUIC (HTTP/3) eingehüllt wird, um als normales Webbrowsing zu erscheinen.\n\nHinweis: Begrenzt die Eintrittsserver-Optionen auf QUIC-kompatible Server.",
       "link": "Wie QUIC die Verbindungen verbessert"
     },
     "stealth-api": {
@@ -119,7 +119,7 @@
     "desc": "App beim Gerätestart starten"
   },
   "killswitch": {
-    "title": "Kill Switch",
+    "title": "Killswitch",
     "desc": "Immer an, um deine Daten zu schützen"
   },
   "app-proxy": {
@@ -151,7 +151,7 @@
     "listen-port": "Listen-Port",
     "reset-to-default": "Auf Standard zurücksetzen",
     "intro": "Leite den Datenverkehr von Apps und Wallets durch das Nym-Mixnet, um die Privatsphäre zu verbessern. Diese Funktion erstellt einen lokalen SOCKS5 Proxy für Apps und einen HTTP RPC Proxy für Wallets.",
-    "error-gateway-not-supported": "Gateway unterstützt SOCKS5 nicht",
+    "error-gateway-not-supported": "Server unterstützt SOCKS5 nicht",
     "error-unknown": "Umschalten des SOCKS5-Proxys fehlgeschlagen",
     "error-vpn-not-connected": "Bitte erst eine VPN-Verbindung herstellen, bevor du den SOCKS5-Proxy aktivierst",
     "snackbar-enabled": "Proxy erfolgreich aktiviert",
@@ -173,6 +173,7 @@
   },
   "account": {
     "get-started": "Los geht's",
+    "choose-plan": "Plan auswählen",
     "syncing": "Synchronisiere…",
     "no-plan": "Du hast keinen aktiven Tarif",
     "bandwidth-exceeded": "Bandbreite überschritten",

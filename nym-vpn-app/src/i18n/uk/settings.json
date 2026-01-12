@@ -151,7 +151,7 @@
     "listen-port": "Слухаючий порт",
     "reset-to-default": "Скинути за умовчанням",
     "intro": "Маршрутизуйте трафік додатків і гаманців через мікснет Nym для підвищення рівня конфіденційності. Ця функція створює локальний проксі SOCKS5 для додатків і проксі HTTP RPC для гаманців.",
-    "error-gateway-not-supported": "Шлюз не підтримує SOCKS5",
+    "error-gateway-not-supported": "Сервер не підтримує SOCKS5",
     "error-unknown": "Не вдалося переключити проксі SOCKS5",
     "error-vpn-not-connected": "Будь ласка, спершу під'єднайте VPN перед увімкненням SOCKS5 проксі",
     "snackbar-enabled": "Проксі успішно увімкнено",
@@ -173,6 +173,7 @@
   },
   "account": {
     "get-started": "Почати",
+    "choose-plan": "Choose plan",
     "syncing": "Синхронізація…",
     "no-plan": "Немає активного плану",
     "bandwidth-exceeded": "Перевищено пропускну здатність",

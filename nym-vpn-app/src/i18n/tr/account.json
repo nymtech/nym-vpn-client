@@ -1,8 +1,11 @@
 {
   "select-a-plan": {
     "title": "Güvenlik seviyeni belirle",
-    "description-1": "Güvenliğinizi başlatmak için şimdi bir plan seçin",
-    "description-2": "Ödemeniz, gelecekteki internet kullanımınızla ilişkilendirilmez",
+    "features": {
+      "all-included": "All features included",
+      "no-ads": "No ads",
+      "cancel-anytime": "Cancel anytime"
+    },
     "button": "Bir NymVPN planı seçin"
   }
 }

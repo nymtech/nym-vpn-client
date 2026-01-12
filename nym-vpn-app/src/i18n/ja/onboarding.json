@@ -1,0 +1,24 @@
+{
+  "welcome": {
+    "title": "NymVPNへようこそ",
+    "description": "<large>世界で最もプライベートなVPN</large>\n\n7日間無料でお試しください:\nすべての機能、広告なし。"
+  },
+  "tracking": {
+    "title": "オンライン追跡を停止する",
+    "description": "Nymの分散型ネットワークは、「no-log」という約束を時代遅れにします。"
+  },
+  "zero-knowledge": {
+    "title": "支払いからウェブへの匿名性",
+    "description": "カード、暗号、または現金で支払う-電子メールは必要ありません。ゼロ知識証明により、支払いはオンライン活動とリンクできなくなります。"
+  },
+  "speed": {
+    "title": "必要なときに速度を上げます。\n重要な時はプライバシーを守ります。",
+    "description": "<bold>Fast mode:</bold> 250 + Mbps with dVPN.\n<bold>Anonymous mode:</bold> 5-hop Noise Generating Mixnet."
+  },
+  "controls": {
+    "login": "ログイン",
+    "create-account": "アカウントを作成",
+    "next": "次へ",
+    "skip": "スキップ"
+  }
+}

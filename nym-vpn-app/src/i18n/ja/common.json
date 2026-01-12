@@ -26,5 +26,6 @@
   },
   "appearance": "外観",
   "language": "言語",
-  "server-details": "サーバーの詳細"
+  "server-details": "サーバーの詳細",
+  "skip": "スキップ"
 }

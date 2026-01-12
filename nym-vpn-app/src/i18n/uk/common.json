@@ -26,5 +26,6 @@
   },
   "appearance": "Зовнішній вигляд",
   "language": "Мова",
-  "server-details": "Деталі сервера"
+  "server-details": "Деталі сервера",
+  "skip": "Пропустити"
 }

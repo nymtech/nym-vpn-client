@@ -2,7 +2,7 @@
   "unknown": "未知错误",
   "internal": "内部错误",
   "daemon": {
-    "not-connected": "未连接到守护进程",
+    "not-connected": "无法连接到守护进程 (vpnd)。请重新启动守护进程或重启应用程序。",
     "internal": "守护进程内部错误",
     "invalid-network": "网络无效"
   },

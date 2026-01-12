@@ -63,5 +63,6 @@
     "restart-note": "Додаток перезапуститься після оновлення.",
     "bar-label": "Прогрес завантаження"
   },
-  "get-started": "Почати"
+  "get-started": "Почати",
+  "choose-plan": "Choose plan"
 }

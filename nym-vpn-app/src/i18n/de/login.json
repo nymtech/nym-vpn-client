@@ -1,0 +1,50 @@
+{
+  "privy": {
+    "title": "Willkommen bei NymVPN",
+    "login-button": "Mit Privy anmelden",
+    "maximum-privacy": {
+      "title": "🔒 Maximale Privatsphäre",
+      "description": "Erstelle ein anonymes Nym-Konto, keine persönlichen Daten erforderlich"
+    },
+    "quick-setup": {
+      "title": "⚡️ Quick setup",
+      "description": "Nutze ein bestehendes Konto wie Google oder ein Krypto-Wallet über unseren Login-Partner Privy"
+    },
+    "already-have-an-account": {
+      "title": "Hast du bereits ein Konto?",
+      "button": "Mit 24-Wort-Passphrase anmelden"
+    },
+    "error": {
+      "login": "Anmeldung mit Social-Konto fehlgeschlagen"
+    }
+  },
+  "signup": {
+    "title": "Konto erstellen",
+    "create-account": "Anonymes Konto erstellen",
+    "maximum-privacy": {
+      "title": "🔒 Maximale Privatsphäre",
+      "description": "Erstelle ein anonymes Nym-Konto, keine persönlichen Daten erforderlich"
+    },
+    "quick-setup": {
+      "title": "⚡️ Quick setup",
+      "description": "Nutze ein bestehendes Konto wie Google oder ein Krypto-Wallet über unseren Login-Partner Privy"
+    },
+    "already-have-an-account": {
+      "title": "Hast du bereits ein Konto?",
+      "button": "Anmelden"
+    }
+  },
+  "passphrase": {
+    "title": "Anmelden",
+    "description": "Bitte gib deine Passphrase ein: 24 durch Leerzeichen getrennte Wörter",
+    "input-label": "Passphrase",
+    "input-placeholder": "24-Wort-Passphrase\n\nz.B. smoke artefact velvet skull pop palace tortoise damage rough…",
+    "login-button": "Anmelden",
+    "new-to-nymvpn": "Neu bei NymVPN?"
+  },
+  "social-account-button": "Mit Social-Konto fortfahren",
+  "create-account": "Anonymes Konto erstellen",
+  "notification": {
+    "added": "Gerät erfolgreich zu deinem Konto hinzugefügt"
+  }
+}

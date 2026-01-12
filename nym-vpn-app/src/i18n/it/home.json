@@ -63,5 +63,6 @@
     "restart-note": "L'app verrà riavviata dopo l'aggiornamento.",
     "bar-label": "Progresso download"
   },
-  "get-started": "Per iniziare"
+  "get-started": "Per iniziare",
+  "choose-plan": "Scegli piano"
 }

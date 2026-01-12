@@ -1,0 +1,50 @@
+{
+  "privy": {
+    "title": "Chào mừng đến với NymVPN",
+    "login-button": "Đăng nhập bằng Privy",
+    "maximum-privacy": {
+      "title": "🔒 Bảo mật tối đa",
+      "description": "Tạo tài khoản Nym ẩn danh, không yêu cầu thông tin cá nhân"
+    },
+    "quick-setup": {
+      "title": "⚡️ Cài đặt nhanh",
+      "description": "Sử dụng tài khoản hiện có như Google hoặc ví tiền điện tử thông qua đối tác đăng nhập Privy của chúng tôi"
+    },
+    "already-have-an-account": {
+      "title": "Bạn đã có tài khoản?",
+      "button": "Đăng nhập bằng cụm từ mật khẩu 24 từ"
+    },
+    "error": {
+      "login": "Đăng nhập bằng tài khoản mạng xã hội không thành công"
+    }
+  },
+  "signup": {
+    "title": "Create account",
+    "create-account": "Create anonymous account",
+    "maximum-privacy": {
+      "title": "🔒 Maximum privacy",
+      "description": "Create an anonymous Nym account, no personal info required"
+    },
+    "quick-setup": {
+      "title": "⚡️ Quick setup",
+      "description": "Use existing account like Google or crypto wallet through our login partner Privy"
+    },
+    "already-have-an-account": {
+      "title": "Already have an account?",
+      "button": "Log in"
+    }
+  },
+  "passphrase": {
+    "title": "Log in",
+    "description": "Nhập hoặc dán cụm từ mật khẩu của bạn: 24 từ, cách nhau bằng dấu cách",
+    "input-label": "Passphrase",
+    "input-placeholder": "24-word-passphrase\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough…",
+    "login-button": "Đăng nhập",
+    "new-to-nymvpn": "Lần đầu đến với NymVPN?"
+  },
+  "social-account-button": "Tiếp tục với tài khoản mạng xã hội",
+  "create-account": "Tạo tài khoản ẩn danh",
+  "notification": {
+    "added": "Thiết bị đã được thêm thành công vào tài khoản của bạn"
+  }
+}

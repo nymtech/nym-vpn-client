@@ -1,8 +1,11 @@
 {
   "select-a-plan": {
     "title": "选择你的保护级别",
-    "description-1": "现在选择一个计划来保护你的隐私吧",
-    "description-2": "你所有的支付信息都不会和你的账号绑定",
+    "features": {
+      "all-included": "包含所有功能",
+      "no-ads": "没有广告",
+      "cancel-anytime": "随时取消"
+    },
     "button": "选择我的NymVPN订阅方案"
   }
 }

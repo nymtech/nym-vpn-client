@@ -63,5 +63,6 @@
     "restart-note": "更新后应用程序将重新启动。",
     "bar-label": "下载进度"
   },
-  "get-started": "开始使用"
+  "get-started": "开始使用",
+  "choose-plan": "选择计划"
 }

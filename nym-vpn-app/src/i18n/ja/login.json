@@ -1,0 +1,50 @@
+{
+  "privy": {
+    "title": "NymVPNへようこそ",
+    "login-button": "Privy でログイン",
+    "maximum-privacy": {
+      "title": "🔒 プライバシーの最大値",
+      "description": "匿名のNymアカウントを作成します。個人情報は必要ありません"
+    },
+    "quick-setup": {
+      "title": "⚡ クイックセットアップ",
+      "description": "Googleや暗号ウォレットなどの既存のアカウントをログインパートナーPrivyから使用する"
+    },
+    "already-have-an-account": {
+      "title": "既にアカウントをお持ちですか？",
+      "button": "24単語のパスフレーズでログイン"
+    },
+    "error": {
+      "login": "ソーシャルアカウントを使用してログインできませんでした"
+    }
+  },
+  "signup": {
+    "title": "アカウントを作成",
+    "create-account": "匿名アカウントを作成",
+    "maximum-privacy": {
+      "title": "🔒 プライバシーの最大値",
+      "description": "匿名のNymアカウントを作成します。個人情報は必要ありません"
+    },
+    "quick-setup": {
+      "title": "⚡ クイックセットアップ",
+      "description": "Googleや暗号ウォレットなどの既存のアカウントをログインパートナーPrivyから使用する"
+    },
+    "already-have-an-account": {
+      "title": "既にアカウントをお持ちですか？",
+      "button": "ログイン"
+    }
+  },
+  "passphrase": {
+    "title": "ログイン",
+    "description": "パスフレーズを入力または貼り付けてください: スペースで区切られた 24 語。",
+    "input-label": "パスワード",
+    "input-placeholder": "24単語のパスフレーズ\n\n例：スモークアーティファクトのベルベットスカルポッパレスの亀のダメージラフ…",
+    "login-button": "ログイン",
+    "new-to-nymvpn": "NymVPNは初めてですか？"
+  },
+  "social-account-button": "ソーシャルアカウントで続ける",
+  "create-account": "匿名アカウントを作成",
+  "notification": {
+    "added": "デバイスをアカウントに追加しました"
+  }
+}
