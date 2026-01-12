@@ -195,7 +195,6 @@ function Home() {
       navigate(routes.entryNodeLocation);
     } else {
       navigate(routes.exitNodeLocation);
-      setStreamOptimizedLabelSeen(dispatch);
     }
   };
 
