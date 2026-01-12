@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
-import { PrivacyPolicyUrl, SentryHomePage, ToSUrl } from '../constants';
-import { useMainDispatch } from '../contexts';
+import clsx from 'clsx';
+import { SentryHomePage } from '../constants';
+import { useMainDispatch, useMainState } from '../contexts';
 import { kvSet } from '../kvStore';
 import { routes } from '../router';
 import { StateDispatch } from '../types';
 import { Button, Link, PageAnim, Switch } from '../ui';
+import { NymSplash } from '../assets/index';
 import SettingsGroup from './settings/SettingsGroup';
 
 const defaultSentry = window._APP.defaultSentry;
@@ -16,6 +18,7 @@ const defaultNetstats = window._APP.defaultNetstats;
 function Welcome() {
   const [monitoring, setMonitoring] = useState<boolean>(defaultSentry);
   const [netstats, setNetstats] = useState<boolean>(defaultNetstats);
+  const { uiTheme } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('welcome');
@@ -66,28 +69,22 @@ function Welcome() {
         className="grow flex flex-col justify-center items-center gap-4 px-4"
         data-testid="welcome-header"
       >
-        <div className="flex flex-col gap-2 text-2xl text-center dark:text-white hsm:mt-24">
+        <div className="flex flex-col items-center gap-8 text-2xl text-center dark:text-white hsm:mt-24">
+          <NymSplash
+            className={clsx(
+              'w-32',
+              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+            )}
+          />
           <h1 className="truncate" data-testid="welcome-title">
             {t('title')}
           </h1>
         </div>
         <h2
-          className="text-center dark:text-bombay w-72"
+          className="text-center dark:text-bombay w-80"
           data-testid="welcome-description"
         >
-          <Trans
-            i18nKey="description"
-            ns="welcome"
-            components={{
-              sentryLink: (
-                <Link
-                  text={t('sentry', { ns: 'common' })}
-                  url={SentryHomePage}
-                  data-testid="welcome-sentry-link"
-                />
-              ),
-            }}
-          />
+          {t('description')}
         </h2>
       </div>
       <div
@@ -99,7 +96,23 @@ function Welcome() {
           settings={[
             {
               title: t('error-monitoring-label'),
-              desc: t('anon-toggle-desc'),
+              desc: (
+                <span className="whitespace-normal">
+                  <Trans
+                    i18nKey="anon-toggle-desc"
+                    ns="welcome"
+                    components={{
+                      sentryLink: (
+                        <Link
+                          text={t('sentry', { ns: 'common' })}
+                          url={SentryHomePage}
+                          data-testid="welcome-sentry-link"
+                        />
+                      ),
+                    }}
+                  />
+                </span>
+              ),
               leadingIcon: 'bug_report',
               onClick: toggleMonitoring,
               trailing: (
@@ -113,6 +126,23 @@ function Welcome() {
             },
             {
               title: t('network-statistic'),
+              desc: (
+                <span className="whitespace-normal">
+                  <Trans
+                    i18nKey="network-statistic-toggle-desc"
+                    ns="welcome"
+                    components={{
+                      sentryLink: (
+                        <Link
+                          text={t('sentry', { ns: 'common' })}
+                          url={SentryHomePage}
+                          data-testid="welcome-sentry-link"
+                        />
+                      ),
+                    }}
+                  />
+                </span>
+              ),
               leadingIcon: 'analytics',
               onClick: toggleNetstats,
               trailing: (
@@ -134,35 +164,6 @@ function Welcome() {
         >
           {t('continue-button')}
         </Button>
-        <p
-          className="text-xs text-center text-iron dark:text-bombay w-80"
-          data-testid="welcome-tos-notice"
-        >
-          <Trans
-            i18nKey="tos-notice"
-            ns="welcome"
-            components={{
-              tosLink: (
-                <Link
-                  text={t('tos', { ns: 'common' })}
-                  url={ToSUrl}
-                  className="text-black dark:text-white"
-                  textClassName="underline-offset-2"
-                  data-testid="welcome-tos-link"
-                />
-              ),
-              privacyLink: (
-                <Link
-                  text={t('privacy-statement', { ns: 'common' })}
-                  url={PrivacyPolicyUrl}
-                  className="text-black dark:text-white"
-                  textClassName="underline-offset-2"
-                  data-testid="welcome-privacy-link"
-                />
-              ),
-            }}
-          />
-        </p>
       </div>
     </PageAnim>
   );

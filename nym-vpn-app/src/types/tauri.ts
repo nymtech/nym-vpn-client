@@ -71,8 +71,7 @@ export type DbKey =
   | 'cache-wg-gateways'
   | 'cache-account-id'
   | 'cache-device-id'
-  | 'streaming-optimized-label-seen'
-  | 'onboarding-completed';
+  | 'streaming-optimized-label-seen';
 
 export type DisplayServer = 'x11' | 'wayland' | { unknown: string | null };
 

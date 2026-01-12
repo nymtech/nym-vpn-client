@@ -33,7 +33,6 @@ import { regionToCountryCode, setStreamOptimizedLabelSeen } from './util';
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
 const os = type();
-let welcomeInit = false;
 let compatChecked = false;
 
 function Home() {
@@ -47,8 +46,6 @@ function Home() {
     daemonStatus,
     account,
     networkCompat,
-    welcomeChecked,
-    onboardingCompleted,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { setFocused, setSearch, setExpanded } = useNodeListState();
@@ -72,7 +69,7 @@ function Home() {
 
   const handleClick = () => {
     if (state === 'disconnected' && !account) {
-      navigate(routes.login);
+      navigate(routes.onboarding);
       return;
     }
     if (needAPlan) {
@@ -125,23 +122,14 @@ function Home() {
     }
   }, [networkCompat]);
 
-  useEffect(() => {
-    if (welcomeInit) {
-      return;
-    }
-    welcomeInit = true;
-    if (!onboardingCompleted) {
-      navigate(routes.onboarding);
-    } else if (!welcomeChecked && account) {
-      navigate(routes.welcome);
-    }
-  }, [navigate, welcomeChecked, onboardingCompleted, account]);
-
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
     const cancel = capFirst(t('cancel', { ns: 'glossary' }));
-    if (needAPlan || !account) {
+    if (!account) {
       return t('get-started');
+    }
+    if (needAPlan) {
+      return t('choose-plan');
     }
     switch (state) {
       case 'connected':
@@ -216,7 +204,7 @@ function Home() {
 
   return (
     <>
-      {welcomeChecked && updaterEnabled && <UpdateDialog />}
+      {updaterEnabled && <UpdateDialog />}
       {os !== 'windows' && (
         <NetworkUpdateDialog
           isOpen={isDialogUpdateOpen}
