@@ -25,7 +25,7 @@ struct AddCredentialsView: View {
             navbar()
             GeometryReader { geometry in
 #if os(iOS)
-                KeyboardHostView {
+                KeyboardHostView(bottomSafeAreaInset: geometry.safeAreaInsets.bottom) {
                     scrollViewContent(geometry: geometry)
                 }
 #elseif os(macOS)
@@ -36,7 +36,9 @@ struct AddCredentialsView: View {
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+#if os(macOS)
         .ignoresSafeArea(edges: [.bottom])
+#endif
         .background {
             NymColor.background
                 .ignoresSafeArea()
@@ -78,14 +80,13 @@ private extension AddCredentialsView {
                 content(safeAreaInsets: geometry.safeAreaInsets)
                     .padding(.horizontal, 24)
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: geometry.size.height, alignment: .top)
         }
         .scrollIndicators(.hidden)
-        .onTapGesture {
-            isFocused = false
-        }
+        .scrollDismissesKeyboard(.interactively)
+        .onTapGesture { isFocused = false }
     }
-
     @ViewBuilder
     func content(safeAreaInsets: EdgeInsets) -> some View {
         Spacer()
@@ -121,7 +122,6 @@ private extension AddCredentialsView {
         TermsAndConditionsView()
         Spacer()
             .frame(height: 24)
-//            .frame(height: viewModel.appSettings.isSmallScreen ? 24 : 40)
     }
 
     @ViewBuilder
@@ -187,7 +187,7 @@ private extension AddCredentialsView {
             RoundedRectangle(cornerRadius: 8)
                 .inset(by: 0.5)
         )
-        .frame(height: 104)
+        .frame(height: 130)
         .cornerRadius(8)
         .overlay {
             RoundedRectangle(cornerRadius: 8)

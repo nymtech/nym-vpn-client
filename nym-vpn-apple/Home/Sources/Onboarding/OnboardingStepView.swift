@@ -10,7 +10,7 @@ public struct OnboardingStepView: View {
     public var body: some View {
         VStack(spacing: 0) {
             onboardingImage()
-                .frame(minHeight: 150, maxHeight: 300)
+                .frame(minHeight: 120, maxHeight: 300)
             Spacer()
                 .frame(height: 16)
             onboardingTitle()

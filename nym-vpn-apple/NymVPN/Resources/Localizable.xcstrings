@@ -24833,7 +24833,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Welcome to NymVPN"
+            "value" : "Help us improve NymVPN"
           }
         }
       }
@@ -27272,107 +27272,6 @@
         }
       }
     },
-    "processingAccount.subtitle1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " "
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " "
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " "
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " "
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " "
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " "
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ""
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " "
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " "
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " "
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " "
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " "
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " "
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " "
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " "
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " "
-          }
-        }
-      }
-    },
     "processingAccount.subtitle2" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -27773,107 +27672,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您的流量现在已全面受到保护"
-          }
-        }
-      }
-    },
-    "processingAccount.title1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تم تأكيد الدفع"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zahlung bestätigt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Payment confirmed"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pago confirmado"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "پرداخت تأیید شد"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paiement confirmé"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "भुगतान पुष्टि हो गई है"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pagamento confermato"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "支払いが確認されました"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pagamento confirmado"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pagamento confirmado"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оплата подтверждена"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ödeme onaylandı"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оплата підтверджена"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thanh toán đã được xác nhận"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "付款已验证"
           }
         }
       }
@@ -28447,6 +28245,28 @@
         }
       }
     },
+    "purchasePlan.allFeatures" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All features included"
+          }
+        }
+      }
+    },
+    "purchasePlan.cancelAnytime" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel anytime"
+          }
+        }
+      }
+    },
     "purchasePlan.fullyProtected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28548,12 +28368,23 @@
         }
       }
     },
+    "purchasePlan.noAds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No ads"
+          }
+        }
+      }
+    },
     "purchasePlan.selectPlan" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "اختر خطة NymVPN الخاصة بي"
           }
         },
@@ -28566,36 +28397,36 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose my NymVPN plan"
+            "value" : "Choose plan"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Elige tu plan NymVPN"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "طرح خرید NymVPN خود را انتخاب کنید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Choisir mon abonnement NymVPN"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "अपना NymVPN योजना चुनें"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Scegli il mio piano NymVPN"
           }
         },
@@ -28607,43 +28438,43 @@
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Escolher o meu plano NymVPN"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Escolha seu plano NymVPN"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Выбрать тарифный план NymVPN"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "NymVPN paketimi seç"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Виберіть Ваш тарифний план NymVPN"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Chọn gói NymVPN"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "选择您的 NymVPN 计划"
           }
         }
@@ -28835,219 +28666,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ваш майбутній платіж не може бути пов'язаний з вашою майбутньою активністю в Інтернеті"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Các khoản thanh toán của bạn sẽ không bị liên kết với hoạt động duyệt web trong tương lai"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "您的付款信息不会和网上活动关联"
-          }
-        }
-      }
-    },
-    "purchasePlan.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select a plan now to activate your protection"
-          }
-        }
-      }
-    },
-    "purchasePlan.subtitle1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "حدد خطة الآن لتفعيل حمايتك"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wähle jetzt einen Plan um deinen Schutz zu aktivieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select a plan now to activate your protection"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selecciona un plan ahora para activar tu protección"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اکنون یک طرح را انتخاب کنید تا محافظت از خود را فعال کنید"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisissez un plan pour être protégé"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Select a plan now to activate your protection"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seleziona ora un piano per attivare la tua protezione"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保護を有効にするプランを選択してください"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selecione um plano agora para ativar sua proteção"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selecione um plano agora para ativar sua proteção"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выберите тариф сейчас, чтобы активировать защиту"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Güvenliğinizi başlatmak için şimdi bir plan seçin"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Виберіть план зараз, щоб активувати захист"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chọn một gói dịch vụ ngay bây giờ để dữ liệu của bạn được bảo vệ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "现在选择一个订阅来保护您的隐私"
-          }
-        }
-      }
-    },
-    "purchasePlan.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لا يمكن ربط الدفعة القادمة بنشاط التصفح الخاص بك في المستقبل"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ihre anstehende Zahlung kann nicht mit Ihrer zukünftigen Browser-Aktivität verknüpft werden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu próximo pago no podrá ser vinculado a tu actividad de navegación"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "پرداخت شما نمی‌تواند به فعالیت وب‌گردیتان مرتبط شود"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre paiement ne pourra être lié à vos activités en ligne"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "आपका आगामी भुगतान आपकी भविष्य की ब्राउज़िंग गतिविधि से जोड़ी नहीं जा सकती"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il tuo prossimo pagamento non può essere collegato alla tua attività di navigazione futura"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "今後の支払いは、今後の閲覧アクティビティにリンクできません。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seu próximo pagamento não pode ser vinculado a sua futura atividade de navegação"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seu próximo pagamento não pode ser vinculado à sua futura atividade de navegação"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваш будущий платёж не может быть связан с вашей дальнейшей активностью в интернете"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ödemeniz, gelecekteki internet kullanımınızla ilişkilendirilmez"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваш майбутній платіж не може бути пов'язаний з вашою майбутньою активністю в Інтернеті."
           }
         },
         "vi" : {
@@ -29372,97 +28990,97 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "حسابك في NymVPN الآمن جاهز🎉"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Ihr sicherer NymVPN-Account ist bereit🎉"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "value" : "Choose your subscription plan"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Tu cuenta segura de NymVPN está lista🎉"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "حساب امن NymVPN شما آماده است🎉"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Votre compte NymVPN sécurisé est prêt🎉"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "आपका सुरक्षित NymVPN खाता तैयार है🎉"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Il tuo account NymVPN sicuro è pronto🎉"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "安全なNymVPNアカウントの準備ができました🎉"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Sua conta NymVPN segura está pronta: party_popper:"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Sua conta NymVPN segura está pronta: party_popper:"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Ваш защищённый аккаунт NymVPN готов 🎉"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "NymVPN hesabınız güvenli şekilde oluşturuldu 🎉"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Ваш захищений NymVPN акаунт готовий🎉."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Tài khoản NymVPN bảo mật của bạn đã sẵn sàng🎉"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "您的 NymVPN 账户已准备好🎉"
           }
         }
@@ -31504,7 +31122,7 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(عبر البوصلة)"
           }
         },
@@ -31517,84 +31135,84 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "(via Sentry)"
+            "value" : "Helps us fix bugs faster, no personal data collected (via "
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(vía Sentry)"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(توسط پاسدار)"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(via Sentry)"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(Sentry के माध्यम से)"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(via Sentry)"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(Sentry経由)"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(via Referência)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(via Sentry)"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(через Sentry)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(Sentry aracılığıyla)"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(через Вартового)"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(qua Sentry)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "(通过 Sentry)"
           }
         }
@@ -31605,97 +31223,97 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "تقارير الأخطاء المجهولة"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Anonyme Fehlerberichte"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anonymous error reports"
+            "value" : "Share error reports"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Informes de errores anónimos"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "گزارش خطا به صورت ناشناس"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Rapports d'erreurs anonymes"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "अनाम त्रुटि रिपोर्ट"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Segnalazioni di errore anonime"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "匿名のエラーレポート"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Relatórios de erros anônimos"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Relatórios de erro anônimos"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Анонимные отчеты об ошибках"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Anonim hata raporları"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Анонімні повідомлення про помилки"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Báo cáo lỗi ẩn danh"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "匿名错误报告"
           }
         }
@@ -36932,37 +36550,37 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "مشاركة تحليلات المنتجات المجهولة"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Anonyme Produktanalytik teilen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Share anonymous product analytics"
+            "value" : "Share usage analytics"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Compartir análisis de productos anónimos"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "به اشتراک‌گذاشتن اطلاعات تحلیلی محصول به صورت ناشناس"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Partager les rapports d'analyses anonymes"
           }
         },
@@ -36974,56 +36592,67 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Condividi l'analisi anonima dei prodotti"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "匿名の製品分析を共有"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Compartilhar análise de produto anônima"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Compartilhar análise de produto anônima"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Поделиться анонимной аналитикой продукта"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Anonim ürün analizlerini paylaş"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Поділитися анонімною аналітикою продукту"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Chia sẻ phân tích sản phẩm ẩn danh"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "分享匿名的产品数据"
+          }
+        }
+      }
+    },
+    "welcome.analytics.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helps us improve the Nym network. No logging or activity tracked."
           }
         }
       }
@@ -37639,300 +37268,98 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "ساعدنا على صقل تطبيقنا! ملاحظاتك حاسمة لتحديد وحل المشاكل. اختر لمراقبة الأخطاء المجهولة (عبر"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Helfen Sie uns, unsere App zu verfeinern! Ihr Feedback ist entscheidend für die Identifizierung und Lösung von Problemen. Opt-in für anonyme Fehlerüberwachung (via"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Help us refine our app! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via"
+            "value" : "Choose what anonymous data to share. All data is stripped of identifying information before being sent."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "¡Ayúdanos a mejorar nuestra aplicación! Tus comentarios son cruciales para identificar y resolver problemas. Activa el monitoreo de errores anónimo (vía"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "به ما کمک کنید تا اپلیکیشن خود را بهبود ببخشیم! بازخورد شما در شناسایی و حل مشکلات حیاتی است. برای همکاری با نظارت ما بر خطاهای ناشناس اقدام کنید (از طریق"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Aidez-nous à améliorer NymVPN ! Vos retours sont très utiles. Vous pouvez activer les rapports d'erreurs anonymes (via"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "हमें हमारे एप्लिकेशन को बेहतर बनाने में मदद करें! आपकी प्रतिक्रिया मुद्दों की पहचान और समाधान के लिए महत्वपूर्ण है। गुमनाम त्रुटि निगरानी के लिए विकल्प चुनें (के माध्यम से"
           }
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Aiutaci a perfezionare la nostra app! Il tuo feedback è fondamentale per identificare e risolvere i problemi."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "アプリの改善にご協力ください！あなたのフィードバックは問題の特定と解決に不可欠です。匿名のエラーモニタリングを選択してください。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Ajude-nos a refinar nosso aplicativo! O seu feedback é crucial para identificar e resolver problemas. Opt-in para monitoramento anônimo de erros (via"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Ajude-nos a aperfeiçoar nosso aplicativo! Seu feedback é fundamental para identificar e resolver problemas. Aceite o monitoramento anônimo de erros (via"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Помогите нам улучшить наше приложение! Ваши отзывы важны для выявления и решения проблем. Подпишитесь на анонимный мониторинг ошибок (через..."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Uygulamamızı geliştirmemize yardımcı olun! Geri bildiriminiz, sorunları tespit etmek ve çözmek için çok önemlidir. Anonim hata izleme "
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Допоможіть нам вдосконалити наш додаток! Ваші відгуки мають вирішальне значення для виявлення та вирішення проблем. Підпишіться на анонімний моніторинг помилок (через"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Giúp chúng tôi hoàn thiện ứng dụng! Phản hồi của bạn rất quan trọng để xác định và khắc phục các sự cố. Tham gia theo dõi lỗi ẩn danh (qua"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "帮助我们改进我们的应用！您的反馈对于识别和解决问题至关重要。选择匿名错误监测 (通过"
-          }
-        }
-      }
-    },
-    "welcome.subtitle2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : ") and analytics at will—you can opt out anytime.\nThanks for your support!"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") und Analytik nach Belieben – du kannst dich jederzeit abmelden.\nVielen Dank für deine Unterstützung!"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") and analytics at will—you can opt out anytime.\nThanks for your support!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") y analíticas a voluntad—puedes optar cambiarlo en cualquier momento.\n¡Gracias por tu apoyo!"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") و تجزیه تحلیل می‌توانید هر موقع از این مشارکت انصراف دهید. ممنون از حمایتتان!"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") et les rapports d'analyse. Vous pouvez changer vos préférences à tout moment. Merci de votre soutien !"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") और विश्लेषण के लिए, आप कभी भी ऑप्ट-आउट कर सकते हैं। आपके समर्थन के लिए धन्यवाद!"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") e di analisi a piacimento - si può optare in qualsiasi momento.\nGrazie per il tuo supporto!"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "モニタリングはいつでも解除可能です。ご協力よろしくお願いします！"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") e a análise à vontade — você pode optar por sair a qualquer momento.\nObrigado pelo seu apoio!"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") e análises à vontade - você pode optar por não participar a qualquer momento.\nObrigado por seu apoio!"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") и аналитику по вашему усмотрению — вы можете отказаться в любой момент. \nСпасибо за вашу поддержку!"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ve analitik verileri gönüllü olarak kabul edebilir, istediğiniz zaman reddedebilirsiniz. Desteğiniz için teşekkür ederiz!"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") та аналітику за бажанням - ви можете відмовитися будь-коли.\nДякуємо за вашу підтримку!"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ") và phân tích theo ý muốn—bạn có thể chọn không tham gia bất kỳ lúc nào.\nCảm ơn sự hỗ trợ của bạn!"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "）及数据分析——您可以随时关闭这些选项。\n感谢您的支持！"
-          }
-        }
-      }
-    },
-    "welcome.subtitle3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "هذا برنامج تجريبي. لا تعتمد عليه لمجهول الهوية (حتى الآن)."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dies ist experimentelle Software. Verlassen Sie sich (noch) nicht auf diese Software für eine starke Anonymität."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este es un software experimental. No confíes en él para obtener un anonimato fuerte (todavía)."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "این نرم‌افزار در مرحله آزمایشی است. برای ناشناسی کامل (فعلا!) به آن اتکاء نکنید."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il s'agit d'un logiciel expérimental : ne l'utilisez pas pour garantir un anonymat total (pour l'instant)."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "यह प्रयोगात्मक सॉफ़्टवेयर है। (फ़िलहाल) इसके लिए मजबूत गुमनामी पर भरोसा न करें।"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questo è un software sperimentale. Non affidarti ad esso per un forte anonimato (ancora)."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "これは実験的なソフトウェアです。現時点では強力な匿名性を期待しないでください。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este é um software experimental. Não confie nele para um forte anonimato (ainda)."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este é um software experimental. Não confie nele para obter um anonimato forte (ainda)."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Это экспериментальное ПО. Не полагайтесь на него для обеспечения полной анонимности (пока что)."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bu deneysel bir yazılımdır. Şu an için güçlü anonimlik için güvenmeyin."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Це експериментальне програмне забезпечення. Не покладайтеся на нього для забезпечення повної анонімності (поки що)."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đây là phần mềm thử nghiệm. Không nên dựa vào nó để đạt được ẩn danh mạnh (ít nhất là hiện tại)."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此为实验性软件，请勿（在目前阶段）依赖其提供强匿名性服务。"
           }
         }
       }

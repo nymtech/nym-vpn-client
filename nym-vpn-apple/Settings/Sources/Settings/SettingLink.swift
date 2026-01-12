@@ -4,8 +4,7 @@ public enum SettingLink: Hashable, Identifiable {
     case accountAndDevices
     case addCredentials(navigationSource: AddCredentialsNavigationSource)
     case createAccountWelcome(navigationSource: CreateAccountNavigationSource)
-    case generatePassphrase
-    case planPurchase(shouldDisplayBackButton: Bool)
+    case generatePassphrase(displayPurchaseView: Bool)
     case processingAccount
     case passphrase
     case appearance

@@ -148,7 +148,7 @@ private extension CreateAccountWelcomeView {
     func navigateToCreateAccount() {
 #if os(iOS)
         ImpactGenerator.shared.impact()
-        path.append(SettingLink.generatePassphrase)
+        path.append(SettingLink.generatePassphrase(displayPurchaseView: false))
 #elseif os(macOS)
         try? externalLinkManager.openExternalURL(urlString: Constants.pricingURL.rawValue)
         navigateToLogin()
