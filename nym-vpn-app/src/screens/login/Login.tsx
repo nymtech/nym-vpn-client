@@ -139,7 +139,7 @@ function Login() {
             <Link
               text={t('create-account.link')}
               url={NymVpnPricingUrl}
-              data-testid="login-create-account-link"
+              color="malachite"
             />
           </div>
         </div>
