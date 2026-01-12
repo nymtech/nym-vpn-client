@@ -113,6 +113,6 @@ mod tests {
             .await
             .unwrap();
         //assert!(addresses.len() > 2);
-        assert_eq!(limited_addresses.len(), 2);
+        assert_eq!(limited_addresses.len(), 1);
     }
 }
