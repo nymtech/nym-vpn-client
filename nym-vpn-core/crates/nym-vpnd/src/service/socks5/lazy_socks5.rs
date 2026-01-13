@@ -1,4 +1,4 @@
-//! Lazy SOCKS5 wrapper that initializes the Nym mixnet on first connection
+//! Lazy SOCKS5 wrapper that initializes the Nym mixnet on first connection.
 
 use super::util::ConnectionGuard;
 use nym_gateway_directory::GatewayCacheHandle;
@@ -998,21 +998,35 @@ impl LazySocks5 {
         info!("Next SOCKS5 connection will use a new random Network Requester");
     }
 
-    /// Select a random Network Requester from the gateway directory
+    /// Select a random Network Requester from the gateway directory.
+    /// # Errors
+    /// - `LazySocks5Error::GatewayDirectory` if gateway cache is not configured
+    /// - `LazySocks5Error::NoNetworkRequesters` if no nodes have NR addresses
     async fn select_random_network_requester(&self) -> Result<String, LazySocks5Error> {
         let Some(ref gateway_cache_handle) = self.config.gateway_cache_handle else {
+            error!("Gateway cache handle not configured for random NR selection");
+            error!("This is a configuration error - rotation requires gateway_cache_handle");
             return Err(LazySocks5Error::GatewayDirectory(
-                "Gateway cache handle not available".to_string(),
+                "Gateway cache handle not available. Required for random Network Requester selection. \
+                 Ensure gateway_cache_handle is provided when enabling rotation.".to_string(),
             ));
         };
 
         // Fetch all NymNodes (which have nr_address field for SOCKS5)
+        debug!("Fetching NymNodes directory for Network Requester selection");
         let nymnodes = gateway_cache_handle
             .lookup_all_nymnodes()
             .await
             .map_err(|e| {
-                LazySocks5Error::GatewayDirectory(format!("Failed to lookup NymNodes: {}", e))
+                error!("Failed to fetch NymNodes directory: {}", e);
+                LazySocks5Error::GatewayDirectory(format!(
+                    "Failed to lookup NymNodes from gateway directory: {}. \
+                     Ensure gateway directory is accessible and properly configured.",
+                    e
+                ))
             })?;
+
+        debug!("Fetched {} nodes from directory", nymnodes.len());
 
         // Filter nodes that have a network requester address
         let nodes_with_nr: Vec<_> = nymnodes
@@ -1024,19 +1038,28 @@ impl LazySocks5 {
             })
             .collect();
 
+        let nr_count = nodes_with_nr.len();
+        debug!("Found {} nodes with Network Requester addresses", nr_count);
+
         if nodes_with_nr.is_empty() {
+            error!("No Network Requesters available in gateway directory");
+            error!("This may indicate a network issue or outdated gateway cache");
             return Err(LazySocks5Error::NoNetworkRequesters);
         }
 
         // Select a random one
         let mut rng = rand::thread_rng();
-        let (selected_node, nr_address) = nodes_with_nr
-            .choose(&mut rng)
-            .ok_or(LazySocks5Error::NoNetworkRequesters)?;
+        let (selected_node, nr_address) = nodes_with_nr.choose(&mut rng).ok_or_else(|| {
+            error!(
+                "Random selection failed despite having {} candidates",
+                nr_count
+            );
+            LazySocks5Error::NoNetworkRequesters
+        })?;
 
         info!(
-            "Selected random Network Requester: {} (gateway: {})",
-            nr_address, selected_node.identity
+            "Selected random Network Requester: {} (gateway: {}, {} total available)",
+            nr_address, selected_node.identity, nr_count
         );
 
         Ok(nr_address.clone())
@@ -1366,5 +1389,86 @@ mod tests {
         // Should end at 0 (all increments/decrements balanced)
         let final_count = socks5.active_connections().await;
         assert_eq!(final_count, 0, "Connection count should be balanced");
+    }
+
+    #[tokio::test]
+    async fn test_gateway_cache_handle_not_provided() {
+        // Test that random NR selection fails gracefully without gateway cache
+        let mut config = create_test_config();
+        config.network_requester_address = None; // Request random
+        config.gateway_cache_handle = None; // But no cache handle provided
+
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
+
+        // Attempt random selection should fail with informative error
+        let result = socks5.select_random_network_requester().await;
+        assert!(result.is_err(), "Should fail without gateway cache handle");
+
+        match result {
+            Err(LazySocks5Error::GatewayDirectory(msg)) => {
+                assert!(
+                    msg.contains("Gateway cache handle not available"),
+                    "Error should mention missing cache handle"
+                );
+                assert!(
+                    msg.contains("Required for random Network Requester selection"),
+                    "Error should explain why it's needed"
+                );
+            }
+            _ => panic!("Expected GatewayDirectory error"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_rotation_configuration_validation() {
+        // Test 1: Rotation enabled but no gateway cache (invalid config)
+        let mut config = create_test_config();
+        config.network_requester_rotation_interval = Some(Duration::from_secs(15 * 60));
+        config.network_requester_address = None; // Random selection
+        config.gateway_cache_handle = None; // ❌ Missing required dependency
+
+        // This should create successfully (validation happens at runtime)
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+        assert!(LazySocks5::new(config, tunnel_state, cancel_token).is_ok());
+
+        // Test 2: Fixed NR (no rotation) - gateway cache not required
+        let mut config = create_test_config();
+        config.network_requester_address = Some("fixed.nr@gateway".to_string());
+        config.network_requester_rotation_interval = None;
+        config.gateway_cache_handle = None; // ✅ Not needed for fixed mode
+
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+        assert!(
+            LazySocks5::new(config, tunnel_state, cancel_token).is_ok(),
+            "Fixed NR mode should work without gateway cache"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_rotation_interval_boundary_conditions() {
+        // Test very short interval (edge case)
+        let mut config = create_test_config();
+        config.network_requester_rotation_interval = Some(Duration::from_millis(1));
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+        assert!(
+            LazySocks5::new(config, tunnel_state, cancel_token).is_ok(),
+            "Should handle very short intervals"
+        );
+
+        // Test very long interval (edge case)
+        let mut config = create_test_config();
+        config.network_requester_rotation_interval = Some(Duration::from_secs(86400)); // 24h
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+        assert!(
+            LazySocks5::new(config, tunnel_state, cancel_token).is_ok(),
+            "Should handle very long intervals"
+        );
     }
 }

@@ -33,9 +33,10 @@ impl GatewayCacheHandle {
 
     /// Refresh all gateways and countries without blocking until the operation is complete.
     pub async fn refresh_all(&self) -> Result<()> {
-        self.tx
-            .send(Command::RefreshAll)
-            .map_err(|_| Error::Cancelled)
+        self.tx.send(Command::RefreshAll).map_err(|_| {
+            tracing::error!("Gateway cache command channel closed (RefreshAll)");
+            Error::Cancelled
+        })
     }
 
     /// Lookup gateways waiting for any pending fetch request or initiating one if needed.
@@ -43,8 +44,20 @@ impl GatewayCacheHandle {
         let (tx, rx) = tokio::sync::oneshot::channel();
         self.tx
             .send(Command::LookupGateways(gw_type, tx))
-            .map_err(|_| Error::Cancelled)?;
-        rx.await.map_err(|_| Error::Cancelled)?
+            .map_err(|_| {
+                tracing::error!(
+                    "Gateway cache command channel closed (LookupGateways: {:?})",
+                    gw_type
+                );
+                Error::Cancelled
+            })?;
+        rx.await.map_err(|_| {
+            tracing::error!(
+                "Gateway cache response channel closed (LookupGateways: {:?})",
+                gw_type
+            );
+            Error::Cancelled
+        })?
     }
 
     pub async fn lookup_filtered_gateways(
@@ -53,18 +66,43 @@ impl GatewayCacheHandle {
     ) -> Result<Vec<Gateway>> {
         let (tx, rx) = tokio::sync::oneshot::channel();
         self.tx
-            .send(Command::LookupFilteredGateways(filters, tx))
-            .map_err(|_| Error::Cancelled)?;
-        rx.await.map_err(|_| Error::Cancelled)?
+            .send(Command::LookupFilteredGateways(filters.clone(), tx))
+            .map_err(|_| {
+                tracing::error!(
+                    "Gateway cache command channel closed (LookupFilteredGateways: {:?})",
+                    filters.gw_type
+                );
+                Error::Cancelled
+            })?;
+        rx.await.map_err(|_| {
+            tracing::error!(
+                "Gateway cache response channel closed (LookupFilteredGateways: {:?})",
+                filters.gw_type
+            );
+            Error::Cancelled
+        })?
     }
 
     /// Lookup gateway IP address waiting for any pending fetch request or initiating one if needed.
     pub async fn lookup_gateway_ip(&self, gateway_identity: String) -> Result<IpAddr> {
         let (tx, rx) = tokio::sync::oneshot::channel();
+        let identity_clone = gateway_identity.clone();
         self.tx
             .send(Command::LookupGatewayIp(gateway_identity, tx))
-            .map_err(|_| Error::Cancelled)?;
-        rx.await.map_err(|_| Error::Cancelled)?
+            .map_err(|_| {
+                tracing::error!(
+                    "Gateway cache command channel closed (LookupGatewayIp: {})",
+                    identity_clone
+                );
+                Error::Cancelled
+            })?;
+        rx.await.map_err(|_| {
+            tracing::error!(
+                "Gateway cache response channel closed (LookupGatewayIp: {})",
+                identity_clone
+            );
+            Error::Cancelled
+        })?
     }
 
     pub fn replace_gateway_client(&self, gateway_client: GatewayClient) -> Result<()> {
@@ -84,20 +122,37 @@ impl GatewayCacheHandle {
     /// This is specifically for SOCKS5 which needs the nr_address field.
     pub async fn lookup_nymnode_by_identity(&self, identity: NodeIdentity) -> Result<NymNode> {
         let (tx, rx) = tokio::sync::oneshot::channel();
+        let identity_str = identity.to_string();
         self.tx
             .send(Command::LookupNymNodeByIdentity(identity, tx))
-            .map_err(|_| Error::Cancelled)?;
-        rx.await.map_err(|_| Error::Cancelled)?
+            .map_err(|_| {
+                tracing::error!(
+                    "Gateway cache command channel closed (LookupNymNodeByIdentity: {})",
+                    identity_str
+                );
+                Error::Cancelled
+            })?;
+        rx.await.map_err(|_| {
+            tracing::error!(
+                "Gateway cache response channel closed (LookupNymNodeByIdentity: {})",
+                identity_str
+            );
+            Error::Cancelled
+        })?
     }
 
     /// Lookup all NymNodes with network requester addresses.
     /// This is specifically for SOCKS5 Network Requester rotation.
     pub async fn lookup_all_nymnodes(&self) -> Result<NymNodeList> {
         let (tx, rx) = tokio::sync::oneshot::channel();
-        self.tx
-            .send(Command::LookupAllNymNodes(tx))
-            .map_err(|_| Error::Cancelled)?;
-        rx.await.map_err(|_| Error::Cancelled)?
+        self.tx.send(Command::LookupAllNymNodes(tx)).map_err(|_| {
+            tracing::error!("Gateway cache command channel closed (LookupAllNymNodes)");
+            Error::Cancelled
+        })?;
+        rx.await.map_err(|_| {
+            tracing::error!("Gateway cache response channel closed (LookupAllNymNodes)");
+            Error::Cancelled
+        })?
     }
 }
 
@@ -378,24 +433,47 @@ impl GatewayCache {
             && last_updated.elapsed() < MAX_CACHE_AGE
         {
             tracing::debug!(
-                "Using cached NymNode list (age: {:?})",
-                last_updated.elapsed()
+                "Using cached NymNode list (age: {:?}, {} nodes)",
+                last_updated.elapsed(),
+                node_list.len()
             );
-            Ok(node_list.clone())
-        } else {
-            if self.connectivity_handle.connectivity().await.is_offline() {
-                tracing::warn!("Not refreshing NymNodes because we are not connected");
-                return Err(Error::Offline);
-            }
-
-            tracing::debug!("Fetching fresh NymNode list from nym-api...");
-            let refreshed_nodes = self.gateway_client.lookup_all_nymnodes().await?;
-
-            tracing::debug!("Cached {} NymNodes with nr_address", refreshed_nodes.len());
-            self.cached_nymnodes = Some((refreshed_nodes.clone(), Instant::now()));
-
-            Ok(refreshed_nodes)
+            return Ok(node_list.clone());
         }
+
+        if self.connectivity_handle.connectivity().await.is_offline() {
+            tracing::warn!("Not refreshing NymNodes because we are not connected");
+            // Return cached nodes if available, even if stale
+            if let Some((node_list, _)) = &self.cached_nymnodes {
+                tracing::info!("Returning stale cached nodes due to offline status");
+                return Ok(node_list.clone());
+            }
+            return Err(Error::Offline);
+        }
+
+        tracing::debug!("Fetching fresh NymNode list from nym-api...");
+        let start = std::time::Instant::now();
+        let refreshed_nodes = self.gateway_client.lookup_all_nymnodes().await?;
+        let fetch_duration = start.elapsed();
+
+        let node_count = refreshed_nodes.len();
+        tracing::info!(
+            "Fetched {} NymNodes in {:?} (avg: {:?}/node)",
+            node_count,
+            fetch_duration,
+            fetch_duration
+                .checked_div(node_count as u32)
+                .unwrap_or_default()
+        );
+
+        if node_count > 300 {
+            tracing::warn!(
+                "NymNode directory is big: ({} nodes) - consider filtering.",
+                node_count
+            );
+        }
+
+        self.cached_nymnodes = Some((refreshed_nodes.clone(), Instant::now()));
+        Ok(refreshed_nodes)
     }
 
     async fn lookup_nymnode_by_identity(&mut self, identity: &NodeIdentity) -> Result<NymNode> {
