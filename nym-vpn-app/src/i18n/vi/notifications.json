@@ -12,7 +12,5 @@
   },
   "copied-to-clipboard": "Đã sao chép vào bộ nhớ tạm",
   "daemon-no-compat": "Phiên bản daemon không tương thích với phiên bản ứng dụng! Phiên bản daemon: {{version}}, dự kiến: {{required}}. Vui lòng cập nhật ứng dụng hoặc daemon.",
-  "daemon-not-connected": "Không thể kết nối với daemon. Khởi động lại ứng dụng hoặc thiết bị. Nếu sự cố này vẫn tiếp diễn, hãy cài đặt lại NymVPN.",
-  "streaming-optimized-label": "⏯️ Máy chủ tối ưu hóa cho phát trực tiếp hiện được gắn nhãn",
-  "streaming-optimized-label-button": "Duyệt các máy chủ thoát ngay bây giờ"
+  "daemon-not-connected": "Không thể kết nối với daemon. Khởi động lại ứng dụng hoặc thiết bị. Nếu sự cố này vẫn tiếp diễn, hãy cài đặt lại NymVPN."
 }

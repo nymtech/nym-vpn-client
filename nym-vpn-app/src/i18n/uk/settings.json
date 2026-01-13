@@ -173,7 +173,7 @@
   },
   "account": {
     "get-started": "Почати",
-    "choose-plan": "Choose plan",
+    "choose-plan": "Виберіть Ваш тарифний план NymVPN",
     "syncing": "Синхронізація…",
     "no-plan": "Немає активного плану",
     "bandwidth-exceeded": "Перевищено пропускну здатність",

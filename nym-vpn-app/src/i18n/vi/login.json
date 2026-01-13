@@ -19,26 +19,26 @@
     }
   },
   "signup": {
-    "title": "Create account",
-    "create-account": "Create anonymous account",
+    "title": "Tạo một tài khoản",
+    "create-account": "Tạo tài khoản ẩn danh",
     "maximum-privacy": {
-      "title": "🔒 Maximum privacy",
-      "description": "Create an anonymous Nym account, no personal info required"
+      "title": "🔒 Bảo mật tối đa",
+      "description": "Create an anonymous account on nym.com. You'll receive a 24-word passphrase. Save it to log back into the app.\n\nNo personal info required."
     },
     "quick-setup": {
-      "title": "⚡️ Quick setup",
-      "description": "Use existing account like Google or crypto wallet through our login partner Privy"
+      "title": "⚡️ Cài đặt nhanh",
+      "description": "Sử dụng tài khoản hiện có như Google hoặc ví tiền điện tử thông qua đối tác đăng nhập Privy của chúng tôi"
     },
     "already-have-an-account": {
-      "title": "Already have an account?",
-      "button": "Log in"
+      "title": "Bạn đã có tài khoản?",
+      "button": "Đăng nhập"
     }
   },
   "passphrase": {
-    "title": "Log in",
+    "title": "Đăng nhập",
     "description": "Nhập hoặc dán cụm từ mật khẩu của bạn: 24 từ, cách nhau bằng dấu cách",
-    "input-label": "Passphrase",
-    "input-placeholder": "24-word-passphrase\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough…",
+    "input-label": "Cụm từ mật khẩu",
+    "input-placeholder": "Mã-truy-cập-24-từ\n\nVí dụ: smoke artefact velvet skull pop palace tortoise damage rough…",
     "login-button": "Đăng nhập",
     "new-to-nymvpn": "Lần đầu đến với NymVPN?"
   },

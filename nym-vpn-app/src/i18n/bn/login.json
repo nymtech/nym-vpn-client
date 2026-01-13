@@ -23,7 +23,7 @@
     "create-account": "Create anonymous account",
     "maximum-privacy": {
       "title": "🔒 Maximum privacy",
-      "description": "Create an anonymous Nym account, no personal info required"
+      "description": "Create an anonymous account on nym.com. You'll receive a 24-word passphrase. Save it to log back into the app.\n\nNo personal info required."
     },
     "quick-setup": {
       "title": "⚡️ Quick setup",

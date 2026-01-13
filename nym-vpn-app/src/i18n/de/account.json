@@ -1,11 +1,11 @@
 {
   "select-a-plan": {
-    "title": "Wähle deine Schutzstufe",
+    "title": "Wähle deinen Tarif des Abonnements",
     "features": {
-      "all-included": "Alle Funktionen enthalten",
+      "all-included": "Alle Funktionen inklusive",
       "no-ads": "Keine Werbung",
-      "cancel-anytime": "Jederzeit abbrechen"
+      "cancel-anytime": "Jederzeit kündbar"
     },
-    "button": "Wähle meinen NymVPN-Tarif"
+    "button": "Wähle einen Tarif"
   }
 }

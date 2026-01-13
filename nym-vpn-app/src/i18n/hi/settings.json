@@ -111,8 +111,8 @@
     "client-version": "क्लाइंट वर्शन",
     "daemon-version": "Daemon वर्शन",
     "network-name": "नेटवर्क",
-    "account-id": "खाता पहचान",
-    "device-id": "डिवाइस आईडी"
+    "account-id": "अकाउंट पहचान",
+    "device-id": "डिवाइस ID"
   },
   "autostart": {
     "title": "ऑटोस्टार्ट",
@@ -150,7 +150,7 @@
     "invalid-port": "अमान्य पोर्ट नंबर",
     "listen-port": "लिसन पोर्ट",
     "reset-to-default": "डिफ़ॉल्ट पर रीसेट करें",
-    "intro": "बहतर प्राइवसी के लिए ऐप और वॉलेट ट्रैफ़िक को Nym Mixnet के माध्यम से रूट करें। यह सुविधा ऐप्स के लिए एक लोकल SOCKS5 प्रॉक्सी और वॉलेट्स के लिए एक HTTP RPC प्रॉक्सी बनाती है।",
+    "intro": "बहतर प्राइवसी के लिए ऐप और वॉलेट ट्रैफ़िक को Nym मिक्सनेट के माध्यम से रूट करें। यह सुविधा ऐप्स के लिए एक लोकल SOCKS5 प्रॉक्सी और वॉलेट्स के लिए एक HTTP RPC प्रॉक्सी बनाती है।",
     "error-gateway-not-supported": "सर्वर SOCKS5 को सपोर्ट नहीं करता है",
     "error-unknown": "SOCKS5 प्रॉक्सी को टॉगल करने में असफल",
     "error-vpn-not-connected": "कृपया SOCKS5 प्रॉक्सी एनेबल करने से पहले VPN कनेक्ट करें",
@@ -173,12 +173,12 @@
   },
   "account": {
     "get-started": "शुरू करें",
-    "choose-plan": "Choose plan",
+    "choose-plan": "प्लान चुनें",
     "syncing": "सिंक हो रहा है…",
-    "no-plan": "कोई सक्रिय योजना नहीं",
+    "no-plan": "कोई सक्रिय प्लान नहीं",
     "bandwidth-exceeded": "बैंडविड्थ ख़त्म है",
     "max-device-reached": "अधिकतम उपकरणों की सीमा ",
-    "status-inactive": "खाता निष्क्रिय है",
+    "status-inactive": "अकाउंट निष्क्रिय है",
     "requesting-zknyms": "ZkNyms का अनुरोध कर रहे हैं",
     "error": "अंदरूनी त्रुटि"
   }

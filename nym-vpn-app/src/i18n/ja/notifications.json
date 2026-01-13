@@ -12,7 +12,5 @@
   },
   "copied-to-clipboard": "クリップボードにコピーしました",
   "daemon-no-compat": "デーモンのバージョンがアプリのバージョンと互換性がありません！デーモンのバージョン: {{version}}, 必要なバージョン: {{required}}。アプリまたはデーモンのいずれかをアップデートしてください。",
-  "daemon-not-connected": "デーモンが接続されていません。サポートチームまでお問い合わせください。",
-  "streaming-optimized-label": "⏯️ 配信最適化されたサーバーにラベルが付けられました",
-  "streaming-optimized-label-button": "今すぐ終了サーバーを参照する"
+  "daemon-not-connected": "デーモンが接続されていません。サポートチームまでお問い合わせください。"
 }
