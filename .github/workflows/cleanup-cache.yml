@@ -58,15 +58,14 @@ jobs:
             CACHE_ID=$(echo "$cache" | jq -r '.id // empty')
             CACHE_KEY=$(echo "$cache" | jq -r '.key // empty')
             CACHE_SIZE=$(echo "$cache" | jq -r '.size_in_bytes // 0')
-            LAST_ACCESSED=$(echo "$cache" | jq -r '.last_accessed_at // empty')
-            
+            CREATED_AT=$(echo "$cache" | jq -r '.created_at // empty')
             [ -z "$CACHE_ID" ] || [ -z "$CACHE_KEY" ] && continue
             
             CACHE_COUNT=$((CACHE_COUNT + 1))
             TOTAL_SIZE_BEFORE=$((TOTAL_SIZE_BEFORE + CACHE_SIZE))
             
             # Check if cache is older than cutoff date
-            if [[ "$LAST_ACCESSED" < "$CUTOFF_DATE" ]]; then
+            if [[ "$CREATED_AT" < "$CUTOFF_DATE" ]]; then
               CACHE_SIZE_MB=$(awk "BEGIN {printf \"%.2f\", $CACHE_SIZE / 1024 / 1024}")
               echo "Deleting: $CACHE_KEY (${CACHE_SIZE_MB} MB)"
               
