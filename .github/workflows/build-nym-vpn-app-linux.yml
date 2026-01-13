@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       dev_mode:
-        description: "dev build"
+        description: 'dev build'
         required: true
         type: boolean
         default: false
@@ -73,7 +73,7 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
-          version: "21.12" # version on ubuntu 24.04
+          version: '21.12' # version on ubuntu 24.04
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get package version
@@ -105,6 +105,27 @@ jobs:
         run: |
           rm public/licenses-rust.json || true
           npm run gen:licenses:rust
+
+      - name: Update localizations Crowdin (Ubuntu)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          # Install Crowdin CLI Debian package
+          wget -qO - https://artifacts.crowdin.com/repo/GPG-KEY-crowdin | sudo apt-key add -
+          echo "deb https://artifacts.crowdin.com/repo/deb/ /" | sudo tee /etc/apt/sources.list.d/crowdin.list
+          sudo apt-get update
+          sudo apt-get install -y crowdin
+
+          # Verify installation
+          crowdin --version || (echo "crowdin cli install failed" && exit 1)
+
+          # Download translations using the same config and tokens
+          crowdin download translations \
+            --config crowdin-configs/linux-windows.yml \
+            --project-id "$CROWDIN_PROJECT_ID" \
+            --token "$CROWDIN_PERSONAL_TOKEN"
 
       - name: Build tauri app
         working-directory: nym-vpn-app/src-tauri
