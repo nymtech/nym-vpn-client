@@ -33,7 +33,7 @@ public struct LaunchView: View {
                         try? await Task.sleep(for: .seconds(0.3))
                         splashScreenDidDisplay = true
                         path = (
-                            !appSettings.onboardingDidDisplay && credentialsManager.isValidCredentialImported
+                            !appSettings.onboardingDidDisplay && !credentialsManager.isValidCredentialImported
                         ) ? NavigationPath([HomeLink.onboarding]) : .init()
                     }
                 }

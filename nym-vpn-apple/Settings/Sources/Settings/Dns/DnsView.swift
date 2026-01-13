@@ -31,11 +31,11 @@ public struct DnsView: View {
             Spacer()
                 .frame(height: 24)
 #if os(iOS)
-                KeyboardHostView {
-                    scrollViewContent()
-                }
-#elseif os(macOS)
+            KeyboardHostView(bottomSafeAreaInset: 0) {
                 scrollViewContent()
+            }
+#elseif os(macOS)
+            scrollViewContent()
 #endif
             Spacer()
         }

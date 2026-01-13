@@ -130,8 +130,12 @@ extension AddCredentialsViewModel {
         path.append(SettingLink.createAccountWelcome(navigationSource: .addCredential))
     }
 
-    func navigateHome() {
-        path = .init()
+    func navigateHomeOrTechnicalOptIn() {
+        if appSettings.welcomeScreenDidDisplay {
+            path = .init()
+        } else {
+            path = .init([HomeLink.technicalOptIns])
+        }
     }
 }
 
@@ -150,7 +154,7 @@ extension AddCredentialsViewModel {
 
     @MainActor func credentialsDidAdd() {
         credentialText = ""
-        navigateHome()
+        navigateHomeOrTechnicalOptIn()
     }
 
     @MainActor func scannerDidScanQRCode() {

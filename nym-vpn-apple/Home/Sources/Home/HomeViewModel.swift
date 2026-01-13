@@ -191,15 +191,14 @@ public extension HomeViewModel {
         path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: hopType))
     }
 
-    @MainActor func navigateToAddCredentials() {
-        path.append(HomeLink.settings)
-        path.append(SettingLink.createAccountWelcome(navigationSource: .home))
+    @MainActor func navigateToOnboarding() {
+        path.append(HomeLink.onboarding)
     }
 
     @MainActor func navigateToPlanPurchase() {
 #if os(iOS)
         path.append(HomeLink.settings)
-        path.append(SettingLink.planPurchase(shouldDisplayBackButton: true))
+        path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
 #elseif os(macOS)
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
 #endif
