@@ -107,7 +107,7 @@ android {
 			resValue("string", "app_name", "NymVPN - Pre")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.pre\"")
 			buildConfigField("Boolean", "IS_PRERELEASE", "true")
-			signingConfig = signingConfigs.getByName("debug")
+			//signingConfig = signingConfigs.getByName("debug")
 		}
 
 		create(Constants.NIGHTLY) {
