@@ -5,16 +5,14 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,12 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.toRoute
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
@@ -39,8 +33,8 @@ import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.SplitTunnelingInfoModal
 import net.nymtech.nymvpn.util.extensions.goFromRoot
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -133,7 +127,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 			currentRoute.startsWith(Route.LoginScanner::class.qualifiedName!!) -> NavBarState(show = false)
 
 			currentRoute.startsWith(Route.Login::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle("") },
+				title = { MainTitle() },
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
@@ -207,36 +201,18 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
+						navController.replaceCurrentWith(Route.Main())
 					}
 				},
 			)
 
 			currentRoute.startsWith(Route.WelcomeAccount::class.qualifiedName!!) -> {
-				val args = runCatching { navBackStackEntry?.toRoute<Route.WelcomeAccount>() }.getOrNull()
-				val showSkip = args?.showSkip ?: false
 				NavBarState(
-					title = { NavTitle("") },
+					title = { MainTitle() },
 					show = true,
 					leading = {
-						if (!showSkip) {
-							NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-								navController.safePopBackStack()
-							}
-						}
-					},
-					trailing = {
-						if (showSkip) {
-							Text(
-								text = stringResource(R.string.skip),
-								style = MaterialTheme.typography.titleMedium,
-								fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-								color = MaterialTheme.colorScheme.onBackground,
-								modifier = Modifier.clickable {
-									navController.navigateAndForget(Route.Main())
-								}
-									.padding(end = 24.dp),
-							)
+						NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+							navController.safePopBackStack()
 						}
 					},
 				)
@@ -335,7 +311,13 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 			)
 
 			currentRoute.startsWith(Route.Onboarding::class.qualifiedName!!) -> NavBarState(
-				show = false,
+				title = { MainTitle() },
+				show = true,
+				trailing = {
+					NavIcon(Icons.Filled.Close, stringResource(R.string.close)) {
+						navController.navigate(Route.Main())
+					}
+				},
 			)
 
 			else -> NavBarState(show = false)

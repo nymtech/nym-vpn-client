@@ -67,7 +67,7 @@ sealed class Route {
 	data object Technical : Route()
 
 	@Serializable
-	data class WelcomeAccount(val showSkip: Boolean = false) : Route()
+	data object WelcomeAccount : Route()
 
 	@Serializable
 	data object SelectPlan : Route()

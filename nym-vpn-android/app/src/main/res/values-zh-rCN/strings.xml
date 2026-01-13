@@ -298,11 +298,7 @@
 	<string name="account_subscription_description">我们发现一个活跃的订阅链接到您的 Google Play 帐户。 请跳过注册环节并直接跳转到 NymVPN。只需输入您的24个单词助记词登录就可以了。</string>
 	<string name="account_subscription_button">用 Nym 助记词登录</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_creating">正在创建您的匿名身份…</string>
-	<string name="account_generating_establishing">正在建立匿名网络凭据</string>
-	<string name="account_generating_securing">正在本地读取你的凭据…</string>
-	<string name="account_generating_encrypting">正在使用你的设备密钥加密凭据；\n只有你才能解锁这些信息</string>
-	<string name="account_generating_error">注册帐户失败。请稍后再试</string>
+    <string name="account_generating_error">注册帐户失败。请稍后再试</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">安全处理您的付款…</string>
 	<string name="account_payment_verifying">我们正在验证您的订阅—没有任何个人信息与您的身份可以关联</string>

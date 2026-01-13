@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,10 +20,14 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,10 +41,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -87,6 +94,28 @@ fun SelectPlanScreen(appUiState: AppUiState, viewModel: SelectPlanViewModel = hi
 }
 
 @Composable
+private fun FilledProgressBar4(modifier: Modifier = Modifier) {
+	Row(
+		modifier = modifier
+			.fillMaxWidth()
+			.height(4.dp),
+		horizontalArrangement = Arrangement.spacedBy(4.dp),
+	) {
+		repeat(4) {
+			Box(
+				modifier = Modifier
+					.weight(1f)
+					.fillMaxHeight()
+					.background(
+						MaterialTheme.colorScheme.primary,
+						shape = RoundedCornerShape(4.dp),
+					),
+			)
+		}
+	}
+}
+
+@Composable
 fun SelectPlanScreen(
 	products: List<ProductData> = emptyList(),
 	showSheet: Boolean = false,
@@ -101,9 +130,12 @@ fun SelectPlanScreen(
 			.fillMaxSize()
 			.imePadding()
 			.background(MaterialTheme.colorScheme.background)
-			.padding(horizontal = 24.dp.scaledWidth())
-			.padding(padding),
+			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
+		FilledProgressBar4(
+			modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
+		)
+
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
@@ -134,13 +166,57 @@ fun SelectPlanScreen(
 				color = MaterialTheme.colorScheme.onSurface,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
-			Text(
-				text = stringResource(R.string.select_plan_descr),
-				style = MaterialTheme.typography.bodyLarge,
-				textAlign = TextAlign.Center,
-				color = MaterialTheme.colorScheme.onSurfaceVariant,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			)
+
+			Column(
+				verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+				modifier = Modifier.padding(horizontal = 52.dp).fillMaxWidth(),
+			) {
+				Row {
+					Icon(
+						painter = rememberVectorPainter(Icons.Filled.VerifiedUser),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(16.dp),
+					)
+					Spacer(Modifier.width(4.dp))
+					Text(
+						text = stringResource(R.string.select_plan_line_1),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.outline,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					)
+				}
+				Row {
+					Icon(
+						painter = rememberVectorPainter(Icons.Filled.Campaign),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(16.dp),
+					)
+					Spacer(Modifier.width(4.dp))
+					Text(
+						text = stringResource(R.string.select_plan_line_2),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.outline,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					)
+				}
+				Row {
+					Icon(
+						painter = painterResource(R.drawable.ic_chat_error),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.size(16.dp),
+					)
+					Spacer(Modifier.width(6.dp))
+					Text(
+						text = stringResource(R.string.select_plan_line_3),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.outline,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					)
+				}
+			}
 		}
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,

@@ -298,11 +298,7 @@
 	<string name="account_subscription_description">हमें आपके Google Play अकाउंट से जुड़ी एक सक्रिय सब्सक्रिप्शन मिली है। साइनअप छोड़ें और सीधे NymVPN इस्तेमाल करना शुरू करें। बस अपना 24 शब्दों वाला पासफ़्रेज़ तैयार रखें।</string>
 	<string name="account_subscription_button">NYM पासफ़्रेज़ से लॉग इन करें</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_creating">आपकी गुमनाम पहचान बनाई जा रही है...</string>
-	<string name="account_generating_establishing">गुमनाम नेटवर्क प्रमाण पत्र स्थापित हो रहा है</string>
-	<string name="account_generating_securing">आपके प्रमाणपत्रों को स्थानीय रूप से सुरक्षित किया जा रहा है...</string>
-	<string name="account_generating_encrypting">आपके डिवाइस कुंजी से क्रेडेंशियल्स को एन्क्रिप्ट किया जा रहा है। केवल आप ही उन्हें अनलॉक कर सकते हैं।</string>
-	<string name="account_generating_error">अकाउंट रजिस्टर नहीं हो सका। कृपया बाद में दोबारा कोशिश करें।</string>
+    <string name="account_generating_error">अकाउंट रजिस्टर नहीं हो सका। कृपया बाद में दोबारा कोशिश करें।</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है...</string>
 	<string name="account_payment_verifying">हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते</string>
