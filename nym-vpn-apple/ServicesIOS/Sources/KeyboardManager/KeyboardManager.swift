@@ -2,9 +2,6 @@ import Combine
 import SwiftUI
 
 public final class KeyboardManager: ObservableObject {
-    private let keyboardWillShowNotification = UIResponder.keyboardWillShowNotification
-    private let keyboardWillChangeFrameNotification = UIResponder.keyboardWillChangeFrameNotification
-    private let keyboardWillHideNotification = UIResponder.keyboardWillHideNotification
     private var cancellables = Set<AnyCancellable>()
 
     public static let shared = KeyboardManager()
@@ -12,27 +9,29 @@ public final class KeyboardManager: ObservableObject {
     @Published public var change = KeyboardChange(height: 0, animation: .default)
 
     public init() {
-        NotificationCenter.Publisher(center: .default, name: keyboardWillShowNotification)
-            .merge(with: NotificationCenter.Publisher(center: .default, name: keyboardWillChangeFrameNotification))
-            .merge(
-                with:
-                    NotificationCenter.Publisher(center: .default, name: keyboardWillHideNotification)
-                    .map {
-                        Notification(name: $0.name, object: $0.object, userInfo: nil)
-                    }
-            )
+        let willShow = NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
+        let willChange = NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)
+        let willHide = NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
+
+        willShow
+            .merge(with: willChange)
+            .merge(with: willHide)
             .map { notification -> KeyboardChange in
-                let frame = notification.userInfo?[UIWindow.keyboardFrameEndUserInfoKey] as? CGRect ?? .zero
-                let isHiding = frame.size.height == .zero
-                let defaultDuration = isHiding ? 0.16 : 0.25
-                let durationValue = notification.userInfo?[UIWindow.keyboardAnimationDurationUserInfoKey] as? Double
-                let duration = durationValue ?? defaultDuration
+                let frame = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect) ?? .zero
+                let isHiding = notification.name == UIResponder.keyboardWillHideNotification || frame.height == 0
+
+                let duration = (notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double)
+                ?? (isHiding ? 0.16 : 0.25)
+
                 return KeyboardChange(
-                    height: frame.size.height,
+                    height: isHiding ? 0 : frame.height,
                     animation: isHiding ? .easeOut(duration: duration) : .easeIn(duration: duration)
                 )
             }
-            .assign(to: \.change, on: self)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] change in
+                self?.change = change
+            }
             .store(in: &cancellables)
     }
 

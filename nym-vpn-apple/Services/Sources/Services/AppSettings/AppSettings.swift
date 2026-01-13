@@ -34,6 +34,7 @@ import CountriesManagerTypes
     @AppStorage(AppSettingKey.smallScreen.rawValue)
     public var isSmallScreen = false
 
+    // Technical opt ins
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
     public var welcomeScreenDidDisplay = false
 

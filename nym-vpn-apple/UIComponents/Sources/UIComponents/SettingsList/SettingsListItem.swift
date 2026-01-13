@@ -100,7 +100,7 @@ private extension SettingsListItem {
         VStack(alignment: .leading, spacing: 4) {
             Text(viewModel.title)
                 .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Large.regular)
+                .textStyle(viewModel.titleTextStyle)
 
             if let subtitle = viewModel.subtitle {
                 Text(subtitle)

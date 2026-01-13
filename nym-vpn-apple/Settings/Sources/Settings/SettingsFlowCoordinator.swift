@@ -34,10 +34,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             addCredentialsDestination(navigationSource: navigationSource)
         case let .createAccountWelcome(navigationSource: navigationSource):
             createAccountWelcomeDestination(navigationSource: navigationSource)
-        case .generatePassphrase:
-            GeneratePassphraseView(path: $flowState.path)
-        case let .planPurchase(shouldDisplayBackButton: shouldDisplayBackButton):
-            PurchasePlanView(path: $flowState.path, shouldDisplayBackButton: shouldDisplayBackButton)
+        case let .generatePassphrase(displayPurchaseView: displayPurchaseView):
+            GeneratePassphraseView(path: $flowState.path, displayPurchaseView: displayPurchaseView)
         case .processingAccount:
             ProcessingAccountView(path: $flowState.path)
         case .passphrase:
