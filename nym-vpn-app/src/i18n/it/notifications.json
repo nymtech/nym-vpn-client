@@ -12,7 +12,5 @@
   },
   "copied-to-clipboard": "Copiato negli appunti",
   "daemon-no-compat": "La versione di demone non è compatibile con la versione dell'app! Versione demonia: {{version}}, previsto: {{required}}. Si prega di aggiornare l'app o il demone.",
-  "daemon-not-connected": "Nessuna connessione al demone, contatta il nostro team di assistenza",
-  "streaming-optimized-label": "⏯️ Server ottimizzati per lo streaming ora etichettati",
-  "streaming-optimized-label-button": "Sfoglia ora i server di uscita"
+  "daemon-not-connected": "Nessuna connessione al demone, contatta il nostro team di assistenza"
 }

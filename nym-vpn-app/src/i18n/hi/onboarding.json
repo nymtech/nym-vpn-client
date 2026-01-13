@@ -1,23 +1,23 @@
 {
   "welcome": {
     "title": "NymVPN में आपका स्वागत है",
-    "description": "<large>The world’s most private VPN</large>\n\nTry for 7 days free:\nAll features included, no ads."
+    "description": "<large>दुनिया का सबसे निजी VPN</large>\n\n7 दिन मुफ्त में आजमाएं:\nसभी सुविधाएं शामिल हैं, कोई विज्ञापन नहीं।"
   },
   "tracking": {
     "title": "ऑनलाइन ट्रैकिंग से बचें",
-    "description": "Nym’s decentralized network makes \"no-log\" promises obsolete."
+    "description": "Nym का डीसेन्ट्रलाइज़्ड नेटवर्क \"नो-लॉग\" के वादों को अप्रचलित बना देता है।"
   },
   "zero-knowledge": {
-    "title": "Anonymity from payment to web",
-    "description": "Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities."
+    "title": "भुगतान से लेकर वेब तक गुमनामी",
+    "description": "कार्ड, क्रिप्टोकरेंसी या नकद से भुगतान करें—ईमेल की आवश्यकता नहीं है। ज़ीरो-नॉलेज प्रूफ़ आपके भुगतानों को आपकी ऑनलाइन गतिविधियों से लिंक होने से रोकते हैं।"
   },
   "speed": {
     "title": "ज़रूरत के समय गति।\nमहत्व के समय प्राइवेसी।",
-    "description": "<bold>Fast mode:</bold> 250+ Mbps with dVPN.\n<bold>Anonymous mode:</bold> 5-hop Noise Generating Mixnet."
+    "description": "<bold>फास्ट मोड:</bold> dVPN के साथ 250+ Mbps।\n<bold>एनोनिमस मोड:</bold> 5-हॉप नॉइज़ जनरेटिंग मिक्सनेट।"
   },
   "controls": {
-    "login": "Log in",
-    "create-account": "Create account",
+    "login": "लॉग इन करें",
+    "create-account": "अकाउंट बनाएँ",
     "next": "अगला",
     "skip": "छोड़ें"
   }

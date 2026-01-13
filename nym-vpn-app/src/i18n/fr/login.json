@@ -23,7 +23,7 @@
     "create-account": "Créer un compte anonyme",
     "maximum-privacy": {
       "title": "🔒 Confidentialité maximale",
-      "description": "Créer un compte Nym anonyme, aucune information personnelle requise"
+      "description": "Créez un compte anonyme sur nym.com. Vous recevrez une phrase de passe de 24 mots. Enregistrez-la pour vous reconnecter à l'application.\n\nAucune information personnelle requise."
     },
     "quick-setup": {
       "title": "⚡ Configuration rapide",

@@ -23,7 +23,7 @@
     "create-account": "Crear una cuenta anónima",
     "maximum-privacy": {
       "title": "🔒 Máxima privacidad",
-      "description": "Crear una cuenta anónima de Nym, no se requiere información personal"
+      "description": "Crea una cuenta anónima en nym.com. Recibirás una contraseña de 24 palabras. Guárdala para volver a iniciar sesión en la aplicación.\n\nNo se requiere información personal."
     },
     "quick-setup": {
       "title": "⚡ Configuración rápida",
