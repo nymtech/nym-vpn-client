@@ -1,0 +1,139 @@
+name: cleanup-cache
+
+on:
+  schedule:
+    # Run every 15 days at 00:00 UTC
+    - cron: '0 0 */15 * *'
+  workflow_dispatch:
+    inputs:
+      max_age_days:
+        description: 'Maximum age of caches to keep (in days)'
+        required: false
+        default: '15'
+        type: string
+      dry_run:
+        description: 'Dry run - show what would be deleted without deleting'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup-caches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Cleanup old caches
+        run: |
+          set -euo pipefail
+          
+          MAX_AGE_DAYS="${{ github.event.inputs.max_age_days || '15' }}"
+          DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+          CUTOFF_DATE=$(date -u -d "$MAX_AGE_DAYS days ago" +%Y-%m-%dT%H:%M:%SZ)
+          
+          echo "Cleaning up caches older than $MAX_AGE_DAYS days"
+          [ "$DRY_RUN" = "true" ] && echo "DRY RUN MODE"
+          
+          # Get all caches with pagination
+          CACHES_JSON=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${{ github.repository }}/actions/caches" \
+            --paginate)
+          
+          TOTAL_SIZE_BEFORE=0
+          TOTAL_SIZE_DELETED=0
+          CACHE_COUNT=0
+          DELETED_COUNT=0
+          
+          # Process each cache
+          echo "$CACHES_JSON" | jq -c '.actions_caches[]?' | while IFS= read -r cache; do
+            [ -z "$cache" ] && continue
+            
+            CACHE_ID=$(echo "$cache" | jq -r '.id // empty')
+            CACHE_KEY=$(echo "$cache" | jq -r '.key // empty')
+            CACHE_SIZE=$(echo "$cache" | jq -r '.size_in_bytes // 0')
+            LAST_ACCESSED=$(echo "$cache" | jq -r '.last_accessed_at // empty')
+            
+            [ -z "$CACHE_ID" ] || [ -z "$CACHE_KEY" ] && continue
+            
+            CACHE_COUNT=$((CACHE_COUNT + 1))
+            TOTAL_SIZE_BEFORE=$((TOTAL_SIZE_BEFORE + CACHE_SIZE))
+            
+            # Check if cache is older than cutoff date
+            if [[ "$LAST_ACCESSED" < "$CUTOFF_DATE" ]]; then
+              CACHE_SIZE_MB=$(awk "BEGIN {printf \"%.2f\", $CACHE_SIZE / 1024 / 1024}")
+              echo "Deleting: $CACHE_KEY (${CACHE_SIZE_MB} MB)"
+              
+              if [ "$DRY_RUN" = "false" ]; then
+                gh api --method DELETE \
+                  -H "Accept: application/vnd.github+json" \
+                  -H "X-GitHub-Api-Version: 2022-11-28" \
+                  "/repos/${{ github.repository }}/actions/caches/$CACHE_ID" 2>/dev/null || echo "  Failed to delete"
+                sleep 0.5
+              fi
+              
+              DELETED_COUNT=$((DELETED_COUNT + 1))
+              TOTAL_SIZE_DELETED=$((TOTAL_SIZE_DELETED + CACHE_SIZE))
+            fi
+          done
+          
+          # Summary
+          TOTAL_SIZE_DELETED_MB=$(awk "BEGIN {printf \"%.2f\", $TOTAL_SIZE_DELETED / 1024 / 1024}")
+          echo ""
+          echo "Caches found: $CACHE_COUNT | Deleted: $DELETED_COUNT | Freed: ${TOTAL_SIZE_DELETED_MB} MB"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  report-large-caches:
+    runs-on: ubuntu-latest
+    needs: cleanup-caches
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Report large cargo caches
+        run: |
+          set -euo pipefail
+          
+          echo "Checking for large cargo caches (>1GB)"
+          
+          CARGO_CACHES_JSON=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${{ github.repository }}/actions/caches" \
+            --paginate)
+          
+          LARGE_CACHE_THRESHOLD=$((1024 * 1024 * 1024))
+          LARGE_CACHE_COUNT=0
+          LARGE_CACHE_SIZE=0
+          
+          echo "$CARGO_CACHES_JSON" | jq -c '.actions_caches[]? | select(.key | contains("cargo-build"))' | while IFS= read -r cache; do
+            [ -z "$cache" ] && continue
+            
+            CACHE_SIZE=$(echo "$cache" | jq -r '.size_in_bytes // 0')
+            
+            if [ "$CACHE_SIZE" -gt "$LARGE_CACHE_THRESHOLD" ]; then
+              CACHE_KEY=$(echo "$cache" | jq -r '.key // empty')
+              CACHE_SIZE_GB=$(awk "BEGIN {printf \"%.2f\", $CACHE_SIZE / 1024 / 1024 / 1024}")
+              echo "$CACHE_KEY: ${CACHE_SIZE_GB} GB"
+              
+              LARGE_CACHE_COUNT=$((LARGE_CACHE_COUNT + 1))
+              LARGE_CACHE_SIZE=$((LARGE_CACHE_SIZE + CACHE_SIZE))
+            fi
+          done
+          
+          if [ "$LARGE_CACHE_COUNT" -gt 0 ]; then
+            LARGE_CACHE_SIZE_GB=$(awk "BEGIN {printf \"%.2f\", $LARGE_CACHE_SIZE / 1024 / 1024 / 1024}")
+            echo ""
+            echo "Found $LARGE_CACHE_COUNT large caches totaling ${LARGE_CACHE_SIZE_GB} GB"
+          else
+            echo "No large caches found"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
