@@ -50,7 +50,6 @@ struct NymVPNApp: App {
         impactGenerator: .shared,
         messagesManager: .shared
     )
-    @ObservedObject private var welcomeViewModel = WelcomeViewModel(appSettings: .shared)
 
     @State private var isSecureScreenVisible = false
 

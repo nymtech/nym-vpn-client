@@ -9,6 +9,7 @@ public enum HomeLink: Hashable, Identifiable, Codable {
     case settings
     case launchView
     case onboarding
+    case technicalOptIns
 
     public var id: String {
         String(describing: self)

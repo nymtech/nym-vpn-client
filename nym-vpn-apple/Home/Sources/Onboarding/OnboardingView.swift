@@ -25,10 +25,8 @@ public struct OnboardingView: View {
                 Spacer()
                     .frame(height: 24)
                 loginButton()
-#if os(macOS)
                 Spacer()
                     .frame(height: 24)
-#endif
             }
             .frame(maxWidth: MagicNumbers.maxWidth, alignment: .top)
             .padding(.horizontal, 24)

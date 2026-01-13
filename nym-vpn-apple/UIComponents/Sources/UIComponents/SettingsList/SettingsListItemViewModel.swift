@@ -81,7 +81,8 @@ public final class SettingsListItemViewModel: Hashable {
     }
 
     let title: String
-    let subtitle: String?
+    let titleTextStyle: NymTextStyle
+    let subtitle: AttributedString?
     let multilineText: AttributedString?
     let imageName: String?
     let systemImageName: String?
@@ -95,7 +96,9 @@ public final class SettingsListItemViewModel: Hashable {
     public init(
         accessory: Accessory,
         title: String,
+        titleTextStyle: NymTextStyle = .Body.Large.regular,
         subtitle: String? = nil,
+        attributtedSubtitle: AttributedString? = nil,
         multilineText: AttributedString? = nil,
         imageName: String? = nil,
         systemImageName: String? = nil,
@@ -105,7 +108,14 @@ public final class SettingsListItemViewModel: Hashable {
         action: @escaping (() -> Void)
     ) {
         self.title = title
-        self.subtitle = subtitle
+        self.titleTextStyle = titleTextStyle
+        if let subtitle {
+            self.subtitle = AttributedString(subtitle)
+        } else if let attributtedSubtitle {
+            self.subtitle = attributtedSubtitle
+        } else {
+            self.subtitle = nil
+        }
         self.multilineText = multilineText
         self.imageName = imageName
         self.systemImageName = systemImageName

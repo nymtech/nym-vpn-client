@@ -1,10 +1,14 @@
 import SwiftUI
+import AppSettings
+import Routes
 import Theme
 import UIComponents
 
 public struct ProcessingAccountView: View {
+    @EnvironmentObject private var appSettings: AppSettings
     @Binding private var path: NavigationPath
     @State private var didFinishAnimatingText = false
+    @State private var currentStep = 1
 
     public var body: some View {
         VStack(alignment: .center, spacing: 0) {
@@ -12,7 +16,7 @@ public struct ProcessingAccountView: View {
             Spacer()
                 .frame(height: 24)
 
-            StepView(stepCount: 4, currentStep: .constant(4))
+            StepView(stepCount: 4, currentStep: $currentStep)
             Spacer()
             dotsAnimationView
             Spacer()
@@ -28,7 +32,7 @@ public struct ProcessingAccountView: View {
                 .ignoresSafeArea()
         }
         .onChange(of: didFinishAnimatingText) { _, _ in
-            navigateHome()
+            navigateHomeOrTechnicalOptIns()
         }
     }
 
@@ -49,19 +53,26 @@ private extension ProcessingAccountView {
     var animatingTextView: some View {
         SwitchingTitlesView(
             pairs: [
-                ("processingAccount.title1".localizedString, ""),
                 ("processingAccount.title2".localizedString, "processingAccount.subtitle2".localizedString),
                 ("processingAccount.title3".localizedString, "processingAccount.subtitle3".localizedString),
                 ("processingAccount.title4".localizedString, "processingAccount.subtitle4".localizedString),
                 ("processingAccount.title5".localizedString, "processingAccount.subtitle5".localizedString)
             ],
-            didFinishAnimating: $didFinishAnimatingText, timerDidTick: {}
+            didFinishAnimating: $didFinishAnimatingText,
+            timerDidTick: {
+                currentStep += 1
+            }
         )
     }
 }
 
 private extension ProcessingAccountView {
-    func navigateHome() {
-        path = .init()
+    func navigateHomeOrTechnicalOptIns() {
+        if appSettings.welcomeScreenDidDisplay {
+            path = .init()
+        } else {
+            path = .init([HomeLink.technicalOptIns])
+        }
+
     }
 }
