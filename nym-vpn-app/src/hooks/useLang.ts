@@ -41,16 +41,7 @@ function useLang() {
         kvSet('ui-language', lng);
       }
       await i18n.changeLanguage(lng);
-      switch (lng) {
-        case 'zh-Hans':
-          dayjs.locale('zh-cn');
-          break;
-        case 'pt-BR':
-          dayjs.locale('pt-br');
-          break;
-        default:
-          dayjs.locale(lng);
-      }
+      dayjs.locale(lng);
     },
     [i18n],
   );

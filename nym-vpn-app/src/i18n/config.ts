@@ -12,13 +12,12 @@ import {
   hi,
   it,
   ja,
-  ptBR,
-  ptPT,
+  pt,
   ru,
   tr,
   uk,
   vi,
-  zhHans,
+  zh,
 } from './resources';
 import { Lang } from './types';
 
@@ -33,13 +32,12 @@ export const resources = {
   hi,
   it,
   ja,
-  ['pt-BR']: ptBR,
-  ['pt-PT']: ptPT,
+  pt,
   ru,
   tr,
   uk,
   vi,
-  ['zh-Hans']: zhHans,
+  zh,
 } as const;
 
 export const languages: Lang[] = [
@@ -52,13 +50,12 @@ export const languages: Lang[] = [
   { code: 'hi', name: 'हिन्दी' },
   { code: 'it', name: 'Italiano' },
   { code: 'ja', name: '日本語' },
-  { code: 'pt-BR', name: 'Português brasileiro' },
-  { code: 'pt-PT', name: 'Português de Portugal' },
+  { code: 'pt', name: 'Português' },
   { code: 'ru', name: 'Русский язык' },
   { code: 'tr', name: 'Türkçe' },
   { code: 'uk', name: 'Українська' },
   { code: 'vi', name: 'Tiếng Việt' },
-  { code: 'zh-Hans', name: '中文' },
+  { code: 'zh', name: '中文' },
 ];
 
 i18n
