@@ -23,6 +23,7 @@ jobs:
         with:
           sparse-checkout: |
             nym-vpn-app
+            crowdin-configs
 
       - name: Install Node
         uses: actions/setup-node@v6
