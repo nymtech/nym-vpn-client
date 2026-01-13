@@ -173,7 +173,7 @@
   },
   "account": {
     "get-started": "Los geht's",
-    "choose-plan": "Plan auswählen",
+    "choose-plan": "Wähle einen Tarif",
     "syncing": "Synchronisiere…",
     "no-plan": "Du hast keinen aktiven Tarif",
     "bandwidth-exceeded": "Bandbreite überschritten",

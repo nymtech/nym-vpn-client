@@ -81,7 +81,7 @@
     "quic": {
       "label": "Kết nối nâng cao (QUIC)",
       "warning": "Thay đổi sẽ có hiệu lực sau khi kết nối lại",
-      "content": "Cải thiện độ tin cậy của chế độ Nhanh trong các mạng bị hạn chế bằng cách đóng gói lưu lượng WireGuard trong QUIC (HTTP/3) để trông giống như duyệt web thông thường.\n\nLưu ý: Giới hạn các tùy chọn máy chủ vào chỉ dành cho các cổng kết nối tương thích QUIC.",
+      "content": "Cải thiện độ ổn định của chế độ Nhanh trong các mạng bị hạn chế bằng cách đóng gói lưu lượng WireGuard trong QUIC (HTTP/3) để trông giống như duyệt web thông thường.\n\nLưu ý: Giới hạn các tùy chọn máy chủ vào chỉ dành cho các cổng kết nối tương thích QUIC.",
       "link": "Cách QUIC cải thiện kết nối"
     },
     "stealth-api": {
@@ -151,7 +151,7 @@
     "listen-port": "Cổng lắng nghe",
     "reset-to-default": "Đặt về mặc định",
     "intro": "Định tuyến lưu lượng ứng dụng và ví qua mixnet Nym để tăng cường quyền riêng tư. Tính năng này tạo proxy SOCKS5 cục bộ cho ứng dụng và proxy HTTP RPC cho ví.",
-    "error-gateway-not-supported": "Cổng không hỗ trợ SOCKS5",
+    "error-gateway-not-supported": "Máy chủ không hỗ trợ SOCKS5",
     "error-unknown": "Không thể chuyển đổi proxy SOCKS5",
     "error-vpn-not-connected": "Vui lòng kết nối VPN trước khi bật proxy SOCKS5",
     "snackbar-enabled": "Đã bật proxy thành công",
@@ -173,7 +173,7 @@
   },
   "account": {
     "get-started": "Bắt đầu",
-    "choose-plan": "Choose plan",
+    "choose-plan": "Chọn gói NymVPN",
     "syncing": "Đang đồng bộ…",
     "no-plan": "Không có gói dịch vụ khả dụng",
     "bandwidth-exceeded": "Vượt quá giới hạn băng thông",

@@ -12,7 +12,5 @@
   },
   "copied-to-clipboard": "In Zwischenablage kopiert",
   "daemon-no-compat": "Die Daemon-Version ist nicht mit der App-Version kompatibel! Daemon-Version: {{version}}, erwartet: {{required}}. Bitte aktualisiere entweder die App oder den Daemon.",
-  "daemon-not-connected": "Es kann keine Verbindung zum Daemon hergestellt werden. Starte die App oder das Gerät neu. Wenn das Problem weiterhin besteht, installiere NymVPN neu.",
-  "streaming-optimized-label": "⏯️ Streaming-optimierte Server sind jetzt gekennzeichnet",
-  "streaming-optimized-label-button": "Austrittsserver jetzt durchsuchen"
+  "daemon-not-connected": "Es kann keine Verbindung zum Daemon hergestellt werden. Starte die App oder das Gerät neu. Wenn das Problem weiterhin besteht, installiere NymVPN neu."
 }

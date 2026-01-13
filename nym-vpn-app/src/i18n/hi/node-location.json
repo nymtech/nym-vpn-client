@@ -5,7 +5,7 @@
   "selected": "चयनित",
   "search-country": "सर्च लोकेशन",
   "input-label": "खोजें",
-  "quic-filter-note": "केवल QUIC प्रोटोकॉल का समर्थन करने वाले Fast मोड स्थान और सर्वर दिखाए जा रहे हैं। सभी सर्वर देखने के लिए, QUIC <here /> बंद करें।",
+  "quic-filter-note": "केवल QUIC प्रोटोकॉल का सपोर्ट करने वाले फ़ास्ट मोड स्थान और सर्वर दिखाए जा रहे हैं। सभी सर्वर देखने के लिए, QUIC <here /> बंद करें।",
   "location-details": {
     "streaming": {
       "title": "Streaming Services",

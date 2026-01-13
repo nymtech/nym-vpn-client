@@ -1,10 +1,10 @@
 {
-  "title": "Chào mừng đến với NymVPN",
-  "description": "Hãy giúp NymVPN xác định và khắc phục sự cố kỹ thuật! Hãy cân nhắc việc chọn tham gia theo dõi lỗi (thông qua <sentryLink />) và số liệu thống kê mạng. Quá trình này luôn ẩn danh, bạn có thể chọn dừng bất cứ lúc nào, và hoạt động của bạn sẽ không bao giờ bị tiết lộ. Cảm ơn sự hỗ trợ của bạn!",
-  "anon-toggle-desc": "Áp dụng khi khởi động lại ứng dụng",
+  "title": "Hãy giúp chúng tôi cải thiện NymVPN",
+  "description": "Chọn dữ liệu ẩn danh bạn muốn chia sẻ. Tất cả dữ liệu đều được loại bỏ thông tin định danh trước khi gửi đi.",
+  "anon-toggle-desc": "Giúp chúng tôi khắc phục lỗi nhanh hơn, không dữ liệu cá nhân bị thu thập (qua <sentryLink />)",
   "tos-notice": "Bằng cách tiếp tục, bạn đồng ý với <tosLink /> của NymVPN và xác nhận rằng bạn đã hiểu <privacyLink /> của NymVPN.",
   "continue-button": "Tiếp tục",
   "error-monitoring-label": "Báo cáo lỗi ẩn danh",
-  "network-statistic": "Thống kê mạng ẩn danh",
-  "network-statistic-toggle-desc": "Helps us improve the Nym network. No logging or activity tracked."
+  "network-statistic": "Chia sẻ dữ liệu phân tích sử dụng",
+  "network-statistic-toggle-desc": "Giúp chúng tôi cải thiện mạng lưới Nym. Không có nhật ký hay hoạt động nào bị theo dõi."
 }

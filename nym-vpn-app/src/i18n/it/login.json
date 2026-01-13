@@ -23,7 +23,7 @@
     "create-account": "Crea un account anonimo",
     "maximum-privacy": {
       "title": "🔒 Massima privacy",
-      "description": "Crea un account Nym anonimo, nessuna informazione personale richiesta"
+      "description": "Crea un account anonimo su nym.com. Riceverai una frase segreta di 24 parole. Salvala per accedere nuovamente all'app.\n\nNessuna informazione personale richiesta."
     },
     "quick-setup": {
       "title": "⚡ Configurazione rapida",

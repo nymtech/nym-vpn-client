@@ -23,7 +23,7 @@
     "create-account": "创建匿名账户",
     "maximum-privacy": {
       "title": "🔒 最大隐私",
-      "description": "创建匿名Nym账户，不需要个人信息"
+      "description": "在 nym.com上创建一个匿名帐户。您将收到一个24字密码短语。保存它以重新登录应用。\n\n不需要任何个人信息。"
     },
     "quick-setup": {
       "title": ":hig_voltage: 快速设置",
