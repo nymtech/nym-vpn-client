@@ -6,7 +6,7 @@ import { useMainState } from '../contexts';
 import { EventNotification } from '../layers';
 import { routes } from '../router';
 import { DaemonDot, Notifications, TopBar } from '../ui';
-import InitialNavigation from './InitialNavigation';
+// import InitialNavigation from './InitialNavigation';
 
 type MainLayoutProps = {
   noTopBar?: boolean;
