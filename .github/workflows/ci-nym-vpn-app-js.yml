@@ -35,22 +35,6 @@ jobs:
         working-directory: nym-vpn-app
         run: npm ci
 
-      - name: Typecheck
-        working-directory: nym-vpn-app
-        run: npm run tscheck
-
-      - name: Check lint
-        working-directory: nym-vpn-app
-        run: npm run lint
-
-      - name: Check formatting
-        working-directory: nym-vpn-app
-        run: npm run fmt:check
-
-      #      - name: Run tests
-      #        working-directory: nym-vpn-app
-      #        run: npm run test
-
       - name: Update localizations Crowdin (Ubuntu)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,6 +55,22 @@ jobs:
             --config crowdin-configs/linux-windows.yml \
             --project-id "$CROWDIN_PROJECT_ID" \
             --token "$CROWDIN_PERSONAL_TOKEN"
+
+      - name: Typecheck
+        working-directory: nym-vpn-app
+        run: npm run tscheck
+
+      - name: Check lint
+        working-directory: nym-vpn-app
+        run: npm run lint
+
+      - name: Check formatting
+        working-directory: nym-vpn-app
+        run: npm run fmt:check
+
+      #      - name: Run tests
+      #        working-directory: nym-vpn-app
+      #        run: npm run test
 
       - name: Check build
         working-directory: nym-vpn-app
