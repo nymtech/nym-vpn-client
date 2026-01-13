@@ -238,7 +238,6 @@
 	<string name="welcome_continue">次</string>
     <!-- Select Plan screen -->
 	<string name="select_plan_title">\n保護レベル :shield を選択：</string>
-	<string name="select_plan_descr">Select a plan now to activate your \nprotection\n\nYour upcoming payment cannot be linked \nto your future browsing activity</string>
 	<string name="select_plan_button">NymVPNプランを選択</string>
 	<string name="select_plan_modal_title">NymVPNプランを選択してください</string>
 	<string name="select_plan_modal_free_trial">無料トライアル: 1 週間</string>

@@ -240,7 +240,6 @@
 	<string name="welcome_continue">Continuar</string>
     <!-- Select Plan screen -->
 	<string name="select_plan_title">Elige tu nivel \nde protección 🛡️</string>
-	<string name="select_plan_descr">Selecciona un plan ahora para activar tu \nprotección\n\nTu próximo pago no se puede vincular \na tu actividad de navegación futura</string>
 	<string name="select_plan_button">Elegir mi plan NymVPN</string>
 	<string name="select_plan_modal_title">Elija su plan NymVPN</string>
 	<string name="select_plan_modal_free_trial">Prueba gratis: 1 semana</string>
