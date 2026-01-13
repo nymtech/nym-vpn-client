@@ -1,0 +1,11 @@
+What’s new:
+- Added a new onboarding flow for first-time users
+- Introduced a technical opt-in screen after login or purchase
+- Added locale support for high/low copy on the Details screen
+Changes:
+- Switched to passphrase-based authentication (replacing mnemonic and access code)
+- Standardized terminology by replacing “gateway” with “server”
+- Improved connection reliability with smarter reconnect logic (LAN bypass, split tunneling, Custom DNS)
+- Updated censorship handling logic for more consistent connections
+Fixes:
+- Fixed an issue where the Censorship screen could appear blank on some Chinese devices

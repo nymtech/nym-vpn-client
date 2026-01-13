@@ -298,11 +298,7 @@
 	<string name="account_subscription_description">Chúng tôi đã tìm thấy một gói đăng ký đang hoạt động được liên kết với tài khoản Google Play của bạn. Bỏ qua bước đăng ký và bắt đầu sử dụng NymVPN ngay. Chỉ cần chuẩn bị sẵn cụm từ mật khẩu 24 từ.</string>
 	<string name="account_subscription_button">Đăng nhập bằng cụm từ mật khẩu Nym</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_creating">Đang tạo danh tính ẩn danh của bạn…</string>
-	<string name="account_generating_establishing">Đang thiết lập thông tin xác thực mạng ẩn danh</string>
-	<string name="account_generating_securing">Đang bảo mật cục bộ thông tin xác thực của bạn…</string>
-	<string name="account_generating_encrypting">Đang mã hóa thông tin xác thực bằng khóa thiết bị của bạn; \nchỉ bạn mới có thể mở khóa chúng</string>
-	<string name="account_generating_error">Không thể đăng ký tài khoản. Vui lòng thử lại sau</string>
+    <string name="account_generating_error">Không thể đăng ký tài khoản. Vui lòng thử lại sau</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Đang xử lý thanh toán của bạn một cách an toàn…</string>
 	<string name="account_payment_verifying">Chúng tôi đang xác minh đăng ký của bạn — không bao giờ liên kết thông tin cá nhân với danh tính của bạn</string>

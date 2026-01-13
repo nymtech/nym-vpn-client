@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -223,7 +222,7 @@ private fun SplitTunnelingContent(
 			modifier = Modifier
 				.align(Alignment.BottomCenter)
 				.fillMaxWidth()
-				.background(Color.White)
+				.background(MaterialTheme.colorScheme.background)
 				.navigationBarsPadding()
 				.padding(horizontal = 16.dp.scaledHeight(), vertical = 16.dp.scaledHeight()),
 		) {

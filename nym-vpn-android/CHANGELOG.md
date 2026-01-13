@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0]
+
 ### Added
 - Locale for high/low copy on Details screen (https://github.com/nymtech/nym-vpn-client/pull/4274)
 - Add reconnect on LAN bypass (https://github.com/nymtech/nym-vpn-client/pull/4282)
@@ -24,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove reconnect modals for QUIC on Censorship screen, add snack bar and debounce (https://github.com/nymtech/nym-vpn-client/pull/4282)
 - Promote VPN to foreground immediately at service entry (https://github.com/nymtech/nym-vpn-client/pull/4291)
 - UI changes for User welcome screen (https://github.com/nymtech/nym-vpn-client/pull/4322)
+- Play Store visual updates (https://github.com/nymtech/nym-vpn-client/pull/4363)
 
 ### Fixed
 - "Add" button on DNS screen now expand to the left for verbose languages (https://github.com/nymtech/nym-vpn-client/pull/4277)

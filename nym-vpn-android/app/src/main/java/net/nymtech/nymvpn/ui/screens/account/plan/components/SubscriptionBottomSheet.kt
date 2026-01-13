@@ -31,7 +31,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.extensions.addDaysToToday
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,7 +57,7 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 	) {
 		Text(
 			text = stringResource(R.string.select_plan_modal_title),
-			style = MaterialTheme.typography.titleLarge,
+			style = MaterialTheme.typography.titleMedium,
 			color = MaterialTheme.colorScheme.onSurface,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -84,31 +83,16 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 						.padding(vertical = 24.dp, horizontal = 16.dp),
 					verticalArrangement = Arrangement.spacedBy(4.dp),
 				) {
-					product.freeTrialDays?.let { _ ->
-						Text(
-							text = stringResource(R.string.select_plan_modal_free_trial),
-							style = MaterialTheme.typography.titleMedium,
-							color = MaterialTheme.colorScheme.onSurface,
-						)
-						Text(
-							text = stringResource(R.string.select_plan_modal_free_trial_starts_today),
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-							modifier = Modifier.padding(bottom = 4.dp),
-						)
-					}
 					Text(
 						text = product.name + " (${product.price})",
 						style = MaterialTheme.typography.titleMedium,
 						color = MaterialTheme.colorScheme.onSurface,
 					)
-					product.freeTrialDays?.let { d ->
+					product.freeTrialDays?.let { _ ->
 						Text(
-							text = stringResource(R.string.select_plan_modal_free_trial_starts, d.addDaysToToday()),
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+							text = stringResource(R.string.select_plan_modal_free_trial),
+							style = MaterialTheme.typography.bodyLarge,
+							color = MaterialTheme.colorScheme.onSurface,
 						)
 					}
 				}

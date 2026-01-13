@@ -17,13 +17,13 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun LoginSection(isMnemonicStored: Boolean, onLoginClick: () -> Unit) {
+fun LoginSection(isMnemonicStored: Boolean, onGetStartedClick: () -> Unit) {
 	if (!isMnemonicStored) {
 		MainStyledButton(
-			onClick = onLoginClick,
+			onClick = onGetStartedClick,
 			content = {
 				Text(
-					stringResource(R.string.log_in),
+					stringResource(R.string.get_started),
 					style = CustomTypography.buttonMain,
 				)
 			},

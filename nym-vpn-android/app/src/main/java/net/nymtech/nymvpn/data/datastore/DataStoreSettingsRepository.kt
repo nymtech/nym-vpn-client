@@ -33,7 +33,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val sentryEnabled = booleanPreferencesKey("SENTRY_ENABLED")
 	private val statsEnabled = booleanPreferencesKey("STATISTICS_ENABLED")
 	private val statsDialogSkip = booleanPreferencesKey("STATISTICS_DIALOG_SKIP")
-	private val onboardingCompleted = booleanPreferencesKey("ONBOARDING_COMPLETE")
 	private val technicalOptScreenCompleted = booleanPreferencesKey("TECHNICAL_OPT_SCREEN_COMPLETE")
 	private val quicEnabled = booleanPreferencesKey("QUIC_ENABLED")
 	private val isStreamingServerBannerDisplayed = booleanPreferencesKey("STREAMING_SERVER_DISPLAYED")
@@ -172,16 +171,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		return dataStoreManager.getFromStore(statsDialogSkip) ?: Settings.FLAG_STATS_DIALOG_SKIP
 	}
 
-	override suspend fun setOnboardingCompleted() {
-		dataStoreManager.saveToDataStore(this.onboardingCompleted, true)
-	}
-
 	override suspend fun setTechnicalOptScreenCompleted() {
 		dataStoreManager.saveToDataStore(this.technicalOptScreenCompleted, true)
-	}
-
-	override suspend fun isOnboardingCompleted(): Boolean {
-		return dataStoreManager.getFromStore(onboardingCompleted) ?: Settings.FLAG_ONBOARDING_COMPLETED
 	}
 
 	override suspend fun isTechnicalOptScreenCompleted(): Boolean {
@@ -270,7 +261,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						sentryEnabled = pref[sentryEnabled] ?: Settings.DEFAULT_SENTRY_ENABLED,
 						statsEnabled = pref[statsEnabled] ?: Settings.DEFAULT_STATS_ENABLED,
 						statsDialogSkip = pref[statsDialogSkip] ?: Settings.FLAG_STATS_DIALOG_SKIP,
-						onboardingCompleted = pref[onboardingCompleted] ?: Settings.FLAG_ONBOARDING_COMPLETED,
 						technicalOptCompleted = pref[technicalOptScreenCompleted] ?: Settings.FLAG_TECHNICAL_OPT_COMPLETED,
 						quicEnabled = pref[quicEnabled] ?: Settings.DEFAULT_QUIC_ENABLED,
 						isStreamingServerBannerDisplayed = pref[isStreamingServerBannerDisplayed] ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
