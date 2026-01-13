@@ -58,10 +58,10 @@ fun OnboardingScreen(viewModel: OnboardingViewModel = hiltViewModel()) {
 	OnboardingScreen(
 		withFreeTrial = true,
 		onCreateAccountClick = {
-			navigator.goFromRoot(Route.SelectPlan)
+			navigator.goFromRoot(Route.WelcomeAccount)
 		},
 		onLoginClick = {
-			navigator.goFromRoot(Route.Generating)
+			navigator.goFromRoot(Route.Login)
 		},
 		onCloseClick = {
 			navigator.goFromRoot(Route.Main())
