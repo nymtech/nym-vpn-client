@@ -238,7 +238,6 @@
 	<string name="welcome_continue">जारी रखें</string>
     <!-- Select Plan screen -->
 	<string name="select_plan_title">अपना \nसुरक्षा स्तर चुनें 🛡️</string>
-	<string name="select_plan_descr">अपनी सुरक्षा एक्टिवेट करने के लिए \nअभी एक योजना चुनें\n\nआपका आगामी भुगतान आपकी भविष्य की ब्राउज़िंग गतिविधि से लिंक \nनहीं किया जा सकता है</string>
 	<string name="select_plan_button">अपना NymVPN योजना चुनें</string>
 	<string name="select_plan_modal_title">अपना NymVPN योजना चुनें</string>
 	<string name="select_plan_modal_free_trial">फ्री ट्रायल: 1 सप्ताह</string>

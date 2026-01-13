@@ -238,7 +238,6 @@
 	<string name="welcome_continue">Продовжити</string>
     <!-- Select Plan screen -->
 	<string name="select_plan_title">Виберіть рівень захисту 🛡️</string>
-	<string name="select_plan_descr">Виберіть план зараз, щоб активувати захист. Ваш майбутній платіж не може бути пов\'язаний з вашою майбутньою активністю в Інтернеті.</string>
 	<string name="select_plan_button">Виберіть мій план NymVPN</string>
 	<string name="select_plan_modal_title">Виберіть Ваш тарифний план NymVPN</string>
 	<string name="select_plan_modal_free_trial">Безкоштовна пробна версія: 1 тиждень</string>
