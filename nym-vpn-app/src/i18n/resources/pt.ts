@@ -12,7 +12,7 @@ import welcome from '../pt/welcome.json';
 import glossary from '../pt/glossary.json';
 import notifications from '../pt/notifications.json';
 
-export const ptPT = {
+export const pt = {
   account,
   common,
   home,
