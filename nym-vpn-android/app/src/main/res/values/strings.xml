@@ -114,7 +114,7 @@
 	<string name="credential_modal_description">To add this device, go to your account\'s \'Devices\' page, remove one of the existing devices, and then log in on this device with your recovery phrase.</string>
 	<string name="manage_devices">Manage your devices</string>
 	<string name="close">Close</string>
-	<string name="enter_access_code">Please enter your anonymous Passphrase.</string>
+	<string name="enter_access_code">Enter or paste your passphrase: 24 words separated by spaces</string>
 	<string name="welcome_to_nym">Welcome to NymVPN</string>
 	<string name="get_access_code">Get Passphrase</string>
 	<string name="access_code">24-word-access-code</string>
@@ -216,6 +216,7 @@
 	<string name="connection_state_selecting_gateways">Choosing best servers (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Establishing server connection (6/6)</string>
+	<string name="main_button_select_plan">Select plan</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censorship</string>
 	<string name="settings_passphrase_title">Passphrase</string>
@@ -275,17 +276,21 @@
 	<!-- Onboarding screen -->
 	<string name="onboarding_title_2">Speed when you need it.\nPrivacy when it matters.</string>
 	<string name="onboarding_title_3">Stop being tracked online</string>
-	<string name="onboarding_title_4">True anonymity, not just hidden IPs</string>
-	<string name="onboarding_description_1">The world’s most private VPN. 7 days free, all features, no payment required. Create an anonymous account to start.</string>
-	<string name="onboarding_description_2">Fast mode: 250+ Mbps for streaming and browsing. Anonymous mode: Maximum protection through 5-hop mixnet.</string>
-	<string name="onboarding_description_3">Decentralized architecture makes centralized logging impossible by design—not a "no-log policy," a "can't log" architecture.</string>
-	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs cryptographically separate your payment from your online activities.</string>
+	<string name="onboarding_title_4">Anonymity from payment to web</string>
+	<string name="onboarding_description_base">The world’s most private VPN</string>
+	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
+	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
+	<string name="onboarding_description_3">Nym’s decentralized network makes "no-log"\n promises obsolete.</string>
+	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
+	<string name="onboarding_create_account_button">Create account</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">Choose your \nprotection level 🛡️</string>
-	<string name="select_plan_descr">Select a plan now to activate your \nprotection\n\nYour upcoming payment cannot be linked \nto your future browsing activity</string>
+	<string name="select_plan_title">Choose your \nsubscription plan</string>
+	<string name="select_plan_line_1">All features included</string>
+	<string name="select_plan_line_2">No ads</string>
+	<string name="select_plan_line_3">Cancel anytime</string>
 	<string name="select_plan_button">Choose my NymVPN plan</string>
-	<string name="select_plan_modal_title">Choose your NymVPN plan</string>
-	<string name="select_plan_modal_free_trial">Free trial: 1 week</string>
+	<string name="select_plan_modal_title">Choose your plan. All features, cancel anytime.</string>
+	<string name="select_plan_modal_free_trial">7-day free trial starts today</string>
 	<string name="select_plan_modal_free_trial_starts_today">Starts: today</string>
 	<string name="select_plan_modal_free_trial_starts">Starts: %1$s</string>
 	<!-- Server Details screen -->
@@ -353,10 +358,12 @@
 	<string name="account_subscription_description">We found an active subscription linked to your Google Play account. Skip the signup and jump straight into using NymVPN. Just have your 24-word passphrase ready.</string>
 	<string name="account_subscription_button">Log in with Nym passphrase</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_creating">Creating your anonymous identity…</string>
-	<string name="account_generating_establishing">Establishing anonymous network credentials</string>
-	<string name="account_generating_securing">Securing your credentials locally…</string>
-	<string name="account_generating_encrypting">Encrypting credentials with your device key; \nonly you can unlock them</string>
+	<string name="account_generating_title_1">Generating cryptographic keypairs…</string>
+	<string name="account_generating_title_2">Creating your anonymous identity…</string>
+	<string name="account_generating_title_3">Securing your credentials locally…</string>
+	<string name="account_generating_description_1">Creating keys that never leave your device</string>
+	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
+	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
 	<string name="account_generating_error">Failed to register account. Please, try again later</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processing your payment securely…</string>

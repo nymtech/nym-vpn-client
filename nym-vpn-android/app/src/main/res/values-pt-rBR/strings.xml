@@ -300,11 +300,7 @@
 	<string name="account_subscription_description">Encontramos uma assinatura ativa vinculada à sua conta do Google Play. Pule a inscrição e pule diretamente usando o NymVPN. Basta ter sua senha de 24 palavras pronta.</string>
 	<string name="account_subscription_button">Fazer login com a senha Nym</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_creating">Criando sua identidade anônima…</string>
-	<string name="account_generating_establishing">Estabelecendo credenciais de rede anônimas</string>
-	<string name="account_generating_securing">Protegendo suas credenciais localmente…</string>
-	<string name="account_generating_encrypting">Criptografando credenciais com a chave do seu dispositivo; \nsomente você pode desbloqueá-las</string>
-	<string name="account_generating_error">Falha ao registrar a conta. Por favor, tente novamente mais tarde</string>
+    <string name="account_generating_error">Falha ao registrar a conta. Por favor, tente novamente mais tarde</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processando seu pagamento com segurança…</string>
 	<string name="account_payment_verifying">Estamos verificando sua assinatura — nenhum dado pessoal está vinculado à sua identidade</string>

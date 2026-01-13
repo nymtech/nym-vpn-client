@@ -53,7 +53,7 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 	LaunchedEffect(success) {
 		if (success == false) {
 			SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
-			navController.replaceCurrentWith(Route.WelcomeAccount())
+			navController.replaceCurrentWith(Route.WelcomeAccount)
 		}
 	}
 
@@ -72,6 +72,8 @@ fun GeneratingScreen(onAnimationEnd: () -> Unit) {
 		delay(3000)
 		step = 1
 		delay(3000)
+		step = 2
+		delay(3000)
 		onAnimationEnd()
 	}
 
@@ -88,28 +90,24 @@ fun GeneratingScreen(onAnimationEnd: () -> Unit) {
 				.height(4.dp),
 			horizontalArrangement = Arrangement.spacedBy(4.dp),
 		) {
-			Box(
-				modifier = Modifier
-					.weight(1f)
-					.fillMaxHeight()
-					.background(
-						MaterialTheme.colorScheme.primary,
-						shape = RoundedCornerShape(size = 4.dp),
-					),
-			)
-			Box(
-				modifier = Modifier
-					.weight(1f)
-					.fillMaxHeight()
-					.background(
-						if (step > 0) {
-							MaterialTheme.colorScheme.primary
-						} else {
-							MaterialTheme.colorScheme.surfaceContainer
-						},
-						shape = RoundedCornerShape(size = 4.dp),
-					),
-			)
+			repeat(4) { index ->
+				val isFilled =
+					index < 3 && step >= index
+
+				Box(
+					modifier = Modifier
+						.weight(1f)
+						.fillMaxHeight()
+						.background(
+							if (isFilled) {
+								MaterialTheme.colorScheme.primary
+							} else {
+								MaterialTheme.colorScheme.surfaceContainer
+							},
+							shape = RoundedCornerShape(4.dp),
+						),
+				)
+			}
 		}
 
 		Column(
@@ -136,13 +134,14 @@ fun GeneratingScreen(onAnimationEnd: () -> Unit) {
 				)
 			}
 
-			val title =
-				if (step == 0) R.string.account_generating_creating else R.string.account_generating_securing
-			val text =
-				if (step == 0) R.string.account_generating_establishing else R.string.account_generating_encrypting
+			val (titleRes, textRes) = when (step) {
+				0 -> R.string.account_generating_title_1 to R.string.account_generating_description_1
+				1 -> R.string.account_generating_title_2 to R.string.account_generating_description_2
+				else -> R.string.account_generating_title_3 to R.string.account_generating_description_3
+			}
 
 			Text(
-				text = stringResource(title),
+				text = stringResource(titleRes),
 				style = Typography.titleMedium,
 				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier.padding(top = 16.dp),
@@ -150,7 +149,7 @@ fun GeneratingScreen(onAnimationEnd: () -> Unit) {
 			)
 
 			Text(
-				text = stringResource(text),
+				text = stringResource(textRes),
 				style = Typography.bodyMedium,
 				textAlign = TextAlign.Center,
 				modifier = Modifier.padding(top = 16.dp),

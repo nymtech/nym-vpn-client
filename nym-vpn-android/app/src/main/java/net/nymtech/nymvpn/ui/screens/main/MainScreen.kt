@@ -251,11 +251,11 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	}
 
 	LaunchedEffect(Unit) {
-		if (!appUiState.settings.isPerAppSecurityBannerDisplayed) {
-			showPerAppSecurityBanner = true
-		} else if (!appUiState.settings.isStreamingServerBannerDisplayed) {
-			showBanner = true
-		}
+// 		if (!appUiState.settings.isPerAppSecurityBannerDisplayed) {
+// 			showPerAppSecurityBanner = true
+// 		} else if (!appUiState.settings.isStreamingServerBannerDisplayed) {
+// 			showBanner = true
+// 		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 			requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
 		}

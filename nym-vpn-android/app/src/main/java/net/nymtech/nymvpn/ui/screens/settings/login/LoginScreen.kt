@@ -6,14 +6,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -41,13 +42,21 @@ import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 
 @Composable
 fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewModel()) {
 	val snackbar = SnackbarController.current
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
-	val padding = WindowInsets.systemBars.asPaddingValues()
 	val context = LocalContext.current
 	val navController = LocalNavController.current
 
@@ -106,16 +115,57 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 			.imePadding()
 			.verticalScroll(scrollState)
 			.padding(horizontal = 24.dp.scaledWidth())
-			.padding(padding),
+			.navigationBarsPadding(),
 	) {
 		LoginHeader()
 		LoginInputSection(
-			appUiState = appUiState,
+			onCreateAccountClick = {
+				navController.navigate(Route.WelcomeAccount)
+			},
 			viewModel = viewModel,
 			uiState = uiState,
 			loading = loading,
 			onLoadingChange = { loading = it },
 			onRequestCameraPermission = { requestPermissionLauncher.launch(Manifest.permission.CAMERA) },
+		)
+
+		Text(
+			text = buildAnnotatedString {
+				append(stringResource(R.string.account_welcome_privacy_start))
+				append("\n")
+				withStyle(
+					SpanStyle(
+						color = MaterialTheme.colorScheme.onBackground,
+						textDecoration = TextDecoration.Underline,
+					),
+				) {
+					withLink(LinkAnnotation.Url(stringResource(R.string.terms_link))) {
+						append(stringResource(R.string.terms_of_use))
+					}
+				}
+				append(" ")
+				append(stringResource(R.string.account_welcome_privacy_middle))
+				append(" ")
+				withStyle(
+					SpanStyle(
+						color = MaterialTheme.colorScheme.onBackground,
+						textDecoration = TextDecoration.Underline,
+					),
+				) {
+					withLink(LinkAnnotation.Url(stringResource(R.string.privacy_link))) {
+						append(stringResource(R.string.privacy_policy))
+					}
+				}
+				append(".")
+			},
+			textAlign = TextAlign.Center,
+			style = MaterialTheme.typography.bodySmall.copy(
+				color = MaterialTheme.colorScheme.outline,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			),
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(top = 16.dp.scaledHeight()),
 		)
 	}
 

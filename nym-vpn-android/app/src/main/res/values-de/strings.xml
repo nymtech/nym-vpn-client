@@ -300,11 +300,7 @@
 	<string name="account_subscription_description">Wir haben ein aktives Abonnement gefunden, das mit deinem Google Play-Konto verknüpft ist. Überspringe die Anmeldung und nutze NymVPN direkt. Halte einfach deine 24-Wort-Passphrase bereit.</string>
 	<string name="account_subscription_button">Mit Nym Passphrase anmelden</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_creating">Erstellen deiner anonymen Identität…</string>
-	<string name="account_generating_establishing">Einrichtung anonymer Netzwerkzugangsdaten</string>
-	<string name="account_generating_securing">Deine Anmeldeinformationen lokal sichern…</string>
-	<string name="account_generating_encrypting">Die Anmeldeinformationen werden mit deinem Geräteschlüssel verschlüsselt; \nnur du kannst sie entsperren</string>
-	<string name="account_generating_error">Konto konnte nicht registriert werden. Bitte versuchen Sie es später erneut</string>
+    <string name="account_generating_error">Konto konnte nicht registriert werden. Bitte versuchen Sie es später erneut</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Deine Zahlung wird sicher verarbeitet…</string>
 	<string name="account_payment_verifying">Wir verifizieren dein Abonnement - keine persönlichen Daten sind jemals an deine Identität gebunden</string>

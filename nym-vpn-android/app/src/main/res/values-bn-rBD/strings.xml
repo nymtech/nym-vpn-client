@@ -298,11 +298,7 @@
 	<string name="account_subscription_description">আমরা আপনার Google Play অ্যাকাউন্টে একটি সক্রিয় সাবস্ক্রিপশন খুঁজে পেয়েছি। সাইনআপ বাদ দিয়ে সরাসরি NymVPN ব্যবহার শুরু করুন। শুধু আপনার ২৪-শব্দের পাসফ্রেজটি পাশে রাখুন।</string>
 	<string name="account_subscription_button">Nym পাসফ্রেজ দিয়ে লগ ইন করুন</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_creating">আপনার গোপনীয় পরিচয় তৈরি করা হচ্ছে</string>
-	<string name="account_generating_establishing">গোপন নেটওয়ার্ক ক্রেডেনশিয়াল তৈরি করা হচ্ছে</string>
-	<string name="account_generating_securing">আপনার ক্রেডেনশিয়ালগুলো লোকালি সুরক্ষিত করা হচ্ছে।</string>
-	<string name="account_generating_encrypting">ক্রেডেনশিয়ালগুলোকে আপনার ডিভাইস কী দিয়ে এনক্রিপ্ট করা হচ্ছে — শুধুমাত্র আপনি এগুলো আনলক করতে পারবেন।</string>
-	<string name="account_generating_error">অ্যাকাউন্ট নিবন্ধন ব্যর্থ হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন</string>
+    <string name="account_generating_error">অ্যাকাউন্ট নিবন্ধন ব্যর্থ হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">আপনার পেমেন্ট নিরাপদে প্রক্রিয়াকরণ করা হচ্ছে...</string>
 	<string name="account_payment_verifying">আমরা আপনার সাবস্ক্রিপশন যাচাই করছি — কোনো ব্যক্তিগত তথ্য কখনোই আপনার পরিচয়ের সঙ্গে যুক্ত করা হয় না</string>
