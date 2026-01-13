@@ -89,6 +89,16 @@ impl GatewayCacheHandle {
             .map_err(|_| Error::Cancelled)?;
         rx.await.map_err(|_| Error::Cancelled)?
     }
+
+    /// Lookup all NymNodes with network requester addresses.
+    /// This is specifically for SOCKS5 Network Requester rotation.
+    pub async fn lookup_all_nymnodes(&self) -> Result<NymNodeList> {
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        self.tx
+            .send(Command::LookupAllNymNodes(tx))
+            .map_err(|_| Error::Cancelled)?;
+        rx.await.map_err(|_| Error::Cancelled)?
+    }
 }
 
 enum Command {
@@ -106,6 +116,7 @@ enum Command {
         tokio::sync::oneshot::Sender<Result<IpAddr>>,
     ),
     LookupNymNodeByIdentity(NodeIdentity, tokio::sync::oneshot::Sender<Result<NymNode>>),
+    LookupAllNymNodes(tokio::sync::oneshot::Sender<Result<NymNodeList>>),
     ReplaceGatewayClient(Box<GatewayClient>),
     ClearCache,
 }
@@ -178,6 +189,9 @@ impl GatewayCache {
                         }
                         Command::LookupNymNodeByIdentity(identity, tx) => {
                             tx.send(self.lookup_nymnode_by_identity(&identity).await).ok();
+                        }
+                        Command::LookupAllNymNodes(tx) => {
+                            tx.send(self.refresh_nymnodes().await).ok();
                         }
                         Command::ReplaceGatewayClient(gateway_client) => {
                             self.replace_gateway_client(*gateway_client)
