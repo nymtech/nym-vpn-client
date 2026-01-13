@@ -36,7 +36,7 @@ jobs:
         working-directory: nym-vpn-app
         run: npm ci
 
-      - name: Install Crowdin CLI via npm
+      - name: Install Crowdin CLI
         run: |
           npm install -g @crowdin/cli
 
