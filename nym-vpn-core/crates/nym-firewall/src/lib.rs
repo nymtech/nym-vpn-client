@@ -1,14 +1,12 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    borrow::Cow,
-    fmt,
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
-    sync::LazyLock,
-};
+use std::{borrow::Cow, fmt, net::IpAddr};
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use std::{net::Ipv6Addr, sync::LazyLock};
 
-use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use ipnetwork::Ipv6Network;
 #[cfg(not(target_os = "android"))]
 use nym_dns::ResolvedDnsConfig;
 
@@ -34,7 +32,6 @@ mod imp;
 
 mod net;
 mod split_tunnel;
-use net::ALLOWED_LAN_NETS;
 pub use net::{
     AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol,
     TunnelInterface, TunnelMetadata,
@@ -60,12 +57,6 @@ static ROUTER_SOLICITATION_OUT_DST_ADDR: LazyLock<Ipv6Addr> =
 static SOLICITED_NODE_MULTICAST: LazyLock<Ipv6Network> = LazyLock::new(|| {
     Ipv6Network::new(Ipv6Addr::new(0xff02, 0, 0, 0, 0, 1, 0xFF00, 0), 104).unwrap()
 });
-static LOOPBACK_NETS: LazyLock<[IpNetwork; 2]> = LazyLock::new(|| {
-    [
-        IpNetwork::V4(Ipv4Network::new(Ipv4Addr::new(127, 0, 0, 0), 8).unwrap()),
-        IpNetwork::V6(Ipv6Network::new(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1), 128).unwrap()),
-    ]
-});
 
 #[cfg(all(unix, not(any(target_os = "android", target_os = "ios"))))]
 const DHCPV4_SERVER_PORT: u16 = 67;
@@ -85,15 +76,6 @@ const ROOT_UID: u32 = 0;
 /// Allowed TCP ports to DNS servers when connecting.
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 const DNS_TCP_PORTS: [u16; 2] = [443, 853];
-
-/// Returns whether an address belongs to a private subnet.
-pub fn is_local_address(address: &IpAddr) -> bool {
-    let address = *address;
-    (*ALLOWED_LAN_NETS)
-        .iter()
-        .chain(&*LOOPBACK_NETS)
-        .any(|net| net.contains(address))
-}
 
 /// A enum that describes network security strategy
 ///

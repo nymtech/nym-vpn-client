@@ -129,8 +129,9 @@ impl From<nym_vpn_lib::tunnel_provider::TunnelSettings> for TunnelNetworkSetting
     fn from(settings: nym_vpn_lib::tunnel_provider::TunnelSettings) -> Self {
         let (interface_addrs_ipv4, interface_addrs_ipv6) =
             Self::split_ipnet_addrs(settings.interface_addresses);
-        let (bypass_addrs_ipv4, bypass_addrs_ipv6) =
-            Self::split_ipnet_addrs(Self::bypass_addresses(settings.remote_addresses));
+        let (bypass_addrs_ipv4, bypass_addrs_ipv6) = Self::split_ipnet_addrs(
+            Self::bypass_addresses(&settings.remote_addresses, &settings.dns_servers),
+        );
 
         let ipv4_settings = if interface_addrs_ipv4.is_empty() {
             None
@@ -216,15 +217,27 @@ impl TunnelNetworkSettings {
     }
 
     #[cfg(target_os = "ios")]
-    fn bypass_addresses(_remote_addresses: Vec<IpAddr>) -> Vec<IpNetwork> {
+    fn bypass_addresses(_remote_addresses: &[IpAddr], _dns_servers: &[IpAddr]) -> Vec<IpNetwork> {
         // Do not bypass remote addresses since connections initiated within the packet tunnel
         // bypass the tunnel interface anyway.
         vec![]
     }
 
     #[cfg(target_os = "android")]
-    fn bypass_addresses(remote_addresses: Vec<IpAddr>) -> Vec<IpNetwork> {
-        remote_addresses.into_iter().map(IpNetwork::from).collect()
+    fn bypass_addresses(remote_addresses: &[IpAddr], dns_servers: &[IpAddr]) -> Vec<IpNetwork> {
+        // Allow local DNS servers to escape the tunnel since local DNS cannot be routed over the tunnel.
+        let local_dns_servers = dns_servers
+            .iter()
+            .filter(|addr| nym_firewall_config::is_local_address(addr))
+            .copied()
+            .collect::<Vec<_>>();
+
+        remote_addresses
+            .iter()
+            .copied()
+            .chain(local_dns_servers)
+            .map(IpNetwork::from)
+            .collect()
     }
 
     fn split_ipnet_addrs(ipnet_addrs: Vec<IpNetwork>) -> (Vec<Ipv4Network>, Vec<Ipv6Network>) {

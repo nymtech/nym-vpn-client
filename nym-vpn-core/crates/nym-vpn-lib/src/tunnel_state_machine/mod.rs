@@ -364,7 +364,7 @@ impl DnsOptions {
                     let (non_tunnel_config, tunnel_config): (Vec<_>, Vec<_>) = addrs
                         .iter()
                         // Private IP ranges should not be tunneled
-                        .partition(|&addr| nym_firewall::is_local_address(addr));
+                        .partition(|&addr| nym_firewall_config::is_local_address(addr));
                     DnsConfig::from_addresses(&tunnel_config, &non_tunnel_config)
                 }
             }
