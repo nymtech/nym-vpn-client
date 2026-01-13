@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0]
+
 ### Added
 - Locale for high/low copy on Details screen (https://github.com/nymtech/nym-vpn-client/pull/4274)
 - Add reconnect on LAN bypass (https://github.com/nymtech/nym-vpn-client/pull/4282)
