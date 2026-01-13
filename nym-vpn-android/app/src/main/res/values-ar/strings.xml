@@ -240,7 +240,6 @@
 	<string name="welcome_continue">المتابعة</string>
     <!-- Select Plan screen -->
 	<string name="select_plan_title">اختر مستوى الحماية \nالخاص بك 🛡️</string>
-	<string name="select_plan_descr">حدد خطة الآن لتفعيل حماية \n\n\nلا يمكن ربط الدفعة القادمة \nبنشاط التصفح الخاص بك في المستقبل</string>
 	<string name="select_plan_button">اختر خطة NymVPN الخاصة بي</string>
 	<string name="select_plan_modal_title">اختر خطة NymVPN الخاصة بك</string>
 	<string name="select_plan_modal_free_trial">تجربة مجانية: أسبوع واحد</string>

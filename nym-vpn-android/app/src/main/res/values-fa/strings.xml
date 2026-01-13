@@ -241,7 +241,6 @@
 	<string name="welcome_continue">ادامه</string>
     <!-- Select Plan screen -->
 	<string name="select_plan_title">سطح محافظت از خود \n را انتخاب کنید 🛡️</string>
-	<string name="select_plan_descr">اکنون یک طرح را انتخاب کنید تا \nحفاظت\n\n از شما برایتان فعال شود، پرداختی که انجام خواهد شد نمی‌تواند به \nفعالیت وب گردی آتی شما ربط داده شود</string>
 	<string name="select_plan_button">بسته خرید NymVPN خود را انتخاب کنید</string>
 	<string name="select_plan_modal_title">طرح NymVPN خود را انتخاب کنید</string>
 	<string name="select_plan_modal_free_trial">دوره آزمایشی رایگان: ۱ هفته</string>

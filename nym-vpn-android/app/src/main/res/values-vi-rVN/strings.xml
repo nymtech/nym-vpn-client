@@ -238,7 +238,6 @@
 	<string name="welcome_continue">Tiếp tục</string>
     <!-- Select Plan screen -->
 	<string name="select_plan_title">Chọn mức độ\nbảo vệ của bạn 🛡️</string>
-	<string name="select_plan_descr">Chọn một gói ngay bây giờ để \nđược bảo vệ \n\nKhoản thanh toán sắp tới của bạn không thể bị liên kết \nvới hoạt động duyệt web trong tương lai của bạn</string>
 	<string name="select_plan_button">Chọn gói NymVPN</string>
 	<string name="select_plan_modal_title">Chọn gói NymVPN của bạn</string>
 	<string name="select_plan_modal_free_trial">Dùng thử miễn phí: 1 tuần</string>

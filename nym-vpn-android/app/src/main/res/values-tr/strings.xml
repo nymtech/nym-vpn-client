@@ -238,7 +238,6 @@
 	<string name="welcome_continue">Devam et</string>
     <!-- Select Plan screen -->
 	<string name="select_plan_title">\nKoruma seviyenizi seçin 🛡️</string>
-	<string name="select_plan_descr">\nKorumanızı\n\n etkinleştirmek için şimdi bir plan seçin. Ödemeniz, \ngelecekteki gezinme etkinliğinizle ilişkilendirilemez.</string>
 	<string name="select_plan_button">NymVPN planımı seç</string>
 	<string name="select_plan_modal_title">NymVPN planınızı seçin</string>
 	<string name="select_plan_modal_free_trial">Ücretsiz deneme: 1 hafta</string>
