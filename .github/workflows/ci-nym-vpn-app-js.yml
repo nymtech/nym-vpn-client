@@ -4,8 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - ".github/workflows/ci-nym-vpn-app-js.yml"
-      - "nym-vpn-app/**"
+      - '.github/workflows/ci-nym-vpn-app-js.yml'
+      - 'nym-vpn-app/**'
   workflow_dispatch:
 
 jobs:
@@ -50,6 +50,27 @@ jobs:
       #      - name: Run tests
       #        working-directory: nym-vpn-app
       #        run: npm run test
+
+      - name: Update localizations Crowdin (Ubuntu)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          # Install Crowdin CLI Debian package
+          wget -qO - https://artifacts.crowdin.com/repo/GPG-KEY-crowdin | sudo apt-key add -
+          echo "deb https://artifacts.crowdin.com/repo/deb/ /" | sudo tee /etc/apt/sources.list.d/crowdin.list
+          sudo apt-get update
+          sudo apt-get install -y crowdin
+
+          # Verify installation
+          crowdin --version || (echo "crowdin cli install failed" && exit 1)
+
+          # Download translations using the same config and tokens
+          crowdin download translations \
+            --config crowdin-configs/linux-windows.yml \
+            --project-id "$CROWDIN_PROJECT_ID" \
+            --token "$CROWDIN_PERSONAL_TOKEN"
 
       - name: Check build
         working-directory: nym-vpn-app
