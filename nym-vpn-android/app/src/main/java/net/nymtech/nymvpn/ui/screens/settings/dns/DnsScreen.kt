@@ -88,19 +88,13 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 		viewModel.events.collectLatest { event ->
 			when (event) {
 				UiEvent.ReconnectStarted ->
-					Toast.makeText(context, context.getString(R.string.dns_event_reconnecting), Toast.LENGTH_SHORT).show()
+					Toast.makeText(
+						context,
+						context.getString(R.string.dns_event_reconnecting),
+						Toast.LENGTH_SHORT,
+					).show()
 			}
 		}
-	}
-
-	var initialCustomDns by remember { mutableStateOf<List<String>?>(null) }
-	LaunchedEffect(customDns) {
-		if (initialCustomDns == null) initialCustomDns = customDns.toList()
-	}
-
-	var initialDnsEnabled by remember { mutableStateOf<Boolean?>(null) }
-	LaunchedEffect(dnsEnabled) {
-		if (initialDnsEnabled == null) initialDnsEnabled = dnsEnabled
 	}
 
 	val onNavigateBack = remember {
@@ -115,7 +109,6 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 		customDns = customDns,
 		dnsEnabled = dnsEnabled,
 		connectedForUi = connectedForUi,
-		isActuallyConnected = isActuallyConnected,
 		onDnsEnable = { enabled -> viewModel.onCustomDnsEnable(enabled, isActuallyConnected) },
 		onSave = { listToSave ->
 			viewModel.saveDnsListReconnectIfNeeded(
@@ -124,22 +117,16 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 				isActuallyConnected = isActuallyConnected,
 			)
 			if (!isActuallyConnected) {
-				Toast.makeText(context, context.getString(R.string.dns_event_saved), Toast.LENGTH_SHORT).show()
+				Toast.makeText(
+					context,
+					context.getString(R.string.dns_event_saved),
+					Toast.LENGTH_SHORT,
+				).show()
 			}
 		},
 		onBackClickEventTriggered = onBackClickEventTriggered,
 		onNavigateBack = onNavigateBack,
-		onReconnectIfConnect = { viewModel.requestReconnectIfConnected(isActuallyConnected) },
-		initialDnsEnabled = initialDnsEnabled,
-		initialCustomDns = initialCustomDns,
 	)
-}
-
-private fun shouldReconnect(initialEnabled: Boolean?, initialList: List<String>?, currentEnabled: Boolean, currentList: List<String>): Boolean {
-	if (initialEnabled == null || initialList == null) return false
-	val toggleChanged = currentEnabled != initialEnabled
-	val listChangedWhileEnabled = currentEnabled && (currentList != initialList)
-	return toggleChanged || listChangedWhileEnabled
 }
 
 @Composable
@@ -148,14 +135,10 @@ private fun DnsScreen(
 	customDns: List<String>,
 	dnsEnabled: Boolean,
 	connectedForUi: Boolean,
-	isActuallyConnected: Boolean,
 	onDnsEnable: (enabled: Boolean) -> Unit,
 	onSave: (List<String>) -> Unit,
 	onBackClickEventTriggered: Boolean,
 	onNavigateBack: () -> Unit,
-	onReconnectIfConnect: () -> Unit,
-	initialDnsEnabled: Boolean?,
-	initialCustomDns: List<String>?,
 ) {
 	val scrollState = rememberScrollState()
 	var expanded by rememberSaveable { mutableStateOf(false) }
@@ -184,18 +167,11 @@ private fun DnsScreen(
 		derivedStateOf { lastSavedDns.isNotEmpty() }
 	}
 
-	fun leaveScreenWithReconnectIfNeeded(currentList: List<String>) {
-		if (isActuallyConnected && shouldReconnect(initialDnsEnabled, initialCustomDns, dnsEnabled, currentList)) {
-			onReconnectIfConnect()
-		}
-		onNavigateBack()
-	}
-
 	fun requestBack() {
 		if (hasUnsavedListChanges || hasUnsavedToggleChange) {
 			showSaveChangesDialog = true
 		} else {
-			leaveScreenWithReconnectIfNeeded(lastSavedDns)
+			onNavigateBack()
 		}
 	}
 
@@ -340,6 +316,7 @@ private fun DnsScreen(
 		onClickSave = {
 			val toSave = customDnsDraft
 			onSave(toSave)
+
 			if (toSave.isEmpty() && dnsEnabled) {
 				onDnsEnable(false)
 			}
@@ -349,7 +326,7 @@ private fun DnsScreen(
 			lastSavedEnabled = if (toSave.isEmpty()) false else dnsEnabled
 
 			showSaveChangesDialog = false
-			leaveScreenWithReconnectIfNeeded(toSave)
+			onNavigateBack()
 		},
 		onDiscard = {
 			showSaveChangesDialog = false
@@ -373,14 +350,10 @@ internal fun PreviewDnsScreen() {
 			customDns = arrayListOf(),
 			dnsEnabled = true,
 			connectedForUi = true,
-			isActuallyConnected = true,
 			onDnsEnable = {},
 			onSave = {},
 			onBackClickEventTriggered = false,
 			onNavigateBack = {},
-			onReconnectIfConnect = {},
-			initialDnsEnabled = true,
-			initialCustomDns = emptyList(),
 		)
 	}
 }
