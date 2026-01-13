@@ -32,7 +32,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
@@ -40,13 +39,11 @@ import net.nymtech.nymvpn.ui.screens.settings.login.LoginUiState
 import net.nymtech.nymvpn.ui.screens.settings.login.LoginViewModel
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import timber.log.Timber
 
 @Composable
-fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, uiState: LoginUiState, loading: Boolean, onLoadingChange: (Boolean) -> Unit, onRequestCameraPermission: () -> Unit) {
+fun LoginInputSection(onCreateAccountClick: () -> Unit, viewModel: LoginViewModel, uiState: LoginUiState, loading: Boolean, onLoadingChange: (Boolean) -> Unit, onRequestCameraPermission: () -> Unit) {
 	val context = LocalContext.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 	var mnemonic by remember { mutableStateOf("") }
@@ -93,7 +90,7 @@ fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, uiState
 			),
 			modifier = Modifier
 				.width(358.dp.scaledWidth())
-				.height(212.dp.scaledHeight()),
+				.height(180.dp.scaledHeight()),
 			supportingText = {
 				if (uiState.success == false) {
 					Text(
@@ -154,13 +151,10 @@ fun LoginInputSection(appUiState: AppUiState, viewModel: LoginViewModel, uiState
 								tag = "signUpLink",
 								styles = TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary)),
 							) {
-								appUiState.managerState.accountLinks?.signUp?.let {
-									Timber.d("Create url: $it")
-									context.openWebUrl(it)
-								}
+								onCreateAccountClick()
 							},
 						) {
-							append(stringResource(R.string.get_access_code))
+							append(stringResource(R.string.onboarding_create_account_button))
 						}
 					},
 					style = MaterialTheme.typography.bodyLarge.copy(

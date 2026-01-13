@@ -22,12 +22,11 @@ fun PagerIndicator(pageCount: Int, currentPage: Int, modifier: Modifier = Modifi
 	) {
 		repeat(pageCount) { index ->
 			val isSelected = index == currentPage
-			val dotSize = if (isSelected) 8.dp else 7.dp
 			val color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outline
 
 			Spacer(
 				modifier = Modifier
-					.size(dotSize)
+					.size(8.dp)
 					.clip(CircleShape)
 					.background(color),
 			)

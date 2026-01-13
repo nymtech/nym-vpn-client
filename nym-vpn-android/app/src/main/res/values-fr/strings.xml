@@ -300,11 +300,7 @@
 	<string name="account_subscription_description">Nous avons trouvé un abonnement actif lié à votre compte Google Play. Sautez l\'inscription et sautez directement à l\'aide de NymVPN. Ayez juste votre mot de passe de 24 mots prêt.</string>
 	<string name="account_subscription_button">Se connecter avec la phrase de passe Nym</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_creating">Création de votre identité anonyme…</string>
-	<string name="account_generating_establishing">Établissement des identifiants de réseau anonymes</string>
-	<string name="account_generating_securing">Sécurisation de vos identifiants localement…</string>
-	<string name="account_generating_encrypting">Chiffrement des identifiants avec la clé de votre appareil ; \nseul vous pouvez les déverrouiller</string>
-	<string name="account_generating_error">Impossible d\'enregistrer le compte. Veuillez réessayer plus tard</string>
+    <string name="account_generating_error">Impossible d\'enregistrer le compte. Veuillez réessayer plus tard</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Traitement de votre paiement en toute sécurité…</string>
 	<string name="account_payment_verifying">Nous vérifions votre abonnement—aucune donnée personnelle n\'est liée à votre identité</string>

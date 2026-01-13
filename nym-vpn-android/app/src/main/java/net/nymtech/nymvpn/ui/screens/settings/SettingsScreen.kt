@@ -108,8 +108,8 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 			daemonVersion = uiState.daemonVersion,
 		),
 		SettingsActions(
-			onLoginClick = {
-				navController.navigate(Route.Login)
+			onGetStartedClick = {
+				navController.navigate(Route.WelcomeAccount)
 			},
 			onAccountClick = {
 				navController.navigate(Route.Account)
@@ -195,7 +195,7 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 		) {
 			LoginSection(
 				isMnemonicStored = values.isMnemonicStored,
-				onLoginClick = actions.onLoginClick,
+				onGetStartedClick = actions.onGetStartedClick,
 			)
 			AccountSection(
 				isMnemonicStored = values.isMnemonicStored,

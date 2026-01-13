@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings
 
 data class SettingsActions(
-	val onLoginClick: () -> Unit = {},
+	val onGetStartedClick: () -> Unit = {},
 	val onAccountClick: () -> Unit = {},
 	val onPassphraseClick: () -> Unit = {},
 	val onSupportClick: () -> Unit = {},
