@@ -102,10 +102,10 @@ android {
 
 		create(Constants.PRERELEASE) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
-			applicationIdSuffix = ""
+			applicationIdSuffix = ".prerelease"
 			versionNameSuffix = "-pre"
 			resValue("string", "app_name", "NymVPN - Pre")
-			resValue("string", "provider", "\"${Constants.APP_NAME}.provider\"")
+			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.pre\"")
 			buildConfigField("Boolean", "IS_PRERELEASE", "true")
 			signingConfig = signingConfigs.getByName("debug")
 		}
