@@ -238,7 +238,6 @@
 	<string name="welcome_continue">继续</string>
     <!-- Select Plan screen -->
 	<string name="select_plan_title">选择您的 \n保护级别 🛡️</string>
-	<string name="select_plan_descr">现在选择一个订阅方案开始享受你的\n隐私保护\n\n你的付款信息永远不会关联到\n你未来的上网记录</string>
 	<string name="select_plan_button">选择我的 NymVPN 计划</string>
 	<string name="select_plan_modal_title">选择您的 NymVPN 计划</string>
 	<string name="select_plan_modal_free_trial">免费试用：1周</string>
