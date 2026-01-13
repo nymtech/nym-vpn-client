@@ -63,7 +63,10 @@ jobs:
             
             CACHE_COUNT=$((CACHE_COUNT + 1))
             TOTAL_SIZE_BEFORE=$((TOTAL_SIZE_BEFORE + CACHE_SIZE))
-            
+
+            echo "::info:: Created at: $CREATED_AT"
+            echo "::info:: Created at: $CUTOFF_DATE"
+
             # Check if cache is older than cutoff date
             if [[ "$CREATED_AT" < "$CUTOFF_DATE" ]]; then
               CACHE_SIZE_MB=$(awk "BEGIN {printf \"%.2f\", $CACHE_SIZE / 1024 / 1024}")
