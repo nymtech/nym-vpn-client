@@ -12,7 +12,5 @@
   },
   "copied-to-clipboard": "Panoya kopyalandı",
   "daemon-no-compat": "Daemon sürümü, uygulama sürümüyle uyumsuz! Daemon sürümü: {{version}}, beklenen: {{required}}. Lütfen uygulamayı veya daemon'u güncelleyin.",
-  "daemon-not-connected": "Daemon’a bağlanılamıyor. Uygulamayı veya cihazı yeniden başlatın. Sorun devam ederse NymVPN’i yeniden yükleyin.",
-  "streaming-optimized-label": "⏯️ Yayın izleme için optimize edilmiş sunucular artık etiketli",
-  "streaming-optimized-label-button": "Çıkış sunucularını hemen keşfet"
+  "daemon-not-connected": "Daemon’a bağlanılamıyor. Uygulamayı veya cihazı yeniden başlatın. Sorun devam ederse NymVPN’i yeniden yükleyin."
 }

@@ -12,7 +12,5 @@
   },
   "copied-to-clipboard": "نسخ إلى الحافظة",
   "daemon-no-compat": "إصدار دايمون غير متوافق مع إصدار التطبيقات! إصدار دايمون: {{version}}، متوقع: {{required}}. يرجى تحديث التطبيق أو دايمون.",
-  "daemon-not-connected": "لا يوجد اتصال هائل ، يرجى الاتصال بفريق الدعم",
-  "streaming-optimized-label": "⏯️ خوادم تم تحسينها الآن",
-  "streaming-optimized-label-button": "تصفح خوادم الخروج الآن"
+  "daemon-not-connected": "لا يوجد اتصال هائل ، يرجى الاتصال بفريق الدعم"
 }

@@ -23,7 +23,7 @@
     "create-account": "Anonymes Konto erstellen",
     "maximum-privacy": {
       "title": "🔒 Maximale Privatsphäre",
-      "description": "Erstelle ein anonymes Nym-Konto, keine persönlichen Daten erforderlich"
+      "description": "Erstelle ein anonymes Konto auf nym.com. Du erhältst eine Passphrase mit 24 Wörtern. Speichere diese, um dich wieder in der App anzumelden.\n\nEs sind keine persönlichen Daten erforderlich."
     },
     "quick-setup": {
       "title": "⚡️ Quick setup",

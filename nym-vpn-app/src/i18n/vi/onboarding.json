@@ -1,24 +1,24 @@
 {
   "welcome": {
-    "title": "Welcome to NymVPN",
-    "description": "<large>The world’s most private VPN</large>\n\nTry for 7 days free:\nAll features included, no ads."
+    "title": "Chào mừng đến với NymVPN",
+    "description": "<large>VPN riêng tư nhất thế giới</large>\n\nDùng thử miễn phí 7 ngày:\nBao gồm đầy đủ tính năng, không quảng cáo."
   },
   "tracking": {
-    "title": "Stop being tracked online",
-    "description": "Nym’s decentralized network makes \"no-log\" promises obsolete."
+    "title": "Đừng để bị theo dõi trực tuyến",
+    "description": "Mạng lưới phi tập trung của Nym khiến lời hứa \"không lưu nhật ký\" trở nên lỗi thời."
   },
   "zero-knowledge": {
-    "title": "Anonymity from payment to web",
-    "description": "Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities."
+    "title": "Ẩn danh từ khâu thanh toán đến trang web",
+    "description": "Thanh toán bằng thẻ, tiền điện tử hoặc tiền mặt—không cần email. Zero-knowledge proof khiến khoản thanh toán của bạn không bị liên kết với các hoạt động trực tuyến."
   },
   "speed": {
-    "title": "Speed when you need it.\nPrivacy when it matters.",
-    "description": "<bold>Fast mode:</bold> 250+ Mbps with dVPN.\n<bold>Anonymous mode:</bold> 5-hop Noise Generating Mixnet."
+    "title": "Tốc độ khi bạn muốn.\nBảo mật khi bạn cần.",
+    "description": "<bold>Chế độ nhanh:</bold> Hơn 250 Mbps với dVPN.\n<bold>Chế độ ẩn danh:</bold> Mixnet Tạo Nhiễu 5 bước nhảy."
   },
   "controls": {
-    "login": "Log in",
-    "create-account": "Create account",
-    "next": "Next",
-    "skip": "Skip"
+    "login": "Đăng nhập",
+    "create-account": "Tạo tài khoản",
+    "next": "Tiếp theo",
+    "skip": "Bỏ qua"
   }
 }

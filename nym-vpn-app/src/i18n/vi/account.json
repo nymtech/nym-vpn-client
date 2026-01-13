@@ -1,11 +1,11 @@
 {
   "select-a-plan": {
-    "title": "Chọn mức độ bảo vệ của bạn",
+    "title": "Chọn gói đăng ký của bạn",
     "features": {
-      "all-included": "All features included",
-      "no-ads": "No ads",
-      "cancel-anytime": "Cancel anytime"
+      "all-included": "Đầy đủ tất cả các tính năng",
+      "no-ads": "Không quảng cáo",
+      "cancel-anytime": "Hủy bất kỳ lúc nào"
     },
-    "button": "Chọn gói NymVPN"
+    "button": "Chọn gói"
   }
 }
