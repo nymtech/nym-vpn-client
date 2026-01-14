@@ -14,11 +14,11 @@ extension GeneratePassphraseView {
             let offerText: String
 
             if offer.price == 0 {
-                offerText = "\(periodDescription) free trial"
+                offerText = "\("incl".localizedString) \(periodDescription) \("freeTrial".localizedString)"
             } else {
                 offerText = "\(offer.displayPrice) for \(periodDescription)"
             }
-            return "\(plan.displayName) (\(plan.displayPrice), \(offerText))"
+            return "\(plan.displayName) (\(plan.displayPrice)) \(offerText)"
         } else {
             return "\(plan.displayName) (\(plan.displayPrice))"
         }

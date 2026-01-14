@@ -193,7 +193,10 @@ private extension NymVPNDaemonApp {
         .menuBarExtraStyle(.menu)
         .onChange(of: connectionManager.currentTunnelStatus) { _, status in
             updateImageName(with: status)
-            menuBarConnectButtonState = ConnectButtonState(tunnelStatus: status)
+            menuBarConnectButtonState = ConnectButtonState(
+                tunnelStatus: status,
+                isCredentialImported: credentialsManager.isValidCredentialImported
+            )
         }
     }
 
