@@ -75,6 +75,7 @@ private extension OnboardingView {
                 CustomNavBarButton(
                     type: .close,
                     action: {
+                        appSettings.welcomeScreenDidDisplay = true
                         path = .init()
                     }
                 )
@@ -121,14 +122,9 @@ private extension OnboardingView {
 
 private extension OnboardingView {
     func navigateToCreateAccount() {
-#if os(iOS)
         appSettings.onboardingDidDisplay = true
         path = NavigationPath([HomeLink.settings])
         path.append(SettingLink.createAccountWelcome(navigationSource: .onboarding))
-#elseif os(macOS)
-        try? externalLinkManager.openExternalURL(urlString: Constants.pricingURL.rawValue)
-        navigateTologin()
-#endif
     }
 
     func navigateTologin() {

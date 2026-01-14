@@ -121,7 +121,7 @@ private extension AddCredentialsView {
             .frame(height: 24)
         TermsAndConditionsView()
         Spacer()
-            .frame(height: 24)
+//            .frame(height: 24)
     }
 
     @ViewBuilder
