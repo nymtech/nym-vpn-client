@@ -224,7 +224,7 @@ fun OnboardingScreen(withFreeTrial: Boolean, onCreateAccountClick: () -> Unit, o
 				},
 				modifier = Modifier
 					.fillMaxWidth()
-					.height(54.dp.scaledHeight()),
+					.height(52.dp.scaledHeight()),
 				borderColor = MaterialTheme.colorScheme.onBackground,
 				backgroundColor = MaterialTheme.colorScheme.background,
 			)

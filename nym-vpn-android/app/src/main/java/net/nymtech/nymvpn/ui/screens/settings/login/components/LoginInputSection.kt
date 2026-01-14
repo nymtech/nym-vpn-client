@@ -76,9 +76,8 @@ fun LoginInputSection(onCreateAccountClick: () -> Unit, viewModel: LoginViewMode
 			},
 			value = mnemonic,
 			onValueChange = { newValue ->
-				// If an error was shown, clear it as soon as the user edits.
 				if (uiState.success == false) {
-					viewModel.consumeResult() // clears success back to null
+					viewModel.consumeResult()
 				}
 				mnemonic = newValue
 			},
@@ -130,7 +129,7 @@ fun LoginInputSection(onCreateAccountClick: () -> Unit, viewModel: LoginViewMode
 							SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
 						} else {
 							Text(
-								stringResource(R.string.log_in).uppercase(),
+								stringResource(R.string.log_in),
 								style = CustomTypography.labelHuge,
 								fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
 							)
