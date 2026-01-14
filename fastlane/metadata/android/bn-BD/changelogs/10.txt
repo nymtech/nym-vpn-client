@@ -1,4 +1,4 @@
-What's new:
-- Added support for Always-on VPN
-- Added support for Quick Settings tile
-- Fixed bug with auto-connect on boot
+নতুন কী আছে
+Always-on VPN সমর্থন যোগ করা হয়েছে
+কুইক সেটিংস টাইল সমর্থন যোগ করা হয়েছে
+বুটের সময় অটো-কানেক্ট সংক্রান্ত বাগ সমাধান

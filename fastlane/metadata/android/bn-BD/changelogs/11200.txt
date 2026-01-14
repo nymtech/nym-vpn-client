@@ -1,2 +1,2 @@
-What's new:
-- Fixes logs crash bug
+নতুন কী আছে:
+লগ ক্র্যাশ বাগ ঠিক করা হয়েছে

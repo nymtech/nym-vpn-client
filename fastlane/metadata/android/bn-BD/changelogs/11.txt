@@ -1,2 +1,2 @@
-What's new:
-- Bump api version
+নতুন কী আছে:
+Api সংস্করণ আপডেট করুন

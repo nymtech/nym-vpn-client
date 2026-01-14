@@ -1,4 +1,4 @@
-What's new:
-- UI enhancements
-- Analytics selection screen
-- Various enhancements and improvements
+নতুন কী আছে
+UI উন্নয়ন
+অ্যানালিটিক্স নির্বাচন স্ক্রিন
+বিভিন্ন উন্নতি ও অপ্টিমাইজেশন করুন
