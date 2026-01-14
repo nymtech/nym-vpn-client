@@ -64,8 +64,6 @@ jobs:
         run: |
           crowdin download translations `
             --config crowdin-configs/linux-windows.yml `
-            --project-id "$env:CROWDIN_PROJECT_ID" `
-            --token "$env:CROWDIN_PERSONAL_TOKEN"
 
       - name: Typecheck
         working-directory: nym-vpn-app
