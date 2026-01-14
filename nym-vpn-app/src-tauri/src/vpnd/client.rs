@@ -431,7 +431,7 @@ impl VpndClient {
             },
             _ => {
                 return Err(VpndError::Response(BackendError::internal(
-                    "either mnemonic or signature must be provided",
+                    "either passphrase or signature must be provided",
                     None,
                 )));
             }
