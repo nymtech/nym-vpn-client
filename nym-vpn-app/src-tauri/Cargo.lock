@@ -3503,7 +3503,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#122397f460c26cd7eb75e9040091b2e5e53daa7b"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -3544,7 +3544,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#122397f460c26cd7eb75e9040091b2e5e53daa7b"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
 dependencies = [
  "pem",
  "tracing",
@@ -3566,7 +3566,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=develop#122397f460c26cd7eb75e9040091b2e5e53daa7b"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
 dependencies = [
  "thiserror 2.0.17",
 ]
