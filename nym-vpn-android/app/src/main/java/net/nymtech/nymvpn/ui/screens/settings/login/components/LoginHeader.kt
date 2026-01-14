@@ -24,7 +24,7 @@ fun LoginHeader() {
 		modifier = Modifier.padding(vertical = 24.dp.scaledHeight()),
 	) {
 		Text(
-			text = stringResource(R.string.log_in).uppercase(),
+			text = stringResource(R.string.log_in),
 			style = MaterialTheme.typography.headlineSmall,
 			color = MaterialTheme.colorScheme.onBackground,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
