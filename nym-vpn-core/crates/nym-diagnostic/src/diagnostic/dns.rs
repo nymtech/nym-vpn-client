@@ -159,6 +159,6 @@ impl DnsResolver for Resolver<TokioConnectionProvider> {
     }
 
     fn nameservers(&self) -> Vec<NameServerConfig> {
-        self.config().name_servers().iter().cloned().collect()
+        self.config().name_servers().to_vec()
     }
 }
