@@ -70,22 +70,7 @@ Look for release tag `nym-vpn-app-v*`, download
 - Nodejs, latest LTS version recommended
 - npm
 - protobuf
-- crowdin translation
-
-#### Download Crowdin translation
-
-The following env variables are required in order to download the translations from Crowdin:
-
-```
-export CROWDIN_PROJECT_ID="765011"
-export CROWDIN_PERSONAL_TOKEN="e07275df751e0b4fda41f5d371cad95fb7bc3dd117ba73329695510b326119ca59adc5b83e315624"
-```
-
-Then download the translations:
-
-```
-npx @crowdin/cli download translations --config ../crowdin-configs/linux-windows.yml
-```
+- crowdin translations (See **Crowdin** below)
 
 Some system libraries are required depending on the host platform.
 Follow the instructions for your specific OS [here](https://tauri.app/start/prerequisites/)
@@ -226,3 +211,18 @@ You can find the supported properties in the
 [config schema](https://github.com/nymtech/nym-vpn-client/blob/main/nym-vpn-app/src-tauri/src/fs/config.rs)
 
 **NOTE** The config file and all properties are optional
+
+## Crowdin
+
+Set the following environment variables:
+
+```
+export CROWDIN_PROJECT_ID="765011"
+export CROWDIN_PERSONAL_TOKEN="e07275df751e0b4fda41f5d371cad95fb7bc3dd117ba73329695510b326119ca59adc5b83e315624"
+```
+
+Then download the translations:
+
+```
+npx @crowdin/cli download translations --config ../crowdin-configs/linux-windows.yml
+```
