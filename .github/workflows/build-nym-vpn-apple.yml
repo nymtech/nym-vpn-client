@@ -376,6 +376,28 @@ jobs:
 
           echo "✅ Signed archive + .ipa exported"
 
+          echo "🔢 Latest build: $LATEST_BUILD_NUMBER → Next: $NEXT_BUILD_NUMBER"
+
+          # Export iOS build number for later steps (Zulip)
+          echo "IOS_BUILD_NUMBER=$NEXT_BUILD_NUMBER" >> "$GITHUB_ENV"
+
+          # Capture iOS version (MARKETING_VERSION) for later steps (Zulip)
+          IOS_VERSION=$(
+            xcodebuild -showBuildSettings \
+              -workspace "NymVPN.xcworkspace" \
+              -scheme "NymVPN" \
+              -configuration "Release" 2>/dev/null |
+            awk '/MARKETING_VERSION/ { print $3; exit }'
+          )
+
+          if [[ -z "${IOS_VERSION:-}" ]]; then
+            echo "❌ Could not determine iOS MARKETING_VERSION"
+            exit 1
+          fi
+
+          echo "IOS_VERSION=$IOS_VERSION" >> "$GITHUB_ENV"
+          echo "✅ iOS version captured: $IOS_VERSION ($NEXT_BUILD_NUMBER)"
+
       - name: Generate what to test notes for iOS
         if: ${{ env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true' }}
         working-directory: nym-vpn-apple
@@ -1210,6 +1232,98 @@ jobs:
             --project "$SENTRY_PROJECT" \
             --include-sources "$DSYMS_DIR"
 
+      - name: Compute macOS download URL (www)
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        env:
+          BASE_URL: ${{ secrets.ZULIP_BOT_APPLE_BUILD_SERVER_URL }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${BASE_URL:-}" ]]; then
+            echo "❌ BASE_URL secret (WWW_MACOS_BASE_URL) is empty"
+            exit 1
+          fi
+
+          if [[ "${RELEASE_TYPE}" == "qa" ]]; then
+            FILE="$(basename "${renamed_pkg_relative_path}")"
+            URL="${BASE_URL}/nym-vpn-client/macOS/${FILE}"
+          else
+            URL="${BASE_URL}/publish/NymVPN-${MACOS_VERSION}.zip"
+          fi
+
+          echo "MACOS_DOWNLOAD_URL=$URL" >> "$GITHUB_ENV"
+          echo "✅ macOS download URL: $URL"
+
+      - name: Compose Zulip message (iOS)
+        if: >-
+          ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship')
+              && env.BUILD_IOS == 'true' }}
+        run: |
+          set -euo pipefail
+
+          BRANCH="${GITHUB_REF_NAME}"
+          MODE="${RELEASE_TYPE}"
+
+          {
+            echo "MESSAGE_IOS<<EOF"
+            echo "📱 iOS ${MODE} build"
+            echo "• Branch: \`${BRANCH}\`"
+            echo "• Version: \`${IOS_VERSION}\`"
+            echo "• Build: \`${IOS_BUILD_NUMBER}\`"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+      - name: Send Zulip message (iOS)
+        if: >-
+          ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship')
+              && env.BUILD_IOS == 'true' }}
+        uses: zulip/github-actions-zulip/send-message@v1
+        with:
+          api-key: ${{ secrets.ZULIP_BOT_APPLE_API_KEY }}
+          email: ${{ secrets.ZULIP_BOT_APPLE_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_ORG_URL }}
+          to: ${{ secrets.ZULIP_BOT_APPLE_CHANNEL }}
+          type: "stream"
+          topic: ${{ secrets.ZULIP_BOT_APPLE_TOPIC_IOS }}
+          content: ${{ env.MESSAGE_IOS }}
+
+      - name: Compose Zulip message (macOS)
+        if: >-
+          ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship')
+              && env.BUILD_MACOS == 'true' }}
+        run: |
+          set -euo pipefail
+
+          BRANCH="${GITHUB_REF_NAME}"
+          MODE="${RELEASE_TYPE}"
+
+          if [[ -z "${MACOS_DOWNLOAD_URL:-}" ]]; then
+            echo "❌ MACOS_DOWNLOAD_URL is empty (Compute macOS download URL step didn't run?)"
+            exit 1
+          fi
+
+          {
+            echo "MESSAGE_MACOS<<EOF"
+            echo "🖥️ macOS ${MODE} build"
+            echo "• Branch: \`${BRANCH}\`"
+            echo "• Download: ${MACOS_DOWNLOAD_URL}"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+      - name: Send Zulip message (macOS)
+        if: >-
+          ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship')
+              && env.BUILD_MACOS == 'true' }}
+        uses: zulip/github-actions-zulip/send-message@v1
+        with:
+          api-key: ${{ secrets.ZULIP_BOT_APPLE_API_KEY }}
+          email: ${{ secrets.ZULIP_BOT_APPLE_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_ORG_URL }}
+          to: ${{ secrets.ZULIP_BOT_APPLE_CHANNEL }}
+          type: "stream"
+          topic: ${{ secrets.ZULIP_BOT_APPLE_TOPIC_MACOS }}
+          content: ${{ env.MESSAGE_MACOS }}
+  
       - name: Cleanup Keychain
         if: always()
         run: |
