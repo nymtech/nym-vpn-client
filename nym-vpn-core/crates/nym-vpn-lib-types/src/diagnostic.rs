@@ -74,18 +74,13 @@ pub struct DiagnosticReport {
 #[derive(Debug, Clone)]
 pub struct CompleteDnsReport {
     pub system: DiagnosticResult<Vec<DnsResolution>>,
-    pub quad9: Vec<DnsResolution>,
-    pub quad9_doh: Vec<DnsResolution>,
-    pub quad9_dot: Vec<DnsResolution>,
-    pub cloudflare: Vec<DnsResolution>,
-    pub cloudflare_doh: Vec<DnsResolution>,
-    pub cloudflare_dot: Vec<DnsResolution>,
-    pub nym: Vec<DnsResolution>,
+    pub by_nameserver: Vec<DnsResolution>,
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone)]
 pub struct DnsResolution {
+    pub nameservers: String,
     pub hostname: String,
     pub resolution: DiagnosticResult<Vec<IpAddr>>,
     pub resolution_duration_ms: u128,
