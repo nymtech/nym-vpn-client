@@ -66,7 +66,7 @@ pub enum AccountCommandError {
     #[error("failed to obtain zk-nym: {0}")]
     ZkNymAcquisitionFailure(String),
 
-    #[error("invalid mnemonic: {0}")]
+    #[error("invalid passphrase: {0}")]
     InvalidMnemonic(String),
 
     #[error("invalid secret: {0}")]

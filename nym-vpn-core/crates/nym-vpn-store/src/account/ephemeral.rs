@@ -12,10 +12,10 @@ pub struct InMemoryAccountStorage {
 
 #[derive(Debug, thiserror::Error)]
 pub enum InMemoryAccountStorageError {
-    #[error("no mnemonic stored")]
+    #[error("no passphrase stored")]
     NoMnemonicStored,
 
-    #[error("mnemonic already stored")]
+    #[error("passphrase already stored")]
     MnemonicAlreadyStored,
 }
 
