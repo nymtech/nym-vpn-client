@@ -28,3 +28,11 @@ yarn.lock
 public/licenses-*.json
 
 .env
+
+# translations
+src/i18n/**
+!src/i18n/en/
+!src/i18n/resources/
+!src/i18n/config.ts
+!src/i18n/index.ts
+!src/i18n/types.ts
