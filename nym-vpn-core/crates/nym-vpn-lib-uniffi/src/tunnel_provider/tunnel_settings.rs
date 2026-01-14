@@ -5,7 +5,11 @@
 
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
+#[cfg(target_os = "android")]
+use ipnet::{Ipv4Net, Ipv6Net};
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+#[cfg(target_os = "android")]
+use iprange::IpRange;
 use itertools::{Either, Itertools};
 
 #[derive(Debug, uniffi::Enum)]
@@ -18,6 +22,36 @@ pub enum Ipv4Route {
         subnet_mask: Ipv4Addr,
         gateway: Option<Ipv4Addr>,
     },
+}
+
+impl Ipv4Route {
+    pub fn prefix_length(&self) -> u8 {
+        match self {
+            Self::Default => 0,
+            Self::Specific { subnet_mask, .. } => {
+                ipnetwork::ipv4_mask_to_prefix(*subnet_mask).unwrap_or(32)
+            }
+        }
+    }
+
+    pub fn destination(&self) -> Ipv4Addr {
+        match self {
+            Self::Default => Ipv4Addr::UNSPECIFIED,
+            Self::Specific { destination, .. } => *destination,
+        }
+    }
+
+    #[cfg(target_os = "android")]
+    fn as_ipv4net(&self) -> Option<Ipv4Net> {
+        let addr = self.destination();
+        let prefix = self.prefix_length();
+
+        Ipv4Net::new(self.destination(), self.prefix_length())
+            .inspect_err(|err| {
+                tracing::error!("Failed to create Ipv4Net from {addr}/{prefix}: {err}");
+            })
+            .ok()
+    }
 }
 
 impl From<Ipv4Network> for Ipv4Route {
@@ -40,6 +74,33 @@ pub enum Ipv6Route {
         prefix_length: u8,
         gateway: Option<Ipv6Addr>,
     },
+}
+
+impl Ipv6Route {
+    pub fn destination(&self) -> Ipv6Addr {
+        match self {
+            Self::Default => Ipv6Addr::UNSPECIFIED,
+            Self::Specific { destination, .. } => *destination,
+        }
+    }
+
+    pub fn prefix_length(&self) -> u8 {
+        match self {
+            Self::Default => 0,
+            Self::Specific { prefix_length, .. } => *prefix_length,
+        }
+    }
+
+    #[cfg(target_os = "android")]
+    fn as_ipv6net(&self) -> Option<Ipv6Net> {
+        let addr = self.destination();
+        let prefix = self.prefix_length();
+        Ipv6Net::new(addr, prefix)
+            .inspect_err(|err| {
+                tracing::error!("Failed to create Ipv6Net from {addr}/{prefix}: {err}");
+            })
+            .ok()
+    }
 }
 
 impl From<Ipv6Network> for Ipv6Route {
@@ -73,6 +134,34 @@ impl Ipv4Settings {
     }
 }
 
+#[cfg(target_os = "android")]
+impl Ipv4Settings {
+    /// Returns tunneled IPv4 networks based on included and excluded routes.
+    pub fn tunnel_networks(&self) -> IpRange<Ipv4Net> {
+        let mut include_range = IpRange::<Ipv4Net>::new();
+        if let Some(included_routes) = self.included_routes.as_ref() {
+            for route in included_routes {
+                if let Some(ipnet) = route.as_ipv4net() {
+                    include_range.add(ipnet);
+                }
+            }
+        }
+
+        let mut exclude_range = IpRange::<Ipv4Net>::new();
+        if let Some(excluded_routes) = self.excluded_routes.as_ref() {
+            for route in excluded_routes {
+                if let Some(ipnet) = route.as_ipv4net() {
+                    exclude_range.add(ipnet);
+                }
+            }
+        }
+
+        include_range.simplify();
+        exclude_range.simplify();
+        include_range.exclude(&exclude_range)
+    }
+}
+
 #[derive(Debug, Default, uniffi::Record)]
 pub struct Ipv6Settings {
     /// IPv4 addresses that will be set on tunnel interface.
@@ -91,6 +180,34 @@ impl Ipv6Settings {
             addresses,
             ..Default::default()
         }
+    }
+}
+
+#[cfg(target_os = "android")]
+impl Ipv6Settings {
+    /// Returns tunneled IPv6 networks based on included and excluded routes.
+    pub fn tunnel_networks(&self) -> IpRange<Ipv6Net> {
+        let mut include_range = IpRange::<Ipv6Net>::new();
+        if let Some(included_routes) = self.included_routes.as_ref() {
+            for route in included_routes {
+                if let Some(ipnet) = route.as_ipv6net() {
+                    include_range.add(ipnet);
+                }
+            }
+        }
+
+        let mut exclude_range = IpRange::<Ipv6Net>::new();
+        if let Some(excluded_routes) = self.excluded_routes.as_ref() {
+            for route in excluded_routes {
+                if let Some(ipnet) = route.as_ipv6net() {
+                    exclude_range.add(ipnet);
+                }
+            }
+        }
+
+        include_range.simplify();
+        exclude_range.simplify();
+        include_range.exclude(&exclude_range)
     }
 }
 
@@ -246,4 +363,62 @@ impl TunnelNetworkSettings {
             IpNetwork::V6(address) => Either::Right(address),
         })
     }
+}
+
+#[cfg(target_os = "android")]
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn computeTunnelNetworks(
+    ipv4_settings: Option<Ipv4Settings>,
+    ipv6_settings: Option<Ipv6Settings>,
+    allow_lan: bool,
+) -> Vec<String> {
+    use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
+
+    let mut tunnel_ipv4 = ipv4_settings
+        .as_ref()
+        .map(|v| v.tunnel_networks())
+        .unwrap_or_default();
+    let mut tunnel_ipv6 = ipv6_settings
+        .as_ref()
+        .map(|v| v.tunnel_networks())
+        .unwrap_or_default();
+
+    if allow_lan {
+        let mut exclude_ipv4_lan = IpRange::<Ipv4Net>::new();
+        let mut exclude_ipv6_lan = IpRange::<Ipv6Net>::new();
+
+        for network in ALLOWED_LAN_NETS
+            .iter()
+            .chain(ALLOWED_LAN_MULTICAST_NETS.iter())
+        {
+            match network {
+                IpNetwork::V4(address) => match Ipv4Net::new(address.ip(), address.prefix()) {
+                    Ok(ipv4_net) => {
+                        exclude_ipv4_lan.add(ipv4_net);
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to create IPv4 network for {}: {}", address, e)
+                    }
+                },
+                IpNetwork::V6(address) => match Ipv6Net::new(address.ip(), address.prefix()) {
+                    Ok(ipv6_net) => {
+                        exclude_ipv6_lan.add(ipv6_net);
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to create IPv6 network for {}: {}", address, e)
+                    }
+                },
+            }
+        }
+
+        tunnel_ipv4 = tunnel_ipv4.exclude(&exclude_ipv4_lan);
+        tunnel_ipv6 = tunnel_ipv6.exclude(&exclude_ipv6_lan);
+    }
+
+    tunnel_ipv4
+        .into_iter()
+        .map(|ip| ip.to_string())
+        .chain(tunnel_ipv6.into_iter().map(|ip| ip.to_string()))
+        .collect()
 }
