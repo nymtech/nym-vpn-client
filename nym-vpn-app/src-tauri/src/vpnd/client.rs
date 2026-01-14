@@ -35,7 +35,7 @@ use crate::{
     error::BackendError,
     events::AppHandleEventEmitter,
     state::SharedAppState,
-    vpnd::account::{log_account_state, AccountState},
+    vpnd::account::{AccountState, log_account_state},
 };
 
 #[derive(Debug, Clone)]
