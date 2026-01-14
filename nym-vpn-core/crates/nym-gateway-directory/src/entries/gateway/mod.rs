@@ -536,7 +536,7 @@ impl From<nym_vpn_api_client::response::WgProbeResults> for WgProbeResults {
             can_register: results.can_register,
             can_handshake: results.can_handshake,
             can_resolve_dns: results.can_resolve_dns,
-            can_query_metadata_v4: results.can_query_metadata_v4,
+            can_query_metadata_v4: results.can_query_metadata_v4.unwrap_or(false),
             ping_hosts_performance: results.ping_hosts_performance,
             ping_ips_performance: results.ping_ips_performance,
         }
