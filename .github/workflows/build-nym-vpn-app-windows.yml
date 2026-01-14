@@ -3,30 +3,30 @@ on:
   workflow_dispatch:
     inputs:
       dev_mode:
-        description: 'dev build'
+        description: "dev build"
         required: true
         type: boolean
         default: false
       core_release_tag:
-        description: 'nym-vpn-core release tag from GH to use for Windows, to get the daemon'
+        description: "nym-vpn-core release tag from GH to use for Windows, to get the daemon"
         required: false
         type: string
       core_artifact_url:
-        description: 'direct nym-vpn-core artifact URL for Windows, to get the daemon'
+        description: "direct nym-vpn-core artifact URL for Windows, to get the daemon"
         required: false
         type: string
       sign:
-        description: 'Sign this build using SSL.com. Signing is billed per signature so be 100% sure you want a signed release'
+        description: "Sign this build using SSL.com. Signing is billed per signature so be 100% sure you want a signed release"
         required: false
         type: boolean
         default: false
       updater_bundle:
-        description: 'Generate the updater bundle and its signature'
+        description: "Generate the updater bundle and its signature"
         required: false
         type: boolean
         default: false
       updater_channel:
-        description: 'Updater channel (stable | dev)'
+        description: "Updater channel (stable | dev)"
         required: false
         type: choice
         options:
@@ -81,7 +81,7 @@ on:
       core_build_url_path:
         # as the domain is secret, we cannot pass it directly through GH outputs
         # that's why we pass the url path only
-        description: 'Core build URL path that has been bundled'
+        description: "Core build URL path that has been bundled"
         value: ${{ jobs.build-windows.outputs.core_build_url_path }}
 
 env:
@@ -102,7 +102,7 @@ jobs:
       core_build_url_path: ${{ steps.get_dev_url.outputs.latest_dev_path }}
 
     steps:
-      - name: 'Cleanup working directory'
+      - name: "Cleanup working directory"
         shell: bash
         run: |
           ls -la ./
@@ -316,7 +316,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
-          RUSTFLAGS: '-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-Release'
+          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-Release"
           CODE_SIGN_TOOL_PATH: ${{ inputs.sign && 'C:\\actions-runner\\_work\\nym-vpn-client\\nym-vpn-client\\nym-vpn-app\\src-tauri\\' }}
           WINDOWS_CERTIFICATE: ${{ !inputs.sign && secrets.WINDOWS_SIGNING_PFX_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ !inputs.sign && secrets.WINDOWS_SIGNING_PFX_PASSWORD }}

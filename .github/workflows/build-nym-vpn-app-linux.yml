@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       dev_mode:
-        description: 'dev build'
+        description: "dev build"
         required: true
         type: boolean
         default: false
@@ -73,7 +73,7 @@ jobs:
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
-          version: '21.12' # version on ubuntu 24.04
+          version: "21.12" # version on ubuntu 24.04
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get package version

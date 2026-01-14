@@ -4,8 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - '.github/workflows/ci-nym-vpn-app-js.yml'
-      - 'nym-vpn-app/**'
+      - ".github/workflows/ci-nym-vpn-app-js.yml"
+      - "nym-vpn-app/**"
   workflow_dispatch:
 
 jobs:
