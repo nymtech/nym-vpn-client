@@ -82,7 +82,7 @@ android {
 
 dependencies {
 	// for allowsIps calculator (future)
-    // for monitoring network offline status
+	// for monitoring network offline status
 	implementation(project(":connectivity"))
 	implementation(libs.androidx.lifecycle.service)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)

@@ -33,9 +33,6 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Score
 import timber.log.Timber
 import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.reflect.KClass
 
@@ -240,19 +237,6 @@ fun Score.displayText(): String {
 	}
 }
 
-fun formatUtcString(utcString: String?): String {
-	return try {
-		utcString?.let {
-			val instant = Instant.parse(it)
-			val formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' HH:mm", Locale.getDefault())
-				.withZone(ZoneId.systemDefault())
-			formatter.format(instant)
-		} ?: "--"
-	} catch (_: Exception) {
-		"--"
-	}
-}
-
 fun relativeTimeSpan(utcString: String?): String {
 	return try {
 		utcString?.let {
@@ -262,12 +246,6 @@ fun relativeTimeSpan(utcString: String?): String {
 	} catch (_: Exception) {
 		"--"
 	}
-}
-
-fun Int.addDaysToToday(): String {
-	val targetDate = LocalDate.now().plusDays(this.toLong())
-	val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-	return targetDate.format(formatter)
 }
 
 fun isValidIPv4(s: String): Boolean {
