@@ -13978,6 +13978,17 @@
         }
       }
     },
+    "freeTrial" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "free trial"
+          }
+        }
+      }
+    },
     "gateway.random" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20146,6 +20157,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Server details"
+          }
+        }
+      }
+    },
+    "incl" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "incl."
           }
         }
       }

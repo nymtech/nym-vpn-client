@@ -37,7 +37,6 @@ public struct CreateAccountWelcomeView: View {
                     .frame(height: 24)
                 TermsAndConditionsView()
                 Spacer()
-                    .frame(height: 24)
             }
             .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
@@ -99,6 +98,7 @@ private extension CreateAccountWelcomeView {
     }
 
     var createAccountButton: some View {
+#if os(iOS)
         GenericButton(title: "createAccount.createAccountButtonTitle".localizedString)
             .onTapGesture {
                 navigateToCreateAccount()
@@ -106,6 +106,15 @@ private extension CreateAccountWelcomeView {
             .accessibilityAction {
                 navigateToCreateAccount()
             }
+#elseif os(macOS)
+        GenericButton(title: "createAccount.createAccountButtonTitle".localizedString, isExternalLink: true)
+            .onTapGesture {
+                navigateToCreateAccount()
+            }
+            .accessibilityAction {
+                navigateToCreateAccount()
+            }
+#endif
     }
 
     var separatorLine: some View {

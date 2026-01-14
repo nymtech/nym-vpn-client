@@ -331,7 +331,10 @@ extension HomeViewModel {
                 hasInternet: networkMonitor.isAvailable,
                 subscriptionDidExpire: isLastErrorSubscriptionExpired()
             )
-            connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
+            connectButtonState = ConnectButtonState(
+                tunnelStatus: newStatus,
+                isCredentialImported: credentialsManager.isValidCredentialImported
+            )
 
             if let lastError {
                 statusInfoState = .error(message: lastError.localizedDescription)
