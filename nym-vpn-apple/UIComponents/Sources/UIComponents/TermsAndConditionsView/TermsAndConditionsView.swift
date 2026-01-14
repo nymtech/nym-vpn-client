@@ -14,7 +14,7 @@ public struct TermsAndConditionsView: View {
         let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
 
         let privacyMarkdown =
-        "\(pp1) [\(terms)](\(termsURL)) \(pp2) [\(pp)](\(privacyURL))"
+        "\(pp1) [\(terms)](\(termsURL)) \(pp2) [\(pp)](\(privacyURL))."
         return try? AttributedString(markdown: privacyMarkdown, options: options)
     }
 

@@ -84,7 +84,15 @@ public struct GeneratePassphraseView: View {
 // MARK: - Views -
 private extension GeneratePassphraseView {
     var navbar: some View {
-        CustomNavBar(useElevationBackground: true)
+        CustomNavBar(
+            useElevationBackground: true,
+            rightButton: CustomNavBarButton(
+                type: .close,
+                action: {
+                    path = .init()
+                }
+            )
+        )
     }
 
     var dotsAnimationView: some View {
@@ -101,7 +109,6 @@ private extension GeneratePassphraseView {
             ],
             didFinishAnimating: $didFinishAnimatingText,
             timerDidTick: {
-                print("didFinishAnimatingText: \(didFinishAnimatingText), currentStep: \(self.currentStep)")
                 currentStep += 1
             }
         )

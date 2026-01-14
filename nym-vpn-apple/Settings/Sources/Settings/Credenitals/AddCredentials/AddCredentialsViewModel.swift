@@ -92,12 +92,12 @@ import Theme
     }
 
     @MainActor func importCredentials() {
-        error = CredentialsManagerError.noError
         let trimmedCredential = credentialText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         Task {
             do {
                 try await credentialsManager.add(credential: trimmedCredential)
+                error = CredentialsManagerError.noError
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in
