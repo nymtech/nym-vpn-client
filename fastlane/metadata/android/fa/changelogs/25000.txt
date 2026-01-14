@@ -1,5 +1,5 @@
 تغییرات نسخه جدید:
-- Added node details to quick settings and a new Account screen
-- Introduced bi-mode split tunneling on Android
-- Updated Settings, Privacy, Censorship, and navigation UI
-- Improved connection stability and error handling
+– جزئیات نودها به تنظیمات سریع و صفحهٔ جدید حساب اضافه شد
+– قابلیت Split Tunneling دوحالته در اندروید معرفی شد
+– تنظیمات، حریم خصوصی، سانسور و مسیر یابی رابط کاربری اپ به‌روزرسانی شد
+– پایداری اتصال و مدیریت خطاها بهبود یافت

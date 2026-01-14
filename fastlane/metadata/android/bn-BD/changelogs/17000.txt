@@ -1,5 +1,5 @@
-What's new:
-- Fixed crashes and ANR issues
-- Added battery optimization prompt
-- Added separate tabs for logs
-- Improved connection stability
+নতুন কী:
+ক্র্যাশ ও ANR সমস্যা সমাধান
+ব্যাটারি অপ্টিমাইজেশনের প্রম্পট যোগ
+লগের জন্য আলাদা ট্যাব যোগ
+সংযোগ স্থিতিশীলতা উন্নত

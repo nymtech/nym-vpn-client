@@ -8,6 +8,6 @@
 	<string name="state_disconnected">সংযুক্তি বিচ্ছিন্ন</string>
 	<string name="state_initializing">ক্লায়েন্ট ইনিশিয়ালাইজ করা হচ্ছে</string>
 	<string name="state_establishing">সংযোগ স্থাপন করা হচ্ছে</string>
-	<string name="notification_entry">Entry: %1$s</string>
-	<string name="notification_exit">Exit: %1$s</string>
+	<string name="notification_entry">এন্ট্রি: %1$s</string>
+	<string name="notification_exit">এক্সিট: %1$s</string>
 </resources>

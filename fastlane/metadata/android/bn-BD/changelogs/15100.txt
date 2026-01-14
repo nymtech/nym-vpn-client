@@ -1,2 +1,2 @@
-What's new:
-- Navigation improvements and fixes
+নতুন কী আছে:
+নেভিগেশন উন্নতি ও ত্রুটি সংশোধন
