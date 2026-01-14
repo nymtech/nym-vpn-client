@@ -8,6 +8,6 @@
 	<string name="state_disconnected">未连接</string>
 	<string name="state_initializing">初始化客户端…</string>
 	<string name="state_establishing">正在建立连接……</string>
-	<string name="notification_entry">条目: %1$s</string>
-	<string name="notification_exit">退出: %1$s</string>
+	<string name="notification_entry">入口: %1$s</string>
+	<string name="notification_exit">出口: %1$s</string>
 </resources>

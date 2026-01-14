@@ -1,9 +1,9 @@
-What's new:
-- Download button added for Logs Screen
-- New Privacy & Data screen
-- Network Monitoring flow introduced
-- Welcome screen added
-- Updated UI for modals and SnackBar
-- Data Store improvements
-- Fixes for hardware crashes on specific devices
-- Fix for log reader crash on certain devices
+নতুন কী:
+লগ স্ক্রিনের জন্য ডাউনলোড বোতাম যোগ করা হয়েছে
+নতুন প্রাইভেসি ও ডেটা স্ক্রিন
+ নেটওয়ার্ক মনিটরিং ফ্লো যোগ করা হয়েছে
+ স্বাগতম স্ক্রিন যোগ করা হয়েছে
+মডাল ও স্ন্যাকবারের UI হালনাগাদ করা হয়েছে
+ব্যাটারি পারফরম্যান্স উন্নত করুন
+নির্দিষ্ট ডিভাইসে হার্ডওয়্যার ক্র্যাশ সংশোধন করা হয়েছে
+কিছু ডিভাইসে লগ রিডার ক্র্যাশ ঠিক করা হয়েছে

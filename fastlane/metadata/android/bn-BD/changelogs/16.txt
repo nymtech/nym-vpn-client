@@ -1,5 +1,5 @@
-What's new:
-- UI improvements
-- Caching improvements
-- Added harbour master integration
-- Improved quick tile state sync
+নতুন কী আছে
+UI উন্নতকরণ
+ক্যাশিং উন্নতকরণ
+Harbour Master ইন্টিগ্রেশন যোগ করা হয়েছে
+কুইক টাইল স্টেট সিঙ্ক উন্নত করা হয়েছে

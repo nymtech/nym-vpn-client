@@ -155,6 +155,13 @@
 	<string name="button_discard">Discard</string>
 	<string name="button_add">Add</string>
 	<string name="here">burada</string>
+	<string name="score_text_high">High</string>
+	<string name="score_text_medium">Medium</string>
+	<string name="score_text_low">Low</string>
+	<string name="score_text_offline">Offline</string>
+	<string name="button_next">Next</string>
+	<string name="skip">Atla</string>
+	<string name="get_started">Get started</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Akış ekranı</string>
 	<string name="streaming_server_banner_title">Yeni: Yayın\niçin optimize edilmiş sunucuları keşfedin</string>
@@ -184,12 +191,13 @@
 	<string name="error_invalid_entry_gateway_identity">Giriş sunucusu çevrimdışı. Başka bir sunucu seçip yeniden bağlanın.</string>
 	<string name="error_invalid_exit_gateway_identity">Çıkış sunucusu çevrimdışı. Başka bir sunucu seçip yeniden bağlanın.</string>
 	<!-- Main Screen -->
-    <string name="connection_state_resolving_addresses">NymVPN başlatılıyor (1/6)</string>
+	<string name="connection_state_resolving_addresses">NymVPN başlatılıyor (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Hesabınız hazırlanıyor (2/6)</string>
 	<string name="connection_state_refreshing_gateways">Sunucu listesi güncelleniyor (3/6)</string>
 	<string name="connection_state_selecting_gateways">En iyi sunucular seçiliyor (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">Sunucularla anonim bağlantı kaydı yapılıyor (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Sunucu bağlantısı kuruluyor (6/6)</string>
+	<string name="main_button_select_plan">Select plan</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Sansür Karşıtı</string>
 	<string name="settings_passphrase_title">Parola Cümlesi</string>
@@ -210,10 +218,10 @@
 	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
 	<string name="settings_language_help_title">Help with translation</string>
 	<string name="settings_language_help_description">Make the app better in your language.</string>
+	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings...</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">En iyi bağlantı için</string>
 	<string name="battery_opt_descr">Daha kararlı VPN bağlantıları için NymVPN’in pil optimizasyonlarını devre dışı bırakın.</string>
-	<string name="skip">Atla</string>
 	<string name="battery_opt">Pil optimizasyonu</string>
 	<string name="battery_opt_settings_text">Pil optimizasyonu ayarı, uygulama ayarlarından istediğiniz zaman değiştirilebilir.</string>
 	<!-- Data & Privacy screen -->
@@ -236,8 +244,29 @@
 	<string name="notification_stats_enabled">İstatistikler etkinleştirildi! Anonim verileriniz ağımızı optimize etmemize yardımcı oluyor.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Devam et</string>
-    <!-- Select Plan screen -->
+	<string name="welcome_title">Help us improve NymVPN</string>
+	<string name="welcome_description">Choose what anonymous data to share. All data is stripped of identifying information before being sent.</string>
+	<string name="welcome_error_reports_title">Share error reports</string>
+	<string name="welcome_error_reports_description_start">Helps us fix bugs faster, no personal data collected (via </string>
+	<string name="welcome_error_reports_link_text">Sentry</string>
+	<string name="welcome_error_reports_description_end">)</string>
+	<string name="welcome_usage_title">Share usage analytics</string>
+	<string name="welcome_usage_description">Helps us improve the Nym network. No logging or activity tracked.</string>
+	<!-- Onboarding screen -->
+	<string name="onboarding_title_2">Speed when you need it.\nPrivacy when it matters.</string>
+	<string name="onboarding_title_3">Stop being tracked online</string>
+	<string name="onboarding_title_4">Anonymity from payment to web</string>
+	<string name="onboarding_description_base">The world’s most private VPN</string>
+	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
+	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
+	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
+	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
+	<string name="onboarding_create_account_button">Create account</string>
+	<!-- Select Plan screen -->
 	<string name="select_plan_title">\nKoruma seviyenizi seçin 🛡️</string>
+	<string name="select_plan_line_1">All features included</string>
+	<string name="select_plan_line_2">No ads</string>
+	<string name="select_plan_line_3">Cancel anytime</string>
 	<string name="select_plan_button">NymVPN planımı seç</string>
 	<string name="select_plan_modal_title">NymVPN planınızı seçin</string>
 	<string name="select_plan_modal_free_trial">Ücretsiz deneme: 1 hafta</string>
@@ -285,20 +314,37 @@
 	<string name="censorship_stealth_description">API isteklerini VPN engelini aşmak için popüler ve izin verilen alan adlarının arkasına gizler. Standart API bağlantı denemeleri başarısız olduğunda NymVPN tarafından otomatik olarak kullanılır.</string>
 	<string name="censorship_stealth_link_text">Stealth API bağlantı modu nasıl çalışır</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_event_reconnecting">Reconnecting to apply QUIC settings…</string>
 	<string name="quic">QUIC</string>
-    <string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
+	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">Minimum gizleme/karmaşıklaştırma (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">WireGuard trafiğinin tespit edilmesini zorlaştırır.
 Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kuralları bozmak için sahte paketler (decoy packets) ekler ve bu da kısıtlayıcı ortamlarda bağlantı güvenilirliğini artırır. \n\nNot: Yalnızca istemci tarafında uygulanmıştır.</string>
 	<string name="censorship_amnezia_link_text">AmneziaWG, DPI’yi nasıl engeller?</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-    <!-- Existing subscription -->
+	<string name="account_welcome_create_title">🔒 Maximum privacy</string>
+	<string name="account_welcome_create_description">Create an anonymous Nym account, no personal info required</string>
+	<string name="account_welcome_create_button">Create anonymous account</string>
+	<string name="account_welcome_social_title">⚡️ Quick setup</string>
+	<string name="account_welcome_social_description">Use existing account like Google or crypto wallet through our login partner Privy</string>
+	<string name="account_welcome_social_button">Continue with social account</string>
+	<string name="account_welcome_login_title">Already have an account?</string>
+	<string name="account_welcome_login_button">Log in with 24-word passphrase</string>
+	<string name="account_welcome_privacy_start">By continuing, you agree to NymVPN’s  </string>
+	<string name="account_welcome_privacy_middle">and</string>
+	<!-- Existing subscription -->
 	<string name="account_subscription_title">Zaten abone olmuşsunuz!</string>
 	<string name="account_subscription_description">Google Play hesabınıza bağlı aktif bir abonelik bulundu. Kayıt işlemini atlayın ve doğrudan NymVPN’i kullanmaya başlayın. Sadece 24 kelimelik parola ifadenizi hazır bulundurun.</string>
 	<string name="account_subscription_button">Nym parola ifadenizle giriş yapın</string>
 	<!-- Account Generating screen -->
-    <string name="account_generating_error">Hesap kaydı başarısız oldu. Lütfen daha sonra tekrar deneyin</string>
+	<string name="account_generating_title_1">Generating cryptographic keypairs…</string>
+	<string name="account_generating_title_2">Creating your anonymous identity…</string>
+	<string name="account_generating_title_3">Securing your credentials locally…</string>
+	<string name="account_generating_description_1">Creating keys that never leave your device</string>
+	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
+	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
+	<string name="account_generating_error">Hesap kaydı başarısız oldu. Lütfen daha sonra tekrar deneyin</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Ödemeniz güvenli bir şekilde işleniyor…</string>
 	<string name="account_payment_verifying">Aboneliğinizi doğruluyoruz—kişisel bilgileriniz asla kimliğinizle ilişkilendirilmez.</string>
@@ -378,6 +424,8 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
 	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
+	<string name="split_tunneling_event_saved">Split tunneling settings saved</string>
+	<string name="split_tunneling_event_reconnecting">Reconnecting to apply split tunneling settings…</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">DNS customization</string>
 	<string name="dns_description">By default, using Nym\'s recommended DNS servers. Configure custom servers below if needed.</string>
@@ -392,8 +440,11 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="dns_custom_list_error">Invalid DNS address format</string>
 	<string name="dns_custom_button_add">Add</string>
 	<string name="dns_custom_button_save">Save changes</string>
+	<string name="dns_custom_button_save_reconnect">Save changes &amp; reconnect</string>
 	<string name="dns_custom_saved">Custom DNS saved.</string>
 	<string name="dns_save_dialog_title">Save changes?</string>
 	<string name="dns_save_dialog_description">You have unsaved changes.</string>
 	<string name="dns_learn_more_text">Learn more about DNS</string>
+	<string name="dns_event_saved">Custom DNS saved</string>
+	<string name="dns_event_reconnecting">Reconnecting to apply custom DNS settings...</string>
 </resources>
