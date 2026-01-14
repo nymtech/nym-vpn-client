@@ -82,7 +82,6 @@ android {
 
 dependencies {
 	// for allowsIps calculator (future)
-	implementation(project(":ip-calculator"))
 	// for monitoring network offline status
 	implementation(project(":connectivity"))
 	implementation(libs.androidx.lifecycle.service)

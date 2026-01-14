@@ -106,7 +106,6 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 		)
 	}
 
-	// Delete
 	LogsModal(
 		show = showDelete,
 		onDismiss = { showDelete = false },
@@ -120,7 +119,6 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 		icon = Icons.Filled.Delete,
 	)
 
-	// Share
 	LogsModal(
 		show = showShare,
 		onDismiss = { showShare = false },
@@ -134,7 +132,6 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 		icon = Icons.Filled.Share,
 	)
 
-	// Download
 	LogsModal(
 		show = showDownload,
 		onDismiss = { showDownload = false },

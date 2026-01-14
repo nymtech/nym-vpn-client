@@ -320,7 +320,6 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(
-										appState = appState,
 										onBackEventConsume = {
 											onBackClickEventFromRoute = null
 										},

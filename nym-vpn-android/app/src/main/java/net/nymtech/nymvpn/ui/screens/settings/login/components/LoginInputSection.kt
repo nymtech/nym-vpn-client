@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -44,7 +43,6 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun LoginInputSection(onCreateAccountClick: () -> Unit, viewModel: LoginViewModel, uiState: LoginUiState, loading: Boolean, onLoadingChange: (Boolean) -> Unit, onRequestCameraPermission: () -> Unit) {
-	val context = LocalContext.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 	var mnemonic by remember { mutableStateOf("") }
 

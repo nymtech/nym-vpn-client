@@ -8,7 +8,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
@@ -45,8 +44,6 @@ class DataStoreManager(
 		}
 	}
 
-	fun <T> getFromStoreFlow(key: Preferences.Key<T>) = context.dataStore.data.map { it[key] }
-
 	suspend fun <T> getFromStore(key: Preferences.Key<T>): T? {
 		return withContext(ioDispatcher) {
 			try {
@@ -56,10 +53,6 @@ class DataStoreManager(
 				null
 			}
 		}
-	}
-
-	fun <T> getFromStoreBlocking(key: Preferences.Key<T>) = runBlocking {
-		context.dataStore.data.map { it[key] }.first()
 	}
 
 	val preferencesFlow: Flow<Preferences?> = context.dataStore.data
