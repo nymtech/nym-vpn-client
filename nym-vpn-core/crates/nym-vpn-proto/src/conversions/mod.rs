@@ -3,6 +3,7 @@
 
 pub mod account;
 pub mod account_controller_state;
+pub mod diagnostic;
 pub mod error;
 pub mod gateway_directory;
 pub mod network_config;

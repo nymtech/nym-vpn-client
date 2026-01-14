@@ -3,6 +3,7 @@
 
 pub mod account;
 pub mod device;
+pub mod diagnostic;
 pub mod dns;
 pub mod gateway;
 pub mod lan;

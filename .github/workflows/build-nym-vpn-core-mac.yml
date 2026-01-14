@@ -79,21 +79,6 @@ jobs:
         with:
           crate: cargo-edit
 
-      - name: Update nym-vpn-apple to use latest core
-        run: |
-          ./scripts/update-nym-vpn-apple-to-latest-core.sh
-          git status
-          git diff || echo "No changes detected"
-          git diff > mac-plist-changes.patch
-
-      - name: Upload applied changes
-        uses: actions/upload-artifact@v5
-        with:
-          name: mac-plist-changes.patch
-          path: mac-plist-changes.patch
-          if-no-files-found: error
-          retention-days: 3
-
       - name: Get workspace version
         id: workspace-version
         uses: nicolaiunrein/cargo-get@master
@@ -124,6 +109,11 @@ jobs:
         run: |
           cargo build -p nym-vpnd --target aarch64-apple-darwin --release
 
+      - name: Build nym-diagnostic (aarch64)
+        working-directory: nym-vpn-core
+        run: |
+          cargo build -p nym-diagnostic --target aarch64-apple-darwin --release
+
       - name: Build nym-vpnc (x86_64)
         working-directory: nym-vpn-core
         env:
@@ -139,6 +129,11 @@ jobs:
         run: |
           cargo build -p nym-vpnd --target x86_64-apple-darwin --release
 
+      - name: Build nym-diagnostic (x86_64)
+        working-directory: nym-vpn-core
+        run: |
+          cargo build -p nym-diagnostic --target x86_64-apple-darwin --release
+
       - name: Create universal binaries and prepare for upload
         env:
           SRC_NATIVE_BINARY: nym-vpn-core/target/aarch64-apple-darwin/release
@@ -147,6 +142,7 @@ jobs:
           mkdir -p ${{ env.UPLOAD_DIR_MAC }}
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
+          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-diagnostic ${{ env.SRC_NATIVE_BINARY }}/nym-diagnostic ${{ env.SRC_X86_64_BINARY }}/nym-diagnostic
 
       - name: Build nym-vpn-rpc
         working-directory: nym-vpn-core

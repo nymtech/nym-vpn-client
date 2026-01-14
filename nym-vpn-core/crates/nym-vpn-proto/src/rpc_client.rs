@@ -3,11 +3,11 @@
 
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
-    EntryPoint, ExitPoint, FeatureFlags, Gateway, HttpRpcSettings, ListGatewaysOptions, LogPath,
-    LookupGatewayFilters, NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice,
-    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status,
-    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway, HttpRpcSettings,
+    ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkCompatibility,
+    NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
+    SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 use std::{net::IpAddr, path::PathBuf};
 use tokio_stream::{Stream, StreamExt};
@@ -665,6 +665,34 @@ impl RpcClient {
             .map_err(Error::Rpc)?;
 
         Ok(PrivyDerivationMessage::from(response))
+    }
+
+    pub async fn run_diagnostic(
+        &mut self,
+        params: nym_vpn_lib_types::DiagnosticRunParams,
+    ) -> Result<DiagnosticReport> {
+        let request = proto::DiagnosticRunParams::from(params);
+        let response = self
+            .0
+            .run_diagnostic(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+        DiagnosticReport::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn register_diagnostic(
+        &mut self,
+        params: nym_vpn_lib_types::DiagnosticRegisterParams,
+    ) -> Result<RegistrationReport> {
+        let request = proto::DiagnosticRegisterParams::from(params);
+        let response = self
+            .0
+            .register_diagnostic(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+        RegistrationReport::try_from(response).map_err(Error::InvalidResponse)
     }
 }
 

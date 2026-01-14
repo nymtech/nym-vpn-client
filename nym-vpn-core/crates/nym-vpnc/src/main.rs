@@ -124,6 +124,12 @@ pub enum Command {
         #[command(subcommand)]
         subcommand: commands::network_stats::Command,
     },
+
+    /// Diagnostic tool
+    Diagnostic {
+        #[command(subcommand)]
+        subcommand: nym_diagnostic::cli::Command,
+    },
 }
 
 impl Command {
@@ -145,6 +151,9 @@ impl Command {
             Command::Sentry { subcommand } => subcommand.execute(rpc_client).await,
             Command::Socks5 { subcommand } => subcommand.execute(rpc_client).await,
             Command::NetworkStats { subcommand } => subcommand.execute(rpc_client).await,
+            Command::Diagnostic { subcommand } => {
+                commands::diagnostic::execute(subcommand, rpc_client).await
+            }
         }
     }
 

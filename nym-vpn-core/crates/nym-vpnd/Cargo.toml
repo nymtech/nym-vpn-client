@@ -64,6 +64,7 @@ sentry = { workspace = true, features = [
 
 # Local crates
 nym-common.workspace = true
+nym-diagnostic.workspace = true
 nym-ipc.workspace = true
 nym-offline-monitor.workspace = true
 nym-statistics = { workspace = true }
