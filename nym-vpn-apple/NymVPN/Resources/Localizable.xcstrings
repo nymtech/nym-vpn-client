@@ -5715,107 +5715,6 @@
         }
       }
     },
-    "createAccount.createAccountButtonTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "ابدأ في حماية خصوصيتي"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create anonymous account"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Comenzar a proteger mi privacidad"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "شروع به حفظ حریم خصوصی من کن"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Commencer à protéger ma vie privée"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "मेरी गोपनीयता की रक्षा शुरू करें"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Inizia a proteggere la mia privacy"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Comece a proteger a minha privacidade"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Começar a proteger minha privacidade"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Начните защищать свою конфиденциальность"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Gizliliğimi korumaya başla"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Почніть захищати мою конфіденційність"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Bắt đầu bảo vệ quyền riêng tư của tôi"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "开始保护我的隐私"
-          }
-        }
-      }
-    },
     "createAccount.createAnAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6529,7 +6428,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instant & anonymous"
+            "value" : "Instant & anonymous (recommended)"
           }
         }
       }
@@ -6855,6 +6754,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "One tap to checkout. Anonymous account generated on your device. No password, no personal info."
+          }
+        }
+      }
+    },
+    "createAccount.startAnonymously" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start anonymously"
           }
         }
       }

@@ -98,7 +98,7 @@ private extension CreateAccountWelcomeView {
 
     var createAccountButton: some View {
 #if os(iOS)
-        GenericButton(title: "createAccount.createAccountButtonTitle".localizedString)
+        GenericButton(title: "createAccount.startAnonymously".localizedString)
             .onTapGesture {
                 navigateToCreateAccount()
             }
@@ -106,7 +106,7 @@ private extension CreateAccountWelcomeView {
                 navigateToCreateAccount()
             }
 #elseif os(macOS)
-        GenericButton(title: "createAccount.createAccountButtonTitle".localizedString, isExternalLink: true)
+        GenericButton(title: "createAccount.startAnonymously".localizedString, isExternalLink: true)
             .onTapGesture {
                 navigateToCreateAccount()
             }
