@@ -28,7 +28,7 @@ public extension HomeViewModel {
         if lastTunnelStatus != .connected {
             guard credentialsManager.isValidCredentialImported
             else {
-                navigateToAddCredentials()
+                navigateToOnboarding()
                 return
             }
         }

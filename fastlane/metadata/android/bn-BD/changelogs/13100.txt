@@ -1,2 +1,2 @@
-What's new:
-- Improved connection reliability
+নতুন কী আছে
+সংযোগের নির্ভরযোগ্যতা উন্নত

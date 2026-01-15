@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -109,7 +111,9 @@ fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onCreateAcc
 		modifier = Modifier
 			.fillMaxSize()
 			.background(MaterialTheme.colorScheme.background)
-			.padding(horizontal = 24.dp.scaledWidth(), vertical = 24.dp.scaledHeight()),
+			.imePadding()
+			.padding(horizontal = 24.dp.scaledWidth())
+			.navigationBarsPadding(),
 	) {
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,

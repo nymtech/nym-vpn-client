@@ -35,7 +35,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
@@ -53,7 +52,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-internal fun SplitTunnelingScreen(appState: AppUiState, onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: SplitTunnelingViewModel = hiltViewModel()) {
+internal fun SplitTunnelingScreen(onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: SplitTunnelingViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val backendUi by viewModel.backendUi.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current

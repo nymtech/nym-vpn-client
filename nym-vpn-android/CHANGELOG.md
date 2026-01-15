@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Censorship screen blank on Chinese phones (https://github.com/nymtech/nym-vpn-client/pull/4277)
 - Clear notifications after successful connection (https://github.com/nymtech/nym-vpn-client/pull/4327)
 - Clear notifications when another VPN started (https://github.com/nymtech/nym-vpn-client/pull/4327)
+- Bypass traffic to local DNS server when LAN bypass is disabled. Align LAN bypass rules with desktop (https://github.com/nymtech/nym-vpn-client/pull/4366)
 
 ## [2.6.0] - 2025.12.18
 

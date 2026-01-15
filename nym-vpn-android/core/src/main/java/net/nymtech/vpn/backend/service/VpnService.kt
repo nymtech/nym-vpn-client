@@ -13,8 +13,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import net.nymtech.vpn.backend.NymBackend
 import net.nymtech.vpn.backend.NymBackend.Companion.alwaysOnCallback
-import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.util.LifecycleVpnService
+import net.nymtech.vpn.util.extensions.addRoutes
 import net.nymtech.vpn.util.notifications.VpnNotificationManager
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.TunnelNetworkSettings
@@ -163,59 +163,36 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 				Timber.i("configureTunnel: step 8.$index AFTER addSearchDomain $domain")
 			}
 
-			Timber.i("configureTunnel: step 9 BEFORE routes (bypassLan=${owner?.tunnel?.bypassLan})")
-			if (owner?.tunnel?.bypassLan == true) {
-				Tunnel.IPV4_PUBLIC_NETWORKS.forEachIndexed { index, cidr ->
-					Timber.i("configureTunnel: step 9.$index BEFORE addRoute (bypass) $cidr")
-					val split = cidr.split("/")
-					if (split.size == 2) {
-						val addr = split[0]
-						val prefix = split[1].toIntOrNull()
-						if (prefix != null) {
-							builder.addRoute(addr, prefix)
-							Timber.i("configureTunnel: step 9.$index AFTER addRoute (bypass) $cidr")
-						} else {
-							Timber.e("configureTunnel: step 9.$index invalid route prefix in: $cidr")
-						}
-					} else {
-						Timber.e("configureTunnel: step 9.$index invalid route CIDR format: $cidr")
-					}
-				}
-			} else {
-				Timber.i("configureTunnel: step 9 default route BEFORE addRoute 0.0.0.0/0")
-				builder.addRoute("0.0.0.0", 0)
-				Timber.i("configureTunnel: step 9 default route AFTER addRoute 0.0.0.0/0")
-			}
+			val allowLan = owner?.tunnel?.bypassLan == true
+			Timber.i("configureTunnel: step 9 BEFORE routes (allowLan=$allowLan)")
+			builder.addRoutes(config, allowLan)
+			Timber.i("configureTunnel: step 9 AFTER addRoute ::/0")
 
-			Timber.i("configureTunnel: step 10 BEFORE addRoute ::/0")
-			builder.addRoute("::", 0)
-			Timber.i("configureTunnel: step 10 AFTER addRoute ::/0")
-
-			Timber.i("configureTunnel: step 11 BEFORE setMtu ${config.mtu}")
+			Timber.i("configureTunnel: step 10 setMtu ${config.mtu}")
 			builder.setMtu(config.mtu.toInt())
-			Timber.i("configureTunnel: step 11 AFTER setMtu")
+			Timber.i("configureTunnel: step 10 AFTER setMtu")
 
-			Timber.i("configureTunnel: step 12 BEFORE setBlocking/setMetered")
+			Timber.i("configureTunnel: step 11 BEFORE setBlocking/setMetered")
 			builder.setBlocking(false)
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 				builder.setMetered(false)
 			}
-			Timber.i("configureTunnel: step 12 AFTER setBlocking/setMetered")
+			Timber.i("configureTunnel: step 11 AFTER setBlocking/setMetered")
 
-			Timber.i("configureTunnel: step 13 BEFORE builder.establish()")
+			Timber.i("configureTunnel: step 12 BEFORE builder.establish()")
 			val vpnInterface = builder.establish()
-			Timber.i("configureTunnel: step 13 AFTER builder.establish() vpnInterface=$vpnInterface")
+			Timber.i("configureTunnel: step 12 AFTER builder.establish() vpnInterface=$vpnInterface")
 
 			if (vpnInterface == null) {
-				Timber.e("configureTunnel: step 13 establish() returned null")
+				Timber.e("configureTunnel: step 12 establish() returned null")
 				return -1
 			}
 
 			vpnInterfaceFd = vpnInterface
 
-			Timber.i("configureTunnel: step 14 BEFORE detachFd()")
+			Timber.i("configureTunnel: step 13 detachFd()")
 			val fd = vpnInterface.detachFd()
-			Timber.i("configureTunnel: step 14 AFTER detachFd() fd=$fd")
+			Timber.i("configureTunnel: step 13 AFTER detachFd() fd=$fd")
 
 			fd
 		} catch (t: Throwable) {

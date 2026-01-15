@@ -1,2 +1,2 @@
-What's new:
-- UI creation
+নতুন কী আছে:
+UI নির্মাণ

@@ -82,6 +82,8 @@ ed25519-dalek = "2.2.0"
 eventlog = "0.3.0"
 futures = "0.3.31"
 futures-util = "0.3"
+iprange = "0.6.7"
+ipnet = "2.11.0"
 hex = "0.4"
 hickory-resolver = "0.25"
 hickory-server = "0.25"
@@ -207,39 +209,39 @@ nym-wg-metadata-client = { path = "crates/nym-wg-metadata-client" }
 nym-windows = { path = "crates/nym-windows" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "develop", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "develop" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "develop" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
 
 # For local development
 #[patch."https://github.com/nymtech/nym"]

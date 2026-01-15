@@ -104,7 +104,7 @@
 	<string name="close">Đóng</string>
 	<string name="enter_access_code">Vui lòng nhập Mã Truy cập ẩn danh của bạn.</string>
 	<string name="welcome_to_nym">Chào mừng đến với NymVPN</string>
-	<string name="get_access_code">Lấy Mã Truy Cập</string>
+	<string name="get_access_code">Lấy Cụm từ mật khẩu</string>
 	<string name="access_code">mã-truy-cập-24-từ</string>
 	<string name="get_in_touch">Liên hệ</string>
 	<string name="device_id">ID thiết bị:</string>
@@ -118,7 +118,7 @@
 	<string name="exit_location">Vị trí thoát</string>
 	<string name="entry_location">Vị trí vào</string>
 	<string name="no_results_found">Không tìm thấy kết quả nào.</string>
-	<string name="how_to_run_gateway">cách chạy một cổng.</string>
+	<string name="how_to_run_gateway">cách chạy một máy chủ.</string>
 	<string name="or_learn">hoặc tìm hiểu</string>
 	<string name="contact_for_help">Liên hệ với chúng tôi để được hỗ trợ</string>
 	<string name="try_another_server_name">Thử một vị trí khác hoặc kiểm tra tên máy chủ.</string>
@@ -155,6 +155,13 @@
 	<string name="button_discard">Bỏ qua</string>
 	<string name="button_add">Thêm</string>
 	<string name="here">tại đây</string>
+	<string name="score_text_high">Cao</string>
+	<string name="score_text_medium">Trung bình</string>
+	<string name="score_text_low">Thấp</string>
+	<string name="score_text_offline">Ngoại tuyến</string>
+	<string name="button_next">Tiếp theo</string>
+	<string name="skip">Bỏ qua</string>
+	<string name="get_started">Bắt đầu</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Hiển thị trực tuyến</string>
 	<string name="streaming_server_banner_title">Mới: Khám phá các máy chủ-\nđược tối ưu hóa cho phát trực tuyến (▶️)</string>
@@ -184,12 +191,13 @@
 	<string name="error_invalid_entry_gateway_identity">Máy chủ vào ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại.</string>
 	<string name="error_invalid_exit_gateway_identity">Máy chủ thoát ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại.</string>
 	<!-- Main Screen -->
-    <string name="connection_state_resolving_addresses">Đang khởi tạo NymVPN (1/6)</string>
+	<string name="connection_state_resolving_addresses">Đang khởi tạo NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Đang thiết lập tài khoản của bạn (2/6)</string>
 	<string name="connection_state_refreshing_gateways">Đang cập nhật danh sách máy chủ (3/6)</string>
 	<string name="connection_state_selecting_gateways">Đang chọn máy chủ tốt nhất (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">Đang đăng ký ẩn danh với các máy chủ (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Đang thiết lập kết nối máy chủ (6/6)</string>
+	<string name="main_button_select_plan">Select plan</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Chống kiểm duyệt</string>
 	<string name="settings_passphrase_title">Cụm từ mật khẩu</string>
@@ -210,10 +218,10 @@
 	<string name="settings_daemon_version_line">Phiên bản daemon: %1$s</string>
 	<string name="settings_language_help_title">Hỗ trợ dịch</string>
 	<string name="settings_language_help_description">Tối ưu ứng dụng theo ngôn ngữ của bạn.</string>
+	<string name="settings_event_lan_reconnecting">Đang kết nối lại để áp dụng cài đặt mạng LAN...</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Để có kết nối tốt nhất</string>
 	<string name="battery_opt_descr">Vô hiệu hóa chế độ tối ưu hóa pin NymVPN để có kết nối VPN ổn định hơn.</string>
-	<string name="skip">Bỏ qua</string>
 	<string name="battery_opt">Tối ưu hóa pin</string>
 	<string name="battery_opt_settings_text">Cài đặt tối ưu pin có thể được thay đổi bất cứ lúc nào trong phần cài đặt ứng dụng.</string>
 	<!-- Data & Privacy screen -->
@@ -236,9 +244,29 @@
 	<string name="notification_stats_enabled">Đã bật thống kê! Dữ liệu ẩn danh của bạn giúp tối ưu hóa mạng của chúng tôi.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Tiếp tục</string>
-    <!-- Select Plan screen -->
+	<string name="welcome_title">Hãy giúp chúng tôi cải thiện NymVPN</string>
+	<string name="welcome_description">Chọn dữ liệu ẩn danh bạn muốn chia sẻ. Tất cả dữ liệu đều được loại bỏ thông tin định danh trước khi gửi đi.</string>
+	<string name="welcome_error_reports_title">Chia sẻ báo cáo lỗi</string>
+	<string name="welcome_error_reports_description_start">Giúp chúng tôi khắc phục lỗi nhanh hơn, không dữ liệu cá nhân bị thu thập (qua </string>
+	<string name="welcome_error_reports_link_text">Sentry</string>
+	<string name="welcome_error_reports_description_end">)</string>
+	<string name="welcome_usage_title">Chia sẻ dữ liệu phân tích sử dụng</string>
+	<string name="welcome_usage_description">Giúp chúng tôi cải thiện mạng lưới Nym. Không có nhật ký hay hoạt động nào bị theo dõi.</string>
+	<!-- Onboarding screen -->
+	<string name="onboarding_title_2">Tốc độ khi bạn muốn.\nBảo mật khi bạn cần.</string>
+	<string name="onboarding_title_3">Đừng để bị theo dõi trực tuyến</string>
+	<string name="onboarding_title_4">Anonymity from payment to web</string>
+	<string name="onboarding_description_base">The world’s most private VPN</string>
+	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
+	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
+	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
+	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
+	<string name="onboarding_create_account_button">Create account</string>
+	<!-- Select Plan screen -->
 	<string name="select_plan_title">Chọn mức độ\nbảo vệ của bạn 🛡️</string>
-	<string name="select_plan_descr">Chọn một gói ngay bây giờ để \nđược bảo vệ \n\nKhoản thanh toán sắp tới của bạn không thể bị liên kết \nvới hoạt động duyệt web trong tương lai của bạn</string>
+	<string name="select_plan_line_1">All features included</string>
+	<string name="select_plan_line_2">No ads</string>
+	<string name="select_plan_line_3">Cancel anytime</string>
 	<string name="select_plan_button">Chọn gói NymVPN</string>
 	<string name="select_plan_modal_title">Chọn gói NymVPN của bạn</string>
 	<string name="select_plan_modal_free_trial">Dùng thử miễn phí: 1 tuần</string>
@@ -286,19 +314,36 @@
 	<string name="censorship_stealth_description">Ẩn yêu cầu API phía sau các tên miền phổ biến, được phép để vượt qua chặn VPN. Tự động được NymVPN sử dụng sau khi kết nối API tiêu chuẩn thất bại.</string>
 	<string name="censorship_stealth_link_text">Cách chế độ kết nối API Ẩn danh hoạt động</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_event_reconnecting">Đang kết nối lại để áp dụng các cài đặt QUIC…</string>
 	<string name="quic">QUIC</string>
-    <string name="quic_gateway_filter_info_msg">Chỉ hiển thị các vị trí trong chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, hãy tắt QUIC</string>
+	<string name="quic_gateway_filter_info_msg">Chỉ hiển thị các vị trí trong chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, hãy tắt QUIC</string>
 	<string name="censorship_amnezia_title">Mức độ che giấu tối thiểu (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Giúp lưu lượng WireGuard khó bị phát hiện hơn. Đưa vào các gói tin mồi nhử phá vỡ các quy tắc đơn giản thường được sử dụng bởi các hệ thống kiểm duyệt Kiểm tra gói sâu (DPI), cải thiện độ tin cậy của kết nối trong các môi trường hạn chế. \n\nLưu ý: Chỉ được triển khai ở phía máy khách.</string>
 	<string name="censorship_amnezia_link_text">AmneziaWG ngăn chặn DPI như thế nào</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-    <!-- Existing subscription -->
+	<string name="account_welcome_create_title">🔒 Bảo mật tối đa</string>
+	<string name="account_welcome_create_description">Tạo tài khoản Nym ẩn danh, không yêu cầu thông tin cá nhân</string>
+	<string name="account_welcome_create_button">Tạo tài khoản ẩn danh</string>
+	<string name="account_welcome_social_title">⚡️ Cài đặt nhanh</string>
+	<string name="account_welcome_social_description">Sử dụng tài khoản hiện có như Google hoặc ví tiền điện tử thông qua đối tác đăng nhập Privy của chúng tôi</string>
+	<string name="account_welcome_social_button">Tiếp tục với tài khoản mạng xã hội</string>
+	<string name="account_welcome_login_title">Bạn đã có tài khoản?</string>
+	<string name="account_welcome_login_button">Đăng nhập bằng cụm từ mật khẩu 24 từ</string>
+	<string name="account_welcome_privacy_start">Bằng cách tiếp tục, bạn đồng ý với  </string>
+	<string name="account_welcome_privacy_middle">và</string>
+	<!-- Existing subscription -->
 	<string name="account_subscription_title">Bạn đã đăng ký!</string>
 	<string name="account_subscription_description">Chúng tôi đã tìm thấy một gói đăng ký đang hoạt động được liên kết với tài khoản Google Play của bạn. Bỏ qua bước đăng ký và bắt đầu sử dụng NymVPN ngay. Chỉ cần chuẩn bị sẵn cụm từ mật khẩu 24 từ.</string>
 	<string name="account_subscription_button">Đăng nhập bằng cụm từ mật khẩu Nym</string>
 	<!-- Account Generating screen -->
-    <string name="account_generating_error">Không thể đăng ký tài khoản. Vui lòng thử lại sau</string>
+	<string name="account_generating_title_1">Generating cryptographic keypairs…</string>
+	<string name="account_generating_title_2">Creating your anonymous identity…</string>
+	<string name="account_generating_title_3">Securing your credentials locally…</string>
+	<string name="account_generating_description_1">Creating keys that never leave your device</string>
+	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
+	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
+	<string name="account_generating_error">Không thể đăng ký tài khoản. Vui lòng thử lại sau</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Đang xử lý thanh toán của bạn một cách an toàn…</string>
 	<string name="account_payment_verifying">Chúng tôi đang xác minh đăng ký của bạn — không bao giờ liên kết thông tin cá nhân với danh tính của bạn</string>
@@ -378,6 +423,8 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Áp dụng cho kết nối tiếp theo</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 Mới: Chọn bảo vệ theo từng ứng dụng hoặc kết nối trực tiếp để tăng tốc độ</string>
 	<string name="split_tunneling_per_app_security_banner_action">Cấu hình\nứng dụng</string>
+	<string name="split_tunneling_event_saved">Cài đặt split tunnel đã được lưu</string>
+	<string name="split_tunneling_event_reconnecting">Đang kết nối lại để áp dụng cài đặt split tunnel…</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">Tùy chỉnh DNS</string>
 	<string name="dns_description">Mặc định, hệ thống sử dụng các máy chủ DNS được Nym đề xuất. Cấu hình các máy chủ tùy chỉnh bên dưới nếu cần.</string>
@@ -392,8 +439,11 @@
 	<string name="dns_custom_list_error">Định dạng địa chỉ DNS không hợp lệ</string>
 	<string name="dns_custom_button_add">Thêm</string>
 	<string name="dns_custom_button_save">Lưu thay đổi</string>
+	<string name="dns_custom_button_save_reconnect">Lưu thay đổi &amp; kết nối lại</string>
 	<string name="dns_custom_saved">Đã lưu DNS tùy chỉnh.</string>
 	<string name="dns_save_dialog_title">Lưu thay đổi?</string>
 	<string name="dns_save_dialog_description">Bạn có thay đổi chưa lưu.</string>
 	<string name="dns_learn_more_text">Tìm hiểu thêm về DNS</string>
+	<string name="dns_event_saved">Đã lưu DNS tùy chỉnh</string>
+	<string name="dns_event_reconnecting">Đang kết nối lại để áp dụng cài đặt DNS tùy chỉnh...</string>
 </resources>

@@ -23,7 +23,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 fun OnboardingPageContent(title: String, @DrawableRes image: Int, description: String, modifier: Modifier = Modifier) {
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
+		verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
 		modifier = modifier,
 	) {
 		Image(

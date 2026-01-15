@@ -25,7 +25,6 @@ public struct CreateAccountWelcomeView: View {
                 Spacer()
                 createAccountTitle
                 Spacer()
-                    .frame(height: 24)
                 createAccountSection
                 Spacer()
                     .frame(height: 24)
@@ -34,7 +33,6 @@ public struct CreateAccountWelcomeView: View {
                     .frame(height: 24)
                 alreadyHaveAnAccount
                 Spacer()
-                    .frame(height: 24)
                 TermsAndConditionsView()
                 Spacer()
                     .frame(height: 24)
@@ -82,7 +80,7 @@ private extension CreateAccountWelcomeView {
 
     var maximumPrivacyTitle: some View {
         HStack {
-            Text("🔒 \("createAccount.maximumPrivacy".localizedString)")
+            Text("⚡️ \("createAccount.instantAndAnonymous".localizedString)")
                 .textStyle(.Headline.Small.regular)
                 .foregroundStyle(NymColor.primary)
             Spacer()
@@ -91,7 +89,7 @@ private extension CreateAccountWelcomeView {
 
     var maximumPrivacySubtitle: some View {
         HStack {
-            Text("createAccount.maximumPrivacy.subtitle".localizedString)
+            Text("createAccount.singleTap.subtitle".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
             Spacer()
@@ -99,13 +97,23 @@ private extension CreateAccountWelcomeView {
     }
 
     var createAccountButton: some View {
-        GenericButton(title: "createAccount.createAccountButtonTitle".localizedString)
+#if os(iOS)
+        GenericButton(title: "createAccount.startAnonymously".localizedString)
             .onTapGesture {
                 navigateToCreateAccount()
             }
             .accessibilityAction {
                 navigateToCreateAccount()
             }
+#elseif os(macOS)
+        GenericButton(title: "createAccount.startAnonymously".localizedString, isExternalLink: true)
+            .onTapGesture {
+                navigateToCreateAccount()
+            }
+            .accessibilityAction {
+                navigateToCreateAccount()
+            }
+#endif
     }
 
     var separatorLine: some View {
@@ -148,7 +156,7 @@ private extension CreateAccountWelcomeView {
     func navigateToCreateAccount() {
 #if os(iOS)
         ImpactGenerator.shared.impact()
-        path.append(SettingLink.generatePassphrase)
+        path.append(SettingLink.generatePassphrase(displayPurchaseView: false))
 #elseif os(macOS)
         try? externalLinkManager.openExternalURL(urlString: Constants.pricingURL.rawValue)
         navigateToLogin()

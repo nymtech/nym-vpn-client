@@ -157,6 +157,13 @@
 	<string name="button_discard">Abandonner</string>
 	<string name="button_add">Ajouter</string>
 	<string name="here">ici</string>
+	<string name="score_text_high">Élevé</string>
+	<string name="score_text_medium">Moyenne</string>
+	<string name="score_text_low">Bas</string>
+	<string name="score_text_offline">Hors ligne</string>
+	<string name="button_next">Suivant</string>
+	<string name="skip">Ignorer</string>
+	<string name="get_started">Commencer</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Affichage du flux</string>
 	<string name="streaming_server_banner_title">Nouveau : Découvrez le streaming-\nserveurs optimisés (▶️)</string>
@@ -186,12 +193,13 @@
 	<string name="error_invalid_entry_gateway_identity">Serveur d\'entrée hors ligne. Choisissez un autre et reconnectez-vous.</string>
 	<string name="error_invalid_exit_gateway_identity">Quitter le serveur hors ligne. Choisissez un autre et reconnectez-vous.</string>
 	<!-- Main Screen -->
-    <string name="connection_state_resolving_addresses">Initialisation de NymVPN (1/6)</string>
+	<string name="connection_state_resolving_addresses">Initialisation de NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Configuration de votre compte (2/6)</string>
 	<string name="connection_state_refreshing_gateways">Mise à jour de la liste des serveurs (3/6)</string>
 	<string name="connection_state_selecting_gateways">Choix des meilleurs serveurs (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">Inscription anonyme sur les serveurs (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Établissement de la connexion au serveur (6/6)</string>
+	<string name="main_button_select_plan">Sélectionnez un plan</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censure</string>
 	<string name="settings_passphrase_title">Phrase de passe</string>
@@ -212,10 +220,10 @@
 	<string name="settings_daemon_version_line">Version du Daemon : %1$s</string>
 	<string name="settings_language_help_title">Aide à la traduction</string>
 	<string name="settings_language_help_description">Améliorez l\'application dans votre langue.</string>
+	<string name="settings_event_lan_reconnecting">Reconnexion aux paramètres du LAN...</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Pour une meilleure connexion</string>
 	<string name="battery_opt_descr">Désactiver les optimisations de batterie pour NymVPN afin de permettre des connexions VPN plus stables.</string>
-	<string name="skip">Ignorer</string>
 	<string name="battery_opt">Optimisation de la batterie</string>
 	<string name="battery_opt_settings_text">Le paramètre d\'optimisation de la batterie peut être changé à tout moment dans les paramètres de l\'application.</string>
 	<!-- Data & Privacy screen -->
@@ -238,9 +246,29 @@
 	<string name="notification_stats_enabled">Statistiques activées ! Vos données anonymes aident à optimiser notre réseau.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Continuer</string>
-    <!-- Select Plan screen -->
+	<string name="welcome_title">Aidez-nous à améliorer NymVPN</string>
+	<string name="welcome_description">Choisissez les données anonymes à partager. Toutes les données sont supprimées des informations d\'identification avant d\'être envoyées.</string>
+	<string name="welcome_error_reports_title">Partager les rapports d\'erreur</string>
+	<string name="welcome_error_reports_description_start">Nous aide à corriger les bugs plus rapidement, pas de données personnelles collectées (via </string>
+	<string name="welcome_error_reports_link_text">Guetteur</string>
+	<string name="welcome_error_reports_description_end">)</string>
+	<string name="welcome_usage_title">Partager les analyses d\'utilisation</string>
+	<string name="welcome_usage_description">Nous aide à améliorer le réseau Nym. Aucun enregistrement ou activité suivi.</string>
+	<!-- Onboarding screen -->
+	<string name="onboarding_title_2">Vitesse quand vous en avez besoin.\nConfidentialité quand cela importe.</string>
+	<string name="onboarding_title_3">Arrêter d\'être suivi en ligne</string>
+	<string name="onboarding_title_4">Anonymat du paiement au web</string>
+	<string name="onboarding_description_base">Le VPN le plus privé au monde</string>
+	<string name="onboarding_description_1">Le VPN le plus privé au monde\nEssayez gratuitement pendant 7 jours :\nToutes les fonctionnalités incluses, sans publicité.</string>
+	<string name="onboarding_description_2">Rapide: 250 Mbit/s avec dVPN.\nAnonyme: bruit à 5 sauts générant Mixnet.</string>
+	<string name="onboarding_description_3">Le réseau décentralisé de Nym rend \"no-log\"\n obsolète.</string>
+	<string name="onboarding_description_4">Payez avec une carte, une cryptomonnaie ou de l’argent – pas d’e-mail requis. Vos paiements ne sont pas reliés à vos activités en ligne.</string>
+	<string name="onboarding_create_account_button">Créer un compte</string>
+	<!-- Select Plan screen -->
 	<string name="select_plan_title">Choisissez votre niveau de protection \n🛡️</string>
-	<string name="select_plan_descr">Sélectionnez un forfait maintenant pour activer votre \nprotection\n\nVotre prochain paiement ne peut pas être lié \nà votre activité de navigation future</string>
+	<string name="select_plan_line_1">Toutes les fonctionnalités incluses</string>
+	<string name="select_plan_line_2">Aucune publicité</string>
+	<string name="select_plan_line_3">Annuler à tout moment</string>
 	<string name="select_plan_button">Choisissez mon abonnement NymVPN</string>
 	<string name="select_plan_modal_title">Choisissez votre forfait NymVPN</string>
 	<string name="select_plan_modal_free_trial">Essai gratuit : 1 semaine</string>
@@ -288,19 +316,36 @@
 	<string name="censorship_stealth_description">Déguise les requêtes API derrière les domaines populaires autorisés à contourner le blocage VPN. Utilisé automatiquement par NymVPN lorsque les tentatives de connexion standard à l\'API échouent.</string>
 	<string name="censorship_stealth_link_text">Comment fonctionne le mode de connexion de l\'API furtive</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_event_reconnecting">Reconnexion pour appliquer les paramètres QUIC…</string>
 	<string name="quic">QUIC</string>
-    <string name="quic_gateway_filter_info_msg">Afficher uniquement les emplacements du mode rapide et les serveurs prenant en charge le protocole QUIC. Pour révéler tous les serveurs, désactiver QUIC</string>
+	<string name="quic_gateway_filter_info_msg">Afficher uniquement les emplacements du mode rapide et les serveurs prenant en charge le protocole QUIC. Pour révéler tous les serveurs, désactiver QUIC</string>
 	<string name="censorship_amnezia_title">obfuscation minimale (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Rend le trafic WireGuard plus difficile à détecter. Introduit des paquets de leurre qui perturbent les règles simples souvent utilisées par les systèmes de censure Deep Packet Inspection (DPI), améliorant la fiabilité de la connexion dans les environnements restrictifs. \n\nRemarque : uniquement côté client implémenté.</string>
 	<string name="censorship_amnezia_link_text">Comment AmneziaWG empêche les DPI</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/fr/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-    <!-- Existing subscription -->
+	<string name="account_welcome_create_title">🔒 Confidentialité maximale</string>
+	<string name="account_welcome_create_description">Créer un compte Nym anonyme, aucune information personnelle requise</string>
+	<string name="account_welcome_create_button">Créer un compte anonyme</string>
+	<string name="account_welcome_social_title">⚡ Configuration rapide</string>
+	<string name="account_welcome_social_description">Utilisez un compte existant comme Google ou un portefeuille crypto via notre partenaire de connexion Privé</string>
+	<string name="account_welcome_social_button">Continuer avec le compte social</string>
+	<string name="account_welcome_login_title">Vous avez déjà un compte ?</string>
+	<string name="account_welcome_login_button">Connectez-vous avec un mot de passe de 24 mots</string>
+	<string name="account_welcome_privacy_start">En continuant, vous acceptez les NymVPN  </string>
+	<string name="account_welcome_privacy_middle">et</string>
+	<!-- Existing subscription -->
 	<string name="account_subscription_title">Vous êtes déjà abonné !</string>
 	<string name="account_subscription_description">Nous avons trouvé un abonnement actif lié à votre compte Google Play. Sautez l\'inscription et sautez directement à l\'aide de NymVPN. Ayez juste votre mot de passe de 24 mots prêt.</string>
 	<string name="account_subscription_button">Se connecter avec la phrase de passe Nym</string>
 	<!-- Account Generating screen -->
-    <string name="account_generating_error">Impossible d\'enregistrer le compte. Veuillez réessayer plus tard</string>
+	<string name="account_generating_title_1">Génération des claviers cryptographiques…</string>
+	<string name="account_generating_title_2">Création de votre identité anonyme…</string>
+	<string name="account_generating_title_3">Sécurisation de vos identifiants localement…</string>
+	<string name="account_generating_description_1">Création de clés qui ne quittent jamais votre appareil</string>
+	<string name="account_generating_description_2">Établissement des identifiants de réseau anonymes</string>
+	<string name="account_generating_description_3">Chiffrement des identifiants avec la clé de votre appareil; vous seul pouvez les déverrouiller</string>
+	<string name="account_generating_error">Impossible d\'enregistrer le compte. Veuillez réessayer plus tard</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Traitement de votre paiement en toute sécurité…</string>
 	<string name="account_payment_verifying">Nous vérifions votre abonnement—aucune donnée personnelle n\'est liée à votre identité</string>
@@ -380,6 +425,8 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Appliquer à la prochaine connexion</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 Nouveau : Choisir la protection par application ou la connexion directe pour la vitesse</string>
 	<string name="split_tunneling_per_app_security_banner_action">Configurer les applis\n</string>
+	<string name="split_tunneling_event_saved">Paramètres de tunneling partagé enregistrés</string>
+	<string name="split_tunneling_event_reconnecting">Reconnexion pour appliquer les paramètres de tunnels divisés…</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">Personnalisation DNS</string>
 	<string name="dns_description">Par défaut, en utilisant les serveurs DNS recommandés par Nym. Configurez les serveurs personnalisés ci-dessous si nécessaire.</string>
@@ -394,8 +441,11 @@
 	<string name="dns_custom_list_error">Format d\'adresse DNS invalide</string>
 	<string name="dns_custom_button_add">Ajouter</string>
 	<string name="dns_custom_button_save">Enregistrer les modifications</string>
+	<string name="dns_custom_button_save_reconnect">Enregistrer les modifications &amp; reconnecter</string>
 	<string name="dns_custom_saved">DNS personnalisé enregistré.</string>
 	<string name="dns_save_dialog_title">Enregistrer les modifications ?</string>
 	<string name="dns_save_dialog_description">Vous avez des modifications non enregistrées.</string>
 	<string name="dns_learn_more_text">En savoir plus sur le DNS</string>
+	<string name="dns_event_saved">DNS personnalisé sauvegardé</string>
+	<string name="dns_event_reconnecting">Reconnexion pour appliquer les paramètres DNS personnalisés...</string>
 </resources>

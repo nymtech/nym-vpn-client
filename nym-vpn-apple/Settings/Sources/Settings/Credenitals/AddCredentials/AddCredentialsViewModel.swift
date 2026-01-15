@@ -92,12 +92,12 @@ import Theme
     }
 
     @MainActor func importCredentials() {
-        error = CredentialsManagerError.noError
         let trimmedCredential = credentialText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         Task {
             do {
                 try await credentialsManager.add(credential: trimmedCredential)
+                error = CredentialsManagerError.noError
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in
@@ -130,8 +130,12 @@ extension AddCredentialsViewModel {
         path.append(SettingLink.createAccountWelcome(navigationSource: .addCredential))
     }
 
-    func navigateHome() {
-        path = .init()
+    func navigateHomeOrTechnicalOptIn() {
+        if appSettings.welcomeScreenDidDisplay {
+            path = .init()
+        } else {
+            path = .init([HomeLink.technicalOptIns])
+        }
     }
 }
 
@@ -150,7 +154,7 @@ extension AddCredentialsViewModel {
 
     @MainActor func credentialsDidAdd() {
         credentialText = ""
-        navigateHome()
+        navigateHomeOrTechnicalOptIn()
     }
 
     @MainActor func scannerDidScanQRCode() {

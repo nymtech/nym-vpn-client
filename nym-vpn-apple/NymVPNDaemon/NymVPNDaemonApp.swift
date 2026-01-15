@@ -60,7 +60,6 @@ struct NymVPNDaemonApp: App {
         messagesManager: .shared
     )
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
-    @StateObject private var welcomeViewModel = WelcomeViewModel(appSettings: .shared)
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
     @State private var splashScreenDidDisplay = false
@@ -98,7 +97,6 @@ struct NymVPNDaemonApp: App {
                 quitModalOverlay()
             }
             .preferredColorScheme(appearance.colorScheme)
-            .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
             .environmentObject(configurationManager)
             .environmentObject(connectionManager)
@@ -195,7 +193,10 @@ private extension NymVPNDaemonApp {
         .menuBarExtraStyle(.menu)
         .onChange(of: connectionManager.currentTunnelStatus) { _, status in
             updateImageName(with: status)
-            menuBarConnectButtonState = ConnectButtonState(tunnelStatus: status)
+            menuBarConnectButtonState = ConnectButtonState(
+                tunnelStatus: status,
+                isCredentialImported: credentialsManager.isValidCredentialImported
+            )
         }
     }
 

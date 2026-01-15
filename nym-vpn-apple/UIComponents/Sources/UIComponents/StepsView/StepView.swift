@@ -8,7 +8,7 @@ public struct StepView: View {
     @Binding var currentStep: Int
 
     @State private var displayedStep: Int = 0
-    @State private var animationID: Int = 0
+    @State private var animationTask: Task<Void, Never>?
 
     public init(stepCount: Int, currentStep: Binding<Int>) {
         self.stepCount = stepCount
@@ -31,27 +31,28 @@ public struct StepView: View {
                             y: 1,
                             anchor: .leading
                         )
-                        .animation(.linear(duration: perStepDuration), value: displayedStep)
                 }
                 .frame(maxWidth: .infinity, minHeight: 4, maxHeight: 4)
             }
         }
         .onAppear {
-            displayedStep = 0
-            animateForwardIfNeeded(from: 0, to: clamped(currentStep))
+            runInitialFill(to: clamped(currentStep))
         }
         .onChange(of: currentStep) { oldValue, newValue in
             let old = clamped(oldValue)
             let new = clamped(newValue)
 
             if new > old {
-                animateForwardIfNeeded(from: old, to: new)
+                runForwardFill(from: displayedStep, to: new)
             } else {
-                animationID += 1
+                animationTask?.cancel()
                 withAnimation(.linear(duration: perStepDuration)) {
                     displayedStep = new
                 }
             }
+        }
+        .onDisappear {
+            animationTask?.cancel()
         }
     }
 }
@@ -61,25 +62,39 @@ private extension StepView {
         min(max(value, 0), stepCount)
     }
 
-    func animateForwardIfNeeded(from old: Int, to new: Int) {
-        guard new > old
-        else { return }
+    func runInitialFill(to target: Int) {
+        animationTask?.cancel()
+        displayedStep = 0
 
-        animationID += 1
-        let id = animationID
+        animationTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.3))
+            guard target > 0 else { return }
+            for step in 1...target {
+                guard !Task.isCancelled else { return }
 
-        let start = min(max(displayedStep, old), new)
+                withAnimation(.linear(duration: perStepDuration)) {
+                    displayedStep = step
+                }
+                try? await Task.sleep(for: .seconds(0.3))
+            }
+        }
+    }
 
-        (start + 1...new).forEach { next in
-            let delay = perStepDuration * Double(next - start - 1)
+    func runForwardFill(from current: Int, to target: Int) {
+        guard target > current else { return }
+        animationTask?.cancel()
+        animationTask = Task { @MainActor in
+            let start = min(max(displayedStep, current), target)
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                guard id == animationID
+            for step in (start + 1)...target {
+                guard !Task.isCancelled
                 else { return }
 
                 withAnimation(.linear(duration: perStepDuration)) {
-                    displayedStep = next
+                    displayedStep = step
                 }
+
+                try? await Task.sleep(for: .seconds(1))
             }
         }
     }

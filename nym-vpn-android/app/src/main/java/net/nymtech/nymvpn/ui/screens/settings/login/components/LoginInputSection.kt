@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -44,7 +43,6 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun LoginInputSection(onCreateAccountClick: () -> Unit, viewModel: LoginViewModel, uiState: LoginUiState, loading: Boolean, onLoadingChange: (Boolean) -> Unit, onRequestCameraPermission: () -> Unit) {
-	val context = LocalContext.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 	var mnemonic by remember { mutableStateOf("") }
 
@@ -76,9 +74,8 @@ fun LoginInputSection(onCreateAccountClick: () -> Unit, viewModel: LoginViewMode
 			},
 			value = mnemonic,
 			onValueChange = { newValue ->
-				// If an error was shown, clear it as soon as the user edits.
 				if (uiState.success == false) {
-					viewModel.consumeResult() // clears success back to null
+					viewModel.consumeResult()
 				}
 				mnemonic = newValue
 			},
@@ -130,7 +127,7 @@ fun LoginInputSection(onCreateAccountClick: () -> Unit, viewModel: LoginViewMode
 							SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
 						} else {
 							Text(
-								stringResource(R.string.log_in).uppercase(),
+								stringResource(R.string.log_in),
 								style = CustomTypography.labelHuge,
 								fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
 							)

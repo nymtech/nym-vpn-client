@@ -2,45 +2,28 @@ import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 
-import {
-  bn,
-  de,
-  el,
-  en,
-  es,
-  fr,
-  hi,
-  it,
-  ja,
-  pt,
-  ru,
-  tr,
-  uk,
-  vi,
-  zh,
-} from './resources';
-import { Lang } from './types';
+import { en } from './resources';
+import { LngTag, Locale, LocaleResource, Namespaces } from './types';
 
 export const defaultNS = 'common';
-export const resources = {
-  bn,
-  de,
-  el,
-  en,
-  es,
-  fr,
-  hi,
-  it,
-  ja,
-  pt,
-  ru,
-  tr,
-  uk,
-  vi,
-  zh,
-} as const;
+export const ns = [
+  'account',
+  'add-credential',
+  'common',
+  'home',
+  'settings',
+  'node-location',
+  'backend-messages',
+  'display',
+  'licenses',
+  'errors',
+  'welcome',
+  'glossary',
+  'notifications',
+  'login',
+] as const;
 
-export const languages: Lang[] = [
+export const languages = [
   { code: 'bn', name: 'বাংলা' },
   { code: 'de', name: 'Deutsch' },
   { code: 'el', name: 'ελληνικά' },
@@ -56,35 +39,53 @@ export const languages: Lang[] = [
   { code: 'uk', name: 'Українська' },
   { code: 'vi', name: 'Tiếng Việt' },
   { code: 'zh', name: '中文' },
-];
+] as const;
+
+export const supportedLngs = languages.map((lang) => lang.code);
+
+const loadLocaleNs = async (
+  locale: LngTag,
+  ns: Namespaces,
+): Promise<Locale> => {
+  const module = (await import(`./${locale}/${ns}.json`)) as {
+    default: Locale;
+  };
+  return module.default;
+};
+
+export const loadLocale = async (locale: LngTag) => {
+  return ns.reduce<Promise<LocaleResource>>(
+    async (accPromise, namespace) => {
+      if (i18n.hasResourceBundle(locale, namespace)) {
+        return accPromise;
+      }
+      const acc = await accPromise;
+      try {
+        acc[namespace] = await loadLocaleNs(locale, namespace);
+      } catch (error) {
+        console.error(
+          `Failed to load namespace ${namespace} for locale ${locale}:`,
+          error,
+        );
+      }
+      return acc;
+    },
+    Promise.resolve({} as LocaleResource),
+  );
+};
 
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    // add 'pt' and 'zh' to supportedLngs to avoid i18next warnings
-    supportedLngs: ['pt', 'zh', ...Object.keys(resources)],
+    supportedLngs,
     fallbackLng: ['en'],
     debug: import.meta.env.DEV,
     defaultNS,
-    resources,
-    ns: [
-      'account',
-      'addCredential',
-      'common',
-      'home',
-      'settings',
-      'nodeLocation',
-      'backendMessages',
-      'display',
-      'licenses',
-      'errors',
-      'welcome',
-      'glossary',
-      'notifications',
-      'login',
-    ],
-
+    resources: {
+      en: en,
+    },
+    ns,
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     },

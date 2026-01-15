@@ -102,9 +102,9 @@
 	<string name="credential_modal_description">Перейдите на страницу \'Устройства\', удалите одно из существующих, затем войдите с нового, вписав вашу фразу восстановления.</string>
 	<string name="manage_devices">Управление устройствами</string>
 	<string name="close">Закрыть</string>
-	<string name="enter_access_code">Пожалуйста, введите свой анонимный код доступа.</string>
+	<string name="enter_access_code">Пожалуйста, введите свой код доступа: 24 слова, разделённых пробелами</string>
 	<string name="welcome_to_nym">Добро пожаловать в NymVPN</string>
-	<string name="get_access_code">Получить Код Доступа</string>
+	<string name="get_access_code">Получите кодовую фразу</string>
 	<string name="access_code">Кодовая фраза из 24 слов</string>
 	<string name="get_in_touch">Связаться с поддержкой</string>
 	<string name="device_id">ID устройства:</string>
@@ -118,7 +118,7 @@
 	<string name="exit_location">Локация выхода</string>
 	<string name="entry_location">Локация входа</string>
 	<string name="no_results_found">Ничего не найдено.</string>
-	<string name="how_to_run_gateway">как установить шлюз.</string>
+	<string name="how_to_run_gateway">как запустить сервер.</string>
 	<string name="or_learn">или научиться</string>
 	<string name="contact_for_help">Свяжитесь с нами, если нужна помощь</string>
 	<string name="try_another_server_name">Попробуйте другую локацию или проверьте имя сервера.</string>
@@ -157,6 +157,13 @@
 	<string name="button_discard">Сбросить</string>
 	<string name="button_add">Добавить</string>
 	<string name="here">здесь</string>
+	<string name="score_text_high">Высокий</string>
+	<string name="score_text_medium">Средний</string>
+	<string name="score_text_low">Низкий</string>
+	<string name="score_text_offline">Оффлайн</string>
+	<string name="button_next">Далее</string>
+	<string name="skip">Пропустить</string>
+	<string name="get_started">Начало работы</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Показ стриминга</string>
 	<string name="streaming_server_banner_title">Новинка: Откройте для себя серверы,\nоптимизированные для стриминга (▶️)</string>
@@ -186,12 +193,13 @@
 	<string name="error_invalid_entry_gateway_identity">Сервер входа недоступен. Выберите другой и подключитесь повторно.</string>
 	<string name="error_invalid_exit_gateway_identity">Сервер выхода недоступен. Выберите другой и подключитесь повторно.</string>
 	<!-- Main Screen -->
-    <string name="connection_state_resolving_addresses">Инициализация NymVPN (1/6)</string>
+	<string name="connection_state_resolving_addresses">Инициализация NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Настройка учетной записи (2/6)</string>
 	<string name="connection_state_refreshing_gateways">Обновление списка серверов (3/6)</string>
 	<string name="connection_state_selecting_gateways">Выбор лучших серверов (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">Анонимная регистрация на серверах (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Установка соединения с сервером (6/6)</string>
+	<string name="main_button_select_plan">Выберите тарифный план</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Антицензура</string>
 	<string name="settings_passphrase_title">Кодовая фраза</string>
@@ -212,10 +220,10 @@
 	<string name="settings_daemon_version_line">Версия демона: %1$s</string>
 	<string name="settings_language_help_title">Помощь с переводом</string>
 	<string name="settings_language_help_description">Сделайте приложение лучше на вашем языке.</string>
+	<string name="settings_event_lan_reconnecting">Переподключение для применения настроек LAN...</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Для лучшего соединения</string>
 	<string name="battery_opt_descr">Отключите оптимизацию энергопотребления для NymVPN, чтобы обеспечить более стабильное подключение VPN.</string>
-	<string name="skip">Пропустить</string>
 	<string name="battery_opt">Экономия заряда батареи</string>
 	<string name="battery_opt_settings_text">Настройки оптимизации батареи можно изменить в любое время в настройках приложения.</string>
 	<!-- Data & Privacy screen -->
@@ -238,12 +246,32 @@
 	<string name="notification_stats_enabled">Статистика включена! Ваши анонимные данные помогают оптимизировать нашу сеть.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Продолжить</string>
-    <!-- Select Plan screen -->
-	<string name="select_plan_title">Выберите ваш \nуровень защиты 🛡️</string>
-	<string name="select_plan_descr">Выберите план сейчас, чтобы активировать вашу \nзащиту\n\nВаш предстоящий платёж не может быть связан \nс вашей будущей активностью в браузере</string>
+	<string name="welcome_title">Помогите нам улучшить NymVPN</string>
+	<string name="welcome_description">Выбирайте, какими анонимными данными делиться. Все данные перед отправкой очищаются от любой идентифицирующей информации.</string>
+	<string name="welcome_error_reports_title">Поделитесь отчётами об ошибках</string>
+	<string name="welcome_error_reports_description_start">Помогает нам быстрее устранять ошибки, персональные данные не собираются (через </string>
+	<string name="welcome_error_reports_link_text">Sentry</string>
+	<string name="welcome_error_reports_description_end">)</string>
+	<string name="welcome_usage_title">Поделитесь аналитикой использования</string>
+	<string name="welcome_usage_description">Помогает нам улучшать сеть Nym. Логи и активность не отслеживаются.</string>
+	<!-- Onboarding screen -->
+	<string name="onboarding_title_2">Быстро, когда нужно.\nПриватно, когда важно.</string>
+	<string name="onboarding_title_3">Остановите слежку за вами в интернете</string>
+	<string name="onboarding_title_4">Анонимность от платежа до веб-сёрфинга</string>
+	<string name="onboarding_description_base">Самый приватный VPN в мире</string>
+	<string name="onboarding_description_1">Самый приватный VPN в мире\n7 дней бесплатно.\nПолный доступ ко всем функциям. Никакой рекламы.</string>
+	<string name="onboarding_description_2">Быстрый режим: 250+ Мбит/с с dVPN.\nАнонимный режим: 5-ступенчатый генерирующий шум микснет.</string>
+	<string name="onboarding_description_3">С децентрализованной сетью Nym гарантии «без сбора данных»\n теряют смысл.</string>
+	<string name="onboarding_description_4">Оплачивайте картой, криптовалютой или наличными — без указания электронной почты. Доказательства с нулевым разглашением криптографически отделяют ваш платёж от вашей онлайн-активности.</string>
+	<string name="onboarding_create_account_button">Создайте аккаунт</string>
+	<!-- Select Plan screen -->
+	<string name="select_plan_title">Выберите ваш \nтарифный план</string>
+	<string name="select_plan_line_1">Все функции включены</string>
+	<string name="select_plan_line_2">Никакой рекламы</string>
+	<string name="select_plan_line_3">Отмена в любое время</string>
 	<string name="select_plan_button">Выбрать тарифный план NymVPN</string>
-	<string name="select_plan_modal_title">Выберите свой тариф NymVPN</string>
-	<string name="select_plan_modal_free_trial">Бесплатная пробная версия: 1 неделя</string>
+	<string name="select_plan_modal_title">Выберите свой тариф. Все функции, отмена в любое время.</string>
+	<string name="select_plan_modal_free_trial">Получите 7-дневный пробный период прямо сейчас</string>
 	<string name="select_plan_modal_free_trial_starts_today">Начало: сегодня</string>
 	<string name="select_plan_modal_free_trial_starts">Начало: %1$s</string>
 	<!-- Server Details screen -->
@@ -281,26 +309,43 @@
 	<string name="censorship_description">Продвинутые функции для улучшения подключения в сетях с ограничениями или при блокировке NymVPN.</string>
 	<string name="censorship_quic_title">Расширенное соединение (QUIC)</string>
 	<string name="censorship_quic_changes">Изменения будут применены после переподключения</string>
-	<string name="censorship_quic_description">Повышает надёжность работы в Быстром режиме в сетях с ограничениями, оборачивая трафик WireGuard в QUIC (HTTP/3). Трафик будет выглядеть как обычный веб-сёрфинг, что обходит системы цензуры с глубоким анализом пакетов (DPI).\n\n**Примечание:** Ограничивает выбор входных серверов только шлюзами, совместимыми с QUIC.</string>
+	<string name="censorship_quic_description">Повышает надёжность работы в Быстром режиме в сетях с ограничениями, оборачивая трафик WireGuard в QUIC (HTTP/3). Трафик будет выглядеть как обычный веб-сёрфинг, что обходит системы цензуры с глубоким анализом пакетов (DPI).\n\n**Примечание:** Ограничивает выбор входных серверов только серверами, совместимыми с QUIC.</string>
 	<string name="censorship_quic_link_text">Как QUIC улучшает соединения</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API соединение</string>
 	<string name="censorship_stealth_description">Маскирует API-запросы под популярные разрешённые домены, чтобы обойти блокировку VPN. Автоматически используется NymVPN, когда стандартные попытки подключения API не удаются.</string>
 	<string name="censorship_stealth_link_text">Как работает режим подключения Stealth API</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_event_reconnecting">Переподключение для применения настроек QUIC…</string>
 	<string name="quic">QUIC</string>
-    <string name="quic_gateway_filter_info_msg">Отображение только быстрого режима местоположения и серверов, поддерживающих протокол QUIC. Чтобы открыть все серверы, выключите QUIC</string>
+	<string name="quic_gateway_filter_info_msg">Отображение только быстрого режима местоположения и серверов, поддерживающих протокол QUIC. Чтобы открыть все серверы, выключите QUIC</string>
 	<string name="censorship_amnezia_title">Минимальное обфускация (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Делает трафик WireGuard менее заметным. Вводит пакеты-приманки, которые нарушают работу простых правил, часто используемых системами цензуры с глубоким анализом пакетов (DPI), повышая надежность соединения в условиях ограничительных сред. \n\nПримечание: Реализовано только на стороне клиента.</string>
 	<string name="censorship_amnezia_link_text">Как AmneziaWG предотвращает DPI</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/ru/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-    <!-- Existing subscription -->
+	<string name="account_welcome_create_title">🔒 Максимальная приватность</string>
+	<string name="account_welcome_create_description">Создайте анонимный аккаунт Nym, личные данные не требуются</string>
+	<string name="account_welcome_create_button">Создать анонимный аккаунт</string>
+	<string name="account_welcome_social_title">⚡ Быстрая установка</string>
+	<string name="account_welcome_social_description">Используйте существующий аккаунт, например Google или криптокошелёк, через нашего партнёра по авторизации Privy</string>
+	<string name="account_welcome_social_button">Продолжить с социальным аккаунтом</string>
+	<string name="account_welcome_login_title">Уже есть аккаунт?</string>
+	<string name="account_welcome_login_button">Войти с помощью кодовой фразы Nym из 24 слов</string>
+	<string name="account_welcome_privacy_start">Продолжая, вы соглашаетесь с тем, что NymVPN  </string>
+	<string name="account_welcome_privacy_middle">и</string>
+	<!-- Existing subscription -->
 	<string name="account_subscription_title">Вы уже подписаны!</string>
 	<string name="account_subscription_description">Мы нашли активную подписку, связанную с вашей учётной записью Google Play. Пропустите регистрацию и сразу начните использовать NymVPN. Просто подготовьте свою кодовую фразу из 24 слов.</string>
 	<string name="account_subscription_button">Войти с помощью кодовой фразы Nym</string>
 	<!-- Account Generating screen -->
-    <string name="account_generating_error">Не удалось зарегистрировать учетную запись. Пожалуйста, повторите попытку позже</string>
+	<string name="account_generating_title_1">Создание криптографических ключей…</string>
+	<string name="account_generating_title_2">Создание вашей анонимной личности…</string>
+	<string name="account_generating_title_3">Защита ваших учетных данных локально…</string>
+	<string name="account_generating_description_1">Создание ключей, которые никогда не покидают ваше устройство</string>
+	<string name="account_generating_description_2">Создание анонимных сетевых учетных данных</string>
+	<string name="account_generating_description_3">Шифрование учетных данных ключом вашего устройства; только вы можете разблокировать их</string>
+	<string name="account_generating_error">Не удалось зарегистрировать учетную запись. Пожалуйста, повторите попытку позже</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Обрабатываем ваш платёж в безопасном режиме…</string>
 	<string name="account_payment_verifying">Мы проверяем вашу подписку — никакие личные данные никогда не связываются с вашей личностью</string>
@@ -380,6 +425,8 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Применить при следующем подключении</string>
 	<string name="split_tunneling_per_app_security_banner_title">🛡️ Новая функция: Выберите защиту для каждого приложения или прямое подключение для скорости</string>
 	<string name="split_tunneling_per_app_security_banner_action">Настроить\nприложения</string>
+	<string name="split_tunneling_event_saved">Настройки раздельного туннелирования сохранены</string>
+	<string name="split_tunneling_event_reconnecting">Переподключение для применения настроек раздельного туннелирования…</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">Настройка DNS</string>
 	<string name="dns_description">По умолчанию используются рекомендуемые DNS-серверы Nym. При необходимости настройте пользовательские серверы ниже.</string>
@@ -394,8 +441,11 @@
 	<string name="dns_custom_list_error">Неверный формат DNS-адреса</string>
 	<string name="dns_custom_button_add">Добавить</string>
 	<string name="dns_custom_button_save">Сохранить изменения</string>
+	<string name="dns_custom_button_save_reconnect">Сохранить изменения &amp; переподключиться</string>
 	<string name="dns_custom_saved">Пользовательский DNS сохранен.</string>
 	<string name="dns_save_dialog_title">Сохранить изменения?</string>
 	<string name="dns_save_dialog_description">У вас есть несохраненные изменения.</string>
 	<string name="dns_learn_more_text">Подробнее о DNS</string>
+	<string name="dns_event_saved">Пользовательский DNS сохранен</string>
+	<string name="dns_event_reconnecting">Переподключение для применения пользовательских настроек DNS...</string>
 </resources>

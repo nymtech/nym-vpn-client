@@ -16,6 +16,11 @@ public struct ActionDialogView: View {
                 .opacity(0.3)
                 .background(Color.clear)
                 .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.easeInOut) {
+                        viewModel.isDisplayed = false
+                    }
+                }
 
             HStack {
                 Spacer()

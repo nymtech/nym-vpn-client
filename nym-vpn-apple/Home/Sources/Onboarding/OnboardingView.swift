@@ -25,10 +25,8 @@ public struct OnboardingView: View {
                 Spacer()
                     .frame(height: 24)
                 loginButton()
-#if os(macOS)
                 Spacer()
                     .frame(height: 24)
-#endif
             }
             .frame(maxWidth: MagicNumbers.maxWidth, alignment: .top)
             .padding(.horizontal, 24)
@@ -77,6 +75,7 @@ private extension OnboardingView {
                 CustomNavBarButton(
                     type: .close,
                     action: {
+                        appSettings.welcomeScreenDidDisplay = true
                         path = .init()
                     }
                 )
@@ -123,14 +122,9 @@ private extension OnboardingView {
 
 private extension OnboardingView {
     func navigateToCreateAccount() {
-#if os(iOS)
         appSettings.onboardingDidDisplay = true
         path = NavigationPath([HomeLink.settings])
         path.append(SettingLink.createAccountWelcome(navigationSource: .onboarding))
-#elseif os(macOS)
-        try? externalLinkManager.openExternalURL(urlString: Constants.pricingURL.rawValue)
-        navigateTologin()
-#endif
     }
 
     func navigateTologin() {

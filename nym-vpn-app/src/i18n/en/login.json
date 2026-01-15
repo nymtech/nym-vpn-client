@@ -22,8 +22,8 @@
     "title": "Create account",
     "create-account": "Create anonymous account",
     "maximum-privacy": {
-      "title": "🔒 Maximum privacy",
-      "description": "Create an anonymous account on nym.com. You'll receive a 24-word passphrase. Save it to log back into the app.\n\nNo personal info required."
+      "title": "⚡️ Instant & anonymous (recommended)",
+      "description": "One tap to checkout. Anonymous account generated on your device. No password, no personal info."
     },
     "quick-setup": {
       "title": "⚡️ Quick setup",
@@ -43,7 +43,7 @@
     "new-to-nymvpn": "New to NymVPN?"
   },
   "social-account-button": "Continue with social account",
-  "create-account": "Create anonymous account",
+  "create-account": "Start anonymously",
   "notification": {
     "added": "Device successfully added to your account"
   }
