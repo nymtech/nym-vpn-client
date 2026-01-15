@@ -181,10 +181,17 @@ public extension HomeViewModel {
     }
 
     @MainActor func navigateToGatewayDetails(for hopType: HopType, gatewayType: NodeType) {
-        if let entryGatewayId = connectionInfoData?.entryGatewayId ?? connectionManager.entryGateway.gatewayId,
-           let entryGateway = gatewayManager.gateway(with: entryGatewayId, gatewayType: gatewayType) {
-            navigateToGatewayDetails(gateway: entryGateway, hopType: hopType)
+        let gateway: GatewayNode?
+        switch hopType {
+        case .entry:
+            let entryGatewayId = connectionInfoData?.entryGatewayId ?? connectionManager.entryGateway.gatewayId
+            gateway = gatewayManager.gateway(with: entryGatewayId, gatewayType: gatewayType)
+        case .exit:
+            let exitGatewayId = connectionInfoData?.exitGatewayId ?? connectionManager.exitRouter.gatewayId
+            gateway = gatewayManager.gateway(with: exitGatewayId, gatewayType: gatewayType)
         }
+        guard let gateway else { return }
+        navigateToGatewayDetails(gateway: gateway, hopType: hopType)
     }
 
     @MainActor private func navigateToGatewayDetails(gateway: GatewayNode, hopType: HopType) {
