@@ -354,12 +354,30 @@ jobs:
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          echo "🚜 Bump build number"
-          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number 6471254143 --platform=IOS)
-          NEXT_BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
-          echo "🔢 Latest build: $LATEST_BUILD_NUMBER → Next: $NEXT_BUILD_NUMBER"
 
-          fastlane mac bump_build build:$NEXT_BUILD_NUMBER
+          echo "🚜 Resolve build number (only bump if needed)"
+          LATEST="$(app-store-connect get-latest-testflight-build-number 6471254143 --platform=IOS)"
+          REQUIRED=$((LATEST + 1))
+
+          PROJECT="$(
+            xcodebuild -showBuildSettings \
+              -workspace "NymVPN.xcworkspace" \
+              -scheme "NymVPN" \
+              -configuration "Release" 2>/dev/null |
+            awk '/CURRENT_PROJECT_VERSION/ { print $3; exit }'
+          )"
+
+          TARGET=$(( PROJECT > REQUIRED ? PROJECT : REQUIRED ))
+
+          if (( TARGET != PROJECT )); then
+            echo "🚜 Bump build: $PROJECT → $TARGET (TestFlight latest=$LATEST)"
+            fastlane mac bump_build build:"$TARGET"
+          else
+            echo "✅ Keep build: $PROJECT (TestFlight latest=$LATEST)"
+          fi
+
+          # Export iOS build number for later steps (Zulip)
+          echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"
 
           echo "🚜 Update signing"
           xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
@@ -375,11 +393,7 @@ jobs:
             2>&1 | xcbeautify --renderer github-actions
 
           echo "✅ Signed archive + .ipa exported"
-
-          echo "🔢 Latest build: $LATEST_BUILD_NUMBER → Next: $NEXT_BUILD_NUMBER"
-
-          # Export iOS build number for later steps (Zulip)
-          echo "IOS_BUILD_NUMBER=$NEXT_BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "🔢 Build used: $TARGET (TestFlight latest=$LATEST)"
 
           # Capture iOS version (MARKETING_VERSION) for later steps (Zulip)
           IOS_VERSION=$(
@@ -396,7 +410,7 @@ jobs:
           fi
 
           echo "IOS_VERSION=$IOS_VERSION" >> "$GITHUB_ENV"
-          echo "✅ iOS version captured: $IOS_VERSION ($NEXT_BUILD_NUMBER)"
+          echo "✅ iOS version captured: $IOS_VERSION ($TARGET)"
 
       - name: Generate what to test notes for iOS
         if: ${{ env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true' }}
