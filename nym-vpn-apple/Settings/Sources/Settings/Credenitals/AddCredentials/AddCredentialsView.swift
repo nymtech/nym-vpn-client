@@ -116,23 +116,16 @@ private extension AddCredentialsView {
         .padding(.vertical, 16)
 
         createAccount()
-
         Spacer()
-            .frame(height: 24)
         TermsAndConditionsView()
         Spacer()
-//            .frame(height: 24)
+            .frame(height: 24)
     }
 
     @ViewBuilder
     func getStartedSection() -> some View {
-        Spacer()
-            .frame(height: 40)
-
         loginTitle()
         Spacer()
-            .frame(height: 16)
-
         enterPassphraseTitleText()
         Spacer()
             .frame(height: 16)
