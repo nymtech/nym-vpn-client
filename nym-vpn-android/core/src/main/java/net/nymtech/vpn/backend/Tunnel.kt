@@ -59,9 +59,9 @@ interface Tunnel {
 	 */
 	enum class Environment {
 		CANARY,
+		EVIL,
 		MAINNET,
 		SANDBOX,
-		QA,
 		;
 
 		fun networkName(): String {

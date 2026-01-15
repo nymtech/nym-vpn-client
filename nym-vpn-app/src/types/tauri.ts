@@ -191,7 +191,7 @@ export type MixnetEventPayload = { event: MixnetEvent } | { error: ErrorKey };
 
 export type NetworkCompat = { core: boolean | null; tauri: boolean | null };
 
-export type NetworkEnv = 'mainnet' | 'canary' | 'qa' | 'sandbox';
+export type NetworkEnv = 'mainnet' | 'canary' | 'evil' | 'sandbox';
 
 export type OsInfo = {
   /**
