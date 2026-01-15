@@ -12,7 +12,7 @@ export type Props = {
 };
 
 function LocationDetailsDialog({ isOpen, onClose, node }: Props) {
-  const { t } = useTranslation('nodeLocation');
+  const { t } = useTranslation('node-location');
   const title =
     node === 'entry'
       ? t('location-details.entry-title')

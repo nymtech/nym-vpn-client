@@ -40,7 +40,7 @@ const NodeList = memo(function NodeList({
 }: NodeListProps) {
   const { backendFlags, quic } = useMainState();
   const { setExpanded } = useNodeListState();
-  const { t } = useTranslation('nodeLocation');
+  const { t } = useTranslation('node-location');
 
   const quicFilter =
     vpnMode === 'wg' && hop === 'entry' && backendFlags.quic && quic;

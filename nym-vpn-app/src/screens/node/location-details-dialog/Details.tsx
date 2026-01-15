@@ -28,13 +28,13 @@ function DetailsSection({
 }
 
 function LocationSection() {
-  const { t } = useTranslation('nodeLocation');
+  const { t } = useTranslation('node-location');
   return (
     <DetailsSection
       icon="location_on"
       title={t('location-details.location.title')}
     >
-      <Trans i18nKey="location-details.location.description" ns="nodeLocation">
+      <Trans i18nKey="location-details.location.description" ns="node-location">
         Displayed locations are
         <Link
           url={LocationDetailsArticle}
@@ -49,10 +49,10 @@ function LocationSection() {
 }
 
 function QUICSection() {
-  const { t } = useTranslation('nodeLocation');
+  const { t } = useTranslation('node-location');
   return (
     <DetailsSection icon="package_2" title={t('location-details.quic.title')}>
-      <Trans i18nKey="location-details.quic.description" ns="nodeLocation">
+      <Trans i18nKey="location-details.quic.description" ns="node-location">
         Improves the Fast mode reliability in restrictive networks by
         <Link
           url={QuicSupportArticleUrl}
@@ -67,13 +67,16 @@ function QUICSection() {
 }
 
 function StreamingSection() {
-  const { t } = useTranslation('nodeLocation');
+  const { t } = useTranslation('node-location');
   return (
     <DetailsSection
       icon="smart_display"
       title={t('location-details.streaming.title')}
     >
-      <Trans i18nKey="location-details.streaming.description" ns="nodeLocation">
+      <Trans
+        i18nKey="location-details.streaming.description"
+        ns="node-location"
+      >
         <Link
           url={ResidentialIpServersUrl}
           textClassName="underline text-black dark:text-white"
