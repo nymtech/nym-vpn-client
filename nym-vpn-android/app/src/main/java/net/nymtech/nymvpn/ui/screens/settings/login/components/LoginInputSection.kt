@@ -1,13 +1,20 @@
 package net.nymtech.nymvpn.ui.screens.settings.login.components
 
+import android.content.res.Configuration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.MaterialTheme
@@ -21,73 +28,61 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withLink
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.settings.login.LoginUiState
-import net.nymtech.nymvpn.ui.screens.settings.login.LoginViewModel
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.scaledHeight
-import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LoginInputSection(onCreateAccountClick: () -> Unit, viewModel: LoginViewModel, uiState: LoginUiState, loading: Boolean, onLoadingChange: (Boolean) -> Unit, onRequestCameraPermission: () -> Unit) {
+fun LoginInputSection(
+	onCreateAccountClick: () -> Unit,
+	uiState: LoginUiState,
+	loading: Boolean,
+	mnemonic: String,
+	onMnemonicChange: (String) -> Unit,
+	onSubmitMnemonic: (String) -> Unit,
+	onDismissError: () -> Unit,
+) {
 	val keyboardController = LocalSoftwareKeyboardController.current
-	var mnemonic by remember { mutableStateOf("") }
 
-	val onSubmit = {
+	val submit = {
 		keyboardController?.hide()
-		onLoadingChange(true)
-		viewModel.onMnemonicImport(mnemonic)
+		onSubmitMnemonic(mnemonic)
 	}
-
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.spacedBy(32.dp.scaledHeight(), Alignment.Top),
 	) {
 		CustomTextField(
 			placeholder = {
 				Column {
 					Text(
-						stringResource(R.string.access_code),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-					)
-					Text("")
-					Text(
 						stringResource(R.string.mnemonic_example),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						color = MaterialTheme.colorScheme.outline,
 					)
 				}
 			},
 			value = mnemonic,
 			onValueChange = { newValue ->
-				if (uiState.success == false) {
-					viewModel.consumeResult()
-				}
-				mnemonic = newValue
+				if (uiState.success == false) onDismissError()
+				onMnemonicChange(newValue)
 			},
 			keyboardActions = KeyboardActions(
-				onDone = {
-					keyboardController?.hide()
-					onSubmit()
-				},
+				onDone = { submit() },
 			),
 			modifier = Modifier
-				.width(358.dp.scaledWidth())
-				.height(180.dp.scaledHeight()),
+				.fillMaxWidth()
+				.height(130.dp.scaledHeight()),
 			supportingText = {
 				if (uiState.success == false) {
 					Text(
@@ -101,7 +96,7 @@ fun LoginInputSection(onCreateAccountClick: () -> Unit, viewModel: LoginViewMode
 			label = {
 				Text(
 					text = stringResource(R.string.recovery_phrase),
-					color = MaterialTheme.colorScheme.onSurface,
+					color = MaterialTheme.colorScheme.onBackground,
 				)
 			},
 			textStyle = MaterialTheme.typography.bodyMedium.copy(
@@ -109,58 +104,73 @@ fun LoginInputSection(onCreateAccountClick: () -> Unit, viewModel: LoginViewMode
 			),
 		)
 
-		Row(
-			horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth(), Alignment.CenterHorizontally),
+		Spacer(modifier = Modifier.height(14.dp.scaledHeight()))
+
+		MainStyledButton(
+			testTag = Constants.LOGIN_TEST_TAG,
+			onClick = { submit() },
+			content = {
+				if (loading && uiState.success == null) {
+					SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
+				} else {
+					Text(
+						stringResource(R.string.log_in),
+						style = CustomTypography.buttonMain,
+					)
+				}
+			},
+			color = MaterialTheme.colorScheme.primary,
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(bottom = 24.dp.scaledHeight()),
-		) {
-			Column(
-				horizontalAlignment = Alignment.CenterHorizontally,
-				verticalArrangement = Arrangement.spacedBy(16.dp),
-			) {
-				MainStyledButton(
-					testTag = Constants.LOGIN_TEST_TAG,
-					onClick = { onSubmit() },
-					content = {
-						if (loading && uiState.success == null) {
-							SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
-						} else {
-							Text(
-								stringResource(R.string.log_in),
-								style = CustomTypography.labelHuge,
-								fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
-							)
-						}
-					},
-					color = MaterialTheme.colorScheme.primary,
-					modifier = Modifier
-						.fillMaxWidth()
-						.height(56.dp.scaledHeight()),
-				)
+				.height(56.dp.scaledHeight()),
+		)
+		Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
 
-				Text(
-					text = buildAnnotatedString {
-						append(stringResource(R.string.new_to_nym))
-						append(" ")
-						withLink(
-							LinkAnnotation.Clickable(
-								tag = "signUpLink",
-								styles = TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary)),
-							) {
-								onCreateAccountClick()
-							},
-						) {
-							append(stringResource(R.string.onboarding_create_account_button))
-						}
-					},
-					style = MaterialTheme.typography.bodyLarge.copy(
-						color = MaterialTheme.colorScheme.onBackground,
-						textAlign = TextAlign.Center,
-					),
-					modifier = Modifier.padding(24.dp.scaledHeight()),
-				)
-			}
+		Row(
+			modifier = Modifier.fillMaxWidth(),
+			horizontalArrangement = Arrangement.Center,
+			verticalAlignment = Alignment.CenterVertically,
+		) {
+			Text(
+				text = stringResource(R.string.new_to_nym),
+				style = MaterialTheme.typography.labelLarge,
+				color = MaterialTheme.colorScheme.outline,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			)
+			Spacer(modifier = Modifier.width(4.dp))
+			Text(
+				text = stringResource(R.string.onboarding_create_account_button),
+				style = MaterialTheme.typography.labelLarge,
+				color = MaterialTheme.colorScheme.primary,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				modifier = Modifier.clickable { onCreateAccountClick() },
+			)
+		}
+	}
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+internal fun PreviewLoginInputSection_Default() {
+	NymVPNTheme(Theme.default()) {
+		var mnemonic by remember { mutableStateOf("") }
+
+		Column(
+			modifier = Modifier
+				.fillMaxSize()
+				.background(MaterialTheme.colorScheme.background)
+				.verticalScroll(rememberScrollState())
+				.padding(24.dp),
+		) {
+			LoginInputSection(
+				onCreateAccountClick = {},
+				uiState = LoginUiState(),
+				loading = false,
+				mnemonic = "",
+				onMnemonicChange = { mnemonic = it },
+				onSubmitMnemonic = {},
+				onDismissError = {},
+			)
 		}
 	}
 }
