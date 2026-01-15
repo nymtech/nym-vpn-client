@@ -6523,6 +6523,17 @@
         }
       }
     },
+    "createAccount.instantAndAnonymous" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instant & anonymous"
+          }
+        }
+      }
+    },
     "createAccount.introOffer" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6631,28 +6642,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "登录"
-          }
-        }
-      }
-    },
-    "createAccount.maximumPrivacy" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Maximum privacy"
-          }
-        }
-      }
-    },
-    "createAccount.maximumPrivacy.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create an anonymous Nym account, no personal info required"
           }
         }
       }
@@ -6855,6 +6844,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我已保存我的密码"
+          }
+        }
+      }
+    },
+    "createAccount.singleTap.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One tap to checkout. Anonymous account generated on your device. No password, no personal info."
           }
         }
       }
