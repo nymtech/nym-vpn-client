@@ -12,7 +12,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  UPLOAD_DIR_MAC: mac_artifacts
+  UPLOAD_DIR_MAC: ${{ github.workspace }}/mac_artifacts
 
 jobs:
   build-wireguard-go-mac:
@@ -78,7 +78,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
         with:
-          name: ${{ env.UPLOAD_DIR_MAC }}
+          name: mac_artifacts
           path: ${{ env.UPLOAD_DIR_MAC }}
           if-no-files-found: error
           retention-days: 1
