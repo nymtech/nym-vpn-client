@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use nym_diagnostic::DiagnosticHandler;
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
@@ -38,11 +39,12 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
-    DecentralisedObtainTicketbooksRequest, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
-    NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice,
-    NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest, SystemMessage,
-    TargetState, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    DecentralisedObtainTicketbooksRequest, DiagnosticRegisterParams, DiagnosticReport,
+    DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway,
+    ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
+    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
+    ParsedAccountLinks, RegistrationReport, StoreAccountRequest, SystemMessage, TargetState,
+    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -153,6 +155,11 @@ pub enum VpnServiceCommand {
     GetNetStatsSeed(
         oneshot::Sender<Result<NetworkStatisticsIdentity, StatisticsControllerError>>,
         (),
+    ),
+    RunDiagnostic(oneshot::Sender<DiagnosticReport>, DiagnosticRunParams),
+    RegisterDiagnostic(
+        oneshot::Sender<RegistrationReport>,
+        DiagnosticRegisterParams,
     ),
 }
 
@@ -282,7 +289,7 @@ impl NymVpnService {
 
             tracing::debug!("VPN service initialized successfully");
 
-            match service.run().await {
+            match Box::pin(service.run()).await {
                 Ok(_) => {
                     tracing::info!("VPN service has successfully exited");
                 }
@@ -920,6 +927,12 @@ impl NymVpnService {
             VpnServiceCommand::GetSocks5Status(tx, ()) => {
                 let result = self.handle_get_socks5_status().await;
                 let _ = tx.send(result);
+            }
+            VpnServiceCommand::RunDiagnostic(tx, params) => {
+                let _ = tx.send(self.handle_run_diagnostic(params).await);
+            }
+            VpnServiceCommand::RegisterDiagnostic(tx, params) => {
+                let _ = tx.send(Box::pin(self.handle_register_diagnostic(params)).await);
             }
         }
     }
@@ -1582,5 +1595,38 @@ impl NymVpnService {
         &mut self,
     ) -> Result<NetworkStatisticsIdentity, StatisticsControllerError> {
         self.stats_control_commands_sender.get_seed().await
+    }
+
+    async fn handle_run_diagnostic(&self, params: DiagnosticRunParams) -> DiagnosticReport {
+        let network = *self.network_tx.borrow().clone();
+        let report = DiagnosticHandler::run(network, params).await;
+        match serde_json::to_string_pretty(&report) {
+            Ok(report_log) => tracing::info!("{report_log}"),
+            Err(e) => tracing::error!("Error serializing report :{e}"),
+        }
+        report
+    }
+
+    async fn handle_register_diagnostic(
+        &self,
+        mut params: DiagnosticRegisterParams,
+    ) -> RegistrationReport {
+        if !(*self.tunnel_state.read().await == TunnelState::Disconnected
+            && self.account_state_rx.get_state() == AccountControllerState::ReadyToConnect)
+        {
+            return RegistrationReport::from_err(
+                "Must be disconnected and ready to connect to run registration diagnostic",
+            );
+        }
+        let network = *self.network_tx.borrow().clone();
+        if params.storage_path.is_none() {
+            params.storage_path = Some(self.data_dir.clone());
+        }
+        let report = Box::pin(DiagnosticHandler::register(network, params)).await;
+        match serde_json::to_string_pretty(&report) {
+            Ok(report_log) => tracing::info!("{report_log}"),
+            Err(e) => tracing::error!("Error serializing report :{e}"),
+        }
+        report
     }
 }
