@@ -1,50 +1,43 @@
-Çevrimiçi izlenmeyi durdurun. Sizi izleyemeyecek tek VPN. İsviçre’de geliştirildi ve dünya genelinde gizlilik savunucuları tarafından güveniliyor.
+7 günlük ücretsiz deneme: Tüm özellikler, reklamsız, istediğiniz zaman iptal edin.
 
-⭐️ Bu platformlarda yer aldı: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+Sizi izleyemeyen tek VPN. İsviçre’de üretildi. Gizlilik savunucuları tarafından geliştirildi. Çevrimiçi anonimlik için dünyanın ilk Mixnet’i.
 
-İZ BIRAKMADAN GEZİN
+- İsimsiz kayıt: E-posta gerekmez. Zero-knowledge hesaplar. Herhangi bir VPN’den daha fazla kripto para kabul eder. Tam anonimlik için nakit ödeme desteği.
+- Merkeziyetsiz VPN teknolojisi
+- Yüzlerce bağımsız sunucu ile 65+ ülke
+- Tek bir anonim kodla en fazla 10 cihaz
 
-Sizi kimin izlediğini düşünmekten yoruldunuz mu? Geleneksel VPN’ler teorik olarak etkinliklerinizi kaydedebilir. NymVPN temelde farklıdır: Merkeziyetsiz ağımız, merkezi kayıt tutmayı tasarım gereği imkansız kılar. Bu bir ‘kayıt tutmama politikası’ değil — bu, ‘kayıt tutamaz’ mimarisidir.
+İZ BIRAKMADAN GEZİNİN
 
-✓ Gerçek anonimlik: Kripto veya nakit ile ödeme, e-posta gerekmez
-✓ 50’den fazla ülke, yüzlerce bağımsız sunucu
-✓ Çoklu cihaz koruması: Tek anonim kod ile 10 cihaz
-✓ İsviçre merkezli, akademik düzeyde gizlilik standartları
+Sizi kimin izlediğini merak etmekten yoruldunuz mu? Kişisel verilerinizi toplayan şirketler? Konumunuz nedeniyle bilgiye erişememek?
 
-GİZLİLİK DÜZEYİNİZİ SEÇİN
+Diğer VPN’ler kayıt tutmadıklarını vaat ederken, NymVPN ağı merkezi kayıtların mümkün olmadığı şekilde tasarlanmıştır. Merkeziyetsiz ağın hiçbir noktası IP adresinizi çevrimiçi faaliyetlerinizle ilişkilendiremez. Gizlilik varsayılan olarak garanti edilir.
 
-⚡ Hızlı Mod – Yayın izlerken veya internette gezinirken süper hızlı performans sağlar. Varsayılan olarak 2-hop kullanılır: bir sunucu kim olduğunuzu, diğer sunucu ne yaptığınızı bilir ama ikisi hiçbir zaman birlikte bilmez.
-🔒 Anonim Mod – Gürültü üreten teknoloji ve 5 katmanlı şifreleme ile 5-hop mixnet üzerinden maksimum gizlilik sağlar.  Yapay zekâ destekli trafik analizi ve gelişmiş gözetlemeye karşı dayanacak şekilde tasarlanmıştır.
+NymVPN ile çevrimiçi etkinliğiniz reklamverenler, ağ operatörleri veya merkezi altyapılar tarafından size bağlanamaz. İnternette davranışsal bir iz bırakmadan gezinin, araştırın ve iletişim kurun.
 
-NYMVPN’İ FARKLI KILAN NEDİR
+GİZLİLİK SEVİYESİNİZİ SEÇİN
 
-• Meta veri koruması – Diğer VPN’lerin aksine, sadece verilerinizi değil, geride bıraktığınız kalıpları da korur
-• Sansüre dirençli – AmneziaWG, QUIC ve gizli protokollerle kısıtlayıcı ortamlarda engellenmiş bilgilere erişim sağlar
-• Sıfır bilgi ödemeleri – Aboneliğiniz etkinliğinizden kriptografik olarak ayrıdır
-• Üniversite tasarımı – KU Leuven ve EPFL’den doktora seviyesinde kriptograflar tarafından 20+ hakemli yayına dayanarak geliştirildi
+Hızlı Mod
+- Yüksek hızlı gezinme ve yayın
+- 2 atlamalı merkeziyetsiz VPN
+- 65+ ülkede giriş ve çıkış sunucusu seçimi
 
-BAĞIMSIZ OLARAK DOĞRULANDI
-
-• 4 güvenlik denetimi (2021-2024) – JP Aumasson, Oak Security, Cryspen, Cure53
-• Açık kaynak ve şeffaf (“Güvenilir VPN Sinyalleri”)
-• 10.000+ kullanıcı, gizlilikleri için NymVPN’e güveniyor
+Anonim Mod
+- Mesajlaşma, e-posta ve finansal işlemler için maksimum anonimlik
+- Gürültü üreten 5 atlamalı Mixnet
+- Gelişmiş trafik analizine karşı tasarlandı
 
 TEMEL ÖZELLİKLER
+- 65+ ülkede yüksek hızlı bağlantılar
+- Çok katmanlı şifreleme
+- dVPN AmneziaWG (WireGuard) desteği
+- Veri sızıntılarını önleyen kill switch
+- Gelişmiş sansür karşıtı teknoloji
+- Split tunneling
+- Özel DNS
+- Özel Ethereum işlemleri için dApp ve cüzdan modu
+- Kriptografik anahtar rotasyonu
+- Tamamen reklamsız
+- Tamamen açık kaynak
 
-• 50’den fazla ülke seçeneğiyle yüksek hızlı bağlantılar
-• Kill switch özelliği veri sızıntılarını engeller
-• Tamamen reklamsız kullanım deneyimi
-• En güncel ve ileri düzey kriptografik altyapı
-
-
-ŞUNLAR İÇİN MÜKEMMEL:
-
-→ Reklam verenler tarafından izlenmeden yayın izleme ve internette gezinme
-→ Kafeler, havaalanları, oteller gibi yerlerde güvenli kamuya açık WiFi bağlantıları
-→ Kısıtlayıcı ülkelerde güvenilir erişime ihtiyaç duyan herkes
-→ Sadece IP gizleme değil, gerçek anonimlik isteyen kişiler
-→ İzlenemez iletişime ihtiyaç duyan gazeteciler ve aktivistler
-
-Şimdi indir. Saniyeler içinde bağlan. Online görünmez ol.
-
-🎁 7 günlük ücretsiz deneme | 💯 30 gün para iade garantisi | 🌐 Dünya genelinde 10.000+ kullanıcı tarafından güveniliyor
+Şimdi indirin. Anonim olarak kaydolun. NymVPN ile görünmez olun.

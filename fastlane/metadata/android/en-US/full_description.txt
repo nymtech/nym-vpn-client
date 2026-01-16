@@ -1,50 +1,78 @@
-Stop being tracked online. The only VPN that can't spy on you, even if it wanted to. Made in Switzerland, trusted by privacy advocates worldwide.
+7 day free trial: All features, no ads, cancel anytime.
 
-⭐️ As seen in: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+The only VPN that can't spy on you. Made in Switzerland. Built by privacy-advocates. The world’s first mixnet for online anonymity.
 
-BROWSE WITHOUT LEAVING A TRACE
+- NO NAME SIGNUP: No email required. Zero-knowledge accounts. The most crypto accepted by any VPN. Cash payments accepted for full anonymity.
+- DECENTRALIZED VPN technology
+- 65+ COUNTRIES with hundreds of independent servers
+- UP TO 10 DEVICES with one anonymous code
 
-Tired of wondering who's watching? Traditional VPNs can theoretically log your activity. NymVPN is fundamentally different: our decentralized network makes centralized logging impossible by design. This isn't a "no-logs policy"—it's a "can't log" architecture.
+BROWSE WITHOUT A TRACE
 
-✓ True anonymity: Pay with crypto or cash, no email required
-✓ 50+ countries, hundreds of independent servers
-✓ Multi-device protection: 10 devices with one anonymous code
-✓ Swiss-based with academic-grade privacy standards
+Tired of wondering who's watching you? Corporations collecting your personal data? Not being able to access information because of where you are?
+
+While other VPNs promise not to keep logs, the NymVPN network is designed so centralized logs are not possible. No point on the decentralized network can connect your IP address with what you do online. Your privacy is guaranteed by default.
+When you connect with NymVPN, your online activity cannot be tied back to you by advertisers, network operators, or centralized infrastructure. You can browse, research, and communicate without creating a behavioral fingerprint that follows you across the internet.
+
 
 CHOOSE YOUR PRIVACY LEVEL
 
-⚡ Fast Mode – Lightning-fast speeds for streaming and browsing. 2-hop by default so one server knows who you are, another knows what you're doing—but never both.
-🔒 Anonymous Mode – Maximum privacy through a 5-hop mixnet with noise-generating technology and up to 5 layers of encryption. Designed to resist even AI-powered traffic analysis and advanced surveillance.
+Fast Mode
+- High-speed browsing and streaming
+- 2-hop decentralized VPN
+- Choose entry and exit servers in 65+ countries
 
-WHY NYMVPN IS DIFFERENT
 
-• Metadata protection – Unlike other VPNs, we protect not just your data but the patterns you leave behind
-• Censorship resistant – Access blocked information in restrictive environments with AmneziaWG, QUIC and stealth protocols
-• Zero-knowledge payments – Your subscription is cryptographically unlinked from your activity
-• University-designed – Built by PhD cryptographers from KU Leuven and EPFL with 20+ peer-reviewed publications
-
-INDEPENDENTLY VERIFIED
-
-• 4 security audits (2021-2024) by JP Aumasson, Oak Security, Cryspen, Cure53
-• Open-source and transparent ("Signals of Trustworthy VPNs")
-• 10,000+ users already trust NymVPN for their privacy
+Anonymous Mode
+- Maximum anonymity for messaging, email, and financial transactions
+- 5-hop Noise Generating Mixnet
+- Designed to resist advanced traffic analysis
 
 ESSENTIAL FEATURES
 
-• High-speed connections with 50+ country selection
-• Kill switch prevents data leaks
-• Completely ad-free experience
-• State-of-the-art cryptographic stack
+- High-speed connections with 65+ country selection
+- Multi-layer encryption
+- dVPN AmneziaWG (WireGuard) support
+- Kill switch prevents data leaks
+- Advanced anti-censorship technology
+- Split tunneling
+- Custom DNS
+- dApp & wallet mode for private & secure Ethereum crypto transactions 
+- Key rotation for cryptographic security
+- Completely ad-free experience
+- Fully open source 
 
+WHY NYMVPN IS DIFFERENT
 
-PERFECT FOR
+Most VPNs rely on centralized servers and ask you to trust their “no-logs” promises. NymVPN is built differently.
+- Decentralized VPN (dVPN) architecture: Traffic is routed through independently operated nodes. There is no single server that can see both who you are and what you do online.
 
-→ Streaming and browsing without being tracked by advertisers
-→ Secure public WiFi connections at cafes, airports, hotels
-→ Anyone in restrictive countries needing reliable access
-→ People who want true anonymity, not just hidden IP addresses
-→ Journalists and activists needing untraceable communication
+- Metadata protection, not just encryption: NymVPN protects traffic patterns, timing, and routing information. Even encrypted data can leak metadata. Nym is designed to prevent that.
 
-Download now. Connect in seconds. Disappear online.
+- Noise Generating Mixnet technology: In Anonymous Mode, your traffic is mixed with cover traffic across multiple hops, making correlation and AI-driven traffic analysis extremely difficult.
 
-🎁 7-day free trial | 💯 30-day money-back guarantee | 🌐 Trusted by 10,000+ users worldwide
+- Two privacy modes, one app: Fast Mode uses a high-performance 2-hop decentralized VPN.
+ Anonymous Mode uses a 5-hop mixnet for maximum anonymity.
+
+- Zero-knowledge accounts by design: No email signup. No personal data. Accounts are unlinkable from usage. Supports crypto and cash payments for full anonymity.
+
+- Censorship-resistant networking: Built with AmneziaWG, QUIC, and stealth transport options to work in restrictive environments.
+
+- Open-source and independently audited: Fully open source, with multiple third-party security audits by Cure53, Cryspen, Oak Security, and JP Aumasson.
+
+- Built by academic cryptographers: Designed by researchers from KU Leuven and EPFL with 20+ peer-reviewed publications in privacy and cryptography.
+
+INDEPENDENTLY VERIFIED
+- Audited by Cure53, Cryspen, Oak Security, JP Aumasson
+- Featured in PCMag, TechRadar, Forbes, Bloomberg
+- Trusted by 10,000+ privacy-focused users
+
+NYMVPN IS PERFECT FOR:
+
+- Streaming and browsing without being tracked by advertisers
+- Secure public WiFi connections at cafes, airports, hotels
+- Anyone in restrictive countries needing reliable access
+- People who want true anonymity, not just hidden IP addresses
+- Journalists and activists needing untraceable communication
+
+Download now. Signup anonymously. Go dark with NymVPN. 
