@@ -1,1 +1,1 @@
-NymVPN: Private Mixnet
+NymVPN – Soukromá a anonymní VPN

@@ -1,1 +1,1 @@
-NymVPN: Gizli Mixnet
+NymVPN – Özel ve anonim VPN
