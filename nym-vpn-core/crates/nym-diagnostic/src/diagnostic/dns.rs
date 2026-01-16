@@ -1,13 +1,13 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_http_api_client::{HickoryDnsResolver, ResolveError};
+use nym_http_api_client::ResolveError;
 use nym_vpn_lib_types::{CompleteDnsReport, DnsResolution};
 use nym_vpn_network_config::Network;
 
 use hickory_resolver::{
     Resolver, ResolverBuilder,
-    config::{ResolverConfig, ResolverOpts},
+    config::{NameServerConfig, NameServerConfigGroup, ResolverConfig, ResolverOpts},
     name_server::TokioConnectionProvider,
 };
 use std::{
@@ -23,6 +23,14 @@ pub struct DnsDiagnostic {
 impl DnsDiagnostic {
     fn system() -> Result<Resolver<TokioConnectionProvider>, ResolveError> {
         Ok(Self::build_resolver(Resolver::builder_tokio()?))
+    }
+
+    fn from_nameservers<G: Into<NameServerConfigGroup>>(
+        nameservers: G,
+    ) -> Resolver<TokioConnectionProvider> {
+        let nameservers: NameServerConfigGroup = nameservers.into();
+        let config = ResolverConfig::from_parts(None, Vec::new(), nameservers);
+        Self::from_config(config)
     }
 
     fn from_config(config: ResolverConfig) -> Resolver<TokioConnectionProvider> {
@@ -46,60 +54,50 @@ impl DnsDiagnostic {
     pub async fn run_diagnostic(network: &Network) -> CompleteDnsReport {
         tracing::info!("Running DNS diagnostic");
 
-        let dns_diagnostic = DnsDiagnostic {
+        let many_diagnostic = DnsDiagnostic {
             hostnames: hostnames(network),
         };
 
-        tracing::debug!("Running DNS diagnostic on: {:?}", dns_diagnostic.hostnames);
+        tracing::debug!(
+            "Running system DNS diagnostic on: {:?}",
+            many_diagnostic.hostnames
+        );
 
         tracing::debug!("System DNS diagnostic");
         let system_resolver = DnsDiagnostic::system();
         let system = match system_resolver {
-            Ok(resolver) => Ok(dns_diagnostic.resolve(&resolver).await),
+            Ok(resolver) => Ok(many_diagnostic.resolve(&resolver).await),
             Err(e) => Err(e),
         }
         .into();
 
-        tracing::debug!("Quad9 DNS diagnostic");
-        let quad9_resolver = DnsDiagnostic::from_config(ResolverConfig::quad9());
-        let quad9 = dns_diagnostic.resolve(&quad9_resolver).await;
+        let single_hostname = many_diagnostic.hostnames[0].clone();
+        let ns_diagnostic = DnsDiagnostic {
+            hostnames: vec![single_hostname],
+        };
 
-        tracing::debug!("Quad9 DoH diagnostic");
-        let quad9_doh_resolver = DnsDiagnostic::from_config(ResolverConfig::quad9_https());
-        let quad9_doh = dns_diagnostic.resolve(&quad9_doh_resolver).await;
+        tracing::debug!(
+            "Running per ns DNS diagnostic on: {:?}",
+            many_diagnostic.hostnames
+        );
 
-        tracing::debug!("Quad9 DoT diagnostic");
-        let quad9_dot_resolver = DnsDiagnostic::from_config(ResolverConfig::quad9_tls());
-        let quad9_dot = dns_diagnostic.resolve(&quad9_dot_resolver).await;
+        let mut name_servers = NameServerConfigGroup::quad9_tls();
+        name_servers.merge(NameServerConfigGroup::quad9());
+        name_servers.merge(NameServerConfigGroup::quad9_https());
+        name_servers.merge(NameServerConfigGroup::cloudflare_tls());
+        name_servers.merge(NameServerConfigGroup::cloudflare());
+        name_servers.merge(NameServerConfigGroup::cloudflare_https());
 
-        tracing::debug!("CloudFlare DNS diagnostic");
-        let cloudflare_resolver = DnsDiagnostic::from_config(ResolverConfig::cloudflare());
-        let cloudflare = dns_diagnostic.resolve(&cloudflare_resolver).await;
-
-        tracing::debug!("CloudFlare DoH diagnostic");
-        let cloudflare_doh_resolver =
-            DnsDiagnostic::from_config(ResolverConfig::cloudflare_https());
-        let cloudflare_doh = dns_diagnostic.resolve(&cloudflare_doh_resolver).await;
-
-        tracing::debug!("CloudFlare DoT diagnostic");
-        let cloudflare_dot_resolver = DnsDiagnostic::from_config(ResolverConfig::cloudflare_tls());
-        let cloudflare_dot = dns_diagnostic.resolve(&cloudflare_dot_resolver).await;
-
-        tracing::debug!("Nym custom DNS diagnostic");
-        let mut nym_resolver = HickoryDnsResolver::default();
-        nym_resolver.disable_system_fallback();
-        nym_resolver.set_static_fallbacks(Default::default());
-        let nym = dns_diagnostic.resolve(&nym_resolver).await;
+        let mut results = Vec::new();
+        for nameserver in name_servers.into_inner().into_iter() {
+            tracing::debug!("DNs diagnostic - {nameserver:?}");
+            let resolver = DnsDiagnostic::from_nameservers(vec![nameserver]);
+            results.append(&mut ns_diagnostic.resolve(&resolver).await);
+        }
 
         CompleteDnsReport {
             system,
-            quad9,
-            quad9_doh,
-            quad9_dot,
-            cloudflare,
-            cloudflare_doh,
-            cloudflare_dot,
-            nym,
+            by_nameserver: results,
         }
     }
 
@@ -118,6 +116,7 @@ impl DnsDiagnostic {
         let resolution_duration_ms = now.elapsed().as_millis();
 
         DnsResolution {
+            nameservers: format!("{:?}", dns_resolver.nameservers()),
             hostname: hostname.into(),
             resolution: resolution.into(),
             resolution_duration_ms,
@@ -149,18 +148,17 @@ pub fn hostnames(network: &Network) -> Vec<String> {
 #[async_trait::async_trait]
 trait DnsResolver {
     async fn resolve(&self, hostname: &str) -> Result<Vec<IpAddr>, ResolveError>;
-}
 
-#[async_trait::async_trait]
-impl DnsResolver for HickoryDnsResolver {
-    async fn resolve(&self, hostname: &str) -> Result<Vec<IpAddr>, ResolveError> {
-        Ok(self.resolve_str(hostname).await?.collect())
-    }
+    fn nameservers(&self) -> Vec<NameServerConfig>;
 }
 
 #[async_trait::async_trait]
 impl DnsResolver for Resolver<TokioConnectionProvider> {
     async fn resolve(&self, hostname: &str) -> Result<Vec<IpAddr>, ResolveError> {
         Ok(self.lookup_ip(hostname).await?.iter().collect())
+    }
+
+    fn nameservers(&self) -> Vec<NameServerConfig> {
+        self.config().name_servers().to_vec()
     }
 }
