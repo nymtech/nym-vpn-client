@@ -21,13 +21,17 @@ import Theme
     @Binding private var path: NavigationPath
 
     let title = "🎅 Santa's menu 🎅"
+    
+    @Published public var showRestartAlert = false
 
     var actualEnv: String {
 #if os(iOS)
-        let result = try? currentEnvironment()
-        return "\(result?.nymNetwork.networkName ?? "Cannot determine network name")"
+        if let result = try? currentEnvironment() {
+            return result.nymNetwork.networkName
+        }
+        return "Unable to determine - ensure VPN lib is initialized"
 #elseif os(macOS)
-        grpcManager.networkName ?? "Restart app to see"
+        grpcManager.networkName ?? "Unable to determine - restart daemon/app"
 #endif
     }
 
@@ -74,6 +78,11 @@ import Theme
     func changeEnvironment(to env: Env) {
         configurationManager.updateEnv(to: env)
         objectWillChange.send()
+        
+#if os(iOS)
+        // Show alert prompting user to restart app
+        showRestartAlert = true
+#endif
     }
 
     func navigateBack() {

@@ -223,6 +223,8 @@ private extension ConfigurationManager {
 #elseif os(macOS)
     func setDaemonEnvironmentVariables() async throws {
         try await grpcManager.switchEnvironment(to: currentEnv.rawValue)
+        // Fetch daemon info to update network name after environment switch
+        try? await grpcManager.version()
     }
 
     func updateErrorReportingIfNeeded() async throws {

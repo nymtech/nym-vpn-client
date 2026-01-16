@@ -17,7 +17,7 @@ public struct SantasView: View {
             ScrollView {
                 santasSpacer()
                 VStack {
-                    enivironmentDetails()
+                    environmentDetails()
                     santasSpacer()
                     environmentSection()
                 }
@@ -31,6 +31,15 @@ public struct SantasView: View {
             NymColor.background
                 .ignoresSafeArea()
         }
+#if os(iOS)
+        .alert("Restart Required", isPresented: $viewModel.showRestartAlert) {
+            Button("OK") {
+                viewModel.showRestartAlert = false
+            }
+        } message: {
+            Text("Please close and restart the app for the environment change to take effect.")
+        }
+#endif
     }
 }
 
@@ -43,7 +52,7 @@ private extension SantasView {
         .padding(0)
     }
 
-    func enivironmentDetails() -> some View {
+    func environmentDetails() -> some View {
         VStack {
             Text("Environment Details:")
                 .foregroundStyle(NymColor.accent)
@@ -72,6 +81,9 @@ private extension SantasView {
                 .padding(4)
 #if os(macOS)
             Text("⚠️ Please restart daemon after switching the env ⚠️")
+                .padding(4)
+#elseif os(iOS)
+            Text("⚠️ Please restart app after switching the env ⚠️")
                 .padding(4)
 #endif
             HStack {
