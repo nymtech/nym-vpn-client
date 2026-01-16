@@ -29,6 +29,7 @@ const noSplash = window._APP.noSplash;
 const os = type();
 
 function App({ init }: { init: InitState }) {
+  console.log('App Hello World');
   const { i18n } = useTranslation();
   dayjs.locale(i18n.language);
   dayjs.extend(customParseFormat);
