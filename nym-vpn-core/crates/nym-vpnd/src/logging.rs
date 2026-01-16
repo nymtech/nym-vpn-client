@@ -3,18 +3,24 @@
 
 use std::{path::PathBuf, sync::Arc};
 
+use opentelemetry::trace::TracerProvider;
 use sentry::integrations::tracing as sentry_tracing;
 use tokio::{
     sync::{Mutex, mpsc},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tracing::Level;
+use tracing::{Event, Level, Subscriber};
 use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
+use tracing_opentelemetry::OtelData;
 #[cfg(target_os = "macos")]
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
-    EnvFilter, Layer, fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt,
+    EnvFilter, Layer,
+    fmt::{FmtContext, FormatEvent, FormatFields, format::FmtSpan},
+    layer::SubscriberExt,
+    registry::LookupSpan,
+    util::SubscriberInitExt,
 };
 
 use nym_vpn_lib_types::LogPath;
@@ -224,6 +230,38 @@ impl std::io::Write for FileManager {
     }
 }
 
+struct LogFormatter<F>(pub F);
+impl<S, N, F> FormatEvent<S, N> for LogFormatter<F>
+where
+    S: Subscriber + for<'a> LookupSpan<'a>,
+    N: for<'a> FormatFields<'a> + 'static,
+    F: FormatEvent<S, N>,
+{
+    fn format_event(
+        &self,
+        ctx: &FmtContext<'_, S, N>,
+        mut writer: tracing_subscriber::fmt::format::Writer<'_>,
+        event: &Event<'_>,
+    ) -> std::fmt::Result {
+        if let Some(write_ret) = ctx.event_scope().and_then(|mut scope| {
+            scope.find_map(|span_ref| {
+                let exts = span_ref.extensions();
+                let otel = exts.get::<OtelData>()?;
+                Some(write!(
+                    writer,
+                    "trace_id={} span_id={} ",
+                    otel.trace_id()?,
+                    otel.span_id()?
+                ))
+            })
+        }) {
+            write_ret?;
+        }
+
+        self.0.format_event(ctx, writer, event)
+    }
+}
+
 pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     let mut env_filter = EnvFilter::builder()
         .with_default_directive(options.verbosity_level.into())
@@ -256,10 +294,10 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         let file_manager = FileManager::new(file_appender.clone());
         let (file_writer, worker_guard) = tracing_appender::non_blocking(file_manager);
         let file_layer = tracing_subscriber::fmt::layer()
-            .compact()
             .with_span_events(FmtSpan::CLOSE)
             .with_writer(file_writer)
-            .with_ansi(false);
+            .with_ansi(false)
+            .event_format(LogFormatter(tracing_subscriber::fmt::format().compact()));
         layers.push(file_layer.boxed());
         Some(LoggingSetup::new(worker_guard, file_appender))
     } else {
@@ -271,9 +309,9 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         let with_ansi = !(cfg!(debug_assertions) && cfg!(windows));
 
         let console_layer = tracing_subscriber::fmt::layer()
-            .compact()
             .with_span_events(FmtSpan::CLOSE)
-            .with_ansi(with_ansi);
+            .with_ansi(with_ansi)
+            .event_format(LogFormatter(tracing_subscriber::fmt::format().compact()));
         layers.push(console_layer.boxed());
     }
 
@@ -286,9 +324,15 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         layers.push(layer.boxed());
     }
 
+    let tracer = opentelemetry_sdk::trace::SdkTracerProvider::builder()
+        .build()
+        .tracer("nym-vpnd");
+    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+
     tracing_subscriber::registry()
         .with(layers)
         .with(env_filter)
+        .with(telemetry)
         .init();
 
     log_panics::init();
