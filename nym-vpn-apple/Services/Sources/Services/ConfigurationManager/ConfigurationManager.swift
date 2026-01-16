@@ -224,7 +224,12 @@ private extension ConfigurationManager {
     func setDaemonEnvironmentVariables() async throws {
         try await grpcManager.switchEnvironment(to: currentEnv.rawValue)
         // Fetch daemon info to update network name after environment switch
-        try? await grpcManager.version()
+        // Note: This may fail if daemon is busy/restarting, which is expected
+        do {
+            try await grpcManager.version()
+        } catch {
+            logger.debug("Could not fetch daemon version after env switch (expected if daemon needs restart): \(error)")
+        }
     }
 
     func updateErrorReportingIfNeeded() async throws {
