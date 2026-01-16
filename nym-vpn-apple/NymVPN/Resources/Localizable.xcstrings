@@ -21401,7 +21401,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choosing entry servers"
+            "value" : "Choosing entry locations"
           }
         }
       }
@@ -23510,7 +23510,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing and downloads.."
+            "value" : "High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing and downloads."
           }
         },
         "es" : {
