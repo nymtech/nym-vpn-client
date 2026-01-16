@@ -24809,7 +24809,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "True anonymity, not just hidden IPs"
+            "value" : "Anonymity from payment to web"
           }
         }
       }
