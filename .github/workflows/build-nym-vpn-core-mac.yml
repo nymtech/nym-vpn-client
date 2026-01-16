@@ -41,33 +41,6 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install swift-protobuf
-        run: |
-          export HOMEBREW_NO_AUTO_UPDATE=1
-          export HOMEBREW_NO_ENV_HINTS=1
-          export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
-
-          brew uninstall --ignore-dependencies --force protoc-gen-grpc-swift || true
-          brew uninstall --ignore-dependencies --force grpc-swift || true
-          brew uninstall --ignore-dependencies --force swift-protobuf || true
-
-          if ! brew tap | grep -q '^nym/local$'; then
-            brew tap-new nym/local
-          fi
-
-          FORMULA_DIR="$(brew --repo nym/local)/Formula"
-          mkdir -p "$FORMULA_DIR"
-
-          curl -fsSL -o "$FORMULA_DIR/swift-protobuf.rb" https://raw.githubusercontent.com/Homebrew/homebrew-core/7186d42bc60247d6b5e860348db7402f12bca912/Formula/s/swift-protobuf.rb
-          curl -fsSL -o "$FORMULA_DIR/grpc-swift.rb" https://raw.githubusercontent.com/Homebrew/homebrew-core/e377282a7027ed0ca583939b8fb1d52f8dcdf5a7/Formula/g/grpc-swift.rb
-
-          brew install nym/local/swift-protobuf nym/local/grpc-swift
-
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-get
-
       - name: Install cargo-swift
         uses: baptiste0928/cargo-install@v3
         with:
@@ -94,83 +67,13 @@ jobs:
           name: wireguard-go_apple_universal
           path: build/lib/universal-apple-darwin
 
-      - name: Build nym-vpnc (aarch64)
+      - name: Build binaries
         working-directory: nym-vpn-core
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-        run: |
-          cargo build -p nym-vpnc --target aarch64-apple-darwin --release
-
-      - name: Build nym-vpnd (aarch64)
-        working-directory: nym-vpn-core
-        env:
-          RUSTFLAGS: "-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist"
-          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-        run: |
-          cargo build -p nym-vpnd --target aarch64-apple-darwin --release
-
-      - name: Build nym-diagnostic (aarch64)
-        working-directory: nym-vpn-core
-        run: |
-          cargo build -p nym-diagnostic --target aarch64-apple-darwin --release
-
-      - name: Build nym-vpnc (x86_64)
-        working-directory: nym-vpn-core
-        env:
-          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-        run: |
-          cargo build -p nym-vpnc --target x86_64-apple-darwin --release
-
-      - name: Build nym-vpnd (x86_64)
-        working-directory: nym-vpn-core
-        env:
-          RUSTFLAGS: "-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist"
-          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-        run: |
-          cargo build -p nym-vpnd --target x86_64-apple-darwin --release
-
-      - name: Build nym-diagnostic (x86_64)
-        working-directory: nym-vpn-core
-        run: |
-          cargo build -p nym-diagnostic --target x86_64-apple-darwin --release
-
-      - name: Create universal binaries and prepare for upload
-        env:
-          SRC_NATIVE_BINARY: nym-vpn-core/target/aarch64-apple-darwin/release
-          SRC_X86_64_BINARY: nym-vpn-core/target/x86_64-apple-darwin/release
-        run: |
-          mkdir -p ${{ env.UPLOAD_DIR_MAC }}
-          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
-          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
-          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-diagnostic ${{ env.SRC_NATIVE_BINARY }}/nym-diagnostic ${{ env.SRC_X86_64_BINARY }}/nym-diagnostic
-
-      - name: Build nym-vpn-rpc
-        working-directory: nym-vpn-core
         run: |
           make -f macOS.mk
           cp -v -R crates/nym-vpn-rpc-uniffi/NymVPNRpc ${{ env.UPLOAD_DIR_MAC }}
-
-      - name: Compile protobuf for swift (vpn)
-        working-directory: nym-vpn-core/crates/nym-vpn-proto/proto
-        run: |
-          protoc --swift_out=. nym_vpn_service.proto
-          protoc --grpc-swift_out=. nym_vpn_service.proto
-
-      - name: Upload generated protobuf files for swift
-        uses: actions/upload-artifact@v5
-        with:
-          name: swift-proto-files
-          path: |
-            nym-vpn-core/crates/nym-vpn-proto/proto/nym_vpn_service.grpc.swift
-            nym-vpn-core/crates/nym-vpn-proto/proto/nym_vpn_service.pb.swift
-          if-no-files-found: error
-          retention-days: 3
-
-      - name: Include generated proto files for swift in the bundled upload
-        run: |
-          mkdir -p ${{ env.UPLOAD_DIR_MAC }}/proto/nym
-          cp -v nym-vpn-core/crates/nym-vpn-proto/proto/nym_vpn_service.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
-          cp -v nym-vpn-core/crates/nym-vpn-proto/proto/nym_vpn_service.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
