@@ -88,6 +88,7 @@ jobs:
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd ${{ env.UPLOAD_DIR_LINUX }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-diagnostic ${{ env.UPLOAD_DIR_LINUX }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v5

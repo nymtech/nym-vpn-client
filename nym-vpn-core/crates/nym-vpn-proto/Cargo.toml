@@ -14,6 +14,7 @@ workspace = true
 [dependencies]
 prost-types.workspace = true
 prost.workspace = true
+serde_json = { workspace = true, optional = true }
 tonic-prost.workspace = true
 tonic.workspace = true
 tokio-stream = { workspace = true, optional = true, features = ["net"] }
@@ -21,7 +22,7 @@ tower = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
 time = { workspace = true, optional = true, features = ["parsing"] }
 
-nym-vpn-lib-types = { workspace = true, optional = true }
+nym-vpn-lib-types = { workspace = true, optional = true, features = ["serde"] }
 nym-ipc = { workspace = true, optional = true }
 
 [build-dependencies]
@@ -29,7 +30,12 @@ tonic-prost-build.workspace = true
 
 [features]
 default = []
-conversions = ["dep:nym-vpn-lib-types", "dep:thiserror", "dep:time"]
+conversions = [
+    "dep:nym-vpn-lib-types",
+    "dep:thiserror",
+    "dep:time",
+    "dep:serde_json",
+]
 rpc_client = [
     "conversions",
     "dep:nym-vpn-lib-types",

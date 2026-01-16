@@ -35,6 +35,7 @@
 mod account;
 mod connection_data;
 mod device;
+mod diagnostic;
 mod gateway;
 mod log_path;
 mod network;
@@ -64,6 +65,10 @@ pub use connection_data::{
     WireguardConnectionData, WireguardNode,
 };
 pub use device::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
+pub use diagnostic::{
+    ApiTimeSkew, CompleteDnsReport, DiagnosticRegisterParams, DiagnosticReport, DiagnosticResult,
+    DiagnosticRunParams, DnsResolution, GatewayReport, HttpReport, PingReport, RegistrationReport,
+};
 pub use gateway::{
     Asn, AsnKind, BridgeInformation, BridgeParameters, Country, Entry, EntryPoint, Exit, ExitPoint,
     Gateway, GatewayFilter, GatewayType, Location, LookupGatewayFilters, NodeIdentity,

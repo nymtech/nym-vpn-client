@@ -873,6 +873,28 @@ message PrivyDerivationMessage {
   string message = 1;
 }
 
+message DiagnosticRunParams {
+    bool skip_dns = 1;
+    bool skip_http = 2;
+    optional GatewayId gateway = 3;
+}
+
+message DiagnosticRegisterParams {
+    GatewayId gateway = 1;
+    optional string storage_path = 2;
+    bool skip_wireguard = 3;
+}
+
+// Very nested struct and more often than not just used for logging, so JSON will do
+message DiagnosticReport {
+    string json = 1;
+}
+
+// Very nested struct and more often than not just used for logging, so JSON will do
+message RegistrationReport {
+    string json = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
@@ -1021,4 +1043,8 @@ service NymVpnService {
 
   // Get Privy derivation message to be signed
   rpc GetPrivyDerivationMessage (google.protobuf.Empty) returns (PrivyDerivationMessage) {}
+
+  // Diagnostic stuff
+  rpc RunDiagnostic (DiagnosticRunParams) returns (DiagnosticReport) {}
+  rpc RegisterDiagnostic (DiagnosticRegisterParams) returns (RegistrationReport) {}
 }
