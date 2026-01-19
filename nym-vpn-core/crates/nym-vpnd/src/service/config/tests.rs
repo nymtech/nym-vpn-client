@@ -135,7 +135,7 @@ location = "BE"
 "#;
 
     let json_content = r#"{
-  "version": "v5",
+  "version": "v6",
   "entry_point": {
     "country": {
       "two_letter_iso_country_code": "FR"
@@ -150,6 +150,7 @@ location = "BE"
   "disable_ipv6": false,
   "enable_two_hop": true,
   "enable_bridges": false,
+  "enable_lewes_protocol": false,
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
@@ -192,7 +193,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
 "#;
 
     let json_content = r#"{
-  "version": "v5",
+  "version": "v6",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -207,6 +208,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "disable_ipv6": false,
   "enable_two_hop": true,
   "enable_bridges": false,
+  "enable_lewes_protocol": false,
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
@@ -256,7 +258,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
 "#;
 
     let json_content = r#"{
-  "version": "v5",
+  "version": "v6",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -270,6 +272,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   "disable_ipv6": false,
   "enable_two_hop": true,
   "enable_bridges": false,
+  "enable_lewes_protocol": false,
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
@@ -313,13 +316,14 @@ exit_point = "Random"
 "#;
 
     let json_content = r#"{
-  "version": "v5",
+  "version": "v6",
   "entry_point": "random",
   "exit_point": "random",
   "allow_lan": false,
   "disable_ipv6": false,
   "enable_two_hop": true,
   "enable_bridges": false,
+  "enable_lewes_protocol": false,
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
@@ -363,7 +367,7 @@ async fn test_service_config_migrate_from_v1() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v5",
+  "version": "v6",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -378,6 +382,7 @@ async fn test_service_config_migrate_from_v1() {
   "disable_ipv6": false,
   "enable_two_hop": true,
   "enable_bridges": false,
+  "enable_lewes_protocol": false,
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
@@ -430,7 +435,7 @@ async fn test_service_config_migrate_from_v2() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v5",
+  "version": "v6",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -445,6 +450,7 @@ async fn test_service_config_migrate_from_v2() {
   "disable_ipv6": false,
   "enable_two_hop": true,
   "enable_bridges": false,
+  "enable_lewes_protocol": false,
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
@@ -500,7 +506,7 @@ async fn test_service_config_migrate_from_v3() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v5",
+  "version": "v6",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -515,6 +521,7 @@ async fn test_service_config_migrate_from_v3() {
   "disable_ipv6": false,
   "enable_two_hop": true,
   "enable_bridges": false,
+  "enable_lewes_protocol": false,
   "netstack": false,
   "min_gateway_vpn_performance": null,
   "residential_exit": false,
@@ -578,7 +585,7 @@ async fn test_service_config_migrate_from_v4() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v5",
+  "version": "v6",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -593,6 +600,7 @@ async fn test_service_config_migrate_from_v4() {
   "disable_ipv6": false,
   "enable_two_hop": true,
   "enable_bridges": false,
+  "enable_lewes_protocol": false,
   "netstack": false,
   "min_gateway_vpn_performance": 23,
   "residential_exit": false,
@@ -617,6 +625,90 @@ async fn test_service_config_migrate_from_v4() {
 }"#;
 
     run_migrate_json_test(json_v4_content, json_latest_content).await;
+}
+
+#[tokio::test]
+async fn test_service_config_migrate_from_v5() {
+    let json_v5_content = r#"{
+  "version": "v5",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "enable_bridges": false,
+  "netstack": false,
+  "min_gateway_vpn_performance": 23,
+  "residential_exit": false,
+  "enable_custom_dns": true,
+  "custom_dns": [
+    "192.168.50.1",
+    "2001:db8:85a3::8a2e:370:7334"
+  ],
+  "mixnet_traffic": {
+    "poisson_parameter_for_loop_cover_stream": 12,
+    "average_packet_delay": 34,
+    "message_sending_average_delay": 56,
+    "disable_poisson_rate": true,
+    "disable_background_cover_traffic": true,
+    "min_mixnode_performance": 78,
+    "min_gateway_mixnet_performance": 90
+  },
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
+}"#;
+
+    let json_latest_content = r#"{
+  "version": "v6",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "enable_bridges": false,
+  "enable_lewes_protocol": false,
+  "netstack": false,
+  "min_gateway_vpn_performance": 23,
+  "residential_exit": false,
+  "enable_custom_dns": true,
+  "custom_dns": [
+    "192.168.50.1",
+    "2001:db8:85a3::8a2e:370:7334"
+  ],
+  "mixnet_traffic": {
+    "poisson_parameter_for_loop_cover_stream": 12,
+    "average_packet_delay": 34,
+    "message_sending_average_delay": 56,
+    "disable_poisson_rate": true,
+    "disable_background_cover_traffic": true,
+    "min_mixnode_performance": 78,
+    "min_gateway_mixnet_performance": 90
+  },
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  }
+}"#;
+
+    run_migrate_json_test(json_v5_content, json_latest_content).await;
 }
 
 #[tokio::test]
@@ -759,6 +851,7 @@ async fn test_service_config_serialize_full() {
         disable_ipv6: true,
         enable_two_hop: true,
         enable_bridges: false,
+        enable_lewes_protocol: true,
         netstack: true,
         min_gateway_vpn_performance: Some(1u8),
         residential_exit: true,

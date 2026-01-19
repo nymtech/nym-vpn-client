@@ -63,6 +63,7 @@ pub enum VpnServiceCommand {
     SetExitPoint(oneshot::Sender<()>, ExitPoint),
     SetDisableIPv6(oneshot::Sender<()>, bool),
     SetEnableTwoHop(oneshot::Sender<()>, bool),
+    SetEnableLewesProtocol(oneshot::Sender<()>, bool),
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
     SetEnableBridges(oneshot::Sender<()>, bool),
@@ -764,6 +765,11 @@ impl NymVpnService {
                 self.handle_set_enable_two_hop(enable_two_hop).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetEnableLewesProtocol(tx, enable_lewes_protocol) => {
+                self.handle_set_enable_lewes_protocol(enable_lewes_protocol)
+                    .await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetstack(tx, netstack) => {
                 self.handle_set_netstack(netstack).await;
                 let _ = tx.send(());
@@ -973,6 +979,13 @@ impl NymVpnService {
 
     async fn handle_set_enable_two_hop(&mut self, enable_two_hop: bool) {
         self.config_manager.set_enable_two_hop(enable_two_hop).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
+        self.config_manager
+            .set_enable_lewes_protocol(enable_lewes_protocol)
+            .await;
         self.update_tunnel_settings_with_throttle();
     }
 

@@ -264,6 +264,7 @@ message VpnServiceConfig {
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
   bool enable_bridges = 21;
+  bool enable_lewes_protocol = 26;
   bool residential_exit = 15;
   bool netstack = 13;
   bool enable_custom_dns = 17;
@@ -874,25 +875,25 @@ message PrivyDerivationMessage {
 }
 
 message DiagnosticRunParams {
-    bool skip_dns = 1;
-    bool skip_http = 2;
-    optional GatewayId gateway = 3;
+  bool skip_dns = 1;
+  bool skip_http = 2;
+  optional GatewayId gateway = 3;
 }
 
 message DiagnosticRegisterParams {
-    GatewayId gateway = 1;
-    optional string storage_path = 2;
-    bool skip_wireguard = 3;
+  GatewayId gateway = 1;
+  optional string storage_path = 2;
+  bool skip_wireguard = 3;
 }
 
 // Very nested struct and more often than not just used for logging, so JSON will do
 message DiagnosticReport {
-    string json = 1;
+  string json = 1;
 }
 
 // Very nested struct and more often than not just used for logging, so JSON will do
 message RegistrationReport {
-    string json = 1;
+  string json = 1;
 }
 
 service NymVpnService {
@@ -908,6 +909,7 @@ service NymVpnService {
   rpc SetDisableIpv6 (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableTwoHop (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableBridges (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableLewesProtocol (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
