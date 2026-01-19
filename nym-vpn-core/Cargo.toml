@@ -166,6 +166,7 @@ typed-builder = "0.22"
 ts-rs = "11.1.0"
 tower = "0.5.2"
 tracing = "0.1"
+tracing-android = "0.2.0"
 tracing-appender = "0.2.3"
 tracing-oslog = "0.3.0"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

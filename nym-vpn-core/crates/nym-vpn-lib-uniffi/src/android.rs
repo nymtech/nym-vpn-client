@@ -1,23 +1,46 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use log::LevelFilter;
+use std::str::FromStr;
+
+use tracing::level_filters::LevelFilter;
+use tracing_subscriber::{Registry, layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::error::VpnError;
 
 pub(crate) fn init_logs(level: String) -> Result<(), VpnError> {
-    use android_logger::{Config, FilterBuilder};
-    let levels = level + ",tungstenite=warn,mio=warn,tokio_tungstenite=warn";
+    let logcat_layer = tracing_android::layer("libnymvpn").unwrap();
+
+    let filter = tracing_subscriber::EnvFilter::builder()
+        .with_default_directive(
+            LevelFilter::from_str(&level)
+                .unwrap_or(LevelFilter::INFO)
+                .into(),
+        )
+        .from_env()
+        .unwrap()
+        .add_directive("hyper::proto=warn".parse().unwrap())
+        .add_directive("tokio_reactor::proto=warn".parse().unwrap())
+        .add_directive("reqwest::proto=warn".parse().unwrap())
+        .add_directive("mio::proto=warn".parse().unwrap())
+        .add_directive("want::proto=warn".parse().unwrap())
+        .add_directive("tungstenite::proto=warn".parse().unwrap())
+        .add_directive("tokio_tungstenite::proto=warn".parse().unwrap())
+        .add_directive("handlebars::proto=warn".parse().unwrap())
+        .add_directive("sled::proto=warn".parse().unwrap());
 
     // Also ignore some of the more low level crates from the platform repo
-    let levels = levels + ",nym_client_core=info,nym_sphinx=info,nym_statistics_common=info";
+    let filter = filter
+        .add_directive("nym_client_core=info".parse().unwrap())
+        .add_directive("nym_sphinx=info".parse().unwrap())
+        .add_directive("nym_statistics_common=info".parse().unwrap());
 
-    android_logger::init_once(
-        Config::default()
-            .with_max_level(LevelFilter::Trace)
-            .with_tag("libnymvpn")
-            .with_filter(FilterBuilder::new().parse(levels.as_str()).build()),
-    );
+    let registry = Registry::default().with(logcat_layer);
 
-    Ok(())
+    registry
+        .with(filter)
+        .try_init()
+        .map_err(|err| VpnError::CreateLogFile {
+            details: format!("Failed to initialize logger: {err}"),
+        })
 }
