@@ -26,7 +26,7 @@ function Login() {
   const { daemonStatus, state, welcomeChecked, uiTheme } = useMainState();
 
   const navigate = useNavigate();
-  const { t } = useTranslation('addCredential');
+  const { t } = useTranslation('add-credential');
   const { tE } = useI18nError();
   const dispatch = useMainDispatch() as StateDispatch;
 

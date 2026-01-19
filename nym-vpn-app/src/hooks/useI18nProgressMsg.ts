@@ -8,7 +8,7 @@ import { ConnectingProgress, ProgressMsg } from '../types';
  * @returns The translation function
  */
 function useI18nProgressMsg() {
-  const { t } = useTranslation('backendMessages');
+  const { t } = useTranslation('backend-messages');
 
   const translate = useCallback(
     (state: ConnectingProgress | ProgressMsg) => {
