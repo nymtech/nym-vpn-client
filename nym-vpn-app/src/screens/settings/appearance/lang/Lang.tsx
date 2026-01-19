@@ -16,7 +16,12 @@ function Lang() {
       className="relative h-full flex flex-col"
       data-testid="language-page"
     >
-      <div className="sticky -top-4 left-0 right-0 w-full pt-4 mb-4 bg-faded-lavender dark:bg-ash">
+      <div
+        className={clsx(
+          'sticky -top-4 left-0 right-0 w-full pt-4 mb-4',
+          'bg-linear-to-b from-faded-lavender via-faded-lavender/98 to-transparent dark:from-ash dark:via-ash/98 dark:to-transparent',
+        )}
+      >
         <SettingsMenuCard
           title={t('support.help.title', { ns: 'settings' })}
           onClick={() => openUrl(TranslationHelpUrl)}
