@@ -553,6 +553,7 @@ pub struct VPNConfig {
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
+    pub enable_lewes_protocol: bool,
     pub residential_exit: bool,
     /// Custom DNS used when set.
     /// Leave empty to use default DNS servers.
