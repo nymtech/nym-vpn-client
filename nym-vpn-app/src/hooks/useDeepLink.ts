@@ -26,7 +26,7 @@ export const useDeepLink = () => {
     return new Promise<string>((resolve, reject) => {
       onOpenUrl((urls) => {
         if (isCleanedUpRef.current) return;
-        if (!urls || urls.length === 0 || urls[0].startsWith(PRIVY_DEEPLINK_URL))
+        if (!urls || urls.length === 0 || !urls[0].startsWith(PRIVY_DEEPLINK_URL))
           return;
         const url = urls[0];
 
