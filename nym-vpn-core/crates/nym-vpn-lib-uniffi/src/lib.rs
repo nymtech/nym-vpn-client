@@ -44,17 +44,13 @@
 
 uniffi::setup_scaffolding!();
 
-#[cfg(target_os = "android")]
-pub mod android;
-#[cfg(target_os = "ios")]
-pub mod ios;
-
 pub(crate) mod error;
 pub mod helpers;
 
 mod account;
 mod environment;
 mod gateway_cache;
+mod logs;
 mod offline_monitor;
 mod sentry_monitoring;
 mod state_machine;
@@ -219,16 +215,9 @@ async fn init_logger(
         *guard = sentry_monitoring::init();
     }
 
-    #[cfg(target_os = "ios")]
-    {
-        ios::init_logs(log_level, path, sentry_monitoring)
-    }
-    #[cfg(target_os = "android")]
-    {
-        android::init_logs(log_level)
-    }
-    #[cfg(not(any(target_os = "ios", target_os = "android")))]
-    {
+    if cfg!(target_os = "ios") || cfg!(target_os = "android") {
+        logs::init_logs(log_level, path, sentry_monitoring)
+    } else {
         Ok(())
     }
 }

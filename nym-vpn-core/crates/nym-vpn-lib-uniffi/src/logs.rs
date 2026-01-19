@@ -1,11 +1,10 @@
-// Copyright 2023-2025 - Nym Technologies SA <contact@nymtech.net>
+// Copyright 2023-2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use sentry::integrations::tracing as sentry_tracing;
 use tracing::Level;
-use tracing_oslog::OsLogger;
 use tracing_subscriber::{
     Layer, Registry, filter::LevelFilter, fmt::Layer as fmtLayer, layer::SubscriberExt,
     util::SubscriberInitExt,
@@ -14,7 +13,10 @@ use tracing_subscriber::{
 use crate::error::VpnError;
 
 pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(), VpnError> {
-    let oslogger_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
+    #[cfg(target_os = "ios")]
+    let logger_layer = tracing_oslog::OsLogger::new("net.nymtech.vpn.agent", "default");
+    #[cfg(target_os = "android")]
+    let logger_layer = tracing_android::layer("libnymvpn").unwrap();
 
     let filter = tracing_subscriber::EnvFilter::builder()
         .with_default_directive(
@@ -40,7 +42,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
         .add_directive("nym_sphinx=info".parse().unwrap())
         .add_directive("nym_statistics_common=info".parse().unwrap());
 
-    let registry = Registry::default().with(oslogger_layer);
+    let registry = Registry::default().with(logger_layer);
 
     let mut layers = Vec::new();
 
