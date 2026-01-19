@@ -159,7 +159,6 @@ async fn main() -> Result<()> {
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
                 if let Err(e) = app.deep_link().register_all() {
-                    // Don't hard-fail app startup; log and keep going so we can still debug.
                     error!("Failed to register deep link schemes: {e}");
                 } else {
                     info!("Deep link schemes registered successfully");

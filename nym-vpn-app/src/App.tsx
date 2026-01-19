@@ -23,7 +23,6 @@ import { RouteLoading, ThemeSetter } from './ui';
 import { GatewaysProvider } from './contexts/gateways';
 import { IntroAnim, IntroSplash } from './screens';
 import { InitState } from './types';
-import DeepLinkListener from './DeepLinkListener';
 
 let initialized = false;
 const noSplash = window._APP.noSplash;
@@ -68,7 +67,6 @@ function App({ init }: { init: InitState }) {
   return (
     <>
       {!noSplash && intro}
-      <DeepLinkListener />
       <InAppNotificationProvider>
         <Toast.Provider>
           <MainStateProvider init={init}>
