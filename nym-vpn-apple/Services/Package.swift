@@ -16,6 +16,7 @@ let package = Package(
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
         .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
+        .library(name: "DeeplinkManager", targets: ["DeeplinkManager"]),
         .library(name: "Device", targets: ["Device"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "FeatureFlagsManager", targets: ["FeatureFlagsManager"]),
@@ -96,6 +97,13 @@ let package = Package(
                 "Theme"
             ],
             path: "Sources/Services/CredentialsManager"
+        ),
+        .target(
+            name: "DeeplinkManager",
+            dependencies: [
+                .product(name: "Constants", package: "ServicesMutual")
+            ],
+            path: "Sources/Services/DeeplinkManager"
         ),
         .target(
             name: "Device",
