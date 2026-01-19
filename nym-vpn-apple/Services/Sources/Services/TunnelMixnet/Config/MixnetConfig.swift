@@ -64,6 +64,7 @@ extension MixnetConfig {
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
             enableBridges: isQuicEnabled,
+            enableLewesProtocol: false,
             residentialExit: false,
             customDns: customDns,
             tunProvider: tunProvider,
