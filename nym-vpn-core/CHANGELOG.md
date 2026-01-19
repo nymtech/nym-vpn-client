@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Removed credentials mode feature flag from code base (https://github.com/nymtech/nym-vpn-client/pull/4223)
 
+### Changed
+- [Android] Enable debug logs in production builds for core library (https://github.com/nymtech/nym-vpn-client/pull/4405)
+
 ## [1.21.0] - 2025-12-15
 
 ### Added
