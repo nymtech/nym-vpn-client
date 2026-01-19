@@ -22,8 +22,8 @@
     "title": "Tạo một tài khoản",
     "create-account": "Tạo tài khoản ẩn danh",
     "maximum-privacy": {
-      "title": "🔒 Bảo mật tối đa",
-      "description": "Create an anonymous account on nym.com. You'll receive a 24-word passphrase. Save it to log back into the app.\n\nNo personal info required."
+      "title": "⚡️ Nhanh chóng và ẩn danh (khuyến nghị)",
+      "description": "Chỉ một chạm để thanh toán. Tài khoản ẩn danh được tạo trên thiết bị của bạn. Không cần mật khẩu, không tiết lộ thông tin cá nhân."
     },
     "quick-setup": {
       "title": "⚡️ Cài đặt nhanh",
@@ -43,7 +43,7 @@
     "new-to-nymvpn": "Lần đầu đến với NymVPN?"
   },
   "social-account-button": "Tiếp tục với tài khoản mạng xã hội",
-  "create-account": "Tạo tài khoản ẩn danh",
+  "create-account": "Bắt đầu một cách ẩn danh",
   "notification": {
     "added": "Thiết bị đã được thêm thành công vào tài khoản của bạn"
   }

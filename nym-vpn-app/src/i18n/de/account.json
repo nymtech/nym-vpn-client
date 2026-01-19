@@ -1,11 +1,11 @@
 {
   "select-a-plan": {
-    "title": "Wähle deinen Tarif des Abonnements",
+    "title": "Wähle dein Abonnement",
     "features": {
       "all-included": "Alle Funktionen inklusive",
       "no-ads": "Keine Werbung",
       "cancel-anytime": "Jederzeit kündbar"
     },
-    "button": "Wähle einen Tarif"
+    "button": "Wähle ein Abonnement"
   }
 }

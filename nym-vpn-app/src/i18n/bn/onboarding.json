@@ -9,16 +9,16 @@
   },
   "zero-knowledge": {
     "title": "Anonymity from payment to web",
-    "description": "Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities."
+    "description": "কার্ড, ক্রিপ্টো বা নগদে পরিশোধ করুন — ইমেইল আবশ্যক নয়। জিরো-নলেজ প্রমাণ ক্রিপ্টোগ্রাফিকভাবে আপনার পেমেন্টকে অনলাইন কার্যকলাপ থেকে আলাদা রাখে।"
   },
   "speed": {
-    "title": "Speed when you need it.\nPrivacy when it matters.",
+    "title": "প্রয়োজন হলে গতি। গুরুত্বপূর্ণ মুহূর্তে গোপনীয়তা।",
     "description": "<bold>Fast mode:</bold> 250+ Mbps with dVPN.\n<bold>Anonymous mode:</bold> 5-hop Noise Generating Mixnet."
   },
   "controls": {
-    "login": "Log in",
-    "create-account": "Create account",
-    "next": "Next",
-    "skip": "Skip"
+    "login": "লগ ইন",
+    "create-account": "অ্যাকাউন্ট তৈরি করুন",
+    "next": "পরবর্তী",
+    "skip": "এড়িয়ে যান"
   }
 }

@@ -173,7 +173,7 @@
   },
   "account": {
     "get-started": "শুরু করুন",
-    "choose-plan": "Choose plan",
+    "choose-plan": "Choose my NymVPN plan",
     "syncing": "সমলয় হচ্ছে…",
     "no-plan": "কোনো সক্রিয় প্ল্যান নেই",
     "bandwidth-exceeded": "ব্যান্ডউইথ সীমা অতিক্রম হয়েছে",

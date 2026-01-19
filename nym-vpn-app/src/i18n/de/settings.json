@@ -173,9 +173,9 @@
   },
   "account": {
     "get-started": "Los geht's",
-    "choose-plan": "Wähle einen Tarif",
+    "choose-plan": "Wähle ein Abonnement",
     "syncing": "Synchronisiere…",
-    "no-plan": "Du hast keinen aktiven Tarif",
+    "no-plan": "Du hast kein aktives Abonnement",
     "bandwidth-exceeded": "Bandbreite überschritten",
     "max-device-reached": "Max. Geräte erreicht",
     "status-inactive": "Konto ist inaktiv",

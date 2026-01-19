@@ -41,7 +41,7 @@
     "no-account-stored": "Kein Konto gespeichert",
     "no-device-stored": "Kein Gerät gespeichert",
     "existing-account": "Konto existiert bereits",
-    "no-subscription": "Du hast keinen aktiven Tarif. Tippe auf \"Los geht’s\", um anonym zu surfen.",
+    "no-subscription": "Du hast kein aktives Abonnement. Tippe auf \"Los geht’s\", um anonym zu surfen.",
     "status-not-active": "Dein Konto ist inaktiv",
     "device-time-out-of-sync": "Die Gerätezeit ist nicht synchronisiert. Bitte synchronisiere die Zeit deines Geräts mit dem Internet."
   },

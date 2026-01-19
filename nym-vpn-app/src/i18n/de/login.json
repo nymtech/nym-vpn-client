@@ -22,8 +22,8 @@
     "title": "Konto erstellen",
     "create-account": "Anonymes Konto erstellen",
     "maximum-privacy": {
-      "title": "🔒 Maximale Privatsphäre",
-      "description": "Erstelle ein anonymes Konto auf nym.com. Du erhältst eine Passphrase mit 24 Wörtern. Speichere diese, um dich wieder in der App anzumelden.\n\nEs sind keine persönlichen Daten erforderlich."
+      "title": "⚡ Sofort & anonym (empfohlen)",
+      "description": "Mit einem Tipp zum Kauf. Ein anonymes Konto wird auf deinem Gerät erstellt. Kein Passwort, keine persönlichen Daten."
     },
     "quick-setup": {
       "title": "⚡️ Quick setup",
@@ -43,7 +43,7 @@
     "new-to-nymvpn": "Neu bei NymVPN?"
   },
   "social-account-button": "Mit Social-Konto fortfahren",
-  "create-account": "Anonymes Konto erstellen",
+  "create-account": "Anonym starten",
   "notification": {
     "added": "Gerät erfolgreich zu deinem Konto hinzugefügt"
   }
