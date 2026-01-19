@@ -21,7 +21,7 @@ function Login() {
       />
       <h1 className="text-2xl mt-12">{t('signup.title')}</h1>
       <div className="flex flex-col p-4">
-        <div className="py-6 border-b border-iron dark:border-bombay">
+        <div className="py-6">
           <h2>{t('signup.maximum-privacy.title')}</h2>
           <p className="mt-2 text-iron dark:text-bombay whitespace-pre-line">
             {t('signup.maximum-privacy.description')}
@@ -39,7 +39,7 @@ function Login() {
           </Button>
         </div>
         {backendFlags.privy && (
-          <div className="py-6">
+          <div className="py-6 border-t border-iron dark:border-bombay">
             <h2>{t('privy.use-existing-login.title')}</h2>
             <p className="mt-2 mb-4 text-iron dark:text-bombay whitespace-pre-line">
               {t('privy.use-existing-login.description')}
