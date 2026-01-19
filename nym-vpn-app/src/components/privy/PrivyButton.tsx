@@ -1,9 +1,9 @@
 // import { openUrl } from "@tauri-apps/plugin-opener";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Button } from "../../ui";
-import { useInAppNotify } from "../../contexts";
-import { useDeepLink } from "../../hooks/useDeepLink";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '../../ui';
+import { useInAppNotify } from '../../contexts';
+import { useDeepLink } from '../../hooks/useDeepLink';
 
 function PrivyButton() {
   const { t } = useTranslation('login');
@@ -21,23 +21,25 @@ function PrivyButton() {
     try {
       const deeplinkurl = await Promise.race([
         startListening(),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Login timeout')), 300000))
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Login timeout')), 300000),
+        ),
       ]);
 
-      console.log("Received deep link: ", deeplinkurl);
+      console.log('Received deep link: ', deeplinkurl);
       // TODO: Validate deep link and invoke('add_account')
     } catch (error) {
-      console.error("Login timeout: ", error);
+      console.error('Login timeout: ', error);
       push({
-        message: "Login timeout",
-        type: "error",
+        message: 'Login timeout',
+        type: 'error',
         duration: 3000,
         close: true,
       });
     } finally {
       setLoading(false);
     }
-  }
+  };
   return (
     <Button
       outline
@@ -50,7 +52,7 @@ function PrivyButton() {
         {t('privy.login-button')}
       </span>
     </Button>
-  )
+  );
 }
 
 export default PrivyButton;
