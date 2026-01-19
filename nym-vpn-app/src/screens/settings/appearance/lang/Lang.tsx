@@ -23,7 +23,6 @@ function Lang() {
           description={t('support.help.description', { ns: 'settings' })}
           leadingIcon="language"
           trailingIcon="open_in_new"
-          className="mx-3"
         />
       </div>
 
