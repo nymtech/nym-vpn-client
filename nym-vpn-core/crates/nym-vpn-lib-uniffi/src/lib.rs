@@ -216,10 +216,10 @@ async fn init_logger(
     }
 
     if cfg!(target_os = "ios") || cfg!(target_os = "android") {
-        logs::init_logs(log_level, path, sentry_monitoring)
-    } else {
-        Ok(())
+        logs::init_logs(log_level, path, sentry_monitoring)?;
     }
+
+    Ok(())
 }
 
 /// Additional extra function for when only want to set the logger without initializing the

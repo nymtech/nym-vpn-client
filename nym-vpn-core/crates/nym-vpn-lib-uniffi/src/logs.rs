@@ -16,7 +16,9 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
     #[cfg(target_os = "ios")]
     let logger_layer = tracing_oslog::OsLogger::new("net.nymtech.vpn.agent", "default");
     #[cfg(target_os = "android")]
-    let logger_layer = tracing_android::layer("libnymvpn").unwrap();
+    let logger_layer = tracing_android::layer("libnymvpn").map_err(|err| VpnError::InitLogs {
+        details: format!("Failed to create Android logger layer: {err}"),
+    })?;
 
     let filter = tracing_subscriber::EnvFilter::builder()
         .with_default_directive(
@@ -51,7 +53,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
         if let Some(parent) = path.parent()
             && let Err(e) = std::fs::create_dir_all(parent)
         {
-            return Err(VpnError::CreateLogFile {
+            return Err(VpnError::InitLogs {
                 details: format!("Failed to create log directory {}: {e}", parent.display()),
             });
         }
@@ -65,7 +67,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
             .create(true)
             .truncate(true)
             .open(path)
-            .map_err(|e| VpnError::CreateLogFile {
+            .map_err(|e| VpnError::InitLogs {
                 details: format!("Failed to open log file {}: {e}", path.display()),
             })?;
 
@@ -90,7 +92,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
         .with(layers)
         .with(filter)
         .try_init()
-        .map_err(|err| VpnError::CreateLogFile {
+        .map_err(|err| VpnError::InitLogs {
             details: format!("Failed to initialize logger: {err}"),
         })
 }
