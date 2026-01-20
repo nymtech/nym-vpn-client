@@ -44,7 +44,10 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
         .add_directive("nym_sphinx=info".parse().unwrap())
         .add_directive("nym_statistics_common=info".parse().unwrap());
 
-    let registry = Registry::default().with(logger_layer);
+    let registry = Registry::default();
+
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    let registry = registry.with(logger_layer);
 
     let mut layers = Vec::new();
 
