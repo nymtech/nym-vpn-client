@@ -78,6 +78,9 @@ import CountriesManagerTypes
         didSet { isLanBypassEnabledPublisher = isLanBypassEnabled }
     }
 
+    @AppStorage(AppSettingKey.isLewesEnabled.rawValue)
+    public var isLewesEnabled = false
+
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
 
@@ -178,6 +181,7 @@ public enum AppSettingKey: String {
     case connectionConfig
     case customDnsIsEnabled
     case customDns
+    case isLewesEnabled
 }
 
 extension Array: @retroactive RawRepresentable where Element: Codable {
