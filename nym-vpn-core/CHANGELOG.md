@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [Android] Enable debug logs in production builds for core library (https://github.com/nymtech/nym-vpn-client/pull/4405)
+- [Android] Print library logs to file, in addition to the existing logcat (https://github.com/nymtech/nym-vpn-client/pull/4432)
 
 ## [1.21.0] - 2025-12-15
 
