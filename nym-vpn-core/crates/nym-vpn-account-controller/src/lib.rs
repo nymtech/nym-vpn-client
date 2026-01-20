@@ -10,6 +10,7 @@ mod command_sender;
 mod commands;
 mod config;
 mod controller;
+mod deeplink;
 mod error;
 mod event_sender;
 mod nyxd_client;

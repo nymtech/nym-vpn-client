@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_offline_monitor::ConnectivityMonitor;
-
 use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
-use nym_vpn_store::{VpnStorage, keys::wireguard::WireguardKeysDb};
+use nym_vpn_store::{keys::wireguard::WireguardKeysDb, VpnStorage};
 use tokio::sync::{
     mpsc::{self, UnboundedReceiver, UnboundedSender},
     watch,
@@ -13,16 +12,16 @@ use tokio::sync::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountCommandSender, AccountControllerConfig, AccountControllerEventSender,
-    AccountStateReceiver, NyxdClient,
-    commands::AccountCommand,
-    error::Error,
-    event_sender::AccountControllerEventReceiver,
-    shared_state::SharedAccountState,
-    state_machine::{
+    commands::AccountCommand, error::Error, event_sender::AccountControllerEventReceiver,
+    shared_state::SharedAccountState, state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState, SyncingState,
     },
     storage::{AccountStorage, AccountStorageOp, VpnCredentialStorage},
+    AccountCommandSender,
+    AccountControllerConfig,
+    AccountControllerEventSender,
+    AccountStateReceiver,
+    NyxdClient,
 };
 
 pub struct AccountController<C, S>
@@ -77,7 +76,7 @@ where
         );
 
         // Channels for the account storage
-        let (storage_op_sender, storage_op_receiver) = tokio::sync::mpsc::unbounded_channel();
+        let (storage_op_sender, storage_op_receiver) = mpsc::unbounded_channel();
 
         // Channels to communicate with the account controller
         let event_channel = AccountControllerEventSender::new();

@@ -1,23 +1,23 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
-
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
-    VpnApiClient,
     types::{Device, VpnAccount},
+    VpnApiClient,
 };
 use nym_vpn_lib_types::VpnAccountSummary;
+use std::sync::Arc;
 
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::sync::mpsc;
 
 use crate::{
-    AccountControllerConfig, AccountControllerEventSender,
-    nyxd_client::NyxdClient,
-    storage::{AccountStorageOp, VpnCredentialStorage},
+    nyxd_client::NyxdClient, storage::{AccountStorageOp, VpnCredentialStorage},
+    AccountControllerConfig,
+    AccountControllerEventSender,
 };
+use crate::deeplink::Deeplinks;
 
 /// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
 /// Ideally, we would have tunnel state here. But it makes circular dependency where tunnel needs AC state and AC needs tunnel state
@@ -50,6 +50,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Registered device
     pub(crate) device: Option<Device>,
 
+    /// Deeplinks for signing-in via services like Privy
+    pub(crate) deeplinks: Deeplinks,
+
     /// Firewall status
     pub(crate) firewall_active: bool,
 
@@ -74,7 +77,9 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         event_sender: AccountControllerEventSender,
     ) -> Self {
-        SharedAccountState {
+        let deeplinks = Deeplinks::new();
+        
+        Self {
             connectivity_handle,
             config,
             credential_storage,
@@ -84,6 +89,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             vpn_api_account: vpn_api_account.map(Arc::new),
             vpn_account_summary: None,
             device,
+            deeplinks,
             firewall_active: false,
             storage_op_sender,
             event_sender,
