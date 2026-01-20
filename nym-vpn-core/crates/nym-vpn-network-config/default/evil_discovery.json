@@ -13,17 +13,17 @@
       ]
     }
   ],
-  "nym_vpn_api_url": "https://api.streaming-service.net/api/",
+  "nym_vpn_api_url": "https://nym-vpn-api-git-deploy-evil-env-nyx-network-staging.vercel.app/api/",
   "nym_vpn_api_urls": [
-    {
-      "url": "https://api.streaming-service.net/api/"
-    },
     {
       "url": "https://nym-vpn-api-git-deploy-evil-env-nyx-network-staging.vercel.app/api/",
       "fronts": [
         "vercel.app",
         "vercel.com"
       ]
+    },
+    {
+      "url": "https://api.streaming-service.net/api/"
     },
     {
       "url": "https://nym-frontdoor.vercel.app/evil/nym-vpn-api/",
