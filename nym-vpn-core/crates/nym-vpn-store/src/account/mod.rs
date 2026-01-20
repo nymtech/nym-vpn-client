@@ -41,6 +41,17 @@ struct StoredAccount {
     nonce: Nonce,
 }
 
+impl std::fmt::Debug for StoredAccount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StoredAccount")
+            .field("name", &self.name)
+            .field("mnemonic", &"[redacted]")
+            .field("mode", &self.mode)
+            .field("nonce", &self.nonce)
+            .finish()
+    }
+}
+
 impl From<StoredAccount> for StorableAccount {
     fn from(account: StoredAccount) -> Self {
         StorableAccount {
