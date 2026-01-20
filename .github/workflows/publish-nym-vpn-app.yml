@@ -117,8 +117,6 @@ jobs:
         run: echo "TAG_NAME=nym-vpn-app-nightly" >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
-      - if: github.event_name == 'workflow_dispatch'
-        run: echo "TAG_NAME=nym-vpn-app-v${{ steps.cargo-get.outputs.metadata }}" >> $GITHUB_ENV
 
       - name: Set output 'tag'
         id: set_tag
