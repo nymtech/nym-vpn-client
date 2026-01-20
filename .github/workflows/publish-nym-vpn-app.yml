@@ -112,7 +112,9 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v6
 
-      # Setup TAG_NAME for tag_name parameter
+      # Setup TAG_NAME
+      - if: github.event_name == 'workflow_dispatch'
+        run: echo "TAG_NAME=nym-vpn-app-v${{ steps.cargo-get.outputs.metadata }}" >> $GITHUB_ENV
       - if: ${{ env.RELEASE_TYPE == 'nightly' }}
         run: echo "TAG_NAME=nym-vpn-app-nightly" >> $GITHUB_ENV
       - if: github.event_name == 'push'
