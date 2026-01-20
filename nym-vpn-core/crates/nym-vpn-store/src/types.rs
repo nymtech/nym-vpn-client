@@ -13,7 +13,7 @@ pub struct RawWireguardKeys {
     pub expiration_time: OffsetDateTime,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct StorableAccount {
     pub mnemonic: bip39::Mnemonic,
     pub mode: StoredAccountMode,
@@ -22,6 +22,15 @@ pub struct StorableAccount {
 impl StorableAccount {
     pub fn new(mnemonic: bip39::Mnemonic, mode: StoredAccountMode) -> StorableAccount {
         StorableAccount { mnemonic, mode }
+    }
+}
+
+impl std::fmt::Debug for StorableAccount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StorableAccount")
+            .field("mnemonic", &"[redacted]")
+            .field("mode", &self.mode)
+            .finish()
     }
 }
 
