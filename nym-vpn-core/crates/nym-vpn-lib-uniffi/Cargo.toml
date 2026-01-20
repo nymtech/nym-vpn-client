@@ -63,7 +63,6 @@ nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 tracing-oslog.workspace = true
 
 [target.'cfg(target_os = "android")'.dependencies]
-android_logger.workspace = true
 iprange.workspace = true
 ipnet.workspace = true
 log.workspace = true

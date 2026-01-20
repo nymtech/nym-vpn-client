@@ -60,7 +60,6 @@ lto = true
 large_futures = "warn"
 
 [workspace.dependencies]
-android_logger = "0.15.1"
 anyhow = "1.0.100"
 async-stream = "0.3.6"
 async-trait = "0.1.89"

@@ -116,23 +116,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85965b6739a430150bdd138e2374a98af0c3ee0d030b3bb7fc3bddff58d0102e"
 
 [[package]]
-name = "android_log-sys"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84521a3cf562bc62942e294181d9eef17eb38ceb8c68677bc49f144e4c3d4f8d"
-
-[[package]]
-name = "android_logger"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbb4e440d04be07da1f1bf44fb4495ebd58669372fe0cffa6e48595ac5bd88a3"
-dependencies = [
- "android_log-sys 0.3.2",
- "env_filter",
- "log",
-]
-
-[[package]]
 name = "android_system_properties"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2141,16 +2124,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.106",
-]
-
-[[package]]
-name = "env_filter"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "186e05a59d4c50738528153b83b0b0194d3a29507dfec16eccd4b342903397d0"
-dependencies = [
- "log",
- "regex",
 ]
 
 [[package]]
@@ -5650,7 +5623,6 @@ dependencies = [
 name = "nym-vpn-lib"
 version = "1.23.0-beta"
 dependencies = [
- "android_logger",
  "async-trait",
  "base64 0.22.1",
  "bincode",
@@ -5753,7 +5725,6 @@ dependencies = [
 name = "nym-vpn-lib-uniffi"
 version = "1.23.0-beta"
 dependencies = [
- "android_logger",
  "async-trait",
  "ipnet",
  "ipnetwork",
@@ -9248,7 +9219,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "12612be8f868a09c0ceae7113ff26afe79d81a24473a393cb9120ece162e86c0"
 dependencies = [
- "android_log-sys 0.2.0",
+ "android_log-sys",
  "tracing",
  "tracing-subscriber",
 ]
