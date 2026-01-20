@@ -94,5 +94,9 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) -> Result<(
         .try_init()
         .map_err(|err| VpnError::InitLogs {
             details: format!("Failed to initialize logger: {err}"),
-        })
+        })?;
+
+    tracing::info!("Setting log level: {level}, path?: {path:?}");
+
+    Ok(())
 }

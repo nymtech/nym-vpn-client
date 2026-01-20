@@ -207,9 +207,7 @@ async fn init_logger(
 ) -> Result<(), VpnError> {
     let default_log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     let log_level = debug_level.unwrap_or(default_log_level);
-    tracing::info!("Setting log level: {log_level}, path?: {path:?}");
-    let os = SysInfo::new();
-    tracing::info!("OS information: {}", os);
+
     if sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
@@ -218,6 +216,9 @@ async fn init_logger(
     if cfg!(target_os = "ios") || cfg!(target_os = "android") {
         logs::init_logs(log_level, path, sentry_monitoring)?;
     }
+
+    let os = SysInfo::new();
+    tracing::info!("OS information: {}", os);
 
     Ok(())
 }
