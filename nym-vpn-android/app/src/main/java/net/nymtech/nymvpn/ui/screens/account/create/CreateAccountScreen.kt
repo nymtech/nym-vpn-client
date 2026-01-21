@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.account.welcome
+package net.nymtech.nymvpn.ui.screens.account.create
 
 import PrivacyText
 import android.content.res.Configuration
@@ -43,7 +43,8 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.screens.account.welcome.modal.ExistingSubscriptionModal
+import net.nymtech.nymvpn.ui.screens.account.create.components.CreateAccountBlock
+import net.nymtech.nymvpn.ui.screens.account.create.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -55,7 +56,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
 
 @Composable
-fun WelcomeAccountScreen(appUiState: AppUiState, viewModel: WelcomeAccountViewModel = hiltViewModel()) {
+fun CreateAccountScreen(appUiState: AppUiState, viewModel: CreateAccountViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val navController = LocalNavController.current
 
@@ -63,7 +64,7 @@ fun WelcomeAccountScreen(appUiState: AppUiState, viewModel: WelcomeAccountViewMo
 	val loading by viewModel.loading.collectAsStateWithLifecycle()
 	var showSubscriptionDialog by remember { mutableStateOf(false) }
 
-	WelcomeAccountScreen(
+	CreateAccountScreen(
 		loading = loading,
 		onLogInClick = {
 			navController.navigateAndForget(Route.Login)
@@ -101,7 +102,7 @@ fun WelcomeAccountScreen(appUiState: AppUiState, viewModel: WelcomeAccountViewMo
 }
 
 @Composable
-fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onCreateAccountClick: () -> Unit, onSocialClick: () -> Unit) {
+fun CreateAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onCreateAccountClick: () -> Unit, onSocialClick: () -> Unit) {
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
@@ -133,7 +134,7 @@ fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onCreateAcc
 				horizontalAlignment = Alignment.CenterHorizontally,
 				modifier = Modifier.fillMaxWidth(),
 			) {
-				WelcomeAccountBlock(
+				CreateAccountBlock(
 					title = stringResource(R.string.account_welcome_create_title),
 					description = stringResource(R.string.account_welcome_create_description),
 					button = {
@@ -195,39 +196,11 @@ fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onCreateAcc
 	}
 }
 
-@Composable
-private fun WelcomeAccountBlock(title: String, description: String? = null, button: @Composable () -> Unit) {
-	Column(
-		modifier = Modifier
-			.fillMaxWidth(),
-	) {
-		Text(
-			text = title,
-			style = MaterialTheme.typography.titleMedium,
-			color = MaterialTheme.colorScheme.onBackground,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-		)
-
-		description?.let {
-			Spacer(modifier = Modifier.height(8.dp.scaledHeight()))
-			Text(
-				text = it,
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			)
-		}
-
-		Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
-		button()
-	}
-}
-
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-internal fun PreviewWelcomeAccountScreen() {
+internal fun PreviewCreateAccountScreen() {
 	NymVPNTheme(Theme.default()) {
-		WelcomeAccountScreen(
+		CreateAccountScreen(
 			loading = false,
 			onLogInClick = {},
 			onCreateAccountClick = {},

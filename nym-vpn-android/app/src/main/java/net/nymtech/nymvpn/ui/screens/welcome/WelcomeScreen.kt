@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.onboarding
+package net.nymtech.nymvpn.ui.screens.welcome
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
@@ -42,9 +42,9 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.screens.onboarding.components.OnboardingPage
-import net.nymtech.nymvpn.ui.screens.onboarding.components.OnboardingPageContent
-import net.nymtech.nymvpn.ui.screens.onboarding.components.PagerIndicator
+import net.nymtech.nymvpn.ui.screens.welcome.components.OnboardingPage
+import net.nymtech.nymvpn.ui.screens.welcome.components.OnboardingPageContent
+import net.nymtech.nymvpn.ui.screens.welcome.components.PagerIndicator
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -53,9 +53,9 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun OnboardingScreen(viewModel: OnboardingViewModel = hiltViewModel()) {
+fun WelcomeScreen(viewModel: WelcomeViewModel = hiltViewModel()) {
 	val navigator = LocalNavController.current
-	OnboardingScreen(
+	WelcomeScreen(
 		withFreeTrial = true,
 		onCreateAccountClick = {
 			navigator.goFromRoot(Route.WelcomeAccount)
@@ -70,7 +70,7 @@ fun OnboardingScreen(viewModel: OnboardingViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun OnboardingScreen(withFreeTrial: Boolean, onCreateAccountClick: () -> Unit, onLoginClick: () -> Unit, onCloseClick: () -> Unit) {
+fun WelcomeScreen(withFreeTrial: Boolean, onCreateAccountClick: () -> Unit, onLoginClick: () -> Unit, onCloseClick: () -> Unit) {
 	val scope = rememberCoroutineScope()
 	val pages = getPages(withFreeTrial)
 	val lastIndex = pages.lastIndex
@@ -268,9 +268,9 @@ private fun getPages(withFreeTrial: Boolean): List<OnboardingPage> {
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-internal fun PreviewOnboardingScreen() {
+internal fun PreviewWelcomeScreen() {
 	NymVPNTheme(Theme.default()) {
-		OnboardingScreen(
+		WelcomeScreen(
 			withFreeTrial = true,
 			onCreateAccountClick = {},
 			onLoginClick = {},

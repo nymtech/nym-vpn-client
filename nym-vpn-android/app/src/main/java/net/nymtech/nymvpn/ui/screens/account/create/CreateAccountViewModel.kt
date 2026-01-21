@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.account.welcome
+package net.nymtech.nymvpn.ui.screens.account.create
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,7 +15,7 @@ import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
-class WelcomeAccountViewModel @Inject constructor(
+class CreateAccountViewModel @Inject constructor(
 	private val billingManager: BillingManager,
 ) : ViewModel() {
 
