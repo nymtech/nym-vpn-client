@@ -4,7 +4,11 @@ import clsx from 'clsx';
 import { Menu } from '@base-ui-components/react';
 import { invoke } from '@tauri-apps/api/core';
 import { useInAppNotify, useMainState } from '../../../contexts';
-import { ConfirmationDialog, MsIcon } from '../../../ui';
+import {
+  ConfirmationDialog,
+  ConfirmationDialogProps,
+  MsIcon,
+} from '../../../ui';
 
 function Separator() {
   const { uiTheme } = useMainState();
@@ -13,7 +17,7 @@ function Separator() {
     <Menu.Separator
       className={clsx(
         'h-px',
-        uiTheme === 'light' && 'bg-bombay',
+        uiTheme === 'light' && 'bg-faded-lavender',
         uiTheme === 'dark' && 'bg-iron',
       )}
     />
@@ -37,8 +41,8 @@ function MenuItem({
       className={clsx(
         'flex items-center gap-2 px-3 py-2 cursor-default select-none text-sm',
         'first:hover:rounded-t-sm last:hover:rounded-b-sm',
-        uiTheme === 'light' && 'hover:bg-black/15',
-        uiTheme === 'dark' && 'hover:bg-white/15',
+        uiTheme === 'light' && 'hover:bg-black/5 text-baltic-sea',
+        uiTheme === 'dark' && 'hover:bg-white/5 text-white',
       )}
     >
       <MsIcon
@@ -52,6 +56,11 @@ function MenuItem({
     </Menu.Item>
   );
 }
+
+type DialogConfig = Omit<
+  ConfirmationDialogProps,
+  'isOpen' | 'isLoading' | 'onCancel'
+>;
 
 function ActionMenu() {
   const { t } = useTranslation('settings');
@@ -95,7 +104,7 @@ function ActionMenu() {
     console.log('sharing logs');
   }, []);
 
-  const dialogConfig = useMemo(
+  const dialogConfig = useMemo<Record<string, DialogConfig>>(
     () => ({
       delete: {
         icon: 'delete',
@@ -150,12 +159,13 @@ function ActionMenu() {
                 uiTheme === 'dark' &&
                   'bg-charcoal shadow-none -outline-offset-1  text-white outline-iron',
                 // light theme
-                uiTheme === 'light' && 'bg-white text-iron outline-bombay',
+                uiTheme === 'light' &&
+                  'bg-white text-iron outline-faded-lavender',
               )}
             >
               <MenuItem
                 icon="share"
-                text="Share"
+                text={t('logs.actions.share.action-button')}
                 onClick={() => {
                   setActiveDialog('share');
                 }}
@@ -163,7 +173,7 @@ function ActionMenu() {
               <Separator />
               <MenuItem
                 icon="delete"
-                text="Delete"
+                text={t('logs.actions.delete.action-button')}
                 onClick={() => {
                   setActiveDialog('delete');
                 }}

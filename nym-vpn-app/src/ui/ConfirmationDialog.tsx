@@ -2,7 +2,7 @@ import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonProps, Dialog, MsIcon } from '.';
 
-type ConfirmationDialogProps = {
+export type ConfirmationDialogProps = {
   icon: string;
   title: string;
   description: string;
@@ -12,6 +12,7 @@ type ConfirmationDialogProps = {
   cancelButtonText?: string;
   cancelButtonColor: ButtonProps['color'];
   cancelButtonOutline: ButtonProps['outline'];
+
   isOpen: boolean;
   isLoading: boolean;
   onConfirm: () => Promise<void>;

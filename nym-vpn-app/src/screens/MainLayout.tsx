@@ -46,7 +46,7 @@ function MainLayout({
         'dark:bg-ash dark:text-white',
       ])}
     >
-      {/* <InitialNavigation /> */}
+      <InitialNavigation />
       {!noNotifications && <Notifications />}
       {!noTopBar && <TopBar />}
       {!noDaemonDot && <DaemonDot status={daemonStatus} />}
