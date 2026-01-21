@@ -36,8 +36,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	var splashFinished by remember { mutableStateOf(false) }
 	val isAppReady by appViewModel.isAppReady.collectAsStateWithLifecycle()
 
-	LaunchedEffect(composition) {
-		appViewModel.onAppStartup()
+	LaunchedEffect(Unit) {
 		delay(3000)
 		splashFinished = true
 	}

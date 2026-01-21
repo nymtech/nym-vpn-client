@@ -113,6 +113,8 @@ class MainActivity : AppCompatActivity() {
 			window.isNavigationBarContrastEnforced = false
 		}
 		super.onCreate(savedInstanceState)
+
+		appViewModel.onAppStartup()
 		captureDeepLink(intent)
 		resetTile()
 		setContent {

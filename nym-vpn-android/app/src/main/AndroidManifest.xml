@@ -98,14 +98,11 @@
 		<receiver
 			android:name=".receiver.BootReceiver"
 			android:enabled="true"
-			android:exported="false">
+			android:exported="false"
+			android:directBootAware="true">
 			<intent-filter>
-				<category android:name="android.intent.category.DEFAULT" />
-
+				<action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
 				<action android:name="android.intent.action.BOOT_COMPLETED" />
-				<action android:name="android.intent.action.ACTION_BOOT_COMPLETED" />
-				<action android:name="android.intent.action.QUICKBOOT_POWERON" />
-				<action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
 			</intent-filter>
 		</receiver>
 		<provider
