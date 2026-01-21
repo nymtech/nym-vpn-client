@@ -37,12 +37,13 @@ impl Deeplink {
         Instant::now() > self.expiry_time
     }
 
-    pub fn create_url(&self, base_url: &Url) -> String {
+    pub fn create_url(&self, base_url: &Url) -> Url {
         let pubkey = bs58::encode(self.keypair.public_key().to_bytes()).into_string();
-        format!(
-            "{base_url}?deeplink_id={deeplink_id}&pubkey={pubkey}",
-            deeplink_id = self.id
-        )
+        let mut url = base_url.clone();
+        url.query_pairs_mut()
+            .append_pair("deeplink_id", &self.id.to_string())
+            .append_pair("pubkey", &pubkey);
+        url
     }
 }
 

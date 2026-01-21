@@ -197,6 +197,8 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
         .create_deeplink(kind, &name)
         .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
 
-    // Pass back the URL to use for this deeplink
-    Ok(deeplink.create_url(&base_url))
+    // Create the deeplink URL
+    let url = deeplink.create_url(&base_url);
+
+    Ok(url.to_string())
 }
