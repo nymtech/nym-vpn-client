@@ -79,6 +79,7 @@ function ActionMenu() {
     try {
       console.log('deleting logs');
       await invoke('delete_logs');
+      await invoke('delete_app_logs');
       push({
         message: t('logs.actions.delete.success'),
         type: 'info',

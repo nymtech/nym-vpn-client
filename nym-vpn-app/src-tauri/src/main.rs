@@ -301,6 +301,7 @@ async fn main() -> Result<()> {
             cmd_daemon::vpnd_log_dir,
             cmd_daemon::delete_logs,
             cmd_fs::log_dir,
+            cmd_fs::delete_app_logs,
             cmd_sys::os_info,
             cmd_sentry::enable_sentry,
             cmd_sentry::disable_sentry,
