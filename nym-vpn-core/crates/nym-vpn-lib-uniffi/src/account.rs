@@ -279,6 +279,17 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
         .ok_or(VpnError::NoAccountStored)
 }
 
+pub(super) async fn get_deeplink(kind: String, name: String) -> Result<String, VpnError> {
+    // TEMP: Will be a wellknown endpoint, passed from the server, soon.
+    let base_uri = "https://nym.com/auth/privy".to_string();
+
+    get_command_sender()
+        .await?
+        .get_deeplink(kind, name, base_uri)
+        .await
+        .map_err(VpnError::from)
+}
+
 // Raw API that directly accesses storage without going through the account controller.
 // This API places the responsibility of ensuring the account controller is not running on
 // the caller.

@@ -96,6 +96,9 @@ pub enum VpnError {
 
     #[error("failed to resolve query to a nyxd instance: {details}")]
     NyxdQueryFailure { details: String },
+
+    #[error("deeplink error: {details}")]
+    DeeplinkError { details: String },
 }
 
 impl From<HttpClientError> for VpnError {
@@ -138,6 +141,7 @@ impl From<AccountCommandError> for VpnError {
             AccountCommandError::ZkNymAcquisitionFailure(details) => {
                 Self::ZkNymAcquisitionFailure { details }
             }
+            AccountCommandError::DeeplinkError(message) => Self::DeeplinkError { details: message },
         }
     }
 }

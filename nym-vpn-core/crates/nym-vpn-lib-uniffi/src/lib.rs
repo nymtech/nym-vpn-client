@@ -430,6 +430,13 @@ pub fn getAccountState() -> Result<AccountControllerState, VpnError> {
     RUNTIME.block_on(account::get_account_state())
 }
 
+/// Get a deeplink
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getDeeplink(kind: String, name: String) -> Result<String, VpnError> {
+    RUNTIME.block_on(account::get_deeplink(kind, name))
+}
+
 async fn get_account_id() -> Result<String, VpnError> {
     account::get_account_id()
         .await?
