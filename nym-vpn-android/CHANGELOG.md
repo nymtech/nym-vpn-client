@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add deeplinks support for Main Screen (https://github.com/nymtech/nym-vpn-client/pull/4441)
+
+### Changed
+
+### Fixed
+
 ## [2.7.0] - 2026.01.16
 
 ### Added
