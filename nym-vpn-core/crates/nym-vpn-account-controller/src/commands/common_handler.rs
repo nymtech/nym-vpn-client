@@ -194,7 +194,7 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
     // Create a new Deeplink for this request
     let deeplink = shared_state
         .deeplinks
-        .create_deeplink(kind, &name)
+        .create_deeplink(kind, name)
         .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
 
     // Create the deeplink URL
