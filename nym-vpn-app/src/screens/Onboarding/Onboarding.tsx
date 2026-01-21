@@ -55,8 +55,8 @@ function Onboarding() {
 
   return (
     <PageAnim className="h-full flex flex-col justify-end items-center gap-8 select-none cursor-default">
-      <section className="embla w-full h-full flex flex-col gap-4 justify-between">
-        <div className="flex flex-1 justify-center flex-col gap-10 items-center">
+      <section className="embla w-full h-full flex flex-col justify-between">
+        <div className="flex flex-1 justify-center flex-col gap-6 items-center">
           <NymVpnTextLogo className="w-32" />
           <div className="overflow-hidden w-full" ref={emblaRef}>
             <div className="flex touch-pinch-zoom">

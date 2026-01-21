@@ -27,6 +27,8 @@
     "opener:default",
     "opener:allow-open-url",
     "opener:allow-open-path",
+    "core:event:default",
+    "deep-link:default",
     {
       "identifier": "opener:allow-open-path",
       "allow": [

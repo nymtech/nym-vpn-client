@@ -36,7 +36,7 @@ struct Socks5EnableConfig {
 /// SOCKS5 service errors
 #[derive(Debug, thiserror::Error)]
 pub enum Socks5Error {
-    #[error("Gateway does not support SOCKS5 network requester")]
+    #[error("Server does not support SOCKS5 network requester")]
     GatewayNotSupported,
 
     #[error("Invalid configuration: {0}")]

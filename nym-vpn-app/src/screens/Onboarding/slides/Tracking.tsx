@@ -5,7 +5,7 @@ function Tracking() {
   const { t } = useTranslation('onboarding');
   return (
     <div className="flex flex-col items-center gap-4">
-      <StopTracking className="h-full max-h-72 w-fit" />
+      <StopTracking className="h-full max-h-64 w-fit" />
       <h1 className="text-2xl text-center text-baltic-sea dark:text-white">
         {t('tracking.title')}
       </h1>
