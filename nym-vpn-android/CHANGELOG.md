@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
+- Fix Auto start handling (https://github.com/nymtech/nym-vpn-client/pull/4442)
 
 ## [2.7.0] - 2026.01.16
 
