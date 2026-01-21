@@ -39,7 +39,7 @@ pub struct CliArgs {
 impl CliArgs {
     pub fn verbosity_level(&self) -> tracing::Level {
         match self.verbose {
-            0 => tracing::Level::INFO,
+            0 => tracing::Level::DEBUG,
             1 => tracing::Level::DEBUG,
             _ => tracing::Level::TRACE,
         }
