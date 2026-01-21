@@ -15,6 +15,7 @@ import { NymVpnTextLogo } from '../assets';
 import { useDialog, useMainState, useTopBar } from '../contexts';
 import { routes } from '../router';
 import { Routes } from '../types';
+import { ActionMenu } from '../screens';
 import ButtonIcon from './ButtonIcon';
 
 type NavLocation = {
@@ -131,6 +132,7 @@ export default function TopBar() {
       '/settings/logs': {
         title: t('logs'),
         leftIcon: 'arrow_back',
+        rightComponent: <ActionMenu />,
         handleLeftNav: () => {
           navigate(-1);
         },
