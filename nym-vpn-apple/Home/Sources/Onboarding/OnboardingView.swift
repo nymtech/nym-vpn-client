@@ -2,6 +2,9 @@ import SwiftUI
 import AppSettings
 import Constants
 import ExternalLinkManager
+#if os(iOS)
+import PurchasesManager
+#endif
 import Routes
 import Settings
 import UIComponents
@@ -10,6 +13,9 @@ import Theme
 public struct OnboardingView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var externalLinkManager: ExternalLinkManager
+#if os(iOS)
+    @EnvironmentObject private var purchasesManager: PurchasesManager
+#endif
     @Binding private var path: NavigationPath
     @State private var selection: Int = 0
     @State private var pageCount = 3
@@ -43,28 +49,48 @@ public struct OnboardingView: View {
         _path = path
     }
 
-    var pages = [
-        OnboardingStepView(
+    var pages: [OnboardingStepView] {
+        var onboardingPages = [OnboardingStepView]()
+        let freeTrialPage = OnboardingStepView(
             imageName: "7daysNoCommitment",
             title: "onboarding0.title".localizedString,
             subtitle: "onboarding0.subtitle1".localizedString + "\n\n" + "onboarding0.subtitle2".localizedString
-        ),
-        OnboardingStepView(
-            imageName: "speed",
-            title: "onboarding3.title".localizedString,
-            subtitle: "onboarding3.subtitle1".localizedString + "\n" + "onboarding3.subtitle2".localizedString
-        ),
-        OnboardingStepView(
-            imageName: "stopBeingTracked",
-            title: "onboarding1.title".localizedString,
-            subtitle: "onboarding1.subtitle1".localizedString
-        ),
-        OnboardingStepView(
-            imageName: "zeroKnowledge",
-            title: "onboarding2.title".localizedString,
-            subtitle: "onboarding2.subtitle1".localizedString
         )
-    ]
+        let noFreeTrialPage = OnboardingStepView(
+            imageName: "welcome",
+            title: "onboarding0.title".localizedString,
+            subtitle: "onboarding0.subtitle1".localizedString
+        )
+#if os(iOS)
+        if !purchasesManager.isEligibleForIntroOffer.isEmpty {
+            onboardingPages.append(freeTrialPage)
+        } else {
+            onboardingPages.append(noFreeTrialPage)
+        }
+#elseif os(macOS)
+        onboardingPages.append(freeTrialPage)
+#endif
+        onboardingPages.append(
+            contentsOf: [
+                OnboardingStepView(
+                    imageName: "speed",
+                    title: "onboarding3.title".localizedString,
+                    subtitle: "onboarding3.subtitle1".localizedString + "\n" + "onboarding3.subtitle2".localizedString
+                ),
+                OnboardingStepView(
+                    imageName: "stopBeingTracked",
+                    title: "onboarding1.title".localizedString,
+                    subtitle: "onboarding1.subtitle1".localizedString
+                ),
+                OnboardingStepView(
+                    imageName: "zeroKnowledge",
+                    title: "onboarding2.title".localizedString,
+                    subtitle: "onboarding2.subtitle1".localizedString
+                )
+            ]
+        )
+        return onboardingPages
+    }
 }
 
 private extension OnboardingView {
