@@ -56,7 +56,7 @@ impl Deeplinks {
         let deeplink = Deeplink::new(deeplink_kind, name);
         let id = deeplink.id;
         self.0.insert(id, deeplink);
-        Ok(self.0.get(&id).unwrap())
+        self.0.get(&id).ok_or(DeeplinkError::DeeplinkNotFound(id))
     }
 
     pub fn remove_expired(&mut self) {
