@@ -12,4 +12,11 @@
 		<item name="postSplashScreenTheme">@style/Theme.NymVPN</item>
 		<item name="android:navigationBarColor">@color/dark_background</item>
 	</style>
+
+	<style name="Theme.NymVPN.Transparent" parent="Theme.Material3.DayNight.NoActionBar">
+		<item name="android:windowIsTranslucent">true</item>
+		<item name="android:windowBackground">@android:color/transparent</item>
+		<item name="android:windowNoTitle">true</item>
+		<item name="android:backgroundDimEnabled">false</item>
+	</style>
 </resources>

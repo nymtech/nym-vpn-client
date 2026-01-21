@@ -4,12 +4,9 @@ import android.app.Activity
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,7 +46,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.credentials.CreatePasswordRequest
 import androidx.credentials.CredentialManager
 import androidx.fragment.app.FragmentActivity
@@ -64,6 +60,7 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
+import net.nymtech.nymvpn.util.DeviceAuthHelper
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -74,25 +71,11 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 	val clipboardManager = LocalClipboard.current
 	val passphrase by viewModel.passphrase.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }
+
 	val navController = LocalNavController.current
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
 	val activity = context as? FragmentActivity
-	val executor = remember(context) { ContextCompat.getMainExecutor(context) }
-
-	val biometricPrompt = remember(activity, executor) {
-		activity?.let {
-			BiometricPrompt(
-				it,
-				executor,
-				object : BiometricPrompt.AuthenticationCallback() {
-					override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-						showSheet = true
-					}
-				},
-			)
-		}
-	}
 
 	val fileSaverLauncher = rememberLauncherForActivityResult(
 		contract = ActivityResultContracts.StartActivityForResult(),
@@ -110,9 +93,17 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 		}
 	}
 
-	val promptInfo = remember(context) { buildPromptInfo(context) }
+	val title = stringResource(R.string.passphrase_title)
+	val subtitle = stringResource(R.string.passphrase_description)
 
-	// Prevent system back click navigation if passphrase sheet is visible
+	val promptInfo = remember(context) {
+		DeviceAuthHelper.buildPromptInfo(
+			context,
+			title = title,
+			subtitle = subtitle,
+		)
+	}
+
 	BackHandler(enabled = showSheet) { }
 
 	LaunchedEffect(showSheet) {
@@ -120,35 +111,22 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 	}
 
 	fun requestAuthOrReveal() {
-		val manager = BiometricManager.from(context)
-
-		val authenticators =
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-				BiometricManager.Authenticators.BIOMETRIC_STRONG or
-					BiometricManager.Authenticators.DEVICE_CREDENTIAL
-			} else {
-				BiometricManager.Authenticators.BIOMETRIC_STRONG
-			}
-
-		when (manager.canAuthenticate(authenticators)) {
-			BiometricManager.BIOMETRIC_SUCCESS -> {
-				if (biometricPrompt != null) {
-					biometricPrompt.authenticate(promptInfo)
-				} else {
-					showSheet = true
-				}
-			}
-			BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED,
-			BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE,
-			BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE,
-			BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED,
-			BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED,
-			BiometricManager.BIOMETRIC_STATUS_UNKNOWN,
-			-> {
-				showSheet = true
-			}
-			else -> showSheet = true
+		if (activity == null) {
+			showSheet = true
+			return
 		}
+
+		DeviceAuthHelper.authenticate(
+			activity = activity,
+			promptInfo = promptInfo,
+			onAuthenticated = { showSheet = true },
+			onUnavailable = {
+				showSheet = true
+			},
+			onError = { _, _ ->
+				showSheet = true
+			},
+		)
 	}
 
 	suspend fun savePasswordToManager(context: Context, password: String) {
@@ -172,9 +150,7 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 	PassphraseScreen(
 		passphrase = passphrase,
 		show = showSheet,
-		onShowClick = {
-			requestAuthOrReveal()
-		},
+		onShowClick = { requestAuthOrReveal() },
 		onCopyClick = {
 			scope.launch {
 				val text = passphrase.joinToString(" ")
@@ -202,42 +178,6 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 			navController.safePopBackStack()
 		},
 	)
-}
-
-@Suppress("DEPRECATION")
-private fun buildPromptInfo(context: Context): BiometricPrompt.PromptInfo {
-	val title = context.getString(R.string.passphrase_title)
-	val subtitle = context.getString(R.string.passphrase_description)
-
-	return when {
-		Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
-			BiometricPrompt.PromptInfo.Builder()
-				.setTitle(title)
-				.setSubtitle(subtitle)
-				.setAllowedAuthenticators(
-					BiometricManager.Authenticators.BIOMETRIC_STRONG or
-						BiometricManager.Authenticators.DEVICE_CREDENTIAL,
-				)
-				.build()
-		}
-
-		Build.VERSION.SDK_INT == Build.VERSION_CODES.Q -> {
-			BiometricPrompt.PromptInfo.Builder()
-				.setTitle(title)
-				.setSubtitle(subtitle)
-				.setDeviceCredentialAllowed(true)
-				.build()
-		}
-
-		else -> {
-			BiometricPrompt.PromptInfo.Builder()
-				.setTitle(title)
-				.setSubtitle(subtitle)
-				.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-				.setNegativeButtonText(context.getString(android.R.string.cancel))
-				.build()
-		}
-	}
 }
 
 @Composable
