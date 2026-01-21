@@ -11,54 +11,62 @@ import kotlinx.coroutines.launch
 import net.nymtech.billing.model.BillingCode
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.manager.billing.BillingManager
+import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
 	private val billingManager: BillingManager,
+	private val environmentManager: EnvironmentManager,
 ) : ViewModel() {
 
-	private val _loading = MutableStateFlow(false)
-	val loading = _loading.asStateFlow()
-
-	private val _activeSubscription = MutableStateFlow(false)
-	val activeSubscription = _activeSubscription.asStateFlow()
+	private val _uiState = MutableStateFlow(CreateAccountUiState())
+	val uiState = _uiState.asStateFlow()
 
 	init {
 		viewModelScope.launch {
-			if (billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID) {
-				_loading.emit(true)
-				try {
-					if (billingManager.isReady()) {
-						checkSubscription()
-					} else {
-						billingManager.initialize()
-						val response = billingManager.uiState
-							.map { it.billingInfo?.responseCode ?: BillingCode.UNKNOWN }
-							.first()
+			_uiState.value = _uiState.value.copy(
+				isPrivyEnabled = environmentManager.isPrivyEnabled(),
+			)
 
-						if (response == BillingCode.BILLING_UNAVAILABLE || response == BillingCode.UNKNOWN) {
-							_loading.emit(false)
-							return@launch
-						}
-						if (response == BillingCode.OK) {
-							checkSubscription()
-						}
+			val billingAllowed = BuildConfig.APPLICATION_ID == Constants.APP_ID
+			val billingAvailableNow = billingAllowed && billingManager.isAvailable()
+
+			_uiState.value = _uiState.value.copy(
+				isBillingAvailable = billingAvailableNow && billingManager.isReady(),
+			)
+
+			if (!billingAvailableNow) return@launch
+
+			_uiState.value = _uiState.value.copy(isLoading = true)
+			try {
+				if (!billingManager.isReady()) {
+					billingManager.initialize()
+
+					val response = billingManager.uiState
+						.map { it.billingInfo?.responseCode ?: BillingCode.UNKNOWN }
+						.first()
+
+					if (response == BillingCode.BILLING_UNAVAILABLE || response == BillingCode.UNKNOWN) {
+						_uiState.value = _uiState.value.copy(isBillingAvailable = false)
+						return@launch
 					}
-				} finally {
-					_loading.emit(false)
 				}
+
+				val subscribed = billingManager.hasActiveSubscription()
+				_uiState.value = _uiState.value.copy(
+					hasActiveSubscription = subscribed,
+					isBillingAvailable = true,
+				)
+			} finally {
+				_uiState.value = _uiState.value.copy(isLoading = false)
 			}
 		}
 	}
 
-	private suspend fun checkSubscription() {
-		val subscribed = billingManager.hasActiveSubscription()
-		_activeSubscription.value = subscribed
-	}
-
 	fun isBillingAvailable(): Boolean {
-		return billingManager.isReady() && billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID
+		val s = _uiState.value
+		return s.isBillingAvailable
 	}
 }
