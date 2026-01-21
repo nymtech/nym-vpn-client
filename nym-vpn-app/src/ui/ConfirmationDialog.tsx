@@ -1,13 +1,17 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { Button, Dialog, MsIcon } from '.';
+import { Button, ButtonProps, Dialog, MsIcon } from '.';
 
 type ConfirmationDialogProps = {
   icon: string;
   title: string;
   description: string;
   confirmButtonText: string;
-  cancelButtonText: string;
+  confirmButtonColor: ButtonProps['color'];
+  confirmButtonOutline: ButtonProps['outline'];
+  cancelButtonText?: string;
+  cancelButtonColor: ButtonProps['color'];
+  cancelButtonOutline: ButtonProps['outline'];
   isOpen: boolean;
   isLoading: boolean;
   onConfirm: () => Promise<void>;
@@ -19,7 +23,11 @@ function ConfirmationDialog({
   title,
   description,
   confirmButtonText,
+  confirmButtonColor = 'malachite',
+  confirmButtonOutline = false,
   cancelButtonText,
+  cancelButtonColor = 'gray',
+  cancelButtonOutline = true,
   isOpen,
   isLoading,
   onConfirm,
@@ -46,14 +54,19 @@ function ConfirmationDialog({
         <Button
           onClick={onConfirm}
           className="min-w-32"
-          color="red"
-          outline
+          color={confirmButtonColor}
+          outline={confirmButtonOutline}
           spinner={isLoading}
           disabled={isLoading}
         >
           {confirmButtonText}
         </Button>
-        <Button onClick={onCancel} className="min-w-32" color="gray" outline>
+        <Button
+          onClick={onCancel}
+          className="min-w-32"
+          color={cancelButtonColor}
+          outline={cancelButtonOutline}
+        >
           {cancelButtonText || t('cancel')}
         </Button>
       </div>

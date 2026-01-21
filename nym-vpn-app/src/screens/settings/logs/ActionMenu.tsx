@@ -102,7 +102,11 @@ function ActionMenu() {
         title: t('logs.actions.delete.title'),
         description: t('logs.actions.delete.description'),
         confirmButtonText: t('logs.actions.delete.confirmButtonText'),
+        confirmButtonColor: 'red',
+        confirmButtonOutline: true,
         cancelButtonText: t('logs.actions.delete.cancelButtonText'),
+        cancelButtonColor: 'gray',
+        cancelButtonOutline: true,
         onConfirm: handleDeleteLogs,
       },
       share: {
@@ -110,7 +114,11 @@ function ActionMenu() {
         title: t('logs.actions.share.title'),
         description: t('logs.actions.share.description'),
         confirmButtonText: t('logs.actions.share.confirmButtonText'),
+        confirmButtonColor: 'red',
+        confirmButtonOutline: true,
         cancelButtonText: t('logs.actions.share.cancelButtonText'),
+        cancelButtonColor: 'gray',
+        cancelButtonOutline: true,
         onConfirm: handleShareLogs,
       },
     }),
@@ -170,6 +178,10 @@ function ActionMenu() {
           title={dialogConfig[activeDialog].title}
           description={dialogConfig[activeDialog].description}
           confirmButtonText={dialogConfig[activeDialog].confirmButtonText}
+          confirmButtonColor={dialogConfig[activeDialog].confirmButtonColor}
+          confirmButtonOutline={dialogConfig[activeDialog].confirmButtonOutline}
+          cancelButtonColor={dialogConfig[activeDialog].cancelButtonColor}
+          cancelButtonOutline={dialogConfig[activeDialog].cancelButtonOutline}
           cancelButtonText={dialogConfig[activeDialog].cancelButtonText}
           isOpen={!!activeDialog}
           isLoading={isLoading}
