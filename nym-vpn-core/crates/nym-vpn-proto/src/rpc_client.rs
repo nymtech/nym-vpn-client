@@ -3,8 +3,8 @@
 
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
-    DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway, HttpRpcSettings,
-    ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkCompatibility,
+    DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway, GetDeeplinkParams,
+    HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkCompatibility,
     NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
     SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
@@ -536,11 +536,11 @@ impl RpcClient {
         Ok(account_summary)
     }
 
-    pub async fn get_deeplink(&mut self, kind: String, name: String) -> Result<String> {
-        let params = proto::GetDeeplinkParams { kind, name };
+    pub async fn get_deeplink(&mut self, params: GetDeeplinkParams) -> Result<String> {
+        let request: proto::GetDeeplinkParams = params.into();
         let url = self
             .0
-            .get_deeplink(params)
+            .get_deeplink(request)
             .await
             .map_err(Error::Rpc)?
             .into_inner();

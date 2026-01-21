@@ -77,9 +77,9 @@ use sentry::ClientInitGuard;
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use nym_vpn_lib_types::{
-    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
-    NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage, RegisterAccountResponse,
-    StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent,
+    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, GetDeeplinkParams,
+    Network, NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage,
+    RegisterAccountResponse, StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent,
 };
 
 use account::AccountControllerHandle;
@@ -433,8 +433,8 @@ pub fn getAccountState() -> Result<AccountControllerState, VpnError> {
 /// Get a deeplink
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getDeeplink(kind: String, name: String) -> Result<String, VpnError> {
-    RUNTIME.block_on(account::get_deeplink(kind, name))
+pub fn getDeeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
+    RUNTIME.block_on(account::get_deeplink(params))
 }
 
 async fn get_account_id() -> Result<String, VpnError> {

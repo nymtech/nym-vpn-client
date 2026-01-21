@@ -898,8 +898,19 @@ message RegistrationReport {
 }
 
 message GetDeeplinkParams {
-  string kind = 1;
-  string name = 2;
+  DeeplinkClient client = 1;
+  DeeplinkKind kind = 2;
+  string name = 3;
+}
+
+enum DeeplinkClient {
+  MOBILE = 0;
+  DESKTOP = 1;
+  WEB = 2;
+}
+
+enum DeeplinkKind {
+  PRIVY = 0;
 }
 
 service NymVpnService {

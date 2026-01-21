@@ -4,7 +4,6 @@
 use crate::{
     AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand},
-    deeplink::GetDeeplinkRequest,
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
@@ -12,7 +11,9 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
-use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
+use nym_vpn_lib_types::{
+    AccountCommandError, DeeplinkKind, RegisterAccountResponse, VpnAccountSummary,
+};
 use nym_vpn_store::types::StorableAccount;
 use tokio::sync::mpsc::UnboundedSender;
 
@@ -164,20 +165,15 @@ impl AccountCommandSender {
 
     pub async fn get_deeplink(
         &self,
-        kind: String,
+        kind: DeeplinkKind,
         name: String,
         base_uri: String,
     ) -> Result<String, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
-        let get_deeplink_request = GetDeeplinkRequest {
-            kind,
-            name,
-            base_uri,
-        };
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetDeeplink(
                 tx,
-                get_deeplink_request,
+                (kind, name, base_uri),
             )))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?

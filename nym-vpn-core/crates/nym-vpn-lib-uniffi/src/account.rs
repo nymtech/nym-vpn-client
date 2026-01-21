@@ -6,20 +6,22 @@ use std::{path::PathBuf, str::FromStr, time::Duration};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
+use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
+use crate::{environment::current_environment_details, offline_monitor};
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::{new_user_agent, storage::VpnClientOnDiskStorage};
-use nym_vpn_lib_types::{AccountControllerState, RegisterAccountResponse, StoreAccountRequest};
+use nym_vpn_lib_types::{
+    AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
+    RegisterAccountResponse, StoreAccountRequest,
+};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     account::Mnemonic,
     keys::{device::DeviceKeyStore, wireguard::WireguardKeysDb},
 };
-
-use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
-use crate::offline_monitor;
 
 pub(super) async fn init_account_controller(
     data_dir: PathBuf,
@@ -279,13 +281,31 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
         .ok_or(VpnError::NoAccountStored)
 }
 
-pub(super) async fn get_deeplink(kind: String, name: String) -> Result<String, VpnError> {
-    // TEMP: Will be a wellknown endpoint, passed from the server, soon.
-    let base_uri = "https://nym.com/auth/privy".to_string();
+pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
+    let base_uri = match params.kind {
+        DeeplinkKind::Privy => {
+            let Some(ref privy_paths) = current_environment_details()
+                .await
+                .map(|network| network.privy_paths)
+                .ok()
+                .flatten()
+            else {
+                return Err(VpnError::DeeplinkError {
+                    details: "No privy paths are available at this time".to_string(),
+                });
+            };
+
+            match params.client {
+                DeeplinkClient::Mobile => privy_paths.mobile.clone(),
+                DeeplinkClient::Desktop => privy_paths.desktop.clone(),
+                DeeplinkClient::Web => privy_paths.web.clone(),
+            }
+        }
+    };
 
     get_command_sender()
         .await?
-        .get_deeplink(kind, name, base_uri)
+        .get_deeplink(params.kind, params.name, base_uri)
         .await
         .map_err(VpnError::from)
 }

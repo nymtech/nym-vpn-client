@@ -1,6 +1,7 @@
 use nym_crypto::asymmetric::ed25519;
+use nym_vpn_lib_types::DeeplinkKind;
 use rand::{RngCore, rngs::OsRng};
-use std::{collections::HashMap, str::FromStr};
+use std::collections::HashMap;
 use tokio::time::{Duration, Instant};
 
 #[derive(Debug)]
@@ -48,9 +49,12 @@ impl Deeplink {
 pub struct Deeplinks(HashMap<u64, Deeplink>);
 
 impl Deeplinks {
-    pub fn create_deeplink(&mut self, kind: &str, name: &str) -> Result<&Deeplink, DeeplinkError> {
-        let deeplink_kind = DeeplinkKind::from_str(kind)?;
-        let deeplink = Deeplink::new(deeplink_kind, name);
+    pub fn create_deeplink(
+        &mut self,
+        kind: DeeplinkKind,
+        name: &str,
+    ) -> Result<&Deeplink, DeeplinkError> {
+        let deeplink = Deeplink::new(kind, name);
         let id = deeplink.id;
         self.0.insert(id, deeplink);
         self.0.get(&id).ok_or(DeeplinkError::DeeplinkNotFound(id))
@@ -100,35 +104,8 @@ impl Deeplinks {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum DeeplinkKind {
-    Privy,
-}
-
-impl FromStr for DeeplinkKind {
-    type Err = DeeplinkError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
-            "privy" => Ok(DeeplinkKind::Privy),
-            _ => Err(DeeplinkError::InvalidDeeplinkKind(s.to_string())),
-        }
-    }
-}
-
-// Package-up the GetDeeplink request parameters
-#[derive(Clone, Debug)]
-pub struct GetDeeplinkRequest {
-    pub kind: String,
-    pub name: String,
-    pub base_uri: String,
-}
-
 #[derive(thiserror::Error, Debug)]
 pub enum DeeplinkError {
-    #[error("invalid deeplink kind: {0}")]
-    InvalidDeeplinkKind(String),
-
     #[error("invalid URL: {0}")]
     InvalidUrl(String),
 

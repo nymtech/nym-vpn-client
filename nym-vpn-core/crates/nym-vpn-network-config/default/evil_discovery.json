@@ -6,7 +6,7 @@
       "url": "https://evil-nym-api.performance.nymte.ch/api/"
     },
     {
-      "url": "https://nym-frontdoor-git-deploy-evil-env-nyx-network-staging.vercel.app/api/",
+      "url": "https://nym-frontdoor.vercel.app/evil/nym-api/",
       "fronts": [
         "vercel.app",
         "vercel.com"
@@ -23,7 +23,7 @@
       ]
     },
     {
-      "url": "https://nym-frontdoor-git-deploy-evil-env-nyx-network-staging.vercel.app/nym-vpn-api/",
+      "url": "https://nym-frontdoor.vercel.app/evil/nym-vpn-api/",
       "fronts": [
         "vercel.app",
         "vercel.com"
@@ -35,7 +35,12 @@
     "paths": {
       "sign_up": "{locale}/account/create",
       "sign_in": "{locale}/account/login",
-      "account": "{locale}/account/{account_id}"
+      "account": "{locale}/account/{account_id}",
+      "privy": {
+        "mobile": "{locale}/account/login/privy/mobile",
+        "desktop": "{locale}/account/login/privy/desktop",
+        "web": "{locale}/account/login/privy/web"
+      }
     }
   },
   "system_messages": [
@@ -72,18 +77,21 @@
     "statistics_api": "https://nym-statistics-api-staging.nymte.ch"
   },
   "network_compatibility": {
-    "core": "1.9.0",
-    "macos": "2.4.0",
-    "ios": "2.7.1",
-    "tauri": "1.9.0",
-    "android": "1.5.0"
+    "core": "1.21.0",
+    "macos": "2.15.1",
+    "ios": "2.15.1",
+    "tauri": "1.21.0",
+    "android": "2.6.0"
   },
   "feature_flags": {
     "domain_fronting": {
-      "enabled": "false"
+      "enabled": "true"
+    },
+    "privy": {
+      "enabled": "true"
     },
     "quic": {
-      "enabled": "false"
+      "enabled": "true"
     },
     "versions": {
       "gatewayMetadataUpdate": "1.18.0"

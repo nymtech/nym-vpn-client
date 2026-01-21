@@ -39,12 +39,13 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
-    DecentralisedObtainTicketbooksRequest, DiagnosticRegisterParams, DiagnosticReport,
-    DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
-    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, RegistrationReport, StoreAccountRequest, SystemMessage, TargetState,
-    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
+    DiagnosticReport, DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint,
+    FeatureFlags, Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
+    MixnetTrafficConfig, NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails,
+    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, RegistrationReport,
+    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -145,7 +146,7 @@ pub enum VpnServiceCommand {
     ),
     GetDeeplink(
         oneshot::Sender<Result<String, AccountCommandError>>,
-        (String, String),
+        GetDeeplinkParams,
     ),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
     DeleteLogFile(oneshot::Sender<()>, ()),
@@ -894,8 +895,8 @@ impl NymVpnService {
             VpnServiceCommand::GetAccountSummary(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_summary().await);
             }
-            VpnServiceCommand::GetDeeplink(tx, (kind, name)) => {
-                let _ = tx.send(self.handle_get_deeplink(kind, name).await);
+            VpnServiceCommand::GetDeeplink(tx, params) => {
+                let _ = tx.send(self.handle_get_deeplink(params).await);
             }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.log_path.clone());
@@ -1554,14 +1555,26 @@ impl NymVpnService {
 
     async fn handle_get_deeplink(
         &self,
-        kind: String,
-        name: String,
+        params: GetDeeplinkParams,
     ) -> Result<String, AccountCommandError> {
-        // TEMP: Will be a wellknown endpoint, passed from the server, soon.
-        let base_uri = "https://nym.com/auth/privy".to_string();
+        let base_uri = match params.kind {
+            DeeplinkKind::Privy => {
+                let Some(ref privy_paths) = self.network_tx.borrow().privy_paths else {
+                    return Err(AccountCommandError::DeeplinkError(
+                        "No privy paths are available at this time".to_string(),
+                    ));
+                };
+
+                match params.client {
+                    DeeplinkClient::Mobile => privy_paths.mobile.clone(),
+                    DeeplinkClient::Desktop => privy_paths.desktop.clone(),
+                    DeeplinkClient::Web => privy_paths.web.clone(),
+                }
+            }
+        };
 
         self.account_command_tx
-            .get_deeplink(kind, name, base_uri)
+            .get_deeplink(params.kind, params.name, base_uri)
             .await
     }
 
