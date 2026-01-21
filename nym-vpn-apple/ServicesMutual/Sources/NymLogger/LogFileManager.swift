@@ -182,7 +182,7 @@ private extension LogFileManager {
             let modDate = attrs[.modificationDate] as? Date ?? .distantPast
             let age = Date().timeIntervalSince(modDate)
 
-            if fileSize >= maxFileSize || age >= maxFileAge {
+            if fileSize >= maxFileSize || age >= maxFileAge, fm.fileExists(atPath: url.path) {
                 try fm.removeItem(at: url)
             }
         } catch {
