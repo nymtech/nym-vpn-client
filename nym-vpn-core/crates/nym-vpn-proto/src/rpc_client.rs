@@ -536,6 +536,18 @@ impl RpcClient {
         Ok(account_summary)
     }
 
+    pub async fn get_deeplink(&mut self, kind: String, name: String) -> Result<String> {
+        let params = proto::GetDeeplinkParams { kind, name };
+        let url = self
+            .0
+            .get_deeplink(params)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(url)
+    }
+
     pub async fn get_log_path(&mut self) -> Result<LogPath> {
         let response = self
             .0

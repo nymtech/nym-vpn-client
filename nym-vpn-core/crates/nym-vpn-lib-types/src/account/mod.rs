@@ -71,6 +71,9 @@ pub enum AccountCommandError {
 
     #[error("invalid secret: {0}")]
     InvalidSecret(String),
+
+    #[error("deeplink error: {0}")]
+    DeeplinkError(String),
 }
 
 impl AccountCommandError {

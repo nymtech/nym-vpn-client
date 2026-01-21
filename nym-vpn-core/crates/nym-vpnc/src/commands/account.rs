@@ -47,6 +47,15 @@ pub enum Command {
     Usage,
     /// Get account summary
     Summary,
+    /// Get deeplink
+    GetDeeplink {
+        /// Deeplink Kind (only "privy" is supported for now)
+        #[arg(long)]
+        kind: String,
+        /// Deeplink name
+        #[arg(long)]
+        name: String,
+    },
 }
 
 impl Command {
@@ -164,6 +173,11 @@ impl Command {
             Command::Summary => {
                 let response = rpc_client.get_account_summary().await?;
                 println!("{response:#?}");
+                Ok(())
+            }
+            Command::GetDeeplink { kind, name } => {
+                let url = rpc_client.get_deeplink(kind, name).await?;
+                println!("Deeplink: {url}");
                 Ok(())
             }
         }

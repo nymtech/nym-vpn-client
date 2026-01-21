@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::AvailableTicketbooks;
+use crate::{AvailableTicketbooks, deeplink::GetDeeplinkRequest};
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     ResolverOverrides,
@@ -84,6 +84,7 @@ impl AccountCommand {
                     return_sender.send(Err(error))
                 }
                 CommonCommand::GetAccountSummary(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetDeeplink(return_sender, _) => return_sender.send(Err(error)),
             },
             AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
                 UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
@@ -129,6 +130,12 @@ pub enum CommonCommand {
 
     /// Returns the VPN account summary if the account is logged-in
     GetAccountSummary(ReturnSender<Option<VpnAccountSummary>, AccountCommandError>),
+
+    /// Return the deeplink URL for the specfied deeplink kind and name
+    GetDeeplink(
+        ReturnSender<String, AccountCommandError>,
+        GetDeeplinkRequest,
+    ),
 }
 
 /// Commands relating to the upgrade mode

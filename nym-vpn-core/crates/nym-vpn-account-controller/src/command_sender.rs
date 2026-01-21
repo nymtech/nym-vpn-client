@@ -4,6 +4,7 @@
 use crate::{
     AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand},
+    deeplink::GetDeeplinkRequest,
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
@@ -157,6 +158,27 @@ impl AccountCommandSender {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetAccountSummary(tx)))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn get_deeplink(
+        &self,
+        kind: String,
+        name: String,
+        base_uri: String,
+    ) -> Result<String, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        let get_deeplink_request = GetDeeplinkRequest {
+            kind,
+            name,
+            base_uri,
+        };
+        self.command_tx
+            .send(AccountCommand::Common(CommonCommand::GetDeeplink(
+                tx,
+                get_deeplink_request,
+            )))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

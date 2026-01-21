@@ -711,6 +711,20 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn get_deeplink(
+        &self,
+        request: tonic::Request<proto::GetDeeplinkParams>,
+    ) -> Result<tonic::Response<String>> {
+        let params = request.into_inner();
+
+        let url = self
+            .send_and_wait(VpnServiceCommand::GetDeeplink, (params.kind, params.name))
+            .await?
+            .map_err(|err| tonic::Status::internal(format!("Failed to get deeplink: {err}")))?;
+
+        Ok(tonic::Response::new(url.to_string()))
+    }
+
     async fn get_log_path(
         &self,
         _: tonic::Request<()>,

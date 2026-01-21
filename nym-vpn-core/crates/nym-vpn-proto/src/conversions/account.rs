@@ -60,6 +60,9 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::ZkNymAcquisitionFailure(err) => {
                 Self::ZkNymAcquisitionFailure(err)
             }
+            proto::account_command_error::ErrorDetail::DeeplinkError(message) => {
+                Self::DeeplinkError(message)
+            }
         })
     }
 }
@@ -177,6 +180,11 @@ impl From<AccountCommandError> for proto::AccountCommandError {
                 error_detail: Some(
                     proto::account_command_error::ErrorDetail::ZkNymAcquisitionFailure(err),
                 ),
+            },
+            AccountCommandError::DeeplinkError(message) => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::DeeplinkError(
+                    message,
+                )),
             },
         }
     }

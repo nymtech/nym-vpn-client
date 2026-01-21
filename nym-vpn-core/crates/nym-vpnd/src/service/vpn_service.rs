@@ -143,6 +143,10 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Option<VpnAccountSummary>, AccountCommandError>>,
         (),
     ),
+    GetDeeplink(
+        oneshot::Sender<Result<String, AccountCommandError>>,
+        (String, String),
+    ),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
     DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
@@ -890,6 +894,9 @@ impl NymVpnService {
             VpnServiceCommand::GetAccountSummary(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_summary().await);
             }
+            VpnServiceCommand::GetDeeplink(tx, (kind, name)) => {
+                let _ = tx.send(self.handle_get_deeplink(kind, name).await);
+            }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.log_path.clone());
             }
@@ -1543,6 +1550,19 @@ impl NymVpnService {
         &self,
     ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
         self.account_command_tx.get_account_summary().await
+    }
+
+    async fn handle_get_deeplink(
+        &self,
+        kind: String,
+        name: String,
+    ) -> Result<String, AccountCommandError> {
+        // TEMP: Will be a wellknown endpoint, passed from the server, soon.
+        let base_uri = "https://nym.com/auth/privy".to_string();
+
+        self.account_command_tx
+            .get_deeplink(kind, name, base_uri)
+            .await
     }
 
     async fn handle_delete_log_file(&self) {

@@ -3,8 +3,8 @@
 
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
-    types::{Device, VpnAccount},
     VpnApiClient,
+    types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::VpnAccountSummary;
 use std::sync::Arc;
@@ -13,11 +13,11 @@ use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::sync::mpsc;
 
 use crate::{
-    nyxd_client::NyxdClient, storage::{AccountStorageOp, VpnCredentialStorage},
-    AccountControllerConfig,
-    AccountControllerEventSender,
+    AccountControllerConfig, AccountControllerEventSender,
+    deeplink::Deeplinks,
+    nyxd_client::NyxdClient,
+    storage::{AccountStorageOp, VpnCredentialStorage},
 };
-use crate::deeplink::Deeplinks;
 
 /// This shared state is the sole propriety of the AccountController and contains the element that must be passed around the different states
 /// Ideally, we would have tunnel state here. But it makes circular dependency where tunnel needs AC state and AC needs tunnel state
@@ -78,7 +78,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         event_sender: AccountControllerEventSender,
     ) -> Self {
         let deeplinks = Deeplinks::new();
-        
+
         Self {
             connectivity_handle,
             config,

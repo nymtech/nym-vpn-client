@@ -1,13 +1,13 @@
 use nym_crypto::asymmetric::ed25519;
-use rand::{rngs::OsRng, RngCore};
-use std::collections::HashMap;
+use rand::{RngCore, rngs::OsRng};
+use std::{collections::HashMap, str::FromStr};
 use tokio::time::{Duration, Instant};
 
 #[derive(Debug)]
 pub struct Deeplink {
     id: u64,
-    kind: DeeplinkKind,
-    name: String,
+    _kind: DeeplinkKind,
+    _name: String,
     keypair: ed25519::KeyPair,
     expiry_time: Instant,
 }
@@ -23,13 +23,14 @@ impl Deeplink {
 
         Self {
             id,
-            kind,
-            name: name.to_string(),
+            _kind: kind,
+            _name: name.to_string(),
             keypair,
             expiry_time,
         }
     }
 
+    #[allow(unused)] // TEMP
     pub fn is_expired(&self) -> bool {
         Instant::now() > self.expiry_time
     }
@@ -43,11 +44,6 @@ impl Deeplink {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum DeeplinkKind {
-    Privy,
-}
-
 pub struct Deeplinks(HashMap<u64, Deeplink>);
 
 impl Deeplinks {
@@ -55,16 +51,12 @@ impl Deeplinks {
         Self(HashMap::new())
     }
 
-    pub fn create_deeplink(&mut self, name: &str, kind: DeeplinkKind) -> &Deeplink {
-        let deeplink = Deeplink::new(name, kind);
+    pub fn create_deeplink(&mut self, kind: &str, name: &str) -> Result<&Deeplink, DeeplinkError> {
+        let deeplink_kind = DeeplinkKind::from_str(kind)?;
+        let deeplink = Deeplink::new(name, deeplink_kind);
         let id = deeplink.id;
         self.0.insert(id, deeplink);
-        self.0.get(&id).unwrap()
-    }
-
-    /// If the deeplink is found then it's also removed.
-    pub fn retrieve_deeplink(&mut self, id: u64) -> Option<Deeplink> {
-        self.0.remove(&id)
+        Ok(self.0.get(&id).unwrap())
     }
 
     pub fn remove_expired(&mut self) {
@@ -72,9 +64,11 @@ impl Deeplinks {
         self.0.retain(|_, deeplink| deeplink.expiry_time > now);
     }
 
-    pub fn derive_mnemonic(&self, url_str: &str) -> Result<String, DeeplinkError> {
+    #[allow(unused)] // TEMP
+    pub fn derive_mnemonic(&mut self, url_str: &str) -> Result<String, DeeplinkError> {
         let url =
-            url::Url::parse(url_str).map_err(|e| DeeplinkError::InvalidUrl(url_str.to_string()))?;
+            url::Url::parse(url_str).map_err(|_| DeeplinkError::InvalidUrl(url_str.to_string()))?;
+
         let url_params: HashMap<String, String> = url
             .query_pairs()
             .map(|(k, v)| (k.to_string(), v.to_string()))
@@ -83,24 +77,80 @@ impl Deeplinks {
         let Some(deeplink_id_str) = url_params.get("deeplink_id") else {
             return Err(DeeplinkError::MissingDeeplinkId(url_str.to_string()));
         };
-        
-        let Some(encrypted_key_str) = url_params.get("encryptedkey") else {
-            return Err(DeeplinkError::MissingEncryptedKey(url_str.to_string()))
+
+        let Ok(deeplink_id) = deeplink_id_str.parse::<u64>() else {
+            return Err(DeeplinkError::InvalidDeeplinkId(deeplink_id_str.clone()));
         };
 
-        Ok("x".to_string())
+        let Some(encrypted_key_str) = url_params.get("encryptedkey") else {
+            return Err(DeeplinkError::MissingEncryptedKey(url_str.to_string()));
+        };
+
+        let _encrypted_wallet_key = bs58::decode(encrypted_key_str)
+            .into_vec()
+            .map_err(|_| DeeplinkError::InvalidEncryptedKey(encrypted_key_str.clone()))?;
+
+        let Some(deeplink) = self.0.remove(&deeplink_id) else {
+            return Err(DeeplinkError::DeeplinkNotFound(deeplink_id));
+        };
+
+        if deeplink.is_expired() {
+            return Err(DeeplinkError::DeeplinkExpired(deeplink_id));
+        }
+
+        // TBC
+        Err(DeeplinkError::InvalidUrl("Not yet implemented".to_string()))
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum DeeplinkKind {
+    Privy,
+}
+
+impl FromStr for DeeplinkKind {
+    type Err = DeeplinkError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "privy" => Ok(DeeplinkKind::Privy),
+            _ => Err(DeeplinkError::InvalidDeeplinkKind(s.to_string())),
+        }
+    }
+}
+
+// Package-up the GetDeeplink request parameters
+#[derive(Clone, Debug)]
+pub struct GetDeeplinkRequest {
+    pub kind: String,
+    pub name: String,
+    pub base_uri: String,
+}
+
+#[allow(clippy::enum_variant_names)] // TEMP
 #[derive(thiserror::Error, Debug)]
 pub enum DeeplinkError {
+    #[error("invalid deeplink kind: {0}")]
+    InvalidDeeplinkKind(String),
+
     #[error("invalid URL: {0}")]
     InvalidUrl(String),
 
     #[error("missing deeplink_id parameter in URL: {0}")]
     MissingDeeplinkId(String),
 
-    #[error("missing encryypedkey parameter in URL: {0}")]
+    #[error("invalid deeplink_id parameter: {0}")]
+    InvalidDeeplinkId(String),
+
+    #[error("missing encrytpedkey parameter in URL: {0}")]
     MissingEncryptedKey(String),
 
+    #[error("invalid base-58 encoded encrytpedkey: {0}")]
+    InvalidEncryptedKey(String),
+
+    #[error("deeplink with id {0} not found")]
+    DeeplinkNotFound(u64),
+
+    #[error("deeplink with id {0} has expired")]
+    DeeplinkExpired(u64),
 }

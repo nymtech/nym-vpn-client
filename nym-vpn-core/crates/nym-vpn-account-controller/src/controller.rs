@@ -4,7 +4,7 @@
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
-use nym_vpn_store::{keys::wireguard::WireguardKeysDb, VpnStorage};
+use nym_vpn_store::{VpnStorage, keys::wireguard::WireguardKeysDb};
 use tokio::sync::{
     mpsc::{self, UnboundedReceiver, UnboundedSender},
     watch,
@@ -12,16 +12,16 @@ use tokio::sync::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    commands::AccountCommand, error::Error, event_sender::AccountControllerEventReceiver,
-    shared_state::SharedAccountState, state_machine::{
+    AccountCommandSender, AccountControllerConfig, AccountControllerEventSender,
+    AccountStateReceiver, NyxdClient,
+    commands::AccountCommand,
+    error::Error,
+    event_sender::AccountControllerEventReceiver,
+    shared_state::SharedAccountState,
+    state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState, SyncingState,
     },
     storage::{AccountStorage, AccountStorageOp, VpnCredentialStorage},
-    AccountCommandSender,
-    AccountControllerConfig,
-    AccountControllerEventSender,
-    AccountStateReceiver,
-    NyxdClient,
 };
 
 pub struct AccountController<C, S>

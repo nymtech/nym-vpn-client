@@ -602,6 +602,7 @@ message AccountCommandError {
     bool account_decentralised = 15;
     bool account_not_decentralised = 16;
     string zk_nym_acquisition_failure = 17;
+    string deeplink_error = 18;
   }
 }
 
@@ -896,6 +897,11 @@ message RegistrationReport {
   string json = 1;
 }
 
+message GetDeeplinkParams {
+  string kind = 1;
+  string name = 2;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
@@ -1006,6 +1012,9 @@ service NymVpnService {
 
   // Get the account summary
   rpc GetAccountSummary (google.protobuf.Empty) returns (VpnAccountSummaryResponse) {}
+
+  // Get the deeplink URL
+  rpc GetDeeplink (GetDeeplinkParams) returns (google.protobuf.StringValue) {}
 
   // Get the log file path
   rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}
