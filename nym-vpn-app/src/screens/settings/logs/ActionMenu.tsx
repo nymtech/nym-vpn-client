@@ -77,7 +77,6 @@ function ActionMenu() {
   const handleDeleteLogs = useCallback(async () => {
     setIsLoading(true);
     try {
-      console.log('deleting logs');
       await invoke('delete_logs');
       await invoke('delete_app_logs');
       push({
@@ -100,11 +99,23 @@ function ActionMenu() {
     }
   }, [push, t]);
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   const handleShareLogs = useCallback(async () => {
-    // TODO: zip logs and open zip file in default file manager
-    console.log('sharing logs');
-  }, []);
+    setIsLoading(true);
+    try {
+      await invoke('zip_logs');
+    } catch (error) {
+      console.error('failed to zip logs', error);
+      push({
+        message: t('logs.actions.share.error'),
+        type: 'error',
+        duration: 3000,
+        close: true,
+      });
+    } finally {
+      setActiveDialog(null);
+      setIsLoading(false);
+    }
+  }, [push, t]);
 
   const dialogConfig = useMemo<Record<string, DialogConfig>>(
     () => ({
@@ -160,10 +171,10 @@ function ActionMenu() {
                 'origin-(--transform-origin) rounded-md text-gray-900 shadow-lg shadow-gray-200 outline transition-[transform,scale,opacity] data-ending-style:scale-90 data-ending-style:opacity-0 data-starting-style:scale-90 data-starting-style:opacity-0',
                 // dark theme
                 uiTheme === 'dark' &&
-                  'bg-charcoal shadow-none -outline-offset-1  text-white outline-iron',
+                'bg-charcoal shadow-none -outline-offset-1  text-white outline-iron',
                 // light theme
                 uiTheme === 'light' &&
-                  'bg-white text-iron outline-faded-lavender',
+                'bg-white text-iron outline-faded-lavender',
               )}
             >
               <MenuItem

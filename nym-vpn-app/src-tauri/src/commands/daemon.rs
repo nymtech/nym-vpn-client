@@ -9,9 +9,9 @@ use tracing::{debug, info, instrument, warn};
 use ts_rs::TS;
 
 #[cfg(unix)]
-const DEFAULT_VPND_LOG_DIR: &str = "/var/log/nym-vpnd";
+pub const DEFAULT_VPND_LOG_DIR: &str = "/var/log/nym-vpnd";
 #[cfg(windows)]
-const DEFAULT_VPND_LOG_DIR: &str = "C:\\ProgramData\\nym-vpnd\\log";
+pub const DEFAULT_VPND_LOG_DIR: &str = "C:\\ProgramData\\nym-vpnd\\log";
 
 #[derive(strum::AsRefStr, Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "lowercase")]
