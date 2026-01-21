@@ -15,7 +15,7 @@ pub struct Deeplink {
 impl Deeplink {
     const TTL_SECS: u64 = 300;
 
-    pub fn new(name: &str, kind: DeeplinkKind) -> Self {
+    pub fn new(kind: DeeplinkKind, name: &str) -> Self {
         let mut rng = OsRng;
         let keypair = ed25519::KeyPair::new(&mut rng);
         let id = rng.next_u64();
@@ -53,7 +53,7 @@ impl Deeplinks {
 
     pub fn create_deeplink(&mut self, kind: &str, name: &str) -> Result<&Deeplink, DeeplinkError> {
         let deeplink_kind = DeeplinkKind::from_str(kind)?;
-        let deeplink = Deeplink::new(name, deeplink_kind);
+        let deeplink = Deeplink::new(deeplink_kind, name);
         let id = deeplink.id;
         self.0.insert(id, deeplink);
         Ok(self.0.get(&id).unwrap())
