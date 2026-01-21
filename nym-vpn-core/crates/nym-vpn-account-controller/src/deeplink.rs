@@ -127,7 +127,6 @@ pub struct GetDeeplinkRequest {
     pub base_uri: String,
 }
 
-#[allow(clippy::enum_variant_names)] // TEMP
 #[derive(thiserror::Error, Debug)]
 pub enum DeeplinkError {
     #[error("invalid deeplink kind: {0}")]
