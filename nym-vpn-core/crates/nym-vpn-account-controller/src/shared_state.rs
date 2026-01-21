@@ -77,7 +77,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         event_sender: AccountControllerEventSender,
     ) -> Self {
-        let deeplinks = Deeplinks::new();
+        let deeplinks = Deeplinks::default();
 
         Self {
             connectivity_handle,

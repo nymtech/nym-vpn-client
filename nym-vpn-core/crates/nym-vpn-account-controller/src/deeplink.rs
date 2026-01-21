@@ -44,13 +44,10 @@ impl Deeplink {
     }
 }
 
+#[derive(Debug, Default)]
 pub struct Deeplinks(HashMap<u64, Deeplink>);
 
 impl Deeplinks {
-    pub fn new() -> Self {
-        Self(HashMap::new())
-    }
-
     pub fn create_deeplink(&mut self, kind: &str, name: &str) -> Result<&Deeplink, DeeplinkError> {
         let deeplink_kind = DeeplinkKind::from_str(kind)?;
         let deeplink = Deeplink::new(deeplink_kind, name);
