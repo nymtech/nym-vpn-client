@@ -5715,6 +5715,17 @@
         }
       }
     },
+    "createAccount.continueOnSocial" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue with social account"
+          }
+        }
+      }
+    },
     "createAccount.createAnAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6866,6 +6877,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择您的 NymVPN 计划"
+          }
+        }
+      }
+    },
+    "createAccount.useExistingLogin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use existing login"
+          }
+        }
+      }
+    },
+    "createAccount.useExistingLogin.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privately sign in with email, Google or crypto wallet, through our partner Privy"
           }
         }
       }

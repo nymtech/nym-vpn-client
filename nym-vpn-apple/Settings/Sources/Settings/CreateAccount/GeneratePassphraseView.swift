@@ -30,7 +30,7 @@ public struct GeneratePassphraseView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            navbar
+            navbar()
             Spacer()
                 .frame(height: 24)
 
@@ -83,16 +83,21 @@ public struct GeneratePassphraseView: View {
 
 // MARK: - Views -
 private extension GeneratePassphraseView {
-    var navbar: some View {
-        CustomNavBar(
-            useElevationBackground: true,
-            rightButton: CustomNavBarButton(
-                type: .close,
-                action: {
-                    path = .init()
-                }
+    @ViewBuilder
+    func navbar() -> some View {
+        if didFinishAnimatingText {
+            CustomNavBar(
+                useElevationBackground: true,
+                rightButton: CustomNavBarButton(
+                    type: .close,
+                    action: {
+                        path = .init()
+                    }
+                )
             )
-        )
+        } else {
+            CustomNavBar(useElevationBackground: true)
+        }
     }
 
     var dotsAnimationView: some View {
