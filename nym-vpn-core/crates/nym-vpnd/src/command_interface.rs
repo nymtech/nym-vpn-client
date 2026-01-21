@@ -717,8 +717,8 @@ impl NymVpnService for CommandInterface {
     ) -> Result<tonic::Response<String>> {
         let req = request.into_inner();
 
-        let params: GetDeeplinkParams = req.try_into().map_err(|e| {
-            tonic::Status::invalid_argument(format!("Invalid get_deeplinks request: {e}"))
+        let params: GetDeeplinkParams = req.try_into().map_err(|err| {
+            tonic::Status::invalid_argument(format!("Invalid get deeplink request: {err}"))
         })?;
 
         let url = self

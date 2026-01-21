@@ -3,6 +3,7 @@ use nym_vpn_lib_types::DeeplinkKind;
 use rand::{RngCore, rngs::OsRng};
 use std::collections::HashMap;
 use tokio::time::{Duration, Instant};
+use url::Url;
 
 #[derive(Debug)]
 pub struct Deeplink {
@@ -36,10 +37,10 @@ impl Deeplink {
         Instant::now() > self.expiry_time
     }
 
-    pub fn create_url(&self, base_uri: &str) -> String {
+    pub fn create_url(&self, base_url: &Url) -> String {
         let pubkey = bs58::encode(self.keypair.public_key().to_bytes()).into_string();
         format!(
-            "{base_uri}?deeplink_id={deeplink_id}&pubkey={pubkey}",
+            "{base_url}?deeplink_id={deeplink_id}&pubkey={pubkey}",
             deeplink_id = self.id
         )
     }

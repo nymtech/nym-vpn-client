@@ -14,7 +14,7 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, Nyx
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::{new_user_agent, storage::VpnClientOnDiskStorage};
 use nym_vpn_lib_types::{
-    AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
+    AccountCommandError, AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
     RegisterAccountResponse, StoreAccountRequest,
 };
 use nym_vpn_network_config::Network;
@@ -282,30 +282,34 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
 }
 
 pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
-    let base_uri = match params.kind {
+    let base_url = match params.kind {
         DeeplinkKind::Privy => {
-            let Some(ref privy_paths) = current_environment_details()
+            let Some(ref account_management) = current_environment_details()
                 .await
-                .map(|network| network.privy_paths)
+                .map(|network| network.account_management)
                 .ok()
                 .flatten()
             else {
                 return Err(VpnError::DeeplinkError {
-                    details: "No privy paths are available at this time".to_string(),
+                    details: "No account management data is available at this time".to_string(),
                 });
             };
 
-            match params.client {
-                DeeplinkClient::Mobile => privy_paths.mobile.clone(),
-                DeeplinkClient::Desktop => privy_paths.desktop.clone(),
-                DeeplinkClient::Web => privy_paths.web.clone(),
-            }
+            let opt_url = match params.client {
+                DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+                DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+                DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+            };
+
+            opt_url.ok_or(AccountCommandError::DeeplinkError(
+                "The privy path could not be determined".to_string(),
+            ))?
         }
     };
 
     get_command_sender()
         .await?
-        .get_deeplink(params.kind, params.name, base_uri)
+        .get_deeplink(params.kind, params.name, base_url)
         .await
         .map_err(VpnError::from)
 }

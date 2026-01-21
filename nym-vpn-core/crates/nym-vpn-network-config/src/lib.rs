@@ -38,7 +38,6 @@ use crate::{
     nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
 };
 
-use crate::account_management::AccountManagementPrivyPaths;
 use nym_http_api_client::HttpClientError;
 use std::{
     collections::HashSet,
@@ -61,7 +60,7 @@ pub struct Network {
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
-    pub privy_paths: Option<AccountManagementPrivyPaths>,
+    pub account_management: Option<AccountManagement>,
 }
 
 impl Network {
@@ -79,7 +78,7 @@ impl Network {
             nym_vpn_network: NymVpnNetwork::new(network_details),
             feature_flags: None,
             system_configuration: None,
-            privy_paths: None,
+            account_management: None,
         })
     }
 
@@ -294,10 +293,7 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
         .ok_or(Error::NoEndpointsFound)?;
     let nyxd_url = endpoint.nyxd_url();
 
-    let privy_paths = discovery
-        .account_management
-        .as_ref()
-        .map(|am| am.paths.privy.clone());
+    let account_management = discovery.account_management.clone();
 
     // Using discovery, setup nym vpn network details
     let nym_vpn_network = NymVpnNetwork::from(discovery);
@@ -308,7 +304,7 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
         nym_vpn_network,
         feature_flags,
         system_configuration,
-        privy_paths,
+        account_management,
     })
 }
 
@@ -329,7 +325,7 @@ pub fn manual_env(network_details: &NymNetworkDetails) -> Result<Network> {
         nym_vpn_network,
         feature_flags: None,
         system_configuration: None,
-        privy_paths: None,
+        account_management: None,
     })
 }
 

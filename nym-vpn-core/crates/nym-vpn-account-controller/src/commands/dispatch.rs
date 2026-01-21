@@ -13,6 +13,7 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_store::account::StorableAccount;
 use tokio::sync::oneshot;
+use url::Url;
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
@@ -136,7 +137,7 @@ pub enum CommonCommand {
     /// Return the deeplink URL for the specfied deeplink kind and name
     GetDeeplink(
         ReturnSender<String, AccountCommandError>,
-        (DeeplinkKind, String, String),
+        (DeeplinkKind, String, Url),
     ),
 }
 

@@ -184,6 +184,7 @@ impl Command {
 
                 let params = GetDeeplinkParams {
                     client: DeeplinkClient::Desktop,
+                    locale: "en".to_string(),
                     kind,
                     name,
                 };

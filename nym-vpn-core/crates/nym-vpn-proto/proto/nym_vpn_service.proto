@@ -899,8 +899,9 @@ message RegistrationReport {
 
 message GetDeeplinkParams {
   DeeplinkClient client = 1;
-  DeeplinkKind kind = 2;
-  string name = 3;
+  string locale = 2;
+  DeeplinkKind kind = 3;
+  string name = 4;
 }
 
 enum DeeplinkClient {

@@ -311,6 +311,7 @@ impl From<GetDeeplinkParams> for proto::GetDeeplinkParams {
         let kind: proto::DeeplinkKind = value.kind.into();
         Self {
             client: client as i32,
+            locale: value.locale,
             kind: kind as i32,
             name: value.name,
         }
@@ -329,6 +330,7 @@ impl TryFrom<proto::GetDeeplinkParams> for GetDeeplinkParams {
 
         Ok(Self {
             client: client.into(),
+            locale: value.locale,
             kind: kind.into(),
             name: value.name,
         })

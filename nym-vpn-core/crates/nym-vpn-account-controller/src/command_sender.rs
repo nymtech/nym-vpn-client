@@ -16,6 +16,7 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_store::types::StorableAccount;
 use tokio::sync::mpsc::UnboundedSender;
+use url::Url;
 
 #[derive(Clone)]
 pub struct AccountCommandSender {
@@ -167,13 +168,13 @@ impl AccountCommandSender {
         &self,
         kind: DeeplinkKind,
         name: String,
-        base_uri: String,
+        base_url: Url,
     ) -> Result<String, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetDeeplink(
                 tx,
-                (kind, name, base_uri),
+                (kind, name, base_url),
             )))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?

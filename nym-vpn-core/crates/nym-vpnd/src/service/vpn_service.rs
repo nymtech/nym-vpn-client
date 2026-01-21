@@ -1557,24 +1557,29 @@ impl NymVpnService {
         &self,
         params: GetDeeplinkParams,
     ) -> Result<String, AccountCommandError> {
-        let base_uri = match params.kind {
+        let base_url = match params.kind {
             DeeplinkKind::Privy => {
-                let Some(ref privy_paths) = self.network_tx.borrow().privy_paths else {
+                let Some(ref account_management) = self.network_tx.borrow().account_management
+                else {
                     return Err(AccountCommandError::DeeplinkError(
-                        "No privy paths are available at this time".to_string(),
+                        "No account management data is available at this time".to_string(),
                     ));
                 };
 
-                match params.client {
-                    DeeplinkClient::Mobile => privy_paths.mobile.clone(),
-                    DeeplinkClient::Desktop => privy_paths.desktop.clone(),
-                    DeeplinkClient::Web => privy_paths.web.clone(),
-                }
+                let opt_url = match params.client {
+                    DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+                    DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+                    DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+                };
+
+                opt_url.ok_or(AccountCommandError::DeeplinkError(
+                    "The privy path could not be determined".to_string(),
+                ))?
             }
         };
 
         self.account_command_tx
-            .get_deeplink(params.kind, params.name, base_uri)
+            .get_deeplink(params.kind, params.name, base_url)
             .await
     }
 

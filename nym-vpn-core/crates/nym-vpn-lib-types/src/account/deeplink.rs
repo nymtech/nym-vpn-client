@@ -13,6 +13,7 @@ use std::str::FromStr;
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct GetDeeplinkParams {
     pub client: DeeplinkClient,
+    pub locale: String,
     pub kind: DeeplinkKind,
     pub name: String,
 }
