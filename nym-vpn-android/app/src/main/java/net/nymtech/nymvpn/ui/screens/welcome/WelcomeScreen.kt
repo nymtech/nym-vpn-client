@@ -58,7 +58,7 @@ fun WelcomeScreen(viewModel: WelcomeViewModel = hiltViewModel()) {
 	WelcomeScreen(
 		withFreeTrial = true,
 		onCreateAccountClick = {
-			navigator.goFromRoot(Route.WelcomeAccount)
+			navigator.goFromRoot(Route.CreateAccount)
 		},
 		onLoginClick = {
 			navigator.goFromRoot(Route.Login)
