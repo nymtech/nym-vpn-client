@@ -67,7 +67,7 @@
 			android:finishOnTaskLaunch="true"
 			android:launchMode="singleInstance"
 			android:noHistory="true"
-			android:theme="@android:style/Theme.NoDisplay" />
+			android:theme="@style/Theme.NymVPN.Transparent" />
 
 		<service
 			android:name=".service.android.tile.VpnQuickTile"

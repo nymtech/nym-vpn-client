@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add deeplinks support for Main Screen (https://github.com/nymtech/nym-vpn-client/pull/4441)
 
 ### Changed
+- Add auth check for shortcuts actions (https://github.com/nymtech/nym-vpn-client/pull/4444)
 
 ### Fixed
 - Fix Auto start handling (https://github.com/nymtech/nym-vpn-client/pull/4442)
