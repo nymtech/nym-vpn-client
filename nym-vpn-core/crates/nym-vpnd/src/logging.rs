@@ -230,12 +230,11 @@ impl std::io::Write for FileManager {
     }
 }
 
-struct LogFormatter<F>(pub F);
-impl<S, N, F> FormatEvent<S, N> for LogFormatter<F>
+struct JsonLogFormatter;
+impl<S, N> FormatEvent<S, N> for JsonLogFormatter
 where
     S: Subscriber + for<'a> LookupSpan<'a>,
     N: for<'a> FormatFields<'a> + 'static,
-    F: FormatEvent<S, N>,
 {
     fn format_event(
         &self,
@@ -243,22 +242,30 @@ where
         mut writer: tracing_subscriber::fmt::format::Writer<'_>,
         event: &Event<'_>,
     ) -> std::fmt::Result {
-        if let Some(write_ret) = ctx.event_scope().and_then(|mut scope| {
+        write!(writer, "{{")?;
+        if let Some((trace_id, span_id)) = ctx.event_scope().and_then(|mut scope| {
             scope.find_map(|span_ref| {
                 let exts = span_ref.extensions();
                 let otel = exts.get::<OtelData>()?;
-                Some(write!(
-                    writer,
-                    "trace_id={} span_id={} ",
-                    otel.trace_id()?,
-                    otel.span_id()?
-                ))
+                Some((otel.trace_id()?.to_string(), otel.span_id()?.to_string()))
             })
         }) {
-            write_ret?;
+            write!(writer, r#""trace_id":"{trace_id}","span_id":"{span_id}","#)?;
         }
+        write!(
+            writer,
+            r#""timestamp":"{}","level":"{}","target":"{}","#,
+            time::OffsetDateTime::now_utc()
+                .format(&time::format_description::well_known::Rfc3339)
+                .unwrap_or_else(|_| "-".into()),
+            event.metadata().level(),
+            event.metadata().target(),
+        )?;
+        write!(writer, r#""fields":"#)?;
+        ctx.field_format().format_fields(writer.by_ref(), event)?;
+        write!(writer, "}}")?;
 
-        self.0.format_event(ctx, writer, event)
+        writeln!(writer)
     }
 }
 
@@ -296,9 +303,13 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         let file_layer = tracing_subscriber::fmt::layer()
             .with_span_events(FmtSpan::CLOSE)
             .with_writer(file_writer)
-            .with_ansi(false)
-            .event_format(LogFormatter(tracing_subscriber::fmt::format().compact()));
-        layers.push(file_layer.boxed());
+            .with_ansi(false);
+        if !cfg!(debug_assertions) {
+            let file_layer = file_layer.json().event_format(JsonLogFormatter);
+            layers.push(file_layer.boxed());
+        } else {
+            layers.push(file_layer.boxed());
+        }
         Some(LoggingSetup::new(worker_guard, file_appender))
     } else {
         None
@@ -310,9 +321,13 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
 
         let console_layer = tracing_subscriber::fmt::layer()
             .with_span_events(FmtSpan::CLOSE)
-            .with_ansi(with_ansi)
-            .event_format(LogFormatter(tracing_subscriber::fmt::format().compact()));
-        layers.push(console_layer.boxed());
+            .with_ansi(with_ansi);
+        if !cfg!(debug_assertions) {
+            let console_layer = console_layer.json().event_format(JsonLogFormatter);
+            layers.push(console_layer.boxed());
+        } else {
+            layers.push(console_layer.boxed());
+        }
     }
 
     if options.sentry {

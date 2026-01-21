@@ -54,7 +54,7 @@ tonic.workspace = true
 tracing-appender.workspace = true
 tracing-opentelemetry.workspace = true
 tracing-oslog.workspace = true
-tracing-subscriber = { workspace = true, features = ["env-filter", "ansi"] }
+tracing-subscriber = { workspace = true, features = ["env-filter", "ansi", "json"] }
 tracing.workspace = true
 urlencoding = { workspace = true }
 url.workspace = true
