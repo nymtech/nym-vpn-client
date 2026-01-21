@@ -102,3 +102,14 @@ pub async fn vpnd_log_dir(
     let path = vpnd.vpnd_log_path().await?.to_string_lossy().to_string();
     Ok(path)
 }
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn delete_logs(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {
+    vpnd.delete_logs()
+        .await
+        .inspect_err(|e| {
+            warn!("failed to delete logs: {:?}", e);
+        })
+        .map_err(|e| e.into())
+}

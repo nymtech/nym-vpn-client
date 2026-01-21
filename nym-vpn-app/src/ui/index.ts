@@ -24,6 +24,7 @@ export { default as Progress } from './Progress';
 export { default as PulseDot } from './PulseDot';
 export { default as Skeleton } from './Skeleton';
 export { default as Toast } from './Toast';
+export { default as ConfirmationDialog } from './ConfirmationDialog';
 export * from './Button';
 export * from './ButtonIcon';
 export * from './ButtonText';
