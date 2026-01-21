@@ -113,7 +113,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 		),
 		SettingsActions(
 			onGetStartedClick = {
-				navController.navigate(Route.Onboarding)
+				navController.navigate(Route.Welcome)
 			},
 			onAccountClick = {
 				navController.navigate(Route.Account)

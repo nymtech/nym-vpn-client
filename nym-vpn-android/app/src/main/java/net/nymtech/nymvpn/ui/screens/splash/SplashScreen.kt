@@ -46,7 +46,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 			if (appUiState.managerState.isMnemonicStored) {
 				navController.navigateAndForget(Route.Main())
 			} else {
-				navController.navigateAndForget(Route.Onboarding)
+				navController.navigateAndForget(Route.Welcome)
 			}
 		}
 	}

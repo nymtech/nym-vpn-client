@@ -51,17 +51,16 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
+import net.nymtech.nymvpn.ui.screens.account.create.CreateAccountScreen
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
-import net.nymtech.nymvpn.ui.screens.account.welcome.WelcomeAccountScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
-import net.nymtech.nymvpn.ui.screens.onboarding.OnboardingScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.scanner.ScannerScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
@@ -80,6 +79,7 @@ import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.screens.technical.TechnicalOptScreen
+import net.nymtech.nymvpn.ui.screens.welcome.WelcomeScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
@@ -279,7 +279,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.LoginScanner> { ScannerScreen() }
 								composable<Route.Technical> { TechnicalOptScreen(appState) }
 								composable<Route.SelectPlan> { SelectPlanScreen(appState) }
-								composable<Route.WelcomeAccount> { WelcomeAccountScreen(appState) }
+								composable<Route.CreateAccount> { CreateAccountScreen(appState) }
 								composable<Route.Generating> { GeneratingScreen() }
 								composable<Route.ServerDetails> {
 									val args = it.toRoute<Route.ServerDetails>()
@@ -305,7 +305,7 @@ class MainActivity : AppCompatActivity() {
 										onBackClickEventTriggered = onBackClickEventFromRoute == Route.SplitTunneling,
 									)
 								}
-								composable<Route.Onboarding> { OnboardingScreen() }
+								composable<Route.Welcome> { WelcomeScreen() }
 							}
 						}
 					}
