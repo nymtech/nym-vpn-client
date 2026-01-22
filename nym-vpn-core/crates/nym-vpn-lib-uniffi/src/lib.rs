@@ -428,6 +428,13 @@ pub fn getDeeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
     RUNTIME.block_on(account::get_deeplink(params))
 }
 
+/// Login via deeplink callback URL
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn deeplinkStoreAccount(deeplink_callback_url: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::deeplink_store_account(deeplink_callback_url))
+}
+
 /// Get the account summary
 #[allow(non_snake_case)]
 #[uniffi::export]
