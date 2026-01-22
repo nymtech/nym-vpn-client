@@ -159,7 +159,7 @@ class NymBackend private constructor(private val context: Context) :
 
 			startNetworkMonitorJob()
 
-			initLogger(storagePath, logLevel, config.sentryMonitoringEnabled)
+			initLogger("$storagePath/libnymvpn.logs", logLevel, config.sentryMonitoringEnabled)
 
 			initEnvironment(environment)
 			configureLib(config, userAgent)
