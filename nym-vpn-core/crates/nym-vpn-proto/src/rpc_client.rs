@@ -548,6 +548,20 @@ impl RpcClient {
         Ok(url)
     }
 
+    pub async fn deeplink_store_account(
+        &mut self,
+        deeplink_callback_url: String,
+    ) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .deeplink_store_account(deeplink_callback_url)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
     pub async fn get_log_path(&mut self) -> Result<LogPath> {
         let response = self
             .0

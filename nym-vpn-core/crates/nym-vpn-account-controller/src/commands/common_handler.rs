@@ -51,6 +51,8 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         CommonCommand::GetDeeplink(result_tx, params) => {
             result_tx.send(handle_get_deeplink(shared_state, params).await)
         }
+        CommonCommand::DeriveDeeplinkMnemonic(result_tx, deeplink_callback_url) => result_tx
+            .send(handle_derive_deeplink_mnemonic(shared_state, deeplink_callback_url).await),
     };
 }
 
@@ -186,9 +188,6 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     params: CreateDeeplinkParams,
 ) -> Result<String, AccountCommandError> {
-    // Housekeeping
-    shared_state.deeplinks.remove_expired();
-
     // Create a new Deeplink for this request
     let deeplink = shared_state
         .deeplinks
@@ -198,5 +197,24 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
     // Create the deeplink URL
     let url = deeplink.create_url(&params.base_url);
 
+    // Housekeeping
+    shared_state.deeplinks.remove_expired();
+
     Ok(url.to_string())
+}
+
+pub(crate) async fn handle_derive_deeplink_mnemonic<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    deeplink_callback_url: String,
+) -> Result<bip39::Mnemonic, AccountCommandError> {
+    // Derive the mnemonic from the provided deeplink URL
+    let mnemonic = shared_state
+        .deeplinks
+        .derive_mnemonic(&deeplink_callback_url)
+        .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
+
+    // Housekeeping
+    shared_state.deeplinks.remove_expired();
+
+    Ok(mnemonic)
 }

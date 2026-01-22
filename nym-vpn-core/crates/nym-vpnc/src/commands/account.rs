@@ -57,6 +57,12 @@ pub enum Command {
         #[arg(long)]
         name: String,
     },
+    /// Store deeplink account
+    StoreDeeplink {
+        /// Deeplink Callback URL (nymvpn://...)
+        #[arg(long)]
+        url: String,
+    },
 }
 
 impl Command {
@@ -190,6 +196,16 @@ impl Command {
                 };
                 let url = rpc_client.get_deeplink(params).await?;
                 println!("Deeplink: {url}");
+                Ok(())
+            }
+            Command::StoreDeeplink { url } => {
+                let response = rpc_client.deeplink_store_account(url).await?;
+                if let Some(err) = response.error {
+                    println!("Failed to store deeplink account: {err}");
+                    return Err(err.into());
+                } else {
+                    println!("Deeplink account stored successfully");
+                }
                 Ok(())
             }
         }

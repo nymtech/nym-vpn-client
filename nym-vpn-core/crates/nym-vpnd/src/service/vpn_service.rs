@@ -148,6 +148,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<String, AccountCommandError>>,
         GetDeeplinkParams,
     ),
+    DeeplinkStoreAccount(oneshot::Sender<Result<(), AccountCommandError>>, String),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
     DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
@@ -898,6 +899,12 @@ impl NymVpnService {
             VpnServiceCommand::GetDeeplink(tx, params) => {
                 let _ = tx.send(self.handle_get_deeplink(params).await);
             }
+            VpnServiceCommand::DeeplinkStoreAccount(tx, deeplink_callback_url) => {
+                let _ = tx.send(
+                    self.handle_deeplink_store_account(deeplink_callback_url)
+                        .await,
+                );
+            }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.log_path.clone());
             }
@@ -1581,6 +1588,20 @@ impl NymVpnService {
 
         self.account_command_tx
             .get_deeplink(params.kind, params.name, base_url)
+            .await
+    }
+
+    async fn handle_deeplink_store_account(
+        &self,
+        deeplink_url: String,
+    ) -> Result<(), AccountCommandError> {
+        let mnemonic = self
+            .account_command_tx
+            .derive_deeplink_mnemonic(deeplink_url)
+            .await?;
+
+        self.account_command_tx
+            .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
             .await
     }
 
