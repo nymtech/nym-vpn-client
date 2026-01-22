@@ -363,6 +363,7 @@ export type VpndConfig = {
   netstack: boolean;
   minGatewayVpnPerformance: number | null;
   residentialExit: boolean;
+  enableLewesProtocol: boolean;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

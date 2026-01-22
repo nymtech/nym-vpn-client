@@ -127,3 +127,29 @@ pub async fn get_device_id(vpnd: State<'_, VpndClient>) -> Result<Option<String>
             }
         })
 }
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_deep_link(
+    vpnd: State<'_, VpndClient>,
+    locale: String,
+) -> Result<Option<String>, BackendError> {
+    vpnd.get_deep_link(locale).await.map_err(|e| {
+        error!("failed to get deep link: {e}");
+        e.into()
+    })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn store_deeplink_account(
+    vpnd: State<'_, VpndClient>,
+    callback_url: String,
+) -> Result<(), BackendError> {
+    vpnd.store_deeplink_account(callback_url)
+        .await
+        .map_err(|e| {
+            error!("failed to store deeplink account: {e}");
+            e.into()
+        })
+}

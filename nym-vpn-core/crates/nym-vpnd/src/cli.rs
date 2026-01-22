@@ -3,7 +3,7 @@
 
 use std::{path::PathBuf, str::FromStr, sync::OnceLock};
 
-use clap::{Parser, Subcommand};
+use clap::{ArgAction, Parser, Subcommand};
 
 use nym_vpn_lib::UserAgent;
 
@@ -30,6 +30,10 @@ pub struct CliArgs {
     /// Override the default user agent string.
     #[arg(long, value_parser = parse_user_agent)]
     pub user_agent: Option<UserAgent>,
+
+    /// Format output as JSON
+    #[arg(long, action = ArgAction::SetTrue)]
+    pub json_output: bool,
 
     /// Subcommand to execute
     #[command(subcommand)]

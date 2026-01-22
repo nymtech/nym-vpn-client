@@ -31,6 +31,9 @@ extension GRPCManager {
             if oldConfig.allowLan != newConfig.allowLan {
                 try await self?.rpcClient?.setAllowLan(allowLan: newConfig.allowLan)
             }
+            if oldConfig.enableLewes != newConfig.enableLewes {
+                try await self?.rpcClient?.setEnableLewesProtocol(enableLewesProtocol: newConfig.enableLewes)
+            }
         }.value
     }
 

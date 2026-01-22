@@ -190,3 +190,13 @@ pub async fn get_privy_derivation_message(
     let message = vpnd.get_privy_derivation_message().await?;
     Ok(message)
 }
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_enable_lewes_protocol(
+    vpnd: State<'_, VpndClient>,
+    enabled: bool,
+) -> Result<(), BackendError> {
+    vpnd.set_enable_lewes_protocol(enabled).await?;
+    Ok(())
+}

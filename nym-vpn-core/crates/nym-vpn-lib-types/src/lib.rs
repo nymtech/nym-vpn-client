@@ -56,6 +56,7 @@ pub use account::{
     controller_error::{AccountControllerError, AccountControllerErrorStateReason},
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
+    deeplink::{DeeplinkClient, DeeplinkKind, GetDeeplinkParams},
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
     ticketbooks::AvailableTickets,
 };

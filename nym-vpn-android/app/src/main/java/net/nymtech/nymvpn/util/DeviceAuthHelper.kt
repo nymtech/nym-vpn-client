@@ -1,0 +1,123 @@
+package net.nymtech.nymvpn.util
+
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
+import timber.log.Timber
+
+object DeviceAuthHelper {
+
+	fun isDeviceSecure(context: Context): Boolean {
+		val bm = BiometricManager.from(context)
+		val authenticators = allowedAuthenticatorsForCheck()
+		return bm.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
+	}
+
+	fun authenticate(
+		activity: FragmentActivity,
+		promptInfo: BiometricPrompt.PromptInfo,
+		onAuthenticated: () -> Unit,
+		onUnavailable: (UnavailableReason) -> Unit,
+		onError: ((errorCode: Int, errString: CharSequence) -> Unit)? = null,
+		onFailed: (() -> Unit)? = null,
+	) {
+		val bm = BiometricManager.from(activity)
+		val authenticators = allowedAuthenticatorsForPrompt()
+
+		when (val res = bm.canAuthenticate(authenticators)) {
+			BiometricManager.BIOMETRIC_SUCCESS -> {
+				val executor = ContextCompat.getMainExecutor(activity)
+				val prompt = BiometricPrompt(
+					activity,
+					executor,
+					object : BiometricPrompt.AuthenticationCallback() {
+						override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+							onAuthenticated()
+						}
+
+						override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+							Timber.i("Auth error: $errorCode $errString")
+							onError?.invoke(errorCode, errString)
+						}
+
+						override fun onAuthenticationFailed() {
+							onFailed?.invoke()
+						}
+					},
+				)
+				prompt.authenticate(promptInfo)
+			}
+
+			BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> onUnavailable(UnavailableReason.NONE_ENROLLED)
+			BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> onUnavailable(UnavailableReason.NO_HARDWARE)
+			BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> onUnavailable(UnavailableReason.HW_UNAVAILABLE)
+			BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> onUnavailable(UnavailableReason.SECURITY_UPDATE_REQUIRED)
+			BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> onUnavailable(UnavailableReason.UNSUPPORTED)
+			BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> onUnavailable(UnavailableReason.UNKNOWN)
+			else -> onUnavailable(UnavailableReason.OTHER)
+		}
+	}
+
+	fun securitySettingsIntent(): Intent = Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+	enum class UnavailableReason {
+		NONE_ENROLLED,
+		NO_HARDWARE,
+		HW_UNAVAILABLE,
+		SECURITY_UPDATE_REQUIRED,
+		UNSUPPORTED,
+		UNKNOWN,
+		OTHER,
+	}
+
+	private fun allowedAuthenticatorsForPrompt(): Int {
+		return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			BiometricManager.Authenticators.BIOMETRIC_STRONG or
+				BiometricManager.Authenticators.DEVICE_CREDENTIAL
+		} else {
+			BiometricManager.Authenticators.BIOMETRIC_STRONG
+		}
+	}
+
+	private fun allowedAuthenticatorsForCheck(): Int {
+		return allowedAuthenticatorsForPrompt()
+	}
+
+	@Suppress("DEPRECATION")
+	fun buildPromptInfo(context: Context, title: String, subtitle: String): BiometricPrompt.PromptInfo {
+		return when {
+			Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+				BiometricPrompt.PromptInfo.Builder()
+					.setTitle(title)
+					.setSubtitle(subtitle)
+					.setAllowedAuthenticators(
+						BiometricManager.Authenticators.BIOMETRIC_STRONG or
+							BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+					)
+					.build()
+			}
+
+			Build.VERSION.SDK_INT == Build.VERSION_CODES.Q -> {
+				BiometricPrompt.PromptInfo.Builder()
+					.setTitle(title)
+					.setSubtitle(subtitle)
+					.setDeviceCredentialAllowed(true)
+					.build()
+			}
+
+			else -> {
+				BiometricPrompt.PromptInfo.Builder()
+					.setTitle(title)
+					.setSubtitle(subtitle)
+					.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+					.setNegativeButtonText(context.getString(android.R.string.cancel))
+					.build()
+			}
+		}
+	}
+}

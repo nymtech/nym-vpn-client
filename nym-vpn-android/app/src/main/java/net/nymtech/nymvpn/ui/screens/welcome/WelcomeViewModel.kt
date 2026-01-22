@@ -1,10 +1,10 @@
-package net.nymtech.nymvpn.ui.screens.onboarding
+package net.nymtech.nymvpn.ui.screens.welcome
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class OnboardingViewModel
+class WelcomeViewModel
 @Inject
 constructor() : ViewModel()

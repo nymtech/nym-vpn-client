@@ -44,17 +44,13 @@
 
 uniffi::setup_scaffolding!();
 
-#[cfg(target_os = "android")]
-pub mod android;
-#[cfg(target_os = "ios")]
-pub mod ios;
-
 pub(crate) mod error;
 pub mod helpers;
 
 mod account;
 mod environment;
 mod gateway_cache;
+mod logs;
 mod offline_monitor;
 mod sentry_monitoring;
 mod state_machine;
@@ -77,9 +73,10 @@ use sentry::ClientInitGuard;
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use nym_vpn_lib_types::{
-    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
-    NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage, RegisterAccountResponse,
-    StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent, VpnAccountSummary,
+    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, GetDeeplinkParams,
+    Network, NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage,
+    RegisterAccountResponse, StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent,
+    VpnAccountSummary,
 };
 
 use account::AccountControllerHandle;
@@ -211,26 +208,20 @@ async fn init_logger(
 ) -> Result<(), VpnError> {
     let default_log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     let log_level = debug_level.unwrap_or(default_log_level);
-    tracing::info!("Setting log level: {log_level}, path?: {path:?}");
-    let os = SysInfo::new();
-    tracing::info!("OS information: {}", os);
+
     if sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
     }
 
-    #[cfg(target_os = "ios")]
-    {
-        ios::init_logs(log_level, path, sentry_monitoring)
+    if cfg!(target_os = "ios") || cfg!(target_os = "android") {
+        logs::init_logs(log_level, path, sentry_monitoring)?;
     }
-    #[cfg(target_os = "android")]
-    {
-        android::init_logs(log_level)
-    }
-    #[cfg(not(any(target_os = "ios", target_os = "android")))]
-    {
-        Ok(())
-    }
+
+    let os = SysInfo::new();
+    tracing::info!("OS information: {}", os);
+
+    Ok(())
 }
 
 /// Additional extra function for when only want to set the logger without initializing the
@@ -428,6 +419,20 @@ pub fn updateAccountState() -> Result<(), VpnError> {
 #[uniffi::export]
 pub fn getAccountState() -> Result<AccountControllerState, VpnError> {
     RUNTIME.block_on(account::get_account_state())
+}
+
+/// Get a deeplink
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getDeeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
+    RUNTIME.block_on(account::get_deeplink(params))
+}
+
+/// Login via deeplink callback URL
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn deeplinkStoreAccount(deeplink_callback_url: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::deeplink_store_account(deeplink_callback_url))
 }
 
 /// Get the account summary

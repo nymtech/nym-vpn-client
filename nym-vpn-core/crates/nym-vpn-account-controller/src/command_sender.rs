@@ -4,6 +4,7 @@
 use crate::{
     AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand},
+    deeplink::CreateDeeplinkParams,
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
@@ -11,11 +12,15 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
-use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
+use nym_vpn_lib_types::{
+    AccountCommandError, DeeplinkKind, RegisterAccountResponse, VpnAccountSummary,
+};
 use nym_vpn_store::types::StorableAccount;
 use tokio::sync::mpsc::UnboundedSender;
+use tracing::instrument;
+use url::Url;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AccountCommandSender {
     command_tx: UnboundedSender<AccountCommand>,
 }
@@ -27,6 +32,7 @@ impl AccountCommandSender {
         Self { command_tx }
     }
 
+    #[instrument]
     pub async fn store_account(&self, account: StorableAccount) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -35,6 +41,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn register_account(
         &self,
         account: StorableAccount,
@@ -47,6 +54,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn get_stored_account(&self) -> Result<Option<StorableAccount>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -55,6 +63,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn create_account_command(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -64,6 +73,7 @@ impl AccountCommandSender {
         Ok(())
     }
 
+    #[instrument]
     pub async fn get_account_id(&self) -> Result<Option<String>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -74,6 +84,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn forget_account(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -82,6 +93,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn rotate_keys(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -90,6 +102,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn background_refresh_account_state(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -98,6 +111,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn reset_device_identity(
         &self,
         seed: Option<[u8; 32]>,
@@ -109,6 +123,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -117,6 +132,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn get_device_identity(&self) -> Result<Option<String>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -125,6 +141,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -133,6 +150,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -141,6 +159,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn get_available_tickets(&self) -> Result<AvailableTicketbooks, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -151,6 +170,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn get_account_summary(
         &self,
     ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
@@ -161,6 +181,42 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
+    pub async fn get_deeplink(
+        &self,
+        kind: DeeplinkKind,
+        name: String,
+        base_url: Url,
+    ) -> Result<String, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        let params = CreateDeeplinkParams {
+            kind,
+            name,
+            base_url,
+        };
+        self.command_tx
+            .send(AccountCommand::Common(CommonCommand::GetDeeplink(
+                tx, params,
+            )))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument]
+    pub async fn derive_deeplink_mnemonic(
+        &self,
+        deeplink_callback_url: String,
+    ) -> Result<bip39::Mnemonic, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(
+                CommonCommand::DeriveDeeplinkMnemonic(tx, deeplink_callback_url),
+            ))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument]
     pub async fn set_resolver_overrides(
         &self,
         resolver_overrides: Option<ResolverOverrides>,
@@ -175,6 +231,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn set_vpn_api_firewall_up(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -183,6 +240,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn set_vpn_api_firewall_down(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -191,6 +249,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn decentralised_balance(&self) -> Result<Vec<Coin>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -199,6 +258,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn decentralised_obtain_ticketbooks(
         &self,
         amount: u64,
@@ -210,6 +270,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn query_upgrade_mode_enabled(&self) -> Result<bool, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -220,6 +281,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn send_disable_upgrade_mode(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx

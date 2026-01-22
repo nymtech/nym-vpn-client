@@ -78,7 +78,8 @@ export type StateAction =
   | { type: 'set-domain-fronting'; enabled: boolean }
   | { type: 'set-custom-dns-enabled'; enabled: boolean }
   | { type: 'set-custom-dns'; dns: string[] }
-  | { type: 'set-default-dns'; dns: string[] };
+  | { type: 'set-default-dns'; dns: string[] }
+  | { type: 'set-enable-lewes-protocol'; enabled: boolean };
 
 export const initialState: AppState = {
   initialized: false,
@@ -120,6 +121,7 @@ export const initialState: AppState = {
   customDnsEnabled: false,
   customDns: [],
   defaultDns: [],
+  enableLewesProtocol: false,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -160,6 +162,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         quic: action.config.bridges,
         ipv6Support: !action.config.disableIpv6,
         allowLan: action.config.allowLan,
+        enableLewesProtocol: action.config.enableLewesProtocol,
       };
 
     case 'set-daemon-info':
@@ -394,6 +397,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         defaultDns: action.dns,
+      };
+    case 'set-enable-lewes-protocol':
+      return {
+        ...state,
+        enableLewesProtocol: action.enabled,
       };
     case 'reset':
       return initialState;

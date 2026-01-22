@@ -30,6 +30,7 @@ function MainStateProvider({ children, init }: Props) {
     allowLan: init.allowLan,
     customDnsEnabled: init.customDnsEnabled,
     customDns: init.customDns,
+    enableLewesProtocol: init.enableLewesProtocol,
   });
 
   const { push } = useInAppNotify();
