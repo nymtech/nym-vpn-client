@@ -571,7 +571,8 @@ pub struct WgProbeResults {
     pub can_register: bool,
     pub can_handshake: bool,
     pub can_resolve_dns: bool,
-    pub can_query_metadata_v4: bool,
+    #[serde(default)]
+    pub can_query_metadata_v4: Option<bool>,
     pub ping_hosts_performance: f32,
     pub ping_ips_performance: f32,
 }
@@ -719,6 +720,14 @@ pub struct AccountManagementPathsResponse {
     pub sign_up: String,
     pub sign_in: String,
     pub account: String,
+    pub privy: AccountManagementPrivyPathsResponse,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub struct AccountManagementPrivyPathsResponse {
+    pub mobile: String,
+    pub desktop: String,
+    pub web: String,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]

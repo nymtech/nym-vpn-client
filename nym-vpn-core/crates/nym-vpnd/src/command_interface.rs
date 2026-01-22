@@ -16,8 +16,8 @@ use tokio_util::sync::CancellationToken;
 use tonic::{Request, Response, Status, transport::Server};
 
 use nym_vpn_lib_types::{
-    EnableSocks5Request, EntryPoint, ExitPoint, ListGatewaysOptions, LookupGatewayFilters,
-    TargetState, TunnelEvent,
+    EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
+    LookupGatewayFilters, TargetState, TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -153,6 +153,25 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::SetEnableBridges, enable_bridges)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to set enable bridges: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_enable_lewes_protocol(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_lewes_protocol = request.into_inner();
+
+        let _ = self
+            .send_and_wait(
+                VpnServiceCommand::SetEnableLewesProtocol,
+                enable_lewes_protocol,
+            )
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set lewes-protocol config: {e}"))
+            })?;
 
         Ok(tonic::Response::new(()))
     }
@@ -692,6 +711,24 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn get_deeplink(
+        &self,
+        request: tonic::Request<proto::GetDeeplinkParams>,
+    ) -> Result<tonic::Response<String>> {
+        let req = request.into_inner();
+
+        let params: GetDeeplinkParams = req.try_into().map_err(|err| {
+            tonic::Status::invalid_argument(format!("Invalid get deeplink request: {err}"))
+        })?;
+
+        let url = self
+            .send_and_wait(VpnServiceCommand::GetDeeplink, params)
+            .await?
+            .map_err(|err| tonic::Status::internal(format!("Failed to get deeplink: {err}")))?;
+
+        Ok(tonic::Response::new(url.to_string()))
+    }
+
     async fn get_log_path(
         &self,
         _: tonic::Request<()>,
@@ -871,6 +908,41 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(proto::PrivyDerivationMessage {
             message: nym_vpn_lib::login::privy::message_to_sign(),
         }))
+    }
+
+    async fn run_diagnostic(
+        &self,
+        request: tonic::Request<proto::DiagnosticRunParams>,
+    ) -> Result<tonic::Response<proto::DiagnosticReport>> {
+        let req = request.into_inner();
+        let report = self
+            .send_and_wait(VpnServiceCommand::RunDiagnostic, req.into())
+            .await?;
+
+        let proto_report = report.try_into().map_err(|e| {
+            tonic::Status::internal(format!("Failed to run diagnostic report: {e}"))
+        })?;
+
+        Ok(tonic::Response::new(proto_report))
+    }
+
+    async fn register_diagnostic(
+        &self,
+        request: tonic::Request<proto::DiagnosticRegisterParams>,
+    ) -> Result<tonic::Response<proto::RegistrationReport>> {
+        let req = request.into_inner();
+        let register_params = req.try_into().map_err(|e| {
+            tonic::Status::invalid_argument(format!("Invalid Register diagnostic argument: {e}"))
+        })?;
+        let report = self
+            .send_and_wait(VpnServiceCommand::RegisterDiagnostic, register_params)
+            .await?;
+
+        let proto_report = report.try_into().map_err(|e| {
+            tonic::Status::internal(format!("Failed to run diagnostic report: {e}"))
+        })?;
+
+        Ok(tonic::Response::new(proto_report))
     }
 }
 

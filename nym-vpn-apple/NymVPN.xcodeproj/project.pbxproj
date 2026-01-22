@@ -111,6 +111,8 @@
 		D9EACBDF2BC01D790094CDDF /* SwiftyPing in Frameworks */ = {isa = PBXBuildFile; productRef = D9EACBDE2BC01D790094CDDF /* SwiftyPing */; };
 		D9F236232C64E64E00CCC433 /* LibLicences.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F236222C64E64E00CCC433 /* LibLicences.json */; };
 		D9F236252C650A9200CCC433 /* LibLicences.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F236242C650A9200CCC433 /* LibLicences.json */; };
+		D9F59A3E2F1E76E900CAE857 /* DeeplinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9F59A3D2F1E76E900CAE857 /* DeeplinkManager */; };
+		D9F59A402F1E76EF00CAE857 /* DeeplinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9F59A3F2F1E76EF00CAE857 /* DeeplinkManager */; };
 		D9F699E02B4C1862005576A9 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = D9F699DF2B4C1862005576A9 /* Settings */; };
 		D9F744752D79BF5C00DD9277 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F744742D79BF5900DD9277 /* AppDelegate.swift */; };
 		D9FA77C82CEBB32C003362D7 /* NotificationsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9FA77C72CEBB32C003362D7 /* NotificationsManager */; };
@@ -278,6 +280,7 @@
 				D953CFEA2C8ED73C008A942B /* NotificationsManager in Frameworks */,
 				D9391F092E461E16002BE10F /* MessagesManager in Frameworks */,
 				D9391F0F2E4624D6002BE10F /* MessageModels in Frameworks */,
+				D9F59A3E2F1E76E900CAE857 /* DeeplinkManager in Frameworks */,
 				D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */,
 				D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */,
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
@@ -319,6 +322,7 @@
 				D96680D32CC4FC7800267FA1 /* Device in Frameworks */,
 				D916EE672C90F2A700FADEEF /* Migrations in Frameworks */,
 				D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */,
+				D9F59A402F1E76EF00CAE857 /* DeeplinkManager in Frameworks */,
 				D9391F0B2E461E1C002BE10F /* MessagesManager in Frameworks */,
 				D9E6D8C92BF5FF5F009612CE /* TunnelStatus in Frameworks */,
 				D9BEF2E32BEB8D7E0036C566 /* Constants in Frameworks */,
@@ -579,6 +583,7 @@
 				D93466CC2E57A1FE00BEF458 /* NymVPNLib */,
 				D9D381322E7B1683006DAFBB /* FeatureFlagsManager */,
 				D94510922F104CD200E2EE5E /* Routes */,
+				D9F59A3D2F1E76E900CAE857 /* DeeplinkManager */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -625,6 +630,7 @@
 				D9391F0C2E4624CD002BE10F /* MessageModels */,
 				D99035872E9063D600E42A82 /* ImpactGenerator */,
 				D94510942F104CD800E2EE5E /* Routes */,
+				D9F59A3F2F1E76EF00CAE857 /* DeeplinkManager */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -1610,6 +1616,14 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D9EACBCC2BBFFE420094CDDF /* XCRemoteSwiftPackageReference "SwiftyPing" */;
 			productName = SwiftyPing;
+		};
+		D9F59A3D2F1E76E900CAE857 /* DeeplinkManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DeeplinkManager;
+		};
+		D9F59A3F2F1E76EF00CAE857 /* DeeplinkManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DeeplinkManager;
 		};
 		D9F699DF2B4C1862005576A9 /* Settings */ = {
 			isa = XCSwiftPackageProductDependency;

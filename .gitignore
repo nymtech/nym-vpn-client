@@ -31,8 +31,7 @@ nym-vpn-core/crates/nym-vpn-lib-uniffi/generated
 nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib
 
 # nym-vpnd
-nym-vpn-core/upload/mac/nym-vpnd
-nym-vpn-core/upload/mac/nym-setup
+nym-vpn-core/upload/mac
 
 # Visual Studio
 *.vcxproj.user

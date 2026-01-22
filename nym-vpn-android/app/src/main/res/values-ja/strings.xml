@@ -155,6 +155,13 @@
 	<string name="button_discard">破棄する</string>
 	<string name="button_add">追加</string>
 	<string name="here">ここ</string>
+	<string name="score_text_high">高い</string>
+	<string name="score_text_medium">ミディアム</string>
+	<string name="score_text_low">低い</string>
+	<string name="score_text_offline">オフライン</string>
+	<string name="button_next">次へ</string>
+	<string name="skip">スキップ</string>
+	<string name="get_started">始めよう</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">ストリーム表示</string>
 	<string name="streaming_server_banner_title">新規: 配信の検出-\n最適化されたサーバー (▶️)</string>
@@ -184,12 +191,13 @@
 	<string name="error_invalid_entry_gateway_identity">Entry server offline. Choose another and reconnect.</string>
 	<string name="error_invalid_exit_gateway_identity">サーバーをオフラインで終了します。別のものを選択して再接続します。</string>
 	<!-- Main Screen -->
-    <string name="connection_state_resolving_addresses">NymVPNの初期化 (1/6)</string>
+	<string name="connection_state_resolving_addresses">NymVPNの初期化 (1/6)</string>
 	<string name="connection_state_awaiting_readiness">アカウントの設定 (2/6)</string>
 	<string name="connection_state_refreshing_gateways">サーバーリストを更新しています(3/6)</string>
 	<string name="connection_state_selecting_gateways">最適なサーバーの選択 (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">サーバーに匿名で登録しています (5/6)</string>
 	<string name="connection_state_connecting_tunnel">サーバー接続を確立しています（6/6）</string>
+	<string name="main_button_select_plan">プランを選択</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">検閲対策</string>
 	<string name="settings_passphrase_title">パスワード</string>
@@ -210,10 +218,10 @@
 	<string name="settings_daemon_version_line">デーモンバージョン： %1$s</string>
 	<string name="settings_language_help_title">翻訳のヘルプ</string>
 	<string name="settings_language_help_description">あなたの言語でアプリをより良くします。</string>
+	<string name="settings_event_lan_reconnecting">LAN 設定を適用するには再接続しています...</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">接続を最適化する</string>
 	<string name="battery_opt_descr">より安定したVPN接続のため、NymVPNバッテリーの最適化を無効にします。</string>
-	<string name="skip">スキップ</string>
 	<string name="battery_opt">バッテリーの最適化</string>
 	<string name="battery_opt_settings_text">バッテリーの最適化設定はアプリの設定でいつでも変更できます。</string>
 	<!-- Data & Privacy screen -->
@@ -236,9 +244,29 @@
 	<string name="notification_stats_enabled">統計を有効にしました！匿名データはネットワークの最適化に役立ちます。</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">次</string>
-    <!-- Select Plan screen -->
+	<string name="welcome_title">NymVPNの改善にご協力ください</string>
+	<string name="welcome_description">共有する匿名データを選択します。送信前にすべてのデータが識別情報を取り除かれます。</string>
+	<string name="welcome_error_reports_title">エラーレポートの共有</string>
+	<string name="welcome_error_reports_description_start">バグの修正に役立ちます。(介して) 個人データは収集されません。 </string>
+	<string name="welcome_error_reports_link_text">Sentry</string>
+	<string name="welcome_error_reports_description_end">)</string>
+	<string name="welcome_usage_title">使用状況分析を共有</string>
+	<string name="welcome_usage_description">Nym ネットワークの改善に役立ちます。ログやアクティビティの記録はありません。</string>
+	<!-- Onboarding screen -->
+	<string name="onboarding_title_2">必要なときに速度を上げます。\n重要な時はプライバシーを守ります。</string>
+	<string name="onboarding_title_3">オンライン追跡を停止する</string>
+	<string name="onboarding_title_4">支払いからウェブへの匿名性</string>
+	<string name="onboarding_description_base">世界で最もプライベートなVPNです</string>
+	<string name="onboarding_description_1">世界で最もプライベートなVPN\n7日間無料でお試しください：\n広告なしですべての機能。</string>
+	<string name="onboarding_description_2">高速:dVPNで250+Mbps。\n匿名:5-hop Noise Generating Mixnet。</string>
+	<string name="onboarding_description_3">Nymの分散型ネットワークは、\"no-log\"\n を廃止することを約束します。</string>
+	<string name="onboarding_description_4">カード、暗号、または現金で支払う-電子メールは必要ありません。ゼロ知識証明により、支払いはオンライン活動とリンクできなくなります。</string>
+	<string name="onboarding_create_account_button">アカウントを作成</string>
+	<!-- Select Plan screen -->
 	<string name="select_plan_title">\n保護レベル :shield を選択：</string>
-	<string name="select_plan_descr">Select a plan now to activate your \nprotection\n\nYour upcoming payment cannot be linked \nto your future browsing activity</string>
+	<string name="select_plan_line_1">すべての機能が含まれています</string>
+	<string name="select_plan_line_2">広告なし</string>
+	<string name="select_plan_line_3">いつでもキャンセル</string>
 	<string name="select_plan_button">NymVPNプランを選択</string>
 	<string name="select_plan_modal_title">NymVPNプランを選択してください</string>
 	<string name="select_plan_modal_free_trial">無料トライアル: 1 週間</string>
@@ -286,6 +314,7 @@
 	<string name="censorship_stealth_description">一般的なドメインの背後にある API 要求を偽装し、VPN ブロックを回避します。標準の API 接続が失敗すると、NymVPN によって自動的に使用されます。</string>
 	<string name="censorship_stealth_link_text">ステルスAPI接続モードの仕組み</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_event_reconnecting">Reconnecting to apply QUIC settings…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">QUICプロトコルをサポートするファストモードの場所とサーバーのみを表示します。すべてのサーバーを表示するには、QUICをオフにしてください。</string>
 	<string name="censorship_amnezia_title">最小難読化(AmneziaWG)</string>
@@ -293,12 +322,28 @@
 	<string name="censorship_amnezia_link_text">AmneziaWGがDPIを防ぐ方法</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-    <!-- Existing subscription -->
+	<string name="account_welcome_create_title">🔒 プライバシーの最大値</string>
+	<string name="account_welcome_create_description">匿名のNymアカウントを作成します。個人情報は必要ありません</string>
+	<string name="account_welcome_create_button">匿名アカウントを作成</string>
+	<string name="account_welcome_social_title">⚡ クイックセットアップ</string>
+	<string name="account_welcome_social_description">Googleや暗号ウォレットなどの既存のアカウントをログインパートナーPrivyから使用する</string>
+	<string name="account_welcome_social_button">ソーシャルアカウントで続ける</string>
+	<string name="account_welcome_login_title">既にアカウントをお持ちですか？</string>
+	<string name="account_welcome_login_button">24単語のパスフレーズでログイン</string>
+	<string name="account_welcome_privacy_start">続行することで、NymVPNに同意したことになります  </string>
+	<string name="account_welcome_privacy_middle">と</string>
+	<!-- Existing subscription -->
 	<string name="account_subscription_title">すでに購読しています！</string>
 	<string name="account_subscription_description">Google Playアカウントにリンクされている有効なサブスクリプションが見つかりました。 サインアップをスキップし、NymVPNを使用して直接飛び込みます。24ワードのパスフレーズを準備してください。</string>
 	<string name="account_subscription_button">Nym パスフレーズでログイン</string>
 	<!-- Account Generating screen -->
-    <string name="account_generating_error">アカウントの登録に失敗しました。後でもう一度お試しください</string>
+	<string name="account_generating_title_1">Generating cryptographic keypairs…</string>
+	<string name="account_generating_title_2">Creating your anonymous identity…</string>
+	<string name="account_generating_title_3">Securing your credentials locally…</string>
+	<string name="account_generating_description_1">デバイスから離れないキーを作成する</string>
+	<string name="account_generating_description_2">匿名のネットワーク認証情報を確立しています</string>
+	<string name="account_generating_description_3">デバイスキーで認証情報を暗号化します。ロックを解除できるのはあなただけです。</string>
+	<string name="account_generating_error">アカウントの登録に失敗しました。後でもう一度お試しください</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processing your payment securely…</string>
 	<string name="account_payment_verifying">サブスクリプションを確認しています。個人の詳細がお客様の身元に関連付けられることはありません。</string>
@@ -378,6 +423,8 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">次の接続時に適用</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 追加: アプリごとの保護またはスピードのための直接接続を選択してください</string>
 	<string name="split_tunneling_per_app_security_banner_action">\nアプリを設定</string>
+	<string name="split_tunneling_event_saved">分割トンネリング設定を保存しました</string>
+	<string name="split_tunneling_event_reconnecting">Reconnecting to apply split tunneling settings…</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">DNS カスタマイズ</string>
 	<string name="dns_description">デフォルトでは、Nymの推奨DNSサーバーを使用しています。必要に応じて以下のカスタムサーバーを設定してください。</string>
@@ -392,8 +439,11 @@
 	<string name="dns_custom_list_error">DNSアドレス形式が無効です</string>
 	<string name="dns_custom_button_add">追加</string>
 	<string name="dns_custom_button_save">変更を保存</string>
+	<string name="dns_custom_button_save_reconnect">Save changes &amp; reconnect</string>
 	<string name="dns_custom_saved">カスタムDNSを保存しました。</string>
 	<string name="dns_save_dialog_title">変更を保存しますか？</string>
 	<string name="dns_save_dialog_description">保存していない変更があります。</string>
 	<string name="dns_learn_more_text">DNS についてもっと知る</string>
+	<string name="dns_event_saved">カスタムDNSを保存しました</string>
+	<string name="dns_event_reconnecting">再接続してカスタムDNS設定を適用...</string>
 </resources>

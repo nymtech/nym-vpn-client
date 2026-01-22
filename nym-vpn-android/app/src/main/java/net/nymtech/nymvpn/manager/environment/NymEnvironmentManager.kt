@@ -9,6 +9,10 @@ class NymEnvironmentManager @Inject constructor(
 	private val backendManager: BackendManager,
 ) : EnvironmentManager {
 
+	override suspend fun isPrivyEnabled(): Boolean {
+		return getFeatureFlags()?.isPrivyEnabled() ?: false
+	}
+
 	override suspend fun isDomainFrontingEnabled(): Boolean {
 		return getFeatureFlags()?.isDomainFrontingEnabled() ?: false
 	}

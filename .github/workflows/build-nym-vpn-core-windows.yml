@@ -119,6 +119,7 @@ jobs:
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd.exe ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-diagnostic.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.LIBS_PATH }}/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.WINFW_PATH }}/winfw.dll ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.WINTUN_DIST_DIR }}/wintun.dll ${{ env.UPLOAD_DIR_WINDOWS }}

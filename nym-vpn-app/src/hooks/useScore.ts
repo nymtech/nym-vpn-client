@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { Score } from '../types';
 
 function useScore() {
-  const { t } = useTranslation('nodeLocation');
+  const { t } = useTranslation('node-location');
 
   const getPerformance = useCallback(
     (score: Score) => {

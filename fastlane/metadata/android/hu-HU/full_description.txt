@@ -1,50 +1,43 @@
-Hagyja abba az online követést. Az egyetlen VPN, amely nem tud kémkedni Ön után – még akkor sem, ha akarna. Svájcban készült, világszerte adatvédelmi szakértők által megbízhatónak tartva.
+7 napos ingyenes próba: minden funkció, hirdetések nélkül, bármikor lemondható.
 
-⭐️ Megjelent: PCMag, TechRadar, Wirecutter, ZDNet, Tom's Guide, Forbes, Bloomberg, TechCrunch, How-To Geek, PCWorld, Heise Online
+Az egyetlen VPN, amely nem tud kémkedni utánad. Svájcban készült. Adatvédelemért kiállók által fejlesztve. A világ első mixnetje az online anonimitásért.
 
-BÖNGÉSSZEN NYOMOK HÁTRAHAGYÁSA NÉLKÜL
+- Regisztráció név nélkül: nincs szükség e-mailre. Zero-knowledge fiókok. Több kriptovalutát fogad el, mint bármely más VPN. Készpénzes fizetés a teljes anonimitásért.
+- Decentralizált VPN technológia
+- 65+ ország több száz független szerverrel
+- Akár 10 eszköz egyetlen anonim kóddal
 
-Elege van abból, hogy azon gondolkodik, ki figyeli Önt? A hagyományos VPN-ek elméletileg naplózhatják az aktivitást. A NymVPN alapvetően más: decentralizált hálózatunk kialakításánál fogva lehetetlenné teszi a központi naplózást. Ez nem „naplózásmentes irányelv”, hanem „nem képes naplózni” architektúra.
+BÖNGÉSSZ NYOM NÉLKÜL
 
-✓ Valódi anonimitás: fizetés kriptóval vagy készpénzzel, e-mail nélkül
-✓ Több mint 50 ország, több száz független szerver
-✓ Több eszköz védelme: 10 eszköz egyetlen anonim kóddal
-✓ Svájci székhely, akadémiai szintű adatvédelem
+Eleged van abból, hogy azon gondolkodsz, ki figyel? Cégek gyűjtik a személyes adataidat? A tartalomhoz való hozzáférés helyfüggő?
 
-VÁLASSZA KI AZ ADATVÉDELEM SZINTJÉT
+Míg más VPN-ek azt ígérik, hogy nem tárolnak naplókat, a NymVPN hálózatát úgy tervezték, hogy központi naplók egyáltalán ne létezhessenek. A decentralizált hálózat egyetlen pontja sem tudja összekapcsolni az IP-címedet az online tevékenységeddel. Az adatvédelem alapértelmezetten garantált.
 
-⚡ Gyors mód – Villámgyors sebesség böngészéshez és streameléshez. Alapértelmezetten 2 ugrás: az egyik szerver tudja, ki Ön, a másik mit csinál – soha nem ugyanaz.
+A NymVPN használatával az online aktivitásod nem köthető hozzád hirdetők, hálózati szolgáltatók vagy központosított infrastruktúra által. Böngéssz, kutass és kommunikálj követhető digitális profil nélkül.
 
-🔒 Anonim mód – Maximális adatvédelem 5 ugrásos mixnet hálózattal, zajgenerálással és akár 5 rétegű titkosítással. Úgy tervezték, hogy ellenálljon az AI-alapú forgalomelemzésnek és fejlett megfigyelésnek is.
+VÁLASZD KI AZ ADATVÉDELMI SZINTET
 
-MIÉRT MÁS A NYMVPN
+Gyors mód
+- Nagy sebességű böngészés és streaming
+- 2 ugrásos decentralizált VPN
+- Belépő és kilépő szerverek kiválasztása 65+ országban
 
-• Metaadat-védelem – nemcsak az adatokat, hanem a viselkedési mintákat is védjük
-• Cenzúraálló – hozzáférés blokkolt tartalmakhoz AmneziaWG, QUIC és stealth protokollokkal
-• Zero-knowledge fizetés – az előfizetés kriptográfiailag nincs összekapcsolva az aktivitással
-• Egyetemi fejlesztés – KU Leuven és EPFL PhD kriptográfusai, 20+ lektorált publikációval
-
-FÜGGETLENÜL ELLENŐRIZVE
-
-• 4 biztonsági audit (2021–2024): JP Aumasson, Oak Security, Cryspen, Cure53
-• Nyílt forráskódú és átlátható („Signals of Trustworthy VPNs”)
-• Több mint 10 000 felhasználó bízik már a NymVPN-ben
+Anonim mód
+- Maximális anonimitás üzenetküldéshez, e-mailekhez és pénzügyi tranzakciókhoz
+- 5 ugrásos zajgeneráló mixnet
+- Fejlett forgalomelemzés ellen tervezve
 
 ALAPVETŐ FUNKCIÓK
+- Gyors kapcsolatok 65+ országban
+- Többrétegű titkosítás
+- dVPN AmneziaWG (WireGuard) támogatás
+- Kill switch az adatszivárgás megelőzésére
+- Fejlett cenzúraellenes technológia
+- Split tunneling
+- Egyéni DNS
+- dApp és tárca mód privát Ethereum tranzakciókhoz
+- Kriptográfiai kulcsrotáció
+- Teljesen reklámmentes
+- Teljesen nyílt forráskódú
 
-• Nagy sebességű kapcsolatok több mint 50 országban
-• Kill switch az adatvesztés ellen
-• Teljesen reklámmentes élmény
-• Korszerű kriptográfiai megoldások
-
-IDEÁLIS AZ ALÁBBIAKRA
-
-→ Böngészés és streamelés követés nélkül
-→ Nyilvános Wi-Fi hálózatok biztonságos használata
-→ Felhasználók számára korlátozó országokban
-→ Akik valódi anonimitást akarnak, nem csak rejtett IP-címet
-→ Újságírók és aktivisták számára, akik nyomon nem követhető kommunikációt igényelnek
-
-Töltse le most. Csatlakozzon másodpercek alatt. Tűnjön el online.
-
-🎁 7 napos ingyenes próba | 💯 30 napos pénzvisszafizetési garancia | 🌐 Több mint 10 000 felhasználó világszerte
+Töltsd le most. Regisztrálj névtelenül. Tűnj el a NymVPN-nel.

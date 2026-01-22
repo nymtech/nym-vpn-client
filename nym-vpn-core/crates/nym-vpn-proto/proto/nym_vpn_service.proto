@@ -264,6 +264,7 @@ message VpnServiceConfig {
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
   bool enable_bridges = 21;
+  bool enable_lewes_protocol = 26;
   bool residential_exit = 15;
   bool netstack = 13;
   bool enable_custom_dns = 17;
@@ -601,6 +602,7 @@ message AccountCommandError {
     bool account_decentralised = 15;
     bool account_not_decentralised = 16;
     string zk_nym_acquisition_failure = 17;
+    string deeplink_error = 18;
   }
 }
 
@@ -873,6 +875,45 @@ message PrivyDerivationMessage {
   string message = 1;
 }
 
+message DiagnosticRunParams {
+  bool skip_dns = 1;
+  bool skip_http = 2;
+  optional GatewayId gateway = 3;
+}
+
+message DiagnosticRegisterParams {
+  GatewayId gateway = 1;
+  optional string storage_path = 2;
+  bool skip_wireguard = 3;
+}
+
+// Very nested struct and more often than not just used for logging, so JSON will do
+message DiagnosticReport {
+  string json = 1;
+}
+
+// Very nested struct and more often than not just used for logging, so JSON will do
+message RegistrationReport {
+  string json = 1;
+}
+
+message GetDeeplinkParams {
+  DeeplinkClient client = 1;
+  string locale = 2;
+  DeeplinkKind kind = 3;
+  string name = 4;
+}
+
+enum DeeplinkClient {
+  MOBILE = 0;
+  DESKTOP = 1;
+  WEB = 2;
+}
+
+enum DeeplinkKind {
+  PRIVY = 0;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
@@ -886,6 +927,7 @@ service NymVpnService {
   rpc SetDisableIpv6 (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableTwoHop (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableBridges (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableLewesProtocol (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
@@ -983,6 +1025,9 @@ service NymVpnService {
   // Get the account summary
   rpc GetAccountSummary (google.protobuf.Empty) returns (VpnAccountSummaryResponse) {}
 
+  // Get the deeplink URL
+  rpc GetDeeplink (GetDeeplinkParams) returns (google.protobuf.StringValue) {}
+
   // Get the log file path
   rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}
 
@@ -1021,4 +1066,8 @@ service NymVpnService {
 
   // Get Privy derivation message to be signed
   rpc GetPrivyDerivationMessage (google.protobuf.Empty) returns (PrivyDerivationMessage) {}
+
+  // Diagnostic stuff
+  rpc RunDiagnostic (DiagnosticRunParams) returns (DiagnosticReport) {}
+  rpc RegisterDiagnostic (DiagnosticRegisterParams) returns (RegistrationReport) {}
 }

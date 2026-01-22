@@ -1,2 +1,2 @@
-What's new:
-- Fix navigation bugs
+নতুন কী আছে
+নেভিগেশন সংক্রান্ত বাগ সমাধান

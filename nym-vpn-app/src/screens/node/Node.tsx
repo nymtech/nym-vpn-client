@@ -46,7 +46,7 @@ function Node({ node }: { node: NodeHop }) {
     vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
 
   const navigate = useNavigate();
-  const { t } = useTranslation('nodeLocation');
+  const { t } = useTranslation('node-location');
 
   const { filter, nodes, gateways } = useFilterList(node);
   const deferredNodes = useDeferredValue(nodes);
@@ -142,7 +142,7 @@ function Node({ node }: { node: NodeHop }) {
             <p className="text-sm text-iron dark:text-bombay mb-6 select-none">
               <Trans
                 i18nKey="quic-filter-note"
-                ns="nodeLocation"
+                ns="node-location"
                 components={{
                   here: (
                     <Link

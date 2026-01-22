@@ -2,7 +2,7 @@
 <resources>
 	<string name="settings">设置</string>
 	<string name="connected">已连接</string>
-	<string name="disconnected">未连接</string>
+	<string name="disconnected">已断开</string>
 	<string name="disconnecting">断开连接</string>
 	<string name="connecting">正在连接</string>
 	<string name="five_hop_mixnet">匿名模式 （混合网络）</string>
@@ -104,7 +104,7 @@
 	<string name="close">关闭</string>
 	<string name="enter_access_code">请输入您的匿名访问代码。</string>
 	<string name="welcome_to_nym">欢迎访问 NymVPN</string>
-	<string name="get_access_code">获取访问代码</string>
+	<string name="get_access_code">获取助记词</string>
 	<string name="access_code">24 字访问代码</string>
 	<string name="get_in_touch">取得联系</string>
 	<string name="device_id">设备 ID：</string>
@@ -118,7 +118,7 @@
 	<string name="exit_location">出口位置</string>
 	<string name="entry_location">入口位置</string>
 	<string name="no_results_found">未找到结果。</string>
-	<string name="how_to_run_gateway">如何运行网关。</string>
+	<string name="how_to_run_gateway">如何运行一台服务器。</string>
 	<string name="or_learn">或学习</string>
 	<string name="contact_for_help">联系我们寻求帮助</string>
 	<string name="try_another_server_name">尝试其他位置或检查服务器名称。</string>
@@ -152,9 +152,16 @@
 	<string name="join_telegram">加入Telegram</string>
 	<!-- Common -->
 	<string name="button_done">完成</string>
-	<string name="button_discard">放弃...</string>
+	<string name="button_discard">取消</string>
 	<string name="button_add">添加</string>
 	<string name="here">在这里</string>
+	<string name="score_text_high">高</string>
+	<string name="score_text_medium">中</string>
+	<string name="score_text_low">低</string>
+	<string name="score_text_offline">离线</string>
+	<string name="button_next">下一个</string>
+	<string name="skip">跳过</string>
+	<string name="get_started">开始使用</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">流媒体显示</string>
 	<string name="streaming_server_banner_title">新功能: 探索串流 -\n优化服务器 (▶️)</string>
@@ -184,12 +191,13 @@
 	<string name="error_invalid_entry_gateway_identity">条目服务器离线。选择另一个并重新连接。</string>
 	<string name="error_invalid_exit_gateway_identity">离线退出服务器。选择另一个并重新连接。</string>
 	<!-- Main Screen -->
-    <string name="connection_state_resolving_addresses">正在初始化 NymVPN (1/6)</string>
+	<string name="connection_state_resolving_addresses">正在初始化 NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">设置您的帐户 (2/6)</string>
 	<string name="connection_state_refreshing_gateways">更新服务器列表 (3/6)</string>
 	<string name="connection_state_selecting_gateways">选择最佳服务器 (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">匿名注册服务器(5/6)</string>
 	<string name="connection_state_connecting_tunnel">建立服务器连接(6/6)</string>
+	<string name="main_button_select_plan">选择计划</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">反检查</string>
 	<string name="settings_passphrase_title">助记词</string>
@@ -210,10 +218,10 @@
 	<string name="settings_daemon_version_line">守护进程版本: %1$s</string>
 	<string name="settings_language_help_title">帮助我们翻译</string>
 	<string name="settings_language_help_description">让应用程序以更好的方式显示您的本地语言。</string>
+	<string name="settings_event_lan_reconnecting">正在重新连接以应用局域网设置……</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">最佳连接方式</string>
 	<string name="battery_opt_descr">禁用 NymVPN 电池优化以获得更稳定的 VPN 连接。</string>
-	<string name="skip">跳过</string>
 	<string name="battery_opt">电池优化</string>
 	<string name="battery_opt_settings_text">应用程序设置中可以随时更改电池优化设置。</string>
 	<!-- Data & Privacy screen -->
@@ -236,9 +244,29 @@
 	<string name="notification_stats_enabled">您已允许收集数据报告！这些匿名数据有助于我们优化网络。</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">继续</string>
-    <!-- Select Plan screen -->
+	<string name="welcome_title">帮助我们改进 NymVPN</string>
+	<string name="welcome_description">选择要共享的匿名数据。所有数据在发送之前都会被删除用于识别信息。</string>
+	<string name="welcome_error_reports_title">共享错误报告</string>
+	<string name="welcome_error_reports_description_start">帮助我们更快地修复错误，没有收集个人数据(通过) </string>
+	<string name="welcome_error_reports_link_text">着色</string>
+	<string name="welcome_error_reports_description_end">)</string>
+	<string name="welcome_usage_title">分享使用分析</string>
+	<string name="welcome_usage_description">帮助我们改善Nym网络。没有记录或活动。</string>
+	<!-- Onboarding screen -->
+	<string name="onboarding_title_2">当你需要它时速度.\n事关隐私.</string>
+	<string name="onboarding_title_3">停止在线跟踪</string>
+	<string name="onboarding_title_4">匿名付款到 web</string>
+	<string name="onboarding_description_base">世界上最私有的 VPN</string>
+	<string name="onboarding_description_1">世界上最私有的 VPN\n免费尝试7天：\n所有功能，没有广告。</string>
+	<string name="onboarding_description_2">快速: 250+Mbps 与 dVPN.\n匿名: 5 hop 噪音生成Mixnet.</string>
+	<string name="onboarding_description_3">尼姆分散的网络使得“无日志”\n 许诺已经过时。</string>
+	<string name="onboarding_description_4">使用卡、加密或现金支付 — 无需电子邮件。零知识证明使您的付款无法连接到您的在线活动。</string>
+	<string name="onboarding_create_account_button">创建帐户</string>
+	<!-- Select Plan screen -->
 	<string name="select_plan_title">选择您的 \n保护级别 🛡️</string>
-	<string name="select_plan_descr">现在选择一个订阅方案开始享受你的\n隐私保护\n\n你的付款信息永远不会关联到\n你未来的上网记录</string>
+	<string name="select_plan_line_1">包含所有功能</string>
+	<string name="select_plan_line_2">没有广告</string>
+	<string name="select_plan_line_3">随时取消</string>
 	<string name="select_plan_button">选择我的 NymVPN 计划</string>
 	<string name="select_plan_modal_title">选择您的 NymVPN 计划</string>
 	<string name="select_plan_modal_free_trial">免费试用：1周</string>
@@ -276,29 +304,46 @@
 	<string name="details_more_details_end">Nym 网络浏览器</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
-	<string name="censorship_description">如果您在您的位置遇到连接问题或NymVPN 屏蔽，请启用这些功能。</string>
+	<string name="censorship_description">改善NymVPN在被封锁或者具有审查机制的网络环境中的连接能力。</string>
 	<string name="censorship_quic_title">增强连接 (QUIC)</string>
 	<string name="censorship_quic_changes">更改将在重新连接后应用</string>
-	<string name="censorship_quic_description">使用 QUIC (HTTP/3) 包装WireGuard流量让用户数据看起来像常规网络流量来改善在限制性网络中的快速模式可靠性。\n\n注意：将只会显示QUIC协议兼容的网关。</string>
+	<string name="censorship_quic_description">通过使用 QUIC (HTTP/3) 包装WireGuard流量来改善快速模式在严苛的网络环境中的稳定性。用户流量看起来像常规网络流量，从而可以抵御深度包检测（DPI）审查系统。\n\n注意：将只会显示提供QUIC协议的入口网关。</string>
 	<string name="censorship_quic_link_text">QUIC如何改善连接</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">隐身API连接</string>
 	<string name="censorship_stealth_description">伪装API请求，允许域绕过VPN 拦截。当标准API连接尝试失败时，NymVPN 会自动使用。</string>
 	<string name="censorship_stealth_link_text">SteomAPI连接模式工作方式</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_event_reconnecting">正在重新连接以应用QUIC设置…</string>
 	<string name="quic">QUIC</string>
-    <string name="quic_gateway_filter_info_msg">仅显示支持QUIC 协议的快速模式位置和服务器。要关闭所有服务器，请关闭 QUIC</string>
+	<string name="quic_gateway_filter_info_msg">仅显示支持QUIC 协议的快速模式位置和服务器。要显示所有服务器，请关闭 QUIC</string>
 	<string name="censorship_amnezia_title">最低限度的反审查保护（AmneziaWG）</string>
 	<string name="censorship_amnezia_description">通过引入能够绕开深度包检测系统的基本检查规则的诱饵数据包，使得WireGuard流量更加难以被检测到，改善受限制的网络中连接的稳定性。\n\n注意：只实现了客户端。</string>
 	<string name="censorship_amnezia_link_text">Amnezia WG是如何阻止DPI的</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-    <!-- Existing subscription -->
+	<string name="account_welcome_create_title">🔒 最大隐私</string>
+	<string name="account_welcome_create_description">创建匿名Nym账户，不需要个人信息</string>
+	<string name="account_welcome_create_button">创建匿名账户</string>
+	<string name="account_welcome_social_title">:hig_voltage: 快速设置</string>
+	<string name="account_welcome_social_description">通过我们的登录伙伴Privy使用诸如谷歌或加密钱包等现有账户</string>
+	<string name="account_welcome_social_button">继续使用社交账户</string>
+	<string name="account_welcome_login_title">已经有一个帐户？</string>
+	<string name="account_welcome_login_button">使用24个字密码登录</string>
+	<string name="account_welcome_privacy_start">继续后，您同意NymVPN。  </string>
+	<string name="account_welcome_privacy_middle">和</string>
+	<!-- Existing subscription -->
 	<string name="account_subscription_title">您已经订阅了！</string>
 	<string name="account_subscription_description">我们发现一个活跃的订阅链接到您的 Google Play 帐户。 请跳过注册环节并直接跳转到 NymVPN。只需输入您的24个单词助记词登录就可以了。</string>
 	<string name="account_subscription_button">用 Nym 助记词登录</string>
 	<!-- Account Generating screen -->
-    <string name="account_generating_error">注册帐户失败。请稍后再试</string>
+	<string name="account_generating_title_1">Generating cryptographic keypairs…</string>
+	<string name="account_generating_title_2">创建您的匿名身份…</string>
+	<string name="account_generating_title_3">Securing your credentials locally…</string>
+	<string name="account_generating_description_1">创建永远不离开您设备的密钥</string>
+	<string name="account_generating_description_2">建立匿名网络凭据</string>
+	<string name="account_generating_description_3">正在用您的设备密钥加密凭据；只有您才能解锁它们。</string>
+	<string name="account_generating_error">注册帐户失败。请稍后再试</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">安全处理您的付款…</string>
 	<string name="account_payment_verifying">我们正在验证您的订阅—没有任何个人信息与您的身份可以关联</string>
@@ -378,22 +423,27 @@
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">下次连接时生效</string>
 	<string name="split_tunneling_per_app_security_banner_title">🔀 新功能: 选择基于单个应用程序的保护或直接连接互联网以获取最快的网速</string>
 	<string name="split_tunneling_per_app_security_banner_action">配置\n应用程序</string>
+	<string name="split_tunneling_event_saved">Split tunneling设置已保存</string>
+	<string name="split_tunneling_event_reconnecting">重新连接以应用分割隧道设置…</string>
 	<!-- DNS customization screen -->
-	<string name="dns_title">DNS 自定义</string>
-	<string name="dns_description">默认情况下，使用 Nym 推荐的DNS 服务器。如果需要在下方配置自定义服务器。</string>
+	<string name="dns_title">DNS自定义</string>
+	<string name="dns_description">默认情况下，程序使用 Nym 推荐的DNS 服务器。如果需要请在下方配置自定义服务器。</string>
 	<string name="dns_view_list">查看默认DNS</string>
 	<string name="dns_hide_list">隐藏默认DNS</string>
 	<string name="dns_list_title">Nym 的默认 DNS：</string>
 	<string name="dns_custom_title">使用自定义 DNS 服务器</string>
-	<string name="dns_custom_description">配置您自己的DNS用于广告拦截、内容过滤或首选供应商。拖动以重新排序优先级。警告：可能限制Nym连通性。 </string>
+	<string name="dns_custom_description">配置您自己的DNS用于广告拦截、内容过滤或使用您喜欢的DNS供应商。拖动以重新排序优先级。⚠️ 可能限制Nym连接能力。 </string>
 	<string name="dns_custom_list_title">输入 DNS 服务器</string>
 	<string name="dns_custom_list_entries">自定义 DNS 服务器 (%1$s/5)</string>
 	<string name="dns_custom_list_hint">IPv4或IPv6地址</string>
 	<string name="dns_custom_list_error">无效的 DNS 地址格式</string>
 	<string name="dns_custom_button_add">添加</string>
 	<string name="dns_custom_button_save">保存更改</string>
+	<string name="dns_custom_button_save_reconnect">保存更改并重新连接</string>
 	<string name="dns_custom_saved">自定义DNS已保存。</string>
 	<string name="dns_save_dialog_title">保存更改？</string>
 	<string name="dns_save_dialog_description">您有未保存的更改。</string>
-	<string name="dns_learn_more_text">了解更多关于 DNS</string>
+	<string name="dns_learn_more_text">了解更多关于DNS的信息</string>
+	<string name="dns_event_saved">自定义DNS已保存</string>
+	<string name="dns_event_reconnecting">正在重新连接以应用自定义DNS设置……</string>
 </resources>

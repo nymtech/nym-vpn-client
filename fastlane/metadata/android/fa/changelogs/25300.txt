@@ -1,2 +1,2 @@
 تغییرات نسخه جدید:
-- Fixed connection issue with tunnel lifecycle.
+– مشکل اتصال ناشی از چرخهٔ عمر تونل اصلاح شد.

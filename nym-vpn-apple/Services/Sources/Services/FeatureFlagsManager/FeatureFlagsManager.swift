@@ -24,6 +24,8 @@ import GRPCManager
     )
 #endif
 
+    public var isPrivyEnabled = false
+
 #if os(iOS)
     init(configurationManager: ConfigurationManager) {
         self.configurationManager = configurationManager
@@ -90,11 +92,12 @@ private extension FeatureFlagsManager {
         Task {
 #if os(iOS)
             guard let flags = try? currentEnvironment().featureFlags else { return }
-            Task { @MainActor in
-            }
 #elseif os(macOS)
             guard let flags = try? await grpcManager.fetchFeatureFlags() else { return }
 #endif
+            Task { @MainActor in
+                isPrivyEnabled = flags.isPrivyEnabled() ?? false
+            }
         }
     }
 }

@@ -12,7 +12,11 @@ public enum ConnectButtonState {
     case noInternetReconnect
     case noAccount
 
-    public init(tunnelStatus: TunnelStatus) {
+    public init(tunnelStatus: TunnelStatus, isCredentialImported: Bool) {
+        if isCredentialImported == false {
+            self = .noAccount
+            return
+        }
         switch tunnelStatus {
         case .connected:
             self = .disconnect

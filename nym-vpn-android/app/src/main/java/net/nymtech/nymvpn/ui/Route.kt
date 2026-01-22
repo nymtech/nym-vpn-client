@@ -67,7 +67,7 @@ sealed class Route {
 	data object Technical : Route()
 
 	@Serializable
-	data object WelcomeAccount : Route()
+	data object CreateAccount : Route()
 
 	@Serializable
 	data object SelectPlan : Route()
@@ -94,5 +94,5 @@ sealed class Route {
 	data object SplitTunneling : Route()
 
 	@Serializable
-	data object Onboarding : Route()
+	data object Welcome : Route()
 }

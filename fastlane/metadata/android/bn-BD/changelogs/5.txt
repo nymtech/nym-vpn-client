@@ -1,3 +1,3 @@
-What's new:
-- Bug fixes
-- Add licenses
+নতুন কী:
+বাগ সংশোধনসমূহ
+লাইসেন্স যোগ করুন

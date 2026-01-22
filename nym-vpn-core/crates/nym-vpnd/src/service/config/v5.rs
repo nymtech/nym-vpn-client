@@ -71,6 +71,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_custom_dns: value.enable_custom_dns,
             custom_dns,
             network_stats,
+            ..Default::default()
         };
 
         Ok(config)

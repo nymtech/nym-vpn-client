@@ -1,6 +1,6 @@
-What's new:
-- Minor UI updates and improvements
-- Fix for proper URL's opening 
-- Better error messages in low connectivity
-- Prompts when device time is out of sync
-- Connectivity improvements
+নতুন কী:
+ছোটখাটো UI ও UX আপডেট
+সঠিকভাবে URL খোলার সমস্যা সমাধান 
+কম সংযোগে উন্নত ত্রুটি বার্তা
+ডিভাইসের সময় সিঙ্ক না থাকলে প্রম্পট দেখানো হবে
+সংযোগে উন্নতি

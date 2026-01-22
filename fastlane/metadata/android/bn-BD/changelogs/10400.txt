@@ -1,4 +1,4 @@
-What's new:
-- Improved logging to file
-- Bug fixes
-- Other efficiencies and improvements
+নতুন কী আছে:
+ফাইলে লগিং উন্নত করা হয়েছে
+বাগ ফিক্স
+অন্যান্য দক্ষতা ও উন্নতি

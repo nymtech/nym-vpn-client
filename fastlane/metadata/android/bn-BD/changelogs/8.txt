@@ -1,3 +1,3 @@
-What's new:
-- Improve logs screen
-- Bug fixes
+নতুন কী আছে
+লগ স্ক্রিন উন্নত করুন
+বাগ ফিক্স করুন

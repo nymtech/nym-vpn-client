@@ -1,2 +1,2 @@
-What's new:
-- Reproducible builds
+নতুন কী আছে:
+পুনরুত্পাদনযোগ্য বিল্ড

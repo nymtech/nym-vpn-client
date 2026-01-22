@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -44,6 +45,7 @@ import net.nymtech.nymvpn.ui.screens.settings.components.SupportSection
 import net.nymtech.nymvpn.ui.screens.settings.components.VpnSettingsSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.DeviceAuthHelper
 import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
 import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
@@ -59,11 +61,13 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 	var showLogoutDialog by remember { mutableStateOf(false) }
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+	val shortcutsInfoText = stringResource(R.string.shortcuts_info_message)
+	val lanReconnectingText = stringResource(R.string.settings_event_lan_reconnecting)
 	LaunchedEffect(viewModel) {
 		viewModel.events.collectLatest { event ->
 			when (event) {
 				UiEvent.ReconnectStarted ->
-					Toast.makeText(context, context.getString(R.string.settings_event_lan_reconnecting), Toast.LENGTH_SHORT).show()
+					Toast.makeText(context, lanReconnectingText, Toast.LENGTH_SHORT).show()
 			}
 		}
 	}
@@ -109,7 +113,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 		),
 		SettingsActions(
 			onGetStartedClick = {
-				navController.navigate(Route.WelcomeAccount)
+				navController.navigate(Route.Welcome)
 			},
 			onAccountClick = {
 				navController.navigate(Route.Account)
@@ -146,8 +150,15 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 			},
 			onAutoselectServerEnable = {
 			},
-			onShortcutsEnable = {
-				viewModel.onAppShortcutsSelected(it)
+			onShortcutsEnable = { enable ->
+				if (enable && !DeviceAuthHelper.isDeviceSecure(context)) {
+					Toast.makeText(
+						context,
+						shortcutsInfoText,
+						Toast.LENGTH_LONG,
+					).show()
+				}
+				viewModel.onAppShortcutsSelected(enable)
 			},
 			onDeviceStartupEnable = {
 			},

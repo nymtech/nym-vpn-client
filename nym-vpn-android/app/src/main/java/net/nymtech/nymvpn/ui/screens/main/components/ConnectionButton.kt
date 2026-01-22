@@ -88,7 +88,7 @@ fun ConnectionButton(
 						testTag = Constants.CONNECT_TEST_TAG,
 						onClick = {
 							scope.launch {
-								if (!isMnemonicStored) return@launch navController.goFromRoot(Route.Onboarding)
+								if (!isMnemonicStored) return@launch navController.goFromRoot(Route.Welcome)
 								if (connectionState is ConnectionState.Offline) return@launch snackbar.showMessage(context.getString(R.string.no_internet))
 								onConnect()
 							}

@@ -151,7 +151,7 @@ class NymBackend private constructor(private val context: Context) :
 		runCatching {
 			startNetworkMonitorJob()
 
-			initLogger(storagePath, LOG_LEVEL, config.sentryMonitoringEnabled)
+			initLogger(storagePath + "/libnymvpn.logs", LOG_LEVEL, config.sentryMonitoringEnabled)
 				?: Timber.e("Failed to initialize backend logger")
 
 			initEnvironment(environment)
@@ -375,6 +375,7 @@ class NymBackend private constructor(private val context: Context) :
 						userAgent = userAgent,
 						customDns = tunnel.dnsList,
 						statisticsRecipient = null,
+						enableLewesProtocol = false,
 					),
 				)
 			} catch (e: VpnException) {

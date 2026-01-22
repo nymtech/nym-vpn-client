@@ -4,10 +4,6 @@ on:
     - cron: "4 4 * * *"
   workflow_dispatch:
     inputs:
-      tag_name:
-        description: "Tag name for release"
-        required: false
-        default: nym-vpn-app-v1.2.3
       release_type:
         type: choice
         description: 'Release type, "stable" for public releases (signed Windows only), "nightly" for nightly build, "dev" for any other releases'
@@ -116,9 +112,9 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v6
 
-      # Setup TAG_NAME, which is used as a general "name"
+      # Setup TAG_NAME
       - if: github.event_name == 'workflow_dispatch'
-        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+        run: echo "TAG_NAME=nym-vpn-app-v${{ steps.cargo-get.outputs.metadata }}" >> $GITHUB_ENV
       - if: ${{ env.RELEASE_TYPE == 'nightly' }}
         run: echo "TAG_NAME=nym-vpn-app-nightly" >> $GITHUB_ENV
       - if: github.event_name == 'push'

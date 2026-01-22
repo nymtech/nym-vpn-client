@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui
 
 import android.content.Intent
 import android.graphics.Color.TRANSPARENT
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.SystemBarStyle
@@ -34,6 +35,7 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -49,17 +51,16 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
+import net.nymtech.nymvpn.ui.screens.account.create.CreateAccountScreen
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
 import net.nymtech.nymvpn.ui.screens.account.payment.PaymentScreen
 import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
-import net.nymtech.nymvpn.ui.screens.account.welcome.WelcomeAccountScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
-import net.nymtech.nymvpn.ui.screens.onboarding.OnboardingScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.scanner.ScannerScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
@@ -75,34 +76,34 @@ import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
-import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingScreen
+import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.screens.technical.TechnicalOptScreen
+import net.nymtech.nymvpn.ui.screens.welcome.WelcomeScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-	@Inject
-	lateinit var shortcutManager: ShortcutManager
+	@Inject lateinit var shortcutManager: ShortcutManager
 
-	@Inject
-	lateinit var settingsRepository: SettingsRepository
+	@Inject lateinit var settingsRepository: SettingsRepository
 
-	@Inject
-	lateinit var billingManager: BillingManager
+	@Inject lateinit var billingManager: BillingManager
+
+	private var pendingDeepLink: Uri? = null
+	private var navControllerRef: NavHostController? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val appViewModel by viewModels<AppViewModel>()
-
 		installSplashScreen().setKeepOnScreenCondition { false }
-
 		enableEdgeToEdge(
 			statusBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT),
 			navigationBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT),
@@ -111,11 +112,11 @@ class MainActivity : AppCompatActivity() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 			window.isNavigationBarContrastEnforced = false
 		}
-
 		super.onCreate(savedInstanceState)
 
+		appViewModel.onAppStartup()
+		captureDeepLink(intent)
 		resetTile()
-
 		setContent {
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle)
 			val systemMessage by appViewModel.systemMessage.collectAsStateWithLifecycle(lifecycle)
@@ -128,29 +129,37 @@ class MainActivity : AppCompatActivity() {
 			var hideBackButtonInNavBar by remember { mutableStateOf(false) }
 			var onBackClickEventFromRoute by remember { mutableStateOf<Route?>(null) }
 
+			LaunchedEffect(navController) {
+				navControllerRef = navController
+				consumeDeepLinkIfAny()
+			}
+
 			LaunchedEffect(configurationChange) {
 				if (configurationChange) {
-					val intent = Intent(this@MainActivity, MainActivity::class.java).apply {
+					val restartIntent = Intent(this@MainActivity, MainActivity::class.java).apply {
 						addFlags(
 							Intent.FLAG_ACTIVITY_CLEAR_TOP or
 								Intent.FLAG_ACTIVITY_NEW_TASK,
 						)
 					}
-					startActivity(intent)
+					startActivity(restartIntent)
 					finish()
 					appViewModel.onConfigurationHandled()
 				}
 			}
 
-			// only display system message on main screen
 			LaunchedEffect(systemMessage, navBackStackEntry) {
 				if (navBackStackEntry.isCurrentRoute(Route.Main::class)) {
-					// delay to allow other messages before we show persistent again
 					delay(2000)
 					systemMessage?.let {
-						SnackbarController.showMessage(StringValue.DynamicString(it.message), duration = SnackbarDuration.Indefinite)
+						SnackbarController.showMessage(
+							StringValue.DynamicString(it.message),
+							duration = SnackbarDuration.Indefinite,
+						)
 					}
-				} else if (systemMessage != null) SnackbarController.dismiss()
+				} else if (systemMessage != null) {
+					SnackbarController.dismiss()
+				}
 			}
 
 			with(appState.settings) {
@@ -176,9 +185,7 @@ class MainActivity : AppCompatActivity() {
 								NavBar(
 									navController,
 									Modifier.onGloballyPositioned {
-										navHeight = with(density) {
-											it.size.height.toDp()
-										}
+										navHeight = with(density) { it.size.height.toDp() }
 									},
 									hideBackButton = hideBackButtonInNavBar,
 									onBackClick = {
@@ -188,7 +195,11 @@ class MainActivity : AppCompatActivity() {
 							},
 							snackbarHost = {
 								SnackbarHost(host) { snackbarData: SnackbarData ->
-									CustomSnackBar(snackbarData, paddingTop = navHeight, content = content)
+									CustomSnackBar(
+										snackbarData,
+										paddingTop = navHeight,
+										content = content,
+									)
 								}
 							},
 						) { padding ->
@@ -251,51 +262,25 @@ class MainActivity : AppCompatActivity() {
 								) {
 									LoginScreen(appState)
 								}
-								composable<Route.Licenses> {
-									LicensesScreen()
-								}
-								composable<Route.Censorship> {
-									CensorshipScreen(appState)
-								}
+								composable<Route.Licenses> { LicensesScreen() }
+								composable<Route.Censorship> { CensorshipScreen(appState) }
 								composable<Route.Dns> {
 									DnsScreen(
 										appUiState = appState,
-										onBackEventConsume = {
-											onBackClickEventFromRoute = null
-										},
+										onBackEventConsume = { onBackClickEventFromRoute = null },
 										onBackClickEventTriggered = onBackClickEventFromRoute == Route.Dns,
 									)
 								}
-								composable<Route.Appearance> {
-									AppearanceScreen()
-								}
-								composable<Route.Privacy> {
-									PrivacyScreen(appState)
-								}
-								composable<Route.Display> {
-									DisplayScreen(appState)
-								}
-								composable<Route.Language> {
-									LanguageScreen(appState, appViewModel)
-								}
-								composable<Route.Developer> {
-									DeveloperScreen(appState, appViewModel)
-								}
-								composable<Route.LoginScanner> {
-									ScannerScreen()
-								}
-								composable<Route.Technical> {
-									TechnicalOptScreen(appState)
-								}
-								composable<Route.SelectPlan> {
-									SelectPlanScreen(appState)
-								}
-								composable<Route.WelcomeAccount> {
-									WelcomeAccountScreen(appState)
-								}
-								composable<Route.Generating> {
-									GeneratingScreen()
-								}
+								composable<Route.Appearance> { AppearanceScreen() }
+								composable<Route.Privacy> { PrivacyScreen(appState) }
+								composable<Route.Display> { DisplayScreen(appState) }
+								composable<Route.Language> { LanguageScreen(appState, appViewModel) }
+								composable<Route.Developer> { DeveloperScreen(appState, appViewModel) }
+								composable<Route.LoginScanner> { ScannerScreen() }
+								composable<Route.Technical> { TechnicalOptScreen(appState) }
+								composable<Route.SelectPlan> { SelectPlanScreen(appState) }
+								composable<Route.CreateAccount> { CreateAccountScreen(appState) }
+								composable<Route.Generating> { GeneratingScreen() }
 								composable<Route.ServerDetails> {
 									val args = it.toRoute<Route.ServerDetails>()
 									runCatching {
@@ -310,26 +295,17 @@ class MainActivity : AppCompatActivity() {
 								}
 								composable<Route.Passphrase> {
 									PassphraseScreen(
-										onBackButtonVisibilityChange = {
-											hideBackButtonInNavBar = it
-										},
+										onBackButtonVisibilityChange = { hideBackButtonInNavBar = it },
 									)
 								}
-								composable<Route.Account> {
-									AccountInfoScreen(appState)
-								}
+								composable<Route.Account> { AccountInfoScreen(appState) }
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(
-										appState = appState,
-										onBackEventConsume = {
-											onBackClickEventFromRoute = null
-										},
+										onBackEventConsume = { onBackClickEventFromRoute = null },
 										onBackClickEventTriggered = onBackClickEventFromRoute == Route.SplitTunneling,
 									)
 								}
-								composable<Route.Onboarding> {
-									OnboardingScreen()
-								}
+								composable<Route.Welcome> { WelcomeScreen() }
 							}
 						}
 					}
@@ -338,10 +314,47 @@ class MainActivity : AppCompatActivity() {
 		}
 	}
 
+	override fun onNewIntent(intent: Intent) {
+		super.onNewIntent(intent)
+		setIntent(intent)
+		captureDeepLink(intent)
+		consumeDeepLinkIfAny()
+	}
+
 	override fun onDestroy() {
 		super.onDestroy()
 		if (isFinishing) {
 			billingManager.endConnection()
+		}
+	}
+
+	private fun captureDeepLink(intent: Intent?) {
+		val uri = intent?.data ?: return
+		if (uri.scheme != "nymvpn") return
+		pendingDeepLink = uri
+	}
+
+	private fun consumeDeepLinkIfAny() {
+		val uri = pendingDeepLink ?: return
+		pendingDeepLink = null
+
+		val navController = navControllerRef
+		if (navController == null) {
+			pendingDeepLink = uri
+			return
+		}
+		handleDeepLink(uri, navController)
+	}
+
+	private fun handleDeepLink(uri: Uri, navController: NavHostController) {
+		val host = uri.host.orEmpty()
+		val path = uri.path.orEmpty()
+		val target = (host.ifBlank { path.removePrefix("/") }).lowercase()
+
+		when (target) {
+			else -> {
+				Timber.d("handleDeepLink $target")
+			}
 		}
 	}
 }

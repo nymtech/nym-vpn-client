@@ -21,6 +21,7 @@ tabled.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tokio-stream.workspace = true
 
+nym-diagnostic.workspace = true
 nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 

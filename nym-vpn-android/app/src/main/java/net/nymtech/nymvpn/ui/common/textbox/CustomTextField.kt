@@ -1,13 +1,21 @@
 package net.nymtech.nymvpn.ui.common.textbox
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -16,7 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
@@ -38,6 +49,7 @@ fun CustomTextField(
 	keyboardActions: KeyboardActions = KeyboardActions(),
 	leading: @Composable (() -> Unit)? = null,
 	trailing: @Composable (() -> Unit)? = null,
+	showClearIcon: Boolean = false,
 	isError: Boolean = false,
 	readOnly: Boolean = false,
 	enabled: Boolean = true,
@@ -47,12 +59,38 @@ fun CustomTextField(
 	val isFocused by interactionSource.collectIsFocusedAsState()
 
 	val space = " "
+
+	val trailingIcon: @Composable (() -> Unit)? =
+		if (showClearIcon && value.isNotEmpty() && enabled && !readOnly) {
+			{
+				IconButton(
+					onClick = { onValueChange("") },
+					modifier = Modifier
+						.size(32.dp)
+						.clip(CircleShape)
+						.border(
+							width = 1.dp,
+							color = MaterialTheme.colorScheme.outline,
+							shape = CircleShape,
+						)
+						.semantics { contentDescription = "Clear text" },
+				) {
+					Icon(
+						imageVector = Icons.Filled.Close,
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.onSurface,
+						modifier = Modifier.size(18.dp),
+					)
+				}
+			}
+		} else {
+			trailing
+		}
+
 	BasicTextField(
 		value = value,
 		textStyle = textStyle,
-		onValueChange = {
-			onValueChange(it)
-		},
+		onValueChange = { onValueChange(it) },
 		readOnly = readOnly,
 		keyboardActions = keyboardActions,
 		keyboardOptions = KeyboardOptions.Default.copy(
@@ -69,9 +107,7 @@ fun CustomTextField(
 			innerTextField = {
 				Column {
 					if (value.isEmpty() && !isFocused) {
-						if (placeholder != null) {
-							placeholder()
-						}
+						placeholder?.invoke()
 					} else {
 						if (singleLine) {
 							Text(
@@ -89,7 +125,7 @@ fun CustomTextField(
 			},
 			contentPadding = OutlinedTextFieldDefaults.contentPadding(top = 0.dp, bottom = 0.dp),
 			leadingIcon = leading,
-			trailingIcon = trailing,
+			trailingIcon = trailingIcon,
 			singleLine = singleLine,
 			supportingText = supportingText,
 			colors = TextFieldDefaults.colors().copy(

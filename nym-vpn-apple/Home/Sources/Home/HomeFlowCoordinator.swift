@@ -87,6 +87,8 @@ private extension HomeFlowCoordinator {
             LaunchView(splashScreenDidDisplay: $state.splashScreenDidDisplay, path: $state.path)
         case .onboarding:
             OnboardingView(path: $state.path)
+        case .technicalOptIns:
+            TechnicalOptInsView(path: $state.path)
         }
     }
 }

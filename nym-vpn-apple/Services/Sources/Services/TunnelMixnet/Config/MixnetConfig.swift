@@ -20,6 +20,7 @@ public struct MixnetConfig: Codable, Equatable {
     public let exitRouter: ExitRouter
     public let isTwoHopEnabled: Bool
     public let isQuicEnabled: Bool
+    public let isLewesEnabled: Bool
     public let isErrorReportingEnabled: Bool
     public let isStatisticsEnabled: Bool
     public let isLanBypassEnabled: Bool
@@ -36,6 +37,7 @@ public struct MixnetConfig: Codable, Equatable {
         isStatisticsEnabled: Bool,
         isQuicEnabled: Bool,
         isLanBypassEnabled: Bool,
+        isLewesEnabled: Bool,
         isTwoHopEnabled: Bool = false,
         name: String = "NymVPN Mixnet"
     ) {
@@ -49,6 +51,7 @@ public struct MixnetConfig: Codable, Equatable {
         self.isQuicEnabled = isQuicEnabled
         self.isLanBypassEnabled = isLanBypassEnabled
         self.isTwoHopEnabled = isTwoHopEnabled
+        self.isLewesEnabled = isLewesEnabled
         self.name = name
     }
 #endif
@@ -64,6 +67,7 @@ extension MixnetConfig {
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
             enableBridges: isQuicEnabled,
+            enableLewesProtocol: isLewesEnabled,
             residentialExit: false,
             customDns: customDns,
             tunProvider: tunProvider,

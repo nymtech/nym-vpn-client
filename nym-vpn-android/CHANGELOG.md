@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Add deeplinks support for Main Screen (https://github.com/nymtech/nym-vpn-client/pull/4441)
+
+### Changed
+- Add auth check for shortcuts actions (https://github.com/nymtech/nym-vpn-client/pull/4444)
+
+### Fixed
+- Fix Auto start handling (https://github.com/nymtech/nym-vpn-client/pull/4442)
+
+## [2.7.0] - 2026.01.16
+
+### Added
 - Locale for high/low copy on Details screen (https://github.com/nymtech/nym-vpn-client/pull/4274)
 - Add reconnect on LAN bypass (https://github.com/nymtech/nym-vpn-client/pull/4282)
 - Add Onboarding flow (https://github.com/nymtech/nym-vpn-client/pull/4322)
@@ -31,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Censorship screen blank on Chinese phones (https://github.com/nymtech/nym-vpn-client/pull/4277)
 - Clear notifications after successful connection (https://github.com/nymtech/nym-vpn-client/pull/4327)
 - Clear notifications when another VPN started (https://github.com/nymtech/nym-vpn-client/pull/4327)
+- Bypass traffic to local DNS server when LAN bypass is disabled. Align LAN bypass rules with desktop (https://github.com/nymtech/nym-vpn-client/pull/4366)
 
 ## [2.6.0] - 2025.12.18
 

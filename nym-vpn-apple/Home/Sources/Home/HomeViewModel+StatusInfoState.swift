@@ -31,14 +31,14 @@ extension HomeViewModel {
         statusInfoState = newState
     }
 
-    @MainActor func navigateToAddCredetialsIfNeeded(error: Error?) {
+    @MainActor func navigateToOnboardingIfNeeded(error: Error?) {
         guard let errorReason = error as? ErrorReason,
               errorReason == .noAccountStored
         else {
             return
         }
         resetStatusInfoState()
-        navigateToAddCredentials()
+        navigateToOnboarding()
     }
 
     func isLastErrorSubscriptionExpired() -> Bool {
@@ -53,7 +53,7 @@ extension HomeViewModel {
     @MainActor func updateLastError(_ error: Error?) {
         if lastError == nil, let error {
             updateStatusInfoState(with: .error(message: error.localizedDescription))
-            navigateToAddCredetialsIfNeeded(error: error)
+            navigateToOnboardingIfNeeded(error: error)
             lastError = error
         } else {
             guard let lastNsError = lastError as? NSError,
@@ -65,7 +65,7 @@ extension HomeViewModel {
             }
 
             updateStatusInfoState(with: .error(message: nsError.localizedDescription))
-            navigateToAddCredetialsIfNeeded(error: error)
+            navigateToOnboardingIfNeeded(error: error)
             lastError = error
         }
     }

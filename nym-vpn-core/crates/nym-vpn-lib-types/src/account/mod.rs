@@ -4,6 +4,7 @@
 pub mod controller_error;
 pub mod controller_event;
 pub mod controller_state;
+pub mod deeplink;
 pub mod request_zknym;
 pub mod ticketbooks;
 
@@ -66,11 +67,14 @@ pub enum AccountCommandError {
     #[error("failed to obtain zk-nym: {0}")]
     ZkNymAcquisitionFailure(String),
 
-    #[error("invalid mnemonic: {0}")]
+    #[error("invalid passphrase: {0}")]
     InvalidMnemonic(String),
 
     #[error("invalid secret: {0}")]
     InvalidSecret(String),
+
+    #[error("deeplink error: {0}")]
+    DeeplinkError(String),
 }
 
 impl AccountCommandError {

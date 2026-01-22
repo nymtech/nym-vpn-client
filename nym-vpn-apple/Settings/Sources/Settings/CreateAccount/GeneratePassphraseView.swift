@@ -1,40 +1,59 @@
 import SwiftUI
+import StoreKit
 import AppSettings
 import CredentialsManager
 #if os(iOS)
 import ImpactGenerator
 import NymVPNLib
 import ErrorHandler
+import PurchasesManager
 #endif
 import Theme
 import UIComponents
 
 public struct GeneratePassphraseView: View {
-    @EnvironmentObject private var appSettings: AppSettings
-    @EnvironmentObject private var credentialsManager: CredentialsManager
     @Binding private var path: NavigationPath
-    @State private var didFinishAnimatingText = false
-    @State private var alertTitle: String = ""
-    @State private var isAlertDisplayed = false
-    @State private var didRegisterAccount = false
-    @State private var currentStep = 1
+    @State private var didFinishAnimatingText: Bool
+    @State private var currentStep: Int
+
+#if os(iOS)
+    @EnvironmentObject var purchasesManager: PurchasesManager
+#endif
+    @State var alertTitle: String = ""
+    @State var didRegisterAccount = false
+    @State var isAlertDisplayed = false
+    @State var isPurchasing = false
+    @State var isPlanAlertDisplayed = false
+
+    @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var credentialsManager: CredentialsManager
 
     public var body: some View {
         VStack(spacing: 0) {
-            navbar
+            navbar()
             Spacer()
                 .frame(height: 24)
 
             StepView(stepCount: 4, currentStep: $currentStep)
             Spacer()
 
-            dotsAnimationView
-            Spacer()
-                .frame(height: 16)
+            if !didFinishAnimatingText {
+                // Generate account
+                dotsAnimationView
+                Spacer()
+                    .frame(height: 16)
 
-            animatingTextView
-
-            Spacer()
+                animatingTextView
+                Spacer()
+            } else {
+                // Purchase plan
+                checkmarkImage
+                Spacer()
+                    .frame(height: 12)
+                titleSubtitleView
+                Spacer()
+                selectPlanButton
+            }
         }
         .frame(maxWidth: MagicNumbers.moreMaxWidth)
         .padding(16)
@@ -53,35 +72,39 @@ public struct GeneratePassphraseView: View {
                 }
             }
         }
-        .onChange(of: didFinishAnimatingText) { _, _ in
-            Task {
-                try? await Task.sleep(for: .seconds(2))
-                navigateToPlanSelectIfNeeded()
-            }
-        }
-        .onChange(of: didRegisterAccount) { _, _ in
-            Task {
-                try? await Task.sleep(for: .seconds(2))
-                navigateToPlanSelectIfNeeded()
-            }
-        }
     }
 
-    public init(path: Binding<NavigationPath>) {
+    public init(path: Binding<NavigationPath>, displayPurchaseView: Bool = false) {
         _path = path
+        didFinishAnimatingText = displayPurchaseView
+        currentStep = displayPurchaseView ? 4 : 1
     }
 }
 
 // MARK: - Views -
 private extension GeneratePassphraseView {
-    var navbar: some View {
-        CustomNavBar(useElevationBackground: true)
+    @ViewBuilder
+    func navbar() -> some View {
+        if didFinishAnimatingText {
+            CustomNavBar(
+                useElevationBackground: true,
+                rightButton: CustomNavBarButton(
+                    type: .close,
+                    action: {
+                        path = .init()
+                    }
+                )
+            )
+        } else {
+            CustomNavBar(useElevationBackground: true)
+        }
     }
 
     var dotsAnimationView: some View {
         WaveDotsView()
     }
 
+    // MARK: - Generate account -
     var animatingTextView: some View {
         SwitchingTitlesView(
             pairs: [
@@ -95,38 +118,96 @@ private extension GeneratePassphraseView {
             }
         )
     }
+
+    // MARK: - Plan purchase -
+    var checkmarkImage: some View {
+        HStack {
+            Spacer()
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(red: 0.07, green: 0.77, blue: 0.37).opacity(0.15))
+                    .frame(width: 68, height: 68)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color(red: 0.08, green: 0.91, blue: 0.44).opacity(0.25), lineWidth: 1)
+                    )
+
+                GenericImage(imageName: "checkmarkCircle")
+                    .frame(width: 46, height: 46)
+            }
+            Spacer()
+        }
+    }
+
+    var titleSubtitleView: some View {
+        VStack(alignment: .center) {
+            Text("purchasePlan.title".localizedString)
+                .textStyle(.Headline.Large.regular)
+                .foregroundStyle(NymColor.primary)
+                .multilineTextAlignment(.center)
+
+            Spacer()
+                .frame(height: 24)
+            HStack {
+                Spacer()
+                subsctiptionBenefitsSection
+                Spacer()
+            }
+        }.padding(.horizontal, 32)
+    }
+
+    var subsctiptionBenefitsSection: some View {
+        VStack(spacing: 16) {
+            subscriptionBenefitCell(with: "allFeaturesIncluded", title: "purchasePlan.allFeatures".localizedString)
+            subscriptionBenefitCell(with: "noAds", title: "purchasePlan.noAds".localizedString)
+            subscriptionBenefitCell(with: "cancelAnytime", title: "purchasePlan.cancelAnytime".localizedString)
+        }
+    }
+
+    func subscriptionBenefitCell(with imageName: String, title: String) -> some View {
+        HStack(spacing: 8) {
+            GenericImage(imageName: imageName)
+                .foregroundStyle(NymColor.accent)
+                .frame(width: 24, height: 24)
+            Text(title)
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Medium.regular)
+            Spacer()
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+    }
+
+    var selectPlanButton: some View {
+        GenericButton(title: "purchasePlan.selectPlan".localizedString, isLoading: $isPurchasing)
+            .onTapGesture {
+                selectPlanAction()
+            }
+            .accessibilityAction {
+                selectPlanAction()
+            }
+#if os(iOS)
+            .confirmationDialog(
+                "createAccount.success.choosePlan".localizedString,
+                isPresented: $isPlanAlertDisplayed,
+                titleVisibility: .visible
+            ) {
+                ForEach(purchasesManager.products, id: \.id) { plan in
+                    Button(subscriptionTitle(for: plan)) {
+                        Task {
+                            await purchasePlanAction(with: plan)
+                        }
+                    }
+                }
+                Button("cancel".localizedString, role: .cancel) {}
+            }
+#endif
+    }
 }
 
 // MARK: - Actions -
-private extension GeneratePassphraseView {
-    func generateAndRegisterMnemonic() async {
-        do {
-            if appSettings.isCredentialImported {
-                try await credentialsManager.registerAccount()
-            } else {
-                try await credentialsManager.createMnemonic()
-                try await credentialsManager.registerAccount()
-            }
-        } catch {
-            Task { @MainActor in
-#if os(iOS)
-                if let lastVPNError = error as? VpnError {
-                    alertTitle = VPNErrorReason(with: lastVPNError).errorDescription ?? ""
-                } else {
-                    alertTitle = error.localizedDescription
-                }
-                isAlertDisplayed = true
-#endif
-            }
-            return
-        }
-        didRegisterAccount = true
-    }
-
-    func navigateToPlanSelectIfNeeded() {
-        Task { @MainActor in
-            guard didFinishAnimatingText, didRegisterAccount else { return }
-            path.append(SettingLink.planPurchase(shouldDisplayBackButton: false))
-        }
+extension GeneratePassphraseView {
+    func navigateToPaymentSuccessView() {
+        path.append(SettingLink.processingAccount)
     }
 }

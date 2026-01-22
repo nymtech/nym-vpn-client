@@ -181,25 +181,31 @@ public extension HomeViewModel {
     }
 
     @MainActor func navigateToGatewayDetails(for hopType: HopType, gatewayType: NodeType) {
-        if let entryGatewayId = connectionInfoData?.entryGatewayId ?? connectionManager.entryGateway.gatewayId,
-           let entryGateway = gatewayManager.gateway(with: entryGatewayId, gatewayType: gatewayType) {
-            navigateToGatewayDetails(gateway: entryGateway, hopType: hopType)
+        let gateway: GatewayNode?
+        switch hopType {
+        case .entry:
+            let entryGatewayId = connectionInfoData?.entryGatewayId ?? connectionManager.entryGateway.gatewayId
+            gateway = gatewayManager.gateway(with: entryGatewayId, gatewayType: gatewayType)
+        case .exit:
+            let exitGatewayId = connectionInfoData?.exitGatewayId ?? connectionManager.exitRouter.gatewayId
+            gateway = gatewayManager.gateway(with: exitGatewayId, gatewayType: gatewayType)
         }
+        guard let gateway else { return }
+        navigateToGatewayDetails(gateway: gateway, hopType: hopType)
     }
 
     @MainActor private func navigateToGatewayDetails(gateway: GatewayNode, hopType: HopType) {
         path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: hopType))
     }
 
-    @MainActor func navigateToAddCredentials() {
-        path.append(HomeLink.settings)
-        path.append(SettingLink.createAccountWelcome(navigationSource: .home))
+    @MainActor func navigateToOnboarding() {
+        path.append(HomeLink.onboarding)
     }
 
     @MainActor func navigateToPlanPurchase() {
 #if os(iOS)
         path.append(HomeLink.settings)
-        path.append(SettingLink.planPurchase(shouldDisplayBackButton: true))
+        path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
 #elseif os(macOS)
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
 #endif
@@ -332,7 +338,10 @@ extension HomeViewModel {
                 hasInternet: networkMonitor.isAvailable,
                 subscriptionDidExpire: isLastErrorSubscriptionExpired()
             )
-            connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
+            connectButtonState = ConnectButtonState(
+                tunnelStatus: newStatus,
+                isCredentialImported: credentialsManager.isValidCredentialImported
+            )
 
             if let lastError {
                 statusInfoState = .error(message: lastError.localizedDescription)

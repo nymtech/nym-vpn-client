@@ -129,6 +129,7 @@ async fn main() -> Result<()> {
     info!("Starting tauri app");
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             None,
@@ -153,6 +154,16 @@ async fn main() -> Result<()> {
         })
         .setup(move |app| {
             info!("app setup");
+
+            #[cfg(any(windows, target_os = "linux"))]
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+                if let Err(e) = app.deep_link().register_all() {
+                    error!("Failed to register deep link schemes: {e}");
+                } else {
+                    info!("Deep link schemes registered successfully");
+                }
+            }
 
             #[cfg(windows)]
             {

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use nym_diagnostic::DiagnosticHandler;
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
@@ -38,11 +39,13 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
-    DecentralisedObtainTicketbooksRequest, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
-    NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice,
-    NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, StoreAccountRequest, SystemMessage,
-    TargetState, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
+    DiagnosticReport, DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint,
+    FeatureFlags, Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
+    MixnetTrafficConfig, NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails,
+    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, RegistrationReport,
+    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -61,6 +64,7 @@ pub enum VpnServiceCommand {
     SetExitPoint(oneshot::Sender<()>, ExitPoint),
     SetDisableIPv6(oneshot::Sender<()>, bool),
     SetEnableTwoHop(oneshot::Sender<()>, bool),
+    SetEnableLewesProtocol(oneshot::Sender<()>, bool),
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
     SetEnableBridges(oneshot::Sender<()>, bool),
@@ -140,6 +144,10 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Option<VpnAccountSummary>, AccountCommandError>>,
         (),
     ),
+    GetDeeplink(
+        oneshot::Sender<Result<String, AccountCommandError>>,
+        GetDeeplinkParams,
+    ),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
     DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
@@ -153,6 +161,11 @@ pub enum VpnServiceCommand {
     GetNetStatsSeed(
         oneshot::Sender<Result<NetworkStatisticsIdentity, StatisticsControllerError>>,
         (),
+    ),
+    RunDiagnostic(oneshot::Sender<DiagnosticReport>, DiagnosticRunParams),
+    RegisterDiagnostic(
+        oneshot::Sender<RegistrationReport>,
+        DiagnosticRegisterParams,
     ),
 }
 
@@ -282,7 +295,7 @@ impl NymVpnService {
 
             tracing::debug!("VPN service initialized successfully");
 
-            match service.run().await {
+            match Box::pin(service.run()).await {
                 Ok(_) => {
                     tracing::info!("VPN service has successfully exited");
                 }
@@ -757,6 +770,11 @@ impl NymVpnService {
                 self.handle_set_enable_two_hop(enable_two_hop).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetEnableLewesProtocol(tx, enable_lewes_protocol) => {
+                self.handle_set_enable_lewes_protocol(enable_lewes_protocol)
+                    .await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetstack(tx, netstack) => {
                 self.handle_set_netstack(netstack).await;
                 let _ = tx.send(());
@@ -877,6 +895,9 @@ impl NymVpnService {
             VpnServiceCommand::GetAccountSummary(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_summary().await);
             }
+            VpnServiceCommand::GetDeeplink(tx, params) => {
+                let _ = tx.send(self.handle_get_deeplink(params).await);
+            }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.log_path.clone());
             }
@@ -921,6 +942,12 @@ impl NymVpnService {
                 let result = self.handle_get_socks5_status().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::RunDiagnostic(tx, params) => {
+                let _ = tx.send(self.handle_run_diagnostic(params).await);
+            }
+            VpnServiceCommand::RegisterDiagnostic(tx, params) => {
+                let _ = tx.send(Box::pin(self.handle_register_diagnostic(params)).await);
+            }
         }
     }
 
@@ -960,6 +987,13 @@ impl NymVpnService {
 
     async fn handle_set_enable_two_hop(&mut self, enable_two_hop: bool) {
         self.config_manager.set_enable_two_hop(enable_two_hop).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
+        self.config_manager
+            .set_enable_lewes_protocol(enable_lewes_protocol)
+            .await;
         self.update_tunnel_settings_with_throttle();
     }
 
@@ -1519,6 +1553,37 @@ impl NymVpnService {
         self.account_command_tx.get_account_summary().await
     }
 
+    async fn handle_get_deeplink(
+        &self,
+        params: GetDeeplinkParams,
+    ) -> Result<String, AccountCommandError> {
+        let base_url = match params.kind {
+            DeeplinkKind::Privy => {
+                let Some(ref account_management) =
+                    self.network_tx.borrow().nym_vpn_network.account_management
+                else {
+                    return Err(AccountCommandError::DeeplinkError(
+                        "No account management data is available at this time".to_string(),
+                    ));
+                };
+
+                let opt_url = match params.client {
+                    DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+                    DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+                    DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+                };
+
+                opt_url.ok_or(AccountCommandError::DeeplinkError(
+                    "The privy path could not be determined".to_string(),
+                ))?
+            }
+        };
+
+        self.account_command_tx
+            .get_deeplink(params.kind, params.name, base_url)
+            .await
+    }
+
     async fn handle_delete_log_file(&self) {
         if let Some(remove_log_file_handle) = self.log_file_remover_handle.as_ref() {
             remove_log_file_handle.remove_log_file();
@@ -1582,5 +1647,38 @@ impl NymVpnService {
         &mut self,
     ) -> Result<NetworkStatisticsIdentity, StatisticsControllerError> {
         self.stats_control_commands_sender.get_seed().await
+    }
+
+    async fn handle_run_diagnostic(&self, params: DiagnosticRunParams) -> DiagnosticReport {
+        let network = *self.network_tx.borrow().clone();
+        let report = DiagnosticHandler::run(network, params).await;
+        match serde_json::to_string_pretty(&report) {
+            Ok(report_log) => tracing::info!("{report_log}"),
+            Err(e) => tracing::error!("Error serializing report :{e}"),
+        }
+        report
+    }
+
+    async fn handle_register_diagnostic(
+        &self,
+        mut params: DiagnosticRegisterParams,
+    ) -> RegistrationReport {
+        if !(*self.tunnel_state.read().await == TunnelState::Disconnected
+            && self.account_state_rx.get_state() == AccountControllerState::ReadyToConnect)
+        {
+            return RegistrationReport::from_err(
+                "Must be disconnected and ready to connect to run registration diagnostic",
+            );
+        }
+        let network = *self.network_tx.borrow().clone();
+        if params.storage_path.is_none() {
+            params.storage_path = Some(self.data_dir.clone());
+        }
+        let report = Box::pin(DiagnosticHandler::register(network, params)).await;
+        match serde_json::to_string_pretty(&report) {
+            Ok(report_log) => tracing::info!("{report_log}"),
+            Err(e) => tracing::error!("Error serializing report :{e}"),
+        }
+        report
     }
 }

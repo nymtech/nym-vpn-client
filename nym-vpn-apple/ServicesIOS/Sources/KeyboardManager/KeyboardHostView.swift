@@ -1,22 +1,29 @@
 import SwiftUI
 
-public struct KeyboardHostView<Content>: View  where Content: View {
+public struct KeyboardHostView<Content: View>: View {
     private let content: Content
+    private let bottomSafeAreaInset: CGFloat
 
     @EnvironmentObject private var keyboardManager: KeyboardManager
-    @State private var keyboardHeight = 0.0
+    @State private var keyboardHeight: CGFloat = 0
 
-    public init(@ViewBuilder _ content: @escaping () -> Content) {
+    public init(
+        bottomSafeAreaInset: CGFloat,
+        @ViewBuilder _ content: @escaping () -> Content
+    ) {
+        self.bottomSafeAreaInset = bottomSafeAreaInset
         self.content = content()
     }
 
     public var body: some View {
         content
             .onReceive(keyboardManager.$change) { change in
-                withAnimation(change.animation) {
-                    keyboardHeight = change.height
+                DispatchQueue.main.async {
+                    withAnimation(change.animation) {
+                        keyboardHeight = change.height
+                    }
                 }
             }
-            .padding(.bottom, keyboardHeight)
+            .padding(.bottom, max(0, keyboardHeight - bottomSafeAreaInset))
     }
 }
