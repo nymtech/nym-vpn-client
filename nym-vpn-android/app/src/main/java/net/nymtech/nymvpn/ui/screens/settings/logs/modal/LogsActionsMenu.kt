@@ -15,11 +15,7 @@ import androidx.compose.ui.res.stringResource
 import net.nymtech.nymvpn.R
 
 @Composable
-fun LogsActionsMenu(
-	onDownload: () -> Unit,
-	onShare: () -> Unit,
-	onDelete: () -> Unit,
-) {
+fun LogsActionsMenu(onDownload: () -> Unit, onShare: () -> Unit, onDelete: () -> Unit) {
 	var expanded by remember { mutableStateOf(false) }
 
 	IconButton(onClick = { expanded = true }) {
@@ -56,4 +52,3 @@ fun LogsActionsMenu(
 		)
 	}
 }
-

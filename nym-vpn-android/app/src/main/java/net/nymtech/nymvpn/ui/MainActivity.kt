@@ -94,7 +94,9 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
 	@Inject lateinit var shortcutManager: ShortcutManager
+
 	@Inject lateinit var settingsRepository: SettingsRepository
+
 	@Inject lateinit var billingManager: BillingManager
 
 	private var pendingDeepLink: Uri? = null

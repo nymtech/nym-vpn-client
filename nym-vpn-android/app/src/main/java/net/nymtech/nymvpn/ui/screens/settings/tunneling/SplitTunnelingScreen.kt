@@ -41,7 +41,6 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
-import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
 import net.nymtech.nymvpn.ui.screens.settings.dns.modal.SaveChangesModal
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.AppInfoRow
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.LoadingDialog
@@ -57,10 +56,13 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-internal fun SplitTunnelingScreen(onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false,
-								  navBarEvent: NavBarEvent?,
-								  onNavBarEventConsumed: () -> Unit,
-								  viewModel: SplitTunnelingViewModel = hiltViewModel()) {
+internal fun SplitTunnelingScreen(
+	onBackEventConsume: () -> Unit,
+	onBackClickEventTriggered: Boolean = false,
+	navBarEvent: NavBarEvent?,
+	onNavBarEventConsumed: () -> Unit,
+	viewModel: SplitTunnelingViewModel = hiltViewModel(),
+) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val backendUi by viewModel.backendUi.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current

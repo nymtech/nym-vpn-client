@@ -34,13 +34,7 @@ import net.nymtech.nymvpn.util.extensions.safePopBackStack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavBar(
-	navController: NavController,
-	modifier: Modifier = Modifier,
-	hideBackButton: Boolean = false,
-	onBackClick: (Route) -> Unit = {},
-	onNavBarEvent: (NavBarEvent) -> Unit = {},
-) {
+fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBackButton: Boolean = false, onBackClick: (Route) -> Unit = {}, onNavBarEvent: (NavBarEvent) -> Unit = {}) {
 	val keyboardController = LocalSoftwareKeyboardController.current
 
 	val navBackStackEntry by navController.currentBackStackEntryAsState()

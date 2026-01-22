@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -57,7 +56,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
-import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.EmptyLogsPlaceholder
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsList
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsPagerTabs
@@ -69,12 +67,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LogsScreen(
-	appUiState: AppUiState,
-	navBarEvent: NavBarEvent?,
-	onNavBarEventConsumed: () -> Unit,
-	viewModel: LogsViewModel = hiltViewModel(),
-) {
+fun LogsScreen(appUiState: AppUiState, navBarEvent: NavBarEvent?, onNavBarEventConsumed: () -> Unit, viewModel: LogsViewModel = hiltViewModel()) {
 	var selectedTab by remember { mutableIntStateOf(0) }
 
 	val appScrollState = rememberLazyListState()
@@ -128,7 +121,6 @@ fun LogsScreen(
 			else -> {}
 		}
 	}
-
 
 	LaunchedEffect(Unit) {
 		viewModel.requestSaveUri.collectLatest { suggestedFileName ->
