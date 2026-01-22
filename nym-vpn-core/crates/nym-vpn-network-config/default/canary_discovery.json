@@ -35,12 +35,7 @@
     "paths": {
       "sign_up": "{locale}/account/create",
       "sign_in": "{locale}/account/login",
-      "account": "{locale}/account/{account_id}",
-      "privy": {
-        "mobile": "{locale}/account/login/privy/mobile",
-        "desktop": "{locale}/account/login/privy/desktop",
-        "web": "{locale}/account/login/privy/web"
-      }
+      "account": "{locale}/account/{account_id}"
     }
   },
   "system_configuration": {
