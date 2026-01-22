@@ -34,7 +34,7 @@ nym-vpn-network-config.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-store.workspace = true
 rand.workspace = true
-sqlx-pool-guard.workspace = true
+nym-sqlx-pool-guard.workspace = true
 serde.workspace = true
 si-scale.workspace = true
 sqlx = { workspace = true, features = [
