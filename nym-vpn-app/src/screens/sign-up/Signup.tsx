@@ -20,7 +20,7 @@ function Login() {
         className={clsx('w-32', uiTheme === 'dark' ? 'fill-white' : 'fill-ash')}
       />
       <h1 className="text-2xl mt-12">{t('signup.title')}</h1>
-      <div className="flex flex-col p-4">
+      <div className="flex flex-col">
         <div className="py-6">
           <h2>{t('signup.maximum-privacy.title')}</h2>
           <p className="mt-2 text-iron dark:text-bombay whitespace-pre-line">
