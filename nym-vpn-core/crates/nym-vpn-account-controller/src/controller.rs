@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_offline_monitor::ConnectivityMonitor;
-
 use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
 use nym_vpn_store::{VpnStorage, keys::wireguard::WireguardKeysDb};
@@ -77,7 +76,7 @@ where
         );
 
         // Channels for the account storage
-        let (storage_op_sender, storage_op_receiver) = tokio::sync::mpsc::unbounded_channel();
+        let (storage_op_sender, storage_op_receiver) = mpsc::unbounded_channel();
 
         // Channels to communicate with the account controller
         let event_channel = AccountControllerEventSender::new();

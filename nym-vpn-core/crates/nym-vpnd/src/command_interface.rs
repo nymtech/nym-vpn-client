@@ -16,8 +16,8 @@ use tokio_util::sync::CancellationToken;
 use tonic::{Request, Response, Status, transport::Server};
 
 use nym_vpn_lib_types::{
-    EnableSocks5Request, EntryPoint, ExitPoint, ListGatewaysOptions, LookupGatewayFilters,
-    TargetState, TunnelEvent,
+    EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
+    LookupGatewayFilters, TargetState, TunnelEvent,
 };
 
 use nym_vpn_proto::proto::{
@@ -709,6 +709,24 @@ impl NymVpnService for CommandInterface {
         };
 
         Ok(tonic::Response::new(response))
+    }
+
+    async fn get_deeplink(
+        &self,
+        request: tonic::Request<proto::GetDeeplinkParams>,
+    ) -> Result<tonic::Response<String>> {
+        let req = request.into_inner();
+
+        let params: GetDeeplinkParams = req.try_into().map_err(|err| {
+            tonic::Status::invalid_argument(format!("Invalid get deeplink request: {err}"))
+        })?;
+
+        let url = self
+            .send_and_wait(VpnServiceCommand::GetDeeplink, params)
+            .await?
+            .map_err(|err| tonic::Status::internal(format!("Failed to get deeplink: {err}")))?;
+
+        Ok(tonic::Response::new(url.to_string()))
     }
 
     async fn get_log_path(

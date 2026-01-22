@@ -11,6 +11,7 @@ use nym_vpn_lib_types::{AccountCommandError, VpnAccountSummary};
 use crate::{
     AvailableTicketbooks, SharedAccountState,
     commands::{ReturnSender, dispatch::CommonCommand},
+    deeplink::CreateDeeplinkParams,
     storage::AccountStorageOp,
 };
 use nym_vpn_store::account::StorableAccount;
@@ -46,6 +47,9 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         }
         CommonCommand::GetAccountSummary(result_tx) => {
             result_tx.send(handle_get_account_summary(shared_state).await);
+        }
+        CommonCommand::GetDeeplink(result_tx, params) => {
+            result_tx.send(handle_get_deeplink(shared_state, params).await)
         }
     };
 }
@@ -176,4 +180,23 @@ pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
     Ok(shared_state.vpn_account_summary.clone())
+}
+
+pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    params: CreateDeeplinkParams,
+) -> Result<String, AccountCommandError> {
+    // Housekeeping
+    shared_state.deeplinks.remove_expired();
+
+    // Create a new Deeplink for this request
+    let deeplink = shared_state
+        .deeplinks
+        .create_deeplink(&params)
+        .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
+
+    // Create the deeplink URL
+    let url = deeplink.create_url(&params.base_url);
+
+    Ok(url.to_string())
 }
