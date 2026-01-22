@@ -823,7 +823,7 @@ impl VpndClient {
         let deeplink = vpnd
             .get_deeplink(lib::GetDeeplinkParams {
                 client: lib::DeeplinkClient::Desktop,
-                locale: locale,
+                locale,
                 kind: lib::DeeplinkKind::Privy,
                 name: "default".to_string(),
             })
