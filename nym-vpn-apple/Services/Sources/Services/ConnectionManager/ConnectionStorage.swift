@@ -71,6 +71,7 @@ private extension ConnectionStorage {
             disableIpv6: !appSettings.isIPv6TrafficEnabled,
             enableTwoHop: connectionType == .wireguard,
             enableBridges: appSettings.isQuicEnabled,
+            enableLewes: false,
             netstack: false,
             residentialExit: false
         )

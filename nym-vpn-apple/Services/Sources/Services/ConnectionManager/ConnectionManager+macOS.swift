@@ -73,6 +73,15 @@ extension ConnectionManager {
                 updateConnectionConfig()
             }
             .store(in: &cancellables)
+
+        appSettings.$isLewesEnabledPublisher
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newValue in
+                self?.connectionConfig.enableLewes = newValue
+                guard let self, currentTunnelStatus == .connected, appSettings.shouldReconnect else { return }
+                updateConnectionConfig()
+            }
     }
 }
 
