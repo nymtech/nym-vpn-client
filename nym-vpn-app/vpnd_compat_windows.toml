@@ -1,0 +1,2 @@
+# semver requirement of supported daemon version(s) on Windows
+version = ">=1.23.0-beta"

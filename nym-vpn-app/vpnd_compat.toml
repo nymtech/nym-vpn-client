@@ -1,2 +1,0 @@
-# semver requirement of supported daemon version(s)
-version = ">=1.23.0-beta"

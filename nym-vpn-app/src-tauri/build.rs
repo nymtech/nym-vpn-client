@@ -1,7 +1,11 @@
 use std::fs;
 
 use toml::Table;
-const VPND_COMPAT_FILE: &str = "vpnd_compat.toml";
+
+#[cfg(not(target_os = "windows"))]
+const VPND_COMPAT_FILE: &str = "vpnd_compat_linux.toml";
+#[cfg(target_os = "windows")]
+const VPND_COMPAT_FILE: &str = "vpnd_compat_windows.toml";
 
 fn set_vpnd_compat() -> Result<(), Box<dyn std::error::Error>> {
     let path = format!("../{VPND_COMPAT_FILE}");
@@ -20,7 +24,8 @@ fn set_vpnd_compat() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("cargo:rerun-if-changed=../{VPND_COMPAT_FILE}");
+    println!("cargo:rerun-if-changed=../vpnd_compat_linux.toml");
+    println!("cargo:rerun-if-changed=../vpnd_compat_windows.toml");
     set_vpnd_compat().ok();
     build_info_build::build_script();
 
