@@ -84,13 +84,13 @@
         "error": "Failed to delete logs",
         "success": "Logs deleted successfully"
       },
-      "share": {
-        "action-button": "Share",
-        "title": "Share NymVPN logs?",
+      "export": {
+        "action-button": "Export as ZIP",
+        "title": "Export NymVPN logs?",
         "description": "Shared log files can be viewed by recipients and anyone they share them with.",
-        "confirmButtonText": "Share anyway",
+        "confirmButtonText": "Export anyway",
         "cancelButtonText": "Cancel",
-        "error": "Failed to share logs"
+        "error": "Failed to export logs"
       }
     }
   },

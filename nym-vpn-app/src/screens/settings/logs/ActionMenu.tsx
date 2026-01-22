@@ -99,14 +99,14 @@ function ActionMenu() {
     }
   }, [push, t]);
 
-  const handleShareLogs = useCallback(async () => {
+  const handleExportLogs = useCallback(async () => {
     setIsLoading(true);
     try {
       await invoke('zip_logs');
     } catch (error) {
       console.error('failed to zip logs', error);
       push({
-        message: t('logs.actions.share.error'),
+        message: t('logs.actions.export.error'),
         type: 'error',
         duration: 3000,
         close: true,
@@ -133,18 +133,18 @@ function ActionMenu() {
       },
       share: {
         icon: 'share',
-        title: t('logs.actions.share.title'),
-        description: t('logs.actions.share.description'),
-        confirmButtonText: t('logs.actions.share.confirmButtonText'),
+        title: t('logs.actions.export.title'),
+        description: t('logs.actions.export.description'),
+        confirmButtonText: t('logs.actions.export.confirmButtonText'),
         confirmButtonColor: 'red',
         confirmButtonOutline: true,
-        cancelButtonText: t('logs.actions.share.cancelButtonText'),
+        cancelButtonText: t('logs.actions.export.cancelButtonText'),
         cancelButtonColor: 'gray',
         cancelButtonOutline: true,
-        onConfirm: handleShareLogs,
+        onConfirm: handleExportLogs,
       },
     }),
-    [t, handleDeleteLogs, handleShareLogs],
+    [t, handleDeleteLogs, handleExportLogs],
   );
 
   return (
@@ -170,14 +170,14 @@ function ActionMenu() {
               className={clsx(
                 'origin-(--transform-origin) rounded-md text-gray-900 shadow-lg shadow-gray-200 outline transition-[transform,scale,opacity] data-ending-style:scale-90 data-ending-style:opacity-0 data-starting-style:scale-90 data-starting-style:opacity-0',
                 uiTheme === 'dark' &&
-                  'bg-charcoal shadow-none -outline-offset-1  text-white outline-iron',
+                'bg-charcoal shadow-none -outline-offset-1  text-white outline-iron',
                 uiTheme === 'light' &&
-                  'bg-white text-iron outline-faded-lavender',
+                'bg-white text-iron outline-faded-lavender',
               )}
             >
               <MenuItem
                 icon="share"
-                text={t('logs.actions.share.action-button')}
+                text={t('logs.actions.export.action-button')}
                 onClick={() => {
                   setActiveDialog('share');
                 }}
