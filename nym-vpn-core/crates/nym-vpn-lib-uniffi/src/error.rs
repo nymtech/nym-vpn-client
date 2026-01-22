@@ -13,8 +13,8 @@ pub enum VpnError {
     #[error("initialization error: {details}")]
     Initialization { details: String },
 
-    #[error("failed to create log file: {details}")]
-    CreateLogFile { details: String },
+    #[error("failed to initialize logs: {details}")]
+    InitLogs { details: String },
 
     #[error("storage error: {details}")]
     Storage { details: String },
