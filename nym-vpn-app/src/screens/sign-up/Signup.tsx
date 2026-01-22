@@ -7,7 +7,7 @@ import { Button, ButtonText, Link, MsIcon, PageAnim } from '../../ui';
 import { useMainState } from '../../contexts';
 import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
-import { PrivyButton } from '../../components/privy';
+import { PrivyButton } from '../../components';
 
 function Login() {
   const { uiTheme, backendFlags } = useMainState();
@@ -20,7 +20,7 @@ function Login() {
         className={clsx('w-32', uiTheme === 'dark' ? 'fill-white' : 'fill-ash')}
       />
       <h1 className="text-2xl mt-12">{t('signup.title')}</h1>
-      <div className="flex flex-col p-4">
+      <div className="flex flex-col">
         <div className="py-6">
           <h2>{t('signup.maximum-privacy.title')}</h2>
           <p className="mt-2 text-iron dark:text-bombay whitespace-pre-line">
@@ -33,7 +33,7 @@ function Login() {
             }}
             className="mt-4"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 whitespace-pre-wrap">
               {t('signup.create-account')} <MsIcon icon="open_in_new" />
             </div>
           </Button>

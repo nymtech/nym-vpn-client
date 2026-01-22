@@ -294,6 +294,8 @@ async fn main() -> Result<()> {
             account::get_account_id,
             account::get_device_id,
             account::account_links,
+            account::get_deep_link,
+            account::store_deeplink_account,
             cmd_daemon::daemon_status,
             cmd_daemon::set_network,
             cmd_daemon::system_messages,
