@@ -86,7 +86,7 @@ function TunnelState() {
     if (showRetryAttempt) {
       msgs.push(
         t('connection-attempt', {
-          ns: 'backendMessages',
+          ns: 'backend-messages',
           count: retryAttempt,
         }),
       );

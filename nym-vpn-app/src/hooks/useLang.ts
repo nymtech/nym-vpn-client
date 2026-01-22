@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LngTag } from '../i18n';
+import { LngTag, loadLocale } from '../i18n';
 import { kvSet } from '../kvStore';
 
 /**
@@ -33,6 +33,11 @@ function useLang() {
    */
   const set = useCallback(
     async (lng: LngTag, updateDb = true) => {
+      const locale = await loadLocale(lng);
+      Object.entries(locale).forEach(([namespace, value]) => {
+        i18n.addResourceBundle(lng, namespace, value, true, true);
+      });
+
       if (i18n.language === lng) {
         return;
       }
@@ -41,16 +46,7 @@ function useLang() {
         kvSet('ui-language', lng);
       }
       await i18n.changeLanguage(lng);
-      switch (lng) {
-        case 'zh-Hans':
-          dayjs.locale('zh-cn');
-          break;
-        case 'pt-BR':
-          dayjs.locale('pt-br');
-          break;
-        default:
-          dayjs.locale(lng);
-      }
+      dayjs.locale(lng);
     },
     [i18n],
   );

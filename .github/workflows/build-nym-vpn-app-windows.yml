@@ -289,6 +289,24 @@ jobs:
             }
           }' tauri.conf.json
 
+      - name: Install Crowdin CLI
+        run: |
+          npm install -g @crowdin/cli
+
+      - name: Verify Crowdin install
+        run: |
+          crowdin --version
+
+      - name: Download translations from Crowdin (Windows)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        shell: pwsh
+        run: |
+          crowdin download translations `
+            --config crowdin-configs/linux-windows.yml `
+
       - name: Build tauri app
         working-directory: nym-vpn-app/src-tauri
         shell: bash

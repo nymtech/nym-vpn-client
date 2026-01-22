@@ -14,6 +14,7 @@ workspace = true
 [dependencies]
 async-trait.workspace = true
 bincode.workspace = true
+bs58.workspace = true
 futures.workspace = true
 nym-common.workspace = true
 nym-credential-proxy-requests.workspace = true
@@ -21,6 +22,7 @@ nym-credential-storage.workspace = true
 nym-credentials-interface.workspace = true
 nym-credentials.workspace = true
 nym-credential-utils.workspace = true
+nym-crypto = { workspace = true, features = ["asymmetric", "stream_cipher"] }
 nym-ecash-time.workspace = true
 nym-network-defaults.workspace = true
 nym-offline-monitor.workspace = true
@@ -31,6 +33,7 @@ nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-store.workspace = true
+rand.workspace = true
 sqlx-pool-guard.workspace = true
 serde.workspace = true
 si-scale.workspace = true
@@ -47,6 +50,7 @@ tokio-stream.workspace = true
 tokio = { workspace = true, features = ["fs"] }
 tracing.workspace = true
 zeroize.workspace = true
+url.workspace = true
 
 [build-dependencies]
 sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }

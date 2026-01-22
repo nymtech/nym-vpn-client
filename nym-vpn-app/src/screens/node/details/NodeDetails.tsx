@@ -41,7 +41,7 @@ function NodeDetails() {
   const { backendFlags, entryNode, exitNode } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const location = useLocation() as H.Location<RouteState>;
-  const { t } = useTranslation('nodeLocation');
+  const { t } = useTranslation('node-location');
   const navigate = useNavigate();
 
   const { getCountryName } = useLang();
@@ -290,7 +290,7 @@ function NodeDetails() {
 
   const Card1Footer = (
     <p className="text-iron dark:text-bombay">
-      <Trans i18nKey="node-details.notes.anti-censorship" ns="nodeLocation">
+      <Trans i18nKey="node-details.notes.anti-censorship" ns="node-location">
         <Link className="text-black dark:text-white" to={routes.antiCensorship}>
           Enable “QUIC protocol”
         </Link>
@@ -353,7 +353,7 @@ function NodeDetails() {
           <p className="text-iron dark:text-bombay">
             <Trans
               i18nKey="node-details.links.explorer"
-              ns="nodeLocation"
+              ns="node-location"
               components={{
                 networkExplorerLink: (
                   <Link

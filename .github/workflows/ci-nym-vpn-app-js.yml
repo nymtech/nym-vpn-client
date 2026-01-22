@@ -4,8 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - ".github/workflows/ci-nym-vpn-app-js.yml"
-      - "nym-vpn-app/**"
+      - '.github/workflows/ci-nym-vpn-app-js.yml'
+      - 'nym-vpn-app/**'
   workflow_dispatch:
 
 jobs:
@@ -23,6 +23,7 @@ jobs:
         with:
           sparse-checkout: |
             nym-vpn-app
+            crowdin-configs
 
       - name: Install Node
         uses: actions/setup-node@v6
@@ -34,6 +35,44 @@ jobs:
       - name: Install dependencies
         working-directory: nym-vpn-app
         run: npm ci
+
+      - name: Cache Crowdin translations
+        id: crowdin-cache
+        uses: actions/cache@v4
+        with:
+          path: nym-vpn-app/src/i18n
+          key: crowdin-${{ github.event.pull_request.number }}-${{ matrix.os }}-${{ hashFiles('crowdin-configs/linux-windows.yml', 'nym-vpn-app/src/i18n/en/*.json') }}
+
+      - name: Install Crowdin CLI
+        if: steps.crowdin-cache.outputs.cache-hit != 'true'
+        run: |
+          npm install -g @crowdin/cli
+
+      - name: Verify Crowdin install
+        if: steps.crowdin-cache.outputs.cache-hit != 'true'
+        run: |
+          crowdin --version
+
+      - name: Download translations from Crowdin (Linux)
+        if: matrix.os == 'arc-linux-latest' && steps.crowdin-cache.outputs.cache-hit != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          crowdin download translations \
+            --config crowdin-configs/linux-windows.yml \
+
+      - name: Download translations from Crowdin (Windows)
+        if: matrix.os == 'custom-windows-11' && steps.crowdin-cache.outputs.cache-hit != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        shell: pwsh
+        run: |
+          crowdin download translations `
+            --config crowdin-configs/linux-windows.yml `
 
       - name: Typecheck
         working-directory: nym-vpn-app

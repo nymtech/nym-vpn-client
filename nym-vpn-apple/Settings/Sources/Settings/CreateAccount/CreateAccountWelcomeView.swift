@@ -2,6 +2,7 @@ import SwiftUI
 import Constants
 import ImpactGenerator
 import ExternalLinkManager
+import FeatureFlagsManager
 #if os(iOS)
 import PurchasesManager
 #endif
@@ -15,6 +16,7 @@ public struct CreateAccountWelcomeView: View {
     @EnvironmentObject private var purchasesManager: PurchasesManager
 #endif
     @EnvironmentObject private var externalLinkManager: ExternalLinkManager
+    @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @Binding private var path: NavigationPath
 
     public var body: some View {
@@ -31,6 +33,11 @@ public struct CreateAccountWelcomeView: View {
                 separatorLine
                 Spacer()
                     .frame(height: 24)
+                if featureFlagsManager.isPrivyEnabled {
+                    privySection
+                    Spacer()
+                        .frame(height: 24)
+                }
                 alreadyHaveAnAccount
                 Spacer()
                 TermsAndConditionsView()
@@ -121,6 +128,44 @@ private extension CreateAccountWelcomeView {
             .foregroundColor(NymColor.gray2)
             .frame(height: 1)
             .padding(.horizontal, 24)
+    }
+
+    var privySection: some View {
+        VStack(spacing: 8) {
+            privyTitle
+            privySubtitle
+            Spacer()
+                .frame(height: 8)
+            privyLoginButton
+        }
+        .padding(.horizontal, 24)
+    }
+
+    var privyTitle: some View {
+        HStack {
+            Text("🔑 \("createAccount.useExistingLogin".localizedString)")
+                .textStyle(.Headline.Small.regular)
+                .foregroundStyle(NymColor.primary)
+            Spacer()
+        }
+    }
+
+    var privySubtitle: some View {
+        HStack {
+            Text("createAccount.useExistingLogin.subtitle".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+            Spacer()
+        }
+    }
+
+    var privyLoginButton: some View {
+        GenericButton(title: "createAccount.continueOnSocial".localizedString, style: .primaryBorderOnly)
+            .onTapGesture {
+                // TODO: privy
+                print("TODO: privy")
+            }
+            .accessibilityAction {}
     }
 
     @ViewBuilder var alreadyHaveAnAccount: some View {

@@ -123,9 +123,11 @@ public enum AppType {
             guard let self else { return }
             guard self.isTestFlight || Device.isMacOS else { return }
             do {
-                try await self.configure()
                 await MainActor.run {
                     self.currentEnv = env
+                }
+                try await self.configure()
+                await MainActor.run {
                     self.environmentDidChange?()
                 }
             } catch {

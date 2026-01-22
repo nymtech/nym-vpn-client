@@ -238,7 +238,13 @@
 	<string name="settings_language_crowdin_link" translatable="false">https://crowdin.com/editor/nymvpn-apps</string>
 	<string name="settings_language_help_title">Help with translation</string>
 	<string name="settings_language_help_description">Make the app better in your language.</string>
-	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings...</string>
+	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings…</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
+	<string name="shortcut_title">Confirm action</string>
+	<string name="shortcut_subtitle_stop">Unlock to disconnect VPN</string>
+	<string name="shortcut_subtitle_start_mixnet">Unlock to start Mixnet</string>
+	<string name="shortcut_subtitle_start_wg">Unlock to start Fast mode</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">For best connection</string>
 	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
@@ -346,8 +352,8 @@
 	<string name="account_welcome_create_title">⚡ Instant &amp; anonymous </string>
 	<string name="account_welcome_create_description">One tap to checkout. Anonymous account generated on your device. No password, no personal info.</string>
 	<string name="account_welcome_create_button">Create anonymous account</string>
-	<string name="account_welcome_social_title">⚡️ Quick setup</string>
-	<string name="account_welcome_social_description">Use existing account like Google or crypto wallet through our login partner Privy</string>
+	<string name="account_welcome_social_title">🔑️ Use existing login</string>
+	<string name="account_welcome_social_description">Privately sign in with email, Google, or crypto wallet, through our partner Privy.</string>
 	<string name="account_welcome_social_button">Continue with social account</string>
 	<string name="account_welcome_login_title">Already have an account?</string>
 	<string name="account_welcome_login_button">Log in with 24-word passphrase</string>

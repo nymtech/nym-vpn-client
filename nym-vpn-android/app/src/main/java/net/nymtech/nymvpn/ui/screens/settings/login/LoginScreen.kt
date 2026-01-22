@@ -117,7 +117,7 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 			viewModel.onMnemonicImport(phrase)
 		},
 		onDismissError = { viewModel.consumeResult() },
-		onCreateAccountClick = { navController.navigate(Route.WelcomeAccount) },
+		onCreateAccountClick = { navController.navigate(Route.CreateAccount) },
 	)
 
 	MaxDevicesModal(

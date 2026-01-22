@@ -7,6 +7,7 @@ import ConnectionManager
 import ConfigurationManager
 import CredentialsManager
 import Constants
+import DeeplinkManager
 import ExternalLinkManager
 import FeatureFlagsManager
 import GatewayManager
@@ -47,6 +48,8 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var impactGenerator = ImpactGenerator.shared
+    @State private var deeplinkManager = DeeplinkManager()
+
     @StateObject private var homeViewModel = HomeViewModel(
         appSettings: .shared,
         connectionManager: .shared,
@@ -107,6 +110,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(grpcManager)
             .environmentObject(impactGenerator)
             .environmentObject(nymLogger.logFileManager)
+            .environment(deeplinkManager)
         }
         .onChange(of: appSettings.appMode) { _, newMode in
             appDelegate.configureActivationPolicy(with: newMode)

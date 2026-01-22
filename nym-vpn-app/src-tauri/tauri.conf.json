@@ -48,6 +48,11 @@
       "endpoints": [
         "https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable.json"
       ]
+    },
+    "deep-link": {
+      "desktop": {
+        "schemes": ["nymvpn"]
+      }
     }
   }
 }

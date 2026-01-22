@@ -82,6 +82,9 @@
     "domain_fronting": {
       "enabled": "true"
     },
+    "privy": {
+      "enabled": "true"
+    },
     "quic": {
       "enabled": "true"
     },

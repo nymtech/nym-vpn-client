@@ -53,7 +53,7 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 	LaunchedEffect(success) {
 		if (success == false) {
 			SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
-			navController.replaceCurrentWith(Route.WelcomeAccount)
+			navController.replaceCurrentWith(Route.CreateAccount)
 		}
 	}
 

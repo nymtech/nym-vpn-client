@@ -59,6 +59,9 @@ impl From<lib::AccountCommandError> for BackendError {
             lib::AccountCommandError::ZkNymAcquisitionFailure(e) => {
                 BackendError::internal_with_detail("failed to obtain zk-nym", e)
             }
+            lib::AccountCommandError::DeeplinkError(message) => {
+                BackendError::internal_with_detail("deeplink error", message)
+            }
         }
     }
 }

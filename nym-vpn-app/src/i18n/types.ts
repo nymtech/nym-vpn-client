@@ -1,4 +1,6 @@
-import { resources } from './config';
+import { ns, supportedLngs } from './config';
 
-export type LngTag = keyof typeof resources;
-export type Lang = { code: LngTag; name: string };
+export type LngTag = (typeof supportedLngs)[number];
+export type Locale = Record<string, unknown>;
+export type Namespaces = (typeof ns)[number];
+export type LocaleResource = Partial<Record<Namespaces, Locale>>;

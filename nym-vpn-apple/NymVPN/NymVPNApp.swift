@@ -4,6 +4,7 @@ import AppSettings
 import ConfigurationManager
 import ConnectionManager
 import CredentialsManager
+import DeeplinkManager
 import ExternalLinkManager
 import FeatureFlagsManager
 import GatewayManager
@@ -38,6 +39,7 @@ struct NymVPNApp: App {
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var impactGenerator = ImpactGenerator.shared
     @ObservedObject private var purchasesManager = PurchasesManager()
+    @State private var deeplinkManager = DeeplinkManager()
 
     @ObservedObject private var homeViewModel = HomeViewModel(
         appSettings: .shared,
@@ -76,6 +78,9 @@ struct NymVPNApp: App {
             .onAppear {
                 configureScreenSize()
             }
+            .onOpenURL { incomingURL in
+                deeplinkManager.handle(url: incomingURL)
+            }
             .environmentObject(appSettings)
             .environmentObject(configurationManager)
             .environmentObject(connectionManager)
@@ -87,6 +92,7 @@ struct NymVPNApp: App {
             .environmentObject(KeyboardManager.shared)
             .environmentObject(logFileManager)
             .environmentObject(purchasesManager)
+            .environment(deeplinkManager)
         }
     }
 }
