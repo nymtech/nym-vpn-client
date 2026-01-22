@@ -729,6 +729,26 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(url.to_string()))
     }
 
+    async fn deeplink_store_account(
+        &self,
+        request: tonic::Request<String>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let deeplink_callback_url = request.into_inner();
+
+        let result = self
+            .send_and_wait(
+                VpnServiceCommand::DeeplinkStoreAccount,
+                deeplink_callback_url,
+            )
+            .await?;
+
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn get_log_path(
         &self,
         _: tonic::Request<()>,

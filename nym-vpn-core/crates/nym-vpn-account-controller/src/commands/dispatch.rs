@@ -85,6 +85,9 @@ impl AccountCommand {
                 }
                 CommonCommand::GetAccountSummary(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDeeplink(return_sender, _) => return_sender.send(Err(error)),
+                CommonCommand::DeriveDeeplinkMnemonic(return_sender, _) => {
+                    return_sender.send(Err(error))
+                }
             },
             AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
                 UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
@@ -136,6 +139,9 @@ pub enum CommonCommand {
         ReturnSender<String, AccountCommandError>,
         CreateDeeplinkParams,
     ),
+
+    /// Derive the mnemonic from the deeplink callback URL
+    DeriveDeeplinkMnemonic(ReturnSender<bip39::Mnemonic, AccountCommandError>, String),
 }
 
 /// Commands relating to the upgrade mode

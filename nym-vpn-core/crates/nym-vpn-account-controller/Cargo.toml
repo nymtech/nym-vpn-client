@@ -12,17 +12,20 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+aes-gcm.workspace = true
 async-trait.workspace = true
 bincode.workspace = true
+bip39 = { workspace = true, features = ["zeroize"] }
 bs58.workspace = true
 futures.workspace = true
+hkdf.workspace = true
 nym-common.workspace = true
 nym-credential-proxy-requests.workspace = true
 nym-credential-storage.workspace = true
 nym-credentials-interface.workspace = true
 nym-credentials.workspace = true
 nym-credential-utils.workspace = true
-nym-crypto = { workspace = true, features = ["asymmetric", "stream_cipher"] }
+nym-crypto = { workspace = true, features = ["asymmetric", "rand"] }
 nym-ecash-time.workspace = true
 nym-network-defaults.workspace = true
 nym-offline-monitor.workspace = true
@@ -36,6 +39,7 @@ nym-vpn-store.workspace = true
 rand.workspace = true
 sqlx-pool-guard.workspace = true
 serde.workspace = true
+sha2.workspace = true
 si-scale.workspace = true
 sqlx = { workspace = true, features = [
     "runtime-tokio-rustls",

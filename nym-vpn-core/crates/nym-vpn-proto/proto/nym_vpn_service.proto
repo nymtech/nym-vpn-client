@@ -1028,6 +1028,9 @@ service NymVpnService {
   // Get the deeplink URL
   rpc GetDeeplink (GetDeeplinkParams) returns (google.protobuf.StringValue) {}
 
+  // Login using a deeplink callback URL
+  rpc DeeplinkStoreAccount (google.protobuf.StringValue) returns (AccountCommandResponse) {}
+
   // Get the log file path
   rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}
 

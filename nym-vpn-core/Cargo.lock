@@ -5545,11 +5545,14 @@ dependencies = [
 name = "nym-vpn-account-controller"
 version = "1.23.0-beta"
 dependencies = [
+ "aes-gcm",
  "anyhow",
  "async-trait",
  "bincode",
+ "bip39",
  "bs58",
  "futures",
+ "hkdf",
  "nym-common",
  "nym-compact-ecash",
  "nym-credential-proxy-requests",
@@ -5572,6 +5575,7 @@ dependencies = [
  "rand 0.8.5",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "si-scale",
  "sqlx",
  "sqlx-pool-guard",

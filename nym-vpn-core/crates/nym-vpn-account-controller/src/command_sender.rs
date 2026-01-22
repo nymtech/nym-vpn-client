@@ -203,6 +203,20 @@ impl AccountCommandSender {
     }
 
     #[instrument]
+    pub async fn derive_deeplink_mnemonic(
+        &self,
+        deeplink_callback_url: String,
+    ) -> Result<bip39::Mnemonic, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(
+                CommonCommand::DeriveDeeplinkMnemonic(tx, deeplink_callback_url),
+            ))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument]
     pub async fn set_resolver_overrides(
         &self,
         resolver_overrides: Option<ResolverOverrides>,

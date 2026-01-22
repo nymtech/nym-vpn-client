@@ -314,6 +314,19 @@ pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, Vp
         .map_err(VpnError::from)
 }
 
+pub(super) async fn deeplink_store_account(deeplink_callback_url: String) -> Result<(), VpnError> {
+    let mnemonic = get_command_sender()
+        .await?
+        .derive_deeplink_mnemonic(deeplink_callback_url)
+        .await?;
+
+    get_command_sender()
+        .await?
+        .store_account(mnemonic.into())
+        .await?;
+    Ok(())
+}
+
 pub(super) async fn get_account_summary() -> Result<Option<VpnAccountSummary>, VpnError> {
     get_command_sender()
         .await?
@@ -332,7 +345,6 @@ pub(crate) mod raw {
     use std::path::Path;
 
     use super::*;
-    use crate::environment;
     use nym_common::ErrorExt;
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_api_client::{
@@ -481,7 +493,7 @@ pub(crate) mod raw {
     }
 
     async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {
-        let network_env = environment::current_environment_details().await?;
+        let network_env = current_environment_details().await?;
         let user_agent = new_user_agent!();
         let vpn_api_client =
             VpnApiClient::from_network(network_env.nym_network_details(), user_agent, None)
