@@ -25,7 +25,6 @@ constructor(
 	fun onMnemonicImport(mnemonic: String) = viewModelScope.launch {
 		runCatching {
 			backendManager.storeMnemonic(mnemonic)
-			Timber.d("Imported account successfully")
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 			_success.emit(true)
 		}.onFailure {

@@ -36,6 +36,11 @@ constructor(
 	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
+	companion object {
+		private const val TAG = "ui-payment-vm"
+		private const val ACCOUNT_STATE_POLL_INTERVAL_MS = 2_000L
+	}
+
 	private val _events = MutableSharedFlow<PaymentUiEvent>(
 		replay = 0,
 		extraBufferCapacity = 1,
@@ -50,17 +55,20 @@ constructor(
 	val nextRoute: StateFlow<Route?> = _nextRoute.asStateFlow()
 
 	private var accountId: String? = null
+
 	private val processedTokens = mutableSetOf<String>()
 
 	private var stateUpdatesJob: Job? = null
 
 	init {
 		billingManager.initialize()
+
 		viewModelScope.launch {
 			billingManager.uiState.collectLatest { state ->
 				if (state.billingPurchase.isNotEmpty()) {
 					val pending = state.billingPurchase.any { it.state == PurchaseState.PENDING }
 					if (pending) {
+						Timber.tag(TAG).d("PaymentPending")
 						_events.tryEmit(PaymentUiEvent.PaymentPending)
 					}
 
@@ -68,6 +76,8 @@ constructor(
 					purchased?.let { purchase ->
 						val token = purchase.token
 						if (processedTokens.add(token)) {
+							Timber.tag(TAG).i("PurchaseDetected state=PURCHASED action=register")
+
 							viewModelScope.launch {
 								runCatching {
 									backendManager.registerAccount(token)
@@ -76,16 +86,16 @@ constructor(
 									_nextRoute.value = decidePostPaymentRoute()
 
 									_events.tryEmit(PaymentUiEvent.PaymentSuccess)
+									Timber.tag(TAG).i("PaymentRegisterSuccess")
+
 									startAccountStatesUpdate()
 								}.onFailure { e ->
-									Timber.e(e, "Register account failed")
-									_events.tryEmit(
-										PaymentUiEvent.PaymentError(e.message ?: "Register account failed"),
-									)
+									Timber.tag(TAG).e(e, "PaymentRegisterFailed")
+									_events.tryEmit(PaymentUiEvent.PaymentError(e.message ?: "Register account failed"))
 								}
 							}
 						} else {
-							Timber.d("Purchase token handled")
+							Timber.tag(TAG).d("PurchaseIgnored reason=already_processed")
 						}
 					}
 				}
@@ -93,11 +103,11 @@ constructor(
 				state.billingInfo?.let { br ->
 					when (br.responseCode) {
 						BillingCode.OK -> {
-							Timber.d("Billing OK: code=${br.responseCode}, msg=${br.debugMessage}")
+							Timber.tag(TAG).d("BillingOk")
 						}
 
 						BillingCode.ITEM_ALREADY_OWNED -> {
-							Timber.d("Item already owned: ${br.debugMessage}")
+							Timber.tag(TAG).i("SubscriptionAlreadyOwned")
 
 							_nextRoute.value = decidePostPaymentRoute()
 
@@ -106,12 +116,12 @@ constructor(
 						}
 
 						BillingCode.USER_CANCELED -> {
-							Timber.w("User canceled: ${br.debugMessage}")
+							Timber.tag(TAG).i("BillingCanceled")
 							_events.tryEmit(PaymentUiEvent.UserCanceled)
 						}
 
 						BillingCode.SERVICE_DISCONNECTED -> {
-							Timber.w("Billing service disconnected: ${br.debugMessage}")
+							Timber.tag(TAG).w("BillingServiceDisconnected")
 						}
 
 						BillingCode.SERVICE_UNAVAILABLE,
@@ -120,13 +130,13 @@ constructor(
 						BillingCode.NETWORK_ERROR,
 						BillingCode.DEVELOPER_ERROR,
 						BillingCode.FEATURE_NOT_SUPPORTED,
-						-> {
-							Timber.e("Billing error ${br.responseCode}: ${br.debugMessage}")
+							-> {
+							Timber.tag(TAG).w("BillingNonOk code=%s", br.responseCode)
 							_events.tryEmit(PaymentUiEvent.PaymentError(br.debugMessage))
 						}
 
 						else -> {
-							Timber.w("Unhandled billing code ${br.responseCode}: ${br.debugMessage}")
+							Timber.tag(TAG).d("BillingUnhandledCode code=%s", br.responseCode)
 						}
 					}
 				}
@@ -141,10 +151,13 @@ constructor(
 
 	fun startPurchaseFlow(activity: Activity, productId: String, userId: String?) {
 		accountId = userId
+
 		viewModelScope.launch {
 			if (!accountId.isNullOrBlank()) {
+				Timber.tag(TAG).i("PurchaseFlowRequested productId=%s", productId)
 				billingManager.launchPurchaseFlow(activity, productId, accountId!!)
 			} else {
+				Timber.tag(TAG).w("PurchaseFlowRejected reason=missing_user_id productId=%s", productId)
 				_events.tryEmit(PaymentUiEvent.PaymentError("Missing user id"))
 			}
 		}
@@ -152,31 +165,42 @@ constructor(
 
 	fun refreshAccountState() {
 		viewModelScope.launch {
-			backendManager.refreshAccountState()
+			runCatching { backendManager.refreshAccountState() }
+				.onFailure { Timber.tag(TAG).e(it, "AccountStateRefreshFailed") }
 		}
 	}
 
 	private fun startAccountStatesUpdate() {
 		stateUpdatesJob?.cancel()
+
+		Timber.tag(TAG).d("AccountStatePollStart")
+
 		stateUpdatesJob = viewModelScope.launch {
 			while (isActive) {
 				try {
 					val state = backendManager.getAccountState()
-					if (state is AccountControllerState.Error) {
-						if (state.v1 == AccountControllerErrorStateReason.InactiveSubscription) {
-							refreshAccountState()
-						}
+
+					if (state is AccountControllerState.Error &&
+						state.v1 == AccountControllerErrorStateReason.InactiveSubscription
+					) {
+						Timber.tag(TAG).i("AccountStateInactiveSubscription action=refresh")
+						refreshAccountState()
 					}
-					Timber.d("startAccountStatesUpdate $state")
+
 					_accountState.value = state
+
 					if (state == AccountControllerState.ReadyToConnect) {
+						Timber.tag(TAG).i("AccountStateReadyToConnect")
 						break
 					}
 				} catch (t: Throwable) {
-					Timber.w(t, "Failed to get account state")
+					Timber.tag(TAG).w(t, "AccountStatePollFailed")
 				}
-				delay(2_000)
+
+				delay(ACCOUNT_STATE_POLL_INTERVAL_MS)
 			}
+
+			Timber.tag(TAG).d("AccountStatePollStop")
 		}
 	}
 

@@ -37,6 +37,10 @@ class NymBilling(
 	private val ioDispatcher: CoroutineDispatcher,
 ) : Billing {
 
+	companion object {
+		private const val TAG = "billing"
+	}
+
 	private val _uiState = MutableStateFlow(NymPurchaseInfo())
 	override val uiState: StateFlow<NymPurchaseInfo> = _uiState.asStateFlow()
 
@@ -45,14 +49,24 @@ class NymBilling(
 
 	private val purchasesUpdatedListener =
 		PurchasesUpdatedListener { billingResult, purchases ->
-			_uiState.update { _ ->
-				billingResult.toInfo(purchases ?: emptyList())
+			_uiState.update { billingResult.toInfo(purchases ?: emptyList()) }
+
+			if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+				Timber.tag(TAG).w(
+					"PurchasesUpdatedNonOk code=%d",
+					billingResult.responseCode,
+				)
 			}
 		}
 
 	private val billingClient = BillingClient.newBuilder(context.applicationContext)
 		.setListener(purchasesUpdatedListener)
-		.enablePendingPurchases(PendingPurchasesParams.newBuilder().enablePrepaidPlans().enableOneTimeProducts().build())
+		.enablePendingPurchases(
+			PendingPurchasesParams.newBuilder()
+				.enablePrepaidPlans()
+				.enableOneTimeProducts()
+				.build(),
+		)
 		.build()
 
 	private val queryProductDetailsParams =
@@ -74,38 +88,65 @@ class NymBilling(
 	override fun isAvailable() = true
 
 	override fun initialize() {
-		if (billingClient.isReady) return
+		if (billingClient.isReady) {
+			Timber.tag(TAG).d("BillingInitSkipped reason=already_ready")
+			return
+		}
+
+		Timber.tag(TAG).i("BillingInitRequested")
 
 		billingClient.startConnection(
 			object : BillingClientStateListener {
 				override fun onBillingSetupFinished(billingResult: BillingResult) {
 					_uiState.update { billingResult.toInfo() }
+
 					if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+						Timber.tag(TAG).i("BillingInitSuccess")
 						applicationScope.launch(ioDispatcher) { refreshPurchases() }
+					} else {
+						Timber.tag(TAG).w(
+							"BillingInitNonOk code=%d",
+							billingResult.responseCode,
+						)
 					}
 				}
 
 				override fun onBillingServiceDisconnected() {
-					// onBillingServiceDisconnected
+					Timber.tag(TAG).w("BillingServiceDisconnected")
 				}
 			},
 		)
 	}
 
 	override fun fetchSubscriptions() {
-		if (!billingClient.isReady) return
+		if (!billingClient.isReady) {
+			Timber.tag(TAG).d("FetchSubscriptionsSkipped reason=not_ready")
+			return
+		}
+
 		applicationScope.launch(ioDispatcher) {
 			runCatching {
 				val result = billingClient.queryProductDetails(queryProductDetailsParams)
 				_uiState.update { result.billingResult.toInfo() }
-				_products.emit(result.productDetailsList?.map { NymProductData.from(it) } ?: emptyList())
+
+				val list = result.productDetailsList?.map { NymProductData.from(it) } ?: emptyList()
+				_products.emit(list)
+
+				Timber.tag(TAG).d("FetchSubscriptionsSuccess count=%d", list.size)
 			}.onFailure { e ->
-				Timber.e(e, "fetchSubscriptions failed")
+				Timber.tag(TAG).e(e, "FetchSubscriptionsFailed")
 			}
 		}
 	}
 
 	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String) {
+		Timber.tag(TAG).i("PurchaseFlowRequested productId=%s", productId)
+
+		if (!billingClient.isReady) {
+			Timber.tag(TAG).w("PurchaseFlowRejected reason=not_ready productId=%s", productId)
+			return
+		}
+
 		val query = QueryProductDetailsParams.newBuilder()
 			.setProductList(
 				listOf(
@@ -121,22 +162,24 @@ class NymBilling(
 		_uiState.update { result.billingResult.toInfo() }
 
 		if (result.billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-			Timber.w("Response code: ${result.billingResult.responseCode}, message: ${result.billingResult?.debugMessage}")
+			Timber.tag(TAG).w(
+				"PurchaseFlowProductQueryNonOk productId=%s code=%d",
+				productId,
+				result.billingResult.responseCode,
+			)
 			return
 		}
 
 		val productDetails = result.productDetailsList?.firstOrNull()
 		if (productDetails == null) {
-			Timber.w("No ProductDetails for $productId")
+			Timber.tag(TAG).w("PurchaseFlowNoProductDetails productId=%s", productId)
 			return
 		}
 
 		val offer = productDetails.subscriptionOfferDetails
-			?.firstOrNull { offer ->
-				offer.pricingPhases.pricingPhaseList.isNotEmpty()
-			}
+			?.firstOrNull { offer -> offer.pricingPhases.pricingPhaseList.isNotEmpty() }
 			?: run {
-				Timber.w("No offer for productId=$productId")
+				Timber.tag(TAG).w("PurchaseFlowNoOffer productId=%s", productId)
 				return
 			}
 
@@ -152,9 +195,20 @@ class NymBilling(
 
 		val launchResult = billingClient.launchBillingFlow(activity, billingFlowParams)
 		_uiState.update { launchResult.toInfo() }
+
+		if (launchResult.responseCode == BillingClient.BillingResponseCode.OK) {
+			Timber.tag(TAG).i("PurchaseFlowLaunched productId=%s", productId)
+		} else {
+			Timber.tag(TAG).w(
+				"PurchaseFlowLaunchNonOk productId=%s code=%d",
+				productId,
+				launchResult.responseCode,
+			)
+		}
 	}
 
 	override fun endConnection() {
+		Timber.tag(TAG).i("BillingEndConnection")
 		billingClient.endConnection()
 	}
 
@@ -179,6 +233,10 @@ class NymBilling(
 							}
 					}
 
+				if (result.responseCode != BillingClient.BillingResponseCode.OK) {
+					Timber.tag(TAG).w("HasActiveSubscriptionNonOk code=%d", result.responseCode)
+				}
+
 				if (c.isActive) c.resume(active)
 			}
 		}
@@ -188,8 +246,16 @@ class NymBilling(
 		val params = QueryPurchasesParams.newBuilder()
 			.setProductType(BillingClient.ProductType.SUBS)
 			.build()
+
 		billingClient.queryPurchasesAsync(params) { result, purchases ->
 			_uiState.update { result.toInfo(purchases) }
+
+			if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+				Timber.tag(TAG).d("RefreshPurchasesSuccess count=%d", purchases.size)
+			} else {
+				Timber.tag(TAG).w("RefreshPurchasesNonOk code=%d", result.responseCode)
+			}
+
 			applicationScope.launch(ioDispatcher) {
 				safeAcknowledgeIfNeeded(purchases)
 			}
@@ -197,18 +263,34 @@ class NymBilling(
 	}
 
 	private fun safeAcknowledgeIfNeeded(purchases: List<Purchase>) {
-		purchases.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && !it.isAcknowledged }
-			.forEach { purchase ->
-				runCatching {
-					val params = AcknowledgePurchaseParams.newBuilder()
-						.setPurchaseToken(purchase.purchaseToken)
-						.build()
-					billingClient.acknowledgePurchase(params) { billingResult ->
-						_uiState.update { billingResult.toInfo(purchases) }
+		val toAck = purchases
+			.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && !it.isAcknowledged }
+
+		if (toAck.isNotEmpty()) {
+			Timber.tag(TAG).d("AcknowledgePurchasesNeeded count=%d", toAck.size)
+		}
+
+		toAck.forEach { purchase ->
+			runCatching {
+				val params = AcknowledgePurchaseParams.newBuilder()
+					.setPurchaseToken(purchase.purchaseToken)
+					.build()
+
+				billingClient.acknowledgePurchase(params) { billingResult ->
+					_uiState.update { billingResult.toInfo(purchases) }
+
+					if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+						Timber.tag(TAG).d("AcknowledgePurchaseSuccess")
+					} else {
+						Timber.tag(TAG).w(
+							"AcknowledgePurchaseNonOk code=%d",
+							billingResult.responseCode,
+						)
 					}
-				}.onFailure { e ->
-					Timber.e(e, "Failed to acknowledge purchase")
 				}
+			}.onFailure { e ->
+				Timber.tag(TAG).e(e, "AcknowledgePurchaseFailed")
 			}
+		}
 	}
 }

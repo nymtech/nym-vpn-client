@@ -31,6 +31,10 @@ constructor(
 	private val networkService: NetworkService,
 ) : ViewModel() {
 
+	companion object {
+		private const val TAG = "ui-main-vm"
+	}
+
 	private val _connectionSeconds = MutableStateFlow<Long?>(null)
 	val connectionSeconds: StateFlow<Long?> = _connectionSeconds.asStateFlow()
 
@@ -44,59 +48,67 @@ constructor(
 
 	init {
 		viewModelScope.launch {
-			val isQuicFeatureFlagEnabled = environmentManager.isQuicEnabled()
-			_isQuicFeatureFlagEnabled.update { isQuicFeatureFlagEnabled }
+			val enabled = environmentManager.isQuicEnabled()
+			_isQuicFeatureFlagEnabled.update { enabled }
 		}
 	}
 
 	fun onTwoHopSelected() = viewModelScope.launch {
+		Timber.tag(TAG).i("VpnModeChangeRequested mode=TWO_HOP_MIXNET")
+
 		runCatching {
 			settingsRepository.setVpnMode(Tunnel.Mode.TWO_HOP_MIXNET)
-			
-			// If VPN is connected, reconnect to apply new VPN mode
+
 			val currentState = backendManager.stateFlow.first().tunnelState
 			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
-			
+
 			if (wasConnected) {
-				Timber.d("VPN is connected, reconnecting to apply TWO_HOP_MIXNET mode")
-				// Stop timer immediately - new connection will start from 0
+				Timber.tag(TAG).i("VpnModeChangeApply action=restart state=%s", currentState)
 				lastConnectedAt = null
 				stopConnectionTimerInternal()
 				backendManager.restartTunnel(shouldResetConnectionTime = true)
+			} else {
+				Timber.tag(TAG).d("VpnModeChangeApplySkipped reason=tunnel_not_connected state=%s", currentState)
 			}
-		}.onFailure {
-			Timber.e(it, "Failed to update VPN mode and reconnect")
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "VpnModeChangeFailed mode=TWO_HOP_MIXNET")
 		}
 	}
 
 	fun onFiveHopSelected() = viewModelScope.launch {
+		Timber.tag(TAG).i("VpnModeChangeRequested mode=FIVE_HOP_MIXNET")
+
 		runCatching {
 			settingsRepository.setVpnMode(Tunnel.Mode.FIVE_HOP_MIXNET)
-			
-			// If VPN is connected, reconnect to apply new VPN mode
+
 			val currentState = backendManager.stateFlow.first().tunnelState
 			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
-			
+
 			if (wasConnected) {
-				Timber.d("VPN is connected, reconnecting to apply FIVE_HOP_MIXNET mode")
-				// Stop timer immediately - new connection will start from 0
+				Timber.tag(TAG).i("VpnModeChangeApply action=restart state=%s", currentState)
 				lastConnectedAt = null
 				stopConnectionTimerInternal()
 				backendManager.restartTunnel(shouldResetConnectionTime = true)
+			} else {
+				Timber.tag(TAG).d("VpnModeChangeApplySkipped reason=tunnel_not_connected state=%s", currentState)
 			}
-		}.onFailure {
-			Timber.e(it, "Failed to update VPN mode and reconnect")
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "VpnModeChangeFailed mode=FIVE_HOP_MIXNET")
 		}
 	}
 
 	fun onConnect() = viewModelScope.launch {
-		backendManager.startTunnel()
+		Timber.tag(TAG).i("ConnectRequested")
+		runCatching { backendManager.startTunnel() }
+			.onFailure { Timber.tag(TAG).e(it, "ConnectFailed") }
 	}
 
 	fun onDisconnect() = viewModelScope.launch {
+		Timber.tag(TAG).i("DisconnectRequested")
 		lastConnectedAt = null
 		stopConnectionTimerInternal()
-		backendManager.stopTunnel()
+		runCatching { backendManager.stopTunnel() }
+			.onFailure { Timber.tag(TAG).e(it, "DisconnectFailed") }
 	}
 
 	fun onBatteryOptSkipped() = viewModelScope.launch {
@@ -104,6 +116,7 @@ constructor(
 	}
 
 	fun setNetworkStatsEnabled() = viewModelScope.launch {
+		Timber.tag(TAG).i("StatsEnabled")
 		settingsRepository.setStatisticsEnabled(true)
 	}
 
@@ -127,7 +140,6 @@ constructor(
 		when (tunnelState) {
 			is Tunnel.State.Up -> {
 				val effectiveConnectedAt = connectedAt
-				
 				if (effectiveConnectedAt != null) {
 					lastConnectedAt = effectiveConnectedAt
 					startConnectionTimer(effectiveConnectedAt)
@@ -135,7 +147,6 @@ constructor(
 			}
 
 			is Tunnel.State.Disconnecting -> {
-				// Manual disconnect - immediately stop timer regardless of connectedAt
 				lastConnectedAt = null
 				stopConnectionTimerInternal()
 			}
@@ -143,7 +154,7 @@ constructor(
 			is Tunnel.State.InitializingClient,
 			is Tunnel.State.EstablishingConnection,
 			is Tunnel.State.Offline,
-			-> {
+				-> {
 				if (connectedAt != null) {
 					lastConnectedAt = connectedAt
 					startConnectionTimer(connectedAt)
@@ -154,9 +165,7 @@ constructor(
 			}
 
 			is Tunnel.State.Down -> {
-				if (connectedAt == null) {
-					lastConnectedAt = null
-				}
+				if (connectedAt == null) lastConnectedAt = null
 				stopConnectionTimerInternal()
 			}
 		}
@@ -164,14 +173,18 @@ constructor(
 
 	private fun startConnectionTimer(connectedAtSeconds: Long) {
 		timerJob?.cancel()
+
+		Timber.tag(TAG).d("ConnectionTimerStart")
+
 		timerJob = viewModelScope.launch {
 			var currentNetworkStatus: NetworkStatus = NetworkStatus.Unknown
-			// Observe network status changes
+
 			launch {
 				networkService.networkStatus.collect { status ->
 					currentNetworkStatus = status
 				}
 			}
+
 			while (true) {
 				if (currentNetworkStatus == NetworkStatus.Connected) {
 					val nowSeconds = System.currentTimeMillis() / 1000L
@@ -187,6 +200,7 @@ constructor(
 		timerJob?.cancel()
 		timerJob = null
 		_connectionSeconds.value = null
+		Timber.tag(TAG).d("ConnectionTimerStop")
 	}
 
 	override fun onCleared() {

@@ -6,18 +6,18 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -74,8 +74,11 @@ class NymBackendManager @Inject constructor(
 	@MainDispatcher private val mainDispatcher: CoroutineDispatcher,
 ) : BackendManager {
 
-	private val backend = CompletableDeferred<Backend>()
+	companion object {
+		private const val TAG = "app-backend-manager"
+	}
 
+	private val backend = CompletableDeferred<Backend>()
 	private val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground.value
 	private val _state = MutableStateFlow(TunnelManagerState())
 	override val stateFlow: Flow<TunnelManagerState> = _state
@@ -87,6 +90,7 @@ class NymBackendManager @Inject constructor(
 		extraBufferCapacity = 1,
 		onBufferOverflow = BufferOverflow.DROP_OLDEST,
 	)
+
 	private val _restartStartedEvents = MutableSharedFlow<Unit>(
 		extraBufferCapacity = 1,
 		onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -102,20 +106,19 @@ class NymBackendManager @Inject constructor(
 				.debounce(500)
 				.collect { req ->
 					if (_state.value.isRestarting || restartMutex.isLocked) {
-						Timber.d("requestRestartDebounced: restart already in progress, skipping")
+						Timber.tag(TAG).d("RestartDebouncedSkipped reason=already_restarting")
 						return@collect
 					}
 
 					val s = getState()
-					val connectedOrConnecting =
-						s == Tunnel.State.Up || s == Tunnel.State.EstablishingConnection
-
+					val connectedOrConnecting = s == Tunnel.State.Up || s == Tunnel.State.EstablishingConnection
 					if (!connectedOrConnecting) {
-						Timber.d("requestRestartDebounced: tunnel not connected/connecting (state=$s), skipping")
+						Timber.tag(TAG).d("RestartDebouncedSkipped reason=invalid_state state=%s", s)
 						return@collect
 					}
+
 					_restartStartedEvents.tryEmit(Unit)
-					Timber.d("requestRestartDebounced: performing restart (resetTime=${req.shouldResetConnectionTime})")
+					Timber.tag(TAG).i("RestartDebouncedStart resetTime=%s", req.shouldResetConnectionTime)
 					restartTunnel(req.shouldResetConnectionTime)
 				}
 		}
@@ -128,29 +131,47 @@ class NymBackendManager @Inject constructor(
 	override fun initialize() {
 		applicationScope.launch {
 			if (_state.value.isInitialized) return@launch
+
 			val env = settingsRepository.getEnvironment()
 			val settingsConfig = SettingsConfig(
 				settingsRepository.isCredentialMode(),
 				settingsRepository.getSentryMonitoringEnabled(),
 				settingsRepository.getStatisticsEnabled(),
 			)
+
+			Timber.tag(TAG).i(
+				"InitializeStart env=%s sentry=%s statistics=%s",
+				env,
+				settingsConfig.sentryMonitoringEnabled,
+				settingsConfig.statisticsEnabled,
+			)
+
 			val nymBackend = withContext(mainDispatcher) {
 				NymBackend.getInstance(context, env, settingsConfig, context.toUserAgent())
 			}
+
 			backend.complete(nymBackend)
+
 			val isCompatible = isClientNetworkCompatible(env)
-			val isMnemonicStored = isMnemonicStored()
-			val deviceId = if (isMnemonicStored) getDeviceId() else null
-			val accountId = if (isMnemonicStored) getAccountId() else null
+			val mnemonicStored = isMnemonicStored()
+			val deviceId = if (mnemonicStored) getDeviceId() else null
+			val accountId = if (mnemonicStored) getAccountId() else null
+
 			_state.update {
 				it.copy(
 					isInitialized = true,
-					isMnemonicStored = isMnemonicStored,
+					isMnemonicStored = mnemonicStored,
 					deviceId = deviceId,
 					accountId = accountId,
 					isNetworkCompatible = isCompatible,
 				)
 			}
+
+			Timber.tag(TAG).i(
+				"InitializeSuccess mnemonicStored=%s networkCompatible=%s",
+				mnemonicStored,
+				isCompatible,
+			)
 		}
 	}
 
@@ -165,7 +186,11 @@ class NymBackendManager @Inject constructor(
 			environment == Tunnel.Environment.MAINNET
 		) {
 			val version = BuildConfig.VERSION_NAME.substringBefore("-").drop(1)
-			backend.await().isClientNetworkCompatible(version)
+			val ok = backend.await().isClientNetworkCompatible(version)
+			if (!ok) {
+				Timber.tag(TAG).w("NetworkCompatibilityMismatch env=%s appVersion=%s", environment, version)
+			}
+			ok
 		} else {
 			true
 		}
@@ -175,7 +200,7 @@ class NymBackendManager @Inject constructor(
 		return try {
 			backend.getCompleted().getState()
 		} catch (e: IllegalStateException) {
-			Timber.w(e, "Nym backend not initialized, assuming down")
+			Timber.tag(TAG).w(e, "BackendNotInitializedAssumeDown")
 			Tunnel.State.Down
 		}
 	}
@@ -183,19 +208,28 @@ class NymBackendManager @Inject constructor(
 	override suspend fun getBackend() = backend.await()
 
 	override suspend fun stopTunnel() {
-		runCatching {
-			backend.await().stop()
-		}
+		Timber.tag(TAG).i("StopTunnelRequested")
+		runCatching { backend.await().stop() }
+			.onSuccess { Timber.tag(TAG).i("StopTunnelSuccess") }
+			.onFailure { Timber.tag(TAG).e(it, "StopTunnelFailed") }
 	}
 
 	override suspend fun startTunnel() {
-		Timber.d("startTunnel: called")
 		val entryPoint = getEntryPoint()
 		val exitPoint = getExitPoint()
-		Timber.d("startTunnel: using entryPoint: $entryPoint, exitPoint: $exitPoint")
+
+		Timber.tag(TAG).i(
+			"StartTunnelRequested mode=%s entrySelected=%s exitSelected=%s",
+			settingsRepository.getVpnMode(),
+			entryPoint,
+			exitPoint,
+		)
+
 		notificationService.clearNotifications()
+
 		runCatching {
 			emitBackendUiEvent(null)
+
 			val tunnel = NymTunnel(
 				entryPoint = entryPoint,
 				exitPoint = exitPoint,
@@ -205,33 +239,48 @@ class NymBackendManager @Inject constructor(
 				bypassLan = settingsRepository.isBypassLanEnabled(),
 				dnsList = if (settingsRepository.getCustomDnsEnabled()) settingsRepository.getDnsList() else arrayListOf(),
 			)
+
 			val enableBridges = isQuicEnabled()
 			val restrictedAppsPackages = getRestrictedAppsPackages()
-			Timber.d("startTunnel: calling backend.start()")
+
+			Timber.tag(TAG).i(
+				"StartTunnelCallingBackend bridges=%s restrictedApps=%d bypassLan=%s customDns=%s",
+				enableBridges,
+				restrictedAppsPackages.size,
+				settingsRepository.isBypassLanEnabled(),
+				settingsRepository.getCustomDnsEnabled(),
+			)
+
 			backend.await().start(tunnel, context.toUserAgent(), enableBridges, restrictedAppsPackages)
-			Timber.d("startTunnel: backend.start() completed successfully")
-		}.onFailure {
-			if (it is BackendException) {
-				when (it) {
+
+			Timber.tag(TAG).i("StartTunnelSuccess")
+		}.onFailure { t ->
+			if (t is BackendException) {
+				when (t) {
 					is BackendException.VpnAlreadyRunning -> {
-						Timber.w("startTunnel: Vpn already running - backend state may be out of sync")
+						Timber.tag(TAG).w("StartTunnelRejected reason=already_running")
 					}
 
 					is BackendException.VpnPermissionDenied -> {
-						Timber.w("startTunnel: Vpn permission denied")
+						Timber.tag(TAG).w("StartTunnelRejected reason=permission_denied")
 						launchVpnPermissionNotification()
 						stopTunnel()
 					}
 				}
 			} else {
-				Timber.e(it, "startTunnel: failed with exception")
+				Timber.tag(TAG).e(t, "StartTunnelFailed reason=exception")
 			}
 		}
 	}
 
 	override suspend fun restartTunnel(shouldResetConnectionTime: Boolean) = restartMutex.withLock {
 		val currentState = getState()
-		Timber.d("restartTunnel: current state is $currentState, shouldResetConnectionTime: $shouldResetConnectionTime")
+
+		Timber.tag(TAG).i(
+			"RestartTunnelRequested state=%s resetTime=%s",
+			currentState,
+			shouldResetConnectionTime,
+		)
 
 		val preservedConnectionData = if (shouldResetConnectionTime) null else _state.value.connectionData
 
@@ -243,34 +292,38 @@ class NymBackendManager @Inject constructor(
 		}
 
 		if (currentState != Tunnel.State.Down) {
-			Timber.d("restartTunnel: stopping tunnel (current state: $currentState)")
 			val initialState = _state.value.tunnelState
+			Timber.tag(TAG).i("RestartTunnelStopping initialState=%s", initialState)
 			stopTunnel()
 
 			if (initialState != Tunnel.State.Down) {
 				try {
 					withTimeout(15_000) {
 						stateFlow.dropWhile { it.tunnelState != Tunnel.State.Down }.first()
-						Timber.d("restartTunnel: tunnel is now Down")
+						Timber.tag(TAG).i("RestartTunnelStopped")
 					}
 				} catch (e: Exception) {
-					Timber.e(e, "restartTunnel: tunnel did not stop in time, proceeding anyway")
+					Timber.tag(TAG).w(e, "RestartTunnelStopTimeoutMs=15000")
 				}
 			}
 		} else {
-			Timber.d("restartTunnel: tunnel is already Down")
+			Timber.tag(TAG).d("RestartTunnelSkipStop reason=already_down")
 		}
+
 		delay(2_500)
 
-		Timber.d("restartTunnel: starting tunnel with entryPoint: ${settingsRepository.getEntryPoint()}, exitPoint: ${settingsRepository.getExitPoint()}")
+		Timber.tag(TAG).i("RestartTunnelStarting")
 		startTunnel()
 	}
 
-	private suspend fun getRestrictedAppsPackages() = splitTunnelingRepository.getAppInfoList().filter { !it.passThroughVpn }.map { it.packageName }
+	private suspend fun getRestrictedAppsPackages() =
+		splitTunnelingRepository.getAppInfoList()
+			.filter { !it.passThroughVpn }
+			.map { it.packageName }
 
 	private suspend fun isQuicEnabled(): Boolean {
 		return settingsRepository.getQUICEnabled() &&
-			getBackend().getCurrentEnvironment().featureFlags?.isQuicEnabled() ?: false &&
+			(getBackend().getCurrentEnvironment().featureFlags?.isQuicEnabled() ?: false) &&
 			settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
 	}
 
@@ -283,10 +336,12 @@ class NymBackendManager @Inject constructor(
 	}
 
 	override suspend fun storeMnemonic(mnemonic: String) {
+		Timber.tag(TAG).i("StoreMnemonicRequested")
 		backend.await().storeMnemonic(mnemonic)
 		emitMnemonicStored(true)
 		updateAccountIds()
 		refreshAccountLinks()
+		Timber.tag(TAG).i("StoreMnemonicSuccess")
 	}
 
 	override suspend fun isMnemonicStored(): Boolean {
@@ -294,9 +349,11 @@ class NymBackendManager @Inject constructor(
 	}
 
 	override suspend fun removeMnemonic() {
+		Timber.tag(TAG).i("RemoveMnemonicRequested")
 		backend.await().removeMnemonic()
 		emitMnemonicStored(false)
 		refreshAccountLinks()
+		Timber.tag(TAG).i("RemoveMnemonicSuccess")
 	}
 
 	private suspend fun updateAccountIds() {
@@ -304,8 +361,9 @@ class NymBackendManager @Inject constructor(
 			_state.update {
 				it.copy(deviceId = getDeviceId(), accountId = getAccountId())
 			}
+			Timber.tag(TAG).d("AccountIdsUpdated deviceId=%s accountId=%s", _state.value.deviceId != null, _state.value.accountId != null)
 		}.onFailure {
-			Timber.e(it)
+			Timber.tag(TAG).e(it, "AccountIdsUpdateFailed")
 		}
 	}
 
@@ -320,7 +378,8 @@ class NymBackendManager @Inject constructor(
 	override suspend fun getAccountLinks(): ParsedAccountLinks? {
 		return try {
 			backend.await().getAccountLinks()
-		} catch (_: Exception) {
+		} catch (e: Exception) {
+			Timber.tag(TAG).w(e, "GetAccountLinksFailed")
 			null
 		}
 	}
@@ -342,15 +401,15 @@ class NymBackendManager @Inject constructor(
 
 	override suspend fun refresh() {
 		try {
-			val isMnemonicStored = isMnemonicStored()
-			val deviceId = if (isMnemonicStored) getDeviceId() else null
-			val accountId = if (isMnemonicStored) getAccountId() else null
+			val mnemonicStored = isMnemonicStored()
+			val deviceId = if (mnemonicStored) getDeviceId() else null
+			val accountId = if (mnemonicStored) getAccountId() else null
 			val accountLinks = getAccountLinks()
 			val tunnelState = getState()
 
 			_state.update {
 				it.copy(
-					isMnemonicStored = isMnemonicStored,
+					isMnemonicStored = mnemonicStored,
 					deviceId = deviceId,
 					accountId = accountId,
 					accountLinks = accountLinks,
@@ -358,18 +417,28 @@ class NymBackendManager @Inject constructor(
 					backendUiEvent = null,
 				)
 			}
+
+			Timber.tag(TAG).d(
+				"RefreshSuccess mnemonicStored=%s tunnelState=%s accountLinks=%s",
+				mnemonicStored,
+				tunnelState,
+				accountLinks != null,
+			)
 		} catch (e: Exception) {
-			Timber.e(e, "Backend refresh failed")
+			Timber.tag(TAG).e(e, "RefreshFailed")
 		}
 	}
 
 	override suspend fun createAccount() {
+		Timber.tag(TAG).i("CreateAccountRequested")
 		backend.await().createAccount()
 		emitMnemonicStored(true)
 		refreshAccount()
+		Timber.tag(TAG).i("CreateAccountSuccess")
 	}
 
 	override suspend fun registerAccount(purchaseToken: String): String {
+		Timber.tag(TAG).i("RegisterAccountRequested")
 		return backend.await().registerAccount(purchaseToken)
 	}
 
@@ -392,33 +461,28 @@ class NymBackendManager @Inject constructor(
 	}
 
 	private fun emitMnemonicStored(stored: Boolean) {
-		_state.update {
-			it.copy(isMnemonicStored = stored)
-		}
+		_state.update { it.copy(isMnemonicStored = stored) }
 	}
 
 	private fun emitBackendUiEvent(backendEvent: BackendUiEvent?) {
-		_state.update {
-			it.copy(backendUiEvent = backendEvent)
-		}
+		_state.update { it.copy(backendUiEvent = backendEvent) }
 	}
 
 	private fun emitConnectedData(connectionData: ConnectionData?) {
 		_state.update { currentState ->
 			val newConnectionInfo = connectionData?.toInfo()
-			// During restart, preserve the original connection time
-			// For new connections (isRestarting = false), use the new connection time
-			val preservedConnectionInfo = if (currentState.isRestarting && currentState.connectionData?.connectedAt != null && newConnectionInfo != null) {
-				// Keep the original connectedAt timestamp during restart
-				Timber.d("Restart: preserving connection time ${currentState.connectionData!!.connectedAt}")
-				newConnectionInfo.copy(connectedAt = currentState.connectionData!!.connectedAt)
-			} else {
-				// New connection: use the new connection time
-				if (newConnectionInfo != null && !currentState.isRestarting) {
-					Timber.d("New connection: using new connection time ${newConnectionInfo.connectedAt}")
+
+			val preservedConnectionInfo =
+				if (currentState.isRestarting &&
+					currentState.connectionData?.connectedAt != null &&
+					newConnectionInfo != null
+				) {
+					Timber.tag(TAG).d("RestartPreserveConnectedAt preserved=true")
+					newConnectionInfo.copy(connectedAt = currentState.connectionData!!.connectedAt)
+				} else {
+					newConnectionInfo
 				}
-				newConnectionInfo
-			}
+
 			currentState.copy(connectionData = preservedConnectionInfo)
 		}
 	}
@@ -431,7 +495,10 @@ class NymBackendManager @Inject constructor(
 
 	private fun emitMixnetConnectionEvent(connectionEvent: ConnectionEvent) {
 		_state.update {
-			it.copy(mixnetConnectionState = it.mixnetConnectionState?.onEvent(connectionEvent) ?: MixnetConnectionState().onEvent(connectionEvent))
+			it.copy(
+				mixnetConnectionState = it.mixnetConnectionState?.onEvent(connectionEvent)
+					?: MixnetConnectionState().onEvent(connectionEvent),
+			)
 		}
 	}
 
@@ -447,24 +514,30 @@ class NymBackendManager @Inject constructor(
 			}
 
 			is BackendEvent.StartFailure -> {
+				Timber.tag(TAG).w("BackendStartFailure")
 				emitBackendUiEvent(BackendUiEvent.StartFailure(backendEvent.exception))
 				launchStartFailureNotification(backendEvent.exception)
 			}
 
 			is BackendEvent.Tunnel -> when (val state = backendEvent.state) {
 				is TunnelState.Connected -> {
+					Timber.tag(TAG).i("TunnelConnected")
 					notificationService.clearNotifications()
 					emitConnectedData(state.connectionData)
 				}
 
 				is TunnelState.Connecting -> {
+					Timber.tag(TAG).i("TunnelConnecting phase=%s", state.state)
 					notificationService.clearNotifications()
 					emitConnectionData(state.connectionData, state.state)
 				}
 
-				is TunnelState.Disconnecting -> Timber.d("After disconnect status: ${state.afterDisconnect.name}")
+				is TunnelState.Disconnecting -> {
+					Timber.tag(TAG).i("TunnelDisconnecting after=%s", state.afterDisconnect.name)
+				}
+
 				is TunnelState.Error -> {
-					Timber.d("Shutting tunnel down on fatal error")
+					Timber.tag(TAG).e("TunnelFatalError action=shutdown")
 					emitBackendUiEvent(BackendUiEvent.Failure(state.v1))
 					launchBackendFailureNotification(state.v1)
 					applicationScope.launch(ioDispatcher) {
@@ -477,22 +550,23 @@ class NymBackendManager @Inject constructor(
 
 			is BackendEvent.AccountState -> {
 				emitAccountState(backendEvent.event)
-				Timber.d("AccountState: ${backendEvent.event}")
+				Timber.tag(TAG).d("AccountStateChanged")
 			}
 
 			is BackendEvent.ConfigChanged -> {
-				Timber.d("ConfigChanged")
+				Timber.tag(TAG).d("ConfigChanged")
 			}
 		}
 	}
 
 	private fun onStateChange(state: Tunnel.State) {
-		Timber.d("Requesting tile update with new state: $state")
+		Timber.tag(TAG).d("TunnelStateChange state=%s", state)
+
 		when (state) {
 			Tunnel.State.InitializingClient,
 			Tunnel.State.EstablishingConnection,
 			Tunnel.State.Up,
-			-> notificationService.clearNotifications()
+				-> notificationService.clearNotifications()
 
 			else -> Unit
 		}
@@ -504,19 +578,22 @@ class NymBackendManager @Inject constructor(
 	private fun emitState(state: Tunnel.State) {
 		_state.update { currentState ->
 			val isRestarting = currentState.isRestarting
-			// Clear isRestarting flag only when we're actually connecting/connected
 			val shouldClearRestarting = if (isRestarting) {
-				// Clear on Up or when starting to connect; keep true during Down (restart in progress)
 				state == Tunnel.State.Up ||
 					state == Tunnel.State.InitializingClient ||
 					state == Tunnel.State.EstablishingConnection
 			} else {
 				false
 			}
+
 			currentState.copy(
 				tunnelState = state,
 				isRestarting = if (shouldClearRestarting) {
-					Timber.d("Clearing isRestarting flag (state: $state, previous: ${currentState.tunnelState})")
+					Timber.tag(TAG).d(
+						"RestartFlagCleared state=%s previous=%s",
+						state,
+						currentState.tunnelState,
+					)
 					false
 				} else {
 					isRestarting
@@ -526,11 +603,7 @@ class NymBackendManager @Inject constructor(
 	}
 
 	private fun emitAccountState(state: AccountControllerState) {
-		_state.update {
-			it.copy(
-				accountState = state,
-			)
-		}
+		_state.update { it.copy(accountState = state) }
 	}
 
 	private fun launchVpnPermissionNotification() {
@@ -544,7 +617,7 @@ class NymBackendManager @Inject constructor(
 				SnackbarController.showMessage(StringValue.StringResource(R.string.vpn_permission_missing))
 			}
 		} catch (ex: Exception) {
-			Timber.e(ex)
+			Timber.tag(TAG).e(ex, "VpnPermissionNotifyFailed")
 		}
 	}
 

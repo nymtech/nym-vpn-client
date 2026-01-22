@@ -13,6 +13,7 @@ import net.nymtech.billing.model.ProductData
 import net.nymtech.billing.model.PurchaseInfo
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
+import timber.log.Timber
 import javax.inject.Inject
 
 class NymBillingManager @Inject constructor(
@@ -20,6 +21,11 @@ class NymBillingManager @Inject constructor(
 	@ApplicationScope private val applicationScope: CoroutineScope,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BillingManager {
+
+	companion object {
+		private const val TAG = "app-billing"
+	}
+
 	private val billing: Billing = initBilling(
 		context = context,
 		applicationScope = applicationScope,
@@ -29,27 +35,37 @@ class NymBillingManager @Inject constructor(
 	override val uiState: StateFlow<PurchaseInfo> = billing.uiState
 	override val products: Flow<List<ProductData>> = billing.products
 
-	override fun isAvailable() = billing.isAvailable()
+	override fun isAvailable(): Boolean = billing.isAvailable()
 
 	override fun isReady(): Boolean = billing.isReady()
 
 	override fun initialize() {
-		billing.initialize()
+		Timber.tag(TAG).i("BillingInitializeRequested")
+		runCatching { billing.initialize() }
+			.onFailure { Timber.tag(TAG).e(it, "BillingInitializeFailed") }
 	}
 
 	override fun fetchSubscriptions() {
-		billing.fetchSubscriptions()
+		Timber.tag(TAG).d("BillingFetchSubscriptionsRequested")
+		runCatching { billing.fetchSubscriptions() }
+			.onFailure { Timber.tag(TAG).e(it, "BillingFetchSubscriptionsFailed") }
 	}
 
 	override suspend fun launchPurchaseFlow(activity: Activity, productId: String, userId: String) {
-		billing.launchPurchaseFlow(activity, productId, userId)
+		Timber.tag(TAG).i("BillingPurchaseFlowRequested productId=%s", productId)
+		runCatching { billing.launchPurchaseFlow(activity, productId, userId) }
+			.onFailure { Timber.tag(TAG).e(it, "BillingPurchaseFlowFailed productId=%s", productId) }
 	}
 
 	override fun endConnection() {
-		billing.endConnection()
+		Timber.tag(TAG).i("BillingEndConnectionRequested")
+		runCatching { billing.endConnection() }
+			.onFailure { Timber.tag(TAG).e(it, "BillingEndConnectionFailed") }
 	}
 
 	override suspend fun hasActiveSubscription(): Boolean {
-		return billing.hasActiveSubscription()
+		return runCatching { billing.hasActiveSubscription() }
+			.onFailure { Timber.tag(TAG).e(it, "BillingHasActiveSubscriptionFailed") }
+			.getOrDefault(false)
 	}
 }

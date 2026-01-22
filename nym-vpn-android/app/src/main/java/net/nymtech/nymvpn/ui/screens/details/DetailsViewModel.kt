@@ -28,6 +28,10 @@ class DetailsViewModel @Inject constructor(
 	@ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
 
+	companion object {
+		private const val TAG = "ui-details-vm"
+	}
+
 	private val _uiState = MutableStateFlow(DetailsUiState())
 	val uiState = _uiState.asStateFlow()
 
@@ -41,36 +45,34 @@ class DetailsViewModel @Inject constructor(
 	}
 
 	fun onSelected(id: String, gatewayLocation: GatewayLocation) = viewModelScope.launch {
+		Timber.tag(TAG).i("GatewaySelectionRequested location=%s", gatewayLocation)
+
 		runCatching {
-			Timber.d("onSelected: gateway $id, location $gatewayLocation")
-			
-			// Save new gateway selection first
 			when (gatewayLocation) {
 				GatewayLocation.ENTRY -> {
 					settingsRepository.setEntryPoint(id.asEntryPoint())
-					Timber.d("onSelected: saved new entry point: ${id.asEntryPoint()}")
+					Timber.tag(TAG).i("GatewaySelectionSaved location=ENTRY")
 				}
+
 				GatewayLocation.EXIT -> {
 					settingsRepository.setExitPoint(id.asExitPoint())
-					Timber.d("onSelected: saved new exit point: ${id.asExitPoint()}")
+					Timber.tag(TAG).i("GatewaySelectionSaved location=EXIT")
 				}
 			}
-			
-			// If connected, reconnect to apply new gateway selection
+
 			val currentState = backendManager.stateFlow.first().tunnelState
-			Timber.d("onSelected: current VPN state from stateFlow: $currentState")
 			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
-			
+
 			if (wasConnected) {
-				Timber.d("onSelected: VPN is connected, calling restartTunnel() to apply new ${gatewayLocation.name} gateway selection")
+				Timber.tag(TAG).i("GatewaySelectionApply action=restart state=%s", currentState)
 				applicationScope.launch {
 					backendManager.restartTunnel(shouldResetConnectionTime = true)
 				}
 			} else {
-				Timber.d("onSelected: VPN is not connected (state: $currentState), no restart needed")
+				Timber.tag(TAG).d("GatewaySelectionApplySkipped reason=tunnel_not_connected state=%s", currentState)
 			}
-		}.onFailure {
-			Timber.e(it, "Failed to update gateway selection and reconnect")
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "GatewaySelectionFailed location=%s", gatewayLocation)
 		}
 	}
 }

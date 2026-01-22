@@ -38,6 +38,10 @@ class HopViewModel @Inject constructor(
 	@ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
 
+	companion object {
+		private const val TAG = "ui-hop-vm"
+	}
+
 	private val _uiState = MutableStateFlow(HopUiState())
 	val uiState = _uiState.asStateFlow()
 
@@ -69,7 +73,9 @@ class HopViewModel @Inject constructor(
 		val isQuicFeatureFlagEnabled = environmentManager.isQuicEnabled()
 		val isQuicToggleEnabled = settingsRepository.getQUICEnabled()
 		val isFastVpn = settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
-		isQuicOnlyGatewaysFilterRequired = isQuicFeatureFlagEnabled && isQuicToggleEnabled && isFastVpn && !isExitScreen
+
+		isQuicOnlyGatewaysFilterRequired =
+			isQuicFeatureFlagEnabled && isQuicToggleEnabled && isFastVpn && !isExitScreen
 
 		_uiState.update { it.copy(isQuicFeatureFlagEnabled = isQuicFeatureFlagEnabled) }
 	}
@@ -91,14 +97,15 @@ class HopViewModel @Inject constructor(
 	fun updateCountryCache(type: GatewayType) = viewModelScope.launch {
 		gatewayType = type
 		_uiState.update { it.copy(error = false) }
+
 		runCatching {
 			when (type) {
 				GatewayType.MIXNET_ENTRY -> gatewayCacheService.updateEntryGatewayCache()
 				GatewayType.MIXNET_EXIT -> gatewayCacheService.updateExitGatewayCache()
 				GatewayType.WG -> gatewayCacheService.updateWgGatewayCache()
 			}.getOrThrow()
-		}.onFailure {
-			Timber.e(it)
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "GatewayCacheRefreshFailed type=%s", type)
 			_uiState.update { state -> state.copy(error = true) }
 		}
 	}
@@ -108,16 +115,16 @@ class HopViewModel @Inject constructor(
 		val collator = Collator.getInstance()
 		val resultItems = mutableListOf<ItemType>()
 
-		// 1. First, apply universal filters (like QUIC support) to get an eligible pool.
+		// 1) Eligible pool
 		val eligibleGateways = gateways.asSequence()
 			.filter { !isQuicOnlyGatewaysFilterRequired || it.isQuicSupported() }
 
-		// 2. Group all eligible gateways by country. This is our base structure.
+		// 2) Group by country
 		val allCountryGroups = eligibleGateways
 			.filter { it.twoLetterCountryISO != null }
 			.groupBy { it.toLocale() }
 
-		// 3. Process the country groups to create the final list of items.
+		// 3) Country items, filtered by query
 		val countryItems = allCountryGroups
 			.filter { (locale, countryGateways) ->
 				locale != null &&
@@ -138,7 +145,7 @@ class HopViewModel @Inject constructor(
 
 		resultItems.addAll(countryItems)
 
-		// 4. If a query is active, direct matches to the bottom of the final list.
+		// 4) Direct gateway matches appended when query is active
 		if (query.isNotBlank()) {
 			val gatewayItems = eligibleGateways
 				.filter {
@@ -157,49 +164,42 @@ class HopViewModel @Inject constructor(
 	}
 
 	fun onSelected(id: String, gatewayLocation: GatewayLocation) = viewModelScope.launch {
+		Timber.tag(TAG).i("GatewaySelectionRequested location=%s", gatewayLocation)
+
 		runCatching {
-			Timber.d("onSelected: gateway $id, location $gatewayLocation")
-			
-			// Save new gateway selection first
 			when (gatewayLocation) {
 				GatewayLocation.ENTRY -> {
 					settingsRepository.setEntryPoint(id.asEntryPoint())
-					Timber.d("onSelected: saved new entry point: ${id.asEntryPoint()}")
+					Timber.tag(TAG).i("GatewaySelectionSaved location=ENTRY")
 				}
+
 				GatewayLocation.EXIT -> {
 					settingsRepository.setExitPoint(id.asExitPoint())
-					Timber.d("onSelected: saved new exit point: ${id.asExitPoint()}")
+					Timber.tag(TAG).i("GatewaySelectionSaved location=EXIT")
 				}
 			}
-			
-			// If connected, reconnect to apply new gateway selection
+
 			val currentState = backendManager.stateFlow.first().tunnelState
-			Timber.d("onSelected: current VPN state from stateFlow: $currentState")
 			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
-			
+
 			if (wasConnected) {
-				Timber.d("onSelected: VPN is connected, calling restartTunnel() to apply new ${gatewayLocation.name} gateway selection")
+				Timber.tag(TAG).i("GatewaySelectionApply action=restart state=%s", currentState)
 				applicationScope.launch {
 					backendManager.restartTunnel(shouldResetConnectionTime = true)
 				}
 			} else {
-				Timber.d("onSelected: VPN is not connected (state: $currentState), no restart needed")
+				Timber.tag(TAG).d("GatewaySelectionApplySkipped reason=tunnel_not_connected state=%s", currentState)
 			}
-		}.onFailure {
-			Timber.e(it, "Failed to update gateway selection and reconnect")
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "GatewaySelectionFailed location=%s", gatewayLocation)
 		}
 	}
-
-	/**
-	 * Helper function to create a CountryItem, handling region grouping for the US.
-	 */
 	private fun createCountryItem(locale: Locale, gateways: List<NymGateway>): ItemType.CountryItem {
 		val regions = if (locale.country.equals("us", ignoreCase = true)) {
 			gateways.filter { it.region != null }
 				.groupBy { it.region }
 				.mapNotNull { (region, regionGateways) ->
 					if (region == null) return@mapNotNull null
-
 					ItemType.CountryItem.Region(region, regionGateways)
 				}
 				.sortedBy { it.region }
