@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.onboarding.components
+package net.nymtech.nymvpn.ui.screens.welcome.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image

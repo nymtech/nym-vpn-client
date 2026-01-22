@@ -1,6 +1,5 @@
 {
   "network_name": "canary",
-  "nyxd_url": "https://canary-validator.performance.nymte.ch/",
   "nym_api_url": "https://canary-api.performance.nymte.ch/api/",
   "nym_api_urls": [
     {
@@ -36,7 +35,12 @@
     "paths": {
       "sign_up": "{locale}/account/create",
       "sign_in": "{locale}/account/login",
-      "account": "{locale}/account/{account_id}"
+      "account": "{locale}/account/{account_id}",
+      "privy": {
+        "mobile": "{locale}/account/login/privy/mobile",
+        "desktop": "{locale}/account/login/privy/desktop",
+        "web": "{locale}/account/login/privy/web"
+      }
     }
   },
   "system_configuration": {
@@ -49,6 +53,13 @@
       "high": 75,
       "medium": 50,
       "low": 25
+    },
+    "min_supported_app_versions": {
+      "android": "2.6.0",
+      "core": "1.21.0",
+      "ios": "2.15.1",
+      "macos": "2.15.1",
+      "tauri": "1.21.0"
     }
   },
   "network_compatibility": {
@@ -60,6 +71,9 @@
   },
   "feature_flags": {
     "domain_fronting": {
+      "enabled": "true"
+    },
+    "privy": {
       "enabled": "true"
     },
     "quic": {

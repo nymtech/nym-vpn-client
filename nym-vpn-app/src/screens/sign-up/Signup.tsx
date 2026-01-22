@@ -7,9 +7,10 @@ import { Button, ButtonText, Link, MsIcon, PageAnim } from '../../ui';
 import { useMainState } from '../../contexts';
 import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
+import { PrivyButton } from '../../components/privy';
 
 function Login() {
-  const { uiTheme } = useMainState();
+  const { uiTheme, backendFlags } = useMainState();
   const { t } = useTranslation('login');
   const navigate = useNavigate();
 
@@ -37,6 +38,15 @@ function Login() {
             </div>
           </Button>
         </div>
+        {backendFlags.privy && (
+          <div className="py-6 border-t border-iron dark:border-bombay">
+            <h2>{t('privy.use-existing-login.title')}</h2>
+            <p className="mt-2 mb-4 text-iron dark:text-bombay whitespace-pre-line">
+              {t('privy.use-existing-login.description')}
+            </p>
+            <PrivyButton />
+          </div>
+        )}
 
         <div className="flex flex-row justify-center items-center">
           <span className="dark:text-white truncate">

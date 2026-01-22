@@ -1,7 +1,11 @@
 {
   "privy": {
     "title": "Welcome to NymVPN",
-    "login-button": "Log in with Privy",
+    "login-button": "Continue with social account",
+    "use-existing-login": {
+      "title": "🔑️ Use existing login",
+      "description": "Privately sign in with email, Google or crypto wallet, through our partner Privy"
+    },
     "maximum-privacy": {
       "title": "🔒 Maximum privacy",
       "description": "Create an anonymous Nym account, no personal info required"

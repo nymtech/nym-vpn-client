@@ -13,17 +13,24 @@ function Lang() {
 
   return (
     <PageAnim
-      className="h-full flex flex-col py-6 gap-6"
+      className="relative h-full flex flex-col"
       data-testid="language-page"
     >
-      <SettingsMenuCard
-        title={t('support.help.title', { ns: 'settings' })}
-        onClick={() => openUrl(TranslationHelpUrl)}
-        description={t('support.help.description', { ns: 'settings' })}
-        leadingIcon="language"
-        trailingIcon="open_in_new"
-        className="mx-3"
-      />
+      <div
+        className={clsx(
+          'sticky -top-4 left-0 right-0 w-full pt-4 mb-4',
+          'bg-linear-to-b from-faded-lavender via-faded-lavender/98 to-transparent dark:from-ash dark:via-ash/98 dark:to-transparent',
+        )}
+      >
+        <SettingsMenuCard
+          title={t('support.help.title', { ns: 'settings' })}
+          onClick={() => openUrl(TranslationHelpUrl)}
+          description={t('support.help.description', { ns: 'settings' })}
+          leadingIcon="language"
+          trailingIcon="open_in_new"
+        />
+      </div>
+
       <ul
         className="flex flex-col w-full items-stretch gap-1"
         data-testid="language-list"

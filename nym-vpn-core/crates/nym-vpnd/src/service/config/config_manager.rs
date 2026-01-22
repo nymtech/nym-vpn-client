@@ -119,6 +119,13 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
+        if self.config.enable_lewes_protocol != enable_lewes_protocol {
+            self.config.enable_lewes_protocol = enable_lewes_protocol;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     pub async fn set_netstack(&mut self, netstack: bool) {
         if self.config.netstack != netstack {
             self.config.netstack = netstack;

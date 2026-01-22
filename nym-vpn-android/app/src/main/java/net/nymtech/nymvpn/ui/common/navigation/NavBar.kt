@@ -206,7 +206,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 				},
 			)
 
-			currentRoute.startsWith(Route.WelcomeAccount::class.qualifiedName!!) -> {
+			currentRoute.startsWith(Route.CreateAccount::class.qualifiedName!!) -> {
 				NavBarState(
 					title = { MainTitle() },
 					show = true,
@@ -310,7 +310,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 				},
 			)
 
-			currentRoute.startsWith(Route.Onboarding::class.qualifiedName!!) -> NavBarState(
+			currentRoute.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState(
 				title = { MainTitle() },
 				show = true,
 				trailing = {

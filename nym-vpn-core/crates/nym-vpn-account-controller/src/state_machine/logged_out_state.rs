@@ -97,6 +97,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             CommonCommand::GetActiveDevices(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetAvailableTickets(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetAccountSummary(return_sender) => return_sender.send(Ok(None)),
+                            CommonCommand::GetDeeplink(return_sender, params) => return_sender.send(common_handler::handle_get_deeplink(shared_state, params).await),
                         }
                     },
                     AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {

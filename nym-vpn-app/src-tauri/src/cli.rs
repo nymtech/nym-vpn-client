@@ -86,6 +86,11 @@ pub struct Cli {
     #[arg(long, hide = true)]
     pub clean_local_files: bool,
 
+    /// Deep link URLs (nymvpn://...) as trailing arguments
+    #[arg(trailing_var_arg = true, hide = true)]
+    #[ts(skip)]
+    pub deep_links: Vec<String>,
+
     #[command(subcommand)]
     #[ts(skip)]
     pub command: Option<Commands>,

@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
@@ -46,6 +48,8 @@ constructor(
 
 	private val _isAppReady = MutableStateFlow(false)
 	val isAppReady = _isAppReady.asStateFlow()
+
+	private val autoStartAttempted = AtomicBoolean(false)
 
 	val uiState =
 		combine(
@@ -90,9 +94,7 @@ constructor(
 	fun onLocaleChange(localeTag: String) = viewModelScope.launch {
 		settingsRepository.setLocale(localeTag)
 		LocaleUtil.changeLocale(localeTag)
-		_configurationChange.update {
-			true
-		}
+		_configurationChange.update { true }
 	}
 
 	fun onEnvironmentChange(environment: Tunnel.Environment) = viewModelScope.launch {
@@ -117,26 +119,56 @@ constructor(
 	private suspend fun checkSystemMessages() {
 		runCatching {
 			val messages = backendManager.getSystemMessages()
-			messages.firstOrNull()?.let {
-				_systemMessage.emit(it)
-			}
+			messages.firstOrNull()?.let { _systemMessage.emit(it) }
 		}.onFailure { Timber.e(it) }
 	}
 
+	private suspend fun checkAutoStartTunnel() {
+		if (!autoStartAttempted.compareAndSet(false, true)) return
+		runCatching {
+			val enabled = settingsRepository.isAutoStartEnabled()
+			Timber.d("AppStartup: autoStartEnabled=$enabled")
+			if (!enabled) return
+			val managerState = withTimeoutOrNull(15_000) {
+				backendManager.stateFlow
+					.filter { it.isInitialized }
+					.first()
+			}
+
+			if (managerState == null) {
+				Timber.w("AppStartup: backend not initialized within timeout, skipping autostart")
+				return
+			}
+			if (!managerState.isMnemonicStored) {
+				Timber.d("AppStartup: mnemonic not stored, skipping autostart")
+				return
+			}
+
+			val tunnelState = backendManager.getState()
+			Timber.d("AppStartup: tunnelState=$tunnelState")
+
+			if (tunnelState != Tunnel.State.Down) return
+
+			Timber.d("AppStartup: starting tunnel")
+			backendManager.startTunnel()
+		}.onFailure {
+			Timber.e(it, "AppStartup: failed to autostart tunnel")
+		}
+	}
+
 	fun onAppStartup() = viewModelScope.launch {
+		launch { checkAutoStartTunnel() }
+
 		val theme = settingsRepository.getTheme()
-		uiState.filter { it.settings.theme != null }
+		uiState
+			.filter { it.settings.theme != null }
 			.first { it.settings.theme == theme }
 			.let { _isAppReady.emit(true) }
-		launch {
-			gatewayCacheService.updateExitGatewayCache()
-		}
-		launch {
-			gatewayCacheService.updateEntryGatewayCache()
-		}
-		launch {
-			gatewayCacheService.updateWgGatewayCache()
-		}
+
+		launch { gatewayCacheService.updateExitGatewayCache() }
+		launch { gatewayCacheService.updateEntryGatewayCache() }
+		launch { gatewayCacheService.updateWgGatewayCache() }
+
 		launch {
 			Timber.d("Checking for system messages")
 			checkSystemMessages()

@@ -375,6 +375,7 @@ class NymBackend private constructor(private val context: Context) :
 						userAgent = userAgent,
 						customDns = tunnel.dnsList,
 						statisticsRecipient = null,
+						enableLewesProtocol = false,
 					),
 				)
 			} catch (e: VpnException) {

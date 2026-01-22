@@ -5548,6 +5548,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "bincode",
+ "bs58",
  "futures",
  "nym-common",
  "nym-compact-ecash",
@@ -5556,6 +5557,7 @@ dependencies = [
  "nym-credential-utils",
  "nym-credentials",
  "nym-credentials-interface",
+ "nym-crypto",
  "nym-ecash-time",
  "nym-http-api-client",
  "nym-network-defaults",
@@ -5582,6 +5584,7 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tracing-subscriber",
+ "url",
  "wiremock",
  "zeroize",
 ]

@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.onboarding.components
+package net.nymtech.nymvpn.ui.screens.welcome.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

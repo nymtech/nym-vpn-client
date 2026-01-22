@@ -36,8 +36,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	var splashFinished by remember { mutableStateOf(false) }
 	val isAppReady by appViewModel.isAppReady.collectAsStateWithLifecycle()
 
-	LaunchedEffect(composition) {
-		appViewModel.onAppStartup()
+	LaunchedEffect(Unit) {
 		delay(3000)
 		splashFinished = true
 	}
@@ -47,7 +46,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 			if (appUiState.managerState.isMnemonicStored) {
 				navController.navigateAndForget(Route.Main())
 			} else {
-				navController.navigateAndForget(Route.Onboarding)
+				navController.navigateAndForget(Route.Welcome)
 			}
 		}
 	}

@@ -65,6 +65,14 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_lewes_protocol(&self, enable_lewes_protocol: bool) -> Result<()> {
+        self.inner
+            .clone()
+            .set_enable_lewes_protocol(enable_lewes_protocol)
+            .await?;
+        Ok(())
+    }
+
     pub async fn set_netstack(&self, netstack: bool) -> Result<()> {
         self.inner.clone().set_netstack(netstack).await?;
         Ok(())

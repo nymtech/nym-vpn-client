@@ -5,7 +5,7 @@ function Speed() {
   const { t } = useTranslation('onboarding');
   return (
     <div className="flex flex-col items-center gap-4">
-      <SpeedAsset className="h-full max-h-72 w-fit" />
+      <SpeedAsset className="h-full max-h-64 w-fit" />
       <h1 className="text-2xl text-center whitespace-pre-line text-baltic-sea dark:text-white">
         {t('speed.title')}
       </h1>

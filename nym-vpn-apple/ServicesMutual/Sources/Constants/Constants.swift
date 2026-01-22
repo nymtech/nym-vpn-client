@@ -4,6 +4,7 @@ public enum Constants: String {
     case groupID = "group.net.nymtech.vpn"
     case domainName = "nym.com"
     case username = "nym-passphrase"
+    case appUrlScheme = "nymvpn"
 
     case supportURL = "https://support.nym.com/hc"
     case serverLocationURL = "https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN"

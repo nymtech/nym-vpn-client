@@ -33,6 +33,7 @@ pub struct VpnServiceConfig {
     pub disable_ipv6: bool,
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
+    pub enable_lewes_protocol: bool,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -51,8 +52,12 @@ impl fmt::Display for VpnServiceConfig {
         )?;
         writeln!(
             f,
-            "allow_lan: {}, disable_ipv6: {}, enable_two_hop: {}, netstack: {}",
-            self.allow_lan, self.disable_ipv6, self.enable_two_hop, self.netstack
+            "allow_lan: {}, disable_ipv6: {}, enable_two_hop: {}, enable_lewes_protocol: {}, netstack: {}",
+            self.allow_lan,
+            self.disable_ipv6,
+            self.enable_two_hop,
+            self.enable_lewes_protocol,
+            self.netstack
         )?;
         writeln!(
             f,
@@ -90,6 +95,7 @@ impl Default for VpnServiceConfig {
             disable_ipv6: false,
             enable_two_hop: true,
             enable_bridges: false,
+            enable_lewes_protocol: false,
             netstack: false,
             min_gateway_vpn_performance: None,
             residential_exit: false,
@@ -213,8 +219,8 @@ pub enum TargetState {
     Secured,
 }
 
-impl std::fmt::Display for TargetState {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for TargetState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
             TargetState::Unsecured => "Unsecured",
             TargetState::Secured => "Secured",
