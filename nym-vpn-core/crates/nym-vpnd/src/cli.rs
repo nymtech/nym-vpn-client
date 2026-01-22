@@ -52,10 +52,6 @@ impl CliArgs {
     pub fn is_run_as_service(&self) -> bool {
         matches!(self.command, Some(Command::RunAsService))
     }
-
-    pub fn is_json_output(&self) -> bool {
-        self.json_output
-    }
 }
 
 #[derive(Debug, Copy, Clone, Default, Subcommand)]

@@ -85,7 +85,7 @@ async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
         verbosity_level: args.verbosity_level(),
         enable_file_log: run_as_service,
         enable_stdout_log: !run_as_service,
-        enable_json_log: args.is_json_output() || run_as_service,
+        enable_json_log: args.json_output || run_as_service,
         sentry: sentry_enabled,
     };
     let logging_setup =
