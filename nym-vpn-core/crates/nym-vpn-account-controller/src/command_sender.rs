@@ -216,6 +216,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
+    #[instrument]
     pub async fn set_resolver_overrides(
         &self,
         resolver_overrides: Option<ResolverOverrides>,
