@@ -9,6 +9,7 @@ import {
   isWireguardData,
 } from '../../../types';
 import NetworkEnvSelect from './NetworkEnvSelect';
+import LewesProtocolSwitch from './LewesProtocolSwitch';
 
 function Dev() {
   const { daemonStatus, networkEnv, tunnel, state } = useMainState();
@@ -89,6 +90,7 @@ function Dev() {
       className="h-full flex flex-col py-6 gap-6 select-none cursor-default"
       data-testid="dev-page"
     >
+      <LewesProtocolSwitch />
       {daemonStatus !== 'down' && networkEnv && (
         <NetworkEnvSelect current={networkEnv} />
       )}

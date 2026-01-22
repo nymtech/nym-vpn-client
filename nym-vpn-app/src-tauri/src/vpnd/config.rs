@@ -21,6 +21,7 @@ pub struct VpndConfig {
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
+    pub enable_lewes_protocol: bool,
     //pub mixnet_traffic: lib::MixnetTrafficConfig,
 }
 
@@ -44,6 +45,7 @@ impl VpndConfig {
             netstack: config.netstack,
             min_gateway_vpn_performance: config.min_gateway_vpn_performance,
             residential_exit: config.residential_exit,
+            enable_lewes_protocol: config.enable_lewes_protocol,
             //mixnet_traffic: config.mixnet_traffic,
         })
     }

@@ -39,6 +39,7 @@ export type InitState = {
   allowLan: boolean;
   customDnsEnabled: boolean;
   customDns: string[];
+  enableLewesProtocol: boolean;
 };
 
 export type AppState = {
@@ -93,4 +94,5 @@ export type AppState = {
   customDnsEnabled: boolean;
   customDns: string[];
   defaultDns: string[];
+  enableLewesProtocol: boolean;
 };
