@@ -33,6 +33,7 @@ const defaultVpnMode = window._APP.defaultVpnMode;
 const defaultQuic = window._APP.defaultQuic;
 const defaultNoIpv6 = false;
 const defaultAllowLan = false;
+const defaultEnableLewesProtocol = false;
 const ErrorWindowLabel = 'error';
 
 if (!import.meta.env.DEV) {
@@ -98,6 +99,10 @@ dayjs.extend(duration);
     customDnsEnabled:
       config?.enableCustomDns !== undefined ? config.enableCustomDns : false,
     customDns: !config?.customDns ? [] : config.customDns,
+    enableLewesProtocol:
+      config?.enableLewesProtocol !== undefined
+        ? config.enableLewesProtocol
+        : defaultEnableLewesProtocol,
   };
   console.log('initial state:', initState);
 
