@@ -6,8 +6,8 @@ use tauri::{AppHandle, State};
 use tauri_plugin_dialog::DialogExt;
 use tracing::{debug, error, info, instrument, warn};
 use walkdir::WalkDir;
-use zip::write::FileOptions;
 use zip::ZipWriter;
+use zip::write::FileOptions;
 
 use crate::commands::daemon::DEFAULT_VPND_LOG_DIR;
 use crate::error::BackendError;
@@ -17,7 +17,6 @@ use crate::vpnd::client::{VpndClient, VpndStatus};
 
 const ZIP_APP_LOGS_PREFIX: &str = "app-logs";
 const ZIP_VPND_LOGS_PREFIX: &str = "vpnd-logs";
-
 
 #[instrument]
 #[tauri::command]

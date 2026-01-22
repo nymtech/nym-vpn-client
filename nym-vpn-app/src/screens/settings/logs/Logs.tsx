@@ -10,7 +10,6 @@ function Logs() {
   const handleAppLogs = async () => {
     try {
       const dir = await invoke<string | undefined>('log_dir');
-      console.log("app logs dir", dir);
       if (dir) {
         await openPath(dir);
       }
@@ -22,7 +21,6 @@ function Logs() {
   const handleDaemonLogs = async () => {
     try {
       const dir = await invoke<string | undefined>('vpnd_log_dir');
-      console.log('daemon logs dir', dir);
       if (dir) {
         await openPath(dir);
       }

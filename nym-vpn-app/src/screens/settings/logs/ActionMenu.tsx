@@ -169,12 +169,10 @@ function ActionMenu() {
             <Menu.Popup
               className={clsx(
                 'origin-(--transform-origin) rounded-md text-gray-900 shadow-lg shadow-gray-200 outline transition-[transform,scale,opacity] data-ending-style:scale-90 data-ending-style:opacity-0 data-starting-style:scale-90 data-starting-style:opacity-0',
-                // dark theme
                 uiTheme === 'dark' &&
-                'bg-charcoal shadow-none -outline-offset-1  text-white outline-iron',
-                // light theme
+                  'bg-charcoal shadow-none -outline-offset-1  text-white outline-iron',
                 uiTheme === 'light' &&
-                'bg-white text-iron outline-faded-lavender',
+                  'bg-white text-iron outline-faded-lavender',
               )}
             >
               <MenuItem
