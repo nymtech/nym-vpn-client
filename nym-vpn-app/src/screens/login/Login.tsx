@@ -80,7 +80,7 @@ function Login() {
       />
       <h1 className="text-2xl mt-12">{t('title')}</h1>
 
-      <div className="py-0 w-full flex flex-col gap-3">
+      <div className="w-full flex flex-col gap-3">
         <div className="w-full">
           <p className="mb-8 text-left text-iron dark:text-bombay w-11/12">
             {t('description')}
@@ -121,7 +121,7 @@ function Login() {
             className={clsx(
               'h-14',
               daemonStatus === 'down' &&
-                'opacity-50 disabled:opacity-50 hover:opacity-50',
+              'opacity-50 disabled:opacity-50 hover:opacity-50',
             )}
             spinner={loading}
             data-testid="login-submit-button"
