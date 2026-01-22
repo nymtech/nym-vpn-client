@@ -817,15 +817,15 @@ impl VpndClient {
     }
 
     #[instrument(skip_all)]
-    pub async fn get_deep_link(&self) -> Result<Option<String>, VpndError> {
+    pub async fn get_deep_link(&self, locale: String) -> Result<Option<String>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let deeplink = vpnd
             .get_deeplink(lib::GetDeeplinkParams {
                 client: lib::DeeplinkClient::Desktop,
-                locale: "en".to_string(),
+                locale: locale,
                 kind: lib::DeeplinkKind::Privy,
-                name: "test".to_string(),
+                name: "default".to_string(),
             })
             .or_else(async |e| self.handle_rpc_error("get_deeplink", e).await)
             .await?;

@@ -7,7 +7,7 @@ import { Button, ButtonText, Link, MsIcon, PageAnim } from '../../ui';
 import { useMainState } from '../../contexts';
 import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
-import { PrivyButton } from '../../components/privy';
+import { PrivyButton } from '../../components';
 
 function Login() {
   const { uiTheme, backendFlags } = useMainState();
@@ -33,7 +33,7 @@ function Login() {
             }}
             className="mt-4"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 whitespace-pre-wrap">
               {t('signup.create-account')} <MsIcon icon="open_in_new" />
             </div>
           </Button>

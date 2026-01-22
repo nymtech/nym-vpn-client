@@ -12,6 +12,7 @@ import { Button, Link, PageAnim, TextArea } from '../../ui';
 import { CCache } from '../../cache';
 import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { NymSplash } from '../../assets/index';
+import { PrivyButton } from '../../components';
 
 type AddError = {
   error: string;
@@ -23,7 +24,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AddError | null>(null);
 
-  const { daemonStatus, state, welcomeChecked, uiTheme } = useMainState();
+  const { daemonStatus, state, welcomeChecked, uiTheme, backendFlags } = useMainState();
 
   const navigate = useNavigate();
   const { t } = useTranslation('add-credential');
@@ -78,7 +79,7 @@ function Login() {
       />
       <h1 className="text-2xl mt-12">{t('title')}</h1>
 
-      <div className="py-6 w-full flex flex-col gap-3">
+      <div className="py-0 w-full flex flex-col gap-3">
         <div className="w-full">
           <p className="mb-8 text-left text-iron dark:text-bombay w-11/12">
             {t('description')}
@@ -119,15 +120,16 @@ function Login() {
             className={clsx(
               'h-14',
               daemonStatus === 'down' &&
-                'opacity-50 disabled:opacity-50 hover:opacity-50',
+              'opacity-50 disabled:opacity-50 hover:opacity-50',
             )}
             spinner={loading}
             data-testid="login-submit-button"
           >
             {t('login-button')}
           </Button>
+          {backendFlags.privy && <PrivyButton />}
           <div
-            className="flex flex-row justify-center items-center gap-2"
+            className="text-sm flex flex-row justify-center items-center gap-2"
             data-testid="login-create-account-section"
           >
             <span

@@ -130,8 +130,8 @@ pub async fn get_device_id(vpnd: State<'_, VpndClient>) -> Result<Option<String>
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_deep_link(vpnd: State<'_, VpndClient>) -> Result<Option<String>, BackendError> {
-    vpnd.get_deep_link().await.map_err(|e| {
+pub async fn get_deep_link(vpnd: State<'_, VpndClient>, locale: String) -> Result<Option<String>, BackendError> {
+    vpnd.get_deep_link(locale).await.map_err(|e| {
         error!("failed to get deep link: {e}");
         e.into()
     })

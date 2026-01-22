@@ -19,7 +19,8 @@
       "button": "Log in with 24-word passphrase"
     },
     "error": {
-      "login": "Failed to login using social account"
+      "login": "Failed to login using social account",
+      "timeout": "Login timed out"
     }
   },
   "signup": {

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
-const PRIVY_DEEPLINK_URL = 'nymvpn://signin/';
+const PRIVY_DEEPLINK_URL = 'nymvpn://auth/privy/privateKey';
 
 export const useDeepLink = () => {
   const unlistenRef = useRef<(() => void) | null>(null);

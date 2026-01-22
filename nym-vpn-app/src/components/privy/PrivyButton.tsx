@@ -2,28 +2,30 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { Button } from '../../ui';
-import { useInAppNotify } from '../../contexts';
+import { useNavigate } from 'react-router';
+import { Button, MsIcon } from '../../ui';
+import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useDeepLink } from '../../hooks/useDeepLink';
+import { routes } from '../../router';
+import { CCache } from '../../cache';
+import { StateDispatch } from '../../types';
 
 function PrivyButton() {
-  const { t } = useTranslation('login');
+  const { t, i18n } = useTranslation('login');
+
   const { push } = useInAppNotify();
   const { startListening } = useDeepLink();
+  const { welcomeChecked } = useMainState();
+  const navigate = useNavigate();
+  const dispatch = useMainDispatch() as StateDispatch;
 
   const [loading, setLoading] = useState(false);
 
   const handlePrivy = async () => {
     setLoading(true);
 
-    // TODO: Open nym.com login page. Most probably the url will come from backend
-    // openUrl('https://nym.com/account/login');
-
-    // ------------------------------------------------------------
-    const loginUrl = await invoke<string>('get_deep_link');
-    console.log('Login URL: ', loginUrl);
+    const loginUrl = await invoke<string>('get_deep_link', { locale: i18n.language });
     openUrl(loginUrl);
-    // ------------------------------------------------------------
 
     try {
       const deeplinkurl = await Promise.race([
@@ -33,24 +35,39 @@ function PrivyButton() {
         ),
       ]);
 
-      console.log('Received deep link: ', deeplinkurl);
 
-      // ------------------------------------------------------------
-      const result = await invoke('store_deeplink_account', {
-        callback_url: deeplinkurl,
+      await invoke('store_deeplink_account', {
+        callbackUrl: deeplinkurl,
       });
-      console.log('result: ', result);
-      // ------------------------------------------------------------
 
-      // TODO: Validate deep link and invoke('add_account')
+      if (!welcomeChecked) {
+        navigate(routes.welcome);
+      } else {
+        navigate(routes.root);
+      }
+
+      dispatch({ type: 'set-account', stored: true });
+      await CCache.del('cache-account-id');
+      await CCache.del('cache-device-id');
+      dispatch({ type: 'reset-error' });
+
     } catch (error) {
-      console.error('Login timeout: ', error);
-      push({
-        message: 'Login timeout',
-        type: 'error',
-        duration: 3000,
-        close: true,
-      });
+      console.error('Privy login error: ', error);
+      if (error instanceof Error && error.message === 'Login timeout') {
+        push({
+          message: t('privy.error.timeout'),
+          type: 'error',
+          duration: 3000,
+          close: true,
+        });
+      } else {
+        push({
+          message: t('privy.error.login'),
+          type: 'error',
+          duration: 3000,
+          close: true,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -64,8 +81,8 @@ function PrivyButton() {
       className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
       spinner={loading}
     >
-      <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-        {t('privy.login-button')}
+      <span className="flex items-center gap-2 whitespace-pre-wrap text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
+        {t('privy.login-button')} <MsIcon icon="open_in_new" />
       </span>
     </Button>
   );
