@@ -17,7 +17,7 @@ use super::{
 use anyhow::Result;
 use futures::future::TryFutureExt;
 use lib::UserAgent;
-use nym_vpn_lib_types as lib;
+use nym_vpn_lib_types::{self as lib, AccountCommandResponse};
 use nym_vpn_proto::rpc_client::RpcClient;
 use std::{
     env::consts::{ARCH, OS},
@@ -815,4 +815,38 @@ impl VpndClient {
 
         Ok(message.message)
     }
+
+    #[instrument(skip_all)]
+    pub async fn get_deep_link(&self) -> Result<Option<String>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let deeplink = vpnd
+            .get_deeplink(lib::GetDeeplinkParams {
+                client: lib::DeeplinkClient::Desktop,
+                locale: "en".to_string(),
+                kind: lib::DeeplinkKind::Privy,
+                name: "test".to_string(),
+            })
+            .or_else(async |e| self.handle_rpc_error("get_deeplink", e).await)
+            .await?;
+
+        Ok(Some(deeplink))
+    }
+
+    #[instrument(skip_all)]
+    pub async fn store_deeplink_account(&self, callback_url: String) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let response: AccountCommandResponse = vpnd
+            .deeplink_store_account(callback_url)
+            .or_else(async |e| self.handle_rpc_error("deeplink_store_account", e).await)
+            .await?;
+
+        if let Some(error) = response.error.map(BackendError::from) {
+            Err(VpndError::Response(error))
+        } else {
+            Ok(())
+        }
+    }
+
 }

@@ -1,6 +1,7 @@
-// import { openUrl } from "@tauri-apps/plugin-opener";
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
 import { Button } from '../../ui';
 import { useInAppNotify } from '../../contexts';
 import { useDeepLink } from '../../hooks/useDeepLink';
@@ -18,6 +19,12 @@ function PrivyButton() {
     // TODO: Open nym.com login page. Most probably the url will come from backend
     // openUrl('https://nym.com/account/login');
 
+    // ------------------------------------------------------------
+    const loginUrl = await invoke<string>('get_deep_link');
+    console.log('Login URL: ', loginUrl);
+    openUrl(loginUrl);
+    // ------------------------------------------------------------
+
     try {
       const deeplinkurl = await Promise.race([
         startListening(),
@@ -27,6 +34,14 @@ function PrivyButton() {
       ]);
 
       console.log('Received deep link: ', deeplinkurl);
+
+      // ------------------------------------------------------------
+      const result = await invoke('store_deeplink_account', {
+        callback_url: deeplinkurl,
+      });
+      console.log('result: ', result);
+      // ------------------------------------------------------------
+
       // TODO: Validate deep link and invoke('add_account')
     } catch (error) {
       console.error('Login timeout: ', error);
@@ -40,6 +55,7 @@ function PrivyButton() {
       setLoading(false);
     }
   };
+
   return (
     <Button
       outline
