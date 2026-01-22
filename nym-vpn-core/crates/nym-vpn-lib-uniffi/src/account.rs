@@ -345,7 +345,6 @@ pub(crate) mod raw {
     use std::path::Path;
 
     use super::*;
-    use crate::environment;
     use nym_common::ErrorExt;
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_api_client::{
