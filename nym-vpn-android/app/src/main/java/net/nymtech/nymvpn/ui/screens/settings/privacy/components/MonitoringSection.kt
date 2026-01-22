@@ -76,7 +76,7 @@ fun MonitoringSection(sentryEnabled: Boolean, onMonitoringEnable: (enabled: Bool
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				modifier = Modifier
 					.fillMaxWidth()
-					.padding(top = 16.dp),
+					.padding(top = 8.dp),
 				textAlign = TextAlign.Justify,
 			)
 

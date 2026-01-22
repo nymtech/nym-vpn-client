@@ -26,7 +26,8 @@ import net.nymtech.vpn.model.BackendEvent
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.model.SettingsConfig
 import net.nymtech.vpn.util.Constants
-import net.nymtech.vpn.util.Constants.LOG_LEVEL
+import net.nymtech.vpn.util.Constants.LOG_LEVEL_DEBUG
+import net.nymtech.vpn.util.Constants.LOG_LEVEL_INFO
 import net.nymtech.vpn.util.exceptions.BackendException
 import net.nymtech.vpn.util.extensions.asTunnelState
 import net.nymtech.vpn.util.extensions.startServiceByClass
@@ -89,10 +90,11 @@ class NymBackend private constructor(private val context: Context) :
 		@Volatile
 		var instance: Backend? = null
 
-		fun getInstance(context: Context, environment: Tunnel.Environment, config: SettingsConfig, userAgent: UserAgent): Backend {
+		fun getInstance(context: Context, environment: Tunnel.Environment, config: SettingsConfig, userAgent: UserAgent, isDebugEnabled: Boolean = true): Backend {
 			return instance ?: synchronized(this) {
 				instance ?: NymBackend(context).also {
 					instance = it
+					it.logLevel = if (isDebugEnabled) LOG_LEVEL_DEBUG else LOG_LEVEL_INFO
 					it.init(environment, config, userAgent)
 				}
 			}
@@ -111,6 +113,7 @@ class NymBackend private constructor(private val context: Context) :
 	private lateinit var settingConfig: NymVpnLibConfig
 	private var cachedEntryGateways: List<NymGateway>? = null
 	private var cachedExitGateways: List<NymGateway>? = null
+	private var logLevel: String = LOG_LEVEL_INFO
 
 	@get:Synchronized
 	@set:Synchronized
@@ -151,12 +154,12 @@ class NymBackend private constructor(private val context: Context) :
 				environment.networkName(),
 				config.sentryMonitoringEnabled,
 				config.statisticsEnabled,
-				LOG_LEVEL,
+				logLevel,
 			)
 
 			startNetworkMonitorJob()
 
-			initLogger(storagePath, LOG_LEVEL, config.sentryMonitoringEnabled)
+			initLogger(storagePath, logLevel, config.sentryMonitoringEnabled)
 
 			initEnvironment(environment)
 			configureLib(config, userAgent)

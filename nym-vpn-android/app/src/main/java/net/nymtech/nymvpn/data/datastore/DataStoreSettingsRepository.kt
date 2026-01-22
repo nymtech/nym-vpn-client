@@ -40,6 +40,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val customDnsEnabled = booleanPreferencesKey("CUSTOM_DNS_ENABLED")
 
 	private val customDnsList = stringPreferencesKey("CUSTOM_DNS_LIST")
+	private val logsEnabled = booleanPreferencesKey("LOGS_ENABLED")
+	private val LogsDebugEnabled = booleanPreferencesKey("LOGS_DEBUG_ENABLED")
 
 	override suspend fun setEntryPoint(entry: EntryPoint) {
 		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
@@ -236,6 +238,22 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 			.take(5)
 	}
 
+	override suspend fun getLogsEnabled(): Boolean {
+		return dataStoreManager.getFromStore(logsEnabled) ?: Settings.DEFAULT_LOGS_ENABLED
+	}
+
+	override suspend fun setLogsEnabled(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(this.logsEnabled, enabled)
+	}
+
+	override suspend fun getLogsDebugEnabled(): Boolean {
+		return dataStoreManager.getFromStore(LogsDebugEnabled) ?: Settings.DEFAULT_LOGS_DEBUG_ENABLED
+	}
+
+	override suspend fun setLogsDebugEnabled(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(this.LogsDebugEnabled, enabled)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -266,6 +284,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						isStreamingServerBannerDisplayed = pref[isStreamingServerBannerDisplayed] ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 						isPerAppSecurityBannerDisplayed = pref[isPerAppSecurityBannerDisplayed] ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 						customDnsEnabled = pref[customDnsEnabled] ?: Settings.DEFAULT_CUSTOM_DNS_ENABLED,
+						logsEnabled = pref[logsEnabled] ?: Settings.DEFAULT_LOGS_ENABLED,
+						logsDebugEnabled = pref[LogsDebugEnabled] ?: Settings.DEFAULT_LOGS_DEBUG_ENABLED,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

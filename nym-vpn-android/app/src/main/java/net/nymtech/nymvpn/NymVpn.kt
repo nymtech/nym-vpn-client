@@ -3,6 +3,7 @@ package net.nymtech.nymvpn
 import android.app.Application
 import android.os.Build
 import android.os.StrictMode
+import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -14,8 +15,11 @@ import io.sentry.SentryOptions
 import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogReader
@@ -27,6 +31,8 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.util.GraphicsFallback
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
+import net.nymtech.nymvpn.util.timber.FilteringTree
+import net.nymtech.nymvpn.util.timber.NoLogTree
 import net.nymtech.nymvpn.util.timber.ReleaseTree
 import net.nymtech.vpn.backend.NymBackend
 import timber.log.Timber
@@ -76,6 +82,17 @@ class NymVpn : Application() {
 	@Inject
 	lateinit var logReader: LogReader
 
+	@Volatile
+	private var logsEnabled: Boolean = true
+
+	@Volatile
+	private var logsDebugEnabled: Boolean = false
+
+	@Volatile
+	private var logReaderStarted: Boolean = false
+
+	private var logsObserverJob: Job? = null
+
 	override fun onCreate() {
 		GraphicsFallback.applyIfNeeded()
 		super.onCreate()
@@ -83,23 +100,22 @@ class NymVpn : Application() {
 		instance = this
 		AppLifecycleObserver.init()
 
-		if (BuildConfig.DEBUG) {
-			Timber.plant(DebugTree())
-			enableStrictMode()
-			Timber.tag(TAG).i("AppCreate build=debug")
-		} else {
-			Timber.plant(ReleaseTree())
-			Timber.tag(TAG).i("AppCreate build=release")
+		Timber.plant(NoLogTree())
+
+		logsObserverJob?.cancel()
+		logsObserverJob = applicationScope.launch(ioDispatcher) {
+			settingsRepository.settingsFlow
+				.map { it.logsEnabled to it.logsDebugEnabled }
+				.distinctUntilChanged()
+				.collect { (enabled, debugEnabled) ->
+					applyLoggingConfig(enabled, debugEnabled)
+					if (enabled) {
+						ensureLogReaderStarted()
+					}
+				}
 		}
 
 		applicationScope.launch(ioDispatcher) {
-			runCatching {
-				logReader.start()
-				Timber.tag(TAG).d("LogReaderStarted")
-			}.onFailure { t ->
-				Timber.tag(TAG).w(t, "LogReaderStartFailed")
-			}
-
 			runCatching {
 				backendManager.initialize()
 				Timber.tag(TAG).i("BackendManagerInitializeRequested")
@@ -145,6 +161,30 @@ class NymVpn : Application() {
 		}
 	}
 
+	private fun applyLoggingConfig(enabled: Boolean, debugEnabled: Boolean) {
+		logsEnabled = enabled
+		logsDebugEnabled = debugEnabled
+
+		Timber.uprootAll()
+
+		if (!enabled) {
+			Timber.plant(NoLogTree())
+			disableStrictModeLoggingIfNeeded()
+			return
+		}
+
+		val minPriority = if (debugEnabled) Log.DEBUG else Log.INFO
+
+		if (BuildConfig.DEBUG) {
+			Timber.plant(FilteringTree(minPriority, DebugTree()))
+			enableStrictMode()
+			Timber.tag(TAG).i("LoggingEnabled build=debug minPriority=$minPriority")
+		} else {
+			Timber.plant(FilteringTree(minPriority, ReleaseTree()))
+			Timber.tag(TAG).i("LoggingEnabled build=release minPriority=$minPriority")
+		}
+	}
+
 	private fun enableStrictMode() {
 		val builder = StrictMode.VmPolicy.Builder()
 		StrictMode.setThreadPolicy(
@@ -158,9 +198,28 @@ class NymVpn : Application() {
 		StrictMode.setVmPolicy(builder.build())
 	}
 
+	private fun disableStrictModeLoggingIfNeeded() {
+		if (!BuildConfig.DEBUG) return
+		StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.LAX)
+		StrictMode.setVmPolicy(StrictMode.VmPolicy.LAX)
+	}
+
+	private suspend fun ensureLogReaderStarted() {
+		if (logReaderStarted) return
+
+		runCatching {
+			logReader.start()
+			logReaderStarted = true
+			Timber.tag(TAG).d("LogReaderStarted")
+		}.onFailure { t ->
+			Timber.tag(TAG).w(t, "LogReaderStartFailed")
+		}
+	}
+
 	private fun initSentry() {
 		SentryAndroid.init(this) { options ->
-			options.dsn = "https://cf027ef57330e976438c2cbbe1903868@o967446.ingest.us.sentry.io/4506859434082304"
+			options.dsn =
+				"https://cf027ef57330e976438c2cbbe1903868@o967446.ingest.us.sentry.io/4506859434082304"
 
 			val sampleRate: Double
 			val sessionSampleRate: Double

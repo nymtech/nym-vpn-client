@@ -55,8 +55,11 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.hop.components.CountryItem
+import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
+import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsTrailingContent
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -64,6 +67,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isQuicSupported
+import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -74,12 +78,53 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewModel: HopViewModel = hiltViewModel()) {
+fun HopScreen(
+	gatewayLocation: GatewayLocation,
+	appUiState: AppUiState,
+	navBarEvent: NavBarEvent?,
+	onNavBarEventConsumed: () -> Unit,
+	viewModel: HopViewModel = hiltViewModel(),
+) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
+	val context = androidx.compose.ui.platform.LocalContext.current
 
 	var refreshing by remember { mutableStateOf(false) }
 	val pullRefreshState = rememberPullToRefreshState()
+
+	var showLocationTooltip by remember { mutableStateOf(false) }
+	var showExitServerTooltip by remember { mutableStateOf(false) }
+
+	LaunchedEffect(navBarEvent, gatewayLocation) {
+		when (navBarEvent) {
+			NavBarEvent.EntryLocationInfoClicked -> {
+				if (gatewayLocation == GatewayLocation.ENTRY) {
+					showLocationTooltip = true
+					onNavBarEventConsumed()
+				}
+			}
+			NavBarEvent.ExitLocationInfoClicked -> {
+				if (gatewayLocation == GatewayLocation.EXIT) {
+					showExitServerTooltip = true
+					onNavBarEventConsumed()
+				}
+			}
+			else -> Unit
+		}
+	}
+
+	// Moved from NavBar → owned by this screen
+	ServerDetailsModalBody(
+		showLocationTooltip = showLocationTooltip,
+		onClick = { context.openWebUrl(context.getString(R.string.location_support_link)) },
+		onDismiss = { showLocationTooltip = false },
+	)
+
+	ExitServerDetailsModal(
+		showModal = showExitServerTooltip,
+		onClick = { context.openWebUrl(it) },
+		onDismiss = { showExitServerTooltip = false },
+	)
 
 	val gatewayType = remember {
 		when (appUiState.settings.vpnMode) {
@@ -279,6 +324,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 						val gateway = item.gateway
 						val locale = gateway.twoLetterCountryISO?.let { Locale("", it) }
 						val showStreamDisplay = gatewayLocation == GatewayLocation.EXIT && gateway.asnKind == AsnKind.RESIDENTIAL
+
 						SurfaceSelectionGroupButton(
 							items = listOf(
 								SelectionItem(
@@ -289,11 +335,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 									leading = {
 										val (icon, description) = gateway.getScoreIcon(gatewayType)
 										Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-											Image(
-												icon,
-												contentDescription = description,
-												modifier = Modifier.size(16.dp),
-											)
+											Image(icon, contentDescription = description, modifier = Modifier.size(16.dp))
 										}
 									},
 									trailing = {
@@ -327,8 +369,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, viewMode
 							background = MaterialTheme.colorScheme.background,
 							divider = false,
 							anchorsPadding = 0.dp,
-							modifier = Modifier
-								.padding(top = if (uiState.items.indexOf(item) == 0) 24.dp.scaledHeight() else 0.dp),
+							modifier = Modifier.padding(top = if (uiState.items.indexOf(item) == 0) 24.dp.scaledHeight() else 0.dp),
 						)
 					}
 				}
@@ -349,12 +390,8 @@ internal fun QuicInfoMessage(onNavigateToQuicSettings: () -> Unit) {
 			),
 		) {
 			withLink(
-				LinkAnnotation.Clickable("quic", linkInteractionListener = {
-					onNavigateToQuicSettings()
-				}),
-			) {
-				append(stringResource(R.string.here))
-			}
+				LinkAnnotation.Clickable("quic", linkInteractionListener = { onNavigateToQuicSettings() }),
+			) { append(stringResource(R.string.here)) }
 		}
 		append(".")
 	}

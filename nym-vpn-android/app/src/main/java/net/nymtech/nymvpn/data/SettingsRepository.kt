@@ -87,5 +87,13 @@ interface SettingsRepository {
 	suspend fun saveDnsList(list: List<String>)
 	suspend fun getDnsList(): List<String>
 
+	suspend fun getLogsEnabled(): Boolean
+
+	suspend fun setLogsEnabled(enabled: Boolean)
+
+	suspend fun getLogsDebugEnabled(): Boolean
+
+	suspend fun setLogsDebugEnabled(enabled: Boolean)
+
 	val settingsFlow: Flow<Settings>
 }

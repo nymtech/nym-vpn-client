@@ -147,7 +147,7 @@ class NymBackendManager @Inject constructor(
 			)
 
 			val nymBackend = withContext(mainDispatcher) {
-				NymBackend.getInstance(context, env, settingsConfig, context.toUserAgent())
+				NymBackend.getInstance(context, env, settingsConfig, context.toUserAgent(), settingsRepository.getLogsDebugEnabled())
 			}
 
 			backend.complete(nymBackend)

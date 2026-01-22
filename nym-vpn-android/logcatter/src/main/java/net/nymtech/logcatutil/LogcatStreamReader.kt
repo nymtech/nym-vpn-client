@@ -14,29 +14,42 @@ class LogcatStreamReader(
 	private val pid: Int,
 	private val fileManager: LogFileManager,
 ) {
+	companion object {
+		private const val TAG = "logcat-reader"
+	}
+
 	private val bufferSize = 1024
 	private var process: Process? = null
 	private var reader: BufferedReader? = null
-	private val command = "logcat -v epoch | grep \"($pid)\""
-	private val clearCommand = "logcat -c"
 
-	private var fallbackToTimber = false
+	private fun buildCommand(): Array<String> = arrayOf("logcat", "--pid=$pid", "-v", "threadtime")
+
+	private val clearCommand = arrayOf("logcat", "-c")
+
+	@Suppress("MemberVisibilityCanBePrivate")
+	var fallbackToTimber: Boolean = false
+		private set
 
 	private val ioDispatcher = Dispatchers.IO
 
 	fun readLogs(): Flow<LogMessage> = flow {
+		runCatching { clearLogs() }
+			.onFailure { Timber.tag(TAG).w(it, "LogcatClearFailed") }
+
 		try {
-			clearLogs()
-			process = Runtime.getRuntime().exec(command)
+			process = Runtime.getRuntime().exec(buildCommand())
 			reader = BufferedReader(InputStreamReader(process!!.inputStream), bufferSize)
+
 			reader!!.lineSequence().forEach { line ->
-				if (line.isNotEmpty()) {
+				if (line.isNotBlank()) {
 					fileManager.writeLog(line)
 					emit(LogMessage.from(line))
 				}
 			}
+
+			Timber.tag(TAG).d("LogcatStreamEnded")
 		} catch (e: IOException) {
-			Timber.e(e, "LogcatStreamReader failed, fallback to Timber")
+			Timber.tag(TAG).w(e, "LogcatStreamFailedFallbackToTimber")
 			fallbackToTimber = true
 			emitFallbackLogs { emit(it) }
 		} finally {
@@ -45,27 +58,18 @@ class LogcatStreamReader(
 	}.flowOn(ioDispatcher)
 
 	private suspend fun emitFallbackLogs(emit: suspend (LogMessage) -> Unit = {}) {
-		val fallbackMessage = "Logcat is not accessible. Falling back to Timber logs"
-		val log = LogMessage.system(fallbackMessage)
+		val log = LogMessage.system("Logcat is not accessible. Falling back to Timber logs")
 		fileManager.writeLog(log.toString())
 		emit(log)
 	}
 
-	fun start() {
-		if (process == null && !fallbackToTimber) {
-			try {
-				process = Runtime.getRuntime().exec(command)
-				reader = BufferedReader(InputStreamReader(process!!.inputStream), bufferSize)
-			} catch (e: IOException) {
-				Timber.e(e, "Failed to start logcat process")
-				fallbackToTimber = true
-			}
-		}
-	}
-
 	fun stop() {
-		process?.destroy()
-		reader?.close()
+		runCatching { process?.destroy() }
+			.onFailure { Timber.tag(TAG).w(it, "LogcatProcessDestroyFailed") }
+
+		runCatching { reader?.close() }
+			.onFailure { Timber.tag(TAG).w(it, "LogcatReaderCloseFailed") }
+
 		process = null
 		reader = null
 	}
@@ -74,7 +78,7 @@ class LogcatStreamReader(
 		try {
 			Runtime.getRuntime().exec(clearCommand)
 		} catch (e: IOException) {
-			Timber.w(e, "Could not clear logcat logs")
+			Timber.tag(TAG).d(e, "LogcatClearBlocked")
 		}
 	}
 }

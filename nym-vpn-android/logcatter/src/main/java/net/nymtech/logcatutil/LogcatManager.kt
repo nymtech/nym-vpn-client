@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import net.nymtech.logcatutil.model.LogMessage
+import timber.log.Timber
 import java.io.File
 
 class LogcatManager(
@@ -24,28 +25,40 @@ class LogcatManager(
 	maxFileSize: Long,
 	maxFolderSize: Long,
 ) : LogReader, DefaultLifecycleObserver {
+
+	companion object {
+		private const val TAG = "logcat-manager"
+	}
+
 	private val logScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 	private val fileManager = LogFileManager(logDir, maxFileSize, maxFolderSize)
 	private val logcatReader = LogcatStreamReader(pid, fileManager)
 	private var logJob: Job? = null
 	private var isStarted = false
 
-	private val _bufferedLogsNative = MutableSharedFlow<LogMessage>(
+	private val tunnelTags = setOf("core-backend", "core-vpn")
+	private fun isLibrary(tag: String): Boolean = tag.contains("libnymvpn", ignoreCase = true)
+	private fun isTunnel(tag: String): Boolean = tag in tunnelTags
+
+	private val _bufferedLogsApp = MutableSharedFlow<LogMessage>(
+		replay = 10_000,
+		onBufferOverflow = BufferOverflow.DROP_OLDEST,
+	)
+	private val _bufferedLogsTunnel = MutableSharedFlow<LogMessage>(
+		replay = 10_000,
+		onBufferOverflow = BufferOverflow.DROP_OLDEST,
+	)
+	private val _bufferedLogsLibrary = MutableSharedFlow<LogMessage>(
 		replay = 10_000,
 		onBufferOverflow = BufferOverflow.DROP_OLDEST,
 	)
 
-	private val _bufferedLogsVPN = MutableSharedFlow<LogMessage>(
-		replay = 10_000,
-		onBufferOverflow = BufferOverflow.DROP_OLDEST,
-	)
-
-	override val bufferedLogsNative: Flow<LogMessage> = _bufferedLogsNative.asSharedFlow()
-	override val bufferedLogsVPN: Flow<LogMessage> = _bufferedLogsVPN.asSharedFlow()
+	override val bufferedLogsApp: Flow<LogMessage> = _bufferedLogsApp.asSharedFlow()
+	override val bufferedLogsTunnel: Flow<LogMessage> = _bufferedLogsTunnel.asSharedFlow()
+	override val bufferedLogsLibrary: Flow<LogMessage> = _bufferedLogsLibrary.asSharedFlow()
 
 	override fun onCreate(owner: LifecycleOwner) {
-		// for auto start
-		// start()
+		// start() // optional
 	}
 
 	override fun onDestroy(owner: LifecycleOwner) {
@@ -55,34 +68,65 @@ class LogcatManager(
 
 	override fun start() {
 		if (isStarted) return
+
 		stop()
+
+		Timber.tag(TAG).i("LogcatStart")
+
 		logJob = logScope.launch {
-			logcatReader.readLogs().collect { logMessage ->
-				if (logMessage.tag.contains("libnymvpn")) {
-					_bufferedLogsVPN.emit(logMessage)
-				} else {
-					_bufferedLogsNative.emit(logMessage)
+			runCatching {
+				logcatReader.readLogs().collect { logMessage ->
+					val tag = logMessage.tag
+					when {
+						isLibrary(tag) -> _bufferedLogsLibrary.emit(logMessage)
+						isTunnel(tag) -> _bufferedLogsTunnel.emit(logMessage)
+						else -> _bufferedLogsApp.emit(logMessage)
+					}
 				}
+			}.onFailure { t ->
+				Timber.tag(TAG).e(t, "LogcatCollectFailed")
 			}
 		}
+
 		isStarted = true
 	}
 
 	override fun stop() {
 		if (!isStarted) return
-		logJob?.cancel()
-		logcatReader.stop()
-		fileManager.close()
+
+		Timber.tag(TAG).i("LogcatStop")
+
+		runCatching { logJob?.cancel() }
+			.onFailure { Timber.tag(TAG).w(it, "LogcatJobCancelFailed") }
+
+		runCatching { logcatReader.stop() }
+			.onFailure { Timber.tag(TAG).w(it, "LogcatReaderStopFailed") }
+
+		runCatching { fileManager.close() }
+			.onFailure { Timber.tag(TAG).w(it, "LogcatFileManagerCloseFailed") }
+
+		logJob = null
 		isStarted = false
 	}
 
 	override fun zipLogFiles(path: String) {
+		Timber.tag(TAG).i("LogsZipRequested")
+
 		logScope.launch {
 			val wasStarted = isStarted
-			stop()
-			fileManager.zipLogs(path)
+
+			runCatching {
+				stop()
+				fileManager.zipLogs(path)
+			}.onFailure { t ->
+				Timber.tag(TAG).e(t, "LogsZipFailed")
+			}.onSuccess {
+				Timber.tag(TAG).i("LogsZipSuccess")
+			}
+
 			if (wasStarted) {
-				logcatReader.clearLogs()
+				runCatching { logcatReader.clearLogs() }
+					.onFailure { Timber.tag(TAG).w(it, "LogcatClearFailedAfterZip") }
 				start()
 			}
 		}
@@ -90,29 +134,51 @@ class LogcatManager(
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override suspend fun deleteAndClearLogs() {
+		Timber.tag(TAG).i("LogsDeleteRequested")
+
 		val wasStarted = isStarted
 		stop()
-		_bufferedLogsVPN.resetReplayCache()
-		_bufferedLogsNative.resetReplayCache()
-		fileManager.deleteAllLogs()
+
+		runCatching {
+			_bufferedLogsApp.resetReplayCache()
+			_bufferedLogsTunnel.resetReplayCache()
+			_bufferedLogsLibrary.resetReplayCache()
+			fileManager.deleteAllLogs()
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "LogsDeleteFailed")
+		}.onSuccess {
+			Timber.tag(TAG).i("LogsDeleteSuccess")
+		}
+
 		if (wasStarted) start()
 	}
 
 	override suspend fun downloadFile(resolver: ContentResolver, uri: Uri, temp: File) {
-		logScope.launch {
-			val wasStarted = isStarted
-			stop()
+		Timber.tag(TAG).i("LogsDownloadToUriRequested")
+
+		val wasStarted = isStarted
+		stop()
+
+		runCatching {
 			fileManager.zipLogs(temp.absolutePath)
-			if (wasStarted) {
-				logcatReader.clearLogs()
-				start()
-			}
+
 			resolver.openOutputStream(uri).use { outputStream ->
 				if (outputStream == null) throw IllegalStateException("Failed to get output stream")
 				temp.inputStream().use { inputStream ->
 					inputStream.copyTo(outputStream)
 				}
 			}
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "LogsDownloadToUriFailed")
+			throw t
+		}.onSuccess {
+			Timber.tag(TAG).i("LogsDownloadToUriSuccess")
+		}
+
+		if (wasStarted) {
+			runCatching { logcatReader.clearLogs() }
+				.onFailure { Timber.tag(TAG).w(it, "LogcatClearFailedAfterDownload") }
+			start()
 		}
 	}
 }
