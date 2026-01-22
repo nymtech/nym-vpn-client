@@ -122,6 +122,27 @@ import GRPCManager
         }.value
     }
 
+    public func privyLogin() async throws {
+        let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
+        let name = "default"
+#if os(iOS)
+        let result = try getDeeplink(
+            params: GetDeeplinkParams(
+                client: .mobile,
+                locale: locale,
+                kind: .privy,
+                name: name
+            )
+        )
+        print("PRivy")
+        print(result)
+#elseif os(macOS)
+        let result = try await grpcManager.privyLogin(locale: locale, name: name)
+        print("PRivy")
+        print(result)
+#endif
+    }
+
     /// Group folder, created automatically if does not exists
     /// `/private/var/mobile/Containers/Shared/AppGroup/xxx-xxx-xxx-xxx-xxx/Data/`
     /// - Returns: URL to group data folder

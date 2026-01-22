@@ -27,4 +27,18 @@ extension GRPCManager {
             return (links.account, links.signIn, links.signUp)
         }.value
     }
+
+    public func privyLogin(locale: String, name: String) async throws -> String? {
+        try await Task.detached { [weak self] in
+            try await self?.rpcClient?.getDeeplink(
+                params:
+                    GetDeeplinkParams(
+                        client: .desktop,
+                        locale: locale,
+                        kind: .privy,
+                        name: name
+                    )
+            )
+        }.value
+    }
 }

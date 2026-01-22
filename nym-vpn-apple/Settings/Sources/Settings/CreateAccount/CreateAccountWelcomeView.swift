@@ -1,5 +1,6 @@
 import SwiftUI
 import Constants
+import CredentialsManager
 import ImpactGenerator
 import ExternalLinkManager
 import FeatureFlagsManager
@@ -12,6 +13,8 @@ import Theme
 
 public struct CreateAccountWelcomeView: View {
     private let navigationSource: CreateAccountNavigationSource
+
+    @EnvironmentObject private var credentialsManager: CredentialsManager
 #if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
 #endif
@@ -162,10 +165,11 @@ private extension CreateAccountWelcomeView {
     var privyLoginButton: some View {
         GenericButton(title: "createAccount.continueOnSocial".localizedString, style: .primaryBorderOnly)
             .onTapGesture {
-                // TODO: privy
-                print("TODO: privy")
+                privyLogin()
             }
-            .accessibilityAction {}
+            .accessibilityAction {
+                privyLogin()
+            }
     }
 
     @ViewBuilder var alreadyHaveAnAccount: some View {
@@ -211,6 +215,17 @@ private extension CreateAccountWelcomeView {
     func navigateToLogin() {
         ImpactGenerator.shared.impact()
         path.append(SettingLink.addCredentials(navigationSource: .createAccountWelcome))
+    }
+
+    func privyLogin() {
+        ImpactGenerator.shared.impact()
+        Task {
+            do {
+                try await credentialsManager.privyLogin()
+            } catch {
+                print("privy : \(error)")
+            }
+        }
     }
 }
 
