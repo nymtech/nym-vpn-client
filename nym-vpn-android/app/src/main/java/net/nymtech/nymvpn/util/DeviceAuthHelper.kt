@@ -1,9 +1,7 @@
 package net.nymtech.nymvpn.util
 
 import android.content.Context
-import android.content.Intent
 import android.os.Build
-import android.provider.Settings
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat

@@ -89,12 +89,7 @@ class NymBackend private constructor(private val context: Context) :
 		@Volatile
 		var instance: Backend? = null
 
-		fun getInstance(
-			context: Context,
-			environment: Tunnel.Environment,
-			config: SettingsConfig,
-			userAgent: UserAgent,
-		): Backend {
+		fun getInstance(context: Context, environment: Tunnel.Environment, config: SettingsConfig, userAgent: UserAgent): Backend {
 			return instance ?: synchronized(this) {
 				instance ?: NymBackend(context).also {
 					instance = it
@@ -149,11 +144,7 @@ class NymBackend private constructor(private val context: Context) :
 		}
 	}
 
-	private fun init(
-		environment: Tunnel.Environment,
-		config: SettingsConfig,
-		userAgent: UserAgent,
-	) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
+	private fun init(environment: Tunnel.Environment, config: SettingsConfig, userAgent: UserAgent) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
 		runCatching {
 			Timber.tag(TAG).i(
 				"BackendInitStart env=%s sentry=%s statistics=%s logLevel=%s",
@@ -166,7 +157,6 @@ class NymBackend private constructor(private val context: Context) :
 			startNetworkMonitorJob()
 
 			initLogger(storagePath, LOG_LEVEL, config.sentryMonitoringEnabled)
-
 
 			initEnvironment(environment)
 			configureLib(config, userAgent)
@@ -358,12 +348,7 @@ class NymBackend private constructor(private val context: Context) :
 		}
 	}
 
-	override suspend fun start(
-		tunnel: Tunnel,
-		userAgent: UserAgent,
-		enableBridges: Boolean,
-		restrictedAppsPackages: List<String>,
-	) {
+	override suspend fun start(tunnel: Tunnel, userAgent: UserAgent, enableBridges: Boolean, restrictedAppsPackages: List<String>) {
 		withContext(ioDispatcher) {
 			initialized.await()
 
@@ -422,12 +407,7 @@ class NymBackend private constructor(private val context: Context) :
 		Timber.tag(TAG).i("ServicesReady")
 	}
 
-	private suspend fun startVpn(
-		tunnel: Tunnel,
-		userAgent: UserAgent,
-		enableBridges: Boolean,
-		restrictedAppsPackages: List<String>,
-	) {
+	private suspend fun startVpn(tunnel: Tunnel, userAgent: UserAgent, enableBridges: Boolean, restrictedAppsPackages: List<String>) {
 		withContext(ioDispatcher) {
 			startServices()
 			ensureNotificationAndStartForeground()

@@ -47,10 +47,7 @@ class SplitTunnelingHelper @Inject constructor() {
 			!packageBlocklist.contains(appInfo.packageName)
 	}
 
-	suspend fun getInstalledApp(
-		packageManager: PackageManager,
-		splitTunnelingRepository: SplitTunnelingRepository,
-	): Pair<List<AppInfo>, List<AppInfo>> {
+	suspend fun getInstalledApp(packageManager: PackageManager, splitTunnelingRepository: SplitTunnelingRepository): Pair<List<AppInfo>, List<AppInfo>> {
 		return runCatching {
 			val savedAppsInfo = splitTunnelingRepository.getAppInfoList().associateBy { it.packageName }
 
@@ -98,22 +95,14 @@ class SplitTunnelingHelper @Inject constructor() {
 		}.getOrElse { emptyList<AppInfo>() to emptyList() }
 	}
 
-	fun filterApps(
-		query: String,
-		systemApps: List<AppInfo>,
-		normalApps: List<AppInfo>,
-	): Pair<List<AppInfo>, List<AppInfo>> {
+	fun filterApps(query: String, systemApps: List<AppInfo>, normalApps: List<AppInfo>): Pair<List<AppInfo>, List<AppInfo>> {
 		val q = query.trim()
 		val queryFilteredSystemApps = systemApps.filter { it.name.contains(q, ignoreCase = true) }
 		val queryFilteredNormalApps = normalApps.filter { it.name.contains(q, ignoreCase = true) }
 		return queryFilteredSystemApps to queryFilteredNormalApps
 	}
 
-	fun filterDirectApps(
-		appliedFilter: AppFilter,
-		systemApps: List<AppInfo>,
-		normalApps: List<AppInfo>,
-	): Pair<List<AppInfo>, List<AppInfo>> {
+	fun filterDirectApps(appliedFilter: AppFilter, systemApps: List<AppInfo>, normalApps: List<AppInfo>): Pair<List<AppInfo>, List<AppInfo>> {
 		val isAlreadySelected = appliedFilter == AppFilter.Direct
 		val filteredSystemApps = if (isAlreadySelected) systemApps else systemApps.filterAllPassThroughValue(false)
 		val filteredNormalApps = if (isAlreadySelected) normalApps else normalApps.filterAllPassThroughValue(false)
@@ -135,13 +124,10 @@ class SplitTunnelingHelper @Inject constructor() {
 	}
 }
 
-fun List<AppInfo>.updatePassThroughValue(packageName: String) =
-	map { appInfo ->
-		if (appInfo.packageName == packageName) appInfo.copy(passThroughVpn = !appInfo.passThroughVpn) else appInfo
-	}
+fun List<AppInfo>.updatePassThroughValue(packageName: String) = map { appInfo ->
+	if (appInfo.packageName == packageName) appInfo.copy(passThroughVpn = !appInfo.passThroughVpn) else appInfo
+}
 
-fun List<AppInfo>.filterAllPassThroughValue(passThroughVpn: Boolean) =
-	filter { appInfo -> appInfo.passThroughVpn == passThroughVpn }
+fun List<AppInfo>.filterAllPassThroughValue(passThroughVpn: Boolean) = filter { appInfo -> appInfo.passThroughVpn == passThroughVpn }
 
-fun List<AppInfo>.totalAppCounts(passThroughVpn: Boolean) =
-	filter { app -> app.passThroughVpn == passThroughVpn }.size
+fun List<AppInfo>.totalAppCounts(passThroughVpn: Boolean) = filter { app -> app.passThroughVpn == passThroughVpn }.size

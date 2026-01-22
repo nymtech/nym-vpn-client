@@ -130,7 +130,7 @@ constructor(
 						BillingCode.NETWORK_ERROR,
 						BillingCode.DEVELOPER_ERROR,
 						BillingCode.FEATURE_NOT_SUPPORTED,
-							-> {
+						-> {
 							Timber.tag(TAG).w("BillingNonOk code=%s", br.responseCode)
 							_events.tryEmit(PaymentUiEvent.PaymentError(br.debugMessage))
 						}

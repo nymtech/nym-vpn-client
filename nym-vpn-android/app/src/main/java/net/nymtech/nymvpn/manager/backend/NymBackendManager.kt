@@ -316,10 +316,9 @@ class NymBackendManager @Inject constructor(
 		startTunnel()
 	}
 
-	private suspend fun getRestrictedAppsPackages() =
-		splitTunnelingRepository.getAppInfoList()
-			.filter { !it.passThroughVpn }
-			.map { it.packageName }
+	private suspend fun getRestrictedAppsPackages() = splitTunnelingRepository.getAppInfoList()
+		.filter { !it.passThroughVpn }
+		.map { it.packageName }
 
 	private suspend fun isQuicEnabled(): Boolean {
 		return settingsRepository.getQUICEnabled() &&
@@ -566,7 +565,7 @@ class NymBackendManager @Inject constructor(
 			Tunnel.State.InitializingClient,
 			Tunnel.State.EstablishingConnection,
 			Tunnel.State.Up,
-				-> notificationService.clearNotifications()
+			-> notificationService.clearNotifications()
 
 			else -> Unit
 		}

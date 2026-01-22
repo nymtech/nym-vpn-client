@@ -10,7 +10,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel

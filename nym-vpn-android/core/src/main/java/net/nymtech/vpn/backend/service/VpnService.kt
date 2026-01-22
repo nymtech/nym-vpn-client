@@ -100,7 +100,13 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 
 		Timber.tag(TAG).i(
 			"TunnelConfigureStart disallowedApps=%d allowLan=%s mtu=%d v4=%d v6=%d dns=%d search=%d",
-			appsCount, allowLan, mtu, ipv4Count, ipv6Count, dnsCount, searchCount
+			appsCount,
+			allowLan,
+			mtu,
+			ipv4Count,
+			ipv6Count,
+			dnsCount,
+			searchCount,
 		)
 
 		return try {
@@ -126,7 +132,8 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 			if (disallowedFailures > 0) {
 				Timber.tag(TAG).w(
 					"DisallowedAppsApplyFailed failed=%d total=%d",
-					disallowedFailures, appsCount
+					disallowedFailures,
+					appsCount,
 				)
 			}
 
@@ -205,7 +212,7 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 			Timber.tag(TAG).i(
 				"TunnelConfigureSuccess fd=%d mtu=%d v4=%d v6=%d dns=%d search=%d disallowedApps=%d allowLan=%s v4Invalid=%d v6Invalid=%d disallowedFailures=%d",
 				fd, mtu, ipv4Count, ipv6Count, dnsCount, searchCount,
-				appsCount, allowLan, ipv4Invalid, ipv6Invalid, disallowedFailures
+				appsCount, allowLan, ipv4Invalid, ipv6Invalid, disallowedFailures,
 			)
 
 			fd

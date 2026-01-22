@@ -154,7 +154,7 @@ constructor(
 			is Tunnel.State.InitializingClient,
 			is Tunnel.State.EstablishingConnection,
 			is Tunnel.State.Offline,
-				-> {
+			-> {
 				if (connectedAt != null) {
 					lastConnectedAt = connectedAt
 					startConnectionTimer(connectedAt)
