@@ -38,7 +38,7 @@ function ConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onClose={onCancel}>
-      <div className="flex flex-col items-center gap-4 w-11/12">
+      <div className="mx-auto flex flex-col items-center gap-4 w-11/12">
         <MsIcon icon={icon} className="text-baltic-sea dark:text-white" />
 
         <DialogTitle
