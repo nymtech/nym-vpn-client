@@ -67,9 +67,6 @@ class LogcatManager(
 	override val bufferedLogsTunnel: Flow<LogMessage> = _bufferedLogsTunnel.asSharedFlow()
 	override val bufferedLogsLibrary: Flow<LogMessage> = _bufferedLogsLibrary.asSharedFlow()
 
-	override fun onCreate(owner: LifecycleOwner) {
-	}
-
 	override fun onDestroy(owner: LifecycleOwner) {
 		stop()
 		logScope.cancel()
