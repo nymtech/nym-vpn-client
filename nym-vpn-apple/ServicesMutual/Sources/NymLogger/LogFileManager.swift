@@ -177,6 +177,7 @@ private extension LogFileManager {
     func deleteIfNeeded(at url: URL) {
         let fm = FileManager.default
         do {
+            guard fm.fileExists(atPath: url.path) else { return }
             let attrs = try fm.attributesOfItem(atPath: url.path(percentEncoded: false))
             let fileSize = attrs[.size] as? UInt64 ?? 0
             let modDate = attrs[.modificationDate] as? Date ?? .distantPast

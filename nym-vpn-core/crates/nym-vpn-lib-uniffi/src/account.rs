@@ -17,6 +17,9 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
     RegisterAccountResponse, StoreAccountRequest,
 };
+use nym_vpn_lib_types::{
+    AccountControllerState, RegisterAccountResponse, StoreAccountRequest, VpnAccountSummary,
+};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     account::Mnemonic,
@@ -310,6 +313,14 @@ pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, Vp
     get_command_sender()
         .await?
         .get_deeplink(params.kind, params.name, base_url)
+        .await
+        .map_err(VpnError::from)
+}
+
+pub(super) async fn get_account_summary() -> Result<Option<VpnAccountSummary>, VpnError> {
+    get_command_sender()
+        .await?
+        .get_account_summary()
         .await
         .map_err(VpnError::from)
 }

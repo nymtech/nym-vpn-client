@@ -80,6 +80,9 @@ use nym_vpn_lib_types::{
     AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, GetDeeplinkParams,
     Network, NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage,
     RegisterAccountResponse, StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent,
+    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
+    NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage, RegisterAccountResponse,
+    StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent, VpnAccountSummary,
 };
 
 use account::AccountControllerHandle;
@@ -435,6 +438,13 @@ pub fn getAccountState() -> Result<AccountControllerState, VpnError> {
 #[uniffi::export]
 pub fn getDeeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
     RUNTIME.block_on(account::get_deeplink(params))
+}
+
+/// Get the account summary
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getAccountSummary() -> Result<Option<VpnAccountSummary>, VpnError> {
+    RUNTIME.block_on(account::get_account_summary())
 }
 
 async fn get_account_id() -> Result<String, VpnError> {

@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.account.welcome
+package net.nymtech.nymvpn.ui.screens.account.create
 
 import PrivacyText
 import android.content.res.Configuration
@@ -42,8 +42,10 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.screens.account.welcome.modal.ExistingSubscriptionModal
+import net.nymtech.nymvpn.ui.screens.account.create.components.CreateAccountBlock
+import net.nymtech.nymvpn.ui.screens.account.create.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -52,40 +54,35 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import timber.log.Timber
 
 @Composable
-fun WelcomeAccountScreen(appUiState: AppUiState, viewModel: WelcomeAccountViewModel = hiltViewModel()) {
+fun CreateAccountScreen(appUiState: AppUiState, viewModel: CreateAccountViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val navController = LocalNavController.current
 
-	val activeSubscription by viewModel.activeSubscription.collectAsStateWithLifecycle(false)
-	val loading by viewModel.loading.collectAsStateWithLifecycle()
+	val ui by viewModel.uiState.collectAsStateWithLifecycle()
 	var showSubscriptionDialog by remember { mutableStateOf(false) }
 
-	WelcomeAccountScreen(
-		loading = loading,
-		onLogInClick = {
-			navController.navigateAndForget(Route.Login)
-		},
+	CreateAccountScreen(
+		loading = ui.isLoading,
+		isPrivyEnabled = ui.isPrivyEnabled,
+		onLogInClick = { navController.navigateAndForget(Route.Login) },
 		onCreateAccountClick = {
-			if (!loading) {
-				if (viewModel.isBillingAvailable()) {
-					if (activeSubscription) {
-						showSubscriptionDialog = true
-					} else {
-						navController.replaceCurrentWith(Route.Generating)
-					}
+			if (ui.isLoading) return@CreateAccountScreen
+
+			if (ui.isBillingAvailable) {
+				if (ui.hasActiveSubscription) {
+					showSubscriptionDialog = true
 				} else {
-					appUiState.managerState.accountLinks?.signUp?.let {
-						Timber.d("Create url: $it")
-						context.openWebUrl(it)
-					}
-					navController.replaceCurrentWith(Route.Login)
+					navController.replaceCurrentWith(Route.Generating)
 				}
+			} else {
+				appUiState.managerState.accountLinks?.signUp?.let { context.openWebUrl(it) }
+				navController.replaceCurrentWith(Route.Login)
 			}
 		},
 		onSocialClick = {
+			// TODO: privy
 		},
 	)
 
@@ -101,7 +98,7 @@ fun WelcomeAccountScreen(appUiState: AppUiState, viewModel: WelcomeAccountViewMo
 }
 
 @Composable
-fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onCreateAccountClick: () -> Unit, onSocialClick: () -> Unit) {
+fun CreateAccountScreen(loading: Boolean, isPrivyEnabled: Boolean, onLogInClick: () -> Unit, onCreateAccountClick: () -> Unit, onSocialClick: () -> Unit) {
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
@@ -133,7 +130,7 @@ fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onCreateAcc
 				horizontalAlignment = Alignment.CenterHorizontally,
 				modifier = Modifier.fillMaxWidth(),
 			) {
-				WelcomeAccountBlock(
+				CreateAccountBlock(
 					title = stringResource(R.string.account_welcome_create_title),
 					description = stringResource(R.string.account_welcome_create_description),
 					button = {
@@ -156,6 +153,34 @@ fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onCreateAcc
 						)
 					},
 				)
+				if (isPrivyEnabled) {
+					Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
+					HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
+					Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
+					CreateAccountBlock(
+						title = stringResource(R.string.account_welcome_social_title),
+						description = stringResource(R.string.account_welcome_social_description),
+						button = {
+							OutlineStyledButton(
+								onClick = onCreateAccountClick,
+								content = {
+									if (loading) {
+										SpinningIcon(Icons.Outlined.Lock, "")
+									} else {
+										Text(
+											text = stringResource(R.string.account_welcome_social_button),
+											style = CustomTypography.buttonMain,
+										)
+									}
+								},
+								borderColor = MaterialTheme.colorScheme.onBackground,
+								modifier = Modifier
+									.fillMaxWidth()
+									.height(54.dp.scaledHeight()),
+							)
+						},
+					)
+				}
 				Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
 				HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
 				Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
@@ -195,40 +220,13 @@ fun WelcomeAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onCreateAcc
 	}
 }
 
-@Composable
-private fun WelcomeAccountBlock(title: String, description: String? = null, button: @Composable () -> Unit) {
-	Column(
-		modifier = Modifier
-			.fillMaxWidth(),
-	) {
-		Text(
-			text = title,
-			style = MaterialTheme.typography.titleMedium,
-			color = MaterialTheme.colorScheme.onBackground,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-		)
-
-		description?.let {
-			Spacer(modifier = Modifier.height(8.dp.scaledHeight()))
-			Text(
-				text = it,
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			)
-		}
-
-		Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
-		button()
-	}
-}
-
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-internal fun PreviewWelcomeAccountScreen() {
+internal fun PreviewCreateAccountScreen() {
 	NymVPNTheme(Theme.default()) {
-		WelcomeAccountScreen(
+		CreateAccountScreen(
 			loading = false,
+			isPrivyEnabled = true,
 			onLogInClick = {},
 			onCreateAccountClick = {},
 			onSocialClick = {},

@@ -23,6 +23,9 @@
       ]
     },
     {
+      "url": "https://api.streaming-service.net/api/"
+    },
+    {
       "url": "https://nym-frontdoor.vercel.app/evil/nym-vpn-api/",
       "fronts": [
         "vercel.app",
