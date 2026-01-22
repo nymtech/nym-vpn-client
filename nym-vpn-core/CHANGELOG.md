@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added privy UI feature flag (https://github.com/nymtech/nym-vpn-client/pull/4223)
+- Added TraceID and SpanID for the account controller commands (https://github.com/nymtech/nym-vpn-client/pull/4426)
 
 ### Fixed
 
