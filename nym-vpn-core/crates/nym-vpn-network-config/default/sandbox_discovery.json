@@ -2,21 +2,32 @@
   "network_name": "sandbox",
   "nym_api_url": "https://sandbox-nym-api1.nymtech.net/api/",
   "nym_api_urls": [
-    { "url": "https://sandbox-nym-api1.nymtech.net/api/" },
+    {
+      "url": "https://sandbox-nym-api1.nymtech.net/api/"
+    },
     {
       "url": "https://nym-frontdoor.vercel.app/sandbox/nym-api/",
-      "fronts": ["vercel.app", "vercel.com"]
+      "fronts": [
+        "vercel.app",
+        "vercel.com"
+      ]
     }
   ],
   "nym_vpn_api_url": "https://nym-vpn-api-git-deploy-sandbox-nyx-network-staging.vercel.app/api/",
   "nym_vpn_api_urls": [
     {
       "url": "https://nym-vpn-api-git-deploy-sandbox-nyx-network-staging.vercel.app/api/",
-      "fronts": ["vercel.app", "vercel.com"]
+      "fronts": [
+        "vercel.app",
+        "vercel.com"
+      ]
     },
     {
       "url": "https://nym-frontdoor.vercel.app/sandbox/nym-vpn-api/",
-      "fronts": ["vercel.app", "vercel.com"]
+      "fronts": [
+        "vercel.app",
+        "vercel.com"
+      ]
     }
   ],
   "account_management": {
@@ -24,12 +35,7 @@
     "paths": {
       "sign_up": "{locale}/account/create",
       "sign_in": "{locale}/account/login",
-      "account": "{locale}/account/{account_id}",
-      "privy": {
-        "mobile": "{locale}/account/login/privy/mobile",
-        "desktop": "{locale}/account/login/privy/desktop",
-        "web": "{locale}/account/login/privy/web"
-      }
+      "account": "{locale}/account/{account_id}"
     }
   },
   "system_messages": [
@@ -42,8 +48,16 @@
     }
   ],
   "system_configuration": {
-    "mix_thresholds": { "high": 75, "medium": 50, "low": 25 },
-    "wg_thresholds": { "high": 75, "medium": 50, "low": 25 },
+    "mix_thresholds": {
+      "high": 75,
+      "medium": 50,
+      "low": 25
+    },
+    "wg_thresholds": {
+      "high": 75,
+      "medium": 50,
+      "low": 25
+    },
     "iOSinAppPurchasesPlanIds": {
       "1": "1_month_may_2025",
       "2": "1_year_may_2025"
@@ -58,18 +72,30 @@
     "statistics_api": "https://nym-statistics-api-staging.nymte.ch"
   },
   "network_compatibility": {
-    "core": "1.21.0",
-    "macos": "2.15.1",
-    "ios": "2.15.1",
-    "tauri": "1.21.0",
-    "android": "2.6.0"
+    "core": "1.9.0",
+    "macos": "2.4.0",
+    "ios": "2.7.1",
+    "tauri": "1.9.0",
+    "android": "1.5.0"
   },
   "feature_flags": {
-    "domain_fronting": { "enabled": "true" },
-    "privy": { "enabled": "true" },
-    "quic": { "enabled": "true" },
-    "versions": { "gatewayMetadataUpdate": "1.18.0" },
-    "website": { "showAccounts": "true" },
-    "zkNyms": { "credentialMode": "true" }
+    "domain_fronting": {
+      "enabled": "true"
+    },
+    "privy": {
+      "enabled": "true"
+    },
+    "quic": {
+      "enabled": "true"
+    },
+    "versions": {
+      "gatewayMetadataUpdate": "1.18.0"
+    },
+    "website": {
+      "showAccounts": "true"
+    },
+    "zkNyms": {
+      "credentialMode": "true"
+    }
   }
 }
