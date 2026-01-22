@@ -60,7 +60,6 @@ pub struct Network {
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
-    pub account_management: Option<AccountManagement>,
 }
 
 impl Network {
@@ -78,7 +77,6 @@ impl Network {
             nym_vpn_network: NymVpnNetwork::new(network_details),
             feature_flags: None,
             system_configuration: None,
-            account_management: None,
         })
     }
 
@@ -293,8 +291,6 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
         .ok_or(Error::NoEndpointsFound)?;
     let nyxd_url = endpoint.nyxd_url();
 
-    let account_management = discovery.account_management.clone();
-
     // Using discovery, setup nym vpn network details
     let nym_vpn_network = NymVpnNetwork::from(discovery);
 
@@ -304,7 +300,6 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
         nym_vpn_network,
         feature_flags,
         system_configuration,
-        account_management,
     })
 }
 
@@ -325,7 +320,6 @@ pub fn manual_env(network_details: &NymNetworkDetails) -> Result<Network> {
         nym_vpn_network,
         feature_flags: None,
         system_configuration: None,
-        account_management: None,
     })
 }
 

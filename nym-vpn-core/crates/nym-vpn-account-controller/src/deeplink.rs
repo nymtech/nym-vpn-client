@@ -17,7 +17,7 @@ pub struct Deeplink {
 impl Deeplink {
     const TTL_SECS: u64 = 300;
 
-    pub fn new(kind: DeeplinkKind, name: String) -> Self {
+    pub fn new(params: &CreateDeeplinkParams) -> Self {
         let mut rng = OsRng;
         let keypair = ed25519::KeyPair::new(&mut rng);
         let id = rng.next_u64();
@@ -25,8 +25,8 @@ impl Deeplink {
 
         Self {
             id,
-            _kind: kind,
-            _name: name,
+            _kind: params.kind,
+            _name: params.name.clone(),
             keypair,
             expiry_time,
         }
@@ -53,10 +53,9 @@ pub struct Deeplinks(HashMap<u64, Deeplink>);
 impl Deeplinks {
     pub fn create_deeplink(
         &mut self,
-        kind: DeeplinkKind,
-        name: String,
+        params: &CreateDeeplinkParams,
     ) -> Result<&Deeplink, DeeplinkError> {
-        let deeplink = Deeplink::new(kind, name);
+        let deeplink = Deeplink::new(params);
         let id = deeplink.id;
         self.0.insert(id, deeplink);
         self.0.get(&id).ok_or(DeeplinkError::DeeplinkNotFound(id))
@@ -128,4 +127,11 @@ pub enum DeeplinkError {
 
     #[error("deeplink with id {0} has expired")]
     DeeplinkExpired(u64),
+}
+
+#[derive(Clone, Debug)]
+pub struct CreateDeeplinkParams {
+    pub kind: DeeplinkKind,
+    pub name: String,
+    pub base_url: Url,
 }

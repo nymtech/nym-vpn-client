@@ -92,7 +92,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                             CommonCommand::GetActiveDevices(return_sender) => return_no_connectivity(return_sender),
                             CommonCommand::GetAvailableTickets(return_sender) => return_no_connectivity(return_sender),
                             CommonCommand::GetAccountSummary(return_sender) => return_sender.send(common_handler::handle_get_account_summary(shared_state).await),
-                                                        CommonCommand::GetDeeplink(return_sender, (kind, name, base_url)) => return_sender.send(common_handler::handle_get_deeplink(shared_state, kind, name, base_url).await),
+                            CommonCommand::GetDeeplink(return_sender, params) => return_sender.send(common_handler::handle_get_deeplink(shared_state, params).await),
                         }
 
                     },

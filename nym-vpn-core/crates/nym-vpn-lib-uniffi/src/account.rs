@@ -286,7 +286,7 @@ pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, Vp
         DeeplinkKind::Privy => {
             let Some(ref account_management) = current_environment_details()
                 .await
-                .map(|network| network.account_management)
+                .map(|network| network.nym_vpn_network.account_management)
                 .ok()
                 .flatten()
             else {

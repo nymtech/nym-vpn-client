@@ -1559,7 +1559,8 @@ impl NymVpnService {
     ) -> Result<String, AccountCommandError> {
         let base_url = match params.kind {
             DeeplinkKind::Privy => {
-                let Some(ref account_management) = self.network_tx.borrow().account_management
+                let Some(ref account_management) =
+                    self.network_tx.borrow().nym_vpn_network.account_management
                 else {
                     return Err(AccountCommandError::DeeplinkError(
                         "No account management data is available at this time".to_string(),
