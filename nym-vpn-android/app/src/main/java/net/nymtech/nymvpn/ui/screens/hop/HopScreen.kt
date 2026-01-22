@@ -78,7 +78,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEvent: NavBarEvent?, onNavBarEventConsumed: () -> Unit, viewModel: HopViewModel = hiltViewModel()) {
+fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEvent: NavBarEvent?, onNavBarEventConsume: () -> Unit, viewModel: HopViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
 	val context = androidx.compose.ui.platform.LocalContext.current
@@ -94,13 +94,13 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 			NavBarEvent.EntryLocationInfoClicked -> {
 				if (gatewayLocation == GatewayLocation.ENTRY) {
 					showLocationTooltip = true
-					onNavBarEventConsumed()
+					onNavBarEventConsume()
 				}
 			}
 			NavBarEvent.ExitLocationInfoClicked -> {
 				if (gatewayLocation == GatewayLocation.EXIT) {
 					showExitServerTooltip = true
-					onNavBarEventConsumed()
+					onNavBarEventConsume()
 				}
 			}
 			else -> Unit

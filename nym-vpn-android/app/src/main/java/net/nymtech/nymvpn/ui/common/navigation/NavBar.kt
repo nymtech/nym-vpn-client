@@ -34,13 +34,20 @@ import net.nymtech.nymvpn.util.extensions.safePopBackStack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBackButton: Boolean = false, onBackClick: (Route) -> Unit = {}, onNavBarEvent: (NavBarEvent) -> Unit = {}) {
+fun NavBar(
+	navController: NavController,
+	modifier: Modifier = Modifier,
+	hideBackButton: Boolean = false,
+	onBackClick: (Route) -> Unit = {},
+	onNavBarEvent: (NavBarEvent) -> Unit = {},
+	logsEnabled: Boolean = false,
+) {
 	val keyboardController = LocalSoftwareKeyboardController.current
 
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
 	var navBarState by remember { mutableStateOf(NavBarState()) }
 
-	LaunchedEffect(navBackStackEntry, hideBackButton) {
+	LaunchedEffect(navBackStackEntry, hideBackButton, logsEnabled) {
 		keyboardController?.hide()
 		val currentRoute = navBackStackEntry?.destination?.route ?: return@LaunchedEffect
 
@@ -106,11 +113,13 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 					}
 				},
 				trailing = {
-					LogsActionsMenu(
-						onDownload = { onNavBarEvent(NavBarEvent.LogsDownloadClicked) },
-						onShare = { onNavBarEvent(NavBarEvent.LogsShareClicked) },
-						onDelete = { onNavBarEvent(NavBarEvent.LogsDeleteClicked) },
-					)
+					if (logsEnabled) {
+						LogsActionsMenu(
+							onDownload = { onNavBarEvent(NavBarEvent.LogsDownloadClicked) },
+							onShare = { onNavBarEvent(NavBarEvent.LogsShareClicked) },
+							onDelete = { onNavBarEvent(NavBarEvent.LogsDeleteClicked) },
+						)
+					}
 				},
 			)
 

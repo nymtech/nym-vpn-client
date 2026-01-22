@@ -67,7 +67,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LogsScreen(appUiState: AppUiState, navBarEvent: NavBarEvent?, onNavBarEventConsumed: () -> Unit, viewModel: LogsViewModel = hiltViewModel()) {
+fun LogsScreen(appUiState: AppUiState, navBarEvent: NavBarEvent?, onNavBarEventConsume: () -> Unit, viewModel: LogsViewModel = hiltViewModel()) {
 	var selectedTab by remember { mutableIntStateOf(0) }
 
 	val appScrollState = rememberLazyListState()
@@ -108,15 +108,15 @@ fun LogsScreen(appUiState: AppUiState, navBarEvent: NavBarEvent?, onNavBarEventC
 		when (navBarEvent) {
 			NavBarEvent.LogsDeleteClicked -> {
 				showDelete = true
-				onNavBarEventConsumed()
+				onNavBarEventConsume()
 			}
 			NavBarEvent.LogsShareClicked -> {
 				showShare = true
-				onNavBarEventConsumed()
+				onNavBarEventConsume()
 			}
 			NavBarEvent.LogsDownloadClicked -> {
 				showDownload = true
-				onNavBarEventConsumed()
+				onNavBarEventConsume()
 			}
 			else -> {}
 		}
@@ -357,6 +357,7 @@ internal fun PreviewLogsScreenContent() {
 				level = LogLevel.INFO,
 				tag = "app",
 				message = "AppCreate build=debug",
+				epochMillis = 1L,
 			),
 			LogMessage(
 				time = "2026-01-22 11:01:53.578",
@@ -365,6 +366,7 @@ internal fun PreviewLogsScreenContent() {
 				level = LogLevel.INFO,
 				tag = "core-backend",
 				message = "BackendInitStart env=mainnet sentry=false statistics=true logLevel=debug",
+				epochMillis = 1L,
 			),
 			LogMessage(
 				time = "2026-01-22 11:01:59.399",
@@ -373,6 +375,7 @@ internal fun PreviewLogsScreenContent() {
 				level = LogLevel.DEBUG,
 				tag = "libnymvpn",
 				message = "hickory_proto::xfer::dns_multiplexer: request timed out: 32446",
+				epochMillis = 1L,
 			),
 		)
 

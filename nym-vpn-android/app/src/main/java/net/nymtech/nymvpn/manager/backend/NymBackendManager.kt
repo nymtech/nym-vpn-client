@@ -133,6 +133,8 @@ class NymBackendManager @Inject constructor(
 			if (_state.value.isInitialized) return@launch
 
 			val env = settingsRepository.getEnvironment()
+			val logsEnabled = settingsRepository.getLogsEnabled()
+
 			val settingsConfig = SettingsConfig(
 				settingsRepository.isCredentialMode(),
 				settingsRepository.getSentryMonitoringEnabled(),
@@ -147,7 +149,7 @@ class NymBackendManager @Inject constructor(
 			)
 
 			val nymBackend = withContext(mainDispatcher) {
-				NymBackend.getInstance(context, env, settingsConfig, context.toUserAgent(), settingsRepository.getLogsDebugEnabled())
+				NymBackend.getInstance(context, env, settingsConfig, context.toUserAgent(), logsEnabled)
 			}
 
 			backend.complete(nymBackend)

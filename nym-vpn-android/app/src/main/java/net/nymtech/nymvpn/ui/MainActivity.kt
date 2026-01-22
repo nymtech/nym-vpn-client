@@ -197,6 +197,7 @@ class MainActivity : AppCompatActivity() {
 									hideBackButton = hideBackButtonInNavBar,
 									onBackClick = { onBackClickEventFromRoute = it },
 									onNavBarEvent = { navBarEvent = it },
+									logsEnabled = appState.settings.logsEnabled,
 								)
 							},
 							snackbarHost = {
@@ -248,7 +249,7 @@ class MainActivity : AppCompatActivity() {
 										gatewayLocation = GatewayLocation.ENTRY,
 										appUiState = appState,
 										navBarEvent = navBarEvent,
-										onNavBarEventConsumed = consumeNavBarEvent,
+										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
 
@@ -257,7 +258,7 @@ class MainActivity : AppCompatActivity() {
 										gatewayLocation = GatewayLocation.EXIT,
 										appUiState = appState,
 										navBarEvent = navBarEvent,
-										onNavBarEventConsumed = consumeNavBarEvent,
+										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
 
@@ -265,7 +266,7 @@ class MainActivity : AppCompatActivity() {
 									LogsScreen(
 										appUiState = appState,
 										navBarEvent = navBarEvent,
-										onNavBarEventConsumed = consumeNavBarEvent,
+										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
 
@@ -313,7 +314,7 @@ class MainActivity : AppCompatActivity() {
 									PassphraseScreen(
 										onBackButtonVisibilityChange = { hideBackButtonInNavBar = it },
 										navBarEvent = navBarEvent,
-										onNavBarEventConsumed = consumeNavBarEvent,
+										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
 
@@ -324,7 +325,7 @@ class MainActivity : AppCompatActivity() {
 										onBackEventConsume = { onBackClickEventFromRoute = null },
 										onBackClickEventTriggered = onBackClickEventFromRoute == Route.SplitTunneling,
 										navBarEvent = navBarEvent,
-										onNavBarEventConsumed = consumeNavBarEvent,
+										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
 

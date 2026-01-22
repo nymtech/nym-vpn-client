@@ -41,7 +41,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 
 	private val customDnsList = stringPreferencesKey("CUSTOM_DNS_LIST")
 	private val logsEnabled = booleanPreferencesKey("LOGS_ENABLED")
-	private val LogsDebugEnabled = booleanPreferencesKey("LOGS_DEBUG_ENABLED")
+	private val logsDebugEnabled = booleanPreferencesKey("LOGS_DEBUG_ENABLED")
 
 	override suspend fun setEntryPoint(entry: EntryPoint) {
 		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
@@ -247,11 +247,11 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun getLogsDebugEnabled(): Boolean {
-		return dataStoreManager.getFromStore(LogsDebugEnabled) ?: Settings.DEFAULT_LOGS_DEBUG_ENABLED
+		return dataStoreManager.getFromStore(logsDebugEnabled) ?: Settings.DEFAULT_LOGS_DEBUG_ENABLED
 	}
 
 	override suspend fun setLogsDebugEnabled(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(this.LogsDebugEnabled, enabled)
+		dataStoreManager.saveToDataStore(this.logsDebugEnabled, enabled)
 	}
 
 	override val settingsFlow: Flow<Settings> =
@@ -285,7 +285,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						isPerAppSecurityBannerDisplayed = pref[isPerAppSecurityBannerDisplayed] ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 						customDnsEnabled = pref[customDnsEnabled] ?: Settings.DEFAULT_CUSTOM_DNS_ENABLED,
 						logsEnabled = pref[logsEnabled] ?: Settings.DEFAULT_LOGS_ENABLED,
-						logsDebugEnabled = pref[LogsDebugEnabled] ?: Settings.DEFAULT_LOGS_DEBUG_ENABLED,
+						logsDebugEnabled = pref[logsDebugEnabled] ?: Settings.DEFAULT_LOGS_DEBUG_ENABLED,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

@@ -13,7 +13,9 @@ interface LogReader {
 
 	fun start()
 	fun stop()
-	fun zipLogFiles(path: String)
+	suspend fun zipLogFiles(path: String)
+
 	suspend fun deleteAndClearLogs()
+
 	suspend fun downloadFile(resolver: ContentResolver, uri: Uri, temp: File)
 }

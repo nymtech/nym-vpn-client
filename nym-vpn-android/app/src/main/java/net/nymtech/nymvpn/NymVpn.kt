@@ -31,12 +31,11 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.util.GraphicsFallback
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
-import net.nymtech.nymvpn.util.timber.FilteringTree
+import net.nymtech.nymvpn.util.timber.DebugTree
 import net.nymtech.nymvpn.util.timber.NoLogTree
 import net.nymtech.nymvpn.util.timber.ReleaseTree
 import net.nymtech.vpn.backend.NymBackend
 import timber.log.Timber
-import timber.log.Timber.DebugTree
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -176,11 +175,11 @@ class NymVpn : Application() {
 		val minPriority = if (debugEnabled) Log.DEBUG else Log.INFO
 
 		if (BuildConfig.DEBUG) {
-			Timber.plant(FilteringTree(minPriority, DebugTree()))
+			Timber.plant(DebugTree(minPriority))
 			enableStrictMode()
 			Timber.tag(TAG).i("LoggingEnabled build=debug minPriority=$minPriority")
 		} else {
-			Timber.plant(FilteringTree(minPriority, ReleaseTree()))
+			Timber.plant(ReleaseTree(minPriority))
 			Timber.tag(TAG).i("LoggingEnabled build=release minPriority=$minPriority")
 		}
 	}

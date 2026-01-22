@@ -60,7 +60,7 @@ internal fun SplitTunnelingScreen(
 	onBackEventConsume: () -> Unit,
 	onBackClickEventTriggered: Boolean = false,
 	navBarEvent: NavBarEvent?,
-	onNavBarEventConsumed: () -> Unit,
+	onNavBarEventConsume: () -> Unit,
 	viewModel: SplitTunnelingViewModel = hiltViewModel(),
 ) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -83,7 +83,7 @@ internal fun SplitTunnelingScreen(
 	LaunchedEffect(navBarEvent) {
 		if (navBarEvent == NavBarEvent.SplitTunnelingInfoClicked) {
 			showSplitTunnelingModal = true
-			onNavBarEventConsumed()
+			onNavBarEventConsume()
 		}
 	}
 

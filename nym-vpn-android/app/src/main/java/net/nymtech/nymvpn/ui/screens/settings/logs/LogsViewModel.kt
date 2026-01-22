@@ -157,7 +157,6 @@ class LogsViewModel @Inject constructor(
 	}
 
 	fun deleteLogs() = viewModelScope.launch {
-		// Destructive user action; keep as INFO breadcrumb.
 		Timber.tag(TAG).i("LogsDeleteRequested")
 
 		runCatching {
