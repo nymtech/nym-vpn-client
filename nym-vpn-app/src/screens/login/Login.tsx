@@ -24,7 +24,8 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AddError | null>(null);
 
-  const { daemonStatus, state, welcomeChecked, uiTheme, backendFlags } = useMainState();
+  const { daemonStatus, state, welcomeChecked, uiTheme, backendFlags } =
+    useMainState();
 
   const navigate = useNavigate();
   const { t } = useTranslation('add-credential');
@@ -120,7 +121,7 @@ function Login() {
             className={clsx(
               'h-14',
               daemonStatus === 'down' &&
-              'opacity-50 disabled:opacity-50 hover:opacity-50',
+                'opacity-50 disabled:opacity-50 hover:opacity-50',
             )}
             spinner={loading}
             data-testid="login-submit-button"

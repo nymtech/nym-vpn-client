@@ -28,7 +28,7 @@ function Account() {
       try {
         const stored = await invoke<boolean | undefined>('is_account_stored');
         dispatch({ type: 'set-account', stored: stored || false });
-      } catch { }
+      } catch {}
     };
 
     if (daemonStatus !== 'down') {

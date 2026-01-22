@@ -24,7 +24,9 @@ function PrivyButton() {
   const handlePrivy = async () => {
     setLoading(true);
 
-    const loginUrl = await invoke<string>('get_deep_link', { locale: i18n.language });
+    const loginUrl = await invoke<string>('get_deep_link', {
+      locale: i18n.language,
+    });
     openUrl(loginUrl);
 
     try {
@@ -34,7 +36,6 @@ function PrivyButton() {
           setTimeout(() => reject(new Error('Login timeout')), 300000),
         ),
       ]);
-
 
       await invoke('store_deeplink_account', {
         callbackUrl: deeplinkurl,
@@ -50,7 +51,6 @@ function PrivyButton() {
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
-
     } catch (error) {
       console.error('Privy login error: ', error);
       if (error instanceof Error && error.message === 'Login timeout') {

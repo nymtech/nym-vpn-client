@@ -848,5 +848,4 @@ impl VpndClient {
             Ok(())
         }
     }
-
 }
