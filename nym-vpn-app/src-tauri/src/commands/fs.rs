@@ -110,7 +110,7 @@ fn add_directory_to_zip<W: Write + io::Seek>(
             relative_path.to_string_lossy().replace('\\', "/")
         );
 
-        zip.start_file(&archive_path, options.clone())?;
+        zip.start_file(&archive_path, options)?;
         let file = File::open(path)?;
         let mut reader = BufReader::new(file);
         io::copy(&mut reader, zip)?;
