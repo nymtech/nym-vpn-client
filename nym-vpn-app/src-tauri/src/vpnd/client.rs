@@ -819,7 +819,7 @@ impl VpndClient {
     #[instrument(skip_all)]
     pub async fn set_enable_lewes_protocol(&self, enabled: bool) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
-        
+
         vpnd.set_enable_lewes_protocol(enabled)
             .or_else(async |e| self.handle_rpc_error("set_enable_lewes_protocol", e).await)
             .await
