@@ -50,6 +50,7 @@ pub struct Options {
     pub verbosity_level: Level,
     pub enable_file_log: bool,
     pub enable_stdout_log: bool,
+    pub enable_json_log: bool,
     pub sentry: bool,
 }
 
@@ -304,10 +305,10 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
             .with_span_events(FmtSpan::CLOSE)
             .with_writer(file_writer)
             .with_ansi(false);
-        if cfg!(debug_assertions) {
+        if options.enable_json_log {
+            let file_layer = file_layer.json().event_format(JsonLogFormatter);
             layers.push(file_layer.boxed());
         } else {
-            let file_layer = file_layer.json().event_format(JsonLogFormatter);
             layers.push(file_layer.boxed());
         }
         Some(LoggingSetup::new(worker_guard, file_appender))
@@ -322,10 +323,10 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         let console_layer = tracing_subscriber::fmt::layer()
             .with_span_events(FmtSpan::CLOSE)
             .with_ansi(with_ansi);
-        if cfg!(debug_assertions) {
+        if options.enable_json_log {
+            let console_layer = console_layer.json().event_format(JsonLogFormatter);
             layers.push(console_layer.boxed());
         } else {
-            let console_layer = console_layer.json().event_format(JsonLogFormatter);
             layers.push(console_layer.boxed());
         }
     }
