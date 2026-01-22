@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
-use nym_vpn_lib_types::StoreAccountRequest;
+use nym_vpn_lib_types::{DeeplinkClient, DeeplinkKind, GetDeeplinkParams, StoreAccountRequest};
 use nym_vpn_proto::rpc_client::RpcClient;
+use std::str::FromStr;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -47,6 +48,21 @@ pub enum Command {
     Usage,
     /// Get account summary
     Summary,
+    /// Get deeplink
+    GetDeeplink {
+        /// Deeplink Kind (only "privy" is supported for now)
+        #[arg(long)]
+        kind: String,
+        /// Deeplink name
+        #[arg(long)]
+        name: String,
+    },
+    /// Store deeplink account
+    StoreDeeplink {
+        /// Deeplink Callback URL (nymvpn://...)
+        #[arg(long)]
+        url: String,
+    },
 }
 
 impl Command {
@@ -164,6 +180,32 @@ impl Command {
             Command::Summary => {
                 let response = rpc_client.get_account_summary().await?;
                 println!("{response:#?}");
+                Ok(())
+            }
+            Command::GetDeeplink { kind, name } => {
+                let Ok(kind) = DeeplinkKind::from_str(kind.as_str()) else {
+                    println!("Invalid deeplink kind: {kind}. Only 'privy' is supported for now.");
+                    return Ok(());
+                };
+
+                let params = GetDeeplinkParams {
+                    client: DeeplinkClient::Desktop,
+                    locale: "en".to_string(),
+                    kind,
+                    name,
+                };
+                let url = rpc_client.get_deeplink(params).await?;
+                println!("Deeplink: {url}");
+                Ok(())
+            }
+            Command::StoreDeeplink { url } => {
+                let response = rpc_client.deeplink_store_account(url).await?;
+                if let Some(err) = response.error {
+                    println!("Failed to store deeplink account: {err}");
+                    return Err(err.into());
+                } else {
+                    println!("Deeplink account stored successfully");
+                }
                 Ok(())
             }
         }

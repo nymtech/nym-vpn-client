@@ -38,7 +38,7 @@ jobs:
 
       - name: Cache Crowdin translations
         id: crowdin-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: nym-vpn-app/src/i18n
           key: crowdin-${{ github.event.pull_request.number }}-${{ matrix.os }}-${{ hashFiles('crowdin-configs/linux-windows.yml', 'nym-vpn-app/src/i18n/en/*.json') }}

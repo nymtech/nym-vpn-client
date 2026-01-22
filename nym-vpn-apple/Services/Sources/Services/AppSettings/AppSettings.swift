@@ -79,7 +79,9 @@ import CountriesManagerTypes
     }
 
     @AppStorage(AppSettingKey.isLewesEnabled.rawValue)
-    public var isLewesEnabled = false
+    public var isLewesEnabled = false {
+        didSet { isLewesEnabledPublisher = isLewesEnabled }
+    }
 
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
@@ -113,6 +115,7 @@ import CountriesManagerTypes
     @Published public var customDnsPublisher: [String]
     @Published public var isIPv6TrafficEnabledPublisher: Bool
     @Published public var isLanBypassEnabledPublisher: Bool
+    @Published public var isLewesEnabledPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
     private init() {
@@ -124,6 +127,7 @@ import CountriesManagerTypes
         self.customDnsPublisher = []
         self.isIPv6TrafficEnabledPublisher = true
         self.isLanBypassEnabledPublisher = false
+        self.isLewesEnabledPublisher = false
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
@@ -133,6 +137,7 @@ import CountriesManagerTypes
         self.customDnsPublisher = self.customDns
         self.isIPv6TrafficEnabledPublisher = self.isIPv6TrafficEnabled
         self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
+        self.isLewesEnabledPublisher = self.isLewesEnabled
     }
 
     public func resetUserDefaults() {

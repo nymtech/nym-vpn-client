@@ -7,11 +7,12 @@ import NymVPNRpc
 public final class ConnectionConfig: Codable {
     public var entry: EntryGateway
     public var exit: ExitRouter
-    public var dns: String?
+    public var dns: [String]?
     public var allowLan: Bool
     public var disableIpv6: Bool
     public var enableTwoHop: Bool
     public var enableBridges: Bool
+    public var enableLewes: Bool
     public var netstack: Bool
     public var minGatewayVpnPerformance: UInt8?
     public var residentialExit: Bool
@@ -31,11 +32,12 @@ public final class ConnectionConfig: Codable {
     public init(
         entry: EntryGateway,
         exit: ExitRouter,
-        dns: String? = nil,
+        dns: [String]? = nil,
         allowLan: Bool,
         disableIpv6: Bool,
         enableTwoHop: Bool,
         enableBridges: Bool,
+        enableLewes: Bool,
         netstack: Bool,
         minGatewayVpnPerformance: UInt8? = nil,
         residentialExit: Bool
@@ -47,6 +49,7 @@ public final class ConnectionConfig: Codable {
         self.disableIpv6 = disableIpv6
         self.enableTwoHop = enableTwoHop
         self.enableBridges = enableBridges
+        self.enableLewes = enableLewes
         self.netstack = netstack
         self.minGatewayVpnPerformance = minGatewayVpnPerformance
         self.residentialExit = residentialExit
@@ -58,11 +61,12 @@ public final class ConnectionConfig: Codable {
     public init(from config: VpnServiceConfig) {
         self.entry = ConnectionConfig.entryGateway(from: config.entryPoint)
         self.exit = ConnectionConfig.exitRouter(from: config.exitPoint)
-//        self.dns = config.dns
+        self.dns = config.customDns
         self.allowLan = config.allowLan
         self.disableIpv6 = config.disableIpv6
         self.enableTwoHop = config.enableTwoHop
         self.enableBridges = config.enableBridges
+        self.enableLewes = config.enableLewesProtocol
         self.netstack = config.netstack
         self.minGatewayVpnPerformance = config.minGatewayVpnPerformance
         self.residentialExit = config.residentialExit

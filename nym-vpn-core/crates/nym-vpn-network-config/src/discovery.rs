@@ -397,12 +397,13 @@ mod tests {
 
     use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
+    use super::*;
     use crate::{
-        SystemMessage, account_management::AccountManagementPaths, feature_flags::FlagValue,
+        SystemMessage,
+        account_management::{AccountManagementPaths, AccountManagementPrivyPaths},
+        feature_flags::FlagValue,
         system_messages::Properties,
     };
-
-    use super::*;
 
     #[tokio::test]
     async fn test_discovery_fetch() {
@@ -469,7 +470,12 @@ mod tests {
                 "paths": {
                     "sign_up": "{locale}/account/create",
                     "sign_in": "{locale}/account/login",
-                    "account": "{locale}/account/{account_id}"
+                    "account": "{locale}/account/{account_id}",
+                    "privy": {
+                        "mobile": "{locale}/auth/privy",
+                        "desktop": "{locale}/auth/privy",
+                        "web": "{locale}/auth/privy"
+                    }
                 }
             },
             "feature_flags": {
@@ -520,6 +526,11 @@ mod tests {
                     sign_up: "{locale}/account/create".to_owned(),
                     sign_in: "{locale}/account/login".to_owned(),
                     account: "{locale}/account/{account_id}".to_owned(),
+                    privy: AccountManagementPrivyPaths {
+                        mobile: "{locale}/auth/privy".to_owned(),
+                        desktop: "{locale}/auth/privy".to_owned(),
+                        web: "{locale}/auth/privy".to_owned(),
+                    },
                 },
             }),
             feature_flags: Some(FeatureFlags::from(HashMap::from([

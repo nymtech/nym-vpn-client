@@ -6,22 +6,22 @@ use std::{path::PathBuf, str::FromStr, time::Duration};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
+use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
+use crate::{environment::current_environment_details, offline_monitor};
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, NyxdClient};
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::{new_user_agent, storage::VpnClientOnDiskStorage};
 use nym_vpn_lib_types::{
-    AccountControllerState, RegisterAccountResponse, StoreAccountRequest, VpnAccountSummary,
+    AccountCommandError, AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
+    RegisterAccountResponse, StoreAccountRequest, VpnAccountSummary,
 };
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     account::Mnemonic,
     keys::{device::DeviceKeyStore, wireguard::WireguardKeysDb},
 };
-
-use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
-use crate::offline_monitor;
 
 pub(super) async fn init_account_controller(
     data_dir: PathBuf,
@@ -281,6 +281,52 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
         .ok_or(VpnError::NoAccountStored)
 }
 
+pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
+    let base_url = match params.kind {
+        DeeplinkKind::Privy => {
+            let Some(ref account_management) = current_environment_details()
+                .await
+                .map(|network| network.nym_vpn_network.account_management)
+                .ok()
+                .flatten()
+            else {
+                return Err(VpnError::DeeplinkError {
+                    details: "No account management data is available at this time".to_string(),
+                });
+            };
+
+            let opt_url = match params.client {
+                DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+                DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+                DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+            };
+
+            opt_url.ok_or(AccountCommandError::DeeplinkError(
+                "The privy path could not be determined".to_string(),
+            ))?
+        }
+    };
+
+    get_command_sender()
+        .await?
+        .get_deeplink(params.kind, params.name, base_url)
+        .await
+        .map_err(VpnError::from)
+}
+
+pub(super) async fn deeplink_store_account(deeplink_callback_url: String) -> Result<(), VpnError> {
+    let mnemonic = get_command_sender()
+        .await?
+        .derive_deeplink_mnemonic(deeplink_callback_url)
+        .await?;
+
+    get_command_sender()
+        .await?
+        .store_account(mnemonic.into())
+        .await?;
+    Ok(())
+}
+
 pub(super) async fn get_account_summary() -> Result<Option<VpnAccountSummary>, VpnError> {
     get_command_sender()
         .await?
@@ -299,7 +345,6 @@ pub(crate) mod raw {
     use std::path::Path;
 
     use super::*;
-    use crate::environment;
     use nym_common::ErrorExt;
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_api_client::{
@@ -448,7 +493,7 @@ pub(crate) mod raw {
     }
 
     async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {
-        let network_env = environment::current_environment_details().await?;
+        let network_env = current_environment_details().await?;
         let user_agent = new_user_agent!();
         let vpn_api_client =
             VpnApiClient::from_network(network_env.nym_network_details(), user_agent, None)

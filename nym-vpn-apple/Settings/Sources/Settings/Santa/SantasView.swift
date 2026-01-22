@@ -5,6 +5,7 @@ import Theme
 import UIComponents
 
 public struct SantasView: View {
+    @EnvironmentObject private var appSettings: AppSettings
     @ObservedObject private var viewModel: SantasViewModel
 
     public init(viewModel: SantasViewModel) {
@@ -20,6 +21,8 @@ public struct SantasView: View {
                     enivironmentDetails()
                     santasSpacer()
                     environmentSection()
+                    santasSpacer()
+                    togglesSection()
                 }
                 Spacer()
             }
@@ -81,6 +84,12 @@ private extension SantasView {
                     }
                 }
             }
+        }
+    }
+
+    func togglesSection() -> some View {
+        Toggle(isOn: $appSettings.isLewesEnabled) {
+            Text("Lewes enabled")
         }
     }
 }

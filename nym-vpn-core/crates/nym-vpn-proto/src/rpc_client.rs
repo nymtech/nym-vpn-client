@@ -3,8 +3,8 @@
 
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
-    DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway, HttpRpcSettings,
-    ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkCompatibility,
+    DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway, GetDeeplinkParams,
+    HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkCompatibility,
     NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
     SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
@@ -534,6 +534,32 @@ impl RpcClient {
             .map_err(Error::InvalidResponse)?;
 
         Ok(account_summary)
+    }
+
+    pub async fn get_deeplink(&mut self, params: GetDeeplinkParams) -> Result<String> {
+        let request: proto::GetDeeplinkParams = params.into();
+        let url = self
+            .0
+            .get_deeplink(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(url)
+    }
+
+    pub async fn deeplink_store_account(
+        &mut self,
+        deeplink_callback_url: String,
+    ) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .deeplink_store_account(deeplink_callback_url)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn get_log_path(&mut self) -> Result<LogPath> {

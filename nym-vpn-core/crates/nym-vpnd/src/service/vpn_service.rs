@@ -39,12 +39,13 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
-    DecentralisedObtainTicketbooksRequest, DiagnosticRegisterParams, DiagnosticReport,
-    DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
-    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, RegistrationReport, StoreAccountRequest, SystemMessage, TargetState,
-    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
+    DiagnosticReport, DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint,
+    FeatureFlags, Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
+    MixnetTrafficConfig, NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails,
+    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, RegistrationReport,
+    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
@@ -143,6 +144,11 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Option<VpnAccountSummary>, AccountCommandError>>,
         (),
     ),
+    GetDeeplink(
+        oneshot::Sender<Result<String, AccountCommandError>>,
+        GetDeeplinkParams,
+    ),
+    DeeplinkStoreAccount(oneshot::Sender<Result<(), AccountCommandError>>, String),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
     DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
@@ -890,6 +896,15 @@ impl NymVpnService {
             VpnServiceCommand::GetAccountSummary(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_summary().await);
             }
+            VpnServiceCommand::GetDeeplink(tx, params) => {
+                let _ = tx.send(self.handle_get_deeplink(params).await);
+            }
+            VpnServiceCommand::DeeplinkStoreAccount(tx, deeplink_callback_url) => {
+                let _ = tx.send(
+                    self.handle_deeplink_store_account(deeplink_callback_url)
+                        .await,
+                );
+            }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.log_path.clone());
             }
@@ -1543,6 +1558,51 @@ impl NymVpnService {
         &self,
     ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
         self.account_command_tx.get_account_summary().await
+    }
+
+    async fn handle_get_deeplink(
+        &self,
+        params: GetDeeplinkParams,
+    ) -> Result<String, AccountCommandError> {
+        let base_url = match params.kind {
+            DeeplinkKind::Privy => {
+                let Some(ref account_management) =
+                    self.network_tx.borrow().nym_vpn_network.account_management
+                else {
+                    return Err(AccountCommandError::DeeplinkError(
+                        "No account management data is available at this time".to_string(),
+                    ));
+                };
+
+                let opt_url = match params.client {
+                    DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+                    DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+                    DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+                };
+
+                opt_url.ok_or(AccountCommandError::DeeplinkError(
+                    "The privy path could not be determined".to_string(),
+                ))?
+            }
+        };
+
+        self.account_command_tx
+            .get_deeplink(params.kind, params.name, base_url)
+            .await
+    }
+
+    async fn handle_deeplink_store_account(
+        &self,
+        deeplink_url: String,
+    ) -> Result<(), AccountCommandError> {
+        let mnemonic = self
+            .account_command_tx
+            .derive_deeplink_mnemonic(deeplink_url)
+            .await?;
+
+        self.account_command_tx
+            .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
+            .await
     }
 
     async fn handle_delete_log_file(&self) {
