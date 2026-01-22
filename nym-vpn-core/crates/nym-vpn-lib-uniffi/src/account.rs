@@ -15,10 +15,7 @@ use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::{new_user_agent, storage::VpnClientOnDiskStorage};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    RegisterAccountResponse, StoreAccountRequest,
-};
-use nym_vpn_lib_types::{
-    AccountControllerState, RegisterAccountResponse, StoreAccountRequest, VpnAccountSummary,
+    RegisterAccountResponse, StoreAccountRequest, VpnAccountSummary,
 };
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{

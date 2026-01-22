@@ -80,9 +80,7 @@ use nym_vpn_lib_types::{
     AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, GetDeeplinkParams,
     Network, NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage,
     RegisterAccountResponse, StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent,
-    AccountControllerState, EntryPoint, ExitPoint, Gateway, GatewayType, Network,
-    NetworkCompatibility, ParsedAccountLinks, PrivyDerivationMessage, RegisterAccountResponse,
-    StoreAccountRequest, SystemMessage, TunnelEvent, UserAgent, VpnAccountSummary,
+    VpnAccountSummary,
 };
 
 use account::AccountControllerHandle;
