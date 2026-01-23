@@ -85,8 +85,8 @@
 	<string name="vpn_permission_missing">Разрешение на использование Vpn не было получено или используется другим приложением.</string>
 	<string name="action_requires_tunnel_down">Требуется отключение туннеля</string>
 	<string name="device_added_success">Устройство успешно добавлено к вашему аккаунту</string>
-	<string name="invalid_recovery_phrase">Неверная фраза восстановления</string>
-	<string name="recovery_phrase">Фраза восстановления</string>
+	<string name="invalid_recovery_phrase">Неверный код доступа</string>
+	<string name="recovery_phrase">Код доступа из 24 слов</string>
 	<string name="log_in">Войти</string>
 	<string name="log_out">Выйти</string>
 	<string name="new_to_nym">Еще не знакомы с NymVPN?</string>
@@ -220,7 +220,13 @@
 	<string name="settings_daemon_version_line">Версия демона: %1$s</string>
 	<string name="settings_language_help_title">Помощь с переводом</string>
 	<string name="settings_language_help_description">Сделайте приложение лучше на вашем языке.</string>
-	<string name="settings_event_lan_reconnecting">Переподключение для применения настроек LAN...</string>
+	<string name="settings_event_lan_reconnecting">Переподключение для применения настроек LAN…</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">Для использования горячих клавиш требуется блокировка экрана.</string>
+	<string name="shortcut_title">Подтвердите действие</string>
+	<string name="shortcut_subtitle_stop">Разблокируйте, чтобы отключить VPN</string>
+	<string name="shortcut_subtitle_start_mixnet">Разблокируйте, чтобы запустить Микснет</string>
+	<string name="shortcut_subtitle_start_wg">Разблокируйте, чтобы запустить Быстрый режим</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Для лучшего соединения</string>
 	<string name="battery_opt_descr">Отключите оптимизацию энергопотребления для NymVPN, чтобы обеспечить более стабильное подключение VPN.</string>
@@ -324,12 +330,12 @@
 	<string name="censorship_amnezia_link_text">Как AmneziaWG предотвращает DPI</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/ru/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">🔒 Максимальная приватность</string>
-	<string name="account_welcome_create_description">Создайте анонимный аккаунт Nym, личные данные не требуются</string>
+	<string name="account_welcome_create_title">⚡ Мгновенно &amp; анонимно </string>
+	<string name="account_welcome_create_description">Одно нажатие для регистрации. Анонимный аккаунт создаётся на вашем устройстве. Без пароля, без личной информации.</string>
 	<string name="account_welcome_create_button">Создать анонимный аккаунт</string>
-	<string name="account_welcome_social_title">⚡ Быстрая установка</string>
-	<string name="account_welcome_social_description">Используйте существующий аккаунт, например Google или криптокошелёк, через нашего партнёра по авторизации Privy</string>
-	<string name="account_welcome_social_button">Продолжить с социальным аккаунтом</string>
+	<string name="account_welcome_social_title">🔑 Войти в существующий аккаунт</string>
+	<string name="account_welcome_social_description">Приватный вход через email, Google или криптокошелёк с нашим партнёром Privy.</string>
+	<string name="account_welcome_social_button">Войти через соцсеть</string>
 	<string name="account_welcome_login_title">Уже есть аккаунт?</string>
 	<string name="account_welcome_login_button">Войти с помощью кодовой фразы Nym из 24 слов</string>
 	<string name="account_welcome_privacy_start">Продолжая, вы соглашаетесь с тем, что NymVPN  </string>

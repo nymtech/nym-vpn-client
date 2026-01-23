@@ -219,6 +219,12 @@
 	<string name="settings_language_help_title">帮助我们翻译</string>
 	<string name="settings_language_help_description">让应用程序以更好的方式显示您的本地语言。</string>
 	<string name="settings_event_lan_reconnecting">正在重新连接以应用局域网设置……</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">使用快捷方式需要屏幕锁定。</string>
+	<string name="shortcut_title">确认操作</string>
+	<string name="shortcut_subtitle_stop">解锁以断开 VPN 连接</string>
+	<string name="shortcut_subtitle_start_mixnet">解锁以启动 Mixnet</string>
+	<string name="shortcut_subtitle_start_wg">解锁以启动快速模式</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">最佳连接方式</string>
 	<string name="battery_opt_descr">禁用 NymVPN 电池优化以获得更稳定的 VPN 连接。</string>

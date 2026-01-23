@@ -1,0 +1,9 @@
+Cosa c'è di nuovo
+- Nuovo flusso di onboarding per gli utenti della prima volta
+- Schermata tecnica opt-in mostrata dopo il login o l'acquisto
+- Supporto locale per la copia alta / bassa nella schermata Dettagli
+Modifiche
+- Passato all'autenticazione basata su password
+- Sostituito “gateway” con “server” attraverso l’app
+- Migliorata affidabilità della connessione (connessione più intelligente, bypass LAN, tunnel divisi, DNS personalizzati)
+- Una logica di gestione della censura più coerente

@@ -221,6 +221,12 @@
 	<string name="settings_language_help_title">کمک‌کردن به ترجمه</string>
 	<string name="settings_language_help_description">ترجمه برنامه را به زبان خودتان بهتر کنید.</string>
 	<string name="settings_event_lan_reconnecting">در حال اتصال مجدد برای اعمال تنظیمات LAN...</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
+	<string name="shortcut_title">Confirm action</string>
+	<string name="shortcut_subtitle_stop">Unlock to disconnect VPN</string>
+	<string name="shortcut_subtitle_start_mixnet">Unlock to start Mixnet</string>
+	<string name="shortcut_subtitle_start_wg">Unlock to start Fast mode</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">برای بهترین اتصال</string>
 	<string name="battery_opt_descr">بهینه‌سازی باتری برای NymVPN را غیرفعال کنید تا اتصال‌های VPN پایدارتر شوند.</string>

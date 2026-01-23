@@ -86,7 +86,7 @@
 	<string name="action_requires_tunnel_down">Дія вимагає тунелю вниз</string>
 	<string name="device_added_success">Пристрій успішно додано до вашого облікового запису</string>
 	<string name="invalid_recovery_phrase">Неправильна фраза відновлення</string>
-	<string name="recovery_phrase">Фраза відновлення</string>
+	<string name="recovery_phrase">24 фраза-пароль</string>
 	<string name="log_in">Увійдіть в систему</string>
 	<string name="log_out">Вихід з системи</string>
 	<string name="new_to_nym">Новачок в NymVPN?</string>
@@ -99,10 +99,10 @@
 	<string name="version">Версія</string>
 	<string name="app_restart_required">Потрібен перезапуск програми</string>
 	<string name="max_devices_reached_title">Ви досягли максимальної кількості пристроїв для свого облікового запису</string>
-	<string name="credential_modal_description">Щоб додати цей пристрій, перейдіть на сторінку «Пристрої» свого облікового запису, видаліть один з існуючих пристроїв, а потім увійдіть на ньому за допомогою фрази відновлення.</string>
+	<string name="credential_modal_description">Щоб додати цей пристрій, перейдіть на сторінку «Пристрої» свого облікового запису, видаліть один із наявних пристроїв, а потім увійдіть на цей пристрій за допомогою пароля для відновлення.</string>
 	<string name="manage_devices">Керування пристроями</string>
 	<string name="close">Закрити</string>
-	<string name="enter_access_code">Будь ласка, введіть свій анонімний код доступу.</string>
+	<string name="enter_access_code">Введіть або вставте свій пароль: 24 слова, розділені пробілами</string>
 	<string name="welcome_to_nym">Ласкаво просимо до NymVPN</string>
 	<string name="get_access_code">Отримати кодову фразу</string>
 	<string name="access_code">24-слівний код доступу</string>
@@ -197,7 +197,7 @@
 	<string name="connection_state_selecting_gateways">Вибір кращих серверів (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">Анонімна реєстрація на серверах (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Встановлення з\'єднання з сервером (6/6)</string>
-	<string name="main_button_select_plan">Select plan</string>
+	<string name="main_button_select_plan">Виберіть план</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Проти цензури</string>
 	<string name="settings_passphrase_title">Кодова фраза</string>
@@ -218,7 +218,13 @@
 	<string name="settings_daemon_version_line">Версія Daemon: %1$s</string>
 	<string name="settings_language_help_title">Допоможіть з перекладом</string>
 	<string name="settings_language_help_description">Покращуйте додаток своєю мовою.</string>
-	<string name="settings_event_lan_reconnecting">Повторне підключення для застосування налаштувань LAN...</string>
+	<string name="settings_event_lan_reconnecting">Повторне підключення для застосування налаштувань LAN…</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">Для використання ярликів необхідне блокування екрану.</string>
+	<string name="shortcut_title">Підтвердити дію</string>
+	<string name="shortcut_subtitle_stop">Розблокувати, щоб відключити VPN</string>
+	<string name="shortcut_subtitle_start_mixnet">Розблокуйте, щоб запустити Mixnet</string>
+	<string name="shortcut_subtitle_start_wg">Розблокуйте, щоб запустити швидкий режим</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Для кращого з\'єднання</string>
 	<string name="battery_opt_descr">Вимкніть оптимізацію заряду батареї NymVPN для більш стабільних VPN-з\'єднань.</string>
@@ -255,21 +261,22 @@
 	<!-- Onboarding screen -->
 	<string name="onboarding_title_2">Швидкість, коли вона потрібна.\nПриватність, коли це важливо.</string>
 	<string name="onboarding_title_3">Припиніть відстеження в Інтернеті</string>
-	<string name="onboarding_title_4">Anonymity from payment to web</string>
-	<string name="onboarding_description_base">The world’s most private VPN</string>
-	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
-	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
-	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
-	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
-	<string name="onboarding_create_account_button">Create account</string>
+	<string name="onboarding_title_4">Анонімність від оплати до веб-сайту</string>
+	<string name="onboarding_description_base">Найприватніший VPN у світі</string>
+	<string name="onboarding_description_1">Найприватніший VPN у світі\nСпробуйте 7 днів безкоштовно:\nВсі функції включені, без реклами.</string>
+	<string name="onboarding_description_2">Швидкий: понад 250 Мбіт/с з dVPN.
+Анонімний: 5-рівневий мікснет з генерацією шуму.</string>
+	<string name="onboarding_description_3">Децентралізована мережа Nym робить обіцянки «без збереження журналів» застарілими.</string>
+	<string name="onboarding_description_4">Оплачуйте карткою, криптовалютою або готівкою — електронна адреса не потрібна. Докази з нульовим розкриттям інформації роблять ваші платежі непов\'язаними від вашої діяльності в Інтернеті.</string>
+	<string name="onboarding_create_account_button">Створити акаунт</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">Виберіть рівень захисту 🛡️</string>
-	<string name="select_plan_line_1">All features included</string>
-	<string name="select_plan_line_2">No ads</string>
-	<string name="select_plan_line_3">Cancel anytime</string>
+	<string name="select_plan_title">Виберіть свій \nплан підписки</string>
+	<string name="select_plan_line_1">Всі функції включені</string>
+	<string name="select_plan_line_2">Без реклами</string>
+	<string name="select_plan_line_3">Скасування будь-коли</string>
 	<string name="select_plan_button">Виберіть мій план NymVPN</string>
-	<string name="select_plan_modal_title">Виберіть Ваш тарифний план NymVPN</string>
-	<string name="select_plan_modal_free_trial">Безкоштовна пробна версія: 1 тиждень</string>
+	<string name="select_plan_modal_title">Виберіть свій план. Всі функції, скасувати в будь-який час.</string>
+	<string name="select_plan_modal_free_trial">7-денний безкоштовний пробний період починається сьогодні</string>
 	<string name="select_plan_modal_free_trial_starts_today">Початок: сьогодні</string>
 	<string name="select_plan_modal_free_trial_starts">Початок: %1$s</string>
 	<!-- Server Details screen -->
@@ -322,11 +329,11 @@
 	<string name="censorship_amnezia_link_text">Як AmneziaWG запобігає DPI</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">🔒 Максимальна конфіденційність</string>
-	<string name="account_welcome_create_description">Створіть анонімний обліковий запис Nym, особиста інформація не потрібна</string>
+	<string name="account_welcome_create_title">⚡ Миттєво та анонімно </string>
+	<string name="account_welcome_create_description">Одне натискання для оформлення замовлення. Анонімний обліковий запис, створений на вашому пристрої. Без пароля, без особистої інформації.</string>
 	<string name="account_welcome_create_button">Створити анонімний обліковий запис</string>
-	<string name="account_welcome_social_title">⚡ Швидке налаштування</string>
-	<string name="account_welcome_social_description">Використовуйте існуючий обліковий запис, наприклад Google або криптогаманець, через нашого партнера з входу Privy.</string>
+	<string name="account_welcome_social_title">🔑️ Використовуйте існуючий логін</string>
+	<string name="account_welcome_social_description">Приватний вхід за допомогою електронної пошти, Google або криптогаманця через нашого партнера Privy.</string>
 	<string name="account_welcome_social_button">Продовжити через соціальну мережу</string>
 	<string name="account_welcome_login_title">Вже є обліковий запис?</string>
 	<string name="account_welcome_login_button">Увійти за допомогою 24-слова, фрази-паролю</string>
@@ -337,12 +344,12 @@
 	<string name="account_subscription_description">Ми знайшли активну підписку, пов\'язану з вашим обліковим записом Google Play. Пропустіть реєстрацію та відразу перейдіть до використання NymVPN. Просто підготуйте свою 24-слівну парольну фразу.</string>
 	<string name="account_subscription_button">Увійдіть за допомогою парольної фрази Nym</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_title_1">Generating cryptographic keypairs…</string>
-	<string name="account_generating_title_2">Creating your anonymous identity…</string>
-	<string name="account_generating_title_3">Securing your credentials locally…</string>
-	<string name="account_generating_description_1">Creating keys that never leave your device</string>
-	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
-	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
+	<string name="account_generating_title_1">Генерація криптографічних ключів…</string>
+	<string name="account_generating_title_2">Створення вашої анонімної ідентифікації...</string>
+	<string name="account_generating_title_3">Захист ваших облікових даних локально...</string>
+	<string name="account_generating_description_1">Створення клавіш, які ніколи не залишають ваш пристрій</string>
+	<string name="account_generating_description_2">Додавання анонімних облікових даних мережі</string>
+	<string name="account_generating_description_3">Шифрування облікових даних за допомогою ключа вашого пристрою. тільки ви можете розблокувати їх</string>
 	<string name="account_generating_error">Не вдалося зареєструвати обліковий запис. Спробуйте пізніше.</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Безпечна обробка ваших платежів...</string>

@@ -221,6 +221,12 @@
 	<string name="settings_language_help_title">المساعدة في الترجمة</string>
 	<string name="settings_language_help_description">جعل التطبيق أفضل بلغتك.</string>
 	<string name="settings_event_lan_reconnecting">إعادة الاتصال لتطبيق إعدادات الشبكة المحلية...</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">قفل الشاشة مطلوب لاستخدام الاختصار.</string>
+	<string name="shortcut_title">تأكيد الإجراء</string>
+	<string name="shortcut_subtitle_stop">فتح لقطع اتصال VPN</string>
+	<string name="shortcut_subtitle_start_mixnet">فتح لبدء تشغيل Mixnet</string>
+	<string name="shortcut_subtitle_start_wg">فتح لبدء الوضع السريع</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">للحصول على أفضل اتصال</string>
 	<string name="battery_opt_descr">تعطيل تحسينات بطارية NymVPN لاتصالات VPN أكثر استقرارا.</string>

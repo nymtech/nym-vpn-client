@@ -86,7 +86,7 @@
 	<string name="action_requires_tunnel_down">Hành động yêu cầu ngắt kết nối tunnel</string>
 	<string name="device_added_success">Thiết bị đã được thêm thành công vào tài khoản của bạn</string>
 	<string name="invalid_recovery_phrase">Cụm từ khôi phục không hợp lệ</string>
-	<string name="recovery_phrase">Cụm từ khôi phục</string>
+	<string name="recovery_phrase">Cụm từ mật khẩu 24 từ</string>
 	<string name="log_in">Đăng nhập</string>
 	<string name="log_out">Đăng xuất</string>
 	<string name="new_to_nym">Lần đầu đến với NymVPN?</string>
@@ -102,7 +102,7 @@
 	<string name="credential_modal_description">Để thêm thiết bị này, hãy vào trang \'Thiết bị\' trong tài khoản của bạn, xóa một trong các thiết bị hiện có, sau đó đăng nhập vào thiết bị này bằng cụm từ khôi phục của bạn.</string>
 	<string name="manage_devices">Quản lý thiết bị</string>
 	<string name="close">Đóng</string>
-	<string name="enter_access_code">Vui lòng nhập Mã Truy cập ẩn danh của bạn.</string>
+	<string name="enter_access_code">Nhập hoặc dán cụm từ mật khẩu của bạn: 24 từ, cách nhau bởi dấu cách</string>
 	<string name="welcome_to_nym">Chào mừng đến với NymVPN</string>
 	<string name="get_access_code">Lấy Cụm từ mật khẩu</string>
 	<string name="access_code">mã-truy-cập-24-từ</string>
@@ -197,7 +197,7 @@
 	<string name="connection_state_selecting_gateways">Đang chọn máy chủ tốt nhất (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">Đang đăng ký ẩn danh với các máy chủ (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Đang thiết lập kết nối máy chủ (6/6)</string>
-	<string name="main_button_select_plan">Select plan</string>
+	<string name="main_button_select_plan">Chọn gói</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Chống kiểm duyệt</string>
 	<string name="settings_passphrase_title">Cụm từ mật khẩu</string>
@@ -219,6 +219,12 @@
 	<string name="settings_language_help_title">Hỗ trợ dịch</string>
 	<string name="settings_language_help_description">Tối ưu ứng dụng theo ngôn ngữ của bạn.</string>
 	<string name="settings_event_lan_reconnecting">Đang kết nối lại để áp dụng cài đặt mạng LAN...</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
+	<string name="shortcut_title">Confirm action</string>
+	<string name="shortcut_subtitle_stop">Unlock to disconnect VPN</string>
+	<string name="shortcut_subtitle_start_mixnet">Unlock to start Mixnet</string>
+	<string name="shortcut_subtitle_start_wg">Unlock to start Fast mode</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Để có kết nối tốt nhất</string>
 	<string name="battery_opt_descr">Vô hiệu hóa chế độ tối ưu hóa pin NymVPN để có kết nối VPN ổn định hơn.</string>
@@ -255,21 +261,21 @@
 	<!-- Onboarding screen -->
 	<string name="onboarding_title_2">Tốc độ khi bạn muốn.\nBảo mật khi bạn cần.</string>
 	<string name="onboarding_title_3">Đừng để bị theo dõi trực tuyến</string>
-	<string name="onboarding_title_4">Anonymity from payment to web</string>
-	<string name="onboarding_description_base">The world’s most private VPN</string>
-	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
-	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
-	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
-	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
-	<string name="onboarding_create_account_button">Create account</string>
+	<string name="onboarding_title_4">Ẩn danh từ khâu thanh toán đến trang web</string>
+	<string name="onboarding_description_base">VPN riêng tư nhất thế giới</string>
+	<string name="onboarding_description_1">VPN riêng tư nhất thế giới\nDùng thử miễn phí 7 ngày:\nBao gồm đầy đủ tính năng, không quảng cáo.</string>
+	<string name="onboarding_description_2">Chế độ nhanh: Hơn 250 Mbps với dVPN.\nChế độ ẩn danh: Mixnet Tạo Nhiễu 5 bước nhảy.</string>
+	<string name="onboarding_description_3">Mạng lưới phi tập trung của Nym khiến lời hứa \"không lưu nhật ký\"\n trở nên lỗi thời.</string>
+	<string name="onboarding_description_4">Thanh toán bằng thẻ, tiền điện tử hoặc tiền mặt—không cần email. Zero-knowledge proof khiến khoản thanh toán của bạn không bị liên kết với các hoạt động trực tuyến.</string>
+	<string name="onboarding_create_account_button">Tạo tài khoản</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">Chọn mức độ\nbảo vệ của bạn 🛡️</string>
-	<string name="select_plan_line_1">All features included</string>
-	<string name="select_plan_line_2">No ads</string>
-	<string name="select_plan_line_3">Cancel anytime</string>
+	<string name="select_plan_title">Chọn gói đăng ký \ncủa bạn</string>
+	<string name="select_plan_line_1">Đầy đủ tất cả các tính năng</string>
+	<string name="select_plan_line_2">Không quảng cáo</string>
+	<string name="select_plan_line_3">Hủy bất kỳ lúc nào</string>
 	<string name="select_plan_button">Chọn gói NymVPN</string>
-	<string name="select_plan_modal_title">Chọn gói NymVPN của bạn</string>
-	<string name="select_plan_modal_free_trial">Dùng thử miễn phí: 1 tuần</string>
+	<string name="select_plan_modal_title">Chọn gói dịch vụ của bạn. Đầy đủ tính năng, hủy bất cứ lúc nào.</string>
+	<string name="select_plan_modal_free_trial">7 ngày dùng thử miễn phí ngay hôm nay</string>
 	<string name="select_plan_modal_free_trial_starts_today">Bắt đầu: hôm nay</string>
 	<string name="select_plan_modal_free_trial_starts">Bắt đầu: %1$s</string>
 	<!-- Server Details screen -->
@@ -322,8 +328,8 @@
 	<string name="censorship_amnezia_link_text">AmneziaWG ngăn chặn DPI như thế nào</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">🔒 Bảo mật tối đa</string>
-	<string name="account_welcome_create_description">Tạo tài khoản Nym ẩn danh, không yêu cầu thông tin cá nhân</string>
+	<string name="account_welcome_create_title">⚡ Nhanh chóng &amp; ẩn danh </string>
+	<string name="account_welcome_create_description">Chỉ một chạm để thanh toán. Tài khoản ẩn danh được tạo trên thiết bị của bạn. Không cần mật khẩu, không tiết lộ thông tin cá nhân.</string>
 	<string name="account_welcome_create_button">Tạo tài khoản ẩn danh</string>
 	<string name="account_welcome_social_title">⚡️ Cài đặt nhanh</string>
 	<string name="account_welcome_social_description">Sử dụng tài khoản hiện có như Google hoặc ví tiền điện tử thông qua đối tác đăng nhập Privy của chúng tôi</string>
@@ -337,12 +343,12 @@
 	<string name="account_subscription_description">Chúng tôi đã tìm thấy một gói đăng ký đang hoạt động được liên kết với tài khoản Google Play của bạn. Bỏ qua bước đăng ký và bắt đầu sử dụng NymVPN ngay. Chỉ cần chuẩn bị sẵn cụm từ mật khẩu 24 từ.</string>
 	<string name="account_subscription_button">Đăng nhập bằng cụm từ mật khẩu Nym</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_title_1">Generating cryptographic keypairs…</string>
-	<string name="account_generating_title_2">Creating your anonymous identity…</string>
-	<string name="account_generating_title_3">Securing your credentials locally…</string>
-	<string name="account_generating_description_1">Creating keys that never leave your device</string>
-	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
-	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
+	<string name="account_generating_title_1">Đang tạo cặp khóa mã hóa…</string>
+	<string name="account_generating_title_2">Đang tạo danh tính ẩn danh của bạn…</string>
+	<string name="account_generating_title_3">Đang bảo mật cục bộ thông tin xác thực của bạn…</string>
+	<string name="account_generating_description_1">Tạo khóa và lưu giữ hoàn toàn trong thiết bị</string>
+	<string name="account_generating_description_2">Đang thiết lập thông tin xác thực mạng ẩn danh</string>
+	<string name="account_generating_description_3">Đang mã hóa thông tin xác thực bằng khóa thiết bị của bạn; chỉ bạn mới có thể mở khóa chúng</string>
 	<string name="account_generating_error">Không thể đăng ký tài khoản. Vui lòng thử lại sau</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Đang xử lý thanh toán của bạn một cách an toàn…</string>
