@@ -645,7 +645,7 @@ pub(crate) mod raw {
 
         // Derive the mnemonic from the provided deeplink URL
         let mnemonic = deeplinks
-            .derive_mnemonic(&deeplink_callback_url)
+            .derive_mnemonic(deeplink_callback_url)
             .map_err(|e| VpnError::DeeplinkError {
                 details: e.to_string(),
             })?;
