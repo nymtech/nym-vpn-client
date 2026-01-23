@@ -5,7 +5,7 @@ import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
 import { CustomDnsHelpUrl } from '../../../constants';
 import useCustomDns from '../../../hooks/useCustomDns';
 import { useInAppNotify } from '../../../contexts';
-import { ConfirmationDialog } from '../../../components';
+import { BackNavigationConfirmationDialog } from '../../../components';
 import { CustomDnsServers } from './CustomDnsServers';
 import { DefaultDnsServers } from './DefaultDnsServers';
 import { DnsItem } from './DnsItemContent';
@@ -98,7 +98,7 @@ function CustomDNS() {
         icon
       />
 
-      <ConfirmationDialog
+      <BackNavigationConfirmationDialog
         hasUnsavedChanges={hasUnsavedChanges}
         onConfirm={handleConfirmation}
         onCancel={handleCancel}

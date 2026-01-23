@@ -10,6 +10,7 @@
     "core:window:allow-set-size",
     "core:window:allow-show",
     "dialog:allow-open",
+    "dialog:allow-save",
     "notification:default",
     "os:allow-platform",
     "os:allow-version",

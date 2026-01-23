@@ -1,2 +1,2 @@
-export * from './confirmation-dialog';
+export * from './back-navigation-confirmation-dialog';
 export * from './privy';

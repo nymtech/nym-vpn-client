@@ -9,9 +9,9 @@ use tracing::{debug, info, instrument, warn};
 use ts_rs::TS;
 
 #[cfg(unix)]
-const DEFAULT_VPND_LOG_DIR: &str = "/var/log/nym-vpnd";
+pub const DEFAULT_VPND_LOG_DIR: &str = "/var/log/nym-vpnd";
 #[cfg(windows)]
-const DEFAULT_VPND_LOG_DIR: &str = "C:\\ProgramData\\nym-vpnd\\log";
+pub const DEFAULT_VPND_LOG_DIR: &str = "C:\\ProgramData\\nym-vpnd\\log";
 
 #[derive(strum::AsRefStr, Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "lowercase")]
@@ -101,4 +101,15 @@ pub async fn vpnd_log_dir(
 
     let path = vpnd.vpnd_log_path().await?.to_string_lossy().to_string();
     Ok(path)
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn delete_logs(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {
+    vpnd.delete_logs()
+        .await
+        .inspect_err(|e| {
+            warn!("failed to delete logs: {:?}", e);
+        })
+        .map_err(|e| e.into())
 }

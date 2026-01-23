@@ -54,6 +54,8 @@ url = "2.5.4"
 sentry = { version = "0.45.0", features = ["tracing", "logs"] }
 sysinfo = "0.37"
 tokio-stream = "0.1.17"
+zip = { version = "2.2", default-features = false, features = ["deflate"] }
+walkdir = "2.5"
 
 # nym deps
 nym-platform-metadata = { path = "../../nym-vpn-core/crates/nym-platform-metadata" }

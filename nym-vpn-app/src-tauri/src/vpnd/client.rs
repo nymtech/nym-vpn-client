@@ -182,6 +182,18 @@ impl VpndClient {
         Ok(log_path.dir)
     }
 
+    /// Delete logs
+    #[instrument(skip_all)]
+    pub async fn delete_logs(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.delete_log_file()
+            .or_else(async |e| self.handle_rpc_error("delete_logs", e).await)
+            .await?;
+
+        Ok(())
+    }
+
     /// Get the current tunnel state and update the app state
     #[instrument(skip_all)]
     pub async fn tunnel_state(&self, app: &AppHandle) -> Result<TunnelState, VpndError> {
