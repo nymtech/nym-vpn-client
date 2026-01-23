@@ -13,9 +13,9 @@ use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayType, HttpRpcSettings, LogPath, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status, StoreAccountRequest,
-    SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, NetworkCompatibility, NymVpnDevice,
+    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status,
+    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
@@ -234,6 +234,18 @@ impl RpcClient {
             .into_iter()
             .collect::<Vec<_>>();
         Ok(usage)
+    }
+
+    pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String> {
+        Ok(self.inner.clone().get_deeplink(params).await?)
+    }
+
+    pub async fn deeplink_store_account(&self, deeplink_callback_url: String) -> Result<()> {
+        self.inner
+            .clone()
+            .deeplink_store_account(deeplink_callback_url)
+            .await?;
+        Ok(())
     }
 
     pub async fn reset_device_identity(&self, seed: Option<Vec<u8>>) -> Result<()> {
