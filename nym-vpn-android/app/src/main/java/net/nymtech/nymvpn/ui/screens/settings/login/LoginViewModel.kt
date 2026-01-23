@@ -3,14 +3,17 @@ package net.nymtech.nymvpn.ui.screens.settings.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
 import timber.log.Timber
@@ -20,6 +23,7 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val backendManager: BackendManager,
+	private val environmentManager: EnvironmentManager,
 ) : ViewModel() {
 
 	companion object {
@@ -29,11 +33,38 @@ class LoginViewModel @Inject constructor(
 	private val _uiState = MutableStateFlow(LoginUiState())
 	val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-	fun onMnemonicImport(mnemonic: String) = viewModelScope.launch {
+	private val _events = MutableSharedFlow<LoginEvent>(extraBufferCapacity = 1)
+	val events = _events.asSharedFlow()
+
+	init {
+		viewModelScope.launch {
+			_uiState.update { it.copy(isPrivyEnabled = environmentManager.isPrivyEnabled()) }
+
+			runCatching { backendManager.getSocialDeeplink() }
+				.onSuccess { link -> _uiState.update { it.copy(deeplink = link) } }
+				.onFailure { t -> Timber.tag(TAG).w(t, "SocialDeeplinkLoadFailed") }
+		}
+	}
+
+	fun onMnemonicChange(value: String) {
+		_uiState.update {
+			it.copy(
+				mnemonic = value,
+				mnemonicError = null,
+			)
+		}
+	}
+
+	fun onSubmitMnemonic() = viewModelScope.launch {
+		val phrase = uiState.value.mnemonic.trim()
+		if (phrase.isEmpty()) return@launch
+		if (uiState.value.isLoading) return@launch
+
 		Timber.tag(TAG).i("MnemonicImportRequested")
+		_uiState.update { it.copy(isLoading = true, mnemonicError = null) }
 
 		runCatching {
-			backendManager.storeMnemonic(mnemonic.trim())
+			backendManager.storeMnemonic(phrase)
 
 			Timber.tag(TAG).i("MnemonicImportSuccess")
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
@@ -41,20 +72,16 @@ class LoginViewModel @Inject constructor(
 			backendManager.refreshAccount()
 
 			val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
+			_events.tryEmit(LoginEvent.NavigateAfterLogin(showTechnicalOpt = shouldShowTechnical))
 
-			_uiState.update {
-				it.copy(
-					showTechnicalOptScreen = shouldShowTechnical,
-					success = true,
-					showMaxDevicesModal = false,
-				)
-			}
+			_uiState.update { it.copy(isLoading = false, showMaxDevicesModal = false) }
 		}.onFailure { t ->
 			Timber.tag(TAG).w(t, "MnemonicImportFailed")
 
 			_uiState.update {
 				it.copy(
-					success = false,
+					isLoading = false,
+					mnemonicError = MnemonicError.INVALID_RECOVERY_PHRASE,
 					showMaxDevicesModal = false,
 				)
 			}
@@ -63,24 +90,11 @@ class LoginViewModel @Inject constructor(
 		}
 	}
 
-	private fun showMaxDevicesModal() {
-		_uiState.update {
-			it.copy(
-				showMaxDevicesModal = true,
-				success = false,
-			)
-		}
-	}
-
 	fun dismissMaxDevicesModal() {
 		_uiState.update { it.copy(showMaxDevicesModal = false) }
 	}
+}
 
-	fun consumeResult() {
-		_uiState.update { it.copy(success = null) }
-	}
-
-	fun consumeTechnicalOptFlag() {
-		_uiState.update { it.copy(showTechnicalOptScreen = false) }
-	}
+sealed interface LoginEvent {
+	data class NavigateAfterLogin(val showTechnicalOpt: Boolean) : LoginEvent
 }

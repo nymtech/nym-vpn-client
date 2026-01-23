@@ -49,7 +49,10 @@ import nym_vpn_lib.login
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.DeeplinkClient
+import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.GatewayType
+import nym_vpn_lib_types.GetDeeplinkParams
 import nym_vpn_lib_types.Network
 import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
@@ -298,6 +301,26 @@ class NymBackend private constructor(private val context: Context) :
 		return withContext(ioDispatcher) {
 			initialized.await()
 			getNetworkCompatibilityVersions()
+		}
+	}
+
+	override suspend fun getDeeplink(): String {
+		return withContext(ioDispatcher) {
+			val params = GetDeeplinkParams(
+				client = DeeplinkClient.MOBILE,
+				locale = getCurrentLocaleLanguageCode(),
+				kind = DeeplinkKind.PRIVY,
+				name = "default",
+			)
+			initialized.await()
+			nym_vpn_lib.getDeeplink(params)
+		}
+	}
+
+	override suspend fun deeplinkStoreAccount(link: String) {
+		return withContext(ioDispatcher) {
+			initialized.await()
+			nym_vpn_lib.deeplinkStoreAccount(link)
 		}
 	}
 

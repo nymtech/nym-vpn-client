@@ -182,6 +182,10 @@ class NymBackendManager @Inject constructor(
 		return versions?.core ?: ""
 	}
 
+	override suspend fun getSocialDeeplink(): String = backend.await().getDeeplink()
+
+	override suspend fun storeSocialAccount(link: String) = backend.await().deeplinkStoreAccount(link = link)
+
 	private suspend fun isClientNetworkCompatible(environment: Tunnel.Environment): Boolean {
 		return if (
 			!BuildConfig.DEBUG && !BuildConfig.IS_PRERELEASE &&

@@ -35,4 +35,6 @@ interface BackendManager {
 	fun getState(): Tunnel.State
 	fun initialize()
 	suspend fun getDaemonVersion(): String
+	suspend fun getSocialDeeplink(): String
+	suspend fun storeSocialAccount(link: String)
 }
