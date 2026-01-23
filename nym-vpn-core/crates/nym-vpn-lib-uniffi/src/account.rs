@@ -590,9 +590,9 @@ pub(crate) mod raw {
                     DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
                 };
 
-                opt_url.ok_or(AccountCommandError::DeeplinkError(
-                    "The privy path could not be determined".to_string(),
-                ))?
+                opt_url.ok_or(VpnError::DeeplinkError {
+                    details: "The privy path could not be determined".to_string(),
+                })?
             }
         };
 
