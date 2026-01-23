@@ -48,7 +48,7 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var impactGenerator = ImpactGenerator.shared
-    @State private var deeplinkManager = DeeplinkManager()
+    @State private var deeplinkManager = DeeplinkManager(credentialsManager: CredentialsManager.shared)
 
     @StateObject private var homeViewModel = HomeViewModel(
         appSettings: .shared,
@@ -92,6 +92,9 @@ struct NymVPNDaemonApp: App {
                 if autoUpdater.didPrepareForQuit {
                     quitApp()
                 }
+            }
+            .onOpenURL { incomingURL in
+                deeplinkManager.handle(url: incomingURL)
             }
             .alert(alertTitle, isPresented: $isDisplayingAlert) {
                 Button("ok".localizedString, role: .cancel) { }

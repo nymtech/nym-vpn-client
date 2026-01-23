@@ -1,5 +1,6 @@
 import SwiftUI
 import Constants
+import CredentialsManager
 import ImpactGenerator
 import ExternalLinkManager
 import FeatureFlagsManager
@@ -12,12 +13,17 @@ import Theme
 
 public struct CreateAccountWelcomeView: View {
     private let navigationSource: CreateAccountNavigationSource
+
+    @EnvironmentObject private var credentialsManager: CredentialsManager
 #if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
 #endif
     @EnvironmentObject private var externalLinkManager: ExternalLinkManager
     @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @Binding private var path: NavigationPath
+
+    @State private var isDisplayingAlert = false
+    @State private var alertTitle = ""
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -51,6 +57,9 @@ public struct CreateAccountWelcomeView: View {
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .alert(alertTitle, isPresented: $isDisplayingAlert) {
+            Button("ok".localizedString, role: .cancel) { }
         }
     }
 
@@ -162,10 +171,11 @@ private extension CreateAccountWelcomeView {
     var privyLoginButton: some View {
         GenericButton(title: "createAccount.continueOnSocial".localizedString, style: .primaryBorderOnly)
             .onTapGesture {
-                // TODO: privy
-                print("TODO: privy")
+                privyLogin()
             }
-            .accessibilityAction {}
+            .accessibilityAction {
+                privyLogin()
+            }
     }
 
     @ViewBuilder var alreadyHaveAnAccount: some View {
@@ -211,6 +221,20 @@ private extension CreateAccountWelcomeView {
     func navigateToLogin() {
         ImpactGenerator.shared.impact()
         path.append(SettingLink.addCredentials(navigationSource: .createAccountWelcome))
+    }
+
+    func privyLogin() {
+        ImpactGenerator.shared.impact()
+        Task {
+            do {
+                let loginURL = try await credentialsManager.privyLogin()
+                try externalLinkManager.openExternalURL(urlString: loginURL)
+            } catch {
+                alertTitle = error.localizedDescription
+                isDisplayingAlert = true
+                print("privy : \(error)")
+            }
+        }
     }
 }
 

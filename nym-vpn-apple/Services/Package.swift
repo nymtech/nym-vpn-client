@@ -101,6 +101,7 @@ let package = Package(
         .target(
             name: "DeeplinkManager",
             dependencies: [
+                "CredentialsManager",
                 .product(name: "Constants", package: "ServicesMutual")
             ],
             path: "Sources/Services/DeeplinkManager"
