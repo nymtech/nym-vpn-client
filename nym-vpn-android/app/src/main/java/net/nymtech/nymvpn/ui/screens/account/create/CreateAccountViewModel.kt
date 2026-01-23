@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.billing.model.BillingCode
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.manager.billing.BillingManager
@@ -33,25 +35,26 @@ class CreateAccountViewModel @Inject constructor(
 			val billingAllowed = BuildConfig.APPLICATION_ID == Constants.APP_ID
 			val billingAvailableNow = billingAllowed && billingManager.isAvailable()
 
-			_uiState.value = _uiState.value.copy(
-				isBillingAvailable = billingAvailableNow && billingManager.isReady(),
-			)
-
-			if (!billingAvailableNow) return@launch
+			if (!billingAvailableNow) {
+				_uiState.value = _uiState.value.copy(isBillingAvailable = false)
+				return@launch
+			}
 
 			_uiState.value = _uiState.value.copy(isLoading = true)
+
 			try {
-				if (!billingManager.isReady()) {
-					billingManager.initialize()
+				billingManager.initialize()
 
-					val response = billingManager.uiState
+				val response = withTimeoutOrNull(10_000) {
+					billingManager.uiState
 						.map { it.billingInfo?.responseCode ?: BillingCode.UNKNOWN }
+						.filter { it != BillingCode.UNKNOWN }
 						.first()
+				} ?: BillingCode.UNKNOWN
 
-					if (response == BillingCode.BILLING_UNAVAILABLE || response == BillingCode.UNKNOWN) {
-						_uiState.value = _uiState.value.copy(isBillingAvailable = false)
-						return@launch
-					}
+				if (response == BillingCode.BILLING_UNAVAILABLE) {
+					_uiState.value = _uiState.value.copy(isBillingAvailable = false)
+					return@launch
 				}
 
 				val subscribed = billingManager.hasActiveSubscription()
@@ -63,10 +66,5 @@ class CreateAccountViewModel @Inject constructor(
 				_uiState.value = _uiState.value.copy(isLoading = false)
 			}
 		}
-	}
-
-	fun isBillingAvailable(): Boolean {
-		val s = _uiState.value
-		return s.isBillingAvailable
 	}
 }
