@@ -22,6 +22,9 @@ public struct CreateAccountWelcomeView: View {
     @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @Binding private var path: NavigationPath
 
+    @State private var isDisplayingAlert = false
+    @State private var alertTitle = ""
+
     public var body: some View {
         VStack(spacing: 0) {
             navbar
@@ -54,6 +57,9 @@ public struct CreateAccountWelcomeView: View {
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .alert(alertTitle, isPresented: $isDisplayingAlert) {
+            Button("ok".localizedString, role: .cancel) { }
         }
     }
 
@@ -221,8 +227,11 @@ private extension CreateAccountWelcomeView {
         ImpactGenerator.shared.impact()
         Task {
             do {
-                try await credentialsManager.privyLogin()
+                let loginURL = try await credentialsManager.privyLogin()
+                try externalLinkManager.openExternalURL(urlString: loginURL)
             } catch {
+                alertTitle = error.localizedDescription
+                isDisplayingAlert = true
                 print("privy : \(error)")
             }
         }

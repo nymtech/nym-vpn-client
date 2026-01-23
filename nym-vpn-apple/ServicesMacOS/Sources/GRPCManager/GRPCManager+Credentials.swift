@@ -41,4 +41,10 @@ extension GRPCManager {
             )
         }.value
     }
+
+    public func storePrivyAccount(with callbackURLString: String) async throws {
+        try await Task.detached { [weak self] in
+            try await self?.rpcClient?.deeplinkStoreAccount(deeplinkCallbackUrl: callbackURLString)
+        }.value
+    }
 }

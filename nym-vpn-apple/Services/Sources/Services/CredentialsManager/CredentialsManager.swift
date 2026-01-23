@@ -122,11 +122,11 @@ import GRPCManager
         }.value
     }
 
-    public func privyLogin() async throws {
+    public func privyLogin() async throws -> String? {
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
         let name = "default"
 #if os(iOS)
-        let result = try getDeeplink(
+        return try getDeeplinkRaw(
             params: GetDeeplinkParams(
                 client: .mobile,
                 locale: locale,
@@ -134,12 +134,18 @@ import GRPCManager
                 name: name
             )
         )
-        print("PRivy")
-        print(result)
 #elseif os(macOS)
-        let result = try await grpcManager.privyLogin(locale: locale, name: name)
-        print("PRivy")
-        print(result)
+        return try await grpcManager.privyLogin(locale: locale, name: name)
+#endif
+    }
+
+    public func privyLoginStore(callbackURLString: String) async throws {
+#if os(iOS)
+        let dataFolderURL = try Self.dataFolderURL()
+        try deeplinkStoreAccountRaw(path: dataFolderURL.path(), deeplinkCallbackUrl: callbackURLString)
+        checkCredentialImport()
+#elseif os(macOS)
+        try await grpcManager.storePrivyAccount(with: callbackURLString)
 #endif
     }
 
