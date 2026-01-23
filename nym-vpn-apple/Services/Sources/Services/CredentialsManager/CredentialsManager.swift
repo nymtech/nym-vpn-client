@@ -1,5 +1,6 @@
 import Combine
 import Logging
+import SwiftUI
 import Foundation
 import AppSettings
 import Constants
@@ -146,6 +147,7 @@ import GRPCManager
         checkCredentialImport()
 #elseif os(macOS)
         try await grpcManager.storePrivyAccount(with: callbackURLString)
+        checkCredentialImport()
 #endif
     }
 

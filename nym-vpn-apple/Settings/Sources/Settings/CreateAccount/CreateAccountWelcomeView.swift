@@ -1,4 +1,6 @@
+import Combine
 import SwiftUI
+import AppSettings
 import Constants
 import CredentialsManager
 import ImpactGenerator
@@ -14,12 +16,14 @@ import Theme
 public struct CreateAccountWelcomeView: View {
     private let navigationSource: CreateAccountNavigationSource
 
+    @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var credentialsManager: CredentialsManager
 #if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
 #endif
     @EnvironmentObject private var externalLinkManager: ExternalLinkManager
     @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
+
     @Binding private var path: NavigationPath
 
     @State private var isDisplayingAlert = false
@@ -60,6 +64,10 @@ public struct CreateAccountWelcomeView: View {
         }
         .alert(alertTitle, isPresented: $isDisplayingAlert) {
             Button("ok".localizedString, role: .cancel) { }
+        }
+        .onReceive(appSettings.$isCredentialImportedPublisher.removeDuplicates()) { newValue in
+            guard newValue else { return }
+            navigateHome()
         }
     }
 
@@ -197,6 +205,10 @@ private extension CreateAccountWelcomeView {
 
 // MARK: - Actions -
 private extension CreateAccountWelcomeView {
+    func navigateHome() {
+        path = .init()
+    }
+
     func navigateBack() {
         switch navigationSource {
         case .onboarding, .addCredential:
@@ -232,7 +244,6 @@ private extension CreateAccountWelcomeView {
             } catch {
                 alertTitle = error.localizedDescription
                 isDisplayingAlert = true
-                print("privy : \(error)")
             }
         }
     }
