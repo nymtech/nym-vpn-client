@@ -1,0 +1,9 @@
+Novedades
+- Nuevo flujo de incorporación para usuarios de primera vez
+- Pantalla de confirmación técnica mostrada después del inicio de sesión o compra
+- Soporte local para copias altas/bajas en la pantalla de detalles
+Cambios
+- Cambiado a autenticación basada en frase de contraseña
+- Reemplazar "pasarela" con "servidor" a través de la aplicación
+- Mejorada la fiabilidad de la conexión (reconecta más inteligente, bypass de LAN, túnel dividido, DNS personalizado)
+- Lógica de gestión de censura más consistente

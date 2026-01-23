@@ -219,6 +219,12 @@
 	<string name="settings_language_help_title">翻訳のヘルプ</string>
 	<string name="settings_language_help_description">あなたの言語でアプリをより良くします。</string>
 	<string name="settings_event_lan_reconnecting">LAN 設定を適用するには再接続しています...</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">ショートカットを使用するには画面ロックが必要です。</string>
+	<string name="shortcut_title">アクションを確認</string>
+	<string name="shortcut_subtitle_stop">VPNを切断するにはロックを解除してください</string>
+	<string name="shortcut_subtitle_start_mixnet">Mixnet を開始するにはロックを解除してください</string>
+	<string name="shortcut_subtitle_start_wg">高速モードを開始するにはロックを解除してください</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">接続を最適化する</string>
 	<string name="battery_opt_descr">より安定したVPN接続のため、NymVPNバッテリーの最適化を無効にします。</string>

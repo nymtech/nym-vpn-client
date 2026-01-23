@@ -221,6 +221,12 @@
 	<string name="settings_language_help_title">Ajuda com tradução</string>
 	<string name="settings_language_help_description">Torne o app melhor em seu idioma.</string>
 	<string name="settings_event_lan_reconnecting">Reconectando para aplicar as configurações LAN...</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">Bloqueio de tela necessário para usar atalhos.</string>
+	<string name="shortcut_title">Confirmar ação</string>
+	<string name="shortcut_subtitle_stop">Desbloquear para desconectar a VPN</string>
+	<string name="shortcut_subtitle_start_mixnet">Desbloquear para iniciar o Mixnet</string>
+	<string name="shortcut_subtitle_start_wg">Desbloquear para iniciar o Modo rápido</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Para melhor conexão</string>
 	<string name="battery_opt_descr">Desative as otimizações de bateria do NymVPN para conexões VPN mais estáveis.</string>

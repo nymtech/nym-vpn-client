@@ -51,7 +51,7 @@
 	<string name="permission_message">Um sicherzustellen, dass die App auf deinem Gerät ordnungsgemäß funktioniert, erlaube bitte die folgenden Berechtigungen. Diese Berechtigungen sind erforderlich, damit diese App funktioniert.</string>
 	<string name="notifications">Benachrichtigungen</string>
 	<string name="notification_permission_required">Für die ordnungsgemäße App-Funktionalität aktivere bitte die Berechtigung für Benachrichtigungen</string>
-	<string name="kill_switch">Kill Switch</string>
+	<string name="kill_switch">Killswitch</string>
 	<string name="mode_selection">Modus auswählen</string>
 	<string name="five_hop_explanation">Maximale Privatsphäre durch 5-Hop-Routing (bis zu 1-5 Mbit/s). Dummy-Traffic und Timing-Verschleierung für verbesserte Anonymität. Perfekt für hochsensible Aktivitäten wie Zahlungen, E-Mails und Nachrichten.</string>
 	<string name="continue_reading">Weiter lesen</string>
@@ -70,7 +70,7 @@
 	<string name="ok">Ok</string>
 	<string name="vpn_connection">VPN Verbindung</string>
 	<string name="vpn_permission_message">Bestätige die VPN‑Verbindungsanfrage, indem du versuchst, dich erneut zu verbinden.</string>
-	<string name="try_reconnecting">Versuche, dich erneut zu verbinden</string>
+	<string name="try_reconnecting">Neu verbinden</string>
 	<string name="always_on_disbled">Durchgehend aktives VPN deaktiviert</string>
 	<string name="always_on_message">Funktioniert nicht? Stell sicher, dass \"Durchgehend aktives VPN\" für andere Apps deaktiviert ist</string>
 	<string name="vpn_settings">VPN Systemeinstellungen</string>
@@ -85,8 +85,8 @@
 	<string name="vpn_permission_missing">VPN-Berechtigung wurde nicht akzeptiert oder wird von einer anderen App verwendet.</string>
 	<string name="action_requires_tunnel_down">Aktion erfordert Tunnel nach unten</string>
 	<string name="device_added_success">Gerät erfolgreich zu deinem Konto hinzugefügt</string>
-	<string name="invalid_recovery_phrase">Ungültige Wiederherstellungsphrase</string>
-	<string name="recovery_phrase">Wiederherstellungsphrase</string>
+	<string name="invalid_recovery_phrase">Ungültige Passphrase zur Wiederherstellung</string>
+	<string name="recovery_phrase">24-Wort-Passphrase</string>
 	<string name="log_in">Anmelden</string>
 	<string name="log_out">Abmelden</string>
 	<string name="new_to_nym">Neu bei NymVPN?</string>
@@ -99,10 +99,10 @@
 	<string name="version">Version</string>
 	<string name="app_restart_required">Neustart der App erforderlich</string>
 	<string name="max_devices_reached_title">Du hast die maximale Anzahl an Geräten für dein Konto erreicht</string>
-	<string name="credential_modal_description">Um dieses Gerät hinzuzufügen, geh auf die Seite \"Geräte\" in deinem Konto, entferne eines der vorhandenen Geräte und melde dich dann auf diesem Gerät mit deiner Wiederherstellungsphrase an.</string>
+	<string name="credential_modal_description">Um dieses Gerät hinzuzufügen, geh auf die Seite \"Geräte\" in deinem Konto, entferne eines der vorhandenen Geräte und melde dich dann auf diesem Gerät mit deiner Passphrase zur Wiederherstellung an.</string>
 	<string name="manage_devices">Verwalte deine Geräte</string>
 	<string name="close">Schließen</string>
-	<string name="enter_access_code">Bitte gib deinen anonymen Zugangscode ein.</string>
+	<string name="enter_access_code">Bitte gib deine Passphrase ein: 24 durch Leerzeichen getrennte Wörter</string>
 	<string name="welcome_to_nym">Willkommen bei NymVPN</string>
 	<string name="get_access_code">Passphrase erhalten</string>
 	<string name="access_code">24-Wort-Zugangscode</string>
@@ -119,7 +119,7 @@
 	<string name="entry_location">Eintrittsregion</string>
 	<string name="no_results_found">Keine Ergebnisse gefunden.</string>
 	<string name="how_to_run_gateway">wie man einen Server betreibt.</string>
-	<string name="or_learn">oder lernen</string>
+	<string name="or_learn">oder lerne</string>
 	<string name="contact_for_help">Kontaktiere uns für Hilfe</string>
 	<string name="try_another_server_name">Versuche einen anderen Standort oder überprüfe den Servernamen.</string>
 	<string name="servers">Server</string>
@@ -184,8 +184,8 @@
 	<string name="error_set_routing">Die Konfiguration des Routings ist fehlgeschlagen.</string>
 	<string name="error_tun_device">Tunnelgerät konnte nicht konfiguriert werden.</string>
 	<string name="error_tunnel_provider">Fehler beim Konfigurieren des Tunnel-Providers.</string>
-	<string name="error_kill_switch">Der Killswitch schützt dich. Tippe auf Stopp und \nerneuere deinen Tarif.</string>
-	<string name="error_active_plan">Du hast keinen aktiven Tarif. Tippe auf \"Los geht’s\", um anonym zu surfen.</string>
+	<string name="error_kill_switch">Der Killswitch schützt dich. Tippe auf Stopp und \nerneuere dein Abonnement.</string>
+	<string name="error_active_plan">Du hast kein aktives Abonnement. Tippe auf \"Los geht’s\", um anonym zu surfen.</string>
 	<string name="error_bandwidth_entry">Der Eintrittsserver reagiert nicht oder reagiert schlecht auf eine Bandbreitenerhöhung.</string>
 	<string name="error_bandwidth_exit">Der Austrittsserver reagiert nicht oder reagiert schlecht auf eine Bandbreitenerhöhung.</string>
 	<string name="error_gateway_unavailable_entry">Kann den Eintrittsserver nicht erreichen. Versuche einen anderen!</string>
@@ -199,7 +199,7 @@
 	<string name="connection_state_selecting_gateways">Auswahl der besten Server (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">Anonym bei Servern registrieren (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Serververbindung wird hergestellt (6/6)</string>
-	<string name="main_button_select_plan">Paket auswählen</string>
+	<string name="main_button_select_plan">Wähle ein Abonnement</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Zensurumgehung</string>
 	<string name="settings_passphrase_title">Passphrase</string>
@@ -221,6 +221,12 @@
 	<string name="settings_language_help_title">Hilf bei der Übersetzung</string>
 	<string name="settings_language_help_description">Verbessere die App in deiner Sprache.</string>
 	<string name="settings_event_lan_reconnecting">Verbinde neu, um LAN-Einstellungen anzuwenden...</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">Bildschirmsperre erforderlich, um Verknüpfungen zu verwenden.</string>
+	<string name="shortcut_title">Aktion bestätigen</string>
+	<string name="shortcut_subtitle_stop">Entsperren um VPN zu trennen</string>
+	<string name="shortcut_subtitle_start_mixnet">Entsperren um Mixnet zu starten</string>
+	<string name="shortcut_subtitle_start_wg">Entsperren um den Schnellmodus zu starten</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Für die beste Verbindung</string>
 	<string name="battery_opt_descr">Für stabilere VPN-Verbindungen deaktiviere die Optimierung der Akkunutzung von NymVPN.</string>
@@ -253,25 +259,25 @@
 	<string name="welcome_error_reports_link_text">Sentry</string>
 	<string name="welcome_error_reports_description_end">)</string>
 	<string name="welcome_usage_title">Nutzungsanalysen teilen</string>
-	<string name="welcome_usage_description">Hilf uns dabei, das Nym-Netzwerk zu verbessern. Keine Protokollierung oder Nachverfolgung von Aktivitäten.</string>
+	<string name="welcome_usage_description">Hilft uns dabei, das Nym-Netzwerk zu verbessern. Keine Protokollierung oder Nachverfolgung von Aktivitäten.</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_title_2">Geschwindigkeit, wenn du sie brauchst.\nPrivatsphäre, wenn sie wichtig ist.</string>
 	<string name="onboarding_title_3">Nicht mehr online getrackt werden</string>
-	<string name="onboarding_title_4">Anonymität von Zahlung an Web</string>
-	<string name="onboarding_description_base">Das privatste VPN der Welt</string>
-	<string name="onboarding_description_1">Das weltweit privatste VPN\n7 Tage kostenlos versuchen:\nAlle Features inkludiert, keine Werbung.</string>
-	<string name="onboarding_description_2">Schnell: 250+ Mbit/s mit dVPN.\nAnonymous: 5-Hop Rauschgenerierungs-Mixnet.</string>
-	<string name="onboarding_description_3">Nyms dezentralisiertes Netzwerk macht \"No-Log\"\n verspricht obsolet.</string>
-	<string name="onboarding_description_4">Bezahlen Sie mit Karte, Krypto oder Bargeld – keine E-Mail erforderlich. Keine Kenntnisnachweise machen Ihre Zahlungen nicht mit Ihren Online-Aktivitäten verknüpfbar.</string>
+	<string name="onboarding_title_4">Anonymität von der Zahlung bis zum Web</string>
+	<string name="onboarding_description_base">Das privateste VPN der Welt</string>
+	<string name="onboarding_description_1">Das privateste VPN der Welt\n7 Tage lang kostenlos testen:\nAlle Funktionen inklusive, keine Werbung.</string>
+	<string name="onboarding_description_2">Schnell: 250+ Mbit/s mit dVPN.\nAnonym: 5-Hop-Rauschgenerierendes Mixnet.</string>
+	<string name="onboarding_description_3">Das dezentrale Netzwerk von Nym macht „No-Log“-\n Versprechen überflüssig.</string>
+	<string name="onboarding_description_4">Bezahle mit Karte, Kryptowährung oder Bargeld - keine E-Mail-Adresse nötig. Zero-Knowledge-Proofs sorgen dafür, dass deine Zahlungen nicht mit deinen Online-Aktivitäten in Verbindung gebracht werden können.</string>
 	<string name="onboarding_create_account_button">Konto erstellen</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">Wähle deine \nSchutzstufe 🛡️</string>
-	<string name="select_plan_line_1">Alle Funktionen enthalten</string>
+	<string name="select_plan_title">Wähle dein \nAbonnement</string>
+	<string name="select_plan_line_1">Alle Funktionen inklusive</string>
 	<string name="select_plan_line_2">Keine Werbung</string>
-	<string name="select_plan_line_3">Jederzeit abbrechen</string>
-	<string name="select_plan_button">Wähle meinen NymVPN-Tarif</string>
-	<string name="select_plan_modal_title">Wähle deinen NymVPN-Tarif</string>
-	<string name="select_plan_modal_free_trial">Kostenlos testen: 1 Woche</string>
+	<string name="select_plan_line_3">Jederzeit kündbar</string>
+	<string name="select_plan_button">Wähle mein NymVPN-Abonnement</string>
+	<string name="select_plan_modal_title">Wähle dein Abonnement. Alle Funktionen, jederzeit kündbar.</string>
+	<string name="select_plan_modal_free_trial">7-tägige kostenlose Testphase beginnt heute</string>
 	<string name="select_plan_modal_free_trial_starts_today">Beginn: heute</string>
 	<string name="select_plan_modal_free_trial_starts">Beginn: %1$s</string>
 	<!-- Server Details screen -->
@@ -324,8 +330,8 @@
 	<string name="censorship_amnezia_link_text">Wie AmneziaWG DPI verhindert</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/de-de/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">🔒 Maximale Privatsphäre</string>
-	<string name="account_welcome_create_description">Erstelle ein anonymes Nym-Konto, keine persönlichen Daten erforderlich</string>
+	<string name="account_welcome_create_title">⚡ Sofort &amp; anonym </string>
+	<string name="account_welcome_create_description">Mit einem Tipp zum Kauf. Ein anonymes Konto wird auf deinem Gerät erstellt. Kein Passwort, keine persönlichen Daten.</string>
 	<string name="account_welcome_create_button">Anonymes Konto erstellen</string>
 	<string name="account_welcome_social_title">⚡️ Quick setup</string>
 	<string name="account_welcome_social_description">Nutze ein bestehendes Konto wie Google oder ein Krypto-Wallet über unseren Login-Partner Privy</string>
@@ -339,12 +345,12 @@
 	<string name="account_subscription_description">Wir haben ein aktives Abonnement gefunden, das mit deinem Google Play-Konto verknüpft ist. Überspringe die Anmeldung und nutze NymVPN direkt. Halte einfach deine 24-Wort-Passphrase bereit.</string>
 	<string name="account_subscription_button">Mit Nym Passphrase anmelden</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_title_1">Erzeuge kryptographische Keypare…</string>
-	<string name="account_generating_title_2">Erstellen Ihrer anonymen Identität…</string>
-	<string name="account_generating_title_3">Ihre Zugangsdaten werden lokal… gesichert</string>
+	<string name="account_generating_title_1">Kryptographische Schlüsselpaare generieren…</string>
+	<string name="account_generating_title_2">Erstelle deine anonyme Identität…</string>
+	<string name="account_generating_title_3">Sichere deine Anmeldeinformationen lokal…</string>
 	<string name="account_generating_description_1">Erstelle Schlüssel, die dein Gerät nie verlassen</string>
-	<string name="account_generating_description_2">Einrichtung anonymer Netzwerk-Zugangsdaten</string>
-	<string name="account_generating_description_3">Verschlüssele Zugangsdaten mit deinem Geräteschlüssel; nur du kannst sie entsperren</string>
+	<string name="account_generating_description_2">Anonyme Netzwerkanmeldeinformationen einrichten</string>
+	<string name="account_generating_description_3">Verschlüssele deine Anmeldeinformationen mit deinem Geräteschlüssel; nur du kannst sie entsperren</string>
 	<string name="account_generating_error">Konto konnte nicht registriert werden. Bitte versuchen Sie es später erneut</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Deine Zahlung wird sicher verarbeitet…</string>
@@ -380,7 +386,7 @@
 	<string name="passphrase_info_belongs">Nur dir gehört (Selbstverwahrung)</string>
 	<!-- Account screen -->
 	<string name="account_title">Konto und Geräte</string>
-	<string name="account_info_plan">Tarif</string>
+	<string name="account_info_plan">Abonnement</string>
 	<string name="account_info_payments">Zahlungen</string>
 	<string name="account_info_devices">Geräte</string>
 	<string name="account_info_id_title">Konto-ID</string>

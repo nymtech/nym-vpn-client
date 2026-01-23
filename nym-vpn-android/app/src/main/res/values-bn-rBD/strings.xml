@@ -159,9 +159,9 @@
 	<string name="score_text_medium">মাঝারি</string>
 	<string name="score_text_low">নিম্ন</string>
 	<string name="score_text_offline">অফলাইন</string>
-	<string name="button_next">Next</string>
+	<string name="button_next">পরবর্তী</string>
 	<string name="skip">বাদ দিন</string>
-	<string name="get_started">Get started</string>
+	<string name="get_started">শুরু করুন</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display"></string>
 	<string name="streaming_server_banner_title"></string>
@@ -197,7 +197,7 @@
 	<string name="connection_state_selecting_gateways">সেরা সার্ভার নির্বাচন করা হচ্ছে (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">সার্ভারগুলোর সাথে গোপনভাবে রেজিস্টার করা হচ্ছে (5/6)</string>
 	<string name="connection_state_connecting_tunnel">সার্ভারের সাথে সংযোগ স্থাপন করা হচ্ছে (6/6)</string>
-	<string name="main_button_select_plan">Select plan</string>
+	<string name="main_button_select_plan">পরিকল্পনা নির্বাচন করুন</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">সেনসরশিপ-বিরোধী</string>
 	<string name="settings_passphrase_title">পাসফ্রেজ</string>
@@ -219,6 +219,12 @@
 	<string name="settings_language_help_title">অনুবাদে সহায়তা করুন</string>
 	<string name="settings_language_help_description">আপনার ভাষায় অ্যাপটি আরও উন্নত করতে সাহায্য করুন.</string>
 	<string name="settings_event_lan_reconnecting">LAN সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
+	<string name="shortcut_title">Confirm action</string>
+	<string name="shortcut_subtitle_stop">Unlock to disconnect VPN</string>
+	<string name="shortcut_subtitle_start_mixnet">Unlock to start Mixnet</string>
+	<string name="shortcut_subtitle_start_wg">Unlock to start Fast mode</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">সেরা সংযোগের জন্য</string>
 	<string name="battery_opt_descr">আরও স্থিতিশীল VPN সংযোগের জন্য NymVPN-এর ব্যাটারি অপটিমাইজেশন বন্ধ করুন</string>
@@ -244,29 +250,29 @@
 	<string name="notification_stats_enabled">পরিসংখ্যান সক্রিয় হয়েছে। আপনার গোপন ডেটা আমাদের নেটওয়ার্ক অপ্টিমাইজ করতে সাহায্য করে।</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">চালিয়ে যান</string>
-	<string name="welcome_title">Help us improve NymVPN</string>
+	<string name="welcome_title">NymVPN উন্নত করতে আমাদের সাহায্য করুন</string>
 	<string name="welcome_description">Choose what anonymous data to share. All data is stripped of identifying information before being sent.</string>
 	<string name="welcome_error_reports_title">Share error reports</string>
 	<string name="welcome_error_reports_description_start">Helps us fix bugs faster, no personal data collected (via </string>
-	<string name="welcome_error_reports_link_text">Sentry</string>
+	<string name="welcome_error_reports_link_text">সেন্ট্রি</string>
 	<string name="welcome_error_reports_description_end">)</string>
 	<string name="welcome_usage_title">Share usage analytics</string>
 	<string name="welcome_usage_description">Helps us improve the Nym network. No logging or activity tracked.</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_title_2">Speed when you need it.\nPrivacy when it matters.</string>
-	<string name="onboarding_title_3">Stop being tracked online</string>
+	<string name="onboarding_title_2">প্রয়োজন হলে গতি। গুরুত্বপূর্ণ মুহূর্তে গোপনীয়তা।</string>
+	<string name="onboarding_title_3">অনলাইনে ট্র্যাক হওয়া বন্ধ করুন।</string>
 	<string name="onboarding_title_4">Anonymity from payment to web</string>
 	<string name="onboarding_description_base">The world’s most private VPN</string>
 	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
 	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
 	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
-	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
-	<string name="onboarding_create_account_button">Create account</string>
+	<string name="onboarding_description_4">কার্ড, ক্রিপ্টো বা নগদে পরিশোধ করুন — ইমেইল আবশ্যক নয়। জিরো-নলেজ প্রমাণ ক্রিপ্টোগ্রাফিকভাবে আপনার পেমেন্টকে অনলাইন কার্যকলাপ থেকে আলাদা রাখে।</string>
+	<string name="onboarding_create_account_button">অ্যাকাউন্ট তৈরি করুন</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">আপনার সুরক্ষা স্তর নির্বাচন করুন</string>
 	<string name="select_plan_line_1">All features included</string>
-	<string name="select_plan_line_2">No ads</string>
-	<string name="select_plan_line_3">Cancel anytime</string>
+	<string name="select_plan_line_2">কোনও বিজ্ঞাপন নেই</string>
+	<string name="select_plan_line_3">যেকোনো সময় বাতিল করুন</string>
 	<string name="select_plan_button">আমার NymVPN প্ল্যান নির্বাচন করুন</string>
 	<string name="select_plan_modal_title">আপনার NymVPN প্ল্যান নির্বাচন করুন</string>
 	<string name="select_plan_modal_free_trial">ফ্রি ট্রায়াল: ১ সপ্তাহ</string>
@@ -314,7 +320,7 @@
 	<string name="censorship_stealth_description">অনুমোদিত জনপ্রিয় ডোমেইনের আড়ালে API অনুরোধ লুকিয়ে VPN ব্লক বাইপাস করে। সাধারণ সংযোগের প্রচেষ্টা ব্যর্থ হলে এটি স্বয়ংক্রিয়ভাবে সক্রিয় হয়।</string>
 	<string name="censorship_stealth_link_text">স্টেলথ API সংযোগ মোড কীভাবে কাজ করে</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="censorship_event_reconnecting">Reconnecting to apply QUIC settings…</string>
+	<string name="censorship_event_reconnecting">QUIC সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">শুধু ফাস্ট মোডের লোকেশন ও QUIC-সমর্থিত সার্ভার দেখানো হচ্ছে। সব সার্ভার দেখতে QUIC বন্ধ করুন</string>
 	<string name="censorship_amnezia_title">ন্যূনতম ওবফাসকেশন (Amnezia WG)</string>
@@ -324,25 +330,25 @@
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">🔒 Maximum privacy</string>
 	<string name="account_welcome_create_description">Create an anonymous Nym account, no personal info required</string>
-	<string name="account_welcome_create_button">Create anonymous account</string>
+	<string name="account_welcome_create_button">Anonymous অ্যাকাউন্ট তৈরি করুন</string>
 	<string name="account_welcome_social_title">⚡️ Quick setup</string>
 	<string name="account_welcome_social_description">Use existing account like Google or crypto wallet through our login partner Privy</string>
-	<string name="account_welcome_social_button">Continue with social account</string>
-	<string name="account_welcome_login_title">Already have an account?</string>
-	<string name="account_welcome_login_button">Log in with 24-word passphrase</string>
-	<string name="account_welcome_privacy_start">By continuing, you agree to NymVPN’s  </string>
-	<string name="account_welcome_privacy_middle">and</string>
+	<string name="account_welcome_social_button">সোশ্যাল অ্যাকাউন্ট দিয়ে চালিয়ে যান</string>
+	<string name="account_welcome_login_title">ইতিমধ্যে একটি অ্যাকাউন্ট আছে?</string>
+	<string name="account_welcome_login_button">Nym পাসফ্রেজ দিয়ে লগ ইন করুন</string>
+	<string name="account_welcome_privacy_start">অগ্রসর হলে, আপনি NymVPN-এর প্রতি সম্মতি জানাচ্ছেন  </string>
+	<string name="account_welcome_privacy_middle">এবং</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">আপনার সাবস্ক্রিপশন ইতিমধ্যেই সক্রিয় আছে</string>
 	<string name="account_subscription_description">আমরা আপনার Google Play অ্যাকাউন্টে একটি সক্রিয় সাবস্ক্রিপশন খুঁজে পেয়েছি। সাইনআপ বাদ দিয়ে সরাসরি NymVPN ব্যবহার শুরু করুন। শুধু আপনার ২৪-শব্দের পাসফ্রেজটি পাশে রাখুন।</string>
 	<string name="account_subscription_button">Nym পাসফ্রেজ দিয়ে লগ ইন করুন</string>
 	<!-- Account Generating screen -->
-	<string name="account_generating_title_1">Generating cryptographic keypairs…</string>
-	<string name="account_generating_title_2">Creating your anonymous identity…</string>
-	<string name="account_generating_title_3">Securing your credentials locally…</string>
-	<string name="account_generating_description_1">Creating keys that never leave your device</string>
-	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
-	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
+	<string name="account_generating_title_1">ক্রিপ্টো-গনিতিক কী-পেয়ার তৈরি করা হচ্ছে</string>
+	<string name="account_generating_title_2">আপনার গোপনীয় পরিচয় তৈরি করা হচ্ছে</string>
+	<string name="account_generating_title_3">আপনার ক্রেডেনশিয়ালগুলো লোকালি সুরক্ষিত করা হচ্ছে।</string>
+	<string name="account_generating_description_1">এমন কী তৈরি করা হচ্ছে যা কখনোই আপনার ডিভাইস ছাড়ে না</string>
+	<string name="account_generating_description_2">গোপন নেটওয়ার্ক ক্রেডেনশিয়াল তৈরি করা হচ্ছে</string>
+	<string name="account_generating_description_3">ক্রেডেনশিয়ালগুলোকে আপনার ডিভাইস কী দিয়ে এনক্রিপ্ট করা হচ্ছে — শুধুমাত্র আপনি এগুলো আনলক করতে পারবেন।</string>
 	<string name="account_generating_error">অ্যাকাউন্ট নিবন্ধন ব্যর্থ হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">আপনার পেমেন্ট নিরাপদে প্রক্রিয়াকরণ করা হচ্ছে...</string>
@@ -424,7 +430,7 @@
 	<string name="split_tunneling_per_app_security_banner_title">দ্রুততার জন্য প্রতিটি অ্যাপের জন্য সুরক্ষা বা সরাসরি সংযোগ নির্বাচন করুন</string>
 	<string name="split_tunneling_per_app_security_banner_action">অ্যাপ কনফিগার করুন</string>
 	<string name="split_tunneling_event_saved">স্প্লিট টানেলিং সেটিংস সংরক্ষিত</string>
-	<string name="split_tunneling_event_reconnecting">Reconnecting to apply split tunneling settings…</string>
+	<string name="split_tunneling_event_reconnecting">স্প্লিট টানেলিং সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">DNS কাস্টমাইজেশন</string>
 	<string name="dns_description">ডিফল্টভাবে Nym-এর সুপারিশকৃত DNS সার্ভার ব্যবহার করা হচ্ছে। প্রয়োজন হলে নিচে কাস্টম সার্ভার কনফিগার করুন।.</string>

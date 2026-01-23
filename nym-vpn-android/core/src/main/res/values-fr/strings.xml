@@ -9,5 +9,5 @@
 	<string name="state_initializing">Démarrage du client…</string>
 	<string name="state_establishing">Connexion en cours…</string>
 	<string name="notification_entry">Entrée : %1$s</string>
-	<string name="notification_exit">Quitter : %1$s</string>
+	<string name="notification_exit">Sortie : %1$s</string>
 </resources>

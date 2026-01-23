@@ -1,0 +1,9 @@
+Was ist neu
+- Neuer Onboarding-Ablauf für neue Benutzer
+- Technischer Opt-in-Screen, der nach der Anmeldung oder dem Kauf angezeigt wird
+- Übersetzungsunterstützung für Hoch/Niedrig in der Detailansicht
+Änderungen
+- Umstellung auf passphrase-basierte Authentifizierung
+- In der gesamten App wurde „Gateway“ durch „Server“ ersetzt
+- Bessere Verbindungsstabilität (intelligente Wiederverbindung, LAN-Bypass, Split-Tunneling, eigene DNS)
+- Konsequentere Zensur-Handhabungslogik

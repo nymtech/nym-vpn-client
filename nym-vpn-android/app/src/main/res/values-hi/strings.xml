@@ -219,6 +219,12 @@
 	<string name="settings_language_help_title">अनुवाद में सहायता करें</string>
 	<string name="settings_language_help_description">अपनी भाषा में ऐप को बहतर बनाएँ।</string>
 	<string name="settings_event_lan_reconnecting">LAN सेटिंग्स लागू करने के लिए पुनः कनेक्ट किया जा रहा है...</string>
+	<!-- Shortcuts activity -->
+	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
+	<string name="shortcut_title">Confirm action</string>
+	<string name="shortcut_subtitle_stop">Unlock to disconnect VPN</string>
+	<string name="shortcut_subtitle_start_mixnet">Unlock to start Mixnet</string>
+	<string name="shortcut_subtitle_start_wg">Unlock to start Fast mode</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">सबसे अच्छे कनेक्शन के लिए</string>
 	<string name="battery_opt_descr">अधिक स्थिर VPN कनेक्शनों के लिए NymVPN बैटरी अनुकूलन अक्षम करें।</string>
