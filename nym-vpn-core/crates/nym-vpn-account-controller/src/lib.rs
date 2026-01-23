@@ -25,7 +25,7 @@ pub(crate) use shared_state::SharedAccountState;
 pub use command_sender::AccountCommandSender;
 pub use config::AccountControllerConfig;
 pub use controller::AccountController;
-pub use deeplink::*;
+pub use deeplink::{CreateDeeplinkParams, Deeplink, DeeplinkError, Deeplinks};
 pub use error::Error;
 pub use event_sender::AccountControllerEventSender;
 pub use nyxd_client::NyxdClient;
