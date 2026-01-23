@@ -27,7 +27,10 @@ impl NymEnvironment {
 impl NymEnvironment {
     /// Fetches the network environment details from the network name
     #[uniffi::constructor]
-    pub async fn new(cache_dir: PathBuf, network_name: &str) -> Result<Self, VpnError> {
+    pub async fn new_with_cache_dir(
+        cache_dir: PathBuf,
+        network_name: &str,
+    ) -> Result<Self, VpnError> {
         nym_vpn_network_config::discover_env(
             PathBuf::from(cache_dir)
                 .parent()

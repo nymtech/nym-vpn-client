@@ -23,7 +23,7 @@ class NymEnvironmentManager @Inject constructor(
 
 	suspend fun getFeatureFlags(): FeatureFlags? {
 		return try {
-			backendManager.getBackend().getCurrentEnvironment().featureFlags
+			backendManager.getBackend().getFeatureFlags()
 		} catch (e: Exception) {
 			Timber.e(e)
 			null
