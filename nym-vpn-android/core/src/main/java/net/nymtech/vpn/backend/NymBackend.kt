@@ -34,25 +34,28 @@ import net.nymtech.vpn.util.extensions.startServiceByClass
 import net.nymtech.vpn.util.notifications.VpnNotificationManager
 import nym_vpn_lib.AccountRegistrationArgs
 import nym_vpn_lib.AndroidConnectivityMonitor
+import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.ConnectivityObserver
-import nym_vpn_lib.NymVpnLibConfig
+import nym_vpn_lib.LogLevel
+import nym_vpn_lib.NymEnvironment
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
-import nym_vpn_lib.forgetAccount
-import nym_vpn_lib.getNetworkCompatibilityVersions
-import nym_vpn_lib.initEnvironment
-import nym_vpn_lib.initFallbackMainnetEnvironment
+import nym_vpn_lib.NymVpnService
+import nym_vpn_lib.NymVpnServiceCommandException
+import nym_vpn_lib.NymVpnServiceCommandSender
+import nym_vpn_lib.TunnelNetworkSettings
 import nym_vpn_lib.initLogger
-import nym_vpn_lib.isAccountMnemonicStored
-import nym_vpn_lib.login
-import nym_vpn_lib.startVpn
-import nym_vpn_lib.stopVpn
+import nym_vpn_lib.initializeTokioRuntime
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkClient
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.FeatureFlags
+import nym_vpn_lib_types.ListGatewaysOptions
 import nym_vpn_lib_types.Network
 import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
@@ -64,12 +67,22 @@ import org.semver4j.Semver
 import timber.log.Timber
 import java.util.Locale
 
+internal class MyTunProvider: AndroidTunProvider {
+	override fun bypass(socket: Int) {
+		// todo: implement
+	}
+
+	override fun configureTunnel(config: TunnelNetworkSettings): Int {
+		// todo: implement
+		return -1
+	}
+}
+
 class NymBackend private constructor(private val context: Context) :
 	Backend,
 	TunnelStatusListener,
 	LifecycleObserver,
 	AndroidConnectivityMonitor {
-
 	companion object {
 		private const val TAG = "core-backend"
 
@@ -113,10 +126,21 @@ class NymBackend private constructor(private val context: Context) :
 	private val ioDispatcher = Dispatchers.IO
 	private val storagePath = context.filesDir.absolutePath
 	private val notificationManager = VpnNotificationManager.getInstance(context)
-	private lateinit var settingConfig: NymVpnLibConfig
 	private var cachedEntryGateways: List<NymGateway>? = null
 	private var cachedExitGateways: List<NymGateway>? = null
 	private var logLevel: String = LOG_LEVEL_INFO
+
+	@get:Synchronized
+	@set:Synchronized
+	private var nymEnvironment: NymEnvironment? = null
+
+	@get:Synchronized
+	@set:Synchronized
+	private var nymVpnService: NymVpnService? = null
+
+	@get:Synchronized
+	@set:Synchronized
+	private var commandSender: NymVpnServiceCommandSender? = null
 
 	@get:Synchronized
 	@set:Synchronized
@@ -151,6 +175,8 @@ class NymBackend private constructor(private val context: Context) :
 	}
 
 	private fun init(environment: Tunnel.Environment, config: SettingsConfig, userAgent: UserAgent) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
+		initializeTokioRuntime()
+
 		runCatching {
 			Timber.tag(TAG).i(
 				"BackendInitStart env=%s sentry=%s statistics=%s logLevel=%s",
@@ -162,8 +188,13 @@ class NymBackend private constructor(private val context: Context) :
 
 			startNetworkMonitorJob()
 
-			initLogger("$storagePath/libnymvpn.logs", logLevel, config.sentryMonitoringEnabled)
+			val logLevel = if (config.enableDebugLog) {
+				LogLevel.DEBUG
+			} else {
+				LogLevel.INFO
+			}
 
+			initLogger(storagePath, logLevel, config.sentryMonitoringEnabled)
 			initEnvironment(environment, userAgent)
 			configureLib(config, userAgent)
 
@@ -218,40 +249,55 @@ class NymBackend private constructor(private val context: Context) :
 	private suspend fun initEnvironment(environment: Tunnel.Environment, userAgent: UserAgent) {
 		withContext(ioDispatcher) {
 			runCatching {
-				initEnvironment(storagePath, environment.networkName(), userAgent)
-				Timber.tag(TAG).i("EnvironmentInitSuccess env=%s", environment.networkName())
-			}.onFailure { t ->
-				Timber.tag(TAG).w(t, "EnvironmentInitFailed fallback=bundle_mainnet env=%s", environment.networkName())
-				initFallbackMainnetEnvironment()
-				Timber.tag(TAG).i("EnvironmentFallbackApplied env=bundle_mainnet")
+				nymEnvironment = NymEnvironment.newWithCacheDir(storagePath, environment.networkName())
+			}.onFailure {
+				Timber.e("Failed to setup environment: $it. Defaulting to bundle mainnet")
+				nymEnvironment = NymEnvironment.newWithMainnetFallback()
 			}
 		}
 	}
 
 	private suspend fun configureLib(settings: SettingsConfig, userAgent: UserAgent) {
 		withContext(ioDispatcher) {
-			settingConfig = NymVpnLibConfig(
+			val tunProvider = MyTunProvider()
+
+			val config = VpnConfig(
+				configDir = storagePath,
 				dataDir = storagePath,
-				sentryMonitoring = settings.sentryMonitoringEnabled,
-				statisticsEnabled = settings.statisticsEnabled,
-				connectivityMonitor = this@NymBackend,
-				userAgent,
+				// todo: wire up config
+				entryGateway = EntryPoint.Random,
+				// todo: wire up config
+				exitRouter = ExitPoint.Random,
+				// todo: wire up config
+				enableTwoHop = true,
+				// todo: wire up config
+				enableBridges = false,
+				enableLewesProtocol = false,
+				// todo: wire up config
+				customDns = emptyList(),
+				// todo: wire up config
+				residentialExit = false,
+				userAgent = userAgent,
+				tunProvider = tunProvider,
+				connectivityMonitor = this@NymBackend
 			)
-			nym_vpn_lib.configureLib(settingConfig)
-			Timber.tag(TAG).i(
-				"LibConfigured sentry=%s statistics=%s ua=%s",
-				settings.sentryMonitoringEnabled,
-				settings.statisticsEnabled,
-				userAgent,
+
+
+			val service = NymVpnService.newService(
+				config,
+				nymEnvironment!!,
+				this@NymBackend
 			)
+			commandSender = service.getCommandSender()
+			nymVpnService = service
 		}
 	}
 
-	@Throws(VpnException::class)
+	@Throws(NymVpnServiceCommandException::class)
 	override suspend fun getAccountLinks(): ParsedAccountLinks {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			nym_vpn_lib.getAccountLinks(getCurrentLocaleLanguageCode())
+			commandSender!!.getAccountLinks(getCurrentLocaleLanguageCode())
 		}
 	}
 
@@ -263,28 +309,26 @@ class NymBackend private constructor(private val context: Context) :
 		}
 	}
 
-	@Throws(VpnException::class)
+	@Throws(NymVpnServiceCommandException::class)
 	override suspend fun storeMnemonic(mnemonic: String) {
 		withContext(ioDispatcher) {
 			initialized.await()
-			Timber.tag(TAG).i("StoreMnemonicRequested")
-			login(StoreAccountRequest.Vpn(mnemonic))
-			Timber.tag(TAG).i("StoreMnemonicSuccess")
+			commandSender!!.storeAccount(StoreAccountRequest.Vpn(mnemonic))
 		}
 	}
 
-	@Throws(VpnException::class)
+	@Throws(NymVpnServiceCommandException::class)
 	override suspend fun isMnemonicStored(): Boolean {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			isAccountMnemonicStored()
+			commandSender!!.isAccountStored()
 		}
 	}
 
 	override suspend fun isClientNetworkCompatible(appVersion: String): Boolean {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			val versions = getNetworkCompatibilityVersions() ?: return@withContext true
+			val versions = commandSender!!.getNetworkCompatibility() ?: return@withContext true
 			val compatibleVersion = Semver(versions.android)
 			val currentVersion = Semver(appVersion)
 			val ok = currentVersion.isGreaterThanOrEqualTo(compatibleVersion)
@@ -297,10 +341,11 @@ class NymBackend private constructor(private val context: Context) :
 		}
 	}
 
+	@Throws(NymVpnServiceCommandException::class)
 	override suspend fun getNetworkVersions(): NetworkCompatibility? {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			getNetworkCompatibilityVersions()
+			commandSender!!.getNetworkCompatibility()
 		}
 	}
 
@@ -313,60 +358,69 @@ class NymBackend private constructor(private val context: Context) :
 				name = "default",
 			)
 			initialized.await()
-			nym_vpn_lib.getDeeplink(params)
+			// todo: implement deep link
+			//commandSender!!.getDeeplink(params)
+			""
 		}
 	}
 
 	override suspend fun deeplinkStoreAccount(link: String) {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			nym_vpn_lib.deeplinkStoreAccount(link)
+			// todo: implement storing deep link
+			//commandSender!!.deeplinkStoreAccount(link)
 		}
 	}
 
-	override suspend fun getDeviceIdentity(): String {
+	@Throws(NymVpnServiceCommandException::class)
+	override suspend fun getDeviceIdentity(): String? {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			nym_vpn_lib.getDeviceIdentity()
+			commandSender!!.getDeviceIdentity()
 		}
 	}
 
-	override suspend fun getAccountIdentity(): String {
+	@Throws(NymVpnServiceCommandException::class)
+	override suspend fun getAccountIdentity(): String? {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			nym_vpn_lib.getAccountIdentity()
+			commandSender!!.getAccountIdentity()
 		}
 	}
 
-	@Throws(VpnException::class)
+	@Throws(NymVpnServiceCommandException::class)
 	override suspend fun removeMnemonic() {
 		withContext(ioDispatcher) {
 			initialized.await()
-			Timber.tag(TAG).i("ForgetAccountRequested")
-			forgetAccount()
-			Timber.tag(TAG).i("ForgetAccountSuccess")
+			commandSender!!.forgetAccount()
 		}
 	}
 
-	override suspend fun getCurrentEnvironment(): Network {
-		return nym_vpn_lib.currentEnvironment()
+	override suspend fun getFeatureFlags(): FeatureFlags? {
+		return withContext(ioDispatcher) {
+			initialized.await()
+			commandSender!!.getFeatureFlags()
+		}
 	}
 
 	override suspend fun updateAccountState() {
-		nym_vpn_lib.updateAccountState()
+		withContext(ioDispatcher) {
+			initialized.await()
+			commandSender!!.refreshAccount()
+		}
 	}
 
 	override suspend fun getSystemMessages(): List<SystemMessage> {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			nym_vpn_lib.getSystemMessages()
+			commandSender!!.getSystemMessages()
 		}
 	}
 
 	override suspend fun getGateways(type: GatewayType): List<NymGateway> {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			val list = nym_vpn_lib.getGateways(type).map(NymGateway::from)
+			val list = commandSender!!.listGateways(ListGatewaysOptions(gwType = type, userAgent = null)).map(NymGateway::from)
 			if (type == GatewayType.MIXNET_EXIT) cachedExitGateways = list
 			if (type == GatewayType.MIXNET_ENTRY) cachedEntryGateways = list
 			Timber.tag(TAG).d("GatewaysLoaded type=%s count=%d", type, list.size)
@@ -439,28 +493,7 @@ class NymBackend private constructor(private val context: Context) :
 			ensureNotificationAndStartForeground()
 			restrictApps(restrictedAppsPackages)
 
-			try {
-				startVpn(
-					VpnConfig(
-						entryGateway = tunnel.entryPoint,
-						exitRouter = tunnel.exitPoint,
-						enableTwoHop = tunnel.mode.isTwoHop(),
-						enableBridges = enableBridges,
-						residentialExit = false,
-						tunProvider = awaitVpnService(),
-						configPath = storagePath,
-						credentialDataPath = storagePath,
-						tunStatusListener = this@NymBackend,
-						userAgent = userAgent,
-						customDns = tunnel.dnsList,
-						statisticsRecipient = null,
-						enableLewesProtocol = false,
-					),
-				)
-				Timber.tag(TAG).i("StartVpnCalled")
-			} catch (e: VpnException) {
-				onStartFailure(e)
-			}
+			commandSender!!.connectTunnel()
 		}
 	}
 
@@ -469,21 +502,13 @@ class NymBackend private constructor(private val context: Context) :
 		awaitVpnService().restrictApps(restrictedAppsPackages)
 	}
 
-	private fun onStartFailure(e: VpnException) {
-		Timber.tag(TAG).e(e, "StartFailed")
-		onStateChange(Tunnel.State.Down)
-		tunnel?.onBackendEvent(BackendEvent.StartFailure(e))
-	}
-
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override suspend fun stop() {
 		withContext(ioDispatcher) {
 			initialized.await()
-			Timber.tag(TAG).i("StopRequested")
 
-			runCatching { stopVpn() }
-				.onFailure { Timber.tag(TAG).e(it, "StopVpnFailed") }
-
+			runCatching { commandSender!!.disconnectTunnel() }
+				.onFailure { Timber.e(it) }
 			runCatching { vpnServiceFlow.value?.stopSelf() }
 				.onFailure { Timber.tag(TAG).e(it, "StopServiceFailed service=vpn") }
 
@@ -498,26 +523,26 @@ class NymBackend private constructor(private val context: Context) :
 	override suspend fun createAccount() {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			Timber.tag(TAG).i("CreateAccountRequested")
-			nym_vpn_lib.createAccount()
-			nym_vpn_lib.updateAccountState()
-			Timber.tag(TAG).i("CreateAccountSuccess")
+			// todo: implement createAccount()!
+			//commandSender!!.createAccount()
+			commandSender!!.refreshAccount()
 		}
 	}
 
 	override suspend fun registerAccount(token: String): String {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			Timber.tag(TAG).i("RegisterAccountRequested")
-			val response = nym_vpn_lib.registerAccount(AccountRegistrationArgs(token))
-			nym_vpn_lib.updateAccountState()
-			Timber.tag(TAG).i("RegisterAccountSuccess")
-			response.accountToken
+			// todo: implement registerAccount()!
+			// val response = nym_vpn_lib.registerAccount(AccountRegistrationArgs(token))
+			// val token = response.accountToken
+			val token = ""
+			commandSender!!.refreshAccount()
+			token
 		}
 	}
 
 	override suspend fun getAccountState(): AccountControllerState {
-		return nym_vpn_lib.getAccountState()
+		return commandSender!!.getAccountState()
 	}
 
 	val notification = notificationManager.buildVpnNotification(
@@ -568,7 +593,11 @@ class NymBackend private constructor(private val context: Context) :
 	fun getEntryGateways() = cachedEntryGateways
 	fun getExitGateways() = cachedExitGateways
 
-	override suspend fun getStoredMnemonic() = nym_vpn_lib.getStoredMnemonic()
+	override suspend fun getStoredMnemonic(): String {
+		// todo: implement
+		// commandSender!!.getStoredMnemonic()
+		return ""
+	}
 
 	override fun onEvent(event: TunnelEvent) {
 		when (event) {

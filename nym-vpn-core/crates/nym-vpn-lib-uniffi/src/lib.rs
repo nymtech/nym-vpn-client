@@ -23,7 +23,7 @@
 //!
 //! ## Environment initialization
 //!
-//! Initialize the environment: `NymEnvironment::new(cache_dir, network_name)` or `NymEnvironment::new_with_mainnet_fallback()`.
+//! Initialize the environment: `NymEnvironment::new_with_cache_dir(cache_dir, network_name)` or `NymEnvironment::new_with_mainnet_fallback()`.
 //!
 //! ## Query gateways
 //!
@@ -140,6 +140,7 @@ mod tunnel_provider;
 #[cfg(target_os = "android")]
 mod vpn_account_storage;
 mod vpn_service;
+mod vpn_service_command_sender;
 
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},

@@ -139,6 +139,8 @@ class NymBackendManager @Inject constructor(
 				settingsRepository.isCredentialMode(),
 				settingsRepository.getSentryMonitoringEnabled(),
 				settingsRepository.getStatisticsEnabled(),
+				// todo: take this from config?
+				enableDebugLog = true
 			)
 
 			Timber.tag(TAG).i(
@@ -328,7 +330,7 @@ class NymBackendManager @Inject constructor(
 
 	private suspend fun isQuicEnabled(): Boolean {
 		return settingsRepository.getQUICEnabled() &&
-			(getBackend().getCurrentEnvironment().featureFlags?.isQuicEnabled() ?: false) &&
+			getBackend().getFeatureFlags()?.isQuicEnabled() ?: false &&
 			settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
 	}
 
@@ -372,11 +374,11 @@ class NymBackendManager @Inject constructor(
 		}
 	}
 
-	private suspend fun getDeviceId(): String {
+	private suspend fun getDeviceId(): String? {
 		return backend.await().getDeviceIdentity()
 	}
 
-	private suspend fun getAccountId(): String {
+	private suspend fun getAccountId(): String? {
 		return backend.await().getAccountIdentity()
 	}
 

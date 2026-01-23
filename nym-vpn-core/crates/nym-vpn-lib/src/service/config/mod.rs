@@ -38,7 +38,15 @@ use std::os::unix::fs::PermissionsExt;
 
 pub const DEFAULT_CONFIG_FILE_TOML: &str = "nym-vpnd.toml";
 pub const DEFAULT_CONFIG_FILE_JSON: &str = "nym-vpnd.json";
+
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub const DEFAULT_LOG_FILE: &str = "libnymvpn.log";
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub const DEFAULT_OLD_LOG_FILE: &str = "libnymvpn.log";
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
 
 pub const DEFAULT_GLOBAL_CONFIG_FILE_TOML: &str = "config.toml";

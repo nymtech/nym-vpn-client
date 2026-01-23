@@ -2,6 +2,7 @@ package net.nymtech.vpn.backend
 
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.Network
 import nym_vpn_lib_types.NetworkCompatibility
@@ -23,13 +24,13 @@ interface Backend {
 
 	suspend fun isClientNetworkCompatible(appVersion: String): Boolean
 
-	suspend fun getDeviceIdentity(): String
+	suspend fun getDeviceIdentity(): String?
 
-	suspend fun getAccountIdentity(): String
+	suspend fun getAccountIdentity(): String?
 
 	suspend fun removeMnemonic()
 
-	suspend fun getCurrentEnvironment(): Network
+	suspend fun getFeatureFlags(): FeatureFlags?
 
 	suspend fun updateAccountState()
 
