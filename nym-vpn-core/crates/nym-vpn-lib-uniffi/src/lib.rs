@@ -82,6 +82,7 @@ use nym_vpn_lib_types::{
 use account::AccountControllerHandle;
 use error::VpnError;
 use gateway_cache::UniffiGatewayCacheHandle;
+use nym_vpn_account_controller::Deeplinks;
 use offline_monitor::OfflineMonitorHandle;
 use state_machine::StateMachineHandle;
 use stats::StatisticsControllerHandle;
@@ -111,6 +112,7 @@ lazy_static! {
         Mutex::new(None);
     static ref GATEWAY_CACHE: Mutex<Option<UniffiGatewayCacheHandle>> = Mutex::new(None);
     static ref SENTRY_CLIENT: Mutex<Option<ClientInitGuard>> = Mutex::new(None);
+    static ref DEEPLINKS: Mutex<Option<Deeplinks>> = Mutex::new(None);
 }
 
 /// Fetches the network environment details from the network name and initializes the environment,
@@ -428,11 +430,31 @@ pub fn getDeeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
     RUNTIME.block_on(account::get_deeplink(params))
 }
 
+/// Get a deeplink (raw)
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getDeeplinkRaw(params: GetDeeplinkParams) -> Result<String, VpnError> {
+    RUNTIME.block_on(account::raw::get_deeplink(params))
+}
+
 /// Login via deeplink callback URL
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn deeplinkStoreAccount(deeplink_callback_url: String) -> Result<(), VpnError> {
     RUNTIME.block_on(account::deeplink_store_account(deeplink_callback_url))
+}
+
+/// Login via deeplink callback URL (raw)
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn deeplinkStoreAccountRaw(
+    path: String,
+    deeplink_callback_url: String,
+) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::raw::deeplink_store_account(
+        &path,
+        &deeplink_callback_url,
+    ))
 }
 
 /// Get the account summary
