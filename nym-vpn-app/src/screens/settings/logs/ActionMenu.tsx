@@ -5,7 +5,6 @@ import { Menu } from '@base-ui-components/react';
 import { invoke } from '@tauri-apps/api/core';
 import { useInAppNotify, useMainState } from '../../../contexts';
 import {
-  ButtonIcon,
   ConfirmationDialog,
   ConfirmationDialogProps,
   MsIcon,
@@ -152,17 +151,12 @@ function ActionMenu() {
       <Menu.Root>
         <Menu.Trigger
           className={clsx(
-            'flex items-center justify-center rounded-md mx-4 focus-visible:outline focus-visible:-outline-offset-1',
+            'flex items-center justify-center rounded-md mx-4',
+            'focus-visible:outline focus-visible:-outline-offset-1',
+            'hover:text-baltic-sea/70 dark:hover:text-white/80',
           )}
         >
-          <ButtonIcon
-            noDefaultSize
-            color="chalk"
-            icon="more_vert"
-            onClick={() => {
-              // Menu.Trigger handles the click
-            }}
-          />
+          <MsIcon icon="more_vert" />
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner className="outline-none z-50" sideOffset={8}>
