@@ -4,6 +4,7 @@
 pub mod storage;
 
 mod bandwidth_controller;
+pub mod cache_refresh;
 mod error;
 pub mod login;
 mod mixnet;
