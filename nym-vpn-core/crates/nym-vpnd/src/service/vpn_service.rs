@@ -358,8 +358,9 @@ impl NymVpnService {
             network_env: *parameters.network_env.clone(),
         };
 
+        let network_details = parameters.network_env.nym_network_details();
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
-            parameters.network_env.nym_network_details(),
+            network_details,
             parameters.user_agent.clone(),
             None,
         )
@@ -726,7 +727,58 @@ impl NymVpnService {
         match event {
             DiscoveryRefresherEvent::NewNetwork(new_network) => {
                 tracing::info!("Network environment updated");
-                let _ = self.network_tx.send_replace(new_network);
+                let _ = self.network_tx.send_replace(new_network.clone());
+
+                // Clear gateway cache and update gateway client for new environment
+                let gateway_cache_handle = self.gateway_cache_handle.clone();
+                let user_agent = self.user_agent.clone();
+                tokio::spawn(async move {
+                    // Clear the cache first
+                    if let Err(e) = gateway_cache_handle.clear_cache() {
+                        tracing::warn!("Failed to clear gateway cache on environment change: {e}");
+                    }
+
+                    // Create new gateway client for the new environment
+                    let nyxd_url = new_network.nyxd_url();
+                    let nym_api_urls = new_network.nym_api_urls().unwrap_or_default();
+                    let nym_vpn_api_urls = new_network.nym_vpn_api_urls().unwrap_or_default();
+
+                    let gateway_config = match gateway_directory::Config::new(
+                        nyxd_url,
+                        nym_api_urls,
+                        nym_vpn_api_urls,
+                        None,
+                    ) {
+                        Ok(config) => config,
+                        Err(e) => {
+                            tracing::error!(
+                                "Failed to create gateway config for new environment: {e}"
+                            );
+                            return;
+                        }
+                    };
+
+                    let new_gateway_client =
+                        match GatewayClient::new(gateway_config, user_agent).await {
+                            Ok(client) => client,
+                            Err(e) => {
+                                tracing::error!(
+                                    "Failed to create gateway client for new environment: {e}"
+                                );
+                                return;
+                            }
+                        };
+
+                    // Replace the gateway client in the cache
+                    if let Err(e) = gateway_cache_handle.replace_gateway_client(new_gateway_client)
+                    {
+                        tracing::warn!(
+                            "Failed to replace gateway client on environment change: {e}"
+                        );
+                    } else {
+                        tracing::info!("Gateway cache updated for new environment");
+                    }
+                });
             }
             DiscoveryRefresherEvent::Error(_error) => {
                 // todo: handle error?

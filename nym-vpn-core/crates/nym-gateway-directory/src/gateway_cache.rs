@@ -67,9 +67,16 @@ impl GatewayCacheHandle {
         rx.await.map_err(|_| Error::Cancelled)?
     }
 
-    pub fn replace_gateway_client(&mut self, gateway_client: GatewayClient) -> Result<()> {
+    pub fn replace_gateway_client(&self, gateway_client: GatewayClient) -> Result<()> {
         self.tx
             .send(Command::ReplaceGatewayClient(Box::new(gateway_client)))
+            .map_err(|_| Error::Cancelled)
+    }
+
+    /// Clear all cached gateway data. This should be called when the network environment changes.
+    pub fn clear_cache(&self) -> Result<()> {
+        self.tx
+            .send(Command::ClearCache)
             .map_err(|_| Error::Cancelled)
     }
 
@@ -100,6 +107,7 @@ enum Command {
     ),
     LookupNymNodeByIdentity(NodeIdentity, tokio::sync::oneshot::Sender<Result<NymNode>>),
     ReplaceGatewayClient(Box<GatewayClient>),
+    ClearCache,
 }
 
 pub struct GatewayCache {
@@ -174,6 +182,9 @@ impl GatewayCache {
                         Command::ReplaceGatewayClient(gateway_client) => {
                             self.replace_gateway_client(*gateway_client)
                         }
+                        Command::ClearCache => {
+                            self.clear_cache();
+                        }
                     }
                 }
                 Some(status) = self.connectivity_handle.next() => {
@@ -207,6 +218,14 @@ impl GatewayCache {
             self.cached_gateways.clear();
             self.cached_nymnodes = None;
         }
+    }
+
+    fn clear_cache(&mut self) {
+        tracing::debug!("Clearing gateway cache due to environment change");
+        self.cached_gateways.clear();
+        self.cached_nymnodes = None;
+        // Reset the initial refresh flag so we fetch fresh data
+        self.is_performed_initial_refresh = false;
     }
 
     async fn refresh_all(&mut self) {

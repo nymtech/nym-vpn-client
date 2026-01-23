@@ -118,3 +118,40 @@ pub async fn stop_gateway_cache() -> Result<(), VpnError> {
         }),
     }
 }
+
+/// Clear the gateway cache and update it for the new environment.
+/// This should be called when the network environment changes.
+#[allow(dead_code)]
+pub async fn refresh_gateway_cache_for_environment(
+    user_agent: UserAgent,
+    _connectivity_handle: ConnectivityHandle,
+) -> Result<(), VpnError> {
+    let guard = GATEWAY_CACHE.lock().await;
+    match guard.as_ref() {
+        Some(cache_handle) => {
+            // Clear the cache
+            cache_handle
+                .inner()
+                .clear_cache()
+                .map_err(VpnError::internal)?;
+
+            // Create new gateway config for current environment
+            let new_directory_config = make_gateway_config().await?;
+            let new_gateway_client = GatewayClient::new(new_directory_config, user_agent.into())
+                .await
+                .map_err(VpnError::internal)?;
+
+            // Replace the gateway client (this will also clear cache if performance config changed)
+            cache_handle
+                .inner()
+                .replace_gateway_client(new_gateway_client)
+                .map_err(VpnError::internal)?;
+
+            tracing::info!("Gateway cache refreshed for new environment");
+            Ok(())
+        }
+        None => Err(VpnError::InvalidStateError {
+            details: "Gateway cache is not initialized".to_owned(),
+        }),
+    }
+}

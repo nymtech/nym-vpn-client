@@ -25,6 +25,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use crate::gateway_cache;
+use nym_gateway_directory::{Config as GatewayConfig, GatewayClient};
 
 use super::{STATE_MACHINE_HANDLE, VPNConfig, error::VpnError};
 
@@ -177,6 +178,7 @@ pub(super) async fn start_state_machine(
     })?;
 
     let discovery_watch_token = shutdown_token.child_token();
+    let user_agent_clone = user_agent.clone();
     let discovery_watch_handle = tokio::spawn(async move {
         loop {
             tokio::select! {
@@ -184,7 +186,51 @@ pub(super) async fn start_state_machine(
                     match event {
                         DiscoveryRefresherEvent::NewNetwork(new_network) => {
                             tracing::info!("Network environment updated");
-                            let _ = network_tx.send_replace(new_network);
+                            let _ = network_tx.send_replace(new_network.clone());
+
+                            // Refresh gateway cache for new environment
+                            if let Ok(cache_handle) = gateway_cache::get_gateway_cache_handle().await {
+                                // Clear the cache
+                                if let Err(e) = cache_handle.clear_cache() {
+                                    tracing::warn!("Failed to clear gateway cache on environment change: {e}");
+                                }
+
+                                // Create new gateway client for the new environment
+                                let nyxd_url = new_network.nyxd_url();
+                                let nym_api_urls = new_network.nym_api_urls().unwrap_or_default();
+                                let nym_vpn_api_urls = new_network.nym_vpn_api_urls().unwrap_or_default();
+
+                                let gateway_config = match GatewayConfig::new(
+                                    nyxd_url,
+                                    nym_api_urls,
+                                    nym_vpn_api_urls,
+                                    None,
+                                ) {
+                                    Ok(config) => config,
+                                    Err(e) => {
+                                        tracing::error!("Failed to create gateway config for new environment: {e}");
+                                        continue;
+                                    }
+                                };
+
+                                let new_gateway_client = match GatewayClient::new(
+                                    gateway_config,
+                                    user_agent_clone.clone(),
+                                ).await {
+                                    Ok(client) => client,
+                                    Err(e) => {
+                                        tracing::error!("Failed to create gateway client for new environment: {e}");
+                                        continue;
+                                    }
+                                };
+
+                                // Replace the gateway client in the cache
+                                if let Err(e) = cache_handle.replace_gateway_client(new_gateway_client) {
+                                    tracing::warn!("Failed to replace gateway client on environment change: {e}");
+                                } else {
+                                    tracing::info!("Gateway cache updated for new environment");
+                                }
+                            }
                         }
                         DiscoveryRefresherEvent::Error(_error) => {
                             // todo: handle error?

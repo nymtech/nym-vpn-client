@@ -275,13 +275,11 @@ pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) ->
 
     // Patch up the network details with domain fronting
     // TODO: remove once network details contain domain fronting data
-    if nym_network
-        .network
-        .nym_vpn_api_urls
-        .as_ref()
-        .is_none_or(|nym_vpn_api_urls| nym_vpn_api_urls.is_empty())
-    {
-        nym_network.network.nym_vpn_api_urls = Some(discovery.nym_vpn_api_urls().clone());
+    // Always use discovery URLs to ensure we have the correct environment URLs
+    // The file-based nym_network might have stale/wrong URLs from a previous environment
+    let discovery_vpn_api_urls = discovery.nym_vpn_api_urls();
+    if !discovery_vpn_api_urls.is_empty() {
+        nym_network.network.nym_vpn_api_urls = Some(discovery_vpn_api_urls);
     }
 
     let endpoint = nym_network
