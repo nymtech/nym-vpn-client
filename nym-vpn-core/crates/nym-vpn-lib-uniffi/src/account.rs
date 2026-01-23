@@ -281,6 +281,51 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
         .ok_or(VpnError::NoAccountStored)
 }
 
+pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
+    let base_url = match params.kind {
+        DeeplinkKind::Privy => {
+            let Some(ref account_management) = current_environment_details()
+                .await
+                .ok()
+                .and_then(|network| network.nym_vpn_network.account_management)
+            else {
+                return Err(VpnError::DeeplinkError {
+                    details: "No account management data is available at this time".to_string(),
+                });
+            };
+
+            let opt_url = match params.client {
+                DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+                DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+                DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+            };
+
+            opt_url.ok_or(VpnError::DeeplinkError {
+                details: "The privy path could not be determined".to_string(),
+            })?
+        }
+    };
+
+    get_command_sender()
+        .await?
+        .get_deeplink(params.kind, params.name, base_url)
+        .await
+        .map_err(VpnError::from)
+}
+
+pub(super) async fn deeplink_store_account(deeplink_callback_url: String) -> Result<(), VpnError> {
+    let mnemonic = get_command_sender()
+        .await?
+        .derive_deeplink_mnemonic(deeplink_callback_url)
+        .await?;
+
+    get_command_sender()
+        .await?
+        .store_account(mnemonic.into())
+        .await?;
+    Ok(())
+}
+
 pub(super) async fn get_account_summary() -> Result<Option<VpnAccountSummary>, VpnError> {
     get_command_sender()
         .await?
