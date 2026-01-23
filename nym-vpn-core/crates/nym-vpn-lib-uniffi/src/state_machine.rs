@@ -179,103 +179,25 @@ pub(super) async fn start_state_machine(
 
     let discovery_watch_token = shutdown_token.child_token();
     let user_agent_clone = user_agent.clone();
+    let topology_service_clone = topology_service.clone();
     let discovery_watch_handle = tokio::spawn(async move {
         loop {
             tokio::select! {
                 Some(event) = discovery_refresher_event_rx.recv() => {
                     match event {
                         DiscoveryRefresherEvent::NewNetwork(new_network) => {
-                            let network_name = &new_network.nym_network.network.network_name;
-                            tracing::info!(
-                                network = %network_name,
-                                "Network environment updated"
-                            );
+                            tracing::info!("Network environment updated");
                             let _ = network_tx.send_replace(new_network.clone());
 
-                            // Refresh gateway cache for new environment
+                            // Update gateway cache and topology cache for new environment
                             if let Ok(cache_handle) = gateway_cache::get_gateway_cache_handle().await {
-                                tracing::info!(
-                                    network = %network_name,
-                                    "Updating gateway cache for network environment change"
-                                );
-
-                                // Clear the cache
-                                if let Err(e) = cache_handle.clear_cache() {
-                                    tracing::warn!(
-                                        network = %network_name,
-                                        error = %e,
-                                        "Failed to clear gateway cache on environment change"
-                                    );
-                                }
-
-                                // Create new gateway client for the new environment
-                                let nyxd_url = new_network.nyxd_url();
-                                let nym_api_urls = new_network.nym_api_urls().unwrap_or_default();
-                                let nym_vpn_api_urls = new_network.nym_vpn_api_urls().unwrap_or_default();
-
-                                // Validate that we have the necessary URLs
-                                if nym_vpn_api_urls.is_empty() {
-                                    tracing::error!(
-                                        network = %network_name,
-                                        "No VPN API URLs available for new environment, cannot update gateway cache"
-                                    );
-                                    continue;
-                                }
-
-                                if nym_api_urls.is_empty() {
-                                    tracing::warn!(
-                                        network = %network_name,
-                                        "No Nym API URLs available for new environment"
-                                    );
-                                }
-
-                                let gateway_config = match GatewayConfig::new(
-                                    nyxd_url,
-                                    nym_api_urls.clone(),
-                                    nym_vpn_api_urls.clone(),
-                                    None,
-                                ) {
-                                    Ok(config) => config,
-                                    Err(e) => {
-                                        tracing::error!(
-                                            network = %network_name,
-                                            error = %e,
-                                            vpn_api_urls = ?nym_vpn_api_urls,
-                                            nym_api_urls = ?nym_api_urls,
-                                            "Failed to create gateway config for new environment"
-                                        );
-                                        continue;
-                                    }
-                                };
-
-                                let new_gateway_client = match GatewayClient::new(
-                                    gateway_config,
-                                    user_agent_clone.clone(),
-                                ).await {
-                                    Ok(client) => client,
-                                    Err(e) => {
-                                        tracing::error!(
-                                            network = %network_name,
-                                            error = %e,
-                                            "Failed to create gateway client for new environment"
-                                        );
-                                        continue;
-                                    }
-                                };
-
-                                // Replace the gateway client in the cache
-                                if let Err(e) = cache_handle.replace_gateway_client(new_gateway_client) {
-                                    tracing::warn!(
-                                        network = %network_name,
-                                        error = %e,
-                                        "Failed to replace gateway client on environment change"
-                                    );
-                                } else {
-                                    tracing::info!(
-                                        network = %network_name,
-                                        "Gateway cache successfully updated for new environment"
-                                    );
-                                }
+                                update_caches_for_network(
+                                    &new_network,
+                                    &cache_handle,
+                                    &topology_service_clone,
+                                    &user_agent_clone,
+                                )
+                                .await;
                             }
                         }
                         DiscoveryRefresherEvent::Error(_error) => {
@@ -300,7 +222,7 @@ pub(super) async fn start_state_machine(
         account_controller_state,
         statistics_event_sender.clone(),
         gateway_cache_handle,
-        topology_service,
+        topology_service.clone(),
         connectivity_handle,
         discovery_refresher_command_tx,
         wireguard_key_db,
@@ -325,6 +247,7 @@ pub(super) async fn start_state_machine(
         command_sender,
         statistics_event_sender,
         topology_service_handle,
+        topology_service,
         shutdown_token,
     })
 }
@@ -337,6 +260,8 @@ pub(super) struct StateMachineHandle {
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
     statistics_event_sender: StatisticsSender,
     topology_service_handle: JoinHandle<()>,
+    #[allow(dead_code)]
+    topology_service: nym_vpn_lib::VpnTopologyServiceHandle,
     shutdown_token: CancellationToken,
 }
 
@@ -370,5 +295,98 @@ impl StateMachineHandle {
         if let Err(e) = self.topology_service_handle.await {
             tracing::error!("Failed to join on topology service handle: {}", e);
         }
+    }
+}
+
+/// Update gateway cache and topology cache for a new network environment.
+/// This is called when the discovery refresher detects an environment change.
+async fn update_caches_for_network(
+    network: &nym_vpn_network_config::Network,
+    gateway_cache_handle: &nym_vpn_lib::gateway_directory::GatewayCacheHandle,
+    topology_service_handle: &nym_vpn_lib::VpnTopologyServiceHandle,
+    user_agent: &nym_http_api_client::UserAgent,
+) {
+    let network_name = &network.nym_network.network.network_name;
+    tracing::info!(
+        network = %network_name,
+        "Updating gateway cache and topology cache for network environment change"
+    );
+
+    // Clear the gateway cache
+    if let Err(e) = gateway_cache_handle.clear_cache() {
+        tracing::warn!(
+            network = %network_name,
+            error = %e,
+            "Failed to clear gateway cache on environment change"
+        );
+    }
+
+    // Clear the topology cache
+    topology_service_handle.clear_cache().await;
+
+    // Create new gateway client for the new environment
+    let nyxd_url = network.nyxd_url();
+    let nym_api_urls = network.nym_api_urls().unwrap_or_default();
+    let nym_vpn_api_urls = network.nym_vpn_api_urls().unwrap_or_default();
+
+    // Validate that we have the necessary URLs
+    if nym_vpn_api_urls.is_empty() {
+        tracing::error!(
+            network = %network_name,
+            "No VPN API URLs available for new environment, cannot update gateway cache"
+        );
+        return;
+    }
+
+    if nym_api_urls.is_empty() {
+        tracing::warn!(
+            network = %network_name,
+            "No Nym API URLs available for new environment"
+        );
+    }
+
+    let gateway_config = match GatewayConfig::new(
+        nyxd_url,
+        nym_api_urls.clone(),
+        nym_vpn_api_urls.clone(),
+        None,
+    ) {
+        Ok(config) => config,
+        Err(e) => {
+            tracing::error!(
+                network = %network_name,
+                error = %e,
+                vpn_api_urls = ?nym_vpn_api_urls,
+                nym_api_urls = ?nym_api_urls,
+                "Failed to create gateway config for new environment"
+            );
+            return;
+        }
+    };
+
+    let new_gateway_client = match GatewayClient::new(gateway_config, user_agent.clone()).await {
+        Ok(client) => client,
+        Err(e) => {
+            tracing::error!(
+                network = %network_name,
+                error = %e,
+                "Failed to create gateway client for new environment"
+            );
+            return;
+        }
+    };
+
+    // Replace the gateway client in the cache
+    if let Err(e) = gateway_cache_handle.replace_gateway_client(new_gateway_client) {
+        tracing::warn!(
+            network = %network_name,
+            error = %e,
+            "Failed to replace gateway client on environment change"
+        );
+    } else {
+        tracing::info!(
+            network = %network_name,
+            "Gateway cache and topology cache successfully updated for new environment"
+        );
     }
 }

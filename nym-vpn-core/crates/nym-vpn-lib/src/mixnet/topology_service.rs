@@ -64,6 +64,14 @@ impl VpnTopologyServiceHandle {
     pub fn make_topology_provider(&self) -> VpnTopologyProvider {
         VpnTopologyProvider::new(self.tx.clone())
     }
+
+    /// Clear the cached topology. This should be called when the network environment changes.
+    pub async fn clear_cache(&self) {
+        let (completion_tx, completion_rx) = oneshot::channel();
+        if self.tx.send(Command::ClearCache { completion_tx }).is_ok() {
+            completion_rx.await.ok();
+        }
+    }
 }
 
 const DEFAULT_CONFIG: Config = Config {
@@ -127,6 +135,11 @@ impl VpnTopologyService {
                         self.config.min_mixnode_performance = min_mixnode_performance;
                         self.config.min_gateway_performance = min_gateway_performance;
                         self.resolver_overrides = resolver_overrides;
+                        completion_tx.send(()).ok();
+                    }
+                    Command::ClearCache { completion_tx } => {
+                        tracing::info!("Clearing topology cache");
+                        self.latest_topology = None;
                         completion_tx.send(()).ok();
                     }
                 },
@@ -229,6 +242,9 @@ enum Command {
         min_mixnode_performance: u8,
         min_gateway_performance: u8,
         resolver_overrides: Option<ResolverOverrides>,
+        completion_tx: Sender<()>,
+    },
+    ClearCache {
         completion_tx: Sender<()>,
     },
 }
