@@ -6,7 +6,7 @@ use std::{path::PathBuf, str::FromStr, time::Duration};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::{error::VpnError, ACCOUNT_CONTROLLER_HANDLE, DEEPLINKS};
+use super::{ACCOUNT_CONTROLLER_HANDLE, DEEPLINKS, error::VpnError};
 use crate::{environment::current_environment_details, offline_monitor};
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityHandle;
@@ -303,9 +303,9 @@ pub(crate) mod raw {
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_account_controller::{CreateDeeplinkParams, Deeplinks};
     use nym_vpn_api_client::{
+        VpnApiClient,
         response::{NymVpnAccountResponse, NymVpnRegisterAccountResponse},
         types::{Device, DeviceStatus, VpnAccountMode},
-        VpnApiClient,
     };
     use nym_vpn_store::{account::AccountInformationStorage, keys::wireguard::DB_NAME};
 
