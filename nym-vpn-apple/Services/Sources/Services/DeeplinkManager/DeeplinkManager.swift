@@ -20,7 +20,7 @@ public final class DeeplinkManager {
         // Privy login
         if components.host == "auth", components.path == "/privy/privateKey" {
             Task {
-                try await credentialsManager.privyLoginStore(callbackURLString: url.path())
+                try await credentialsManager.privyLoginStore(callbackURLString: url.absoluteString)
             }
         }
     }
