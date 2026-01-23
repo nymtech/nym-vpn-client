@@ -185,14 +185,27 @@ pub(super) async fn start_state_machine(
                 Some(event) = discovery_refresher_event_rx.recv() => {
                     match event {
                         DiscoveryRefresherEvent::NewNetwork(new_network) => {
-                            tracing::info!("Network environment updated");
+                            let network_name = &new_network.nym_network.network.network_name;
+                            tracing::info!(
+                                network = %network_name,
+                                "Network environment updated"
+                            );
                             let _ = network_tx.send_replace(new_network.clone());
 
                             // Refresh gateway cache for new environment
                             if let Ok(cache_handle) = gateway_cache::get_gateway_cache_handle().await {
+                                tracing::info!(
+                                    network = %network_name,
+                                    "Updating gateway cache for network environment change"
+                                );
+
                                 // Clear the cache
                                 if let Err(e) = cache_handle.clear_cache() {
-                                    tracing::warn!("Failed to clear gateway cache on environment change: {e}");
+                                    tracing::warn!(
+                                        network = %network_name,
+                                        error = %e,
+                                        "Failed to clear gateway cache on environment change"
+                                    );
                                 }
 
                                 // Create new gateway client for the new environment
@@ -200,15 +213,37 @@ pub(super) async fn start_state_machine(
                                 let nym_api_urls = new_network.nym_api_urls().unwrap_or_default();
                                 let nym_vpn_api_urls = new_network.nym_vpn_api_urls().unwrap_or_default();
 
+                                // Validate that we have the necessary URLs
+                                if nym_vpn_api_urls.is_empty() {
+                                    tracing::error!(
+                                        network = %network_name,
+                                        "No VPN API URLs available for new environment, cannot update gateway cache"
+                                    );
+                                    continue;
+                                }
+
+                                if nym_api_urls.is_empty() {
+                                    tracing::warn!(
+                                        network = %network_name,
+                                        "No Nym API URLs available for new environment"
+                                    );
+                                }
+
                                 let gateway_config = match GatewayConfig::new(
                                     nyxd_url,
-                                    nym_api_urls,
-                                    nym_vpn_api_urls,
+                                    nym_api_urls.clone(),
+                                    nym_vpn_api_urls.clone(),
                                     None,
                                 ) {
                                     Ok(config) => config,
                                     Err(e) => {
-                                        tracing::error!("Failed to create gateway config for new environment: {e}");
+                                        tracing::error!(
+                                            network = %network_name,
+                                            error = %e,
+                                            vpn_api_urls = ?nym_vpn_api_urls,
+                                            nym_api_urls = ?nym_api_urls,
+                                            "Failed to create gateway config for new environment"
+                                        );
                                         continue;
                                     }
                                 };
@@ -219,16 +254,27 @@ pub(super) async fn start_state_machine(
                                 ).await {
                                     Ok(client) => client,
                                     Err(e) => {
-                                        tracing::error!("Failed to create gateway client for new environment: {e}");
+                                        tracing::error!(
+                                            network = %network_name,
+                                            error = %e,
+                                            "Failed to create gateway client for new environment"
+                                        );
                                         continue;
                                     }
                                 };
 
                                 // Replace the gateway client in the cache
                                 if let Err(e) = cache_handle.replace_gateway_client(new_gateway_client) {
-                                    tracing::warn!("Failed to replace gateway client on environment change: {e}");
+                                    tracing::warn!(
+                                        network = %network_name,
+                                        error = %e,
+                                        "Failed to replace gateway client on environment change"
+                                    );
                                 } else {
-                                    tracing::info!("Gateway cache updated for new environment");
+                                    tracing::info!(
+                                        network = %network_name,
+                                        "Gateway cache successfully updated for new environment"
+                                    );
                                 }
                             }
                         }
