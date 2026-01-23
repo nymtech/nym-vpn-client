@@ -119,7 +119,17 @@ impl Discovery {
         let path = Self::path(config_dir, network_name);
         tracing::debug!("Reading discovery file from: {}", path.display());
 
-        crate::serialization::deserialize_from_json_file(path)
+        let discovery: Self = crate::serialization::deserialize_from_json_file(path)?;
+
+        // Verify the discovery file matches the expected network name
+        if discovery.network_name != network_name {
+            return Err(Error::NetworkNameMismatch {
+                expected: network_name.to_owned(),
+                actual: discovery.network_name,
+            });
+        }
+
+        Ok(discovery)
     }
 
     pub(super) fn write_to_file(
@@ -143,53 +153,111 @@ impl Discovery {
 
     pub(super) async fn ensure_exists(config_dir: &Path, network_name: &str) -> Result<Self> {
         match Self::read_from_file(config_dir, network_name) {
-            Ok(discovery) => Ok(discovery),
+            Ok(discovery) => {
+                // Verify the discovery we read matches the expected network
+                if discovery.network_name != network_name {
+                    tracing::warn!(
+                        "Discovery file has wrong network name: expected '{}', found '{}'. Will recreate.",
+                        network_name,
+                        discovery.network_name
+                    );
+                    // Fall through to recreate the file
+                } else {
+                    return Ok(discovery);
+                }
+            }
             Err(e) if e.should_overwrite_file() => {
                 if e.is_file_not_found() {
                     tracing::debug!("No discovery file found, creating a new discovery file");
                 } else {
                     trace_err_chain!(e, "Failed to read discovery file");
                 }
-
-                let client = Self::create_client(None).await?;
-
-                match Self::fetch(&client, network_name).await {
-                    Ok(discovery) => {
-                        discovery
-                            .write_to_file(config_dir, None)
-                            .inspect_err(|err| {
-                                trace_err_chain!(err, "Failed to write discovery file");
-                            })?;
-                        Ok(discovery)
-                    }
-                    Err(e) => match Self::default_discovery(network_name) {
-                        Some(default_discovery) => {
-                            tracing::warn!(
-                                "Failed to fetch remote discovery file: {e}, creating a default one"
-                            );
-                            // Ensure that discovery cache created from default discovery is always considered stale.
-                            let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
-
-                            default_discovery
-                                .write_to_file(config_dir, modified_at)
-                                .inspect_err(|err| {
-                                    trace_err_chain!(err, "Failed to write default discovery file");
-                                })?;
-                            Ok(default_discovery)
-                        }
-                        None => {
-                            tracing::error!(
-                                "No default discovery available for {network_name} environment"
-                            );
-                            Err(e)
-                        }
-                    },
-                }
             }
             Err(e) => {
                 trace_err_chain!(e, "Failed to read discovery file");
-                Err(e)
+                return Err(e);
             }
+        }
+
+        // For non-mainnet networks, prefer using default discovery to avoid fetching from wrong API
+        // Only try to fetch from network for mainnet, or if we have a way to fetch for the specific network
+        if network_name != "mainnet"
+            && let Some(default_discovery) = Self::default_discovery(network_name)
+        {
+            tracing::info!(
+                "Using default discovery for network '{}' (non-mainnet networks should use defaults)",
+                network_name
+            );
+            // Ensure that discovery cache created from default discovery is always considered stale.
+            let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
+
+            default_discovery
+                .clone()
+                .write_to_file(config_dir, modified_at)
+                .inspect_err(|err| {
+                    trace_err_chain!(err, "Failed to write default discovery file");
+                })?;
+            return Ok(default_discovery);
+        }
+
+        // For mainnet, try to fetch from network
+        let client = Self::create_client(None).await?;
+
+        match Self::fetch(&client, network_name).await {
+            Ok(discovery) => {
+                // Verify the fetched discovery matches what we requested
+                if discovery.network_name != network_name {
+                    tracing::error!(
+                        "Fetched discovery has wrong network name: expected '{}', got '{}'",
+                        network_name,
+                        discovery.network_name
+                    );
+                    // Fall back to default
+                    if let Some(default_discovery) = Self::default_discovery(network_name) {
+                        tracing::warn!("Using default discovery due to network name mismatch");
+                        let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
+                        default_discovery
+                            .clone()
+                            .write_to_file(config_dir, modified_at)
+                            .inspect_err(|err| {
+                                trace_err_chain!(err, "Failed to write default discovery file");
+                            })?;
+                        return Ok(default_discovery);
+                    }
+                    return Err(Error::NetworkNameMismatch {
+                        expected: network_name.to_owned(),
+                        actual: discovery.network_name,
+                    });
+                }
+                discovery
+                    .write_to_file(config_dir, None)
+                    .inspect_err(|err| {
+                        trace_err_chain!(err, "Failed to write discovery file");
+                    })?;
+                Ok(discovery)
+            }
+            Err(e) => match Self::default_discovery(network_name) {
+                Some(default_discovery) => {
+                    tracing::warn!(
+                        "Failed to fetch remote discovery file: {e}, creating a default one"
+                    );
+                    // Ensure that discovery cache created from default discovery is always considered stale.
+                    let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
+
+                    default_discovery
+                        .write_to_file(config_dir, modified_at)
+                        .inspect_err(|err| {
+                            trace_err_chain!(err, "Failed to write default discovery file");
+                        })?;
+                    Ok(default_discovery)
+                }
+                None => {
+                    tracing::error!(
+                        "No default discovery available for {network_name} environment"
+                    );
+                    Err(e)
+                }
+            },
         }
     }
 
