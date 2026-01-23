@@ -21,54 +21,48 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
-import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
-import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
-import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.SplitTunnelingInfoModal
+import net.nymtech.nymvpn.ui.screens.settings.logs.modal.LogsActionsMenu
 import net.nymtech.nymvpn.util.extensions.goFromRoot
-import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBackButton: Boolean = false, onBackClick: (Route) -> Unit = {}) {
+fun NavBar(
+	navController: NavController,
+	modifier: Modifier = Modifier,
+	hideBackButton: Boolean = false,
+	onBackClick: (Route) -> Unit = {},
+	onNavBarEvent: (NavBarEvent) -> Unit = {},
+	logsEnabled: Boolean = false,
+) {
 	val keyboardController = LocalSoftwareKeyboardController.current
-	val context = LocalContext.current
 
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
 	var navBarState by remember { mutableStateOf(NavBarState()) }
-	var showLocationTooltip by remember { mutableStateOf(false) }
-	var showExitServerTooltip by remember { mutableStateOf(false) }
-	var showPassphraseModal by remember { mutableStateOf(false) }
-	var showSplitTunnelingModal by remember { mutableStateOf(false) }
 
-	LaunchedEffect(navBackStackEntry, hideBackButton) {
+	LaunchedEffect(navBackStackEntry, hideBackButton, logsEnabled) {
 		keyboardController?.hide()
 		val currentRoute = navBackStackEntry?.destination?.route ?: return@LaunchedEffect
-		navBarState = when {
-			currentRoute.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState(
-				show = false,
-			)
 
-			currentRoute.startsWith(Route.Main::class.qualifiedName!!) -> {
-				NavBarState(
-					title = { MainTitle() },
-					show = true,
-					trailing = {
-						NavIcon(Icons.Outlined.Settings, stringResource(R.string.settings)) {
-							navController.goFromRoot(Route.Settings(false))
-						}
-					},
-				)
-			}
+		navBarState = when {
+			currentRoute.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState(show = false)
+
+			currentRoute.startsWith(Route.Main::class.qualifiedName!!) -> NavBarState(
+				title = { MainTitle() },
+				show = true,
+				trailing = {
+					NavIcon(Icons.Outlined.Settings, stringResource(R.string.settings)) {
+						navController.goFromRoot(Route.Settings(false))
+					}
+				},
+			)
 
 			currentRoute.startsWith(Route.Settings::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.settings)) },
@@ -83,15 +77,31 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 			currentRoute.startsWith(Route.EntryLocation::class.qualifiedName!!) -> NavBarState(
 				show = true,
 				title = { NavTitle(stringResource(R.string.entry_location)) },
-				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.safePopBackStack() } },
-				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showLocationTooltip = true } },
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+				trailing = {
+					NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) {
+						onNavBarEvent(NavBarEvent.EntryLocationInfoClicked)
+					}
+				},
 			)
 
 			currentRoute.startsWith(Route.ExitLocation::class.qualifiedName!!) -> NavBarState(
 				show = true,
 				title = { NavTitle(stringResource(R.string.exit_location)) },
-				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.safePopBackStack() } },
-				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showExitServerTooltip = true } },
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+				trailing = {
+					NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) {
+						onNavBarEvent(NavBarEvent.ExitLocationInfoClicked)
+					}
+				},
 			)
 
 			currentRoute.startsWith(Route.Logs::class.qualifiedName!!) -> NavBarState(
@@ -100,6 +110,15 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
 						navController.safePopBackStack()
+					}
+				},
+				trailing = {
+					if (logsEnabled) {
+						LogsActionsMenu(
+							onDownload = { onNavBarEvent(NavBarEvent.LogsDownloadClicked) },
+							onShare = { onNavBarEvent(NavBarEvent.LogsShareClicked) },
+							onDelete = { onNavBarEvent(NavBarEvent.LogsDeleteClicked) },
+						)
 					}
 				},
 			)
@@ -206,30 +225,26 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 				},
 			)
 
-			currentRoute.startsWith(Route.CreateAccount::class.qualifiedName!!) -> {
-				NavBarState(
-					title = { MainTitle() },
-					show = true,
-					leading = {
-						NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-							navController.safePopBackStack()
-						}
-					},
-				)
-			}
+			currentRoute.startsWith(Route.CreateAccount::class.qualifiedName!!) -> NavBarState(
+				title = { MainTitle() },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
 
 			currentRoute.startsWith(Route.Generating::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle("") },
 				show = true,
-				leading = {
-				},
+				leading = {},
 			)
 
 			currentRoute.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle("") },
 				show = true,
-				leading = {
-				},
+				leading = {},
 			)
 
 			currentRoute.startsWith(Route.Language::class.qualifiedName!!) -> NavBarState(
@@ -272,9 +287,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 				},
 			)
 
-			currentRoute.startsWith(Route.Technical::class.qualifiedName!!) -> NavBarState(
-				show = false,
-			)
+			currentRoute.startsWith(Route.Technical::class.qualifiedName!!) -> NavBarState(show = false)
 
 			currentRoute.startsWith(Route.Passphrase::class.qualifiedName!!) -> NavBarState(
 				title = { NavTitle(stringResource(R.string.settings_passphrase_title)) },
@@ -286,7 +299,11 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 						}
 					}
 				},
-				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showPassphraseModal = true } },
+				trailing = {
+					NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) {
+						onNavBarEvent(NavBarEvent.PassphraseInfoClicked)
+					}
+				},
 			)
 
 			currentRoute.startsWith(Route.SplitTunneling::class.qualifiedName!!) -> NavBarState(
@@ -297,7 +314,11 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 						onBackClick(Route.SplitTunneling)
 					}
 				},
-				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showSplitTunnelingModal = true } },
+				trailing = {
+					NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) {
+						onNavBarEvent(NavBarEvent.SplitTunnelingInfoClicked)
+					}
+				},
 			)
 
 			currentRoute.startsWith(Route.Account::class.qualifiedName!!) -> NavBarState(
@@ -324,28 +345,6 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 		}
 	}
 
-	ServerDetailsModalBody(
-		showLocationTooltip = showLocationTooltip,
-		onClick = { context.openWebUrl(context.getString(R.string.location_support_link)) },
-		onDismiss = { showLocationTooltip = false },
-	)
-
-	ExitServerDetailsModal(
-		showModal = showExitServerTooltip,
-		onClick = { context.openWebUrl(it) },
-		onDismiss = { showExitServerTooltip = false },
-	)
-
-	PassphraseInfo(
-		show = showPassphraseModal,
-		onDismiss = { showPassphraseModal = false },
-	)
-
-	SplitTunnelingInfoModal(
-		showModal = showSplitTunnelingModal,
-		onDismiss = { showSplitTunnelingModal = false },
-	)
-
 	AnimatedVisibility(
 		visible = navBarState.show,
 		enter = slideInVertically() + fadeIn(),
@@ -353,15 +352,9 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier, hideBack
 	) {
 		CenterAlignedTopAppBar(
 			modifier = modifier,
-			title = {
-				navBarState.title()
-			},
-			actions = {
-				navBarState.trailing()
-			},
-			navigationIcon = {
-				navBarState.leading()
-			},
+			title = { navBarState.title() },
+			actions = { navBarState.trailing() },
+			navigationIcon = { navBarState.leading() },
 			colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
 		)
 	}

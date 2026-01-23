@@ -54,8 +54,10 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseActions
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseCard
+import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -67,10 +69,24 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
 
 @Composable
-fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
+fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEvent: NavBarEvent?, onNavBarEventConsume: () -> Unit, viewModel: PassphraseViewModel = hiltViewModel()) {
 	val clipboardManager = LocalClipboard.current
 	val passphrase by viewModel.passphrase.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }
+
+	var showInfoModal by remember { mutableStateOf(false) }
+
+	LaunchedEffect(navBarEvent) {
+		if (navBarEvent == NavBarEvent.PassphraseInfoClicked) {
+			showInfoModal = true
+			onNavBarEventConsume()
+		}
+	}
+
+	PassphraseInfo(
+		show = showInfoModal,
+		onDismiss = { showInfoModal = false },
+	)
 
 	val navController = LocalNavController.current
 	val context = LocalContext.current
@@ -97,11 +113,7 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 	val subtitle = stringResource(R.string.passphrase_description)
 
 	val promptInfo = remember(context) {
-		DeviceAuthHelper.buildPromptInfo(
-			context,
-			title = title,
-			subtitle = subtitle,
-		)
+		DeviceAuthHelper.buildPromptInfo(context, title = title, subtitle = subtitle)
 	}
 
 	BackHandler(enabled = showSheet) { }
@@ -120,28 +132,16 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 			activity = activity,
 			promptInfo = promptInfo,
 			onAuthenticated = { showSheet = true },
-			onUnavailable = {
-				showSheet = true
-			},
-			onError = { _, _ ->
-				showSheet = true
-			},
+			onUnavailable = { showSheet = true },
+			onError = { _, _ -> showSheet = true },
 		)
 	}
 
 	suspend fun savePasswordToManager(context: Context, password: String) {
 		val credentialManager = CredentialManager.create(context)
-
-		val passwordCredential = CreatePasswordRequest(
-			id = "nym-passphrase",
-			password = password,
-		)
-
+		val passwordCredential = CreatePasswordRequest(id = "nym-passphrase", password = password)
 		try {
-			credentialManager.createCredential(
-				request = passwordCredential,
-				context = context,
-			)
+			credentialManager.createCredential(request = passwordCredential, context = context)
 		} catch (e: Exception) {
 			Timber.d(e)
 		}
@@ -168,15 +168,10 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, viewModel:
 		},
 		onSaveClick = {
 			scope.launch {
-				savePasswordToManager(
-					context = context,
-					password = passphrase.joinToString(" "),
-				)
+				savePasswordToManager(context = context, password = passphrase.joinToString(" "))
 			}
 		},
-		onContinueClick = {
-			navController.safePopBackStack()
-		},
+		onContinueClick = { navController.safePopBackStack() },
 	)
 }
 
@@ -195,21 +190,15 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 			style = Typography.titleMedium,
 			color = MaterialTheme.colorScheme.onBackground,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			modifier = Modifier
-				.fillMaxWidth(),
+			modifier = Modifier.fillMaxWidth(),
 		)
+
 		Text(
 			text = buildAnnotatedString {
-				withStyle(
-					style = SpanStyle(
-						color = MaterialTheme.colorScheme.outline,
-					),
-				) {
+				withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.outline)) {
 					append(stringResource(R.string.passphrase_description_first))
 				}
-
 				append(" ")
-
 				withStyle(
 					style = SpanStyle(
 						color = MaterialTheme.colorScheme.outline,
@@ -223,6 +212,7 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 			style = MaterialTheme.typography.bodyMedium,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		)
+
 		PassphraseCard(passphrase = passphrase, show = show, onShowClick = onShowClick)
 		PassphraseActions(show = show, onCopyClick = onCopyClick, onDownloadClick = onDownloadClick, onSaveClick = onSaveClick)
 
@@ -254,11 +244,7 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 					)
 				}
 				MainStyledButton(
-					onClick = {
-						if (confirmed) {
-							onContinueClick()
-						}
-					},
+					onClick = { if (confirmed) onContinueClick() },
 					content = {
 						Text(
 							stringResource(R.string.welcome_continue),

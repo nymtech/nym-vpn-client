@@ -9,9 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add deeplinks support for Main Screen (https://github.com/nymtech/nym-vpn-client/pull/4441)
+- Add logs templates for non-ui screens and modules (https://github.com/nymtech/nym-vpn-client/pull/4457)
+- Add Enable Logs toggle on Logs screen (https://github.com/nymtech/nym-vpn-client/pull/4457)
+- Add Enable Debug Verbose toggle on Logs screen (https://github.com/nymtech/nym-vpn-client/pull/4457)
 
 ### Changed
 - Add auth check for shortcuts actions (https://github.com/nymtech/nym-vpn-client/pull/4444)
+- Updated format for logs export zip (folder, logs grouping) (https://github.com/nymtech/nym-vpn-client/pull/4457)
+- Updated action handling for NavBar (https://github.com/nymtech/nym-vpn-client/pull/4457)
+- Removed logs noise (https://github.com/nymtech/nym-vpn-client/pull/4457)
 
 ### Fixed
 - Fix Auto start handling (https://github.com/nymtech/nym-vpn-client/pull/4442)

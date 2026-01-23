@@ -49,6 +49,7 @@ import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
+import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
 import net.nymtech.nymvpn.ui.screens.account.create.CreateAccountScreen
@@ -117,6 +118,7 @@ class MainActivity : AppCompatActivity() {
 		appViewModel.onAppStartup()
 		captureDeepLink(intent)
 		resetTile()
+
 		setContent {
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle)
 			val systemMessage by appViewModel.systemMessage.collectAsStateWithLifecycle(lifecycle)
@@ -124,10 +126,18 @@ class MainActivity : AppCompatActivity() {
 
 			val navController = rememberNavController()
 			val navBackStackEntry by navController.currentBackStackEntryAsState()
+
 			var navHeight by remember { mutableStateOf(0.dp) }
 			val density = LocalDensity.current
+
 			var hideBackButtonInNavBar by remember { mutableStateOf(false) }
 			var onBackClickEventFromRoute by remember { mutableStateOf<Route?>(null) }
+
+			var navBarEvent by remember { mutableStateOf<NavBarEvent?>(null) }
+
+			val consumeNavBarEvent = remember {
+				{ navBarEvent = null }
+			}
 
 			LaunchedEffect(navController) {
 				navControllerRef = navController
@@ -137,10 +147,7 @@ class MainActivity : AppCompatActivity() {
 			LaunchedEffect(configurationChange) {
 				if (configurationChange) {
 					val restartIntent = Intent(this@MainActivity, MainActivity::class.java).apply {
-						addFlags(
-							Intent.FLAG_ACTIVITY_CLEAR_TOP or
-								Intent.FLAG_ACTIVITY_NEW_TASK,
-						)
+						addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
 					}
 					startActivity(restartIntent)
 					finish()
@@ -183,14 +190,14 @@ class MainActivity : AppCompatActivity() {
 							},
 							topBar = {
 								NavBar(
-									navController,
-									Modifier.onGloballyPositioned {
+									navController = navController,
+									modifier = Modifier.onGloballyPositioned {
 										navHeight = with(density) { it.size.height.toDp() }
 									},
 									hideBackButton = hideBackButtonInNavBar,
-									onBackClick = {
-										onBackClickEventFromRoute = it
-									},
+									onBackClick = { onBackClickEventFromRoute = it },
+									onNavBarEvent = { navBarEvent = it },
+									logsEnabled = appState.settings.logsEnabled,
 								)
 							},
 							snackbarHost = {
@@ -204,7 +211,7 @@ class MainActivity : AppCompatActivity() {
 							},
 						) { padding ->
 							NavHost(
-								navController,
+								navController = navController,
 								startDestination = Route.Splash,
 								modifier = Modifier
 									.fillMaxSize()
@@ -214,9 +221,8 @@ class MainActivity : AppCompatActivity() {
 								popEnterTransition = { fadeIn(tween(200)) },
 								popExitTransition = { fadeOut(tween(200)) },
 							) {
-								composable<Route.Splash> {
-									SplashScreen(appViewModel, appState)
-								}
+								composable<Route.Splash> { SplashScreen(appViewModel, appState) }
+
 								composable<Route.Main>(
 									enterTransition = { fadeIn() },
 									exitTransition = { fadeOut() },
@@ -224,46 +230,57 @@ class MainActivity : AppCompatActivity() {
 									val args = it.toRoute<Route.Main>()
 									MainScreen(appState, args.autoStart)
 								}
+
 								composable<Route.Permission> {
 									val args = it.toRoute<Route.Permission>()
-									runCatching {
-										PermissionScreen(args.permission)
-									}
+									runCatching { PermissionScreen(args.permission) }
 								}
+
 								composable<Route.Settings>(
 									enterTransition = { fadeIn() },
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Settings>()
-									SettingsScreen(
-										appViewModel,
-										appState,
-										args.showVpnSettings,
-									)
+									SettingsScreen(appViewModel, appState, args.showVpnSettings)
 								}
+
 								composable<Route.EntryLocation> {
 									HopScreen(
 										gatewayLocation = GatewayLocation.ENTRY,
-										appState,
+										appUiState = appState,
+										navBarEvent = navBarEvent,
+										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
+
 								composable<Route.ExitLocation> {
 									HopScreen(
 										gatewayLocation = GatewayLocation.EXIT,
-										appState,
+										appUiState = appState,
+										navBarEvent = navBarEvent,
+										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
-								composable<Route.Logs> { LogsScreen() }
+
+								composable<Route.Logs> {
+									LogsScreen(
+										appUiState = appState,
+										navBarEvent = navBarEvent,
+										onNavBarEventConsume = consumeNavBarEvent,
+									)
+								}
+
 								composable<Route.Support> { SupportScreen() }
 								composable<Route.Legal> { LegalScreen() }
+
 								composable<Route.Login>(
 									enterTransition = { fadeIn() },
 									exitTransition = { fadeOut() },
-								) {
-									LoginScreen(appState)
-								}
+								) { LoginScreen(appState) }
+
 								composable<Route.Licenses> { LicensesScreen() }
 								composable<Route.Censorship> { CensorshipScreen(appState) }
+
 								composable<Route.Dns> {
 									DnsScreen(
 										appUiState = appState,
@@ -271,6 +288,7 @@ class MainActivity : AppCompatActivity() {
 										onBackClickEventTriggered = onBackClickEventFromRoute == Route.Dns,
 									)
 								}
+
 								composable<Route.Appearance> { AppearanceScreen() }
 								composable<Route.Privacy> { PrivacyScreen(appState) }
 								composable<Route.Display> { DisplayScreen(appState) }
@@ -281,30 +299,36 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.SelectPlan> { SelectPlanScreen(appState) }
 								composable<Route.CreateAccount> { CreateAccountScreen(appState) }
 								composable<Route.Generating> { GeneratingScreen() }
+
 								composable<Route.ServerDetails> {
 									val args = it.toRoute<Route.ServerDetails>()
-									runCatching {
-										DetailsScreen(appState, args.id, args.location)
-									}
+									runCatching { DetailsScreen(appState, args.id, args.location) }
 								}
+
 								composable<Route.Payment> {
 									val args = it.toRoute<Route.Payment>()
-									runCatching {
-										PaymentScreen(appState, args.productId)
-									}
+									runCatching { PaymentScreen(appState, args.productId) }
 								}
+
 								composable<Route.Passphrase> {
 									PassphraseScreen(
 										onBackButtonVisibilityChange = { hideBackButtonInNavBar = it },
+										navBarEvent = navBarEvent,
+										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
+
 								composable<Route.Account> { AccountInfoScreen(appState) }
+
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(
 										onBackEventConsume = { onBackClickEventFromRoute = null },
 										onBackClickEventTriggered = onBackClickEventFromRoute == Route.SplitTunneling,
+										navBarEvent = navBarEvent,
+										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
+
 								composable<Route.Welcome> { WelcomeScreen() }
 							}
 						}
@@ -323,9 +347,7 @@ class MainActivity : AppCompatActivity() {
 
 	override fun onDestroy() {
 		super.onDestroy()
-		if (isFinishing) {
-			billingManager.endConnection()
-		}
+		if (isFinishing) billingManager.endConnection()
 	}
 
 	private fun captureDeepLink(intent: Intent?) {
@@ -352,9 +374,7 @@ class MainActivity : AppCompatActivity() {
 		val target = (host.ifBlank { path.removePrefix("/") }).lowercase()
 
 		when (target) {
-			else -> {
-				Timber.d("handleDeepLink $target")
-			}
+			else -> Timber.d("handleDeepLink $target")
 		}
 	}
 }

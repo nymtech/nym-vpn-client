@@ -22,6 +22,7 @@ import net.nymtech.nymvpn.util.filterAllPassThroughValue
 import net.nymtech.nymvpn.util.totalAppCounts
 import net.nymtech.nymvpn.util.updatePassThroughValue
 import net.nymtech.vpn.backend.Tunnel
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,6 +33,10 @@ class SplitTunnelingViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val helper: SplitTunnelingHelper,
 ) : ViewModel() {
+
+	companion object {
+		private const val TAG = "ui-split-tunnel-vm"
+	}
 
 	private val packageManager = context.packageManager
 
@@ -55,6 +60,7 @@ class SplitTunnelingViewModel @Inject constructor(
 				_events.tryEmit(CommonUiEvent.ReconnectStarted)
 			}
 		}
+
 		viewModelScope.launch {
 			backendManager.stateFlow.collect { s ->
 				_backendUi.value = SplitTunnelingBackendUiState(
@@ -108,12 +114,30 @@ class SplitTunnelingViewModel @Inject constructor(
 
 	fun saveChangesAndMaybeReconnect(isActuallyConnected: Boolean) {
 		viewModelScope.launch(Dispatchers.IO) {
-			val toSave = _uiState.value.systemApps + _uiState.value.normalApps
-			splitTunnelingRepository.saveAppInfoList(toSave)
-			initialAppInfoList = toSave
-			_uiState.update { it.copy(hasUnsavedChanges = false, showSaveChangesDialog = false) }
-			if (isActuallyConnected) {
-				backendManager.requestRestartDebounced()
+			runCatching {
+				val toSave = _uiState.value.systemApps + _uiState.value.normalApps
+				splitTunnelingRepository.saveAppInfoList(toSave)
+
+				initialAppInfoList = toSave
+
+				_uiState.update {
+					it.copy(
+						hasUnsavedChanges = false,
+						showSaveChangesDialog = false,
+					)
+				}
+
+				Timber.tag(TAG).i(
+					"SplitTunnelingSaved count=%d reconnect=%s",
+					toSave.size,
+					isActuallyConnected,
+				)
+
+				if (isActuallyConnected) {
+					backendManager.requestRestartDebounced()
+				}
+			}.onFailure { t ->
+				Timber.tag(TAG).e(t, "SplitTunnelingSaveFailed")
 			}
 		}
 	}
@@ -125,9 +149,13 @@ class SplitTunnelingViewModel @Inject constructor(
 	private fun getAllInstalledAppList() {
 		viewModelScope.launch(Dispatchers.Default) {
 			_uiState.update { it.copy(isLoading = true) }
+
 			runCatching {
-				val (sortedSystemApps, sortedNormalApps) = helper.getInstalledApp(packageManager, splitTunnelingRepository)
+				val (sortedSystemApps, sortedNormalApps) =
+					helper.getInstalledApp(packageManager, splitTunnelingRepository)
+
 				initialAppInfoList = sortedSystemApps + sortedNormalApps
+
 				_uiState.update {
 					it.copy(
 						isLoading = false,
@@ -140,7 +168,14 @@ class SplitTunnelingViewModel @Inject constructor(
 						hasUnsavedChanges = false,
 					)
 				}
-			}.onFailure {
+
+				Timber.tag(TAG).d(
+					"SplitTunnelingAppsLoaded system=%d normal=%d",
+					sortedSystemApps.size,
+					sortedNormalApps.size,
+				)
+			}.onFailure { t ->
+				Timber.tag(TAG).e(t, "SplitTunnelingAppsLoadFailed")
 				_uiState.update { it.copy(isLoading = false) }
 			}
 		}
@@ -149,19 +184,35 @@ class SplitTunnelingViewModel @Inject constructor(
 	private fun filterApps(query: String) {
 		viewModelScope.launch {
 			_uiState.update {
-				val (queryFilteredSystemApps, queryFilteredNormalApps) = helper.filterApps(query, it.systemApps, it.normalApps)
-				val filteredSystemApps = queryFilteredSystemApps.filter { app -> it.appliedFilter == AppFilter.None || app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough) }
-				val filteredNormalApps = queryFilteredNormalApps.filter { app -> it.appliedFilter == AppFilter.None || app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough) }
-				val directAppsCount = if (it.appliedFilter == AppFilter.VpnPassThrough) {
-					queryFilteredSystemApps.totalAppCounts(false) + queryFilteredNormalApps.totalAppCounts(false)
-				} else {
-					filteredSystemApps.totalAppCounts(false) + filteredNormalApps.totalAppCounts(false)
-				}
-				val vpnPassThroughAppsCount = if (it.appliedFilter == AppFilter.Direct) {
-					queryFilteredSystemApps.totalAppCounts(true) + queryFilteredNormalApps.totalAppCounts(true)
-				} else {
-					filteredSystemApps.totalAppCounts(true) + filteredNormalApps.totalAppCounts(true)
-				}
+				val (queryFilteredSystemApps, queryFilteredNormalApps) =
+					helper.filterApps(query, it.systemApps, it.normalApps)
+
+				val filteredSystemApps =
+					queryFilteredSystemApps.filter { app ->
+						it.appliedFilter == AppFilter.None ||
+							app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough)
+					}
+
+				val filteredNormalApps =
+					queryFilteredNormalApps.filter { app ->
+						it.appliedFilter == AppFilter.None ||
+							app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough)
+					}
+
+				val directAppsCount =
+					if (it.appliedFilter == AppFilter.VpnPassThrough) {
+						queryFilteredSystemApps.totalAppCounts(false) + queryFilteredNormalApps.totalAppCounts(false)
+					} else {
+						filteredSystemApps.totalAppCounts(false) + filteredNormalApps.totalAppCounts(false)
+					}
+
+				val vpnPassThroughAppsCount =
+					if (it.appliedFilter == AppFilter.Direct) {
+						queryFilteredSystemApps.totalAppCounts(true) + queryFilteredNormalApps.totalAppCounts(true)
+					} else {
+						filteredSystemApps.totalAppCounts(true) + filteredNormalApps.totalAppCounts(true)
+					}
+
 				it.copy(
 					query = query,
 					filteredSystemApps = filteredSystemApps,
@@ -176,8 +227,11 @@ class SplitTunnelingViewModel @Inject constructor(
 	private fun filterAllDirectApps() {
 		viewModelScope.launch {
 			_uiState.update {
-				val (filteredSystemApps, filteredNormalApps) = helper.filterDirectApps(it.appliedFilter, it.systemApps, it.normalApps)
+				val (filteredSystemApps, filteredNormalApps) =
+					helper.filterDirectApps(it.appliedFilter, it.systemApps, it.normalApps)
+
 				val isAlreadySelected = it.appliedFilter == AppFilter.Direct
+
 				it.copy(
 					filteredSystemApps = filteredSystemApps,
 					filteredNormalApps = filteredNormalApps,
@@ -196,6 +250,7 @@ class SplitTunnelingViewModel @Inject constructor(
 				val isAlreadySelected = it.appliedFilter == AppFilter.VpnPassThrough
 				val filteredSystemApps = if (isAlreadySelected) it.systemApps else it.systemApps.filterAllPassThroughValue(true)
 				val filteredNormalApps = if (isAlreadySelected) it.normalApps else it.normalApps.filterAllPassThroughValue(true)
+
 				it.copy(
 					filteredSystemApps = filteredSystemApps,
 					filteredNormalApps = filteredNormalApps,
@@ -215,20 +270,30 @@ class SplitTunnelingViewModel @Inject constructor(
 
 			_uiState.update {
 				val filteredSystemApps = it.filteredSystemApps.updatePassThroughValue(packageName)
-					.filter { app -> it.appliedFilter == AppFilter.None || app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough) }
-				val filteredNormalApps = it.filteredNormalApps.updatePassThroughValue(packageName)
-					.filter { app -> it.appliedFilter == AppFilter.None || app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough) }
+					.filter { app ->
+						it.appliedFilter == AppFilter.None ||
+							app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough)
+					}
 
-				val directAppsCount = if (it.appliedFilter == AppFilter.VpnPassThrough) {
-					updatedSystemApps.totalAppCounts(false) + updatedNormalApps.totalAppCounts(false)
-				} else {
-					filteredSystemApps.totalAppCounts(false) + filteredNormalApps.totalAppCounts(false)
-				}
-				val vpnPassThroughAppsCount = if (it.appliedFilter == AppFilter.Direct) {
-					updatedSystemApps.totalAppCounts(true) + updatedNormalApps.totalAppCounts(true)
-				} else {
-					filteredSystemApps.totalAppCounts(true) + filteredNormalApps.totalAppCounts(true)
-				}
+				val filteredNormalApps = it.filteredNormalApps.updatePassThroughValue(packageName)
+					.filter { app ->
+						it.appliedFilter == AppFilter.None ||
+							app.passThroughVpn == (it.appliedFilter == AppFilter.VpnPassThrough)
+					}
+
+				val directAppsCount =
+					if (it.appliedFilter == AppFilter.VpnPassThrough) {
+						updatedSystemApps.totalAppCounts(false) + updatedNormalApps.totalAppCounts(false)
+					} else {
+						filteredSystemApps.totalAppCounts(false) + filteredNormalApps.totalAppCounts(false)
+					}
+
+				val vpnPassThroughAppsCount =
+					if (it.appliedFilter == AppFilter.Direct) {
+						updatedSystemApps.totalAppCounts(true) + updatedNormalApps.totalAppCounts(true)
+					} else {
+						filteredSystemApps.totalAppCounts(true) + filteredNormalApps.totalAppCounts(true)
+					}
 
 				val currentList = updatedSystemApps + updatedNormalApps
 				val hasUnsavedChanges = currentList != initialAppInfoList

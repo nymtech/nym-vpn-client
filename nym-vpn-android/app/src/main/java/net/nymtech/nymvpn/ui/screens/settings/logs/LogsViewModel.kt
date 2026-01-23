@@ -22,6 +22,7 @@ import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
@@ -38,61 +39,88 @@ import javax.inject.Inject
 @HiltViewModel
 class LogsViewModel @Inject constructor(
 	private val logReader: LogReader,
+	private val settingsRepository: SettingsRepository,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 	@MainDispatcher private val mainDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-	private val _nativeLogs = MutableStateFlow<List<LogMessage>>(emptyList())
-	val nativeLogs: StateFlow<List<LogMessage>> = _nativeLogs.asStateFlow()
+	companion object {
+		private const val TAG = "ui-logs-vm"
+	}
 
-	private val _vpnLogs = MutableStateFlow<List<LogMessage>>(emptyList())
-	val vpnLogs: StateFlow<List<LogMessage>> = _vpnLogs.asStateFlow()
+	private val _appLogs = MutableStateFlow<List<LogMessage>>(emptyList())
+	val appLogs: StateFlow<List<LogMessage>> = _appLogs.asStateFlow()
+
+	private val _tunnelLogs = MutableStateFlow<List<LogMessage>>(emptyList())
+	val tunnelLogs: StateFlow<List<LogMessage>> = _tunnelLogs.asStateFlow()
+
+	private val _libraryLogs = MutableStateFlow<List<LogMessage>>(emptyList())
+	val libraryLogs: StateFlow<List<LogMessage>> = _libraryLogs.asStateFlow()
 
 	private val _requestSaveUri = Channel<String>(Channel.BUFFERED)
 	val requestSaveUri = _requestSaveUri.receiveAsFlow()
 
 	init {
 		viewModelScope.launch(ioDispatcher) {
-			logReader.bufferedLogsNative
+			logReader.bufferedLogsApp
 				.chunked(200, Duration.ofMillis(500))
 				.collectLatest { logsChunk ->
 					withContext(mainDispatcher) {
-						val updated = (_nativeLogs.value + logsChunk)
+						_appLogs.value = (_appLogs.value + logsChunk)
 							.takeLast(Constants.LOG_BUFFER_SIZE.toInt())
-						_nativeLogs.value = updated
 					}
 				}
 		}
+
 		viewModelScope.launch(ioDispatcher) {
-			logReader.bufferedLogsVPN
+			logReader.bufferedLogsTunnel
 				.chunked(200, Duration.ofMillis(500))
 				.collectLatest { logsChunk ->
 					withContext(mainDispatcher) {
-						val updated = (_vpnLogs.value + logsChunk)
+						_tunnelLogs.value = (_tunnelLogs.value + logsChunk)
 							.takeLast(Constants.LOG_BUFFER_SIZE.toInt())
-						_vpnLogs.value = updated
+					}
+				}
+		}
+
+		viewModelScope.launch(ioDispatcher) {
+			logReader.bufferedLogsLibrary
+				.chunked(200, Duration.ofMillis(500))
+				.collectLatest { logsChunk ->
+					withContext(mainDispatcher) {
+						_libraryLogs.value = (_libraryLogs.value + logsChunk)
+							.takeLast(Constants.LOG_BUFFER_SIZE.toInt())
 					}
 				}
 		}
 	}
 
 	fun shareLogs(context: Context): Job = viewModelScope.launch(ioDispatcher) {
+		Timber.tag(TAG).i("LogsShareRequested")
+
 		runCatching {
 			val sharePath = File(context.filesDir, "external_files")
 			if (sharePath.exists()) sharePath.delete()
 			sharePath.mkdir()
-			val file = File("${sharePath.path + "/" + Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.zip")
+
+			val file = File("${sharePath.path}/${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.zip")
 			if (file.exists()) file.delete()
 			file.createNewFile()
+
 			logReader.zipLogFiles(file.absolutePath)
+
 			val uri = FileProvider.getUriForFile(context, context.getString(R.string.provider), file)
 			context.launchShareFile(uri)
-		}.onFailure {
-			Timber.e(it)
+
+			Timber.tag(TAG).i("LogsShareSuccess")
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "LogsShareFailed")
 		}
 	}
 
 	fun downloadLogs(context: Context): Job = viewModelScope.launch(ioDispatcher) {
+		Timber.tag(TAG).i("LogsDownloadRequested")
+
 		runCatching {
 			val fileName = "${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.zip"
 
@@ -102,42 +130,78 @@ class LogsViewModel @Inject constructor(
 					put(MediaStore.MediaColumns.MIME_TYPE, "application/zip")
 					put(MediaStore.MediaColumns.RELATIVE_PATH, "Download/")
 				}
+
 				val resolver = context.contentResolver
 				val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
 					?: throw IllegalStateException("Failed to create MediaStore record")
+
 				val tempFile = File(context.cacheDir, fileName)
 				if (tempFile.exists()) tempFile.delete()
 				tempFile.createNewFile()
+
 				logReader.downloadFile(resolver, uri, tempFile)
 				tempFile.delete()
-				SnackbarController.showMessage(StringValue.StringResource(R.string.logs_saved))
+
+				withContext(mainDispatcher) {
+					SnackbarController.showMessage(StringValue.StringResource(R.string.logs_saved))
+				}
+
+				Timber.tag(TAG).i("LogsDownloadSuccess api=Q_plus")
 			} else {
 				_requestSaveUri.send(fileName)
+				Timber.tag(TAG).i("LogsDownloadRequestedLegacy flow=ACTION_CREATE_DOCUMENT")
 			}
-		}.onFailure {
-			Timber.e(it)
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "LogsDownloadFailed")
 		}
 	}
 
 	fun deleteLogs() = viewModelScope.launch {
-		logReader.deleteAndClearLogs()
-		_nativeLogs.value = emptyList()
-		_vpnLogs.value = emptyList()
+		Timber.tag(TAG).i("LogsDeleteRequested")
+
+		runCatching {
+			logReader.deleteAndClearLogs()
+			_appLogs.value = emptyList()
+			_tunnelLogs.value = emptyList()
+			_libraryLogs.value = emptyList()
+			Timber.tag(TAG).i("LogsDeleteSuccess")
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "LogsDeleteFailed")
+		}
 	}
 
 	fun saveLogsToUri(context: Context, uri: Uri) = viewModelScope.launch(ioDispatcher) {
-		try {
-			val tempFile = File(context.cacheDir, "${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.zip")
+		Timber.tag(TAG).i("LogsSaveToUriRequested")
+
+		runCatching {
+			val tempFile = File(
+				context.cacheDir,
+				"${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.zip",
+			)
 			if (tempFile.exists()) tempFile.delete()
 			tempFile.createNewFile()
+
 			val resolver = context.contentResolver
 			logReader.downloadFile(resolver, uri, tempFile)
 			tempFile.delete()
+
 			withContext(mainDispatcher) {
 				SnackbarController.showMessage(StringValue.StringResource(R.string.logs_saved))
 			}
-		} catch (e: Exception) {
-			Timber.e(e)
+
+			Timber.tag(TAG).i("LogsSaveToUriSuccess")
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "LogsSaveToUriFailed")
 		}
+	}
+
+	fun onLogsEnabled(enabled: Boolean) = viewModelScope.launch {
+		Timber.tag(TAG).i("LogsEnabledChanged enabled=%s", enabled)
+		settingsRepository.setLogsEnabled(enabled)
+	}
+
+	fun onLogsDebugEnabled(enabled: Boolean) = viewModelScope.launch {
+		Timber.tag(TAG).i("LogsDebugEnabledChanged enabled=%s", enabled)
+		settingsRepository.setLogsDebugEnabled(enabled)
 	}
 }

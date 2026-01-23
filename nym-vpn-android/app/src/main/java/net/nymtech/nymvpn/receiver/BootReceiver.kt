@@ -16,6 +16,10 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
 
+	companion object {
+		private const val TAG = "boot-receiver"
+	}
+
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
 
@@ -27,28 +31,35 @@ class BootReceiver : BroadcastReceiver() {
 	lateinit var applicationScope: CoroutineScope
 
 	override fun onReceive(context: Context, intent: Intent) {
-		Timber.w("BootReceiver.onReceive action=${intent.action} extras=${intent.extras?.keySet()}")
-
 		val action = intent.action ?: return
 		val isBootAction =
 			action == Intent.ACTION_BOOT_COMPLETED ||
 				action == Intent.ACTION_LOCKED_BOOT_COMPLETED
 
 		if (!isBootAction) return
+
+		Timber.tag(TAG).i("BootReceived action=%s", action)
+
 		val pendingResult = goAsync()
 
 		applicationScope.launch {
 			try {
 				val enabled = settingsRepository.isAutoStartEnabled()
-				Timber.w("BootReceiver: autoStartEnabled=$enabled")
-				if (!enabled) return@launch
+				if (!enabled) {
+					Timber.tag(TAG).i("BootAutoStartSkipped reason=disabled")
+					return@launch
+				}
+
 				val state = backendManager.getState()
-				Timber.w("BootReceiver: currentTunnelState=$state")
-				if (state != Tunnel.State.Down) return@launch
-				Timber.w("BootReceiver: starting tunnel")
+				if (state != Tunnel.State.Down) {
+					Timber.tag(TAG).i("BootAutoStartSkipped reason=tunnel_not_down state=%s", state)
+					return@launch
+				}
+
+				Timber.tag(TAG).i("BootAutoStartRequested")
 				backendManager.startTunnel()
 			} catch (t: Throwable) {
-				Timber.e(t, "BootReceiver: failed to autostart tunnel")
+				Timber.tag(TAG).e(t, "BootAutoStartFailed")
 			} finally {
 				pendingResult.finish()
 			}

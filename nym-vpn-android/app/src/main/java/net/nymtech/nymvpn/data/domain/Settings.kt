@@ -25,6 +25,8 @@ data class Settings(
 	val isStreamingServerBannerDisplayed: Boolean = DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 	val isPerAppSecurityBannerDisplayed: Boolean = DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 	val customDnsEnabled: Boolean = DEFAULT_CUSTOM_DNS_ENABLED,
+	val logsEnabled: Boolean = DEFAULT_LOGS_ENABLED,
+	val logsDebugEnabled: Boolean = DEFAULT_LOGS_DEBUG_ENABLED,
 ) {
 	companion object {
 		const val AUTO_START_DEFAULT = false
@@ -42,5 +44,7 @@ data class Settings(
 		val DEFAULT_ENVIRONMENT = Tunnel.Environment.MAINNET
 		val DEFAULT_ENTRY_POINT = EntryPoint.Country("FR")
 		val DEFAULT_EXIT_POINT = ExitPoint.Country("FR")
+		val DEFAULT_LOGS_ENABLED = false
+		val DEFAULT_LOGS_DEBUG_ENABLED = false
 	}
 }

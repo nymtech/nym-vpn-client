@@ -1,9 +1,7 @@
 package net.nymtech.nymvpn.util
 
 import android.content.Context
-import android.content.Intent
 import android.os.Build
-import android.provider.Settings
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -12,10 +10,18 @@ import timber.log.Timber
 
 object DeviceAuthHelper {
 
+	private const val TAG = "device-auth"
+
 	fun isDeviceSecure(context: Context): Boolean {
 		val bm = BiometricManager.from(context)
 		val authenticators = allowedAuthenticatorsForCheck()
-		return bm.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
+		val res = bm.canAuthenticate(authenticators)
+
+		if (res != BiometricManager.BIOMETRIC_SUCCESS) {
+			Timber.tag(TAG).d("DeviceSecureCheckNonOk code=%d", res)
+		}
+
+		return res == BiometricManager.BIOMETRIC_SUCCESS
 	}
 
 	fun authenticate(
@@ -28,24 +34,39 @@ object DeviceAuthHelper {
 	) {
 		val bm = BiometricManager.from(activity)
 		val authenticators = allowedAuthenticatorsForPrompt()
+		val res = bm.canAuthenticate(authenticators)
 
-		when (val res = bm.canAuthenticate(authenticators)) {
+		when (res) {
 			BiometricManager.BIOMETRIC_SUCCESS -> {
+				Timber.tag(TAG).d("AuthPromptLaunching")
+
 				val executor = ContextCompat.getMainExecutor(activity)
 				val prompt = BiometricPrompt(
 					activity,
 					executor,
 					object : BiometricPrompt.AuthenticationCallback() {
 						override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+							Timber.tag(TAG).i("AuthSucceeded")
 							onAuthenticated()
 						}
 
 						override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-							Timber.i("Auth error: $errorCode $errString")
+							val isCancel =
+								errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
+									errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
+									errorCode == BiometricPrompt.ERROR_CANCELED
+
+							if (isCancel) {
+								Timber.tag(TAG).d("AuthErrorCanceled code=%d", errorCode)
+							} else {
+								Timber.tag(TAG).w("AuthError code=%d", errorCode)
+							}
+
 							onError?.invoke(errorCode, errString)
 						}
 
 						override fun onAuthenticationFailed() {
+							Timber.tag(TAG).d("AuthFailed")
 							onFailed?.invoke()
 						}
 					},
@@ -53,17 +74,42 @@ object DeviceAuthHelper {
 				prompt.authenticate(promptInfo)
 			}
 
-			BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> onUnavailable(UnavailableReason.NONE_ENROLLED)
-			BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> onUnavailable(UnavailableReason.NO_HARDWARE)
-			BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> onUnavailable(UnavailableReason.HW_UNAVAILABLE)
-			BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> onUnavailable(UnavailableReason.SECURITY_UPDATE_REQUIRED)
-			BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> onUnavailable(UnavailableReason.UNSUPPORTED)
-			BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> onUnavailable(UnavailableReason.UNKNOWN)
-			else -> onUnavailable(UnavailableReason.OTHER)
+			BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+				Timber.tag(TAG).i("AuthUnavailable reason=NONE_ENROLLED")
+				onUnavailable(UnavailableReason.NONE_ENROLLED)
+			}
+
+			BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
+				Timber.tag(TAG).i("AuthUnavailable reason=NO_HARDWARE")
+				onUnavailable(UnavailableReason.NO_HARDWARE)
+			}
+
+			BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
+				Timber.tag(TAG).i("AuthUnavailable reason=HW_UNAVAILABLE")
+				onUnavailable(UnavailableReason.HW_UNAVAILABLE)
+			}
+
+			BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
+				Timber.tag(TAG).i("AuthUnavailable reason=SECURITY_UPDATE_REQUIRED")
+				onUnavailable(UnavailableReason.SECURITY_UPDATE_REQUIRED)
+			}
+
+			BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
+				Timber.tag(TAG).i("AuthUnavailable reason=UNSUPPORTED")
+				onUnavailable(UnavailableReason.UNSUPPORTED)
+			}
+
+			BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> {
+				Timber.tag(TAG).i("AuthUnavailable reason=UNKNOWN")
+				onUnavailable(UnavailableReason.UNKNOWN)
+			}
+
+			else -> {
+				Timber.tag(TAG).i("AuthUnavailable reason=OTHER code=%d", res)
+				onUnavailable(UnavailableReason.OTHER)
+			}
 		}
 	}
-
-	fun securitySettingsIntent(): Intent = Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
 	enum class UnavailableReason {
 		NONE_ENROLLED,

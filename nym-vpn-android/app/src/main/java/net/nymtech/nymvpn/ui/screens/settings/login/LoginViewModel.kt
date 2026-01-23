@@ -22,19 +22,25 @@ class LoginViewModel @Inject constructor(
 	private val backendManager: BackendManager,
 ) : ViewModel() {
 
+	companion object {
+		private const val TAG = "ui-login-vm"
+	}
+
 	private val _uiState = MutableStateFlow(LoginUiState())
 	val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
 	fun onMnemonicImport(mnemonic: String) = viewModelScope.launch {
+		Timber.tag(TAG).i("MnemonicImportRequested")
+
 		runCatching {
 			backendManager.storeMnemonic(mnemonic.trim())
-			Timber.d("Imported account successfully")
+
+			Timber.tag(TAG).i("MnemonicImportSuccess")
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 
 			backendManager.refreshAccount()
 
-			val shouldShowTechnical =
-				!settingsRepository.isTechnicalOptScreenCompleted()
+			val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
 
 			_uiState.update {
 				it.copy(
@@ -44,13 +50,15 @@ class LoginViewModel @Inject constructor(
 				)
 			}
 		}.onFailure { t ->
-			Timber.e(t)
+			Timber.tag(TAG).w(t, "MnemonicImportFailed")
+
 			_uiState.update {
 				it.copy(
 					success = false,
 					showMaxDevicesModal = false,
 				)
 			}
+
 			SnackbarController.showMessage(StringValue.StringResource(R.string.invalid_recovery_phrase))
 		}
 	}

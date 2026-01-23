@@ -24,7 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,9 +40,11 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.screens.settings.dns.modal.SaveChangesModal
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.AppInfoRow
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.LoadingDialog
+import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.SplitTunnelingInfoModal
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.StaticContent
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.LocalCustomColorsPalette
@@ -52,7 +56,13 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-internal fun SplitTunnelingScreen(onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: SplitTunnelingViewModel = hiltViewModel()) {
+internal fun SplitTunnelingScreen(
+	onBackEventConsume: () -> Unit,
+	onBackClickEventTriggered: Boolean = false,
+	navBarEvent: NavBarEvent?,
+	onNavBarEventConsume: () -> Unit,
+	viewModel: SplitTunnelingViewModel = hiltViewModel(),
+) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val backendUi by viewModel.backendUi.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
@@ -67,6 +77,20 @@ internal fun SplitTunnelingScreen(onBackEventConsume: () -> Unit, onBackClickEve
 			backendUi.tunnelState == Tunnel.State.Up ||
 			backendUi.tunnelState == Tunnel.State.InitializingClient ||
 			backendUi.tunnelState == Tunnel.State.EstablishingConnection
+
+	var showSplitTunnelingModal by remember { mutableStateOf(false) }
+
+	LaunchedEffect(navBarEvent) {
+		if (navBarEvent == NavBarEvent.SplitTunnelingInfoClicked) {
+			showSplitTunnelingModal = true
+			onNavBarEventConsume()
+		}
+	}
+
+	SplitTunnelingInfoModal(
+		showModal = showSplitTunnelingModal,
+		onDismiss = { showSplitTunnelingModal = false },
+	)
 
 	LaunchedEffect(viewModel) {
 		viewModel.events.collectLatest { event ->

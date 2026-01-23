@@ -10,7 +10,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +24,6 @@ constructor(
 	fun onMnemonicImport(mnemonic: String) = viewModelScope.launch {
 		runCatching {
 			backendManager.storeMnemonic(mnemonic)
-			Timber.d("Imported account successfully")
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 			_success.emit(true)
 		}.onFailure {

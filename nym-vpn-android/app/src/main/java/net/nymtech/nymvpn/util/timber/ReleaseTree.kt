@@ -2,7 +2,12 @@ package net.nymtech.nymvpn.util.timber
 
 import timber.log.Timber
 
-class ReleaseTree : Timber.DebugTree() {
+class ReleaseTree(private val minPriority: Int) : Timber.DebugTree() {
+
+	override fun isLoggable(tag: String?, priority: Int): Boolean {
+		return priority >= minPriority
+	}
+
 	override fun d(t: Throwable?) {
 		return
 	}

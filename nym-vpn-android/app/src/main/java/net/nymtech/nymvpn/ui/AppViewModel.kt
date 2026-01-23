@@ -40,6 +40,10 @@ constructor(
 	networkService: NetworkService,
 ) : ViewModel() {
 
+	companion object {
+		private const val TAG = "app-vm"
+	}
+
 	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
 	val systemMessage = _systemMessage.asStateFlow()
 
@@ -75,14 +79,17 @@ constructor(
 	}
 
 	fun logout(onComplete: (() -> Unit)? = null) = viewModelScope.launch {
+		Timber.tag(TAG).i("LogoutRequested")
 		runCatching {
-			if (backendManager.getState() == Tunnel.State.Down) {
-				performLogout(onComplete)
-			} else {
+			if (backendManager.getState() != Tunnel.State.Down) {
+				Timber.tag(TAG).i("LogoutStoppingTunnel")
 				backendManager.stopTunnel()
-				performLogout(onComplete)
 			}
-		}.onFailure { Timber.e(it) }
+			performLogout(onComplete)
+			Timber.tag(TAG).i("LogoutSuccess")
+		}.onFailure {
+			Timber.tag(TAG).e(it, "LogoutFailed")
+		}
 	}
 
 	private suspend fun performLogout(onComplete: (() -> Unit)? = null) {
@@ -92,26 +99,35 @@ constructor(
 	}
 
 	fun onLocaleChange(localeTag: String) = viewModelScope.launch {
+		Timber.tag(TAG).i("LocaleChangeRequested")
 		settingsRepository.setLocale(localeTag)
 		LocaleUtil.changeLocale(localeTag)
 		_configurationChange.update { true }
+		Timber.tag(TAG).i("LocaleChangeApplied")
 	}
 
 	fun onEnvironmentChange(environment: Tunnel.Environment) = viewModelScope.launch {
-		if (backendManager.getState() == Tunnel.State.Down) {
+		val tunnelState = backendManager.getState()
+		if (tunnelState == Tunnel.State.Down) {
+			Timber.tag(TAG).i("EnvironmentChangeApplied env=%s", environment)
 			settingsRepository.setEnvironment(environment)
 			SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 		} else {
+			Timber.tag(TAG).w("EnvironmentChangeRejected reason=tunnel_not_down state=%s", tunnelState)
 			SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
 		}
 	}
 
 	fun onCredentialOverride(value: Boolean?) = viewModelScope.launch {
-		if (backendManager.getState() != Tunnel.State.Down) {
+		val tunnelState = backendManager.getState()
+		if (tunnelState != Tunnel.State.Down) {
+			Timber.tag(TAG).w("CredentialOverrideRejected reason=tunnel_not_down state=%s", tunnelState)
 			return@launch SnackbarController.showMessage(
 				StringValue.StringResource(R.string.action_requires_tunnel_down),
 			)
 		}
+
+		Timber.tag(TAG).i("CredentialOverrideApplied value=%s", value)
 		settingsRepository.setCredentialMode(value)
 		SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 	}
@@ -119,16 +135,25 @@ constructor(
 	private suspend fun checkSystemMessages() {
 		runCatching {
 			val messages = backendManager.getSystemMessages()
-			messages.firstOrNull()?.let { _systemMessage.emit(it) }
-		}.onFailure { Timber.e(it) }
+			val first = messages.firstOrNull()
+			if (first != null) {
+				_systemMessage.emit(first)
+				Timber.tag(TAG).i("SystemMessageReceived present=true")
+			} else {
+				Timber.tag(TAG).d("SystemMessageReceived present=false")
+			}
+		}.onFailure {
+			Timber.tag(TAG).e(it, "SystemMessageFetchFailed")
+		}
 	}
 
 	private suspend fun checkAutoStartTunnel() {
 		if (!autoStartAttempted.compareAndSet(false, true)) return
 		runCatching {
 			val enabled = settingsRepository.isAutoStartEnabled()
-			Timber.d("AppStartup: autoStartEnabled=$enabled")
+			Timber.tag(TAG).d("AutoStartCheck enabled=%s", enabled)
 			if (!enabled) return
+
 			val managerState = withTimeoutOrNull(15_000) {
 				backendManager.stateFlow
 					.filter { it.isInitialized }
@@ -136,27 +161,34 @@ constructor(
 			}
 
 			if (managerState == null) {
-				Timber.w("AppStartup: backend not initialized within timeout, skipping autostart")
+				Timber.tag(TAG).w("AutoStartSkipped reason=backend_init_timeout timeoutMs=15000")
 				return
 			}
+
 			if (!managerState.isMnemonicStored) {
-				Timber.d("AppStartup: mnemonic not stored, skipping autostart")
+				Timber.tag(TAG).d("AutoStartSkipped reason=mnemonic_missing")
 				return
 			}
 
 			val tunnelState = backendManager.getState()
-			Timber.d("AppStartup: tunnelState=$tunnelState")
+			Timber.tag(TAG).d("AutoStartTunnelState state=%s", tunnelState)
 
-			if (tunnelState != Tunnel.State.Down) return
+			if (tunnelState != Tunnel.State.Down) {
+				Timber.tag(TAG).d("AutoStartSkipped reason=tunnel_not_down state=%s", tunnelState)
+				return
+			}
 
-			Timber.d("AppStartup: starting tunnel")
+			Timber.tag(TAG).i("AutoStartStartingTunnel")
 			backendManager.startTunnel()
+			Timber.tag(TAG).i("AutoStartStartRequested")
 		}.onFailure {
-			Timber.e(it, "AppStartup: failed to autostart tunnel")
+			Timber.tag(TAG).e(it, "AutoStartFailed")
 		}
 	}
 
 	fun onAppStartup() = viewModelScope.launch {
+		Timber.tag(TAG).i("AppStartupBegin")
+
 		launch { checkAutoStartTunnel() }
 
 		val theme = settingsRepository.getTheme()
@@ -165,17 +197,21 @@ constructor(
 			.first { it.settings.theme == theme }
 			.let { _isAppReady.emit(true) }
 
+		Timber.tag(TAG).i("AppReady")
+
 		launch { gatewayCacheService.updateExitGatewayCache() }
 		launch { gatewayCacheService.updateEntryGatewayCache() }
 		launch { gatewayCacheService.updateWgGatewayCache() }
 
+		launch { checkSystemMessages() }
+
 		launch {
-			Timber.d("Checking for system messages")
-			checkSystemMessages()
-		}
-		launch {
-			Timber.d("Updating account links")
-			backendManager.refreshAccountLinks()
+			runCatching {
+				backendManager.refreshAccountLinks()
+				Timber.tag(TAG).d("AccountLinksRefreshSuccess")
+			}.onFailure {
+				Timber.tag(TAG).e(it, "AccountLinksRefreshFailed")
+			}
 		}
 	}
 }

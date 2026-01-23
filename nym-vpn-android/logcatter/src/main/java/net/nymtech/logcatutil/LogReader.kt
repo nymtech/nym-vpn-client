@@ -7,11 +7,15 @@ import net.nymtech.logcatutil.model.LogMessage
 import java.io.File
 
 interface LogReader {
+	val bufferedLogsApp: Flow<LogMessage>
+	val bufferedLogsTunnel: Flow<LogMessage>
+	val bufferedLogsLibrary: Flow<LogMessage>
+
 	fun start()
 	fun stop()
-	fun zipLogFiles(path: String)
+	suspend fun zipLogFiles(path: String)
+
 	suspend fun deleteAndClearLogs()
+
 	suspend fun downloadFile(resolver: ContentResolver, uri: Uri, temp: File)
-	val bufferedLogsNative: Flow<LogMessage>
-	val bufferedLogsVPN: Flow<LogMessage>
 }
