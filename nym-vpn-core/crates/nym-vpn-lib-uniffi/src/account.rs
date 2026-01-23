@@ -633,7 +633,7 @@ pub(crate) mod raw {
 
     pub(crate) async fn deeplink_store_account(
         path: &str,
-        deeplink_callback_url: String,
+        deeplink_callback_url: &str,
     ) -> Result<(), VpnError> {
         let mut deeplink_guard = DEEPLINKS.lock().await;
 

@@ -436,7 +436,7 @@ pub fn getDeeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
 pub fn deeplinkStoreAccount(path: String, deeplink_callback_url: String) -> Result<(), VpnError> {
     RUNTIME.block_on(account::raw::deeplink_store_account(
         &path,
-        deeplink_callback_url,
+        &deeplink_callback_url,
     ))
 }
 
