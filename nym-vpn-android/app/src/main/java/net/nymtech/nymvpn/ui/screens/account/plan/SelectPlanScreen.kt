@@ -62,7 +62,6 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import timber.log.Timber
 
 @Composable
 fun SelectPlanScreen(appUiState: AppUiState, viewModel: SelectPlanViewModel = hiltViewModel()) {
@@ -80,7 +79,6 @@ fun SelectPlanScreen(appUiState: AppUiState, viewModel: SelectPlanViewModel = hi
 				showSheet = true
 			} else {
 				appUiState.managerState.accountLinks?.signUp?.let {
-					Timber.d("Create url: $it")
 					context.openWebUrl(it)
 				}
 			}
