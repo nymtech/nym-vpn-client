@@ -6,7 +6,7 @@ use std::{path::PathBuf, str::FromStr, time::Duration};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::{ACCOUNT_CONTROLLER_HANDLE, DEEPLINKS, error::VpnError};
+use super::{error::VpnError, ACCOUNT_CONTROLLER_HANDLE, DEEPLINKS};
 use crate::{environment::current_environment_details, offline_monitor};
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityHandle;
@@ -14,7 +14,7 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, Nyx
 use nym_vpn_api_client::types::{Platform, VpnAccount};
 use nym_vpn_lib::{new_user_agent, storage::VpnClientOnDiskStorage};
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
+    AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
     RegisterAccountResponse, StoreAccountRequest, VpnAccountSummary,
 };
 use nym_vpn_network_config::Network;
@@ -303,9 +303,9 @@ pub(crate) mod raw {
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_account_controller::{CreateDeeplinkParams, Deeplinks};
     use nym_vpn_api_client::{
-        VpnApiClient,
         response::{NymVpnAccountResponse, NymVpnRegisterAccountResponse},
         types::{Device, DeviceStatus, VpnAccountMode},
+        VpnApiClient,
     };
     use nym_vpn_store::{account::AccountInformationStorage, keys::wireguard::DB_NAME};
 
@@ -575,9 +575,8 @@ pub(crate) mod raw {
             DeeplinkKind::Privy => {
                 let Some(ref account_management) = current_environment_details()
                     .await
-                    .map(|network| network.nym_vpn_network.account_management)
                     .ok()
-                    .flatten()
+                    .and_then(|network| network.nym_vpn_network.account_management)
                 else {
                     return Err(VpnError::DeeplinkError {
                         details: "No account management data is available at this time".to_string(),
@@ -603,11 +602,9 @@ pub(crate) mod raw {
             *deeplink_guard = Some(deeplinks);
         }
 
-        let Some(deeplinks) = &mut *deeplink_guard else {
-            return Err(VpnError::DeeplinkError {
-                details: "Failed to access deeplinks storage".to_string(),
-            });
-        };
+        let deeplinks = deeplink_guard.as_mut().ok_or(VpnError::DeeplinkError {
+            details: "Failed to access deeplinks storage".to_string(),
+        })?;
 
         let params = CreateDeeplinkParams {
             kind: params.kind,
@@ -636,12 +633,9 @@ pub(crate) mod raw {
         deeplink_callback_url: &str,
     ) -> Result<(), VpnError> {
         let mut deeplink_guard = DEEPLINKS.lock().await;
-
-        let Some(deeplinks) = &mut *deeplink_guard else {
-            return Err(VpnError::DeeplinkError {
-                details: "Failed to access deeplinks storage".to_string(),
-            });
-        };
+        let deeplinks = deeplink_guard.as_mut().ok_or(VpnError::DeeplinkError {
+            details: "Failed to access deeplinks storage".to_string(),
+        })?;
 
         // Derive the mnemonic from the provided deeplink URL
         let mnemonic = deeplinks
