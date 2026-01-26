@@ -204,8 +204,8 @@ jobs:
           email: ${{ secrets.ZULIP_BOT_ANDROID_EMAIL }}
           organization-url: ${{ secrets.ZULIP_ORG_URL }}
           type: "stream"
-          to: ${{ vars.ZULIP_BOT_APPLE_CHANNEL }}
-          topic: ${{ vars.ZULIP_BOT_ANDROID_TOPIC }}
+          to: ${{ secrets.ZULIP_BOT_APPLE_CHANNEL }}
+          topic: ${{ secrets.ZULIP_BOT_ANDROID_TOPIC }}
           content: ${{ env.ZULIP_MESSAGE }}
 
   publish-nym-fdroid:
