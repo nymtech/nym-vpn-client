@@ -561,7 +561,7 @@ impl NymVpnService {
                     self.handle_account_state_change(account_state);
                 }
                 Some(event) = self.discovery_refresher_event_rx.recv() => {
-                    self.handle_discovery_refresher_event(event);
+                    self.handle_discovery_refresher_event(event).await;
                 }
                 _ = &mut self.tunnel_settings_update_timer => {
                     self.update_tunnel_settings();
@@ -727,25 +727,20 @@ impl NymVpnService {
         }
     }
 
-    fn handle_discovery_refresher_event(&mut self, event: DiscoveryRefresherEvent) {
+    async fn handle_discovery_refresher_event(&mut self, event: DiscoveryRefresherEvent) {
         match event {
             DiscoveryRefresherEvent::NewNetwork(new_network) => {
                 tracing::info!("Network environment updated");
                 let _ = self.network_tx.send_replace(new_network.clone());
 
                 // Update gateway cache and topology cache for new environment
-                let gateway_cache_handle = self.gateway_cache_handle.clone();
-                let topology_service_handle = self.topology_service_handle.clone();
-                let user_agent = self.user_agent.clone();
-                tokio::spawn(async move {
-                    nym_vpn_lib::cache_refresh::update_caches_for_network(
-                        &new_network,
-                        &gateway_cache_handle,
-                        &topology_service_handle,
-                        &user_agent,
-                    )
-                    .await;
-                });
+                nym_vpn_lib::cache_refresh::update_caches_for_network(
+                    &new_network,
+                    &self.gateway_cache_handle,
+                    &self.topology_service_handle,
+                    &self.user_agent,
+                )
+                .await;
             }
             DiscoveryRefresherEvent::Error(_error) => {
                 // todo: handle error?
