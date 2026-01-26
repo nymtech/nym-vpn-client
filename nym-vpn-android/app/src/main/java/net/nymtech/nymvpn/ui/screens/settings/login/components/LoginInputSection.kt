@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,8 +36,9 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
-import net.nymtech.nymvpn.ui.screens.settings.login.LoginUiState
+import net.nymtech.nymvpn.ui.screens.settings.login.MnemonicError
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -46,22 +48,26 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 @Composable
 fun LoginInputSection(
 	onCreateAccountClick: () -> Unit,
-	uiState: LoginUiState,
+	onSocialClick: () -> Unit,
+	mnemonicError: MnemonicError?,
+	isPrivyEnabled: Boolean,
 	loading: Boolean,
 	mnemonic: String,
 	onMnemonicChange: (String) -> Unit,
-	onSubmitMnemonic: (String) -> Unit,
-	onDismissError: () -> Unit,
+	onSubmitMnemonic: () -> Unit,
 ) {
 	val keyboardController = LocalSoftwareKeyboardController.current
 
 	val submit = {
-		keyboardController?.hide()
-		onSubmitMnemonic(mnemonic)
+		if (!loading) {
+			keyboardController?.hide()
+			onSubmitMnemonic()
+		}
 	}
-	Column(
-		horizontalAlignment = Alignment.CenterHorizontally,
-	) {
+
+	val isError = mnemonicError != null
+
+	Column(horizontalAlignment = Alignment.CenterHorizontally) {
 		CustomTextField(
 			placeholder = {
 				Column {
@@ -73,26 +79,25 @@ fun LoginInputSection(
 				}
 			},
 			value = mnemonic,
-			onValueChange = { newValue ->
-				if (uiState.success == false) onDismissError()
-				onMnemonicChange(newValue)
-			},
-			keyboardActions = KeyboardActions(
-				onDone = { submit() },
-			),
+			onValueChange = onMnemonicChange,
+			keyboardActions = KeyboardActions(onDone = { submit() }),
 			modifier = Modifier
 				.fillMaxWidth()
 				.height(130.dp.scaledHeight()),
 			supportingText = {
-				if (uiState.success == false) {
+				if (isError) {
 					Text(
 						modifier = Modifier.fillMaxWidth(),
-						text = stringResource(R.string.invalid_recovery_phrase),
+						text = when (mnemonicError) {
+							MnemonicError.INVALID_RECOVERY_PHRASE ->
+								stringResource(R.string.invalid_recovery_phrase)
+							null -> ""
+						},
 						color = MaterialTheme.colorScheme.error,
 					)
 				}
 			},
-			isError = uiState.success == false,
+			isError = isError,
 			label = {
 				Text(
 					text = stringResource(R.string.recovery_phrase),
@@ -110,13 +115,10 @@ fun LoginInputSection(
 			testTag = Constants.LOGIN_TEST_TAG,
 			onClick = { submit() },
 			content = {
-				if (loading && uiState.success == null) {
+				if (loading) {
 					SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
 				} else {
-					Text(
-						stringResource(R.string.log_in),
-						style = CustomTypography.buttonMain,
-					)
+					Text(stringResource(R.string.log_in), style = CustomTypography.buttonMain)
 				}
 			},
 			color = MaterialTheme.colorScheme.primary,
@@ -124,7 +126,29 @@ fun LoginInputSection(
 				.fillMaxWidth()
 				.height(56.dp.scaledHeight()),
 		)
+
 		Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
+
+		if (isPrivyEnabled) {
+			OutlineStyledButton(
+				onClick = onSocialClick,
+				content = {
+					if (loading) {
+						SpinningIcon(Icons.Outlined.Lock, "")
+					} else {
+						Text(
+							text = stringResource(R.string.account_welcome_social_button),
+							style = CustomTypography.buttonMain,
+						)
+					}
+				},
+				borderColor = MaterialTheme.colorScheme.onBackground,
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(54.dp.scaledHeight()),
+			)
+			Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
+		}
 
 		Row(
 			modifier = Modifier.fillMaxWidth(),
@@ -164,12 +188,13 @@ internal fun PreviewLoginInputSection_Default() {
 		) {
 			LoginInputSection(
 				onCreateAccountClick = {},
-				uiState = LoginUiState(),
+				onSocialClick = {},
+				mnemonicError = MnemonicError.INVALID_RECOVERY_PHRASE,
+				isPrivyEnabled = true,
 				loading = false,
-				mnemonic = "",
+				mnemonic = mnemonic,
 				onMnemonicChange = { mnemonic = it },
 				onSubmitMnemonic = {},
-				onDismissError = {},
 			)
 		}
 	}

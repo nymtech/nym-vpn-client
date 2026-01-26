@@ -5,4 +5,5 @@ data class CreateAccountUiState(
 	val isPrivyEnabled: Boolean = false,
 	val hasActiveSubscription: Boolean = false,
 	val isBillingAvailable: Boolean = false,
+	val deeplink: String? = null,
 )

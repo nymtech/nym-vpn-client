@@ -48,4 +48,7 @@ interface Backend {
 	suspend fun getStoredMnemonic(): String
 
 	suspend fun getNetworkVersions(): NetworkCompatibility?
+
+	suspend fun getDeeplink(): String
+	suspend fun deeplinkStoreAccount(link: String)
 }

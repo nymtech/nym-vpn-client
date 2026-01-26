@@ -12,22 +12,36 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.billing.model.BillingCode
 import net.nymtech.nymvpn.BuildConfig
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.util.Constants
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
 	private val billingManager: BillingManager,
 	private val environmentManager: EnvironmentManager,
+	private val backendManager: BackendManager,
 ) : ViewModel() {
+
+	companion object {
+		private const val TAG = "ui-create-account"
+	}
 
 	private val _uiState = MutableStateFlow(CreateAccountUiState())
 	val uiState = _uiState.asStateFlow()
 
 	init {
 		viewModelScope.launch {
+			runCatching {
+				val link = backendManager.getSocialDeeplink()
+				_uiState.value = _uiState.value.copy(deeplink = link)
+			}.onFailure { t ->
+				Timber.tag(TAG).w(t, "SocialDeeplinkLoadFailed")
+			}
+
 			_uiState.value = _uiState.value.copy(
 				isPrivyEnabled = environmentManager.isPrivyEnabled(),
 			)
@@ -61,6 +75,12 @@ class CreateAccountViewModel @Inject constructor(
 				_uiState.value = _uiState.value.copy(
 					hasActiveSubscription = subscribed,
 					isBillingAvailable = true,
+				)
+			} catch (t: Throwable) {
+				Timber.tag(TAG).w(t, "BillingInitOrCheckFailed")
+				_uiState.value = _uiState.value.copy(
+					isBillingAvailable = false,
+					hasActiveSubscription = false,
 				)
 			} finally {
 				_uiState.value = _uiState.value.copy(isLoading = false)

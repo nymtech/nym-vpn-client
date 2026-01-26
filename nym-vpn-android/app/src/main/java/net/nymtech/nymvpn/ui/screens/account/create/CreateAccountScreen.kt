@@ -82,7 +82,9 @@ fun CreateAccountScreen(appUiState: AppUiState, viewModel: CreateAccountViewMode
 			}
 		},
 		onSocialClick = {
-			// TODO: privy
+			ui.deeplink?.let {
+				context.openWebUrl(it)
+			}
 		},
 	)
 
@@ -162,7 +164,7 @@ fun CreateAccountScreen(loading: Boolean, isPrivyEnabled: Boolean, onLogInClick:
 						description = stringResource(R.string.account_welcome_social_description),
 						button = {
 							OutlineStyledButton(
-								onClick = onCreateAccountClick,
+								onClick = onSocialClick,
 								content = {
 									if (loading) {
 										SpinningIcon(Icons.Outlined.Lock, "")

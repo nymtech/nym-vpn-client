@@ -3,8 +3,6 @@ package net.nymtech.nymvpn.ui.screens.settings.login
 import PrivacyText
 import android.content.res.Configuration
 import android.view.WindowManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,8 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,32 +33,29 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.settings.login.components.LoginInputSection
 import net.nymtech.nymvpn.ui.screens.settings.login.components.MaxDevicesModal
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewModel()) {
-	val snackbar = SnackbarController.current
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
 	val context = LocalContext.current
 	val navController = LocalNavController.current
 
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-	var loading by remember { mutableStateOf(false) }
-	var mnemonic by remember { mutableStateOf("") }
-
 	val activity = context as? MainActivity
 
 	DisposableEffect(Unit) {
@@ -70,54 +63,34 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 			WindowManager.LayoutParams.FLAG_SECURE,
 			WindowManager.LayoutParams.FLAG_SECURE,
 		)
-		onDispose {
-			activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-		}
+		onDispose { activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE) }
 	}
 
-	LaunchedEffect(uiState.success, uiState.showTechnicalOptScreen) {
-		if (uiState.success != null) loading = false
-
-		if (uiState.success == true) {
-			if (uiState.showTechnicalOptScreen) {
-				navController.replaceCurrentWith(Route.Technical)
-				viewModel.consumeTechnicalOptFlag()
-			} else {
-				navController.replaceCurrentWith(Route.Main())
+	LaunchedEffect(Unit) {
+		viewModel.events.collectLatest { event ->
+			when (event) {
+				is LoginEvent.NavigateAfterLogin -> {
+					if (event.showTechnicalOpt) {
+						navController.replaceCurrentWith(Route.Technical)
+					} else {
+						navController.replaceCurrentWith(Route.Main())
+					}
+				}
 			}
-			viewModel.consumeResult()
-		} else if (uiState.success == false) {
-			viewModel.consumeResult()
 		}
 	}
 
 	LaunchedEffect(imeState.value) {
-		if (imeState.value) {
-			scrollState.animateScrollTo(scrollState.viewportSize)
-		}
-	}
-
-	val permissionRequiredText = stringResource(id = R.string.permission_required)
-
-	val requestPermissionLauncher = rememberLauncherForActivityResult(
-		ActivityResultContracts.RequestPermission(),
-	) { isGranted ->
-		if (!isGranted) return@rememberLauncherForActivityResult snackbar.showMessage(permissionRequiredText)
-		navController.navigate(Route.LoginScanner)
+		if (imeState.value) scrollState.animateScrollTo(scrollState.viewportSize)
 	}
 
 	LoginScreen(
 		scrollState = scrollState,
 		uiState = uiState,
-		loading = loading,
-		mnemonic = mnemonic,
-		onMnemonicChange = { mnemonic = it },
-		onSubmitMnemonic = { phrase ->
-			loading = true
-			viewModel.onMnemonicImport(phrase)
-		},
-		onDismissError = { viewModel.consumeResult() },
+		onMnemonicChange = viewModel::onMnemonicChange,
+		onSubmitMnemonic = viewModel::onSubmitMnemonic,
 		onCreateAccountClick = { navController.navigate(Route.CreateAccount) },
+		onSocialClick = { uiState.deeplink?.let { context.openWebUrl(it) } },
 	)
 
 	MaxDevicesModal(
@@ -131,12 +104,10 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 private fun LoginScreen(
 	scrollState: ScrollState,
 	uiState: LoginUiState,
-	loading: Boolean,
-	mnemonic: String,
 	onMnemonicChange: (String) -> Unit,
-	onSubmitMnemonic: (String) -> Unit,
-	onDismissError: () -> Unit,
+	onSubmitMnemonic: () -> Unit,
 	onCreateAccountClick: () -> Unit,
+	onSocialClick: () -> Unit,
 ) {
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -181,12 +152,13 @@ private fun LoginScreen(
 
 				LoginInputSection(
 					onCreateAccountClick = onCreateAccountClick,
-					uiState = uiState,
-					loading = loading,
-					mnemonic = mnemonic,
+					onSocialClick = onSocialClick,
+					mnemonicError = uiState.mnemonicError,
+					isPrivyEnabled = uiState.isPrivyEnabled,
+					loading = uiState.isLoading,
+					mnemonic = uiState.mnemonic,
 					onMnemonicChange = onMnemonicChange,
-					onSubmitMnemonic = onSubmitMnemonic,
-					onDismissError = onDismissError,
+					onSubmitMnemonic = { onSubmitMnemonic() },
 				)
 			}
 
@@ -211,12 +183,10 @@ internal fun PreviewLoginScreen() {
 		LoginScreen(
 			scrollState = rememberScrollState(),
 			uiState = LoginUiState(),
-			loading = false,
-			mnemonic = "",
 			onMnemonicChange = {},
 			onSubmitMnemonic = {},
-			onDismissError = {},
-			onCreateAccountClick = {},
+			onCreateAccountClick = { },
+			onSocialClick = { },
 		)
 	}
 }
