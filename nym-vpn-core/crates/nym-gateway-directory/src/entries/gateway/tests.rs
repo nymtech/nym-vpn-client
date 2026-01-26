@@ -551,7 +551,7 @@ fn create_response_nym_gateway(
                     can_route_ip_external_v4: false,
                     can_route_ip_v6: false,
                     can_route_ip_external_v6: false,
-                    //socks5: None,
+                    socks5: None,
                 }),
                 wg: None,
             },
