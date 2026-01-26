@@ -44,7 +44,7 @@ default-members = [
 ]
 
 [workspace.package]
-version = "1.23.0-beta"
+version = "1.24.0-beta"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymtech.net"
