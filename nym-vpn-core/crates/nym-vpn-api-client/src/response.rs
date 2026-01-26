@@ -331,7 +331,7 @@ impl IntoIterator for NymDirectoryGatewaysResponse {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ScoreValue {
     Offline,
@@ -532,6 +532,13 @@ pub struct ProbeOutcome {
     pub wg: Option<WgProbeResults>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Socks5 {
+    pub can_proxy_https: bool,
+    pub score: Option<ScoreValue>,
+    pub errors: Option<Vec<String>>,
+}
+
 impl ProbeOutcome {
     pub fn is_fully_operational_entry(&self) -> bool {
         self.as_entry.can_connect && self.as_entry.can_route
@@ -563,6 +570,7 @@ pub struct Exit {
     pub can_route_ip_external_v4: bool,
     pub can_route_ip_v6: bool,
     pub can_route_ip_external_v6: bool,
+    pub socks5: Option<Socks5>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
