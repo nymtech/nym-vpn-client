@@ -291,6 +291,7 @@
 	<string name="onboarding_create_account_button">Create account</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Choose your \nsubscription plan</string>
+	<string name="select_plan_line_0">7-day free trial</string>
 	<string name="select_plan_line_1">All features included</string>
 	<string name="select_plan_line_2">No ads</string>
 	<string name="select_plan_line_3">Cancel anytime</string>
