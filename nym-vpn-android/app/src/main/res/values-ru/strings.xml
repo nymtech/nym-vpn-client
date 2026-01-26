@@ -396,6 +396,14 @@
 	<string name="account_device_id_title">ID устройства</string>
 	<string name="account_id_title">ID клиента</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">Включить ведение логов</string>
+	<string name="logs_enable_description">Включайте для диагностики. Отключайте для приватности. Логи остаются на вашем устройстве. У Nym никогда нет к ним доступа.</string>
+	<string name="logs_debug_enable_title">Включить подробное логирование</string>
+	<string name="logs_debug_enable_description">Включите подробные логи DEBUG для самоотладки или поддержки. Увеличивает расход батареи. Размер лога может возрасти до 10x.</string>
+	<string name="logs_tab_app">Приложение</string>
+	<string name="logs_tab_tunnel">Туннель</string>
+	<string name="logs_tab_library">Библиотека</string>
+	<string name="logs_empty_placeholder">Пока нет логов</string>
 	<string name="logs_share">Поделиться</string>
 	<string name="logs_download">Скачать</string>
 	<string name="logs_delete">Удалить</string>

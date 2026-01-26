@@ -395,6 +395,14 @@
 	<string name="account_device_id_title">Ідентифікатор пристрою</string>
 	<string name="account_id_title">ID облікового запису</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">Enable logging</string>
+	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
+	<string name="logs_debug_enable_title">Enable verbose logging</string>
+	<string name="logs_debug_enable_description">Turn on for detailed DEBUG logs for self-debugging or support. Increases battery consumption. Log size may grow up to 10x.</string>
+	<string name="logs_tab_app">Додаток</string>
+	<string name="logs_tab_tunnel">Tunnel</string>
+	<string name="logs_tab_library">Library</string>
+	<string name="logs_empty_placeholder">No logs yet</string>
 	<string name="logs_share">Поділіться</string>
 	<string name="logs_download">Завантажити</string>
 	<string name="logs_delete">Видалити</string>

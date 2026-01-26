@@ -269,7 +269,7 @@
 	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
 	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
 	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
-	<string name="onboarding_create_account_button">Create account</string>
+	<string name="onboarding_create_account_button">Create an account</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Choose your \nsubscription plan</string>
 	<string name="select_plan_line_1">All features included</string>
@@ -396,6 +396,14 @@
 	<string name="account_device_id_title">Device ID</string>
 	<string name="account_id_title">Account ID</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">Enable logging</string>
+	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
+	<string name="logs_debug_enable_title">Enable verbose logging</string>
+	<string name="logs_debug_enable_description">Turn on for detailed DEBUG logs for self-debugging or support. Increases battery consumption. Log size may grow up to 10x.</string>
+	<string name="logs_tab_app">App</string>
+	<string name="logs_tab_tunnel">Tunnel</string>
+	<string name="logs_tab_library">Library</string>
+	<string name="logs_empty_placeholder">No logs yet</string>
 	<string name="logs_share">Share</string>
 	<string name="logs_download">Download</string>
 	<string name="logs_delete">Delete</string>

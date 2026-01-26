@@ -220,11 +220,11 @@
 	<string name="settings_language_help_description">Tối ưu ứng dụng theo ngôn ngữ của bạn.</string>
 	<string name="settings_event_lan_reconnecting">Đang kết nối lại để áp dụng cài đặt mạng LAN...</string>
 	<!-- Shortcuts activity -->
-	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
-	<string name="shortcut_title">Confirm action</string>
-	<string name="shortcut_subtitle_stop">Unlock to disconnect VPN</string>
-	<string name="shortcut_subtitle_start_mixnet">Unlock to start Mixnet</string>
-	<string name="shortcut_subtitle_start_wg">Unlock to start Fast mode</string>
+	<string name="shortcuts_info_message">Cần khóa màn hình để sử dụng các phím tắt.</string>
+	<string name="shortcut_title">Xác nhận hành động</string>
+	<string name="shortcut_subtitle_stop">Mở khóa để ngắt kết nối VPN</string>
+	<string name="shortcut_subtitle_start_mixnet">Mở khóa để khởi động Mixnet</string>
+	<string name="shortcut_subtitle_start_wg">Mở khóa để bắt đầu Chế độ nhanh</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Để có kết nối tốt nhất</string>
 	<string name="battery_opt_descr">Vô hiệu hóa chế độ tối ưu hóa pin NymVPN để có kết nối VPN ổn định hơn.</string>
@@ -331,7 +331,7 @@
 	<string name="account_welcome_create_title">⚡ Nhanh chóng &amp; ẩn danh </string>
 	<string name="account_welcome_create_description">Chỉ một chạm để thanh toán. Tài khoản ẩn danh được tạo trên thiết bị của bạn. Không cần mật khẩu, không tiết lộ thông tin cá nhân.</string>
 	<string name="account_welcome_create_button">Tạo tài khoản ẩn danh</string>
-	<string name="account_welcome_social_title">⚡️ Cài đặt nhanh</string>
+	<string name="account_welcome_social_title">🔑️ Sử dụng thông tin đăng nhập hiện có</string>
 	<string name="account_welcome_social_description">Sử dụng tài khoản hiện có như Google hoặc ví tiền điện tử thông qua đối tác đăng nhập Privy của chúng tôi</string>
 	<string name="account_welcome_social_button">Tiếp tục với tài khoản mạng xã hội</string>
 	<string name="account_welcome_login_title">Bạn đã có tài khoản?</string>
@@ -394,6 +394,14 @@
 	<string name="account_device_id_title">ID thiết bị</string>
 	<string name="account_id_title">ID tài khoản</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">Cho phép ghi lại nhật ký</string>
+	<string name="logs_enable_description">Bật tính năng này để khắc phục sự cố. Tắt tính năng này để bảo mật thông tin cá nhân. Nhật ký sẽ được lưu trữ trên thiết bị của bạn. Nym không bao giờ có quyền truy cập.</string>
+	<string name="logs_debug_enable_title">Cho phép ghi nhật ký chi tiết</string>
+	<string name="logs_debug_enable_description">Bật chế độ này để ghi lại nhật ký DEBUG chi tiết phục vụ cho việc tự gỡ lỗi hoặc hỗ trợ. Chế độ này sẽ làm tăng mức tiêu hao pin. Kích thước nhật ký có thể tăng lên đến 10 lần.</string>
+	<string name="logs_tab_app">Ứng dụng</string>
+	<string name="logs_tab_tunnel">Tunnel</string>
+	<string name="logs_tab_library">Thư viện</string>
+	<string name="logs_empty_placeholder">Chưa có bản ghi nào</string>
 	<string name="logs_share">Chia sẻ</string>
 	<string name="logs_download">Tải xuống</string>
 	<string name="logs_delete">Xóa</string>

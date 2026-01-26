@@ -394,6 +394,14 @@
 	<string name="account_device_id_title">Identifiant de l\'appareil</string>
 	<string name="account_id_title">Identifiant du compte client</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">Activer les logs</string>
+	<string name="logs_enable_description">Activez pour le dépannage. Désactivez pour la confidentialité. Les journaux restent sur votre appareil. Nym n\'a jamais accès.</string>
+	<string name="logs_debug_enable_title">Activer la journalisation détaillée</string>
+	<string name="logs_debug_enable_description">Activer pour les logs DEBUG détaillés pour l\'auto-débogage ou la prise en charge. Augmente la consommation de batterie. La taille du journal peut atteindre 10x.</string>
+	<string name="logs_tab_app">Application</string>
+	<string name="logs_tab_tunnel">Tunnel</string>
+	<string name="logs_tab_library">Bibliothèque</string>
+	<string name="logs_empty_placeholder">Pas encore de logs</string>
 	<string name="logs_share">Partager</string>
 	<string name="logs_download">Télécharger</string>
 	<string name="logs_delete">Supprimer</string>

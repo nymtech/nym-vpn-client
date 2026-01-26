@@ -396,6 +396,14 @@
 	<string name="account_device_id_title">Id Del Dispositivo</string>
 	<string name="account_id_title">ID Account</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">Abilita la registrazione</string>
+	<string name="logs_enable_description">Attiva per la risoluzione dei problemi. Disabilita per la privacy. I registri rimangono sul tuo dispositivo. Nym non ha mai accesso.</string>
+	<string name="logs_debug_enable_title">Abilita registrazione dettagliata</string>
+	<string name="logs_debug_enable_description">Attiva per i registri DEBUG dettagliati per il debug automatico o il supporto. Aumenta il consumo della batteria. La dimensione del log potrebbe crescere fino a 10x.</string>
+	<string name="logs_tab_app">App</string>
+	<string name="logs_tab_tunnel">Tunnel</string>
+	<string name="logs_tab_library">Libreria</string>
+	<string name="logs_empty_placeholder">Ancora nessun registro</string>
 	<string name="logs_share">Condividi</string>
 	<string name="logs_download">Scarica</string>
 	<string name="logs_delete">Elimina</string>

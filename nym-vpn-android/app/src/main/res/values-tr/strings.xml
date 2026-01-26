@@ -155,13 +155,13 @@
 	<string name="button_discard">Discard</string>
 	<string name="button_add">Add</string>
 	<string name="here">burada</string>
-	<string name="score_text_high">High</string>
-	<string name="score_text_medium">Medium</string>
-	<string name="score_text_low">Low</string>
-	<string name="score_text_offline">Offline</string>
-	<string name="button_next">Next</string>
+	<string name="score_text_high">Yüksek</string>
+	<string name="score_text_medium">Orta</string>
+	<string name="score_text_low">Düşük</string>
+	<string name="score_text_offline">Çevrimdışı</string>
+	<string name="button_next">Sonra</string>
 	<string name="skip">Atla</string>
-	<string name="get_started">Get started</string>
+	<string name="get_started">Başlayın</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Akış ekranı</string>
 	<string name="streaming_server_banner_title">Yeni: Yayın\niçin optimize edilmiş sunucuları keşfedin</string>
@@ -202,9 +202,9 @@
 	<string name="settings_censorship_title">Sansür Karşıtı</string>
 	<string name="settings_passphrase_title">Parola Cümlesi</string>
 	<string name="settings_dns_title">Customize DNS</string>
-	<string name="settings_ipv6_title">Support IPv6</string>
-	<string name="settings_ipv6_description">Allow IPv6 connections</string>
-	<string name="settings_bypass_description">Allow direct local network access</string>
+	<string name="settings_ipv6_title">IPv6’yı desteği</string>
+	<string name="settings_ipv6_description">IPv6 bağlantılarına izin ver</string>
+	<string name="settings_bypass_description">Doğrudan yerel ağ erişimine izin ver</string>
 	<string name="settings_auto_select_title">Auto-select entry server</string>
 	<string name="settings_auto_select_description">Let app choose best entry location</string>
 	<string name="settings_device_startup_title">Cihaz açıldığında başlat</string>
@@ -212,12 +212,12 @@
 	<string name="settings_system_tray_title">Run in system tray</string>
 	<string name="settings_system_tray_description">Keep app running when closed</string>
 	<string name="settings_reset_app_title">Reset app data</string>
-	<string name="settings_system_status_title">System status</string>
-	<string name="settings_quit_title">Quit NymVPN</string>
+	<string name="settings_system_status_title">Sistem durumu</string>
+	<string name="settings_quit_title">NymVPN\'yi kapat</string>
 	<string name="settings_app_version_line">App version: %1$s</string>
 	<string name="settings_daemon_version_line">Daemon version: %1$s</string>
-	<string name="settings_language_help_title">Help with translation</string>
-	<string name="settings_language_help_description">Make the app better in your language.</string>
+	<string name="settings_language_help_title">Çeviriye yardım et</string>
+	<string name="settings_language_help_description">Uygulamayı kendi dilinizde daha iyi hâle getirin.</string>
 	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings...</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
@@ -250,7 +250,7 @@
 	<string name="notification_stats_enabled">İstatistikler etkinleştirildi! Anonim verileriniz ağımızı optimize etmemize yardımcı oluyor.</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Devam et</string>
-	<string name="welcome_title">Help us improve NymVPN</string>
+	<string name="welcome_title">NymVPN\'i geliştirmemize yardımcı olun</string>
 	<string name="welcome_description">Choose what anonymous data to share. All data is stripped of identifying information before being sent.</string>
 	<string name="welcome_error_reports_title">Share error reports</string>
 	<string name="welcome_error_reports_description_start">Helps us fix bugs faster, no personal data collected (via </string>
@@ -267,7 +267,7 @@
 	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
 	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
 	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
-	<string name="onboarding_create_account_button">Create account</string>
+	<string name="onboarding_create_account_button">Erişim kodu alın</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">\nKoruma seviyenizi seçin 🛡️</string>
 	<string name="select_plan_line_1">All features included</string>
@@ -347,8 +347,8 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="account_generating_title_1">Generating cryptographic keypairs…</string>
 	<string name="account_generating_title_2">Creating your anonymous identity…</string>
 	<string name="account_generating_title_3">Securing your credentials locally…</string>
-	<string name="account_generating_description_1">Creating keys that never leave your device</string>
-	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
+	<string name="account_generating_description_1">Anahtarlarınızı sadece cihazınızda oluşturun ve cihazdan hiç dışarı çıkarmayın.</string>
+	<string name="account_generating_description_2">Anonim ağ kimlik bilgileri oluşturuluyor</string>
 	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
 	<string name="account_generating_error">Hesap kaydı başarısız oldu. Lütfen daha sonra tekrar deneyin</string>
 	<!-- Account Payment screen -->
@@ -384,7 +384,7 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="passphrase_info_keeps_anonymous">Anonimlik</string>
 	<string name="passphrase_info_belongs">Sadece size aittir ve kontrolünüz altındadır (self-custody)</string>
 	<!-- Account screen -->
-	<string name="account_title">Account and devices</string>
+	<string name="account_title">Hesap ve cihazlar</string>
 	<string name="account_info_plan">Plan</string>
 	<string name="account_info_payments">Ödemeler</string>
 	<string name="account_info_devices">Cihazlar</string>
@@ -392,9 +392,17 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="account_info_id_description">Destek talepleri için bu ID’yi kullanın</string>
 	<string name="account_info_id_important">⚠️ Önemli: Nym destek ekibi 24 kelimelik parola ifadenizi asla istemez. Bunu hiç kimseyle paylaşmayın.</string>
 	<string name="account_on_nym">Account on nym.com</string>
-	<string name="account_device_id_title">Device ID</string>
-	<string name="account_id_title">Account ID</string>
+	<string name="account_device_id_title">Cihaz Kimliği</string>
+	<string name="account_id_title">Hesap Kimliği</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">Enable logging</string>
+	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
+	<string name="logs_debug_enable_title">Enable verbose logging</string>
+	<string name="logs_debug_enable_description">Turn on for detailed DEBUG logs for self-debugging or support. Increases battery consumption. Log size may grow up to 10x.</string>
+	<string name="logs_tab_app">Uygulama</string>
+	<string name="logs_tab_tunnel">Tunnel</string>
+	<string name="logs_tab_library">Library</string>
+	<string name="logs_empty_placeholder">No logs yet</string>
 	<string name="logs_share">Paylaş</string>
 	<string name="logs_download">İndir</string>
 	<string name="logs_delete">Sil</string>
@@ -411,7 +419,7 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling">Split tunneling</string>
 	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
-	<string name="split_tunneling_info_desc">Changes will apply after reconnect</string>
+	<string name="split_tunneling_info_desc">Değişiklikler yeniden bağlandıktan sonra uygulanacak</string>
 	<string name="split_tunneling_search_apps_hint">Search apps</string>
 	<string name="split_tunneling_apps">Apps</string>
 	<string name="split_tunneling_direct">Direct</string>
