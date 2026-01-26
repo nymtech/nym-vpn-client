@@ -394,6 +394,14 @@
 	<string name="account_device_id_title">デバイス ID</string>
 	<string name="account_id_title">アカウントID</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">ログを有効にする</string>
+	<string name="logs_enable_description">トラブルシューティングのためにオンにしてください。プライバシーのために無効にしてください。ログは端末にとどまります。Nymはアクセスできません。</string>
+	<string name="logs_debug_enable_title">詳細なログを有効にする</string>
+	<string name="logs_debug_enable_description">自己デバッグまたはサポート用の詳細なDEBUGログを有効にしてください。バッテリー消費を増加させます。ログサイズは最大10倍になる可能性があります。</string>
+	<string name="logs_tab_app">アプリ</string>
+	<string name="logs_tab_tunnel">トンネル</string>
+	<string name="logs_tab_library">ライブラリ</string>
+	<string name="logs_empty_placeholder">ログはまだありません</string>
 	<string name="logs_share">共有</string>
 	<string name="logs_download">ダウンロード</string>
 	<string name="logs_delete">削除</string>

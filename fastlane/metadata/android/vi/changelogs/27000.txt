@@ -1,9 +1,9 @@
-What’s new
-- New onboarding flow for first-time users
-- Technical opt-in screen shown after login or purchase
-- Locale support for high/low copy on the Details screen
-Changes
-- Switched to passphrase-based authentication
-- Replaced “gateway” with “server” across the app
-- Improved connection reliability (smarter reconnect, LAN bypass, split tunneling, Custom DNS)
-- More consistent censorship-handling logic
+Có gì mới
+- Quy trình đăng ký mới cho người dùng lần đầu
+- Màn hình xác nhận kỹ thuật hiển thị sau khi đăng nhập hoặc mua hàng
+- Hỗ trợ ngôn ngữ cho chế độ hiển thị văn bản cao/thấp trên màn hình Chi tiết
+Thay đổi
+- Chuyển sang xác thực bằng cụm từ mật khẩu
+- Thay thế “cổng” bằng “máy chủ” trên toàn ứng dụng
+- Cải thiện độ tin cậy kết nối (kết nối lại thông minh hơn, bỏ qua mạng LAN, split tunneling, DNS tùy chỉnh)
+- Logic xử lý kiểm duyệt nhất quán hơn

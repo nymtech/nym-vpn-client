@@ -396,6 +396,14 @@
 	<string name="account_device_id_title">معرف الجهاز</string>
 	<string name="account_id_title">معرف الحساب</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">تمكين تسجيل الدخول</string>
+	<string name="logs_enable_description">تشغيل لاستكشاف الأخطاء وإصلاحها. تعطيل للخصوصية. السجلات تبقى على جهازك. لا يوجد أي شيء لديه حق الوصول أبدا.</string>
+	<string name="logs_debug_enable_title">تمكين التسجيل المفصّل</string>
+	<string name="logs_debug_enable_description">تشغيل سجلات DEBUG المفصلة لتصحيح الأخطاء الذاتية أو الدعم. زيادة استهلاك البطارية. قد يكبر حجم السجل حتى 10x.</string>
+	<string name="logs_tab_app">التطبيق</string>
+	<string name="logs_tab_tunnel">نفق</string>
+	<string name="logs_tab_library">المكتبة</string>
+	<string name="logs_empty_placeholder">لا توجد سجلات بعد</string>
 	<string name="logs_share">مشاركة</string>
 	<string name="logs_download">تنزيل</string>
 	<string name="logs_delete">حذف</string>

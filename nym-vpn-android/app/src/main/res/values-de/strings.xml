@@ -220,13 +220,13 @@
 	<string name="settings_daemon_version_line">Daemon Version: %1$s</string>
 	<string name="settings_language_help_title">Hilf bei der Übersetzung</string>
 	<string name="settings_language_help_description">Verbessere die App in deiner Sprache.</string>
-	<string name="settings_event_lan_reconnecting">Verbinde neu, um LAN-Einstellungen anzuwenden...</string>
+	<string name="settings_event_lan_reconnecting">Erneut verbinden, um die LAN-Einstellungen zu übernehmen…</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bildschirmsperre erforderlich, um Verknüpfungen zu verwenden.</string>
-	<string name="shortcut_title">Aktion bestätigen</string>
-	<string name="shortcut_subtitle_stop">Entsperren um VPN zu trennen</string>
-	<string name="shortcut_subtitle_start_mixnet">Entsperren um Mixnet zu starten</string>
-	<string name="shortcut_subtitle_start_wg">Entsperren um den Schnellmodus zu starten</string>
+	<string name="shortcut_title">Vorgang bestätigen</string>
+	<string name="shortcut_subtitle_stop">Entsperren, um die VPN-Verbindung zu trennen</string>
+	<string name="shortcut_subtitle_start_mixnet">Entsperren, um Mixnet zu starten</string>
+	<string name="shortcut_subtitle_start_wg">Entsperren, um den Schnellmodus zu starten</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">Für die beste Verbindung</string>
 	<string name="battery_opt_descr">Für stabilere VPN-Verbindungen deaktiviere die Optimierung der Akkunutzung von NymVPN.</string>
@@ -333,8 +333,8 @@
 	<string name="account_welcome_create_title">⚡ Sofort &amp; anonym </string>
 	<string name="account_welcome_create_description">Mit einem Tipp zum Kauf. Ein anonymes Konto wird auf deinem Gerät erstellt. Kein Passwort, keine persönlichen Daten.</string>
 	<string name="account_welcome_create_button">Anonymes Konto erstellen</string>
-	<string name="account_welcome_social_title">⚡️ Quick setup</string>
-	<string name="account_welcome_social_description">Nutze ein bestehendes Konto wie Google oder ein Krypto-Wallet über unseren Login-Partner Privy</string>
+	<string name="account_welcome_social_title">🔑️ Bestehenden Login verwenden</string>
+	<string name="account_welcome_social_description">Melde dich privat mit E-Mail, Google oder Krypto-Wallet über unseren Partner Privy an.</string>
 	<string name="account_welcome_social_button">Mit Social-Konto fortfahren</string>
 	<string name="account_welcome_login_title">Hast du bereits ein Konto?</string>
 	<string name="account_welcome_login_button">Mit 24-Wort-Passphrase anmelden</string>
@@ -396,6 +396,14 @@
 	<string name="account_device_id_title">Geräte-ID</string>
 	<string name="account_id_title">Konto-ID</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">Logging aktivieren</string>
+	<string name="logs_enable_description">Einschalten zur Fehlerbehebung. Deaktivieren für den Datenschutz. Die Logs bleiben auf deinem Gerät. Nym hat keinen Zugriff.</string>
+	<string name="logs_debug_enable_title">Ausführliches Logging aktivieren</string>
+	<string name="logs_debug_enable_description">Einschalten, um detaillierte DEBUG-Protokolle für die Selbstdiagnose oder den Support zu erhalten. Erhöht den Batterieverbrauch. Die Loggröße kann bis zu 10x größer werden.</string>
+	<string name="logs_tab_app">App</string>
+	<string name="logs_tab_tunnel">Tunnel</string>
+	<string name="logs_tab_library">Bibliothek</string>
+	<string name="logs_empty_placeholder">Noch keine Logs</string>
 	<string name="logs_share">Teilen</string>
 	<string name="logs_download">Download</string>
 	<string name="logs_delete">Löschen</string>

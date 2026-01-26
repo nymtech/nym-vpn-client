@@ -39,7 +39,7 @@
 	<string name="login">ورود</string>
 	<string name="unknown">نامشخص</string>
 	<string name="no_scm_found">آدرس URL سورس برنامه یافت نشد</string>
-	<string name="five_hop">پرش پنج گرهی</string>
+	<string name="five_hop">پنج-پرشی</string>
 	<string name="mode">حالت</string>
 	<string name="okay">باشه</string>
 	<string name="two_hop">پرش دو گرهی</string>
@@ -86,7 +86,7 @@
 	<string name="action_requires_tunnel_down">برای انجام این کار باید اتصال تونل قطع شده باشد</string>
 	<string name="device_added_success">دستگاه فوق با موفقیت به حساب شما اضافه شد</string>
 	<string name="invalid_recovery_phrase">عبارت بازیابی نامعتبر است</string>
-	<string name="recovery_phrase">عبارت بازیابی</string>
+	<string name="recovery_phrase">عبارت عبور ۲۴ کلمه‌آی</string>
 	<string name="log_in">ورود به حساب کاربری</string>
 	<string name="log_out">خروج از حساب کاربری</string>
 	<string name="new_to_nym">در NymVPN تازه واردید؟</string>
@@ -99,7 +99,7 @@
 	<string name="version">نسخه</string>
 	<string name="app_restart_required">باید برنامه دوباره راه‌اندازی شود</string>
 	<string name="max_devices_reached_title">شما به حداکثر تعداد دستگاه‌های مجاز متصل به حساب کاربری‌تان رسیدید</string>
-	<string name="credential_modal_description">برای افزودن این دستگاه، به صفحه \"دستگاه‌های\" حساب خود بروید، یکی از دستگاه‌های موجود را حذف کنید و سپس با وارد کردن عبارت بازیابی خود با این دستگاه وارد شوید.</string>
+	<string name="credential_modal_description">برای افزودن این دستگاه، به صفحه \"دستگاه‌ها\"ی حساب خود بروید، یکی از دستگاه‌های موجود را حذف کنید و سپس با این دستگاه با وارد کردن عبارت عبور خود وارد شوید.</string>
 	<string name="manage_devices">مدیریت دستگاه‌های شما</string>
 	<string name="close">بستن</string>
 	<string name="enter_access_code">لطفاً کد دسترسی ناشناس خود را وارد کنید.</string>
@@ -220,7 +220,7 @@
 	<string name="settings_daemon_version_line">نسخه دیمون: %1$s</string>
 	<string name="settings_language_help_title">کمک‌کردن به ترجمه</string>
 	<string name="settings_language_help_description">ترجمه برنامه را به زبان خودتان بهتر کنید.</string>
-	<string name="settings_event_lan_reconnecting">در حال اتصال مجدد برای اعمال تنظیمات LAN...</string>
+	<string name="settings_event_lan_reconnecting">در حال اتصال مجدد برای اعمال تنظیمات LAN…</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
 	<string name="shortcut_title">Confirm action</string>
@@ -270,15 +270,15 @@
 	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
 	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
 	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
-	<string name="onboarding_create_account_button">Create account</string>
+	<string name="onboarding_create_account_button">ایجاد حساب‌کاربری</string>
 	<!-- Select Plan screen -->
-	<string name="select_plan_title">سطح محافظت از خود \n را انتخاب کنید 🛡️</string>
+	<string name="select_plan_title">طرح اشتراک\n خود را انتخاب کنید</string>
 	<string name="select_plan_line_1">All features included</string>
 	<string name="select_plan_line_2">No ads</string>
 	<string name="select_plan_line_3">Cancel anytime</string>
 	<string name="select_plan_button">بسته خرید NymVPN خود را انتخاب کنید</string>
-	<string name="select_plan_modal_title">طرح NymVPN خود را انتخاب کنید</string>
-	<string name="select_plan_modal_free_trial">دوره آزمایشی رایگان: ۱ هفته</string>
+	<string name="select_plan_modal_title">طرح خود را انتخاب کنید. با تمام امکانات آن، می‌تونی هر زمان کنسل کنی.</string>
+	<string name="select_plan_modal_free_trial">۷-روز آزمایشی رایگان از امروز شروع می‌شود</string>
 	<string name="select_plan_modal_free_trial_starts_today">شروع از:‌ امروز</string>
 	<string name="select_plan_modal_free_trial_starts">شروع از: %1$s</string>
 	<!-- Server Details screen -->
@@ -332,15 +332,15 @@
 	<string name="censorship_amnezia_link_text">چگونه AmneziaWG از DPI جلوگیری می‌کند</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">🔒 حداکثر حریم خصوصی</string>
+	<string name="account_welcome_create_title">⚡ سریع &amp; ناشناس </string>
 	<string name="account_welcome_create_description">یک حساب ناشناس Nym ایجاد کنید؛ برای ایجاد حساب کاربری نیازی به اطلاعات شخصی نیست</string>
 	<string name="account_welcome_create_button">ایجاد حساب کاربری ناشناس</string>
 	<string name="account_welcome_social_title">⚡️ راه‌اندازی سریع</string>
-	<string name="account_welcome_social_description">از طریق شریکِ ورودِ ما، Privy، از حساب موجود خود—مانند Google—یا از کیف پول رمزارزی استفاده کنید</string>
+	<string name="account_welcome_social_description">خصوصی با ایمیل، گوگل، یا ولت کریپتو، از طریق پارتنر ورودِ ما، Privy، وارد شوید.</string>
 	<string name="account_welcome_social_button">ادامه دادن با حساب اجتماعی موجود</string>
 	<string name="account_welcome_login_title">از قبل حساب کاریری دارید؟</string>
 	<string name="account_welcome_login_button">ورود با عبارت عبور 24 کلمه‌ای</string>
-	<string name="account_welcome_privacy_start">با ادامه دادن، با اسناد NymVPN  </string>
+	<string name="account_welcome_privacy_start">با ادامه، شما با NymVPN موافقت می‌کنید  </string>
 	<string name="account_welcome_privacy_middle">و</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">شما در حال حاضر مشترک هستید!</string>
@@ -350,8 +350,8 @@
 	<string name="account_generating_title_1">Generating cryptographic keypairs…</string>
 	<string name="account_generating_title_2">Creating your anonymous identity…</string>
 	<string name="account_generating_title_3">Securing your credentials locally…</string>
-	<string name="account_generating_description_1">Creating keys that never leave your device</string>
-	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
+	<string name="account_generating_description_1">ساخت کلیدهایی که هرگز از دستگاه شما خارج نمی‌شوند</string>
+	<string name="account_generating_description_2">ایجاد گواهی‌ اتصال شبکه ناشناس</string>
 	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
 	<string name="account_generating_error">ثبت نام حساب کاربری ناموفق بود. لطفا بعدا دوباره امتحان کنید.</string>
 	<!-- Account Payment screen -->
@@ -398,6 +398,14 @@
 	<string name="account_device_id_title">شناسه دستگاه</string>
 	<string name="account_id_title">شناسه حساب‌کاربری</string>
 	<!-- Logs screen -->
+	<string name="logs_enable_title">Enable logging</string>
+	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
+	<string name="logs_debug_enable_title">Enable verbose logging</string>
+	<string name="logs_debug_enable_description">Turn on for detailed DEBUG logs for self-debugging or support. Increases battery consumption. Log size may grow up to 10x.</string>
+	<string name="logs_tab_app">برنامه</string>
+	<string name="logs_tab_tunnel">Tunnel</string>
+	<string name="logs_tab_library">Library</string>
+	<string name="logs_empty_placeholder">No logs yet</string>
 	<string name="logs_share">اشتراک‌گذاری</string>
 	<string name="logs_download">دانلود</string>
 	<string name="logs_delete">حذف کردن</string>
@@ -434,7 +442,7 @@
 	<string name="split_tunneling_per_app_security_banner_title">🔀 جدید: برای سرعت بیشتر، جداگانه برای هر برنامه انتخاب کنید که محافظت شود یا بدون محافظت با اتصال مستقیم</string>
 	<string name="split_tunneling_per_app_security_banner_action">پیکربندی برنامه‌ها</string>
 	<string name="split_tunneling_event_saved">تنظیمات Split Tunneling ذخیره شد</string>
-	<string name="split_tunneling_event_reconnecting">برای اعمال تنظیمات تونل‌سازی تفکیکی در حال اتصال مجدد هستیم…</string>
+	<string name="split_tunneling_event_reconnecting">در حال اتصال مجدد برای اعمال تنظیمات تونل‌سازی تفکیکی…</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">سفارشی‌سازی DNS</string>
 	<string name="dns_description">به‌طور پیش‌فرض از سرورهای DNS پیشنهادی Nym استفاده می‌شود. در صورت نیاز در پایین سرورهای دلخواه خود را تنظیم کنید.</string>
