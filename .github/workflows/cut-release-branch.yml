@@ -169,6 +169,6 @@ jobs:
             git commit -a -m "ci: bump develop to v${{ steps.next-version.outputs.next_version }}"
             git push origin "${{ env.BRANCH_NAME }}"
             gh pr create \
-                --title "Bump develop to `v${{ steps.next-version.outputs.next_version }}`" \
-                --body "This PR bumps develop to `v${{ steps.next-version.outputs.next_version }}`"
+                --title 'Bump develop to `v${{ steps.next-version.outputs.next_version }}`' \
+                --body 'This PR bumps develop to `v${{ steps.next-version.outputs.next_version }}`'
           fi
