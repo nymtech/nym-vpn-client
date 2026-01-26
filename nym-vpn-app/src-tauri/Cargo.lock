@@ -3560,7 +3560,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.23.0-dev"
+version = "1.23.0-rc1"
 dependencies = [
  "anyhow",
  "build-info",
