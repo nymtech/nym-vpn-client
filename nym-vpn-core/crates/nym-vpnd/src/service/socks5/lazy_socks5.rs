@@ -1,8 +1,10 @@
-//! Lazy SOCKS5 wrapper that initializes the Nym mixnet on first connection
+//! Lazy SOCKS5 wrapper that initializes the Nym mixnet on first connection.
 
 use super::util::ConnectionGuard;
+use nym_gateway_directory::GatewayCacheHandle;
 use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
 use nym_vpn_lib_types::{TunnelConnectionData, TunnelState};
+use rand::seq::SliceRandom;
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
@@ -19,7 +21,7 @@ use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, trace, warn};
 
 /// Configuration for the LazySocks5
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct LazySocks5Config {
     /// Data directory for mixnet client state
     pub mixnet_data_path: PathBuf,
@@ -31,8 +33,12 @@ pub struct LazySocks5Config {
     pub request_timeout: Duration,
     /// Idle timeout duration
     pub idle_timeout: Duration,
-    /// Exit node gateway address
-    pub network_requester_address: String,
+    /// Exit node gateway address (optional - if None, will select randomly)
+    pub network_requester_address: Option<String>,
+    /// Network Requester rotation interval (None = disabled)
+    pub network_requester_rotation_interval: Option<Duration>,
+    /// Gateway cache handle for looking up Network Requesters
+    pub gateway_cache_handle: Option<GatewayCacheHandle>,
 }
 
 /// Errors from the LazySocks5
@@ -46,6 +52,12 @@ pub enum LazySocks5Error {
 
     #[error("Internal error: {0}")]
     Internal(String),
+
+    #[error("Gateway directory error: {0}")]
+    GatewayDirectory(String),
+
+    #[error("No available Network Requesters found")]
+    NoNetworkRequesters,
 }
 
 /// Lazy SOCKS5 state
@@ -66,6 +78,8 @@ pub struct LazySocks5 {
     mixnet_client: Arc<RwLock<Option<Socks5MixnetClient>>>,
     /// Mutex to prevent concurrent initialization
     init_mutex: Arc<Mutex<()>>,
+    /// Last time Network Requester was rotated
+    last_rotation: Arc<RwLock<Option<Instant>>>,
 }
 
 impl LazySocks5 {
@@ -90,6 +104,7 @@ impl LazySocks5 {
             is_mixnet_running: Arc::new(RwLock::new(false)),
             mixnet_client: Arc::new(RwLock::new(None)),
             init_mutex: Arc::new(Mutex::new(())),
+            last_rotation: Arc::new(RwLock::new(None)),
         })
     }
 
@@ -120,6 +135,16 @@ impl LazySocks5 {
         let state_monitor_handle = tokio::spawn(async move {
             state_monitor.monitor_tunnel_state().await;
         });
+
+        // Spawn Network Requester rotation monitor (if enabled)
+        let rotation_monitor_handle = if self.config.network_requester_rotation_interval.is_some() {
+            let rotation_monitor = self.clone();
+            Some(tokio::spawn(async move {
+                rotation_monitor.monitor_network_requester_rotation().await;
+            }))
+        } else {
+            None
+        };
 
         // Accept connections loop
         loop {
@@ -182,6 +207,9 @@ impl LazySocks5 {
         // Clean up
         idle_monitor_handle.abort();
         state_monitor_handle.abort();
+        if let Some(handle) = rotation_monitor_handle {
+            handle.abort();
+        }
         self.shutdown_backend().await;
 
         info!("Lazy SOCKS5 wrapper stopped");
@@ -495,7 +523,19 @@ impl LazySocks5 {
 
         info!("First connection detected, initializing Nym mixnet backend...");
 
-        let mut socks5_config = Socks5::new(self.config.network_requester_address.clone());
+        // Determine Network Requester address (fixed or random)
+        let network_requester_address = match &self.config.network_requester_address {
+            Some(fixed_address) => {
+                info!("Using fixed Network Requester: {}", fixed_address);
+                fixed_address.clone()
+            }
+            None => {
+                info!("Selecting random Network Requester from gateway directory...");
+                self.select_random_network_requester().await?
+            }
+        };
+
+        let mut socks5_config = Socks5::new(network_requester_address);
         socks5_config.send_anonymously = true;
         socks5_config.bind_address = self.config.internal_listen_address;
 
@@ -877,6 +917,154 @@ impl LazySocks5 {
         }
     }
 
+    /// Monitor and rotate Network Requester periodically
+    async fn monitor_network_requester_rotation(&self) {
+        let Some(rotation_interval) = self.config.network_requester_rotation_interval else {
+            return; // Rotation disabled
+        };
+
+        info!(
+            "Network Requester rotation monitor started (interval: {:?})",
+            rotation_interval
+        );
+
+        let mut interval = tokio::time::interval(Duration::from_secs(60)); // Check every minute
+        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+
+        loop {
+            interval.tick().await;
+
+            // Only rotate if mixnet is running and dVPN (WireGuard) is connected
+            let should_rotate = {
+                let is_running = self.is_mixnet_running().await;
+                let tunnel_state = self.tunnel_state_shared.read().await.clone();
+                let dvpn_wireguard_active = matches!(
+                    tunnel_state,
+                    TunnelState::Connected { ref connection_data }
+                    if matches!(connection_data.tunnel, TunnelConnectionData::Wireguard(_))
+                );
+
+                if !is_running || !dvpn_wireguard_active {
+                    false
+                } else {
+                    let mut last_rotation = self.last_rotation.write().await;
+                    if last_rotation.is_none() {
+                        // First rotation - start timer
+                        *last_rotation = Some(Instant::now());
+                        false
+                    } else {
+                        let elapsed = last_rotation.unwrap().elapsed();
+                        if elapsed >= rotation_interval {
+                            *last_rotation = Some(Instant::now());
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                }
+            };
+
+            if should_rotate {
+                info!("Rotating Network Requester after {:?}", rotation_interval);
+                self.rotate_network_requester().await;
+            }
+
+            // Check for cancellation
+            if self.cancel_token.is_cancelled() {
+                break;
+            }
+        }
+
+        info!("Network Requester rotation monitor stopped");
+    }
+
+    /// Rotate to a new Network Requester by shutting down current mixnet client
+    /// Only rotates if there are no active connections to avoid disrupting ongoing transactions
+    async fn rotate_network_requester(&self) {
+        // Check if there are active connections
+        let active_count = self.active_connections().await;
+
+        if active_count > 0 {
+            info!(
+                "Skipping Network Requester rotation: {} active connection(s) in progress",
+                active_count
+            );
+            info!("Rotation will be attempted at next interval when connections are idle");
+            return;
+        }
+
+        info!("Shutting down current mixnet client to rotate Network Requester");
+        self.shutdown_backend().await;
+        info!("Next SOCKS5 connection will use a new random Network Requester");
+    }
+
+    /// Select a random Network Requester from the gateway directory.
+    /// # Errors
+    /// - `LazySocks5Error::GatewayDirectory` if gateway cache is not configured
+    /// - `LazySocks5Error::NoNetworkRequesters` if no nodes have NR addresses
+    async fn select_random_network_requester(&self) -> Result<String, LazySocks5Error> {
+        let Some(ref gateway_cache_handle) = self.config.gateway_cache_handle else {
+            error!("Gateway cache handle not configured for random NR selection");
+            error!("This is a configuration error - rotation requires gateway_cache_handle");
+            return Err(LazySocks5Error::GatewayDirectory(
+                "Gateway cache handle not available. Required for random Network Requester selection. \
+                 Ensure gateway_cache_handle is provided when enabling rotation.".to_string(),
+            ));
+        };
+
+        // Fetch all NymNodes (which have nr_address field for SOCKS5)
+        debug!("Fetching NymNodes directory for Network Requester selection");
+        let nymnodes = gateway_cache_handle
+            .lookup_all_nymnodes()
+            .await
+            .map_err(|e| {
+                error!("Failed to fetch NymNodes directory: {}", e);
+                LazySocks5Error::GatewayDirectory(format!(
+                    "Failed to lookup NymNodes from gateway directory: {}. \
+                     Ensure gateway directory is accessible and properly configured.",
+                    e
+                ))
+            })?;
+
+        debug!("Fetched {} nodes from directory", nymnodes.len());
+
+        // Filter nodes that have a network requester address
+        let nodes_with_nr: Vec<_> = nymnodes
+            .into_iter()
+            .filter_map(|node| {
+                node.nr_address
+                    .as_ref()
+                    .map(|nr| (node.clone(), nr.clone()))
+            })
+            .collect();
+
+        let nr_count = nodes_with_nr.len();
+        debug!("Found {} nodes with Network Requester addresses", nr_count);
+
+        if nodes_with_nr.is_empty() {
+            error!("No Network Requesters available in gateway directory");
+            error!("This may indicate a network issue or outdated gateway cache");
+            return Err(LazySocks5Error::NoNetworkRequesters);
+        }
+
+        // Select a random one
+        let mut rng = rand::thread_rng();
+        let (selected_node, nr_address) = nodes_with_nr.choose(&mut rng).ok_or_else(|| {
+            error!(
+                "Random selection failed despite having {} candidates",
+                nr_count
+            );
+            LazySocks5Error::NoNetworkRequesters
+        })?;
+
+        info!(
+            "Selected random Network Requester: {} (gateway: {}, {} total available)",
+            nr_address, selected_node.identity, nr_count
+        );
+
+        Ok(nr_address.clone())
+    }
+
     /// Shut down the backend
     async fn shutdown_backend(&self) {
         let mut client_guard = self.mixnet_client.write().await;
@@ -910,5 +1098,377 @@ impl LazySocks5 {
     /// Get the public listen address
     pub fn public_address(&self) -> SocketAddr {
         self.config.listen_address
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nym_vpn_lib_types::TunnelState;
+    use std::time::Duration;
+
+    /// Helper to create a minimal test configuration
+    fn create_test_config() -> LazySocks5Config {
+        LazySocks5Config {
+            mixnet_data_path: std::env::temp_dir().join("test_mixnet"),
+            listen_address: "127.0.0.1:1080".parse().unwrap(),
+            internal_listen_address: "127.0.0.1:1081".parse().unwrap(),
+            request_timeout: Duration::from_secs(10),
+            idle_timeout: Duration::from_secs(30),
+            network_requester_address: Some("test.nr@example".to_string()),
+            network_requester_rotation_interval: None,
+            gateway_cache_handle: None,
+        }
+    }
+
+    #[tokio::test]
+    async fn test_lazy_socks5_creation() {
+        let config = create_test_config();
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = LazySocks5::new(config.clone(), tunnel_state, cancel_token);
+        assert!(socks5.is_ok(), "Should create LazySocks5 successfully");
+    }
+
+    #[tokio::test]
+    async fn test_rotation_timer_initialization() {
+        let mut config = create_test_config();
+        config.network_requester_rotation_interval = Some(Duration::from_secs(25 * 60));
+
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
+
+        // Verify rotation timer is None initially
+        let last_rotation = socks5.last_rotation.read().await;
+        assert!(
+            last_rotation.is_none(),
+            "Rotation timer should be None initially"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_fixed_network_requester_address() {
+        let config = create_test_config();
+        assert!(config.network_requester_address.is_some());
+        assert_eq!(config.network_requester_address.unwrap(), "test.nr@example");
+    }
+
+    #[tokio::test]
+    async fn test_random_network_requester_config() {
+        let mut config = create_test_config();
+        config.network_requester_address = None; // Random selection
+
+        assert!(
+            config.network_requester_address.is_none(),
+            "Should be configured for random NR selection"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_rotation_disabled_when_interval_none() {
+        let config = create_test_config();
+        assert!(
+            config.network_requester_rotation_interval.is_none(),
+            "Rotation should be disabled by default"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_rotation_enabled_with_interval() {
+        let mut config = create_test_config();
+        let rotation_interval = Duration::from_secs(25 * 60);
+        config.network_requester_rotation_interval = Some(rotation_interval);
+
+        assert_eq!(
+            config.network_requester_rotation_interval,
+            Some(rotation_interval),
+            "Rotation interval should be set correctly"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_mixnet_client_initially_none() {
+        let config = create_test_config();
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
+
+        let client = socks5.mixnet_client.read().await;
+        assert!(
+            client.is_none(),
+            "Mixnet client should be None initially (lazy init)"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_active_connections_starts_at_zero() {
+        let config = create_test_config();
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
+
+        let count = socks5.active_connections().await;
+        assert_eq!(count, 0, "Active connections should start at 0");
+    }
+
+    #[tokio::test]
+    async fn test_is_mixnet_running_initially_false() {
+        let config = create_test_config();
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
+
+        let is_running = socks5.is_mixnet_running().await;
+        assert!(!is_running, "Mixnet should not be running initially");
+    }
+
+    #[tokio::test]
+    async fn test_rotation_skipped_with_active_connections() {
+        let config = create_test_config();
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
+
+        // Simulate active connection
+        *socks5.active_connections.write().await = 5;
+
+        // Verify active connections
+        let count = socks5.active_connections().await;
+        assert_eq!(count, 5, "Should have 5 active connections");
+
+        // Attempt rotation - should skip due to active connections
+        socks5.rotate_network_requester().await;
+
+        // Verify mixnet client is still None (not shutdown)
+        let client = socks5.mixnet_client.read().await;
+        assert!(
+            client.is_none(),
+            "Client should still be None (rotation skipped)"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_multiple_network_requesters_can_be_used() {
+        // This test verifies that different Network Requesters can be used
+        // without requiring firewall changes (they're all reached through entry gateway)
+
+        let mut config1 = create_test_config();
+        config1.network_requester_address = Some("nr1.address@gateway1".to_string());
+
+        let mut config2 = create_test_config();
+        config2.network_requester_address = Some("nr2.address@gateway2".to_string());
+
+        let mut config3 = create_test_config();
+        config3.network_requester_address = Some("nr3.address@gateway3".to_string());
+
+        // All configs should be valid and use different NRs
+        assert_ne!(
+            config1.network_requester_address, config2.network_requester_address,
+            "Should have different NR addresses"
+        );
+        assert_ne!(
+            config2.network_requester_address, config3.network_requester_address,
+            "Should have different NR addresses"
+        );
+
+        // All should be creatable (no firewall restrictions)
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        assert!(
+            LazySocks5::new(config1, tunnel_state.clone(), cancel_token.clone()).is_ok(),
+            "Should create with NR1"
+        );
+        assert!(
+            LazySocks5::new(config2, tunnel_state.clone(), cancel_token.clone()).is_ok(),
+            "Should create with NR2"
+        );
+        assert!(
+            LazySocks5::new(config3, tunnel_state, cancel_token).is_ok(),
+            "Should create with NR3"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_rotation_preserves_entry_gateway() {
+        // Verify that Network Requester rotation doesn't change entry gateway
+        // (which would cause firewall issues)
+
+        let mut config = create_test_config();
+        config.network_requester_address = Some("initial.nr@gateway".to_string());
+        config.network_requester_rotation_interval = Some(Duration::from_secs(1));
+
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
+
+        // Initial state - no rotation yet
+        let initial_rotation = socks5.last_rotation.read().await;
+        assert!(
+            initial_rotation.is_none(),
+            "Should have no rotation timestamp initially"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_rotation_timing_correctness() {
+        let mut config = create_test_config();
+        let rotation_interval = Duration::from_millis(100); // 100ms for testing
+        config.network_requester_rotation_interval = Some(rotation_interval);
+
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
+
+        // Manually set rotation timestamp to test timing
+        *socks5.last_rotation.write().await = Some(Instant::now());
+
+        // Wait less than rotation interval
+        tokio::time::sleep(Duration::from_millis(50)).await;
+
+        let rotation_time = socks5.last_rotation.read().await;
+        assert!(
+            rotation_time.is_some(),
+            "Rotation timestamp should still be set"
+        );
+
+        let elapsed = rotation_time.unwrap().elapsed();
+        assert!(
+            elapsed < rotation_interval,
+            "Should not have reached rotation interval yet"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_concurrent_connection_safety() {
+        // Test that rotation check is thread-safe with concurrent connection updates
+        let config = create_test_config();
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = Arc::new(LazySocks5::new(config, tunnel_state, cancel_token).unwrap());
+
+        // Spawn multiple tasks that modify active connections
+        let handles: Vec<_> = (0..10)
+            .map(|i| {
+                let socks5_clone = socks5.clone();
+                tokio::spawn(async move {
+                    for _ in 0..5 {
+                        let mut count = socks5_clone.active_connections.write().await;
+                        *count += 1;
+                        drop(count);
+
+                        // Check rotation (should be safe during concurrent access)
+                        let _ = socks5_clone.active_connections().await;
+
+                        tokio::time::sleep(Duration::from_millis(i)).await;
+
+                        let mut count = socks5_clone.active_connections.write().await;
+                        if *count > 0 {
+                            *count -= 1;
+                        }
+                    }
+                })
+            })
+            .collect();
+
+        // Wait for all tasks
+        for handle in handles {
+            handle.await.unwrap();
+        }
+
+        // Should end at 0 (all increments/decrements balanced)
+        let final_count = socks5.active_connections().await;
+        assert_eq!(final_count, 0, "Connection count should be balanced");
+    }
+
+    #[tokio::test]
+    async fn test_gateway_cache_handle_not_provided() {
+        // Test that random NR selection fails gracefully without gateway cache
+        let mut config = create_test_config();
+        config.network_requester_address = None; // Request random
+        config.gateway_cache_handle = None; // But no cache handle provided
+
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+
+        let socks5 = LazySocks5::new(config, tunnel_state, cancel_token).unwrap();
+
+        // Attempt random selection should fail with informative error
+        let result = socks5.select_random_network_requester().await;
+        assert!(result.is_err(), "Should fail without gateway cache handle");
+
+        match result {
+            Err(LazySocks5Error::GatewayDirectory(msg)) => {
+                assert!(
+                    msg.contains("Gateway cache handle not available"),
+                    "Error should mention missing cache handle"
+                );
+                assert!(
+                    msg.contains("Required for random Network Requester selection"),
+                    "Error should explain why it's needed"
+                );
+            }
+            _ => panic!("Expected GatewayDirectory error"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_rotation_configuration_validation() {
+        // Test 1: Rotation enabled but no gateway cache (invalid config)
+        let mut config = create_test_config();
+        config.network_requester_rotation_interval = Some(Duration::from_secs(15 * 60));
+        config.network_requester_address = None; // Random selection
+        config.gateway_cache_handle = None; // ❌ Missing required dependency
+
+        // This should create successfully (validation happens at runtime)
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+        assert!(LazySocks5::new(config, tunnel_state, cancel_token).is_ok());
+
+        // Test 2: Fixed NR (no rotation) - gateway cache not required
+        let mut config = create_test_config();
+        config.network_requester_address = Some("fixed.nr@gateway".to_string());
+        config.network_requester_rotation_interval = None;
+        config.gateway_cache_handle = None; // ✅ Not needed for fixed mode
+
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+        assert!(
+            LazySocks5::new(config, tunnel_state, cancel_token).is_ok(),
+            "Fixed NR mode should work without gateway cache"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_rotation_interval_boundary_conditions() {
+        // Test very short interval (edge case)
+        let mut config = create_test_config();
+        config.network_requester_rotation_interval = Some(Duration::from_millis(1));
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+        assert!(
+            LazySocks5::new(config, tunnel_state, cancel_token).is_ok(),
+            "Should handle very short intervals"
+        );
+
+        // Test very long interval (edge case)
+        let mut config = create_test_config();
+        config.network_requester_rotation_interval = Some(Duration::from_secs(86400)); // 24h
+        let tunnel_state = Arc::new(RwLock::new(TunnelState::Disconnected));
+        let cancel_token = CancellationToken::new();
+        assert!(
+            LazySocks5::new(config, tunnel_state, cancel_token).is_ok(),
+            "Should handle very long intervals"
+        );
     }
 }

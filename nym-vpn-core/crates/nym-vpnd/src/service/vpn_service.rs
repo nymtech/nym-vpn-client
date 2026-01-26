@@ -19,6 +19,7 @@ use super::{
     error::{
         AccountLinksError, Error, GlobalConfigError, ListGatewaysError, Result, SetNetworkError,
     },
+    socks5::Socks5EnableConfig,
     socks5_idle_timeout, socks5_request_timeout,
 };
 use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
@@ -1355,15 +1356,24 @@ impl NymVpnService {
         let request_timeout = socks5_request_timeout();
         let idle_timeout = socks5_idle_timeout();
 
+        // For now, rotation is disabled (None) pending node-status-API // nym-vpn-api availability
+        // Future: Enable with Some(Duration::from_secs(15 * 60)) for 15-minute rotation
+        let network_requester_rotation_interval = None; // Disabled - awaiting API endpoint
+        let gateway_cache_handle = Some(self.gateway_cache_handle.clone());
+
         self.socks5_service
-            .enable(
-                self.data_dir.clone(),
-                enable_socks5_request.socks5_settings.listen_address,
-                enable_socks5_request.http_rpc_settings.listen_address,
-                nr_address,
+            .enable(Socks5EnableConfig {
+                data_dir: self.data_dir.clone(),
+                socks5_listen_address: enable_socks5_request.socks5_settings.listen_address,
+                http_rpc_proxy_listen_address: enable_socks5_request
+                    .http_rpc_settings
+                    .listen_address,
+                network_requester_address: Some(nr_address),
+                network_requester_rotation_interval,
+                gateway_cache_handle,
                 request_timeout,
                 idle_timeout,
-            )
+            })
             .await?;
 
         tracing::info!("Lazy SOCKS5 proxy service enabled successfully");
