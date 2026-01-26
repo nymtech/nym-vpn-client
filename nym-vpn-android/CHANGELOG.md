@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add logs templates for non-ui screens and modules (https://github.com/nymtech/nym-vpn-client/pull/4457)
 - Add Enable Logs toggle on Logs screen (https://github.com/nymtech/nym-vpn-client/pull/4457)
 - Add Enable Debug Verbose toggle on Logs screen (https://github.com/nymtech/nym-vpn-client/pull/4457)
+- Add free trial line to Select Plan screen (https://github.com/nymtech/nym-vpn-client/pull/4472)
 
 ### Changed
 - Add auth check for shortcuts actions (https://github.com/nymtech/nym-vpn-client/pull/4444)
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix Auto start handling (https://github.com/nymtech/nym-vpn-client/pull/4442)
+- Fix system paddings for Select Plan screen (https://github.com/nymtech/nym-vpn-client/pull/4472)
 
 ## [2.7.0] - 2026.01.16
 
