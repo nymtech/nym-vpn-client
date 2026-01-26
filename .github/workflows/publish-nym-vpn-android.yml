@@ -46,6 +46,7 @@ on:
   push:
     tags:
       - "nym-vpn-android-v*.*.*"
+
 env:
   UPLOAD_DIR_ANDROID: android_artifacts
   RELEASE_NOTES: ""
@@ -60,7 +61,7 @@ jobs:
       build_format: apk
 
   build-nym-vpn-android-aab:
-    if: ${{github.event.inputs.publish-accrescent == 'true'}}
+    if: ${{ github.event.inputs.publish-accrescent == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
@@ -177,6 +178,36 @@ jobs:
           prerelease: ${{ inputs.release_type != 'release' }}
           append_body: true
 
+      - name: Compose Zulip message (Android)
+        if: ${{ inputs.release_type == 'prerelease' || inputs.release_type == 'release' }}
+        run: |
+          set -euo pipefail
+          TAG="${TAG_NAME}"
+          BRANCH="${GITHUB_REF_NAME}"
+          RELEASE_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
+
+          {
+            echo "ZULIP_MESSAGE<<EOF"
+            echo "👹 **Android Gremlin reporting**"
+            echo "**Tag name:** \`${TAG}\`"
+            echo "**Android build type:** \`${{ inputs.release_type }}\`"
+            echo "**Branch:** \`${BRANCH}\`"
+            echo "**Link:** ${RELEASE_URL}"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+      - name: Send Zulip message (Android)
+        if: ${{ inputs.release_type == 'prerelease' || inputs.release_type == 'release' }}
+        uses: zulip/github-actions-zulip/send-message@v1
+        with:
+          api-key: ${{ secrets.ZULIP_BOT_ANDROID_API_KEY }}
+          email: ${{ secrets.ZULIP_BOT_ANDROID_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_ORG_URL }}
+          type: "stream"
+          to: ${{ vars.ZULIP_BOT_APPLE_CHANNEL }}
+          topic: ${{ vars.ZULIP_BOT_ANDROID_TOPIC }}
+          content: ${{ env.ZULIP_MESSAGE }}
+
   publish-nym-fdroid:
     runs-on: arc-linux-latest
     needs:
@@ -269,8 +300,8 @@ jobs:
       - name: Setup ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3' # Not needed with a .ruby-version, .tool-versions or mise.toml
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          ruby-version: "3.3"
+          bundler-cache: true
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -318,8 +349,6 @@ jobs:
         with:
           crate: cargo-license
 
-      # Here we need to decode keystore.jks from base64 string and place it
-      # in the folder specified in the release signing configuration
       - name: Decode Keystore
         id: decode_keystore
         uses: timheuer/base64-to-file@v1.2
@@ -328,7 +357,6 @@ jobs:
           fileDir: ${{ env.KEY_STORE_LOCATION }}
           encodedString: ${{ secrets.ANDROID_KEYSTORE }}
 
-      # create keystore path for gradle to read
       - name: Create keystore path env var
         run: |
           store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
@@ -347,6 +375,6 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           bundle install
-          bundle exec fastlane ${{ inputs.track }} skip_bundle:${{github.event.inputs.publish-bundle == 'true'}} skip_metadata:${{github.event.inputs.publish-metadata == 'true'}}
+          bundle exec fastlane ${{ inputs.track }} skip_bundle:${{ github.event.inputs.publish-bundle == 'true' }} skip_metadata:${{ github.event.inputs.publish-metadata == 'true' }}
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
