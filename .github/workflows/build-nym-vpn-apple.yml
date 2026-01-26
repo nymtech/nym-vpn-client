@@ -891,10 +891,8 @@ jobs:
 
           APP_PLIST="$APP_PATH/Contents/Info.plist"
           SHORT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PLIST")"
-          BUNDLE_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PLIST")"
 
           echo "ℹ️  CFBundleShortVersionString: $SHORT_VERSION"
-          echo "ℹ️  CFBundleVersion:          $BUNDLE_VERSION"
 
           # --- Download latest Sparkle distribution for sign_update ---
           SPARKLE_DIR="$RUNNER_TEMP/sparkle"
@@ -970,7 +968,7 @@ jobs:
             echo '        <item>'
             echo "            <title>${SHORT_VERSION}</title>"
             echo "            <pubDate>${PUB_DATE}</pubDate>"
-            echo "            <sparkle:version>${BUNDLE_VERSION}</sparkle:version>"
+            echo "            <sparkle:version>${IOS_BUILD_NUMBER}</sparkle:version>"
             echo "            <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>"
             echo "            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>"
             echo '            <enclosure'
