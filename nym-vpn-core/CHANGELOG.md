@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix discovery propagation bug (https://github.com/nymtech/nym-vpn-client/pull/4226)
 - Ensure that vpn topology is refreshed periodically when connecting (https://github.com/nymtech/nym-vpn-client/pull/4228)
 - [Android] Bypass local DNS servers (https://github.com/nymtech/nym-vpn-client/pull/4347)
-- Fix environment switcher failing to update gateway cache and API clients when switching between environments (https://github.com/nymtech/nym-vpn-client/pull/4464)
+- Fix gateway cache and topology cache not being invalidated when remote discovery updates are received. Note: Manual environment switching still requires daemon/app restart (https://github.com/nymtech/nym-vpn-client/pull/4464)
 
 
 ### Removed
