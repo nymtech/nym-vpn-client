@@ -34,7 +34,6 @@ import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.timber.DebugTree
 import net.nymtech.nymvpn.util.timber.NoLogTree
 import net.nymtech.nymvpn.util.timber.ReleaseTree
-import net.nymtech.vpn.backend.NymBackend
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -120,14 +119,6 @@ class NymVpn : Application() {
 				Timber.tag(TAG).i("BackendManagerInitializeRequested")
 			}.onFailure { t ->
 				Timber.tag(TAG).e(t, "BackendManagerInitializeFailed")
-			}
-
-			NymBackend.setAlwaysOnCallback {
-				Timber.tag(TAG).i("AlwaysOnCallbackInvoked")
-				applicationScope.launch {
-					runCatching { backendManager.startTunnel() }
-						.onFailure { t -> Timber.tag(TAG).e(t, "AlwaysOnStartTunnelFailed") }
-				}
 			}
 
 			runCatching {

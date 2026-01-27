@@ -4,7 +4,6 @@ import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
-import nym_vpn_lib_types.Network
 import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.SystemMessage

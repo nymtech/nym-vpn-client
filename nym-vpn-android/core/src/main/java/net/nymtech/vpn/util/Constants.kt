@@ -5,6 +5,7 @@ object Constants {
 
 	const val LOG_LEVEL_DEBUG = "debug"
 	const val LOG_LEVEL_INFO = "info"
+
 	// Add Rust environment vars for lib
 	const val DEFAULT_COUNTRY_ISO = "FR"
 
