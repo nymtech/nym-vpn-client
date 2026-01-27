@@ -220,40 +220,40 @@ nym-wg-metadata-client = { path = "crates/nym-wg-metadata-client" }
 nym-windows = { path = "crates/nym-windows" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.1-niolo" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.2-oscypek" }
 
 # For local development
 #[patch."https://github.com/nymtech/nym"]
