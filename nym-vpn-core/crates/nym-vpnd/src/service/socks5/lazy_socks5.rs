@@ -2,6 +2,7 @@
 
 use super::util::ConnectionGuard;
 use nym_gateway_directory::GatewayCacheHandle;
+use nym_sdk::NymNetworkDetails;
 use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
 use nym_vpn_lib_types::{TunnelConnectionData, TunnelState};
 use rand::seq::SliceRandom;
@@ -39,6 +40,8 @@ pub struct LazySocks5Config {
     pub network_requester_rotation_interval: Option<Duration>,
     /// Gateway cache handle for looking up Network Requesters
     pub gateway_cache_handle: Option<GatewayCacheHandle>,
+    /// Network details for the mixnet client (mainnet/testnet/sandbox)
+    pub network_details: Option<NymNetworkDetails>,
 }
 
 /// Errors from the LazySocks5
@@ -153,6 +156,10 @@ impl LazySocks5 {
                     match result {
                         Ok((stream, addr)) => {
                             debug!("Accepted connection from {}", addr);
+                            // Configure TCP options for better performance
+                            if let Err(e) = stream.set_nodelay(true) {
+                                warn!("Failed to set TCP_NODELAY for {}: {}", addr, e);
+                            }
                             let wrapper = self.clone();
 
                             // Check tunnel state to determine routing method
@@ -506,6 +513,49 @@ impl LazySocks5 {
         Ok(())
     }
 
+    /// Build a mixnet client with the given gateway (or None for random selection)
+    async fn build_mixnet_client(
+        &self,
+        socks5_storage_paths: &StoragePaths,
+        socks5_config: &Socks5,
+        gateway_id: Option<&String>,
+    ) -> Result<
+        nym_sdk::mixnet::DisconnectedMixnetClient<nym_sdk::mixnet::OnDiskPersistent>,
+        LazySocks5Error,
+    > {
+        let mut builder =
+            MixnetClientBuilder::new_with_default_storage(socks5_storage_paths.clone())
+                .await
+                .map_err(|e| {
+                    error!("Failed to create mixnet client builder: {}", e);
+                    LazySocks5Error::Internal(e.to_string())
+                })?;
+
+        // Configure network environment if provided
+        if let Some(ref network_details) = self.config.network_details {
+            builder = builder.network_details(network_details.clone());
+            debug!(
+                "Using network environment: {}",
+                network_details.network_name
+            );
+        }
+
+        // Configure gateway if specified
+        if let Some(gateway_id) = gateway_id {
+            builder = builder.request_gateway(gateway_id.clone());
+        }
+
+        let mixnet_client = builder
+            .socks5_config(socks5_config.clone())
+            .build()
+            .map_err(|e| {
+                error!("Failed to build mixnet client: {}", e);
+                LazySocks5Error::Internal(e.to_string())
+            })?;
+
+        Ok(mixnet_client)
+    }
+
     /// Ensure the backend is started (lazy initialization)
     async fn ensure_backend_started(&self) -> Result<(), LazySocks5Error> {
         // Client already initialized - quick check without mutex
@@ -521,16 +571,16 @@ impl LazySocks5 {
             return Ok(());
         }
 
-        info!("First connection detected, initializing Nym mixnet backend...");
+        debug!("First connection detected, initializing Nym mixnet backend...");
 
         // Determine Network Requester address (fixed or random)
         let network_requester_address = match &self.config.network_requester_address {
             Some(fixed_address) => {
-                info!("Using fixed Network Requester: {}", fixed_address);
+                debug!("Using fixed Network Requester: {}", fixed_address);
                 fixed_address.clone()
             }
             None => {
-                info!("Selecting random Network Requester from gateway directory...");
+                debug!("Selecting random Network Requester from gateway directory...");
                 self.select_random_network_requester().await?
             }
         };
@@ -538,8 +588,6 @@ impl LazySocks5 {
         let mut socks5_config = Socks5::new(network_requester_address);
         socks5_config.send_anonymously = true;
         socks5_config.bind_address = self.config.internal_listen_address;
-
-        info!("Building mixnet client with SOCKS5 configuration...");
 
         // Create a custom StoragePaths that shares the credential database with the main VPN
         // but uses a separate identity by storing keys in a sibling "_socks5" directory
@@ -608,7 +656,7 @@ impl LazySocks5 {
                     ))
                 })?;
 
-            info!("Created fresh socks5 directory for new identity");
+            debug!("Created fresh socks5 directory for new identity");
         }
 
         // Create base storage paths for the main VPN (to get the shared credential DB path)
@@ -628,11 +676,11 @@ impl LazySocks5 {
         // Override the credential database path to use the shared one from main VPN
         socks5_storage_paths.credential_database_path = main_storage_paths.credential_database_path;
 
-        info!(
+        debug!(
             "Using shared credential store: {}",
             socks5_storage_paths.credential_database_path.display()
         );
-        info!(
+        debug!(
             "Using separate identity keys in: {}",
             socks5_data_path.display()
         );
@@ -642,52 +690,98 @@ impl LazySocks5 {
         // The firewall rules include the entry gateway endpoints, so using the same gateway
         // prevents connection failures.
         let tunnel_state = self.tunnel_state_shared.read().await.clone();
-        let mut builder = MixnetClientBuilder::new_with_default_storage(socks5_storage_paths)
+
+        // Configure entry gateway if VPN is connected (for firewall compatibility)
+        let requested_gateway_id = if let TunnelState::Connected { connection_data } = &tunnel_state
+        {
+            Some(connection_data.entry_gateway.id.clone())
+        } else {
+            None
+        };
+
+        // Build and connect with requested gateway (if any)
+        let mixnet_client = match self
+            .build_mixnet_client(
+                &socks5_storage_paths,
+                &socks5_config,
+                requested_gateway_id.as_ref(),
+            )
             .await
-            .map_err(|e| {
-                error!("Failed to create mixnet client builder: {}", e);
-                LazySocks5Error::Internal(e.to_string())
-            })?;
+        {
+            Ok(client) => {
+                match Box::pin(client.connect_to_mixnet_via_socks5()).await {
+                    Ok(connected_client) => connected_client,
+                    Err(e) => {
+                        let error_msg = e.to_string();
+                        // Check if error is about gateway not found and we have a requested gateway
+                        if requested_gateway_id.is_some()
+                            && error_msg.contains("no gateway with id")
+                        {
+                            let is_wireguard_mode = matches!(
+                                tunnel_state,
+                                TunnelState::Connected { ref connection_data }
+                                if matches!(connection_data.tunnel, TunnelConnectionData::Wireguard(_))
+                            );
 
-        // Configure entry gateway if VPN is connected
-        if let TunnelState::Connected { connection_data } = tunnel_state {
-            let entry_gateway_id = &connection_data.entry_gateway.id;
-            info!(
-                "VPN is connected to entry gateway {}, configuring mixnet client to use same gateway for firewall compatibility",
-                entry_gateway_id
-            );
-            builder = builder.request_gateway(entry_gateway_id.clone());
-        }
+                            if is_wireguard_mode {
+                                // WireGuard mode: cannot change entry gateway (firewall rules)
+                                error!(
+                                    "VPN's entry gateway {} unavailable. Cannot use SOCKS5 in WireGuard mode: firewall rules require VPN's entry gateway.",
+                                    requested_gateway_id.as_ref().unwrap()
+                                );
+                                return Err(LazySocks5Error::Internal(format!(
+                                    "Cannot use SOCKS5 in WireGuard mode: VPN's entry gateway {} is not available. \
+                                    Firewall rules only allow the VPN's entry gateway.",
+                                    requested_gateway_id.as_ref().unwrap()
+                                )));
+                            } else {
+                                // Not WireGuard: fallback to random gateway
+                                warn!(
+                                    "Gateway {} unavailable, falling back to random selection",
+                                    requested_gateway_id.as_ref().unwrap()
+                                );
 
-        let mixnet_client: nym_sdk::mixnet::DisconnectedMixnetClient<
-            nym_sdk::mixnet::OnDiskPersistent,
-        > = builder.socks5_config(socks5_config).build().map_err(|e| {
-            error!("Failed to build mixnet client: {}", e);
-            LazySocks5Error::Internal(e.to_string())
-        })?;
+                                let fallback_client = self
+                                    .build_mixnet_client(
+                                        &socks5_storage_paths,
+                                        &socks5_config,
+                                        None,
+                                    )
+                                    .await
+                                    .map_err(|e| {
+                                        error!("Failed to build fallback client: {}", e);
+                                        e
+                                    })?;
 
-        // Connect to the mixnet via SOCKS5
-        info!("Connecting to mixnet via SOCKS5...");
-        info!("This will spawn the internal SOCKS5 server and establish mixnet connection...");
-        let mixnet_client = Box::pin(mixnet_client.connect_to_mixnet_via_socks5())
-            .await
-            .map_err(|e| {
-                error!("Failed to connect to mixnet via SOCKS5: {}", e);
-                LazySocks5Error::Internal(e.to_string())
-            })?;
+                                Box::pin(fallback_client.connect_to_mixnet_via_socks5())
+                                    .await
+                                    .map_err(|fallback_error| {
+                                        LazySocks5Error::Internal(format!(
+                                            "Failed to connect: gateway {} failed ({}), fallback also failed ({})",
+                                            requested_gateway_id.as_ref().unwrap(),
+                                            error_msg,
+                                            fallback_error
+                                        ))
+                                    })?
+                            }
+                        } else {
+                            return Err(LazySocks5Error::Internal(error_msg));
+                        }
+                    }
+                }
+            }
+            Err(e) => return Err(e),
+        };
 
-        info!("SOCKS5 mixnet backend connected successfully");
-        info!("Client Nym address: {}", mixnet_client.nym_address());
         info!(
-            "Internal SOCKS5 server should be listening on: {}",
-            self.config.internal_listen_address.to_string()
+            "SOCKS5 mixnet backend connected (address: {})",
+            mixnet_client.nym_address()
         );
 
         *self.mixnet_client.write().await = Some(mixnet_client);
 
         // Give the internal SOCKS5 server a moment to fully bind
         sleep(Duration::from_millis(100)).await;
-        info!("Backend initialization complete");
 
         Ok(())
     }
@@ -747,6 +841,10 @@ impl LazySocks5 {
 
             match TcpStream::connect(self.config.internal_listen_address).await {
                 Ok(stream) => {
+                    // Configure TCP options for better performance
+                    if let Err(e) = stream.set_nodelay(true) {
+                        warn!("Failed to set TCP_NODELAY for internal connection: {}", e);
+                    }
                     if attempt > 0 {
                         info!(
                             "Connected to internal SOCKS5 server after {} attempts ({:?})",
@@ -1066,6 +1164,7 @@ impl LazySocks5 {
     }
 
     /// Shut down the backend
+    /// Note: Callers should check for active connections before calling this
     async fn shutdown_backend(&self) {
         let mut client_guard = self.mixnet_client.write().await;
         if let Some(mixnet_client) = client_guard.take() {
@@ -1118,6 +1217,7 @@ mod tests {
             network_requester_address: Some("test.nr@example".to_string()),
             network_requester_rotation_interval: None,
             gateway_cache_handle: None,
+            network_details: None,
         }
     }
 
