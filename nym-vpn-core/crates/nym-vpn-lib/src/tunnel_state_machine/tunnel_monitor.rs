@@ -1165,7 +1165,7 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     async fn start_wireguard_netstack_tunnel(
         &mut self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
@@ -1346,7 +1346,7 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     async fn start_wireguard_tunnel(
         &mut self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
         let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
@@ -1611,7 +1611,7 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "ios", target_os = "android"))]
     async fn start_wireguard_netstack_tunnel(
         &self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let mtu = connected_tunnel.exit_mtu();
