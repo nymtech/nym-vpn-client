@@ -13,9 +13,10 @@ use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, NetworkCompatibility, NymVpnDevice,
-    NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status,
-    StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig,
+    NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage,
+    Socks5Settings, Socks5Status, StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState,
+    VpnServiceConfig, VpnServiceInfo,
 };
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
@@ -98,6 +99,17 @@ impl RpcClient {
 
     pub async fn set_custom_dns(&self, dns_servers: Vec<IpAddr>) -> Result<()> {
         self.inner.clone().set_custom_dns(dns_servers).await?;
+        Ok(())
+    }
+
+    pub async fn set_mixnet_traffic_config(
+        &self,
+        mixnet_traffic_config: MixnetTrafficConfig,
+    ) -> Result<()> {
+        self.inner
+            .clone()
+            .set_mixnet_traffic_config(mixnet_traffic_config)
+            .await?;
         Ok(())
     }
 

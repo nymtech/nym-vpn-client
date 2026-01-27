@@ -2,8 +2,10 @@
 
 use super::util::ConnectionGuard;
 use nym_gateway_directory::GatewayCacheHandle;
-use nym_sdk::NymNetworkDetails;
-use nym_sdk::mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths};
+use nym_sdk::{
+    NymNetworkDetails,
+    mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths},
+};
 use nym_vpn_lib_types::{TunnelConnectionData, TunnelState};
 use rand::seq::SliceRandom;
 use std::{
