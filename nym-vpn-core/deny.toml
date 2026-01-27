@@ -247,7 +247,9 @@ allow-git = [
 
 [sources.allow-org]
 # github.com organizations to allow git sources for
-github = ["nymtech"]
+# libcrux-aesgcm 0.0.6 git+https://github.com/cryspen/libcrux
+# classic-mceliece-rust 3.2.0 git+https://github.com/georgio/classic-mceliece-rust
+github = ["nymtech", "cryspen", "georgio"]
 # gitlab.com organizations to allow git sources for
 gitlab = []
 # bitbucket.org organizations to allow git sources for
