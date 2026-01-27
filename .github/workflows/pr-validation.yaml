@@ -17,6 +17,9 @@ on:
       - milestoned
       - demilestoned
 
+permissions:
+  contents: read
+
 env:
   LABELS: ${{ join( github.event.pull_request.labels.*.name, ' ' ) }}
 
