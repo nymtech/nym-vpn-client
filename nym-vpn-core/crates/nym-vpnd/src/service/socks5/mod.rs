@@ -15,6 +15,7 @@ mod util;
 use http_rpc::HttpRpc;
 use lazy_socks5::{LazySocks5, LazySocks5Config, LazySocks5Error};
 use nym_gateway_directory::GatewayCacheHandle;
+use nym_sdk::NymNetworkDetails;
 use nym_vpn_lib_types::TunnelState;
 use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 use tokio::{sync::RwLock, task::JoinHandle};
@@ -34,6 +35,7 @@ pub struct Socks5EnableConfig {
     pub gateway_cache_handle: Option<GatewayCacheHandle>,
     pub request_timeout: Duration,
     pub idle_timeout: Duration,
+    pub network_details: Option<NymNetworkDetails>,
 }
 
 /// SOCKS5 service errors
@@ -131,6 +133,7 @@ impl Socks5ServiceState {
             gateway_cache_handle,
             request_timeout,
             idle_timeout,
+            network_details,
         } = config;
 
         // Prevent concurrent enable calls
@@ -196,6 +199,7 @@ impl Socks5ServiceState {
             network_requester_address: network_requester_address.clone(),
             network_requester_rotation_interval,
             gateway_cache_handle,
+            network_details,
         };
         let lazy_socks5 = Arc::new(LazySocks5::new(
             config,

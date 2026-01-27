@@ -1224,9 +1224,44 @@ impl NymVpnService {
         let gateway_identity: NodeIdentity = match exit_point {
             ExitPoint::Address { address } => NodeIdentity::from(*address.gateway().inner()),
             ExitPoint::Gateway { identity } => NodeIdentity::from(*identity.inner()),
-            ExitPoint::Country { .. } | ExitPoint::Region { .. } | ExitPoint::Random => {
-                // For non-specific exit points, check if VPN is connected first
+            ExitPoint::Random => {
+                // Random exit point: Always do random selection, ignoring VPN's exit gateway.
+                // This preserves anonymity through rotation - using VPN's exit gateway would
+                // always route through the same gateway, reducing anonymity benefits.
+                // Note: Entry gateway still uses VPN's entry gateway (for firewall compatibility),
+                // but exit gateway (Network Requester) rotates for anonymity.
+                tracing::debug!("Selecting random SOCKS5 exit gateway (for rotation/anonymity)");
+
+                let exit_point: nym_gateway_directory::ExitPoint = exit_point.clone().into();
+
+                let exit_filters = if self.config_manager.config().residential_exit {
+                    GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
+                } else {
+                    GatewayFilters::default()
+                };
+
+                let selected_gateway = exit_gateways
+                    .find_best_socks5_gateway(&exit_point, &exit_filters)
+                    .map_err(|e| {
+                        Socks5Error::InvalidConfig(format!(
+                            "Failed to select random SOCKS5 exit gateway: {e}"
+                        ))
+                    })?;
+
+                tracing::info!(
+                    "Selected random SOCKS5 exit gateway: {}, location: {}",
+                    selected_gateway.identity(),
+                    selected_gateway
+                        .two_letter_iso_country_code()
+                        .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
+                );
+
+                selected_gateway.identity()
+            }
+            ExitPoint::Country { .. } | ExitPoint::Region { .. } => {
+                // For location-based exit points, check if VPN is connected first
                 // If connected, use VPN's actual gateway to avoid firewall routing issues
+                // (but only if it supports SOCKS5 - otherwise fall back to location-based selection)
                 let tunnel_state = self.tunnel_state.read().await.clone();
 
                 let selected_identity = if let TunnelState::Connected { connection_data } =
@@ -1250,14 +1285,29 @@ impl NymVpnService {
                                 .ok();
 
                             if let Some(gateway_full) = gateway_full {
-                                // Check if gateway supports SOCKS5 (has nr_address and can connect as exit)
-                                let supports_socks5 = gateway_full.nr_address.is_some()
-                                    && gateway_full
-                                        .last_probe
-                                        .as_ref()
-                                        .and_then(|probe| probe.outcome.as_exit.as_ref())
-                                        .map(|exit_point| exit_point.can_connect)
-                                        .unwrap_or(false);
+                                // Check if gateway supports SOCKS5
+                                // Prefer VPN API's socks5 data when available (more accurate),
+                                // otherwise fall back to checking nr_address and can_connect
+                                let supports_socks5 = gateway_full
+                                    .last_probe
+                                    .as_ref()
+                                    .and_then(|probe| probe.outcome.as_exit.as_ref())
+                                    .and_then(|exit| exit.socks5.as_ref())
+                                    .map(|socks5| {
+                                        // Use VPN API's SOCKS5 data - check if it has a valid score
+                                        // (score being Some indicates it was probed and works)
+                                        socks5.score.is_some()
+                                    })
+                                    .unwrap_or_else(|| {
+                                        // Fallback: check nr_address and can_connect (for gateways without VPN API data yet)
+                                        gateway_full.nr_address.is_some()
+                                            && gateway_full
+                                                .last_probe
+                                                .as_ref()
+                                                .and_then(|probe| probe.outcome.as_exit.as_ref())
+                                                .map(|exit_point| exit_point.can_connect)
+                                                .unwrap_or(false)
+                                    });
 
                                 if supports_socks5 {
                                     // Gateway supports SOCKS5 - use it directly even if not in filtered MixnetExit list
@@ -1361,6 +1411,10 @@ impl NymVpnService {
         let network_requester_rotation_interval = None; // Disabled - awaiting API endpoint
         let gateway_cache_handle = Some(self.gateway_cache_handle.clone());
 
+        // Get network details from current network environment to ensure SOCKS5 uses correct network
+        // Clone immediately to avoid holding watch::Ref across await (not Send)
+        let network_details = Some(self.network_tx.borrow().nym_network_details().clone());
+
         self.socks5_service
             .enable(Socks5EnableConfig {
                 data_dir: self.data_dir.clone(),
@@ -1373,6 +1427,7 @@ impl NymVpnService {
                 gateway_cache_handle,
                 request_timeout,
                 idle_timeout,
+                network_details,
             })
             .await?;
 
