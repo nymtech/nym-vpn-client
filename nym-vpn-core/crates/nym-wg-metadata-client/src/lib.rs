@@ -61,13 +61,15 @@ impl LazyMetadataClient {
             _ => reqwest_builder.local_address(bind_ip),
         };
 
-        let inner = nym_http_api_client::Client::builder(base_url).and_then(|builder| {
-            builder
-                .with_reqwest_builder(reqwest_builder)
-                .with_retries(retries)
-                .build()
-        })?;
-        let version = inner.version().await?;
+        let inner = nym_http_api_client::Client::builder(base_url)
+            .and_then(|builder| {
+                builder
+                    .with_reqwest_builder(reqwest_builder)
+                    .with_retries(retries)
+                    .build()
+            })
+            .map_err(Box::new)?;
+        let version = inner.version().await.map_err(Box::new)?;
 
         Ok(Self { inner, version })
     }
@@ -160,7 +162,11 @@ impl MetadataClient {
             Version::V1 => v1::AvailableBandwidthRequest {}.try_into()?,
             Version::V2 => v2::AvailableBandwidthRequest {}.try_into()?,
         };
-        let response = client.inner.available_bandwidth(&request).await?;
+        let response = client
+            .inner
+            .available_bandwidth(&request)
+            .await
+            .map_err(Box::new)?;
         let available_bandwidth = match client.version {
             Version::V1 => v1::AvailableBandwidthResponse::try_from(response)?.into(),
             Version::V2 => v2::AvailableBandwidthResponse::try_from(response)?.into(),
@@ -185,7 +191,11 @@ impl MetadataClient {
             }
             .try_into()?,
         };
-        let response = client.inner.topup_bandwidth(&request).await?;
+        let response = client
+            .inner
+            .topup_bandwidth(&request)
+            .await
+            .map_err(Box::new)?;
         let available_bandwidth = match client.version {
             Version::V1 => v1::TopUpResponse::try_from(response)?.into(),
             Version::V2 => v2::TopUpResponse::try_from(response)?.into(),
@@ -210,7 +220,11 @@ impl MetadataClient {
             }
             .try_into()?,
         };
-        let response = client.inner.request_upgrade_mode_check(&request).await?;
+        let response = client
+            .inner
+            .request_upgrade_mode_check(&request)
+            .await
+            .map_err(Box::new)?;
         let upgrade_mode_enabled = match client.version {
             Version::V1 => return Err(MetadataClientError::UnsupportedMetadataEndpointVersion),
             Version::V2 => v2::UpgradeModeCheckResponse::try_from(response)?.upgrade_mode,

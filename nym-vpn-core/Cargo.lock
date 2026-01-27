@@ -6181,7 +6181,6 @@ dependencies = [
 name = "nym-vpn-network-config"
 version = "1.24.0-beta"
 dependencies = [
- "futures-util",
  "itertools 0.14.0",
  "nym-api-requests",
  "nym-common",

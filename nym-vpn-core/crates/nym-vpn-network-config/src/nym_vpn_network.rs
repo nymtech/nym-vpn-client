@@ -33,8 +33,6 @@ impl NymVpnNetwork {
     }
 
     pub(super) fn export_to_env(&self) {
-        // todo: prefer dependency injection to env variable.
-
         if let Some(api_url) = self.nym_vpn_api_urls.first() {
             unsafe { env::set_var(var_names::NYM_VPN_API, &api_url.url) }
         } else {

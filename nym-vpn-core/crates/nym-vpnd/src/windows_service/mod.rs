@@ -117,13 +117,13 @@ async fn run_service() -> anyhow::Result<()> {
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
     let global_config_file = crate::setup_global_config(run_params.network.clone()).await?;
-    let network_env = match crate::environment::setup_environment(
-        &global_config_file,
-        run_params.config_env_file.as_deref(),
+    let network_cache = match crate::environment::setup_environment(
+        &global_config_file.network_name,
+        run_params.user_agent.clone(),
     )
     .await
     {
-        Ok(network_env) => network_env,
+        Ok(network_cache) => network_cache,
         Err(err) => {
             tracing::error!(
                 "Failed to fetch network environment for {}: {}",
@@ -141,9 +141,9 @@ async fn run_service() -> anyhow::Result<()> {
 
     let vpn_service_params = NymVpnServiceParameters {
         log_path: run_params.log_path,
-        network_env: Box::new(network_env),
         sentry_enabled: run_params.sentry_enabled,
         user_agent: run_params.user_agent,
+        network_cache,
     };
 
     match crate::setup_vpn_service(

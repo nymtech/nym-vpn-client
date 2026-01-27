@@ -23,7 +23,6 @@ impl UniffiGatewayCacheHandle {
         let shutdown_token = CancellationToken::new();
         let directory_config = make_gateway_config().await?;
         let gateway_client = GatewayClient::new(directory_config.clone(), user_agent.into())
-            .await
             .map_err(VpnError::internal)?;
         let (gateway_cache_handle, join_handle) = GatewayCache::spawn(
             gateway_client,
@@ -138,7 +137,6 @@ pub async fn refresh_gateway_cache_for_environment(
             // Create new gateway config for current environment
             let new_directory_config = make_gateway_config().await?;
             let new_gateway_client = GatewayClient::new(new_directory_config, user_agent.into())
-                .await
                 .map_err(VpnError::internal)?;
 
             // Replace the gateway client (this will also clear cache if performance config changed)

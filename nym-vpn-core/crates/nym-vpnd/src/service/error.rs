@@ -58,8 +58,8 @@ pub enum Error {
     #[error("failed to convert API URLs")]
     ConvertApiUrls(#[source] VpnApiClientError),
 
-    #[error("failed to start discovery refresh")]
-    StartDiscoveryRefresh(#[source] nym_vpn_network_config::Error),
+    #[error("Network environment is not initialized")]
+    NetworkEnvNotInitialized,
 }
 
 #[derive(Clone, Debug, thiserror::Error)]
