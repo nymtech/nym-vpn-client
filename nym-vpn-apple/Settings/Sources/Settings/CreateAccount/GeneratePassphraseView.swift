@@ -2,6 +2,7 @@ import SwiftUI
 import StoreKit
 import AppSettings
 import CredentialsManager
+import ExternalLinkManager
 #if os(iOS)
 import ImpactGenerator
 import NymVPNLib
@@ -19,8 +20,11 @@ public struct GeneratePassphraseView: View {
 #if os(iOS)
     @EnvironmentObject var purchasesManager: PurchasesManager
 #endif
+    @EnvironmentObject var externalLinkManager: ExternalLinkManager
+
     @State var alertTitle: String = ""
     @State var didRegisterAccount = false
+    @State var isRegistering = false
     @State var isAlertDisplayed = false
     @State var isPurchasing = false
     @State var isPlanAlertDisplayed = false
@@ -37,7 +41,7 @@ public struct GeneratePassphraseView: View {
             StepView(stepCount: 4, currentStep: $currentStep)
             Spacer()
 
-            if !didFinishAnimatingText {
+            if !(didFinishAnimatingText && didRegisterAccount) {
                 // Generate account
                 dotsAnimationView
                 Spacer()
@@ -158,17 +162,32 @@ private extension GeneratePassphraseView {
 
     var subsctiptionBenefitsSection: some View {
         VStack(spacing: 16) {
-            subscriptionBenefitCell(with: "allFeaturesIncluded", title: "purchasePlan.allFeatures".localizedString)
-            subscriptionBenefitCell(with: "noAds", title: "purchasePlan.noAds".localizedString)
-            subscriptionBenefitCell(with: "cancelAnytime", title: "purchasePlan.cancelAnytime".localizedString)
+#if os(iOS)
+            if !purchasesManager.isEligibleForIntroOffer.isEmpty {
+                subscriptionBenefitCell(
+                    imageName: nil,
+                    title: "purchasePlan.7dayFreeTrial".localizedString,
+                    systemImageName: "gift"
+                )
+            }
+#endif
+            subscriptionBenefitCell(imageName: "allFeaturesIncluded", title: "purchasePlan.allFeatures".localizedString)
+            subscriptionBenefitCell(imageName: "noAds", title: "purchasePlan.noAds".localizedString)
+            subscriptionBenefitCell(imageName: "cancelAnytime", title: "purchasePlan.cancelAnytime".localizedString)
         }
     }
 
-    func subscriptionBenefitCell(with imageName: String, title: String) -> some View {
+    func subscriptionBenefitCell(imageName: String?, title: String, systemImageName: String? = nil) -> some View {
         HStack(spacing: 8) {
-            GenericImage(imageName: imageName)
-                .foregroundStyle(NymColor.accent)
-                .frame(width: 24, height: 24)
+            if let systemImageName {
+                GenericImage(systemImageName: systemImageName)
+                    .foregroundStyle(NymColor.accent)
+                    .frame(width: 24, height: 24)
+            } else if let imageName {
+                GenericImage(imageName: imageName)
+                    .foregroundStyle(NymColor.accent)
+                    .frame(width: 24, height: 24)
+            }
             Text(title)
                 .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
@@ -194,9 +213,7 @@ private extension GeneratePassphraseView {
             ) {
                 ForEach(purchasesManager.products, id: \.id) { plan in
                     Button(subscriptionTitle(for: plan)) {
-                        Task {
-                            await purchasePlanAction(with: plan)
-                        }
+                        purchasePlan(with: plan)
                     }
                 }
                 Button("cancel".localizedString, role: .cancel) {}
