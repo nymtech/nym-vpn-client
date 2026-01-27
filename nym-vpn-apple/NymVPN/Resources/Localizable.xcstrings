@@ -1003,6 +1003,17 @@
         }
       }
     },
+    "accountToken.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No account token. Please retry fetching account token from NymVPN API."
+          }
+        }
+      }
+    },
     "addCredentials.Credential" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28206,6 +28217,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Routes app and wallet traffic through the Nym mixnet for enhanced privacy via a SOCKS5 proxy for apps and HTTP RPC proxy for wallets."
+          }
+        }
+      }
+    },
+    "purchasePlan.7dayFreeTrial" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7-day free trial"
           }
         }
       }
