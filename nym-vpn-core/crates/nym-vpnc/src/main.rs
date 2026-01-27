@@ -377,12 +377,52 @@ impl Command {
                     .coconut_dkg_contract_address
             )
         );
+        if let Some(nym_api_urls) = service_info.nym_network.nym_api_urls {
+            println!("  nym_api_urls:");
+            for nym_api_url in nym_api_urls {
+                println!("    - url: {}", nym_api_url.url);
+                match nym_api_url.front_hosts {
+                    Some(fronts) => {
+                        println!(
+                            "      fronts: {}",
+                            fronts.into_iter().collect::<Vec<String>>().join(", ")
+                        );
+                    }
+                    None => println!("      fronts: (unset)"),
+                }
+            }
+        }
+        println!("  nym_vpn_api_urls:");
+        if let Some(nym_vpn_api_urls) = service_info.nym_network.nym_vpn_api_urls {
+            for nym_vpn_api_url in nym_vpn_api_urls {
+                println!("    - url: {}", nym_vpn_api_url.url);
+                match nym_vpn_api_url.front_hosts {
+                    Some(fronts) => {
+                        println!(
+                            "      fronts: {}",
+                            fronts.into_iter().collect::<Vec<String>>().join(", ")
+                        );
+                    }
+                    None => println!("      fronts: (unset)"),
+                }
+            }
+        }
+
         println!();
         println!("nym_vpn_network:");
-        println!(
-            "  nym_vpn_api_urls: {:?}",
-            service_info.nym_vpn_network.nym_vpn_api_urls
-        )
+        println!("  nym_vpn_api_urls:");
+        for nym_vpn_api_url in service_info.nym_vpn_network.nym_vpn_api_urls {
+            println!("    - url: {}", nym_vpn_api_url.url);
+            match nym_vpn_api_url.front_hosts {
+                Some(fronts) => {
+                    println!(
+                        "      fronts: {}",
+                        fronts.into_iter().collect::<Vec<String>>().join(", ")
+                    );
+                }
+                None => println!("      fronts: (unset)"),
+            }
+        }
     }
 }
 
