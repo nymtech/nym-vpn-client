@@ -16,7 +16,7 @@ use nym_vpn_lib::{
     },
 };
 use nym_vpn_lib_types::TunnelType;
-use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
+use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
     sync::{mpsc, watch},
@@ -152,29 +152,29 @@ pub(super) async fn start_state_machine(
 
     let Some(config_path) = config.config_path.clone() else {
         return Err(VpnError::Storage {
-            details: "Config path is not set and is required for Discovery Refresher".to_string(),
+            details: "Config path is not set and is required for discovery refresher".to_string(),
         });
     };
+
+    let network_name = &network_env.nym_network.network_name;
+    let network_cache =
+        NetworkCache::new(config_path, network_name, Some(user_agent.clone()), None)
+            .await
+            .map_err(|err| VpnError::InternalError {
+                details: err.to_string(),
+            })?;
 
     let (discovery_refresher_event_tx, mut discovery_refresher_event_rx) =
         mpsc::unbounded_channel();
     let (discovery_refresher_command_tx, discovery_refresher_command_rx) =
         mpsc::unbounded_channel();
     let discovery_refresher_handle = DiscoveryRefresher::spawn(
-        config_path,
-        network_env.clone(),
+        network_cache,
         discovery_refresher_command_rx,
         discovery_refresher_event_tx,
         connectivity_handle.clone(),
         shutdown_token.child_token(),
-    )
-    .await
-    .map_err(|err| {
-        tracing::error!("Failed to start Discovery Refresher: {err:?}");
-        VpnError::Initialization {
-            details: format!("Failed to start Discovery Refresher: {err}"),
-        }
-    })?;
+    );
 
     let discovery_watch_token = shutdown_token.child_token();
     let user_agent_clone = user_agent.clone();
@@ -182,26 +182,19 @@ pub(super) async fn start_state_machine(
     let discovery_watch_handle = tokio::spawn(async move {
         loop {
             tokio::select! {
-                Some(event) = discovery_refresher_event_rx.recv() => {
-                    match event {
-                        DiscoveryRefresherEvent::NewNetwork(new_network) => {
-                            tracing::info!("Network environment updated");
-                            let _ = network_tx.send_replace(new_network.clone());
+                Some(new_network) = discovery_refresher_event_rx.recv() => {
+                    tracing::info!("Network environment updated");
+                    let _ = network_tx.send_replace(new_network.clone());
 
-                            // Update gateway cache and topology cache for new environment
-                            if let Ok(cache_handle) = gateway_cache::get_gateway_cache_handle().await {
-                                nym_vpn_lib::cache_refresh::update_caches_for_network(
-                                    &new_network,
-                                    &cache_handle,
-                                    &topology_service_clone,
-                                    &user_agent_clone,
-                                )
-                                .await;
-                            }
-                        }
-                        DiscoveryRefresherEvent::Error(_error) => {
-                            // todo: handle error?
-                        }
+                    // Update gateway cache and topology cache for new environment
+                    if let Ok(cache_handle) = gateway_cache::get_gateway_cache_handle().await {
+                        nym_vpn_lib::cache_refresh::update_caches_for_network(
+                            &new_network,
+                            &cache_handle,
+                            &topology_service_clone,
+                            &user_agent_clone,
+                        )
+                        .await;
                     }
                 }
                 _ = discovery_watch_token.cancelled() => {

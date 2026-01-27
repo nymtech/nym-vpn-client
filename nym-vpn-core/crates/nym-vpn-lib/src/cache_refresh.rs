@@ -17,7 +17,7 @@ pub async fn update_caches_for_network(
     topology_service_handle: &VpnTopologyServiceHandle,
     user_agent: &UserAgent,
 ) {
-    let network_name = &network.nym_network.network.network_name;
+    let network_name = &network.nym_network.network_name;
     tracing::info!(
         network = %network_name,
         "Updating gateway cache and topology cache for network environment change"
@@ -75,7 +75,7 @@ pub async fn update_caches_for_network(
         }
     };
 
-    let new_gateway_client = match GatewayClient::new(gateway_config, user_agent.clone()).await {
+    let new_gateway_client = match GatewayClient::new(gateway_config, user_agent.clone()) {
         Ok(client) => client,
         Err(e) => {
             tracing::error!(

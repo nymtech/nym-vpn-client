@@ -43,7 +43,10 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
             result_tx.send(handle_get_available_tickets(shared_state).await);
         }
         CommonCommand::SetResolverOverrides(result_tx, resolver_overrides) => {
-            result_tx.send(handle_set_resolver_overrides(shared_state, resolver_overrides).await);
+            result_tx.send(handle_set_resolver_overrides(
+                shared_state,
+                resolver_overrides,
+            ));
         }
         CommonCommand::GetAccountSummary(result_tx) => {
             result_tx.send(handle_get_account_summary(shared_state).await);
@@ -165,14 +168,13 @@ pub(crate) async fn handle_get_available_tickets<C: ConnectivityMonitor>(
         .map_err(|err| AccountCommandError::Storage(err.to_string()))
 }
 
-pub(crate) async fn handle_set_resolver_overrides<C: ConnectivityMonitor>(
+pub(crate) fn handle_set_resolver_overrides<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     resolver_overrides: Option<ResolverOverrides>,
 ) -> Result<(), AccountCommandError> {
     shared_state
         .vpn_api_client
         .override_resolver(resolver_overrides.as_ref())
-        .await
         .map_err(|e| {
             AccountCommandError::internal(format!("Failed to set resolver overrides: {e}"))
         })

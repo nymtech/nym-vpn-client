@@ -1,6 +1,5 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
-#![warn(clippy::panic, clippy::unwrap_used, clippy::expect_used)]
 
 pub mod feature_flags;
 pub mod system_messages;
@@ -9,36 +8,14 @@ mod account_management;
 mod discovery;
 mod discovery_refresher;
 mod envs;
-mod filetime;
-mod nym_network;
+mod fetcher;
 mod nym_vpn_network;
+mod persistent_discovery;
+mod persistent_envs;
+mod persistent_network_details;
 mod serialization;
 mod system_configuration;
 
-pub use account_management::{AccountManagement, ParsedAccountLinks};
-pub use discovery_refresher::{
-    DiscoveryRefresher, DiscoveryRefresherCommand, DiscoveryRefresherEvent,
-};
-pub use feature_flags::{FeatureFlags, FlagValue};
-use futures_util::FutureExt;
-pub use nym_network::NymNetwork;
-use nym_sdk::mixnet::Recipient;
-use nym_vpn_api_client::{ResolverOverrides, str_to_socket_addr};
-pub use nym_vpn_network::NymVpnNetwork;
-pub use system_configuration::{ScoreThresholds, SystemConfiguration};
-pub use system_messages::{SystemMessage, SystemMessages};
-
-use discovery::Discovery;
-use envs::RegisteredNetworks;
-use nym_network_defaults::NymNetworkDetails;
-use tokio::join;
-
-use crate::{
-    discovery::DiscoveryFromNymWellknownDiscoveryError,
-    nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
-};
-
-use nym_http_api_client::HttpClientError;
 use std::{
     collections::HashSet,
     fmt::Debug,
@@ -48,14 +25,42 @@ use std::{
     time::Duration,
 };
 
+use chrono::{DateTime, TimeDelta, Utc};
+use serde::{Deserialize, Serialize};
+
+pub use account_management::{AccountManagement, ParsedAccountLinks};
+pub use discovery::Discovery;
+pub use discovery_refresher::{DiscoveryRefresher, DiscoveryRefresherCommand};
+pub use envs::RegisteredNetworks;
+pub use feature_flags::{FeatureFlags, FlagValue};
+pub use nym_network_defaults::NymNetworkDetails;
+pub use nym_vpn_network::NymVpnNetwork;
+pub use system_configuration::{ScoreThresholds, SystemConfiguration};
+pub use system_messages::{SystemMessage, SystemMessages};
+
+use nym_common::trace_err_chain;
+use nym_http_api_client::HttpClientError;
+use nym_sdk::{UserAgent, mixnet::Recipient};
+use nym_vpn_api_client::{ResolverOverrides, str_to_socket_addr};
+
+use crate::{
+    discovery::DiscoveryFromNymWellknownDiscoveryError,
+    fetcher::Fetcher,
+    nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
+    persistent_discovery::PersistentDiscovery,
+    persistent_envs::PersistentEnvs,
+    persistent_network_details::PersistentNetworkDetails,
+};
+
 // Refresh the discovery and network details files periodically
 const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60);
+const NETWORKS_SUBDIR: &str = "networks";
 
 pub type ApiUrl = nym_vpn_api_client::response::ApiUrl;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Network {
-    pub nym_network: NymNetwork,
+    pub nym_network: NymNetworkDetails,
     pub nyxd_url: url::Url,
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
@@ -63,57 +68,52 @@ pub struct Network {
 }
 
 impl Network {
-    pub fn mainnet_default() -> Option<Self> {
-        let network_details = NymNetworkDetails::new_mainnet();
-        let nym_network = NymNetwork::new(network_details.clone());
-        let nyxd_url = nym_network
-            .network
+    /// Returns pre-bundled mainnet network configuration.
+    /// This call must never fail unless the bundled data is bogus.
+    pub fn mainnet_default() -> Result<Self> {
+        Self::new_from_discovery(
+            Discovery::default_mainnet(),
+            NymNetworkDetails::new_mainnet(),
+        )
+    }
+
+    /// Create new network configuration from discovery and network details.
+    pub fn new_from_discovery(
+        discovery: Discovery,
+        network_details: NymNetworkDetails,
+    ) -> Result<Self> {
+        if discovery.network_name != network_details.network_name {
+            return Err(Error::NetworkNameMismatch {
+                expected: discovery.network_name,
+                actual: network_details.network_name,
+            });
+        }
+
+        let feature_flags = discovery.feature_flags.clone();
+        let system_configuration = discovery.system_configuration.clone();
+        let endpoint = network_details
             .endpoints
             .first()
-            .map(|ep| ep.nyxd_url())?;
-        Some(Network {
-            nym_network,
+            .ok_or(Error::NoEndpointsFound)?;
+        let nyxd_url = endpoint.nyxd_url();
+        let nym_vpn_network = NymVpnNetwork::from(discovery);
+
+        Ok(Self {
+            nym_network: network_details,
             nyxd_url,
-            nym_vpn_network: NymVpnNetwork::new(network_details),
-            feature_flags: None,
-            system_configuration: None,
+            nym_vpn_network,
+            feature_flags,
+            system_configuration,
         })
     }
 
     pub fn nym_network_details(&self) -> &NymNetworkDetails {
-        &self.nym_network.network
+        &self.nym_network
     }
 
     pub fn export_to_env(&self) {
-        self.nym_network.export_to_env();
+        self.nym_network.clone().export_to_env();
         self.nym_vpn_network.export_to_env();
-    }
-
-    // Query the network name for both urls and check that it matches
-    // TODO: integrate with validator-client and/or nym-vpn-api-client
-    pub async fn check_consistency(&self) -> Result<bool> {
-        tracing::debug!("Checking network consistency");
-        let endpoint = self
-            .nym_network
-            .network
-            .endpoints
-            .first()
-            .ok_or(Error::NoEndpointsFound)?;
-        let nym_api_url = endpoint.api_url().ok_or(Error::NoApiUrlFound)?;
-        let network_name = discovery::fetch_nym_network_details(nym_api_url)
-            .map(|resp| resp.map(|d| d.network.network_name));
-
-        let api_urls = &self.nym_vpn_network.nym_vpn_api_urls;
-        let vpn_network_name = discovery::fetch_nym_vpn_network_details(api_urls)
-            .map(|resp| resp.map(|d| d.network_name));
-
-        let (network_name, vpn_network_name) = join!(network_name, vpn_network_name);
-        let network_name = network_name?;
-        let vpn_network_name = vpn_network_name?;
-
-        tracing::debug!("nym network name: {network_name}");
-        tracing::debug!("nym-vpn network name: {vpn_network_name}");
-        Ok(network_name == vpn_network_name)
     }
 
     pub fn nyxd_url(&self) -> url::Url {
@@ -121,11 +121,11 @@ impl Network {
     }
 
     pub fn nym_api_urls(&self) -> Option<Vec<nym_network_defaults::ApiUrl>> {
-        self.nym_network.network.nym_api_urls.clone()
+        self.nym_network.nym_api_urls.clone()
     }
 
     pub fn nym_api_urls_as_urls(&self) -> Option<Vec<url::Url>> {
-        self.nym_network.network.nym_api_urls.as_ref().map(|urls| {
+        self.nym_network.nym_api_urls.as_ref().map(|urls| {
             urls.iter()
                 .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
                 .collect()
@@ -133,19 +133,15 @@ impl Network {
     }
 
     pub fn nym_vpn_api_urls(&self) -> Option<Vec<nym_network_defaults::ApiUrl>> {
-        self.nym_network.network.nym_vpn_api_urls.clone()
+        self.nym_network.nym_vpn_api_urls.clone()
     }
 
     pub fn nym_vpn_api_urls_as_urls(&self) -> Option<Vec<url::Url>> {
-        self.nym_network
-            .network
-            .nym_vpn_api_urls
-            .as_ref()
-            .map(|urls| {
-                urls.iter()
-                    .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
-                    .collect()
-            })
+        self.nym_network.nym_vpn_api_urls.as_ref().map(|urls| {
+            urls.iter()
+                .filter_map(|api_url| url::Url::parse(&api_url.url).ok())
+                .collect()
+        })
     }
 
     pub fn get_simple_feature_flag<T>(&self, flag: &str) -> Option<T>
@@ -225,99 +221,149 @@ impl Network {
     }
 }
 
-pub async fn discover_networks(config_path: &Path) -> Result<RegisteredNetworks> {
-    RegisteredNetworks::ensure_exists(config_path).await
+/// Supervisor type over persistent stores concerning network configuration, such as registered network environments, discovery, and network details.
+#[derive(Debug)]
+pub struct NetworkCache {
+    cache_dir: PathBuf,
+    persistent_envs: PersistentEnvs,
+    persistent_discovery: PersistentDiscovery,
+    persistent_network_details: Option<PersistentNetworkDetails>,
+    fetcher: Fetcher,
 }
 
-pub async fn discover_env(config_path: &Path, network_name: &str) -> Result<Network> {
-    tracing::debug!(
-        "Discovering network details: config_path={}, network_name={}",
-        config_path.display(),
-        network_name
-    );
+impl NetworkCache {
+    pub async fn new(
+        cache_dir: PathBuf,
+        network_name: &str,
+        user_agent: Option<UserAgent>,
+        resolver_overrides: Option<&ResolverOverrides>,
+    ) -> Result<Self> {
+        Self::clean_up_change_introduced_in_pr4226(&cache_dir).await;
 
-    // Lookup network discovery to bootstrap
-    let discovery = Discovery::ensure_exists(config_path, network_name).await?;
-    tracing::trace!("Discovery: {:#?}", discovery);
+        let persistent_envs = PersistentEnvs::new_from_cache(cache_dir.clone()).await?;
+        let persistent_discovery =
+            PersistentDiscovery::new_from_cache(cache_dir.clone(), network_name).await?;
+        let persistent_network_details =
+            PersistentNetworkDetails::new_from_cache(cache_dir.clone(), network_name)
+                .await
+                .map(Some)
+                .or_else(|err| {
+                    if err.is_no_default_network_details() {
+                        Ok(None)
+                    } else {
+                        Err(err)
+                    }
+                })?;
 
-    tracing::trace!(
-        "System messages: {}",
-        discovery.system_messages.clone().into_current_messages()
-    );
+        let fetcher = Fetcher::new(
+            persistent_discovery.value().clone(),
+            user_agent,
+            resolver_overrides,
+        )?;
 
-    network_from_discovery(config_path, discovery).await
-}
-
-pub async fn network_from_discovery(config_path: &Path, discovery: Discovery) -> Result<Network> {
-    let feature_flags = discovery.feature_flags.clone();
-    if let Some(ref feature_flags) = feature_flags {
-        tracing::debug!("Feature flags: {}", feature_flags);
+        Ok(Self {
+            cache_dir,
+            persistent_envs,
+            persistent_discovery,
+            persistent_network_details,
+            fetcher,
+        })
     }
 
-    let system_configuration = discovery.system_configuration.clone();
-    if let Some(ref system_configuration) = system_configuration {
-        tracing::debug!("System configuration: {}", system_configuration);
+    pub fn set_resolver_overrides(
+        &mut self,
+        new_overrides: Option<ResolverOverrides>,
+    ) -> Result<bool> {
+        self.fetcher.set_resolver_overrides(new_overrides)
     }
 
-    // Using discovery, fetch and setup nym network details
-    let mut nym_network = NymNetwork::ensure_exists(config_path, &discovery).await?;
+    pub async fn fetch_if_stale(&mut self) -> Result<()> {
+        // Refresh registered networks
+        if self.persistent_envs.is_stale() {
+            let new_networks = self.fetcher.fetch_registered_networks().await?;
+            self.persistent_envs.update(new_networks).await?;
+        }
 
-    // Patch up the network details with domain fronting data
-    // TODO: remove once network details contain domain fronting data
-    // Always use discovery URLs to ensure we have the correct environment URLs
-    // The file-based nym_network might have stale/wrong URLs from a previous environment
-    // This prevents mainnet URLs from appearing in sandbox mode (or vice versa)
-    let discovery_nym_api_urls = discovery.nym_api_urls();
-    if !discovery_nym_api_urls.is_empty() {
-        nym_network.network.nym_api_urls = Some(discovery_nym_api_urls);
+        // Refresh discovery
+        if self.persistent_discovery.is_stale() {
+            let network_name = self.persistent_discovery.network_name();
+            let new_discovery = self.fetcher.fetch_discovery(network_name).await?;
+
+            // Update fetcher discovery so that it could pick up new API endpoints if they changed.
+            if new_discovery != *self.persistent_discovery.value()
+                && let Err(err) = self.fetcher.set_discovery(new_discovery.clone())
+            {
+                trace_err_chain!(err, "failed to update fetcher discovery");
+            }
+
+            self.persistent_discovery.update(new_discovery).await?;
+        }
+
+        // Refresh network details
+        match self.persistent_network_details {
+            Some(ref mut details) => {
+                if details.is_stale() {
+                    let new_network_details = self.fetcher.fetch_network_details().await?;
+                    details.update(*new_network_details).await?;
+                }
+            }
+            ref mut details @ None => {
+                let new_network_details = self.fetcher.fetch_network_details().await?;
+                let new_persistent_network_details =
+                    PersistentNetworkDetails::new_with_newly_fetched(
+                        self.cache_dir.clone(),
+                        *new_network_details,
+                    )
+                    .await?;
+                details.replace(new_persistent_network_details);
+            }
+        };
+
+        Ok(())
     }
 
-    // Patch up the network details with domain fronting
-    // TODO: remove once network details contain domain fronting data
-    // Always use discovery URLs to ensure we have the correct environment URLs
-    // The file-based nym_network might have stale/wrong URLs from a previous environment
-    let discovery_vpn_api_urls = discovery.nym_vpn_api_urls();
-    if !discovery_vpn_api_urls.is_empty() {
-        nym_network.network.nym_vpn_api_urls = Some(discovery_vpn_api_urls);
+    /// Returns current network configuration based on discovery and network details held in persistent store.
+    /// This call will fail if the network details are not fetched yet which can the case for non-mainnet environments.
+    /// In such case use `fetch_if_stale` to fetch the network details from network.
+    pub fn network(&self) -> Result<Box<Network>> {
+        let discovery = self.persistent_discovery.value().clone();
+        let network_details = self
+            .persistent_network_details
+            .as_ref()
+            .ok_or(Error::NetworkDetailsNotFetched)?
+            .value()
+            .clone();
+
+        let network_env = Network::new_from_discovery(discovery, network_details)?;
+
+        Ok(Box::new(network_env))
     }
 
-    let endpoint = nym_network
-        .network
-        .endpoints
-        .first()
-        .ok_or(Error::NoEndpointsFound)?;
-    let nyxd_url = endpoint.nyxd_url();
+    /// Query registered networks held in persistent store.
+    pub fn registered_networks(&self) -> &RegisteredNetworks {
+        self.persistent_envs.value()
+    }
 
-    // Using discovery, setup nym vpn network details
-    let nym_vpn_network = NymVpnNetwork::from(discovery);
+    /// Query discovery held in persistent store.
+    pub fn discovery(&self) -> &Discovery {
+        self.persistent_discovery.value()
+    }
 
-    Ok(Network {
-        nym_network,
-        nyxd_url,
-        nym_vpn_network,
-        feature_flags,
-        system_configuration,
-    })
-}
+    // Clean up change introduced in https://github.com/nymtech/nym-vpn-client/pull/4226
+    // Network files were moved from <cache_dir>/networks/<env> to <cache_dir>/<env>
+    async fn clean_up_change_introduced_in_pr4226(cache_dir: &Path) {
+        for env in ["mainnet", "sandbox", "canary", "evil"] {
+            let path = cache_dir.join(env);
 
-pub fn manual_env(network_details: &NymNetworkDetails) -> Result<Network> {
-    let nym_network = NymNetwork::from(network_details.clone());
-    let endpoint = nym_network
-        .network
-        .endpoints
-        .first()
-        .ok_or(Error::NoEndpointsFound)?;
-    let nyxd_url = endpoint.nyxd_url();
-    let nym_vpn_network =
-        NymVpnNetwork::try_from(network_details).map_err(Error::ConvertNetworkDetailsToNetwork)?;
-
-    Ok(Network {
-        nym_network,
-        nyxd_url,
-        nym_vpn_network,
-        feature_flags: None,
-        system_configuration: None,
-    })
+            tokio::fs::remove_file(path.join(format!("{env}.json",)))
+                .await
+                .ok();
+            tokio::fs::remove_file(path.join(format!("{env}_discovery.json")))
+                .await
+                .ok();
+            tokio::fs::remove_dir(path).await.ok();
+        }
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -325,29 +371,23 @@ pub enum Error {
     #[error("no endpoints found in nym network")]
     NoEndpointsFound,
 
-    #[error("no api url found in nym network")]
-    NoApiUrlFound,
+    #[error("no default network details available for {0}")]
+    NoDefaultNetworkDetails(String),
 
     #[error("network name mismatch between requested and fetched discovery")]
     NetworkNameMismatch { expected: String, actual: String },
 
-    #[error("failed to obtain file staleness: {path}")]
-    GetFileStaleness {
-        path: PathBuf,
-        source: filetime::FileTimeError,
-    },
-
-    #[error("failed to bootstrap api client")]
-    CreateBootstrapApiClient(#[source] nym_vpn_api_client::error::VpnApiClientError),
-
     #[error("failed to create resolver overrides")]
     CreateResolverOverrides(#[source] nym_vpn_api_client::error::VpnApiClientError),
+
+    #[error("failed to set resolver overrides")]
+    SetResolverOverrides(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to create vpn api client")]
     CreateVpnApiClient(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
-    #[error("failed to fetch well known current env")]
-    GetWellKnownCurrentEnv(#[source] nym_vpn_api_client::error::VpnApiClientError),
+    #[error("failed to create http api client")]
+    CreateHttpApiClient(#[source] Box<HttpClientError>),
 
     #[error("failed to fetch well known envs")]
     GetWellKnownEnvs(#[source] nym_vpn_api_client::error::VpnApiClientError),
@@ -357,9 +397,6 @@ pub enum Error {
 
     #[error("failed to get network details")]
     GetNetworkDetails(#[source] Box<HttpClientError>),
-
-    #[error("failed to build http client: {0}")]
-    FailedToBuildHttpClient(String),
 
     #[error("failed to create parent directories for discovery file: {path}")]
     CreateParentDirs {
@@ -389,22 +426,16 @@ pub enum Error {
     GetAccountLinks(#[from] NymVpnNetworkAccountLinksConversionError),
 
     #[error("failed to convert well known discovery response into discovery")]
-    ConvertWellKnownDiscovery(#[source] DiscoveryFromNymWellknownDiscoveryError),
+    ConvertWellKnownDiscovery(#[from] DiscoveryFromNymWellknownDiscoveryError),
 
     #[error("failed to convert nym network details to nym vpn network")]
     ConvertNetworkDetailsToNetwork(#[source] NymVpnNetworkFromDetailsError),
 
-    #[error("HTTP Client Error: {0}")]
-    HttpClient(#[from] Box<HttpClientError>),
+    #[error("unknown discovery: {0}")]
+    UnknownDiscovery(String),
 
-    #[error("inconsistent network detected")]
-    InconsistentNetwork,
-
-    #[error("failed to refresh discovery file")]
-    RefreshDiscoveryFile,
-
-    #[error("failed to parse refreshed discovery file")]
-    ParseDiscoveryFile,
+    #[error("network details are not fetched")]
+    NetworkDetailsNotFetched,
 }
 
 impl Error {
@@ -425,6 +456,106 @@ impl Error {
             _ => false,
         }
     }
+
+    /// Returns true if construction of persistent network details failed because cache was empty
+    /// and no pre-bundled default network details available. This is typically the case for non-mainnet environments.
+    pub(crate) fn is_no_default_network_details(&self) -> bool {
+        matches!(self, Self::NoDefaultNetworkDetails(_))
+    }
+
+    /// Returns true if network data are inconsistent.
+    #[cfg(test)]
+    pub(crate) fn is_inconsistent_network(&self) -> bool {
+        matches!(self, Self::NetworkNameMismatch { .. })
+    }
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+/// On-disk representation of persistent store record.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+struct PersistentRecord<T> {
+    /// Timestamp of the last update.
+    /// When `None`, indicates that the entry is stale, which can be useful when the store is initialized from pre-bundled defaults.
+    updated_at: Option<DateTime<Utc>>,
+
+    /// Value held in the record.
+    value: T,
+}
+
+impl<T> PersistentRecord<T> {
+    /// Returns new PersistentRecord with provided value and without timestamp.
+    fn stale(value: T) -> Self {
+        Self {
+            updated_at: None,
+            value,
+        }
+    }
+
+    /// Returns new PersistentRecord with provided value and current timestamp.
+    fn up_to_date(value: T) -> Self {
+        Self {
+            updated_at: Some(Utc::now()),
+            value,
+        }
+    }
+
+    fn is_stale(&self) -> bool {
+        match self.updated_at {
+            Some(updated_at) => {
+                let diff = Utc::now() - updated_at;
+                let max_delta =
+                    TimeDelta::from_std(MAX_FILE_AGE).expect("max_file_age is too high!");
+
+                diff > max_delta
+            }
+            None => true,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tempfile::tempdir;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_network_cache_handles_cleanup_pr4226() {
+        let cache_dir = tempdir().unwrap();
+
+        let envs = ["mainnet", "sandbox", "canary", "evil"];
+
+        for env in envs {
+            let base_dir = cache_dir.path().join(env);
+            tokio::fs::create_dir(&base_dir).await.unwrap();
+            let _ = tokio::fs::File::create(base_dir.join(format!("{env}.json"))).await;
+            let _ = tokio::fs::File::create(base_dir.join(format!("{env}_discovery.json"))).await;
+        }
+
+        let _ = tokio::fs::File::create(cache_dir.path().join(format!("test.txt"))).await;
+
+        let _network_cache =
+            NetworkCache::new(cache_dir.path().to_path_buf(), "mainnet", None, None)
+                .await
+                .unwrap();
+
+        // ensure network cache removed old directories
+        for env in envs {
+            let base_dir = cache_dir.path().join(env);
+            assert!(!tokio::fs::try_exists(base_dir).await.unwrap())
+        }
+
+        // ensure network cache does not remove anything else
+        assert!(
+            tokio::fs::try_exists(cache_dir.path().join("networks/mainnet"))
+                .await
+                .unwrap()
+        );
+        assert!(
+            tokio::fs::try_exists(cache_dir.path().join("test.txt"))
+                .await
+                .unwrap()
+        );
+    }
+}

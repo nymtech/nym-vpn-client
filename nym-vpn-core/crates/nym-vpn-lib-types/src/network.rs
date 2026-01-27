@@ -397,25 +397,22 @@ impl From<nym_vpn_network_config::FlagValue> for FlagValue {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_network_config::NymNetwork> for NymNetworkDetails {
-    fn from(value: nym_vpn_network_config::NymNetwork) -> Self {
+impl From<nym_vpn_network_config::NymNetworkDetails> for NymNetworkDetails {
+    fn from(value: nym_vpn_network_config::NymNetworkDetails) -> Self {
         Self {
-            network_name: value.network.network_name,
-            chain_details: ChainDetails::from(value.network.chain_details),
+            network_name: value.network_name,
+            chain_details: ChainDetails::from(value.chain_details),
             endpoints: value
-                .network
                 .endpoints
                 .into_iter()
                 .map(ValidatorDetails::from)
                 .collect(),
-            contracts: NymContracts::from(value.network.contracts),
-            nym_vpn_api_url: value.network.nym_vpn_api_url,
+            contracts: NymContracts::from(value.contracts),
+            nym_vpn_api_url: value.nym_vpn_api_url,
             nym_api_urls: value
-                .network
                 .nym_api_urls
                 .map(|v| v.into_iter().map(ApiUrl::from).collect::<Vec<_>>()),
             nym_vpn_api_urls: value
-                .network
                 .nym_vpn_api_urls
                 .map(|v| v.into_iter().map(ApiUrl::from).collect::<Vec<_>>()),
         }

@@ -121,7 +121,7 @@ impl GatewayDiagnostic {
             None,
         )?;
 
-        nym_gateway_directory::GatewayClient::new(config, new_user_agent!()).await
+        nym_gateway_directory::GatewayClient::new(config, new_user_agent!())
     }
 
     async fn lookup_gateway(

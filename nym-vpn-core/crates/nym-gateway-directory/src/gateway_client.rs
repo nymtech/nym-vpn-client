@@ -158,11 +158,11 @@ pub struct GatewayClient {
 }
 
 impl GatewayClient {
-    pub async fn new(config: Config, user_agent: UserAgent) -> Result<Self> {
-        Self::new_with_resolver_overrides(config, user_agent, None, None).await
+    pub fn new(config: Config, user_agent: UserAgent) -> Result<Self> {
+        Self::new_with_resolver_overrides(config, user_agent, None, None)
     }
 
-    pub async fn new_with_resolver_overrides(
+    pub fn new_with_resolver_overrides(
         config: Config,
         user_agent: UserAgent,
         resolver_overrides: Option<&ResolverOverrides>,
@@ -172,17 +172,15 @@ impl GatewayClient {
 
         let api_client =
             fronted_http_client(nym_urls, Some(user_agent.clone()), None, resolver_overrides)
-                .await
                 .map_err(Error::VpnApiClientError)?;
 
         let nym_vpn_urls = api_urls_to_urls(config.nym_vpn_api_urls())?;
 
         let vpn_api_client = nym_vpn_api_client::VpnApiClient::new(
             nym_vpn_urls,
-            user_agent.clone(),
+            Some(user_agent.clone()),
             vpn_resolver_overrides,
         )
-        .await
         .map_err(Error::VpnApiClientError)?;
 
         Ok(GatewayClient {
@@ -206,12 +204,11 @@ impl GatewayClient {
 
         // No resolver overrides for this client?
         let api_client = fronted_http_client(nym_urls, Some(user_agent.clone()), None, None)
-            .await
             .map_err(Error::VpnApiClientError)?;
 
         let vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             network_details,
-            user_agent.clone(),
+            Some(user_agent.clone()),
             resolver_overrides,
         )
         .await?;
@@ -542,7 +539,7 @@ mod test {
     #[tokio::test]
     async fn lookup_described_gateways() {
         let config = new_mainnet();
-        let client = GatewayClient::new(config, user_agent()).await.unwrap();
+        let client = GatewayClient::new(config, user_agent()).unwrap();
         let gateways = client.lookup_described_nodes().await.unwrap();
         assert!(!gateways.is_empty());
     }
@@ -552,7 +549,7 @@ mod test {
     #[ignore]
     async fn lookup_gateways_in_nym_vpn_api() {
         let config = new_mainnet();
-        let client = GatewayClient::new(config, user_agent()).await.unwrap();
+        let client = GatewayClient::new(config, user_agent()).unwrap();
         let gateways = client
             .lookup_gateways(GatewayType::MixnetExit)
             .await

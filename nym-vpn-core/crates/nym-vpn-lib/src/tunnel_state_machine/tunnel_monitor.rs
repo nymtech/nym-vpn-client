@@ -362,7 +362,6 @@ impl TunnelMonitor {
             resolver_overrides,
             vpn_resolver_overrides,
         )
-        .await
         .map_err(Error::GatewayDirectoryClient)?;
 
         self.gateway_cache_handle
@@ -528,7 +527,7 @@ impl TunnelMonitor {
             .network_rx
             .borrow()
             .clone();
-        let nym_network = network_env.nym_network.network.clone();
+        let nym_network = network_env.nym_network.clone();
         let mode = match self.tunnel_parameters.tunnel_settings.tunnel_type {
             TunnelType::Mixnet => RegistrationMode::Mixnet,
             TunnelType::Wireguard => RegistrationMode::Wireguard,

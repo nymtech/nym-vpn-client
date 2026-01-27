@@ -1,34 +1,16 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    path::{Path, PathBuf},
-    sync::LazyLock,
-    time::SystemTime,
-};
-
 use crate::{
-    AccountManagement, Error, FeatureFlags, MAX_FILE_AGE, Result, SystemMessages,
-    nym_network::NymNetwork, system_configuration::SystemConfiguration,
+    AccountManagement, FeatureFlags, Result, SystemMessages,
+    system_configuration::SystemConfiguration,
 };
-use nym_api_requests::NymNetworkDetailsResponse;
-use nym_common::trace_err_chain;
-use nym_sdk::UserAgent;
-use nym_validator_client::nym_api::NymApiClientExt;
-use nym_vpn_api_client::{
-    ResolverOverrides, VpnApiClient, api_urls_to_urls, fronted_http_client,
-    response::{ApiUrl, NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
-};
-
-const DISCOVERY_FILE: &str = "discovery.json";
+use nym_vpn_api_client::response::{ApiUrl, NymWellknownDiscoveryItemResponse};
 
 static MAINNET_DISCOVERY_JSON: &[u8] = include_bytes!("../default/mainnet_discovery.json");
 static SANDBOX_DISCOVERY_JSON: &[u8] = include_bytes!("../default/sandbox_discovery.json");
 static CANARY_DISCOVERY_JSON: &[u8] = include_bytes!("../default/canary_discovery.json");
 static EVIL_DISCOVERY_JSON: &[u8] = include_bytes!("../default/evil_discovery.json");
-
-static DEFAULT_VPN_API_URLS: LazyLock<Vec<nym_network_defaults::ApiUrl>> =
-    LazyLock::new(|| Discovery::default_mainnet().nym_vpn_api_urls().to_vec());
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct Discovery {
@@ -51,11 +33,6 @@ pub struct Discovery {
 }
 
 impl Discovery {
-    /// Default VPN API URL
-    pub fn default_vpn_api_urls() -> &'static [nym_network_defaults::ApiUrl] {
-        &DEFAULT_VPN_API_URLS
-    }
-
     /// Default mainnet discovery
     pub fn default_mainnet() -> Self {
         #[allow(clippy::expect_used)]
@@ -83,218 +60,7 @@ impl Discovery {
         serde_json::from_slice(EVIL_DISCOVERY_JSON).expect("failed to parse default evil discovery")
     }
 
-    fn path(config_dir: &Path, network_name: &str) -> PathBuf {
-        config_dir
-            .join(network_name)
-            .join(format!("{network_name}_{DISCOVERY_FILE}"))
-    }
-
-    pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> Result<bool> {
-        let path = Self::path(config_dir, network_name);
-
-        crate::filetime::is_stale_file(&path, MAX_FILE_AGE)
-            .map_err(|source| Error::GetFileStaleness { path, source })
-    }
-
-    pub async fn fetch(client: &VpnApiClient, network_name: &str) -> Result<Self> {
-        tracing::debug!("Fetching nym network discovery");
-        let discovery = client
-            .get_wellknown_discovery(network_name)
-            .await
-            .map_err(Error::GetWellKnownDiscovery)?;
-
-        tracing::trace!("Discovery response: {:#?}", discovery);
-        if discovery.network_name == network_name {
-            tracing::trace!("Fetched nym network discovery: {:#?}", discovery);
-            Self::try_from(discovery).map_err(Error::ConvertWellKnownDiscovery)
-        } else {
-            Err(Error::NetworkNameMismatch {
-                expected: network_name.to_owned(),
-                actual: discovery.network_name.clone(),
-            })
-        }
-    }
-
-    pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> Result<Self> {
-        let path = Self::path(config_dir, network_name);
-        tracing::debug!("Reading discovery file from: {}", path.display());
-
-        let discovery: Self = crate::serialization::deserialize_from_json_file(path)?;
-
-        // Verify the discovery file matches the expected network name
-        if discovery.network_name != network_name {
-            return Err(Error::NetworkNameMismatch {
-                expected: network_name.to_owned(),
-                actual: discovery.network_name,
-            });
-        }
-
-        Ok(discovery)
-    }
-
-    pub(super) fn write_to_file(
-        &self,
-        config_dir: &Path,
-        modified_at: Option<SystemTime>,
-    ) -> Result<()> {
-        let path = Self::path(config_dir, &self.network_name);
-        tracing::debug!("Writing discovery file to: {}", path.display());
-
-        let file = crate::serialization::serialize_to_json_file(path, self)?;
-
-        if let Some(modified_at) = modified_at
-            && let Err(e) = file.set_modified(modified_at)
-        {
-            tracing::error!("Failed to set modified time for discovery file: {e}");
-        }
-
-        Ok(())
-    }
-
-    pub(super) async fn ensure_exists(config_dir: &Path, network_name: &str) -> Result<Self> {
-        match Self::read_from_file(config_dir, network_name) {
-            Ok(discovery) => {
-                // Verify the discovery we read matches the expected network
-                if discovery.network_name != network_name {
-                    tracing::warn!(
-                        "Discovery file has wrong network name: expected '{}', found '{}'. Will recreate.",
-                        network_name,
-                        discovery.network_name
-                    );
-                    // Fall through to recreate the file
-                } else {
-                    return Ok(discovery);
-                }
-            }
-            Err(e) if e.should_overwrite_file() => {
-                if e.is_file_not_found() {
-                    tracing::debug!("No discovery file found, creating a new discovery file");
-                } else {
-                    trace_err_chain!(e, "Failed to read discovery file");
-                }
-            }
-            Err(e) => {
-                trace_err_chain!(e, "Failed to read discovery file");
-                return Err(e);
-            }
-        }
-
-        // For non-mainnet networks, prefer using default discovery to avoid fetching from wrong API
-        // Only try to fetch from network for mainnet, or if we have a way to fetch for the specific network
-        if network_name != "mainnet"
-            && let Some(default_discovery) = Self::default_discovery(network_name)
-        {
-            tracing::info!(
-                "Using default discovery for network '{}' (non-mainnet networks should use defaults)",
-                network_name
-            );
-            // Ensure that discovery cache created from default discovery is always considered stale.
-            let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
-
-            default_discovery
-                .clone()
-                .write_to_file(config_dir, modified_at)
-                .inspect_err(|err| {
-                    trace_err_chain!(err, "Failed to write default discovery file");
-                })?;
-            return Ok(default_discovery);
-        }
-
-        // For mainnet, try to fetch from network
-        let client = Self::create_client(None).await?;
-
-        match Self::fetch(&client, network_name).await {
-            Ok(discovery) => {
-                // Verify the fetched discovery matches what we requested
-                if discovery.network_name != network_name {
-                    tracing::error!(
-                        "Fetched discovery has wrong network name: expected '{}', got '{}'",
-                        network_name,
-                        discovery.network_name
-                    );
-                    // Fall back to default
-                    if let Some(default_discovery) = Self::default_discovery(network_name) {
-                        tracing::warn!("Using default discovery due to network name mismatch");
-                        let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
-                        default_discovery
-                            .clone()
-                            .write_to_file(config_dir, modified_at)
-                            .inspect_err(|err| {
-                                trace_err_chain!(err, "Failed to write default discovery file");
-                            })?;
-                        return Ok(default_discovery);
-                    }
-                    return Err(Error::NetworkNameMismatch {
-                        expected: network_name.to_owned(),
-                        actual: discovery.network_name,
-                    });
-                }
-                discovery
-                    .write_to_file(config_dir, None)
-                    .inspect_err(|err| {
-                        trace_err_chain!(err, "Failed to write discovery file");
-                    })?;
-                Ok(discovery)
-            }
-            Err(e) => match Self::default_discovery(network_name) {
-                Some(default_discovery) => {
-                    tracing::warn!(
-                        "Failed to fetch remote discovery file: {e}, creating a default one"
-                    );
-                    // Ensure that discovery cache created from default discovery is always considered stale.
-                    let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
-
-                    default_discovery
-                        .write_to_file(config_dir, modified_at)
-                        .inspect_err(|err| {
-                            trace_err_chain!(err, "Failed to write default discovery file");
-                        })?;
-                    Ok(default_discovery)
-                }
-                None => {
-                    tracing::error!(
-                        "No default discovery available for {network_name} environment"
-                    );
-                    Err(e)
-                }
-            },
-        }
-    }
-
-    pub async fn fetch_nym_network_details(&self) -> Result<NymNetwork> {
-        tracing::debug!("Fetching nym network details");
-
-        let api_urls = self.nym_api_urls();
-        let urls = api_urls_to_urls(&api_urls).map_err(Error::CreateVpnApiClient)?;
-        let client = fronted_http_client(urls, None, None, None)
-            .await
-            .map_err(Error::CreateVpnApiClient)?;
-
-        let network_details = client
-            .get_network_details()
-            .await
-            .map_err(Box::new)
-            .map_err(Error::GetNetworkDetails)?;
-
-        if network_details.network.network_name == self.network_name {
-            Ok(NymNetwork {
-                network: network_details.network,
-            })
-        } else {
-            Err(Error::NetworkNameMismatch {
-                expected: self.network_name.clone(),
-                actual: network_details.network.network_name,
-            })
-        }
-    }
-
-    pub async fn update_nym_network_file(&self, config_dir: &Path) -> Result<()> {
-        self.fetch_nym_network_details()
-            .await?
-            .write_to_file(config_dir, None)
-    }
-
-    fn default_discovery(network_name: &str) -> Option<Self> {
+    pub fn default_discovery(network_name: &str) -> Option<Self> {
         Some(match network_name {
             "mainnet" => Self::default_mainnet(),
             "sandbox" => Self::default_sandbox(),
@@ -336,17 +102,6 @@ impl Discovery {
                 })
                 .collect()
         }
-    }
-
-    pub async fn create_client(
-        resolver_overrides: Option<&ResolverOverrides>,
-    ) -> Result<VpnApiClient> {
-        let urls =
-            api_urls_to_urls(Self::default_vpn_api_urls()).map_err(Error::CreateVpnApiClient)?;
-
-        VpnApiClient::new(urls, empty_user_agent(), resolver_overrides)
-            .await
-            .map_err(Error::CreateVpnApiClient)
     }
 }
 
@@ -421,44 +176,6 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
     }
 }
 
-pub fn empty_user_agent() -> UserAgent {
-    UserAgent {
-        application: String::new(),
-        version: String::new(),
-        platform: String::new(),
-        git_commit: String::new(),
-    }
-}
-
-pub(crate) async fn fetch_nym_network_details(
-    nym_api_url: url::Url,
-) -> Result<NymNetworkDetailsResponse> {
-    tracing::debug!("Fetching nym network details");
-    let client = nym_http_api_client::Client::builder(nym_api_url)
-        .map_err(Box::new)?
-        .build()
-        .map_err(Box::new)?;
-
-    client
-        .get_network_details()
-        .await
-        .map_err(Box::new)
-        .map_err(Error::GetNetworkDetails)
-}
-
-pub(crate) async fn fetch_nym_vpn_network_details(
-    nym_vpn_api_urls: &[nym_network_defaults::ApiUrl],
-) -> Result<NymWellknownDiscoveryItem> {
-    tracing::debug!("Fetching nym vpn network details");
-    let urls = api_urls_to_urls(nym_vpn_api_urls).map_err(Error::CreateVpnApiClient)?;
-    VpnApiClient::new(urls, empty_user_agent(), None)
-        .await
-        .map_err(Error::CreateVpnApiClient)?
-        .get_wellknown_current_env()
-        .await
-        .map_err(Error::GetWellKnownCurrentEnv)
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
@@ -470,16 +187,9 @@ mod tests {
         SystemMessage,
         account_management::{AccountManagementPaths, AccountManagementPrivyPaths},
         feature_flags::FlagValue,
+        fetcher::Fetcher,
         system_messages::Properties,
     };
-
-    #[tokio::test]
-    async fn test_discovery_fetch() {
-        let network_name = "mainnet";
-        let client = Discovery::create_client(None).await.unwrap();
-        let discovery = Discovery::fetch(&client, network_name).await.unwrap();
-        assert_eq!(discovery.network_name, network_name);
-    }
 
     #[tokio::test]
     async fn test_mainnet_discovery_same_as_fetched() {
@@ -504,8 +214,9 @@ mod tests {
     }
 
     async fn test_discovery_equality(discovery: Discovery) {
-        let client = Discovery::create_client(None).await.unwrap();
-        let fetched = Discovery::fetch(&client, &discovery.network_name)
+        let fetcher = Fetcher::new(Discovery::default_mainnet(), None, None).unwrap();
+        let fetched = fetcher
+            .fetch_discovery(&discovery.network_name)
             .await
             .unwrap();
 

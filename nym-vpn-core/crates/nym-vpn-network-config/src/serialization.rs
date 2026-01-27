@@ -25,19 +25,11 @@ where
 }
 
 /// Serialize a value to a JSON file.
-/// Creates parent directories if they do not exist.
 pub fn serialize_to_json_file<S, T>(path: S, value: &T) -> Result<File>
 where
     T: ?Sized + Serialize,
     S: AsRef<Path>,
 {
-    if let Some(parent) = path.as_ref().parent() {
-        std::fs::create_dir_all(parent).map_err(|source| Error::CreateParentDirs {
-            path: parent.to_path_buf(),
-            source,
-        })?;
-    }
-
     let file = std::fs::OpenOptions::new()
         .write(true)
         .create(true)

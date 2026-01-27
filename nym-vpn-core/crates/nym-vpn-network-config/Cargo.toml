@@ -13,7 +13,6 @@ workspace = true
 
 [dependencies]
 thiserror.workspace = true
-futures-util.workspace = true
 itertools.workspace = true
 nym-api-requests.workspace = true
 nym-common.workspace = true
@@ -27,6 +26,7 @@ serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
 time = { workspace = true, features = ["serde-human-readable"] }
+chrono = { workspace = true, features = ["serde"] }
 tokio = { workspace = true, features = ["time", "macros"] }
 tokio-util.workspace = true
 tracing.workspace = true

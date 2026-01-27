@@ -1,28 +1,27 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    collections::HashSet,
-    fmt,
-    path::{Path, PathBuf},
-    time::SystemTime,
-};
+use std::{collections::HashSet, fmt};
 
-use crate::{Error, MAX_FILE_AGE, Result, discovery::Discovery};
 use itertools::Itertools;
-use nym_common::trace_err_chain;
-use nym_sdk::UserAgent;
-use nym_vpn_api_client::{VpnApiClient, api_urls_to_urls};
 
-// TODO: integrate with nym-vpn-api-client
+use crate::Result;
 
-const NETWORKS_SUBDIR: &str = "networks";
-const ENVS_FILE: &str = "envs.json";
 static DEFAULT_ENVS_JSON: &[u8] = include_bytes!("../default/envs.json");
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RegisteredNetworks {
     inner: HashSet<String>,
+}
+
+impl RegisteredNetworks {
+    pub(crate) fn new(networks: HashSet<String>) -> Self {
+        RegisteredNetworks { inner: networks }
+    }
+
+    pub fn names(&self) -> &HashSet<String> {
+        &self.inner
+    }
 }
 
 impl<'de> serde::de::Deserialize<'de> for RegisteredNetworks {
@@ -50,105 +49,6 @@ impl fmt::Display for RegisteredNetworks {
     }
 }
 
-impl RegisteredNetworks {
-    fn path(config_dir: &Path) -> PathBuf {
-        config_dir.join(NETWORKS_SUBDIR).join(ENVS_FILE)
-    }
-
-    fn path_is_stale(config_dir: &Path) -> Result<bool> {
-        let path = Self::path(config_dir);
-
-        crate::filetime::is_stale_file(&path, MAX_FILE_AGE)
-            .map_err(|source| Error::GetFileStaleness { path, source })
-    }
-
-    async fn fetch() -> Result<Self> {
-        tracing::debug!("Fetching registered networks");
-
-        // Spawn the root task
-        let api_urls = Discovery::default_vpn_api_urls();
-
-        let urls = api_urls_to_urls(api_urls).map_err(Error::CreateVpnApiClient)?;
-
-        let inner = VpnApiClient::new(
-            urls,
-            UserAgent {
-                application: String::new(),
-                version: String::new(),
-                platform: String::new(),
-                git_commit: String::new(),
-            },
-            None,
-        )
-        .await
-        .map_err(Error::CreateVpnApiClient)?
-        .get_wellknown_envs()
-        .await
-        .map_err(Error::GetWellKnownEnvs)?;
-        tracing::debug!("Envs response: {:#?}", inner);
-
-        Ok(Self { inner })
-    }
-
-    fn read_from_file(config_dir: &Path) -> Result<Self> {
-        let path = Self::path(config_dir);
-        tracing::debug!(
-            "Reading registered networks from file: {:?}",
-            path.display()
-        );
-
-        crate::serialization::deserialize_from_json_file(path)
-    }
-
-    fn write_to_file(&self, config_dir: &Path, modified_at: Option<SystemTime>) -> Result<()> {
-        let path = Self::path(config_dir);
-        tracing::debug!("Writing registered networks to file: {}", path.display());
-
-        let file = crate::serialization::serialize_to_json_file(&path, self)?;
-
-        if let Some(modified_at) = modified_at
-            && let Err(e) = file.set_modified(modified_at)
-        {
-            tracing::error!("Failed to set modified time for registered networks file: {e}");
-        }
-
-        Ok(())
-    }
-
-    pub(super) async fn try_update_file(config_dir: &Path) -> Result<()> {
-        if Self::path_is_stale(config_dir)? {
-            Self::fetch().await?.write_to_file(config_dir, None)?;
-        }
-
-        Ok(())
-    }
-
-    pub(super) async fn ensure_exists(config_dir: &Path) -> Result<Self> {
-        match Self::read_from_file(config_dir) {
-            Ok(registered_networks) => Ok(registered_networks),
-            Err(e) if e.should_overwrite_file() => {
-                if !e.is_file_not_found() {
-                    trace_err_chain!(e, "Failed to read registered networks file");
-                }
-
-                let default_envs = Self::default();
-                let modified_at = SystemTime::now().checked_sub(MAX_FILE_AGE);
-                default_envs
-                    .write_to_file(config_dir, modified_at)
-                    .inspect_err(|err| {
-                        trace_err_chain!(err, "Failed to write default envs file");
-                    })?;
-
-                Ok(default_envs)
-            }
-            Err(e) => {
-                trace_err_chain!(e, "Failed to read registered networks file");
-                Err(e)
-            }
-        }
-    }
-}
-
 impl Default for RegisteredNetworks {
     fn default() -> Self {
         #[allow(clippy::expect_used)]
@@ -158,6 +58,8 @@ impl Default for RegisteredNetworks {
 
 #[cfg(test)]
 mod tests {
+    use crate::{discovery::Discovery, fetcher::Fetcher};
+
     use super::*;
 
     #[test]
@@ -181,27 +83,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_registered_networks_fetch() {
-        let registered_networks = RegisteredNetworks::fetch().await.unwrap();
-        assert!(registered_networks.inner.contains("mainnet"));
-    }
-
-    #[test]
-    fn test_registered_networks_write_to_file() {
-        let temp_dir = tempfile::tempdir().unwrap();
-        let config_dir = temp_dir.path();
-
-        let registered_networks = RegisteredNetworks::default();
-        registered_networks.write_to_file(config_dir, None).unwrap();
-
-        let read_registered_networks = RegisteredNetworks::read_from_file(config_dir).unwrap();
-        assert_eq!(registered_networks, read_registered_networks);
-    }
-
-    #[tokio::test]
     async fn test_envs_default_same_as_fetched() {
+        let fetcher = Fetcher::new(Discovery::default_mainnet(), None, None).unwrap();
         let default_envs = RegisteredNetworks::default();
-        let fetched_envs = RegisteredNetworks::fetch().await.unwrap();
+        let fetched_envs = fetcher.fetch_registered_networks().await.unwrap();
+
         assert_eq!(default_envs, fetched_envs);
     }
 }

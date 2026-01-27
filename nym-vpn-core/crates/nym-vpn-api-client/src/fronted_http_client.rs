@@ -4,14 +4,13 @@ use crate::{ResolverOverrides, error::VpnApiClientError};
 use nym_http_api_client::{Client, ClientBuilder, FrontPolicy, Url, UserAgent};
 use nym_network_defaults::ApiUrl;
 
-pub async fn fronted_http_client(
+pub fn fronted_http_client(
     urls: Vec<Url>,
     user_agent: Option<UserAgent>,
     timeout: Option<Duration>,
     resolver_overrides: Option<&ResolverOverrides>,
 ) -> Result<Client, VpnApiClientError> {
-    let builder =
-        fronted_http_client_builder(urls, user_agent, timeout, resolver_overrides).await?;
+    let builder = fronted_http_client_builder(urls, user_agent, timeout, resolver_overrides)?;
 
     let client = builder
         .build()
@@ -21,7 +20,7 @@ pub async fn fronted_http_client(
     Ok(client)
 }
 
-pub async fn fronted_http_client_builder(
+pub fn fronted_http_client_builder(
     urls: Vec<Url>,
     user_agent: Option<UserAgent>,
     timeout: Option<Duration>,
