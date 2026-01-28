@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,8 +43,8 @@ import net.nymtech.nymvpn.ui.screens.settings.login.components.LoginInputSection
 import net.nymtech.nymvpn.ui.screens.settings.login.components.MaxDevicesModal
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.extensions.navigateAndClearWelcome
 import net.nymtech.nymvpn.util.extensions.openWebUrl
-import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
@@ -71,9 +70,9 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 			when (event) {
 				is LoginEvent.NavigateAfterLogin -> {
 					if (event.showTechnicalOpt) {
-						navController.replaceCurrentWith(Route.Technical)
+						navController.navigateAndClearWelcome(Route.Technical)
 					} else {
-						navController.replaceCurrentWith(Route.Main())
+						navController.navigateAndClearWelcome(Route.Main())
 					}
 				}
 			}
