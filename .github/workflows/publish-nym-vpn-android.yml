@@ -188,7 +188,6 @@ jobs:
 
           {
             echo "ZULIP_MESSAGE<<EOF"
-            echo "👹 **Android Gremlin reporting**"
             echo "**Tag name:** \`${TAG}\`"
             echo "**Android build type:** \`${{ inputs.release_type }}\`"
             echo "**Branch:** \`${BRANCH}\`"
