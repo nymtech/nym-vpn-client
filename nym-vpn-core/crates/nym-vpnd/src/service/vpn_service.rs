@@ -1667,7 +1667,7 @@ impl NymVpnService {
         params: GetDeeplinkParams,
     ) -> Result<String, AccountCommandError> {
         let base_url = match params.kind {
-            DeeplinkKind::Privy => {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyExisting => {
                 let Some(ref account_management) =
                     self.network_tx.borrow().nym_vpn_network.account_management
                 else {

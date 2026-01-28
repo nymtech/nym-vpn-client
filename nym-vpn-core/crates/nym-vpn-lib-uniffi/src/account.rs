@@ -283,7 +283,7 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
 
 pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
     let base_url = match params.kind {
-        DeeplinkKind::Privy => {
+        DeeplinkKind::Privy | DeeplinkKind::PrivyExisting => {
             let Some(ref account_management) = current_environment_details()
                 .await
                 .ok()
@@ -617,7 +617,7 @@ pub(crate) mod raw {
 
     pub(crate) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
         let base_url = match params.kind {
-            DeeplinkKind::Privy => {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyExisting => {
                 let Some(ref account_management) = current_environment_details()
                     .await
                     .ok()

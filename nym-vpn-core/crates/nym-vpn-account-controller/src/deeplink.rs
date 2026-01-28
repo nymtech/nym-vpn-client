@@ -13,7 +13,7 @@ use url::Url;
 
 pub struct Deeplink {
     id: u64,
-    _kind: DeeplinkKind,
+    kind: DeeplinkKind,
     _name: String,
     keypair: KeyPair,
     expiry_time: Instant,
@@ -30,7 +30,7 @@ impl Deeplink {
 
         Self {
             id,
-            _kind: params.kind,
+            kind: params.kind,
             _name: params.name.clone(),
             keypair,
             expiry_time,
@@ -42,11 +42,17 @@ impl Deeplink {
     }
 
     pub fn create_url(&self, base_url: &Url) -> Url {
+        let deeplink_id = self.id.to_string();
         let pubkey = bs58::encode(self.keypair.public_key().to_bytes()).into_string();
+        let existing_user = match self.kind {
+            DeeplinkKind::Privy => "0",
+            DeeplinkKind::PrivyExisting => "1",
+        };
         let mut url = base_url.clone();
         url.query_pairs_mut()
-            .append_pair("deeplink_id", &self.id.to_string())
-            .append_pair("pubkey", &pubkey);
+            .append_pair("deeplink_id", &deeplink_id)
+            .append_pair("pubkey", &pubkey)
+            .append_pair("existing_user", existing_user);
         url
     }
 }
