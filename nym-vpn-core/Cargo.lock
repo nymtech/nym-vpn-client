@@ -125,6 +125,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ansi_term"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d52a9bb7ec0cf484c551830a7ce27bd20d67eac647e1befb56b0be4ee39a55d2"
+dependencies = [
+ "winapi",
+]
+
+[[package]]
 name = "anstream"
 version = "0.6.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1179,6 +1188,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b94f61472cee1439c0b966b47e3aca9ae07e45d070759512cd390ea2bebc6675"
 
 [[package]]
+name = "classic-mceliece-rust"
+version = "3.2.0"
+source = "git+https://github.com/georgio/classic-mceliece-rust#7bdf0c3c8c727cbc4784e05b0972641ad0791ab9"
+dependencies = [
+ "rand 0.9.2",
+ "sha3",
+ "zeroize",
+]
+
+[[package]]
 name = "coarsetime"
 version = "0.1.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1269,10 +1288,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
+name = "core-models"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "hax-lib",
+ "pastey",
+ "rand 0.9.2",
+]
+
+[[package]]
 name = "cosmos-sdk-proto"
-version = "0.26.1"
+version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "462e1f6a8e005acc8835d32d60cbd7973ed65ea2a8d8473830e675f050956427"
+checksum = "95ac39be7373404accccaede7cc1ec942ccef14f0ca18d209967a756bf1dbb1f"
 dependencies = [
  "prost 0.13.5",
  "tendermint-proto",
@@ -1280,9 +1309,9 @@ dependencies = [
 
 [[package]]
 name = "cosmrs"
-version = "0.21.1"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1394c263335da09e8ba8c4b2c675d804e3e0deb44cce0866a5f838d3ddd43d02"
+checksum = "34e74fa7a22930fe0579bef560f2d64b78415d4c47b9dd976c0635136809471d"
 dependencies = [
  "bip32",
  "cosmos-sdk-proto",
@@ -2657,6 +2686,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "hax-lib"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "543f93241d32b3f00569201bfce9d7a93c92c6421b23c77864ac929dc947b9fc"
+dependencies = [
+ "hax-lib-macros",
+ "num-bigint",
+ "num-traits",
+]
+
+[[package]]
+name = "hax-lib-macros"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8755751e760b11021765bb04cb4a6c4e24742688d9f3aa14c2079638f537b0f"
+dependencies = [
+ "hax-lib-macros-types",
+ "proc-macro-error2",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.106",
+]
+
+[[package]]
+name = "hax-lib-macros-types"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f177c9ae8ea456e2f71ff3c1ea47bf4464f772a05133fcbba56cd5ba169035a2"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
 name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3404,6 +3470,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "keccak"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ecc2af9a1119c51f12a14607e783cb977bde58bc069ff0c3da1095e635d70654"
+dependencies = [
+ "cpufeatures",
+]
+
+[[package]]
 name = "keystream"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3423,6 +3498,240 @@ name = "libc"
 version = "0.2.176"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "58f929b4d672ea937a23a1ab494143d968337a5f47e56d0815df1e0890ddf174"
+
+[[package]]
+name = "libcrux-aesgcm"
+version = "0.0.6"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-intrinsics",
+ "libcrux-platform",
+ "libcrux-secrets",
+ "libcrux-traits",
+]
+
+[[package]]
+name = "libcrux-chacha20poly1305"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-hacl-rs",
+ "libcrux-macros",
+ "libcrux-poly1305",
+ "libcrux-secrets",
+ "libcrux-traits",
+]
+
+[[package]]
+name = "libcrux-curve25519"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-hacl-rs",
+ "libcrux-macros",
+ "libcrux-secrets",
+ "libcrux-traits",
+]
+
+[[package]]
+name = "libcrux-ecdh"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-curve25519",
+ "libcrux-p256",
+ "rand 0.9.2",
+ "tls_codec",
+]
+
+[[package]]
+name = "libcrux-ed25519"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-hacl-rs",
+ "libcrux-macros",
+ "libcrux-sha2",
+ "rand_core 0.9.3",
+ "tls_codec",
+]
+
+[[package]]
+name = "libcrux-hacl-rs"
+version = "0.0.4"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-macros",
+]
+
+[[package]]
+name = "libcrux-hkdf"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-hacl-rs",
+ "libcrux-hmac",
+ "libcrux-secrets",
+]
+
+[[package]]
+name = "libcrux-hmac"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-hacl-rs",
+ "libcrux-macros",
+ "libcrux-sha2",
+]
+
+[[package]]
+name = "libcrux-intrinsics"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "core-models",
+ "hax-lib",
+]
+
+[[package]]
+name = "libcrux-kem"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-curve25519",
+ "libcrux-ecdh",
+ "libcrux-ml-kem",
+ "libcrux-p256",
+ "libcrux-sha3",
+ "libcrux-traits",
+ "rand 0.9.2",
+ "tls_codec",
+]
+
+[[package]]
+name = "libcrux-macros"
+version = "0.0.3"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "quote",
+ "syn 2.0.106",
+]
+
+[[package]]
+name = "libcrux-ml-dsa"
+version = "0.0.6"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "core-models",
+ "hax-lib",
+ "libcrux-intrinsics",
+ "libcrux-macros",
+ "libcrux-platform",
+ "libcrux-sha3",
+ "tls_codec",
+]
+
+[[package]]
+name = "libcrux-ml-kem"
+version = "0.0.6"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "hax-lib",
+ "libcrux-intrinsics",
+ "libcrux-platform",
+ "libcrux-secrets",
+ "libcrux-sha3",
+ "libcrux-traits",
+ "rand 0.9.2",
+ "tls_codec",
+]
+
+[[package]]
+name = "libcrux-p256"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-hacl-rs",
+ "libcrux-macros",
+ "libcrux-secrets",
+ "libcrux-sha2",
+ "libcrux-traits",
+]
+
+[[package]]
+name = "libcrux-platform"
+version = "0.0.3"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "libcrux-poly1305"
+version = "0.0.4"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-hacl-rs",
+ "libcrux-macros",
+]
+
+[[package]]
+name = "libcrux-psq"
+version = "0.0.6"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-aesgcm",
+ "libcrux-chacha20poly1305",
+ "libcrux-ecdh",
+ "libcrux-ed25519",
+ "libcrux-hkdf",
+ "libcrux-hmac",
+ "libcrux-kem",
+ "libcrux-ml-dsa",
+ "libcrux-ml-kem",
+ "libcrux-sha2",
+ "libcrux-traits",
+ "rand 0.9.2",
+ "tls_codec",
+]
+
+[[package]]
+name = "libcrux-secrets"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "hax-lib",
+]
+
+[[package]]
+name = "libcrux-sha2"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-hacl-rs",
+ "libcrux-macros",
+ "libcrux-traits",
+]
+
+[[package]]
+name = "libcrux-sha3"
+version = "0.0.6"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "hax-lib",
+ "libcrux-intrinsics",
+ "libcrux-platform",
+ "libcrux-traits",
+]
+
+[[package]]
+name = "libcrux-traits"
+version = "0.0.5"
+source = "git+https://github.com/cryspen/libcrux#6a8cb267f85e46ad00dac29e901c51aa71b2313d"
+dependencies = [
+ "libcrux-secrets",
+ "rand 0.9.2",
+]
 
 [[package]]
 name = "libdbus-sys"
@@ -3864,6 +4173,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_enum"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1207a7e20ad57b847bbddc6776b968420d38292bbfe2089accff5e19e82454c"
+dependencies = [
+ "num_enum_derive",
+ "rustversion",
+]
+
+[[package]]
+name = "num_enum_derive"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff32365de1b6743cb203b710788263c44a03de03802daf96092f2da4fe6ba4d7"
+dependencies = [
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.106",
+]
+
+[[package]]
 name = "num_threads"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3875,7 +4206,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bs58",
  "cosmrs",
@@ -3924,7 +4255,7 @@ dependencies = [
 [[package]]
 name = "nym-authenticator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bincode",
  "futures",
@@ -3947,7 +4278,7 @@ dependencies = [
 [[package]]
 name = "nym-authenticator-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -3971,7 +4302,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "async-trait",
  "log",
@@ -3989,7 +4320,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "const-str",
  "log",
@@ -4004,7 +4335,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.1.15"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -4063,7 +4394,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-config-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -4079,7 +4410,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-gateways-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4099,7 +4430,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-surb-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4118,7 +4449,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4140,7 +4471,7 @@ dependencies = [
 [[package]]
 name = "nym-compact-ecash"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -4163,7 +4494,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "dirs",
  "handlebars",
@@ -4196,7 +4527,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4211,7 +4542,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-proxy-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -4232,7 +4563,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4253,7 +4584,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -4272,7 +4603,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -4296,7 +4627,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bls12_381",
  "nym-compact-ecash",
@@ -4315,7 +4646,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "aead",
  "aes",
@@ -4325,6 +4656,7 @@ dependencies = [
  "bs58",
  "cipher",
  "ctr",
+ "curve25519-dalek",
  "digest 0.10.7",
  "ed25519-dalek",
  "generic-array 0.14.7",
@@ -4424,7 +4756,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4438,7 +4770,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-signer-check-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-coconut-dkg-common",
  "nym-crypto",
@@ -4454,7 +4786,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-time"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -4463,7 +4795,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "serde",
  "serde_json",
@@ -4504,7 +4836,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "futures",
  "getrandom 0.2.16",
@@ -4568,7 +4900,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bs58",
  "futures",
@@ -4598,7 +4930,7 @@ dependencies = [
 [[package]]
 name = "nym-group-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -4610,7 +4942,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "async-trait",
  "bincode",
@@ -4642,7 +4974,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client-macro"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -4654,7 +4986,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bincode",
  "serde",
@@ -4665,7 +4997,7 @@ dependencies = [
 [[package]]
 name = "nym-id"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -4678,7 +5010,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bincode",
  "bytes",
@@ -4694,7 +5026,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bincode",
  "bytes",
@@ -4725,6 +5057,69 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-kkt"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
+dependencies = [
+ "blake3",
+ "classic-mceliece-rust",
+ "libcrux-ecdh",
+ "libcrux-kem",
+ "libcrux-ml-kem",
+ "libcrux-psq",
+ "libcrux-sha3",
+ "libcrux-traits",
+ "nym-crypto",
+ "rand 0.9.2",
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "nym-lp"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
+dependencies = [
+ "ansi_term",
+ "bincode",
+ "bs58",
+ "bytes",
+ "chacha20poly1305",
+ "dashmap",
+ "libcrux-kem",
+ "libcrux-psq",
+ "libcrux-traits",
+ "num_enum",
+ "nym-crypto",
+ "nym-kkt",
+ "nym-lp-common",
+ "nym-sphinx",
+ "parking_lot",
+ "rand 0.8.5",
+ "rand 0.9.2",
+ "serde",
+ "sha2 0.10.9",
+ "snow",
+ "thiserror 2.0.17",
+ "tls_codec",
+ "tracing",
+ "utoipa",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-lp-common"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
+
+[[package]]
+name = "nym-lp-transport"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "nym-macos"
 version = "1.24.0-beta"
 dependencies = [
@@ -4736,7 +5131,7 @@ dependencies = [
 [[package]]
 name = "nym-metrics"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -4747,7 +5142,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "dashmap",
  "futures",
@@ -4761,7 +5156,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4782,7 +5177,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4798,7 +5193,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "cargo_metadata 0.19.2",
  "dotenvy",
@@ -4806,6 +5201,8 @@ dependencies = [
  "regex",
  "schemars 0.8.22",
  "serde",
+ "serde_json",
+ "tracing",
  "url",
  "utoipa",
 ]
@@ -4813,7 +5210,7 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "celes",
  "humantime-serde",
@@ -4837,7 +5234,7 @@ dependencies = [
 [[package]]
 name = "nym-noise"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "arc-swap",
  "bytes",
@@ -4858,7 +5255,7 @@ dependencies = [
 [[package]]
 name = "nym-noise-keys"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-crypto",
  "schemars 0.8.22",
@@ -4869,7 +5266,7 @@ dependencies = [
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -4899,7 +5296,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "log",
  "thiserror 2.0.17",
@@ -4908,7 +5305,7 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "blake3",
  "chacha20",
@@ -4926,7 +5323,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "pem",
  "tracing",
@@ -4936,7 +5333,7 @@ dependencies = [
 [[package]]
 name = "nym-performance-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4962,17 +5359,23 @@ dependencies = [
 [[package]]
 name = "nym-registration-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
+ "bytes",
  "futures",
  "nym-authenticator-client",
  "nym-bandwidth-controller",
  "nym-credential-storage",
  "nym-credentials-interface",
+ "nym-crypto",
  "nym-ip-packet-client",
+ "nym-lp",
+ "nym-lp-transport",
  "nym-registration-common",
  "nym-sdk",
  "nym-validator-client",
+ "nym-wireguard-types",
+ "rand 0.8.5",
  "thiserror 2.0.17",
  "tokio",
  "tokio-util",
@@ -4984,12 +5387,14 @@ dependencies = [
 [[package]]
 name = "nym-registration-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-authenticator-requests",
+ "nym-credentials-interface",
  "nym-crypto",
  "nym-ip-packet-requests",
  "nym-sphinx",
+ "nym-wireguard-types",
  "serde",
  "tokio-util",
 ]
@@ -5020,7 +5425,7 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5075,7 +5480,7 @@ dependencies = [
 [[package]]
 name = "nym-serde-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -5087,7 +5492,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-requests-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "serde",
  "thiserror 2.0.17",
@@ -5096,7 +5501,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "async-trait",
  "log",
@@ -5120,7 +5525,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "anyhow",
  "dirs",
@@ -5153,7 +5558,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bytes",
  "futures",
@@ -5168,7 +5573,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bincode",
  "log",
@@ -5184,7 +5589,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-crypto",
  "nym-metrics",
@@ -5210,7 +5615,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -5227,7 +5632,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -5238,7 +5643,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -5256,7 +5661,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "dashmap",
  "log",
@@ -5275,7 +5680,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -5293,7 +5698,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-anonymous-replies",
@@ -5305,9 +5710,10 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "bytes",
+ "cfg-if",
  "nym-sphinx-acknowledgements",
  "nym-sphinx-addressing",
  "nym-sphinx-forwarding",
@@ -5321,7 +5727,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -5332,7 +5738,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -5342,7 +5748,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -5387,7 +5793,7 @@ dependencies = [
 [[package]]
 name = "nym-statistics-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "futures",
  "log",
@@ -5412,7 +5818,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "cfg-if",
  "futures",
@@ -5429,7 +5835,7 @@ dependencies = [
 [[package]]
 name = "nym-ticketbooks-merkle"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -5444,7 +5850,7 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -5464,7 +5870,7 @@ dependencies = [
 [[package]]
 name = "nym-upgrade-mode-check"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "jwt-simple",
  "nym-crypto",
@@ -5481,7 +5887,7 @@ dependencies = [
 [[package]]
 name = "nym-validator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5531,7 +5937,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "0.7.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5977,7 +6383,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-private-metadata-client"
 version = "1.0.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "async-trait",
  "nym-http-api-client",
@@ -5988,7 +6394,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-private-metadata-shared"
 version = "1.0.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "axum 0.7.9",
  "bincode",
@@ -6002,7 +6408,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "base64 0.22.1",
  "nym-crypto",
@@ -6247,6 +6653,12 @@ name = "paste"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
+
+[[package]]
+name = "pastey"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b867cad97c0791bbd3aaa6472142568c6c9e8f71937e98379f584cfb0cf35bec"
 
 [[package]]
 name = "peg"
@@ -8013,6 +8425,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha3"
+version = "0.10.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75872d278a8f37ef87fa0ddbda7802605cb18344497949862c0d4dcb291eba60"
+dependencies = [
+ "digest 0.10.7",
+ "keccak",
+]
+
+[[package]]
 name = "sharded-slab"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8338,7 +8760,7 @@ dependencies = [
 [[package]]
 name = "sqlx-pool-guard"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "proc_pidinfo",
  "sqlx",
@@ -8905,6 +9327,27 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "tls_codec"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0de2e01245e2bb89d6f05801c564fa27624dbd7b1846859876c7dad82e90bf6b"
+dependencies = [
+ "tls_codec_derive",
+ "zeroize",
+]
+
+[[package]]
+name = "tls_codec_derive"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d2e76690929402faae40aebdda620a2c0e25dd6d3b9afe48867dfd95991f4bd"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.106",
+]
 
 [[package]]
 name = "tokio"
@@ -10092,7 +10535,7 @@ dependencies = [
 [[package]]
 name = "wasm-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.1-niolo#99e2798791a76fc169a94b7ef39e95f2124d576c"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
 dependencies = [
  "futures",
  "getrandom 0.2.16",

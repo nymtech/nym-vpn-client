@@ -886,6 +886,10 @@ pub enum Error {
 
     #[error("failed to configure probe due to missing IPv4 interface address")]
     ProbeRequiresIPv4Addr,
+
+    // Temporary until we support `RegistrationResult::Lp()`
+    #[error("invalid tunnel type")]
+    InvalidTunnelType,
 }
 
 impl Error {
@@ -928,6 +932,7 @@ impl Error {
             Self::CreateIcmpProbe(e) => ErrorStateReason::Internal(e.to_string()),
             Self::CreateTcpProbe(e) => ErrorStateReason::Internal(e.to_string()),
             Self::ProbeRequiresIPv4Addr => ErrorStateReason::Internal(self.to_string()),
+            Self::InvalidTunnelType => ErrorStateReason::Internal(self.to_string()),
         })
     }
 }

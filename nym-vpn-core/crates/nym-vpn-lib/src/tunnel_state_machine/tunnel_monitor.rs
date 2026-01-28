@@ -42,7 +42,7 @@ use nym_connection_monitor::{
 };
 use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
-    RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
+    RegistrationMode, RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
 };
 use nym_registration_common::NymNode;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
@@ -84,7 +84,7 @@ use crate::{
             mixnet,
             transports::{self, TransportError},
             wireguard::{
-                self, ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
+                ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
                 connected_tunnel::ConnectedTunnel,
             },
         },
@@ -502,6 +502,7 @@ impl TunnelMonitor {
                     .map(Into::into),
                 ip_address: entry_ip,
                 version: selected_gateways.entry_gateway().version.clone().into(),
+                lp_address: None,
             },
             keys: selected_gateways.entry_keypair().clone(),
         };
@@ -516,6 +517,7 @@ impl TunnelMonitor {
                     .map(Into::into),
                 ip_address: exit_ip,
                 version: selected_gateways.exit_gateway().version.clone().into(),
+                lp_address: None,
             },
             keys: selected_gateways.exit_keypair().clone(),
         };
@@ -527,13 +529,17 @@ impl TunnelMonitor {
             .borrow()
             .clone();
         let nym_network = network_env.nym_network.network.clone();
+        let mode = match self.tunnel_parameters.tunnel_settings.tunnel_type {
+            TunnelType::Mixnet => RegistrationMode::Mixnet,
+            TunnelType::Wireguard => RegistrationMode::Wireguard,
+        };
         let rcb_config_builder = RegistrationClientBuilderConfig::builder()
             .entry_node(entry_node)
             .exit_node(exit_node)
             .data_path(self.tunnel_parameters.nym_config.data_path.clone())
             .mixnet_client_config(mixnet_client_config)
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
-            .two_hops(self.tunnel_parameters.tunnel_settings.tunnel_type == TunnelType::Wireguard)
+            .mode(mode)
             .user_agent(user_agent)
             .custom_topology_provider(Box::new(
                 self.custom_topology_provider.make_topology_provider(),
@@ -578,6 +584,9 @@ impl TunnelMonitor {
                     entry: WireguardNode::from(result.entry_gateway_data.clone()),
                     exit: WireguardNode::from(result.exit_gateway_data.clone()),
                 })
+            }
+            RegistrationResult::Lp(_) => {
+                return Err(Error::InvalidTunnelType);
             }
         };
         let connection_data = Box::new(EstablishConnectionData {
@@ -680,6 +689,9 @@ impl TunnelMonitor {
                     mixnet_client_token,
                     bridge_close_tx,
                 )
+            }
+            RegistrationResult::Lp(_) => {
+                return Err(Error::InvalidTunnelType);
             }
         };
 
@@ -1153,7 +1165,7 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     async fn start_wireguard_netstack_tunnel(
         &mut self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
@@ -1227,7 +1239,7 @@ impl TunnelMonitor {
     #[cfg(windows)]
     async fn start_wireguard_netstack_tunnel(
         &mut self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
@@ -1334,7 +1346,7 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     async fn start_wireguard_tunnel(
         &mut self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
         let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
@@ -1447,7 +1459,7 @@ impl TunnelMonitor {
     #[cfg(windows)]
     async fn start_wireguard_tunnel(
         &mut self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
         let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
@@ -1599,7 +1611,7 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "ios", target_os = "android"))]
     async fn start_wireguard_netstack_tunnel(
         &self,
-        connected_tunnel: wireguard::connected_tunnel::ConnectedTunnel,
+        connected_tunnel: ConnectedTunnel,
         entry_metadata_tx: tokio::sync::oneshot::Sender<SocketAddr>,
     ) -> Result<StartTunnelResult> {
         let mtu = connected_tunnel.exit_mtu();
