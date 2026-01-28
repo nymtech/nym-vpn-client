@@ -28,6 +28,7 @@ public struct CreateAccountWelcomeView: View {
 
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
+    @State private var isLoggingInWithPrivy = false
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -66,7 +67,8 @@ public struct CreateAccountWelcomeView: View {
             Button("ok".localizedString, role: .cancel) { }
         }
         .onReceive(appSettings.$isCredentialImportedPublisher.removeDuplicates()) { newValue in
-            guard newValue else { return }
+            guard newValue, isLoggingInWithPrivy else { return }
+            isLoggingInWithPrivy = false
             navigateHome()
         }
     }
@@ -177,13 +179,17 @@ private extension CreateAccountWelcomeView {
     }
 
     var privyLoginButton: some View {
-        GenericButton(title: "createAccount.continueOnSocial".localizedString, style: .primaryBorderOnly)
-            .onTapGesture {
-                privyLogin()
-            }
-            .accessibilityAction {
-                privyLogin()
-            }
+        GenericButton(
+            title: "createAccount.continueOnSocial".localizedString,
+            style: .primaryBorderOnly,
+            isLoading: $isLoggingInWithPrivy
+        )
+        .onTapGesture {
+            privyLogin()
+        }
+        .accessibilityAction {
+            privyLogin()
+        }
     }
 
     @ViewBuilder var alreadyHaveAnAccount: some View {
@@ -236,6 +242,7 @@ private extension CreateAccountWelcomeView {
     }
 
     func privyLogin() {
+        isLoggingInWithPrivy = true
         ImpactGenerator.shared.impact()
         Task {
             do {
