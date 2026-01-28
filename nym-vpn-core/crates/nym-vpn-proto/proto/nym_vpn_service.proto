@@ -916,6 +916,7 @@ enum DeeplinkClient {
 
 enum DeeplinkKind {
   PRIVY = 0;
+  PRIVY_EXISTING = 1;
 }
 
 service NymVpnService {
