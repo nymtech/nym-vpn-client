@@ -1406,9 +1406,9 @@ impl NymVpnService {
         let request_timeout = socks5_request_timeout();
         let idle_timeout = socks5_idle_timeout();
 
-        // For now, rotation is disabled (None) pending node-status-API // nym-vpn-api availability
-        // Future: Enable with Some(Duration::from_secs(15 * 60)) for 15-minute rotation
-        let network_requester_rotation_interval = None; // Disabled - awaiting API endpoint
+        // Enable Network Requester rotation for privacy - rotates every 15 minutes
+        // Rotation only occurs when WireGuard VPN is connected and there are no active SOCKS5 connections
+        let network_requester_rotation_interval = Some(Duration::from_secs(15 * 60)); // 15 minutes
         let gateway_cache_handle = Some(self.gateway_cache_handle.clone());
 
         // Get network details from current network environment to ensure SOCKS5 uses correct network

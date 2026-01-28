@@ -554,6 +554,7 @@ fn create_response_nym_gateway(
                     socks5: None,
                 }),
                 wg: None,
+                socks5: None,
             },
         }),
         ip_addresses: vec![],

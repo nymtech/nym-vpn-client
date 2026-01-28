@@ -583,7 +583,38 @@ impl LazySocks5 {
             }
             None => {
                 debug!("Selecting random Network Requester from gateway directory...");
-                self.select_random_network_requester().await?
+                // If random selection fails, retry with exponential backoff
+                let mut last_error = None;
+                let mut selected_nr = None;
+                for attempt in 1..=3 {
+                    match self.select_random_network_requester().await {
+                        Ok(random_nr) => {
+                            if attempt > 1 {
+                                info!(
+                                    "Successfully selected random Network Requester after {} attempt(s)",
+                                    attempt
+                                );
+                            }
+                            selected_nr = Some(random_nr);
+                            break;
+                        }
+                        Err(e) => {
+                            warn!(
+                                "Random Network Requester selection failed (attempt {}/3): {}",
+                                attempt, e
+                            );
+                            last_error = Some(e);
+                            if attempt < 3 {
+                                let delay = Duration::from_millis(500 * 2_u64.pow(attempt - 1));
+                                debug!("Retrying random selection in {:?}...", delay);
+                                sleep(delay).await;
+                            }
+                        }
+                    }
+                }
+                // If all retries failed, return the last error
+                selected_nr
+                    .ok_or_else(|| last_error.unwrap_or(LazySocks5Error::NoNetworkRequesters))?
             }
         };
 

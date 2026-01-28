@@ -21,7 +21,7 @@ pub use crate::{
         gateway::{
             Asn, AsnKind, Entry, Exit, Gateway, GatewayFilter, GatewayFilters, GatewayList,
             GatewayType, Location, LookupGatewayFilters, NymNode, NymNodeList, Performance, Probe,
-            ProbeOutcome, ScoreValue,
+            ProbeOutcome, ScoreValue, Socks5,
         },
         ipr_addresses::IpPacketRouterAddress,
     },
