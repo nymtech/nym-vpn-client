@@ -1,4 +1,6 @@
 #if os(macOS)
+import Constants
+
 extension GeneratePassphraseView {
     func generateAndRegisterMnemonic() async {
         do {
@@ -19,7 +21,7 @@ extension GeneratePassphraseView {
     }
 
     func selectPlanAction() {
-        // TODO: purchase after Privy
+        try? externalLinkManager.openExternalURL(urlString: Constants.pricingURL.rawValue)
     }
 }
 #endif

@@ -28,6 +28,8 @@ extension GeneratePassphraseView {
 // MARK: - Actions -
 extension GeneratePassphraseView {
     func generateAndRegisterMnemonic() async {
+        guard !isRegistering else { return }
+        isRegistering = true
         do {
             if appSettings.isCredentialImported {
                 try await credentialsManager.registerAccount()
@@ -35,6 +37,8 @@ extension GeneratePassphraseView {
                 try await credentialsManager.createMnemonic()
                 try await credentialsManager.registerAccount()
             }
+            didRegisterAccount = true
+            isRegistering = false
         } catch {
             Task { @MainActor in
                 if let lastVPNError = error as? VpnError {
@@ -43,10 +47,11 @@ extension GeneratePassphraseView {
                     alertTitle = error.localizedDescription
                 }
                 isAlertDisplayed = true
+                didRegisterAccount = false
+                isRegistering = false
             }
             return
         }
-        didRegisterAccount = true
     }
 
     func purchasePlanAction(with plan: Product) async {
@@ -78,6 +83,19 @@ extension GeneratePassphraseView {
                 }
                 isAlertDisplayed = true
             }
+        }
+    }
+
+    func purchasePlan(with plan: Product) {
+        guard let accountToken = credentialsManager.accountToken,
+              !accountToken.isEmpty
+        else {
+            alertTitle = "accountToken.empty".localizedString
+            isAlertDisplayed = true
+            return
+        }
+        Task {
+            await purchasePlanAction(with: plan)
         }
     }
 
