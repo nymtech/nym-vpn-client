@@ -1,7 +1,7 @@
 //! Lazy SOCKS5 wrapper that initializes the Nym mixnet on first connection.
 
 use super::util::ConnectionGuard;
-use nym_gateway_directory::GatewayCacheHandle;
+use nym_gateway_directory::{GatewayCacheHandle, ScoreValue};
 use nym_sdk::{
     NymNetworkDetails,
     mixnet::{MixnetClientBuilder, Socks5, Socks5MixnetClient, StoragePaths},
@@ -44,6 +44,8 @@ pub struct LazySocks5Config {
     pub gateway_cache_handle: Option<GatewayCacheHandle>,
     /// Network details for the mixnet client (mainnet/testnet/sandbox)
     pub network_details: Option<NymNetworkDetails>,
+    /// VPN exit gateway identity to exclude during random Network Requester selection (for privacy)
+    pub vpn_exit_gateway_identity: Option<String>,
 }
 
 /// Errors from the LazySocks5
@@ -582,7 +584,7 @@ impl LazySocks5 {
                 fixed_address.clone()
             }
             None => {
-                debug!("Selecting random Network Requester from gateway directory...");
+                info!("Selecting random Network Requester from gateway directory...");
                 // If random selection fails, retry with exponential backoff
                 let mut last_error = None;
                 let mut selected_nr = None;
@@ -594,6 +596,9 @@ impl LazySocks5 {
                                     "Successfully selected random Network Requester after {} attempt(s)",
                                     attempt
                                 );
+                            } else {
+                                // Log the selected Network Requester on first successful attempt
+                                info!("Selected random Network Requester: {}", random_nr);
                             }
                             selected_nr = Some(random_nr);
                             break;
@@ -617,6 +622,8 @@ impl LazySocks5 {
                     .ok_or_else(|| last_error.unwrap_or(LazySocks5Error::NoNetworkRequesters))?
             }
         };
+
+        info!("Using Network Requester: {}", network_requester_address);
 
         let mut socks5_config = Socks5::new(network_requester_address);
         socks5_config.send_anonymously = true;
@@ -719,12 +726,12 @@ impl LazySocks5 {
         );
 
         // Build the mixnet client with shared credentials but different identity
-        // When dVPN is connected (WireGuard mode), use entry gateway to ensure firewall compatibility.
-        // The firewall rules include the entry gateway endpoints, so using the same gateway
-        // prevents connection failures.
+        // When dVPN is connected (WireGuard mode), use VPN's entry gateway for firewall compatibility.
+        // The entry gateway is fixed, but we can route to any Network Requester (exit) for privacy.
         let tunnel_state = self.tunnel_state_shared.read().await.clone();
 
-        // Configure entry gateway if VPN is connected (for firewall compatibility)
+        // Always use VPN's entry gateway if VPN is connected (for firewall compatibility)
+        // The Network Requester (exit) is independent and can be any available Network Requester
         let requested_gateway_id = if let TunnelState::Connected { connection_data } = &tunnel_state
         {
             Some(connection_data.entry_gateway.id.clone())
@@ -732,7 +739,8 @@ impl LazySocks5 {
             None
         };
 
-        // Build and connect with requested gateway (if any)
+        // Build and connect with VPN's entry gateway (if VPN is connected)
+        // The Network Requester address in socks5_config determines the exit point
         let mixnet_client = match self
             .build_mixnet_client(
                 &socks5_storage_paths,
@@ -1143,40 +1151,127 @@ impl LazySocks5 {
             ));
         };
 
-        // Fetch all NymNodes (which have nr_address field for SOCKS5)
-        debug!("Fetching NymNodes directory for Network Requester selection");
+        // Fetch NymNodes with SOCKS5 probe data from VPN API
+        // This uses a separate method to avoid breaking existing code that depends on skimmed nodes
+        debug!("Fetching NymNodes with SOCKS5 probe data for Network Requester selection");
         let nymnodes = gateway_cache_handle
-            .lookup_all_nymnodes()
+            .lookup_nymnodes_for_socks5()
             .await
             .map_err(|e| {
-                error!("Failed to fetch NymNodes directory: {}", e);
+                error!("Failed to fetch NymNodes with SOCKS5 data: {}", e);
                 LazySocks5Error::GatewayDirectory(format!(
-                    "Failed to lookup NymNodes from gateway directory: {}. \
+                    "Failed to lookup NymNodes with SOCKS5 probe data from gateway directory: {}. \
                      Ensure gateway directory is accessible and properly configured.",
                     e
                 ))
             })?;
 
-        debug!("Fetched {} nodes from directory", nymnodes.len());
+        let total_nodes = nymnodes.len();
+        debug!("Fetched {} nodes from directory", total_nodes);
 
         // Filter nodes that have a network requester address
-        let nodes_with_nr: Vec<_> = nymnodes
-            .into_iter()
-            .filter_map(|node| {
-                node.nr_address
-                    .as_ref()
-                    .map(|nr| (node.clone(), nr.clone()))
-            })
-            .collect();
+        // Exclude VPN exit gateway for privacy (avoid correlation between VPN and SOCKS5 traffic)
+        // Filter by SOCKS5 score: prefer High, fallback to Medium (exclude Low/Offline)
+        let vpn_exit_identity = self.config.vpn_exit_gateway_identity.as_ref();
+        let mut high_score_nodes = Vec::new();
+        let mut medium_score_nodes = Vec::new();
+        let mut excluded_by_score = 0;
+
+        for node in nymnodes {
+            // Check if node has Network Requester address first
+            let nr_address = match node.nr_address.as_ref() {
+                Some(addr) => addr,
+                None => continue, // No NR address, skip
+            };
+
+            // Skip if this is the VPN exit gateway
+            if let Some(vpn_exit) = vpn_exit_identity
+                && node.identity().to_string() == *vpn_exit
+            {
+                debug!(
+                    "Excluding VPN exit gateway {} from random Network Requester selection for privacy",
+                    vpn_exit
+                );
+                continue;
+            }
+
+            // Only consider exit-capable gateways (SOCKS5 Network Requesters must be exit gateways)
+            let as_exit = node
+                .last_probe
+                .as_ref()
+                .and_then(|probe| probe.outcome.as_exit.as_ref());
+
+            if as_exit.is_none() {
+                debug!(
+                    "Excluding gateway {} - not exit-capable (no as_exit probe data)",
+                    node.identity()
+                );
+                continue;
+            }
+
+            // Filter by SOCKS5 score: prefer High, fallback to Medium (exclude Low/Offline/None)
+            let socks5_score = as_exit
+                .and_then(|exit| exit.socks5.as_ref())
+                .and_then(|socks5| socks5.score.as_ref());
+
+            match socks5_score {
+                Some(ScoreValue::High) => {
+                    // High score - preferred
+                    high_score_nodes.push((node.clone(), nr_address.clone()));
+                }
+                Some(ScoreValue::Medium) => {
+                    // Medium score - fallback option
+                    medium_score_nodes.push((node.clone(), nr_address.clone()));
+                }
+                Some(score) => {
+                    // Low or Offline - exclude
+                    excluded_by_score += 1;
+                    debug!(
+                        "Excluding node {} with low SOCKS5 score: {:?}",
+                        node.identity(),
+                        score
+                    );
+                }
+                None => {
+                    // No score data - exclude
+                    excluded_by_score += 1;
+                    debug!(
+                        "Excluding node {} with no SOCKS5 score data",
+                        node.identity()
+                    );
+                }
+            }
+        }
+
+        // Prefer High score nodes, fallback to Medium if no High available
+        let nodes_with_nr = if !high_score_nodes.is_empty() {
+            info!(
+                "Found {} High score Network Requesters (excluding {} low/no-score nodes)",
+                high_score_nodes.len(),
+                excluded_by_score
+            );
+            high_score_nodes
+        } else if !medium_score_nodes.is_empty() {
+            warn!(
+                "No High score Network Requesters available, falling back to {} Medium score nodes (excluding {} low/no-score nodes)",
+                medium_score_nodes.len(),
+                excluded_by_score
+            );
+            medium_score_nodes
+        } else {
+            error!("No Network Requesters available with High/Medium SOCKS5 scores");
+            error!(
+                "Filtered out {} nodes (low score or no score data)",
+                excluded_by_score
+            );
+            error!(
+                "This may indicate a network issue, outdated gateway cache, or all available proxies have low scores"
+            );
+            error!("Will retry selection to find better options");
+            return Err(LazySocks5Error::NoNetworkRequesters);
+        };
 
         let nr_count = nodes_with_nr.len();
-        debug!("Found {} nodes with Network Requester addresses", nr_count);
-
-        if nodes_with_nr.is_empty() {
-            error!("No Network Requesters available in gateway directory");
-            error!("This may indicate a network issue or outdated gateway cache");
-            return Err(LazySocks5Error::NoNetworkRequesters);
-        }
 
         // Select a random one
         let mut rng = rand::thread_rng();
@@ -1251,6 +1346,7 @@ mod tests {
             network_requester_rotation_interval: None,
             gateway_cache_handle: None,
             network_details: None,
+            vpn_exit_gateway_identity: None,
         }
     }
 

@@ -967,7 +967,7 @@ impl GatewayList {
         base_filters: &GatewayFilters,
     ) -> Result<Gateway> {
         for score in [ScoreValue::High, ScoreValue::Medium, ScoreValue::Low] {
-            tracing::debug!("Looking for entry gateway with minimum score: {score}");
+            tracing::debug!("Looking for exit gateway with minimum SOCKS5 score: {score}");
 
             let filters = base_filters.with(&[GatewayFilter::MinSocks5Score(score)]);
             match self.find_exit_gateway(exit_point, &filters) {
@@ -991,11 +991,11 @@ impl GatewayList {
             }),
             ExitPoint::Country {
                 two_letter_iso_country_code,
-            } => Err(Error::NoMatchingEntryGatewayForLocation {
+            } => Err(Error::NoMatchingExitGatewayForLocation {
                 requested_location: two_letter_iso_country_code.clone(),
                 available_countries: self.all_iso_codes(),
             }),
-            ExitPoint::Region { region } => Err(Error::NoMatchingEntryGatewayForLocation {
+            ExitPoint::Region { region } => Err(Error::NoMatchingExitGatewayForLocation {
                 requested_location: region.clone(),
                 available_countries: self.all_iso_codes(),
             }),

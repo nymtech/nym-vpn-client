@@ -36,6 +36,8 @@ pub struct Socks5EnableConfig {
     pub request_timeout: Duration,
     pub idle_timeout: Duration,
     pub network_details: Option<NymNetworkDetails>,
+    /// VPN exit gateway identity to exclude during random Network Requester selection (for privacy)
+    pub vpn_exit_gateway_identity: Option<String>,
 }
 
 /// SOCKS5 service errors
@@ -134,6 +136,7 @@ impl Socks5ServiceState {
             request_timeout,
             idle_timeout,
             network_details,
+            vpn_exit_gateway_identity,
         } = config;
 
         // Prevent concurrent enable calls
@@ -200,6 +203,7 @@ impl Socks5ServiceState {
             network_requester_rotation_interval,
             gateway_cache_handle,
             network_details,
+            vpn_exit_gateway_identity,
         };
         let lazy_socks5 = Arc::new(LazySocks5::new(
             config,

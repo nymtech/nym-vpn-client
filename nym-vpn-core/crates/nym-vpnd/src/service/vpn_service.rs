@@ -1194,21 +1194,26 @@ impl NymVpnService {
     ) -> Result<(), Socks5Error> {
         tracing::info!("Enabling SOCKS5 client: {:?}", enable_socks5_request);
 
-        // Get all exit gateways
+        // Get gateways from VPN API with SOCKS5 probe data
+        // This includes all VPN gateways (Wg type) with SOCKS5 scores, not just MixnetExit
         let exit_gateways: nym_gateway_directory::GatewayList = self
             .gateway_cache_handle
-            .lookup_gateways(gateway_directory::GatewayType::MixnetExit)
+            .lookup_nymnodes_for_socks5()
             .await
             .map_err(|e| {
-                Socks5Error::InvalidConfig(format!("Failed to lookup exit gateways: {}", e))
+                Socks5Error::InvalidConfig(format!(
+                    "Failed to lookup gateways with SOCKS5 data: {}",
+                    e
+                ))
             })?;
 
-        // Filter for gateways that support SOCKS5
+        // Filter for gateways that support SOCKS5 (exit-capable with probe data)
         let exit_gateways = gateway_directory::GatewayList::new(
-            Some(gateway_directory::GatewayType::MixnetExit),
+            None, // Mixed types (Wg gateways from VPN API)
             exit_gateways
                 .into_iter()
                 .filter(|gateway| {
+                    // Must be exit-capable and have SOCKS5 probe data
                     gateway
                         .last_probe
                         .as_ref()
@@ -1383,7 +1388,8 @@ impl NymVpnService {
             }
         };
 
-        // Get the gateway with nr_address from cache (or fetch if not cached)
+        // Verify the selected gateway supports SOCKS5 (has Network Requester address)
+        // Note: We don't use this NR address directly - we use random selection for privacy
         let gateway = self
             .gateway_cache_handle
             .lookup_nymnode_by_identity(gateway_identity)
@@ -1395,25 +1401,41 @@ impl NymVpnService {
                 ))
             })?;
 
-        let nr_address = gateway
-            .nr_address
-            .as_ref()
-            .ok_or(Socks5Error::GatewayNotSupported)?
-            .clone();
-
-        tracing::info!("Using network requester address {} for SOCKS5", nr_address);
+        // Verify gateway has Network Requester support (required for SOCKS5)
+        if gateway.nr_address.is_none() {
+            return Err(Socks5Error::GatewayNotSupported);
+        }
 
         let request_timeout = socks5_request_timeout();
         let idle_timeout = socks5_idle_timeout();
 
         // Enable Network Requester rotation for privacy - rotates every 15 minutes
         // Rotation only occurs when WireGuard VPN is connected and there are no active SOCKS5 connections
+        // For privacy, start with random Network Requester (None) instead of using exit gateway's NR
+        // This avoids correlation between VPN traffic and SOCKS5 traffic
         let network_requester_rotation_interval = Some(Duration::from_secs(15 * 60)); // 15 minutes
         let gateway_cache_handle = Some(self.gateway_cache_handle.clone());
+
+        // Get current VPN exit gateway identity to exclude during random selection for privacy
+        let vpn_exit_gateway_identity = {
+            let tunnel_state = self.tunnel_state.read().await;
+            if let TunnelState::Connected {
+                ref connection_data,
+            } = *tunnel_state
+            {
+                Some(connection_data.exit_gateway.id.clone())
+            } else {
+                None
+            }
+        };
 
         // Get network details from current network environment to ensure SOCKS5 uses correct network
         // Clone immediately to avoid holding watch::Ref across await (not Send)
         let network_details = Some(self.network_tx.borrow().nym_network_details().clone());
+
+        tracing::info!(
+            "Starting SOCKS5 with random Network Requester selection (excluding VPN exit gateway for privacy)"
+        );
 
         self.socks5_service
             .enable(Socks5EnableConfig {
@@ -1422,12 +1444,13 @@ impl NymVpnService {
                 http_rpc_proxy_listen_address: enable_socks5_request
                     .http_rpc_settings
                     .listen_address,
-                network_requester_address: Some(nr_address),
+                network_requester_address: None, // Start with random selection for privacy
                 network_requester_rotation_interval,
                 gateway_cache_handle,
                 request_timeout,
                 idle_timeout,
                 network_details,
+                vpn_exit_gateway_identity, // Exclude VPN exit gateway during random selection
             })
             .await?;
 
