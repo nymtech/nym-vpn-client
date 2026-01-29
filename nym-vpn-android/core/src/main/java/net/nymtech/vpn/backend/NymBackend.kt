@@ -164,7 +164,7 @@ class NymBackend private constructor(private val context: Context) :
 
 			initLogger("$storagePath/libnymvpn.logs", logLevel, config.sentryMonitoringEnabled)
 
-			initEnvironment(environment)
+			initEnvironment(environment, userAgent)
 			configureLib(config, userAgent)
 
 			initialized.complete(Unit)
@@ -215,10 +215,10 @@ class NymBackend private constructor(private val context: Context) :
 		}
 	}
 
-	private suspend fun initEnvironment(environment: Tunnel.Environment) {
+	private suspend fun initEnvironment(environment: Tunnel.Environment, userAgent: UserAgent) {
 		withContext(ioDispatcher) {
 			runCatching {
-				initEnvironment(storagePath, environment.networkName())
+				initEnvironment(storagePath, environment.networkName(), userAgent)
 				Timber.tag(TAG).i("EnvironmentInitSuccess env=%s", environment.networkName())
 			}.onFailure { t ->
 				Timber.tag(TAG).w(t, "EnvironmentInitFailed fallback=bundle_mainnet env=%s", environment.networkName())
