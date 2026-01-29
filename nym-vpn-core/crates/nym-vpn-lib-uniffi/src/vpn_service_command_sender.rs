@@ -9,8 +9,9 @@ use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    ListGatewaysOptions, NetworkCompatibility, ParsedAccountLinks, StoreAccountRequest,
-    SystemMessage, TargetState, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    GetDeeplinkParams, ListGatewaysOptions, NetworkCompatibility, ParsedAccountLinks,
+    StoreAccountRequest, SystemMessage, TargetState, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -247,14 +248,14 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
-    pub async fn get_deeplink(&self, params: GetDeepLinkParams) -> Result<String> {
+    pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String> {
         Ok(self
-            .send_and_wait(VpnServiceCommand::GetDeepLink, params)
+            .send_and_wait(VpnServiceCommand::GetDeeplink, params)
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
-    pub async fn deeplink_store_account(&self, deeplink_callback_url: String) -> Result<String> {
+    pub async fn deeplink_store_account(&self, deeplink_callback_url: String) -> Result<()> {
         Ok(self
             .send_and_wait(
                 VpnServiceCommand::DeeplinkStoreAccount,

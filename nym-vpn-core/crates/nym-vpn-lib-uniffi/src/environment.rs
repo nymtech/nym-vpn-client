@@ -13,7 +13,7 @@ use crate::error::VpnError;
 
 #[derive(Clone, uniffi::Object)]
 pub struct NymEnvironment {
-    network: nym_vpn_network_config::Network,
+    network: Box<nym_vpn_network_config::Network>,
 }
 
 impl NymEnvironment {
@@ -34,16 +34,26 @@ impl NymEnvironment {
     pub async fn new_with_cache_dir(
         cache_dir: PathBuf,
         network_name: &str,
+        user_agent: UserAgent,
     ) -> Result<Self, VpnError> {
-        nym_vpn_network_config::discover_env(
-            PathBuf::from(cache_dir)
-                .parent()
-                .ok_or(VpnError::internal("cache directory can't be root"))?,
-            network_name,
-        )
-        .await
-        .map(|network| Self { network })
-        .map_err(VpnError::internal)
+        let mut network_cache =
+            NetworkCache::new(cache_dir, network_name, Some(user_agent.into()), None)
+                .await
+                .map_err(VpnError::internal)?;
+
+        let network = if let Ok(network) = network_cache.network() {
+            network
+        } else {
+            network_cache
+                .fetch_if_stale()
+                .await
+                .map_err(|err| VpnError::FetchEnvironment {
+                    details: err.to_string(),
+                })?;
+            network_cache.network().map_err(VpnError::internal)?
+        };
+
+        Ok(Self { network })
     }
 
     /// Sets up mainnet defaults without making any network calls. This means no system messages or
@@ -51,10 +61,10 @@ impl NymEnvironment {
     #[uniffi::constructor]
     pub fn new_with_mainnet_fallback() -> Result<Self, VpnError> {
         nym_vpn_network_config::Network::mainnet_default()
-            .map(|network| Self { network })
-            .ok_or(VpnError::InternalError {
-                details: "mainnet is not consistent".to_string(),
+            .map(|network| Self {
+                network: Box::new(network),
             })
+            .map_err(VpnError::internal)
     }
 
     pub async fn __stub_to_keep_compiler_happy(&self) {
@@ -63,7 +73,7 @@ impl NymEnvironment {
 
     /// Returns the currently set network environment
     pub fn current(&self) -> Network {
-        Network::from(self.network.clone())
+        Network::from(*self.network.clone())
     }
 
     pub fn system_messages(&self) -> Vec<SystemMessage> {

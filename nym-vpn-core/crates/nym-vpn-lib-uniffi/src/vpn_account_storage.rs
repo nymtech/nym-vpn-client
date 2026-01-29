@@ -223,7 +223,7 @@ impl NymVpnAccountStorage {
         let user_agent = new_user_agent!();
         let vpn_api_client = VpnApiClient::from_network(
             self.environment.inner().nym_network_details(),
-            user_agent,
+            Some(user_agent),
             None,
         )
         .await

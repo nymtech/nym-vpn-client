@@ -390,9 +390,9 @@ impl ConnectedPolicyParameters {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use nym_firewall::TransportProtocol;
     use std::net::{IpAddr, Ipv4Addr};
+
+    use super::*;
 
     fn create_mock_gateway_with_websocket_endpoints(
         ip: Ipv4Addr,

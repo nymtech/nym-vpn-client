@@ -96,6 +96,9 @@ pub enum VpnError {
 
     #[error("deeplink error: {details}")]
     DeeplinkError { details: String },
+
+    #[error("failed to fetch environment: {details}")]
+    FetchEnvironment { details: String },
 }
 
 impl From<HttpClientError> for VpnError {

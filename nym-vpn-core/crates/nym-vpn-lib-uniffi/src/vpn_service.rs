@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use nym_vpn_lib::service::ServiceConfigStorageType;
 use nym_vpn_lib_types::TunnelEvent;
+use nym_vpn_network_config::NetworkCache;
 use tokio::{
     sync::{Mutex, broadcast, mpsc},
     task::JoinHandle,
@@ -60,12 +61,21 @@ impl NymVpnService {
 
         let network_env = environment.inner().clone();
         let shutdown_token = CancellationToken::new();
+        let network_cache = NetworkCache::new(
+            config.config_dir.clone(),
+            &environment.current().nym_network.network_name,
+            Some(config.user_agent.clone().into()),
+            None,
+        )
+        .await
+        .map_err(VpnError::internal)?;
+
         let vpn_service_params = nym_vpn_lib::service::NymVpnServiceParameters {
             // This is only needed for log removal helper
             log_path: None,
             config_dir: config.config_dir.clone(),
             data_dir: config.data_dir.clone(),
-            network_env: Box::new(network_env),
+            network_cache,
             sentry_enabled: crate::logging::is_sentry_enabled().await,
             user_agent: config.user_agent.clone().into(),
             service_storage_type,
