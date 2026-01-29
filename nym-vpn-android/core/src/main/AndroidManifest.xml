@@ -4,10 +4,8 @@
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 
-	<!--foreground service exempt android 14-->
 	<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 	<uses-permission
 		android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED"
@@ -16,6 +14,7 @@
 	<application
 		android:hardwareAccelerated="true"
 		android:largeHeap="true">
+
 		<service
 			android:name="net.nymtech.vpn.backend.service.VpnService"
 			android:exported="true"
@@ -30,14 +29,14 @@
 				android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
 				android:value="true" />
 		</service>
+
 		<service
-			android:name="net.nymtech.vpn.backend.service.StateMachineService"
-			android:enabled="true"
+			android:name="net.nymtech.vpn.backend.api.VpnApiService"
 			android:exported="false"
-			android:foregroundServiceType="systemExempted"
-			android:persistent="true"
 			android:stopWithTask="false" />
 
-		<receiver android:name=".util.notifications.StopVpnReceiver" />
+		<receiver
+			android:name="net.nymtech.vpn.util.notifications.StopVpnReceiver"
+			android:exported="false" />
 	</application>
 </manifest>

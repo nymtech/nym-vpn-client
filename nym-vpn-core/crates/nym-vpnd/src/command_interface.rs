@@ -25,7 +25,7 @@ use nym_vpn_proto::proto::{
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
-use crate::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
+use nym_vpn_lib::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
 
@@ -756,11 +756,11 @@ impl NymVpnService for CommandInterface {
         let log_path = self
             .send_and_wait(VpnServiceCommand::GetLogPath, ())
             .await?
-            .unwrap_or(crate::logging::default_log_path());
+            .map(proto::LogPath::try_from)
+            .transpose()
+            .map_err(|err| tonic::Status::internal(format!("Failed to get log path: {err}")))?;
 
-        Ok(tonic::Response::new(log_path.try_into().map_err(
-            |err| tonic::Status::internal(format!("Failed to obtain log path: {err}")),
-        )?))
+        Ok(tonic::Response::new(proto::GetLogPathResponse { log_path }))
     }
 
     async fn delete_log_file(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {

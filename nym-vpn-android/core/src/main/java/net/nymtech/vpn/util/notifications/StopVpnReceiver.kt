@@ -3,39 +3,29 @@ package net.nymtech.vpn.util.notifications
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.widget.Toast
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import net.nymtech.vpn.backend.NymBackend
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
+import net.nymtech.vpn.backend.service.VpnService
 
 class StopVpnReceiver : BroadcastReceiver() {
 
-	override fun onReceive(context: Context, intent: Intent?) = goAsync { pendingResult ->
-		val backend = NymBackend.instance as? NymBackend
-		if (backend == null) {
-			Toast.makeText(context, "VPN not running", Toast.LENGTH_SHORT).show()
-			return@goAsync
-		}
-		backend.stop()
-		GlobalScope.launch(Dispatchers.Main) {
-			Toast.makeText(context, "VPN disconnected", Toast.LENGTH_SHORT).show()
-		}
+	companion object {
+		const val ACTION_DISCONNECT = "net.nymtech.vpn.action.DISCONNECT"
 	}
-}
 
-fun BroadcastReceiver.goAsync(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.(BroadcastReceiver.PendingResult) -> Unit) {
-	val pendingResult = goAsync()
-	@OptIn(DelicateCoroutinesApi::class)
-	GlobalScope.launch(context) {
-		try {
-			block(pendingResult)
-		} finally {
-			pendingResult.finish()
+	override fun onReceive(context: Context, intent: Intent?) {
+		if (intent?.action != ACTION_DISCONNECT) return
+
+		val i = Intent(context, VpnService::class.java).apply {
+			action = ACTION_DISCONNECT
 		}
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			runCatching { context.startForegroundService(i) }
+		} else {
+			runCatching { context.startService(i) }
+		}
+
+		Toast.makeText(context, "VPN disconnect requested", Toast.LENGTH_SHORT).show()
 	}
 }

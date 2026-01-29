@@ -562,7 +562,7 @@ impl RpcClient {
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn get_log_path(&mut self) -> Result<LogPath> {
+    pub async fn get_log_path(&mut self) -> Result<Option<LogPath>> {
         let response = self
             .0
             .get_log_path(())
@@ -570,7 +570,7 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
 
-        Ok(LogPath::from(response))
+        Ok(response.log_path.map(LogPath::from))
     }
 
     pub async fn delete_log_file(&mut self) -> Result<()> {

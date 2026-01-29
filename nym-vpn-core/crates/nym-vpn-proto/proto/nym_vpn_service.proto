@@ -578,9 +578,13 @@ message ConfigChangedEvent {
   VpnServiceConfig new_config = 1;
 }
 
-message GetLogPathResponse {
+message LogPath {
   string dir = 1;
   string filename = 2;
+}
+
+message GetLogPathResponse {
+  optional LogPath log_path = 1;
 }
 
 message AccountCommandError {
@@ -840,8 +844,8 @@ message EnableSocks5Request {
 message Socks5Status {
   enum State {
     DISABLED = 0;
-    IDLE = 1;          // Enabled but no connections
-    CONNECTED = 2;     // Active connections
+    IDLE = 1; // Enabled but no connections
+    CONNECTED = 2; // Active connections
     ERROR = 3;
   }
   State state = 1;
@@ -853,12 +857,12 @@ message Socks5Status {
 
 // socks5 settings
 message Socks5Settings {
-  string listen_address = 1;  // e.g., "127.0.0.1:1080"
+  string listen_address = 1; // e.g., "127.0.0.1:1080"
 }
 
 // http rpc settings
 message HttpRpcSettings {
-  string listen_address = 1;  // e.g., "127.0.0.1:8545"
+  string listen_address = 1; // e.g., "127.0.0.1:8545"
 }
 
 message NetworkStatsResetSeedRequest {
@@ -916,114 +920,114 @@ enum DeeplinkKind {
 
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
-  rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
+  rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
 
   // Get the VPN service configuration
-  rpc GetConfig (google.protobuf.Empty) returns (GetConfigResponse) {}
+  rpc GetConfig(google.protobuf.Empty) returns (GetConfigResponse) {}
 
   // Set the VPN service configuration
-  rpc SetEntryPoint (EntryNode) returns (google.protobuf.Empty) {}
-  rpc SetExitPoint (ExitNode) returns (google.protobuf.Empty) {}
-  rpc SetDisableIpv6 (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetEnableTwoHop (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetEnableBridges (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetEnableLewesProtocol (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetNetstack (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetAllowLan (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetResidentialExit (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetEnableCustomDns (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetCustomDns (IpAddrList) returns (google.protobuf.Empty) {}
-  rpc SetMixnetTrafficConfig (MixnetTrafficConfig) returns (google.protobuf.Empty) {}
+  rpc SetEntryPoint(EntryNode) returns (google.protobuf.Empty) {}
+  rpc SetExitPoint(ExitNode) returns (google.protobuf.Empty) {}
+  rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableLewesProtocol(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableCustomDns(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetCustomDns(IpAddrList) returns (google.protobuf.Empty) {}
+  rpc SetMixnetTrafficConfig(MixnetTrafficConfig) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
-  rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
+  rpc SetNetwork(google.protobuf.StringValue) returns (google.protobuf.Empty) {}
 
   // List messages fetched from nym-vpn-api
-  rpc GetSystemMessages (google.protobuf.Empty) returns (GetSystemMessagesResponse) {}
+  rpc GetSystemMessages(google.protobuf.Empty) returns (GetSystemMessagesResponse) {}
 
   // List network compatibility client versions from nym-vpn-api
-  rpc GetNetworkCompatibility (google.protobuf.Empty) returns (GetNetworkCompatibilityResponse) {}
+  rpc GetNetworkCompatibility(google.protobuf.Empty) returns (GetNetworkCompatibilityResponse) {}
 
   // List the feature flags fetched from the nym-vpn-api
-  rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
+  rpc GetFeatureFlags(google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
   // Get the default DNS used by the daemon
-  rpc GetDefaultDns (google.protobuf.Empty) returns (IpAddrList) {}
+  rpc GetDefaultDns(google.protobuf.Empty) returns (IpAddrList) {}
 
   // Connect the tunnel
-  rpc ConnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  rpc ConnectTunnel(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Reconnect the tunnel if it had been established.
-  rpc ReconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  rpc ReconnectTunnel(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Disconnect the tunnel
-  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  rpc DisconnectTunnel(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Get the current tunnel state
-  rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}
+  rpc GetTunnelState(google.protobuf.Empty) returns (TunnelState) {}
 
   /// Listen for daemon events.
   rpc ListenToEvents(google.protobuf.Empty) returns (stream TunnelEvent) {}
 
   // List the available gateways for the selected mode
-  rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}
+  rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse) {}
 
   // Get a filtered list of gateways for the selected mode and filters
-  rpc ListFilteredGateways (LookupGatewayFilters) returns (ListGatewaysResponse) {}
+  rpc ListFilteredGateways(LookupGatewayFilters) returns (ListGatewaysResponse) {}
 
   // Store the recovery phrase, which is also the account identity and authentication
-  rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
+  rpc StoreAccount(StoreAccountRequest) returns (AccountCommandResponse) {}
 
   /// Retrieve current, on-chain, account balance
-  rpc AccountBalance (google.protobuf.Empty) returns (AccountBalanceResponse) {}
+  rpc AccountBalance(google.protobuf.Empty) returns (AccountBalanceResponse) {}
 
   // Attempt to obtain ticketbooks using the funds associated with the stored decentralised account
-  rpc DecentralisedObtainTicketbooks (DecentralisedObtainTicketbooksRequest) returns (AccountCommandResponse) {}
+  rpc DecentralisedObtainTicketbooks(DecentralisedObtainTicketbooksRequest) returns (AccountCommandResponse) {}
 
   // Check if the recovery phrase is stored
-  rpc IsAccountStored (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  rpc IsAccountStored(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Removes everything related to the account, including the device identity,
   // credential storage, mixnet keys, gateway registrations.
-  rpc ForgetAccount (google.protobuf.Empty) returns (AccountCommandResponse) {}
+  rpc ForgetAccount(google.protobuf.Empty) returns (AccountCommandResponse) {}
 
   // Force a rotation of the wireguard keys.
-  rpc RotateKeys (google.protobuf.Empty) returns (AccountCommandResponse) {}
+  rpc RotateKeys(google.protobuf.Empty) returns (AccountCommandResponse) {}
 
   // Get the account identity of the locally stored recovery phrase
-  rpc GetAccountIdentity (google.protobuf.Empty) returns (GetAccountIdentityResponse) {}
+  rpc GetAccountIdentity(google.protobuf.Empty) returns (GetAccountIdentityResponse) {}
 
   // Get the set of account links for the user
-  rpc GetAccountLinks (GetAccountLinksRequest) returns (AccountManagement) {}
+  rpc GetAccountLinks(GetAccountLinksRequest) returns (AccountManagement) {}
 
   // Query the account state, which is synced from the nym-vpn-api account, as it
   // is known and interpreted by nym-vpnd
-  rpc GetAccountState (google.protobuf.Empty) returns (AccountControllerState) {}
+  rpc GetAccountState(google.protobuf.Empty) returns (AccountControllerState) {}
 
   // The vpn client will periodically refresh the account state in the
   // background. This command triggers a manual refresh.
-  rpc RefreshAccountState (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc RefreshAccountState(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the account usage from the nym-vpn-api
-  rpc GetAccountUsage (google.protobuf.Empty) returns (GetAccountUsageResponse) {}
+  rpc GetAccountUsage(google.protobuf.Empty) returns (GetAccountUsageResponse) {}
 
   // Reset the device identity
-  rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (google.protobuf.Empty) {}
+  rpc ResetDeviceIdentity(ResetDeviceIdentityRequest) returns (google.protobuf.Empty) {}
 
   // Get the device identity
-  rpc GetDeviceIdentity (google.protobuf.Empty) returns (GetDeviceIdentityResponse) {}
+  rpc GetDeviceIdentity(google.protobuf.Empty) returns (GetDeviceIdentityResponse) {}
 
   // Get the list of devices associated with this account from the nym-vpn-api
-  rpc GetDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
+  rpc GetDevices(google.protobuf.Empty) returns (GetDevicesResponse) {}
 
   // Get the list of active devices associated with this account from the nym-vpn-api
-  rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
+  rpc GetActiveDevices(google.protobuf.Empty) returns (GetDevicesResponse) {}
 
   // Get the available tickets in the local credential store
-  rpc GetAvailableTickets (google.protobuf.Empty) returns (AvailableTickets) {}
+  rpc GetAvailableTickets(google.protobuf.Empty) returns (AvailableTickets) {}
 
   // Get the account summary
-  rpc GetAccountSummary (google.protobuf.Empty) returns (VpnAccountSummaryResponse) {}
+  rpc GetAccountSummary(google.protobuf.Empty) returns (VpnAccountSummaryResponse) {}
 
   // Get the deeplink URL
   rpc GetDeeplink (GetDeeplinkParams) returns (google.protobuf.StringValue) {}
@@ -1032,45 +1036,45 @@ service NymVpnService {
   rpc DeeplinkStoreAccount (google.protobuf.StringValue) returns (AccountCommandResponse) {}
 
   // Get the log file path
-  rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}
+  rpc GetLogPath(google.protobuf.Empty) returns (GetLogPathResponse) {}
 
   // Delete the log file
-  rpc DeleteLogFile (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DeleteLogFile(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Check if Sentry error monitoring is enabled
-  rpc IsSentryEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  rpc IsSentryEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Enable Sentry error monitoring (requires daemon restart)
-  rpc EnableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc EnableSentry(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Disable Sentry error monitoring (requires daemon restart)
-  rpc DisableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DisableSentry(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Enable/disable network statistics collection
-  rpc NetworkStatsSetEnabled (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc NetworkStatsSetEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
   // Allow/disallow disconnected network statistics collection sending
-  rpc NetworkStatsAllowDisconnected (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc NetworkStatsAllowDisconnected(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
   // Reset seed used for network statistics id
-  rpc NetworkStatsResetSeed (NetworkStatsResetSeedRequest) returns (google.protobuf.Empty) {}
+  rpc NetworkStatsResetSeed(NetworkStatsResetSeedRequest) returns (google.protobuf.Empty) {}
 
   // Get seed and Id used for network statistics
-  rpc NetworkStatsGetSeed (google.protobuf.Empty) returns (NetworkStatisticsIdentity) {}
+  rpc NetworkStatsGetSeed(google.protobuf.Empty) returns (NetworkStatisticsIdentity) {}
 
   // Enable socks5 proxy
-  rpc EnableSocks5 (EnableSocks5Request) returns (google.protobuf.Empty) {}
+  rpc EnableSocks5(EnableSocks5Request) returns (google.protobuf.Empty) {}
 
   // Disable socks5 proxy
-  rpc DisableSocks5 (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc DisableSocks5(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get socks5 proxy status
-  rpc GetSocks5Status (google.protobuf.Empty) returns (Socks5Status) {}
+  rpc GetSocks5Status(google.protobuf.Empty) returns (Socks5Status) {}
 
   // Get Privy derivation message to be signed
-  rpc GetPrivyDerivationMessage (google.protobuf.Empty) returns (PrivyDerivationMessage) {}
+  rpc GetPrivyDerivationMessage(google.protobuf.Empty) returns (PrivyDerivationMessage) {}
 
   // Diagnostic stuff
-  rpc RunDiagnostic (DiagnosticRunParams) returns (DiagnosticReport) {}
-  rpc RegisterDiagnostic (DiagnosticRegisterParams) returns (RegistrationReport) {}
+  rpc RunDiagnostic(DiagnosticRunParams) returns (DiagnosticReport) {}
+  rpc RegisterDiagnostic(DiagnosticRegisterParams) returns (RegistrationReport) {}
 }

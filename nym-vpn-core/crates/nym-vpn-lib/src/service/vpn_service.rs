@@ -13,16 +13,6 @@ use tokio::{
 use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
-use super::{
-    Socks5Error, Socks5Service, Socks5Status,
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
-        AccountLinksError, Error, GlobalConfigError, ListGatewaysError, Result, SetNetworkError,
-    },
-    socks5::Socks5EnableConfig,
-    socks5_idle_timeout, socks5_request_timeout,
-};
-use crate::{config::GlobalConfig, logging::LogFileRemoverHandle};
 use nym_common::trace_err_chain;
 use nym_gateway_directory::{GatewayFilter, GatewayFilters};
 use nym_statistics::{
@@ -33,11 +23,6 @@ use nym_vpn_account_controller::{
     AvailableTicketbooks, NyxdClient,
 };
 use nym_vpn_api_client::api_urls_to_urls;
-use nym_vpn_lib::{
-    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
-    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
-};
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
     DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
@@ -50,6 +35,27 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
+
+use super::{
+    Socks5Error, Socks5Service, Socks5Status,
+    config::{NetworkEnvironments, VpnServiceConfigManager},
+    error::{
+        AccountLinksError, Error, GlobalConfigError, ListGatewaysError, Result, SetNetworkError,
+    },
+    socks5::Socks5EnableConfig,
+    socks5_idle_timeout, socks5_request_timeout,
+};
+#[cfg(target_os = "android")]
+use crate::tunnel_provider::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use crate::tunnel_provider::OSTunProvider;
+use crate::{
+    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
+    config::GlobalConfig,
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
+    logging::LogFileRemoverHandle,
+    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -171,11 +177,29 @@ pub enum VpnServiceCommand {
     ),
 }
 
+/// Type of service configuration storage used by the VPN service.
+pub enum ServiceConfigStorageType {
+    /// Ephemeral in-memory configuration with the given initial value.
+    Ephemeral(Box<VpnServiceConfig>),
+
+    /// Persistent configuration that reads and writes service configuration from disk.
+    Persistent,
+}
+
 pub struct NymVpnServiceParameters {
     pub log_path: Option<LogPath>,
+    pub config_dir: PathBuf,
+    pub data_dir: PathBuf,
     pub network_cache: NetworkCache,
     pub sentry_enabled: bool,
     pub user_agent: UserAgent,
+    pub service_storage_type: ServiceConfigStorageType,
+    #[cfg(target_os = "ios")]
+    pub tun_provider: Arc<dyn OSTunProvider>,
+    #[cfg(target_os = "android")]
+    pub tun_provider: Arc<dyn AndroidTunProvider>,
+    #[cfg(target_os = "android")]
+    pub connectivity_monitor: Box<dyn nym_offline_monitor::NativeConnectivityAdapter + 'static>,
 }
 
 pub struct NymVpnService {
@@ -200,6 +224,9 @@ pub struct NymVpnService {
 
     // Path to the data directory
     data_dir: PathBuf,
+
+    // Path to the config directory
+    config_dir: PathBuf,
 
     // If log to file is enabled, path to the log directory and log filename
     log_path: Option<LogPath>,
@@ -235,7 +262,7 @@ pub struct NymVpnService {
     topology_service_join_handle: JoinHandle<()>,
 
     // Topology service handle
-    topology_service_handle: nym_vpn_lib::VpnTopologyServiceHandle,
+    topology_service_handle: crate::VpnTopologyServiceHandle,
 
     // Configuration Manager
     config_manager: VpnServiceConfigManager,
@@ -325,11 +352,11 @@ impl NymVpnService {
 
         let network_name = network_env.nym_network_details().network_name.clone();
 
-        let config_dir = super::config::config_dir();
-        let data_dir = super::config::data_dir();
+        let config_dir = parameters.config_dir;
+        let data_dir = parameters.data_dir;
         let network_data_dir = data_dir.join(&network_name);
 
-        let storage = nym_vpn_lib::storage::VpnClientOnDiskStorage::new(network_data_dir.clone());
+        let storage = crate::storage::VpnClientOnDiskStorage::new(network_data_dir.clone());
 
         // Make sure the data dir exists
         super::config::create_data_dir(&data_dir, &network_name)
@@ -340,21 +367,25 @@ impl NymVpnService {
         let services_shutdown_token = CancellationToken::new();
 
         #[cfg(target_os = "linux")]
-        let routing_params = nym_vpn_lib::tunnel_state_machine::RoutingParameters::default();
+        let routing_params = crate::tunnel_state_machine::RoutingParameters::default();
 
-        let route_handler = nym_vpn_lib::tunnel_state_machine::RouteHandler::new(
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        let route_handler = crate::tunnel_state_machine::RouteHandler::new(
             #[cfg(target_os = "linux")]
             routing_params,
         )
         .await
-        .map_err(nym_vpn_lib::tunnel_state_machine::Error::CreateRouteHandler)
+        .map_err(crate::tunnel_state_machine::Error::CreateRouteHandler)
         .map_err(Error::StateMachine)?;
 
         let tunnel_constants = TunnelConstants::default();
         let connectivity_handle = nym_offline_monitor::spawn_monitor(
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler.inner_handle(),
             #[cfg(target_os = "linux")]
             Some(tunnel_constants.fwmark),
+            #[cfg(target_os = "android")]
+            parameters.connectivity_monitor,
         )
         .await;
 
@@ -391,8 +422,17 @@ impl NymVpnService {
         let wireguard_keys_db = account_controller.get_wireguard_keys_storage();
         let account_controller_handle = tokio::task::spawn(account_controller.run());
 
-        let config_manager =
-            VpnServiceConfigManager::new(&config_dir, Some(tunnel_event_tx.clone())).await?;
+        let config_manager = match parameters.service_storage_type {
+            ServiceConfigStorageType::Persistent => {
+                VpnServiceConfigManager::new(&config_dir, Some(tunnel_event_tx.clone())).await?
+            }
+            ServiceConfigStorageType::Ephemeral(initial_config) => {
+                VpnServiceConfigManager::new_ephermeral(
+                    initial_config,
+                    Some(tunnel_event_tx.clone()),
+                )
+            }
+        };
 
         // Statistics collection setup
         let statistics_controller_config = config_manager.config().network_stats;
@@ -499,6 +539,8 @@ impl NymVpnService {
             wireguard_keys_db,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
+            #[cfg(any(target_os = "ios", target_os = "android"))]
+            parameters.tun_provider,
             parameters.user_agent.clone(),
             state_machine_shutdown_token.child_token(),
         )
@@ -514,6 +556,7 @@ impl NymVpnService {
             account_command_tx,
             account_state_rx,
             data_dir: network_data_dir,
+            config_dir,
             log_path: parameters.log_path,
             target_state: TargetState::Unsecured,
             tunnel_state,
@@ -727,7 +770,7 @@ impl NymVpnService {
         let _ = self.network_tx.send_replace(new_network.clone());
 
         // Update gateway cache and topology cache for new environment
-        nym_vpn_lib::cache_refresh::update_caches_for_network(
+        crate::cache_refresh::update_caches_for_network(
             &new_network,
             &self.gateway_cache_handle,
             &self.topology_service_handle,
@@ -1076,19 +1119,18 @@ impl NymVpnService {
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
-        let mut global_config =
-            GlobalConfig::read_from_default_config_dir()
-                .await
-                .map_err(|source| SetNetworkError::ReadConfig {
-                    source: source.into(),
-                })?;
+        let mut global_config = GlobalConfig::read_from_config_dir(&self.config_dir)
+            .await
+            .map_err(|source| SetNetworkError::ReadConfig {
+                source: source.into(),
+            })?;
 
         let network_selected = NetworkEnvironments::try_from(network.as_str())
             .map_err(|_err| SetNetworkError::NetworkNotFound(network.to_owned()))?;
         global_config.network_name = network_selected.to_string();
 
         global_config
-            .write_to_default_config_dir()
+            .write_to_config_dir(&self.config_dir)
             .await
             .map_err(|source| SetNetworkError::WriteConfig {
                 source: source.into(),
@@ -1468,7 +1510,7 @@ impl NymVpnService {
         &mut self,
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountCommandError> {
-        let mnemonic = nym_vpn_lib::login::parse_account_request(&store_request)
+        let mnemonic = crate::login::parse_account_request(&store_request)
             .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
         if store_request.centralised() {
             self.account_command_tx
@@ -1701,7 +1743,7 @@ impl NymVpnService {
     }
 
     async fn handle_is_sentry_enabled(&self) -> bool {
-        GlobalConfig::read_from_default_config_dir()
+        GlobalConfig::read_from_config_dir(&self.config_dir)
             .await
             .inspect_err(|e| {
                 tracing::error!("Failed to read global config file: {}", e);
@@ -1713,7 +1755,7 @@ impl NymVpnService {
     }
 
     async fn handle_toggle_sentry(&self, enable: bool) -> Result<(), GlobalConfigError> {
-        let mut config = GlobalConfig::read_from_default_config_dir()
+        let mut config = GlobalConfig::read_from_config_dir(&self.config_dir)
             .await
             .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
         config.sentry_monitoring = enable;
@@ -1726,7 +1768,8 @@ impl NymVpnService {
             }
             tracing::info!("Sentry monitoring disabled, daemon needs to be restarted");
         }
-        GlobalConfig::write_to_default_config_dir(&config)
+        config
+            .write_to_config_dir(&self.config_dir)
             .await
             .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
         Ok(())

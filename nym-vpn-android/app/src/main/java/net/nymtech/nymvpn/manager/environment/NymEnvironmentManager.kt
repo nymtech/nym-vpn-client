@@ -21,11 +21,11 @@ class NymEnvironmentManager @Inject constructor(
 		return getFeatureFlags()?.isQuicEnabled() ?: false
 	}
 
-	suspend fun getFeatureFlags(): FeatureFlags? {
+	private suspend fun getFeatureFlags(): FeatureFlags? {
 		return try {
-			backendManager.getBackend().getCurrentEnvironment().featureFlags
+			backendManager.getFeatureFlags()
 		} catch (e: Exception) {
-			Timber.e(e)
+			Timber.e(e, "EnvironmentManagerGetFeatureFlagsFailed")
 			null
 		}
 	}

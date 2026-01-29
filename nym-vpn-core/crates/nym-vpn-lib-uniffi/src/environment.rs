@@ -3,122 +3,106 @@
 
 use std::path::PathBuf;
 
-use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
     Network, NetworkCompatibility, ParsedAccountLinks, SystemMessage, UserAgent,
 };
 use nym_vpn_network_config::NetworkCache;
 
-use super::{NETWORK_ENVIRONMENT, error::VpnError};
+use crate::error::VpnError;
 
-pub(crate) async fn init_environment(
-    cache_dir: String,
-    network_name: &str,
-    user_agent: UserAgent,
-) -> Result<(), VpnError> {
-    let mut network_cache = NetworkCache::new(
-        PathBuf::from(cache_dir),
-        network_name,
-        Some(user_agent.into()),
-        None,
-    )
-    .await
-    .map_err(VpnError::internal)?;
+#[derive(Clone, uniffi::Object)]
+pub struct NymEnvironment {
+    network: Box<nym_vpn_network_config::Network>,
+}
 
-    if let Err(err) = network_cache.fetch_if_stale().await {
-        trace_err_chain!(err, "failed to fetch network environment");
+impl NymEnvironment {
+    pub fn inner(&self) -> &nym_vpn_network_config::Network {
+        &self.network
     }
 
-    let network = network_cache
-        .network()
-        .map_err(|err| VpnError::internal(err.to_string()))?;
-
-    // To bridge with old code, export to environment. New code should not rely on this.
-    network.export_to_env();
-
-    let mut guard = NETWORK_ENVIRONMENT.lock().await;
-    *guard = Some(*network);
-
-    Ok(())
+    pub fn export_to_env(&self) {
+        // To bridge with old code, export to environment. New code should not rely on this.
+        self.network.export_to_env();
+    }
 }
 
-pub(crate) async fn init_fallback_mainnet_environment() -> Result<(), VpnError> {
-    let network = nym_vpn_network_config::Network::mainnet_default().map_err(|_err| {
-        VpnError::InternalError {
-            details: "mainnet is not consistent".to_string(),
-        }
-    })?;
-    network.export_to_env();
+#[uniffi::export(async_runtime = "tokio")]
+impl NymEnvironment {
+    /// Fetches the network environment details from the network name
+    #[uniffi::constructor]
+    pub async fn new_with_cache_dir(
+        cache_dir: PathBuf,
+        network_name: &str,
+        user_agent: UserAgent,
+    ) -> Result<Self, VpnError> {
+        let mut network_cache =
+            NetworkCache::new(cache_dir, network_name, Some(user_agent.into()), None)
+                .await
+                .map_err(VpnError::internal)?;
 
-    let mut guard = NETWORK_ENVIRONMENT.lock().await;
-    *guard = Some(network);
+        let network = if let Ok(network) = network_cache.network() {
+            network
+        } else {
+            network_cache
+                .fetch_if_stale()
+                .await
+                .map_err(|err| VpnError::FetchEnvironment {
+                    details: err.to_string(),
+                })?;
+            network_cache.network().map_err(VpnError::internal)?
+        };
 
-    Ok(())
-}
+        Ok(Self { network })
+    }
 
-pub(crate) async fn current_environment() -> Result<Network, VpnError> {
-    current_environment_details().await.map(Network::from)
-}
+    /// Sets up mainnet defaults without making any network calls. This means no system messages or
+    /// account links will be available.
+    #[uniffi::constructor]
+    pub fn new_with_mainnet_fallback() -> Result<Self, VpnError> {
+        nym_vpn_network_config::Network::mainnet_default()
+            .map(|network| Self {
+                network: Box::new(network),
+            })
+            .map_err(VpnError::internal)
+    }
 
-pub(super) async fn current_environment_details()
--> Result<nym_vpn_network_config::Network, VpnError> {
-    NETWORK_ENVIRONMENT
-        .lock()
-        .await
-        .clone()
-        .ok_or(VpnError::InvalidStateError {
-            details: "Network environment not set".to_string(),
-        })
-}
+    pub async fn __stub_to_keep_compiler_happy(&self) {
+        // todo: remove after updating to uniffi 0.31
+    }
 
-pub(crate) async fn get_system_messages() -> Result<Vec<SystemMessage>, VpnError> {
-    current_environment_details().await.map(|network| {
-        network
+    /// Returns the currently set network environment
+    pub fn current(&self) -> Network {
+        Network::from(*self.network.clone())
+    }
+
+    pub fn system_messages(&self) -> Vec<SystemMessage> {
+        self.network
             .nym_vpn_network
             .system_messages
-            .into_current_iter()
+            .current_iter()
+            .cloned()
             .map(SystemMessage::from)
             .collect()
-    })
-}
+    }
 
-pub(crate) async fn get_network_compatibility() -> Result<Option<NetworkCompatibility>, VpnError> {
-    current_environment_details().await.map(|network| {
-        network
+    pub fn network_compatibility(&self) -> Option<NetworkCompatibility> {
+        self.network
             .system_configuration
-            .and_then(|sc| sc.min_supported_app_versions)
+            .as_ref()
+            .and_then(|sc| sc.min_supported_app_versions.clone())
             .map(NetworkCompatibility::from)
-    })
-}
+    }
 
-pub(crate) async fn get_account_links(locale: &str) -> Result<ParsedAccountLinks, VpnError> {
-    let account_id = super::account::get_account_id().await?;
-    current_environment_details()
-        .await
-        .and_then(|network| {
-            network
-                .nym_vpn_network
-                .try_into_parsed_links(locale, account_id.as_deref())
-                .map_err(VpnError::internal)
-        })
-        .map(ParsedAccountLinks::from)
-}
-
-pub(crate) async fn get_account_links_raw(
-    path: &str,
-    locale: &str,
-) -> Result<ParsedAccountLinks, VpnError> {
-    // If the account ID is not found, we are not logged in, so we don't need to pass it to the
-    // API. But we can still get the links that don't require an account ID.
-    let account_id = super::account::raw::get_account_id_raw(path).await.ok();
-
-    current_environment_details()
-        .await
-        .and_then(|network| {
-            network
-                .nym_vpn_network
-                .try_into_parsed_links(locale, account_id.as_deref())
-                .map_err(VpnError::internal)
-        })
-        .map(ParsedAccountLinks::from)
+    pub fn account_links(
+        &self,
+        locale: &str,
+        account_id: Option<String>,
+    ) -> Result<ParsedAccountLinks, VpnError> {
+        self.network
+            .nym_vpn_network
+            .clone()
+            .try_into_parsed_links(locale, account_id.as_deref())
+            .map_err(VpnError::internal)
+            .map(ParsedAccountLinks::from)
+    }
 }

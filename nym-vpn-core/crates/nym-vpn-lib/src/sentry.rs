@@ -4,8 +4,6 @@
 use sentry::{ClientInitGuard, Level};
 use std::{borrow::Cow, sync::Arc, time::Duration};
 
-use crate::{config::GlobalConfig, environment};
-
 static EXCLUDED_ERRORS: [&str; 6] = [
     "offline",
     "client is not authenticated",
@@ -15,12 +13,8 @@ static EXCLUDED_ERRORS: [&str; 6] = [
     "connection timed out",
 ];
 
-pub async fn init_sentry() -> Option<ClientInitGuard> {
-    if !GlobalConfig::sentry_enabled().await {
-        return None;
-    }
-
-    let Some(dsn) = environment::sentry_dsn() else {
+pub fn init_sentry() -> Option<ClientInitGuard> {
+    let Some(dsn) = sentry_dsn() else {
         eprintln!("failed to init sentry: SENTRY_DSN is not set");
         return None;
     };
@@ -65,4 +59,19 @@ pub async fn init_sentry() -> Option<ClientInitGuard> {
     });
 
     Some(guard)
+}
+
+// Note: desktop and mobile apps use different env variable to access DSN
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub fn sentry_dsn() -> Option<String> {
+    std::env::var("SENTRY_DSN")
+        .ok()
+        .or_else(|| option_env!("SENTRY_DSN").map(|s| s.to_string()))
+}
+
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub fn sentry_dsn() -> Option<String> {
+    std::env::var("VPNLIB_SENTRY_DSN")
+        .ok()
+        .or_else(|| option_env!("VPNLIB_SENTRY_DSN").map(|s| s.to_string()))
 }

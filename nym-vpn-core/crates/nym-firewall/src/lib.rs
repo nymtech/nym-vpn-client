@@ -201,6 +201,7 @@ impl FirewallPolicy {
         }
     }
 
+    #[cfg(not(target_os = "android"))]
     pub fn dns_config(&self) -> Option<&ResolvedDnsConfig> {
         match self {
             FirewallPolicy::Connecting { dns_config, .. }

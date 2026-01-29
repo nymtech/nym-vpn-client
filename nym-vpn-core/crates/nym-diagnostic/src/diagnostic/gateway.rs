@@ -5,7 +5,7 @@ use crate::error::{Error, Result};
 
 use nym_crypto::asymmetric::ed25519;
 use nym_gateway_directory::{Gateway, GatewayClient};
-use nym_vpn_lib::new_user_agent;
+use nym_platform_metadata::new_user_agent;
 use nym_vpn_lib_types::{DiagnosticResult, GatewayReport};
 use nym_vpn_network_config::Network;
 

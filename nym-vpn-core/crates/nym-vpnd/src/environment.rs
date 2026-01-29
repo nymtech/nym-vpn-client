@@ -8,7 +8,7 @@ pub async fn setup_environment(
     network_name: &str,
     user_agent: UserAgent,
 ) -> anyhow::Result<NetworkCache> {
-    let cache_dir = crate::service::config_dir();
+    let cache_dir = crate::paths::config_dir();
 
     tracing::info!("Setting up environment for {network_name}");
 
@@ -23,10 +23,4 @@ pub async fn setup_environment(
     }
 
     Ok(network_cache)
-}
-
-pub fn sentry_dsn() -> Option<String> {
-    std::env::var("SENTRY_DSN")
-        .ok()
-        .or_else(|| option_env!("SENTRY_DSN").map(|s| s.to_string()))
 }
