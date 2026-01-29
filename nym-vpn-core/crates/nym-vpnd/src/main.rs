@@ -11,7 +11,7 @@ mod windows_service;
 
 use anyhow::Context;
 use clap::Parser;
-use nym_vpn_network_config::{Network, NetworkCache};
+use nym_vpn_network_config::NetworkCache;
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
