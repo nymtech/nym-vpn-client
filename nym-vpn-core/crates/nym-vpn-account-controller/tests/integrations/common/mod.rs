@@ -148,16 +148,21 @@ impl DeviceKeyStore for MockEphemeralStorage {
 impl AccountInformationStorage for MockEphemeralStorage {
     type StorageError = InMemoryAccountStorageError;
 
-    async fn load_account(&self) -> Result<Option<StorableAccount>, Self::StorageError> {
-        self.mnemonic_storage.load_account().await
+    async fn load_accounts(&self) -> Result<Vec<StorableAccount>, Self::StorageError> {
+        self.mnemonic_storage.load_accounts().await
     }
 
     async fn store_account(&self, account: StorableAccount) -> Result<(), Self::StorageError> {
         self.mnemonic_storage.store_account(account).await
     }
 
-    async fn remove_account(&self) -> Result<(), Self::StorageError> {
-        self.mnemonic_storage.remove_account().await
+    async fn remove_account(
+        &self,
+        stored_account_mode: Option<StoredAccountMode>,
+    ) -> Result<(), Self::StorageError> {
+        self.mnemonic_storage
+            .remove_account(stored_account_mode)
+            .await
     }
 }
 
@@ -314,8 +319,13 @@ impl TestBench {
         Ok(())
     }
 
-    pub async fn forget_account(&self) -> anyhow::Result<()> {
-        self.command_sender.forget_account().await?;
+    pub async fn forget_account(
+        &self,
+        stored_account_mode: Option<StoredAccountMode>,
+    ) -> anyhow::Result<()> {
+        self.command_sender
+            .forget_account(stored_account_mode)
+            .await?;
         Ok(())
     }
 

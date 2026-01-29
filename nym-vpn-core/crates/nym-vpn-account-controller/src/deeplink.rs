@@ -46,7 +46,7 @@ impl Deeplink {
         let pubkey = bs58::encode(self.keypair.public_key().to_bytes()).into_string();
         let existing_user = match self.kind {
             DeeplinkKind::Privy => "0",
-            DeeplinkKind::PrivyExisting => "1",
+            DeeplinkKind::PrivyAssociate => "1",
         };
         let mut url = base_url.clone();
         url.query_pairs_mut()

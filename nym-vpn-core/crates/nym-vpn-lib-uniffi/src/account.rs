@@ -190,31 +190,33 @@ impl NymAccountController {
             .map_err(VpnError::from)
     }
 
-    /// Register the stored account.
-    pub async fn register_account(
-        &self,
-        args: AccountRegistrationArgs,
-    ) -> Result<RegisterAccountResponse, VpnError> {
-        let mnemonic = self
-            .command_sender
-            .get_stored_account()
-            .await
-            .map_err(VpnError::from)?
-            .ok_or(VpnError::NoAccountStored)?;
-        let platform = Platform::try_from(args)?;
-        self.command_sender
-            .register_account(mnemonic, platform)
-            .await
-            .map_err(VpnError::from)
-    }
+pub(super) async fn register_account(
+    args: crate::AccountRegistrationArgs,
+) -> Result<RegisterAccountResponse, VpnError> {
+    let stored_accounts = get_command_sender().await?.get_stored_accounts().await?;
 
-    /// Remove the account mnemonic and all associated keys and files
-    pub async fn forget_account(&self) -> Result<(), VpnError> {
-        self.command_sender
-            .forget_account()
-            .await
-            .map_err(VpnError::from)
-    }
+    let Some(stored_account) = stored_accounts
+        .into_iter()
+        .find(|account| account.mode == StoredAccountMode::Api)
+    else {
+        return Err(VpnError::NoAccountStored);
+    };
+
+    let platform = Platform::try_from(args)?;
+    get_command_sender()
+        .await?
+        .register_account(stored_account, platform)
+        .await
+        .map_err(VpnError::from)
+}
+
+pub(super) async fn forget_account() -> Result<(), VpnError> {
+    get_command_sender()
+        .await?
+        .forget_account(Some(StoredAccountMode::Api))
+        .await
+        .map_err(VpnError::from)
+}
 
     /// Force a rotation of the wireguard keys
     pub async fn rotate_keys(&self) -> Result<(), VpnError> {
@@ -234,6 +236,18 @@ impl NymAccountController {
         Ok(self.command_sender.get_account_id().await?.is_some())
     }
 
+pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
+    let stored_accounts = get_command_sender().await?.get_stored_accounts().await?;
+
+    let Some(stored_account) = stored_accounts
+        .into_iter()
+        .find(|account| account.mode == StoredAccountMode::Api)
+    else {
+        return Err(VpnError::NoAccountStored);
+    };
+
+    Ok(stored_account.mnemonic.to_string())
+}
     /// Read and return the mnemonic, if there's one stored.
     pub async fn get_stored_mnemonic(&self) -> Result<String, VpnError> {
         Ok(self
@@ -263,7 +277,7 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
 
 pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
     let base_url = match params.kind {
-        DeeplinkKind::Privy | DeeplinkKind::PrivyExisting => {
+        DeeplinkKind::Privy | DeeplinkKind::PrivyAssociate => {
             let Some(ref account_management) = current_environment_details()
                 .await
                 .ok()
@@ -395,7 +409,7 @@ impl TryFrom<AccountRegistrationArgs> for nym_vpn_api_client::types::Platform {
 
     pub(crate) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
         let base_url = match params.kind {
-            DeeplinkKind::Privy | DeeplinkKind::PrivyExisting => {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyAssociate => {
                 let Some(ref account_management) = current_environment_details()
                     .await
                     .ok()

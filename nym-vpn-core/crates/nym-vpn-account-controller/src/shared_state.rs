@@ -42,7 +42,7 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     pub(crate) nyxd_client: NyxdClient,
 
     /// Stored account
-    pub(crate) vpn_api_account: Option<Arc<VpnAccount>>,
+    pub(crate) vpn_account: Option<Arc<VpnAccount>>,
 
     /// Account summary
     pub(crate) vpn_account_summary: Option<VpnAccountSummary>,
@@ -86,7 +86,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             wireguard_keys_storage,
             vpn_api_client,
             nyxd_client,
-            vpn_api_account: vpn_api_account.map(Arc::new),
+            vpn_account: vpn_api_account.map(Arc::new),
             vpn_account_summary: None,
             device,
             deeplinks,

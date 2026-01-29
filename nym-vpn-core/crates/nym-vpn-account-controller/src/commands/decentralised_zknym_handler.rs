@@ -22,7 +22,7 @@ pub(crate) async fn handle_obtain_ticketbooks<C: ConnectivityMonitor>(
     amount: u64,
 ) -> Result<(), AccountCommandError> {
     info!("attempting to obtain {amount} ticketbooks of each type");
-    let Some(account) = shared_state.vpn_api_account.as_ref() else {
+    let Some(account) = shared_state.vpn_account.as_ref() else {
         return Err(AccountCommandError::NoAccountStored);
     };
 
@@ -86,7 +86,7 @@ pub(crate) async fn handle_account_balance<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Vec<Coin>, AccountCommandError> {
     info!("retrieving account balance");
-    let Some(account) = shared_state.vpn_api_account.as_ref() else {
+    let Some(account) = shared_state.vpn_account.as_ref() else {
         return Err(AccountCommandError::NoAccountStored);
     };
     shared_state

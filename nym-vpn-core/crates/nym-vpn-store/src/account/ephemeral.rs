@@ -1,13 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{AccountInformationStorage, StoredAccount};
-use crate::types::StorableAccount;
+use super::{AccountInformationStorage, StoredAccount, StoredAccounts};
+use crate::types::{StorableAccount, StoredAccountMode};
 use tokio::sync::Mutex;
 
 #[derive(Default)]
 pub struct InMemoryAccountStorage {
-    account: Mutex<Option<StoredAccount>>,
+    accounts: Mutex<StoredAccounts>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -23,49 +23,50 @@ pub enum InMemoryAccountStorageError {
 impl AccountInformationStorage for InMemoryAccountStorage {
     type StorageError = InMemoryAccountStorageError;
 
+    async fn load_accounts(&self) -> Result<Vec<StorableAccount>, InMemoryAccountStorageError> {
+        let guard = self.accounts.lock().await;
+        Ok(guard
+            .0
+            .values()
+            .map(|stored| StorableAccount {
+                mnemonic: stored.mnemonic.clone(),
+                mode: stored.mode,
+            })
+            .collect())
+    }
+
     async fn store_account(
         &self,
         account: StorableAccount,
     ) -> Result<(), InMemoryAccountStorageError> {
-        let name = "default".to_string();
-        let nonce = 0;
         let stored_account = StoredAccount {
-            name,
+            name: "default".to_string(),
             mnemonic: account.mnemonic,
             mode: account.mode,
-            nonce,
+            nonce: 0,
         };
-        let mut handle = self.account.lock().await;
 
-        // Store the mnemonic if it's currently None
-        if handle.is_none() {
-            *handle = Some(stored_account);
-            Ok(())
-        } else {
-            Err(InMemoryAccountStorageError::MnemonicAlreadyStored)
-        }
+        let mut guard = self.accounts.lock().await;
+        guard.0.insert(stored_account.mode, stored_account);
+        Ok(())
     }
 
-    async fn load_account(&self) -> Result<Option<StorableAccount>, InMemoryAccountStorageError> {
-        Ok(self
-            .account
-            .lock()
-            .await
-            .as_ref()
-            .map(|stored| StorableAccount {
-                mnemonic: stored.mnemonic.clone(),
-                mode: stored.mode,
-            }))
-    }
+    async fn remove_account(
+        &self,
+        stored_account_mode: Option<StoredAccountMode>,
+    ) -> Result<(), InMemoryAccountStorageError> {
+        let mut guard = self.accounts.lock().await;
 
-    async fn remove_account(&self) -> Result<(), InMemoryAccountStorageError> {
-        let mut handle = self.account.lock().await;
-
-        if handle.is_some() {
-            *handle = None;
-            Ok(())
+        if let Some(stored_account_mode) = stored_account_mode {
+            if guard.0.contains_key(&stored_account_mode) {
+                guard.0.remove(&stored_account_mode);
+                Ok(())
+            } else {
+                Err(InMemoryAccountStorageError::NoMnemonicStored)
+            }
         } else {
-            Err(InMemoryAccountStorageError::NoMnemonicStored)
+            guard.0.clear();
+            Ok(())
         }
     }
 }
@@ -82,15 +83,15 @@ mod tests {
         let storage = InMemoryAccountStorage::default();
         storage.store_account(account.clone()).await.unwrap();
 
-        let loaded_mnemonic = storage.load_account().await.unwrap();
-        assert_eq!(loaded_mnemonic, Some(account));
+        let loaded_accounts = storage.load_accounts().await.unwrap();
+        assert_eq!(loaded_accounts, vec![account]);
     }
 
     #[tokio::test]
-    async fn load_non_existing_mnemonic_returns_none() {
+    async fn load_non_existing_mnemonic_returns_empty_vec() {
         let storage = InMemoryAccountStorage::default();
 
-        let loaded_mnemonic = storage.load_account().await.unwrap();
-        assert_eq!(loaded_mnemonic, None);
+        let loaded_accounts = storage.load_accounts().await.unwrap();
+        assert!(loaded_accounts.is_empty());
     }
 }

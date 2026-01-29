@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use serde::{Deserialize, Serialize};
-use std::error::Error;
+use std::{collections::HashMap, error::Error};
 
 pub mod ephemeral;
 pub mod on_disk;
@@ -14,13 +14,37 @@ pub use bip39::Mnemonic;
 pub trait AccountInformationStorage {
     type StorageError: Error + Send + Sync + 'static;
 
-    async fn load_account(&self) -> Result<Option<StorableAccount>, Self::StorageError>; // None means no error, but no mnemonic stored
+    async fn load_accounts(&self) -> Result<Vec<StorableAccount>, Self::StorageError>;
+
     async fn store_account(&self, account: StorableAccount) -> Result<(), Self::StorageError>;
-    async fn remove_account(&self) -> Result<(), Self::StorageError>;
-    async fn is_account_stored(&self) -> Result<bool, Self::StorageError> {
-        self.load_account()
-            .await
-            .map(|maybe_account| maybe_account.is_some())
+
+    /// If `stored_account_mode` is `None` then remove all the accounts
+    async fn remove_account(
+        &self,
+        stored_account_mode: Option<StoredAccountMode>,
+    ) -> Result<(), Self::StorageError>;
+
+    async fn is_account_stored(
+        &self,
+        stored_account_mode: StoredAccountMode,
+    ) -> Result<bool, Self::StorageError> {
+        let accounts = self.load_accounts().await?;
+        Ok(accounts
+            .iter()
+            .any(|account| account.mode == stored_account_mode))
+    }
+}
+
+// There is some duplication here as `StoredAccount` already contains the `StoredAccountMode`,
+// however this does enforce storage of only one account of each type.
+#[derive(Default, Serialize, Deserialize)]
+struct StoredAccounts(HashMap<StoredAccountMode, StoredAccount>);
+
+impl StoredAccounts {
+    fn with_account(account: StoredAccount) -> Self {
+        let mut accounts = HashMap::new();
+        accounts.insert(account.mode, account);
+        StoredAccounts(accounts)
     }
 }
 

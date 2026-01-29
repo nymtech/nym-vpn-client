@@ -15,7 +15,7 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{
     AccountCommandError, DeeplinkKind, RegisterAccountResponse, VpnAccountSummary,
 };
-use nym_vpn_store::types::StorableAccount;
+use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::instrument;
 use url::Url;
@@ -88,7 +88,7 @@ impl AccountCommandSender {
     pub async fn forget_account(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::ForgetAccount(tx))
+            .send(AccountCommand::ForgetAccount(tx, stored_account_mode))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

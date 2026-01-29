@@ -45,7 +45,7 @@ impl From<bip39::Mnemonic> for StorableAccount {
 }
 
 /// Defines the mode of operation of the associated account.
-#[derive(Debug, Default, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Default, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum StoredAccountMode {
     /// Account works in the API mode, i.e. the subscription is managed
@@ -56,6 +56,10 @@ pub enum StoredAccountMode {
     /// Account works in the decentralised mode, i.e. there is no associated subscription
     /// and the account uses its own funds for obtaining required ticketbooks
     Decentralised,
+
+    /// Account works in the API mode, however the mnemonic is derived from
+    /// the Privy wallet private key
+    Privy,
 }
 
 #[cfg(test)]

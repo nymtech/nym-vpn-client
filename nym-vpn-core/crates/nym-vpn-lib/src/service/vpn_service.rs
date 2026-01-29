@@ -1512,18 +1512,18 @@ impl NymVpnService {
     ) -> Result<(), AccountCommandError> {
         let mnemonic = crate::login::parse_account_request(&store_request)
             .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
-        if store_request.centralised() {
-            self.account_command_tx
-                .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
-                .await
-        } else {
-            self.account_command_tx
-                .store_account(StorableAccount::new(
-                    mnemonic,
-                    StoredAccountMode::Decentralised,
-                ))
-                .await
-        }
+
+        // Note, it's unusual for the request to be Privy as logging-in is handled
+        // using deeplinks.
+        let stored_account_mode = match store_request {
+            StoreAccountRequest::Vpn { .. } => StoredAccountMode::Api,
+            StoreAccountRequest::Privy { .. } => StoredAccountMode::Privy,
+            StoreAccountRequest::Decentralised { .. } => StoredAccountMode::Decentralised,
+        };
+
+        self.account_command_tx
+            .store_account(StorableAccount::new(mnemonic, stored_account_mode))
+            .await
     }
 
     async fn handle_decentralised_balance(&mut self) -> AccountBalanceResponse {
@@ -1575,7 +1575,9 @@ impl NymVpnService {
             .await
             .inspect_err(|e| tracing::error!("Failed to reset networks stats seed: {e}"));
 
-        self.account_command_tx.forget_account().await
+        self.account_command_tx
+            .forget_account(Some(StoredAccountMode::Api))
+            .await
     }
 
     async fn handle_rotate_keys(&mut self) -> Result<(), AccountCommandError> {
@@ -1696,7 +1698,7 @@ impl NymVpnService {
         params: GetDeeplinkParams,
     ) -> Result<String, AccountCommandError> {
         let base_url = match params.kind {
-            DeeplinkKind::Privy | DeeplinkKind::PrivyExisting => {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyAssociate => {
                 let Some(ref account_management) =
                     self.network_tx.borrow().nym_vpn_network.account_management
                 else {
@@ -1732,7 +1734,7 @@ impl NymVpnService {
             .await?;
 
         self.account_command_tx
-            .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
+            .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Privy))
             .await
     }
 

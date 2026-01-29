@@ -65,7 +65,7 @@ impl RequestingZkNymsState {
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
-        let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
+        let Some(vpn_api_account) = shared_state.vpn_account.clone() else {
             return LoggedOutState::enter();
         };
         let Some(device) = shared_state.device.clone() else {
@@ -316,9 +316,9 @@ impl RequestingZkNymsState {
                 let res = handler::handle_register_account(shared_state, account, platform).await;
                 return_sender.send(res);
             }
-            AccountCommand::ForgetAccount(return_sender) => {
+            AccountCommand::ForgetAccount(return_sender, stored_account_mode) => {
                 self.zk_nym_fetching_handle.abort();
-                let res = handler::handle_forget_account(shared_state).await;
+                let res = handler::handle_forget_account(shared_state, stored_account_mode).await;
                 let error = res.is_err();
                 return_sender.send(res);
                 return if error {

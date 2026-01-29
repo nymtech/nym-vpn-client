@@ -60,7 +60,7 @@ impl SyncingState {
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
-        let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
+        let Some(vpn_api_account) = shared_state.vpn_account.clone() else {
             return LoggedOutState::enter();
         };
         if vpn_api_account.mode().is_decentralised() {
@@ -243,8 +243,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         let res = handler::handle_register_account(shared_state, account, platform).await;
                         return_sender.send(res);
                     }
-                    AccountCommand::ForgetAccount(return_sender) => {
-                        let res = handler::handle_forget_account(shared_state).await;
+                    AccountCommand::ForgetAccount(return_sender, stored_account_mode) => {
+                        let res = handler::handle_forget_account(shared_state, stored_account_mode).await;
                         let error = res.is_err();
                         return_sender.send(res);
                         return if error {

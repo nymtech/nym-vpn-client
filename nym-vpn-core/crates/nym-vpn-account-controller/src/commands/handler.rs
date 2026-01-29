@@ -1,8 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
-
 use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
@@ -11,9 +9,11 @@ use nym_vpn_api_client::{
     types::{DeviceStatus, Platform, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnApiError};
-use nym_vpn_store::{account::StorableAccount, keys::wireguard::WireguardKeyStore};
+use nym_vpn_store::{
+    account::StorableAccount, keys::wireguard::WireguardKeyStore, types::StoredAccountMode,
+};
+use std::sync::Arc;
 use tracing::info;
-
 // The onus of making sure the conditions are right to call these handlers is on the caller
 
 async fn ensure_account_exists_on_chain<C: ConnectivityMonitor>(
@@ -66,7 +66,7 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage)?; // Storage error
 
-    shared_state.vpn_api_account = Some(Arc::new(vpn_account));
+    shared_state.vpn_account = Some(Arc::new(vpn_account));
     shared_state.device = Some(device);
 
     tracing::debug!("Account stored!");
@@ -92,7 +92,7 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage)?; // Storage error
 
-    shared_state.vpn_api_account = Some(Arc::new(vpn_account));
+    shared_state.vpn_account = Some(Arc::new(vpn_account));
     shared_state.device = Some(device);
     tracing::debug!("Account created and stored");
 
@@ -119,8 +119,38 @@ pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
 
 pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
+    stored_account_mode: Option<StoredAccountMode>,
 ) -> Result<(), AccountCommandError> {
-    tracing::info!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
+    let vpn_account_mode = stored_account_mode.map(|mode| mode.into());
+
+    // If we aren't using this account at the moment, then we just need to remove the mnemonic
+    // from storage.  Otherwise if we are using it, we need to go full nuke mode.
+    let using_account = if let Some(vpn_account_mode) = vpn_account_mode {
+        match shared_state.vpn_account {
+            Some(ref current_account) => current_account.mode() == vpn_account_mode,
+            None => false,
+        }
+    } else {
+        shared_state.vpn_account.is_some()
+    };
+
+    if let Some(stored_account_mode) = stored_account_mode {
+        tracing::info!("Removing {stored_account_mode:?} account");
+    } else {
+        tracing::info!("Removing all accounts");
+    }
+
+    // Removing mnemonic and keys in storage
+    let (tx, rx) = ReturnSender::new();
+    shared_state
+        .storage_op_sender
+        .send(AccountStorageOp::ForgetAccount(tx, stored_account_mode))
+        .map_err(AccountCommandError::internal)?;
+
+    if !using_account {
+        // Nothing more to do as we weren't using that account anyway
+        return Ok(());
+    }
 
     // Tunnel state is checked before sending the command here. We're in Disconnected state
 
@@ -158,13 +188,6 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
                 tracing::error!("Failed to remove files for account: {err:?}");
             });
 
-    // Removing mnemonic and keys in storage
-    let (tx, rx) = ReturnSender::new();
-    shared_state
-        .storage_op_sender
-        .send(AccountStorageOp::ForgetAccount(tx))
-        .map_err(AccountCommandError::internal)?;
-
     rx.await
         .map_err(AccountCommandError::internal)? // Handling channel error
         .map_err(|source| {
@@ -173,7 +196,7 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
         })?; // Handling account removal error
 
     // Once we have removed or reset all storage, we need to reset the account state
-    shared_state.vpn_api_account = None;
+    shared_state.vpn_account = None;
     shared_state.device = None;
     shared_state.vpn_account_summary = None;
     shared_state.nyxd_client.disconnect();
@@ -212,7 +235,7 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
         .ok_or(AccountCommandError::NoDeviceStored)?;
 
     let account = shared_state
-        .vpn_api_account
+        .vpn_account
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 

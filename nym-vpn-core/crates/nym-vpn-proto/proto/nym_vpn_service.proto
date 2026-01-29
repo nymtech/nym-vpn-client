@@ -711,7 +711,7 @@ message DecentralisedAccountStoreRequest {
 }
 
 message PrivyAccountStoreRequest {
-  string hex_signature = 1;
+  string mnemonic = 1;
 }
 
 message DecentralisedObtainTicketbooksRequest {
@@ -916,7 +916,7 @@ enum DeeplinkClient {
 
 enum DeeplinkKind {
   PRIVY = 0;
-  PRIVY_EXISTING = 1;
+  PRIVY_ASSOCIATE = 1;
 }
 
 service NymVpnService {

@@ -5,6 +5,7 @@ use crate::common::{TestBench, account_summary::*, endpoints, nyxd_endpoints};
 
 use nym_vpn_api_client::response::NymVpnDeviceStatus;
 use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerState};
+use nym_vpn_store::types::StoredAccountMode;
 
 /// How to use these tests :
 ///
@@ -68,7 +69,9 @@ async fn offline_test() -> anyhow::Result<()> {
         .assert_state(AccountControllerState::ReadyToConnect)
         .await;
 
-    test_bench.forget_account().await?;
+    test_bench
+        .forget_account(Some(StoredAccountMode::Api))
+        .await?;
     test_bench
         .assert_state(AccountControllerState::LoggedOut)
         .await;
@@ -343,7 +346,9 @@ async fn decentralised_account_test() -> anyhow::Result<()> {
         .assert_state(AccountControllerState::Decentralised)
         .await;
 
-    test_bench.forget_account().await?;
+    test_bench
+        .forget_account(Some(StoredAccountMode::Api))
+        .await?;
     test_bench
         .assert_state(AccountControllerState::LoggedOut)
         .await;

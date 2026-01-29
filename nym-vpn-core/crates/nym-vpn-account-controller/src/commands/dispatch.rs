@@ -9,7 +9,7 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
-use nym_vpn_store::account::StorableAccount;
+use nym_vpn_store::{account::StorableAccount, types::StoredAccountMode};
 use tokio::sync::oneshot;
 
 #[derive(Debug, strum::Display)]
@@ -28,7 +28,10 @@ pub enum AccountCommand {
     ),
 
     /// Delete the stored account and every associated data
-    ForgetAccount(ReturnSender<(), AccountCommandError>),
+    ForgetAccount(
+        ReturnSender<(), AccountCommandError>,
+        Option<StoredAccountMode>,
+    ),
 
     /// Rotate the wireguard keys
     RotateKeys(ReturnSender<(), AccountCommandError>),
@@ -64,7 +67,7 @@ impl AccountCommand {
             AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
-            AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::ForgetAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
@@ -73,7 +76,7 @@ impl AccountCommand {
             AccountCommand::VpnApiFirewallUp(return_sender) => return_sender.send(Err(error)),
             AccountCommand::VpnApiFirewallDown(return_sender) => return_sender.send(Err(error)),
             AccountCommand::Common(common_command) => match common_command {
-                CommonCommand::GetStoredAccount(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetStoredAccounts(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetUsage(return_sender) => return_sender.send(Err(error)),
@@ -105,7 +108,7 @@ impl AccountCommand {
 #[derive(Debug, strum::Display)]
 pub enum CommonCommand {
     /// Returns Some(account) if an account is stored, None otherwise
-    GetStoredAccount(ReturnSender<Option<StorableAccount>, AccountCommandError>),
+    GetStoredAccounts(ReturnSender<Vec<StorableAccount>, AccountCommandError>),
 
     /// Returns Some(address) if an account is stored, None otherwise
     GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),

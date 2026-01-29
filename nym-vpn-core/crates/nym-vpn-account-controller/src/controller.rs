@@ -1,16 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_api_client::VpnApiClient;
-use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
-use nym_vpn_store::{VpnStorage, keys::wireguard::WireguardKeysDb};
-use tokio::sync::{
-    mpsc::{self, UnboundedReceiver, UnboundedSender},
-    watch,
-};
-use tokio_util::sync::CancellationToken;
-
 use crate::{
     AccountCommandSender, AccountControllerConfig, AccountControllerEventSender,
     AccountStateReceiver, NyxdClient,
@@ -23,6 +13,15 @@ use crate::{
     },
     storage::{AccountStorage, AccountStorageOp, VpnCredentialStorage},
 };
+use nym_offline_monitor::ConnectivityMonitor;
+use nym_vpn_api_client::{VpnApiClient, types::VpnAccountMode};
+use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
+use nym_vpn_store::{VpnStorage, keys::wireguard::WireguardKeysDb};
+use tokio::sync::{
+    mpsc::{self, UnboundedReceiver, UnboundedSender},
+    watch,
+};
+use tokio_util::sync::CancellationToken;
 
 pub struct AccountController<C, S>
 where
@@ -89,7 +88,29 @@ where
         let credential_storage =
             VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?;
 
-        let vpn_api_account = account_storage.load_vpn_account().await?;
+        let vpn_accounts = account_storage.load_vpn_accounts().await?;
+
+        // This selection process is overcomplicated because `VpnAccount` doesn't implement `Clone` or `Copy`,
+        // and we want to prioritise API accounts over Privy accounts if both are present.
+        let has_api_account = vpn_accounts
+            .iter()
+            .any(|account| account.mode() == VpnAccountMode::Api);
+        let has_privy_account = vpn_accounts
+            .iter()
+            .any(|account| account.mode() == VpnAccountMode::Privy);
+
+        let vpn_account = if has_api_account {
+            vpn_accounts
+                .into_iter()
+                .find(|account| account.mode() == VpnAccountMode::Api)
+        } else if has_privy_account {
+            vpn_accounts
+                .into_iter()
+                .find(|account| account.mode() == VpnAccountMode::Privy)
+        } else {
+            None
+        };
+
         let device_keys = account_storage.load_device_keys().await?;
 
         let wireguard_keys_storage = WireguardKeysDb::init(Some(config.data_dir.clone())).await?;
@@ -102,7 +123,7 @@ where
             wireguard_keys_storage,
             nym_vpn_api_client,
             nyxd_client,
-            vpn_api_account,
+            vpn_account,
             device_keys,
             storage_op_sender,
             event_channel,
@@ -158,7 +179,7 @@ where
     fn print_info(&self) {
         let account_id = self
             .shared_state
-            .vpn_api_account
+            .vpn_account
             .as_ref()
             .map(|account| account.id())
             .unwrap_or_else(|| "(unset)".to_string());

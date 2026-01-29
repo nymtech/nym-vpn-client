@@ -361,7 +361,7 @@ impl From<DeeplinkKind> for proto::DeeplinkKind {
     fn from(value: DeeplinkKind) -> Self {
         match value {
             DeeplinkKind::Privy => proto::DeeplinkKind::Privy,
-            DeeplinkKind::PrivyExisting => proto::DeeplinkKind::PrivyExisting,
+            DeeplinkKind::PrivyAssociate => proto::DeeplinkKind::PrivyAssociate,
         }
     }
 }
@@ -370,7 +370,7 @@ impl From<proto::DeeplinkKind> for DeeplinkKind {
     fn from(value: proto::DeeplinkKind) -> Self {
         match value {
             proto::DeeplinkKind::Privy => DeeplinkKind::Privy,
-            proto::DeeplinkKind::PrivyExisting => DeeplinkKind::PrivyExisting,
+            proto::DeeplinkKind::PrivyAssociate => DeeplinkKind::PrivyAssociate,
         }
     }
 }
