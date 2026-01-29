@@ -358,17 +358,14 @@ class NymBackend private constructor(private val context: Context) :
 				name = "default",
 			)
 			initialized.await()
-			// todo: implement deep link
-			//commandSender!!.getDeeplink(params)
-			""
+			commandSender!!.getDeeplink(params)
 		}
 	}
 
 	override suspend fun deeplinkStoreAccount(link: String) {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			// todo: implement storing deep link
-			//commandSender!!.deeplinkStoreAccount(link)
+			commandSender!!.deeplinkStoreAccount(link)
 		}
 	}
 
