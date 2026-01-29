@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand},
     deeplink::CreateDeeplinkParams,
+    AvailableTicketbooks,
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
-    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
+    ResolverOverrides,
 };
 use nym_vpn_lib_types::{
     AccountCommandError, DeeplinkKind, RegisterAccountResponse, VpnAccountSummary,
@@ -55,10 +55,10 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
-    pub async fn get_stored_account(&self) -> Result<Option<StorableAccount>, AccountCommandError> {
+    pub async fn get_stored_accounts(&self) -> Result<Vec<StorableAccount>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::Common(CommonCommand::GetStoredAccount(tx)))
+            .send(AccountCommand::Common(CommonCommand::GetStoredAccounts(tx)))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
@@ -85,7 +85,10 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
-    pub async fn forget_account(&self) -> Result<(), AccountCommandError> {
+    pub async fn forget_account(
+        &self,
+        stored_account_mode: Option<StoredAccountMode>,
+    ) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::ForgetAccount(tx, stored_account_mode))

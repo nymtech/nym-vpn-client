@@ -252,7 +252,7 @@ pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
     pub async fn get_stored_mnemonic(&self) -> Result<String, VpnError> {
         Ok(self
             .command_sender
-            .get_stored_account()
+            .get_stored_accounts()
             .await
             .map_err(VpnError::from)?
             .ok_or(VpnError::NoAccountStored)?
