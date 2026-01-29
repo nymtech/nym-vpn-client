@@ -99,7 +99,11 @@ async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
     let remove_log_file_signal = logging_setup
         .as_ref()
         .map(|s| s.log_file_remover_handle.clone());
-    let run_parameters = RunParameters::new_with_cli_args(args, log_path, sentry_enabled);
+    let run_parameters = RunParameters {
+        user_agent: args.user_agent.unwrap_or_else(|| new_user_agent!()),
+        log_path,
+        sentry_enabled,
+    };
 
     nym_vpn_lib::log_software_and_os_version();
     if sentry_enabled {
@@ -151,16 +155,6 @@ struct RunParameters {
     log_path: Option<LogPath>,
     sentry_enabled: bool,
     user_agent: UserAgent,
-}
-
-impl RunParameters {
-    fn new_with_cli_args(args: CliArgs, log_path: Option<LogPath>, sentry_enabled: bool) -> Self {
-        Self {
-            log_path,
-            sentry_enabled,
-            user_agent: args.user_agent.unwrap_or_else(|| new_user_agent!()),
-        }
-    }
 }
 
 /// Run vpn service as a standalone process.
