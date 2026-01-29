@@ -211,6 +211,7 @@ async fn spawn_vpn_service(
             tracing::error!("Failed to join on vpn service: {}", e);
         }
 
+        tracing::info!("Cancelling command token");
         command_shutdown_token.cancel();
         if let Err(e) = command_handle.await {
             tracing::error!("Failed to join on command interface: {}", e);
