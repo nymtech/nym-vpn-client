@@ -67,17 +67,6 @@ import org.semver4j.Semver
 import timber.log.Timber
 import java.util.Locale
 
-internal class MyTunProvider: AndroidTunProvider {
-	override fun bypass(socket: Int) {
-		// todo: implement
-	}
-
-	override fun configureTunnel(config: TunnelNetworkSettings): Int {
-		// todo: implement
-		return -1
-	}
-}
-
 class NymBackend private constructor(private val context: Context) :
 	Backend,
 	TunnelStatusListener,
@@ -259,8 +248,6 @@ class NymBackend private constructor(private val context: Context) :
 
 	private suspend fun configureLib(settings: SettingsConfig, userAgent: UserAgent) {
 		withContext(ioDispatcher) {
-			val tunProvider = MyTunProvider()
-
 			val config = VpnConfig(
 				configDir = storagePath,
 				dataDir = storagePath,
@@ -278,7 +265,7 @@ class NymBackend private constructor(private val context: Context) :
 				// todo: wire up config
 				residentialExit = false,
 				userAgent = userAgent,
-				tunProvider = tunProvider,
+				tunProvider = this@NymBackend,
 				connectivityMonitor = this@NymBackend
 			)
 
