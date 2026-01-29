@@ -90,6 +90,7 @@ impl From<proto::AsExit> for nym_vpn_lib_types::Exit {
             can_route_ip_external_v4: exit.can_route_ip_external_v4,
             can_route_ip_v6: exit.can_route_ip_v6,
             can_route_ip_external_v6: exit.can_route_ip_external_v6,
+            socks5: None, // SOCKS5 data comes from API, not from proto
         }
     }
 }

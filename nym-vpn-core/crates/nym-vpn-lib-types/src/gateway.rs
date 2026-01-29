@@ -739,6 +739,22 @@ pub struct Entry {
     pub can_route: bool,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct Socks5 {
+    pub can_proxy_https: bool,
+    pub score: Option<Score>,
+    pub errors: Option<Vec<String>>,
+}
+
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(
@@ -755,6 +771,7 @@ pub struct Exit {
     pub can_route_ip_external_v4: bool,
     pub can_route_ip_v6: bool,
     pub can_route_ip_external_v6: bool,
+    pub socks5: Option<Socks5>,
 }
 
 #[derive(Debug, Clone)]
@@ -883,6 +900,17 @@ impl From<nym_gateway_directory::Entry> for Entry {
 }
 
 #[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::Socks5> for Socks5 {
+    fn from(socks5: nym_gateway_directory::Socks5) -> Self {
+        Self {
+            can_proxy_https: socks5.can_proxy_https,
+            score: socks5.score.map(Score::from),
+            errors: socks5.errors,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Exit> for Exit {
     fn from(exit: nym_gateway_directory::Exit) -> Self {
         Self {
@@ -891,6 +919,7 @@ impl From<nym_gateway_directory::Exit> for Exit {
             can_route_ip_external_v4: exit.can_route_ip_external_v4,
             can_route_ip_v6: exit.can_route_ip_v6,
             can_route_ip_external_v6: exit.can_route_ip_external_v6,
+            socks5: exit.socks5.map(Socks5::from),
         }
     }
 }

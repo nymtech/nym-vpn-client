@@ -98,7 +98,10 @@ impl HttpRpc {
                     match result {
                         Ok((stream, addr)) => {
                             debug!("Accepted HTTP RPC connection from {}", addr);
-                            let http_client = self.http_client.clone().unwrap();
+                            let Some(http_client) = self.http_client.clone() else {
+                                error!("HTTP client not initialized, cannot handle request");
+                                continue;
+                            };
 
                             // Spawn a task to handle this connection
                             tokio::spawn(async move {
@@ -326,7 +329,9 @@ impl HttpRpc {
 
         // Build final response
         let response_body = Full::new(response_bytes);
-        Ok(hyper_response.body(response_body).unwrap())
+        Ok(hyper_response
+            .body(response_body)
+            .expect("Response builder should never fail with valid body"))
     }
 
     /// Create an error response
@@ -334,6 +339,6 @@ impl HttpRpc {
         Response::builder()
             .status(status)
             .body(Full::new(Bytes::from(message.to_string())))
-            .unwrap()
+            .expect("Response builder should never fail with valid status and body")
     }
 }

@@ -530,6 +530,7 @@ pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
     pub wg: Option<WgProbeResults>,
+    pub socks5: Option<Socks5>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

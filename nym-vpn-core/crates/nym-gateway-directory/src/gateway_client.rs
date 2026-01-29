@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
+    collections::{HashMap, HashSet},
     fmt,
     net::{IpAddr, SocketAddr},
 };
@@ -357,6 +358,70 @@ impl GatewayClient {
             })
             .collect::<Vec<_>>();
         append_performance(&mut nodes, skimmed_nodes.nodes);
+        filter_on_mixnet_min_performance(&mut nodes, &self.min_gateway_performance);
+        Ok(GatewayList::new(None, nodes))
+    }
+
+    /// Lookup NymNodes with SOCKS5 probe data from VPN API
+    /// This is specifically for SOCKS5 Network Requester selection and includes:
+    /// - Probe data with SOCKS5 scores from VPN API
+    /// - Network Requester addresses from node descriptions
+    pub async fn lookup_nymnodes_for_socks5(&self) -> Result<NymNodeList> {
+        debug!("Fetching NymNodes from nym-vpn-api for SOCKS5 selection (with probe data)...");
+        let vpn_gateways = self
+            .vpn_api_client
+            .get_gateways(self.min_gateway_performance)
+            .await?
+            .into_inner();
+
+        // Only fetch NR addresses for the VPN gateways we actually need
+        // This avoids building a large HashMap from all described nodes
+        let gateway_identities: HashSet<String> = vpn_gateways
+            .iter()
+            .map(|gw| gw.identity_key.clone())
+            .collect();
+
+        let nr_address_map: HashMap<String, String> = self
+            .lookup_described_nodes()
+            .await?
+            .into_iter()
+            .filter_map(|node| {
+                let identity = node
+                    .description
+                    .host_information
+                    .keys
+                    .ed25519
+                    .to_base58_string();
+
+                // Only process nodes that are in our VPN gateways list
+                if !gateway_identities.contains(&identity) {
+                    return None;
+                }
+
+                node.description
+                    .network_requester
+                    .as_ref()
+                    .map(|nr| (identity, nr.address.clone()))
+            })
+            .collect();
+
+        let mut nodes: Vec<_> = vpn_gateways
+            .into_iter()
+            .filter_map(|gw| {
+                let mut gateway = Gateway::try_from(gw)
+                    .inspect_err(|err| error!("Failed to parse gateway: {err}"))
+                    .ok()?;
+
+                let identity_str = gateway.identity().to_string();
+                if let Some(nr_address) = nr_address_map.get(&identity_str) {
+                    gateway.nr_address = Some(nr_address.clone());
+                }
+
+                Some(gateway)
+            })
+            .collect();
+
+        // Filter for mixnet performance if configured
         filter_on_mixnet_min_performance(&mut nodes, &self.min_gateway_performance);
         Ok(GatewayList::new(None, nodes))
     }
