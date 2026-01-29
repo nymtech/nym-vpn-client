@@ -154,6 +154,27 @@ impl GatewayCacheHandle {
             Error::Cancelled
         })?
     }
+
+    /// Lookup NymNodes with SOCKS5 probe data from VPN API
+    /// This is specifically for SOCKS5 Network Requester selection and includes:
+    /// - Probe data with SOCKS5 scores from VPN API
+    /// - Network Requester addresses from node descriptions
+    ///
+    /// This method is separate from lookup_all_nymnodes() to avoid breaking existing code
+    /// that depends on skimmed nodes data and append_performance()
+    pub async fn lookup_nymnodes_for_socks5(&self) -> Result<NymNodeList> {
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        self.tx
+            .send(Command::LookupNymNodesForSocks5(tx))
+            .map_err(|_| {
+                tracing::error!("Gateway cache command channel closed (LookupNymNodesForSocks5)");
+                Error::Cancelled
+            })?;
+        rx.await.map_err(|_| {
+            tracing::error!("Gateway cache response channel closed (LookupNymNodesForSocks5)");
+            Error::Cancelled
+        })?
+    }
 }
 
 enum Command {
@@ -172,6 +193,7 @@ enum Command {
     ),
     LookupNymNodeByIdentity(NodeIdentity, tokio::sync::oneshot::Sender<Result<NymNode>>),
     LookupAllNymNodes(tokio::sync::oneshot::Sender<Result<NymNodeList>>),
+    LookupNymNodesForSocks5(tokio::sync::oneshot::Sender<Result<NymNodeList>>),
     ReplaceGatewayClient(Box<GatewayClient>),
     ClearCache,
 }
@@ -247,6 +269,9 @@ impl GatewayCache {
                         }
                         Command::LookupAllNymNodes(tx) => {
                             tx.send(self.refresh_nymnodes().await).ok();
+                        }
+                        Command::LookupNymNodesForSocks5(tx) => {
+                            tx.send(self.refresh_nymnodes_for_socks5().await).ok();
                         }
                         Command::ReplaceGatewayClient(gateway_client) => {
                             self.replace_gateway_client(*gateway_client)
@@ -473,6 +498,26 @@ impl GatewayCache {
         }
 
         self.cached_nymnodes = Some((refreshed_nodes.clone(), Instant::now()));
+        Ok(refreshed_nodes)
+    }
+
+    async fn refresh_nymnodes_for_socks5(&mut self) -> Result<NymNodeList> {
+        // This method uses VPN API directly (not cached) to get fresh SOCKS5 probe data
+        // It's separate from refresh_nymnodes() to avoid breaking existing code
+        let start = Instant::now();
+        let refreshed_nodes = self.gateway_client.lookup_nymnodes_for_socks5().await?;
+        let fetch_duration = start.elapsed();
+
+        let node_count = refreshed_nodes.len();
+        tracing::info!(
+            "Fetched {} NymNodes for SOCKS5 in {:?} (avg: {:?}/node)",
+            node_count,
+            fetch_duration,
+            fetch_duration
+                .checked_div(node_count as u32)
+                .unwrap_or_default()
+        );
+
         Ok(refreshed_nodes)
     }
 
