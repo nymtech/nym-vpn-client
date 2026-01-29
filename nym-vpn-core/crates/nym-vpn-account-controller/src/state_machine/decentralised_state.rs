@@ -60,8 +60,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
             }
             Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::ForgetAccount(return_sender) => {
-                        let res = handler::handle_forget_account(shared_state).await;
+                    AccountCommand::ForgetAccount(return_sender, stored_account_mode) => {
+                        let res = handler::handle_forget_account(shared_state, stored_account_mode).await;
                         let error = res.is_err();
                         return_sender.send(res);
                         if !error {
@@ -80,7 +80,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                     }
                     AccountCommand::Common(common_command) => {
                          match common_command {
-                            CommonCommand::GetStoredAccount(return_sender) => return_sender.send(common_handler::handle_get_stored_account(shared_state).await),
+                            CommonCommand::GetStoredAccounts(return_sender) => return_sender.send(common_handler::handle_get_stored_accounts(shared_state).await),
                             CommonCommand::GetDeviceIdentity(return_sender) => return_decentralised(return_sender),
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(common_handler::handle_get_account_identity(shared_state)),
                             CommonCommand::SetResolverOverrides(return_sender, resolver_overrides) => return_sender.send(common_handler::handle_set_resolver_overrides(shared_state, resolver_overrides).await),

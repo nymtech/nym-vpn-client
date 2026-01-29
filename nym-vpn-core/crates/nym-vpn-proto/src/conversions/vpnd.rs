@@ -487,7 +487,7 @@ impl TryFrom<proto::StoreAccountRequest> for StoreAccountRequest {
             }
             proto::store_account_request::Request::PrivyAccountStore(account) => {
                 nym_vpn_lib_types::StoreAccountRequest::Privy {
-                    hex_signature: account.hex_signature,
+                    mnemonic: account.mnemonic,
                 }
             }
         })
@@ -507,9 +507,9 @@ impl From<StoreAccountRequest> for proto::StoreAccountRequest {
                     proto::DecentralisedAccountStoreRequest { mnemonic },
                 )
             }
-            StoreAccountRequest::Privy { hex_signature } => {
+            StoreAccountRequest::Privy { mnemonic } => {
                 proto::store_account_request::Request::PrivyAccountStore(
-                    proto::PrivyAccountStoreRequest { hex_signature },
+                    proto::PrivyAccountStoreRequest { mnemonic },
                 )
             }
         };

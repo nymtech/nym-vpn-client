@@ -130,8 +130,8 @@ impl UpgradeModeState {
                 let res = handler::handle_register_account(shared_state, account, platform).await;
                 return_sender.send(res);
             }
-            AccountCommand::ForgetAccount(return_sender) => {
-                let res = handler::handle_forget_account(shared_state).await;
+            AccountCommand::ForgetAccount(return_sender, stored_account_mode) => {
+                let res = handler::handle_forget_account(shared_state, stored_account_mode).await;
                 let error = res.is_err();
                 return_sender.send(res);
                 return if error {

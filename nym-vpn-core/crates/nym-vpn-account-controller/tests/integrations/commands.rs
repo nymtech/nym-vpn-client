@@ -38,12 +38,12 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
         Err(AccountCommandError::NoAccountStored)
     );
 
-    assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
+    assert_eq!(test_bench.command_sender.forget_account(None).await, Ok(()));
     assert_eq!(test_bench.command_sender.rotate_keys().await, Ok(()));
     assert_eq!(test_bench.command_sender.get_account_id().await, Ok(None));
     assert_eq!(
-        test_bench.command_sender.get_stored_account().await,
-        Ok(None)
+        test_bench.command_sender.get_stored_accounts().await,
+        Ok(vec![])
     );
     assert_eq!(
         test_bench.command_sender.get_device_identity().await,
@@ -89,7 +89,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
     test_bench
         .assert_state(AccountControllerState::ReadyToConnect)
         .await;
-    test_bench.forget_account().await?; // Resetting back to logged out
+    test_bench.forget_account(None).await?; // Resetting back to logged out
 
     assert!(
         test_bench
@@ -139,7 +139,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
     );
 
     assert_eq!(
-        test_bench.command_sender.forget_account().await,
+        test_bench.command_sender.forget_account(None).await,
         Err(AccountCommandError::Offline)
     );
 
@@ -177,8 +177,8 @@ async fn offline_state_command() -> anyhow::Result<()> {
     // Offline, no account stored
     assert_eq!(test_bench.command_sender.get_account_id().await, Ok(None));
     assert_eq!(
-        test_bench.command_sender.get_stored_account().await,
-        Ok(None)
+        test_bench.command_sender.get_stored_accounts().await,
+        Ok(vec![])
     );
     assert_eq!(
         test_bench.command_sender.get_device_identity().await,
@@ -202,8 +202,8 @@ async fn offline_state_command() -> anyhow::Result<()> {
         Ok(Some(mock_account_id()))
     );
     assert_eq!(
-        test_bench.command_sender.get_stored_account().await,
-        Ok(Some(mock_account(StoredAccountMode::Api)))
+        test_bench.command_sender.get_stored_accounts().await,
+        Ok(vec![mock_account(StoredAccountMode::Api)])
     );
     assert!(
         test_bench
@@ -218,7 +218,9 @@ async fn offline_state_command() -> anyhow::Result<()> {
     test_bench
         .assert_state(AccountControllerState::ReadyToConnect)
         .await;
-    test_bench.forget_account().await?;
+    test_bench
+        .forget_account(Some(StoredAccountMode::Api))
+        .await?;
     test_bench.go_offline()?;
     test_bench
         .assert_state(AccountControllerState::Offline)
@@ -285,8 +287,8 @@ async fn ready_state_command() -> anyhow::Result<()> {
         Ok(Some(mock_account_id()))
     );
     assert_eq!(
-        test_bench.command_sender.get_stored_account().await,
-        Ok(Some(mock_account(StoredAccountMode::Api)))
+        test_bench.command_sender.get_stored_accounts().await,
+        Ok(vec![mock_account(StoredAccountMode::Api)])
     );
     assert!(
         test_bench
@@ -351,7 +353,13 @@ async fn ready_state_command() -> anyhow::Result<()> {
         Err(AccountCommandError::ExistingAccount)
     );
 
-    assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
+    assert_eq!(
+        test_bench
+            .command_sender
+            .forget_account(Some(StoredAccountMode::Api))
+            .await,
+        Ok(())
+    );
     assert_eq!(test_bench.command_sender.rotate_keys().await, Ok(()));
     test_bench
         .assert_state(AccountControllerState::LoggedOut)
@@ -403,8 +411,8 @@ async fn error_state_command() -> anyhow::Result<()> {
         Ok(Some(mock_account_id()))
     );
     assert_eq!(
-        test_bench.command_sender.get_stored_account().await,
-        Ok(Some(mock_account(StoredAccountMode::Api)))
+        test_bench.command_sender.get_stored_accounts().await,
+        Ok(vec![mock_account(StoredAccountMode::Api)])
     );
     assert!(
         test_bench
@@ -467,7 +475,13 @@ async fn error_state_command() -> anyhow::Result<()> {
         Err(AccountCommandError::ExistingAccount)
     );
 
-    assert_eq!(test_bench.command_sender.forget_account().await, Ok(()));
+    assert_eq!(
+        test_bench
+            .command_sender
+            .forget_account(Some(StoredAccountMode::Api))
+            .await,
+        Ok(())
+    );
     assert_eq!(test_bench.command_sender.rotate_keys().await, Ok(()));
     test_bench
         .assert_state(AccountControllerState::LoggedOut)

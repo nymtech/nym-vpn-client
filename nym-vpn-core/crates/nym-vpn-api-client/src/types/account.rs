@@ -32,7 +32,7 @@ pub enum Error {
 }
 
 /// Defines the mode of operation of the associated account.
-#[derive(Debug, Copy, Clone, strum_macros::Display)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, strum_macros::Display)]
 #[strum(serialize_all = "snake_case")]
 pub enum VpnAccountMode {
     /// Account works in the API mode, i.e. the subscription is managed
@@ -43,6 +43,10 @@ pub enum VpnAccountMode {
     /// and the account uses its own funds for obtaining required ticketbooks
     // add an alias for our US friends
     Decentralised,
+
+    /// Account works in the API mode, however the mnemonic is derived from
+    /// the Privy wallet private key,
+    Privy,
 }
 
 impl VpnAccountMode {
@@ -56,6 +60,7 @@ impl From<StoredAccountMode> for VpnAccountMode {
         match mode {
             StoredAccountMode::Api => VpnAccountMode::Api,
             StoredAccountMode::Decentralised => VpnAccountMode::Decentralised,
+            StoredAccountMode::Privy => VpnAccountMode::Privy,
         }
     }
 }
@@ -65,6 +70,7 @@ impl From<VpnAccountMode> for StoredAccountMode {
         match mode {
             VpnAccountMode::Api => StoredAccountMode::Api,
             VpnAccountMode::Decentralised => StoredAccountMode::Decentralised,
+            VpnAccountMode::Privy => StoredAccountMode::Privy,
         }
     }
 }

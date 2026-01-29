@@ -60,7 +60,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_connectivity(return_sender),
                     // Before that command gets sent to the AC, the tunnel must be in Disconnected state, so we shouldn't ever end up here
                     // If we nevertheless do, we can't forget the account, because maybe the tunnel is in Offline {reconnect : true} state, and we shouldn't remove the account if it's the case
-                    AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender),
+                    AccountCommand::ForgetAccount(return_sender, _) => return_no_connectivity(return_sender),
                     AccountCommand::RotateKeys(return_sender) => {
                         return_sender.send(handler::handle_rotate_keys(shared_state).await)
                     },
@@ -83,7 +83,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
 
                     AccountCommand::Common(common_command) => {
                         match common_command {
-                            CommonCommand::GetStoredAccount(return_sender) => return_sender.send(common_handler::handle_get_stored_account(shared_state).await),
+                            CommonCommand::GetStoredAccounts(return_sender) => return_sender.send(common_handler::handle_get_stored_accounts(shared_state).await),
                             CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(common_handler::handle_get_device_identity(shared_state)),
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(common_handler::handle_get_account_identity(shared_state)),
                             CommonCommand::SetResolverOverrides(return_sender, resolver_overrides) => return_sender.send(common_handler::handle_set_resolver_overrides(shared_state, resolver_overrides).await),

@@ -12,7 +12,7 @@ pub enum Command {
     Get,
     /// Login with mnemonic
     Set {
-        /// Mnemonic phrase (for Api or Decentralised modes) or private key hex encoded (for Privy mode)
+        /// Mnemonic phrase
         #[arg(index = 1)]
         secret: String,
         /// Account mode
@@ -82,9 +82,7 @@ impl Command {
             Command::Set { secret, mode } => {
                 let request = match mode {
                     VpnAccount::Api => StoreAccountRequest::Vpn { mnemonic: secret },
-                    VpnAccount::Privy => StoreAccountRequest::Privy {
-                        hex_signature: secret,
-                    },
+                    VpnAccount::Privy => StoreAccountRequest::Privy { mnemonic: secret },
                     VpnAccount::Decentralised => {
                         StoreAccountRequest::Decentralised { mnemonic: secret }
                     }

@@ -6,7 +6,7 @@ use std::path::Path;
 use nym_vpn_store::{
     account::{AccountInformationStorage, on_disk::OnDiskMnemonicStorageError},
     keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeysError},
-    types::StorableAccount,
+    types::{StorableAccount, StoredAccountMode},
 };
 
 const MNEMONIC_FILE_NAME: &str = "mnemonic.json";
@@ -63,15 +63,20 @@ impl DeviceKeyStore for VpnClientOnDiskStorage {
 impl AccountInformationStorage for VpnClientOnDiskStorage {
     type StorageError = OnDiskMnemonicStorageError;
 
-    async fn load_account(&self) -> Result<Option<StorableAccount>, Self::StorageError> {
-        self.account_storage.load_account().await
+    async fn load_accounts(&self) -> Result<Vec<StorableAccount>, Self::StorageError> {
+        self.account_storage.load_accounts().await
     }
 
     async fn store_account(&self, mnemonic: StorableAccount) -> Result<(), Self::StorageError> {
         self.account_storage.store_account(mnemonic).await
     }
 
-    async fn remove_account(&self) -> Result<(), Self::StorageError> {
-        self.account_storage.remove_account().await
+    async fn remove_account(
+        &self,
+        stored_account_mode: Option<StoredAccountMode>,
+    ) -> Result<(), Self::StorageError> {
+        self.account_storage
+            .remove_account(stored_account_mode)
+            .await
     }
 }

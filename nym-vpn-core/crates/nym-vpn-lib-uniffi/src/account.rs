@@ -21,6 +21,7 @@ use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     account::Mnemonic,
     keys::{device::DeviceKeyStore, wireguard::WireguardKeysDb},
+    types::StoredAccountMode,
 };
 
 pub(super) async fn init_account_controller(
@@ -220,16 +221,19 @@ pub(super) async fn create_account() -> Result<(), VpnError> {
 pub(super) async fn register_account(
     args: crate::AccountRegistrationArgs,
 ) -> Result<RegisterAccountResponse, VpnError> {
-    let mnemonic = get_command_sender()
-        .await?
-        .get_stored_account()
-        .await
-        .map_err(VpnError::from)?
-        .ok_or(VpnError::NoAccountStored)?;
+    let stored_accounts = get_command_sender().await?.get_stored_accounts().await?;
+
+    let Some(stored_account) = stored_accounts
+        .into_iter()
+        .find(|account| account.mode == StoredAccountMode::Api)
+    else {
+        return Err(VpnError::NoAccountStored);
+    };
+
     let platform = Platform::try_from(args)?;
     get_command_sender()
         .await?
-        .register_account(mnemonic, platform)
+        .register_account(stored_account, platform)
         .await
         .map_err(VpnError::from)
 }
@@ -237,7 +241,7 @@ pub(super) async fn register_account(
 pub(super) async fn forget_account() -> Result<(), VpnError> {
     get_command_sender()
         .await?
-        .forget_account()
+        .forget_account(Some(StoredAccountMode::Api))
         .await
         .map_err(VpnError::from)
 }
@@ -263,14 +267,16 @@ pub(super) async fn is_account_mnemonic_stored() -> Result<bool, VpnError> {
 }
 
 pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
-    Ok(get_command_sender()
-        .await?
-        .get_stored_account()
-        .await
-        .map_err(VpnError::from)?
-        .ok_or(VpnError::NoAccountStored)?
-        .mnemonic
-        .to_string())
+    let stored_accounts = get_command_sender().await?.get_stored_accounts().await?;
+
+    let Some(stored_account) = stored_accounts
+        .into_iter()
+        .find(|account| account.mode == StoredAccountMode::Api)
+    else {
+        return Err(VpnError::NoAccountStored);
+    };
+
+    Ok(stored_account.mnemonic.to_string())
 }
 
 pub(super) async fn get_device_id() -> Result<String, VpnError> {
@@ -283,7 +289,7 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
 
 pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
     let base_url = match params.kind {
-        DeeplinkKind::Privy | DeeplinkKind::PrivyExisting => {
+        DeeplinkKind::Privy | DeeplinkKind::PrivyAssociate => {
             let Some(ref account_management) = current_environment_details()
                 .await
                 .ok()
@@ -401,14 +407,16 @@ pub(crate) mod raw {
             });
         };
         let storage = setup_account_storage(path).await?;
-        let account = storage
-            .load_account()
+        let stored_account = storage
+            .load_accounts()
             .await
             .map_err(|err| VpnError::Storage {
                 details: err.to_string(),
             })?
+            .into_iter()
+            .find(|account| account.mode == StoredAccountMode::Api)
             .ok_or(VpnError::NoAccountStored)?;
-        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let account = VpnAccount::try_from(stored_account).map_err(VpnError::internal)?;
         let account_token = register_account_by_account_raw(&account, platform)
             .await?
             .account_token;
@@ -417,29 +425,38 @@ pub(crate) mod raw {
 
     pub(crate) async fn is_account_mnemonic_stored_raw(path: &str) -> Result<bool, VpnError> {
         let storage = setup_account_storage(path).await?;
-        storage.is_account_stored().await.map_err(Into::into)
+        storage
+            .is_account_stored(StoredAccountMode::Api)
+            .await
+            .map_err(Into::into)
     }
 
     pub(crate) async fn get_stored_mnemonic_raw(path: &str) -> Result<String, VpnError> {
         let storage = setup_account_storage(path).await?;
-        Ok(storage
-            .load_account()
-            .await?
-            .ok_or(VpnError::NoAccountStored)?
-            .mnemonic
-            .to_string())
-    }
-
-    pub(crate) async fn get_account_id_raw(path: &str) -> Result<String, VpnError> {
-        let storage = setup_account_storage(path).await?;
-        let account = storage
-            .load_account()
+        let stored_account = storage
+            .load_accounts()
             .await
             .map_err(|err| VpnError::Storage {
                 details: err.to_string(),
             })?
+            .into_iter()
+            .find(|account| account.mode == StoredAccountMode::Api)
             .ok_or(VpnError::NoAccountStored)?;
-        VpnAccount::try_from(account)
+        Ok(stored_account.mnemonic.to_string())
+    }
+
+    pub(crate) async fn get_account_id_raw(path: &str) -> Result<String, VpnError> {
+        let storage = setup_account_storage(path).await?;
+        let stored_account = storage
+            .load_accounts()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .into_iter()
+            .find(|account| account.mode == StoredAccountMode::Api)
+            .ok_or(VpnError::NoAccountStored)?;
+        VpnAccount::try_from(stored_account)
             .map_err(VpnError::internal)
             .map(|account| account.id().to_string())
     }
@@ -447,7 +464,7 @@ pub(crate) mod raw {
     async fn remove_account_mnemonic_raw(path: &str) -> Result<bool, VpnError> {
         let storage = setup_account_storage(path).await?;
         storage
-            .remove_account()
+            .remove_account(Some(StoredAccountMode::Api))
             .await
             .map(|_| true)
             .map_err(Into::into)
@@ -515,16 +532,18 @@ pub(crate) mod raw {
     }
 
     async fn unregister_device_raw(path: &str) -> Result<(), VpnError> {
-        let account_storage = setup_account_storage(path).await?;
+        let storage = setup_account_storage(path).await?;
         let device = load_device(path).await?;
-        let account = account_storage
-            .load_account()
+        let stored_account = storage
+            .load_accounts()
             .await
             .map_err(|err| VpnError::Storage {
                 details: err.to_string(),
             })?
+            .into_iter()
+            .find(|account| account.mode == StoredAccountMode::Api)
             .ok_or(VpnError::NoAccountStored)?;
-        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let account = VpnAccount::try_from(stored_account).map_err(VpnError::internal)?;
 
         let vpn_api_client = create_vpn_api_client().await?;
 
@@ -617,7 +636,7 @@ pub(crate) mod raw {
 
     pub(crate) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
         let base_url = match params.kind {
-            DeeplinkKind::Privy | DeeplinkKind::PrivyExisting => {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyAssociate => {
                 let Some(ref account_management) = current_environment_details()
                     .await
                     .ok()

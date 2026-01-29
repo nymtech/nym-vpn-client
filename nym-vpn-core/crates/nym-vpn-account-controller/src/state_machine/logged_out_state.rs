@@ -66,7 +66,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                         }
                     },
-                    AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
+                    AccountCommand::ForgetAccount(return_sender, _) => return_sender.send(Ok(())),
                     AccountCommand::RotateKeys(return_sender) => return_sender.send(Ok(())),
                     AccountCommand::AccountBalance(return_sender) => return_no_account(return_sender),
                     AccountCommand::ObtainTicketbooks(return_sender, _) => return_no_account(return_sender),
@@ -89,7 +89,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             CommonCommand::SetResolverOverrides(return_sender, resolver_overrides) => return_sender.send(common_handler::handle_set_resolver_overrides(shared_state, resolver_overrides).await),
 
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Ok(None)),
-                            CommonCommand::GetStoredAccount(return_sender) => return_sender.send(Ok(None)),
+                            CommonCommand::GetStoredAccounts(return_sender) => return_sender.send(Ok(vec![])),
                             CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(Ok(None)),
 
                             CommonCommand::GetUsage(return_sender) => return_no_account(return_sender),

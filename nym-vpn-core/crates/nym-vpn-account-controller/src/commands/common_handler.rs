@@ -21,8 +21,8 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) {
     match command {
-        CommonCommand::GetStoredAccount(result_tx) => {
-            result_tx.send(handle_get_stored_account(shared_state).await);
+        CommonCommand::GetStoredAccounts(result_tx) => {
+            result_tx.send(handle_get_stored_accounts(shared_state).await);
         }
         CommonCommand::GetAccountIdentity(result_tx) => {
             result_tx.send(handle_get_account_identity(shared_state));
@@ -57,13 +57,13 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
 }
 
 // This goes into storage each time, to trigger platform's unlocking mechanism if secure storage is used
-pub(crate) async fn handle_get_stored_account<C: ConnectivityMonitor>(
+pub(crate) async fn handle_get_stored_accounts<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
-) -> Result<Option<StorableAccount>, AccountCommandError> {
+) -> Result<Vec<StorableAccount>, AccountCommandError> {
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
-        .send(AccountStorageOp::GetStoredAccount(tx))
+        .send(AccountStorageOp::GetStoredAccounts(tx))
         .map_err(AccountCommandError::internal)?;
     rx.await
         .map_err(AccountCommandError::internal)? // Channel error
@@ -74,7 +74,7 @@ pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<String>, AccountCommandError> {
     Ok(shared_state
-        .vpn_api_account
+        .vpn_account
         .as_ref()
         .map(|account| account.id()))
 }
@@ -83,7 +83,7 @@ async fn handle_get_usage<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
     let account = shared_state
-        .vpn_api_account
+        .vpn_account
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
@@ -111,7 +111,7 @@ async fn handle_get_devices<C: ConnectivityMonitor>(
     tracing::debug!("Getting devices from API");
 
     let account = shared_state
-        .vpn_api_account
+        .vpn_account
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
@@ -131,7 +131,7 @@ async fn handle_get_active_devices<C: ConnectivityMonitor>(
     tracing::debug!("Getting active devices from API");
 
     let account = shared_state
-        .vpn_api_account
+        .vpn_account
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 

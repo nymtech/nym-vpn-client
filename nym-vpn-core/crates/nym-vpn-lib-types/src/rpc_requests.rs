@@ -20,7 +20,7 @@ pub struct ListGatewaysOptions {
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 pub enum StoreAccountRequest {
     Vpn { mnemonic: String },
-    Privy { hex_signature: String },
+    Privy { mnemonic: String },
     Decentralised { mnemonic: String },
 }
 

@@ -15,7 +15,7 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{
     AccountCommandError, DeeplinkKind, RegisterAccountResponse, VpnAccountSummary,
 };
-use nym_vpn_store::types::StorableAccount;
+use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::instrument;
 use url::Url;
@@ -55,10 +55,10 @@ impl AccountCommandSender {
     }
 
     #[instrument]
-    pub async fn get_stored_account(&self) -> Result<Option<StorableAccount>, AccountCommandError> {
+    pub async fn get_stored_accounts(&self) -> Result<Vec<StorableAccount>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::Common(CommonCommand::GetStoredAccount(tx)))
+            .send(AccountCommand::Common(CommonCommand::GetStoredAccounts(tx)))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
@@ -85,10 +85,13 @@ impl AccountCommandSender {
     }
 
     #[instrument]
-    pub async fn forget_account(&self) -> Result<(), AccountCommandError> {
+    pub async fn forget_account(
+        &self,
+        stored_account_mode: Option<StoredAccountMode>,
+    ) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::ForgetAccount(tx))
+            .send(AccountCommand::ForgetAccount(tx, stored_account_mode))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
