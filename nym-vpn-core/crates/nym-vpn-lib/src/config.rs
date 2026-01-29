@@ -4,6 +4,7 @@
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
+use strum::{IntoDiscriminant, IntoEnumIterator};
 
 use crate::{
     nym_config::defaults::NymNetworkDetails,
@@ -81,10 +82,18 @@ impl GlobalConfig {
                         file_path: json_config_path.clone(),
                         source: err,
                     })?;
-            GlobalConfig::try_from(ext_config).map_err(|err| GlobalConfigError::Parse {
-                file_path: json_config_path,
-                source: err,
-            })?
+
+            let should_overwrite = !ext_config.is_latest_version();
+            let config =
+                GlobalConfig::try_from(ext_config).map_err(|err| GlobalConfigError::Parse {
+                    file_path: json_config_path,
+                    source: err,
+                })?;
+            // Write migrated config back to disk
+            if should_overwrite {
+                config.write_to_config_dir(config_dir).await?;
+            }
+            config
         } else if toml_config_exists {
             let legacy_config =
                 crate::service::read_toml_config_file::<LegacyGlobalConfig>(&toml_config_path)
@@ -137,12 +146,23 @@ impl GlobalConfig {
 
 type GlobalConfigExtLatest = GlobalConfigExtV2;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, strum::EnumDiscriminants)]
+#[strum_discriminants(derive(strum::EnumIter))]
 #[serde(tag = "version")]
 #[serde(rename_all = "snake_case")]
 enum GlobalConfigExt {
     V1(GlobalConfigExtV1),
     V2(GlobalConfigExtV2),
+}
+
+impl GlobalConfigExt {
+    /// Returns true if the config is using the latest version.
+    pub fn is_latest_version(&self) -> bool {
+        let current_version = self.discriminant();
+        let latest_version = GlobalConfigExtDiscriminants::iter().last();
+
+        latest_version == Some(current_version)
+    }
 }
 
 impl TryFrom<GlobalConfigExt> for GlobalConfig {
@@ -294,6 +314,15 @@ mod tests {
         let json_path = config_path.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
 
         (temp_dir, toml_path, json_path)
+    }
+
+    #[test]
+    fn test_config_is_latest() {
+        let v1 = GlobalConfigExt::V1(GlobalConfigExtV1::default());
+        let latest = GlobalConfigExt::from(GlobalConfigExtLatest::default());
+
+        assert!(!v1.is_latest_version());
+        assert!(latest.is_latest_version());
     }
 
     #[tokio::test]
