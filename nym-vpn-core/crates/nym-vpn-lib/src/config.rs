@@ -159,7 +159,7 @@ impl GlobalConfigExt {
     /// Returns true if the config is using the latest version.
     pub fn is_latest_version(&self) -> bool {
         let current_version = self.discriminant();
-        let latest_version = GlobalConfigExtDiscriminants::iter().last();
+        let latest_version = GlobalConfigExtDiscriminants::iter().next_back();
 
         latest_version == Some(current_version)
     }
