@@ -376,7 +376,7 @@ class VpnService :
 		ensureTokioAndLogger(storagePath, req.enableDebugLog, req.sentryMonitoringEnabled)
 
 		val env = runCatching {
-			NymEnvironment.newWithCacheDir(storagePath, req.networkName)
+			NymEnvironment.newWithCacheDir(storagePath, req.networkName, req.userAgent)
 		}.getOrElse {
 			NymEnvironment.newWithMainnetFallback()
 		}
