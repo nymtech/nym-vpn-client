@@ -42,7 +42,7 @@ static INFO_TARGETS: [&str; 14] = [
     "tonic::transport::server",
 ];
 
-static WARN_TARGETS: [&str; 2] = ["hickory_server", "quinn::connection"];
+static WARN_TARGETS: [&str; 3] = ["hickory_server", "quinn::connection", "zbus"];
 
 pub struct Options {
     pub verbosity_level: Level,
