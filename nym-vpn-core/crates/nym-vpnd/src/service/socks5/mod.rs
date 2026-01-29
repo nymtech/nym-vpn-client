@@ -171,7 +171,9 @@ impl Socks5ServiceState {
         };
 
         // Internal SOCKS5 address (where Nym SDK will bind)
-        let internal_socks5_addr: SocketAddr = "127.0.0.1:1081".parse().unwrap();
+        let internal_socks5_addr: SocketAddr = "127.0.0.1:1081"
+            .parse()
+            .expect("Hardcoded internal SOCKS5 address should always be valid");
 
         if socks5_listen_address == internal_socks5_addr {
             return Err(Socks5Error::InvalidConfig(format!(

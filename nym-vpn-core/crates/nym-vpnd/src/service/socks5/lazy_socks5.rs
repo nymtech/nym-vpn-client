@@ -636,7 +636,7 @@ impl LazySocks5 {
             .mixnet_data_path
             .file_name()
             .and_then(|n| n.to_str())
-            .unwrap();
+            .expect("mixnet_data_path must have a valid file name");
         let socks5_data_path = self
             .config
             .mixnet_data_path
@@ -755,7 +755,7 @@ impl LazySocks5 {
                     Err(e) => {
                         let error_msg = e.to_string();
                         // Check if error is about gateway not found and we have a requested gateway
-                        if requested_gateway_id.is_some()
+                        if let Some(gateway_id) = requested_gateway_id.as_ref()
                             && error_msg.contains("no gateway with id")
                         {
                             let is_wireguard_mode = matches!(
@@ -768,18 +768,18 @@ impl LazySocks5 {
                                 // WireGuard mode: cannot change entry gateway (firewall rules)
                                 error!(
                                     "VPN's entry gateway {} unavailable. Cannot use SOCKS5 in WireGuard mode: firewall rules require VPN's entry gateway.",
-                                    requested_gateway_id.as_ref().unwrap()
+                                    gateway_id
                                 );
                                 return Err(LazySocks5Error::Internal(format!(
                                     "Cannot use SOCKS5 in WireGuard mode: VPN's entry gateway {} is not available. \
                                     Firewall rules only allow the VPN's entry gateway.",
-                                    requested_gateway_id.as_ref().unwrap()
+                                    gateway_id
                                 )));
                             } else {
                                 // Not WireGuard: fallback to random gateway
                                 warn!(
                                     "Gateway {} unavailable, falling back to random selection",
-                                    requested_gateway_id.as_ref().unwrap()
+                                    gateway_id
                                 );
 
                                 let fallback_client = self
@@ -799,7 +799,7 @@ impl LazySocks5 {
                                     .map_err(|fallback_error| {
                                         LazySocks5Error::Internal(format!(
                                             "Failed to connect: gateway {} failed ({}), fallback also failed ({})",
-                                            requested_gateway_id.as_ref().unwrap(),
+                                            gateway_id,
                                             error_msg,
                                             fallback_error
                                         ))
@@ -858,7 +858,7 @@ impl LazySocks5 {
             }
         }
 
-        Err(last_error.unwrap())
+        Err(last_error.expect("last_error should always be set after MAX_RETRIES attempts"))
     }
 
     /// Connect to internal SOCKS5 server with retry logic
@@ -946,7 +946,11 @@ impl LazySocks5 {
                         false
                     } else {
                         // Check if timeout elapsed
-                        let elapsed = last_closed.unwrap().elapsed();
+                        // last_closed is guaranteed to be Some() here due to the is_none() check above
+                        let elapsed = last_closed
+                            .as_ref()
+                            .expect("last_closed should be Some() after is_none() check")
+                            .elapsed();
                         elapsed >= self.config.idle_timeout
                     }
                 }
@@ -1092,7 +1096,11 @@ impl LazySocks5 {
                         *last_rotation = Some(Instant::now());
                         false
                     } else {
-                        let elapsed = last_rotation.unwrap().elapsed();
+                        // last_rotation is guaranteed to be Some() here due to the is_none() check above
+                        let elapsed = last_rotation
+                            .as_ref()
+                            .expect("last_rotation should be Some() after is_none() check")
+                            .elapsed();
                         if elapsed >= rotation_interval {
                             *last_rotation = Some(Instant::now());
                             true
