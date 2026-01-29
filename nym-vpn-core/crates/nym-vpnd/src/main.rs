@@ -12,8 +12,6 @@ mod shutdown_handler;
 #[cfg(windows)]
 mod windows_service;
 
-use std::path::PathBuf;
-
 use anyhow::Context;
 use clap::Parser;
 use tokio::{sync::broadcast, task::JoinHandle};
@@ -127,7 +125,6 @@ async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
 struct RunParameters {
     log_path: Option<LogPath>,
     network: Option<String>,
-    config_env_file: Option<PathBuf>,
     sentry_enabled: bool,
     user_agent: UserAgent,
 }
@@ -137,7 +134,6 @@ impl RunParameters {
         Self {
             log_path,
             network: args.network,
-            config_env_file: args.config_env_file,
             sentry_enabled,
             user_agent: args.user_agent.unwrap_or_else(|| new_user_agent!()),
         }
@@ -154,13 +150,15 @@ async fn run_standalone(
 
     // Migrate global configuration here, where we will have more information about the environment.
 
-    let network_env =
-        environment::setup_environment(&global_config_file, parameters.config_env_file.as_deref())
-            .await?;
+    let network_cache = environment::setup_environment(
+        &global_config_file.network_name,
+        parameters.user_agent.clone(),
+    )
+    .await?;
 
     let vpn_service_params = NymVpnServiceParameters {
         log_path: parameters.log_path,
-        network_env: Box::new(network_env),
+        network_cache,
         sentry_enabled: parameters.sentry_enabled,
         user_agent: parameters.user_agent,
     };

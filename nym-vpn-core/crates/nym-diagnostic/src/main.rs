@@ -6,6 +6,7 @@ use crate::{
     diagnostic::DiagnosticHandler,
 };
 
+use anyhow::Context;
 use nym_vpn_network_config::Network;
 
 use clap::Parser;
@@ -19,7 +20,7 @@ mod logging;
 async fn main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
     logging::setup_tracing_logger(&args)?;
-    let network = Network::mainnet_default().ok_or(anyhow::anyhow!("Missing network config"))?;
+    let network = Network::mainnet_default().with_context(|| "Missing network config")?;
 
     match args.command {
         Command::Run(parameters) => {

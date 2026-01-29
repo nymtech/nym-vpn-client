@@ -203,7 +203,6 @@ impl VpnTopologyService {
             None,
             self.resolver_overrides.as_ref(),
         )
-        .await
         .map_err(VpnTopologyServiceError::CreateHttpClient)?;
 
         let mut topology_provider = NymApiTopologyProvider::new(

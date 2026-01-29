@@ -592,7 +592,7 @@ impl SharedState {
     ) -> bool {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::UseResolverOverrides(Some(
-                Box::new(nym_vpn_api_resolver_overrides.clone()),
+                nym_vpn_api_resolver_overrides.clone(),
             )))
             .ok();
         if let Err(err) = self

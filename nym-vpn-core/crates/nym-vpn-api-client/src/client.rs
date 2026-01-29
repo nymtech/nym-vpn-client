@@ -84,23 +84,22 @@ impl SkewState {
 pub struct VpnApiClient {
     inner: Client,
     urls: Vec<Url>,
-    user_agent: UserAgent,
+    user_agent: Option<UserAgent>,
     skew_state: Arc<RwLock<Option<SkewState>>>,
 }
 
 impl VpnApiClient {
-    pub async fn new(
+    pub fn new(
         urls: Vec<Url>,
-        user_agent: UserAgent,
+        user_agent: Option<UserAgent>,
         resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
         let inner = fronted_http_client(
             urls.clone(),
-            Some(user_agent.clone()),
+            user_agent.clone(),
             Some(NYM_VPN_API_TIMEOUT),
             resolver_overrides,
-        )
-        .await?;
+        )?;
 
         Ok(Self {
             inner,
@@ -113,7 +112,7 @@ impl VpnApiClient {
     #[cfg(feature = "network-defaults")]
     pub async fn from_network(
         network: &nym_network_defaults::NymNetworkDetails,
-        user_agent: UserAgent,
+        user_agent: Option<UserAgent>,
         resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
         #[allow(deprecated)]
@@ -128,11 +127,10 @@ impl VpnApiClient {
 
         let inner = fronted_http_client(
             urls.clone(),
-            Some(user_agent.clone()),
+            user_agent.clone(),
             Some(NYM_VPN_API_TIMEOUT),
             resolver_overrides,
-        )
-        .await?;
+        )?;
 
         Ok(Self {
             inner,
@@ -142,17 +140,16 @@ impl VpnApiClient {
         })
     }
 
-    pub async fn override_resolver(
+    pub fn override_resolver(
         &mut self,
         resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<()> {
         self.inner = fronted_http_client(
             self.urls.clone(),
-            Some(self.user_agent.clone()),
+            self.user_agent.clone(),
             Some(NYM_VPN_API_TIMEOUT),
             resolver_overrides,
-        )
-        .await?;
+        )?;
 
         Ok(())
     }

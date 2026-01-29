@@ -3,37 +3,51 @@
 
 use std::path::PathBuf;
 
-use nym_vpn_lib_types::{Network, NetworkCompatibility, ParsedAccountLinks, SystemMessage};
+use nym_common::trace_err_chain;
+use nym_vpn_lib_types::{
+    Network, NetworkCompatibility, ParsedAccountLinks, SystemMessage, UserAgent,
+};
+use nym_vpn_network_config::NetworkCache;
 
 use super::{NETWORK_ENVIRONMENT, error::VpnError};
 
 pub(crate) async fn init_environment(
     cache_dir: String,
     network_name: &str,
+    user_agent: UserAgent,
 ) -> Result<(), VpnError> {
-    let network = nym_vpn_network_config::discover_env(
-        PathBuf::from(cache_dir)
-            .parent()
-            .ok_or(VpnError::internal("cache directory can't be root"))?,
+    let mut network_cache = NetworkCache::new(
+        PathBuf::from(cache_dir),
         network_name,
+        Some(user_agent.into()),
+        None,
     )
     .await
     .map_err(VpnError::internal)?;
+
+    if let Err(err) = network_cache.fetch_if_stale().await {
+        trace_err_chain!(err, "failed to fetch network environment");
+    }
+
+    let network = network_cache
+        .network()
+        .map_err(|err| VpnError::internal(err.to_string()))?;
 
     // To bridge with old code, export to environment. New code should not rely on this.
     network.export_to_env();
 
     let mut guard = NETWORK_ENVIRONMENT.lock().await;
-    *guard = Some(network);
+    *guard = Some(*network);
 
     Ok(())
 }
 
 pub(crate) async fn init_fallback_mainnet_environment() -> Result<(), VpnError> {
-    let network =
-        nym_vpn_network_config::Network::mainnet_default().ok_or(VpnError::InternalError {
+    let network = nym_vpn_network_config::Network::mainnet_default().map_err(|_err| {
+        VpnError::InternalError {
             details: "mainnet is not consistent".to_string(),
-        })?;
+        }
+    })?;
     network.export_to_env();
 
     let mut guard = NETWORK_ENVIRONMENT.lock().await;

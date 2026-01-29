@@ -48,7 +48,7 @@ use nym_vpn_lib_types::{
     StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
 };
-use nym_vpn_network_config::{DiscoveryRefresher, DiscoveryRefresherEvent, Network};
+use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 // Seed used to generate device identity keys
@@ -173,7 +173,7 @@ pub enum VpnServiceCommand {
 
 pub struct NymVpnServiceParameters {
     pub log_path: Option<LogPath>,
-    pub network_env: Box<Network>,
+    pub network_cache: NetworkCache,
     pub sentry_enabled: bool,
     pub user_agent: UserAgent,
 }
@@ -247,7 +247,7 @@ pub struct NymVpnService {
     gateway_cache_handle: GatewayCacheHandle,
 
     // Discovery refresher event receiver
-    discovery_refresher_event_rx: mpsc::UnboundedReceiver<DiscoveryRefresherEvent>,
+    discovery_refresher_event_rx: mpsc::UnboundedReceiver<Box<Network>>,
 
     // Discovery refresher join handle
     discovery_refresher_join_handle: JoinHandle<()>,
@@ -318,11 +318,12 @@ impl NymVpnService {
         parameters: NymVpnServiceParameters,
         shutdown_token: CancellationToken,
     ) -> Result<Self> {
-        let network_name = parameters
-            .network_env
-            .nym_network_details()
-            .network_name
-            .clone();
+        let network_cache = parameters.network_cache;
+        let network_env = network_cache
+            .network()
+            .map_err(|_| Error::NetworkEnvNotInitialized)?;
+
+        let network_name = network_env.nym_network_details().network_name.clone();
 
         let config_dir = super::config::config_dir();
         let data_dir = super::config::data_dir();
@@ -359,19 +360,19 @@ impl NymVpnService {
 
         let account_controller_config = AccountControllerConfig {
             data_dir: network_data_dir.clone(),
-            network_env: *parameters.network_env.clone(),
+            network_env: *network_env.clone(),
         };
 
-        let network_details = parameters.network_env.nym_network_details();
+        let network_details = network_env.nym_network_details();
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             network_details,
-            parameters.user_agent.clone(),
+            Some(parameters.user_agent.clone()),
             None,
         )
         .await
         .map_err(Error::CreateApiClient)?;
 
-        let nyxd_client = NyxdClient::new(&parameters.network_env);
+        let nyxd_client = NyxdClient::new(&network_env);
 
         let account_controller = AccountController::new(
             nym_vpn_api_client,
@@ -396,8 +397,7 @@ impl NymVpnService {
         // Statistics collection setup
         let statistics_controller_config = config_manager.config().network_stats;
 
-        let statistics_api_url = parameters
-            .network_env
+        let statistics_api_url = network_env
             .system_configuration
             .as_ref()
             .and_then(|config| config.statistics_api.clone());
@@ -427,14 +427,12 @@ impl NymVpnService {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let tunnel_settings = config_manager.generate_tunnel_settings();
-        let nyxd_url = parameters.network_env.nyxd_url();
+        let nyxd_url = network_env.nyxd_url();
 
-        let nym_api_urls = parameters
-            .network_env
+        let nym_api_urls = network_env
             .nym_api_urls()
             .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
-        let nym_vpn_api_urls = parameters
-            .network_env
+        let nym_vpn_api_urls = network_env
             .nym_vpn_api_urls()
             .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
 
@@ -442,7 +440,7 @@ impl NymVpnService {
             gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)
                 .map_err(Error::CreateGatewayClient)?;
 
-        let (network_tx, network_rx) = watch::channel(parameters.network_env.clone());
+        let (network_tx, network_rx) = watch::channel(network_env.clone());
         let nym_config = NymConfig {
             config_path: Some(config_dir.clone()),
             data_path: Some(network_data_dir.clone()),
@@ -452,7 +450,6 @@ impl NymVpnService {
 
         let gateway_directory_client =
             GatewayClient::new(gateway_config, parameters.user_agent.clone())
-                .await
                 .map_err(Error::CreateGatewayClient)?;
         let (gateway_cache_handle, gateway_cache_join_handle) = GatewayCache::spawn(
             gateway_directory_client.clone(),
@@ -479,15 +476,12 @@ impl NymVpnService {
         let (discovery_refresher_command_tx, discovery_refresher_command_rx) =
             mpsc::unbounded_channel();
         let discovery_refresher_join_handle = DiscoveryRefresher::spawn(
-            config_dir.clone(),
-            parameters.network_env,
+            network_cache,
             discovery_refresher_command_rx,
             discovery_refresher_event_tx,
             connectivity_handle.clone(),
             services_shutdown_token.child_token(),
-        )
-        .await
-        .map_err(Error::StartDiscoveryRefresh)?;
+        );
 
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
@@ -562,7 +556,7 @@ impl NymVpnService {
                     self.handle_account_state_change(account_state);
                 }
                 Some(event) = self.discovery_refresher_event_rx.recv() => {
-                    self.handle_discovery_refresher_event(event).await;
+                    self.handle_network_change(event).await;
                 }
                 _ = &mut self.tunnel_settings_update_timer => {
                     self.update_tunnel_settings();
@@ -728,25 +722,18 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_discovery_refresher_event(&mut self, event: DiscoveryRefresherEvent) {
-        match event {
-            DiscoveryRefresherEvent::NewNetwork(new_network) => {
-                tracing::info!("Network environment updated");
-                let _ = self.network_tx.send_replace(new_network.clone());
+    async fn handle_network_change(&mut self, new_network: Box<Network>) {
+        tracing::info!("Network environment updated");
+        let _ = self.network_tx.send_replace(new_network.clone());
 
-                // Update gateway cache and topology cache for new environment
-                nym_vpn_lib::cache_refresh::update_caches_for_network(
-                    &new_network,
-                    &self.gateway_cache_handle,
-                    &self.topology_service_handle,
-                    &self.user_agent,
-                )
-                .await;
-            }
-            DiscoveryRefresherEvent::Error(_error) => {
-                // todo: handle error?
-            }
-        }
+        // Update gateway cache and topology cache for new environment
+        nym_vpn_lib::cache_refresh::update_caches_for_network(
+            &new_network,
+            &self.gateway_cache_handle,
+            &self.topology_service_handle,
+            &self.user_agent,
+        )
+        .await;
     }
 
     // Wrap handle_service_command in timing code to log long-running commands

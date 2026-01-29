@@ -6,7 +6,7 @@ use nym_http_api_client::HttpClientError;
 #[derive(Debug, thiserror::Error)]
 pub enum MetadataClientError {
     #[error(transparent)]
-    HttpClientError(#[from] HttpClientError),
+    HttpClientError(#[from] Box<HttpClientError>),
 
     #[error(transparent)]
     NymWireguardMetadataClient(#[from] nym_wireguard_private_metadata_shared::error::MetadataError),
