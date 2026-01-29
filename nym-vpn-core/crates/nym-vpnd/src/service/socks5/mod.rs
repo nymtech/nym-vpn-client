@@ -36,6 +36,8 @@ pub struct Socks5EnableConfig {
     pub request_timeout: Duration,
     pub idle_timeout: Duration,
     pub network_details: Option<NymNetworkDetails>,
+    /// VPN exit gateway identity to exclude during random Network Requester selection (for privacy)
+    pub vpn_exit_gateway_identity: Option<String>,
 }
 
 /// SOCKS5 service errors
@@ -134,6 +136,7 @@ impl Socks5ServiceState {
             request_timeout,
             idle_timeout,
             network_details,
+            vpn_exit_gateway_identity,
         } = config;
 
         // Prevent concurrent enable calls
@@ -168,7 +171,9 @@ impl Socks5ServiceState {
         };
 
         // Internal SOCKS5 address (where Nym SDK will bind)
-        let internal_socks5_addr: SocketAddr = "127.0.0.1:1081".parse().unwrap();
+        let internal_socks5_addr: SocketAddr = "127.0.0.1:1081"
+            .parse()
+            .expect("Hardcoded internal SOCKS5 address should always be valid");
 
         if socks5_listen_address == internal_socks5_addr {
             return Err(Socks5Error::InvalidConfig(format!(
@@ -200,6 +205,7 @@ impl Socks5ServiceState {
             network_requester_rotation_interval,
             gateway_cache_handle,
             network_details,
+            vpn_exit_gateway_identity,
         };
         let lazy_socks5 = Arc::new(LazySocks5::new(
             config,
