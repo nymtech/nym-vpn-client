@@ -93,10 +93,14 @@ impl GlobalConfig {
                         file_path: toml_config_path.clone(),
                         source: err,
                     })?;
-            GlobalConfig::try_from(legacy_config).map_err(|err| GlobalConfigError::Parse {
-                file_path: toml_config_path.clone(),
-                source: err,
-            })?
+            let migrated_config =
+                GlobalConfig::try_from(legacy_config).map_err(|err| GlobalConfigError::Parse {
+                    file_path: toml_config_path.clone(),
+                    source: err,
+                })?;
+            // Write migrated config back to disk
+            migrated_config.write_to_config_dir(config_dir).await?;
+            migrated_config
         } else {
             GlobalConfig::default()
         };
@@ -287,10 +291,7 @@ mod tests {
         let config_path = temp_dir.path();
 
         let toml_path = config_path.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_TOML);
-        let _ = fs::remove_file(&toml_path).await;
-
         let json_path = config_path.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE_JSON);
-        let _ = fs::remove_file(&json_path).await;
 
         (temp_dir, toml_path, json_path)
     }
