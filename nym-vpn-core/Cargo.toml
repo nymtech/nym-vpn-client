@@ -10,6 +10,7 @@ members = [
     "crates/nym-firewall",
     "crates/nym-gateway-directory",
     "crates/nym-ipc",
+    "crates/nym-ipc-client",
     "crates/nym-macos",
     "crates/nym-offline-monitor",
     "crates/nym-platform-metadata",
@@ -183,6 +184,8 @@ wiremock = "0.6.5"
 wmi = "0.18.1"
 x25519-dalek = "2.0"
 x509-parser = "0.18.0"
+zbus = "5.13.2"
+zbus_polkit = "5.0.0"
 zeroize = "1.8.2"
 
 nym-apple-network = { path = "crates/nym-apple-network" }
@@ -195,6 +198,7 @@ nym-firewall = { path = "crates/nym-firewall" }
 nym-firewall-config = { path = "crates/nym-firewall-config" }
 nym-gateway-directory = { path = "crates/nym-gateway-directory" }
 nym-ipc = { path = "crates/nym-ipc" }
+nym-ipc-client = { path = "crates/nym-ipc-client" }
 nym-macos = { path = "crates/nym-macos" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
