@@ -59,7 +59,6 @@ impl NymVpnService {
         let connectivity_monitor =
             crate::offline_monitor::register_connectivity_observer(config.connectivity_monitor);
 
-        let network_env = environment.inner().clone();
         let shutdown_token = CancellationToken::new();
         let network_cache = NetworkCache::new(
             config.config_dir.clone(),

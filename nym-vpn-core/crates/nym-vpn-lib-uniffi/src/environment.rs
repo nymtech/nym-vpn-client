@@ -3,7 +3,6 @@
 
 use std::path::PathBuf;
 
-use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
     Network, NetworkCompatibility, ParsedAccountLinks, SystemMessage, UserAgent,
 };
