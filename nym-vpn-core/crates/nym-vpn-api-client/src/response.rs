@@ -13,7 +13,7 @@ use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 pub use nym_credential_proxy_requests::api::v1::ticketbook::models::UpgradeModeAttestation;
 use serde::{Deserialize, Serialize};
-use time::OffsetDateTime;
+use time::{OffsetDateTime, UtcDateTime, format_description::well_known::Iso8601};
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
@@ -511,17 +511,22 @@ pub struct Probe {
 
 impl Probe {
     pub fn is_fully_operational_entry(&self) -> bool {
-        if !is_recently_updated(&self.last_updated_utc) {
-            return false;
-        }
-        self.outcome.is_fully_operational_entry()
+        self.is_recently_updated() && self.outcome.is_fully_operational_entry()
     }
 
     pub fn is_fully_operational_exit(&self) -> bool {
-        if !is_recently_updated(&self.last_updated_utc) {
-            return false;
-        }
-        self.outcome.is_fully_operational_exit()
+        self.is_recently_updated() && self.outcome.is_fully_operational_exit()
+    }
+
+    fn is_recently_updated(&self) -> bool {
+        UtcDateTime::parse(&self.last_updated_utc, &Iso8601::DEFAULT)
+            .map(|last_updated| {
+                let now = UtcDateTime::now();
+                let duration = now - last_updated;
+
+                duration.whole_minutes() < MAX_PROBE_RESULT_AGE_MINUTES
+            })
+            .unwrap_or_default()
     }
 }
 
@@ -584,16 +589,6 @@ pub struct WgProbeResults {
     pub can_query_metadata_v4: Option<bool>,
     pub ping_hosts_performance: f32,
     pub ping_ips_performance: f32,
-}
-
-fn is_recently_updated(last_updated_utc: &str) -> bool {
-    if let Ok(last_updated) = last_updated_utc.parse::<chrono::DateTime<chrono::Utc>>() {
-        let now = chrono::Utc::now();
-        let duration = now - last_updated;
-        duration.num_minutes() < MAX_PROBE_RESULT_AGE_MINUTES
-    } else {
-        false
-    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
