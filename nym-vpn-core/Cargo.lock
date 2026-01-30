@@ -6106,7 +6106,7 @@ dependencies = [
  "url",
  "urlencoding",
  "vergen-gitcl",
- "webpki-roots 0.26.11",
+ "webpki-roots 1.0.3",
  "windows 0.62.2",
  "winreg 0.55.0",
  "x509-parser",
