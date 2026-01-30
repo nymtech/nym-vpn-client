@@ -1,0 +1,227 @@
+name: Test Harness
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'nym-vpn-core/crates/test/**'
+      - 'nym-vpn-core/crates/nym-vpnd/**'
+      - 'nym-vpn-core/crates/nym-vpnc/**'
+      - 'nym-vpn-core/crates/nym-vpn-lib/**'
+      - 'nym-vpn-core/crates/nym-vpn-proto/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'nym-vpn-core/crates/test/**'
+      - 'nym-vpn-core/crates/nym-vpnd/**'
+      - 'nym-vpn-core/crates/nym-vpnc/**'
+      - 'nym-vpn-core/crates/nym-vpn-lib/**'
+      - 'nym-vpn-core/crates/nym-vpn-proto/**'
+  workflow_dispatch:
+    inputs:
+      test_name:
+        description: 'Test name to run (default: basic_functionality)'
+        required: false
+        default: 'basic_functionality'
+      vm_config:
+        description: 'VM config name'
+        required: false
+        default: 'ci-test-vm'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            build-essential \
+            pkg-config \
+            libpcap-dev \
+            libssl-dev \
+            protobuf-compiler \
+            rootlesskit \
+            slirp4netns \
+            procps \
+            nftables \
+            wireguard-tools \
+            dnsmasq \
+            curl \
+            qemu-system-x86_64 \
+            qemu-utils \
+            podman
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Cache Cargo build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            nym-vpn-core/target
+            nym-vpn-core/crates/test/target
+          key: ${{ runner.os }}-test-harness-${{ hashFiles('nym-vpn-core/**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-test-harness-
+
+      - name: Build WireGuard library
+        working-directory: wireguard
+        run: |
+          ./build-wireguard-go.sh
+
+      - name: Build test-runner and connection-checker
+        working-directory: nym-vpn-core/crates/test
+        run: |
+          if command -v podman &> /dev/null; then
+            ./scripts/container-run.sh ./scripts/build/test-runner.sh linux
+          else
+            cargo build --release --target x86_64-unknown-linux-gnu \
+              -p test-runner \
+              -p connection-checker
+          fi
+
+      - name: Build Nym VPN binaries
+        working-directory: nym-vpn-core
+        run: |
+          cargo build --release \
+            -p nym-vpnd \
+            -p nym-vpnc
+
+      - name: Verify binaries
+        run: |
+          echo "Built binaries:"
+          ls -lh nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner || echo "test-runner not found"
+          ls -lh nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/connection-checker || echo "connection-checker not found"
+          ls -lh nym-vpn-core/target/release/nym-vpnd || echo "nym-vpnd not found"
+          ls -lh nym-vpn-core/target/release/nym-vpnc || echo "nym-vpnc not found"
+
+      - name: Prepare package directory
+        run: |
+          mkdir -p ~/.cache/nym-test/packages
+          PACKAGE_DIR=~/.cache/nym-test/packages
+          
+          cp nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner "$PACKAGE_DIR/" || true
+          cp nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/connection-checker "$PACKAGE_DIR/" || true
+          cp nym-vpn-core/target/release/nym-vpnd "$PACKAGE_DIR/" || true
+          cp nym-vpn-core/target/release/nym-vpnc "$PACKAGE_DIR/" || true
+          
+          ls -lh "$PACKAGE_DIR/"
+
+      - name: Download or create QCOW2 image
+        id: qcow_image
+        run: |
+          # TODO: Download QCOW2 image from builds.ci.nymte.ch
+          echo "image_exists=false" >> $GITHUB_OUTPUT
+
+      - name: Configure VM
+        if: steps.qcow_image.outputs.image_exists == 'true'
+        working-directory: nym-vpn-core/crates/test/test-manager
+        env:
+          NYM_TEST_QCOW_IMAGE: ${{ steps.qcow_image.outputs.image_path }}
+          NYM_TEST_VM_CONFIG: ${{ github.event.inputs.vm_config || 'ci-test-vm' }}
+        run: |
+          cargo run --release -- config vm set \
+            "$NYM_TEST_VM_CONFIG" \
+            qemu \
+            "$NYM_TEST_QCOW_IMAGE" \
+            linux \
+            --package-type deb \
+            --architecture x64 \
+            --provisioner ssh \
+            --ssh-user test \
+            --ssh-password test \
+            --vcpus 2 \
+            --memory 2048
+
+      - name: Run tests
+        if: steps.qcow_image.outputs.image_exists == 'true'
+        working-directory: nym-vpn-core/crates/test/test-manager
+        env:
+          NYM_TEST_QCOW_IMAGE: ${{ steps.qcow_image.outputs.image_path }}
+          NYM_TEST_VM_CONFIG: ${{ github.event.inputs.vm_config || 'ci-test-vm' }}
+          MAINNET_MNEMONIC: ${{ secrets.MAINNET_MNEMONIC || 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about' }}
+          PACKAGE_DIR: ~/.cache/nym-test/packages
+        run: |
+          TEST_NAME="${{ github.event.inputs.test_name || 'basic_functionality' }}"
+          
+          cargo run --release -- run-tests \
+            --vm "$NYM_TEST_VM_CONFIG" \
+            --runner-dir "$PACKAGE_DIR" \
+            --nym-mnemonic "$MAINNET_MNEMONIC" \
+            --verbose \
+            "$TEST_NAME"
+
+      - name: Upload test binaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-binaries
+          path: |
+            nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner
+            nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/connection-checker
+            nym-vpn-core/target/release/nym-vpnd
+            nym-vpn-core/target/release/nym-vpnc
+          retention-days: 7
+
+      - name: Upload test results
+        if: always() && steps.qcow_image.outputs.image_exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            nym-vpn-core/crates/test/test-manager/target/**/*.log
+          retention-days: 7
+
+      - name: Comment on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const qcowExists = '${{ steps.qcow_image.outputs.image_exists }}' === 'true';
+            const testsPassed = '${{ steps.run_tests.outcome }}' === 'success';
+            
+            let body = '## 🧪 Test Harness Results\n\n';
+            
+            if (!qcowExists) {
+              body += '⚠️ Tests were skipped because no QCOW2 image is available.\n';
+              body += '✅ Binaries built successfully and are available as artifacts.';
+            } else if (testsPassed) {
+              body += '✅ All tests passed successfully!';
+            } else {
+              body += '❌ Some tests failed. Check the test results artifact for details.';
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

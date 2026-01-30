@@ -126,19 +126,28 @@ function build_nym_deps() {
 }
 
 function run_tests() {
+    local test_name="${1:-basic_functionality}"
+    echo -e "${YELLOW}Starting test execution...${NC}"
+    echo -e "${BLUE}VM Config: ${NYM_TEST_VM_CONFIG}${NC}"
+    echo -e "${BLUE}VNC Port: 5901${NC}"
+    echo -e "${BLUE}Package Dir: ${PACKAGE_DIR}${NC}"
+    echo -e "${BLUE}Test: ${test_name}${NC}"
+    echo ""
+    
     build_deps
     build_nym_deps
 
     pushd "${TEST_FRAMEWORK_ROOT}"
+    echo -e "${YELLOW}Running test: ${test_name}${NC}"
     cargo run \
         -p test-manager \
         -- run-tests \
         --vm ${NYM_TEST_VM_CONFIG} \
         --vnc 5901 \
         --nym-mnemonic "${MAINNET_MNEMONIC}" \
-        --runner-dir "${PACKAGE_DIR}"\
+        --runner-dir "${PACKAGE_DIR}" \
         --verbose \
-        "basic_functionality"
+        "${test_name}"
     popd
 }
 
@@ -159,7 +168,8 @@ case "$COMMAND" in
         configure
         ;;
     run-tests)
-        run_tests
+        shift
+        run_tests "$@"
         ;;
     run-vm)
         run_vm

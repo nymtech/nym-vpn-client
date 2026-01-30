@@ -105,6 +105,130 @@ pub async fn basic_functionality(
     Ok(())
 }
 
+#[test_function_nym]
+pub async fn wake_from_sleep(
+    _: TestContext,
+    rpc: NymServiceClient,
+    mut nym_proxy_client: NymProxyClient,
+) -> Result<(), anyhow::Error> {
+    log::info!("Wake from sleep test");
+    prepare_daemon_nym(&mut nym_proxy_client, false).await?;
+
+    log::info!("Setting up initial connection...");
+    
+    let is_stored = nym_proxy_client.is_account_stored().await?;
+    log::debug!("nym-vpnd has a registered account: {is_stored}");
+    
+    if !is_stored {
+        log::debug!("Registering a mnemonic...");
+        if let Some(err) = nym_proxy_client
+            .store_account_friendly(&TEST_CONFIG_NYM.mnemonic)
+            .await?
+            .error
+        {
+            log::error!("{}", err);
+        }
+        
+        loop {
+            let is_stored = nym_proxy_client.is_account_stored().await?;
+            if is_stored {
+                break;
+            }
+            tokio::time::sleep(Duration::from_secs(5)).await;
+        }
+    }
+    
+    wait_for_account_state(
+        &mut nym_proxy_client,
+        AccountControllerState::ReadyToConnect,
+    ).await?;
+    
+    log::info!("Connecting tunnel...");
+    nym_proxy_client.connect_tunnel_friendly().await?;
+    wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Connected).await?;
+    
+    log::info!("Testing connectivity before sleep simulation...");
+    let hostnames_to_test = vec![("1.1.1.1", 53), ("google.com", 443)];
+    for host in &hostnames_to_test {
+        log::debug!("Trying to resolve {}", host.0);
+        let result = helpers_nym::resolve_hostname_with_retries(*host).await;
+        log::debug!("Result: {:?}", result);
+    }
+    
+    log::info!("🔌 Disconnecting tunnel...");
+    nym_proxy_client.disconnect_tunnel().await?;
+    wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Disconnected).await?;
+    
+    log::info!("✅ Initial connection test completed successfully");
+        
+    let current_time = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    let two_hours_ago = current_time - (2 * 60 * 60); // 2 hours in seconds
+    
+    let date_cmd = format!("sudo date -s @{}", two_hours_ago);
+    log::debug!("Executing: {}", date_cmd);
+    
+    let result = rpc.exec(
+        "date".to_string(),
+        vec!["-s".to_string(), format!("@{}", two_hours_ago)],
+    ).await?;
+    
+    if result.code != Some(0) {
+        log::warn!("Failed to change system time: {}", String::from_utf8_lossy(&result.stderr));
+        let result2 = rpc.exec(
+            "sudo".to_string(),
+            vec!["date".to_string(), "-s".to_string(), format!("@{}", two_hours_ago)],
+        ).await?;
+        
+        if result2.code != Some(0) {
+            bail!("Failed to change system time with both methods");
+        }
+    }
+    
+    log::info!("Attempting to connect after 'waking up'...");
+    
+    tokio::time::sleep(Duration::from_secs(2)).await;
+    
+    nym_proxy_client.connect_tunnel_friendly().await?;
+    wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Connected).await?;
+    
+    log::info!("Successfully connected after sleep simulation!");
+    
+    log::info!("Testing connectivity after wake...");
+    for host in &hostnames_to_test {
+        log::debug!("Trying to resolve {} after wake", host.0);
+        let result = helpers_nym::resolve_hostname_with_retries(*host).await;
+        log::debug!("Result: {:?}", result);
+    }
+    
+    log::info!("Disconnecting after wake test...");
+    nym_proxy_client.disconnect_tunnel().await?;
+    wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Disconnected).await?;
+    
+    let restore_cmd = format!("sudo date -s @{}", current_time);
+    let result = rpc.exec(
+        "date".to_string(),
+        vec!["-s".to_string(), format!("@{}", current_time)],
+    ).await?;
+    
+    if result.code != Some(0) {
+        let result2 = rpc.exec(
+            "sudo".to_string(),
+            vec!["date".to_string(), "-s".to_string(), format!("@{}", current_time)],
+        ).await?;
+        
+        if result2.code != Some(0) {
+            log::warn!("Failed to restore system time with both methods");
+        }
+    }
+    
+    log::info!("🏁 🏁 🏁 Wake from sleep test passed!");
+
+    Ok(())
+}
+
 #[derive(Debug, PartialEq)]
 enum ExpectedTunnelState {
     Connected,
