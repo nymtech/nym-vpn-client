@@ -9,7 +9,6 @@ mod shutdown_handler;
 #[cfg(windows)]
 mod windows_service;
 
-use anyhow::Context;
 use clap::Parser;
 use nym_vpn_network_config::NetworkCache;
 use tokio::{sync::broadcast, task::JoinHandle};
