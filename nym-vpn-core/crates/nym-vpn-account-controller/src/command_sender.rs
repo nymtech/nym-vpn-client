@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand},
     deeplink::CreateDeeplinkParams,
-    AvailableTicketbooks,
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
+    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
-    ResolverOverrides,
 };
 use nym_vpn_lib_types::{
     AccountCommandError, DeeplinkKind, RegisterAccountResponse, VpnAccountSummary,

@@ -131,16 +131,17 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
             None => false,
         }
     } else {
+        // i.e. `stored_account_mode` is None, meaning we want to forget all accounts,
+        // and we are currently using some account.
         shared_state.vpn_account.is_some()
     };
 
-    if let Some(stored_account_mode) = stored_account_mode {
-        tracing::info!("Removing {stored_account_mode:?} account");
-    } else {
-        tracing::info!("Removing all accounts");
-    }
+    tracing::info!(
+        "Forgetting account.  Being used: {}",
+        if using_account { "yes" } else { "no" }
+    );
 
-    // Removing mnemonic and keys in storage
+    // Remove mnemonic from storage
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
@@ -153,7 +154,6 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     }
 
     // Tunnel state is checked before sending the command here. We're in Disconnected state
-
     if let Err(err) = handle_unregister_device(shared_state).await {
         tracing::error!("Failed to unregister device: {err}");
     } else {

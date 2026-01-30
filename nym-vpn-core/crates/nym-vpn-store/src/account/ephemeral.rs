@@ -1,13 +1,25 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{AccountInformationStorage, StoredAccount, StoredAccounts};
+use super::AccountInformationStorage;
 use crate::types::{StorableAccount, StoredAccountMode};
+use bip39::Mnemonic;
+use serde::Deserialize;
+use std::collections::HashMap;
 use tokio::sync::Mutex;
+
+#[derive(Clone, Debug, Deserialize)]
+struct StoredAccount {
+    /// The mnemonic itself.
+    mnemonic: Mnemonic,
+
+    /// The mode associated with this account
+    mode: StoredAccountMode,
+}
 
 #[derive(Default)]
 pub struct InMemoryAccountStorage {
-    accounts: Mutex<StoredAccounts>,
+    accounts: Mutex<HashMap<StoredAccountMode, StoredAccount>>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -26,7 +38,6 @@ impl AccountInformationStorage for InMemoryAccountStorage {
     async fn load_accounts(&self) -> Result<Vec<StorableAccount>, InMemoryAccountStorageError> {
         let guard = self.accounts.lock().await;
         Ok(guard
-            .0
             .values()
             .map(|stored| StorableAccount {
                 mnemonic: stored.mnemonic.clone(),
@@ -40,14 +51,12 @@ impl AccountInformationStorage for InMemoryAccountStorage {
         account: StorableAccount,
     ) -> Result<(), InMemoryAccountStorageError> {
         let stored_account = StoredAccount {
-            name: "default".to_string(),
             mnemonic: account.mnemonic,
             mode: account.mode,
-            nonce: 0,
         };
 
         let mut guard = self.accounts.lock().await;
-        guard.0.insert(stored_account.mode, stored_account);
+        guard.insert(stored_account.mode, stored_account);
         Ok(())
     }
 
@@ -58,14 +67,14 @@ impl AccountInformationStorage for InMemoryAccountStorage {
         let mut guard = self.accounts.lock().await;
 
         if let Some(stored_account_mode) = stored_account_mode {
-            if guard.0.contains_key(&stored_account_mode) {
-                guard.0.remove(&stored_account_mode);
+            if guard.contains_key(&stored_account_mode) {
+                guard.remove(&stored_account_mode);
                 Ok(())
             } else {
                 Err(InMemoryAccountStorageError::NoMnemonicStored)
             }
         } else {
-            guard.0.clear();
+            guard.clear();
             Ok(())
         }
     }

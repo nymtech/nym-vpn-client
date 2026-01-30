@@ -190,33 +190,31 @@ impl NymAccountController {
             .map_err(VpnError::from)
     }
 
-pub(super) async fn register_account(
-    args: crate::AccountRegistrationArgs,
-) -> Result<RegisterAccountResponse, VpnError> {
-    let stored_accounts = get_command_sender().await?.get_stored_accounts().await?;
+    /// Register the stored account.
+    pub async fn register_account(
+        &self,
+        args: AccountRegistrationArgs,
+    ) -> Result<RegisterAccountResponse, VpnError> {
+        let mnemonic = self
+            .command_sender
+            .get_stored_account()
+            .await
+            .map_err(VpnError::from)?
+            .ok_or(VpnError::NoAccountStored)?;
+        let platform = Platform::try_from(args)?;
+        self.command_sender
+            .register_account(mnemonic, platform)
+            .await
+            .map_err(VpnError::from)
+    }
 
-    let Some(stored_account) = stored_accounts
-        .into_iter()
-        .find(|account| account.mode == StoredAccountMode::Api)
-    else {
-        return Err(VpnError::NoAccountStored);
-    };
-
-    let platform = Platform::try_from(args)?;
-    get_command_sender()
-        .await?
-        .register_account(stored_account, platform)
-        .await
-        .map_err(VpnError::from)
-}
-
-pub(super) async fn forget_account() -> Result<(), VpnError> {
-    get_command_sender()
-        .await?
-        .forget_account(Some(StoredAccountMode::Api))
-        .await
-        .map_err(VpnError::from)
-}
+    /// Remove the account mnemonic and all associated keys and files
+    pub async fn forget_account(&self) -> Result<(), VpnError> {
+        self.command_sender
+            .forget_account()
+            .await
+            .map_err(VpnError::from)
+    }
 
     /// Force a rotation of the wireguard keys
     pub async fn rotate_keys(&self) -> Result<(), VpnError> {
@@ -236,23 +234,11 @@ pub(super) async fn forget_account() -> Result<(), VpnError> {
         Ok(self.command_sender.get_account_id().await?.is_some())
     }
 
-pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
-    let stored_accounts = get_command_sender().await?.get_stored_accounts().await?;
-
-    let Some(stored_account) = stored_accounts
-        .into_iter()
-        .find(|account| account.mode == StoredAccountMode::Api)
-    else {
-        return Err(VpnError::NoAccountStored);
-    };
-
-    Ok(stored_account.mnemonic.to_string())
-}
     /// Read and return the mnemonic, if there's one stored.
     pub async fn get_stored_mnemonic(&self) -> Result<String, VpnError> {
         Ok(self
             .command_sender
-            .get_stored_accounts()
+            .get_stored_account()
             .await
             .map_err(VpnError::from)?
             .ok_or(VpnError::NoAccountStored)?
@@ -267,44 +253,6 @@ pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
             .await?
             .ok_or(VpnError::NoAccountStored)
     }
-pub(super) async fn get_device_id() -> Result<String, VpnError> {
-    get_command_sender()
-        .await?
-        .get_device_identity()
-        .await?
-        .ok_or(VpnError::NoAccountStored)
-}
-
-pub(super) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
-    let base_url = match params.kind {
-        DeeplinkKind::Privy | DeeplinkKind::PrivyAssociate => {
-            let Some(ref account_management) = current_environment_details()
-                .await
-                .ok()
-                .and_then(|network| network.nym_vpn_network.account_management)
-            else {
-                return Err(VpnError::DeeplinkError {
-                    details: "No account management data is available at this time".to_string(),
-                });
-            };
-
-            let opt_url = match params.client {
-                DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
-                DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
-                DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
-            };
-
-            opt_url.ok_or(VpnError::DeeplinkError {
-                details: "The privy path could not be determined".to_string(),
-            })?
-        }
-    };
-
-    get_command_sender()
-        .await?
-        .get_deeplink(params.kind, params.name, base_url)
-        .await
-        .map_err(VpnError::from)
 }
 
 #[derive(uniffi::Record)]
@@ -327,163 +275,5 @@ impl TryFrom<AccountRegistrationArgs> for nym_vpn_api_client::types::Platform {
         Err(VpnError::InternalError {
             details: "only iOS and Android supported for now".to_string(),
         })
-    }
-
-    async fn get_account_by_mnemonic_raw(
-        mnemonic: Mnemonic,
-    ) -> Result<NymVpnAccountResponse, VpnError> {
-        let vpn_api_client = create_vpn_api_client().await?;
-        let account = VpnAccount::new(mnemonic, VpnAccountMode::Api).map_err(VpnError::internal)?;
-        vpn_api_client
-            .get_account(&account)
-            .await
-            .map_err(|_err| VpnError::AccountNotRegistered)
-    }
-
-    async fn register_account_by_account_raw(
-        account: &VpnAccount,
-        platform: Platform,
-    ) -> Result<NymVpnRegisterAccountResponse, VpnError> {
-        let vpn_api_client = create_vpn_api_client().await?;
-        vpn_api_client
-            .register_account(account, platform)
-            .await
-            .map_err(|err| VpnError::FailedAccountRegistration {
-                details: err.display_chain(),
-            })
-    }
-
-    pub(crate) async fn forget_account_raw(path: &str) -> Result<(), VpnError> {
-        tracing::info!("REMOVING ALL ACCOUNT AND DEVICE DATA IN: {path}");
-
-        let path_buf =
-            PathBuf::from_str(path).map_err(|err| VpnError::InvalidAccountStoragePath {
-                details: err.to_string(),
-            })?;
-
-        unregister_device_raw(path)
-            .await
-            .inspect(|_| tracing::info!("Device has been unregistered"))
-            .inspect_err(|err| tracing::error!("Failed to unregister device: {err:?}"))
-            .ok();
-
-        // First remove the files we own directly
-        remove_account_mnemonic_raw(path).await?;
-        remove_device_identity_raw(path).await?;
-        remove_credential_storage_raw(&path_buf).await?;
-
-        // Then remove the rest of the files, that we own indirectly
-        nym_vpn_account_controller::remove_files_for_account(&path_buf, true)
-            .await
-            .map_err(|err| VpnError::Storage {
-                details: err.to_string(),
-            })?;
-
-        Ok(())
-    }
-
-    pub(crate) async fn rotate_keys_raw(path: &str) -> Result<(), VpnError> {
-        let path_buf =
-            PathBuf::from_str(path).map_err(|err| VpnError::InvalidAccountStoragePath {
-                details: err.to_string(),
-            })?;
-        remove_wireguard_keys_storage_raw(&path_buf).await?;
-
-        Ok(())
-    }
-
-    pub(crate) async fn get_device_id_raw(path: &str) -> Result<String, VpnError> {
-        let storage = setup_account_storage(path).await?;
-        let device_id = storage
-            .load_keys()
-            .await
-            .map_err(|_err| VpnError::NoDeviceIdentity)?
-            .ok_or(VpnError::NoDeviceIdentity)?;
-        Ok(device_id.device_keypair().public_key().to_string())
-    }
-
-    pub(crate) async fn remove_device_identity_raw(path: &str) -> Result<(), VpnError> {
-        let storage = setup_account_storage(path).await?;
-        storage.remove_keys().await.map_err(VpnError::internal)
-    }
-
-    pub(crate) async fn get_deeplink(params: GetDeeplinkParams) -> Result<String, VpnError> {
-        let base_url = match params.kind {
-            DeeplinkKind::Privy | DeeplinkKind::PrivyAssociate => {
-                let Some(ref account_management) = current_environment_details()
-                    .await
-                    .ok()
-                    .and_then(|network| network.nym_vpn_network.account_management)
-                else {
-                    return Err(VpnError::DeeplinkError {
-                        details: "No account management data is available at this time".to_string(),
-                    });
-                };
-
-                let opt_url = match params.client {
-                    DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
-                    DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
-                    DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
-                };
-
-                opt_url.ok_or(VpnError::DeeplinkError {
-                    details: "The privy path could not be determined".to_string(),
-                })?
-            }
-        };
-
-        let mut deeplink_guard = DEEPLINKS.lock().await;
-
-        if deeplink_guard.is_none() {
-            let deeplinks = Deeplinks::default();
-            *deeplink_guard = Some(deeplinks);
-        }
-
-        let deeplinks = deeplink_guard.as_mut().ok_or(VpnError::DeeplinkError {
-            details: "Failed to access deeplinks storage".to_string(),
-        })?;
-
-        let params = CreateDeeplinkParams {
-            kind: params.kind,
-            name: params.name,
-            base_url,
-        };
-
-        // Create a new Deeplink for this request
-        let deeplink = deeplinks
-            .create_deeplink(&params)
-            .map_err(|e| VpnError::DeeplinkError {
-                details: e.to_string(),
-            })?;
-
-        // Create the deeplink URL
-        let url = deeplink.create_url(&params.base_url);
-
-        // Housekeeping
-        deeplinks.remove_expired();
-
-        Ok(url.to_string())
-    }
-
-    pub(crate) async fn deeplink_store_account(
-        path: &str,
-        deeplink_callback_url: &str,
-    ) -> Result<(), VpnError> {
-        let mut deeplink_guard = DEEPLINKS.lock().await;
-        let deeplinks = deeplink_guard.as_mut().ok_or(VpnError::DeeplinkError {
-            details: "Failed to access deeplinks storage".to_string(),
-        })?;
-
-        // Derive the mnemonic from the provided deeplink URL
-        let mnemonic = deeplinks
-            .derive_mnemonic(deeplink_callback_url)
-            .map_err(|e| VpnError::DeeplinkError {
-                details: e.to_string(),
-            })?;
-
-        // Housekeeping
-        deeplinks.remove_expired();
-
-        login_inner(mnemonic, path).await
     }
 }
