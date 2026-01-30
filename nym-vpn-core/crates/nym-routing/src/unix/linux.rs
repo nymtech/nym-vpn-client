@@ -2,21 +2,18 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    NetNode, Node, RequiredRoute, Route,
-    imp::{CallbackMessage, RouteManagerCommand},
-};
-use nym_common::trace_err_chain;
 use std::{
     collections::{BTreeMap, HashSet},
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     num::NonZeroI32,
+    sync::LazyLock,
 };
 
 use futures::{StreamExt, TryStreamExt};
 use ipnetwork::IpNetwork;
 use libc::RT_TABLE_COMPAT;
+use nym_common::trace_err_chain;
 use rtnetlink::{
     Handle, RouteMessageBuilder,
     constants::{RTMGRP_IPV4_ROUTE, RTMGRP_IPV6_ROUTE, RTMGRP_LINK, RTMGRP_NOTIFY},
@@ -35,8 +32,12 @@ use rtnetlink::{
     },
     sys::{AsyncSocket, SocketAddr},
 };
-use std::sync::LazyLock;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
+
+use crate::{
+    NetNode, Node, RequiredRoute, Route,
+    imp::{CallbackMessage, RouteManagerCommand},
+};
 
 static SUPPRESS_RULE_V4: LazyLock<RuleMessage> = LazyLock::new(|| {
     let mut rule = RuleMessage::default();
