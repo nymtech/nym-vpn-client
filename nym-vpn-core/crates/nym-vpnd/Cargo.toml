@@ -39,7 +39,6 @@ nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 
 [target.'cfg(windows)'.dependencies]
-wmi.workspace = true
 windows-service.workspace = true
 eventlog.workspace = true
 

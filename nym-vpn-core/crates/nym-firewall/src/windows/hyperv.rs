@@ -28,8 +28,6 @@ const WMI_NAMESPACE: &str = "root\\standardcimv2";
 /// Errors occurring while configuring Hyper-V firewall rules
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("failed to initialize the COM library")]
-    InitializeCom(#[source] wmi::WMIError),
     #[error("failed to connect to the WMI namespace '{WMI_NAMESPACE}'")]
     ConnectWmi(#[source] wmi::WMIError),
     #[error("failed to obtain Hyper-V rule class")]
@@ -47,11 +45,7 @@ pub enum Error {
 /// Initialize WMI connection to the ROOT\StandardCIMV2 namespace, which may be used for
 /// interacting with Hyper-V rules.
 pub fn init_wmi() -> Result<wmi::WMIConnection, Error> {
-    let con = wmi::WMIConnection::with_namespace_path(
-        WMI_NAMESPACE,
-        wmi::COMLibrary::new().map_err(Error::InitializeCom)?,
-    )
-    .map_err(Error::ConnectWmi)?;
+    let con = wmi::WMIConnection::with_namespace_path(WMI_NAMESPACE).map_err(Error::ConnectWmi)?;
 
     // Test whether the class is available
     let _ = con
