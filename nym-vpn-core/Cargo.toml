@@ -90,7 +90,6 @@ hex = "0.4"
 hickory-resolver = "0.25"
 hickory-server = "0.25"
 hkdf = "0.12"
-http = "1.4.0"
 reqwest = { version = "0.13.1", default-features = false }
 hyper = "1.8.1"
 hyper-util = "0.1"
@@ -130,7 +129,6 @@ resolv-conf = "0.7"
 rs-release = "0.1.11"
 rtnetlink = "0.20"
 rustls = { version = "0.23.36", default-features = false }
-rustls-pki-types = "1.14"
 semver = "1.0"
 sentry = { version = "0.46.1", default-features = false }
 serde = "1.0"
