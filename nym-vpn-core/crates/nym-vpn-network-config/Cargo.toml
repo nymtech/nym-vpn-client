@@ -14,7 +14,6 @@ workspace = true
 [dependencies]
 thiserror.workspace = true
 itertools.workspace = true
-nym-api-requests.workspace = true
 nym-common.workspace = true
 nym-http-api-client.workspace = true
 nym-network-defaults.workspace = true
