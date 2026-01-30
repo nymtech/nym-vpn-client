@@ -109,6 +109,8 @@ dependencies {
 	androidTestImplementation(libs.androidx.ui.test.junit4)
 
 	detektPlugins(libs.detekt.rules.compose)
+
+	implementation(libs.androidx.datastore.preferences)
 }
 
 // this task builds the native core from source and moves the files to the jniLibs dir

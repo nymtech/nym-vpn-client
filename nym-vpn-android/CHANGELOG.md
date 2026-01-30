@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0]
+
 ### Added
 - Add deeplinks support for Main Screen (https://github.com/nymtech/nym-vpn-client/pull/4441)
 - Add logs templates for non-ui screens and modules (https://github.com/nymtech/nym-vpn-client/pull/4457)

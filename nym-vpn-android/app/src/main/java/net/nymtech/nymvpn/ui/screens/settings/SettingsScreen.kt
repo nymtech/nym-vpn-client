@@ -102,7 +102,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 		SettingsValues(
 			isMnemonicStored = appUiState.managerState.isMnemonicStored,
 			autoConnectEnabled = appUiState.settings.autoStartEnabled,
-			bypassLanEnabled = appUiState.settings.isBypassLanEnabled,
+			bypassLanEnabled = appUiState.vpnConfig.bypassLan,
 			supportIPv6Enabled = false,
 			autoselectServerEnabled = false,
 			appShortcutsEnabled = appUiState.settings.isShortcutsEnabled,

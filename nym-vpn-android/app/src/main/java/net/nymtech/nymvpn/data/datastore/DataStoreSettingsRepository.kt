@@ -8,22 +8,14 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.util.extensions.asEntryPoint
-import net.nymtech.vpn.util.extensions.asExitPoint
-import net.nymtech.vpn.util.extensions.asString
-import nym_vpn_lib_types.EntryPoint
-import nym_vpn_lib_types.ExitPoint
 import timber.log.Timber
 
-class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager) :
-	SettingsRepository {
+class DataStoreSettingsRepository(
+	private val dataStoreManager: DataStoreManager,
+) : SettingsRepository {
 
-	private val entryPoint = stringPreferencesKey("ENTRY_POINT")
-	private val exitPoint = stringPreferencesKey("EXIT_POINT")
 	private val theme = stringPreferencesKey("THEME")
-	private val vpnMode = stringPreferencesKey("TUNNEL_MODE")
 	private val autoStart = booleanPreferencesKey("AUTO_START")
-	private val bypassLanEnabled = booleanPreferencesKey("BYPASS_LAN")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
 	private val environment = stringPreferencesKey("ENVIRONMENT")
 	private val manualGatewayOverride = booleanPreferencesKey("MANUAL_GATEWAYS")
@@ -37,27 +29,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val quicEnabled = booleanPreferencesKey("QUIC_ENABLED")
 	private val isStreamingServerBannerDisplayed = booleanPreferencesKey("STREAMING_SERVER_DISPLAYED")
 	private val isPerAppSecurityBannerDisplayed = booleanPreferencesKey("DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED")
-	private val customDnsEnabled = booleanPreferencesKey("CUSTOM_DNS_ENABLED")
-
-	private val customDnsList = stringPreferencesKey("CUSTOM_DNS_LIST")
 	private val logsEnabled = booleanPreferencesKey("LOGS_ENABLED")
 	private val logsDebugEnabled = booleanPreferencesKey("LOGS_DEBUG_ENABLED")
-
-	override suspend fun setEntryPoint(entry: EntryPoint) {
-		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
-	}
-
-	override suspend fun getEntryPoint(): EntryPoint {
-		return dataStoreManager.getFromStore(entryPoint)?.asEntryPoint() ?: EntryPoint.Country("FR")
-	}
-
-	override suspend fun setExitPoint(exit: ExitPoint) {
-		dataStoreManager.saveToDataStore(exitPoint, exit.asString())
-	}
-
-	override suspend fun getExitPoint(): ExitPoint {
-		return dataStoreManager.getFromStore(exitPoint)?.asExitPoint() ?: ExitPoint.Country("FR")
-	}
 
 	override suspend fun getTheme(): Theme {
 		return dataStoreManager.getFromStore(theme)?.let {
@@ -71,27 +44,11 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setTheme(theme: Theme) {
-		dataStoreManager.saveToDataStore(this@DataStoreSettingsRepository.theme, theme.name)
-	}
-
-	override suspend fun getVpnMode(): Tunnel.Mode {
-		return dataStoreManager.getFromStore(vpnMode)?.let {
-			try {
-				Tunnel.Mode.valueOf(it)
-			} catch (e: IllegalArgumentException) {
-				Timber.e(e)
-				Tunnel.Mode.TWO_HOP_MIXNET
-			}
-		} ?: Tunnel.Mode.TWO_HOP_MIXNET
-	}
-
-	override suspend fun setVpnMode(mode: Tunnel.Mode) {
-		dataStoreManager.saveToDataStore(vpnMode, mode.name)
+		dataStoreManager.saveToDataStore(this.theme, theme.name)
 	}
 
 	override suspend fun isAutoStartEnabled(): Boolean {
-		return dataStoreManager.getFromStore(autoStart)
-			?: Settings.AUTO_START_DEFAULT
+		return dataStoreManager.getFromStore(autoStart) ?: Settings.AUTO_START_DEFAULT
 	}
 
 	override suspend fun setAutoStart(enabled: Boolean) {
@@ -106,17 +63,9 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(applicationShortcuts, enabled)
 	}
 
-	override suspend fun isBypassLanEnabled(): Boolean {
-		return dataStoreManager.getFromStore(bypassLanEnabled) ?: Settings.BYPASS_LAN_DEFAULT
-	}
-
-	override suspend fun setBypassLan(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(bypassLanEnabled, enabled)
-	}
-
 	override suspend fun getEnvironment(): Tunnel.Environment {
 		return dataStoreManager.getFromStore(environment)?.let {
-			Tunnel.Environment.valueOf(it)
+			runCatching { Tunnel.Environment.valueOf(it) }.getOrElse { Settings.DEFAULT_ENVIRONMENT }
 		} ?: Settings.DEFAULT_ENVIRONMENT
 	}
 
@@ -146,7 +95,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setBatteryDialogSkipped(skip: Boolean) {
-		dataStoreManager.saveToDataStore(this.batteryDialogSkip, skip)
+		dataStoreManager.saveToDataStore(batteryDialogSkip, skip)
 	}
 
 	override suspend fun isBatteryDialogSkipped(): Boolean {
@@ -158,7 +107,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setSentryMonitoring(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(this.sentryEnabled, enabled)
+		dataStoreManager.saveToDataStore(sentryEnabled, enabled)
 	}
 
 	override suspend fun getStatisticsEnabled(): Boolean {
@@ -166,23 +115,23 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setStatisticsEnabled(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(this.statsEnabled, enabled)
+		dataStoreManager.saveToDataStore(statsEnabled, enabled)
 	}
 
 	override suspend fun isStatsDialogSkipped(): Boolean {
 		return dataStoreManager.getFromStore(statsDialogSkip) ?: Settings.FLAG_STATS_DIALOG_SKIP
 	}
 
+	override suspend fun setStatsDialogSkipped(skip: Boolean) {
+		dataStoreManager.saveToDataStore(statsDialogSkip, skip)
+	}
+
 	override suspend fun setTechnicalOptScreenCompleted() {
-		dataStoreManager.saveToDataStore(this.technicalOptScreenCompleted, true)
+		dataStoreManager.saveToDataStore(technicalOptScreenCompleted, true)
 	}
 
 	override suspend fun isTechnicalOptScreenCompleted(): Boolean {
 		return dataStoreManager.getFromStore(technicalOptScreenCompleted) ?: Settings.FLAG_TECHNICAL_OPT_COMPLETED
-	}
-
-	override suspend fun setStatsDialogSkipped(skip: Boolean) {
-		dataStoreManager.saveToDataStore(this.statsDialogSkip, skip)
 	}
 
 	override suspend fun getQUICEnabled(): Boolean {
@@ -190,7 +139,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setQUICEnabled(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(this.quicEnabled, enabled)
+		dataStoreManager.saveToDataStore(quicEnabled, enabled)
 	}
 
 	override suspend fun getIsStreamServerBannerDisplayed(): Boolean {
@@ -198,44 +147,15 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean) {
-		dataStoreManager.saveToDataStore(this.isStreamingServerBannerDisplayed, displayed)
+		dataStoreManager.saveToDataStore(isStreamingServerBannerDisplayed, displayed)
 	}
 
 	override suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean {
-		return dataStoreManager.getFromStore(isPerAppSecurityBannerDisplayed) ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED
+		return dataStoreManager.getFromStore(isPerAppSecurityBannerDisplayed) ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED
 	}
 
 	override suspend fun setIsPerAppSecurityBannerDisplayed(displayed: Boolean) {
-		dataStoreManager.saveToDataStore(this.isPerAppSecurityBannerDisplayed, displayed)
-	}
-
-	override suspend fun getCustomDnsEnabled(): Boolean {
-		return dataStoreManager.getFromStore(customDnsEnabled) ?: Settings.DEFAULT_CUSTOM_DNS_ENABLED
-	}
-
-	override suspend fun setCustomDnsEnabled(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(this.customDnsEnabled, enabled)
-	}
-
-	override suspend fun saveDnsList(list: List<String>) {
-		val normalized = list
-			.map { it.trim() }
-			.filter { it.isNotEmpty() }
-			.take(5)
-
-		val encoded = normalized.joinToString(separator = "|")
-		dataStoreManager.saveToDataStore(customDnsList, encoded)
-	}
-
-	override suspend fun getDnsList(): List<String> {
-		val encoded = dataStoreManager.getFromStore(customDnsList).orEmpty().trim()
-		if (encoded.isEmpty()) return emptyList()
-
-		return encoded
-			.split("|")
-			.map { it.trim() }
-			.filter { it.isNotEmpty() }
-			.take(5)
+		dataStoreManager.saveToDataStore(isPerAppSecurityBannerDisplayed, displayed)
 	}
 
 	override suspend fun getLogsEnabled(): Boolean {
@@ -243,7 +163,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setLogsEnabled(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(this.logsEnabled, enabled)
+		dataStoreManager.saveToDataStore(logsEnabled, enabled)
 	}
 
 	override suspend fun getLogsDebugEnabled(): Boolean {
@@ -251,7 +171,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setLogsDebugEnabled(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(this.logsDebugEnabled, enabled)
+		dataStoreManager.saveToDataStore(logsDebugEnabled, enabled)
 	}
 
 	override val settingsFlow: Flow<Settings> =
@@ -259,19 +179,9 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 			prefs?.let { pref ->
 				try {
 					Settings(
-						theme =
-						pref[theme]?.let { Theme.valueOf(it) }
-							?: Theme.default(),
-						vpnMode =
-						pref[vpnMode]?.let { Tunnel.Mode.valueOf(it) }
-							?: Tunnel.Mode.TWO_HOP_MIXNET,
-						autoStartEnabled =
-						pref[autoStart]
-							?: Settings.AUTO_START_DEFAULT,
-						entryPoint = pref[entryPoint]?.asEntryPoint() ?: Settings.DEFAULT_ENTRY_POINT,
-						exitPoint = pref[exitPoint]?.asExitPoint() ?: Settings.DEFAULT_EXIT_POINT,
+						theme = pref[theme]?.let { Theme.valueOf(it) } ?: Theme.default(),
+						autoStartEnabled = pref[autoStart] ?: Settings.AUTO_START_DEFAULT,
 						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
-						isBypassLanEnabled = pref[bypassLanEnabled] ?: Settings.BYPASS_LAN_DEFAULT,
 						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT,
 						isCredentialMode = pref[credentialMode],
 						locale = pref[locale],
@@ -283,7 +193,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						quicEnabled = pref[quicEnabled] ?: Settings.DEFAULT_QUIC_ENABLED,
 						isStreamingServerBannerDisplayed = pref[isStreamingServerBannerDisplayed] ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 						isPerAppSecurityBannerDisplayed = pref[isPerAppSecurityBannerDisplayed] ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
-						customDnsEnabled = pref[customDnsEnabled] ?: Settings.DEFAULT_CUSTOM_DNS_ENABLED,
 						logsEnabled = pref[logsEnabled] ?: Settings.DEFAULT_LOGS_ENABLED,
 						logsDebugEnabled = pref[logsDebugEnabled] ?: Settings.DEFAULT_LOGS_DEBUG_ENABLED,
 					)

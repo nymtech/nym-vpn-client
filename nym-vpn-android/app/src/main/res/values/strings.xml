@@ -181,6 +181,7 @@
 	<string name="button_next">Next</string>
 	<string name="skip">Skip</string>
 	<string name="get_started">Get started</string>
+	<string name="random_text">Random</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>

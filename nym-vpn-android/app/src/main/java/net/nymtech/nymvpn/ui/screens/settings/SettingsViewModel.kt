@@ -11,14 +11,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
+	private val vpnConfigRepository: VpnConfigRepository,
 	private val backendManager: BackendManager,
 ) : ViewModel() {
 
@@ -54,8 +57,7 @@ class SettingsViewModel @Inject constructor(
 
 	fun onBypassLanSelected(selected: Boolean) = viewModelScope.launch {
 		runCatching {
-			settingsRepository.setBypassLan(selected)
-			backendManager.requestRestartDebounced()
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetBypassLan(selected))
 		}.onFailure {
 			Timber.e(it, "Failed to update bypass LAN setting")
 		}

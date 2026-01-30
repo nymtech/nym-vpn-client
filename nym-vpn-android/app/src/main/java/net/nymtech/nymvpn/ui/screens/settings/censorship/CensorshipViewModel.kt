@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.vpn.backend.Tunnel
@@ -17,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CensorshipViewModel @Inject constructor(
 	private val backendManager: BackendManager,
+	private val vpnConfigRepository: VpnConfigRepository,
 	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
@@ -37,7 +39,7 @@ class CensorshipViewModel @Inject constructor(
 	fun onQUICEnabled(enabled: Boolean) = viewModelScope.launch {
 		runCatching {
 			settingsRepository.setQUICEnabled(enabled)
-			if (settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET) {
+			if (vpnConfigRepository.getConfig().mode == Tunnel.Mode.TWO_HOP_MIXNET) {
 				backendManager.requestRestartDebounced()
 			}
 		}.onFailure {

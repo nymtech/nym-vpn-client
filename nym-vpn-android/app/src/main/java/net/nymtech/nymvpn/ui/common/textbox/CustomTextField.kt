@@ -1,12 +1,10 @@
 package net.nymtech.nymvpn.ui.common.textbox
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -24,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -67,19 +64,13 @@ fun CustomTextField(
 					onClick = { onValueChange("") },
 					modifier = Modifier
 						.size(32.dp)
-						.clip(CircleShape)
-						.border(
-							width = 1.dp,
-							color = MaterialTheme.colorScheme.outline,
-							shape = CircleShape,
-						)
 						.semantics { contentDescription = "Clear text" },
 				) {
 					Icon(
 						imageVector = Icons.Filled.Close,
 						contentDescription = null,
 						tint = MaterialTheme.colorScheme.onSurface,
-						modifier = Modifier.size(18.dp),
+						modifier = Modifier.size(20.dp),
 					)
 				}
 			}

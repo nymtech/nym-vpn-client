@@ -2,17 +2,11 @@ package net.nymtech.nymvpn.data.domain
 
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib_types.EntryPoint
-import nym_vpn_lib_types.ExitPoint
 
 data class Settings(
 	val theme: Theme? = null,
-	val vpnMode: Tunnel.Mode = Tunnel.Mode.TWO_HOP_MIXNET,
 	val autoStartEnabled: Boolean = AUTO_START_DEFAULT,
-	val entryPoint: EntryPoint = DEFAULT_ENTRY_POINT,
-	val exitPoint: ExitPoint = DEFAULT_EXIT_POINT,
 	val isShortcutsEnabled: Boolean = SHORTCUTS_DEFAULT,
-	val isBypassLanEnabled: Boolean = BYPASS_LAN_DEFAULT,
 	val environment: Tunnel.Environment = DEFAULT_ENVIRONMENT,
 	val isCredentialMode: Boolean? = null,
 	val locale: String? = null,
@@ -24,27 +18,22 @@ data class Settings(
 	val quicEnabled: Boolean = DEFAULT_QUIC_ENABLED,
 	val isStreamingServerBannerDisplayed: Boolean = DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 	val isPerAppSecurityBannerDisplayed: Boolean = DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
-	val customDnsEnabled: Boolean = DEFAULT_CUSTOM_DNS_ENABLED,
 	val logsEnabled: Boolean = DEFAULT_LOGS_ENABLED,
 	val logsDebugEnabled: Boolean = DEFAULT_LOGS_DEBUG_ENABLED,
 ) {
 	companion object {
 		const val AUTO_START_DEFAULT = false
 		const val SHORTCUTS_DEFAULT = false
-		const val BYPASS_LAN_DEFAULT = false
 		const val DEFAULT_SENTRY_ENABLED = false
 		const val DEFAULT_STATS_ENABLED = true
 		const val DEFAULT_QUIC_ENABLED = false
-		const val DEFAULT_CUSTOM_DNS_ENABLED = false
 		const val FLAG_BATTERY_DIALOG_SKIP = false
 		const val FLAG_STATS_DIALOG_SKIP = false
 		const val FLAG_TECHNICAL_OPT_COMPLETED = false
 		const val DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED = false
 		const val DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED = false
 		val DEFAULT_ENVIRONMENT = Tunnel.Environment.MAINNET
-		val DEFAULT_ENTRY_POINT = EntryPoint.Country("FR")
-		val DEFAULT_EXIT_POINT = ExitPoint.Country("FR")
-		val DEFAULT_LOGS_ENABLED = false
-		val DEFAULT_LOGS_DEBUG_ENABLED = false
+		const val DEFAULT_LOGS_ENABLED = false
+		const val DEFAULT_LOGS_DEBUG_ENABLED = false
 	}
 }

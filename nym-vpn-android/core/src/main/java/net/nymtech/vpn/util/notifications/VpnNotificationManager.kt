@@ -22,16 +22,23 @@ import net.nymtech.vpn.util.extensions.toDisplayCountry
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 
+/**
+ * Builds and updates the VPN foreground notification.
+ */
 @SuppressLint("MissingPermission")
-internal class VpnNotificationManager private constructor(private val context: Context) {
+internal class VpnNotificationManager private constructor(
+	private val context: Context,
+) {
 
 	companion object : SingletonHolder<VpnNotificationManager, Context>(::VpnNotificationManager) {
 		const val VPN_CHANNEL_ID = "VpnForegroundChannel"
 		const val VPN_FOREGROUND_ID = 223
 	}
 
+	/** Runs [action] only if POST_NOTIFICATIONS is granted (Android 13+). */
 	inline fun withNotificationPermission(action: () -> Unit) {
-		if (ActivityCompat.checkSelfPermission(
+		if (
+			ActivityCompat.checkSelfPermission(
 				context,
 				Manifest.permission.POST_NOTIFICATIONS,
 			) == PackageManager.PERMISSION_GRANTED
@@ -41,109 +48,47 @@ internal class VpnNotificationManager private constructor(private val context: C
 	}
 
 	private fun setupChannel() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			val channel = NotificationChannel(
-				VPN_CHANNEL_ID,
-				context.getString(R.string.channel_name),
-				NotificationManager.IMPORTANCE_LOW,
-			).apply {
-				lightColor = Color.BLUE
-				description = context.getString(R.string.channel_description)
-				lockscreenVisibility = NotificationCompat.VISIBILITY_PRIVATE
-			}
-			context.getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+
+		val channel = NotificationChannel(
+			VPN_CHANNEL_ID,
+			context.getString(R.string.channel_name),
+			NotificationManager.IMPORTANCE_LOW,
+		).apply {
+			lightColor = Color.BLUE
+			description = context.getString(R.string.channel_description)
+			lockscreenVisibility = NotificationCompat.VISIBILITY_PRIVATE
 		}
+
+		context.getSystemService(NotificationManager::class.java)
+			?.createNotificationChannel(channel)
 	}
 
 	fun buildVpnNotification(state: Tunnel.State, entry: EntryPoint?, exit: ExitPoint?, gatewaysEntry: List<NymGateway>?, gatewaysExit: List<NymGateway>?): Notification {
 		setupChannel()
 
 		val title = context.getString(R.string.vpn_notification_title)
-		val entryText = entry?.let { e ->
-			val (nodeName, city, countryIso) = when (e) {
-				is EntryPoint.Gateway -> {
-					val gw = gatewaysEntry?.firstOrNull { it.identity == e.identity }
-					Triple(
-						gw?.name ?: e.identity,
-						gw?.city,
-						gw?.twoLetterCountryISO,
-					)
-				}
+		val stateText = state.toStateText()
 
-				is EntryPoint.Region -> {
-					val gw = gatewaysEntry?.firstOrNull { it.region.equals(e.region, ignoreCase = true) }
-					Triple(
-						gw?.region ?: e.region,
-						gw?.twoLetterCountryISO,
-						null,
-					)
-				}
-
-				is EntryPoint.Country -> Triple(
-					toDisplayCountry(e.twoLetterIsoCountryCode),
-					null,
-					null,
-				)
-
-				is EntryPoint.Random -> Triple("random", null, null)
-			}
-
-			val formatted = formatNodeLocation(nodeName, city, countryIso)
-			context.getString(R.string.notification_entry, formatted)
+		val entryText = entry?.let {
+			context.getString(R.string.notification_entry, formatEntry(it, gatewaysEntry))
 		}
 
-		val exitText = exit?.let { e ->
-			val (nodeName, city, countryIso) = when (e) {
-				is ExitPoint.Gateway -> {
-					val gw = gatewaysExit?.firstOrNull { it.identity == e.identity }
-					Triple(
-						gw?.name ?: e.identity,
-						gw?.city,
-						gw?.twoLetterCountryISO,
-					)
-				}
-
-				is ExitPoint.Region -> {
-					val gw = gatewaysExit?.firstOrNull { it.region.equals(e.region, ignoreCase = true) }
-					Triple(
-						gw?.region ?: e.region,
-						gw?.twoLetterCountryISO,
-						null,
-					)
-				}
-
-				is ExitPoint.Country -> Triple(
-					toDisplayCountry(e.twoLetterIsoCountryCode),
-					null,
-					null,
-				)
-
-				is ExitPoint.Address -> Triple(e.address, null, null)
-
-				is ExitPoint.Random -> Triple("random", null, null)
-			}
-
-			val formatted = formatNodeLocation(nodeName, city, countryIso)
-			context.getString(R.string.notification_exit, formatted)
+		val exitText = exit?.let {
+			context.getString(R.string.notification_exit, formatExit(it, gatewaysExit))
 		}
 
-		val text = when (state) {
-			Tunnel.State.Down -> context.getString(R.string.state_disconnected)
-			Tunnel.State.Up -> context.getString(R.string.state_connected)
-			Tunnel.State.InitializingClient -> context.getString(R.string.state_initializing)
-			Tunnel.State.EstablishingConnection -> context.getString(R.string.state_establishing)
-			else -> state.toString()
+		val fullText = buildList {
+			add(stateText)
+			entryText?.let(::add)
+			exitText?.let(::add)
+		}.joinToString("\n")
+
+		val stopIntent = Intent(context, StopVpnReceiver::class.java).apply {
+			action = StopVpnReceiver.ACTION_DISCONNECT
 		}
 
-		val lines = buildList {
-			add(text)
-			entryText?.let { add(it) }
-			exitText?.let { add(it) }
-		}
-		val fullText = lines.joinToString("\n")
-
-		val stopIntent = Intent(context, StopVpnReceiver::class.java)
-		val pending = PendingIntent.getBroadcast(
+		val stopPendingIntent = PendingIntent.getBroadcast(
 			context,
 			0,
 			stopIntent,
@@ -153,15 +98,16 @@ internal class VpnNotificationManager private constructor(private val context: C
 		return NotificationCompat.Builder(context, VPN_CHANNEL_ID)
 			.setOngoing(true)
 			.setContentTitle(title)
-			.setContentText(text)
+			.setContentText(stateText)
 			.setStyle(NotificationCompat.BigTextStyle().bigText(fullText))
 			.setSmallIcon(R.drawable.ic_stat_name)
 			.setContentIntent(contentIntent())
-			.addAction(R.drawable.ic_stop, context.getString(R.string.disconnect), pending)
+			.addAction(R.drawable.ic_stop, context.getString(R.string.disconnect), stopPendingIntent)
 			.setCategory(Notification.CATEGORY_SERVICE)
 			.build()
 	}
 
+	/** Minimal notification used when promoting to foreground early. */
 	fun buildMinimalNotification(): Notification {
 		setupChannel()
 
@@ -175,13 +121,14 @@ internal class VpnNotificationManager private constructor(private val context: C
 			.build()
 	}
 
+	/** Updates/cancels the foreground notification based on [state]. */
 	internal fun updateVpnNotification(state: Tunnel.State, entry: EntryPoint?, exit: ExitPoint?, gatewaysEntry: List<NymGateway>?, gatewaysExit: List<NymGateway>?) {
 		withNotificationPermission {
-			val notificationManager = NotificationManagerCompat.from(context)
+			val nm = NotificationManagerCompat.from(context)
 			if (state == Tunnel.State.Down) {
-				notificationManager.cancel(VPN_FOREGROUND_ID)
+				nm.cancel(VPN_FOREGROUND_ID)
 			} else {
-				notificationManager.notify(
+				nm.notify(
 					VPN_FOREGROUND_ID,
 					buildVpnNotification(state, entry, exit, gatewaysEntry, gatewaysExit),
 				)
@@ -201,24 +148,68 @@ internal class VpnNotificationManager private constructor(private val context: C
 
 	private val pendingIntentFlags: Int by lazy {
 		when {
-			Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
+			Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ->
 				PendingIntent.FLAG_UPDATE_CURRENT or
 					PendingIntent.FLAG_MUTABLE or
 					PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT
-			}
 
-			Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+			Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
 				PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-			}
 
 			else -> PendingIntent.FLAG_UPDATE_CURRENT
 		}
+	}
+
+	private fun formatEntry(entry: EntryPoint, gateways: List<NymGateway>?): String {
+		val (name, city, countryIso) = when (entry) {
+			is EntryPoint.Gateway -> {
+				val gw = gateways?.firstOrNull { it.identity == entry.identity }
+				Triple(gw?.name ?: entry.identity, gw?.city, gw?.twoLetterCountryISO)
+			}
+
+			is EntryPoint.Region -> {
+				val gw = gateways?.firstOrNull { it.region.equals(entry.region, ignoreCase = true) }
+				Triple(gw?.region ?: entry.region, gw?.city, gw?.twoLetterCountryISO)
+			}
+
+			is EntryPoint.Country -> Triple(toDisplayCountry(entry.twoLetterIsoCountryCode), null, null)
+			is EntryPoint.Random -> Triple("random", null, null)
+		}
+
+		return formatNodeLocation(name, city, countryIso)
+	}
+
+	private fun formatExit(exit: ExitPoint, gateways: List<NymGateway>?): String {
+		val (name, city, countryIso) = when (exit) {
+			is ExitPoint.Gateway -> {
+				val gw = gateways?.firstOrNull { it.identity == exit.identity }
+				Triple(gw?.name ?: exit.identity, gw?.city, gw?.twoLetterCountryISO)
+			}
+
+			is ExitPoint.Region -> {
+				val gw = gateways?.firstOrNull { it.region.equals(exit.region, ignoreCase = true) }
+				Triple(gw?.region ?: exit.region, gw?.city, gw?.twoLetterCountryISO)
+			}
+
+			is ExitPoint.Country -> Triple(toDisplayCountry(exit.twoLetterIsoCountryCode), null, null)
+			is ExitPoint.Address -> Triple(exit.address, null, null)
+			is ExitPoint.Random -> Triple("random", null, null)
+		}
+
+		return formatNodeLocation(name, city, countryIso)
+	}
+
+	private fun Tunnel.State.toStateText(): String = when (this) {
+		Tunnel.State.Down -> context.getString(R.string.state_disconnected)
+		Tunnel.State.Up -> context.getString(R.string.state_connected)
+		Tunnel.State.InitializingClient -> context.getString(R.string.state_initializing)
+		Tunnel.State.EstablishingConnection -> context.getString(R.string.state_establishing)
+		else -> toString()
 	}
 }
 
 private fun formatNodeLocation(nodeName: String, city: String?, countryIso: String?): String {
 	val country = countryIso?.let { toDisplayCountry(it) }
-
 	return when {
 		city != null && country != null -> "$nodeName ($city, $country)"
 		country != null -> "$nodeName ($country)"

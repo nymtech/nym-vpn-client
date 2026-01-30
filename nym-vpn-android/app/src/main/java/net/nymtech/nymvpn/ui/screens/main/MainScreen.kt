@@ -283,7 +283,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 			SnackbarHost(hostState = screenSnackbar, Modifier)
 			ConnectionStatus(
 				connectionState = uiState.connectionState,
-				vpnMode = appUiState.settings.vpnMode,
+				vpnMode = appUiState.vpnConfig.mode,
 				stateMessage = uiState.stateMessage,
 				connectionTime = connectionTime,
 				theme = appUiState.settings.theme ?: Theme.AUTOMATIC,
@@ -298,7 +298,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					.padding(bottom = 24.dp.scaledHeight()),
 			) {
 				ModeSelector(
-					vpnMode = appUiState.settings.vpnMode,
+					vpnMode = appUiState.vpnConfig.mode,
 					connectionState = uiState.connectionState,
 					onTwoHopClick = { viewModel.onTwoHopSelected() },
 					onFiveHopClick = { viewModel.onFiveHopSelected() },
@@ -312,7 +312,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					GroupLabel(title = stringResource(R.string.connect_to))
 					val shouldShowQuic = run {
 						isQuicFeatureFlagEnabled &&
-							appUiState.settings.vpnMode == Tunnel.Mode.TWO_HOP_MIXNET &&
+							appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
 							appUiState.settings.quicEnabled &&
 							appUiState.entryPointGateway?.isQuicSupported() ?: false
 					}
@@ -324,7 +324,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						onClick = { onEntryClick() },
 						enabled = true,
 						showQuicLabel = shouldShowQuic,
-						showTrailingIcon = appUiState.settings.entryPoint is EntryPoint.Gateway || appUiState.managerState.tunnelState == Tunnel.State.Up,
+						showTrailingIcon = appUiState.vpnConfig.entryPoint is EntryPoint.Gateway || appUiState.managerState.tunnelState == Tunnel.State.Up,
 						onTrailingClick = {
 							appUiState.entryPointGateway?.let { gateway ->
 								navController.goFromRoot(Route.ServerDetails(gateway.identity, GatewayLocation.ENTRY.name))
@@ -339,7 +339,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						onClick = { onExitClick() },
 						enabled = true,
 						showGatewayStreamIcon = appUiState.exitPointGateway?.asnKind == AsnKind.RESIDENTIAL,
-						showTrailingIcon = appUiState.settings.exitPoint is ExitPoint.Gateway || appUiState.managerState.tunnelState == Tunnel.State.Up,
+						showTrailingIcon = appUiState.vpnConfig.exitPoint is ExitPoint.Gateway || appUiState.managerState.tunnelState == Tunnel.State.Up,
 						onTrailingClick = {
 							appUiState.exitPointGateway?.let { gateway ->
 								navController.goFromRoot(Route.ServerDetails(gateway.identity, GatewayLocation.EXIT.name))

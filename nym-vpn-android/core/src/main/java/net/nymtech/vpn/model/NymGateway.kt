@@ -11,6 +11,9 @@ import nym_vpn_lib_types.Score
 import nym_vpn_lib_types.BridgeInformation as SdkBridgeInformation
 import nym_vpn_lib_types.BridgeParameters as SdkBridgeParameter
 
+/**
+ * Gateway domain model mapped from SDK types.
+ */
 @Serializable
 data class NymGateway(
 	val identity: NodeIdentity,

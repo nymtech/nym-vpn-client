@@ -7,6 +7,10 @@ import android.os.Build
 import android.widget.Toast
 import net.nymtech.vpn.backend.service.VpnService
 
+/**
+ * Broadcast receiver for VPN disconnect action.
+ * Triggers VpnService to stop the tunnel.
+ */
 class StopVpnReceiver : BroadcastReceiver() {
 
 	companion object {

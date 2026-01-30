@@ -17,23 +17,22 @@
 
 		<service
 			android:name="net.nymtech.vpn.backend.service.VpnService"
-			android:exported="true"
+			android:exported="false"
 			android:foregroundServiceType="systemExempted"
 			android:permission="android.permission.BIND_VPN_SERVICE"
-			android:persistent="true"
 			android:stopWithTask="false">
+
 			<intent-filter>
 				<action android:name="android.net.VpnService" />
+				<!-- optional internal action for startForegroundService -->
+				<action android:name="net.nymtech.vpn.backend.service.START_FOREGROUND" />
+				<action android:name="net.nymtech.vpn.backend.service.START_FROM_API" />
 			</intent-filter>
+
 			<meta-data
 				android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
 				android:value="true" />
 		</service>
-
-		<service
-			android:name="net.nymtech.vpn.backend.api.VpnApiService"
-			android:exported="false"
-			android:stopWithTask="false" />
 
 		<receiver
 			android:name="net.nymtech.vpn.util.notifications.StopVpnReceiver"

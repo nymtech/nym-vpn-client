@@ -18,6 +18,7 @@ import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
@@ -34,6 +35,7 @@ class AppViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
+	private val vpnConfigRepository: VpnConfigRepository,
 	gatewayRepository: GatewayRepository,
 	private val gatewayCacheService: GatewayCacheService,
 	private val backendManager: BackendManager,
@@ -58,14 +60,16 @@ constructor(
 	val uiState =
 		combine(
 			settingsRepository.settingsFlow,
+			vpnConfigRepository.configFlow,
 			backendManager.stateFlow,
 			gatewayRepository.gatewayFlow,
 			networkService.networkStatus,
-		) { settings, manager, gateways, networkStatus ->
+		) { settings, config, manager, gateways, networkStatus ->
 			AppUiState(
-				settings,
-				gateways,
-				manager,
+				settings = settings,
+				gateways = gateways,
+				vpnConfig = config,
+				managerState = manager,
 				networkStatus = networkStatus,
 			)
 		}.stateIn(

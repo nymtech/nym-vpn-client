@@ -59,6 +59,7 @@ fun StaticContent(uiState: SplitTunnelingUiState, onQueryChange: (String) -> Uni
 		leading = { Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.search), modifier = Modifier.height(iconSize)) },
 		label = { Text(stringResource(R.string.search)) },
 		textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+		showClearIcon = true,
 	)
 
 	Text(

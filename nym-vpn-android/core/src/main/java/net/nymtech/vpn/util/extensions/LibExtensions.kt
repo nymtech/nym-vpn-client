@@ -1,7 +1,6 @@
 package net.nymtech.vpn.util.extensions
 
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.Base58
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
@@ -24,7 +23,7 @@ fun EntryPoint.asString(): String {
 	return when (val entry = this) {
 		is EntryPoint.Gateway -> entry.identity
 		is EntryPoint.Country -> entry.twoLetterIsoCountryCode.lowercase()
-		EntryPoint.Random -> "random"
+		EntryPoint.Random -> "Random"
 		is EntryPoint.Region -> entry.region.lowercase()
 	}
 }
@@ -34,14 +33,14 @@ fun ExitPoint.asString(): String {
 		is ExitPoint.Gateway -> exit.identity
 		is ExitPoint.Country -> exit.twoLetterIsoCountryCode.lowercase()
 		is ExitPoint.Address -> exit.address
-		is ExitPoint.Random -> "random"
+		is ExitPoint.Random -> "Random"
 		is ExitPoint.Region -> exit.region
 	}
 }
 
 fun String.asEntryPoint(): EntryPoint {
 	return when {
-		this == "random" -> EntryPoint.Random
+		this == "Random" -> EntryPoint.Random
 		length == 2 -> EntryPoint.Country(this.uppercase())
 		Base58.isValidBase58(this, 32) -> EntryPoint.Gateway(this)
 		else -> EntryPoint.Region(this)
@@ -53,12 +52,9 @@ fun String.asExitPoint(): ExitPoint {
 		length == 2 -> ExitPoint.Country(this.uppercase())
 		length == 134 -> ExitPoint.Address(this)
 		Base58.isValidBase58(this, 32) -> ExitPoint.Gateway(this)
-		else -> throw IllegalArgumentException("Invalid exit id")
+		this == "Random" -> ExitPoint.Random
+		else -> throw IllegalArgumentException("Invalid exit id $this")
 	}
-}
-
-fun NymGateway.pointNameForRegion(): String {
-	return listOfNotNull(toDisplayCountry(this.twoLetterCountryISO.orEmpty()), region).joinToString(", ")
 }
 
 fun toDisplayCountry(twoLetterIsoCountryCode: String): String {

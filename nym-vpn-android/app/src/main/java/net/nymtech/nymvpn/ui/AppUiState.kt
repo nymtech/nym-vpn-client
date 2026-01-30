@@ -7,6 +7,7 @@ import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.util.Constants.countryCodesForRegionSupport
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
@@ -14,17 +15,18 @@ import nym_vpn_lib_types.ExitPoint
 data class AppUiState(
 	val settings: Settings = Settings(),
 	val gateways: Gateways = Gateways(),
+	val vpnConfig: CoreVpnConfig = CoreVpnConfig(),
 	val managerState: TunnelManagerState = TunnelManagerState(),
 	val networkStatus: NetworkStatus = NetworkStatus.Unknown,
 ) {
 
-	val entryPointCountry = when (val entry = settings.entryPoint) {
+	val entryPointCountry = when (val entry = vpnConfig.entryPoint) {
 		is EntryPoint.Gateway -> entryGateways().firstOrNull { it.identity == entry.identity }?.twoLetterCountryISO
 		is EntryPoint.Country -> entry.twoLetterIsoCountryCode
 		is EntryPoint.Region -> entryGateways().firstOrNull { it.region.equals(entry.region, true) }?.twoLetterCountryISO
 		else -> null
 	}
-	val exitPointCountry = when (val exit = settings.exitPoint) {
+	val exitPointCountry = when (val exit = vpnConfig.exitPoint) {
 		is ExitPoint.Address -> null
 		is ExitPoint.Gateway -> exitGateways().firstOrNull { it.identity == exit.identity }?.twoLetterCountryISO
 		is ExitPoint.Country -> exit.twoLetterIsoCountryCode
@@ -32,7 +34,7 @@ data class AppUiState(
 		else -> null
 	}
 
-	val entryPointGateway = when (val entry = settings.entryPoint) {
+	val entryPointGateway = when (val entry = vpnConfig.entryPoint) {
 		is EntryPoint.Country, is EntryPoint.Region -> {
 			if (managerState.tunnelState == Tunnel.State.Up || managerState.tunnelState == Tunnel.State.EstablishingConnection) {
 				managerState.connectionData?.let { data ->
@@ -46,7 +48,7 @@ data class AppUiState(
 		else -> null
 	}
 
-	val exitPointGateway = when (val exit = settings.exitPoint) {
+	val exitPointGateway = when (val exit = vpnConfig.exitPoint) {
 		is ExitPoint.Country, ExitPoint.Region -> {
 			if (managerState.tunnelState == Tunnel.State.Up || managerState.tunnelState == Tunnel.State.EstablishingConnection) {
 				managerState.connectionData?.let { data ->
@@ -60,26 +62,26 @@ data class AppUiState(
 		else -> null
 	}
 
-	val entryPointName: String = when (val entry = settings.entryPoint) {
+	val entryPointName: String = when (val entry = vpnConfig.entryPoint) {
 		is EntryPoint.Gateway -> {
 			entryGateways().firstOrNull { it.identity == entry.identity }?.name ?: entry.identity
 		}
 		is EntryPoint.Country -> entry.toDisplayCountry()
 		is EntryPoint.Region -> entryGateways().firstOrNull { it.region.equals(entry.region, true) }?.entryPointNameForRegion() ?: entry.region
-		else -> Settings.DEFAULT_ENTRY_POINT.toDisplayCountry()
+		else -> "Random"
 	}
 
-	val exitPointName: String = when (val exit = settings.exitPoint) {
+	val exitPointName: String = when (val exit = vpnConfig.exitPoint) {
 		is ExitPoint.Address -> exit.address
 		is ExitPoint.Gateway -> {
 			exitGateways().firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
 		}
 		is ExitPoint.Country -> exit.toDisplayCountry()
 		is ExitPoint.Region -> exitGateways().firstOrNull { it.region.equals(exit.region, true) }?.entryPointNameForRegion() ?: exit.region
-		else -> Settings.DEFAULT_EXIT_POINT.toDisplayCountry()
+		else -> "Random"
 	}
 
-	val entryPointLocation: String? = when (val entry = settings.entryPoint) {
+	val entryPointLocation: String? = when (val entry = vpnConfig.entryPoint) {
 		is EntryPoint.Country -> entryPointGateway.serverLocationOnCountrySelection(entry.twoLetterIsoCountryCode)
 		is EntryPoint.Gateway -> entryGateways().firstOrNull {
 			it.identity == entry.identity
@@ -88,7 +90,7 @@ data class AppUiState(
 		else -> null
 	}
 
-	val exitPointLocation: String? = when (val exit = settings.exitPoint) {
+	val exitPointLocation: String? = when (val exit = vpnConfig.exitPoint) {
 		is ExitPoint.Country -> exitPointGateway.serverLocationOnCountrySelection(exit.twoLetterIsoCountryCode)
 		is ExitPoint.Gateway -> exitGateways().firstOrNull {
 			it.identity == exit.identity
@@ -97,7 +99,7 @@ data class AppUiState(
 		else -> null
 	}
 
-	val exitPointId = when (val exit = settings.exitPoint) {
+	val exitPointId = when (val exit = vpnConfig.exitPoint) {
 		is ExitPoint.Address -> exit.address
 		is ExitPoint.Gateway -> exit.identity
 		is ExitPoint.Country -> exit.twoLetterIsoCountryCode.lowercase()
@@ -105,7 +107,7 @@ data class AppUiState(
 		else -> null
 	}
 
-	val entryPointId = when (val entry = settings.entryPoint) {
+	val entryPointId = when (val entry = vpnConfig.entryPoint) {
 		is EntryPoint.Gateway -> entry.identity
 		is EntryPoint.Country -> entry.twoLetterIsoCountryCode.lowercase()
 		is EntryPoint.Region -> entry.region
@@ -113,14 +115,14 @@ data class AppUiState(
 	}
 
 	private fun entryGateways(): List<NymGateway> {
-		return when (settings.vpnMode) {
+		return when (vpnConfig.mode) {
 			Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.entryGateways
 			Tunnel.Mode.TWO_HOP_MIXNET -> gateways.wgGateways
 		}
 	}
 
 	private fun exitGateways(): List<NymGateway> {
-		return when (settings.vpnMode) {
+		return when (vpnConfig.mode) {
 			Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.exitGateways
 			Tunnel.Mode.TWO_HOP_MIXNET -> gateways.wgGateways
 		}

@@ -169,10 +169,12 @@ class MainActivity : AppCompatActivity() {
 				}
 			}
 
-			with(appState.settings) {
-				LaunchedEffect(vpnMode, entryPoint, exitPoint) {
+			with(appState.vpnConfig) {
+				LaunchedEffect(mode, entryPoint, exitPoint) {
 					this@MainActivity.requestTileServiceStateUpdate()
 				}
+			}
+			with(appState.settings) {
 				LaunchedEffect(isShortcutsEnabled) {
 					if (!isShortcutsEnabled) return@LaunchedEffect shortcutManager.removeShortcuts()
 					shortcutManager.addShortcuts()

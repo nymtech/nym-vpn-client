@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
@@ -19,6 +20,7 @@ import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.nymvpn.util.extensions.scoreSorted
 import net.nymtech.nymvpn.util.extensions.toLocale
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
@@ -31,6 +33,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HopViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
+	private val vpnConfigRepository: VpnConfigRepository,
 	private val gatewayCacheService: GatewayCacheService,
 	private val backendManager: BackendManager,
 	private val gatewayRepository: GatewayRepository,
@@ -54,7 +57,7 @@ class HopViewModel @Inject constructor(
 	init {
 		viewModelScope.launch {
 			updateQuicState()
-			tunnelMode = settingsRepository.getVpnMode()
+			tunnelMode = vpnConfigRepository.getConfig().mode
 
 			gatewayRepository.gatewayFlow.collect { gateways ->
 				val type = gatewayType ?: return@collect
@@ -72,7 +75,7 @@ class HopViewModel @Inject constructor(
 	private suspend fun updateQuicState() {
 		val isQuicFeatureFlagEnabled = environmentManager.isQuicEnabled()
 		val isQuicToggleEnabled = settingsRepository.getQUICEnabled()
-		val isFastVpn = settingsRepository.getVpnMode() == Tunnel.Mode.TWO_HOP_MIXNET
+		val isFastVpn = vpnConfigRepository.getConfig().mode == Tunnel.Mode.TWO_HOP_MIXNET
 
 		isQuicOnlyGatewaysFilterRequired =
 			isQuicFeatureFlagEnabled && isQuicToggleEnabled && isFastVpn && !isExitScreen
@@ -169,12 +172,12 @@ class HopViewModel @Inject constructor(
 		runCatching {
 			when (gatewayLocation) {
 				GatewayLocation.ENTRY -> {
-					settingsRepository.setEntryPoint(id.asEntryPoint())
+					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetEntryPoint(id.asEntryPoint()))
 					Timber.tag(TAG).i("GatewaySelectionSaved location=ENTRY")
 				}
 
 				GatewayLocation.EXIT -> {
-					settingsRepository.setExitPoint(id.asExitPoint())
+					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetExitPoint(id.asExitPoint()))
 					Timber.tag(TAG).i("GatewaySelectionSaved location=EXIT")
 				}
 			}

@@ -188,7 +188,6 @@ jobs:
 
           {
             echo "ZULIP_MESSAGE<<EOF"
-            echo "👹 **Android Gremlin reporting**"
             echo "**Tag name:** \`${TAG}\`"
             echo "**Android build type:** \`${{ inputs.release_type }}\`"
             echo "**Branch:** \`${BRANCH}\`"
@@ -204,8 +203,8 @@ jobs:
           email: ${{ secrets.ZULIP_BOT_ANDROID_EMAIL }}
           organization-url: ${{ secrets.ZULIP_ORG_URL }}
           type: "stream"
-          to: ${{ vars.ZULIP_BOT_APPLE_CHANNEL }}
-          topic: ${{ vars.ZULIP_BOT_ANDROID_TOPIC }}
+          to: ${{ secrets.ZULIP_BOT_APPLE_CHANNEL }}
+          topic: ${{ secrets.ZULIP_BOT_ANDROID_TOPIC }}
           content: ${{ env.ZULIP_MESSAGE }}
 
   publish-nym-fdroid:

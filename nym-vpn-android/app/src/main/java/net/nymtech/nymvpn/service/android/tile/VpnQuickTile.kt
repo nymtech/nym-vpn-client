@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import net.nymtech.nymvpn.util.extensions.truncateWithEllipsis
@@ -26,6 +27,9 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
+
+	@Inject
+	lateinit var vpnConfigRepository: VpnConfigRepository
 
 	@Inject
 	lateinit var backendManager: BackendManager
@@ -120,9 +124,9 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 
 	private suspend fun setTileText() {
 		kotlin.runCatching {
-			val entryPoint = settingsRepository.getEntryPoint()
-			val exitPoint = settingsRepository.getExitPoint()
-			val mode = settingsRepository.getVpnMode()
+			val entryPoint = vpnConfigRepository.getConfig().entryPoint
+			val exitPoint = vpnConfigRepository.getConfig().exitPoint
+			val mode = vpnConfigRepository.getConfig().mode
 			val isTwoHop = mode == Tunnel.Mode.TWO_HOP_MIXNET
 			setTitle(
 				"${this@VpnQuickTile.getString(R.string.mode)}: ${
