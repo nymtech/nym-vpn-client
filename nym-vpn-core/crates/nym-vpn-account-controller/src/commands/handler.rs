@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
+use crate::{commands::ReturnSender, storage::AccountStorageOp, SharedAccountState};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
@@ -36,24 +36,6 @@ async fn ensure_account_exists_on_chain<C: ConnectivityMonitor>(
         "importing decentralised account '{}' with account number: {} and sequence: {}",
         base_account.address, base_account.account_number, base_account.sequence
     );
-
-    Ok(())
-}
-
-async fn link_privy_account<C: ConnectivityMonitor>(
-    shared_state: &SharedAccountState<C>,
-    privy_account: &VpnAccount,
-) -> Result<(), AccountCommandError> {
-    tracing::info!("Linking Privy account with API account");
-
-    let Some(ref current_account) = shared_state.vpn_api_account else {
-        return Err(AccountCommandError::NoAccountStored);
-    };
-
-    shared_state
-        .vpn_api_client
-        .link_privy_account(current_account, privy_account)
-        .await?;
 
     Ok(())
 }
@@ -217,19 +199,27 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
 pub(crate) async fn handle_link_privy_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     privy_account: StorableAccount,
+    wallet_pub_key: String,
 ) -> Result<(), AccountCommandError> {
-    let vpn_account = VpnAccount::try_from(privy_account.clone())
+    let privy_vpn_account = VpnAccount::try_from(privy_account.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
 
-    if vpn_account.mode().is_privy()
+    // We can only link the Privy account if we're currently logged-in with an API account
+    if privy_vpn_account.mode().is_privy()
         && let Some(ref current_account) = shared_state.vpn_api_account
         && current_account.mode().is_api()
     {
-        link_privy_account(shared_state, &vpn_account).await?;
+        tracing::info!("Linking Privy account with API account");
+
+        shared_state
+            .vpn_api_client
+            .link_privy_account(current_account, &privy_vpn_account, &wallet_pub_key)
+            .await?;
+
         return Ok(());
     }
 
-    return Err(AccountCommandError::NoAccountStored);
+    Err(AccountCommandError::NoAccountStored)
 }
 
 pub(crate) async fn handle_rotate_keys<C: ConnectivityMonitor>(

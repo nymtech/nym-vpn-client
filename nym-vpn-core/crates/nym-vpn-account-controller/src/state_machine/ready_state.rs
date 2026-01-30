@@ -4,12 +4,12 @@
 use std::pin::Pin;
 
 use crate::{
-    SharedAccountState,
-    commands::{AccountCommand, ReturnSender, UpgradeModeCommand, common_handler, handler},
+    commands::{common_handler, handler, AccountCommand, ReturnSender, UpgradeModeCommand},
     state_machine::{
-        ACCOUNT_UPDATE_INTERVAL, AccountControllerStateHandler, LoggedOutState,
-        NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncingState,
+        AccountControllerStateHandler, LoggedOutState, NextAccountControllerState,
+        OfflineState, PrivateAccountControllerState, SyncingState, ACCOUNT_UPDATE_INTERVAL,
     },
+    SharedAccountState,
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;
@@ -80,8 +80,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                             NextAccountControllerState::NewState(LoggedOutState::enter())
                         }
                     },
-                    AccountCommand::LinkPrivyAccount(return_sender, privy_account) => {
-                        let res = handler::handle_link_privy_account(shared_state, privy_account).await;
+                    AccountCommand::LinkPrivyAccount(return_sender, privy_account, wallet_pub_key) => {
+                        let res = handler::handle_link_privy_account(shared_state, privy_account, wallet_pub_key).await;
                         return_sender.send(res);
                     },
                     AccountCommand::RotateKeys(return_sender) => {

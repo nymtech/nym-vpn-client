@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    SharedAccountState,
     commands::{
-        AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand, common_handler, handler,
+        common_handler, handler, AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand,
     },
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState,
         PrivateAccountControllerState, SyncingState,
     },
+    SharedAccountState,
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;
@@ -67,7 +67,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
-                    AccountCommand::LinkPrivyAccount(return_sender, _) => return_no_account(return_sender),
+                    AccountCommand::LinkPrivyAccount(return_sender, _, _) => return_no_account(return_sender),
                     AccountCommand::RotateKeys(return_sender) => return_sender.send(Ok(())),
                     AccountCommand::AccountBalance(return_sender) => return_no_account(return_sender),
                     AccountCommand::ObtainTicketbooks(return_sender, _) => return_no_account(return_sender),
