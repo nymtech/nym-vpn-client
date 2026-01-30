@@ -32,8 +32,6 @@ impl From<lib::FeatureFlags> for FeatureFlags {
 }
 
 fn get_group_flag(fflags: &lib::FeatureFlags, group_name: &str, flag_name: &str) -> Option<bool> {
-    println!("get_group_flag: {group_name}, {flag_name}");
-    println!("fflags: {:?}", fflags);
     if let Some(FlagValue::Group(group)) = fflags.flags.get(group_name)
         && let Some(value) = group.get(flag_name)
     {
