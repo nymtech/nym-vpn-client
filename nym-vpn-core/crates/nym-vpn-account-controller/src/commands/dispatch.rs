@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    AvailableTicketbooks,
     deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
+    AvailableTicketbooks,
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
-    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
+    ResolverOverrides,
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
 use nym_vpn_store::account::StorableAccount;
@@ -34,7 +34,11 @@ pub enum AccountCommand {
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
     /// Link a Privy account with the currently logged-on API account
-    LinkPrivyAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
+    LinkPrivyAccount(
+        ReturnSender<(), AccountCommandError>,
+        StorableAccount,
+        String,
+    ),
 
     /// Rotate the wireguard keys
     RotateKeys(ReturnSender<(), AccountCommandError>),
@@ -71,7 +75,7 @@ impl AccountCommand {
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
-            AccountCommand::LinkPrivyAccount(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::LinkPrivyAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),

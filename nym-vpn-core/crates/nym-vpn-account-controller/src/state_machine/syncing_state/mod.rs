@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    SharedAccountState,
-    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
+    commands::{common_handler, handler, AccountCommand, UpgradeModeCommand},
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
         NextAccountControllerState, OfflineState, PrivateAccountControllerState,
     },
+    SharedAccountState,
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
-    VpnApiClient,
     error::VpnApiClientError,
     response::NymErrorResponse,
     types::{Device, VpnAccount},
+    VpnApiClient,
 };
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, VpnAccountSummary,
@@ -254,8 +254,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                             NextAccountControllerState::NewState(LoggedOutState::enter())
                         }
                     },
-                    AccountCommand::LinkPrivyAccount(return_sender, privy_account) => {
-                        let res = handler::handle_link_privy_account(shared_state, privy_account).await;
+                    AccountCommand::LinkPrivyAccount(return_sender, privy_account, wallet_pub_key) => {
+                        let res = handler::handle_link_privy_account(shared_state, privy_account, wallet_pub_key).await;
                         return_sender.send(res);
                     },
                     AccountCommand::RotateKeys(return_sender) => {

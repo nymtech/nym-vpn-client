@@ -1,12 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use futures::{future::Fuse, pin_mut, FutureExt, StreamExt};
 use nym_diagnostic::DiagnosticHandler;
 use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
-use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
-    sync::{RwLock, broadcast, mpsc, oneshot, watch},
+    sync::{broadcast, mpsc, oneshot, watch, RwLock},
     task::JoinHandle,
     time::{Duration, Instant},
 };
@@ -39,24 +39,24 @@ use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 use super::{
-    Socks5Error, Socks5Service, Socks5Status,
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
+    config::{NetworkEnvironments, VpnServiceConfigManager}, error::{
         AccountLinksError, Error, GlobalConfigError, ListGatewaysError, Result, SetNetworkError,
-    },
-    socks5::Socks5EnableConfig,
-    socks5_idle_timeout, socks5_request_timeout,
+    }, socks5::Socks5EnableConfig,
+    socks5_idle_timeout,
+    socks5_request_timeout,
+    Socks5Error,
+    Socks5Service, Socks5Status,
 };
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
-    config::GlobalConfig,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
-    logging::LogFileRemoverHandle,
-    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+    config::GlobalConfig, gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, logging::LogFileRemoverHandle, tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+    NodeIdentity,
+    UserAgent,
+    VpnTopologyService,
+    DEFAULT_DNS_SERVERS,
 };
 
 // Seed used to generate device identity keys
@@ -1792,7 +1792,7 @@ impl NymVpnService {
             DeeplinkKind::Privy => self.account_command_tx.store_account(privy_account).await,
             DeeplinkKind::PrivyLink => {
                 self.account_command_tx
-                    .link_privy_account(privy_account)
+                    .link_privy_account(privy_account, deeplink_mnemonic.wallet_pub_key)
                     .await
             }
         }
