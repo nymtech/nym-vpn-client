@@ -132,6 +132,7 @@ impl Deeplinks {
         Ok(DeeplinkMnemonic {
             mnemonic,
             kind: deeplink.kind,
+            pub_key: "TODO".to_string(),
         })
     }
 }

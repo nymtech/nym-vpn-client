@@ -25,12 +25,12 @@ use crate::{
         RequestZkNymRequestBody, UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
     },
     response::{
-        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
-        NymVpnAccountSummaryResponse, NymVpnAccountSummaryWithDeviceResponse, NymVpnDevice,
-        NymVpnDevicesResponse, NymVpnHealthResponse, NymVpnRegisterAccountResponse,
-        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
-        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
-        NymWellknownDiscoveryItem, StatusOk,
+        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymErrorResponse,
+        NymVpnAccountResponse, NymVpnAccountSummaryResponse,
+        NymVpnAccountSummaryWithDeviceResponse, NymVpnDevice, NymVpnDevicesResponse,
+        NymVpnHealthResponse, NymVpnRegisterAccountResponse, NymVpnSubscription,
+        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym,
+        NymVpnZkNymPost, NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     types::{
@@ -807,7 +807,7 @@ impl VpnApiClient {
 
         let privy_jwt = privy_account.jwt(jwt).to_string();
 
-        let _response = self
+        let response: NymErrorResponse = self
             .post_authorized(
                 &[
                     routes::PUBLIC,

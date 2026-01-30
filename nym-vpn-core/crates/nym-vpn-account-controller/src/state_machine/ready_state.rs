@@ -74,11 +74,15 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
                         return_sender.send(res);
-                        if error {
-                            return NextAccountControllerState::SameState(self);
+                        return if error {
+                            NextAccountControllerState::SameState(self)
                         } else {
-                            return NextAccountControllerState::NewState(LoggedOutState::enter());
+                            NextAccountControllerState::NewState(LoggedOutState::enter())
                         }
+                    },
+                    AccountCommand::LinkPrivyAccount(return_sender, privy_account) => {
+                        let res = handler::handle_link_privy_account(shared_state, privy_account).await;
+                        return_sender.send(res);
                     },
                     AccountCommand::RotateKeys(return_sender) => {
                         let res = handler::handle_rotate_keys(shared_state).await;

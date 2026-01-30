@@ -8,7 +8,7 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::NymErrorResponse,
-    types::{DeviceStatus, Platform, VpnAccount, VpnAccountMode},
+    types::{DeviceStatus, Platform, VpnAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnApiError};
 use nym_vpn_store::{account::StorableAccount, keys::wireguard::WireguardKeyStore};
@@ -58,23 +58,12 @@ async fn link_privy_account<C: ConnectivityMonitor>(
     Ok(())
 }
 
-/// Returns `true` if we are going to store and use the new account or `false` if we just
-/// linked the account. This is used in cases where we are already logged-in via an API
-/// account and are passed a Privy account to link.
 pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     account: StorableAccount,
-) -> Result<bool, AccountCommandError> {
+) -> Result<(), AccountCommandError> {
     let vpn_account = VpnAccount::try_from(account.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
-
-    if vpn_account.mode().is_privy()
-        && let Some(ref current_account) = shared_state.vpn_api_account
-        && current_account.mode().is_api()
-    {
-        link_privy_account(shared_state, &vpn_account).await?;
-        return Ok(false);
-    }
 
     // if the account is decentralised, it must exist on the chain
     if vpn_account.mode().is_decentralised() {
@@ -98,7 +87,7 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     shared_state.device = Some(device);
 
     tracing::debug!("Account stored!");
-    Ok(true)
+    Ok(())
 }
 
 pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
@@ -213,6 +202,24 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     }
 
     Ok(())
+}
+
+pub(crate) async fn handle_link_privy_account<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    privy_account: StorableAccount,
+) -> Result<(), AccountCommandError> {
+    let vpn_account = VpnAccount::try_from(privy_account.clone())
+        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
+
+    if vpn_account.mode().is_privy()
+        && let Some(ref current_account) = shared_state.vpn_api_account
+        && current_account.mode().is_api()
+    {
+        link_privy_account(shared_state, &vpn_account).await?;
+        return Ok(());
+    }
+
+    return Err(AccountCommandError::NoAccountStored);
 }
 
 pub(crate) async fn handle_rotate_keys<C: ConnectivityMonitor>(

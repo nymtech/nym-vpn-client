@@ -1783,12 +1783,19 @@ impl NymVpnService {
             .derive_deeplink_mnemonic(deeplink_url)
             .await?;
 
-        let storable_account =
-            StorableAccount::new(deeplink_mnemonic.mnemonic, StoredAccountMode::Privy);
+        let privy_account = StorableAccount {
+            mnemonic: deeplink_mnemonic.mnemonic.clone(),
+            mode: StoredAccountMode::Privy,
+        };
 
-        self.account_command_tx
-            .store_account(storable_account)
-            .await
+        match deeplink_mnemonic.kind {
+            DeeplinkKind::Privy => self.account_command_tx.store_account(privy_account).await,
+            DeeplinkKind::PrivyLink => {
+                self.account_command_tx
+                    .link_privy_account(privy_account)
+                    .await
+            }
+        }
     }
 
     async fn handle_delete_log_file(&self) {
