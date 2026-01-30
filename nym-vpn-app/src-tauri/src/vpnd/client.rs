@@ -170,7 +170,7 @@ impl VpndClient {
 
     /// Get daemon log path
     #[instrument(skip_all)]
-    pub async fn vpnd_log_path(&self) -> Result<PathBuf, VpndError> {
+    pub async fn vpnd_log_path(&self) -> Result<Option<PathBuf>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let log_path = vpnd
@@ -179,7 +179,7 @@ impl VpndClient {
             .await?;
 
         debug!("vpnd log path: {:?}", log_path);
-        Ok(log_path.dir)
+        Ok(log_path.map(|v| v.dir))
     }
 
     /// Delete logs

@@ -4,6 +4,7 @@ use crate::state::SharedAppState;
 use crate::state::app::NetworkCompat;
 use crate::vpnd::client::{FeatureFlags, SystemMessage, VpndClient, VpndStatus};
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use tauri::State;
 use tracing::{debug, info, instrument, warn};
 use ts_rs::TS;
@@ -96,11 +97,15 @@ pub async fn vpnd_log_dir(
     let state = app_state.lock().await;
     if state.vpnd_status == VpndStatus::Down {
         warn!("vpnd is down, fallback to default log dir");
-        return Ok(DEFAULT_VPND_LOG_DIR.to_string());
+        return Ok(DEFAULT_VPND_LOG_DIR.to_owned());
     }
 
-    let path = vpnd.vpnd_log_path().await?.to_string_lossy().to_string();
-    Ok(path)
+    let path = vpnd.vpnd_log_path().await?;
+    Ok(path
+        .as_ref()
+        .map(|v| v.to_string_lossy())
+        .unwrap_or(Cow::from(DEFAULT_VPND_LOG_DIR))
+        .into_owned())
 }
 
 #[instrument(skip_all)]

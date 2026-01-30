@@ -159,10 +159,14 @@ async fn resolve_vpnd_log_dir(
         return PathBuf::from(DEFAULT_VPND_LOG_DIR);
     }
 
-    vpnd.vpnd_log_path()
+    let log_dir = vpnd
+        .vpnd_log_path()
         .await
         .inspect_err(|e| warn!("failed to get vpnd log path: {e:?}, using default"))
-        .unwrap_or_else(|_| PathBuf::from(DEFAULT_VPND_LOG_DIR))
+        .ok()
+        .flatten();
+
+    log_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_VPND_LOG_DIR))
 }
 
 #[instrument(skip_all)]
