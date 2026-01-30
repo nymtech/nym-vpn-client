@@ -1,7 +1,10 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{AvailableTicketbooks, deeplink::CreateDeeplinkParams};
+use crate::{
+    AvailableTicketbooks,
+    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
+};
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     ResolverOverrides,
@@ -141,7 +144,7 @@ pub enum CommonCommand {
     ),
 
     /// Derive the mnemonic from the deeplink callback URL
-    DeriveDeeplinkMnemonic(ReturnSender<bip39::Mnemonic, AccountCommandError>, String),
+    DeriveDeeplinkMnemonic(ReturnSender<DeeplinkMnemonic, AccountCommandError>, String),
 }
 
 /// Commands relating to the upgrade mode

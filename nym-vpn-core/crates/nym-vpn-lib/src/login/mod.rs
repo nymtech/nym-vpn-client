@@ -13,9 +13,9 @@ pub fn parse_account_request(request: &StoreAccountRequest) -> Result<Mnemonic, 
         StoreAccountRequest::Vpn { mnemonic } | StoreAccountRequest::Decentralised { mnemonic } => {
             Mnemonic::parse(mnemonic)?
         }
-        StoreAccountRequest::Privy { hex_signature } => {
-            privy::hex_signature_to_mnemonic(hex_signature)?
-        }
+        StoreAccountRequest::Privy {
+            mnemonic: hex_signature,
+        } => privy::hex_signature_to_mnemonic(hex_signature)?,
     };
 
     Ok(mnemonic)
@@ -64,6 +64,11 @@ mod tests {
         let hex_signature = String::from(
             "a564a87ccbed5cb5be4929201e555f5b5e26cb01d300d621520d724e57c582c33fa374caf21fd0c5e3118d70d14894845a32acfee47da7f347a0b9a57cba07931c",
         );
-        assert!(parse_account_request(&StoreAccountRequest::Privy { hex_signature }).is_ok());
+        assert!(
+            parse_account_request(&StoreAccountRequest::Privy {
+                mnemonic: hex_signature
+            })
+            .is_ok()
+        );
     }
 }

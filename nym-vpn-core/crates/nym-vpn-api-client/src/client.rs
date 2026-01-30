@@ -792,6 +792,41 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetAccountSummaryWithDevice)
     }
 
+    pub async fn link_privy_account(
+        &self,
+        account: &VpnAccount,
+        privy_account: &VpnAccount,
+    ) -> Result<()> {
+        let jwt = self.current_remote_time().await.unwrap_or_else(|err| {
+            tracing::debug!(
+                error = %err,
+                "Failed to determine cached remote time"
+            );
+            None
+        });
+
+        let privy_jwt = privy_account.jwt(jwt).to_string();
+
+        let _response = self
+            .post_authorized(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::ACCOUNT,
+                    &account.id(),
+                    routes::LINK,
+                ],
+                &privy_jwt,
+                account,
+                None,
+            )
+            .await
+            .map_err(Box::new)
+            .map_err(VpnApiClientError::LinkPrivyAccount)?;
+
+        Ok(())
+    }
+
     // DEVICES
 
     pub async fn get_devices(&self, account: &VpnAccount) -> Result<NymVpnDevicesResponse> {

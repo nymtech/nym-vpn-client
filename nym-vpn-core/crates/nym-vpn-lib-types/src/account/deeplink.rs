@@ -51,6 +51,7 @@ pub enum DeeplinkClient {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum DeeplinkKind {
     Privy,
+    PrivyLink,
 }
 
 impl FromStr for DeeplinkKind {
