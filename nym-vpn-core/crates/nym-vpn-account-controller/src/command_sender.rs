@@ -4,7 +4,7 @@
 use crate::{
     AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand},
-    deeplink::CreateDeeplinkParams,
+    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
@@ -206,7 +206,7 @@ impl AccountCommandSender {
     pub async fn derive_deeplink_mnemonic(
         &self,
         deeplink_callback_url: String,
-    ) -> Result<bip39::Mnemonic, AccountCommandError> {
+    ) -> Result<DeeplinkMnemonic, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(

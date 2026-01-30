@@ -6116,6 +6116,7 @@ dependencies = [
 name = "nym-vpn-lib-types"
 version = "1.24.0-beta"
 dependencies = [
+ "bip39",
  "ipnetwork",
  "nym-bandwidth-controller",
  "nym-crypto",

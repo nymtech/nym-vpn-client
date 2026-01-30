@@ -5,13 +5,14 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
+    types::VpnAccountMode,
 };
-use nym_vpn_lib_types::{AccountCommandError, VpnAccountSummary};
+use nym_vpn_lib_types::{AccountCommandError, DeeplinkKind, VpnAccountSummary};
 
 use crate::{
     AvailableTicketbooks, SharedAccountState,
     commands::{ReturnSender, dispatch::CommonCommand},
-    deeplink::CreateDeeplinkParams,
+    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
     storage::AccountStorageOp,
 };
 use nym_vpn_store::account::StorableAccount;
@@ -190,6 +191,17 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     params: CreateDeeplinkParams,
 ) -> Result<String, AccountCommandError> {
+    // For `DeeplinkKind::PrivyLink`, the user must be logged-on via an API account
+    if params.kind == DeeplinkKind::Privy
+        && let Some(ref vpn_account) = shared_state.vpn_api_account
+        && vpn_account.mode() != VpnAccountMode::Api
+    {
+        return Err(AccountCommandError::DeeplinkError(
+            "You can only link a Privy account if you are logged in with an API account"
+                .to_string(),
+        ));
+    }
+
     // Create a new Deeplink for this request
     let deeplink = shared_state
         .deeplinks
@@ -208,9 +220,9 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
 pub(crate) async fn handle_derive_deeplink_mnemonic<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     deeplink_callback_url: String,
-) -> Result<bip39::Mnemonic, AccountCommandError> {
+) -> Result<DeeplinkMnemonic, AccountCommandError> {
     // Derive the mnemonic from the provided deeplink URL
-    let mnemonic = shared_state
+    let deeplink_mnemonic = shared_state
         .deeplinks
         .derive_mnemonic(&deeplink_callback_url)
         .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
@@ -218,5 +230,5 @@ pub(crate) async fn handle_derive_deeplink_mnemonic<C: ConnectivityMonitor>(
     // Housekeeping
     shared_state.deeplinks.remove_expired();
 
-    Ok(mnemonic)
+    Ok(deeplink_mnemonic)
 }

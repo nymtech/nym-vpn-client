@@ -57,13 +57,13 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                         return_sender.send(handler::handle_create_account(shared_state).await);
                         return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                     }
-                    AccountCommand::StoreAccount(return_sender, mnemonic) => {
-                        if let Err(e) = handler::handle_store_account(shared_state, mnemonic).await{
+                    AccountCommand::StoreAccount(return_sender, storable_account) => {
+                        return if let Err(e) = handler::handle_store_account(shared_state, storable_account).await{
                             return_sender.send(Err(e));
-                            return NextAccountControllerState::SameState(self);
+                            NextAccountControllerState::SameState(self)
                         } else {
                             return_sender.send(Ok(()));
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),

@@ -140,13 +140,18 @@ impl NymAccountController {
     }
 
     pub async fn login_with_deeplink(&self, deeplink_callback_url: String) -> Result<(), VpnError> {
-        let mnemonic = self
+        let deeplink_mnemonic = self
             .command_sender
             .derive_deeplink_mnemonic(deeplink_callback_url)
             .await?;
 
+        let storable_account = StorableAccount {
+            mnemonic: deeplink_mnemonic.mnemonic.clone(),
+            mode: StorableAccountMode::Privy,
+        };
+
         self.command_sender
-            .store_account(mnemonic.into())
+            .store_account(storable_account)
             .await
             .map_err(VpnError::from)
     }

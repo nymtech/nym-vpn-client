@@ -35,7 +35,7 @@ use crate::{
     error::BackendError,
     events::AppHandleEventEmitter,
     state::SharedAppState,
-    vpnd::account::{AccountState, log_account_state},
+    vpnd::account::{log_account_state, AccountState},
 };
 
 #[derive(Debug, Clone)]
@@ -439,7 +439,7 @@ impl VpndClient {
         let request = match (mnemonic, signature) {
             (Some(mnemonic), None) => lib::StoreAccountRequest::Vpn { mnemonic },
             (None, Some(signature)) => lib::StoreAccountRequest::Privy {
-                hex_signature: signature,
+                mnemonic: signature,
             },
             _ => {
                 return Err(VpndError::Response(BackendError::internal(
