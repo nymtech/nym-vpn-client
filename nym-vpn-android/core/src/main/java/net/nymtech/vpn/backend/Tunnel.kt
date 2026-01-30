@@ -1,62 +1,30 @@
 package net.nymtech.vpn.backend
 
-import net.nymtech.vpn.model.BackendEvent
-import nym_vpn_lib_types.EntryPoint
-import nym_vpn_lib_types.ExitPoint
-
+/**
+ * VPN tunnel interface:
+ * - lifecycle state
+ * - routing mode
+ * - network environment
+ */
 interface Tunnel {
 
-	val entryPoint: EntryPoint
-	val exitPoint: ExitPoint
-	val mode: Mode
-	val bypassLan: Boolean
-	val dnsList: List<String>
-
-	/**
-	 * React to a change in state of the tunnel. Should only be directly called by Backend.
-	 *
-	 * @param newState The new state of the tunnel.
-	 */
-	fun onStateChange(newState: State)
-
-	/**
-	 * React to a change in state of the tunnel connection information. Should only be directly called by Backend.
-	 *
-	 * @param event The new state of mixnet or tunnel connection details.
-	 */
-	fun onBackendEvent(event: BackendEvent)
-
-	/**
-	 * Sealed class to represent all possible states of a [Tunnel].
-	 */
 	sealed class State {
 		data object Up : State()
-
 		data object Down : State()
-
 		data object InitializingClient : State()
-
 		data object EstablishingConnection : State()
-
 		data object Disconnecting : State()
-
 		data object Offline : State()
 	}
 
-	/**
-	 * Enum class to represent all possible modes of a [Tunnel].
-	 */
 	enum class Mode {
 		FIVE_HOP_MIXNET,
 		TWO_HOP_MIXNET,
 		;
 
-		fun isTwoHop() = this == TWO_HOP_MIXNET
+		fun isTwoHop(): Boolean = this == TWO_HOP_MIXNET
 	}
 
-	/**
-	 * Enum class to represent all possible environments of a [Tunnel].
-	 */
 	enum class Environment {
 		CANARY,
 		EVIL,
@@ -64,8 +32,6 @@ interface Tunnel {
 		SANDBOX,
 		;
 
-		fun networkName(): String {
-			return this.name.lowercase()
-		}
+		fun networkName(): String = name.lowercase()
 	}
 }

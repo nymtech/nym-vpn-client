@@ -72,7 +72,7 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 	val customDns by viewModel.customDns.collectAsState()
 	val backendUi by viewModel.backendUi.collectAsState()
 
-	val dnsEnabled = appUiState.settings.customDnsEnabled
+	val dnsEnabled = appUiState.vpnConfig.customDnsEnabled
 
 	val isActuallyConnected =
 		backendUi.tunnelState == Tunnel.State.Up ||

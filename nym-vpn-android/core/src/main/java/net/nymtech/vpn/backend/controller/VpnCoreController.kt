@@ -1,0 +1,338 @@
+package net.nymtech.vpn.backend.controller
+
+import android.content.Intent
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.config.CoreVpnConfigRepository
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import net.nymtech.vpn.model.VpnServiceEvent
+import net.nymtech.vpn.model.config.ConfigResult
+import net.nymtech.vpn.model.config.CoreVpnConfig
+import net.nymtech.vpn.model.connect.ConnectInitRequest
+import net.nymtech.vpn.model.connect.ConnectResult
+import net.nymtech.vpn.backend.service.VpnService
+import net.nymtech.vpn.util.extensions.asTunnelState
+import nym_vpn_lib.LogLevel
+import nym_vpn_lib.NoHandle
+import nym_vpn_lib.NymEnvironment
+import nym_vpn_lib.NymVpnService
+import nym_vpn_lib.NymVpnServiceCommandException
+import nym_vpn_lib.NymVpnServiceCommandSender
+import nym_vpn_lib.VpnConfig
+import nym_vpn_lib.initLogger
+import nym_vpn_lib.initializeTokioRuntime
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.TunnelEvent
+import nym_vpn_lib_types.UserAgent
+import timber.log.Timber
+
+/**
+ * Owns Rust core lifecycle & state.
+ */
+class VpnCoreController(
+	private val service: VpnService,
+	private val events: kotlinx.coroutines.flow.MutableSharedFlow<VpnServiceEvent>,
+	private val foreground: VpnForegroundController,
+	private val tun: VpnTunController,
+) {
+	companion object {
+		private const val TAG = "core-vpn"
+	}
+
+	// Created lazily (requires context).
+	private val configRepo: CoreVpnConfigRepository by lazy(LazyThreadSafetyMode.NONE) {
+		CoreVpnConfigRepository(service.applicationContext)
+	}
+
+	private val coreMutex = Mutex()
+	private val initialized = CompletableDeferred<Unit>()
+
+	@Volatile var state: Tunnel.State = Tunnel.State.Down
+		private set
+
+	@Volatile var currentEntry: EntryPoint? = null
+		private set
+
+	@Volatile var currentExit: ExitPoint? = null
+		private set
+
+	@Volatile private var lastAppliedConfig: CoreVpnConfig? = null
+
+	@Volatile private var bypassLanFlag: Boolean = false
+
+	@Volatile private var disallowedApps: List<String> = emptyList()
+
+	@get:Synchronized @set:Synchronized
+	private var nymEnvironment: NymEnvironment? = null
+
+	@get:Synchronized @set:Synchronized
+	private var nymVpnService: NymVpnService? = null
+
+	@get:Synchronized @set:Synchronized
+	private var commandSender: NymVpnServiceCommandSender? = null
+
+	suspend fun ensureReadyForManagementBestEffort() = coreMutex.withLock {
+		runCatching {
+			ensureCoreInitialized(
+				networkName = null,
+				enableDebugLog = true,
+				sentry = false,
+				userAgent = null,
+				useMainnetFallback = true,
+			)
+			applyCanonicalConfigToRustIfReady(force = false, canonical = null)
+		}.onFailure { Timber.tag(TAG).w(it, "ensureReadyForManagement failed (non-fatal)") }
+	}
+
+	suspend fun init(req: ConnectInitRequest): ConnectResult = coreMutex.withLock {
+		runCatching {
+			ensureCoreInitialized(
+				networkName = req.networkName,
+				enableDebugLog = req.enableDebugLog,
+				sentry = req.sentryMonitoringEnabled,
+				userAgent = req.userAgent,
+				useMainnetFallback = false,
+			)
+			applyCanonicalConfigToRustIfReady(force = true, canonical = null)
+			ConnectResult.Ok
+		}.getOrElse { t ->
+			Timber.tag(TAG).e(t, "InitCoreFailed")
+			ConnectResult.Failed("Init failed", t::class.java.name)
+		}
+	}
+
+	suspend fun getConfig(): CoreVpnConfig = configRepo.get()
+
+	suspend fun applyUpdate(patch: CoreVpnConfigUpdate): ConfigResult = coreMutex.withLock {
+		runCatching {
+			val updated = configRepo.applyUpdate(patch)
+			applyCanonicalConfigToRustIfReady(force = false, canonical = updated)
+			ConfigResult.Ok(updated)
+		}.getOrElse { t ->
+			Timber.tag(TAG).e(t, "ApplyPatchFailed")
+			ConfigResult.Failed("Apply patch failed", t::class.java.name)
+		}
+	}
+
+	suspend fun applyUpdates(patches: List<CoreVpnConfigUpdate>): ConfigResult = coreMutex.withLock {
+		runCatching {
+			val updated = configRepo.applyUpdates(patches)
+			applyCanonicalConfigToRustIfReady(force = false, canonical = updated)
+			ConfigResult.Ok(updated)
+		}.getOrElse { t ->
+			Timber.tag(TAG).e(t, "ApplyPatchesFailed")
+			ConfigResult.Failed("Apply patches failed", t::class.java.name)
+		}
+	}
+
+	suspend fun connect(): ConnectResult = coreMutex.withLock { connectLocked() }
+	suspend fun disconnect(): ConnectResult = coreMutex.withLock { disconnectLocked() }
+
+	suspend fun connectLocked(): ConnectResult {
+		if (android.net.VpnService.prepare(service) != null) {
+			return ConnectResult.PermissionRequired("VPN permission not granted (VpnService.prepare() != null)")
+		}
+
+		foreground.promoteMinimal("connect")
+
+		runCatching {
+			ensureCoreInitialized(
+				networkName = null,
+				enableDebugLog = true,
+				sentry = false,
+				userAgent = null,
+				useMainnetFallback = true,
+			)
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "CoreInitFailed")
+			return ConnectResult.Failed("Failed to init core", t::class.java.name)
+		}
+
+		runCatching { applyCanonicalConfigToRustIfReady(force = false, canonical = null) }
+			.onFailure { t ->
+				Timber.tag(TAG).e(t, "ApplyConfigBeforeConnectFailed")
+				return ConnectResult.Failed("Failed to apply config", t::class.java.name)
+			}
+
+		return runCatching {
+			publishState(Tunnel.State.InitializingClient)
+			requireCoreSender { it.connectTunnel() }
+			publishState(Tunnel.State.EstablishingConnection)
+			ConnectResult.Ok
+		}.getOrElse { t ->
+			Timber.tag(TAG).e(t, "ConnectFailed")
+			publishState(Tunnel.State.Down)
+			ConnectResult.Failed("Connect failed", t::class.java.name)
+		}
+	}
+
+	suspend fun disconnectLocked(): ConnectResult {
+		return runCatching {
+			if (initialized.isCompleted) {
+				requireCoreSender { it.disconnectTunnel() }
+			}
+
+			tun.closeInterfaceSafely()
+			publishState(Tunnel.State.Down)
+
+			foreground.stopForegroundSafely()
+			foreground.cancelForegroundNotificationSafely()
+
+			ConnectResult.Ok
+		}.getOrElse { t ->
+			Timber.tag(TAG).e(t, "DisconnectFailed")
+			ConnectResult.Failed("Disconnect failed", t::class.java.name)
+		}
+	}
+
+	suspend fun disconnectBestEffort(reason: String) {
+		coreMutex.withLock {
+			runCatching { disconnectLocked() }
+				.onFailure { Timber.tag(TAG).w(it, "disconnectBestEffort failed reason=%s", reason) }
+		}
+	}
+
+	fun onTunnelEvent(event: TunnelEvent) {
+		when (event) {
+			is TunnelEvent.NewState -> handleTunnelState(event)
+			is TunnelEvent.MixnetState -> handleMixnetEvent(event)
+			is TunnelEvent.AccountState -> events.tryEmit(VpnServiceEvent.AccountStateChanged(event.v1))
+			is TunnelEvent.ConfigChanged -> events.tryEmit(VpnServiceEvent.Log("TunnelEvent config_changed"))
+			else -> events.tryEmit(VpnServiceEvent.Log("TunnelEvent: ${event::class.java.simpleName}"))
+		}
+	}
+
+	private fun handleTunnelState(event: TunnelEvent.NewState) {
+		val coarse = event.asTunnelState()
+		if (coarse != state) publishState(coarse)
+
+		when (val ts = event.v1) {
+			is nym_vpn_lib_types.TunnelState.Connecting ->
+				events.tryEmit(VpnServiceEvent.EstablishConnection(ts.state, ts.connectionData))
+			is nym_vpn_lib_types.TunnelState.Connected ->
+				events.tryEmit(VpnServiceEvent.Connected(ts.connectionData))
+			is nym_vpn_lib_types.TunnelState.Error ->
+				events.tryEmit(VpnServiceEvent.FatalError(ts.v1))
+			else -> Unit
+		}
+
+		service.updateForegroundNotification(coarse)
+	}
+
+	private fun handleMixnetEvent(event: TunnelEvent.MixnetState) {
+		when (val mx = event.v1) {
+			is nym_vpn_lib_types.MixnetEvent.Connection ->
+				events.tryEmit(VpnServiceEvent.MixnetConnectionEvent(mx.v1))
+			else ->
+				events.tryEmit(VpnServiceEvent.Log("MixnetEvent=${mx::class.java.simpleName}"))
+		}
+	}
+
+	fun publishState(newState: Tunnel.State) {
+		state = newState
+		events.tryEmit(VpnServiceEvent.StateChanged(newState))
+		service.updateForegroundNotification(newState)
+	}
+
+	suspend fun <T> requireCoreSender(block: suspend (NymVpnServiceCommandSender) -> T): T {
+		initialized.await()
+		val sender = commandSender ?: throw NymVpnServiceCommandException(noHandle = NoHandle)
+		return block(sender)
+	}
+
+	suspend fun <T> tryWithCoreSender(block: suspend (NymVpnServiceCommandSender) -> T): T? {
+		if (!initialized.isCompleted) return null
+		val sender = commandSender ?: return null
+		return runCatching { block(sender) }.getOrNull()
+	}
+
+	private suspend fun ensureTokioAndLogger(storagePath: String, enableDebugLog: Boolean, sentry: Boolean) {
+		initializeTokioRuntime()
+		val level = if (enableDebugLog) LogLevel.DEBUG else LogLevel.INFO
+		initLogger(storagePath, level, sentryMonitoring = sentry)
+	}
+
+	private suspend fun ensureCoreInitialized(networkName: String?, enableDebugLog: Boolean, sentry: Boolean, userAgent: UserAgent?, useMainnetFallback: Boolean) {
+		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
+
+		val storagePath = service.filesDir.absolutePath
+		ensureTokioAndLogger(storagePath, enableDebugLog, sentry)
+
+		val env =
+			if (useMainnetFallback) {
+				NymEnvironment.newWithMainnetFallback()
+			} else {
+				runCatching {
+					requireNotNull(networkName) { "networkName required for init()" }
+					requireNotNull(userAgent) { "userAgent required for init()" }
+					NymEnvironment.newWithCacheDir(storagePath, networkName, userAgent)
+				}.getOrElse { NymEnvironment.newWithMainnetFallback() }
+			}
+
+		nymEnvironment = env
+
+		val ua = userAgent ?: UserAgent("", "", "", "")
+		val initialConfig = VpnConfig(
+			configDir = storagePath,
+			dataDir = storagePath,
+			entryGateway = EntryPoint.Random,
+			exitRouter = ExitPoint.Random,
+			enableTwoHop = false,
+			enableBridges = false,
+			enableLewesProtocol = false,
+			customDns = emptyList(),
+			residentialExit = false,
+			userAgent = ua,
+			tunProvider = service,
+			connectivityMonitor = service,
+		)
+
+		val svc = NymVpnService.newService(initialConfig, env, service)
+		commandSender = svc.getCommandSender()
+		nymVpnService = svc
+
+		if (!initialized.isCompleted) initialized.complete(Unit)
+		events.tryEmit(VpnServiceEvent.Log("core initialized"))
+	}
+
+	private suspend fun applyCanonicalConfigToRustIfReady(force: Boolean, canonical: CoreVpnConfig?) {
+		if (!initialized.isCompleted) return
+
+		val cfg = canonical ?: configRepo.get()
+
+		if (!force && lastAppliedConfig == cfg) {
+			syncLocalFieldsFromConfig(cfg)
+			return
+		}
+
+		requireCoreSender { sender ->
+			syncLocalFieldsFromConfig(cfg)
+
+			sender.setEntryPoint(cfg.entryPoint)
+			sender.setExitPoint(cfg.exitPoint)
+			sender.setEnableTwoHop(cfg.mode.isTwoHop())
+
+			sender.setEnableBridges(cfg.enableBridges)
+
+			sender.setEnableCustomDns(cfg.customDnsEnabled)
+			if (cfg.customDnsEnabled) sender.setCustomDns(cfg.customDns.toList())
+		}
+
+		lastAppliedConfig = cfg
+	}
+
+	private fun syncLocalFieldsFromConfig(cfg: CoreVpnConfig) {
+		bypassLanFlag = cfg.bypassLan
+		disallowedApps = cfg.restrictedApps
+		currentEntry = cfg.entryPoint
+		currentExit = cfg.exitPoint
+
+		tun.setDisallowedApps(disallowedApps)
+		tun.setBypassLan(bypassLanFlag)
+	}
+
+	fun isAlwaysOnHeuristic(intent: Intent?): Boolean = intent == null || intent.component == null || intent.component?.packageName != service.packageName
+}

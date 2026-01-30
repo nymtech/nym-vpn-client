@@ -1,12 +1,14 @@
 package net.nymtech.vpn.backend.api
 
 import kotlinx.coroutines.flow.Flow
-import net.nymtech.vpn.backend.ConnectInitRequest
-import net.nymtech.vpn.backend.ConnectRequest
-import net.nymtech.vpn.backend.ConnectResult
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.backend.VpnServiceEvent
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.NymGateway
+import net.nymtech.vpn.model.VpnServiceEvent
+import net.nymtech.vpn.model.config.ConfigResult
+import net.nymtech.vpn.model.config.CoreVpnConfig
+import net.nymtech.vpn.model.connect.ConnectInitRequest
+import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
@@ -24,8 +26,14 @@ interface VpnServiceApi {
 
 	fun getState(): Tunnel.State
 
-	suspend fun connect(request: ConnectRequest): ConnectResult
+	suspend fun getConfig(): CoreVpnConfig
+
+	suspend fun applyUpdate(patch: CoreVpnConfigUpdate): ConfigResult
+	suspend fun applyUpdates(patches: List<CoreVpnConfigUpdate>): ConfigResult
+
+	suspend fun connect(): ConnectResult
 	suspend fun disconnect(): ConnectResult
+
 	val events: Flow<VpnServiceEvent>
 
 	suspend fun isMnemonicStored(): Boolean

@@ -56,7 +56,7 @@ fun DetailsScreen(appUiState: AppUiState, id: String, gatewayLocation: String, v
 	val navController = LocalNavController.current
 	val location = GatewayLocation.valueOf(gatewayLocation)
 	val gatewayType = remember {
-		when (appUiState.settings.vpnMode) {
+		when (appUiState.vpnConfig.mode) {
 			Tunnel.Mode.FIVE_HOP_MIXNET -> {
 				when (location) {
 					GatewayLocation.EXIT -> GatewayType.MIXNET_EXIT

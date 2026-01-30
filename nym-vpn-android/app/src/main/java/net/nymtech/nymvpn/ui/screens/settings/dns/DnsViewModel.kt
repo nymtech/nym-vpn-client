@@ -10,16 +10,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import javax.inject.Inject
 
 @HiltViewModel
 class DnsViewModel @Inject constructor(
 	private val backendManager: BackendManager,
-	private val settingsRepository: SettingsRepository,
+	private val vpnConfigRepository: VpnConfigRepository,
 ) : ViewModel() {
 
 	private val _defaultDns = MutableStateFlow<List<String>>(emptyList())
@@ -40,7 +41,7 @@ class DnsViewModel @Inject constructor(
 	init {
 		viewModelScope.launch {
 			_defaultDns.value = DEFAULT_DNS_SERVERS
-			_customDns.value = settingsRepository.getDnsList()
+			_customDns.value = vpnConfigRepository.getConfig().customDns
 		}
 		viewModelScope.launch {
 			backendManager.restartStartedEvents.collect {
@@ -58,14 +59,14 @@ class DnsViewModel @Inject constructor(
 	}
 
 	fun onCustomDnsEnable(enabled: Boolean, isActuallyConnected: Boolean) = viewModelScope.launch {
-		settingsRepository.setCustomDnsEnabled(enabled)
+		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetCustomDnsEnabled(enabled))
 		if (isActuallyConnected) {
 			backendManager.requestRestartDebounced()
 		}
 	}
 
 	fun saveDnsListReconnectIfNeeded(list: List<String>, dnsEnabled: Boolean, isActuallyConnected: Boolean) = viewModelScope.launch {
-		settingsRepository.saveDnsList(list)
+		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetCustomDns(list))
 		_customDns.value = list
 		if (dnsEnabled && isActuallyConnected) {
 			backendManager.requestRestartDebounced()

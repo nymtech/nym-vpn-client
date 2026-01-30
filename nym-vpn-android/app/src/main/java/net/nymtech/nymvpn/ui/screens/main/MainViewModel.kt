@@ -16,9 +16,11 @@ import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import timber.log.Timber
 
 @HiltViewModel
@@ -26,6 +28,7 @@ class MainViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
+	private val vpnConfigRepository: VpnConfigRepository,
 	private val backendManager: BackendManager,
 	private val environmentManager: EnvironmentManager,
 	private val networkService: NetworkService,
@@ -57,7 +60,7 @@ constructor(
 		Timber.tag(TAG).i("VpnModeChangeRequested mode=TWO_HOP_MIXNET")
 
 		runCatching {
-			settingsRepository.setVpnMode(Tunnel.Mode.TWO_HOP_MIXNET)
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.TWO_HOP_MIXNET))
 
 			val currentState = backendManager.stateFlow.first().tunnelState
 			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
@@ -79,8 +82,7 @@ constructor(
 		Timber.tag(TAG).i("VpnModeChangeRequested mode=FIVE_HOP_MIXNET")
 
 		runCatching {
-			settingsRepository.setVpnMode(Tunnel.Mode.FIVE_HOP_MIXNET)
-
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.FIVE_HOP_MIXNET))
 			val currentState = backendManager.stateFlow.first().tunnelState
 			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
 

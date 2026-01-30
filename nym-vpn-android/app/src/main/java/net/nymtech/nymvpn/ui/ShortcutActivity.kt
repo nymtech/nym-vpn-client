@@ -12,11 +12,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.shortcut.ShortcutAction
 import net.nymtech.nymvpn.util.DeviceAuthHelper
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -25,6 +27,8 @@ import javax.inject.Inject
 class ShortcutActivity : FragmentActivity() {
 
 	@Inject lateinit var settingsRepository: SettingsRepository
+
+	@Inject lateinit var vpnConfigRepository: VpnConfigRepository
 
 	@Inject @ApplicationScope
 	lateinit var applicationScope: CoroutineScope
@@ -94,12 +98,12 @@ class ShortcutActivity : FragmentActivity() {
 	private suspend fun performAction(action: ShortcutAction) {
 		when (action) {
 			ShortcutAction.START_MIXNET -> {
-				settingsRepository.setVpnMode(Tunnel.Mode.FIVE_HOP_MIXNET)
+				vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.FIVE_HOP_MIXNET))
 				backendManager.startTunnel()
 			}
 
 			ShortcutAction.START_WG -> {
-				settingsRepository.setVpnMode(Tunnel.Mode.TWO_HOP_MIXNET)
+				vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.TWO_HOP_MIXNET))
 				backendManager.startTunnel()
 			}
 

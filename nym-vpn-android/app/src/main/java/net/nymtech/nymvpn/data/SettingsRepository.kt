@@ -4,95 +4,57 @@ import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib_types.EntryPoint
-import nym_vpn_lib_types.ExitPoint
 
 interface SettingsRepository {
 
-	suspend fun setEntryPoint(entry: EntryPoint)
-
-	suspend fun getEntryPoint(): EntryPoint
-
-	suspend fun setExitPoint(exit: ExitPoint)
-
-	suspend fun getExitPoint(): ExitPoint
-
 	suspend fun getTheme(): Theme
-
 	suspend fun setTheme(theme: Theme)
 
-	suspend fun getVpnMode(): Tunnel.Mode
-
-	suspend fun setVpnMode(mode: Tunnel.Mode)
-
 	suspend fun isAutoStartEnabled(): Boolean
-
 	suspend fun setAutoStart(enabled: Boolean)
 
 	suspend fun isApplicationShortcutsEnabled(): Boolean
-
 	suspend fun setApplicationShortcuts(enabled: Boolean)
 
-	suspend fun isBypassLanEnabled(): Boolean
-
-	suspend fun setBypassLan(enabled: Boolean)
-
 	suspend fun getEnvironment(): Tunnel.Environment
-
 	suspend fun setEnvironment(environment: Tunnel.Environment)
 
 	suspend fun setManualGatewayOverride(enabled: Boolean)
 
 	suspend fun setCredentialMode(enabled: Boolean?)
-
 	suspend fun isCredentialMode(): Boolean?
 
 	suspend fun getLocale(): String?
-
 	suspend fun setLocale(locale: String)
 
 	suspend fun setBatteryDialogSkipped(skip: Boolean)
-
 	suspend fun isBatteryDialogSkipped(): Boolean
 
 	suspend fun getSentryMonitoringEnabled(): Boolean
-
 	suspend fun setSentryMonitoring(enabled: Boolean)
 
 	suspend fun getStatisticsEnabled(): Boolean
-
 	suspend fun setStatisticsEnabled(enabled: Boolean)
 
+	suspend fun isStatsDialogSkipped(): Boolean
 	suspend fun setStatsDialogSkipped(skip: Boolean)
 
-	suspend fun isStatsDialogSkipped(): Boolean
-
 	suspend fun setTechnicalOptScreenCompleted()
-
 	suspend fun isTechnicalOptScreenCompleted(): Boolean
 
 	suspend fun getQUICEnabled(): Boolean
-
 	suspend fun setQUICEnabled(enabled: Boolean)
 
 	suspend fun getIsStreamServerBannerDisplayed(): Boolean
-
 	suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean)
+
 	suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean
 	suspend fun setIsPerAppSecurityBannerDisplayed(displayed: Boolean)
 
-	suspend fun getCustomDnsEnabled(): Boolean
-
-	suspend fun setCustomDnsEnabled(enabled: Boolean)
-	suspend fun saveDnsList(list: List<String>)
-	suspend fun getDnsList(): List<String>
-
 	suspend fun getLogsEnabled(): Boolean
-
 	suspend fun setLogsEnabled(enabled: Boolean)
 
 	suspend fun getLogsDebugEnabled(): Boolean
-
 	suspend fun setLogsDebugEnabled(enabled: Boolean)
 
 	val settingsFlow: Flow<Settings>

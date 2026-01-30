@@ -8,12 +8,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
@@ -22,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
-	private val settingsRepository: SettingsRepository,
+	private val vpnConfigRepository: VpnConfigRepository,
 	private val environmentManager: EnvironmentManager,
 	private val backendManager: BackendManager,
 	@ApplicationScope private val applicationScope: CoroutineScope,
@@ -50,12 +51,12 @@ class DetailsViewModel @Inject constructor(
 		runCatching {
 			when (gatewayLocation) {
 				GatewayLocation.ENTRY -> {
-					settingsRepository.setEntryPoint(id.asEntryPoint())
+					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetEntryPoint(id.asEntryPoint()))
 					Timber.tag(TAG).i("GatewaySelectionSaved location=ENTRY")
 				}
 
 				GatewayLocation.EXIT -> {
-					settingsRepository.setExitPoint(id.asExitPoint())
+					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetExitPoint(id.asExitPoint()))
 					Timber.tag(TAG).i("GatewaySelectionSaved location=EXIT")
 				}
 			}
