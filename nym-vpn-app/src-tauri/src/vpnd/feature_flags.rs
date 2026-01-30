@@ -7,7 +7,6 @@ const KEY_QUIC: &str = "quic";
 const KEY_DOMAIN_FRONTING: &str = "domain_fronting";
 const KEY_ZKNYMS: &str = "zkNyms";
 const KEY_PRIVY: &str = "privy";
-const KEY_MIXNET_TUNING: &str = "mixnet_tuning";
 
 #[derive(Clone, Serialize, TS)]
 #[ts(export, export_to = "tauri.ts")]
@@ -17,7 +16,6 @@ pub struct FeatureFlags {
     pub domain_fronting: bool,
     pub zknym_credential: bool,
     pub privy: bool,
-    pub mixnet_tuning: bool,
 }
 
 impl From<lib::FeatureFlags> for FeatureFlags {
@@ -29,12 +27,13 @@ impl From<lib::FeatureFlags> for FeatureFlags {
             zknym_credential: get_group_flag(&fflags, KEY_ZKNYMS, "credentialMode")
                 .unwrap_or(false),
             privy: get_group_flag(&fflags, KEY_PRIVY, "enabled").unwrap_or(false),
-            mixnet_tuning: get_group_flag(&fflags, KEY_MIXNET_TUNING, "enabled").unwrap_or(false),
         }
     }
 }
 
 fn get_group_flag(fflags: &lib::FeatureFlags, group_name: &str, flag_name: &str) -> Option<bool> {
+    println!("get_group_flag: {group_name}, {flag_name}");
+    println!("fflags: {:?}", fflags);
     if let Some(FlagValue::Group(group)) = fflags.flags.get(group_name)
         && let Some(value) = group.get(flag_name)
     {
