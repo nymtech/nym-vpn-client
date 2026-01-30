@@ -97,7 +97,7 @@ impl fmt::Display for BandwidthEvent {
                 write!(
                     f,
                     "Remaining bandwidth: {}",
-                    si_scale::helpers::bibytes2(*value as f64)
+                    si_scale::helpers::bibytes2(*value)
                 )
             }
         }
