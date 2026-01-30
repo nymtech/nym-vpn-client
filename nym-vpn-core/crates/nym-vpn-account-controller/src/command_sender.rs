@@ -64,6 +64,19 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
+    pub async fn get_current_account_mode(
+        &self,
+    ) -> Result<Option<StoredAccountMode>, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(
+                CommonCommand::GetCurrentAccountMode(tx),
+            ))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
     pub async fn create_account_command(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx

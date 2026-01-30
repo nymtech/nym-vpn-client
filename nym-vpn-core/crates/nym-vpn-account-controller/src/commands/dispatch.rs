@@ -9,7 +9,7 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
-use nym_vpn_store::{account::StorableAccount, types::StoredAccountMode};
+use nym_vpn_store::account::{StorableAccount, StoredAccountMode};
 use tokio::sync::oneshot;
 
 #[derive(Debug, strum::Display)]
@@ -77,6 +77,9 @@ impl AccountCommand {
             AccountCommand::VpnApiFirewallDown(return_sender) => return_sender.send(Err(error)),
             AccountCommand::Common(common_command) => match common_command {
                 CommonCommand::GetStoredAccounts(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetCurrentAccountMode(return_sender) => {
+                    return_sender.send(Err(error))
+                }
                 CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetUsage(return_sender) => return_sender.send(Err(error)),
@@ -109,6 +112,9 @@ impl AccountCommand {
 pub enum CommonCommand {
     /// Returns Some(account) if an account is stored, None otherwise
     GetStoredAccounts(ReturnSender<Vec<StorableAccount>, AccountCommandError>),
+
+    /// Get the account mode current being used
+    GetCurrentAccountMode(ReturnSender<Option<StoredAccountMode>, AccountCommandError>),
 
     /// Returns Some(address) if an account is stored, None otherwise
     GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),

@@ -14,7 +14,7 @@ use crate::{
     deeplink::CreateDeeplinkParams,
     storage::AccountStorageOp,
 };
-use nym_vpn_store::account::StorableAccount;
+use nym_vpn_store::account::{StorableAccount, StoredAccountMode};
 
 pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
     command: CommonCommand,
@@ -23,6 +23,9 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
     match command {
         CommonCommand::GetStoredAccounts(result_tx) => {
             result_tx.send(handle_get_stored_accounts(shared_state).await);
+        }
+        CommonCommand::GetCurrentAccountMode(result_tx) => {
+            result_tx.send(handle_get_current_account_mode(shared_state).await);
         }
         CommonCommand::GetAccountIdentity(result_tx) => {
             result_tx.send(handle_get_account_identity(shared_state));
@@ -71,6 +74,15 @@ pub(crate) async fn handle_get_stored_accounts<C: ConnectivityMonitor>(
     rx.await
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage) // Storage error
+}
+
+pub(crate) async fn handle_get_current_account_mode<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<Option<StoredAccountMode>, AccountCommandError> {
+    Ok(shared_state
+        .vpn_account
+        .as_ref()
+        .map(|account| StoredAccountMode::from(account.mode())))
 }
 
 pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
