@@ -33,6 +33,9 @@ pub enum AccountCommand {
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
+    /// Link a Privy account with the currently logged-on API account
+    LinkPrivyAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
+
     /// Rotate the wireguard keys
     RotateKeys(ReturnSender<(), AccountCommandError>),
 
@@ -68,6 +71,7 @@ impl AccountCommand {
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::LinkPrivyAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
