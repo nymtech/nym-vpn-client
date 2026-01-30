@@ -145,15 +145,23 @@ impl NymAccountController {
             .derive_deeplink_mnemonic(deeplink_callback_url)
             .await?;
 
-        let storable_account = StorableAccount {
+        let privy_account = StorableAccount {
             mnemonic: deeplink_mnemonic.mnemonic.clone(),
             mode: StorableAccountMode::Privy,
         };
 
-        self.command_sender
-            .store_account(storable_account)
-            .await
-            .map_err(VpnError::from)
+        match deeplink_mnemonic.kind {
+            DeeplinkKind::Privy => self
+                .command_sender
+                .store_account(privy_account)
+                .await
+                .map_err(VpnError::from),
+            DeeplinkKind::PrivyLink => self
+                .command_sender
+                .link_privy_account(privy_account)
+                .await
+                .map_err(VpnError::from),
+        }
     }
 
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
