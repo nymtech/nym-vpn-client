@@ -51,7 +51,7 @@ impl NymAccountController {
             details: err.to_string(),
         })?;
 
-        let nyxd_client = NyxdClient::new(&network_env.inner());
+        let nyxd_client = NyxdClient::new(network_env.inner());
         let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
             data_dir,
             network_env: network_env.inner().clone(),
