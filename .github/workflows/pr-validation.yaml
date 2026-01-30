@@ -6,7 +6,7 @@ on:
       - develop
       - "release/**"
     paths-ignore:
-      - "documentation/**"
+      - "docs/**"
     types:
       - labeled
       - unlabeled
