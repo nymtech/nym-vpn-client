@@ -50,6 +50,8 @@ mod tunnel_state;
 mod uniffi_std_types;
 mod user_agent;
 
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub use account::RegisterAccountRequest;
 pub use account::{
     AccountCommandError, RegisterAccountResponse, VpnAccountSummary, VpnApiError,
     VpnApiErrorResponse,

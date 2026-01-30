@@ -33,6 +33,8 @@ use nym_vpn_lib_types::{
     StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
 };
+#[cfg(any(target_os = "android", target_os = "ios"))]
+use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
 use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
@@ -101,10 +103,17 @@ pub enum VpnServiceCommand {
     SetTargetState(oneshot::Sender<bool>, TargetState),
     Reconnect(oneshot::Sender<bool>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    RegisterAccount(
+        oneshot::Sender<Result<RegisterAccountResponse, AccountCommandError>>,
+        RegisterAccountRequest,
+    ),
+    CreateAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     StoreAccount(
         oneshot::Sender<Result<(), AccountCommandError>>,
         StoreAccountRequest,
     ),
+    GetStoredMnemonic(oneshot::Sender<Result<String, AccountCommandError>>, ()),
     DecentralisedBalance(oneshot::Sender<AccountBalanceResponse>, ()),
     DecentralisedObtainTicketbooks(
         oneshot::Sender<Result<(), AccountCommandError>>,
@@ -889,8 +898,18 @@ impl NymVpnService {
                 let result = self.handle_get_tunnel_state().await;
                 let _ = tx.send(result);
             }
+            #[cfg(any(target_os = "android", target_os = "ios"))]
+            VpnServiceCommand::RegisterAccount(tx, request) => {
+                let _ = tx.send(self.handle_register_account(request).await);
+            }
+            VpnServiceCommand::CreateAccount(tx, ()) => {
+                let _ = tx.send(self.handle_create_account().await);
+            }
             VpnServiceCommand::StoreAccount(tx, account) => {
                 let _ = tx.send(self.handle_store_account(account).await);
+            }
+            VpnServiceCommand::GetStoredMnemonic(tx, ()) => {
+                let _ = tx.send(self.handle_get_stored_mnemonic().await);
             }
             VpnServiceCommand::DecentralisedBalance(tx, ()) => {
                 let _ = tx.send(self.handle_decentralised_balance().await);
@@ -1506,6 +1525,29 @@ impl NymVpnService {
         self.tunnel_state.read().await.clone()
     }
 
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    async fn handle_register_account(
+        &self,
+        request: RegisterAccountRequest,
+    ) -> Result<RegisterAccountResponse, AccountCommandError> {
+        let stored_account = self
+            .account_command_tx
+            .get_stored_account()
+            .await?
+            .ok_or(AccountCommandError::NoAccountStored)?;
+
+        self.account_command_tx
+            .register_account(
+                stored_account,
+                nym_vpn_api_client::types::Platform::from(request),
+            )
+            .await
+    }
+
+    async fn handle_create_account(&self) -> Result<(), AccountCommandError> {
+        self.account_command_tx.create_account_command().await
+    }
+
     async fn handle_store_account(
         &mut self,
         store_request: StoreAccountRequest,
@@ -1524,6 +1566,16 @@ impl NymVpnService {
                 ))
                 .await
         }
+    }
+
+    async fn handle_get_stored_mnemonic(&mut self) -> Result<String, AccountCommandError> {
+        let stored_account = self
+            .account_command_tx
+            .get_stored_account()
+            .await?
+            .ok_or(AccountCommandError::NoAccountStored)?;
+
+        Ok(stored_account.mnemonic.to_string())
     }
 
     async fn handle_decentralised_balance(&mut self) -> AccountBalanceResponse {

@@ -12,6 +12,40 @@ pub mod ticketbooks;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+#[cfg(any(target_os = "ios", target_os = "android"))]
+pub struct RegisterAccountRequest {
+    #[cfg(target_os = "android")]
+    pub purchase_token: String,
+}
+
+#[cfg(feature = "nym-type-conversions")]
+#[cfg(any(target_os = "ios", target_os = "android"))]
+impl From<RegisterAccountRequest> for nym_vpn_api_client::types::Platform {
+    fn from(_value: RegisterAccountRequest) -> Self {
+        #[cfg(target_os = "ios")]
+        {
+            Self::Apple
+        }
+
+        #[cfg(target_os = "android")]
+        {
+            Self::Android {
+                purchase_token: _value.purchase_token,
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 pub struct RegisterAccountResponse {
