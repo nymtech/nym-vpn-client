@@ -2,42 +2,42 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    NetNode, Node, RequiredRoute, Route,
-    imp::{CallbackMessage, RouteManagerCommand},
-};
-use netlink_sys::AsyncSocket;
-use nym_common::trace_err_chain;
 use std::{
     collections::{BTreeMap, HashSet},
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     num::NonZeroI32,
+    sync::LazyLock,
 };
 
 use futures::{StreamExt, TryStreamExt};
 use ipnetwork::IpNetwork;
 use libc::RT_TABLE_COMPAT;
-use netlink_packet_core::{
-    NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_REPLACE, NLM_F_REQUEST, NetlinkMessage,
-    NetlinkPayload,
-};
-use netlink_packet_route::{
-    AddressFamily, RouteNetlinkMessage,
-    link::{LinkAttribute, LinkLayerType, LinkMessage},
-    route::{
-        RouteAddress, RouteAttribute, RouteFlags, RouteHeader, RouteMessage, RouteMetric,
-        RouteProtocol, RouteScope, RouteType, RouteVia,
-    },
-    rule::{RuleAction, RuleAttribute, RuleFlags, RuleHeader, RuleMessage},
-};
-use netlink_sys::SocketAddr;
+use nym_common::trace_err_chain;
 use rtnetlink::{
     Handle, RouteMessageBuilder,
     constants::{RTMGRP_IPV4_ROUTE, RTMGRP_IPV6_ROUTE, RTMGRP_LINK, RTMGRP_NOTIFY},
+    packet_core::{
+        NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_REPLACE, NLM_F_REQUEST, NetlinkMessage,
+        NetlinkPayload,
+    },
+    packet_route::{
+        AddressFamily, RouteNetlinkMessage,
+        link::{LinkAttribute, LinkLayerType, LinkMessage},
+        route::{
+            RouteAddress, RouteAttribute, RouteFlags, RouteHeader, RouteMessage, RouteMetric,
+            RouteProtocol, RouteScope, RouteType, RouteVia,
+        },
+        rule::{RuleAction, RuleAttribute, RuleFlags, RuleHeader, RuleMessage},
+    },
+    sys::{AsyncSocket, SocketAddr},
 };
-use std::sync::LazyLock;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
+
+use crate::{
+    NetNode, Node, RequiredRoute, Route,
+    imp::{CallbackMessage, RouteManagerCommand},
+};
 
 static SUPPRESS_RULE_V4: LazyLock<RuleMessage> = LazyLock::new(|| {
     let mut rule = RuleMessage::default();

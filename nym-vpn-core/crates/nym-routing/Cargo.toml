@@ -29,9 +29,6 @@ nym-common.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc.workspace = true
-netlink-packet-route = { workspace = true, features = ["rich_nlas"] }
-netlink-packet-core.workspace = true
-netlink-sys.workspace = true
 rtnetlink.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]

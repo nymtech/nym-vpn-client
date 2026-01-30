@@ -25,7 +25,7 @@ pub use imp::{Callback, CallbackHandle, EventType, InterfaceAndGateway, get_best
 mod imp;
 
 #[cfg(target_os = "linux")]
-use netlink_packet_route::route::RouteHeader;
+use rtnetlink::packet_route::route::RouteHeader;
 
 #[cfg(target_os = "macos")]
 pub use imp::{DefaultRouteEvent, InterfaceEvent, PlatformError, imp::RouteError};
