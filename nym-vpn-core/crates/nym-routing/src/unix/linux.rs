@@ -6,7 +6,6 @@ use crate::{
     NetNode, Node, RequiredRoute, Route,
     imp::{CallbackMessage, RouteManagerCommand},
 };
-use netlink_sys::AsyncSocket;
 use nym_common::trace_err_chain;
 use std::{
     collections::{BTreeMap, HashSet},
@@ -18,23 +17,23 @@ use std::{
 use futures::{StreamExt, TryStreamExt};
 use ipnetwork::IpNetwork;
 use libc::RT_TABLE_COMPAT;
-use netlink_packet_core::{
-    NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_REPLACE, NLM_F_REQUEST, NetlinkMessage,
-    NetlinkPayload,
-};
-use netlink_packet_route::{
-    AddressFamily, RouteNetlinkMessage,
-    link::{LinkAttribute, LinkLayerType, LinkMessage},
-    route::{
-        RouteAddress, RouteAttribute, RouteFlags, RouteHeader, RouteMessage, RouteMetric,
-        RouteProtocol, RouteScope, RouteType, RouteVia,
-    },
-    rule::{RuleAction, RuleAttribute, RuleFlags, RuleHeader, RuleMessage},
-};
-use netlink_sys::SocketAddr;
 use rtnetlink::{
     Handle, RouteMessageBuilder,
     constants::{RTMGRP_IPV4_ROUTE, RTMGRP_IPV6_ROUTE, RTMGRP_LINK, RTMGRP_NOTIFY},
+    packet_core::{
+        NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_REPLACE, NLM_F_REQUEST, NetlinkMessage,
+        NetlinkPayload,
+    },
+    packet_route::{
+        AddressFamily, RouteNetlinkMessage,
+        link::{LinkAttribute, LinkLayerType, LinkMessage},
+        route::{
+            RouteAddress, RouteAttribute, RouteFlags, RouteHeader, RouteMessage, RouteMetric,
+            RouteProtocol, RouteScope, RouteType, RouteVia,
+        },
+        rule::{RuleAction, RuleAttribute, RuleFlags, RuleHeader, RuleMessage},
+    },
+    sys::{AsyncSocket, SocketAddr},
 };
 use std::sync::LazyLock;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
