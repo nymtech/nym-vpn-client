@@ -27,6 +27,9 @@ pub enum VpnApiClientError {
     #[error("failed to get account summary with device")]
     GetAccountSummaryWithDevice(#[source] Box<HttpClientError>),
 
+    #[error("failed to link privy account")]
+    LinkPrivyAccount(#[source] Box<HttpClientError>),
+
     #[error("failed to get devices")]
     GetDevices(#[source] Box<HttpClientError>),
 
