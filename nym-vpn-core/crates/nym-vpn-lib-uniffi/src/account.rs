@@ -11,7 +11,8 @@ use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    RegisterAccountResponse, StoreAccountRequest, UserAgent, VpnAccountSummary,
+    RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, UserAgent,
+    VpnAccountSummary,
 };
 
 use crate::{environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor};
@@ -51,7 +52,7 @@ impl NymAccountController {
             details: err.to_string(),
         })?;
 
-        let nyxd_client = NyxdClient::new(&network_env.inner());
+        let nyxd_client = NyxdClient::new(network_env.inner());
         let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
             data_dir,
             network_env: network_env.inner().clone(),
@@ -193,7 +194,7 @@ impl NymAccountController {
     /// Register the stored account.
     pub async fn register_account(
         &self,
-        args: AccountRegistrationArgs,
+        request: RegisterAccountRequest,
     ) -> Result<RegisterAccountResponse, VpnError> {
         let mnemonic = self
             .command_sender
@@ -201,7 +202,7 @@ impl NymAccountController {
             .await
             .map_err(VpnError::from)?
             .ok_or(VpnError::NoAccountStored)?;
-        let platform = Platform::try_from(args)?;
+        let platform = Platform::from(request);
         self.command_sender
             .register_account(mnemonic, platform)
             .await
@@ -252,28 +253,5 @@ impl NymAccountController {
             .get_device_identity()
             .await?
             .ok_or(VpnError::NoAccountStored)
-    }
-}
-
-#[derive(uniffi::Record)]
-pub struct AccountRegistrationArgs {
-    #[cfg(target_os = "android")]
-    pub purchase_token: String,
-}
-
-impl TryFrom<AccountRegistrationArgs> for nym_vpn_api_client::types::Platform {
-    type Error = VpnError;
-
-    fn try_from(_value: AccountRegistrationArgs) -> Result<Self, Self::Error> {
-        #[cfg(target_os = "ios")]
-        return Ok(nym_vpn_api_client::types::Platform::Apple);
-        #[cfg(target_os = "android")]
-        return Ok(nym_vpn_api_client::types::Platform::Android {
-            purchase_token: _value.purchase_token,
-        });
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        Err(VpnError::InternalError {
-            details: "only iOS and Android supported for now".to_string(),
-        })
     }
 }

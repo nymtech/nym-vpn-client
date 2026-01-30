@@ -14,29 +14,8 @@ workspace = true
 
 [dependencies]
 anyhow.workspace = true
-bip39.workspace = true
-bytes = { workspace = true }
 clap.workspace = true
 futures.workspace = true
-hyper = { workspace = true, features = ["server", "http1"] }
-hyper-util = { workspace = true, features = ["tokio"] }
-http-body-util = { workspace = true }
-log-panics.workspace = true
-sentry = { workspace = true, features = [
-    "backtrace",
-    "contexts",
-    "panic",
-    "reqwest",
-    "rustls",
-    "tracing",
-    "logs",
-] }
-reqwest = { workspace = true, features = ["socks", "rustls-tls"] }
-serde.workspace = true
-serde_json.workspace = true
-strum.workspace = true
-tempfile.workspace = true
-thiserror.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = [
     "signal",
@@ -47,33 +26,16 @@ tokio = { workspace = true, features = [
 ] }
 tokio-stream.workspace = true
 tokio-util.workspace = true
-toml.workspace = true
 tonic.workspace = true
 tracing.workspace = true
-urlencoding = { workspace = true }
-url.workspace = true
 
 nym-bin-common.workspace = true
-nym-registration-client.workspace = true
-nym-http-api-client.workspace = true
 nym-sdk.workspace = true
-nym-windows.workspace = true
-
-# Local crates
-nym-common.workspace = true
-nym-diagnostic.workspace = true
 nym-ipc.workspace = true
-nym-offline-monitor.workspace = true
-nym-statistics = { workspace = true }
-nym-statistics-api-client = { workspace = true }
-nym-vpn-account-controller = { workspace = true }
-nym-vpn-api-client = { workspace = true }
 nym-vpn-lib = { workspace = true }
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
-nym-vpn-store = { workspace = true }
 nym-vpn-network-config = { workspace = true }
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
-nym-gateway-directory = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 
 [target.'cfg(windows)'.dependencies]

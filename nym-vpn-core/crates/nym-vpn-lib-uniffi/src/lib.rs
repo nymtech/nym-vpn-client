@@ -225,8 +225,8 @@ pub struct VPNConfig {
 impl VPNConfig {
     fn as_vpn_service_config(&self) -> Box<VpnServiceConfig> {
         Box::new(VpnServiceConfig {
-            entry_point: self.entry_gateway.clone().into(),
-            exit_point: self.exit_router.clone().into(),
+            entry_point: self.entry_gateway.clone(),
+            exit_point: self.exit_router.clone(),
             // Does not have effect on mobile platforms
             allow_lan: true,
             disable_ipv6: false,

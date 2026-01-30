@@ -34,8 +34,6 @@ nym-vpn-lib-types = { workspace = true, features = [
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-vpn-api-client.workspace = true
 nym-vpn-network-config.workspace = true
-nym-vpn-store.workspace = true
-nym-common.workspace = true
 
 anyhow.workspace = true
 async-trait.workspace = true
@@ -45,7 +43,6 @@ futures.workspace = true
 hickory-resolver.workspace = true
 pnet.workspace = true
 rand.workspace = true
-serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
 time.workspace = true

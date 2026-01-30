@@ -24,7 +24,9 @@ pub enum Ipv4Route {
     },
 }
 
+// todo: allow unused for now; we should expose these methods for Android/iOS after migration to uniffi 0.31
 impl Ipv4Route {
+    #[allow(unused)]
     pub fn prefix_length(&self) -> u8 {
         match self {
             Self::Default => 0,
@@ -34,6 +36,7 @@ impl Ipv4Route {
         }
     }
 
+    #[allow(unused)]
     pub fn destination(&self) -> Ipv4Addr {
         match self {
             Self::Default => Ipv4Addr::UNSPECIFIED,
@@ -76,7 +79,9 @@ pub enum Ipv6Route {
     },
 }
 
+// todo: allow unused for now; we should expose these methods for Android/iOS after migration to uniffi 0.31
 impl Ipv6Route {
+    #[allow(unused)]
     pub fn destination(&self) -> Ipv6Addr {
         match self {
             Self::Default => Ipv6Addr::UNSPECIFIED,
@@ -84,6 +89,7 @@ impl Ipv6Route {
         }
     }
 
+    #[allow(unused)]
     pub fn prefix_length(&self) -> u8 {
         match self {
             Self::Default => 0,

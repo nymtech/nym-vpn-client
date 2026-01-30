@@ -10,8 +10,8 @@ use tokio::sync::{mpsc, oneshot};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
     GetDeeplinkParams, ListGatewaysOptions, NetworkCompatibility, ParsedAccountLinks,
-    StoreAccountRequest, SystemMessage, TargetState, TunnelState, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, SystemMessage,
+    TargetState, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -147,7 +147,7 @@ impl NymVpnServiceCommandSender {
     pub async fn get_feature_flags(&self) -> Result<Option<Arc<FeatureFlags>>> {
         self.send_and_wait(VpnServiceCommand::GetFeatureFlags, ())
             .await
-            .map(|v| v.map(|v| Arc::new(v)))
+            .map(|v| v.map(Arc::new))
     }
 
     pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>> {
@@ -181,6 +181,23 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
+    pub async fn register_account(
+        &self,
+        request: RegisterAccountRequest,
+    ) -> Result<RegisterAccountResponse> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::RegisterAccount, request)
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    pub async fn create_account(&self) -> Result<()> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::CreateAccount, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
     pub async fn store_account(&self, request: StoreAccountRequest) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::StoreAccount, request)
             .await?
@@ -191,6 +208,13 @@ impl NymVpnServiceCommandSender {
     pub async fn is_account_stored(&self) -> Result<bool> {
         self.send_and_wait(VpnServiceCommand::IsAccountStored, ())
             .await
+    }
+
+    pub async fn get_stored_mnemonic(&self) -> Result<String> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::GetStoredMnemonic, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
     pub async fn forget_account(&self) -> Result<()> {
