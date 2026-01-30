@@ -9,34 +9,35 @@ use std::{
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_http_api_client::{
-    ApiClient, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url, UserAgent,
+    ApiClient, Client, HttpClientError, Params, PathSegments, Url, UserAgent, NO_PARAMS,
 };
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use time::{Duration as TimeDuration, OffsetDateTime};
 use tokio::sync::RwLock;
 
 use crate::{
-    ResolverOverrides, api_urls_to_urls,
-    error::{Result, VpnApiClientError},
+    api_urls_to_urls, error::{Result, VpnApiClientError},
     fronted_http_client,
     request::{
         ApplyFreepassRequestBody, CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody,
-        CreateSubscriptionKind, CreateSubscriptionRequestBody, RegisterDeviceRequestBody,
-        RequestZkNymRequestBody, UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
+        CreateSubscriptionKind, CreateSubscriptionRequestBody, LinkPrivyAccountRequestBody,
+        RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
+        UpdateDeviceRequestStatus,
     },
     response::{
-        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymErrorResponse,
-        NymVpnAccountResponse, NymVpnAccountSummaryResponse,
-        NymVpnAccountSummaryWithDeviceResponse, NymVpnDevice, NymVpnDevicesResponse,
-        NymVpnHealthResponse, NymVpnRegisterAccountResponse, NymVpnSubscription,
-        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym,
-        NymVpnZkNymPost, NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
+        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
+        NymVpnAccountSummaryResponse, NymVpnAccountSummaryWithDeviceResponse, NymVpnDevice,
+        NymVpnDevicesResponse, NymVpnHealthResponse, NymVpnRegisterAccountResponse,
+        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
+        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
+        NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     types::{
         Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform, VpnAccount, VpnApiTime,
         VpnApiTimeSynced,
     },
+    ResolverOverrides,
 };
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
@@ -285,16 +286,13 @@ impl VpnApiClient {
     where
         T: DeserializeOwned,
     {
-        let jwt = match self.current_remote_time().await {
-            Ok(remote_time) => remote_time,
-            Err(err) => {
-                tracing::debug!(
-                    error = %err,
-                    "Failed to determine cached remote time"
-                );
-                None
-            }
-        };
+        let jwt = self.current_remote_time().await.unwrap_or_else(|err| {
+            tracing::debug!(
+                error = %err,
+                "Failed to determine cached remote time"
+            );
+            None
+        });
 
         match self.get_query::<T>(path, account, device, jwt).await {
             Ok(response) => Ok(response),
@@ -462,16 +460,13 @@ impl VpnApiClient {
         T: DeserializeOwned,
         B: Serialize,
     {
-        let jwt = match self.current_remote_time().await {
-            Ok(remote_time) => remote_time,
-            Err(err) => {
-                tracing::debug!(
-                    error = %err,
-                    "Failed to determine cached remote time"
-                );
-                None
-            }
-        };
+        let jwt = self.current_remote_time().await.unwrap_or_else(|err| {
+            tracing::debug!(
+                error = %err,
+                "Failed to determine cached remote time"
+            );
+            None
+        });
 
         match self
             .post_query::<T, B>(path, json_body, account, device, jwt)
@@ -796,18 +791,15 @@ impl VpnApiClient {
         &self,
         account: &VpnAccount,
         privy_account: &VpnAccount,
+        wallet_pub_key: &str,
     ) -> Result<()> {
-        let jwt = self.current_remote_time().await.unwrap_or_else(|err| {
-            tracing::debug!(
-                error = %err,
-                "Failed to determine cached remote time"
-            );
-            None
-        });
+        let request = LinkPrivyAccountRequestBody {
+            alias_addr: privy_account.id().to_string(),
+            alias_signature_base64: "".to_string(),
+            alias_pub_key: wallet_pub_key.to_string(),
+        };
 
-        let privy_jwt = privy_account.jwt(jwt).to_string();
-
-        let response: NymErrorResponse = self
+        let _response: StatusOk = self
             .post_authorized(
                 &[
                     routes::PUBLIC,
@@ -816,7 +808,7 @@ impl VpnApiClient {
                     &account.id(),
                     routes::LINK,
                 ],
-                &privy_jwt,
+                &request,
                 account,
                 None,
             )

@@ -14,9 +14,11 @@ workspace = true
 [dependencies]
 aes-gcm.workspace = true
 async-trait.workspace = true
+base64.workspace = true
 bincode.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
 bs58.workspace = true
+ed25519-dalek.workspace = true
 futures.workspace = true
 hkdf.workspace = true
 nym-common.workspace = true

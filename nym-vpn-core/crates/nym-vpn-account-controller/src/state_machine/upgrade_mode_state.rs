@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
+    commands::{common_handler, handler, AccountCommand, UpgradeModeCommand},
     shared_state::SharedAccountState,
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
@@ -140,8 +140,10 @@ impl UpgradeModeState {
                     NextAccountControllerState::NewState(LoggedOutState::enter())
                 };
             }
-            AccountCommand::LinkPrivyAccount(return_sender, privy_account) => {
-                let res = handler::handle_link_privy_account(shared_state, privy_account).await;
+            AccountCommand::LinkPrivyAccount(return_sender, privy_account, wallet_pub_key) => {
+                let res =
+                    handler::handle_link_privy_account(shared_state, privy_account, wallet_pub_key)
+                        .await;
                 return_sender.send(res);
             }
             AccountCommand::RotateKeys(return_sender) => {
