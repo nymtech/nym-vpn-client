@@ -147,7 +147,7 @@ impl NymVpnServiceCommandSender {
     pub async fn get_feature_flags(&self) -> Result<Option<Arc<FeatureFlags>>> {
         self.send_and_wait(VpnServiceCommand::GetFeatureFlags, ())
             .await
-            .map(|v| v.map(|v| Arc::new(v)))
+            .map(|v| v.map(Arc::new))
     }
 
     pub async fn get_default_dns(&self) -> Result<Vec<IpAddr>> {
