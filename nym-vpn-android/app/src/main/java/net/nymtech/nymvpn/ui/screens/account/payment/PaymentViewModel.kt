@@ -81,7 +81,7 @@ constructor(
 							viewModelScope.launch {
 								runCatching {
 									backendManager.registerAccount(token)
-									backendManager.refreshAccount()
+									refreshAccount()
 
 									_nextRoute.value = decidePostPaymentRoute()
 
@@ -163,10 +163,10 @@ constructor(
 		}
 	}
 
-	fun refreshAccountState() {
+	fun refreshAccount() {
 		viewModelScope.launch {
-			runCatching { backendManager.refreshAccountState() }
-				.onFailure { Timber.tag(TAG).e(it, "AccountStateRefreshFailed") }
+			runCatching { backendManager.refreshAccount() }
+				.onFailure { Timber.tag(TAG).e(it, "AccountRefreshFailed") }
 		}
 	}
 
@@ -184,7 +184,7 @@ constructor(
 						state.v1 == AccountControllerErrorStateReason.InactiveSubscription
 					) {
 						Timber.tag(TAG).i("AccountStateInactiveSubscription action=refresh")
-						refreshAccountState()
+						refreshAccount()
 					}
 
 					_accountState.value = state

@@ -180,17 +180,13 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun getMnemonic(): List<String> = emptyList()
 	override suspend fun createAccount() {
-		// add
+		serviceConnectionManager.withApi { it.createAccount() }
 	}
-	override suspend fun registerAccount(purchaseToken: String): String = ""
+	override suspend fun registerAccount(purchaseToken: String): String {
+		return serviceConnectionManager.withApi { it.registerAccount(purchaseToken) }
+	}
 	override suspend fun refreshAccount() {
-		// add
-	}
-	override suspend fun refreshAccountState() {
-		// add
-	}
-	override suspend fun refreshAccountLinks() {
-		// add
+		serviceConnectionManager.withApi { it.refreshAccount() }
 	}
 	override suspend fun refresh() {
 		// add

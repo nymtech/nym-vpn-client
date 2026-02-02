@@ -41,6 +41,10 @@ interface VpnServiceApi {
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun removeMnemonic()
 
+	suspend fun createAccount()
+
+	suspend fun registerAccount(token: String): String
+	suspend fun refreshAccount()
 	suspend fun getAccountState(): AccountControllerState
 	suspend fun getAccountLinks(locale: String): ParsedAccountLinks?
 	suspend fun getSystemMessages(): List<SystemMessage>

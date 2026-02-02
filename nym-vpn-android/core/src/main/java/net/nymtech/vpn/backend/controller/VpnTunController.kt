@@ -37,7 +37,6 @@ class VpnTunController(
 				Timber.tag(TAG).e("VpnService.prepare failed")
 				return -1
 			}
-
 			val builder = service.Builder()
 
 			disallowedApps.forEach { pkg ->
@@ -74,7 +73,9 @@ class VpnTunController(
 				Timber.tag(TAG).e("Builder.establish() returned null")
 				return -1
 			}
+
 			val fd = pfd.detachFd()
+
 			Timber.tag(TAG).i("Tunnel established. FD=$fd transferred to Rust.")
 
 			return fd
@@ -85,6 +86,6 @@ class VpnTunController(
 	}
 
 	fun closeInterfaceSafely() {
-		Timber.tag(TAG).d("closeInterfaceSafely called (no-op, relying on Rust)")
+		// Rust will close the FD when the tunnel is stopped or reconfigured.
 	}
 }
