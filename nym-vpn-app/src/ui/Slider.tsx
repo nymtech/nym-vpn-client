@@ -1,6 +1,7 @@
 import { Slider as HuSlider } from '@base-ui-components/react';
 import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type SliderProps = {
   defaultValue?: number;
@@ -27,6 +28,8 @@ function Slider({
   valueIndicator,
   className,
 }: SliderProps) {
+  const { t } = useTranslation('common');
+
   const [internalValue, setInternalValue] = useState(value);
 
   useEffect(() => {
@@ -61,7 +64,7 @@ function Slider({
   };
 
   return (
-    <div className={clsx('w-full max-w-xl', className)}>
+    <div className={clsx('w-full', className)}>
       <HuSlider.Root
         min={min}
         max={max}
@@ -99,7 +102,7 @@ function Slider({
         {valueIndicator && (
           <div className="absolute left-1/2 -translate-x-1/2 flex flex-col justify-between items-center text-sm text-cornflower">
             <span className="whitespace-nowrap">
-              {internalValue === defaultValue ? 'Default' : 'Current'}
+              {internalValue === defaultValue ? t('default') : t('current')}
             </span>
             <span className="whitespace-nowrap">{internalValue} ms</span>
           </div>

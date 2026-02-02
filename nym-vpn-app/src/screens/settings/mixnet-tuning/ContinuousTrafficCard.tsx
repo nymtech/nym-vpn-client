@@ -1,12 +1,16 @@
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 import { CardSwitch, SettingsMenuCardBig, Slider } from '../../../ui';
 import { useMixnetTrafficConfig } from './context';
 
-const BACKGROUND_COVER_TRAFFIC_RATE_LEVELS = [
-  { label: 'Base', speed: '5 pckt/s' },
-  { label: 'Balanced', speed: '5x' },
-  { label: 'Medium', speed: '10x' },
-  { label: 'High', speed: '20x' },
+const BACKGROUND_COVER_TRAFFIC_RATE_LEVELS: {
+  label: 'base' | 'balanced' | 'medium' | 'high';
+  speed: string;
+}[] = [
+  { label: 'base', speed: '5 pckt/s' },
+  { label: 'balanced', speed: '5x' },
+  { label: 'medium', speed: '10x' },
+  { label: 'high', speed: '20x' },
 ];
 
 function BackgroundCoverTrafficRateSlider({
@@ -16,23 +20,33 @@ function BackgroundCoverTrafficRateSlider({
   value: number;
   setValue: (value: number) => void;
 }) {
+  const { t } = useTranslation('settings');
+
   return (
-    <div className="w-full max-w-xl space-y-5">
+    <div className="w-full space-y-5">
       <p className="text-sm text-cheddar dark:text-king-nacho whitespace-pre-line">
-        ⚠️ Continuous traffic is turned off. Your packets will be sent as they
-        become available. This could reveal traffic patterns.
+        {t('mixnet-tuning.continuous-traffic.background-cover-traffic.warning')}
       </p>
 
       <p className="truncate text-base text-baltic-sea dark:text-white select-none">
-        Background cover traffic rate
+        {t('mixnet-tuning.continuous-traffic.background-cover-traffic.title')}
       </p>
       <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
-        We’ll still send cover traffic independently of your real traffic.
-        Choose how much cover you need.
+        {t(
+          'mixnet-tuning.continuous-traffic.background-cover-traffic.description',
+        )}
       </p>
       <div className="flex justify-between text-sm text-iron dark:text-bombay">
-        <span>Use less battery & data</span>
-        <span>Max. anonymity</span>
+        <span>
+          {t(
+            'mixnet-tuning.continuous-traffic.background-cover-traffic.use-less-battery-and-data',
+          )}
+        </span>
+        <span>
+          {t(
+            'mixnet-tuning.continuous-traffic.background-cover-traffic.max-anonymity',
+          )}
+        </span>
       </div>
       <Slider
         className="px-2"
@@ -56,7 +70,11 @@ function BackgroundCoverTrafficRateSlider({
               'text-iron dark:text-bombay': value !== index,
             })}
           >
-            <span className="whitespace-nowrap">{item.label}</span>
+            <span className="whitespace-nowrap">
+              {t(
+                `mixnet-tuning.continuous-traffic.background-cover-traffic.${item.label}.label`,
+              )}
+            </span>
             <span className="whitespace-nowrap">{item.speed}</span>
           </button>
         ))}
@@ -65,10 +83,13 @@ function BackgroundCoverTrafficRateSlider({
   );
 }
 
-const CONTINUOUS_LEVELS = [
-  { label: 'Low', speed: '0.7 Mbps' },
-  { label: 'Balanced', speed: '1 Mbps' },
-  { label: 'High', speed: '2 Mbps' },
+const CONTINUOUS_LEVELS: {
+  label: 'low' | 'balanced' | 'high';
+  speed: string;
+}[] = [
+  { label: 'low', speed: '0.7 Mbps' },
+  { label: 'balanced', speed: '1 Mbps' },
+  { label: 'high', speed: '2 Mbps' },
 ];
 
 // Slider index → Config value mappings
@@ -112,16 +133,23 @@ function ContinuousTrafficSlider({
   value: number;
   setValue: (value: number) => void;
 }) {
+  const { t } = useTranslation('settings');
+
   return (
-    <div className="w-full max-w-xl mt-0 space-y-5">
+    <div className="w-full mt-0 space-y-5">
       <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
-        Cover traffic is always sent to keep the pattern uniform. Adjust the
-        sending rate of your packets.
+        {t('mixnet-tuning.continuous-traffic.continuous.title')}
       </p>
 
       <div className="flex justify-between text-sm text-iron dark:text-bombay">
-        <span>Use less battery & data</span>
-        <span>Max. anonymity</span>
+        <span>
+          {t(
+            'mixnet-tuning.continuous-traffic.continuous.use-less-battery-and-data',
+          )}
+        </span>
+        <span>
+          {t('mixnet-tuning.continuous-traffic.continuous.max-anonymity')}
+        </span>
       </div>
       <Slider
         className="px-2"
@@ -143,7 +171,11 @@ function ContinuousTrafficSlider({
             })}
             onClick={() => setValue(index)}
           >
-            <span className="whitespace-nowrap">{item.label}</span>
+            <span className="whitespace-nowrap">
+              {t(
+                `mixnet-tuning.continuous-traffic.continuous.${item.label}.label`,
+              )}
+            </span>
             <span className="whitespace-nowrap">{item.speed}</span>
           </button>
         ))}
@@ -153,6 +185,8 @@ function ContinuousTrafficSlider({
 }
 
 export function ContinuousTrafficCard() {
+  const { t } = useTranslation('settings');
+
   const { state, dispatch } = useMixnetTrafficConfig();
 
   const enabled = !state.disableBackgroundCoverTraffic;
@@ -183,7 +217,7 @@ export function ContinuousTrafficCard() {
         <CardSwitch
           checked={enabled}
           onClick={() => setEnabled(enabled)}
-          header="Send traffic continuously"
+          header={t('mixnet-tuning.continuous-traffic.continuous.title')}
         />
       }
     >

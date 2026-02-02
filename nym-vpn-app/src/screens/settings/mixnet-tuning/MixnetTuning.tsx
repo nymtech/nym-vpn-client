@@ -1,10 +1,11 @@
-import { Trans } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useMainDispatch, useMainState } from '../../../contexts/index';
 import PageAnim from '../../../ui/PageAnim';
 import { Button, Link } from '../../../ui/index';
 import { StateDispatch } from '../../../types/index';
+import { MixnetParametersLearnMoreUrl } from '../../../constants';
 import {
   MixnetTrafficConfigProvider,
   useMixnetTrafficConfig,
@@ -14,6 +15,8 @@ import { MixingDelayCard } from './MixingDelayCard';
 import { PerformanceCard } from './PerformanceCard';
 
 function MixnetTuning() {
+  const { t } = useTranslation('settings');
+
   const [loading, setLoading] = useState(false);
   const { state, dispatch, hasUnsavedSettings, hasSettingsOtherThanDefaults } =
     useMixnetTrafficConfig();
@@ -59,8 +62,8 @@ function MixnetTuning() {
 
         <Link
           className="w-fit text-sm"
-          text="Learn more about mixnet parameters"
-          url={''}
+          text={t('mixnet-tuning.learn-more')}
+          url={MixnetParametersLearnMoreUrl}
           color="primary"
           icon
         />
@@ -73,7 +76,7 @@ function MixnetTuning() {
           onClick={handleSaveCustomSettings}
           spinner={loading}
         >
-          Save custom settings
+          {t('mixnet-tuning.save-custom-settings')}
         </Button>
         {hasSettingsOtherThanDefaults && (
           <Button
@@ -83,7 +86,7 @@ function MixnetTuning() {
             className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
           >
             <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-              Restore default settings
+              {t('mixnet-tuning.restore-default-settings')}
             </span>
           </Button>
         )}

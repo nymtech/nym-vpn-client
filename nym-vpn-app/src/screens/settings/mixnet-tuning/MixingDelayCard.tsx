@@ -1,10 +1,11 @@
 import clsx from 'clsx';
 import { SettingsMenuCardBig, Slider } from '../../../ui/';
 import { useMixnetTrafficConfig } from './context/index';
+import { useTranslation } from 'react-i18next';
 
-const MIXING_DELAY_LEVELS = [
-  { label: 'Low', speed: '0ms' },
-  { label: 'High', speed: '200ms' },
+const MIXING_DELAY_LEVELS: { label: 'low' | 'high'; speed: string }[] = [
+  { label: 'low', speed: '0ms' },
+  { label: 'high', speed: '200ms' },
 ];
 
 function MixingDelaySlider({
@@ -14,11 +15,13 @@ function MixingDelaySlider({
   value: number;
   setValue: (value: number) => void;
 }) {
+  const { t } = useTranslation('settings');
+
   return (
     <div className="w-full max-w-xl mt-5 space-y-5">
       <div className="flex justify-between text-sm text-iron dark:text-bombay">
-        <span>Faster</span>
-        <span>Max. anonymity</span>
+        <span>{t('mixnet-tuning.mixing-delay.faster')}</span>
+        <span>{t('mixnet-tuning.mixing-delay.max-anonymity')}</span>
       </div>
 
       <Slider
@@ -40,7 +43,9 @@ function MixingDelaySlider({
                 index !== 0 && index !== MIXING_DELAY_LEVELS.length - 1,
             })}
           >
-            <span className="whitespace-nowrap">{item.label}</span>
+            <span className="whitespace-nowrap">
+              {t(`mixnet-tuning.mixing-delay.${item.label}.label`)}
+            </span>
             <span className="whitespace-nowrap">{item.speed}</span>
           </div>
         ))}
@@ -50,6 +55,7 @@ function MixingDelaySlider({
 }
 
 export function MixingDelayCard() {
+  const { t } = useTranslation('settings');
   const { state, dispatch } = useMixnetTrafficConfig();
 
   const value = state.averagePacketDelay;
@@ -62,15 +68,15 @@ export function MixingDelayCard() {
 
   const description =
     value === 0
-      ? '⚠️  Timing protection is currently turned off. This could put your privacy at risk.'
-      : 'Adjust timing delays to change how your packets are mixed.';
+      ? t('mixnet-tuning.mixing-delay.warning')
+      : t('mixnet-tuning.mixing-delay.description');
 
   return (
     <SettingsMenuCardBig
       header={
         <div className="w-full flex flex-row p-5 pb-0">
           <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
-            Mixing delays
+            {t('mixnet-tuning.mixing-delay.title')}
           </p>
         </div>
       }
