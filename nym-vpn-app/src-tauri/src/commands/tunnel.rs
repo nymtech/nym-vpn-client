@@ -210,3 +210,10 @@ pub async fn set_mixnet_traffic_config(
     vpnd.set_mixnet_traffic_config(config).await?;
     Ok(())
 }
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn calculate_traffic_latency(config: MixnetTrafficConfig) -> Result<f64, BackendError> {
+    let lib_config: nym_vpn_lib_types::MixnetTrafficConfig = config.into();
+    Ok(lib_config.calculate_traffic_latency())
+}

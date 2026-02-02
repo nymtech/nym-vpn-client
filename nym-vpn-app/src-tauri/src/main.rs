@@ -279,6 +279,7 @@ async fn main() -> Result<()> {
             tunnel::get_privy_derivation_message,
             tunnel::set_enable_lewes_protocol,
             tunnel::set_mixnet_traffic_config,
+            tunnel::calculate_traffic_latency,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_del,
