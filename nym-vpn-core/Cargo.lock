@@ -5164,6 +5164,7 @@ version = "1.24.0-beta"
 dependencies = [
  "async-stream",
  "nix 0.30.1",
+ "nym-ipc-client",
  "nym-windows",
  "thiserror 2.0.17",
  "tokio",
@@ -5183,6 +5184,7 @@ dependencies = [
  "hyper-util",
  "tokio",
  "tokio-stream",
+ "tracing",
  "windows 0.62.2",
 ]
 
@@ -6357,6 +6359,7 @@ dependencies = [
  "tonic-prost",
  "tonic-prost-build",
  "tower",
+ "tracing",
 ]
 
 [[package]]

@@ -83,12 +83,10 @@ impl VpndClient {
     /// Get the rpc client
     #[instrument(skip_all)]
     pub async fn vpnd(&self) -> Result<RpcClient, VpndError> {
-        {
-            // fast path: already created
-            let guard = self.rpc_client.lock().await;
-            if let Some(client) = &*guard {
-                return Ok(client.clone());
-            }
+        // fast path: already created
+        let mut guard = self.rpc_client.lock().await;
+        if let Some(client) = &*guard {
+            return Ok(client.clone());
         }
 
         // slow path: create new client
@@ -96,6 +94,9 @@ impl VpndClient {
             Ok(c) => {
                 self.reset_log_connect_failed().await;
                 c
+            }
+            Err(nym_vpn_proto::rpc_client::Error::AuthenticationRequired) => {
+                return Err(VpndError::AuthenticationRequired);
             }
             Err(e) => {
                 self.log_connect_failed("failed to connect to the daemon")
@@ -106,7 +107,6 @@ impl VpndClient {
 
         debug!("connected to the daemon");
 
-        let mut guard = self.rpc_client.lock().await;
         *guard = Some(client.clone());
         Ok(client)
     }
