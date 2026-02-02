@@ -164,6 +164,7 @@
 	<string name="button_next">Successivo</string>
 	<string name="skip">Skip</string>
 	<string name="get_started">Per iniziare</string>
+	<string name="random_text">Casuale</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">Nuovo: Scopri lo streaming-\nserver ottimizzati (▶️)</string>
@@ -272,6 +273,7 @@
 	<string name="onboarding_create_account_button">Crea account</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Scegli il tuo livello di protezione \n🛡️</string>
+	<string name="select_plan_line_0">7 giorni di prova gratuita</string>
 	<string name="select_plan_line_1">Tutte le funzionalità incluse</string>
 	<string name="select_plan_line_2">Nessuna pubblicità</string>
 	<string name="select_plan_line_3">Annulla in qualsiasi momento</string>

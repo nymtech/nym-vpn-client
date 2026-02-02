@@ -62,6 +62,11 @@ impl FeatureFlags {
     pub fn privy_enabled(&self) -> Option<bool> {
         self.get_group_flag("privy", "enabled")
     }
+
+    /// If mixnet tuning is enabled or not, if set
+    pub fn mixnet_tuning_enabled(&self) -> Option<bool> {
+        self.get_group_flag("mixnet_tuning", "enabled")
+    }
 }
 
 impl From<HashMap<String, FlagValue>> for FeatureFlags {

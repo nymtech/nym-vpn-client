@@ -1,6 +1,6 @@
 Yenilikler:
 Navigasyonda yapılan iyileştirmeler ve hataların giderilmesi
-Günlükleri dışa aktarma özelliği iyileştirmeleri
+- Kayıtları dışa aktarma özelliği iyileştirmeleri
 Uygulamanın performansı daha kararlı hale getirildi
 Arayüz ve kullanıcı deneyimi iyileştirmeleri
 Hata ve bilgilendirme mesajları güncellendi

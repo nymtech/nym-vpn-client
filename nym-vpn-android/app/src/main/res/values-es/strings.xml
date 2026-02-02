@@ -164,6 +164,7 @@
 	<string name="button_next">Siguiente</string>
 	<string name="skip">Saltar</string>
 	<string name="get_started">Empezar</string>
+	<string name="random_text">Aleatorio</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Pantalla de flujo</string>
 	<string name="streaming_server_banner_title">Nuevo: Descubre streaming-\nservidores optimizados (▶️)</string>
@@ -265,13 +266,14 @@
 	<string name="onboarding_title_3">Dejar de ser rastreado en línea</string>
 	<string name="onboarding_title_4">Anonimato de pago a web</string>
 	<string name="onboarding_description_base">La VPN más privada del mundo</string>
-	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
+	<string name="onboarding_description_1">La VPN más privada del mundo\nPruébela gratis durante 7 días:\nTodas las funciones incluidas, sin anuncios.</string>
 	<string name="onboarding_description_2">Rápido: +250 Mbps con dVPN.\nAnónimo: ruido de 5 saltos que genera Mixnet.</string>
 	<string name="onboarding_description_3">La red descentralizada de Nym hace que \"no-log\"\n sea obsoleta.</string>
 	<string name="onboarding_description_4">Paga con tarjeta, cripto o efectivo, sin necesidad de correo electrónico. Las pruebas de conocimiento cero hacen que tus pagos sean invinculables a tus actividades en línea.</string>
 	<string name="onboarding_create_account_button">Crear cuenta</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Elige tu nivel \nde protección 🛡️</string>
+	<string name="select_plan_line_0">prueba gratuita de 7 días</string>
 	<string name="select_plan_line_1">Todas las características incluidas</string>
 	<string name="select_plan_line_2">Sin anuncios</string>
 	<string name="select_plan_line_3">Cancelar en cualquier momento</string>
@@ -455,7 +457,7 @@
 	<string name="dns_custom_list_error">Formato de dirección DNS inválido</string>
 	<string name="dns_custom_button_add">Añadir</string>
 	<string name="dns_custom_button_save">Guardar cambios</string>
-	<string name="dns_custom_button_save_reconnect">Save changes &amp; reconnect</string>
+	<string name="dns_custom_button_save_reconnect">Guardar cambios &amp; volver a conectar</string>
 	<string name="dns_custom_saved">DNS personalizado guardado.</string>
 	<string name="dns_save_dialog_title">¿Guardar cambios?</string>
 	<string name="dns_save_dialog_description">Tienes cambios sin guardar.</string>

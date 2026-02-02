@@ -8,6 +8,6 @@
 	<string name="state_disconnected">Bağlantı kesildi</string>
 	<string name="state_initializing">İstemci başlatılıyor…</string>
 	<string name="state_establishing">Bağlantı kuruluyor...</string>
-	<string name="notification_entry">Entry: %1$s</string>
-	<string name="notification_exit">Exit: %1$s</string>
+	<string name="notification_entry">Giriş: %1$s</string>
+	<string name="notification_exit">Çıkış: %1$s</string>
 </resources>

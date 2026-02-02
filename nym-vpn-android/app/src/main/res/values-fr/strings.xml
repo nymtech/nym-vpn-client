@@ -162,6 +162,7 @@
 	<string name="button_next">Suivant</string>
 	<string name="skip">Ignorer</string>
 	<string name="get_started">Commencer</string>
+	<string name="random_text">Aléatoire</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Affichage du flux</string>
 	<string name="streaming_server_banner_title">Nouveau : Découvrez le streaming-\nserveurs optimisés (▶️)</string>
@@ -270,6 +271,7 @@
 	<string name="onboarding_create_account_button">Créer un compte</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Choisissez votre abonnement</string>
+	<string name="select_plan_line_0">Essai gratuit de 7 jours</string>
 	<string name="select_plan_line_1">Toutes les fonctionnalités incluses</string>
 	<string name="select_plan_line_2">Aucune publicité</string>
 	<string name="select_plan_line_3">Annuler à tout moment</string>

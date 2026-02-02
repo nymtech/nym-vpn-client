@@ -66,6 +66,10 @@ pub enum Error {
     /// Received message isn't valid
     #[error("invalid data")]
     InvalidData(#[source] data::Error),
+
+    /// Failed to create SCDynamicStore
+    #[error("failed to create SCDynamicStore")]
+    CreateDynamicStore,
 }
 
 /// Route manager can be in 1 of 4 states -
@@ -131,7 +135,7 @@ impl RouteManagerImpl {
         manage_tx: Weak<tokio::sync::mpsc::UnboundedSender<RouteManagerCommand>>,
     ) -> Result<Self> {
         let (primary_interface_monitor, interface_change_rx) =
-            interface::PrimaryInterfaceMonitor::new();
+            interface::PrimaryInterfaceMonitor::new()?;
 
         let (mut best_route_rx_v4, mut best_route_rx_v6) =
             DefaultRouteMonitor::start(primary_interface_monitor, interface_change_rx);

@@ -1,4 +1,4 @@
 Yenilikler:
-- Günlükler ekranı eklendi
+- Kayıtlar ekranı eklendi
 - VPN durumu görüntülemesi iyileştirildi
 - Sentry eklendi

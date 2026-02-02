@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Added privy UI feature flag (https://github.com/nymtech/nym-vpn-client/pull/4223)
 - Added TraceID and SpanID for the account controller commands (https://github.com/nymtech/nym-vpn-client/pull/4426)
+- Added mixnet tuning feature flag (https://github.com/nymtech/nym-vpn-client/pull/4514)
 
 ### Fixed
 
@@ -18,11 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] Bypass local DNS servers (https://github.com/nymtech/nym-vpn-client/pull/4347)
 - Fix gateway cache and topology cache not being invalidated when remote discovery updates are received. Note: Manual environment switching still requires daemon/app restart (https://github.com/nymtech/nym-vpn-client/pull/4464)
 
-
 ### Removed
+
 - Removed credentials mode feature flag from code base (https://github.com/nymtech/nym-vpn-client/pull/4223)
 
 ### Changed
+
 - [Android] Enable debug logs in production builds for core library (https://github.com/nymtech/nym-vpn-client/pull/4405)
 - [Android] Print library logs to file, in addition to the existing logcat (https://github.com/nymtech/nym-vpn-client/pull/4432)
 

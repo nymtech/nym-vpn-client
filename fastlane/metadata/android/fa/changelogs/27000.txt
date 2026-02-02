@@ -1,9 +1,9 @@
-What’s new
-- New onboarding flow for first-time users
-- Technical opt-in screen shown after login or purchase
-- Locale support for high/low copy on the Details screen
-Changes
-- Switched to passphrase-based authentication
-- Replaced “gateway” with “server” across the app
-- Improved connection reliability (smarter reconnect, LAN bypass, split tunneling, Custom DNS)
-- More consistent censorship-handling logic
+موارد اضافه شده
+- فرایند راه‌اندازی جدید برای کاربران تازه‌وارد
+- صفحه رضایت فنی پس از ورود یا خرید نمایش داده می‌شود
+- پشتیبانی از locale برای متن‌های high/low در صفحه Details
+تغییرات
+- به احراز هویت مبتنی بر عبارت عبور تغییر داده شد
+- در سراسر برنامه “gateway” با “server” جایگزین شد
+- پایداری اتصال بهبود یافت (اتصال مجدد هوشمندتر، دورزدن LAN، split tunneling، Custom DNS)
+- منطق یکپارچه‌تر برای مقابله با سانسور

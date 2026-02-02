@@ -32,9 +32,9 @@ typescript-bindings = ["dep:ts-rs", "serde"]
 serde = ["dep:serde"]
 
 [dependencies]
+si-scale = { workspace = true, features = ["lossy-conversions"] }
 time = { workspace = true, features = ["serde", "parsing", "formatting"] }
 serde = { workspace = true, features = ["derive", "rc"], optional = true }
-si-scale.workspace = true
 thiserror.workspace = true
 ts-rs = { workspace = true, optional = true }
 zeroize.workspace = true

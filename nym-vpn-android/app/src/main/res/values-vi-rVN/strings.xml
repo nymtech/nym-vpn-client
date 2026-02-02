@@ -162,6 +162,7 @@
 	<string name="button_next">Tiếp theo</string>
 	<string name="skip">Bỏ qua</string>
 	<string name="get_started">Bắt đầu</string>
+	<string name="random_text">Ngẫu nhiên</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Hiển thị trực tuyến</string>
 	<string name="streaming_server_banner_title">Mới: Khám phá các máy chủ-\nđược tối ưu hóa cho phát trực tuyến (▶️)</string>
@@ -270,6 +271,7 @@
 	<string name="onboarding_create_account_button">Tạo tài khoản</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Chọn gói đăng ký \ncủa bạn</string>
+	<string name="select_plan_line_0">7 ngày dùng thử miễn phí</string>
 	<string name="select_plan_line_1">Đầy đủ tất cả các tính năng</string>
 	<string name="select_plan_line_2">Không quảng cáo</string>
 	<string name="select_plan_line_3">Hủy bất kỳ lúc nào</string>

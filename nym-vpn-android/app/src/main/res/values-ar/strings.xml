@@ -164,6 +164,7 @@
 	<string name="button_next">التالي</string>
 	<string name="skip">تخطي</string>
 	<string name="get_started">بدء التشغيل</string>
+	<string name="random_text">عشوائي</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">عرض البث</string>
 	<string name="streaming_server_banner_title">جديد: اكتشف البث -\nخوادم محسنة (▶️)</string>
@@ -272,6 +273,7 @@
 	<string name="onboarding_create_account_button">إنشاء حساب</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">اختر مستوى الحماية \nالخاص بك 🛡️</string>
+	<string name="select_plan_line_0">تجربة مجانية 7 أيام</string>
 	<string name="select_plan_line_1">جميع الميزات متضمنة</string>
 	<string name="select_plan_line_2">لا توجد إعلانات</string>
 	<string name="select_plan_line_3">إلغاء في أي وقت</string>

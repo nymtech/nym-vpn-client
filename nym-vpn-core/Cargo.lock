@@ -4397,7 +4397,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
- "si-scale",
+ "si-scale 0.2.3",
  "thiserror 2.0.18",
  "time",
  "tokio",
@@ -4736,7 +4736,7 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
- "pnet",
+ "pnet_packet 0.35.0",
  "rand 0.8.5",
  "serde_json",
  "thiserror 2.0.18",
@@ -4764,7 +4764,7 @@ dependencies = [
  "nym-windows",
  "once_cell",
  "resolv-conf",
- "system-configuration 0.6.1",
+ "system-configuration 0.7.0",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -4877,7 +4877,7 @@ dependencies = [
  "nym-validator-client",
  "rand 0.8.5",
  "serde",
- "si-scale",
+ "si-scale 0.2.3",
  "thiserror 2.0.18",
  "time",
  "tokio",
@@ -5434,7 +5434,7 @@ dependencies = [
  "nym-common",
  "nym-windows",
  "rtnetlink",
- "system-configuration 0.6.1",
+ "system-configuration 0.7.0",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -5822,7 +5822,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
- "si-scale",
+ "si-scale 0.2.3",
  "strum",
  "strum_macros",
  "sysinfo 0.37.1",
@@ -5999,7 +5999,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
- "si-scale",
+ "si-scale 0.3.0",
  "sqlx",
  "sqlx-pool-guard",
  "strum",
@@ -6164,7 +6164,7 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-network-config",
  "serde",
- "si-scale",
+ "si-scale 0.3.0",
  "thiserror 2.0.18",
  "time",
  "ts-rs",
@@ -6902,16 +6902,6 @@ dependencies = [
  "quick-xml",
  "serde",
  "time",
-]
-
-[[package]]
-name = "pnet"
-version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "682396b533413cc2e009fbb48aadf93619a149d3e57defba19ff50ce0201bd0d"
-dependencies = [
- "pnet_base 0.35.0",
- "pnet_packet 0.35.0",
 ]
 
 [[package]]
@@ -8467,6 +8457,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b72e7cd0744e007e382ba320435f1ed1ecd709409b4ebd5cfbc843d77b25a8aa"
 
 [[package]]
+name = "si-scale"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa6635fb52805fa49a5798346e553cda9fd7990da8fbb2b3b2b9cf26589b4571"
+
+[[package]]
 name = "sigchld"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9021,9 +9017,9 @@ dependencies = [
 
 [[package]]
 name = "system-configuration"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c879d448e9d986b661742763247d3693ed13609438cf3d006f51f5368a5ba6b"
+checksum = "a13f3d0daba03132c0aa9767f98351b3488edc2c100cda2d2ec2b04f3d8d3c8b"
 dependencies = [
  "bitflags 2.9.4",
  "core-foundation",

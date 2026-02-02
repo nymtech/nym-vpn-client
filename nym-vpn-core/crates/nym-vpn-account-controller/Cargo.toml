@@ -12,6 +12,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+si-scale = { workspace = true, features = ["lossy-conversions"] }
 aes-gcm.workspace = true
 async-trait.workspace = true
 bincode.workspace = true
@@ -40,7 +41,6 @@ rand.workspace = true
 sqlx-pool-guard.workspace = true
 serde.workspace = true
 sha2.workspace = true
-si-scale.workspace = true
 sqlx = { workspace = true, features = [
     "runtime-tokio-rustls",
     "sqlite",
