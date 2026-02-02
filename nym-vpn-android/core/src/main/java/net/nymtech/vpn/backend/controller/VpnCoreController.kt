@@ -350,8 +350,6 @@ class VpnCoreController(
 
 			sender.setEntryPoint(cfg.entryPoint)
 			sender.setExitPoint(cfg.exitPoint)
-
-			sender.reconnectTunnel()
 		}
 	}
 
