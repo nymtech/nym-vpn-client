@@ -4700,7 +4700,7 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
- "pnet",
+ "pnet_packet 0.35.0",
  "rand 0.8.5",
  "serde_json",
  "thiserror 2.0.18",
@@ -6866,16 +6866,6 @@ dependencies = [
  "quick-xml",
  "serde",
  "time",
-]
-
-[[package]]
-name = "pnet"
-version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "682396b533413cc2e009fbb48aadf93619a149d3e57defba19ff50ce0201bd0d"
-dependencies = [
- "pnet_base 0.35.0",
- "pnet_packet 0.35.0",
 ]
 
 [[package]]

@@ -6,7 +6,7 @@ use nym_sdk::mixnet::x25519;
 use nym_vpn_lib_types::{DiagnosticResult, PingReport};
 
 use boringtun::noise::{Tunn, TunnResult};
-use pnet::packet::{Packet, ip::IpNextHeaderProtocols};
+use pnet_packet::{Packet, ip::IpNextHeaderProtocols};
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     result::Result::Ok,
@@ -175,7 +175,7 @@ impl WireguardDiagnostic {
 }
 
 pub fn build_icmp_ipv4_packet(src: Ipv4Addr, dst: Ipv4Addr, seq: u16) -> Vec<u8> {
-    use pnet::packet::{
+    use pnet_packet::{
         icmp::{IcmpCode, IcmpTypes, echo_request::MutableEchoRequestPacket},
         ipv4::MutableIpv4Packet,
         util::checksum,
@@ -214,7 +214,7 @@ pub fn build_icmp_ipv4_packet(src: Ipv4Addr, dst: Ipv4Addr, seq: u16) -> Vec<u8>
 }
 
 pub fn build_icmp_ipv6_packet(src: Ipv6Addr, dst: Ipv6Addr, seq: u16) -> Vec<u8> {
-    use pnet::packet::{
+    use pnet_packet::{
         icmpv6::{Icmpv6Code, Icmpv6Types, echo_request::MutableEchoRequestPacket},
         ipv6::MutableIpv6Packet,
         util::ipv6_checksum,
@@ -258,7 +258,7 @@ pub fn build_icmp_ipv6_packet(src: Ipv6Addr, dst: Ipv6Addr, seq: u16) -> Vec<u8>
 }
 
 pub fn check_ipv4_reply(packet: &[u8], seq: u16) -> anyhow::Result<()> {
-    use pnet::packet::{icmp::echo_reply::EchoReplyPacket, ipv4::Ipv4Packet};
+    use pnet_packet::{icmp::echo_reply::EchoReplyPacket, ipv4::Ipv4Packet};
 
     if let Some(ip) = Ipv4Packet::new(packet)
         && ip.get_next_level_protocol() == IpNextHeaderProtocols::Icmp
@@ -279,7 +279,7 @@ pub fn check_ipv4_reply(packet: &[u8], seq: u16) -> anyhow::Result<()> {
 }
 
 pub fn check_ipv6_reply(packet: &[u8], seq: u16) -> anyhow::Result<()> {
-    use pnet::packet::{icmpv6::echo_reply::EchoReplyPacket, ipv6::Ipv6Packet};
+    use pnet_packet::{icmpv6::echo_reply::EchoReplyPacket, ipv6::Ipv6Packet};
     if let Some(ip) = Ipv6Packet::new(packet)
         && ip.get_next_header() == IpNextHeaderProtocols::Icmpv6
         && let Some(reply) = EchoReplyPacket::new(ip.payload())
