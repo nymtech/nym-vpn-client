@@ -2,6 +2,7 @@ package net.nymtech.vpn.backend.controller
 
 import android.content.Intent
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.nymtech.vpn.backend.Tunnel
@@ -34,7 +35,7 @@ import timber.log.Timber
  */
 class VpnCoreController(
 	private val service: VpnService,
-	private val events: kotlinx.coroutines.flow.MutableSharedFlow<VpnServiceEvent>,
+	private val events: MutableSharedFlow<VpnServiceEvent>,
 	private val foreground: VpnForegroundController,
 	private val tun: VpnTunController,
 ) {
@@ -333,23 +334,45 @@ class VpnCoreController(
 		if (!initialized.isCompleted) return
 
 		val cfg = canonical ?: configRepo.get()
+		val prev = lastAppliedConfig
 
-		if (!force && lastAppliedConfig == cfg) {
-			syncLocalFieldsFromConfig(cfg)
-			return
-		}
+		val tunSettingsChanged = force ||
+			prev?.bypassLan != cfg.bypassLan ||
+			prev?.restrictedApps != cfg.restrictedApps
 
-		lastAppliedConfig = cfg
 		syncLocalFieldsFromConfig(cfg)
 
 		requireCoreSender { sender ->
-			sender.setEnableTwoHop(cfg.mode.isTwoHop())
-			sender.setEnableBridges(cfg.enableBridges)
-			sender.setEnableCustomDns(cfg.customDnsEnabled)
-			if (cfg.customDnsEnabled) sender.setCustomDns(cfg.customDns.toList())
+			if (force || prev?.mode?.isTwoHop() != cfg.mode.isTwoHop()) {
+				sender.setEnableTwoHop(cfg.mode.isTwoHop())
+			}
 
-			sender.setEntryPoint(cfg.entryPoint)
-			sender.setExitPoint(cfg.exitPoint)
+			if (force || prev?.enableBridges != cfg.enableBridges) {
+				sender.setEnableBridges(cfg.enableBridges)
+			}
+
+			if (force || prev?.customDnsEnabled != cfg.customDnsEnabled) {
+				sender.setEnableCustomDns(cfg.customDnsEnabled)
+			}
+
+			if (cfg.customDnsEnabled && (force || prev?.customDns != cfg.customDns)) {
+				sender.setCustomDns(cfg.customDns.toList())
+			}
+
+			if (force || prev?.entryPoint != cfg.entryPoint) {
+				sender.setEntryPoint(cfg.entryPoint)
+			}
+
+			if (force || prev?.exitPoint != cfg.exitPoint) {
+				sender.setExitPoint(cfg.exitPoint)
+			}
+		}
+
+		lastAppliedConfig = cfg
+
+		if (tunSettingsChanged && state != Tunnel.State.Down) {
+			Timber.tag(TAG).i("Routing changed, triggering reconnect")
+			reconnectLocked()
 		}
 	}
 
