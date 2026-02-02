@@ -50,9 +50,9 @@ pub enum Command {
     Summary,
     /// Get deeplink
     GetDeeplink {
-        /// Deeplink Kind (only "privy" is supported for now)
+        /// Deeplink Kind
         #[arg(long)]
-        kind: String,
+        kind: DeeplinkKind,
         /// Deeplink name
         #[arg(long)]
         name: String,
