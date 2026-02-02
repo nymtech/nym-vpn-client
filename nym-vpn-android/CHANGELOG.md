@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add support for account creation and registration in VpnService API (https://github.com/nymtech/nym-vpn-client/pull/4533)
+
+### Changed
+- Refactor VPN service architecture (https://github.com/nymtech/nym-vpn-client/pull/4517)
+- Implement dynamic reconnectTunnel for config updates (https://github.com/nymtech/nym-vpn-client/pull/4533)
+- Optimize DnsViewModel logic (https://github.com/nymtech/nym-vpn-client/pull/4533)
+
+### Fixed
+- Fix fdsan crashes (https://github.com/nymtech/nym-vpn-client/pull/4533)
+- Fix Always-On VPN behavior on system restart (https://github.com/nymtech/nym-vpn-client/pull/4533)
+
 ## [2.8.0]
 
 ### Added
