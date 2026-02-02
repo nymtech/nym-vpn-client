@@ -3,6 +3,7 @@ import clsx from 'clsx';
 
 export type SettingsMenuCardBigProps = {
   header: ReactNode;
+  footer?: ReactNode;
   children: ReactNode;
   disabled?: boolean;
   className?: string;
@@ -11,6 +12,7 @@ export type SettingsMenuCardBigProps = {
 
 function SettingsMenuCardBig({
   header,
+  footer,
   children,
   disabled,
   className,
@@ -28,7 +30,8 @@ function SettingsMenuCardBig({
       style={style}
     >
       {header}
-      <div className="px-5 pb-4 w-full">{children}</div>
+      <div className={clsx('px-5 w-full', !footer && 'pb-4')}>{children}</div>
+      {footer && footer}
     </div>
   );
 }

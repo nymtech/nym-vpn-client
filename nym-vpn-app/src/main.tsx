@@ -24,6 +24,7 @@ import 'dayjs/locale/ru';
 import 'dayjs/locale/tr';
 import 'dayjs/locale/uk';
 import 'dayjs/locale/zh';
+import { DEFAULT_MIXNET_TRAFFIC_CONFIG } from './screens/settings/mixnet-tuning/context';
 
 console.log('env', window._APP);
 
@@ -82,6 +83,7 @@ dayjs.extend(duration);
   }
 
   const config = await invoke<VpndConfig | undefined>('get_vpn_config');
+  console.log('config', config);
 
   // pre-get and prepare some early stage state
   const initState: InitState = {
@@ -103,6 +105,11 @@ dayjs.extend(duration);
       config?.enableLewesProtocol !== undefined
         ? config.enableLewesProtocol
         : defaultEnableLewesProtocol,
+    mixnetTrafficConfig: config?.mixnetTraffic || {
+      ...DEFAULT_MIXNET_TRAFFIC_CONFIG,
+      minMixnodePerformance: null,
+      minGatewayMixnetPerformance: null,
+    },
   };
   console.log('initial state:', initState);
 

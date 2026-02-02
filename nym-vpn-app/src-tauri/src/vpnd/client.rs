@@ -8,7 +8,7 @@ pub use super::{
     vpnd_status::{VersionCheck, VpndInfo, VpndStatus},
 };
 use super::{
-    config::VpndConfig,
+    config::{MixnetTrafficConfig, VpndConfig},
     events::MixnetEvent,
     gateway::{Gateway, GatewayType},
     tunnel::TunnelState,
@@ -866,6 +866,14 @@ impl VpndClient {
 
         vpnd.set_enable_lewes_protocol(enabled)
             .or_else(async |e| self.handle_rpc_error("set_enable_lewes_protocol", e).await)
+            .await
+    }
+
+    pub async fn set_mixnet_traffic_config(&self, config: MixnetTrafficConfig) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_mixnet_traffic_config(config.into())
+            .or_else(async |e| self.handle_rpc_error("set_mixnet_traffic_config", e).await)
             .await
     }
 }

@@ -18,6 +18,7 @@ import {
   Login,
   Logs,
   MainLayout,
+  MixnetTuning,
   NodeDetails,
   NodeEntry,
   Onboarding,
@@ -60,6 +61,7 @@ export const routes = {
   hideout: '/hideout',
   welcome: '/hideout/welcome',
   onboarding: '/onboarding',
+  mixnetTuning: '/settings/mixnet-tuning',
 } as const;
 
 // ⚠ router instance creation must remain outside of React
@@ -151,6 +153,11 @@ const router = createBrowserRouter([
           {
             path: routes.dns,
             Component: CustomDNS,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.mixnetTuning,
+            Component: MixnetTuning,
             errorElement: <Error />,
           },
           {

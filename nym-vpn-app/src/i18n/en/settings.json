@@ -94,6 +94,11 @@
       }
     }
   },
+  "mixnet-tuning": {
+    "title": "Mixnet tuning",
+    "desc": "Customize traffic patterns of anonymous mode",
+    "top-description": "Customize your <strong>mixnet</strong> traffic patterns."
+  },
   "anti-censorship": {
     "title": "Anti-censorship",
     "intro": "Enable these features if you're experiencing connection issues or NymVPN is blocked in your location.",

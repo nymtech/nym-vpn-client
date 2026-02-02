@@ -23,7 +23,9 @@ function Switch({
       checked={checked}
       onChange={onChange}
       className={clsx([
-        checked ? 'bg-malachite' : 'bg-bombay dark:bg-iron',
+        checked
+          ? 'bg-malachite-moss dark:bg-malachite'
+          : 'bg-bombay dark:bg-iron',
         'relative inline-flex h-7 w-11 min-w-11 items-center rounded-full cursor-default',
         className,
       ])}
