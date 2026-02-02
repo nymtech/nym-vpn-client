@@ -60,8 +60,7 @@ impl FromStr for DeeplinkKind {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "privy" => Ok(DeeplinkKind::Privy),
-            "privy_link" => Ok(DeeplinkKind::PrivyLink),
-            "privy-link" => Ok(DeeplinkKind::PrivyLink),
+            "privy_link" | "privy-link" | "privylink" => Ok(DeeplinkKind::PrivyLink),
             _ => Err(format!("Unknown deeplink kind: {s}")),
         }
     }

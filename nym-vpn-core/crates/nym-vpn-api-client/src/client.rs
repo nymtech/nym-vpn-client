@@ -793,7 +793,7 @@ impl VpnApiClient {
         privy_account: &VpnAccount,
     ) -> Result<()> {
         let request = LinkPrivyAccountRequestBody {
-            alias_addr: privy_account.id().to_string(),
+            alias_addr: privy_account.id(),
             alias_signature_base64: privy_account.signature_base64().to_string(),
             alias_pub_key: privy_account.pub_key().to_string(),
         };
