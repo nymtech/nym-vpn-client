@@ -1,14 +1,13 @@
 package net.nymtech.vpn.backend.controller
 
 import android.os.Build
-import android.os.ParcelFileDescriptor
 import net.nymtech.vpn.backend.service.VpnService
 import net.nymtech.vpn.util.extensions.addRoutes
 import nym_vpn_lib.TunnelNetworkSettings
 import timber.log.Timber
 
 /**
- * Owns Android TUN.
+ * Owns Android TUN creation only.
  */
 class VpnTunController(
 	private val service: VpnService,
@@ -17,10 +16,7 @@ class VpnTunController(
 		private const val TAG = "core-vpn"
 	}
 
-	private var vpnInterfaceFd: ParcelFileDescriptor? = null
-
 	@Volatile private var disallowedApps: List<String> = emptyList()
-
 	@Volatile private var bypassLanFlag: Boolean = false
 
 	fun setDisallowedApps(pkgs: List<String>) {
@@ -36,9 +32,10 @@ class VpnTunController(
 		val mtu = config.mtu.toInt()
 
 		return try {
-			if (android.net.VpnService.prepare(service) != null) return -1
-
-			closeInterfaceSafely()
+			if (android.net.VpnService.prepare(service) != null) {
+				Timber.tag(TAG).e("VpnService.prepare failed")
+				return -1
+			}
 
 			val builder = service.Builder()
 
@@ -67,20 +64,26 @@ class VpnTunController(
 			builder.setMtu(mtu)
 			builder.setBlocking(false)
 
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) builder.setMetered(false)
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+				builder.setMetered(false)
+			}
 
-			val vpnInterface = builder.establish() ?: return -1
-			vpnInterfaceFd = vpnInterface
-			vpnInterface.detachFd()
+			val pfd = builder.establish()
+			if (pfd == null) {
+				Timber.tag(TAG).e("Builder.establish() returned null")
+				return -1
+			}
+			val fd = pfd.detachFd()
+			Timber.tag(TAG).i("Tunnel established. FD=$fd transferred to Rust.")
+
+			return fd
 		} catch (t: Throwable) {
-			Timber.Forest.tag(TAG).e(t, "TunnelConfigureFailed")
+			Timber.tag(TAG).e(t, "TunnelConfigureFailed")
 			-1
 		}
 	}
 
 	fun closeInterfaceSafely() {
-		runCatching { vpnInterfaceFd?.close() }
-			.onFailure { Timber.Forest.tag(TAG).w(it, "InterfaceCloseFailed") }
-		vpnInterfaceFd = null
+		Timber.tag(TAG).d("closeInterfaceSafely called (no-op, relying on Rust)")
 	}
 }

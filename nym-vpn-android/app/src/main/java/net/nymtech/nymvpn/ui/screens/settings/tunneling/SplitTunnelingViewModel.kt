@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.SplitTunnelingRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.events.UiEvent as CommonUiEvent
 import net.nymtech.nymvpn.util.SplitTunnelingHelper
 import net.nymtech.nymvpn.util.filterAllPassThroughValue
@@ -55,12 +56,6 @@ class SplitTunnelingViewModel @Inject constructor(
 	private var initialAppInfoList: List<AppInfo> = emptyList()
 
 	init {
-		viewModelScope.launch {
-			backendManager.restartStartedEvents.collect {
-				_events.tryEmit(CommonUiEvent.ReconnectStarted)
-			}
-		}
-
 		viewModelScope.launch {
 			backendManager.stateFlow.collect { s ->
 				_backendUi.value = SplitTunnelingBackendUiState(
@@ -134,11 +129,21 @@ class SplitTunnelingViewModel @Inject constructor(
 				)
 
 				if (isActuallyConnected) {
-					backendManager.requestRestartDebounced()
+					notifyReconnectIfConnected()
+					backendManager.requestReconnect()
 				}
 			}.onFailure { t ->
 				Timber.tag(TAG).e(t, "SplitTunnelingSaveFailed")
 			}
+		}
+	}
+
+	private fun notifyReconnectIfConnected() {
+		val state = backendManager.getState()
+		val isConnected = state == Tunnel.State.Up || state == Tunnel.State.EstablishingConnection
+
+		if (isConnected) {
+			_events.tryEmit(UiEvent.ReconnectStarted)
 		}
 	}
 

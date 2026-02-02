@@ -33,6 +33,7 @@ interface VpnServiceApi {
 
 	suspend fun connect(): ConnectResult
 	suspend fun disconnect(): ConnectResult
+	suspend fun reconnect(): ConnectResult
 
 	val events: Flow<VpnServiceEvent>
 

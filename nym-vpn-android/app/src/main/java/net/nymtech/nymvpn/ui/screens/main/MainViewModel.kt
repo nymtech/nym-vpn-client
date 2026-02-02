@@ -58,21 +58,8 @@ constructor(
 
 	fun onTwoHopSelected() = viewModelScope.launch {
 		Timber.tag(TAG).i("VpnModeChangeRequested mode=TWO_HOP_MIXNET")
-
 		runCatching {
 			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.TWO_HOP_MIXNET))
-
-			val currentState = backendManager.stateFlow.first().tunnelState
-			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
-
-			if (wasConnected) {
-				Timber.tag(TAG).i("VpnModeChangeApply action=restart state=%s", currentState)
-				lastConnectedAt = null
-				stopConnectionTimerInternal()
-				backendManager.restartTunnel(shouldResetConnectionTime = true)
-			} else {
-				Timber.tag(TAG).d("VpnModeChangeApplySkipped reason=tunnel_not_connected state=%s", currentState)
-			}
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "VpnModeChangeFailed mode=TWO_HOP_MIXNET")
 		}
@@ -80,20 +67,8 @@ constructor(
 
 	fun onFiveHopSelected() = viewModelScope.launch {
 		Timber.tag(TAG).i("VpnModeChangeRequested mode=FIVE_HOP_MIXNET")
-
 		runCatching {
 			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.FIVE_HOP_MIXNET))
-			val currentState = backendManager.stateFlow.first().tunnelState
-			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
-
-			if (wasConnected) {
-				Timber.tag(TAG).i("VpnModeChangeApply action=restart state=%s", currentState)
-				lastConnectedAt = null
-				stopConnectionTimerInternal()
-				backendManager.restartTunnel(shouldResetConnectionTime = true)
-			} else {
-				Timber.tag(TAG).d("VpnModeChangeApplySkipped reason=tunnel_not_connected state=%s", currentState)
-			}
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "VpnModeChangeFailed mode=FIVE_HOP_MIXNET")
 		}

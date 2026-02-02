@@ -64,20 +64,7 @@ class ServiceBackedBackendManager @Inject constructor(
 		state = _state,
 	)
 
-	private val restartCoordinator = RestartCoordinator(
-		scope = applicationScope,
-		dispatcher = ioDispatcher,
-		stateFlow = stateFlow,
-		getState = ::getState,
-		stopTunnel = ::stopTunnel,
-		startTunnel = ::startTunnel,
-		onRestartStarted = { /* optional hook */ },
-	)
-
-	override val restartStartedEvents: Flow<Unit> = restartCoordinator.restartStartedEvents
-
 	init {
-		restartCoordinator.start()
 		observeVpnServiceEvents()
 	}
 
@@ -151,12 +138,11 @@ class ServiceBackedBackendManager @Inject constructor(
 		}
 	}
 
-	override suspend fun restartTunnel(shouldResetConnectionTime: Boolean) {
-		restartCoordinator.restartNow(shouldResetConnectionTime)
-	}
-
-	override fun requestRestartDebounced(shouldResetConnectionTime: Boolean) {
-		restartCoordinator.requestRestartDebounced(shouldResetConnectionTime)
+	override suspend fun requestReconnect() {
+		val res = serviceConnectionManager.withApi { it.reconnect() }
+		if (res !is ConnectResult.Ok) {
+			Timber.tag(TAG).w("ReconnectTunnel result=%s", res::class.java.simpleName)
+		}
 	}
 
 	override fun getState(): Tunnel.State = serviceConnectionManager.apiFlow.value?.getState() ?: Tunnel.State.Down

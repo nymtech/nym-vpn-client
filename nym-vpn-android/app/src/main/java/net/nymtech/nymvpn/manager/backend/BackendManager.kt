@@ -15,8 +15,7 @@ interface BackendManager {
 
 	suspend fun stopTunnel()
 	suspend fun startTunnel()
-	suspend fun restartTunnel(shouldResetConnectionTime: Boolean = false)
-	fun requestRestartDebounced(shouldResetConnectionTime: Boolean = false)
+	suspend fun requestReconnect()
 
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
@@ -38,7 +37,6 @@ interface BackendManager {
 	suspend fun getAccountState(): AccountControllerState
 
 	val stateFlow: StateFlow<TunnelManagerState>
-	val restartStartedEvents: Flow<Unit>
 
 	fun getState(): Tunnel.State
 	fun initialize()

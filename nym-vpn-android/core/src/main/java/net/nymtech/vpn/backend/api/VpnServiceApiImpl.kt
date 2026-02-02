@@ -41,6 +41,8 @@ internal class VpnServiceApiImpl(
 
 	override suspend fun disconnect(): ConnectResult = core.disconnect()
 
+	override suspend fun reconnect(): ConnectResult = core.reconnect()
+
 	override suspend fun isMnemonicStored(): Boolean = core.tryWithCoreSender { it.isAccountStored() } ?: false
 
 	override suspend fun storeMnemonic(mnemonic: String) {

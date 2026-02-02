@@ -42,7 +42,6 @@ class VpnCoreController(
 		private const val TAG = "core-vpn"
 	}
 
-	// Created lazily (requires context).
 	private val configRepo: CoreVpnConfigRepository by lazy(LazyThreadSafetyMode.NONE) {
 		CoreVpnConfigRepository(service.applicationContext)
 	}
@@ -50,28 +49,36 @@ class VpnCoreController(
 	private val coreMutex = Mutex()
 	private val initialized = CompletableDeferred<Unit>()
 
-	@Volatile var state: Tunnel.State = Tunnel.State.Down
+	@Volatile
+	var state: Tunnel.State = Tunnel.State.Down
 		private set
 
-	@Volatile var currentEntry: EntryPoint? = null
+	@Volatile
+	var currentEntry: EntryPoint? = null
 		private set
 
-	@Volatile var currentExit: ExitPoint? = null
+	@Volatile
+	var currentExit: ExitPoint? = null
 		private set
 
-	@Volatile private var lastAppliedConfig: CoreVpnConfig? = null
+	@Volatile
+	private var lastAppliedConfig: CoreVpnConfig? = null
 
-	@Volatile private var bypassLanFlag: Boolean = false
+	@Volatile
+	private var bypassLanFlag: Boolean = false
+	@Volatile
+	private var disallowedApps: List<String> = emptyList()
 
-	@Volatile private var disallowedApps: List<String> = emptyList()
-
-	@get:Synchronized @set:Synchronized
+	@get:Synchronized
+	@set:Synchronized
 	private var nymEnvironment: NymEnvironment? = null
 
-	@get:Synchronized @set:Synchronized
+	@get:Synchronized
+	@set:Synchronized
 	private var nymVpnService: NymVpnService? = null
 
-	@get:Synchronized @set:Synchronized
+	@get:Synchronized
+	@set:Synchronized
 	private var commandSender: NymVpnServiceCommandSender? = null
 
 	suspend fun ensureReadyForManagementBestEffort() = coreMutex.withLock {
@@ -130,10 +137,11 @@ class VpnCoreController(
 
 	suspend fun connect(): ConnectResult = coreMutex.withLock { connectLocked() }
 	suspend fun disconnect(): ConnectResult = coreMutex.withLock { disconnectLocked() }
+	suspend fun reconnect(): ConnectResult = coreMutex.withLock { reconnectLocked() }
 
 	suspend fun connectLocked(): ConnectResult {
 		if (android.net.VpnService.prepare(service) != null) {
-			return ConnectResult.PermissionRequired("VPN permission not granted (VpnService.prepare() != null)")
+			return ConnectResult.PermissionRequired("VPN permission not granted")
 		}
 
 		foreground.promoteMinimal("connect")
@@ -188,6 +196,25 @@ class VpnCoreController(
 		}
 	}
 
+	suspend fun reconnectLocked(): ConnectResult {
+		return runCatching {
+			applyCanonicalConfigToRustIfReady(force = false, canonical = null)
+
+			val wasReconnected = requireCoreSender { it.reconnectTunnel() }
+
+			if (wasReconnected) {
+				Timber.tag(TAG).i("Reconnect: reconnectTunnel() triggered successfully")
+			} else {
+				Timber.tag(TAG).i("Reconnect: tunnel was down, ignoring restart request")
+			}
+
+			ConnectResult.Ok
+		}.getOrElse { t ->
+			Timber.tag(TAG).e(t, "ReconnectFailed")
+			ConnectResult.Failed("Reconnect failed", t::class.java.name)
+		}
+	}
+
 	suspend fun disconnectBestEffort(reason: String) {
 		coreMutex.withLock {
 			runCatching { disconnectLocked() }
@@ -201,7 +228,6 @@ class VpnCoreController(
 			is TunnelEvent.MixnetState -> handleMixnetEvent(event)
 			is TunnelEvent.AccountState -> events.tryEmit(VpnServiceEvent.AccountStateChanged(event.v1))
 			is TunnelEvent.ConfigChanged -> events.tryEmit(VpnServiceEvent.Log("TunnelEvent config_changed"))
-			else -> events.tryEmit(VpnServiceEvent.Log("TunnelEvent: ${event::class.java.simpleName}"))
 		}
 	}
 
@@ -212,10 +238,13 @@ class VpnCoreController(
 		when (val ts = event.v1) {
 			is nym_vpn_lib_types.TunnelState.Connecting ->
 				events.tryEmit(VpnServiceEvent.EstablishConnection(ts.state, ts.connectionData))
+
 			is nym_vpn_lib_types.TunnelState.Connected ->
 				events.tryEmit(VpnServiceEvent.Connected(ts.connectionData))
+
 			is nym_vpn_lib_types.TunnelState.Error ->
 				events.tryEmit(VpnServiceEvent.FatalError(ts.v1))
+
 			else -> Unit
 		}
 
@@ -226,6 +255,7 @@ class VpnCoreController(
 		when (val mx = event.v1) {
 			is nym_vpn_lib_types.MixnetEvent.Connection ->
 				events.tryEmit(VpnServiceEvent.MixnetConnectionEvent(mx.v1))
+
 			else ->
 				events.tryEmit(VpnServiceEvent.Log("MixnetEvent=${mx::class.java.simpleName}"))
 		}
@@ -308,20 +338,20 @@ class VpnCoreController(
 			return
 		}
 
+		lastAppliedConfig = cfg
+		syncLocalFieldsFromConfig(cfg)
+
 		requireCoreSender { sender ->
-			syncLocalFieldsFromConfig(cfg)
+			sender.setEnableTwoHop(cfg.mode.isTwoHop())
+			sender.setEnableBridges(cfg.enableBridges)
+			sender.setEnableCustomDns(cfg.customDnsEnabled)
+			if (cfg.customDnsEnabled) sender.setCustomDns(cfg.customDns.toList())
 
 			sender.setEntryPoint(cfg.entryPoint)
 			sender.setExitPoint(cfg.exitPoint)
-			sender.setEnableTwoHop(cfg.mode.isTwoHop())
 
-			sender.setEnableBridges(cfg.enableBridges)
-
-			sender.setEnableCustomDns(cfg.customDnsEnabled)
-			if (cfg.customDnsEnabled) sender.setCustomDns(cfg.customDns.toList())
+			sender.reconnectTunnel()
 		}
-
-		lastAppliedConfig = cfg
 	}
 
 	private fun syncLocalFieldsFromConfig(cfg: CoreVpnConfig) {

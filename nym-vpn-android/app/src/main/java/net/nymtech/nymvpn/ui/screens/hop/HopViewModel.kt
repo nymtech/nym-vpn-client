@@ -181,18 +181,6 @@ class HopViewModel @Inject constructor(
 					Timber.tag(TAG).i("GatewaySelectionSaved location=EXIT")
 				}
 			}
-
-			val currentState = backendManager.stateFlow.first().tunnelState
-			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
-
-			if (wasConnected) {
-				Timber.tag(TAG).i("GatewaySelectionApply action=restart state=%s", currentState)
-				applicationScope.launch {
-					backendManager.restartTunnel(shouldResetConnectionTime = true)
-				}
-			} else {
-				Timber.tag(TAG).d("GatewaySelectionApplySkipped reason=tunnel_not_connected state=%s", currentState)
-			}
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "GatewaySelectionFailed location=%s", gatewayLocation)
 		}
