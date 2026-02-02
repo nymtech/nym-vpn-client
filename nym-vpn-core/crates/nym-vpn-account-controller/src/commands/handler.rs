@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use crate::{commands::ReturnSender, storage::AccountStorageOp, SharedAccountState};
+use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
