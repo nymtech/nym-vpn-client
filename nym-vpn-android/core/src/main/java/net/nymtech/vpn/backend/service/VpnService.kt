@@ -113,7 +113,7 @@ class VpnService :
 		when (action) {
 			ACTION_START_FROM_API,
 			ACTION_START_FOREGROUND,
-				-> {
+			-> {
 				foreground.promoteMinimal("onStartCommand(${intent.action})")
 				return START_STICKY
 			}

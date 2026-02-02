@@ -28,7 +28,6 @@ class CensorshipViewModel @Inject constructor(
 	)
 	val events = _events.asSharedFlow()
 
-
 	fun onQUICEnabled(enabled: Boolean) = viewModelScope.launch {
 		runCatching {
 			settingsRepository.setQUICEnabled(enabled)

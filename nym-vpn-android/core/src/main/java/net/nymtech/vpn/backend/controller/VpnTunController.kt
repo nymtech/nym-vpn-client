@@ -17,6 +17,7 @@ class VpnTunController(
 	}
 
 	@Volatile private var disallowedApps: List<String> = emptyList()
+
 	@Volatile private var bypassLanFlag: Boolean = false
 
 	fun setDisallowedApps(pkgs: List<String>) {

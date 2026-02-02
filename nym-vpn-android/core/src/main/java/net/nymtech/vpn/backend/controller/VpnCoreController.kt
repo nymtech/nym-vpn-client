@@ -66,6 +66,7 @@ class VpnCoreController(
 
 	@Volatile
 	private var bypassLanFlag: Boolean = false
+
 	@Volatile
 	private var disallowedApps: List<String> = emptyList()
 

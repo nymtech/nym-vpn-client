@@ -65,12 +65,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-fun DnsScreen(
-	appUiState: AppUiState,
-	onBackEventConsume: () -> Unit,
-	onBackClickEventTriggered: Boolean = false,
-	viewModel: DnsViewModel = hiltViewModel()
-) {
+fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClickEventTriggered: Boolean = false, viewModel: DnsViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
 	val context = LocalContext.current
 
@@ -309,11 +304,11 @@ private fun DnsScreen(
 	SaveChangesModal(
 		showSaveChangesDialog = showSaveChangesDialog,
 		confirmTextResId =
-			if (connectedForUi && dnsEnabled) {
-				R.string.dns_custom_button_save_reconnect
-			} else {
-				R.string.dns_custom_button_save
-			},
+		if (connectedForUi && dnsEnabled) {
+			R.string.dns_custom_button_save_reconnect
+		} else {
+			R.string.dns_custom_button_save
+		},
 		onClickSave = {
 			val toSave = customDnsDraft
 			onSave(toSave)
