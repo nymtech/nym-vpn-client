@@ -41,8 +41,7 @@ boringtun.workspace = true
 clap.workspace = true
 futures.workspace = true
 hickory-resolver.workspace = true
-pnet.workspace = true
-pnet_base = { version = "0.35", features = ["std"] }
+pnet_packet.workspace = true
 rand.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
