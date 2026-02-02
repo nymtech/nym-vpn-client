@@ -11,7 +11,7 @@ pub enum Command {
     Get,
     /// Login with mnemonic
     Set {
-        /// Mnemonic phrase (for Api or Decentralised modes) or private key hex encoded (for Privy mode)
+        /// Mnemonic phrase
         #[arg(index = 1)]
         secret: String,
         /// Account mode

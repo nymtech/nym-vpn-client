@@ -213,7 +213,10 @@ pub(crate) async fn handle_link_privy_account<C: ConnectivityMonitor>(
         shared_state
             .vpn_api_client
             .link_privy_account(current_account, &privy_vpn_account)
-            .await?;
+            .await
+            .inspect_err(|err| {
+                tracing::error!("Failed to link Privy account with API account: {err}")
+            })?;
 
         return Ok(());
     }
