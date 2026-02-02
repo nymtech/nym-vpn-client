@@ -17,6 +17,8 @@ base64-url.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
 bs58.workspace = true
 itertools.workspace = true
+k256.workspace = true
+ripemd.workspace = true
 nym-common.workspace = true
 nym-compact-ecash.workspace = true
 nym-config.workspace = true

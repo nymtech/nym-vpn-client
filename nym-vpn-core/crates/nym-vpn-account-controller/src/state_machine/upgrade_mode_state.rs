@@ -140,9 +140,9 @@ impl UpgradeModeState {
                     NextAccountControllerState::NewState(LoggedOutState::enter())
                 };
             }
-            AccountCommand::LinkPrivyAccount(return_sender, privy_account, wallet_pub_key) => {
+            AccountCommand::LinkPrivyAccount(return_sender, privy_account) => {
                 let res =
-                    handler::handle_link_privy_account(shared_state, privy_account, wallet_pub_key)
+                    handler::handle_link_privy_account(shared_state, privy_account)
                         .await;
                 return_sender.send(res);
             }

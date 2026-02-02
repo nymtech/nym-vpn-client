@@ -37,7 +37,6 @@ pub enum AccountCommand {
     LinkPrivyAccount(
         ReturnSender<(), AccountCommandError>,
         StorableAccount,
-        String,
     ),
 
     /// Rotate the wireguard keys
@@ -75,7 +74,7 @@ impl AccountCommand {
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
-            AccountCommand::LinkPrivyAccount(return_sender, _, _) => return_sender.send(Err(error)),
+            AccountCommand::LinkPrivyAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
