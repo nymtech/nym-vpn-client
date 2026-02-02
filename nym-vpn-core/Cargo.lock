@@ -5200,10 +5200,10 @@ name = "nym-ipc"
 version = "1.24.0-beta"
 dependencies = [
  "async-stream",
- "nix 0.30.1",
+ "nix 0.31.1",
  "nym-ipc-client",
  "nym-windows",
- "thiserror 2.0.17",
+ "thiserror 2.0.18",
  "tokio",
  "tokio-stream",
  "tokio-util",
