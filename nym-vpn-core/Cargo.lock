@@ -5339,7 +5339,7 @@ dependencies = [
  "objc2-foundation",
  "rs-release",
  "sha2 0.10.9",
- "sysinfo",
+ "sysinfo 0.38.0",
  "windows 0.62.2",
 ]
 
@@ -5752,7 +5752,7 @@ dependencies = [
  "sqlx",
  "sqlx-pool-guard",
  "strum",
- "sysinfo",
+ "sysinfo 0.38.0",
  "thiserror 2.0.18",
  "time",
  "tokio",
@@ -5789,7 +5789,7 @@ dependencies = [
  "si-scale 0.2.3",
  "strum",
  "strum_macros",
- "sysinfo",
+ "sysinfo 0.37.2",
  "thiserror 2.0.18",
  "time",
  "tokio",
@@ -6416,9 +6416,9 @@ dependencies = [
 
 [[package]]
 name = "objc2-io-kit"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71c1c64d6120e51cd86033f67176b1cb66780c2efe34dec55176f77befd93c0a"
+checksum = "33fafba39597d6dc1fb709123dfa8289d39406734be322956a69f0931c73bb15"
 dependencies = [
  "libc",
  "objc2-core-foundation",
@@ -8943,9 +8943,9 @@ dependencies = [
 
 [[package]]
 name = "sysinfo"
-version = "0.37.1"
+version = "0.37.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3bddd368fda2f82ead69c03d46d351987cfa0c2a57abfa37a017f3aa3e9bf69a"
+checksum = "16607d5caffd1c07ce073528f9ed972d88db15dd44023fa57142963be3feb11f"
 dependencies = [
  "libc",
  "memchr",
@@ -8953,6 +8953,20 @@ dependencies = [
  "objc2-core-foundation",
  "objc2-io-kit",
  "windows 0.61.3",
+]
+
+[[package]]
+name = "sysinfo"
+version = "0.38.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe840c5b1afe259a5657392a4dbb74473a14c8db999c3ec2f4ae812e028a94da"
+dependencies = [
+ "libc",
+ "memchr",
+ "ntapi",
+ "objc2-core-foundation",
+ "objc2-io-kit",
+ "windows 0.62.2",
 ]
 
 [[package]]
