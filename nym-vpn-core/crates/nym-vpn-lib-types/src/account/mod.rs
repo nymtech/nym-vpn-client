@@ -11,6 +11,8 @@ pub mod ticketbooks;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
