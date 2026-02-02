@@ -3,7 +3,7 @@ use aes_gcm::{
     Nonce,
 };
 use hkdf::Hkdf;
-use nym_crypto::asymmetric::x25519::{KeyPair, PrivateKey, PublicKey};
+use nym_crypto::asymmetric::x25519::{KeyPair, PublicKey};
 use nym_vpn_lib_types::DeeplinkKind;
 use rand::{rngs::OsRng, RngCore};
 use sha2::Sha256;
@@ -132,18 +132,12 @@ impl Deeplinks {
             ));
         }
 
-        let wallet_private_key = PrivateKey::from_bytes(&decrypted_bytes)
-            .map_err(|_| DeeplinkError::InvalidPayload("invalid x25519 private key".to_string()))?;
-        let wallet_keypair = KeyPair::from(wallet_private_key);
-        let wallet_pub_key = bs58::encode(wallet_keypair.public_key().to_bytes()).into_string();
-
         let mnemonic = bip39::Mnemonic::from_entropy(&decrypted_bytes)
             .map_err(|_| DeeplinkError::InvalidPayload("failed to create mnemonic".to_string()))?;
 
         Ok(DeeplinkMnemonic {
             mnemonic,
             kind: deeplink.kind,
-            wallet_keypair,
         })
     }
 }
@@ -159,19 +153,6 @@ pub struct CreateDeeplinkParams {
 pub struct DeeplinkMnemonic {
     pub kind: DeeplinkKind,
     pub mnemonic: bip39::Mnemonic,
-    pub wallet_keypair: KeyPair,
-}
-
-impl DeeplinkMnemonic {
-    pub fn sign(&self, message: &[u8]) -> String {
-        use base64::Engine as _;
-        let sig = self.wallet_keypair.sign(message);
-        base64::engine::general_purpose::STANDARD.encode(sig.to_bytes())
-    }
-
-    pub fn public_key_bs58(&self) -> String {
-        bs58::encode(self.wallet_keypair.verifying_key().to_bytes()).into_string()
-    }
 }
 
 #[derive(Debug, Clone)]

@@ -199,7 +199,6 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
 pub(crate) async fn handle_link_privy_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     privy_account: StorableAccount,
-    wallet_pub_key: String,
 ) -> Result<(), AccountCommandError> {
     let privy_vpn_account = VpnAccount::try_from(privy_account.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
@@ -213,7 +212,7 @@ pub(crate) async fn handle_link_privy_account<C: ConnectivityMonitor>(
 
         shared_state
             .vpn_api_client
-            .link_privy_account(current_account, &privy_vpn_account, &wallet_pub_key)
+            .link_privy_account(current_account, &privy_vpn_account)
             .await?;
 
         return Ok(());

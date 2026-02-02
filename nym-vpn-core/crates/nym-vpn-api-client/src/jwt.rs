@@ -3,8 +3,9 @@
 
 use std::fmt;
 
+use k256::ecdsa::{SigningKey, signature::Signer as _};
 use nym_crypto::asymmetric::ed25519;
-use nym_validator_client::{DirectSecp256k1HdWallet, signing::signer::OfflineSigner};
+use nym_validator_client::{DirectSecp256k1HdWallet, nyxd::AccountId, signing::signer::OfflineSigner};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::{Digest, Sha256};
@@ -51,16 +52,6 @@ pub(crate) struct Jwt {
 }
 
 impl Jwt {
-    pub fn new_secp256k1(wallet: &DirectSecp256k1HdWallet) -> Jwt {
-        let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u128;
-        tracing::debug!("timestamp: {}", timestamp);
-        Jwt::new_secp256k1_with_now(wallet, timestamp)
-    }
-
-    pub fn new_secp256k1_synced(wallet: &DirectSecp256k1HdWallet, remote_time: VpnApiTime) -> Jwt {
-        Jwt::new_secp256k1_with_now(wallet, remote_time.estimate_remote_now_unix())
-    }
-
     pub fn new_secp256k1_with_now(wallet: &DirectSecp256k1HdWallet, now: u128) -> Jwt {
         let account = wallet.get_accounts();
         let address = account[0].address();
@@ -83,6 +74,45 @@ impl Jwt {
 
         let signature = wallet.sign_raw(address, message).unwrap(); // TODO: result
         let signature_bytes = signature.to_bytes().to_vec();
+
+        let signature_base64 = base64_url::encode(&signature_bytes);
+
+        let jwt = format!("{header_base64}.{payload_base64}.{signature_base64}");
+
+        Jwt {
+            header,
+            payload,
+            signature: signature_base64,
+            jwt,
+        }
+    }
+
+    /// Create a JWT using a raw secp256k1 signing key (for Privy accounts).
+    /// This produces the same JWT format as `new_secp256k1_with_now` but without
+    /// requiring a DirectSecp256k1HdWallet.
+    pub fn new_secp256k1_from_raw(
+        address: &AccountId,
+        public_key_bytes: &[u8],
+        signing_key: &SigningKey,
+        now: u128,
+    ) -> Jwt {
+        let header = JwtHeader {
+            typ: "JWT".to_string(),
+            alg: "ES256K".to_string(),
+        };
+        let payload = JwtPayload {
+            iat: now,
+            exp: 30,
+            pubkey: Some(bs58::encode(public_key_bytes).into_string()),
+            sub: address.to_string(),
+        };
+
+        let header_base64 = base64_url::encode(&json!(header.clone()).to_string());
+        let payload_base64 = base64_url::encode(&json!(payload.clone()).to_string());
+        let message = format!("{header_base64}.{payload_base64}").into_bytes();
+
+        let sig: k256::ecdsa::Signature = signing_key.sign(&message);
+        let signature_bytes = sig.to_bytes().to_vec();
 
         let signature_base64 = base64_url::encode(&signature_bytes);
 

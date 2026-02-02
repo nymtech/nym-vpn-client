@@ -58,11 +58,10 @@ impl AccountCommandSender {
     pub async fn link_privy_account(
         &self,
         privy_account: StorableAccount,
-        wallet_pub_key: String,
     ) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::LinkPrivyAccount(tx, privy_account, wallet_pub_key))
+            .send(AccountCommand::LinkPrivyAccount(tx, privy_account))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
