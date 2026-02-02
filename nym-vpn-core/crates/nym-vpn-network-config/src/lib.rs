@@ -191,6 +191,12 @@ impl Network {
             .and_then(|ff| ff.privy_enabled())
     }
 
+    pub fn mixnet_tuning_enabled(&self) -> Option<bool> {
+        self.feature_flags
+            .as_ref()
+            .and_then(|ff| ff.mixnet_tuning_enabled())
+    }
+
     pub async fn vpn_api_addresses(&self) -> Vec<SocketAddr> {
         let mut unique: HashSet<SocketAddr> = HashSet::with_capacity(16);
 
