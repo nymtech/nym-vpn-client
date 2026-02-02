@@ -3354,6 +3354,15 @@ dependencies = [
 
 [[package]]
 name = "ipnetwork"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf466541e9d546596ee94f9f69590f89473455f88372423e0008fc1a7daf100e"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "ipnetwork"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf370abdafd54d13e54a620e8c3e1145f28e46cc9d704bc6d94414559df41763"
@@ -4793,7 +4802,7 @@ dependencies = [
 name = "nym-firewall"
 version = "1.24.0-beta"
 dependencies = [
- "ipnetwork",
+ "ipnetwork 0.21.1",
  "libc",
  "log",
  "mnl",
@@ -4815,7 +4824,7 @@ dependencies = [
 name = "nym-firewall-config"
 version = "1.24.0-beta"
 dependencies = [
- "ipnetwork",
+ "ipnetwork 0.21.1",
 ]
 
 [[package]]
@@ -5392,7 +5401,7 @@ version = "1.24.0-beta"
 dependencies = [
  "bitflags 2.9.4",
  "futures",
- "ipnetwork",
+ "ipnetwork 0.21.1",
  "libc",
  "nix 0.30.1",
  "nym-common",
@@ -6033,7 +6042,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.7.0",
  "hyper-util",
- "ipnetwork",
+ "ipnetwork 0.21.1",
  "itertools 0.14.0",
  "log-panics",
  "nix 0.30.1",
@@ -6116,7 +6125,7 @@ dependencies = [
 name = "nym-vpn-lib-types"
 version = "1.24.0-beta"
 dependencies = [
- "ipnetwork",
+ "ipnetwork 0.21.1",
  "nym-bandwidth-controller",
  "nym-crypto",
  "nym-gateway-directory",
@@ -6142,7 +6151,7 @@ version = "1.24.0-beta"
 dependencies = [
  "async-trait",
  "ipnet",
- "ipnetwork",
+ "ipnetwork 0.21.1",
  "iprange",
  "itertools 0.14.0",
  "log",
@@ -6300,7 +6309,7 @@ version = "1.24.0-beta"
 dependencies = [
  "base64 0.22.1",
  "hex",
- "ipnetwork",
+ "ipnetwork 0.21.1",
  "nym-windows",
  "rand 0.8.5",
  "thiserror 2.0.18",
@@ -6733,7 +6742,7 @@ checksum = "944d2c073758b6bda57f517cff54cf69d74eae3593fe1e9aa9918666543456a9"
 dependencies = [
  "derive_builder",
  "ioctl-sys",
- "ipnetwork",
+ "ipnetwork 0.21.1",
  "libc",
 ]
 
@@ -6874,8 +6883,12 @@ version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "682396b533413cc2e009fbb48aadf93619a149d3e57defba19ff50ce0201bd0d"
 dependencies = [
+ "ipnetwork 0.20.0",
  "pnet_base 0.35.0",
+ "pnet_datalink",
  "pnet_packet 0.35.0",
+ "pnet_sys",
+ "pnet_transport",
 ]
 
 [[package]]
@@ -6894,6 +6907,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ffc190d4067df16af3aba49b3b74c469e611cad6314676eaf1157f31aa0fb2f7"
 dependencies = [
  "no-std-net",
+]
+
+[[package]]
+name = "pnet_datalink"
+version = "0.35.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e79e70ec0be163102a332e1d2d5586d362ad76b01cec86f830241f2b6452a7b7"
+dependencies = [
+ "ipnetwork 0.20.0",
+ "libc",
+ "pnet_base 0.35.0",
+ "pnet_sys",
+ "winapi",
 ]
 
 [[package]]
@@ -6960,6 +6986,28 @@ dependencies = [
  "pnet_base 0.35.0",
  "pnet_macros 0.35.0",
  "pnet_macros_support 0.35.0",
+]
+
+[[package]]
+name = "pnet_sys"
+version = "0.35.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d4643d3d4db6b08741050c2f3afa9a892c4244c085a72fcda93c9c2c9a00f4b"
+dependencies = [
+ "libc",
+ "winapi",
+]
+
+[[package]]
+name = "pnet_transport"
+version = "0.35.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f604d98bc2a6591cf719b58d3203fd882bdd6bf1db696c4ac97978e9f4776bf"
+dependencies = [
+ "libc",
+ "pnet_base 0.35.0",
+ "pnet_packet 0.35.0",
+ "pnet_sys",
 ]
 
 [[package]]
