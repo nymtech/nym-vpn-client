@@ -9,16 +9,11 @@ pub mod error;
 pub mod privy;
 
 pub fn parse_account_request(request: &StoreAccountRequest) -> Result<Mnemonic, LoginError> {
-    let mnemonic = match request {
-        StoreAccountRequest::Vpn { mnemonic } | StoreAccountRequest::Decentralised { mnemonic } => {
-            Mnemonic::parse(mnemonic)?
-        }
-        StoreAccountRequest::Privy {
-            mnemonic: hex_signature,
-        } => privy::hex_signature_to_mnemonic(hex_signature)?,
-    };
-
-    Ok(mnemonic)
+    match request {
+        StoreAccountRequest::Vpn { mnemonic }
+        | StoreAccountRequest::Decentralised { mnemonic }
+        | StoreAccountRequest::Privy { mnemonic } => Mnemonic::parse(mnemonic).map_err(Into::into),
+    }
 }
 
 #[cfg(test)]

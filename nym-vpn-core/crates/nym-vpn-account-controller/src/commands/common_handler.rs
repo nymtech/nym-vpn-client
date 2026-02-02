@@ -5,7 +5,6 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
-    types::VpnAccountMode,
 };
 use nym_vpn_lib_types::{AccountCommandError, DeeplinkKind, VpnAccountSummary};
 
@@ -191,10 +190,13 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     params: CreateDeeplinkParams,
 ) -> Result<String, AccountCommandError> {
-    // For `DeeplinkKind::PrivyLink`, the user must be logged-on via an API account
-    if params.kind == DeeplinkKind::Privy
-        && let Some(ref vpn_account) = shared_state.vpn_api_account
-        && vpn_account.mode() != VpnAccountMode::Api
+    // For `DeeplinkKind::PrivyLink`, the user must be logged-in via an API account
+    if params.kind == DeeplinkKind::PrivyLink
+        && shared_state
+            .vpn_api_account
+            .as_ref()
+            .map(|vpn_account| !vpn_account.mode().is_api())
+            .unwrap_or(true)
     {
         return Err(AccountCommandError::DeeplinkError(
             "You can only link a Privy account if you are logged in with an API account"

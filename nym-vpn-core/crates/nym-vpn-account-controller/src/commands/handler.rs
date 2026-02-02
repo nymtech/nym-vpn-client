@@ -47,16 +47,6 @@ pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
     let vpn_account = VpnAccount::try_from(account.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
 
-    // If the new account is a Privy account and we are currently logged-in with
-    // an API account, then bail.
-    if vpn_account.mode().is_privy()
-        && let Some(ref current_account) = shared_state.vpn_api_account
-        && current_account.mode().is_api()
-    {
-        tracing::error!("Attempted to store a Privy account while logged in with an API account");
-        return Err(AccountCommandError::ExistingAccount);
-    }
-
     // if the account is decentralised, it must exist on the chain
     if vpn_account.mode().is_decentralised() {
         ensure_account_exists_on_chain(shared_state, &vpn_account).await?;

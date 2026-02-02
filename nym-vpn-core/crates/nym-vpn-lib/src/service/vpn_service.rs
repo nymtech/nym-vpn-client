@@ -1784,7 +1784,7 @@ impl NymVpnService {
             .await?;
 
         let privy_account = StorableAccount {
-            mnemonic: deeplink_mnemonic.mnemonic.clone(),
+            mnemonic: deeplink_mnemonic.mnemonic,
             mode: StoredAccountMode::Privy,
         };
 
