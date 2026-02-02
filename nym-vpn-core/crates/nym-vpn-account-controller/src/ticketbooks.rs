@@ -34,7 +34,7 @@ impl AvailableTicketbook {
     }
 
     pub fn issued_tickets_si(&self) -> String {
-        si_scale::helpers::bibytes2((self.issued_tickets as u64 * self.ticket_size) as f64)
+        si_scale::helpers::bibytes2(self.issued_tickets as u64 * self.ticket_size)
     }
 
     pub fn claimed_tickets(&self) -> u32 {
@@ -42,7 +42,7 @@ impl AvailableTicketbook {
     }
 
     pub fn claimed_tickets_si(&self) -> String {
-        si_scale::helpers::bibytes2((self.claimed_tickets as u64 * self.ticket_size) as f64)
+        si_scale::helpers::bibytes2(self.claimed_tickets as u64 * self.ticket_size)
     }
 
     pub fn remaing_tickets(&self) -> u32 {
@@ -50,7 +50,7 @@ impl AvailableTicketbook {
     }
 
     pub fn remaining_tickets_si(&self) -> String {
-        si_scale::helpers::bibytes2((self.remaing_tickets() as u64 * self.ticket_size) as f64)
+        si_scale::helpers::bibytes2(self.remaing_tickets() as u64 * self.ticket_size)
     }
 
     pub fn ticket_size(&self) -> u64 {
@@ -58,7 +58,7 @@ impl AvailableTicketbook {
     }
 
     pub fn ticket_size_si(&self) -> String {
-        si_scale::helpers::bibytes2(self.ticket_size as f64)
+        si_scale::helpers::bibytes2(self.ticket_size)
     }
 
     pub fn has_expired(&self) -> bool {

@@ -4361,7 +4361,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
- "si-scale",
+ "si-scale 0.2.3",
  "thiserror 2.0.18",
  "time",
  "tokio",
@@ -4841,7 +4841,7 @@ dependencies = [
  "nym-validator-client",
  "rand 0.8.5",
  "serde",
- "si-scale",
+ "si-scale 0.2.3",
  "thiserror 2.0.18",
  "time",
  "tokio",
@@ -5786,7 +5786,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
- "si-scale",
+ "si-scale 0.2.3",
  "strum",
  "strum_macros",
  "sysinfo",
@@ -5963,7 +5963,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
- "si-scale",
+ "si-scale 0.3.0",
  "sqlx",
  "sqlx-pool-guard",
  "strum",
@@ -6128,7 +6128,7 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-network-config",
  "serde",
- "si-scale",
+ "si-scale 0.3.0",
  "thiserror 2.0.18",
  "time",
  "ts-rs",
@@ -8420,6 +8420,12 @@ name = "si-scale"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b72e7cd0744e007e382ba320435f1ed1ecd709409b4ebd5cfbc843d77b25a8aa"
+
+[[package]]
+name = "si-scale"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa6635fb52805fa49a5798346e553cda9fd7990da8fbb2b3b2b9cf26589b4571"
 
 [[package]]
 name = "sigchld"
