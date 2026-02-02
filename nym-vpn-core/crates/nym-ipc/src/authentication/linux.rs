@@ -4,6 +4,7 @@
 use std::time::Duration;
 
 use nix::sys::socket::{getsockopt, sockopt::PeerCredentials};
+use nym_ipc_client::authentication::AuthenticaticationResult;
 use tokio::net::UnixStream;
 use tokio_util::sync::CancellationToken;
 use zbus::Connection;
@@ -57,7 +58,7 @@ async fn wait_for_authorization(
 // This function depends on user interaction, so it must ensure it doesn't await
 // indefinitely and starve the consumer.
 pub(crate) async fn is_authenticated(
-    stream: UnixStream,
+    mut stream: UnixStream,
     shutdown_token: CancellationToken,
 ) -> Result<UnixStream, AuthenticationError> {
     let connection = shutdown_token
@@ -84,8 +85,10 @@ pub(crate) async fn is_authenticated(
     let auth_result = wait_for_authorization(proxy, subject, shutdown_token).await?;
 
     if auth_result.is_authorized {
+        AuthenticaticationResult::Accepted.send(&mut stream).await;
         Ok(stream)
     } else {
+        AuthenticaticationResult::Denied.send(&mut stream).await;
         Err(AuthenticationError::AuthorizationDenied)
     }
 }

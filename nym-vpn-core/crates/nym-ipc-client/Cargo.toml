@@ -15,6 +15,7 @@ workspace = true
 hyper-util.workspace = true
 tokio.workspace = true
 tokio-stream = { workspace = true, features = ["net"] }
+tracing.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = ["Win32_Foundation"] }
