@@ -1,8 +1,8 @@
-What’s new:
-- Added entry and exit node details to connection notifications
-- You can now view server details directly from the home screen
-- Introduced Custom DNS settings for greater network control
-- Reorganized sections on the Censorship screen for better clarity
-- Enhanced tunnel configuration logs with clearer, step-by-step details
-- Fixed restricted apps handling in tunnel configurations
-- Resolved an issue where the connection timer could reset randomly
+Yenilikler:
+- Bağlantı bildirimlerine giriş ve çıkış node detayları eklendi
+- Artık sunucu detaylarını doğrudan ana ekrandan görüntüleyebilirsiniz
+- Daha fazla ağ kontrolü için Özel DNS ayarları getirildi
+- Sansür ekranındaki bölümler daha iyi anlaşılması için yeniden düzenlendi
+- Tünel yapılandırma kayıtları adım adım daha net detaylarla geliştirildi
+- Tünel yapılandırmalarında kısıtlı uygulama yönetimi hatası giderildi
+- Bağlantı sayacının rastgele sıfırlanmasına neden olan bir sorun çözüldü

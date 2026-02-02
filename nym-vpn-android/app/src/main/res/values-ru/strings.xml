@@ -164,6 +164,7 @@
 	<string name="button_next">Далее</string>
 	<string name="skip">Пропустить</string>
 	<string name="get_started">Начало работы</string>
+	<string name="random_text">Случайный</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Показ стриминга</string>
 	<string name="streaming_server_banner_title">Новинка: Откройте для себя серверы,\nоптимизированные для стриминга (▶️)</string>
@@ -272,6 +273,7 @@
 	<string name="onboarding_create_account_button">Создайте аккаунт</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Выберите ваш \nтарифный план</string>
+	<string name="select_plan_line_0">7-дневная пробная версия</string>
 	<string name="select_plan_line_1">Все функции включены</string>
 	<string name="select_plan_line_2">Никакой рекламы</string>
 	<string name="select_plan_line_3">Отмена в любое время</string>

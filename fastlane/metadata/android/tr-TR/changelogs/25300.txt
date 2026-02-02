@@ -1,2 +1,2 @@
 Yenilikler:
-- Fixed connection issue with tunnel lifecycle.
+- Tünel yaşam döngüsüyle ilgili bağlantı sorunu giderildi

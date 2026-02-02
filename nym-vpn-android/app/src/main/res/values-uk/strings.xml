@@ -162,6 +162,7 @@
 	<string name="button_next">Далі</string>
 	<string name="skip">Пропустити</string>
 	<string name="get_started">Почати</string>
+	<string name="random_text">Випадковий</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Показ стріму</string>
 	<string name="streaming_server_banner_title">Нове: Відкрийте для себе сервери, оптимізовані для потокового передавання (▶️)</string>
@@ -271,6 +272,7 @@
 	<string name="onboarding_create_account_button">Створити акаунт</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Виберіть свій \nплан підписки</string>
+	<string name="select_plan_line_0">7 днів безкоштовно</string>
 	<string name="select_plan_line_1">Всі функції включені</string>
 	<string name="select_plan_line_2">Без реклами</string>
 	<string name="select_plan_line_3">Скасування будь-коли</string>
@@ -395,14 +397,14 @@
 	<string name="account_device_id_title">Ідентифікатор пристрою</string>
 	<string name="account_id_title">ID облікового запису</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Enable logging</string>
-	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
-	<string name="logs_debug_enable_title">Enable verbose logging</string>
-	<string name="logs_debug_enable_description">Turn on for detailed DEBUG logs for self-debugging or support. Increases battery consumption. Log size may grow up to 10x.</string>
+	<string name="logs_enable_title">Увімкнути журнал</string>
+	<string name="logs_enable_description">Увімкніть для усунення несправностей. Вимкніть для збереження конфіденційності. Журнали залишаються на вашому пристрої. Nym ніколи не має до них доступу.</string>
+	<string name="logs_debug_enable_title">Увімкнути детальне ведення журналу</string>
+	<string name="logs_debug_enable_description">Увімкніть для детальних журналів DEBUG для самодіагностики або підтримки. Збільшує споживання батареї. Розмір журналу може збільшитися до 10 разів.</string>
 	<string name="logs_tab_app">Додаток</string>
-	<string name="logs_tab_tunnel">Tunnel</string>
-	<string name="logs_tab_library">Library</string>
-	<string name="logs_empty_placeholder">No logs yet</string>
+	<string name="logs_tab_tunnel">Тунель</string>
+	<string name="logs_tab_library">Бібліотека</string>
+	<string name="logs_empty_placeholder">Журнал порожній</string>
 	<string name="logs_share">Поділіться</string>
 	<string name="logs_download">Завантажити</string>
 	<string name="logs_delete">Видалити</string>

@@ -162,6 +162,7 @@
 	<string name="button_next">下一步</string>
 	<string name="skip">跳过</string>
 	<string name="get_started">开始使用</string>
+	<string name="random_text">随机选择</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">流媒体显示</string>
 	<string name="streaming_server_banner_title">新功能: 探索串流 -\n优化服务器 (▶️)</string>
@@ -270,6 +271,7 @@
 	<string name="onboarding_create_account_button">创建账号</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">选择您的\n订阅方案</string>
+	<string name="select_plan_line_0">7天免费试用</string>
 	<string name="select_plan_line_1">包含完整功能</string>
 	<string name="select_plan_line_2">没有广告</string>
 	<string name="select_plan_line_3">随时取消</string>

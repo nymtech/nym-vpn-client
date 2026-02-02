@@ -162,6 +162,7 @@
 	<string name="button_next">পরবর্তী</string>
 	<string name="skip">বাদ দিন</string>
 	<string name="get_started">শুরু করুন</string>
+	<string name="random_text">এলোমেলো</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display"></string>
 	<string name="streaming_server_banner_title"></string>
@@ -270,6 +271,7 @@
 	<string name="onboarding_create_account_button">অ্যাকাউন্ট তৈরি করুন</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">আপনার সুরক্ষা স্তর নির্বাচন করুন</string>
+	<string name="select_plan_line_0">7-day free trial</string>
 	<string name="select_plan_line_1">All features included</string>
 	<string name="select_plan_line_2">কোনও বিজ্ঞাপন নেই</string>
 	<string name="select_plan_line_3">যেকোনো সময় বাতিল করুন</string>

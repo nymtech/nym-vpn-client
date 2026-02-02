@@ -164,6 +164,7 @@
 	<string name="button_next">Next</string>
 	<string name="skip">Skip</string>
 	<string name="get_started">Get started</string>
+	<string name="random_text">Random</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
@@ -272,6 +273,7 @@
 	<string name="onboarding_create_account_button">Δημιουργήστε έναν λογαριασμό</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Choose your \nprotection level 🛡️</string>
+	<string name="select_plan_line_0">7-day free trial</string>
 	<string name="select_plan_line_1">All features included</string>
 	<string name="select_plan_line_2">No ads</string>
 	<string name="select_plan_line_3">Cancel anytime</string>

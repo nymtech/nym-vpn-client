@@ -164,6 +164,7 @@
 	<string name="button_next">Weiter</string>
 	<string name="skip">Überspringen</string>
 	<string name="get_started">Los geht\'s</string>
+	<string name="random_text">Zufällig</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream-Anzeige</string>
 	<string name="streaming_server_banner_title">Neu: Entdecke Streaming-\noptimierte Server (▶️)</string>
@@ -272,6 +273,7 @@
 	<string name="onboarding_create_account_button">Konto erstellen</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Wähle dein \nAbonnement</string>
+	<string name="select_plan_line_0">7 Tage kostenlos testen</string>
 	<string name="select_plan_line_1">Alle Funktionen inklusive</string>
 	<string name="select_plan_line_2">Keine Werbung</string>
 	<string name="select_plan_line_3">Jederzeit kündbar</string>

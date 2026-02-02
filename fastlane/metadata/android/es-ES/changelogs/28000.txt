@@ -1,0 +1,8 @@
+Novedades
+- Nuevos controles de registro: Habilitar registros y debug detallado alterna
+- Comprobación de autenticación añadida para acciones de acceso directo
+- Formato de exportación de registros actualizado (carpetas estructuradas y registros agrupados)
+- Manejo de acción mejorado de NavBar
+- Reducido ruido innecesario del registro
+- Corregido autoarranque
+- Mejoras y correcciones menores de la interfaz de usuario

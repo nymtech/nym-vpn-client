@@ -162,6 +162,7 @@
 	<string name="button_next">अगला</string>
 	<string name="skip">स्किप करें</string>
 	<string name="get_started">शुरू करें</string>
+	<string name="random_text">रैंडम</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">स्ट्रीम डिस्प्ले</string>
 	<string name="streaming_server_banner_title">नया: स्ट्रीमिंग-\nअनुकूलित सर्वर खोजें (▶️)</string>
@@ -270,6 +271,7 @@
 	<string name="onboarding_create_account_button">अकाउंट बनाएं</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">अपना \nसुरक्षा स्तर चुनें 🛡️</string>
+	<string name="select_plan_line_0">7-day free trial</string>
 	<string name="select_plan_line_1">सभी सुविधाएँ शामिल हैं</string>
 	<string name="select_plan_line_2">कोई विज्ञापन नहीं</string>
 	<string name="select_plan_line_3">किसी भी समय रद्द करें</string>

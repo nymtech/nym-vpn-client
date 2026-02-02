@@ -162,6 +162,7 @@
 	<string name="button_next">次へ</string>
 	<string name="skip">スキップ</string>
 	<string name="get_started">始めよう</string>
+	<string name="random_text">ランダム</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">ストリーム表示</string>
 	<string name="streaming_server_banner_title">新規: 配信の検出-\n最適化されたサーバー (▶️)</string>
@@ -270,6 +271,7 @@
 	<string name="onboarding_create_account_button">アカウントを作成</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">\n保護レベル :shield を選択：</string>
+	<string name="select_plan_line_0">7日間の無料トライアル</string>
 	<string name="select_plan_line_1">すべての機能が含まれています</string>
 	<string name="select_plan_line_2">広告なし</string>
 	<string name="select_plan_line_3">いつでもキャンセル</string>
