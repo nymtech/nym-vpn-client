@@ -108,7 +108,8 @@ pub enum UpdateDeviceRequestStatus {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LinkPrivyAccountRequestBody {
-    pub alias_addr: String,
-    pub alias_signature_base64: String,
-    pub alias_pub_key: String, // Base58
+    pub pub_key: String,
+    pub signature: String,
+    pub kind: String,
+    pub label: String,
 }
