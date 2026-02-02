@@ -3,6 +3,8 @@
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
 
 use std::str::FromStr;
 
