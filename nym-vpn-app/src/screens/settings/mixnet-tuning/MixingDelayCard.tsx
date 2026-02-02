@@ -1,6 +1,5 @@
 import clsx from 'clsx';
-import SliderNew from '../../../ui/SliderNew';
-import { SettingsMenuCardBig } from '../../../ui/index';
+import { SettingsMenuCardBig, Slider } from '../../../ui/';
 import { useMixnetTrafficConfig } from './context/index';
 
 const MIXING_DELAY_LEVELS = [
@@ -22,11 +21,11 @@ function MixingDelaySlider({
         <span>Max. anonymity</span>
       </div>
 
-      <SliderNew
+      <Slider
         className="px-2"
         value={value}
         defaultValue={25}
-        onChange={setValue}
+        onValueCommitted={setValue}
         min={0}
         max={200}
         step={1}

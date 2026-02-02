@@ -36,7 +36,6 @@ export * from './RadioGroup';
 export * from './SettingsMenuCard';
 export * from './SettingsMenuCardBig';
 export * from './CardSwitch';
-export * from './Slider';
 export * from './Switch';
 export * from './TextArea';
 export * from './TextInput';

@@ -1,67 +1,135 @@
+import { Slider as HuSlider } from '@base-ui-components/react';
 import clsx from 'clsx';
-import * as RxSlider from '@radix-ui/react-slider';
+import React, { useEffect, useState } from 'react';
 
 export type SliderProps = {
+  defaultValue?: number;
   value: number;
-  step?: number;
+  onChange?: (value: number) => void;
+  onValueCommitted: (value: number) => void;
   min: number;
   max: number;
-  onChange: (value: number) => void;
-  onCommit: (value: number) => void;
-  disabled?: boolean;
+  step: number;
+  labels?: React.ReactNode[];
   className?: string;
-  'data-testid'?: string;
+  valueIndicator?: boolean;
 };
 
 function Slider({
+  defaultValue,
   value,
-  step,
+  onChange,
+  onValueCommitted,
   min,
   max,
-  onChange,
-  onCommit,
-  disabled,
+  step,
+  labels,
+  valueIndicator,
   className,
-  ...rest
 }: SliderProps) {
-  const testId = rest['data-testid'] || 'slider';
+  const [internalValue, setInternalValue] = useState(value);
+
+  useEffect(() => {
+    setInternalValue(value);
+  }, [value]);
+
+  // Calculate position percentage for each label
+  const getLabelPosition = (index: number): number => {
+    if (!labels || labels.length === 0) return 0;
+
+    const range = max - min;
+    const useEvenDistribution = range > 5;
+
+    // First label at leftmost (0%)
+    if (index === 0) return 0;
+
+    // Last label at rightmost (100%)
+    if (index === labels.length - 1) return 100;
+
+    // For ranges > 5: distribute labels evenly
+    if (useEvenDistribution) {
+      // Evenly distribute: position = (index / (totalLabels - 1)) * 100
+      return (index / (labels.length - 1)) * 100;
+    }
+
+    // For ranges <= 5: calculate position based on step value
+    // Label at index i corresponds to value: min + i * step
+    const labelValue = min + index * step;
+    const position = ((labelValue - min) / (max - min)) * 100;
+
+    return position;
+  };
 
   return (
-    <RxSlider.Root
-      step={step}
-      min={min}
-      max={max}
-      value={[value]}
-      onValueChange={(numbers) => onChange(numbers[0])}
-      onValueCommit={(numbers) => onCommit(numbers[0])}
-      className={clsx(
-        'relative flex h-6 w-full max-w-80 touch-none select-none items-center',
-        className,
-      )}
-      disabled={disabled}
-      data-testid={testId}
-      data-test-value={value}
-      data-test-min={min}
-      data-test-max={max}
-      data-test-disabled={disabled ? 'true' : 'false'}
-    >
-      <RxSlider.Track
-        className="relative h-1.5 grow rounded-full bg-bombay/60 dark:bg-iron"
-        data-testid={`${testId}-track`}
+    <div className={clsx('w-full max-w-xl', className)}>
+      <HuSlider.Root
+        min={min}
+        max={max}
+        step={step}
+        defaultValue={defaultValue}
+        value={internalValue}
+        onValueCommitted={onValueCommitted}
+        onValueChange={(val) => {
+          setInternalValue(val);
+          onChange?.(val);
+        }}
+        className="relative flex w-full touch-none select-none items-center"
       >
-        <RxSlider.Range
-          className="absolute h-full rounded-full bg-malachite-moss/50 dark:bg-malachite-moss/60"
-          data-testid={`${testId}-range`}
-        />
-      </RxSlider.Track>
-      <RxSlider.Thumb
-        className={clsx(
-          'block size-4 rounded-full bg-malachite transition hover:scale-110 duration-150',
-          'focus:outline-hidden focus:ring-4 focus:ring-malachite/35 dark:focus:ring-malachite/15',
+        <HuSlider.Control className="w-full">
+          <HuSlider.Track className="relative h-2 w-full rounded-full bg-bombay dark:bg-iron">
+            <HuSlider.Indicator
+              className={clsx([
+                'absolute h-full rounded-full bg-malachite-moss dark:bg-malachite',
+                'transition-[width] duration-300 ease-out',
+              ])}
+            />
+            <HuSlider.Thumb
+              className={clsx([
+                'group block h-6 w-6 rounded-full border active:bg-faded-lavender bg-white hover:bg-faded-lavender shadow-md focus:outline-none focus:ring-2 focus:ring-malachite',
+                'transition-[inset] duration-300 ease-out ',
+              ])}
+            >
+              {/*   */}
+            </HuSlider.Thumb>
+          </HuSlider.Track>
+        </HuSlider.Control>
+      </HuSlider.Root>
+
+      <div className="relative">
+        {valueIndicator && (
+          <div className="absolute left-1/2 -translate-x-1/2 flex flex-col justify-between items-center text-sm text-cornflower">
+            <span className="whitespace-nowrap">
+              {internalValue === defaultValue ? 'Default' : 'Current'}
+            </span>
+            <span className="whitespace-nowrap">{internalValue} ms</span>
+          </div>
         )}
-        data-testid={`${testId}-thumb`}
-      />
-    </RxSlider.Root>
+        {labels && (
+          <div className="mt-5 w-full h-10">
+            {labels.map((label, idx) => {
+              const position = getLabelPosition(idx);
+              return (
+                <div
+                  key={idx}
+                  className="absolute flex items-center justify-center"
+                  style={{
+                    left: `${position}%`,
+                    transform:
+                      idx === 0
+                        ? 'translateX(0)'
+                        : idx === labels.length - 1
+                          ? 'translateX(-100%)'
+                          : 'translateX(-50%)',
+                  }}
+                >
+                  {label}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

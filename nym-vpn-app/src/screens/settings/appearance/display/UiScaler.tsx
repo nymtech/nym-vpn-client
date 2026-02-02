@@ -47,8 +47,7 @@ function UiScaler() {
         min={8}
         max={20}
         onChange={handleChange}
-        onCommit={handleFinalChange}
-        data-testid="ui-scaler-slider"
+        onValueCommitted={handleFinalChange}
       />
     </div>
   );

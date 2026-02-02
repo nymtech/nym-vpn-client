@@ -1,7 +1,6 @@
 import clsx from 'clsx';
-import { CardSwitch, SettingsMenuCardBig } from '../../../ui/index';
-import SliderNew from '../../../ui/SliderNew';
-import { useMixnetTrafficConfig } from './context/index';
+import { CardSwitch, SettingsMenuCardBig, Slider } from '../../../ui';
+import { useMixnetTrafficConfig } from './context';
 
 const BACKGROUND_COVER_TRAFFIC_RATE_LEVELS = [
   { label: 'Base', speed: '5 pckt/s' },
@@ -35,10 +34,10 @@ function BackgroundCoverTrafficRateSlider({
         <span>Use less battery & data</span>
         <span>Max. anonymity</span>
       </div>
-      <SliderNew
+      <Slider
         className="px-2"
         value={value}
-        onChange={setValue}
+        onValueCommitted={setValue}
         min={0}
         max={3}
         step={1}
@@ -124,10 +123,10 @@ function ContinuousTrafficSlider({
         <span>Use less battery & data</span>
         <span>Max. anonymity</span>
       </div>
-      <SliderNew
+      <Slider
         className="px-2"
         value={value}
-        onChange={setValue}
+        onValueCommitted={setValue}
         min={0}
         max={2}
         step={1}
@@ -155,13 +154,6 @@ function ContinuousTrafficSlider({
 
 export function ContinuousTrafficCard() {
   const { state, dispatch } = useMixnetTrafficConfig();
-  // const { mixnetTrafficConfig } = useMainState();
-  // const dispatch = useMainDispatch() as StateDispatch;
-
-  console.log(
-    '[ContinuousTrafficCard] state.messageSendingAverageDelay',
-    state.messageSendingAverageDelay,
-  );
 
   const enabled = !state.disableBackgroundCoverTraffic;
   const setEnabled = (enabled: boolean) =>
