@@ -1792,7 +1792,7 @@ impl NymVpnService {
             DeeplinkKind::Privy => self.account_command_tx.store_account(privy_account).await,
             DeeplinkKind::PrivyLink => {
                 self.account_command_tx
-                    .link_privy_account(privy_account, deeplink_mnemonic.wallet_pub_key)
+                    .link_privy_account(privy_account)
                     .await
             }
         }
