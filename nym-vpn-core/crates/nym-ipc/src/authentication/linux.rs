@@ -54,6 +54,11 @@ async fn wait_for_authorization(
     }
 }
 
+async fn authorize(mut stream: UnixStream) -> Result<UnixStream, AuthenticationError> {
+    AuthenticaticationResult::Accepted.send(&mut stream).await;
+    Ok(stream)
+}
+
 // Return back the stream if the authentication succeeded, and `None` otherwise
 // This function depends on user interaction, so it must ensure it doesn't await
 // indefinitely and starve the consumer.
@@ -61,6 +66,10 @@ pub(crate) async fn is_authenticated(
     mut stream: UnixStream,
     shutdown_token: CancellationToken,
 ) -> Result<UnixStream, AuthenticationError> {
+    // Let debug builds skip authorization process
+    if cfg!(debug_assertions) {
+        return authorize(stream).await;
+    }
     let connection = shutdown_token
         .run_until_cancelled(Connection::system())
         .await
@@ -85,8 +94,7 @@ pub(crate) async fn is_authenticated(
     let auth_result = wait_for_authorization(proxy, subject, shutdown_token).await?;
 
     if auth_result.is_authorized {
-        AuthenticaticationResult::Accepted.send(&mut stream).await;
-        Ok(stream)
+        authorize(stream).await
     } else {
         AuthenticaticationResult::Denied.send(&mut stream).await;
         Err(AuthenticationError::AuthorizationDenied)
