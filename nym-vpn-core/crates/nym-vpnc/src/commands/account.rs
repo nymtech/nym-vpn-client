@@ -4,7 +4,6 @@
 use anyhow::Result;
 use nym_vpn_lib_types::{DeeplinkClient, DeeplinkKind, GetDeeplinkParams, StoreAccountRequest};
 use nym_vpn_proto::rpc_client::RpcClient;
-use std::str::FromStr;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -181,11 +180,6 @@ impl Command {
                 Ok(())
             }
             Command::GetDeeplink { kind, name } => {
-                let Ok(kind) = DeeplinkKind::from_str(kind.as_str()) else {
-                    println!("Invalid deeplink kind: {kind}. Only 'privy' is supported for now.");
-                    return Ok(());
-                };
-
                 let params = GetDeeplinkParams {
                     client: DeeplinkClient::Desktop,
                     locale: "en".to_string(),
