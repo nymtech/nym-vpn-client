@@ -15,7 +15,10 @@ use std::{
 };
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
-use super::data::{Destination, RouteMessage};
+use super::{
+    Error, Result,
+    data::{Destination, RouteMessage},
+};
 use system_configuration::{
     core_foundation::{
         array::CFArray,
@@ -151,24 +154,30 @@ impl From<DefaultRoute> for RouteMessage {
 }
 
 impl PrimaryInterfaceMonitor {
-    pub fn new() -> (Self, UnboundedReceiver<Vec<InterfaceEvent>>) {
-        let store = SCDynamicStoreBuilder::new("nym-routing").build();
+    pub fn new() -> Result<(Self, UnboundedReceiver<Vec<InterfaceEvent>>)> {
+        let store = SCDynamicStoreBuilder::new("nym-routing")
+            .build()
+            .ok_or(Error::CreateDynamicStore)?;
         let prefs = SCPreferences::default(&CFString::new("nym-routing"));
 
         let (tx, rx) = mpsc::unbounded_channel();
         Self::start_listener(tx);
 
-        (Self { store, prefs }, rx)
+        Ok((Self { store, prefs }, rx))
     }
 
     fn start_listener(tx: UnboundedSender<Vec<InterfaceEvent>>) {
         std::thread::spawn(|| {
-            let listener_store = SCDynamicStoreBuilder::new("nym-routing-listener")
+            let Some(listener_store) = SCDynamicStoreBuilder::new("nym-routing-listener")
                 .callback_context(SCDynamicStoreCallBackContext {
                     callout: Self::store_change_handler,
                     info: tx,
                 })
-                .build();
+                .build()
+            else {
+                tracing::error!("Failed to initialize SCDynamicStore!");
+                return;
+            };
 
             let watch_keys: CFArray<CFString> = CFArray::from_CFTypes(&[
                 CFString::new(STATE_IPV4_KEY),
@@ -181,7 +190,10 @@ impl PrimaryInterfaceMonitor {
                 return;
             }
 
-            let run_loop_source = listener_store.create_run_loop_source();
+            let Some(run_loop_source) = listener_store.create_run_loop_source() else {
+                tracing::error!("Failed to create run loop source!");
+                return;
+            };
             CFRunLoop::get_current().add_source(&run_loop_source, unsafe { kCFRunLoopCommonModes });
             CFRunLoop::run_current();
 

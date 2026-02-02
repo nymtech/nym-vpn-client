@@ -395,7 +395,9 @@ impl super::DnsMonitorT for DnsMonitor {
         let state = Arc::new(Mutex::new(State::new()));
         Self::spawn(state.clone())?;
         Ok(DnsMonitor {
-            store: SCDynamicStoreBuilder::new("nym-dns").build(),
+            store: SCDynamicStoreBuilder::new("nym-dns")
+                .build()
+                .ok_or(Error::DynamicStoreInitError)?,
             state,
         })
     }
@@ -461,7 +463,8 @@ fn create_dynamic_store(state: Arc<Mutex<State>>) -> Result<SCDynamicStore> {
 
     let store = SCDynamicStoreBuilder::new("nym-dns-monitor")
         .callback_context(callback_context)
-        .build();
+        .build()
+        .ok_or(Error::DynamicStoreInitError)?;
 
     let mut store_container = store_container_copy.write().unwrap();
     *store_container = Some(StoreContainer {
@@ -483,7 +486,10 @@ fn create_dynamic_store(state: Arc<Mutex<State>>) -> Result<SCDynamicStore> {
 }
 
 fn run_dynamic_store_runloop(store: SCDynamicStore) {
-    let run_loop_source = store.create_run_loop_source();
+    let Some(run_loop_source) = store.create_run_loop_source() else {
+        tracing::error!("Failed to create run loop source!");
+        return;
+    };
     CFRunLoop::get_current().add_source(&run_loop_source, unsafe { kCFRunLoopCommonModes });
 
     tracing::trace!("Entering DNS CFRunLoop");
