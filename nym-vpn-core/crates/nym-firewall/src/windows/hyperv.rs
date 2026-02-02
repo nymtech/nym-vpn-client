@@ -2,13 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use windows::{
-    Win32::System::{
-        Variant::VARIANT,
-        Wmi::{IWbemClassObject, WBEM_E_NOT_FOUND, WBEM_FLAG_RETURN_WBEM_COMPLETE},
-    },
-    core::{BSTR, PCWSTR},
-};
+use windows::Win32::System::Wmi::WBEM_E_NOT_FOUND;
 use wmi::IWbemClassWrapper;
 
 /// Name of the blocking Hyper-V rule.
@@ -28,30 +22,24 @@ const WMI_NAMESPACE: &str = "root\\standardcimv2";
 /// Errors occurring while configuring Hyper-V firewall rules
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("failed to initialize the COM library")]
-    InitializeCom(#[source] wmi::WMIError),
     #[error("failed to connect to the WMI namespace '{WMI_NAMESPACE}'")]
     ConnectWmi(#[source] wmi::WMIError),
     #[error("failed to obtain Hyper-V rule class")]
     ObtainHyperVClass(#[source] wmi::WMIError),
     #[error("failed to create new instance of Hyper-V rule class")]
-    NewRuleInstance(#[source] windows::core::Error),
+    NewRuleInstance(#[source] wmi::WMIError),
     #[error("failed to set rule setting: {0}")]
-    SetRuleKey(&'static str, #[source] windows::core::Error),
+    SetRuleKey(&'static str, #[source] wmi::WMIError),
     #[error(r#"failed to put the rule "{0}""#)]
-    PutInstance(&'static str, #[source] windows::core::Error),
+    PutInstance(&'static str, #[source] wmi::WMIError),
     #[error(r#"failed to delete rule "{0}""#)]
-    DeleteInstance(&'static str, #[source] windows::core::Error),
+    DeleteInstance(&'static str, #[source] wmi::WMIError),
 }
 
 /// Initialize WMI connection to the ROOT\StandardCIMV2 namespace, which may be used for
 /// interacting with Hyper-V rules.
 pub fn init_wmi() -> Result<wmi::WMIConnection, Error> {
-    let con = wmi::WMIConnection::with_namespace_path(
-        WMI_NAMESPACE,
-        wmi::COMLibrary::new().map_err(Error::InitializeCom)?,
-    )
-    .map_err(Error::ConnectWmi)?;
+    let con = wmi::WMIConnection::with_namespace_path(WMI_NAMESPACE).map_err(Error::ConnectWmi)?;
 
     // Test whether the class is available
     let _ = con
@@ -100,6 +88,12 @@ enum Direction {
     Outbound = 2,
 }
 
+const ELEMENT_NAME_PROPERTY: &str = "ElementName";
+const INSTANCE_ID_PROPERTY: &str = "InstanceID";
+const ACTION_PROPERTY: &str = "Action";
+const ENABLED_PROPERTY: &str = "Enabled";
+const DIRECTION_PROPERTY: &str = "Direction";
+
 fn add_blocking_rule(
     con: &wmi::WMIConnection,
     rule_class: &IWbemClassWrapper,
@@ -107,49 +101,34 @@ fn add_blocking_rule(
     instance_id: &str,
     direction: Direction,
 ) -> Result<(), Error> {
-    // SAFETY: We have a valid class wrapper, so spawning instances is safe
-    let instance = unsafe { rule_class.inner.SpawnInstance(0) }.map_err(Error::NewRuleInstance)?;
+    let instance = rule_class
+        .spawn_instance()
+        .map_err(Error::NewRuleInstance)?;
 
-    put_instance_property(
-        &instance,
-        "ElementName",
-        &VARIANT::from(BSTR::from(element_name)),
-    )?;
-    put_instance_property(
-        &instance,
-        "InstanceID",
-        &VARIANT::from(BSTR::from(instance_id)),
-    )?;
+    instance
+        .put_property(ELEMENT_NAME_PROPERTY, element_name)
+        .map_err(|err| Error::SetRuleKey(ELEMENT_NAME_PROPERTY, err))?;
+
+    instance
+        .put_property(INSTANCE_ID_PROPERTY, instance_id)
+        .map_err(|err| Error::SetRuleKey(INSTANCE_ID_PROPERTY, err))?;
 
     // Action: 4 = block
-    put_instance_property(&instance, "Action", &VARIANT::from(4))?;
+    instance
+        .put_property(ACTION_PROPERTY, 4)
+        .map_err(|err| Error::SetRuleKey(ACTION_PROPERTY, err))?;
 
     // Enabled: 1 = enabled
-    put_instance_property(&instance, "Enabled", &VARIANT::from(1))?;
+    instance
+        .put_property(ENABLED_PROPERTY, 1)
+        .map_err(|err| Error::SetRuleKey(ENABLED_PROPERTY, err))?;
 
-    put_instance_property(&instance, "Direction", &VARIANT::from(direction as i32))?;
+    instance
+        .put_property(DIRECTION_PROPERTY, direction as i32)
+        .map_err(|err| Error::SetRuleKey(DIRECTION_PROPERTY, err))?;
 
-    // SAFETY: We have a valid instance
-    unsafe {
-        con.svc
-            .PutInstance(&instance, WBEM_FLAG_RETURN_WBEM_COMPLETE, None, None)
-            .map_err(|error| Error::PutInstance(element_name, error))
-    }
-}
-
-/// Set property for a WMI class instance `inst`.
-fn put_instance_property(
-    inst: &IWbemClassObject,
-    prop: &'static str,
-    val: &VARIANT,
-) -> Result<(), Error> {
-    let utf16_prop: Vec<_> = prop.encode_utf16().chain(std::iter::once(0u16)).collect();
-
-    // SAFETY: All arguments are valid and properly null-terminated
-    unsafe {
-        inst.Put(PCWSTR(utf16_prop.as_ptr()), 0, val, 0)
-            .map_err(|error| Error::SetRuleKey(prop, error))
-    }
+    con.put_instance(&instance)
+        .map_err(|error| Error::PutInstance(element_name, error))
 }
 
 /// Remove Hyper-V rule previously added by [`add_blocking_hyperv_firewall_rule`]. See the
@@ -177,19 +156,15 @@ fn remove_blocking_rule(
     element_name: &'static str,
     instance_id: &str,
 ) -> Result<(), Error> {
-    let rule_path = BSTR::from(format!(
-        r#"MSFT_NetFirewallHyperVRule.InstanceID="{instance_id}""#
-    ));
-    // SAFETY: All arguments are valid.
-    unsafe {
-        con.svc
-            .DeleteInstance(&rule_path, WBEM_FLAG_RETURN_WBEM_COMPLETE, None, None)
-            .or_else(|error| map_deletion_err(element_name, error))
-    }
+    let rule_path = format!(r#"MSFT_NetFirewallHyperVRule.InstanceID="{instance_id}""#);
+    con.delete_instance(&rule_path)
+        .or_else(|error| map_deletion_err(element_name, error))
 }
 
-fn map_deletion_err(element_name: &'static str, err: windows::core::Error) -> Result<(), Error> {
-    if err.code().0 == WBEM_E_NOT_FOUND.0 {
+fn map_deletion_err(element_name: &'static str, err: wmi::WMIError) -> Result<(), Error> {
+    if let wmi::WMIError::HResultError { hres } = err
+        && hres == WBEM_E_NOT_FOUND.0
+    {
         // If the rule doesn't exist, do nothing
         Ok(())
     } else {
