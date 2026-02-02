@@ -43,11 +43,7 @@ class DnsViewModel @Inject constructor(
 			_defaultDns.value = DEFAULT_DNS_SERVERS
 			_customDns.value = vpnConfigRepository.getConfig().customDns
 		}
-		viewModelScope.launch {
-			backendManager.restartStartedEvents.collect {
-				_events.tryEmit(UiEvent.ReconnectStarted)
-			}
-		}
+
 		viewModelScope.launch {
 			backendManager.stateFlow.collect { s ->
 				_backendUi.value = DnsBackendUiState(
@@ -58,24 +54,24 @@ class DnsViewModel @Inject constructor(
 		}
 	}
 
-	fun onCustomDnsEnable(enabled: Boolean, isActuallyConnected: Boolean) = viewModelScope.launch {
+	fun onCustomDnsEnable(enabled: Boolean) = viewModelScope.launch {
+		notifyReconnectIfConnected()
 		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetCustomDnsEnabled(enabled))
-		if (isActuallyConnected) {
-			backendManager.requestRestartDebounced()
-		}
 	}
 
-	fun saveDnsListReconnectIfNeeded(list: List<String>, dnsEnabled: Boolean, isActuallyConnected: Boolean) = viewModelScope.launch {
+	fun saveDnsListReconnectIfNeeded(list: List<String>) = viewModelScope.launch {
+		notifyReconnectIfConnected()
+
 		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetCustomDns(list))
 		_customDns.value = list
-		if (dnsEnabled && isActuallyConnected) {
-			backendManager.requestRestartDebounced()
-		}
 	}
 
-	fun requestReconnectIfConnected(isActuallyConnected: Boolean) {
-		if (isActuallyConnected) {
-			backendManager.requestRestartDebounced()
+	private fun notifyReconnectIfConnected() {
+		val state = backendManager.getState()
+		val isConnected = state == Tunnel.State.Up || state == Tunnel.State.EstablishingConnection
+
+		if (isConnected) {
+			_events.tryEmit(UiEvent.ReconnectStarted)
 		}
 	}
 

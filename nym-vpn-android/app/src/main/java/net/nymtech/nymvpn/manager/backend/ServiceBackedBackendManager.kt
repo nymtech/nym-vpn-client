@@ -4,7 +4,6 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -64,20 +63,7 @@ class ServiceBackedBackendManager @Inject constructor(
 		state = _state,
 	)
 
-	private val restartCoordinator = RestartCoordinator(
-		scope = applicationScope,
-		dispatcher = ioDispatcher,
-		stateFlow = stateFlow,
-		getState = ::getState,
-		stopTunnel = ::stopTunnel,
-		startTunnel = ::startTunnel,
-		onRestartStarted = { /* optional hook */ },
-	)
-
-	override val restartStartedEvents: Flow<Unit> = restartCoordinator.restartStartedEvents
-
 	init {
-		restartCoordinator.start()
 		observeVpnServiceEvents()
 	}
 
@@ -151,12 +137,11 @@ class ServiceBackedBackendManager @Inject constructor(
 		}
 	}
 
-	override suspend fun restartTunnel(shouldResetConnectionTime: Boolean) {
-		restartCoordinator.restartNow(shouldResetConnectionTime)
-	}
-
-	override fun requestRestartDebounced(shouldResetConnectionTime: Boolean) {
-		restartCoordinator.requestRestartDebounced(shouldResetConnectionTime)
+	override suspend fun requestReconnect() {
+		val res = serviceConnectionManager.withApi { it.reconnect() }
+		if (res !is ConnectResult.Ok) {
+			Timber.tag(TAG).w("ReconnectTunnel result=%s", res::class.java.simpleName)
+		}
 	}
 
 	override fun getState(): Tunnel.State = serviceConnectionManager.apiFlow.value?.getState() ?: Tunnel.State.Down
@@ -195,17 +180,13 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun getMnemonic(): List<String> = emptyList()
 	override suspend fun createAccount() {
-		// add
+		serviceConnectionManager.withApi { it.createAccount() }
 	}
-	override suspend fun registerAccount(purchaseToken: String): String = ""
+	override suspend fun registerAccount(purchaseToken: String): String {
+		return serviceConnectionManager.withApi { it.registerAccount(purchaseToken) }
+	}
 	override suspend fun refreshAccount() {
-		// add
-	}
-	override suspend fun refreshAccountState() {
-		// add
-	}
-	override suspend fun refreshAccountLinks() {
-		// add
+		serviceConnectionManager.withApi { it.refreshAccount() }
 	}
 	override suspend fun refresh() {
 		// add

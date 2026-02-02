@@ -16,8 +16,10 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.ListGatewaysOptions
 import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
+import nym_vpn_lib_types.RegisterAccountRequest
 import nym_vpn_lib_types.StoreAccountRequest
 import nym_vpn_lib_types.SystemMessage
+import timber.log.Timber
 
 /**
  * API implementation. Delegates to VpnCoreController.
@@ -26,6 +28,10 @@ internal class VpnServiceApiImpl(
 	private val core: VpnCoreController,
 	override val events: Flow<VpnServiceEvent>,
 ) : VpnServiceApi {
+
+	companion object {
+		private const val TAG = "core-vpn"
+	}
 
 	override suspend fun init(request: ConnectInitRequest): ConnectResult = core.init(request)
 
@@ -41,6 +47,8 @@ internal class VpnServiceApiImpl(
 
 	override suspend fun disconnect(): ConnectResult = core.disconnect()
 
+	override suspend fun reconnect(): ConnectResult = core.reconnect()
+
 	override suspend fun isMnemonicStored(): Boolean = core.tryWithCoreSender { it.isAccountStored() } ?: false
 
 	override suspend fun storeMnemonic(mnemonic: String) {
@@ -49,6 +57,21 @@ internal class VpnServiceApiImpl(
 
 	override suspend fun removeMnemonic() {
 		core.requireCoreSender { it.forgetAccount() }
+	}
+
+	override suspend fun createAccount() {
+		Timber.tag(TAG).d("createAccount requested")
+		core.requireCoreSender { it.createAccount() }
+	}
+
+	override suspend fun registerAccount(token: String): String {
+		Timber.tag(TAG).d("registerAccount requested")
+		return core.requireCoreSender { it.registerAccount(RegisterAccountRequest(token)).accountToken }
+	}
+
+	override suspend fun refreshAccount() {
+		Timber.tag(TAG).d("refreshAccount requested")
+		core.requireCoreSender { it.refreshAccount() }
 	}
 
 	override suspend fun getAccountState(): AccountControllerState = core.requireCoreSender { it.getAccountState() }

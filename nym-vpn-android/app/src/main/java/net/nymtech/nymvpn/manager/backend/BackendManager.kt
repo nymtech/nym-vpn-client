@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.manager.backend
 
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.vpn.backend.Tunnel
@@ -15,8 +14,7 @@ interface BackendManager {
 
 	suspend fun stopTunnel()
 	suspend fun startTunnel()
-	suspend fun restartTunnel(shouldResetConnectionTime: Boolean = false)
-	fun requestRestartDebounced(shouldResetConnectionTime: Boolean = false)
+	suspend fun requestReconnect()
 
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
@@ -26,19 +24,15 @@ interface BackendManager {
 	suspend fun getSystemMessages(): List<SystemMessage>
 	suspend fun getGateways(gatewayType: GatewayType): List<NymGateway>
 
-	suspend fun refreshAccountLinks()
 	suspend fun refresh()
 
 	suspend fun createAccount()
 	suspend fun registerAccount(purchaseToken: String): String
 	suspend fun refreshAccount()
-	suspend fun refreshAccountState()
-
 	suspend fun getMnemonic(): List<String>
 	suspend fun getAccountState(): AccountControllerState
 
 	val stateFlow: StateFlow<TunnelManagerState>
-	val restartStartedEvents: Flow<Unit>
 
 	fun getState(): Tunnel.State
 	fun initialize()

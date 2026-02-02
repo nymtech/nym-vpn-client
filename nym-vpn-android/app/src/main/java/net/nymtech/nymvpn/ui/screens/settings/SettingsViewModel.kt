@@ -14,6 +14,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import timber.log.Timber
 import javax.inject.Inject
@@ -39,12 +40,6 @@ class SettingsViewModel @Inject constructor(
 			val daemonVersion = backendManager.getDaemonVersion()
 			_uiState.update { it.copy(daemonVersion = daemonVersion) }
 		}
-
-		viewModelScope.launch {
-			backendManager.restartStartedEvents.collect {
-				_events.tryEmit(UiEvent.ReconnectStarted)
-			}
-		}
 	}
 
 	fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {
@@ -57,9 +52,19 @@ class SettingsViewModel @Inject constructor(
 
 	fun onBypassLanSelected(selected: Boolean) = viewModelScope.launch {
 		runCatching {
+			notifyReconnectIfConnected()
 			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetBypassLan(selected))
 		}.onFailure {
 			Timber.e(it, "Failed to update bypass LAN setting")
+		}
+	}
+
+	private fun notifyReconnectIfConnected() {
+		val state = backendManager.getState()
+		val isConnected = state == Tunnel.State.Up || state == Tunnel.State.EstablishingConnection
+
+		if (isConnected) {
+			_events.tryEmit(UiEvent.ReconnectStarted)
 		}
 	}
 }

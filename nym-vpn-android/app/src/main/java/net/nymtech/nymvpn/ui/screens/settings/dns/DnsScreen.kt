@@ -109,13 +109,9 @@ fun DnsScreen(appUiState: AppUiState, onBackEventConsume: () -> Unit, onBackClic
 		customDns = customDns,
 		dnsEnabled = dnsEnabled,
 		connectedForUi = connectedForUi,
-		onDnsEnable = { enabled -> viewModel.onCustomDnsEnable(enabled, isActuallyConnected) },
+		onDnsEnable = { enabled -> viewModel.onCustomDnsEnable(enabled) },
 		onSave = { listToSave ->
-			viewModel.saveDnsListReconnectIfNeeded(
-				list = listToSave,
-				dnsEnabled = dnsEnabled,
-				isActuallyConnected = isActuallyConnected,
-			)
+			viewModel.saveDnsListReconnectIfNeeded(list = listToSave)
 			if (!isActuallyConnected) {
 				Toast.makeText(
 					context,

@@ -31,8 +31,6 @@ import timber.log.Timber
 
 /**
  * Android VPN service entry point.
- * - No-tunnel: UI binds, core is available.
- * - Tunnel: connect triggers foreground + TUN establish.
  */
 class VpnService :
 	LifecycleVpnService(),
@@ -59,7 +57,6 @@ class VpnService :
 	private val _events = MutableSharedFlow<VpnServiceEvent>(extraBufferCapacity = 128)
 	val events: Flow<VpnServiceEvent> = _events.asSharedFlow()
 
-	// Created in onCreate() (context is not available in constructor).
 	private lateinit var foreground: VpnForegroundController
 	private lateinit var tun: VpnTunController
 	private lateinit var core: VpnCoreController
@@ -69,7 +66,6 @@ class VpnService :
 	override fun onCreate() {
 		super.onCreate()
 
-		// Init order: controllers first, then API.
 		foreground = VpnForegroundController(service = this)
 		tun = VpnTunController(service = this)
 		core = VpnCoreController(
@@ -105,13 +101,16 @@ class VpnService :
 	}
 
 	override fun onBind(intent: Intent?): IBinder {
+		super.onBind(intent)
 		Timber.tag(TAG).i("onBind action=%s", intent?.action)
 		ioScope.launch { core.ensureReadyForManagementBestEffort() }
 		return binder
 	}
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-		when (intent?.action) {
+		val action = intent?.action
+
+		when (action) {
 			ACTION_START_FROM_API,
 			ACTION_START_FOREGROUND,
 			-> {
@@ -126,8 +125,19 @@ class VpnService :
 			}
 		}
 
-		val alwaysOn = intent?.action == SERVICE_INTERFACE || core.isAlwaysOnHeuristic(intent)
-		if (alwaysOn) foreground.promoteMinimal("onStartCommand(always-on)")
+		val alwaysOn = action == SERVICE_INTERFACE || (intent == null && startId != 1) || core.isAlwaysOnHeuristic(intent)
+
+		if (alwaysOn) {
+			Timber.tag(TAG).i("Always-on start detected")
+			foreground.promoteMinimal("onStartCommand(always-on)")
+
+			ioScope.launch {
+				core.ensureReadyForManagementBestEffort()
+				if (core.state == Tunnel.State.Down || core.state == Tunnel.State.Offline) {
+					core.connectLocked()
+				}
+			}
+		}
 
 		return super.onStartCommand(intent, flags, startId)
 	}

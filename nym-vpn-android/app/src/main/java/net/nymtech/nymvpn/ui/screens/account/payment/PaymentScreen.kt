@@ -81,12 +81,12 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 
 				is PaymentUiEvent.PaymentSuccess -> {
 					animationStart = true
-					viewModel.refreshAccountState()
+					viewModel.refreshAccount()
 				}
 
 				is PaymentUiEvent.SubscriptionOwned -> {
 					animationStart = true
-					viewModel.refreshAccountState()
+					viewModel.refreshAccount()
 				}
 
 				PaymentUiEvent.PaymentPending -> {

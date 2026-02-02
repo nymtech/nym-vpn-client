@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
@@ -180,18 +179,6 @@ class HopViewModel @Inject constructor(
 					vpnConfigRepository.apply(CoreVpnConfigUpdate.SetExitPoint(id.asExitPoint()))
 					Timber.tag(TAG).i("GatewaySelectionSaved location=EXIT")
 				}
-			}
-
-			val currentState = backendManager.stateFlow.first().tunnelState
-			val wasConnected = currentState == Tunnel.State.Up || currentState == Tunnel.State.EstablishingConnection
-
-			if (wasConnected) {
-				Timber.tag(TAG).i("GatewaySelectionApply action=restart state=%s", currentState)
-				applicationScope.launch {
-					backendManager.restartTunnel(shouldResetConnectionTime = true)
-				}
-			} else {
-				Timber.tag(TAG).d("GatewaySelectionApplySkipped reason=tunnel_not_connected state=%s", currentState)
 			}
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "GatewaySelectionFailed location=%s", gatewayLocation)

@@ -211,10 +211,10 @@ constructor(
 
 		launch {
 			runCatching {
-				backendManager.refreshAccountLinks()
-				Timber.tag(TAG).d("AccountLinksRefreshSuccess")
+				backendManager.refreshAccount()
+				Timber.tag(TAG).d("AccountRefreshSuccess")
 			}.onFailure {
-				Timber.tag(TAG).e(it, "AccountLinksRefreshFailed")
+				Timber.tag(TAG).e(it, "AccountRefreshFailed")
 			}
 		}
 	}

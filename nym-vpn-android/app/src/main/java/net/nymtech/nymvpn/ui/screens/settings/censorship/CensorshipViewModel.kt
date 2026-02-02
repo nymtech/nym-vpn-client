@@ -28,22 +28,24 @@ class CensorshipViewModel @Inject constructor(
 	)
 	val events = _events.asSharedFlow()
 
-	init {
-		viewModelScope.launch {
-			backendManager.restartStartedEvents.collect {
-				_events.tryEmit(UiEvent.ReconnectStarted)
-			}
-		}
-	}
-
 	fun onQUICEnabled(enabled: Boolean) = viewModelScope.launch {
 		runCatching {
 			settingsRepository.setQUICEnabled(enabled)
 			if (vpnConfigRepository.getConfig().mode == Tunnel.Mode.TWO_HOP_MIXNET) {
-				backendManager.requestRestartDebounced()
+				backendManager.requestReconnect()
+				notifyReconnectIfConnected()
 			}
 		}.onFailure {
 			Timber.e(it, "Failed to update QUIC setting")
+		}
+	}
+
+	private fun notifyReconnectIfConnected() {
+		val state = backendManager.getState()
+		val isConnected = state == Tunnel.State.Up || state == Tunnel.State.EstablishingConnection
+
+		if (isConnected) {
+			_events.tryEmit(UiEvent.ReconnectStarted)
 		}
 	}
 }
