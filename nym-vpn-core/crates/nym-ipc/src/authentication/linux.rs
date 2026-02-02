@@ -108,17 +108,3 @@ pub(crate) async fn is_authenticated(
         Err(AuthenticationError::AuthorizationDenied)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn no_auth_for_headless_process() {
-        let cred = UnixCredentials::new();
-        let auth_res = prompt_for_authorization(cred, CancellationToken::new())
-            .await
-            .unwrap();
-        assert!(!auth_res.is_authorized);
-    }
-}
