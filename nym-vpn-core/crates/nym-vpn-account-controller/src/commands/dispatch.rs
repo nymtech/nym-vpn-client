@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
     AvailableTicketbooks,
+    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
+    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
-    ResolverOverrides,
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
 use nym_vpn_store::account::StorableAccount;
@@ -34,10 +34,7 @@ pub enum AccountCommand {
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
     /// Link a Privy account with the currently logged-on API account
-    LinkPrivyAccount(
-        ReturnSender<(), AccountCommandError>,
-        StorableAccount,
-    ),
+    LinkPrivyAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
 
     /// Rotate the wireguard keys
     RotateKeys(ReturnSender<(), AccountCommandError>),

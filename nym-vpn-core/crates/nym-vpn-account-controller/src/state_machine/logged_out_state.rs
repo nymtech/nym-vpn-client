@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    SharedAccountState,
     commands::{
-        common_handler, handler, AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand,
+        AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand, common_handler, handler,
     },
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState,
         PrivateAccountControllerState, SyncingState,
     },
-    SharedAccountState,
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;

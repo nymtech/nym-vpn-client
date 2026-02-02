@@ -4,12 +4,12 @@
 use std::pin::Pin;
 
 use crate::{
-    commands::{common_handler, handler, AccountCommand, ReturnSender, UpgradeModeCommand},
-    state_machine::{
-        AccountControllerStateHandler, LoggedOutState, NextAccountControllerState,
-        OfflineState, PrivateAccountControllerState, SyncingState, ACCOUNT_UPDATE_INTERVAL,
-    },
     SharedAccountState,
+    commands::{AccountCommand, ReturnSender, UpgradeModeCommand, common_handler, handler},
+    state_machine::{
+        ACCOUNT_UPDATE_INTERVAL, AccountControllerStateHandler, LoggedOutState,
+        NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncingState,
+    },
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;

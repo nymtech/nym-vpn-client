@@ -9,14 +9,15 @@ use std::{
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_http_api_client::{
-    ApiClient, Client, HttpClientError, Params, PathSegments, Url, UserAgent, NO_PARAMS,
+    ApiClient, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url, UserAgent,
 };
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use time::{Duration as TimeDuration, OffsetDateTime};
 use tokio::sync::RwLock;
 
 use crate::{
-    api_urls_to_urls, error::{Result, VpnApiClientError},
+    ResolverOverrides, api_urls_to_urls,
+    error::{Result, VpnApiClientError},
     fronted_http_client,
     request::{
         ApplyFreepassRequestBody, CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody,
@@ -37,7 +38,6 @@ use crate::{
         Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform, VpnAccount, VpnApiTime,
         VpnApiTimeSynced,
     },
-    ResolverOverrides,
 };
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";

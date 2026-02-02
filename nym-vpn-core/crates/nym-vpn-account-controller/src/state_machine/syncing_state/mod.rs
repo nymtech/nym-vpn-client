@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    commands::{common_handler, handler, AccountCommand, UpgradeModeCommand},
+    SharedAccountState,
+    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
         NextAccountControllerState, OfflineState, PrivateAccountControllerState,
     },
-    SharedAccountState,
 };
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
+    VpnApiClient,
     error::VpnApiClientError,
     response::NymErrorResponse,
     types::{Device, VpnAccount},
-    VpnApiClient,
 };
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, VpnAccountSummary,
