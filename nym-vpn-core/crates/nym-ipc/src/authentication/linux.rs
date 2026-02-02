@@ -3,7 +3,7 @@
 
 use std::time::Duration;
 
-use nix::sys::socket::{getsockopt, sockopt::PeerCredentials};
+use nix::sys::socket::{UnixCredentials, getsockopt, sockopt::PeerCredentials};
 use nym_ipc_client::authentication::AuthenticaticationResult;
 use tokio::net::UnixStream;
 use tokio_util::sync::CancellationToken;
@@ -59,17 +59,10 @@ async fn authorize(mut stream: UnixStream) -> Result<UnixStream, AuthenticationE
     Ok(stream)
 }
 
-// Return back the stream if the authentication succeeded, and `None` otherwise
-// This function depends on user interaction, so it must ensure it doesn't await
-// indefinitely and starve the consumer.
-pub(crate) async fn is_authenticated(
-    mut stream: UnixStream,
+async fn prompt_for_authorization(
+    cred: UnixCredentials,
     shutdown_token: CancellationToken,
-) -> Result<UnixStream, AuthenticationError> {
-    // Let debug builds skip authorization process
-    if cfg!(debug_assertions) {
-        return authorize(stream).await;
-    }
+) -> Result<AuthorizationResult, AuthenticationError> {
     let connection = shutdown_token
         .run_until_cancelled(Connection::system())
         .await
@@ -81,7 +74,6 @@ pub(crate) async fn is_authenticated(
         .ok_or(AuthenticationError::ShuttingDown)?
         .map_err(AuthenticationError::AuthorityProxy)?;
 
-    let cred = getsockopt(&stream, PeerCredentials).map_err(AuthenticationError::GetSockOpt)?;
     let subject = Subject::new_for_owner(
         cred.pid()
             .try_into()
@@ -91,12 +83,42 @@ pub(crate) async fn is_authenticated(
     )
     .map_err(AuthenticationError::Subject)?;
 
-    let auth_result = wait_for_authorization(proxy, subject, shutdown_token).await?;
+    wait_for_authorization(proxy, subject, shutdown_token).await
+}
+
+// Return back the stream if the authentication succeeded, and `None` otherwise
+// This function depends on user interaction, so it must ensure it doesn't await
+// indefinitely and starve the consumer.
+pub(crate) async fn is_authenticated(
+    mut stream: UnixStream,
+    shutdown_token: CancellationToken,
+) -> Result<UnixStream, AuthenticationError> {
+    // Let debug builds skip authorization process
+    if cfg!(debug_assertions) {
+        return authorize(stream).await;
+    }
+
+    let cred = getsockopt(&stream, PeerCredentials).map_err(AuthenticationError::GetSockOpt)?;
+    let auth_result = prompt_for_authorization(cred, shutdown_token).await?;
 
     if auth_result.is_authorized {
         authorize(stream).await
     } else {
         AuthenticaticationResult::Denied.send(&mut stream).await;
         Err(AuthenticationError::AuthorizationDenied)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn no_auth_for_headless_process() {
+        let cred = UnixCredentials::new();
+        let auth_res = prompt_for_authorization(cred, CancellationToken::new())
+            .await
+            .unwrap();
+        assert!(!auth_res.is_authorized);
     }
 }
