@@ -20,6 +20,8 @@ tokio-util.workspace = true
 tracing.workspace = true
 tonic.workspace = true
 
+nym-ipc-client.workspace = true
+
 [target.'cfg(target_os = "linux")'.dependencies]
 nix.workspace = true
 zbus.workspace = true
