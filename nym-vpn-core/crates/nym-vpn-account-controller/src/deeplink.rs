@@ -1,11 +1,11 @@
 use aes_gcm::{
-    aead::{Aead, KeyInit}, Aes256Gcm,
-    Nonce,
+    Aes256Gcm, Nonce,
+    aead::{Aead, KeyInit},
 };
 use hkdf::Hkdf;
 use nym_crypto::asymmetric::x25519::{KeyPair, PublicKey};
 use nym_vpn_lib_types::DeeplinkKind;
-use rand::{rngs::OsRng, RngCore};
+use rand::{RngCore, rngs::OsRng};
 use sha2::Sha256;
 use std::collections::HashMap;
 use tokio::time::{Duration, Instant};
