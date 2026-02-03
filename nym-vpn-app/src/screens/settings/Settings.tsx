@@ -92,7 +92,7 @@ function Settings() {
           backendFlags.mixnetTuning && {
             title: t('mixnet-tuning.title'),
             desc: t('mixnet-tuning.desc'),
-            leadingIcon: 'campaign',
+            leadingIcon: 'visibility_off',
             onClick: () => navigate(routes.mixnetTuning),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },

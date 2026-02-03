@@ -39,7 +39,7 @@ function MixnetTuning() {
   return (
     <PageAnim className="h-full flex flex-col mt-2 pb-2 gap-6 justify-between select-none">
       <div className="flex flex-col gap-6">
-        <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+        <p className="text-sm text-center text-iron dark:text-bombay whitespace-pre-line">
           <Trans
             i18nKey="mixnet-tuning.top-description"
             ns="settings"

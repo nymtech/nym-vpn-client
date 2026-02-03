@@ -96,11 +96,11 @@
   },
   "mixnet-tuning": {
     "title": "Mixnet tuning",
-    "desc": "Customize traffic patterns of anonymous mode",
+    "desc": "Customize traffic patterns of Anonymous mode",
     "top-description": "Customize your <strong>mixnet</strong> traffic patterns.",
     "learn-more": "Learn more about mixnet parameters",
     "save-custom-settings": "Save custom settings",
-    "restore-default-settings": "Restore default settings",
+    "restore-default-settings": "Reset to default settings",
     "performance": {
       "title": "Expected performance based on current settings",
       "speed": {
