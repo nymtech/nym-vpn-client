@@ -13,7 +13,7 @@ import Settings
 import Theme
 import UIComponents
 
-public struct GatewayDetailsView: View {
+public struct ServerDetailsView: View {
     private let externalLinkManager: ExternalLinkManager
     private let gateway: GatewayNode
     private let hopType: HopType
@@ -57,7 +57,7 @@ public struct GatewayDetailsView: View {
 }
 
 // MARK: - Views -
-private extension GatewayDetailsView {
+private extension ServerDetailsView {
     func navbar() -> some View {
         CustomNavBar(
             title: "gatewayInfo.serverDetails".localizedString,
@@ -232,7 +232,7 @@ private extension GatewayDetailsView {
     }
 }
 
-private extension GatewayDetailsView {
+private extension ServerDetailsView {
     func capabilitiesSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             advancedPrivacyRow()
@@ -347,7 +347,7 @@ private extension GatewayDetailsView {
 }
 
 // MARK: - Performance section -
-private extension GatewayDetailsView {
+private extension ServerDetailsView {
     func performanceSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             overAllPerformanceRow()
@@ -414,7 +414,7 @@ private extension GatewayDetailsView {
 }
 
 // MARK: - Server info -
-private extension GatewayDetailsView {
+private extension ServerDetailsView {
     func serverInfoSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             buildVersionRow()
@@ -476,7 +476,7 @@ private extension GatewayDetailsView {
 }
 
 // MARK: - IP section -
-private extension GatewayDetailsView {
+private extension ServerDetailsView {
     func ipSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             ipv4Rows()
@@ -561,7 +561,7 @@ private extension GatewayDetailsView {
 }
 
 // MARK: - Actions
-private extension GatewayDetailsView {
+private extension ServerDetailsView {
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
     }
@@ -603,7 +603,7 @@ private extension GatewayDetailsView {
 }
 
 // MARK: - Helpers -
-private extension GatewayDetailsView {
+private extension ServerDetailsView {
     // TODO: check if working
     func locationTitle() -> String {
         let parts = [

@@ -363,7 +363,7 @@ private extension DnsView {
         GenericButton(
             title: "dns.button.add".localizedString,
             style: .primaryBorderOnly,
-            isDisabled: viewModel.isAddButtonDisabled,
+            isDisabled: .constant(viewModel.isAddButtonDisabled),
             isWidthExpanded: false
         )
         .onTapGesture {
@@ -390,8 +390,9 @@ private extension DnsView {
     func dnsSaveChangesButton() -> some View {
         GenericButton(
             title: "dns.button.saveChanges".localizedString,
-            isDisabled: viewModel.isSaveChangesButtonDisabled
-        )        .padding(.horizontal, 16)
+            isDisabled: .constant(viewModel.isSaveChangesButtonDisabled)
+        )
+        .padding(.horizontal, 16)
         .onTapGesture {
             Task {
                 await viewModel.saveChanges()

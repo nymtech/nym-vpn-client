@@ -135,19 +135,19 @@ private extension GatewayCountryCell {
             }
 
             arrowDropDown()
-            .onHover { newValue in
-                isAccessoryHovered = newValue
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("gatewaySelector.expandServers".localizedString)
-            .accessibilityAddTraits([.isButton])
-            .contentShape(Rectangle())
-            .onTapGesture {
-                expandDidTap()
-            }
-            .accessibilityAction {
-                expandDidTap()
-            }
+                .onHover { newValue in
+                    isAccessoryHovered = newValue
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("gatewaySelector.expandServers".localizedString)
+                .accessibilityAddTraits([.isButton])
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    expandDidTap()
+                }
+                .accessibilityAction {
+                    expandDidTap()
+                }
         }
         .background {
             isButtonHovered ? NymColor.elevationHover : NymColor.elevation

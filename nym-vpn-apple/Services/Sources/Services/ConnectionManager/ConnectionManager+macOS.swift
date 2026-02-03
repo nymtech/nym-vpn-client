@@ -82,6 +82,7 @@ extension ConnectionManager {
                 guard let self, currentTunnelStatus == .connected, appSettings.shouldReconnect else { return }
                 updateConnectionConfig()
             }
+            .store(in: &cancellables)
     }
 }
 

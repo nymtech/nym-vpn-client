@@ -53,11 +53,12 @@ import GRPCManager
     )
 #endif
 
-    @Published public var connectionConfig: ConnectionConfig {
-        didSet {
-            connectionStorage.connectionConfig = connectionConfig
-        }
-    }
+    @Published public var connectionConfig: ConnectionConfig
+//    {
+//        didSet {
+//            connectionStorage.connectionConfig = connectionConfig
+//        }
+//    }
     @Published public var connectedDate: Date?
     @Published public var connectionRetryAttempt: Int?
     @Published public var afterDisconnectAction: AfterDisconnectAction?
@@ -250,6 +251,12 @@ private extension ConnectionManager {
     func setupConnectionChangeObserver() {
         $connectionType.sink { [weak self] _ in
             self?.updateCountries()
+        }
+        .store(in: &cancellables)
+
+        $connectionConfig.sink { [weak self] newConnectionConfig in
+            self?.connectionStorage.connectionConfig = newConnectionConfig
+            self?.updateConnectionConfig()
         }
         .store(in: &cancellables)
     }

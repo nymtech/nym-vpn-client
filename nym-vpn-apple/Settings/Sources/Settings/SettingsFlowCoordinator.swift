@@ -66,6 +66,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             privacyAndDataDestination()
         case .dns:
             dnsDestination()
+        case .mixnetTuning:
+            mixnetTuningDestination()
         case .censorship:
             censorshipDestination()
         case .accountAndDevices:
@@ -221,6 +223,10 @@ private extension SettingsFlowCoordinator {
     @ViewBuilder
     func privacyAndDataDestination() -> some View {
         PrivacyAndDataView(path: $flowState.path)
+    }
+
+    func mixnetTuningDestination() -> some View {
+        MixnetTuningView(path: $flowState.path)
     }
 
     @ViewBuilder
