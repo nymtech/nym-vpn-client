@@ -21,7 +21,7 @@ function MixingDelaySlider({
   const { t } = useTranslation('settings');
 
   return (
-    <div className="w-full max-w-xl mt-5 space-y-5">
+    <div className="w-full mt-5 space-y-5">
       <div className="flex justify-between text-sm text-iron dark:text-bombay">
         <span>{t('mixnet-tuning.mixing-delay.faster')}</span>
         <span>{t('mixnet-tuning.mixing-delay.max-anonymity')}</span>
