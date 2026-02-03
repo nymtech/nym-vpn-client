@@ -24,7 +24,6 @@ function MixnetTuning() {
   const mainDispatch = useMainDispatch() as StateDispatch;
 
   const handleSaveCustomSettings = async () => {
-    console.log('[handleSaveCustomSettings] state', state);
     setLoading(true);
     try {
       await invoke('set_mixnet_traffic_config', { config: state });
@@ -97,11 +96,6 @@ function MixnetTuning() {
 
 function MixnetTuningWrapper() {
   const { mixnetTrafficConfig } = useMainState();
-
-  console.log(
-    '[MixnetTuningWrapper] mixnetTrafficConfig.messageSendingAverageDelay',
-    mixnetTrafficConfig.messageSendingAverageDelay,
-  );
 
   return (
     <MixnetTrafficConfigProvider initialConfig={mixnetTrafficConfig}>

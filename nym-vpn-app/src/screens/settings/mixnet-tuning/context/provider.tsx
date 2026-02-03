@@ -1,5 +1,5 @@
 import { useMemo, useReducer } from 'react';
-import { MixnetTrafficConfig } from '../../../../types/index';
+import { MixnetTrafficConfig } from '../../../../types';
 import { MixnetTrafficConfigContext } from './context';
 import { DEFAULT_MIXNET_TRAFFIC_CONFIG, reducer } from './reducer';
 
@@ -23,15 +23,6 @@ function MixnetTrafficConfigProvider({
     disablePoissonRate: config.disablePoissonRate,
     disableBackgroundCoverTraffic: config.disableBackgroundCoverTraffic,
   }));
-
-  console.log(
-    '[MixnetTrafficConfigProvider] state.messageSendingAverageDelay',
-    state.messageSendingAverageDelay,
-  );
-  console.log(
-    '[MixnetTrafficConfigProvider] initialConfig.messageSendingAverageDelay',
-    initialConfig.messageSendingAverageDelay,
-  );
 
   const hasUnsavedSettings = useMemo(() => {
     return (
