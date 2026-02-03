@@ -1,4 +1,4 @@
-import { MixnetTrafficConfig } from '../../../../types/index';
+import { MixnetTrafficConfig } from '../../../../types';
 
 export type MixnetTrafficConfigState = {
   poissonParameterForLoopCoverStream: number;
@@ -20,8 +20,8 @@ export const DEFAULT_MIXNET_TRAFFIC_CONFIG: Omit<
   NonNullable<MixnetTrafficConfig>,
   'minMixnodePerformance' | 'minGatewayMixnetPerformance'
 > = {
-  poissonParameterForLoopCoverStream: 60, // TO CONFIRM
-  averagePacketDelay: 25,
+  poissonParameterForLoopCoverStream: 200,
+  averagePacketDelay: 15,
   messageSendingAverageDelay: 20,
   disablePoissonRate: false,
   disableBackgroundCoverTraffic: false,

@@ -7,7 +7,7 @@ const BACKGROUND_COVER_TRAFFIC_RATE_LEVELS: {
   label: 'base' | 'balanced' | 'medium' | 'high';
   speed: string;
 }[] = [
-  { label: 'base', speed: '5 pckt/s' },
+  { label: 'base', speed: '' },
   { label: 'balanced', speed: '5x' },
   { label: 'medium', speed: '10x' },
   { label: 'high', speed: '20x' },
@@ -95,7 +95,7 @@ const CONTINUOUS_LEVELS: {
 // Slider index → Config value mappings
 // Array index = slider value, array value = config value
 const CONTINUOUS_TRAFFIC_VALUES = [30, 20, 10] as const;
-const BACKGROUND_COVER_TRAFFIC_VALUES = [60, 40, 20, 10] as const;
+const BACKGROUND_COVER_TRAFFIC_VALUES = [200, 40, 20, 10] as const;
 
 // Reverse lookup maps: Config value → Slider index
 // Generated from arrays to maintain single source of truth

@@ -28,7 +28,7 @@ import {
   VpndConfig,
   VpndInfo,
 } from '../../types';
-import { DEFAULT_MIXNET_TRAFFIC_CONFIG } from '../../screens/settings/mixnet-tuning/context/index';
+import { DEFAULT_MIXNET_TRAFFIC_CONFIG } from '../../screens/settings/mixnet-tuning/context';
 
 export type StateAction =
   | { type: 'init-done' }

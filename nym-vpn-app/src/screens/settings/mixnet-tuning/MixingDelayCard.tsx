@@ -1,7 +1,10 @@
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { CardNew, CardNewBody, CardNewHeader, Slider } from '../../../ui';
-import { useMixnetTrafficConfig } from './context';
+import {
+  DEFAULT_MIXNET_TRAFFIC_CONFIG,
+  useMixnetTrafficConfig,
+} from './context';
 
 const MIXING_DELAY_LEVELS: { label: 'low' | 'high'; speed: string }[] = [
   { label: 'low', speed: '0ms' },
@@ -27,7 +30,7 @@ function MixingDelaySlider({
       <Slider
         className="px-2"
         value={value}
-        defaultValue={25}
+        defaultValue={DEFAULT_MIXNET_TRAFFIC_CONFIG.averagePacketDelay!}
         onChange={setValue}
         min={0}
         max={200}
