@@ -252,6 +252,11 @@ private extension ConnectionManager {
             self?.updateCountries()
         }
         .store(in: &cancellables)
+
+        $connectionConfig.sink { [weak self] _ in
+            self?.updateConnectionConfig()
+        }
+        .store(in: &cancellables)
     }
 
     func setupConnectionErrorObserver() {

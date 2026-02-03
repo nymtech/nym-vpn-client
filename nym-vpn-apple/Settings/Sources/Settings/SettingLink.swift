@@ -18,6 +18,7 @@ public enum SettingLink: Hashable, Identifiable {
     case santasMenu
     case privacyAndData
     case dns
+    case mixnetTuning
     case censorship
 #if os(macOS)
     case proxy

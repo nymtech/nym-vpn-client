@@ -16,6 +16,7 @@ public final class ConnectionConfig: Codable {
     public var netstack: Bool
     public var minGatewayVpnPerformance: UInt8?
     public var residentialExit: Bool
+    public var mixnetTuningConfig: MixnetTuningConfig
 
 #if os(iOS)
 
@@ -40,7 +41,8 @@ public final class ConnectionConfig: Codable {
         enableLewes: Bool,
         netstack: Bool,
         minGatewayVpnPerformance: UInt8? = nil,
-        residentialExit: Bool
+        residentialExit: Bool,
+        mixnetTuningConfig: MixnetTuningConfig
     ) {
         self.entry = entry
         self.exit = exit
@@ -53,6 +55,7 @@ public final class ConnectionConfig: Codable {
         self.netstack = netstack
         self.minGatewayVpnPerformance = minGatewayVpnPerformance
         self.residentialExit = residentialExit
+        self.mixnetTuningConfig = mixnetTuningConfig
     }
 
 #if os(iOS)
@@ -70,6 +73,7 @@ public final class ConnectionConfig: Codable {
         self.netstack = config.netstack
         self.minGatewayVpnPerformance = config.minGatewayVpnPerformance
         self.residentialExit = config.residentialExit
+        self.mixnetTuningConfig = MixnetTuningConfig(from: config.mixnetTraffic)
     }
 #endif
 }

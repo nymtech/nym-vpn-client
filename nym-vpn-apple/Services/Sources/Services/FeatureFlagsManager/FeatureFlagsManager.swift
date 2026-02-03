@@ -25,6 +25,9 @@ import GRPCManager
 #endif
 
     public var isPrivyEnabled = false
+    public var isMixnetTuningEnabled: Bool {
+        configurationManager.isSantaClaus ? true : false
+    }
 
 #if os(iOS)
     init(configurationManager: ConfigurationManager) {

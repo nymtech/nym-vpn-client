@@ -57,7 +57,7 @@ public struct GatewayCell: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            HStack{
+            HStack {
                 serverInfo()
                 Spacer()
                     .frame(width: 16)

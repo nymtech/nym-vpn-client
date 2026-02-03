@@ -34,6 +34,11 @@ extension GRPCManager {
             if oldConfig.enableLewes != newConfig.enableLewes {
                 try await self?.rpcClient?.setEnableLewesProtocol(enableLewesProtocol: newConfig.enableLewes)
             }
+            if oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig {
+                try await self?.rpcClient?.setMixnetTrafficConfig(
+                    mixnetTrafficConfig: newConfig.mixnetTuningConfig.mixnetTrafficConfig()
+                )
+            }
         }.value
     }
 

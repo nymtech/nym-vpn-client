@@ -116,9 +116,6 @@ extension AddCredentialsViewModel {
         case .onboarding:
             path = .init([HomeLink.onboarding])
         case .createAccountWelcome:
-//            path = .init([HomeLink.settings])
-//            // TODO: check if true
-//            path.append(SettingLink.createAccountWelcome(navigationSource: .home))
             if !path.isEmpty { path.removeLast() }
         case .settings:
             if !path.isEmpty { path.removeLast() }

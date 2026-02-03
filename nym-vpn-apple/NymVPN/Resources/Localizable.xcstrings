@@ -23334,6 +23334,314 @@
         }
       }
     },
+    "mixnetTuning.atLeast" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At least"
+          }
+        }
+      }
+    },
+    "mixnetTuning.backgroundCoverTrafficState.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We’ll still send cover traffic independently of your real traffic.  Choose how much cover you need. "
+          }
+        }
+      }
+    },
+    "mixnetTuning.backgroundCoverTrafficState.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background cover traffic rate"
+          }
+        }
+      }
+    },
+    "mixnetTuning.balanced" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balanced"
+          }
+        }
+      }
+    },
+    "mixnetTuning.base" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Base"
+          }
+        }
+      }
+    },
+    "mixnetTuning.current" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current"
+          }
+        }
+      }
+    },
+    "mixnetTuning.default" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default"
+          }
+        }
+      }
+    },
+    "mixnetTuning.expectedRTT" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expected round-trip latency (RTT) on a standard network"
+          }
+        }
+      }
+    },
+    "mixnetTuning.fasterSpeed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faster speed"
+          }
+        }
+      }
+    },
+    "mixnetTuning.high" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "High"
+          }
+        }
+      }
+    },
+    "mixnetTuning.latency" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latency"
+          }
+        }
+      }
+    },
+    "mixnetTuning.learnMore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn more about mixnet parameters"
+          }
+        }
+      }
+    },
+    "mixnetTuning.lessBatteryData" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use less battery & data"
+          }
+        }
+      }
+    },
+    "mixnetTuning.low" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Low"
+          }
+        }
+      }
+    },
+    "mixnetTuning.maximumAnonimity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max. anonimity"
+          }
+        }
+      }
+    },
+    "mixnetTuning.medium" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medium"
+          }
+        }
+      }
+    },
+    "mixnetTuning.mixingDelay.off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timing protection is currently turned off. This could put your privacy at risk."
+          }
+        }
+      }
+    },
+    "mixnetTuning.mixingDelay.on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjust timing delays to change how well your packets are mixed."
+          }
+        }
+      }
+    },
+    "mixnetTuning.mixingDelays" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mixing delays"
+          }
+        }
+      }
+    },
+    "mixnetTuning.reset" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset to default settings"
+          }
+        }
+      }
+    },
+    "mixnetTuning.saveCustomSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save custom settings"
+          }
+        }
+      }
+    },
+    "mixnetTuning.sendTraffic.off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns."
+          }
+        }
+      }
+    },
+    "mixnetTuning.sendTraffic.on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets."
+          }
+        }
+      }
+    },
+    "mixnetTuning.sendTrafficContinously" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send traffic continuously"
+          }
+        }
+      }
+    },
+    "mixnetTuning.speed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speed"
+          }
+        }
+      }
+    },
+    "mixnetTuning.upTo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up to"
+          }
+        }
+      }
+    },
+    "mixnetTunning.expectedPerformance.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expected performance based on current settings:"
+          }
+        }
+      }
+    },
+    "mixnetTunning.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customise your mixnet traffic patterns."
+          }
+        }
+      }
+    },
     "modeSelectionInfo.anonymousDescription" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -33500,6 +33808,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Manage Subscription"
+          }
+        }
+      }
+    },
+    "settings.mixnetTuning.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customize traffic patterns of anonymous mode"
+          }
+        }
+      }
+    },
+    "settings.mixnetTuning.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mixnet tuning"
           }
         }
       }
