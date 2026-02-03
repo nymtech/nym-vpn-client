@@ -18,45 +18,65 @@ const ACTION_ID: &str = "com.nymvpn.vpnd.unix-access";
 const CANCELLATION_ID: &str = "com.nymvpn.vpnd.cancel";
 const USER_INTERACTION_TIMEOUT: Duration = Duration::from_secs(60);
 
+#[async_trait::async_trait]
+trait AuthorizationChecker {
+    async fn check_authorization(&self) -> Result<AuthorizationResult, zbus::Error>;
+    async fn cancel_check_authorization(&self) -> Result<(), zbus::Error>;
+}
+
+struct AuthProxy<'a> {
+    pub proxy: AuthorityProxy<'a>,
+    pub subject: Subject,
+}
+
+#[async_trait::async_trait]
+impl AuthorizationChecker for AuthProxy<'_> {
+    async fn check_authorization(&self) -> Result<AuthorizationResult, zbus::Error> {
+        // details might be useful to set some locale-sensitive messages and icon images in the authentication dialog
+        let details = std::collections::HashMap::new();
+        self.proxy
+            .check_authorization(
+                &self.subject,
+                ACTION_ID,
+                &details,
+                CheckAuthorizationFlags::AllowUserInteraction.into(),
+                CANCELLATION_ID,
+            )
+            .await
+    }
+    async fn cancel_check_authorization(&self) -> Result<(), zbus::Error> {
+        self.proxy.cancel_check_authorization(CANCELLATION_ID).await
+    }
+}
+
 async fn wait_for_authorization(
-    proxy: AuthorityProxy<'_>,
-    subject: Subject,
+    proxy: impl AuthorizationChecker,
     shutdown_token: CancellationToken,
-    // stream_shutdown_token: CancellationToken,
+    timeout: impl Future<Output = ()>,
 ) -> Result<AuthorizationResult, AuthenticationError> {
-    // details might be useful to set some locale-sensitive messages and icon images in the authentication dialog
-    let details = std::collections::HashMap::new();
-    let timer = tokio::time::sleep(USER_INTERACTION_TIMEOUT);
-    let check_authorization_fut = proxy.check_authorization(
-        &subject,
-        ACTION_ID,
-        &details,
-        CheckAuthorizationFlags::AllowUserInteraction.into(),
-        CANCELLATION_ID,
-    );
+    let check_authorization_fut = proxy.check_authorization();
 
     tokio::select! {
         biased;
         auth_result = check_authorization_fut => {
             auth_result.map_err(AuthenticationError::CheckAuthorization)
         }
-        _ = timer => {
-            tracing::warn!("No user authorization for {:?}", USER_INTERACTION_TIMEOUT);
-            proxy.cancel_check_authorization(CANCELLATION_ID).await.map_err(AuthenticationError::CancelAuthorization)?;
+        _ = timeout => {
+            tracing::warn!("User authorization timed out");
+            proxy.cancel_check_authorization().await.map_err(AuthenticationError::CancelAuthorization)?;
             Err(AuthenticationError::Timeout)
         }
         _ = shutdown_token.cancelled() => {
             tracing::debug!("Received shutdown signal");
             // We do a best effort to cancel the authorization before shutting down
-            proxy.cancel_check_authorization(CANCELLATION_ID).await.ok();
+            proxy.cancel_check_authorization().await.ok();
             Err(AuthenticationError::ShuttingDown)
         }
     }
 }
 
-async fn authorize(mut stream: UnixStream) -> Result<UnixStream, AuthenticationError> {
-    AuthenticaticationResult::Accepted.send(&mut stream).await;
-    Ok(stream)
+async fn authorize(stream: &mut UnixStream) {
+    AuthenticaticationResult::Accepted.send(stream).await;
 }
 
 async fn prompt_for_authorization(
@@ -83,7 +103,8 @@ async fn prompt_for_authorization(
     )
     .map_err(AuthenticationError::Subject)?;
 
-    wait_for_authorization(proxy, subject, shutdown_token).await
+    let timeout = tokio::time::sleep(USER_INTERACTION_TIMEOUT);
+    wait_for_authorization(AuthProxy { proxy, subject }, shutdown_token, timeout).await
 }
 
 // Return back the stream if the authentication succeeded, and `None` otherwise
@@ -95,14 +116,16 @@ pub(crate) async fn is_authenticated(
 ) -> Result<UnixStream, AuthenticationError> {
     // Let debug builds skip authorization process
     if cfg!(debug_assertions) {
-        return authorize(stream).await;
+        authorize(&mut stream).await;
+        return Ok(stream);
     }
 
     let cred = getsockopt(&stream, PeerCredentials).map_err(AuthenticationError::GetSockOpt)?;
     let auth_result = prompt_for_authorization(cred, shutdown_token).await?;
 
     if auth_result.is_authorized {
-        authorize(stream).await
+        authorize(&mut stream).await;
+        Ok(stream)
     } else {
         AuthenticaticationResult::Denied.send(&mut stream).await;
         Err(AuthenticationError::AuthorizationDenied)
@@ -111,14 +134,152 @@ pub(crate) async fn is_authenticated(
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        future::pending,
+        sync::{
+            Arc,
+            atomic::{AtomicBool, Ordering},
+        },
+        task::Poll,
+    };
+
+    use tokio::sync::{Mutex, RwLock};
+
     use super::*;
 
+    struct MockProxy {
+        user_authorization: Arc<RwLock<bool>>,
+        check_tried: bool,
+        cancelled: bool,
+    }
+
+    impl MockProxy {
+        fn new(user_authorization: Arc<RwLock<bool>>) -> Arc<Mutex<Self>> {
+            Arc::new(Mutex::new(Self {
+                user_authorization,
+                check_tried: false,
+                cancelled: false,
+            }))
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl AuthorizationChecker for &Arc<Mutex<MockProxy>> {
+        async fn check_authorization(&self) -> Result<AuthorizationResult, zbus::Error> {
+            let mut inner = self.lock().await;
+            inner.check_tried = true;
+            inner.cancelled = false;
+            Ok(AuthorizationResult {
+                is_authorized: *inner.user_authorization.read().await,
+                is_challenge: Default::default(),
+                details: Default::default(),
+            })
+        }
+
+        async fn cancel_check_authorization(&self) -> Result<(), zbus::Error> {
+            self.lock().await.cancelled = true;
+            Ok(())
+        }
+    }
+
+    #[derive(Clone)]
+    struct MockSleeper {
+        ready: Arc<AtomicBool>,
+    }
+
+    impl MockSleeper {
+        fn new() -> Self {
+            Self {
+                ready: Arc::new(AtomicBool::new(false)),
+            }
+        }
+
+        // activates the timeout
+        fn timeout(&self) {
+            self.ready.fetch_or(true, Ordering::SeqCst);
+        }
+    }
+
+    impl Future for MockSleeper {
+        type Output = ();
+
+        fn poll(
+            self: std::pin::Pin<&mut Self>,
+            _cx: &mut std::task::Context<'_>,
+        ) -> Poll<Self::Output> {
+            if self.ready.load(Ordering::SeqCst) {
+                Poll::Ready(())
+            } else {
+                Poll::Pending
+            }
+        }
+    }
+
     #[tokio::test]
-    async fn no_auth_for_headless_process() {
-        let cred = UnixCredentials::new();
-        let auth_res = prompt_for_authorization(cred, CancellationToken::new())
+    async fn authorized() {
+        let (mut client, mut server) = UnixStream::pair().unwrap();
+        authorize(&mut server).await;
+        let ret = AuthenticaticationResult::recv(&mut client).await;
+        assert!(matches!(ret, AuthenticaticationResult::Accepted));
+    }
+
+    #[tokio::test]
+    async fn wait_for_authorized() {
+        let proxy = MockProxy::new(Arc::new(RwLock::new(true)));
+        let res = wait_for_authorization(&proxy, CancellationToken::new(), pending())
             .await
             .unwrap();
-        assert!(!auth_res.is_authorized);
+        assert!(proxy.lock().await.check_tried);
+        assert!(res.is_authorized);
+    }
+
+    #[tokio::test]
+    async fn wait_for_denied() {
+        let proxy = MockProxy::new(Arc::new(RwLock::new(false)));
+        let res = wait_for_authorization(&proxy, CancellationToken::new(), pending())
+            .await
+            .unwrap();
+        assert!(proxy.lock().await.check_tried);
+        assert!(!res.is_authorized);
+    }
+
+    #[tokio::test]
+    async fn cancel_wait() {
+        let user_waiting = Arc::new(RwLock::new(false));
+        let proxy = MockProxy::new(user_waiting.clone());
+        let cancellation_token = CancellationToken::new();
+
+        // Make it wait for user input indefinitely
+        let _user_input = user_waiting.write().await;
+        let cloned_proxy = proxy.clone();
+        let cloned_token = cancellation_token.clone();
+        let handle: tokio::task::JoinHandle<Result<AuthorizationResult, AuthenticationError>> =
+            tokio::spawn(async move {
+                wait_for_authorization(&cloned_proxy, cloned_token, pending()).await
+            });
+        cancellation_token.cancel();
+        let res = handle.await.unwrap();
+
+        assert!(proxy.lock().await.cancelled);
+        assert!(matches!(res, Err(AuthenticationError::ShuttingDown)));
+    }
+
+    #[tokio::test]
+    async fn timed_out_wait() {
+        let user_waiting = Arc::new(RwLock::new(false));
+        let proxy = MockProxy::new(user_waiting.clone());
+        let timeout = MockSleeper::new();
+
+        // Make it wait for user input indefinitely
+        let _user_input = user_waiting.write().await;
+        let cloned_proxy = proxy.clone();
+        let cloned_timeout = timeout.clone();
+        let handle = tokio::spawn(async move {
+            wait_for_authorization(&cloned_proxy, CancellationToken::new(), cloned_timeout).await
+        });
+        timeout.timeout();
+        let res = handle.await.unwrap();
+
+        assert!(matches!(res, Err(AuthenticationError::Timeout)));
     }
 }

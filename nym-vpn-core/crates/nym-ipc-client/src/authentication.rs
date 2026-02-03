@@ -7,6 +7,8 @@ use tokio::{
 };
 
 #[repr(u8)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(test, derive(strum::EnumIter))]
 pub enum AuthenticaticationResult {
     Accepted = 0,
     Denied = 1,
@@ -43,5 +45,48 @@ impl AuthenticaticationResult {
 
     pub fn accepted(&self) -> bool {
         matches!(self, Self::Accepted)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use strum::IntoEnumIterator;
+
+    #[test]
+    fn enum_to_u8() {
+        for (idx, res) in AuthenticaticationResult::iter().enumerate() {
+            assert_eq!(idx as u8, res.into());
+        }
+    }
+
+    #[test]
+    fn u8_to_enum() {
+        let zero = AuthenticaticationResult::from(0);
+        assert!(matches!(zero, AuthenticaticationResult::Accepted));
+        assert!(zero.accepted());
+        for idx in 1u8..255 {
+            let other = AuthenticaticationResult::from(idx);
+            assert!(matches!(other, AuthenticaticationResult::Denied));
+            assert!(!other.accepted());
+        }
+    }
+
+    #[tokio::test]
+    async fn send_recv() {
+        let (mut client, mut server) = UnixStream::pair().unwrap();
+
+        for sent in AuthenticaticationResult::iter() {
+            sent.send(&mut server).await;
+            let received = AuthenticaticationResult::recv(&mut client).await;
+            assert_eq!(sent, received);
+        }
+    }
+
+    #[tokio::test]
+    async fn no_value_means_denied() {
+        let (mut client, _) = UnixStream::pair().unwrap();
+        let received = AuthenticaticationResult::recv(&mut client).await;
+        assert_eq!(received, AuthenticaticationResult::Denied);
     }
 }

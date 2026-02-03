@@ -20,4 +20,7 @@ tracing.workspace = true
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = ["Win32_Foundation"] }
 
+[dev-dependencies]
+strum.workspace = true
+
 
