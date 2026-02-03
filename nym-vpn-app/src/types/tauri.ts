@@ -112,6 +112,7 @@ export type FeatureFlags = {
   domainFronting: boolean;
   zknymCredential: boolean;
   privy: boolean;
+  mixnetTuning: boolean;
 };
 
 export type Gateway = {
@@ -188,6 +189,16 @@ export type MixnetEvent =
   | 'sphinx-packet-metrics';
 
 export type MixnetEventPayload = { event: MixnetEvent } | { error: ErrorKey };
+
+export type MixnetTrafficConfig = {
+  poissonParameterForLoopCoverStream: number | null;
+  averagePacketDelay: number | null;
+  messageSendingAverageDelay: number | null;
+  disablePoissonRate: boolean;
+  disableBackgroundCoverTraffic: boolean;
+  minMixnodePerformance: number | null;
+  minGatewayMixnetPerformance: number | null;
+};
 
 export type NetworkCompat = { core: boolean | null; tauri: boolean | null };
 
@@ -364,6 +375,7 @@ export type VpndConfig = {
   minGatewayVpnPerformance: number | null;
   residentialExit: boolean;
   enableLewesProtocol: boolean;
+  mixnetTraffic: MixnetTrafficConfig;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

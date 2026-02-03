@@ -94,6 +94,75 @@
       }
     }
   },
+  "mixnet-tuning": {
+    "title": "Mixnet tuning",
+    "desc": "Customize traffic patterns of Anonymous mode",
+    "top-description": "Customize your <strong>mixnet</strong> traffic patterns.",
+    "learn-more": "Learn more about mixnet parameters",
+    "save-custom-settings": "Save custom settings",
+    "restore-default-settings": "Reset to default settings",
+    "performance": {
+      "title": "Expected performance based on current settings",
+      "speed": {
+        "title": "Speed",
+        "value": "Up to {{value}} Mbps"
+      },
+      "privacy": {
+        "title": "Latency",
+        "value": "At least {{value}} ms"
+      },
+      "footer": "Expected round-trip latency (RTT) on a standard network"
+    },
+    "continuous-traffic": {
+      "title": "Send traffic continuously",
+      "continuous": {
+        "title": "Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.",
+        "use-less-battery-and-data": "Use less battery & data",
+        "max-anonymity": "Max. anonymity",
+        "low": {
+          "label": "Low"
+        },
+        "balanced": {
+          "label": "Balanced"
+        },
+        "high": {
+          "label": "High"
+        }
+      },
+      "background-cover-traffic": {
+        "warning": "⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.",
+        "title": "Background cover traffic rate",
+        "description": "We’ll still send cover traffic independently of your real traffic. Choose how much cover you need.",
+        "use-less-battery-and-data": "Use less battery & data",
+        "max-anonymity": "Max. anonymity",
+        "base": {
+          "label": "Base"
+        },
+        "balanced": {
+          "label": "Balanced"
+        },
+        "medium": {
+          "label": "Medium"
+        },
+        "high": {
+          "label": "High"
+        }
+      }
+    },
+    "mixing-delay": {
+      "title": "Mixing delays",
+      "description": "Adjust timing delays to change how your packets are mixed.",
+      "warning": "⚠️ Timing protection is currently turned off. This could put your privacy at risk.",
+      "faster": "Faster",
+      "max-anonymity": "Max. anonymity",
+      "low": {
+        "label": "Low"
+      },
+      "high": {
+        "label": "High"
+      }
+    }
+  },
   "anti-censorship": {
     "title": "Anti-censorship",
     "intro": "Enable these features if you're experiencing connection issues or NymVPN is blocked in your location.",

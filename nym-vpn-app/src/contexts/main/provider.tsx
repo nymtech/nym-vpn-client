@@ -31,6 +31,7 @@ function MainStateProvider({ children, init }: Props) {
     customDnsEnabled: init.customDnsEnabled,
     customDns: init.customDns,
     enableLewesProtocol: init.enableLewesProtocol,
+    mixnetTrafficConfig: init.mixnetTrafficConfig,
   });
 
   const { push } = useInAppNotify();

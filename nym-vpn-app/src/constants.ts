@@ -60,3 +60,5 @@ export const QuicSupportArticleUrl =
 export const LocationAccuracyLink =
   'https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
 export const CustomDnsHelpUrl = 'https://nym.com/features/custom-dns';
+export const MixnetParametersLearnMoreUrl =
+  'https://nym.com/features/mixnet-customization';

@@ -5,7 +5,7 @@ use crate::{
     state::{SharedAppState, app::VpnMode},
     vpnd::{
         client::{Node, VpndClient, VpndError},
-        config::VpndConfig,
+        config::{MixnetTrafficConfig, VpndConfig},
         tunnel::{ConnectingState, TunnelState},
     },
 };
@@ -199,4 +199,21 @@ pub async fn set_enable_lewes_protocol(
 ) -> Result<(), BackendError> {
     vpnd.set_enable_lewes_protocol(enabled).await?;
     Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_mixnet_traffic_config(
+    vpnd: State<'_, VpndClient>,
+    config: MixnetTrafficConfig,
+) -> Result<(), BackendError> {
+    vpnd.set_mixnet_traffic_config(config).await?;
+    Ok(())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn calculate_traffic_latency(config: MixnetTrafficConfig) -> Result<f64, BackendError> {
+    let lib_config: nym_vpn_lib_types::MixnetTrafficConfig = config.into();
+    Ok(lib_config.calculate_traffic_latency())
 }

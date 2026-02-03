@@ -198,6 +198,26 @@ impl MixnetTrafficConfig {
 
         Ok(())
     }
+
+    /// Calculate the expected round-trip latency (RTT) in milliseconds based on the current
+    /// configuration parameters.
+    ///
+    /// Formula: RTT = 2 × (6 × 50ms + 3 × mixing_delay)
+    /// - 6 × 50ms = base latency from 6 hops at 50ms each
+    /// - 3 × mixing_delay = additional delay from mixing at 3 mix nodes
+    /// - 2× for round-trip
+    ///
+    /// Example: 15ms mixing delay → 2 × (300 + 45) = 690ms
+    pub fn calculate_traffic_latency(&self) -> f64 {
+        const BASE_HOP_DELAY_MS: f64 = 50.0;
+        const NUM_HOPS: f64 = 6.0;
+        const NUM_MIX_NODES: f64 = 3.0;
+
+        let mixing_delay = self.average_packet_delay.unwrap_or(0) as f64;
+        let latency = 2.0 * (NUM_HOPS * BASE_HOP_DELAY_MS + NUM_MIX_NODES * mixing_delay);
+
+        (latency / 10.0).round() * 10.0
+    }
 }
 
 /// The target tunnel state.

@@ -13,6 +13,7 @@ import {
   ConnectingState,
   DaemonStatus,
   FeatureFlags,
+  MixnetTrafficConfig,
   NetworkCompat,
   NetworkEnv,
   NodeHop,
@@ -27,6 +28,7 @@ import {
   VpndConfig,
   VpndInfo,
 } from '../../types';
+import { DEFAULT_MIXNET_TRAFFIC_CONFIG } from '../../screens/settings/mixnet-tuning/context';
 
 export type StateAction =
   | { type: 'init-done' }
@@ -79,7 +81,8 @@ export type StateAction =
   | { type: 'set-custom-dns-enabled'; enabled: boolean }
   | { type: 'set-custom-dns'; dns: string[] }
   | { type: 'set-default-dns'; dns: string[] }
-  | { type: 'set-enable-lewes-protocol'; enabled: boolean };
+  | { type: 'set-enable-lewes-protocol'; enabled: boolean }
+  | { type: 'set-mixnet-traffic-config'; config: MixnetTrafficConfig };
 
 export const initialState: AppState = {
   initialized: false,
@@ -117,11 +120,13 @@ export const initialState: AppState = {
     domainFronting: false,
     zknymCredential: false,
     privy: false,
+    mixnetTuning: false,
   },
   customDnsEnabled: false,
   customDns: [],
   defaultDns: [],
   enableLewesProtocol: false,
+  mixnetTrafficConfig: DEFAULT_MIXNET_TRAFFIC_CONFIG,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -402,6 +407,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         enableLewesProtocol: action.enabled,
+      };
+    case 'set-mixnet-traffic-config':
+      return {
+        ...state,
+        mixnetTrafficConfig: action.config,
       };
     case 'reset':
       return initialState;

@@ -28,5 +28,7 @@
   "language": "Language",
   "server-details": "Server details",
   "skip": "Skip",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "default": "Default",
+  "current": "Current"
 }
