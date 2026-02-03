@@ -3549,7 +3549,7 @@ dependencies = [
  "objc2-foundation",
  "rs-release",
  "sha2",
- "sysinfo",
+ "sysinfo 0.38.0",
  "windows 0.62.2",
 ]
 
@@ -3584,7 +3584,7 @@ dependencies = [
  "serde_json",
  "sled",
  "strum",
- "sysinfo",
+ "sysinfo 0.37.2",
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",
@@ -5960,6 +5960,20 @@ dependencies = [
  "objc2-core-foundation",
  "objc2-io-kit",
  "windows 0.61.3",
+]
+
+[[package]]
+name = "sysinfo"
+version = "0.38.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe840c5b1afe259a5657392a4dbb74473a14c8db999c3ec2f4ae812e028a94da"
+dependencies = [
+ "libc",
+ "memchr",
+ "ntapi",
+ "objc2-core-foundation",
+ "objc2-io-kit",
+ "windows 0.62.2",
 ]
 
 [[package]]
