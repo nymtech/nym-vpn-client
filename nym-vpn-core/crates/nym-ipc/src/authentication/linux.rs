@@ -24,6 +24,14 @@ trait AuthorizationChecker {
     async fn cancel_check_authorization(&self) -> Result<(), zbus::Error>;
 }
 
+#[async_trait::async_trait]
+trait Prompter {
+    async fn prompt_for_authorization(
+        &self,
+        cred: UnixCredentials,
+    ) -> Result<AuthorizationResult, AuthenticationError>;
+}
+
 struct AuthProxy<'a> {
     pub proxy: AuthorityProxy<'a>,
     pub subject: Subject,
@@ -46,6 +54,54 @@ impl AuthorizationChecker for AuthProxy<'_> {
     }
     async fn cancel_check_authorization(&self) -> Result<(), zbus::Error> {
         self.proxy.cancel_check_authorization(CANCELLATION_ID).await
+    }
+}
+
+struct PolkitPrompter {
+    shutdown_token: CancellationToken,
+}
+
+impl PolkitPrompter {
+    fn new(shutdown_token: CancellationToken) -> Self {
+        Self { shutdown_token }
+    }
+}
+
+#[async_trait::async_trait]
+impl Prompter for PolkitPrompter {
+    async fn prompt_for_authorization(
+        &self,
+        cred: UnixCredentials,
+    ) -> Result<AuthorizationResult, AuthenticationError> {
+        let connection = self
+            .shutdown_token
+            .run_until_cancelled(Connection::system())
+            .await
+            .ok_or(AuthenticationError::ShuttingDown)?
+            .map_err(AuthenticationError::MessageBusConnection)?;
+        let proxy = self
+            .shutdown_token
+            .run_until_cancelled(AuthorityProxy::new(&connection))
+            .await
+            .ok_or(AuthenticationError::ShuttingDown)?
+            .map_err(AuthenticationError::AuthorityProxy)?;
+
+        let subject = Subject::new_for_owner(
+            cred.pid()
+                .try_into()
+                .map_err(AuthenticationError::NumberConversion)?,
+            None,
+            Some(cred.uid()),
+        )
+        .map_err(AuthenticationError::Subject)?;
+
+        let timeout = tokio::time::sleep(USER_INTERACTION_TIMEOUT);
+        wait_for_authorization(
+            AuthProxy { proxy, subject },
+            self.shutdown_token.clone(),
+            timeout,
+        )
+        .await
     }
 }
 
@@ -79,34 +135,6 @@ async fn authorize(stream: &mut UnixStream) {
     AuthenticaticationResult::Accepted.send(stream).await;
 }
 
-async fn prompt_for_authorization(
-    cred: UnixCredentials,
-    shutdown_token: CancellationToken,
-) -> Result<AuthorizationResult, AuthenticationError> {
-    let connection = shutdown_token
-        .run_until_cancelled(Connection::system())
-        .await
-        .ok_or(AuthenticationError::ShuttingDown)?
-        .map_err(AuthenticationError::MessageBusConnection)?;
-    let proxy = shutdown_token
-        .run_until_cancelled(AuthorityProxy::new(&connection))
-        .await
-        .ok_or(AuthenticationError::ShuttingDown)?
-        .map_err(AuthenticationError::AuthorityProxy)?;
-
-    let subject = Subject::new_for_owner(
-        cred.pid()
-            .try_into()
-            .map_err(AuthenticationError::NumberConversion)?,
-        None,
-        Some(cred.uid()),
-    )
-    .map_err(AuthenticationError::Subject)?;
-
-    let timeout = tokio::time::sleep(USER_INTERACTION_TIMEOUT);
-    wait_for_authorization(AuthProxy { proxy, subject }, shutdown_token, timeout).await
-}
-
 // Return back the stream if the authentication succeeded, and `None` otherwise
 // This function depends on user interaction, so it must ensure it doesn't await
 // indefinitely and starve the consumer.
@@ -120,9 +148,15 @@ pub(crate) async fn is_authenticated(
         authorize(&mut stream).await;
         return Ok(stream);
     }
+    authenticate_with_prompt(stream, PolkitPrompter::new(shutdown_token)).await
+}
 
+async fn authenticate_with_prompt(
+    mut stream: UnixStream,
+    prompter: impl Prompter,
+) -> Result<UnixStream, AuthenticationError> {
     let cred = getsockopt(&stream, PeerCredentials).map_err(AuthenticationError::GetSockOpt)?;
-    let auth_result = prompt_for_authorization(cred, shutdown_token).await?;
+    let auth_result = prompter.prompt_for_authorization(cred).await?;
 
     if auth_result.is_authorized {
         authorize(&mut stream).await;
@@ -216,6 +250,24 @@ mod tests {
         }
     }
 
+    struct MockPrompter {
+        is_authorized: bool,
+    }
+
+    #[async_trait::async_trait]
+    impl Prompter for MockPrompter {
+        async fn prompt_for_authorization(
+            &self,
+            _cred: UnixCredentials,
+        ) -> Result<AuthorizationResult, AuthenticationError> {
+            Ok(AuthorizationResult {
+                is_authorized: self.is_authorized,
+                is_challenge: Default::default(),
+                details: Default::default(),
+            })
+        }
+    }
+
     #[tokio::test]
     async fn authorized() {
         let (mut client, mut server) = UnixStream::pair().unwrap();
@@ -282,5 +334,48 @@ mod tests {
         let res = handle.await.unwrap();
 
         assert!(matches!(res, Err(AuthenticationError::Timeout)));
+    }
+
+    #[tokio::test]
+    // Debug builds (like tests or dev runs) are automatically authorized
+    async fn debug_build_authorized() {
+        let (mut client, server) = UnixStream::pair().unwrap();
+        is_authenticated(server, CancellationToken::new())
+            .await
+            .unwrap();
+        let client_res = AuthenticaticationResult::recv(&mut client).await;
+        assert!(client_res.accepted());
+    }
+
+    #[tokio::test]
+    async fn authorized_by_prompt() {
+        let (mut client, server) = UnixStream::pair().unwrap();
+        authenticate_with_prompt(
+            server,
+            MockPrompter {
+                is_authorized: true,
+            },
+        )
+        .await
+        .unwrap();
+        let client_res = AuthenticaticationResult::recv(&mut client).await;
+        assert!(client_res.accepted());
+    }
+
+    #[tokio::test]
+    async fn denied_by_prompt() {
+        let (mut client, server) = UnixStream::pair().unwrap();
+        let err = authenticate_with_prompt(
+            server,
+            MockPrompter {
+                is_authorized: false,
+            },
+        )
+        .await
+        .unwrap_err();
+        assert!(matches!(err, AuthenticationError::AuthorizationDenied));
+
+        let client_res = AuthenticaticationResult::recv(&mut client).await;
+        assert!(!client_res.accepted());
     }
 }
