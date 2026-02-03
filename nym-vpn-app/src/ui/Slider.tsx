@@ -7,7 +7,7 @@ export type SliderProps = {
   defaultValue?: number;
   value: number;
   onChange?: (value: number) => void;
-  onValueCommitted: (value: number) => void;
+  onValueCommitted?: (value: number) => void;
   min: number;
   max: number;
   step: number;
@@ -71,7 +71,7 @@ function Slider({
         step={step}
         defaultValue={defaultValue}
         value={internalValue}
-        onValueCommitted={onValueCommitted}
+        onValueCommitted={() => onValueCommitted?.(internalValue)}
         onValueChange={(val) => {
           setInternalValue(val);
           onChange?.(val);
@@ -88,12 +88,10 @@ function Slider({
             />
             <HuSlider.Thumb
               className={clsx([
-                'group block h-6 w-6 rounded-full border active:bg-faded-lavender bg-white hover:bg-faded-lavender shadow-md focus:outline-none focus:ring-2 focus:ring-malachite',
+                'group block h-6 w-6 rounded-full border border-bombay dark:border-iron active:bg-faded-lavender bg-white hover:bg-faded-lavender shadow-md focus:outline-none focus:ring-2 focus:ring-malachite',
                 'transition-[inset] duration-300 ease-out ',
               ])}
-            >
-              {/*   */}
-            </HuSlider.Thumb>
+            ></HuSlider.Thumb>
           </HuSlider.Track>
         </HuSlider.Control>
       </HuSlider.Root>

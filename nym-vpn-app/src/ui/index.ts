@@ -41,3 +41,4 @@ export * from './TextArea';
 export * from './TextInput';
 export * from './Toast';
 export * from './ConfirmationDialog';
+export * from './CardNew';

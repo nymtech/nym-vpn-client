@@ -1,7 +1,7 @@
 import clsx from 'clsx';
-import { SettingsMenuCardBig, Slider } from '../../../ui/';
-import { useMixnetTrafficConfig } from './context/index';
 import { useTranslation } from 'react-i18next';
+import { CardNew, CardNewBody, CardNewHeader, Slider } from '../../../ui';
+import { useMixnetTrafficConfig } from './context';
 
 const MIXING_DELAY_LEVELS: { label: 'low' | 'high'; speed: string }[] = [
   { label: 'low', speed: '0ms' },
@@ -28,7 +28,7 @@ function MixingDelaySlider({
         className="px-2"
         value={value}
         defaultValue={25}
-        onValueCommitted={setValue}
+        onChange={setValue}
         min={0}
         max={200}
         step={1}
@@ -72,25 +72,24 @@ export function MixingDelayCard() {
       : t('mixnet-tuning.mixing-delay.description');
 
   return (
-    <SettingsMenuCardBig
-      header={
-        <div className="w-full flex flex-row p-5 pb-0">
-          <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
-            {t('mixnet-tuning.mixing-delay.title')}
-          </p>
-        </div>
-      }
-    >
-      <p
-        className={clsx('text-sm whitespace-pre-line', {
-          'text-cheddar dark:text-king-nacho': value === 0,
-          'text-iron dark:text-bombay': value !== 0,
-        })}
-      >
-        {description}
-      </p>
+    <CardNew>
+      <CardNewHeader>
+        <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
+          {t('mixnet-tuning.mixing-delay.title')}
+        </p>
+      </CardNewHeader>
+      <CardNewBody className="pb-5">
+        <p
+          className={clsx('text-sm whitespace-pre-line', {
+            'text-cheddar dark:text-king-nacho': value === 0,
+            'text-iron dark:text-bombay': value !== 0,
+          })}
+        >
+          {description}
+        </p>
 
-      <MixingDelaySlider value={value} setValue={setValue} />
-    </SettingsMenuCardBig>
+        <MixingDelaySlider value={value} setValue={setValue} />
+      </CardNewBody>
+    </CardNew>
   );
 }

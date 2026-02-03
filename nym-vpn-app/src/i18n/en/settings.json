@@ -105,11 +105,11 @@
       "title": "Expected performance based on current settings",
       "speed": {
         "title": "Speed",
-        "value": "Up to <value>1</value> Mbps"
+        "value": "Up to {{value}} Mbps"
       },
       "privacy": {
-        "title": "Privacy",
-        "value": "At least <value>700</value> ms"
+        "title": "Latency",
+        "value": "At least {{value}} ms"
       },
       "footer": "Expected round-trip latency (RTT) on a standard network"
     },

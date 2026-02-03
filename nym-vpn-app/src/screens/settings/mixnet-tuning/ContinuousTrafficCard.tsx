@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
-import { CardSwitch, SettingsMenuCardBig, Slider } from '../../../ui';
+import { CardHeaderSwitch, CardNew, CardNewBody, Slider } from '../../../ui';
 import { useMixnetTrafficConfig } from './context';
 
 const BACKGROUND_COVER_TRAFFIC_RATE_LEVELS: {
@@ -154,7 +154,7 @@ function ContinuousTrafficSlider({
       <Slider
         className="px-2"
         value={value}
-        onValueCommitted={setValue}
+        onChange={setValue}
         min={0}
         max={2}
         step={1}
@@ -212,37 +212,41 @@ export function ContinuousTrafficCard() {
     });
 
   return (
-    <SettingsMenuCardBig
-      header={
-        <CardSwitch
+    <div className="flex flex-col gap-10">
+      <CardNew>
+        <CardHeaderSwitch
           checked={enabled}
           onClick={() => setEnabled(enabled)}
-          header={t('mixnet-tuning.continuous-traffic.continuous.title')}
+          header={t('mixnet-tuning.continuous-traffic.title')}
         />
-      }
-    >
-      {enabled && (
-        <ContinuousTrafficSlider
-          value={continuousTrafficValueToSlider(
-            state.messageSendingAverageDelay,
+
+        <CardNewBody className="pb-5">
+          {enabled && (
+            <ContinuousTrafficSlider
+              value={continuousTrafficValueToSlider(
+                state.messageSendingAverageDelay,
+              )}
+              setValue={(value) =>
+                setMessageSendingAverageDelay(
+                  sliderToContinuousTrafficValue(value),
+                )
+              }
+            />
           )}
-          setValue={(value) =>
-            setMessageSendingAverageDelay(sliderToContinuousTrafficValue(value))
-          }
-        />
-      )}
-      {!enabled && (
-        <BackgroundCoverTrafficRateSlider
-          value={backgroundCoverTrafficValueToSlider(
-            state.poissonParameterForLoopCoverStream,
+          {!enabled && (
+            <BackgroundCoverTrafficRateSlider
+              value={backgroundCoverTrafficValueToSlider(
+                state.poissonParameterForLoopCoverStream,
+              )}
+              setValue={(value) =>
+                setPoissonParameterForLoopCoverStream(
+                  sliderToBackgroundCoverTrafficValue(value),
+                )
+              }
+            />
           )}
-          setValue={(value) =>
-            setPoissonParameterForLoopCoverStream(
-              sliderToBackgroundCoverTrafficValue(value),
-            )
-          }
-        />
-      )}
-    </SettingsMenuCardBig>
+        </CardNewBody>
+      </CardNew>
+    </div>
   );
 }
