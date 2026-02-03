@@ -13,7 +13,8 @@ import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support, allowLan } = useMainState();
+  const { desktopNotifications, ipv6Support, allowLan, backendFlags } =
+    useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -88,7 +89,7 @@ function Settings() {
             onClick: () => navigate(routes.dns),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
-          {
+          backendFlags.mixnetTuning && {
             title: t('mixnet-tuning.title'),
             desc: t('mixnet-tuning.desc'),
             leadingIcon: 'campaign',
