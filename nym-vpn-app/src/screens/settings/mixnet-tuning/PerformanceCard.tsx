@@ -50,7 +50,7 @@ export function PerformanceCard() {
       </CardNewBody>
 
       <CardNewFooter>
-        <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+        <p className="text-xs text-iron dark:text-bombay whitespace-pre-line">
           {t('mixnet-tuning.performance.footer')}
         </p>
       </CardNewFooter>
