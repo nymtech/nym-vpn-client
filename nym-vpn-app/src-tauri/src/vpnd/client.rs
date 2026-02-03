@@ -869,7 +869,10 @@ impl VpndClient {
             .await
     }
 
-    pub async fn set_mixnet_traffic_config(&self, config: MixnetTrafficConfig) -> Result<(), VpndError> {
+    pub async fn set_mixnet_traffic_config(
+        &self,
+        config: MixnetTrafficConfig,
+    ) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         vpnd.set_mixnet_traffic_config(config.into())

@@ -24,7 +24,8 @@ macro_rules! impl_mixnet_traffic_config_conversion {
         impl From<$from> for $to {
             fn from(value: $from) -> Self {
                 Self {
-                    poisson_parameter_for_loop_cover_stream: value.poisson_parameter_for_loop_cover_stream,
+                    poisson_parameter_for_loop_cover_stream: value
+                        .poisson_parameter_for_loop_cover_stream,
                     average_packet_delay: value.average_packet_delay,
                     message_sending_average_delay: value.message_sending_average_delay,
                     disable_poisson_rate: value.disable_poisson_rate,
