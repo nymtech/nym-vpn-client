@@ -1,8 +1,9 @@
 import { createContext, useContext } from 'react';
-import { MixnetTrafficConfigAction, MixnetTrafficConfigState } from './reducer';
+import { MixnetTrafficConfig } from '../../../../types';
+import { MixnetTrafficConfigAction } from './reducer';
 
 export type MixnetTrafficConfigContextType = {
-  state: MixnetTrafficConfigState;
+  state: MixnetTrafficConfig;
   dispatch: React.Dispatch<MixnetTrafficConfigAction>;
   hasUnsavedSettings: boolean;
   hasSettingsOtherThanDefaults: boolean;

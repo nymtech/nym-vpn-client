@@ -2,7 +2,6 @@ import React from 'react';
 import clsx from 'clsx';
 
 export type DataCardProps = {
-  header?: React.ReactNode;
   rows: (
     | { row: React.ReactNode; key: string }
     | undefined
@@ -13,25 +12,20 @@ export type DataCardProps = {
   footer?: React.ReactNode;
 };
 
-function DataCard({ header, rows, footer }: DataCardProps) {
+function DataCard({ rows, footer }: DataCardProps) {
   const filtered = rows.filter(
     (row) => typeof row === 'object' && row !== null,
   );
 
   return (
-    <div
-      className={clsx([
-        'flex flex-col justify-center items-start gap-0',
-        'bg-white dark:bg-charcoal rounded-lg p-4',
-        'cursor-default',
-      ])}
-    >
-      {header && (
-        <div className="text-sm text-iron dark:text-bombay whitespace-pre-line">
-          {header}
-        </div>
-      )}
-      <ul className={clsx(['flex flex-col justify-center items-center gap-0'])}>
+    <div>
+      <ul
+        className={clsx([
+          'flex flex-col justify-center items-center gap-0',
+          'bg-white dark:bg-charcoal rounded-lg p-4',
+          'cursor-default',
+        ])}
+      >
         {filtered.map(({ row, key }) => (
           <li
             key={key}

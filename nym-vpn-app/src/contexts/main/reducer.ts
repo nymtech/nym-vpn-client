@@ -126,19 +126,7 @@ export const initialState: AppState = {
   customDns: [],
   defaultDns: [],
   enableLewesProtocol: false,
-  mixnetTrafficConfig: {
-    poissonParameterForLoopCoverStream:
-      DEFAULT_MIXNET_TRAFFIC_CONFIG.poissonParameterForLoopCoverStream,
-    averagePacketDelay: DEFAULT_MIXNET_TRAFFIC_CONFIG.averagePacketDelay,
-    messageSendingAverageDelay:
-      DEFAULT_MIXNET_TRAFFIC_CONFIG.messageSendingAverageDelay,
-    disablePoissonRate: DEFAULT_MIXNET_TRAFFIC_CONFIG.disablePoissonRate,
-    disableBackgroundCoverTraffic:
-      DEFAULT_MIXNET_TRAFFIC_CONFIG.disableBackgroundCoverTraffic,
-    minMixnodePerformance: DEFAULT_MIXNET_TRAFFIC_CONFIG.minMixnodePerformance,
-    minGatewayMixnetPerformance:
-      DEFAULT_MIXNET_TRAFFIC_CONFIG.minGatewayMixnetPerformance,
-  },
+  mixnetTrafficConfig: DEFAULT_MIXNET_TRAFFIC_CONFIG,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {

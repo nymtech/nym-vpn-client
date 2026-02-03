@@ -1,7 +1,10 @@
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { CardHeaderSwitch, CardNew, CardNewBody, Slider } from '../../../ui';
-import { useMixnetTrafficConfig } from './context';
+import {
+  DEFAULT_MIXNET_TRAFFIC_CONFIG,
+  useMixnetTrafficConfig,
+} from './context';
 
 const BACKGROUND_COVER_TRAFFIC_RATE_LEVELS: {
   label: 'base' | 'balanced' | 'medium' | 'high';
@@ -17,7 +20,7 @@ function BackgroundCoverTrafficRateSlider({
   value,
   setValue,
 }: {
-  value: number;
+  value: number | null;
   setValue: (value: number) => void;
 }) {
   const { t } = useTranslation('settings');
@@ -50,7 +53,10 @@ function BackgroundCoverTrafficRateSlider({
       </div>
       <Slider
         className="px-2"
-        value={value}
+        value={
+          value ??
+          DEFAULT_MIXNET_TRAFFIC_CONFIG.poissonParameterForLoopCoverStream!
+        }
         onValueCommitted={setValue}
         min={0}
         max={3}
@@ -130,7 +136,7 @@ function ContinuousTrafficSlider({
   value,
   setValue,
 }: {
-  value: number;
+  value: number | null;
   setValue: (value: number) => void;
 }) {
   const { t } = useTranslation('settings');
@@ -153,7 +159,9 @@ function ContinuousTrafficSlider({
       </div>
       <Slider
         className="px-2"
-        value={value}
+        value={
+          value ?? DEFAULT_MIXNET_TRAFFIC_CONFIG.messageSendingAverageDelay!
+        }
         onChange={setValue}
         min={0}
         max={2}
@@ -224,7 +232,8 @@ export function ContinuousTrafficCard() {
           {enabled && (
             <ContinuousTrafficSlider
               value={continuousTrafficValueToSlider(
-                state.messageSendingAverageDelay,
+                state.messageSendingAverageDelay ??
+                  DEFAULT_MIXNET_TRAFFIC_CONFIG.messageSendingAverageDelay!,
               )}
               setValue={(value) =>
                 setMessageSendingAverageDelay(
@@ -236,7 +245,8 @@ export function ContinuousTrafficCard() {
           {!enabled && (
             <BackgroundCoverTrafficRateSlider
               value={backgroundCoverTrafficValueToSlider(
-                state.poissonParameterForLoopCoverStream,
+                state.poissonParameterForLoopCoverStream ??
+                  DEFAULT_MIXNET_TRAFFIC_CONFIG.poissonParameterForLoopCoverStream!,
               )}
               setValue={(value) =>
                 setPoissonParameterForLoopCoverStream(

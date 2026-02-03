@@ -15,7 +15,7 @@ function MixingDelaySlider({
   value,
   setValue,
 }: {
-  value: number;
+  value: number | null;
   setValue: (value: number) => void;
 }) {
   const { t } = useTranslation('settings');
@@ -29,7 +29,7 @@ function MixingDelaySlider({
 
       <Slider
         className="px-2"
-        value={value}
+        value={value ?? DEFAULT_MIXNET_TRAFFIC_CONFIG.averagePacketDelay!}
         defaultValue={DEFAULT_MIXNET_TRAFFIC_CONFIG.averagePacketDelay!}
         onChange={setValue}
         min={0}
