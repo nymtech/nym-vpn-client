@@ -9,8 +9,8 @@ import NymVPNLib
 import GRPCManager
 #endif
 import Constants
-import CredentialsManager
 import Logging
+import PathManager
 
 public enum AppType {
     case main
@@ -19,7 +19,6 @@ public enum AppType {
 
 @MainActor public final class ConfigurationManager: ObservableObject {
     private let appSettings: AppSettings
-    private let credentialsManager: CredentialsManager
     private let logger = Logger(label: "Configuration Manager")
     private let fallbackEnv = Env.mainnet
 
@@ -52,6 +51,9 @@ public enum AppType {
             appSettings.currentEnv = newValue.rawValue
         }
     }
+#if os(iOS)
+    public var networkEnv: NymEnvironment?
+#endif
 
     let isRunningOnCI: Bool = {
         guard let isCiBuild = Bundle.main.object(forInfoDictionaryKey: "IsCiBuild") as? String else { return false }
@@ -60,13 +62,11 @@ public enum AppType {
 
 #if os(iOS)
     public static let shared = ConfigurationManager(
-        appSettings: AppSettings.shared,
-        credentialsManager: CredentialsManager.shared
+        appSettings: AppSettings.shared
     )
 #elseif os(macOS)
     public static let shared = ConfigurationManager(
         appSettings: AppSettings.shared,
-        credentialsManager: CredentialsManager.shared,
         grpcManager: GRPCManager.shared
     )
 #endif
@@ -79,36 +79,32 @@ public enum AppType {
 
     @Published public var isCurrentAppVersionCompatible = true
 
+    public var currentEnvString: String {
+        currentEnv.rawValue
+    }
+
     public var isSantaClaus: Bool {
         guard isTestFlight || isRunningOnCI else { return false }
         return true
     }
 
-    public var debugLevel: String {
-        isTestFlight ? DebugLevel.debug.rawValue : DebugLevel.info.rawValue
+    public var debugLevel: DebugLevel {
+        isTestFlight ? DebugLevel.debug : DebugLevel.info
     }
 
 #if os(iOS)
-    private init(appSettings: AppSettings, credentialsManager: CredentialsManager) {
+    private init(appSettings: AppSettings) {
         self.appSettings = appSettings
-        self.credentialsManager = credentialsManager
     }
 #elseif os(macOS)
-    private init(appSettings: AppSettings, credentialsManager: CredentialsManager, grpcManager: GRPCManager) {
+    private init(appSettings: AppSettings, grpcManager: GRPCManager) {
         self.appSettings = appSettings
-        self.credentialsManager = credentialsManager
         self.grpcManager = grpcManager
     }
 #endif
 
     public func setup(for appType: AppType) async throws {
         try await configure()
-
-#if os(iOS)
-        if case .main = appType {
-            try configureLibForMainProcess(userAgent: .appUserAgent)
-        }
-#endif
 
         appSettings.$isCredentialImportedPublisher
             .removeDuplicates()
@@ -143,8 +139,16 @@ public enum AppType {
             guard let self else { return }
             do {
 #if os(iOS)
-                let path = try CredentialsManager.dataFolderURL().path()
-                let links = try getAccountLinksRaw(accountStorePath: path, locale: locale)
+                let accountId = try? await NymVpnAccountStorage(
+                    dataDir: PathManager.dataFolderURL().path(),
+                    environment: networkEnv ?? .newWithMainnetFallback()
+                ).getAccountIdentity()
+                guard let links = try await networkEnv?.accountLinks(
+                    locale: locale,
+                    accountId: accountId
+                ) else {
+                    return
+                }
                 await MainActor.run {
                     self.accountLinks = AccountLinks(account: links.account, signIn: links.signIn, signUp: links.signUp)
                 }
@@ -168,12 +172,13 @@ public enum AppType {
 private extension ConfigurationManager {
     func configure() async throws {
 #if os(iOS)
-        do {
-            try await setEnvVariables()
-        } catch {
-            guard currentEnv == .mainnet else { return }
-            try await setFallbackEnvVariables()
-        }
+        initializeTokioRuntime()
+
+        self.networkEnv = try await NymEnvironment.newWithCacheDir(
+            cacheDir: PathManager.cacheFolderURL().path(),
+            networkName: currentEnvString,
+            userAgent: .appUserAgent
+        )
 #else
         try await setDaemonEnvironmentVariables()
         try? await updateErrorReportingIfNeeded()
@@ -189,7 +194,7 @@ private extension ConfigurationManager {
             guard let self else { return }
             do {
 #if os(iOS)
-                let versions = try getNetworkCompatibilityVersions()
+                let versions = await networkEnv?.networkCompatibility()
                 await MainActor.run {
                     self.lastCompatibleAppVersion = versions?.ios
                     self.lastCompatibleCoreVersion = versions?.core
@@ -207,22 +212,7 @@ private extension ConfigurationManager {
         }
     }
 
-#if os(iOS)
-    func setEnvVariables() async throws {
-        try await Task.detached(priority: .utility) { [currentEnv] in
-            try initEnvironment(
-                cacheDir: try CredentialsManager.cacheFolderURL().path(),
-                networkName: currentEnv.rawValue
-            )
-        }.value
-    }
-
-    func setFallbackEnvVariables() async throws {
-        try await Task.detached(priority: .utility) {
-            try initFallbackMainnetEnvironment()
-        }.value
-    }
-#elseif os(macOS)
+#if os(macOS)
     func setDaemonEnvironmentVariables() async throws {
         try await grpcManager.switchEnvironment(to: currentEnv.rawValue)
     }

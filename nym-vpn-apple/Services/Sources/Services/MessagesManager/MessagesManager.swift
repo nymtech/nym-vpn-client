@@ -2,6 +2,7 @@ import Combine
 import SwiftUI
 import Logging
 import AppSettings
+import ConfigurationManager
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
@@ -11,6 +12,7 @@ import MessageModels
 
 @MainActor public final class MessagesManager: ObservableObject {
     private let appSettings: AppSettings
+    private let configurationManager: ConfigurationManager
 #if os(macOS)
     private let grpcManager: GRPCManager
 #endif
@@ -19,15 +21,16 @@ import MessageModels
     private var messages: [SnackBarMessage] = []
     private var timer: Timer?
 #if os(iOS)
-    public static let shared = MessagesManager(appSettings: .shared)
+    public static let shared = MessagesManager(appSettings: .shared, configurationManager: .shared)
 #elseif os(macOS)
     public static let shared = MessagesManager(appSettings: .shared, grpcManager: .shared)
 #endif
     @Published public var currentMessage: SnackBarMessage?
 
 #if os(iOS)
-    init(appSettings: AppSettings) {
+    init(appSettings: AppSettings, configurationManager: ConfigurationManager) {
         self.appSettings = appSettings
+        self.configurationManager = configurationManager
     }
 #elseif os(macOS)
     init(
@@ -83,7 +86,8 @@ private extension MessagesManager {
             do {
                 let newMessages: [NymNetworkMessage]
 #if os(iOS)
-                newMessages = try getSystemMessages().map {
+                guard let networkEnv = configurationManager.networkEnv else { return }
+                newMessages = networkEnv.systemMessages().map {
                     NymNetworkMessage(name: $0.name, message: $0.message, properties: $0.properties)
                 }
 #elseif os(macOS)

@@ -53,6 +53,8 @@
 		D968BDC92B6AEA9D003F42E5 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = D968BDC82B6AEA9D003F42E5 /* AppSettings */; };
 		D968BDCB2B6BC98E003F42E5 /* AppVersionProvider in Frameworks */ = {isa = PBXBuildFile; productRef = D968BDCA2B6BC98E003F42E5 /* AppVersionProvider */; };
 		D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D97065E02B8DD44A00C27A9B /* TunnelStatus */; };
+		D97095DB2F32903D000966F7 /* PathManager in Frameworks */ = {isa = PBXBuildFile; productRef = D97095DA2F32903D000966F7 /* PathManager */; };
+		D97095DD2F329042000966F7 /* PathManager in Frameworks */ = {isa = PBXBuildFile; productRef = D97095DC2F329042000966F7 /* PathManager */; };
 		D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */ = {isa = PBXBuildFile; productRef = D974C03A2BBED2460011924A /* ConnectionManager */; };
 		D975F8042CE51097002D42C7 /* ErrorHandler in Frameworks */ = {isa = PBXBuildFile; productRef = D975F8032CE51097002D42C7 /* ErrorHandler */; };
 		D9870CF32BE3A12800551A86 /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D9870CF22BE3A12800551A86 /* Home */; };
@@ -281,6 +283,7 @@
 				D9391F092E461E16002BE10F /* MessagesManager in Frameworks */,
 				D9391F0F2E4624D6002BE10F /* MessageModels in Frameworks */,
 				D9F59A3E2F1E76E900CAE857 /* DeeplinkManager in Frameworks */,
+				D97095DB2F32903D000966F7 /* PathManager in Frameworks */,
 				D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */,
 				D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */,
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
@@ -308,6 +311,7 @@
 				D99035882E9063D600E42A82 /* ImpactGenerator in Frameworks */,
 				D9391F0D2E4624CD002BE10F /* MessageModels in Frameworks */,
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
+				D97095DD2F329042000966F7 /* PathManager in Frameworks */,
 				D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */,
 				D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */,
 				D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */,
@@ -584,6 +588,7 @@
 				D9D381322E7B1683006DAFBB /* FeatureFlagsManager */,
 				D94510922F104CD200E2EE5E /* Routes */,
 				D9F59A3D2F1E76E900CAE857 /* DeeplinkManager */,
+				D97095DA2F32903D000966F7 /* PathManager */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -631,6 +636,7 @@
 				D99035872E9063D600E42A82 /* ImpactGenerator */,
 				D94510942F104CD800E2EE5E /* Routes */,
 				D9F59A3F2F1E76EF00CAE857 /* DeeplinkManager */,
+				D97095DC2F329042000966F7 /* PathManager */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -1498,6 +1504,14 @@
 		D97065E02B8DD44A00C27A9B /* TunnelStatus */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TunnelStatus;
+		};
+		D97095DA2F32903D000966F7 /* PathManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PathManager;
+		};
+		D97095DC2F329042000966F7 /* PathManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PathManager;
 		};
 		D974C03A2BBED2460011924A /* ConnectionManager */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -2,8 +2,8 @@
 import NetworkExtension
 import AppSettings
 import Constants
-import CredentialsManager
 import NymVPNLib
+import PathManager
 import TunnelMixnet
 import Tunnels
 
@@ -90,16 +90,16 @@ extension ConnectionManager {
 extension ConnectionManager {
     func generateConfig() throws -> MixnetConfig {
         let isErrorReportingEnabled = appSettings.currentEnv == "sandbox" ? true : appSettings.isErrorReportingOn
-        let credentialURL = try CredentialsManager.dataFolderURL()
-        let configURL = try CredentialsManager.configFolderURL()
+        let dataURL = try PathManager.dataFolderURL()
+        let configURL = try PathManager.configFolderURL()
 
         switch connectionType {
         case .mixnet5hop:
             return MixnetConfig(
                 entryGateway: entryGateway,
                 exitRouter: exitRouter,
-                credentialsDataPath: credentialURL.path(),
                 configPath: configURL.path(),
+                dataPath: dataURL.path(),
                 customDns: appSettings.isCustomDnsEnabled ? appSettings.customDns : [],
                 isErrorReportingEnabled: isErrorReportingEnabled,
                 isStatisticsEnabled: appSettings.isStatisticsEnabled,
@@ -112,8 +112,8 @@ extension ConnectionManager {
             return MixnetConfig(
                 entryGateway: entryGateway,
                 exitRouter: exitRouter,
-                credentialsDataPath: credentialURL.path(),
                 configPath: configURL.path(),
+                dataPath: dataURL.path(),
                 customDns: appSettings.isCustomDnsEnabled ? appSettings.customDns : [],
                 isErrorReportingEnabled: isErrorReportingEnabled,
                 isStatisticsEnabled: appSettings.isStatisticsEnabled,

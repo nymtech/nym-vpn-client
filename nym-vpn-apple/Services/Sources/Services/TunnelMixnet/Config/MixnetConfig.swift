@@ -12,8 +12,8 @@ import NymVPNLib
 
 public struct MixnetConfig: Codable, Equatable {
 #if os(iOS)
-    let credentialsDataPath: String
     let configPath: String
+    let dataPath: String
     let customDns: [IpAddr]
 #endif
     public let entryGateway: EntryGateway
@@ -30,8 +30,8 @@ public struct MixnetConfig: Codable, Equatable {
     public init(
         entryGateway: EntryGateway,
         exitRouter: ExitRouter,
-        credentialsDataPath: String,
         configPath: String,
+        dataPath: String,
         customDns: [IpAddr],
         isErrorReportingEnabled: Bool,
         isStatisticsEnabled: Bool,
@@ -43,8 +43,8 @@ public struct MixnetConfig: Codable, Equatable {
     ) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
-        self.credentialsDataPath = credentialsDataPath
         self.configPath = configPath
+        self.dataPath = dataPath
         self.customDns = customDns
         self.isErrorReportingEnabled = isErrorReportingEnabled
         self.isStatisticsEnabled = isStatisticsEnabled
@@ -61,8 +61,10 @@ public struct MixnetConfig: Codable, Equatable {
 // MARK: - VpnConfig -
 extension MixnetConfig {
     public func asVpnConfig(tunProvider: OsTunProvider, tunStatusListener: TunnelStatusListener?) throws -> VpnConfig {
-        // TODO: custom dns
-        VpnConfig(
+        let tunProvider = NymTunProvider()
+        return VpnConfig(
+            configDir: configPath,
+            dataDir: dataPath,
             entryGateway: entryGateway.entryPoint,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
@@ -70,12 +72,10 @@ extension MixnetConfig {
             enableLewesProtocol: isLewesEnabled,
             residentialExit: false,
             customDns: customDns,
-            tunProvider: tunProvider,
-            configPath: configPath,
-            credentialDataPath: credentialsDataPath,
-            tunStatusListener: tunStatusListener,
-            statisticsRecipient: nil,
-            userAgent: .appUserAgent
+            mixnetTraffic: nil,
+            networkStats: nil,
+            userAgent: .appUserAgent,
+            tunProvider: tunProvider
         )
     }
 }
@@ -96,3 +96,11 @@ extension MixnetConfig {
         return try? decoder.decode(MixnetConfig.self, from: jsonData)
     }
 }
+
+#if os(iOS)
+final class NymTunProvider: OsTunProvider {
+    func setTunnelNetworkSettings(tunnelSettings: NymVPNLib.TunnelNetworkSettings) async throws {
+        print("🔥 setTunnelNetworkSettings \(tunnelSettings)")
+    }
+}
+#endif
