@@ -22,6 +22,8 @@ function MixnetTrafficConfigProvider({
       DEFAULT_MIXNET_TRAFFIC_CONFIG.messageSendingAverageDelay!,
     disablePoissonRate: config.disablePoissonRate,
     disableBackgroundCoverTraffic: config.disableBackgroundCoverTraffic,
+    minMixnodePerformance: config.minMixnodePerformance,
+    minGatewayMixnetPerformance: config.minGatewayMixnetPerformance,
   }));
 
   const hasUnsavedSettings = useMemo(() => {

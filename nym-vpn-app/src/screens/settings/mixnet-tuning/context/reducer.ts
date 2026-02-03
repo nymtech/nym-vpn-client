@@ -6,6 +6,8 @@ export type MixnetTrafficConfigState = {
   messageSendingAverageDelay: number;
   disablePoissonRate: boolean;
   disableBackgroundCoverTraffic: boolean;
+  minMixnodePerformance: number | null;
+  minGatewayMixnetPerformance: number | null;
 };
 
 export type MixnetTrafficConfigAction =
@@ -16,16 +18,15 @@ export type MixnetTrafficConfigAction =
     }
   | { type: 'restore-defaults' };
 
-export const DEFAULT_MIXNET_TRAFFIC_CONFIG: Omit<
-  NonNullable<MixnetTrafficConfig>,
-  'minMixnodePerformance' | 'minGatewayMixnetPerformance'
-> = {
+export const DEFAULT_MIXNET_TRAFFIC_CONFIG: NonNullable<MixnetTrafficConfig> = {
   poissonParameterForLoopCoverStream: 200,
   averagePacketDelay: 15,
   messageSendingAverageDelay: 20,
   disablePoissonRate: false,
   disableBackgroundCoverTraffic: false,
-};
+  minMixnodePerformance: null,
+  minGatewayMixnetPerformance: null,
+} as const;
 
 export function reducer(
   state: MixnetTrafficConfigState,
@@ -47,6 +48,10 @@ export function reducer(
         disablePoissonRate: DEFAULT_MIXNET_TRAFFIC_CONFIG.disablePoissonRate,
         disableBackgroundCoverTraffic:
           DEFAULT_MIXNET_TRAFFIC_CONFIG.disableBackgroundCoverTraffic,
+        minMixnodePerformance:
+          DEFAULT_MIXNET_TRAFFIC_CONFIG.minMixnodePerformance,
+        minGatewayMixnetPerformance:
+          DEFAULT_MIXNET_TRAFFIC_CONFIG.minGatewayMixnetPerformance,
       };
     default:
       return state;

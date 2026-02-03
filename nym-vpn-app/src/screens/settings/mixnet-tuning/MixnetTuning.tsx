@@ -27,8 +27,6 @@ function MixnetTuning() {
         type: 'set-mixnet-traffic-config',
         config: {
           ...state,
-          minMixnodePerformance: null,
-          minGatewayMixnetPerformance: null,
         },
       });
     } catch (error) {

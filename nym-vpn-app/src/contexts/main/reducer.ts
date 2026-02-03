@@ -135,8 +135,9 @@ export const initialState: AppState = {
     disablePoissonRate: DEFAULT_MIXNET_TRAFFIC_CONFIG.disablePoissonRate,
     disableBackgroundCoverTraffic:
       DEFAULT_MIXNET_TRAFFIC_CONFIG.disableBackgroundCoverTraffic,
-    minMixnodePerformance: null,
-    minGatewayMixnetPerformance: null,
+    minMixnodePerformance: DEFAULT_MIXNET_TRAFFIC_CONFIG.minMixnodePerformance,
+    minGatewayMixnetPerformance:
+      DEFAULT_MIXNET_TRAFFIC_CONFIG.minGatewayMixnetPerformance,
   },
 };
 

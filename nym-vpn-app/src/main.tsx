@@ -107,8 +107,6 @@ dayjs.extend(duration);
         : defaultEnableLewesProtocol,
     mixnetTrafficConfig: config?.mixnetTraffic || {
       ...DEFAULT_MIXNET_TRAFFIC_CONFIG,
-      minMixnodePerformance: null,
-      minGatewayMixnetPerformance: null,
     },
   };
   console.log('initial state:', initState);
