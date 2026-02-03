@@ -33,3 +33,5 @@ zbus_polkit.workspace = true
 windows = { workspace = true, features = ["Win32_Foundation"] }
 nym-windows.workspace = true
 
+[features]
+authentication = []

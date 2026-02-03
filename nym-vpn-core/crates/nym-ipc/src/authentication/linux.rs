@@ -115,7 +115,8 @@ pub(crate) async fn is_authenticated(
     shutdown_token: CancellationToken,
 ) -> Result<UnixStream, AuthenticationError> {
     // Let debug builds skip authorization process
-    if cfg!(debug_assertions) {
+    // TODO: Disable feature gating once front-end prevents spamming
+    if cfg!(debug_assertions) || cfg!(not(feature = "authentication")) {
         authorize(&mut stream).await;
         return Ok(stream);
     }
