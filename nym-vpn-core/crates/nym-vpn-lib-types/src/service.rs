@@ -214,8 +214,9 @@ impl MixnetTrafficConfig {
         const NUM_MIX_NODES: f64 = 3.0;
 
         let mixing_delay = self.average_packet_delay.unwrap_or(0) as f64;
+        let latency = 2.0 * (NUM_HOPS * BASE_HOP_DELAY_MS + NUM_MIX_NODES * mixing_delay);
 
-        2.0 * (NUM_HOPS * BASE_HOP_DELAY_MS + NUM_MIX_NODES * mixing_delay)
+        (latency / 10.0).round() * 10.0
     }
 }
 
