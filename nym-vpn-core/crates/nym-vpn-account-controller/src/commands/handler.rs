@@ -190,7 +190,7 @@ pub(crate) async fn handle_link_privy_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     privy_account: StorableAccount,
 ) -> Result<(), AccountCommandError> {
-    let privy_vpn_account = VpnAccount::try_from(privy_account.clone())
+    let privy_vpn_account = VpnAccount::try_from(privy_account)
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
 
     // We can only link the Privy account if we're currently logged-in with an API account
@@ -200,18 +200,19 @@ pub(crate) async fn handle_link_privy_account<C: ConnectivityMonitor>(
     {
         tracing::info!("Linking Privy account with API account");
 
-        shared_state
+        let _status_ok = shared_state
             .vpn_api_client
             .link_privy_account(current_account, &privy_vpn_account)
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to link Privy account with API account: {err}")
+                tracing::error!("Failed to link Privy account with API account: {err:?}")
             })?;
 
-        return Ok(());
+        Ok(())
+    } else {
+        tracing::error!("Cannot link Privy account when not logged-in with an API account");
+        Err(AccountCommandError::NoAccountStored)
     }
-
-    Err(AccountCommandError::NoAccountStored)
 }
 
 pub(crate) async fn handle_rotate_keys<C: ConnectivityMonitor>(

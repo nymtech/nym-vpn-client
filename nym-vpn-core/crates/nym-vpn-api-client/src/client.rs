@@ -791,32 +791,34 @@ impl VpnApiClient {
         &self,
         account: &VpnAccount,
         privy_account: &VpnAccount,
-    ) -> Result<()> {
+    ) -> Result<StatusOk> {
+        let pubkey = privy_account.pub_key().to_string();
+        let signature = privy_account
+            .auth_method_signature()
+            .map_err(|e| VpnApiClientError::AccountError(Box::new(e)))?;
+
         let request = LinkPrivyAccountRequestBody {
-            pub_key: privy_account.pub_key().to_string(),
-            signature: privy_account.signature_base64().to_string(),
-            kind: "privy_secp256k1".to_string(),
+            pubkey,
+            signature,
+            kind: "user_generated_secp256k1".to_string(),
             label: "Social login".to_string(),
         };
 
-        let _response: StatusOk = self
-            .post_authorized(
-                &[
-                    routes::PUBLIC,
-                    routes::V1,
-                    routes::ACCOUNT,
-                    &account.id(),
-                    routes::LINK,
-                ],
-                &request,
-                account,
-                None,
-            )
-            .await
-            .map_err(Box::new)
-            .map_err(VpnApiClientError::LinkPrivyAccount)?;
-
-        Ok(())
+        self.post_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::AUTH_METHODS,
+            ],
+            &request,
+            account,
+            None,
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::LinkPrivyAccount)
     }
 
     // DEVICES

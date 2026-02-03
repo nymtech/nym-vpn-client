@@ -3,7 +3,7 @@
 
 use std::{collections::HashSet, error::Error};
 
-use crate::response::NymErrorResponse;
+use crate::{response::NymErrorResponse, types::AccountError};
 pub use nym_http_api_client::HttpClientError;
 // Error code id to allow error catching. These are emitted by the backend and are unique.
 
@@ -140,6 +140,9 @@ pub enum VpnApiClientError {
 
     #[error("the url {url} is invalid")]
     InvalidUrl { url: String },
+
+    #[error("account api client error: {0}")]
+    AccountError(#[source] Box<AccountError>),
 }
 
 pub type Result<T, E = VpnApiClientError> = std::result::Result<T, E>;
