@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use tokio::net::UnixStream;
+use tokio_util::sync::CancellationToken;
 
 use crate::authentication::error::AuthenticationError;
 
