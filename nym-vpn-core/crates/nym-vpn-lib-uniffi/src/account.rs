@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor};
+
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use tokio::{sync::Mutex, task::JoinHandle};
@@ -14,8 +16,7 @@ use nym_vpn_lib_types::{
     RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, UserAgent,
     VpnAccountSummary,
 };
-
-use crate::{environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor};
+use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 struct State {
     join_handle: JoinHandle<()>,
@@ -112,7 +113,7 @@ impl NymAccountController {
 
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String, VpnError> {
         let base_url = match params.kind {
-            DeeplinkKind::Privy => {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
                 let Some(ref account_management) =
                     self.network_env.inner().nym_vpn_network.account_management
                 else {
@@ -147,7 +148,7 @@ impl NymAccountController {
 
         let privy_account = StorableAccount {
             mnemonic: deeplink_mnemonic.mnemonic.clone(),
-            mode: StorableAccountMode::Privy,
+            mode: StoredAccountMode::Privy,
         };
 
         match deeplink_mnemonic.kind {
