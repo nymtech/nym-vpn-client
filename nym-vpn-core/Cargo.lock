@@ -6154,6 +6154,7 @@ dependencies = [
 name = "nym-vpn-lib-types"
 version = "1.24.0-beta"
 dependencies = [
+ "bip39",
  "ipnetwork",
  "nym-bandwidth-controller",
  "nym-crypto",
@@ -6165,6 +6166,7 @@ dependencies = [
  "nym-validator-client",
  "nym-vpn-api-client",
  "nym-vpn-network-config",
+ "nym-vpn-store",
  "serde",
  "si-scale 0.3.0",
  "thiserror 2.0.18",

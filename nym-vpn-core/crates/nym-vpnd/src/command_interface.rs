@@ -926,7 +926,7 @@ impl NymVpnService for CommandInterface {
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::PrivyDerivationMessage>> {
         Ok(tonic::Response::new(proto::PrivyDerivationMessage {
-            message: nym_vpn_lib::login::privy::message_to_sign(),
+            message: nym_vpn_lib::privy::message_to_sign(),
         }))
     }
 

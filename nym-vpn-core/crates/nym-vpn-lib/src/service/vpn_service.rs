@@ -1552,20 +1552,9 @@ impl NymVpnService {
         &mut self,
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountCommandError> {
-        let mnemonic = crate::login::parse_account_request(&store_request)
+        let account = StorableAccount::try_from(store_request)
             .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
-        if store_request.centralised() {
-            self.account_command_tx
-                .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
-                .await
-        } else {
-            self.account_command_tx
-                .store_account(StorableAccount::new(
-                    mnemonic,
-                    StoredAccountMode::Decentralised,
-                ))
-                .await
-        }
+        self.account_command_tx.store_account(account).await
     }
 
     async fn handle_get_stored_mnemonic(&mut self) -> Result<String, AccountCommandError> {

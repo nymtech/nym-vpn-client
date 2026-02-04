@@ -99,6 +99,9 @@ pub enum VpnError {
 
     #[error("failed to fetch environment: {details}")]
     FetchEnvironment { details: String },
+
+    #[error("failed to link privy account: {details}")]
+    LinkPrivyAccount { details: String },
 }
 
 impl From<HttpClientError> for VpnError {

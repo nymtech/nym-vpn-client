@@ -3,28 +3,23 @@
 
 use std::{path::PathBuf, sync::Arc};
 
-#[cfg(target_os = "ios")]
-use nym_common::ErrorExt;
-use nym_common::trace_err_chain;
+use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
-#[cfg(target_os = "ios")]
-use nym_vpn_api_client::{Platform, response::NymVpnRegisterAccountResponse};
 use nym_vpn_api_client::{
     VpnApiClient,
-    types::{Device, DeviceStatus, VpnAccount, VpnAccountMode},
+    response::NymVpnRegisterAccountResponse,
+    types::{Device, DeviceStatus, Platform, VpnAccount},
 };
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
-#[cfg(target_os = "ios")]
-use nym_vpn_lib_types::RegisterAccountResponse;
-use nym_vpn_lib_types::StoreAccountRequest;
+use nym_vpn_lib_types::{DeeplinkKind, RegisterAccountResponse, StoreAccountRequest};
 use nym_vpn_store::{
     account::AccountInformationStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
-    types::StorableAccount,
+    types::{StorableAccount, StoredAccountMode},
 };
 
-use crate::{NymEnvironment, VpnError};
+use crate::{NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic};
 
 /// Raw API that directly accesses storage without going through the account controller.
 /// This API places the responsibility of ensuring the account controller is not running on
@@ -56,31 +51,100 @@ impl NymVpnAccountStorage {
     /// Store the account mnemonic
     /// This is a version that can be called when the account controller is not running.
     pub async fn login(&self, request: StoreAccountRequest) -> Result<(), VpnError> {
-        let mnemonic = nym_vpn_lib::login::parse_account_request(&request).map_err(|err| {
-            VpnError::InvalidSecret {
-                details: err.to_string(),
-            }
-        })?;
+        let storable_account = StorableAccount::try_from(request).map_err(VpnError::internal)?;
+        let account = VpnAccount::try_from(storable_account.clone()).map_err(VpnError::internal)?;
+
         let vpn_api_client = self.create_vpn_api_client().await?;
-        let account =
-            VpnAccount::new(mnemonic.clone(), VpnAccountMode::Api).map_err(VpnError::internal)?;
         let _response = vpn_api_client
             .get_account(&account)
             .await
             .map_err(|_err| VpnError::AccountNotRegistered)?;
 
-        self.storage
-            .store_account(StorableAccount::from(mnemonic))
-            .await?;
+        self.storage.store_account(storable_account).await?;
         self.storage.init_keys(None).await?;
         Ok(())
+    }
+
+    /// Either store account mnemonic or link the existing API account with Privy depending on the type of deeplink mnemonic.
+    /// This is a version that can be called when the account controller is not running.
+    pub async fn login_with_deeplink_mnemonic(
+        &self,
+        deeplink_mnemonic: Arc<NymDeeplinkMnemonic>,
+    ) -> Result<(), VpnError> {
+        let deeplink_mnemonic = deeplink_mnemonic.inner();
+
+        let privy_account = StorableAccount {
+            mnemonic: deeplink_mnemonic.mnemonic.clone(),
+            mode: StoredAccountMode::Privy,
+        };
+
+        match deeplink_mnemonic.kind {
+            DeeplinkKind::Privy => {
+                tracing::info!("Storing Privy account");
+
+                self.storage.store_account(privy_account).await?;
+                self.storage.init_keys(None).await?;
+                Ok(())
+            }
+            DeeplinkKind::PrivyLink => {
+                let privy_vpn_account = VpnAccount::try_from(privy_account).map_err(|err| {
+                    VpnError::InvalidMnemonic {
+                        details: err.to_string(),
+                    }
+                })?;
+
+                let vpn_api_client = self.create_vpn_api_client().await?;
+
+                let current_account = self
+                    .storage
+                    .load_account()
+                    .await?
+                    .map(VpnAccount::try_from)
+                    .transpose()
+                    .map_err(|err| VpnError::InternalError {
+                        details: err.to_string(),
+                    })?;
+
+                // We can only link the Privy account if we're currently logged-in with an API account
+                if privy_vpn_account.mode().is_privy()
+                    && let Some(ref current_account) = current_account
+                    && current_account.mode().is_api()
+                {
+                    tracing::info!("Linking Privy account with API account");
+
+                    let _status_ok = vpn_api_client
+                        .link_account(current_account, &privy_vpn_account, "Social login")
+                        .await
+                        .inspect_err(|err| {
+                            tracing::error!(
+                                "Failed to link Privy account with API account: {err:?}"
+                            )
+                        })
+                        .map_err(|err| VpnError::LinkPrivyAccount {
+                            details: err.to_string(),
+                        })?;
+
+                    tracing::info!("Successfully linked Privy account with API account");
+
+                    Ok(())
+                } else {
+                    tracing::error!(
+                        "Cannot link Privy account when not logged-in with an API account"
+                    );
+                    Err(VpnError::internal(
+                        "cannot link privy account when logged-in with an API account",
+                    ))
+                }
+            }
+        }
     }
 
     /// Generate the account mnemonic locally and store it.
     /// This is a version that can be called when the account controller is not running.
     pub async fn create_account(&self) -> Result<(), VpnError> {
         let (_, mnemonic) = VpnAccount::generate_new().map_err(VpnError::internal)?;
-        self.storage.store_account(mnemonic.into()).await?;
+        let account = StorableAccount::new(mnemonic, StoredAccountMode::Api);
+        self.storage.store_account(account).await?;
         self.storage.init_keys(None).await?;
         Ok(())
     }
@@ -178,16 +242,13 @@ impl NymVpnAccountStorage {
             .map_err(VpnError::internal)
             .map(|account| account.id().to_string())
     }
-}
 
-#[cfg(target_os = "ios")]
-#[uniffi::export(async_runtime = "tokio")]
-impl NymVpnAccountStorage {
     /// Load the account mnemonic stored locally and register it.
     /// This is a version that can be called when the account controller is not running.
     pub async fn register_account(&self) -> Result<RegisterAccountResponse, VpnError> {
         let platform = Platform::Apple;
         let account = self
+            .storage
             .load_account()
             .await
             .map_err(|err| VpnError::Storage {
@@ -204,7 +265,6 @@ impl NymVpnAccountStorage {
 }
 
 impl NymVpnAccountStorage {
-    #[cfg(target_os = "ios")]
     async fn register_account_by_account(
         &self,
         account: &VpnAccount,

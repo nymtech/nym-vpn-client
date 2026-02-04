@@ -187,13 +187,13 @@ impl NymAccountController {
     }
 
     /// Import the account mnemonic
-    pub async fn login(&self, request: &StoreAccountRequest) -> Result<(), VpnError> {
-        let mnemonic = nym_vpn_lib::login::parse_account_request(request).map_err(|err| {
-            VpnError::InvalidSecret {
+    pub async fn login(&self, request: StoreAccountRequest) -> Result<(), VpnError> {
+        let account =
+            StorableAccount::try_from(request).map_err(|err| VpnError::InvalidMnemonic {
                 details: err.to_string(),
-            }
-        })?;
-        self.command_sender.store_account(mnemonic.into()).await?;
+            })?;
+
+        self.command_sender.store_account(account).await?;
         Ok(())
     }
 

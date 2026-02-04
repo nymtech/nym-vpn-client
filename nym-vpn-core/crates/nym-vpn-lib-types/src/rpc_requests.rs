@@ -6,6 +6,12 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
+#[cfg(feature = "nym-type-conversions")]
+use nym_vpn_store::{
+    account::Mnemonic,
+    types::{StorableAccount, StoredAccountMode},
+};
+
 use crate::{GatewayType, UserAgent};
 
 #[derive(Debug)]
@@ -35,6 +41,26 @@ impl std::fmt::Debug for StoreAccountRequest {
         f.debug_struct("StoreVpnAccountRequest")
             .field("mnemonic", &"[redacted]")
             .finish()
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl TryFrom<StoreAccountRequest> for StorableAccount {
+    type Error = bip39::Error;
+
+    fn try_from(value: StoreAccountRequest) -> Result<Self, Self::Error> {
+        Ok(match value {
+            StoreAccountRequest::Vpn { mnemonic } => {
+                StorableAccount::new(Mnemonic::parse(&mnemonic)?, StoredAccountMode::Api)
+            }
+            StoreAccountRequest::Privy { mnemonic } => {
+                StorableAccount::new(Mnemonic::parse(&mnemonic)?, StoredAccountMode::Privy)
+            }
+            StoreAccountRequest::Decentralised { mnemonic } => StorableAccount::new(
+                Mnemonic::parse(&mnemonic)?,
+                StoredAccountMode::Decentralised,
+            ),
+        })
     }
 }
 
