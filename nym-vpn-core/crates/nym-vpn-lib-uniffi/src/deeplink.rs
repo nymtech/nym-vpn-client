@@ -3,10 +3,9 @@
 
 use std::sync::Arc;
 
-use nym_vpn_store::account::Mnemonic;
 use tokio::sync::Mutex;
 
-use nym_vpn_account_controller::{CreateDeeplinkParams, Deeplinks};
+use nym_vpn_account_controller::{CreateDeeplinkParams, DeeplinkMnemonic, Deeplinks};
 use nym_vpn_lib_types::{DeeplinkClient, DeeplinkKind, GetDeeplinkParams};
 
 use crate::{NymEnvironment, error::VpnError};
@@ -31,7 +30,7 @@ impl NymDeeplinks {
     /// Get a deeplink
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String, VpnError> {
         let base_url = match params.kind {
-            DeeplinkKind::Privy => {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
                 let Some(ref account_management) =
                     self.network_env.inner().nym_vpn_network.account_management
                 else {
@@ -84,7 +83,7 @@ impl NymDeeplinks {
         let mut deeplink_guard = self.deep_links.lock().await;
 
         // Derive the mnemonic from the provided deeplink URL
-        let mnemonic = deeplink_guard
+        let deeplink_mnemonic = deeplink_guard
             .derive_mnemonic(&deeplink_callback_url)
             .map_err(|e| VpnError::DeeplinkError {
                 details: e.to_string(),
@@ -93,19 +92,18 @@ impl NymDeeplinks {
         // Housekeeping
         deeplink_guard.remove_expired();
 
-        Ok(NymDeeplinkMnemonic { mnemonic })
+        Ok(NymDeeplinkMnemonic { deeplink_mnemonic })
     }
 }
 
 /// Opaque object holding privy mnemonic
 #[derive(uniffi::Object)]
 pub struct NymDeeplinkMnemonic {
-    inner: DeeplinkMnemonic,
+    deeplink_mnemonic: DeeplinkMnemonic,
 }
 
-#[allow(unused)]
-impl DeeplinkMnemonic {
-    pub fn inner(&self) -> &Mnemonic {
-        &self.inner
+impl NymDeeplinkMnemonic {
+    pub fn inner(&self) -> &DeeplinkMnemonic {
+        &self.deeplink_mnemonic
     }
 }

@@ -19,7 +19,7 @@ use nym_vpn_store::{
     types::StorableAccount,
 };
 
-use crate::{NymEnvironment, VpnError};
+use crate::{NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic};
 
 /// Raw API that directly accesses storage without going through the account controller.
 /// This API places the responsibility of ensuring the account controller is not running on
@@ -67,6 +67,17 @@ impl NymVpnAccountStorage {
         self.storage
             .store_account(StorableAccount::from(mnemonic))
             .await?;
+        self.storage.init_keys(None).await?;
+        Ok(())
+    }
+
+    pub async fn login_with_deeplink_mnemonic(
+        &self,
+        deeplink_mnemonic: Arc<NymDeeplinkMnemonic>,
+    ) -> Result<(), VpnError> {
+        let deeplink_mnemonic = deeplink_mnemonic.inner();
+
+        self.storage.store_account(deeplink_mnemonic.into()).await?;
         self.storage.init_keys(None).await?;
         Ok(())
     }
@@ -193,7 +204,9 @@ impl NymVpnAccountStorage {
             .account_token;
         Ok(RegisterAccountResponse { account_token })
     }
+}
 
+impl NymVpnAccountStorage {
     async fn register_account_by_account(
         &self,
         account: &VpnAccount,
