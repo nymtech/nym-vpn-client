@@ -80,7 +80,7 @@ impl NymDeeplinks {
     pub async fn handle_callback_url(
         &self,
         deeplink_callback_url: String,
-    ) -> Result<PrivyMnemonic, VpnError> {
+    ) -> Result<NymDeeplinkMnemonic, VpnError> {
         let mut deeplink_guard = self.deep_links.lock().await;
 
         // Derive the mnemonic from the provided deeplink URL
@@ -93,19 +93,19 @@ impl NymDeeplinks {
         // Housekeeping
         deeplink_guard.remove_expired();
 
-        Ok(PrivyMnemonic { mnemonic })
+        Ok(NymDeeplinkMnemonic { mnemonic })
     }
 }
 
 /// Opaque object holding privy mnemonic
 #[derive(uniffi::Object)]
-pub struct PrivyMnemonic {
-    mnemonic: Mnemonic,
+pub struct NymDeeplinkMnemonic {
+    inner: DeeplinkMnemonic,
 }
 
 #[allow(unused)]
-impl PrivyMnemonic {
+impl DeeplinkMnemonic {
     pub fn inner(&self) -> &Mnemonic {
-        &self.mnemonic
+        &self.inner
     }
 }
