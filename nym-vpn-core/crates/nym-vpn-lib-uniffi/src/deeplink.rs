@@ -76,7 +76,7 @@ impl NymDeeplinks {
     }
 
     /// Derive mnemonic from deeplink callback URL
-    pub async fn handle_callback_url(
+    pub async fn derive_mnemonic(
         &self,
         deeplink_callback_url: String,
     ) -> Result<NymDeeplinkMnemonic, VpnError> {
