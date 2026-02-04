@@ -173,10 +173,7 @@ impl NymVpnAccountStorage {
             .map_err(VpnError::internal)
             .map(|account| account.id().to_string())
     }
-}
 
-#[uniffi::export(async_runtime = "tokio")]
-impl NymVpnAccountStorage {
     /// Load the account mnemonic stored locally and register it.
     /// This is a version that can be called when the account controller is not running.
     pub async fn register_account(&self) -> Result<RegisterAccountResponse, VpnError> {
@@ -196,10 +193,7 @@ impl NymVpnAccountStorage {
             .account_token;
         Ok(RegisterAccountResponse { account_token })
     }
-}
 
-impl NymVpnAccountStorage {
-    #[cfg(target_os = "ios")]
     async fn register_account_by_account(
         &self,
         account: &VpnAccount,
