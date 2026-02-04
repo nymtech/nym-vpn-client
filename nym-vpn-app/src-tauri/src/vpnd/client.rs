@@ -439,7 +439,7 @@ impl VpndClient {
         let request = match (mnemonic, signature) {
             (Some(mnemonic), None) => lib::StoreAccountRequest::Vpn { mnemonic },
             (None, Some(signature)) => lib::StoreAccountRequest::Privy {
-                hex_signature: signature,
+                mnemonic: signature,
             },
             _ => {
                 return Err(VpndError::Response(BackendError::internal(

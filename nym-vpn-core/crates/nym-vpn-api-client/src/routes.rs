@@ -4,6 +4,7 @@
 pub(crate) const PUBLIC: &str = "public";
 pub(crate) const V1: &str = "v1";
 pub(crate) const ACCOUNT: &str = "account";
+pub(crate) const AUTH_METHOD: &str = "auth-method";
 pub(crate) const ANDROID: &str = "android";
 pub(crate) const APPLE: &str = "apple";
 pub(crate) const HEALTH: &str = "health";

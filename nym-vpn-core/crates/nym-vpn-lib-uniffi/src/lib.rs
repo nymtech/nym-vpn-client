@@ -213,6 +213,8 @@ pub struct VPNConfig {
     /// Custom DNS used when set.
     /// Leave empty to use default DNS servers.
     pub custom_dns: Vec<IpAddr>,
+    pub mixnet_traffic: Option<MixnetTrafficConfig>,
+    pub network_stats: Option<NetworkStatisticsConfig>,
     pub user_agent: UserAgent,
     #[cfg(target_os = "ios")]
     tun_provider: Arc<dyn OSTunProvider>,
@@ -239,8 +241,8 @@ impl VPNConfig {
             enable_custom_dns: !self.custom_dns.is_empty(),
             custom_dns: self.custom_dns.clone(),
             min_gateway_vpn_performance: None,
-            mixnet_traffic: MixnetTrafficConfig::default(),
-            network_stats: NetworkStatisticsConfig::default(),
+            mixnet_traffic: self.mixnet_traffic.clone().unwrap_or_default(),
+            network_stats: self.network_stats.clone().unwrap_or_default(),
         })
     }
 }

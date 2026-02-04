@@ -1748,7 +1748,7 @@ impl NymVpnService {
         params: GetDeeplinkParams,
     ) -> Result<String, AccountCommandError> {
         let base_url = match params.kind {
-            DeeplinkKind::Privy => {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
                 let Some(ref account_management) =
                     self.network_tx.borrow().nym_vpn_network.account_management
                 else {
@@ -1778,14 +1778,20 @@ impl NymVpnService {
         &self,
         deeplink_url: String,
     ) -> Result<(), AccountCommandError> {
-        let mnemonic = self
+        let deeplink_mnemonic = self
             .account_command_tx
             .derive_deeplink_mnemonic(deeplink_url)
             .await?;
 
-        self.account_command_tx
-            .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
-            .await
+        let privy_account = StorableAccount {
+            mnemonic: deeplink_mnemonic.mnemonic,
+            mode: StoredAccountMode::Privy,
+        };
+
+        match deeplink_mnemonic.kind {
+            DeeplinkKind::Privy => self.account_command_tx.store_account(privy_account).await,
+            DeeplinkKind::PrivyLink => self.account_command_tx.link_account(privy_account).await,
+        }
     }
 
     async fn handle_delete_log_file(&self) {

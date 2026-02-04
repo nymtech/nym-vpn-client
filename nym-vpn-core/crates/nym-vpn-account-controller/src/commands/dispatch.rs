@@ -1,7 +1,10 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{AvailableTicketbooks, deeplink::CreateDeeplinkParams};
+use crate::{
+    AvailableTicketbooks,
+    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
+};
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     ResolverOverrides,
@@ -29,6 +32,9 @@ pub enum AccountCommand {
 
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
+
+    /// Link another account with the currently logged-on API account
+    LinkAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
 
     /// Rotate the wireguard keys
     RotateKeys(ReturnSender<(), AccountCommandError>),
@@ -65,6 +71,7 @@ impl AccountCommand {
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
@@ -141,7 +148,7 @@ pub enum CommonCommand {
     ),
 
     /// Derive the mnemonic from the deeplink callback URL
-    DeriveDeeplinkMnemonic(ReturnSender<bip39::Mnemonic, AccountCommandError>, String),
+    DeriveDeeplinkMnemonic(ReturnSender<DeeplinkMnemonic, AccountCommandError>, String),
 }
 
 /// Commands relating to the upgrade mode

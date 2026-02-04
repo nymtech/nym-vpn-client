@@ -53,6 +53,7 @@ pub enum DeeplinkClient {
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum DeeplinkKind {
     Privy,
+    PrivyLink,
 }
 
 impl FromStr for DeeplinkKind {
@@ -61,6 +62,7 @@ impl FromStr for DeeplinkKind {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "privy" => Ok(DeeplinkKind::Privy),
+            "privy_link" | "privy-link" | "privylink" => Ok(DeeplinkKind::PrivyLink),
             _ => Err(format!("Unknown deeplink kind: {s}")),
         }
     }
