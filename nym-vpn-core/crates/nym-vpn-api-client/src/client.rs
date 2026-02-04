@@ -791,10 +791,12 @@ impl VpnApiClient {
         &self,
         account: &VpnAccount,
         linked_account: &VpnAccount,
+        label: &str,
     ) -> Result<StatusOk> {
         let pubkey = linked_account.pub_key().to_string();
+
         let signature_json = format!(
-            "{{\"canonical_account_addr\":\"{}\",\"public_key_base58\":\"{}\"}}",
+            r#"{{"canonical_account_addr":"{}","public_key_base58":"{}"}}"#,
             account.id(),
             linked_account.pub_key()
         );
@@ -807,7 +809,7 @@ impl VpnApiClient {
             pubkey,
             signature,
             kind: "user_generated_secp256k1".to_string(),
-            label: "Social login".to_string(),
+            label: label.to_string(),
         };
 
         self.post_authorized(
@@ -816,7 +818,7 @@ impl VpnApiClient {
                 routes::V1,
                 routes::ACCOUNT,
                 &account.id(),
-                routes::AUTH_METHODS,
+                routes::AUTH_METHOD,
             ],
             &request,
             account,

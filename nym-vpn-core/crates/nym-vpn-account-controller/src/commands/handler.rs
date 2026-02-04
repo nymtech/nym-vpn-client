@@ -12,7 +12,7 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnApiError};
 use nym_vpn_store::{account::StorableAccount, keys::wireguard::WireguardKeyStore};
-use tracing::info;
+
 // The onus of making sure the conditions are right to call these handlers is on the caller
 
 async fn ensure_account_exists_on_chain<C: ConnectivityMonitor>(
@@ -32,9 +32,11 @@ async fn ensure_account_exists_on_chain<C: ConnectivityMonitor>(
     let Ok(base_account) = account_response.try_get_base_account() else {
         return Err(AccountCommandError::AccountDoesntExistOnChain);
     };
-    info!(
+    tracing::info!(
         "importing decentralised account '{}' with account number: {} and sequence: {}",
-        base_account.address, base_account.account_number, base_account.sequence
+        base_account.address,
+        base_account.account_number,
+        base_account.sequence
     );
 
     Ok(())
@@ -202,11 +204,13 @@ pub(crate) async fn handle_link_account<C: ConnectivityMonitor>(
 
         let _status_ok = shared_state
             .vpn_api_client
-            .link_account(current_account, &privy_vpn_account)
+            .link_account(current_account, &privy_vpn_account, "Social login")
             .await
             .inspect_err(|err| {
                 tracing::error!("Failed to link Privy account with API account: {err:?}")
             })?;
+
+        tracing::info!("Successfully linked Privy account with API account");
 
         Ok(())
     } else {
