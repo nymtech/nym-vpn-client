@@ -61,16 +61,13 @@ jobs:
             libpcap-dev \
             libssl-dev \
             protobuf-compiler \
-            rootlesskit \
-            slirp4netns \
             procps \
             nftables \
             wireguard-tools \
             dnsmasq \
             curl \
             qemu-system-x86 \
-            qemu-utils \
-            podman
+            qemu-utils
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -105,13 +102,9 @@ jobs:
       - name: Build test-runner and connection-checker
         working-directory: nym-vpn-core/crates/test
         run: |
-          if command -v podman &> /dev/null; then
-            ./scripts/container-run.sh ./scripts/build/test-runner.sh linux
-          else
-            cargo build --release --target x86_64-unknown-linux-gnu \
-              -p test-runner \
-              -p connection-checker
-          fi
+          cargo build --release --target x86_64-unknown-linux-gnu \
+            -p test-runner \
+            -p connection-checker
 
       - name: Build Nym VPN binaries
         working-directory: nym-vpn-core
