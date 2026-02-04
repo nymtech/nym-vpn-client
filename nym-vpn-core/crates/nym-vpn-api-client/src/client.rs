@@ -21,7 +21,7 @@ use crate::{
     fronted_http_client,
     request::{
         ApplyFreepassRequestBody, CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody,
-        CreateSubscriptionKind, CreateSubscriptionRequestBody, LinkPrivyAccountRequestBody,
+        CreateSubscriptionKind, CreateSubscriptionRequestBody, LinkAccountRequestBody,
         RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
         UpdateDeviceRequestStatus,
     },
@@ -803,7 +803,7 @@ impl VpnApiClient {
             .map_err(Box::new)
             .map_err(VpnApiClientError::AccountError)?;
 
-        let request = LinkPrivyAccountRequestBody {
+        let request = LinkAccountRequestBody {
             pubkey,
             signature,
             kind: "user_generated_secp256k1".to_string(),

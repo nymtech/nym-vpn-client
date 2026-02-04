@@ -190,8 +190,9 @@ impl VpnAccount {
         self.mode
     }
 
-    pub fn sign(&self, payload_string: &str) -> Result<String, Error> {
-        let signature = self.wallet.sign_raw(&self.id, payload_string.as_bytes())?;
+    /// Signs the message with the account's private key and returns the signature as a hex-encoded string.
+    pub fn sign(&self, message: &str) -> Result<String, Error> {
+        let signature = self.wallet.sign_raw(&self.id, message.as_bytes())?;
         Ok(hex::encode(signature.to_bytes()))
     }
 }
