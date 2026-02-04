@@ -787,15 +787,21 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetAccountSummaryWithDevice)
     }
 
-    pub async fn link_privy_account(
+    pub async fn link_account(
         &self,
         account: &VpnAccount,
-        privy_account: &VpnAccount,
+        linked_account: &VpnAccount,
     ) -> Result<StatusOk> {
-        let pubkey = privy_account.pub_key().to_string();
-        let signature = privy_account
-            .auth_method_signature()
-            .map_err(|e| VpnApiClientError::AccountError(Box::new(e)))?;
+        let pubkey = linked_account.pub_key().to_string();
+        let signature_json = format!(
+            "{{\"canonical_account_addr\":\"{}\",\"public_key_base58\":\"{}\"}}",
+            account.id(),
+            linked_account.pub_key()
+        );
+        let signature = linked_account
+            .sign(&signature_json)
+            .map_err(Box::new)
+            .map_err(VpnApiClientError::AccountError)?;
 
         let request = LinkPrivyAccountRequestBody {
             pubkey,

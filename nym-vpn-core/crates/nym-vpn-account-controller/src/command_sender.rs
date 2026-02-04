@@ -55,13 +55,13 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
-    pub async fn link_privy_account(
+    pub async fn link_account(
         &self,
         privy_account: StorableAccount,
     ) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::LinkPrivyAccount(tx, privy_account))
+            .send(AccountCommand::LinkAccount(tx, privy_account))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

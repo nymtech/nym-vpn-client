@@ -158,7 +158,7 @@ impl NymAccountController {
                 .map_err(VpnError::from),
             DeeplinkKind::PrivyLink => self
                 .command_sender
-                .link_privy_account(privy_account)
+                .link_account(privy_account)
                 .await
                 .map_err(VpnError::from),
         }

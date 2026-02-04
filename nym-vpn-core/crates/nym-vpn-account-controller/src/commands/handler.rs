@@ -186,7 +186,7 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     Ok(())
 }
 
-pub(crate) async fn handle_link_privy_account<C: ConnectivityMonitor>(
+pub(crate) async fn handle_link_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     privy_account: StorableAccount,
 ) -> Result<(), AccountCommandError> {
@@ -202,7 +202,7 @@ pub(crate) async fn handle_link_privy_account<C: ConnectivityMonitor>(
 
         let _status_ok = shared_state
             .vpn_api_client
-            .link_privy_account(current_account, &privy_vpn_account)
+            .link_account(current_account, &privy_vpn_account)
             .await
             .inspect_err(|err| {
                 tracing::error!("Failed to link Privy account with API account: {err:?}")

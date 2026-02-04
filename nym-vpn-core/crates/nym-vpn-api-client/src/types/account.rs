@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::jwt::Jwt;
-use base64::{Engine, engine::general_purpose::STANDARD as base64_standard};
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
 use nym_validator_client::{
     DirectSecp256k1HdWallet,
@@ -191,11 +190,9 @@ impl VpnAccount {
         self.mode
     }
 
-    pub fn auth_method_signature(&self) -> Result<String, Error> {
-        let message_hash = sha256::digest(self.pub_key.as_bytes());
-        let signature = self.wallet.sign_raw(&self.id, message_hash.as_bytes())?;
-        let signature_base64 = base64_standard.encode(signature.to_bytes());
-        Ok(signature_base64)
+    pub fn sign(&self, payload_string: &str) -> Result<String, Error> {
+        let signature = self.wallet.sign_raw(&self.id, payload_string.as_bytes())?;
+        Ok(hex::encode(signature.to_bytes()))
     }
 }
 

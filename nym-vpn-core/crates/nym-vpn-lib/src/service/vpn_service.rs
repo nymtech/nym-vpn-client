@@ -1790,11 +1790,7 @@ impl NymVpnService {
 
         match deeplink_mnemonic.kind {
             DeeplinkKind::Privy => self.account_command_tx.store_account(privy_account).await,
-            DeeplinkKind::PrivyLink => {
-                self.account_command_tx
-                    .link_privy_account(privy_account)
-                    .await
-            }
+            DeeplinkKind::PrivyLink => self.account_command_tx.link_account(privy_account).await,
         }
     }
 
