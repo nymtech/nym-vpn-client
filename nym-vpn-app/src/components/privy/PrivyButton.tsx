@@ -26,6 +26,7 @@ function PrivyButton() {
 
     const loginUrl = await invoke<string>('get_deep_link', {
       locale: i18n.language,
+      kind: 'Privy',
     });
     openUrl(loginUrl);
 

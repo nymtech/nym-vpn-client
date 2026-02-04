@@ -77,6 +77,7 @@ function Account() {
   const handleGoToAccount = async () => {
     const linkUrl = await invoke<string>('get_deep_link', {
       locale: i18n.language,
+      kind: 'PrivyLink',
     });
     openUrl(linkUrl);
 

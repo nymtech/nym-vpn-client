@@ -133,8 +133,9 @@ pub async fn get_device_id(vpnd: State<'_, VpndClient>) -> Result<Option<String>
 pub async fn get_deep_link(
     vpnd: State<'_, VpndClient>,
     locale: String,
+    kind: nym_vpn_lib_types::DeeplinkKind,
 ) -> Result<Option<String>, BackendError> {
-    vpnd.get_deep_link(locale).await.map_err(|e| {
+    vpnd.get_deep_link(locale, kind).await.map_err(|e| {
         error!("failed to get deep link: {e}");
         e.into()
     })
