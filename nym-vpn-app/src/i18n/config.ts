@@ -23,17 +23,41 @@ export const ns = [
   'login',
 ] as const;
 
+// fr French
+// es Spanish
+// ar Arabic
+// cs Czech
+// de German
+// el Greek
+// hu Hungarian
+// it Italian
+// ja Japanese
+// ru Russian
+// tr Turkish
+// uk Ukrainian
+// zh Chinese Simplified
+// vi Vietnamese
+// pt Portuguese, Brazilian
+// fa Persian
+// bn Bengali
+// hi Hindi
+
 export const languages = [
+  { code: 'ar', name: 'العربية (Arabic)' },
+  // { code: 'cs', name: 'Čeština (Czech)' },
+  // { code: 'hu', name: 'Magyar (Hungarian)' },
+  { code: 'fa', name: 'فارسی (Persian)' },
+
   { code: 'bn', name: 'বাংলা' },
   { code: 'de', name: 'Deutsch' },
-  { code: 'el', name: 'ελληνικά' },
+  // { code: 'el', name: 'ελληνικά' },
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Español' },
   { code: 'fr', name: 'Français' },
   { code: 'hi', name: 'हिन्दी' },
-  { code: 'it', name: 'Italiano' },
-  { code: 'ja', name: '日本語' },
-  { code: 'pt', name: 'Português' },
+  // { code: 'it', name: 'Italiano' },
+  // { code: 'ja', name: '日本語' },
+  { code: 'pt', name: 'Português Brasileiro' },
   { code: 'ru', name: 'Русский язык' },
   { code: 'tr', name: 'Türkçe' },
   { code: 'uk', name: 'Українська' },
