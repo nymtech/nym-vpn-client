@@ -75,7 +75,7 @@ impl NymVpnService {
             config_dir: config.config_dir.clone(),
             data_dir: config.data_dir.clone(),
             network_cache,
-            sentry_enabled: crate::logging::is_sentry_enabled().await,
+            sentry_enabled: crate::logging::is_sentry_enabled(),
             user_agent: config.user_agent.clone().into(),
             service_storage_type,
             #[cfg(any(target_os = "android", target_os = "ios"))]
