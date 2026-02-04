@@ -7,16 +7,16 @@ use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
 use nym_vpn_api_client::{
-    Platform, VpnApiClient,
+    VpnApiClient,
     response::NymVpnRegisterAccountResponse,
-    types::{Device, DeviceStatus, VpnAccount, VpnAccountMode},
+    types::{Device, DeviceStatus, Platform, VpnAccount, VpnAccountMode},
 };
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{RegisterAccountResponse, StoreAccountRequest};
 use nym_vpn_store::{
     account::AccountInformationStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
-    types::{StorableAccount, StoredAccountMode},
+    types::StorableAccount,
 };
 
 use crate::{NymEnvironment, VpnError};

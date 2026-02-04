@@ -103,6 +103,7 @@ pub struct PrivyMnemonic {
     mnemonic: Mnemonic,
 }
 
+#[allow(unused)]
 impl PrivyMnemonic {
     pub fn inner(&self) -> &Mnemonic {
         &self.mnemonic
