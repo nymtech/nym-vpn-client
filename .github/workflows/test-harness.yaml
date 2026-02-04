@@ -66,7 +66,9 @@ jobs:
             dnsmasq \
             curl \
             qemu-system-x86 \
-            qemu-utils
+            qemu-utils \
+            rootlesskit \
+            slirp4netns
 
       - name: Install protoc
         uses: arduino/setup-protoc@v3
@@ -121,8 +123,8 @@ jobs:
       - name: Verify binaries
         run: |
           echo "Built binaries:"
-          ls -lh nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner || echo "test-runner not found"
-          ls -lh nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/connection-checker || echo "connection-checker not found"
+          ls -lh nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-runner || echo "test-runner not found"
+          ls -lh nym-vpn-core/target/x86_64-unknown-linux-gnu/release/connection-checker || echo "connection-checker not found"
           ls -lh nym-vpn-core/target/release/nym-vpnd || echo "nym-vpnd not found"
           ls -lh nym-vpn-core/target/release/nym-vpnc || echo "nym-vpnc not found"
 
@@ -131,18 +133,31 @@ jobs:
           mkdir -p ~/.cache/nym-test/packages
           PACKAGE_DIR=~/.cache/nym-test/packages
           
-          cp nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner "$PACKAGE_DIR/" || true
-          cp nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/connection-checker "$PACKAGE_DIR/" || true
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-runner "$PACKAGE_DIR/" || true
+          cp nym-vpn-core/target/x86_64-unknown-linux-gnu/release/connection-checker "$PACKAGE_DIR/" || true
           cp nym-vpn-core/target/release/nym-vpnd "$PACKAGE_DIR/" || true
           cp nym-vpn-core/target/release/nym-vpnc "$PACKAGE_DIR/" || true
           
           ls -lh "$PACKAGE_DIR/"
 
-      - name: Download or create QCOW2 image
+      - name: Download QCOW2 image
         id: qcow_image
         run: |
-          # TODO: Download QCOW2 image from builds.ci.nymte.ch
-          echo "image_exists=false" >> $GITHUB_OUTPUT
+          QCOW_URL="https://builds.ci.nymte.ch/images/qcow2/fresh_ubuntu24.04.qcow2"
+          QCOW_DIR=~/.cache/nym-test/images
+          QCOW_PATH="$QCOW_DIR/fresh_ubuntu24.04.qcow2"
+          
+          mkdir -p "$QCOW_DIR"
+          
+          echo "Downloading QCOW2 image from $QCOW_URL..."
+          if curl -fSL --progress-bar -o "$QCOW_PATH" "$QCOW_URL"; then
+            echo "Downloaded successfully: $(ls -lh "$QCOW_PATH")"
+            echo "image_exists=true" >> $GITHUB_OUTPUT
+            echo "image_path=$QCOW_PATH" >> $GITHUB_OUTPUT
+          else
+            echo "Failed to download QCOW2 image"
+            echo "image_exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Configure VM
         if: steps.qcow_image.outputs.image_exists == 'true'
@@ -188,8 +203,8 @@ jobs:
         with:
           name: test-binaries
           path: |
-            nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner
-            nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/connection-checker
+            nym-vpn-core/target/x86_64-unknown-linux-gnu/release/test-runner
+            nym-vpn-core/target/x86_64-unknown-linux-gnu/release/connection-checker
             nym-vpn-core/target/release/nym-vpnd
             nym-vpn-core/target/release/nym-vpnc
           retention-days: 7
