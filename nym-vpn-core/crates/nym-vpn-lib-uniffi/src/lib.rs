@@ -129,15 +129,18 @@ uniffi::setup_scaffolding!();
 
 pub(crate) mod error;
 
+#[cfg(target_os = "ios")]
 mod account;
 #[cfg(target_os = "android")]
 mod android_connectivity_monitor;
+#[cfg(target_os = "ios")]
+mod deeplink;
 mod environment;
 mod gateway_cache;
 mod logging;
 mod offline_monitor;
 mod tunnel_provider;
-#[cfg(target_os = "android")]
+#[cfg(target_os = "ios")]
 mod vpn_account_storage;
 mod vpn_service;
 mod vpn_service_command_sender;

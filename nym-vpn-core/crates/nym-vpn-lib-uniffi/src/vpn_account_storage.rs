@@ -3,25 +3,20 @@
 
 use std::{path::PathBuf, sync::Arc};
 
-#[cfg(target_os = "ios")]
-use nym_common::ErrorExt;
-use nym_common::trace_err_chain;
+use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
-#[cfg(target_os = "ios")]
-use nym_vpn_api_client::{Platform, response::NymVpnRegisterAccountResponse};
 use nym_vpn_api_client::{
-    VpnApiClient,
+    Platform, VpnApiClient,
+    response::NymVpnRegisterAccountResponse,
     types::{Device, DeviceStatus, VpnAccount, VpnAccountMode},
 };
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
-#[cfg(target_os = "ios")]
-use nym_vpn_lib_types::RegisterAccountResponse;
-use nym_vpn_lib_types::StoreAccountRequest;
+use nym_vpn_lib_types::{RegisterAccountResponse, StoreAccountRequest};
 use nym_vpn_store::{
     account::AccountInformationStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
-    types::StorableAccount,
+    types::{StorableAccount, StoredAccountMode},
 };
 
 use crate::{NymEnvironment, VpnError};
@@ -180,7 +175,6 @@ impl NymVpnAccountStorage {
     }
 }
 
-#[cfg(target_os = "ios")]
 #[uniffi::export(async_runtime = "tokio")]
 impl NymVpnAccountStorage {
     /// Load the account mnemonic stored locally and register it.
@@ -188,6 +182,7 @@ impl NymVpnAccountStorage {
     pub async fn register_account(&self) -> Result<RegisterAccountResponse, VpnError> {
         let platform = Platform::Apple;
         let account = self
+            .storage
             .load_account()
             .await
             .map_err(|err| VpnError::Storage {
