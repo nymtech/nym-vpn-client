@@ -60,7 +60,6 @@ jobs:
             pkg-config \
             libpcap-dev \
             libssl-dev \
-            protobuf-compiler \
             procps \
             nftables \
             wireguard-tools \
@@ -68,6 +67,12 @@ jobs:
             curl \
             qemu-system-x86 \
             qemu-utils
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "27.x"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
