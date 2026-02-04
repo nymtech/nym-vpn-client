@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
 import { Button, MsIcon } from '../../ui';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
-import { useDeepLink } from '../../hooks/useDeepLink';
+import { useDeepLink } from '../../hooks';
 import { routes } from '../../router';
 import { CCache } from '../../cache';
 import { StateDispatch } from '../../types';

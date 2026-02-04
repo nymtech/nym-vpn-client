@@ -3,7 +3,7 @@ import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
 const PRIVY_DEEPLINK_URL = 'nymvpn://auth/privy/privateKey';
 
-export const useDeepLink = () => {
+const useDeepLink = () => {
   const unlistenRef = useRef<(() => void) | null>(null);
   const isCleanedUpRef = useRef(false);
 
@@ -55,3 +55,5 @@ export const useDeepLink = () => {
 
   return { startListening };
 };
+
+export default useDeepLink;
