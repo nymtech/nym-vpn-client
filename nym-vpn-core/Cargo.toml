@@ -129,7 +129,6 @@ resolv-conf = "0.7"
 rs-release = "0.1.11"
 rtnetlink = "0.20"
 rustls = { version = "0.23.36", default-features = false }
-rustls-pki-types = "1.12"
 semver = "1.0"
 sentry = { version = "0.46.1", default-features = false }
 serde = "1.0"
