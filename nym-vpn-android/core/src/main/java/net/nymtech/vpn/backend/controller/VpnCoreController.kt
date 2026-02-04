@@ -317,6 +317,8 @@ class VpnCoreController(
 			enableLewesProtocol = false,
 			customDns = emptyList(),
 			residentialExit = false,
+			mixnetTraffic = null,
+			networkStats = null,
 			userAgent = ua,
 			tunProvider = service,
 			connectivityMonitor = service,
