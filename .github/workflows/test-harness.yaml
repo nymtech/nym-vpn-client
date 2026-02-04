@@ -15,6 +15,7 @@ on:
     branches:
       - main
       - develop
+      - dyn/test-harness-latest # will remove after testing
     paths:
       - 'nym-vpn-core/crates/test/**'
       - 'nym-vpn-core/crates/nym-vpnd/**'
@@ -43,7 +44,7 @@ env:
 jobs:
   build-and-test:
     name: Build and Test
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     timeout-minutes: 60
 
     steps:
