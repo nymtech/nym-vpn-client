@@ -245,7 +245,7 @@ impl VPNConfig {
             custom_dns: self.custom_dns.clone(),
             min_gateway_vpn_performance: None,
             mixnet_traffic: self.mixnet_traffic.clone().unwrap_or_default(),
-            network_stats: self.network_stats.clone().unwrap_or_default(),
+            network_stats: self.network_stats.unwrap_or_default(),
         })
     }
 }
