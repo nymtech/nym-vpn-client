@@ -3,7 +3,10 @@
 
 import clsx from 'clsx';
 import { CSSProperties, ReactNode } from 'react';
+import { useClipboard } from '../hooks';
 import Switch from './Switch';
+import ButtonIcon from './ButtonIcon';
+import Skeleton from './Skeleton';
 
 export function CardNewHeader({ children }: { children: ReactNode }) {
   return (
@@ -49,6 +52,42 @@ export function CardDataRow({
       <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
         {children}
       </div>
+    </div>
+  );
+}
+
+export function CardNewCopyableRow({
+  value,
+  label,
+  loading = false,
+}: {
+  value: string;
+  label: string;
+  loading?: boolean;
+}) {
+  const { copy } = useClipboard();
+
+  return (
+    <div className="w-full flex justify-between items-center gap-2">
+      {loading ? (
+        <Skeleton className="w-full h-4" />
+      ) : (
+        <>
+          <p className="text-iron dark:text-bombay truncate text-wrap wrap-break-word">
+            {label}
+          </p>
+          <ButtonIcon
+            className="self-start"
+            iconClassName="!text-xl"
+            clickedIconClassName="!text-xl"
+            icon="content_copy"
+            color="chalk"
+            onClick={() => copy(value, false)}
+            clickFeedback
+            noDefaultSize
+          />
+        </>
+      )}
     </div>
   );
 }

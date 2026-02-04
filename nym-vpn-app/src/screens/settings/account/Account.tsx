@@ -1,131 +1,158 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { useNavigate } from 'react-router';
+import {
+  Button,
+  CardNew,
+  CardNewBody,
+  CardNewCopyableRow,
+  CardNewHeader,
+  MsIcon,
+  PageAnim,
+} from '../../../ui';
+import SettingsGroup from '../SettingsGroup';
+import { CCache } from '../../../cache';
+import { useMainState } from '../../../contexts/index';
 import { routes } from '../../../router';
-import { useMainDispatch, useMainState } from '../../../contexts';
-import { AccountState, StateDispatch } from '../../../types';
-import { Button, SettingsMenuCard } from '../../../ui';
-import { capFirst } from '../../../util';
+
+const IdsTimeToLive = 120; // sec
 
 function Account() {
-  const { daemonStatus, account, accountState, accountSyncing, accountLinks } =
-    useMainState();
-
-  const navigate = useNavigate();
-  const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
-  const accountUrl = accountLinks?.account;
-  const accountLoginUrl = accountLinks?.signIn;
+  const navigate = useNavigate();
+
+  const { accountLinks, account, accountState, accountSyncing, daemonStatus } =
+    useMainState();
   const needAPlan =
     account &&
     (accountState === 'no-subscription' ||
       accountState === 'bandwidth-exceeded');
 
-  useEffect(() => {
-    const checkAccount = async () => {
-      try {
-        const stored = await invoke<boolean | undefined>('is_account_stored');
-        dispatch({ type: 'set-account', stored: stored || false });
-      } catch {}
-    };
+  const [accountId, setAccountId] = useState<string | null>(null);
+  const [deviceId, setDeviceId] = useState<string | null>(null);
 
-    if (daemonStatus !== 'down') {
-      checkAccount();
+  const getAccountId = async () => {
+    const accountId = await CCache.get<string>('cache-account-id');
+    if (accountId) {
+      setAccountId(accountId);
+      return;
     }
-  }, [daemonStatus, dispatch]);
+    try {
+      const accountId = await invoke<string>('get_account_id');
+      setAccountId(accountId);
+      CCache.set('cache-account-id', accountId, IdsTimeToLive);
+    } catch {
+      setAccountId(null);
+    }
+  };
+
+  const getDeviceId = async () => {
+    const deviceId = await CCache.get<string>('cache-device-id');
+    if (deviceId) {
+      setDeviceId(deviceId);
+      return;
+    }
+    try {
+      const deviceId = await invoke<string>('get_device_id');
+      setDeviceId(deviceId);
+      CCache.set('cache-device-id', deviceId, IdsTimeToLive);
+    } catch {
+      setDeviceId(null);
+    }
+  };
+
+  useEffect(() => {
+    getAccountId();
+    getDeviceId();
+  }, []);
 
   const handleGoToAccount = () => {
-    if (accountUrl) {
-      openUrl(accountUrl);
-    } else if (accountLoginUrl) {
-      openUrl(accountLoginUrl);
+    if (accountLinks?.account) {
+      openUrl(accountLinks.account);
+    } else if (accountLinks?.signIn) {
+      openUrl(accountLinks.signIn);
     }
   };
-
-  const getAccountDescription = (state?: AccountState | null) => {
-    if (!state) {
-      return null;
-    }
-    if (accountSyncing) {
-      return t('account.syncing');
-    }
-    switch (state) {
-      case 'no-subscription':
-        return t('account.no-plan');
-      case 'max-device-reached':
-        return t('account.max-device-reached');
-      case 'status-not-active':
-        return t('account.status-inactive');
-      case 'bandwidth-exceeded':
-        return t('account.bandwidth-exceeded');
-      case 'requesting-zk-nyms':
-        return t('account.requesting-zknyms');
-      case 'offline':
-      case 'error':
-        return t('account.error');
-      default:
-        return null;
-    }
-  };
-
-  const getAccountColor = (state?: AccountState | null) => {
-    if (accountSyncing) {
-      return 'normal';
-    }
-    if (
-      state === 'no-subscription' ||
-      state === 'bandwidth-exceeded' ||
-      state === 'max-device-reached' ||
-      state === 'error'
-    ) {
-      return 'red';
-    }
-    if (state === 'offline' || state === 'status-not-active') {
-      return 'yellow';
-    }
-    return 'normal';
-  };
-
-  const getAccountButtonText = () => {
-    if (needAPlan) {
-      return t('account.choose-plan');
-    }
-    return t('account.get-started');
-  };
-
-  if (!account) {
-    return (
-      <Button
-        onClick={() => navigate(routes.onboarding)}
-        disabled={daemonStatus === 'down'}
-      >
-        {t('account.get-started')}
-      </Button>
-    );
-  }
 
   return (
-    <>
+    <PageAnim className="h-full flex flex-col mt-2 pb-2 gap-6 select-none">
       {needAPlan && (
         <Button
           onClick={() => navigate(routes.selectPlan)}
           disabled={daemonStatus === 'down' || accountSyncing}
         >
-          {getAccountButtonText()}
+          {t('account.choose-plan')}
         </Button>
       )}
-      <SettingsMenuCard
-        title={capFirst(t('account', { ns: 'glossary' }))}
-        onClick={handleGoToAccount}
-        description={getAccountDescription(accountState) as string | undefined}
-        descriptionColor={getAccountColor(accountState)}
-        leadingIcon="account_circle"
-        trailingIcon="open_in_new"
-        disabled={!accountLoginUrl && !accountUrl}
+
+      <SettingsGroup
+        settings={[
+          {
+            title: t('account.account-on-nym'),
+            desc: t('account.account-link-social-description'),
+            leadingIcon: 'event_repeat',
+            trailingIcon: 'open_in_new',
+            onClick: handleGoToAccount,
+          },
+        ]}
       />
-    </>
+
+      <p className="text-sm text-iron dark:text-bombay">
+        {t('account.account-linked')}
+      </p>
+
+      <CardNew>
+        <CardNewHeader>
+          <div className="flex flex-row items-center gap-2">
+            <MsIcon icon="numbers" className="text-iron dark:text-bombay" />
+            <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
+              {t('account.account-id')}
+            </p>
+          </div>
+        </CardNewHeader>
+        <CardNewBody className="pb-5">
+          <CardNewCopyableRow
+            value={accountId ?? ''}
+            label={accountId ?? ''}
+            loading={!accountId}
+          />
+        </CardNewBody>
+      </CardNew>
+
+      <p className="text-sm text-iron dark:text-bombay">
+        {t('account.account-id-description')}
+      </p>
+
+      <CardNew>
+        <CardNewHeader>
+          <div className="flex flex-row items-center gap-2">
+            <MsIcon icon="devices" className="text-iron dark:text-bombay" />
+            <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
+              {t('account.device-id')}
+            </p>
+          </div>
+        </CardNewHeader>
+        <CardNewBody className="pb-5">
+          <CardNewCopyableRow
+            value={deviceId ?? ''}
+            label={deviceId ?? ''}
+            loading={!deviceId}
+          />
+        </CardNewBody>
+      </CardNew>
+
+      <p className="text-sm text-iron dark:text-bombay">
+        {t('account.device-id-description')}
+      </p>
+
+      <div className="flex flex-col gap-2">
+        <Button color="red" outline onClick={() => {}}>
+          {t('account.logout')}
+        </Button>
+      </div>
+    </PageAnim>
   );
 }
 

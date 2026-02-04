@@ -101,6 +101,13 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/account': {
+        title: t('account.title', { ns: 'settings' }),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/settings/appearance': {
         title: t('appearance'),
         leftIcon: 'arrow_back',

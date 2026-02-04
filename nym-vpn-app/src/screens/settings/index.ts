@@ -10,3 +10,4 @@ export * from './anti-censorship';
 export * from './socks5';
 export * from './custom-dns';
 export * from './mixnet-tuning';
+export * from './account';

@@ -260,6 +260,18 @@
     }
   },
   "account": {
+    "manage-subscriptoin": "Manage your subscription",
+    "account-link-social-description": "Link a social account for effortless login.",
+    "account-on-nym": "Account on nym.com",
+    "account-id": "Account ID",
+    "account-id-description": "Use your account ID if you need to contact Nym customer support. This is safe to share!",
+    "device-id": "Device ID",
+    "device-id-description": "Use this to link this device to your account on nym.com",
+    "logout": "Log out",
+    "forget-me": "Forget me - SSO logout",
+    "title": "Account",
+    "account-linked": "⚡️ This account is linked with a social login method via privy.",
+    "account-not-linked": "⚠️ Linking a social account with your Nym account reduces your anonymity. Changes take effect after loggin out and logging back in with the chosen social.",
     "get-started": "Get started",
     "choose-plan": "Choose plan",
     "syncing": "Syncing…",
