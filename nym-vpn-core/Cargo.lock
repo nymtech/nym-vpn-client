@@ -6024,6 +6024,7 @@ dependencies = [
  "base64-url",
  "bip39",
  "bs58",
+ "hex",
  "itertools 0.14.0",
  "nym-common",
  "nym-compact-ecash",
@@ -6038,6 +6039,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
+ "sha256",
  "strum",
  "strum_macros",
  "thiserror 2.0.18",
@@ -8405,6 +8407,19 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest 0.10.7",
+]
+
+[[package]]
+name = "sha256"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f880fc8562bdeb709793f00eb42a2ad0e672c4f883bbe59122b926eca935c8f6"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "hex",
+ "sha2 0.10.9",
+ "tokio",
 ]
 
 [[package]]

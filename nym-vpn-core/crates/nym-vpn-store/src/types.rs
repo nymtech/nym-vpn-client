@@ -56,6 +56,10 @@ pub enum StoredAccountMode {
     /// Account works in the decentralised mode, i.e. there is no associated subscription
     /// and the account uses its own funds for obtaining required ticketbooks
     Decentralised,
+
+    /// Account works in the API mode, but the mnemonic is derived from the Privy
+    /// wallet private key.
+    Privy,
 }
 
 #[cfg(test)]

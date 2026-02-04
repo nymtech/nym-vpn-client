@@ -21,8 +21,9 @@ use crate::{
     fronted_http_client,
     request::{
         ApplyFreepassRequestBody, CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody,
-        CreateSubscriptionKind, CreateSubscriptionRequestBody, RegisterDeviceRequestBody,
-        RequestZkNymRequestBody, UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
+        CreateSubscriptionKind, CreateSubscriptionRequestBody, LinkAccountRequestBody,
+        RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
+        UpdateDeviceRequestStatus,
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
@@ -285,16 +286,13 @@ impl VpnApiClient {
     where
         T: DeserializeOwned,
     {
-        let jwt = match self.current_remote_time().await {
-            Ok(remote_time) => remote_time,
-            Err(err) => {
-                tracing::debug!(
-                    error = %err,
-                    "Failed to determine cached remote time"
-                );
-                None
-            }
-        };
+        let jwt = self.current_remote_time().await.unwrap_or_else(|err| {
+            tracing::debug!(
+                error = %err,
+                "Failed to determine cached remote time"
+            );
+            None
+        });
 
         match self.get_query::<T>(path, account, device, jwt).await {
             Ok(response) => Ok(response),
@@ -462,16 +460,13 @@ impl VpnApiClient {
         T: DeserializeOwned,
         B: Serialize,
     {
-        let jwt = match self.current_remote_time().await {
-            Ok(remote_time) => remote_time,
-            Err(err) => {
-                tracing::debug!(
-                    error = %err,
-                    "Failed to determine cached remote time"
-                );
-                None
-            }
-        };
+        let jwt = self.current_remote_time().await.unwrap_or_else(|err| {
+            tracing::debug!(
+                error = %err,
+                "Failed to determine cached remote time"
+            );
+            None
+        });
 
         match self
             .post_query::<T, B>(path, json_body, account, device, jwt)
@@ -790,6 +785,48 @@ impl VpnApiClient {
         .await
         .map_err(Box::new)
         .map_err(VpnApiClientError::GetAccountSummaryWithDevice)
+    }
+
+    pub async fn link_account(
+        &self,
+        account: &VpnAccount,
+        linked_account: &VpnAccount,
+        label: &str,
+    ) -> Result<StatusOk> {
+        let pubkey = linked_account.pub_key().to_string();
+
+        let signature_json = format!(
+            r#"{{"canonical_account_addr":"{}","public_key_base58":"{}"}}"#,
+            account.id(),
+            linked_account.pub_key()
+        );
+        let signature = linked_account
+            .sign(&signature_json)
+            .map_err(Box::new)
+            .map_err(VpnApiClientError::AccountError)?;
+
+        let request = LinkAccountRequestBody {
+            pubkey,
+            signature,
+            kind: "user_generated_secp256k1".to_string(),
+            label: label.to_string(),
+        };
+
+        self.post_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::AUTH_METHOD,
+            ],
+            &request,
+            account,
+            None,
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::LinkPrivyAccount)
     }
 
     // DEVICES

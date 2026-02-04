@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor};
+
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use tokio::{sync::Mutex, task::JoinHandle};
@@ -14,8 +16,7 @@ use nym_vpn_lib_types::{
     RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, UserAgent,
     VpnAccountSummary,
 };
-
-use crate::{environment::NymEnvironment, error::VpnError, offline_monitor::NymOfflineMonitor};
+use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 struct State {
     join_handle: JoinHandle<()>,
@@ -112,7 +113,7 @@ impl NymAccountController {
 
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String, VpnError> {
         let base_url = match params.kind {
-            DeeplinkKind::Privy => {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
                 let Some(ref account_management) =
                     self.network_env.inner().nym_vpn_network.account_management
                 else {
@@ -140,15 +141,28 @@ impl NymAccountController {
     }
 
     pub async fn login_with_deeplink(&self, deeplink_callback_url: String) -> Result<(), VpnError> {
-        let mnemonic = self
+        let deeplink_mnemonic = self
             .command_sender
             .derive_deeplink_mnemonic(deeplink_callback_url)
             .await?;
 
-        self.command_sender
-            .store_account(mnemonic.into())
-            .await
-            .map_err(VpnError::from)
+        let privy_account = StorableAccount {
+            mnemonic: deeplink_mnemonic.mnemonic.clone(),
+            mode: StoredAccountMode::Privy,
+        };
+
+        match deeplink_mnemonic.kind {
+            DeeplinkKind::Privy => self
+                .command_sender
+                .store_account(privy_account)
+                .await
+                .map_err(VpnError::from),
+            DeeplinkKind::PrivyLink => self
+                .command_sender
+                .link_account(privy_account)
+                .await
+                .map_err(VpnError::from),
+        }
     }
 
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {

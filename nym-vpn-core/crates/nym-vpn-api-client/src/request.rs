@@ -105,3 +105,11 @@ pub enum UpdateDeviceRequestStatus {
     Inactive,
     DeleteMe,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LinkAccountRequestBody {
+    pub pubkey: String,
+    pub signature: String,
+    pub kind: String,
+    pub label: String,
+}
