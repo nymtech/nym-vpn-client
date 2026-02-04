@@ -68,7 +68,7 @@ jobs:
             wireguard-tools \
             dnsmasq \
             curl \
-            qemu-system-x86_64 \
+            qemu-system-x86 \
             qemu-utils \
             podman
 
