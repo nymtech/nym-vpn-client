@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
+import clsx from 'clsx';
 import {
   Button,
   CardNew,
@@ -14,13 +15,15 @@ import {
 } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 import { CCache } from '../../../cache';
-import { useMainState } from '../../../contexts/index';
+import { useInAppNotify, useMainState } from '../../../contexts';
 import { routes } from '../../../router';
+import { useDeepLink } from '../../../hooks';
+import { getAccountColor, getAccountDescription } from './utils';
 
 const IdsTimeToLive = 120; // sec
 
 function Account() {
-  const { t } = useTranslation('settings');
+  const { t, i18n } = useTranslation('settings');
   const navigate = useNavigate();
 
   const { accountLinks, account, accountState, accountSyncing, daemonStatus } =
@@ -32,6 +35,9 @@ function Account() {
 
   const [accountId, setAccountId] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
+
+  const { startListening } = useDeepLink();
+  const { push } = useInAppNotify();
 
   const getAccountId = async () => {
     const accountId = await CCache.get<string>('cache-account-id');
@@ -68,12 +74,38 @@ function Account() {
     getDeviceId();
   }, []);
 
-  const handleGoToAccount = () => {
-    if (accountLinks?.account) {
-      openUrl(accountLinks.account);
-    } else if (accountLinks?.signIn) {
-      openUrl(accountLinks.signIn);
+  const handleGoToAccount = async () => {
+    const linkUrl = await invoke<string>('get_deep_link', {
+      locale: i18n.language,
+    });
+    openUrl(linkUrl);
+
+    try {
+      const deeplinkUrl = await Promise.race([
+        startListening(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Login timeout')), 300000),
+        ),
+      ]);
+
+      await invoke('store_deeplink_account', {
+        callbackUrl: deeplinkUrl,
+      });
+    } catch (error) {
+      console.error('Account login error: ', error);
+      if (error instanceof Error && error.message === 'Login timeout') {
+        push({
+          message: t('account-linking-timeout', { ns: 'notifications' }),
+          type: 'error',
+        });
+      }
     }
+
+    // if (accountLinks?.account) {
+    //   openUrl(accountLinks.account);
+    // } else if (accountLinks?.signIn) {
+    //   openUrl(accountLinks.signIn);
+    // }
   };
 
   return (
@@ -91,7 +123,14 @@ function Account() {
         settings={[
           {
             title: t('account.account-on-nym'),
-            desc: t('account.account-link-social-description'),
+            desc: (
+              <span
+                className={clsx(getAccountColor(accountSyncing, accountState))}
+              >
+                {getAccountDescription(t, accountSyncing, accountState) ??
+                  t('account.account-link-social-description')}
+              </span>
+            ),
             leadingIcon: 'event_repeat',
             trailingIcon: 'open_in_new',
             onClick: handleGoToAccount,
