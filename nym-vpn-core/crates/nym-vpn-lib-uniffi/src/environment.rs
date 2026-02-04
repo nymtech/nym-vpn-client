@@ -1,10 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
 use nym_vpn_lib_types::{
-    Network, NetworkCompatibility, ParsedAccountLinks, SystemMessage, UserAgent,
+    FeatureFlags, Network, NetworkCompatibility, ParsedAccountLinks, SystemMessage, UserAgent,
 };
 use nym_vpn_network_config::NetworkCache;
 
@@ -83,6 +83,13 @@ impl NymEnvironment {
             .cloned()
             .map(SystemMessage::from)
             .collect()
+    }
+
+    pub fn feature_flags(&self) -> Option<Arc<FeatureFlags>> {
+        self.network
+            .feature_flags
+            .clone()
+            .map(|feature_flags| Arc::new(FeatureFlags::from(feature_flags)))
     }
 
     pub fn network_compatibility(&self) -> Option<NetworkCompatibility> {
