@@ -21,7 +21,7 @@ pub struct NymGatewayCache {
 #[uniffi::export(async_runtime = "tokio")]
 impl NymGatewayCache {
     #[uniffi::constructor]
-    pub async fn new(
+    pub fn new(
         user_agent: UserAgent,
         environment: Arc<NymEnvironment>,
         offline_monitor: Arc<NymOfflineMonitor>,

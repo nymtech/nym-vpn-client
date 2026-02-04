@@ -12,7 +12,9 @@ use nym_vpn_api_client::{
     types::{Device, DeviceStatus, Platform, VpnAccount},
 };
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
-use nym_vpn_lib_types::{DeeplinkKind, RegisterAccountResponse, StoreAccountRequest};
+use nym_vpn_lib_types::{
+    DeeplinkKind, ParsedAccountLinks, RegisterAccountResponse, StoreAccountRequest,
+};
 use nym_vpn_store::{
     account::AccountInformationStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
@@ -153,6 +155,12 @@ impl NymVpnAccountStorage {
     /// This is a version that can be called when the account controller is not running.
     pub async fn is_account_mnemonic_stored(&self) -> Result<bool, VpnError> {
         Ok(self.storage.is_account_stored().await?)
+    }
+
+    /// Returns account links for the logged in account or error if not logged in
+    pub async fn account_links(&self, locale: String) -> Result<ParsedAccountLinks, VpnError> {
+        let account_id = self.get_account_identity().await?;
+        self.environment.account_links(&locale, Some(account_id))
     }
 
     /// Read and return the mnemonic, if there's one stored.
