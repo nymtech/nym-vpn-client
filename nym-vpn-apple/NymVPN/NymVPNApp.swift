@@ -23,18 +23,8 @@ import Theme
 import NymVPNLib
 #endif
 
-#if os(iOS)
-var runtimeInit: () = {
-    initializeTokioRuntime()
-    initLogger(logDir: nil, logLevel: .debug, sentryMonitoring: false)
-}()
-#endif
-
 @main
 struct NymVPNApp: App {
-#if os(iOS)
-    private let runtimeInitOnce: () = runtimeInit
-#endif
     private let logFileManager = LogFileManager(logFileType: .app)
 
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
@@ -112,6 +102,8 @@ struct NymVPNApp: App {
 
 private extension NymVPNApp {
     func setup() {
+        initLogger(logDir: nil, logLevel: .debug, sentryMonitoring: false)
+
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
