@@ -157,12 +157,12 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun storeMnemonic(mnemonic: String) {
 		serviceConnectionManager.withApi { it.storeMnemonic(mnemonic) }
-		_state.update { it.copy(isMnemonicStored = true) }
+		refreshIdentityState()
 	}
 
 	override suspend fun removeMnemonic() {
 		serviceConnectionManager.withApi { it.removeMnemonic() }
-		_state.update { it.copy(isMnemonicStored = false) }
+		refreshIdentityState()
 	}
 
 	override suspend fun isMnemonicStored(): Boolean = serviceConnectionManager.withApi { it.isMnemonicStored() }
@@ -179,9 +179,12 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun getGateways(gatewayType: GatewayType) = serviceConnectionManager.withApi { it.getGateways(gatewayType) }
 
-	override suspend fun getMnemonic(): List<String> = emptyList()
+	override suspend fun getMnemonic(): List<String> {
+		return serviceConnectionManager.withApi { it.getStoredMnemonic().split(" ") }
+	}
 	override suspend fun createAccount() {
 		serviceConnectionManager.withApi { it.createAccount() }
+		refreshIdentityState()
 	}
 	override suspend fun registerAccount(purchaseToken: String): String {
 		return serviceConnectionManager.withApi { it.registerAccount(purchaseToken) }
@@ -224,4 +227,26 @@ class ServiceBackedBackendManager @Inject constructor(
 	private suspend fun getRestrictedAppsPackages(): List<String> = splitTunnelingRepository.getAppInfoList()
 		.filter { !it.passThroughVpn }
 		.map { it.packageName }
+
+	private suspend fun refreshIdentityState() {
+		val mnemonicStored = runCatching {
+			serviceConnectionManager.withApi { it.isMnemonicStored() }
+		}.getOrDefault(false)
+
+		val deviceId = if (mnemonicStored) {
+			runCatching { serviceConnectionManager.withApi { it.getDeviceIdentity() } }.getOrNull()
+		} else null
+
+		val accountId = if (mnemonicStored) {
+			runCatching { serviceConnectionManager.withApi { it.getAccountIdentity() } }.getOrNull()
+		} else null
+
+		_state.update {
+			it.copy(
+				isMnemonicStored = mnemonicStored,
+				deviceId = deviceId,
+				accountId = accountId
+			)
+		}
+	}
 }
