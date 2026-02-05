@@ -23,7 +23,7 @@ thiserror = { workspace = true, optional = true }
 time = { workspace = true, optional = true, features = ["parsing"] }
 tracing = { workspace = true }
 nym-vpn-lib-types = { workspace = true, optional = true, features = ["serde"] }
-nym-ipc-client = { workspace = true, optional = true }
+nym-ipc = { workspace = true, optional = true }
 
 [build-dependencies]
 tonic-prost-build.workspace = true
@@ -39,7 +39,7 @@ conversions = [
 rpc_client = [
     "conversions",
     "dep:nym-vpn-lib-types",
-    "dep:nym-ipc-client",
+    "dep:nym-ipc",
     "dep:thiserror",
     "dep:tokio-stream",
     "dep:tower",

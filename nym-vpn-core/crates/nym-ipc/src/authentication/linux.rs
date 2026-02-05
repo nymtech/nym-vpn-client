@@ -4,7 +4,6 @@
 use std::time::Duration;
 
 use nix::sys::socket::{UnixCredentials, getsockopt, sockopt::PeerCredentials};
-use nym_ipc_client::authentication::AuthenticaticationResult;
 use tokio::net::UnixStream;
 use tokio_util::sync::CancellationToken;
 use zbus::Connection;
@@ -12,7 +11,7 @@ use zbus_polkit::policykit1::{
     AuthorityProxy, AuthorizationResult, CheckAuthorizationFlags, Subject,
 };
 
-use crate::authentication::error::AuthenticationError;
+use crate::{auth_result::AuthenticaticationResult, authentication::error::AuthenticationError};
 
 const ACTION_ID: &str = "com.nymvpn.vpnd.unix-access";
 const CANCELLATION_ID: &str = "com.nymvpn.vpnd.cancel";

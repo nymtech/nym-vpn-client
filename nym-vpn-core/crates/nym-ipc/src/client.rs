@@ -1,9 +1,6 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(target_os = "linux")]
-pub mod authentication;
-
 use std::{io::Result, path::PathBuf};
 
 use hyper_util::rt::TokioIo;
@@ -15,7 +12,7 @@ const PIPE_AVAILABILITY_TIMEOUT: std::time::Duration = std::time::Duration::from
 #[cfg(target_os = "linux")]
 pub async fn connect(socket_path: PathBuf) -> Result<TokioIo<tokio::net::UnixStream>> {
     let mut conn = tokio::net::UnixStream::connect(socket_path).await?;
-    let auth_res = authentication::AuthenticaticationResult::recv(&mut conn).await;
+    let auth_res = crate::auth_result::AuthenticaticationResult::recv(&mut conn).await;
     if auth_res.accepted() {
         Ok(TokioIo::new(conn))
     } else {

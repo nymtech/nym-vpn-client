@@ -31,7 +31,7 @@ tracing.workspace = true
 
 nym-bin-common.workspace = true
 nym-sdk.workspace = true
-nym-ipc.workspace = true
+nym-ipc = { workspace = true, features = ["daemon"] }
 nym-vpn-lib = { workspace = true }
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 nym-vpn-network-config = { workspace = true }

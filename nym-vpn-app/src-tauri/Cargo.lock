@@ -441,28 +441,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-stream"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b5a71a6f37880a80d1d7f19efd781e4b5de42c88f0722cc13bcb6cc2cfe8476"
-dependencies = [
- "async-stream-impl",
- "futures-core",
- "pin-project-lite",
-]
-
-[[package]]
-name = "async-stream-impl"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7c24de15d275a1ecfd47a380fb4d5ec9bfe0933f309ed5e705b775596a3574d"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.114",
-]
-
-[[package]]
 name = "async-task"
 version = "4.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3521,14 +3499,10 @@ dependencies = [
 name = "nym-ipc"
 version = "1.24.0-beta"
 dependencies = [
- "async-stream",
  "hyper-util",
- "nym-windows",
  "tokio",
  "tokio-stream",
- "tonic",
  "tracing",
- "windows 0.62.2",
 ]
 
 [[package]]
@@ -3549,7 +3523,7 @@ dependencies = [
  "objc2-foundation",
  "rs-release",
  "sha2",
- "sysinfo",
+ "sysinfo 0.38.0",
  "windows 0.62.2",
 ]
 
@@ -3584,7 +3558,7 @@ dependencies = [
  "serde_json",
  "sled",
  "strum",
- "sysinfo",
+ "sysinfo 0.37.2",
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",
@@ -3642,18 +3616,7 @@ dependencies = [
  "tonic-prost",
  "tonic-prost-build",
  "tower",
-]
-
-[[package]]
-name = "nym-windows"
-version = "1.24.0-beta"
-dependencies = [
- "bitflags 2.10.0",
- "futures",
- "thiserror 2.0.18",
- "tokio",
  "tracing",
- "windows 0.62.2",
 ]
 
 [[package]]
@@ -5654,9 +5617,9 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "si-scale"
-version = "0.2.3"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b72e7cd0744e007e382ba320435f1ed1ecd709409b4ebd5cfbc843d77b25a8aa"
+checksum = "fa6635fb52805fa49a5798346e553cda9fd7990da8fbb2b3b2b9cf26589b4571"
 
 [[package]]
 name = "signal-hook-registry"
@@ -5960,6 +5923,20 @@ dependencies = [
  "objc2-core-foundation",
  "objc2-io-kit",
  "windows 0.61.3",
+]
+
+[[package]]
+name = "sysinfo"
+version = "0.38.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe840c5b1afe259a5657392a4dbb74473a14c8db999c3ec2f4ae812e028a94da"
+dependencies = [
+ "libc",
+ "memchr",
+ "ntapi",
+ "objc2-core-foundation",
+ "objc2-io-kit",
+ "windows 0.62.2",
 ]
 
 [[package]]

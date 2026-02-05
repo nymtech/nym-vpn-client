@@ -10,7 +10,6 @@ members = [
     "crates/nym-firewall",
     "crates/nym-gateway-directory",
     "crates/nym-ipc",
-    "crates/nym-ipc-client",
     "crates/nym-macos",
     "crates/nym-offline-monitor",
     "crates/nym-platform-metadata",
@@ -198,7 +197,6 @@ nym-firewall = { path = "crates/nym-firewall" }
 nym-firewall-config = { path = "crates/nym-firewall-config" }
 nym-gateway-directory = { path = "crates/nym-gateway-directory" }
 nym-ipc = { path = "crates/nym-ipc" }
-nym-ipc-client = { path = "crates/nym-ipc-client" }
 nym-macos = { path = "crates/nym-macos" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }

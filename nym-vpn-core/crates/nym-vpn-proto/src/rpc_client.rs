@@ -26,7 +26,7 @@ impl RpcClient {
         let socket_path = get_rpc_socket_path();
         Endpoint::from_static("unix://placeholder")
             .connect_with_connector(service_fn(move |_: Uri| {
-                nym_ipc_client::connect(socket_path.clone())
+                nym_ipc::client::connect(socket_path.clone())
             }))
             .await
             .map(ServiceClient::new)
