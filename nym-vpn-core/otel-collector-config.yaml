@@ -1,0 +1,22 @@
+receivers:
+  filelog:
+    include:
+      - /logs/*.log
+    start_at: beginning
+
+processors:
+  batch:
+
+exporters:
+  otlp:
+    endpoint: giving-prawn.eu.signoz.cloud:443
+    headers:
+      signoz-access-token: 
+
+service:
+  pipelines:
+    logs:
+      receivers: [filelog]
+      processors: [batch]
+      exporters: [otlp]
+

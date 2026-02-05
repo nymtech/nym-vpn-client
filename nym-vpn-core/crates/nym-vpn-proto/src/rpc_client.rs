@@ -10,7 +10,7 @@ use nym_vpn_lib_types::{
     StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
 };
-use std::{net::IpAddr, path::PathBuf};
+use std::{error::Error as _, net::IpAddr, path::PathBuf};
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
@@ -25,12 +25,24 @@ pub struct RpcClient(ServiceClient);
 impl RpcClient {
     pub async fn new() -> Result<RpcClient> {
         let socket_path = get_rpc_socket_path();
-        let channel = Endpoint::from_static("unix://placeholder")
+        Endpoint::from_static("unix://placeholder")
             .connect_with_connector(service_fn(move |_: Uri| {
                 nym_ipc::client::connect(socket_path.clone())
             }))
-            .await?;
-        Ok(RpcClient(ServiceClient::new(channel)))
+            .await
+            .map(ServiceClient::new)
+            .map(RpcClient)
+            .map_err(|err| {
+                if let Some(std::io::ErrorKind::PermissionDenied) = err
+                    .source()
+                    .and_then(|source| source.downcast_ref::<std::io::Error>())
+                    .map(|s| s.kind())
+                {
+                    Error::AuthenticationRequired
+                } else {
+                    err.into()
+                }
+            })
     }
 
     pub async fn get_info(&mut self) -> Result<VpnServiceInfo> {
@@ -769,6 +781,9 @@ pub enum Error {
 
     #[error("Failed to parse rpc response")]
     InvalidResponse(#[source] crate::conversions::ConversionError),
+
+    #[error("Authentication is required to access the daemon")]
+    AuthenticationRequired,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

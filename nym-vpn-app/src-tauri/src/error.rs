@@ -92,6 +92,10 @@ impl Display for BackendError {
 impl From<VpndError> for BackendError {
     fn from(error: VpndError) -> Self {
         match error {
+            VpndError::AuthenticationRequired => BackendError::new(
+                "not authenticated with the daemon",
+                ErrorKey::NotConnectedToDaemon,
+            ),
             VpndError::RpcClient(e) => {
                 BackendError::new(&format!("rpc client error: {e}"), ErrorKey::VpndClient)
             }

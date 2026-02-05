@@ -2,47 +2,24 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    ffi::{OsStr, OsString},
+    ffi::OsString,
     io,
     pin::Pin,
     task::{Context, Poll},
 };
 
 use async_stream::try_stream;
-use hyper_util::rt::TokioIo;
 use tokio::{
     io::{AsyncRead, AsyncWrite, ReadBuf},
-    net::windows::named_pipe::{ClientOptions, NamedPipeClient, NamedPipeServer, ServerOptions},
-    time::{Duration, Instant},
+    net::windows::named_pipe::{NamedPipeServer, ServerOptions},
 };
 use tokio_stream::Stream;
 use tonic::transport::server::Connected;
-use windows::Win32::Foundation::ERROR_PIPE_BUSY;
 
 use nym_windows::security::{
     AbsoluteSecurityDescriptor, AccessMode, AceFlags, Acl, ExplicitAccess, GenericAccessRights,
     SecurityAttributes, Sid, Trustee, TrusteeType, WellKnownSid,
 };
-
-/// Connect timeout used when the pipe reports that it's busy.
-const PIPE_AVAILABILITY_TIMEOUT: Duration = Duration::from_secs(5);
-
-pub async fn connect(pipe_name: impl AsRef<OsStr>) -> io::Result<TokioIo<NamedPipeClient>> {
-    let attempt_start = Instant::now();
-    loop {
-        match ClientOptions::new().read(true).write(true).open(&pipe_name) {
-            Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY.0 as i32) => {
-                if attempt_start.elapsed() < PIPE_AVAILABILITY_TIMEOUT {
-                    tokio::time::sleep(Duration::from_millis(50)).await;
-                    continue;
-                } else {
-                    return Err(e);
-                }
-            }
-            result => return result.map(TokioIo::new),
-        }
-    }
-}
 
 pub fn incoming(
     pipe_name: OsString,

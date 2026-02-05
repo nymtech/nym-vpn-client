@@ -12,13 +12,29 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+async-stream = { workspace = true, optional = true }
+async-trait = { workspace = true, optional = true }
+hyper-util.workspace = true
+thiserror = { workspace = true, optional = true }
 tokio.workspace = true
 tokio-stream = { workspace = true, features = ["net"] }
+tokio-util = { workspace = true, optional = true }
 tracing.workspace = true
-tonic.workspace = true
-hyper-util.workspace = true
+tonic = { workspace = true, optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = { workspace = true, optional = true }
+zbus = { workspace = true, optional = true }
+zbus_polkit = { workspace = true, optional = true }
+
 
 [target.'cfg(windows)'.dependencies]
-async-stream = { workspace = true }
 windows = { workspace = true, features = ["Win32_Foundation"] }
-nym-windows.workspace = true
+nym-windows = { workspace = true, optional = true }
+
+[dev-dependencies]
+strum.workspace = true
+
+[features]
+authentication = []
+daemon = ["async-stream", "async-trait", "nix", "nym-windows", "thiserror", "tokio-util", "tonic", "zbus", "zbus_polkit"]
