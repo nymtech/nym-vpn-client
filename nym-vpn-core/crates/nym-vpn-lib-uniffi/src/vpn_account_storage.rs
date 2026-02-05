@@ -41,8 +41,9 @@ pub struct NymVpnAccountStorage {
 #[uniffi::export(async_runtime = "tokio")]
 impl NymVpnAccountStorage {
     #[uniffi::constructor]
-    pub fn new(storage_path: PathBuf, environment: Arc<NymEnvironment>) -> Self {
+    pub fn new(data_dir: PathBuf, environment: Arc<NymEnvironment>) -> Self {
         // todo: ensure account controller is not running?
+        let storage_path = data_dir.join(environment.network_name());
         Self {
             storage: VpnClientOnDiskStorage::new(&storage_path),
             storage_path,
