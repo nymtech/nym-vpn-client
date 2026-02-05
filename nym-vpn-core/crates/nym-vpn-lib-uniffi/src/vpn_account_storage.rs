@@ -273,6 +273,18 @@ impl NymVpnAccountStorage {
             .account_token;
         Ok(RegisterAccountResponse { account_token })
     }
+
+    /// Get the device identity
+    /// This is a version that can be called when the account controller is not running.
+    pub async fn get_device_identity(&self) -> Result<String, VpnError> {
+        let device_id = self
+            .storage
+            .load_keys()
+            .await
+            .map_err(|_err| VpnError::NoDeviceIdentity)?
+            .ok_or(VpnError::NoDeviceIdentity)?;
+        Ok(device_id.device_keypair().public_key().to_string())
+    }
 }
 
 impl NymVpnAccountStorage {
@@ -300,18 +312,6 @@ impl NymVpnAccountStorage {
         .await
         .map_err(VpnError::internal)?;
         Ok(vpn_api_client)
-    }
-
-    /// Get the device identity
-    /// This is a version that can be called when the account controller is not running.
-    pub async fn get_device_identity(&self) -> Result<String, VpnError> {
-        let device_id = self
-            .storage
-            .load_keys()
-            .await
-            .map_err(|_err| VpnError::NoDeviceIdentity)?
-            .ok_or(VpnError::NoDeviceIdentity)?;
-        Ok(device_id.device_keypair().public_key().to_string())
     }
 
     async fn load_device(&self) -> Result<Device, VpnError> {
