@@ -247,12 +247,12 @@ impl NymVpnServiceCommandSender {
         Ok(value)
     }
 
-    pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>> {
-        let value = self
-            .send_and_wait(VpnServiceCommand::GetAccountMode, ())
-            .await?
-            .map_err(NymVpnServiceCommandInnerError::Account)?;
-        Ok(value)
+    pub async fn get_account_mode(&self) -> Option<StoredAccountMode> {
+        self.send_and_wait(VpnServiceCommand::GetAccountMode, ())
+            .await
+            .ok()
+            .flatten()
+            .map(|mode| nym_vpn_lib_types::StoredAccountMode::from(mode))
     }
 
     pub async fn get_account_links(&self, locale: String) -> Result<ParsedAccountLinks> {
