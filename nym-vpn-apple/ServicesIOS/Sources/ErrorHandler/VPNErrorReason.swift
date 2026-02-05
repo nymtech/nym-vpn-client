@@ -34,11 +34,11 @@ public enum VPNErrorReason: LocalizedError {
     case invalidSecret(details: String)
     case initLogs(details: String)
     case deeplinkError(details: String)
-
+    case fetchEnvironment(details: String)
+    case linkPrivy(details: String)
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
-
     public static let domain = "ErrorHandler.VPNErrorReason"
 
     // MARK: - Initializer from VpnError
@@ -75,8 +75,6 @@ public enum VPNErrorReason: LocalizedError {
             self = .vpnApiTimeout
         case let .InvalidMnemonic(details: details):
             self = .invalidMnemonic(details: details)
-        case let .InvalidAccountStoragePath(details: details):
-            self = .invalidAccountStoragePath(details: details)
         case let .UnregisterDevice(details: details):
             self = .unregisterDevice(details: details)
         case let .RequestZkNym(details: details):
@@ -226,6 +224,10 @@ public enum VPNErrorReason: LocalizedError {
             self = .initLogs(details: details)
         case let .DeeplinkError(details: details):
             self = .deeplinkError(details: details)
+        case let .FetchEnvironment(details: details):
+            self = .fetchEnvironment(details: details)
+        case let .LinkPrivyAccount(details: details):
+            self = .linkPrivy(details: details)
         }
     }
 
@@ -303,6 +305,10 @@ public enum VPNErrorReason: LocalizedError {
             self = .initLogs(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .deeplinkError:
             self = .deeplinkError(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .fetchEnvironment:
+            self = .fetchEnvironment(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .linkPrivy:
+            self = .linkPrivy(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -393,6 +399,10 @@ extension VPNErrorReason {
             details
         case let .deeplinkError(details: details):
             details
+        case let .fetchEnvironment(details: details):
+            details
+        case let .linkPrivy(details: details):
+            details
         }
     }
 }
@@ -436,6 +446,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case invalidSecret
     case initLogs
     case deeplinkError
+    case fetchEnvironment
+    case linkPrivy
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -501,6 +513,10 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .initLogs
         case .deeplinkError:
             self = .deeplinkError
+        case .fetchEnvironment:
+            self = .fetchEnvironment
+        case .linkPrivy:
+            self = .linkPrivy
         }
     }
 }

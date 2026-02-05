@@ -13,10 +13,10 @@ use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, UserAgent,
-    VpnAccountSummary,
+    RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
+    UserAgent, VpnAccountSummary,
 };
-use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
+use nym_vpn_store::types::StorableAccount;
 
 struct State {
     join_handle: JoinHandle<()>,
@@ -149,7 +149,7 @@ impl NymAccountController {
 
         let privy_account = StorableAccount {
             mnemonic: deeplink_mnemonic.mnemonic.clone(),
-            mode: StoredAccountMode::Privy,
+            mode: nym_vpn_store::types::StoredAccountMode::Privy,
         };
 
         match deeplink_mnemonic.kind {
@@ -247,7 +247,11 @@ impl NymAccountController {
 
     /// Get the account mode
     pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>, VpnError> {
-        Ok(self.command_sender.get_account_mode().await?)
+        Ok(self
+            .command_sender
+            .get_account_mode()
+            .await?
+            .map(StoredAccountMode::from))
     }
 
     /// Check if the account mnemonic is stored

@@ -105,6 +105,22 @@ public final class LogFileManager: ObservableObject, @unchecked Sendable {
         return logsDirectory.appendingPathComponent(fileName)
     }
 
+    public static func logsDirectory() -> URL? {
+#if os(iOS)
+        let fileManager = FileManager.default
+        guard let logsDirectory = fileManager.containerURL(forSecurityApplicationGroupIdentifier: Constants.groupID.rawValue)?
+            .appendingPathComponent("net.nymtech.vpn")
+            .appendingPathComponent("Logs") else { return nil }
+
+
+        try? fileManager.createDirectory(at: logsDirectory, withIntermediateDirectories: true)
+
+        return logsDirectory
+#else
+        return URL(fileURLWithPath: "/var/log/nym-vpnd")
+#endif
+    }
+
     public func write(_ string: String) {
         ioQueue.async { [weak self] in
             guard let self else { return }

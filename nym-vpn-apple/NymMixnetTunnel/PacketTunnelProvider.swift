@@ -13,14 +13,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     lazy var logger = Logger(label: "MixnetTunnel")
     var logInitFailure: String?
+    var vpnService: NymVpnService?
+    var commandSender: NymVpnServiceCommandSender?
 
     override init() {
         tunnelActor = TunnelActor()
-
         super.init()
 
         self.configureLogger()
-        
         LoggingSystem.bootstrap { label in
             let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
 #if DEBUG
@@ -36,10 +36,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
-        logger.info("Start tunnel...")
-
-        await setup()
-
         await tunnelActor.setTunnelProvider(self)
 
         guard let tunnelProviderProtocol = protocolConfiguration as? NETunnelProviderProtocol,
@@ -48,101 +44,46 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             logger.error("Failed to obtain tunnel configuration")
             throw PacketTunnelProviderError.invalidSavedConfiguration
         }
+        let vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self)
+        try await setup(vpnConfig: vpnConfig)
 
-        let vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self, tunStatusListener: self)
-
-        logger.info("Starting backend")
-
-        guard let credentialDataPath = vpnConfig.credentialDataPath
-        else {
-            throw PacketTunnelProviderError.noCredentialDataDir
-        }
-
-        try await startNymVpn(
-            credentialDataPath: credentialDataPath,
-            vpnConfig: vpnConfig,
-            isErrorReportingEnabled: mixnetConfig.isErrorReportingEnabled,
-            isStatisticsEnabled: mixnetConfig.isStatisticsEnabled
-        )
+        _ = try await commandSender?.connectTunnel()
     }
 
     override func stopTunnel(with reason: NEProviderStopReason) async {
         logger.info("Stop tunnel... \(reason.rawValue)")
 
         do {
-            try stopVpn()
+            _ = try await commandSender?.disconnectTunnel()
+            await vpnService?.shutdownAndWait()
         } catch {
             logger.error("Failed to stop the tunnel: \(error)")
         }
 
-        do {
-            try shutdown()
-        } catch {
-            logger.error("Failed to stop account controller: \(error)")
-        }
-
         await tunnelActor.setTunnelProvider(nil)
-    }
-
-    func startNymVpn(
-        credentialDataPath: String,
-        vpnConfig: VpnConfig,
-        isErrorReportingEnabled: Bool,
-        isStatisticsEnabled: Bool
-    ) async throws {
-        do {
-            let config = NymVpnLibConfig(
-                dataDir: credentialDataPath,
-                sentryMonitoring: isErrorReportingEnabled,
-                statisticsEnabled: isStatisticsEnabled,
-                userAgent: .appUserAgent
-            )
-            try configureLib(config: config)
-            try startVpn(config: vpnConfig)
-        } catch {
-            logger.error("Failed to start vpn: \(error)")
-            if let lastVPNError = error as? VpnError {
-                throw VPNErrorReason(with: lastVPNError).nsError
-            } else {
-                throw error
-            }
-        }
-
-        logger.info("Backend is up and running...")
-
-        do {
-            try await tunnelActor.waitUntilStarted()
-        } catch {
-            logger.error("Failed to wait until vpn started: \(error)")
-            throw error
-        }
+        vpnService = nil
+        commandSender = nil
     }
 }
 
 extension PacketTunnelProvider {
-    func setup() async {
-        do {
-            try await ConfigurationManager.shared.setup(for: .networkExtension)
-        } catch {
-            self.logger.error("Failed to set environment: \(error)")
-        }
+    func setup(vpnConfig: VpnConfig) async throws {
+        try await ConfigurationManager.shared.setup()
+
+        vpnService = try await NymVpnService.newService(
+            config: vpnConfig,
+            environment: ConfigurationManager.shared.networkEnv,
+            eventListener: self
+        )
+        commandSender = vpnService?.getCommandSender()
     }
 
     func configureLogger() {
-        let logPath = LogFileManager.logFileURL(logFileType: .library)?.path()
-
-        Task {
-            let logLevel = await MainActor.run { ConfigurationManager.shared.debugLevel }
-            do {
-                try await initLogger(
-                    path: logPath,
-                    debugLevel: logLevel,
-                    sentryMonitoring: true
-                )
-            } catch {
-                self.logInitFailure = error.localizedDescription
-            }
-        }
+        let logDir = LogFileManager.logsDirectory()?.path()
+        // Extracted from ConfigurationManager.shared.debugLevel
+        let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+        let logLevel: LogLevel = isTestFlight ? .debug : .info
+        initLogger(logDir: logDir, logLevel: logLevel, sentryMonitoring: true)
     }
 }
 

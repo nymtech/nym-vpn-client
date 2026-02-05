@@ -19,6 +19,9 @@ import NotificationsManager
 import PurchasesManager
 import SentryManager
 import Theme
+#if os(iOS)
+import NymVPNLib
+#endif
 
 @main
 struct NymVPNApp: App {
@@ -99,6 +102,8 @@ struct NymVPNApp: App {
 
 private extension NymVPNApp {
     func setup() {
+        initLogger(logDir: nil, logLevel: .debug, sentryMonitoring: false)
+
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
@@ -106,7 +111,8 @@ private extension NymVPNApp {
 
         Task {
             // Things dependant on environment being set.
-            try await ConfigurationManager.shared.setup(for: .main)
+            try await ConfigurationManager.shared.setup()
+            CredentialsManager.shared.setup()
             FeatureFlagsManager.shared.setup()
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()

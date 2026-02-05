@@ -18,7 +18,7 @@ use nym_vpn_lib_types::{
 use nym_vpn_store::{
     account::AccountInformationStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
-    types::{StorableAccount, StoredAccount},
+    types::{StorableAccount, StoredAccountMode},
 };
 
 use crate::{NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic};
@@ -241,9 +241,7 @@ impl NymVpnAccountStorage {
     }
 
     /// Get the type of account the user is logged in with
-    pub async fn get_account_mode(
-        &self,
-    ) -> Result<Option<nym_vpn_lib_types::StoredAccountMode>, VpnError> {
+    pub async fn get_account_mode(&self) -> Result<nym_vpn_lib_types::StoredAccountMode, VpnError> {
         let account = self
             .storage
             .load_account()
@@ -253,11 +251,7 @@ impl NymVpnAccountStorage {
             })?
             .ok_or(VpnError::NoAccountStored)?;
 
-        let mode = account
-            .mode()
-            .map(nym_vpn_lib_types::StoredAccountMode::from);
-
-        Ok(mode)
+        Ok(nym_vpn_lib_types::StoredAccountMode::from(account.mode))
     }
 
     /// Load the account mnemonic stored locally and register it.
@@ -278,6 +272,18 @@ impl NymVpnAccountStorage {
             .await?
             .account_token;
         Ok(RegisterAccountResponse { account_token })
+    }
+
+    /// Get the device identity
+    /// This is a version that can be called when the account controller is not running.
+    pub async fn get_device_identity(&self) -> Result<String, VpnError> {
+        let device_id = self
+            .storage
+            .load_keys()
+            .await
+            .map_err(|_err| VpnError::NoDeviceIdentity)?
+            .ok_or(VpnError::NoDeviceIdentity)?;
+        Ok(device_id.device_keypair().public_key().to_string())
     }
 }
 
@@ -306,18 +312,6 @@ impl NymVpnAccountStorage {
         .await
         .map_err(VpnError::internal)?;
         Ok(vpn_api_client)
-    }
-
-    /// Get the device identity
-    /// This is a version that can be called when the account controller is not running.
-    pub async fn get_device_identity(&self) -> Result<String, VpnError> {
-        let device_id = self
-            .storage
-            .load_keys()
-            .await
-            .map_err(|_err| VpnError::NoDeviceIdentity)?
-            .ok_or(VpnError::NoDeviceIdentity)?;
-        Ok(device_id.device_keypair().public_key().to_string())
     }
 
     async fn load_device(&self) -> Result<Device, VpnError> {

@@ -148,7 +148,7 @@ mod vpn_service_command_sender;
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
-    sync::{Arc, OnceLock},
+    sync::{Arc, LazyLock},
 };
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
@@ -176,20 +176,20 @@ uniffi::use_remote_type!(nym_vpn_lib_types::Ipv4Network);
 uniffi::use_remote_type!(nym_vpn_lib_types::Ipv6Network);
 uniffi::use_remote_type!(nym_vpn_lib_types::PathBuf);
 
-static TOKIO_RUNTIME: OnceLock<Runtime> = OnceLock::new();
+static TOKIO_RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
+    tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(10)
+        .enable_all()
+        .build()
+        .expect("failed to initialize tokio runtime")
+});
 
 /// Initialize tokio runtime once before interacting with nym-vpn-lib.
 /// Repeat calls do nothing.
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn initializeTokioRuntime() {
-    let _rt = TOKIO_RUNTIME.get_or_init(|| {
-        tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(10)
-            .enable_all()
-            .build()
-            .expect("failed to initialize tokio runtime")
-    });
+    let _rt = &*TOKIO_RUNTIME;
 }
 
 /// Get the message to be signed using the Privy signing API.

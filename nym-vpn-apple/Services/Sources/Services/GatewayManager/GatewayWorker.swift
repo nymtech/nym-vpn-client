@@ -29,16 +29,29 @@ actor GatewayWorker {
 #endif
 
 #if os(iOS)
-    func fetchGateways() throws -> (entry: [GatewayNode], exit: [GatewayNode], vpn: [GatewayNode]) {
-        let entryNodes = try getGateways(gwType: .mixnetEntry)
-        let exitNodes = try getGateways(gwType: .mixnetExit)
-        let vpnNodes = try getGateways(gwType: .wg)
+    func fetchGateways() async throws -> (entry: [GatewayNode], exit: [GatewayNode], vpn: [GatewayNode]) {
+        let result = try await Task { @MainActor in
+            let offlineMonitor = await NymOfflineMonitor()
+            let gatewayCache = try await NymGatewayCache(
+                userAgent: .appUserAgent,
+                environment: configurationManager.networkEnv,
+                offlineMonitor: offlineMonitor
+            )
 
-        let entry = entryNodes.map { GatewayNode(with: $0) }
-        let exit = exitNodes.map { GatewayNode(with: $0) }
-        let vpn = vpnNodes.map { GatewayNode(with: $0) }
+            let entryNodes = try await gatewayCache.getGateways(gwType: .mixnetEntry)
+            let exitNodes = try await gatewayCache.getGateways(gwType: .mixnetExit)
+            let vpnNodes = try await gatewayCache.getGateways(gwType: .wg)
 
-        return (entry, exit, vpn)
+            let entry = entryNodes.map { GatewayNode(with: $0) }
+            let exit = exitNodes.map { GatewayNode(with: $0) }
+            let vpn = vpnNodes.map { GatewayNode(with: $0) }
+
+            await gatewayCache.shutdownAndWait()
+
+            return (entry, exit, vpn)
+        }.value
+
+        return result
     }
 #elseif os(macOS)
     func fetchGateways() async throws -> (entry: [GatewayNode], exit: [GatewayNode], vpn: [GatewayNode]) {

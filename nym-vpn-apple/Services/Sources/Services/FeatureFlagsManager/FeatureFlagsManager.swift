@@ -25,6 +25,7 @@ import GRPCManager
 #endif
 
     public var isPrivyEnabled = false
+    public var isMixnetTuningEnabled = false
 
 #if os(iOS)
     init(configurationManager: ConfigurationManager) {
@@ -91,12 +92,13 @@ private extension FeatureFlagsManager {
     func updateFeatureFlags() {
         Task {
 #if os(iOS)
-            guard let flags = try? currentEnvironment().featureFlags else { return }
+            guard let flags = configurationManager.networkEnv.current().featureFlags else { return }
 #elseif os(macOS)
             guard let flags = try? await grpcManager.fetchFeatureFlags() else { return }
 #endif
             Task { @MainActor in
                 isPrivyEnabled = flags.isPrivyEnabled() ?? false
+                isMixnetTuningEnabled = flags.isMixnetTuningEnabled() ?? false
             }
         }
     }
