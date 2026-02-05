@@ -14,6 +14,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     lazy var logger = Logger(label: "MixnetTunnel")
     var logInitFailure: String?
     var vpnService: NymVpnService?
+    var commandSender: NymVpnServiceCommandSender?
 
     override init() {
         tunnelActor = TunnelActor()
@@ -46,14 +47,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self)
         try await setup(vpnConfig: vpnConfig)
 
-        _ = try await vpnService?.getCommandSender().connectTunnel()
+        _ = try await commandSender?.connectTunnel()
     }
 
     override func stopTunnel(with reason: NEProviderStopReason) async {
         logger.info("Stop tunnel... \(reason.rawValue)")
 
         do {
-            _ = try await vpnService?.getCommandSender().disconnectTunnel()
+            _ = try await commandSender?.disconnectTunnel()
             await vpnService?.shutdownAndWait()
         } catch {
             logger.error("Failed to stop the tunnel: \(error)")
@@ -61,17 +62,20 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         await tunnelActor.setTunnelProvider(nil)
         vpnService = nil
+        commandSender = nil
     }
 }
 
 extension PacketTunnelProvider {
     func setup(vpnConfig: VpnConfig) async throws {
         try await ConfigurationManager.shared.setup()
+
         vpnService = try await NymVpnService.newService(
             config: vpnConfig,
             environment: ConfigurationManager.shared.networkEnv,
             eventListener: self
         )
+        commandSender = vpnService?.getCommandSender()
     }
 
     func configureLogger() {
