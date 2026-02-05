@@ -18,7 +18,7 @@ use nym_vpn_lib_types::{
 use nym_vpn_store::{
     account::AccountInformationStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
-    types::{StorableAccount, StoredAccountMode},
+    types::{StorableAccount, StoredAccount},
 };
 
 use crate::{NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic};
@@ -97,10 +97,20 @@ impl NymVpnAccountStorage {
 
                 let vpn_api_client = self.create_vpn_api_client().await?;
 
+                let current_account = self
+                    .storage
+                    .load_account()
+                    .await?
+                    .map(VpnAccount::try_from)
+                    .transpose()
+                    .map_err(|err| VpnError::InternalError {
+                        details: err.to_string(),
+                    })?;
+
                 // We can only link the Privy account if we're currently logged-in with an API account
                 if privy_vpn_account.mode().is_privy()
-                    && let Some(mode) = self.get_stored_account_mode().await?
-                    && mode.is_api()
+                    && let Some(ref current_account) = current_account
+                    && current_account.mode().is_api()
                 {
                     tracing::info!("Linking Privy account with API account");
 
@@ -230,14 +240,23 @@ impl NymVpnAccountStorage {
     }
 
     /// Get the type of account the user is logged in with
-    pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>, VpnError> {
-        Ok(self
+    pub async fn get_account_mode(
+        &self,
+    ) -> Result<Option<nym_vpn_lib_types::StoredAccountMode>, VpnError> {
+        let account = self
             .storage
             .load_account()
-            .await?
-            .ok()
-            .flatten()
-            .map(|account| account.mode))
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
+
+        let mode = account
+            .mode()
+            .map(nym_vpn_lib_types::StoredAccountMode::from);
+
+        Ok(mode)
     }
 
     /// Load the account mnemonic stored locally and register it.
