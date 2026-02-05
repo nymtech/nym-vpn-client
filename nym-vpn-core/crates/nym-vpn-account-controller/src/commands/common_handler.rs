@@ -14,7 +14,7 @@ use crate::{
     deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
     storage::AccountStorageOp,
 };
-use nym_vpn_store::account::StorableAccount;
+use nym_vpn_store::{account::StorableAccount, types::StoredAccountMode};
 
 pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
     command: CommonCommand,
@@ -26,6 +26,9 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         }
         CommonCommand::GetAccountIdentity(result_tx) => {
             result_tx.send(handle_get_account_identity(shared_state));
+        }
+        CommonCommand::GetAccountMode(result_tx) => {
+            result_tx.send(handle_get_account_mode(shared_state));
         }
         CommonCommand::GetDeviceIdentity(result_tx) => {
             result_tx.send(handle_get_device_identity(shared_state));
@@ -80,6 +83,15 @@ pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
         .vpn_api_account
         .as_ref()
         .map(|account| account.id()))
+}
+
+pub(crate) fn handle_get_account_mode<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<Option<StoredAccountMode>, AccountCommandError> {
+    Ok(shared_state
+        .vpn_api_account
+        .as_ref()
+        .map(|account| account.mode().into()))
 }
 
 async fn handle_get_usage<C: ConnectivityMonitor>(

@@ -31,7 +31,7 @@ nym-type-conversions = [
 ]
 uniffi-bindings = ["dep:uniffi", "ipnetwork"]
 typescript-bindings = ["dep:ts-rs", "serde"]
-serde = ["dep:serde"]
+serde = ["dep:serde", "dep:nym-vpn-store"]
 
 [dependencies]
 bip39 = { workspace = true, optional = true }

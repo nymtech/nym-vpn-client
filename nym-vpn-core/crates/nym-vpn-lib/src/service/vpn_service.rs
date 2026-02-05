@@ -126,6 +126,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Option<String>, AccountCommandError>>,
         (),
     ),
+    GetAccountMode(oneshot::Sender<Option<StoredAccountMode>>, ()),
     GetAccountLinks(
         oneshot::Sender<Result<ParsedAccountLinks, AccountLinksError>>,
         Locale,
@@ -920,6 +921,9 @@ impl NymVpnService {
             VpnServiceCommand::IsAccountStored(tx, ()) => {
                 let _ = tx.send(self.handle_is_account_stored().await);
             }
+            VpnServiceCommand::GetAccountMode(tx, ()) => {
+                let _ = tx.send(self.handle_get_account_mode().await);
+            }
             VpnServiceCommand::ForgetAccount(tx, ()) => {
                 let _ = tx.send(self.handle_forget_account().await);
             }
@@ -1632,6 +1636,14 @@ impl NymVpnService {
 
     async fn handle_get_account_identity(&self) -> Result<Option<String>, AccountCommandError> {
         self.account_command_tx.get_account_id().await
+    }
+
+    async fn handle_get_account_mode(&self) -> Option<StoredAccountMode> {
+        self.account_command_tx
+            .get_account_mode()
+            .await
+            .ok()
+            .flatten()
     }
 
     async fn handle_get_account_links(

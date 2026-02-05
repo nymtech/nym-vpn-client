@@ -7,7 +7,8 @@ use nym_vpn_lib_types::{
     HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkCompatibility,
     NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
-    SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 use std::{net::IpAddr, path::PathBuf};
 use tokio_stream::{Stream, StreamExt};
@@ -376,6 +377,20 @@ impl RpcClient {
             .await
             .map(|v| v.into_inner().account_identity)
             .map_err(Error::Rpc)
+    }
+
+    pub async fn get_account_mode(&mut self) -> Result<Option<StoredAccountMode>> {
+        let response = self
+            .0
+            .get_account_mode(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+
+        let opt_mode: Option<StoredAccountMode> =
+            response.try_into().map_err(Error::InvalidResponse)?;
+
+        Ok(opt_mode)
     }
 
     pub async fn get_account_links(&mut self, locale: String) -> Result<ParsedAccountLinks> {

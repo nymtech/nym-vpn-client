@@ -503,6 +503,17 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(is_stored))
     }
 
+    async fn get_account_mode(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::GetAccountModeResponse>> {
+        let mode = self
+            .send_and_wait(VpnServiceCommand::GetAccountMode, ())
+            .await?;
+
+        Ok(tonic::Response::new(mode.into()))
+    }
+
     async fn forget_account(
         &self,
         _request: tonic::Request<()>,

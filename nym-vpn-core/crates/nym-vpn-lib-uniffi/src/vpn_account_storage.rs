@@ -97,20 +97,10 @@ impl NymVpnAccountStorage {
 
                 let vpn_api_client = self.create_vpn_api_client().await?;
 
-                let current_account = self
-                    .storage
-                    .load_account()
-                    .await?
-                    .map(VpnAccount::try_from)
-                    .transpose()
-                    .map_err(|err| VpnError::InternalError {
-                        details: err.to_string(),
-                    })?;
-
                 // We can only link the Privy account if we're currently logged-in with an API account
                 if privy_vpn_account.mode().is_privy()
-                    && let Some(ref current_account) = current_account
-                    && current_account.mode().is_api()
+                    && let Some(mode) = self.get_stored_account_mode().await?
+                    && mode.is_api()
                 {
                     tracing::info!("Linking Privy account with API account");
 
@@ -223,18 +213,6 @@ impl NymVpnAccountStorage {
         Ok(())
     }
 
-    /// Get the device identity
-    /// This is a version that can be called when the account controller is not running.
-    pub async fn get_device_identity(&self) -> Result<String, VpnError> {
-        let device_id = self
-            .storage
-            .load_keys()
-            .await
-            .map_err(|_err| VpnError::NoDeviceIdentity)?
-            .ok_or(VpnError::NoDeviceIdentity)?;
-        Ok(device_id.device_keypair().public_key().to_string())
-    }
-
     /// Get the account identity
     /// This is a version that can be called when the account controller is not running.
     pub async fn get_account_identity(&self) -> Result<String, VpnError> {
@@ -249,6 +227,17 @@ impl NymVpnAccountStorage {
         VpnAccount::try_from(account)
             .map_err(VpnError::internal)
             .map(|account| account.id().to_string())
+    }
+
+    /// Get the type of account the user is logged in with
+    pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>, VpnError> {
+        Ok(self
+            .storage
+            .load_account()
+            .await?
+            .ok()
+            .flatten()
+            .map(|account| account.mode))
     }
 
     /// Load the account mnemonic stored locally and register it.
@@ -297,6 +286,18 @@ impl NymVpnAccountStorage {
         .await
         .map_err(VpnError::internal)?;
         Ok(vpn_api_client)
+    }
+
+    /// Get the device identity
+    /// This is a version that can be called when the account controller is not running.
+    pub async fn get_device_identity(&self) -> Result<String, VpnError> {
+        let device_id = self
+            .storage
+            .load_keys()
+            .await
+            .map_err(|_err| VpnError::NoDeviceIdentity)?
+            .ok_or(VpnError::NoDeviceIdentity)?;
+        Ok(device_id.device_keypair().public_key().to_string())
     }
 
     async fn load_device(&self) -> Result<Device, VpnError> {
