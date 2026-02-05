@@ -240,10 +240,7 @@ impl NymVpnAccountStorage {
             .map(|account| account.id().to_string())
     }
 
-    pub async fn get_canonical_account_identity(
-        &self,
-        deeplink_mnemonic: Arc<NymDeeplinkMnemonic>,
-    ) -> Result<String, VpnError> {
+    pub async fn get_canonical_account_identity(&self) -> Result<String, VpnError> {
         let account = self
             .storage
             .load_account()
@@ -262,7 +259,8 @@ impl NymVpnAccountStorage {
         let vpn_api_client = self.create_vpn_api_client().await?;
         let response = vpn_api_client
             .get_canonical_account_identity(&vpn_account)
-            .await?;
+            .await
+            .map_err(VpnError::internal)?;
         Ok(response.canonical_account_addr)
     }
 
