@@ -16,6 +16,7 @@ backon.workspace = true
 base64-url.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
 bs58.workspace = true
+hex.workspace = true
 itertools.workspace = true
 nym-common.workspace = true
 nym-compact-ecash.workspace = true
@@ -30,6 +31,7 @@ nym-vpn-store.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 sha2.workspace = true
+sha256.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
 thiserror.workspace = true

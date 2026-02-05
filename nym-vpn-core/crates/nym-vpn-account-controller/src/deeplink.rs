@@ -13,8 +13,7 @@ use url::Url;
 
 pub struct Deeplink {
     id: u64,
-    _kind: DeeplinkKind,
-    _name: String,
+    kind: DeeplinkKind,
     keypair: KeyPair,
     expiry_time: Instant,
 }
@@ -24,14 +23,16 @@ impl Deeplink {
 
     pub fn new(params: &CreateDeeplinkParams) -> Self {
         let mut rng = OsRng;
-        let keypair = KeyPair::new(&mut rng);
         let id = rng.next_u64();
+        let kind = params.kind;
+        let keypair = KeyPair::new(&mut rng);
         let expiry_time = Instant::now() + Duration::from_secs(Self::TTL_SECS);
+
+        // Note: CreateDeeplinkParams.name is not used.
 
         Self {
             id,
-            _kind: params.kind,
-            _name: params.name.clone(),
+            kind,
             keypair,
             expiry_time,
         }
@@ -42,11 +43,18 @@ impl Deeplink {
     }
 
     pub fn create_url(&self, base_url: &Url) -> Url {
+        let deeplink_id = self.id.to_string();
         let pubkey = bs58::encode(self.keypair.public_key().to_bytes()).into_string();
+        let link_account = if self.kind == DeeplinkKind::PrivyLink {
+            "1"
+        } else {
+            "0"
+        };
         let mut url = base_url.clone();
         url.query_pairs_mut()
-            .append_pair("deeplink_id", &self.id.to_string())
-            .append_pair("pubkey", &pubkey);
+            .append_pair("deeplink_id", &deeplink_id)
+            .append_pair("pubkey", &pubkey)
+            .append_pair("link_account", link_account);
         url
     }
 }
@@ -70,7 +78,7 @@ impl Deeplinks {
         self.0.retain(|_, deeplink| deeplink.expiry_time > now);
     }
 
-    pub fn derive_mnemonic(&mut self, url_str: &str) -> Result<bip39::Mnemonic, DeeplinkError> {
+    pub fn derive_mnemonic(&mut self, url_str: &str) -> Result<DeeplinkMnemonic, DeeplinkError> {
         let url =
             Url::parse(url_str).map_err(|_| DeeplinkError::InvalidUrl(url_str.to_string()))?;
 
@@ -118,10 +126,19 @@ impl Deeplinks {
 
         let decrypted_bytes = cipher_packet.decrypt(&deeplink.keypair, &sender_public_key)?;
 
+        if decrypted_bytes.len() != 32 {
+            return Err(DeeplinkError::InvalidPayload(
+                "invalid x25519 private key length".to_string(),
+            ));
+        }
+
         let mnemonic = bip39::Mnemonic::from_entropy(&decrypted_bytes)
             .map_err(|_| DeeplinkError::InvalidPayload("failed to create mnemonic".to_string()))?;
 
-        Ok(mnemonic)
+        Ok(DeeplinkMnemonic {
+            mnemonic,
+            kind: deeplink.kind,
+        })
     }
 }
 
@@ -130,6 +147,12 @@ pub struct CreateDeeplinkParams {
     pub kind: DeeplinkKind,
     pub name: String,
     pub base_url: Url,
+}
+
+#[derive(Debug)]
+pub struct DeeplinkMnemonic {
+    pub kind: DeeplinkKind,
+    pub mnemonic: bip39::Mnemonic,
 }
 
 #[derive(Debug, Clone)]

@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.MixnetTrafficConfig
 
 interface SettingsRepository {
 
@@ -58,4 +59,7 @@ interface SettingsRepository {
 	suspend fun setLogsDebugEnabled(enabled: Boolean)
 
 	val settingsFlow: Flow<Settings>
+
+	suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig
+	suspend fun setMixnetTrafficConfig(config: MixnetTrafficConfig)
 }

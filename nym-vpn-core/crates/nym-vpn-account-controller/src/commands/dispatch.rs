@@ -1,7 +1,10 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{AvailableTicketbooks, deeplink::CreateDeeplinkParams};
+use crate::{
+    AvailableTicketbooks,
+    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
+};
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
     ResolverOverrides,
@@ -9,7 +12,7 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
-use nym_vpn_store::account::StorableAccount;
+use nym_vpn_store::{account::StorableAccount, types::StoredAccountMode};
 use tokio::sync::oneshot;
 
 #[derive(Debug, strum::Display)]
@@ -29,6 +32,9 @@ pub enum AccountCommand {
 
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
+
+    /// Link another account with the currently logged-on API account
+    LinkAccount(ReturnSender<(), AccountCommandError>, StorableAccount),
 
     /// Rotate the wireguard keys
     RotateKeys(ReturnSender<(), AccountCommandError>),
@@ -65,6 +71,7 @@ impl AccountCommand {
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
@@ -75,6 +82,7 @@ impl AccountCommand {
             AccountCommand::Common(common_command) => match common_command {
                 CommonCommand::GetStoredAccount(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetAccountMode(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetUsage(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDevices(return_sender) => return_sender.send(Err(error)),
@@ -110,6 +118,9 @@ pub enum CommonCommand {
     /// Returns Some(address) if an account is stored, None otherwise
     GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),
 
+    /// Returns Some(mode) if an account is logged-in, None otherwise
+    GetAccountMode(ReturnSender<Option<StoredAccountMode>, AccountCommandError>),
+
     /// Returns Some(id) if the current device has an identity (is registered), None otherwise
     GetDeviceIdentity(ReturnSender<Option<String>, AccountCommandError>),
 
@@ -141,7 +152,7 @@ pub enum CommonCommand {
     ),
 
     /// Derive the mnemonic from the deeplink callback URL
-    DeriveDeeplinkMnemonic(ReturnSender<bip39::Mnemonic, AccountCommandError>, String),
+    DeriveDeeplinkMnemonic(ReturnSender<DeeplinkMnemonic, AccountCommandError>, String),
 }
 
 /// Commands relating to the upgrade mode

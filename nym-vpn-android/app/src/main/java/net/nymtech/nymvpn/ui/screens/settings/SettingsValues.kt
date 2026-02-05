@@ -11,4 +11,5 @@ data class SettingsValues(
 	val appSystemTrayEnabled: Boolean = false,
 	val appVersion: String = "",
 	val daemonVersion: String = "",
+	val isMixnetTuningEnabled: Boolean = false,
 )

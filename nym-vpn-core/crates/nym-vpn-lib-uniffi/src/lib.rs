@@ -129,15 +129,18 @@ uniffi::setup_scaffolding!();
 
 pub(crate) mod error;
 
+#[cfg(target_os = "ios")]
 mod account;
 #[cfg(target_os = "android")]
 mod android_connectivity_monitor;
+#[cfg(target_os = "ios")]
+mod deeplink;
 mod environment;
 mod gateway_cache;
 mod logging;
 mod offline_monitor;
 mod tunnel_provider;
-#[cfg(target_os = "android")]
+#[cfg(target_os = "ios")]
 mod vpn_account_storage;
 mod vpn_service;
 mod vpn_service_command_sender;
@@ -194,7 +197,7 @@ pub fn initializeTokioRuntime() {
 #[uniffi::export]
 pub fn getPrivyDerivationMessage() -> PrivyDerivationMessage {
     PrivyDerivationMessage {
-        message: nym_vpn_lib::login::privy::message_to_sign(),
+        message: nym_vpn_lib::privy::message_to_sign(),
     }
 }
 
@@ -213,6 +216,8 @@ pub struct VPNConfig {
     /// Custom DNS used when set.
     /// Leave empty to use default DNS servers.
     pub custom_dns: Vec<IpAddr>,
+    pub mixnet_traffic: Option<MixnetTrafficConfig>,
+    pub network_stats: Option<NetworkStatisticsConfig>,
     pub user_agent: UserAgent,
     #[cfg(target_os = "ios")]
     tun_provider: Arc<dyn OSTunProvider>,
@@ -239,8 +244,8 @@ impl VPNConfig {
             enable_custom_dns: !self.custom_dns.is_empty(),
             custom_dns: self.custom_dns.clone(),
             min_gateway_vpn_performance: None,
-            mixnet_traffic: MixnetTrafficConfig::default(),
-            network_stats: NetworkStatisticsConfig::default(),
+            mixnet_traffic: self.mixnet_traffic.clone().unwrap_or_default(),
+            network_stats: self.network_stats.unwrap_or_default(),
         })
     }
 }

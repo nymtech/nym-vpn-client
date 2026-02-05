@@ -34,16 +34,6 @@ impl std::fmt::Debug for StorableAccount {
     }
 }
 
-// legacy case
-impl From<bip39::Mnemonic> for StorableAccount {
-    fn from(mnemonic: bip39::Mnemonic) -> Self {
-        StorableAccount {
-            mnemonic,
-            mode: StoredAccountMode::Api,
-        }
-    }
-}
-
 /// Defines the mode of operation of the associated account.
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -56,6 +46,10 @@ pub enum StoredAccountMode {
     /// Account works in the decentralised mode, i.e. there is no associated subscription
     /// and the account uses its own funds for obtaining required ticketbooks
     Decentralised,
+
+    /// Account works in the API mode, but the mnemonic is derived from the Privy
+    /// wallet private key.
+    Privy,
 }
 
 #[cfg(test)]

@@ -1,13 +1,16 @@
 package net.nymtech.nymvpn.data.datastore
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
+import net.nymtech.nymvpn.data.domain.Settings.Companion.MIXNET_CONFIG_DEFAULT
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.MixnetTrafficConfig
 import timber.log.Timber
 
 class DataStoreSettingsRepository(
@@ -31,6 +34,12 @@ class DataStoreSettingsRepository(
 	private val isPerAppSecurityBannerDisplayed = booleanPreferencesKey("DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED")
 	private val logsEnabled = booleanPreferencesKey("LOGS_ENABLED")
 	private val logsDebugEnabled = booleanPreferencesKey("LOGS_DEBUG_ENABLED")
+
+	// Keys for Mixnet Configuration
+	private val mixnetPoissonRate = intPreferencesKey("MIXNET_POISSON_RATE")
+	private val mixnetAvgPacketDelay = intPreferencesKey("MIXNET_AVG_PACKET_DELAY")
+	private val mixnetMsgSendingDelay = intPreferencesKey("MIXNET_MSG_SENDING_DELAY")
+	private val mixnetDisablePoisson = booleanPreferencesKey("MIXNET_DISABLE_POISSON")
 
 	override suspend fun getTheme(): Theme {
 		return dataStoreManager.getFromStore(theme)?.let {
@@ -151,7 +160,8 @@ class DataStoreSettingsRepository(
 	}
 
 	override suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean {
-		return dataStoreManager.getFromStore(isPerAppSecurityBannerDisplayed) ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED
+		return dataStoreManager.getFromStore(isPerAppSecurityBannerDisplayed)
+			?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED
 	}
 
 	override suspend fun setIsPerAppSecurityBannerDisplayed(displayed: Boolean) {
@@ -174,10 +184,48 @@ class DataStoreSettingsRepository(
 		dataStoreManager.saveToDataStore(logsDebugEnabled, enabled)
 	}
 
+	override suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig {
+		val poisson = dataStoreManager.getFromStore(mixnetPoissonRate)
+		val avgDelay = dataStoreManager.getFromStore(mixnetAvgPacketDelay)
+
+		if (poisson == null && avgDelay == null) return MIXNET_CONFIG_DEFAULT
+
+		return MixnetTrafficConfig(
+			poissonParameterForLoopCoverStream = poisson?.toUInt() ?: MIXNET_CONFIG_DEFAULT.poissonParameterForLoopCoverStream,
+			averagePacketDelay = avgDelay?.toUInt() ?: MIXNET_CONFIG_DEFAULT.averagePacketDelay,
+			messageSendingAverageDelay = dataStoreManager.getFromStore(mixnetMsgSendingDelay)?.toUInt() ?: MIXNET_CONFIG_DEFAULT.messageSendingAverageDelay,
+			disablePoissonRate = dataStoreManager.getFromStore(mixnetDisablePoisson) ?: MIXNET_CONFIG_DEFAULT.disablePoissonRate,
+			disableBackgroundCoverTraffic = false,
+			minMixnodePerformance = null,
+			minGatewayMixnetPerformance = null,
+		)
+	}
+
+	override suspend fun setMixnetTrafficConfig(config: MixnetTrafficConfig) {
+		config.poissonParameterForLoopCoverStream?.let { dataStoreManager.saveToDataStore(mixnetPoissonRate, it.toInt()) }
+		config.averagePacketDelay?.let { dataStoreManager.saveToDataStore(mixnetAvgPacketDelay, it.toInt()) }
+		config.messageSendingAverageDelay?.let { dataStoreManager.saveToDataStore(mixnetMsgSendingDelay, it.toInt()) }
+		dataStoreManager.saveToDataStore(mixnetDisablePoisson, config.disablePoissonRate)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
 				try {
+					val mixnetConfig = MixnetTrafficConfig(
+						poissonParameterForLoopCoverStream = pref[mixnetPoissonRate]?.toUInt()
+							?: MIXNET_CONFIG_DEFAULT.poissonParameterForLoopCoverStream,
+						averagePacketDelay = pref[mixnetAvgPacketDelay]?.toUInt()
+							?: MIXNET_CONFIG_DEFAULT.averagePacketDelay,
+						messageSendingAverageDelay = pref[mixnetMsgSendingDelay]?.toUInt()
+							?: MIXNET_CONFIG_DEFAULT.messageSendingAverageDelay,
+						disablePoissonRate = pref[mixnetDisablePoisson]
+							?: MIXNET_CONFIG_DEFAULT.disablePoissonRate,
+						disableBackgroundCoverTraffic = false,
+						minMixnodePerformance = null,
+						minGatewayMixnetPerformance = null,
+					)
+
 					Settings(
 						theme = pref[theme]?.let { Theme.valueOf(it) } ?: Theme.default(),
 						autoStartEnabled = pref[autoStart] ?: Settings.AUTO_START_DEFAULT,
@@ -195,6 +243,7 @@ class DataStoreSettingsRepository(
 						isPerAppSecurityBannerDisplayed = pref[isPerAppSecurityBannerDisplayed] ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 						logsEnabled = pref[logsEnabled] ?: Settings.DEFAULT_LOGS_ENABLED,
 						logsDebugEnabled = pref[logsDebugEnabled] ?: Settings.DEFAULT_LOGS_DEBUG_ENABLED,
+						mixnetTrafficConfig = mixnetConfig,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

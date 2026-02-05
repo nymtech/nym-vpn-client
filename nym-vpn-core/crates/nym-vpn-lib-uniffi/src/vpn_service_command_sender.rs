@@ -10,8 +10,8 @@ use tokio::sync::{mpsc, oneshot};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
     GetDeeplinkParams, ListGatewaysOptions, NetworkCompatibility, ParsedAccountLinks,
-    RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, SystemMessage,
-    TargetState, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
+    SystemMessage, TargetState, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -245,6 +245,14 @@ impl NymVpnServiceCommandSender {
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?;
         Ok(value)
+    }
+
+    pub async fn get_account_mode(&self) -> Option<StoredAccountMode> {
+        self.send_and_wait(VpnServiceCommand::GetAccountMode, ())
+            .await
+            .ok()
+            .flatten()
+            .map(|mode| nym_vpn_lib_types::StoredAccountMode::from(mode))
     }
 
     pub async fn get_account_links(&self, locale: String) -> Result<ParsedAccountLinks> {

@@ -53,8 +53,8 @@ mod user_agent;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use account::RegisterAccountRequest;
 pub use account::{
-    AccountCommandError, RegisterAccountResponse, VpnAccountSummary, VpnApiError,
-    VpnApiErrorResponse,
+    AccountCommandError, RegisterAccountResponse, StoredAccountMode, VpnAccountSummary,
+    VpnApiError, VpnApiErrorResponse,
     controller_error::{AccountControllerError, AccountControllerErrorStateReason},
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,

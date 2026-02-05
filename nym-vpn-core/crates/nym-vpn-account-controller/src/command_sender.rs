@@ -4,7 +4,7 @@
 use crate::{
     AvailableTicketbooks,
     commands::{AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand},
-    deeplink::CreateDeeplinkParams,
+    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
@@ -15,7 +15,7 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{
     AccountCommandError, DeeplinkKind, RegisterAccountResponse, VpnAccountSummary,
 };
-use nym_vpn_store::types::StorableAccount;
+use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::instrument;
 use url::Url;
@@ -55,6 +55,18 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
+    pub async fn link_account(
+        &self,
+        privy_account: StorableAccount,
+    ) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::LinkAccount(tx, privy_account))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
     pub async fn get_stored_account(&self) -> Result<Option<StorableAccount>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -80,6 +92,15 @@ impl AccountCommandSender {
             .send(AccountCommand::Common(CommonCommand::GetAccountIdentity(
                 tx,
             )))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(CommonCommand::GetAccountMode(tx)))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
@@ -206,7 +227,7 @@ impl AccountCommandSender {
     pub async fn derive_deeplink_mnemonic(
         &self,
         deeplink_callback_url: String,
-    ) -> Result<bip39::Mnemonic, AccountCommandError> {
+    ) -> Result<DeeplinkMnemonic, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(

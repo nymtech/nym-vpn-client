@@ -341,6 +341,16 @@ fun NavBar(
 				},
 			)
 
+			currentRoute.startsWith(Route.MixnetTuning::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle(stringResource(R.string.settings_mixnet_tuning_title)) },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
+
 			else -> NavBarState(show = false)
 		}
 	}

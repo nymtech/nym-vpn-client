@@ -126,6 +126,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Option<String>, AccountCommandError>>,
         (),
     ),
+    GetAccountMode(oneshot::Sender<Option<StoredAccountMode>>, ()),
     GetAccountLinks(
         oneshot::Sender<Result<ParsedAccountLinks, AccountLinksError>>,
         Locale,
@@ -920,6 +921,9 @@ impl NymVpnService {
             VpnServiceCommand::IsAccountStored(tx, ()) => {
                 let _ = tx.send(self.handle_is_account_stored().await);
             }
+            VpnServiceCommand::GetAccountMode(tx, ()) => {
+                let _ = tx.send(self.handle_get_account_mode().await);
+            }
             VpnServiceCommand::ForgetAccount(tx, ()) => {
                 let _ = tx.send(self.handle_forget_account().await);
             }
@@ -1552,20 +1556,9 @@ impl NymVpnService {
         &mut self,
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountCommandError> {
-        let mnemonic = crate::login::parse_account_request(&store_request)
+        let account = StorableAccount::try_from(store_request)
             .map_err(|err| AccountCommandError::InvalidSecret(err.to_string()))?;
-        if store_request.centralised() {
-            self.account_command_tx
-                .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
-                .await
-        } else {
-            self.account_command_tx
-                .store_account(StorableAccount::new(
-                    mnemonic,
-                    StoredAccountMode::Decentralised,
-                ))
-                .await
-        }
+        self.account_command_tx.store_account(account).await
     }
 
     async fn handle_get_stored_mnemonic(&mut self) -> Result<String, AccountCommandError> {
@@ -1643,6 +1636,14 @@ impl NymVpnService {
 
     async fn handle_get_account_identity(&self) -> Result<Option<String>, AccountCommandError> {
         self.account_command_tx.get_account_id().await
+    }
+
+    async fn handle_get_account_mode(&self) -> Option<StoredAccountMode> {
+        self.account_command_tx
+            .get_account_mode()
+            .await
+            .ok()
+            .flatten()
     }
 
     async fn handle_get_account_links(
@@ -1748,7 +1749,7 @@ impl NymVpnService {
         params: GetDeeplinkParams,
     ) -> Result<String, AccountCommandError> {
         let base_url = match params.kind {
-            DeeplinkKind::Privy => {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
                 let Some(ref account_management) =
                     self.network_tx.borrow().nym_vpn_network.account_management
                 else {
@@ -1778,14 +1779,20 @@ impl NymVpnService {
         &self,
         deeplink_url: String,
     ) -> Result<(), AccountCommandError> {
-        let mnemonic = self
+        let deeplink_mnemonic = self
             .account_command_tx
             .derive_deeplink_mnemonic(deeplink_url)
             .await?;
 
-        self.account_command_tx
-            .store_account(StorableAccount::new(mnemonic, StoredAccountMode::Api))
-            .await
+        let privy_account = StorableAccount {
+            mnemonic: deeplink_mnemonic.mnemonic,
+            mode: StoredAccountMode::Privy,
+        };
+
+        match deeplink_mnemonic.kind {
+            DeeplinkKind::Privy => self.account_command_tx.store_account(privy_account).await,
+            DeeplinkKind::PrivyLink => self.account_command_tx.link_account(privy_account).await,
+        }
     }
 
     async fn handle_delete_log_file(&self) {

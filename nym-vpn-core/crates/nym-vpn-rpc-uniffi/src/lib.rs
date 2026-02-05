@@ -15,8 +15,8 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
     GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig,
     NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage,
-    Socks5Settings, Socks5Status, StoreAccountRequest, SystemMessage, TunnelEvent, TunnelState,
-    VpnServiceConfig, VpnServiceInfo,
+    Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
+    TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
 };
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
@@ -222,6 +222,10 @@ impl RpcClient {
 
     pub async fn get_account_identity(&self) -> Result<Option<String>> {
         Ok(self.inner.clone().get_account_identity().await?)
+    }
+
+    pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>> {
+        Ok(self.inner.clone().get_account_mode().await?)
     }
 
     pub async fn get_account_links(&self, locale: String) -> Result<ParsedAccountLinks> {

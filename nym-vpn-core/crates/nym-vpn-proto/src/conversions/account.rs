@@ -3,7 +3,7 @@
 
 use nym_vpn_lib_types::{
     AccountCommandError, AvailableTickets, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
+    StoredAccountMode, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
 };
 
 use crate::{
@@ -340,9 +340,9 @@ impl TryFrom<proto::GetDeeplinkParams> for GetDeeplinkParams {
 impl From<DeeplinkClient> for proto::DeeplinkClient {
     fn from(value: DeeplinkClient) -> Self {
         match value {
-            DeeplinkClient::Mobile => proto::DeeplinkClient::Mobile,
-            DeeplinkClient::Desktop => proto::DeeplinkClient::Desktop,
-            DeeplinkClient::Web => proto::DeeplinkClient::Web,
+            DeeplinkClient::Mobile => proto::DeeplinkClient::ClientMobile,
+            DeeplinkClient::Desktop => proto::DeeplinkClient::ClientDesktop,
+            DeeplinkClient::Web => proto::DeeplinkClient::ClientWeb,
         }
     }
 }
@@ -350,9 +350,9 @@ impl From<DeeplinkClient> for proto::DeeplinkClient {
 impl From<proto::DeeplinkClient> for DeeplinkClient {
     fn from(value: proto::DeeplinkClient) -> Self {
         match value {
-            proto::DeeplinkClient::Mobile => DeeplinkClient::Mobile,
-            proto::DeeplinkClient::Desktop => DeeplinkClient::Desktop,
-            proto::DeeplinkClient::Web => DeeplinkClient::Web,
+            proto::DeeplinkClient::ClientMobile => DeeplinkClient::Mobile,
+            proto::DeeplinkClient::ClientDesktop => DeeplinkClient::Desktop,
+            proto::DeeplinkClient::ClientWeb => DeeplinkClient::Web,
         }
     }
 }
@@ -360,7 +360,8 @@ impl From<proto::DeeplinkClient> for DeeplinkClient {
 impl From<DeeplinkKind> for proto::DeeplinkKind {
     fn from(value: DeeplinkKind) -> Self {
         match value {
-            DeeplinkKind::Privy => proto::DeeplinkKind::Privy,
+            DeeplinkKind::Privy => proto::DeeplinkKind::KindPrivy,
+            DeeplinkKind::PrivyLink => proto::DeeplinkKind::KindPrivyLink,
         }
     }
 }
@@ -368,7 +369,50 @@ impl From<DeeplinkKind> for proto::DeeplinkKind {
 impl From<proto::DeeplinkKind> for DeeplinkKind {
     fn from(value: proto::DeeplinkKind) -> Self {
         match value {
-            proto::DeeplinkKind::Privy => DeeplinkKind::Privy,
+            proto::DeeplinkKind::KindPrivy => DeeplinkKind::Privy,
+            proto::DeeplinkKind::KindPrivyLink => DeeplinkKind::PrivyLink,
+        }
+    }
+}
+
+impl From<StoredAccountMode> for proto::StoredAccountMode {
+    fn from(value: StoredAccountMode) -> Self {
+        match value {
+            StoredAccountMode::Api => proto::StoredAccountMode::ModeApi,
+            StoredAccountMode::Decentralised => proto::StoredAccountMode::ModeDecentralised,
+            StoredAccountMode::Privy => proto::StoredAccountMode::ModePrivy,
+        }
+    }
+}
+
+impl From<proto::StoredAccountMode> for StoredAccountMode {
+    fn from(value: proto::StoredAccountMode) -> Self {
+        match value {
+            proto::StoredAccountMode::ModeApi => StoredAccountMode::Api,
+            proto::StoredAccountMode::ModeDecentralised => StoredAccountMode::Decentralised,
+            proto::StoredAccountMode::ModePrivy => StoredAccountMode::Privy,
+        }
+    }
+}
+
+impl From<Option<StoredAccountMode>> for proto::GetAccountModeResponse {
+    fn from(value: Option<StoredAccountMode>) -> Self {
+        let mode = value.map(|m| proto::StoredAccountMode::from(m) as i32);
+        Self { mode }
+    }
+}
+
+impl TryFrom<proto::GetAccountModeResponse> for Option<StoredAccountMode> {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::GetAccountModeResponse) -> Result<Self, Self::Error> {
+        match value.mode {
+            Some(mode) => {
+                let mode = proto::StoredAccountMode::try_from(mode)
+                    .map_err(|_| ConversionError::NoValueSet("GetAccountModeResponse.mode"))?;
+                Ok(Some(mode.into()))
+            }
+            None => Ok(None),
         }
     }
 }

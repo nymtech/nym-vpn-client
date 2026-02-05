@@ -13,6 +13,10 @@ class NymEnvironmentManager @Inject constructor(
 		return getFeatureFlags()?.isPrivyEnabled() ?: false
 	}
 
+	override suspend fun isMixnetTuningEnabled(): Boolean {
+		return getFeatureFlags()?.isMixnetTuningEnabled() ?: false
+	}
+
 	override suspend fun isDomainFrontingEnabled(): Boolean {
 		return getFeatureFlags()?.isDomainFrontingEnabled() ?: false
 	}

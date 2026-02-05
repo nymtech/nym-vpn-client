@@ -32,7 +32,7 @@ pub enum Error {
 }
 
 /// Defines the mode of operation of the associated account.
-#[derive(Debug, Copy, Clone, strum_macros::Display)]
+#[derive(Debug, Copy, Clone, strum_macros::Display, PartialEq, Eq)]
 #[strum(serialize_all = "snake_case")]
 pub enum VpnAccountMode {
     /// Account works in the API mode, i.e. the subscription is managed
@@ -43,11 +43,23 @@ pub enum VpnAccountMode {
     /// and the account uses its own funds for obtaining required ticketbooks
     // add an alias for our US friends
     Decentralised,
+
+    /// Account works in the API mode, but the mnemonic is derived from the Privy
+    /// wallet private key.
+    Privy,
 }
 
 impl VpnAccountMode {
+    pub fn is_api(&self) -> bool {
+        matches!(self, Self::Api)
+    }
+
     pub fn is_decentralised(&self) -> bool {
         matches!(self, Self::Decentralised)
+    }
+
+    pub fn is_privy(&self) -> bool {
+        matches!(self, Self::Privy)
     }
 }
 
@@ -56,6 +68,7 @@ impl From<StoredAccountMode> for VpnAccountMode {
         match mode {
             StoredAccountMode::Api => VpnAccountMode::Api,
             StoredAccountMode::Decentralised => VpnAccountMode::Decentralised,
+            StoredAccountMode::Privy => VpnAccountMode::Privy,
         }
     }
 }
@@ -65,6 +78,7 @@ impl From<VpnAccountMode> for StoredAccountMode {
         match mode {
             VpnAccountMode::Api => StoredAccountMode::Api,
             VpnAccountMode::Decentralised => StoredAccountMode::Decentralised,
+            VpnAccountMode::Privy => StoredAccountMode::Privy,
         }
     }
 }
@@ -174,6 +188,12 @@ impl VpnAccount {
 
     pub fn mode(&self) -> VpnAccountMode {
         self.mode
+    }
+
+    /// Signs the message with the account's private key and returns the signature as a hex-encoded string.
+    pub fn sign(&self, message: &str) -> Result<String, Error> {
+        let signature = self.wallet.sign_raw(&self.id, message.as_bytes())?;
+        Ok(hex::encode(signature.to_bytes()))
     }
 }
 

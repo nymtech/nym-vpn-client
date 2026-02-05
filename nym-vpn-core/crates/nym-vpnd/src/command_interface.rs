@@ -503,6 +503,18 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(is_stored))
     }
 
+    async fn get_account_mode(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::GetAccountModeResponse>> {
+        let mode = self
+            .send_and_wait(VpnServiceCommand::GetAccountMode, ())
+            .await?
+            .map(nym_vpn_lib_types::StoredAccountMode::from);
+
+        Ok(tonic::Response::new(mode.into()))
+    }
+
     async fn forget_account(
         &self,
         _request: tonic::Request<()>,
@@ -926,7 +938,7 @@ impl NymVpnService for CommandInterface {
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::PrivyDerivationMessage>> {
         Ok(tonic::Response::new(proto::PrivyDerivationMessage {
-            message: nym_vpn_lib::login::privy::message_to_sign(),
+            message: nym_vpn_lib::privy::message_to_sign(),
         }))
     }
 

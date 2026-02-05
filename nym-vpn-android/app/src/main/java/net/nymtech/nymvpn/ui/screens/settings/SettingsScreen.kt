@@ -110,6 +110,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 			appSystemTrayEnabled = false,
 			appVersion = BuildConfig.VERSION_NAME,
 			daemonVersion = uiState.daemonVersion,
+			isMixnetTuningEnabled = uiState.isMixnetTuningEnabled,
 		),
 		SettingsActions(
 			onGetStartedClick = {
@@ -187,6 +188,9 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 			},
 			onBatterySettingsClick = {
 				context.launchBatteryOptSettingsScreen()
+			},
+			onMixnetTuningClick = {
+				navController.navigate(Route.MixnetTuning)
 			},
 		),
 	)

@@ -4,7 +4,6 @@
 use anyhow::Result;
 use nym_vpn_lib_types::{DeeplinkClient, DeeplinkKind, GetDeeplinkParams, StoreAccountRequest};
 use nym_vpn_proto::rpc_client::RpcClient;
-use std::str::FromStr;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
@@ -12,7 +11,7 @@ pub enum Command {
     Get,
     /// Login with mnemonic
     Set {
-        /// Mnemonic phrase (for Api or Decentralised modes) or private key hex encoded (for Privy mode)
+        /// Mnemonic phrase
         #[arg(index = 1)]
         secret: String,
         /// Account mode
@@ -50,9 +49,9 @@ pub enum Command {
     Summary,
     /// Get deeplink
     GetDeeplink {
-        /// Deeplink Kind (only "privy" is supported for now)
+        /// Deeplink Kind
         #[arg(long)]
-        kind: String,
+        kind: DeeplinkKind,
         /// Deeplink name
         #[arg(long)]
         name: String,
@@ -70,21 +69,21 @@ impl Command {
         match self {
             Command::Get => {
                 let account_id = rpc_client.get_account_identity().await?;
+                let account_mode = rpc_client.get_account_mode().await?;
                 let account_state = rpc_client.get_account_state().await?;
 
                 println!(
                     "Account identity: {}",
                     account_id.unwrap_or("unset".to_owned())
                 );
+                println!("Account mode: {account_mode:?}");
                 println!("Account state: {account_state:?}");
                 Ok(())
             }
             Command::Set { secret, mode } => {
                 let request = match mode {
                     VpnAccount::Api => StoreAccountRequest::Vpn { mnemonic: secret },
-                    VpnAccount::Privy => StoreAccountRequest::Privy {
-                        hex_signature: secret,
-                    },
+                    VpnAccount::Privy => StoreAccountRequest::Privy { mnemonic: secret },
                     VpnAccount::Decentralised => {
                         StoreAccountRequest::Decentralised { mnemonic: secret }
                     }
@@ -183,11 +182,6 @@ impl Command {
                 Ok(())
             }
             Command::GetDeeplink { kind, name } => {
-                let Ok(kind) = DeeplinkKind::from_str(kind.as_str()) else {
-                    println!("Invalid deeplink kind: {kind}. Only 'privy' is supported for now.");
-                    return Ok(());
-                };
-
                 let params = GetDeeplinkParams {
                     client: DeeplinkClient::Desktop,
                     locale: "en".to_string(),

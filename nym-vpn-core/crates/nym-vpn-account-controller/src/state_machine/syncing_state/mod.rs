@@ -254,6 +254,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                             NextAccountControllerState::NewState(LoggedOutState::enter())
                         }
                     },
+                    AccountCommand::LinkAccount(return_sender, privy_account) => {
+                        let res = handler::handle_link_account(shared_state, privy_account).await;
+                        return_sender.send(res);
+                    },
                     AccountCommand::RotateKeys(return_sender) => {
                         let res = handler::handle_rotate_keys(shared_state).await;
                         return_sender.send(res);

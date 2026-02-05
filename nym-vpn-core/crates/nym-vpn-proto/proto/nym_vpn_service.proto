@@ -711,7 +711,7 @@ message DecentralisedAccountStoreRequest {
 }
 
 message PrivyAccountStoreRequest {
-  string hex_signature = 1;
+  string mnemonic = 1;
 }
 
 message DecentralisedObtainTicketbooksRequest {
@@ -735,6 +735,16 @@ message AccountBalanceResponse {
 
 message GetAccountIdentityResponse {
   optional string account_identity = 1;
+}
+
+enum StoredAccountMode {
+  MODE_API = 0;
+  MODE_DECENTRALISED = 1;
+  MODE_PRIVY = 2;
+}
+
+message GetAccountModeResponse {
+  optional StoredAccountMode mode = 1;
 }
 
 message GetAccountUsageResponse {
@@ -909,13 +919,14 @@ message GetDeeplinkParams {
 }
 
 enum DeeplinkClient {
-  MOBILE = 0;
-  DESKTOP = 1;
-  WEB = 2;
+  CLIENT_MOBILE = 0;
+  CLIENT_DESKTOP = 1;
+  CLIENT_WEB = 2;
 }
 
 enum DeeplinkKind {
-  PRIVY = 0;
+  KIND_PRIVY = 0;
+  KIND_PRIVY_LINK = 1;
 }
 
 service NymVpnService {
@@ -994,8 +1005,11 @@ service NymVpnService {
   // Force a rotation of the wireguard keys.
   rpc RotateKeys(google.protobuf.Empty) returns (AccountCommandResponse) {}
 
-  // Get the account identity of the locally stored recovery phrase
+  // Get the account identity of the currently logged-in user.
   rpc GetAccountIdentity(google.protobuf.Empty) returns (GetAccountIdentityResponse) {}
+
+  // Get the account mode of the currently logged-in user.
+  rpc GetAccountMode(google.protobuf.Empty) returns (GetAccountModeResponse) {}
 
   // Get the set of account links for the user
   rpc GetAccountLinks(GetAccountLinksRequest) returns (AccountManagement) {}

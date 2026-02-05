@@ -36,7 +36,9 @@ function Switch({
     >
       <span
         className={clsx([
-          checked ? 'translate-x-5' : 'translate-x-1',
+          checked
+            ? 'translate-x-5 rtl:-translate-x-5'
+            : 'translate-x-1 rtl:-translate-x-1',
           'bg-white h-5 w-5',
           'inline-block transform rounded-full transition',
         ])}

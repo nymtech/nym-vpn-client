@@ -6,15 +6,15 @@ use nym_vpn_api_client::{
     ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
 };
-use nym_vpn_lib_types::{AccountCommandError, VpnAccountSummary};
+use nym_vpn_lib_types::{AccountCommandError, DeeplinkKind, VpnAccountSummary};
 
 use crate::{
     AvailableTicketbooks, SharedAccountState,
     commands::{ReturnSender, dispatch::CommonCommand},
-    deeplink::CreateDeeplinkParams,
+    deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
     storage::AccountStorageOp,
 };
-use nym_vpn_store::account::StorableAccount;
+use nym_vpn_store::{account::StorableAccount, types::StoredAccountMode};
 
 pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
     command: CommonCommand,
@@ -26,6 +26,9 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         }
         CommonCommand::GetAccountIdentity(result_tx) => {
             result_tx.send(handle_get_account_identity(shared_state));
+        }
+        CommonCommand::GetAccountMode(result_tx) => {
+            result_tx.send(handle_get_account_mode(shared_state));
         }
         CommonCommand::GetDeviceIdentity(result_tx) => {
             result_tx.send(handle_get_device_identity(shared_state));
@@ -80,6 +83,15 @@ pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
         .vpn_api_account
         .as_ref()
         .map(|account| account.id()))
+}
+
+pub(crate) fn handle_get_account_mode<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<Option<StoredAccountMode>, AccountCommandError> {
+    Ok(shared_state
+        .vpn_api_account
+        .as_ref()
+        .map(|account| account.mode().into()))
 }
 
 async fn handle_get_usage<C: ConnectivityMonitor>(
@@ -190,6 +202,20 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     params: CreateDeeplinkParams,
 ) -> Result<String, AccountCommandError> {
+    // For `DeeplinkKind::PrivyLink`, the user must be logged-in via an API account
+    if params.kind == DeeplinkKind::PrivyLink
+        && shared_state
+            .vpn_api_account
+            .as_ref()
+            .map(|vpn_account| !vpn_account.mode().is_api())
+            .unwrap_or(true)
+    {
+        return Err(AccountCommandError::DeeplinkError(
+            "You can only link a Privy account if you are logged in with an API account"
+                .to_string(),
+        ));
+    }
+
     // Create a new Deeplink for this request
     let deeplink = shared_state
         .deeplinks
@@ -208,9 +234,9 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
 pub(crate) async fn handle_derive_deeplink_mnemonic<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     deeplink_callback_url: String,
-) -> Result<bip39::Mnemonic, AccountCommandError> {
+) -> Result<DeeplinkMnemonic, AccountCommandError> {
     // Derive the mnemonic from the provided deeplink URL
-    let mnemonic = shared_state
+    let deeplink_mnemonic = shared_state
         .deeplinks
         .derive_mnemonic(&deeplink_callback_url)
         .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
@@ -218,5 +244,5 @@ pub(crate) async fn handle_derive_deeplink_mnemonic<C: ConnectivityMonitor>(
     // Housekeeping
     shared_state.deeplinks.remove_expired();
 
-    Ok(mnemonic)
+    Ok(deeplink_mnemonic)
 }
