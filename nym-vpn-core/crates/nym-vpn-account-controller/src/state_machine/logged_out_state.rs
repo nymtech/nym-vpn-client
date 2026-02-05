@@ -90,6 +90,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             CommonCommand::SetResolverOverrides(return_sender, resolver_overrides) => return_sender.send(common_handler::handle_set_resolver_overrides(shared_state, resolver_overrides)),
 
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Ok(None)),
+                            CommonCommand::GetCanonicalAccountIdentity(return_sender) => return_sender.send(Ok(None)),
                             CommonCommand::GetAccountMode(return_sender) => return_sender.send(Ok(None)),
                             CommonCommand::GetStoredAccount(return_sender) => return_sender.send(Ok(None)),
                             CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(Ok(None)),

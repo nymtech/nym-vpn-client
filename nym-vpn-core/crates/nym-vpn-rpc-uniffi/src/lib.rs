@@ -224,6 +224,10 @@ impl RpcClient {
         Ok(self.inner.clone().get_account_identity().await?)
     }
 
+    pub async fn get_canonical_account_identity(&self) -> Result<Option<String>> {
+        Ok(self.inner.clone().get_canonical_account_identity().await?)
+    }
+
     pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>> {
         Ok(self.inner.clone().get_account_mode().await?)
     }

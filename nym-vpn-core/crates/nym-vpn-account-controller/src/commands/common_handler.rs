@@ -27,6 +27,9 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         CommonCommand::GetAccountIdentity(result_tx) => {
             result_tx.send(handle_get_account_identity(shared_state));
         }
+        CommonCommand::GetCanonicalAccountIdentity(result_tx) => {
+            result_tx.send(handle_get_canonical_account_identity(shared_state).await);
+        }
         CommonCommand::GetAccountMode(result_tx) => {
             result_tx.send(handle_get_account_mode(shared_state));
         }
@@ -83,6 +86,25 @@ pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
         .vpn_api_account
         .as_ref()
         .map(|account| account.id()))
+}
+
+pub(crate) async fn handle_get_canonical_account_identity<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<Option<String>, AccountCommandError> {
+    let Some(account) = shared_state.vpn_api_account.as_ref() else {
+        return Err(AccountCommandError::NoAccountStored);
+    };
+
+    if account.mode().is_api() {
+        return Ok(Some(account.id().to_string()));
+    }
+
+    let response = shared_state
+        .vpn_api_client
+        .get_canonical_account_identity(account)
+        .await?;
+
+    Ok(Some(response.canonical_account_addr))
 }
 
 pub(crate) fn handle_get_account_mode<C: ConnectivityMonitor>(
