@@ -6242,7 +6242,6 @@ version = "1.24.0-beta"
 dependencies = [
  "nym-ipc",
  "nym-vpn-lib-types",
- "nym-vpn-store",
  "prost 0.14.3",
  "prost-types",
  "serde_json",

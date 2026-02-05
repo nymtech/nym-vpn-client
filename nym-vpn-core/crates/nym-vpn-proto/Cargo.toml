@@ -22,7 +22,6 @@ tower = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
 time = { workspace = true, optional = true, features = ["parsing"] }
 nym-vpn-lib-types = { workspace = true, optional = true, features = ["serde"] }
-nym-vpn-store.workspace = true
 nym-ipc = { workspace = true, optional = true }
 
 [build-dependencies]
