@@ -167,7 +167,7 @@ private extension ConfigurationManager {
 #if os(iOS)
         do {
             self.networkEnv = try await NymEnvironment.newWithCacheDir(
-                cacheDir: PathManager.cacheFolderURL().path(),
+                cacheDir: PathManager.configFolderURL().path(),
                 networkName: currentEnvString,
                 userAgent: .appUserAgent
             )
