@@ -70,6 +70,10 @@ impl NymEnvironment {
         // todo: remove after updating to uniffi 0.31
     }
 
+    pub fn network_name(&self) -> String {
+        self.network.nym_network.network_name.clone()
+    }
+
     /// Returns the currently set network environment
     pub fn current(&self) -> Network {
         Network::from(*self.network.clone())

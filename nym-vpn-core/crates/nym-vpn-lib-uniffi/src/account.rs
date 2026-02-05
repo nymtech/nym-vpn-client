@@ -40,7 +40,8 @@ impl NymAccountController {
         network_env: Arc<NymEnvironment>,
         offline_monitor: Arc<NymOfflineMonitor>,
     ) -> Result<Self, VpnError> {
-        let storage = VpnClientOnDiskStorage::new(data_dir.clone());
+        let storage_path = data_dir.join(network_env.network_name());
+        let storage = VpnClientOnDiskStorage::new(&storage_path);
         let shutdown_token = CancellationToken::new();
 
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
@@ -55,7 +56,7 @@ impl NymAccountController {
 
         let nyxd_client = NyxdClient::new(network_env.inner());
         let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
-            data_dir,
+            data_dir: storage_path,
             network_env: network_env.inner().clone(),
         };
 
