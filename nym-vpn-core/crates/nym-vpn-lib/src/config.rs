@@ -111,7 +111,9 @@ impl GlobalConfig {
             migrated_config.write_to_config_dir(config_dir).await?;
             migrated_config
         } else {
-            GlobalConfig::default()
+            let config = GlobalConfig::default();
+            config.write_to_config_dir(config_dir).await?;
+            config
         };
 
         if toml_config_exists {
