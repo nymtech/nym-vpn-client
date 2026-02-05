@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add support for account creation and registration in VpnService API (https://github.com/nymtech/nym-vpn-client/pull/4533)
+- Add Mixnet tuning UI and logic (https://github.com/nymtech/nym-vpn-client/pull/4555)
 
 ### Changed
 - Refactor VPN service architecture (https://github.com/nymtech/nym-vpn-client/pull/4517)
