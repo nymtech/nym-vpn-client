@@ -18,7 +18,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     override init() {
         tunnelActor = TunnelActor()
         super.init()
-        initializeTokioRuntime()
 
         self.configureLogger()
         LoggingSystem.bootstrap { label in
