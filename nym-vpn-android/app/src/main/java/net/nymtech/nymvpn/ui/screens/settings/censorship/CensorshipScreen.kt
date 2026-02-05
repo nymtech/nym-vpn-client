@@ -65,7 +65,7 @@ fun CensorshipScreen(quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> U
 		modifier = Modifier
 			.fillMaxSize()
 			.verticalScroll(scrollState)
-			.padding(horizontal = 24.dp.scaledWidth())
+			.padding(horizontal = 12.dp.scaledWidth())
 			.navigationBarsPadding(),
 	) {
 		Text(

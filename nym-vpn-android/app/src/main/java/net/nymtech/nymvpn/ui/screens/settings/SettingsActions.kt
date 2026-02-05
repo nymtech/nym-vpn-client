@@ -27,4 +27,5 @@ data class SettingsActions(
 	val onShortcutsEnable: (enabled: Boolean) -> Unit = {},
 	val onDeviceStartupEnable: (enabled: Boolean) -> Unit = {},
 	val onSystemTrayEnable: (enabled: Boolean) -> Unit = {},
+	val onMixnetTuningClick: () -> Unit = {},
 )

@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
@@ -24,6 +25,7 @@ class SettingsViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val vpnConfigRepository: VpnConfigRepository,
 	private val backendManager: BackendManager,
+	private val environmentManager: EnvironmentManager,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(SettingsUiState())
@@ -38,7 +40,8 @@ class SettingsViewModel @Inject constructor(
 	init {
 		viewModelScope.launch {
 			val daemonVersion = backendManager.getDaemonVersion()
-			_uiState.update { it.copy(daemonVersion = daemonVersion) }
+			val isMixnetTuningEnabled = environmentManager.isMixnetTuningEnabled()
+			_uiState.update { it.copy(daemonVersion = daemonVersion, isMixnetTuningEnabled = isMixnetTuningEnabled) }
 		}
 	}
 

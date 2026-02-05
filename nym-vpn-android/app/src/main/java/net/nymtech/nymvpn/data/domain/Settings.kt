@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.data.domain
 
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.MixnetTrafficConfig
 
 data class Settings(
 	val theme: Theme? = null,
@@ -20,6 +21,7 @@ data class Settings(
 	val isPerAppSecurityBannerDisplayed: Boolean = DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 	val logsEnabled: Boolean = DEFAULT_LOGS_ENABLED,
 	val logsDebugEnabled: Boolean = DEFAULT_LOGS_DEBUG_ENABLED,
+	val mixnetTrafficConfig: MixnetTrafficConfig = MIXNET_CONFIG_DEFAULT,
 ) {
 	companion object {
 		const val AUTO_START_DEFAULT = false
@@ -35,5 +37,15 @@ data class Settings(
 		val DEFAULT_ENVIRONMENT = Tunnel.Environment.MAINNET
 		const val DEFAULT_LOGS_ENABLED = false
 		const val DEFAULT_LOGS_DEBUG_ENABLED = false
+
+		val MIXNET_CONFIG_DEFAULT = MixnetTrafficConfig(
+			poissonParameterForLoopCoverStream = 200u,
+			averagePacketDelay = 15u,
+			messageSendingAverageDelay = 20u,
+			disablePoissonRate = false,
+			disableBackgroundCoverTraffic = false,
+			minMixnodePerformance = null,
+			minGatewayMixnetPerformance = null,
+		)
 	}
 }
