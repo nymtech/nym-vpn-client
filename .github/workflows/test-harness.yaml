@@ -70,6 +70,15 @@ jobs:
             rootlesskit \
             slirp4netns
 
+      - name: Enable unprivileged user namespaces
+        run: |
+          # Required for rootlesskit to work in CI
+          sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
+          # Also ensure apparmor doesn't block it
+          if [ -f /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          fi
+
       - name: Install protoc
         uses: arduino/setup-protoc@v3
         with:
@@ -178,6 +187,17 @@ jobs:
             --ssh-password test \
             --vcpus 2 \
             --memory 2048
+          
+          echo ""
+          echo "=== Verifying VM configuration ==="
+          echo "Config file location:"
+          cargo run --release -- config which
+          echo ""
+          echo "Configured VMs:"
+          cargo run --release -- config vm list
+          echo ""
+          echo "Full configuration:"
+          cargo run --release -- config get
 
       - name: Run tests
         if: steps.qcow_image.outputs.image_exists == 'true'
