@@ -235,17 +235,21 @@ class ServiceBackedBackendManager @Inject constructor(
 
 		val deviceId = if (mnemonicStored) {
 			runCatching { serviceConnectionManager.withApi { it.getDeviceIdentity() } }.getOrNull()
-		} else null
+		} else {
+			null
+		}
 
 		val accountId = if (mnemonicStored) {
 			runCatching { serviceConnectionManager.withApi { it.getAccountIdentity() } }.getOrNull()
-		} else null
+		} else {
+			null
+		}
 
 		_state.update {
 			it.copy(
 				isMnemonicStored = mnemonicStored,
 				deviceId = deviceId,
-				accountId = accountId
+				accountId = accountId,
 			)
 		}
 	}
