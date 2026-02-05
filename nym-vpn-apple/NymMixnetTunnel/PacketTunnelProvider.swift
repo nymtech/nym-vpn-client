@@ -43,7 +43,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             logger.error("Failed to obtain tunnel configuration")
             throw PacketTunnelProviderError.invalidSavedConfiguration
         }
-        let vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self, tunStatusListener: self)
+        let vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self)
         try await setup(vpnConfig: vpnConfig)
 
         _ = try await vpnService?.getCommandSender().connectTunnel()
