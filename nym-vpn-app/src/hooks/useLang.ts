@@ -38,15 +38,15 @@ function useLang() {
         i18n.addResourceBundle(lng, namespace, value, true, true);
       });
 
-      if (i18n.language === lng) {
-        return;
-      }
       console.info('set language:', lng);
       if (updateDb) {
         kvSet('ui-language', lng);
       }
       await i18n.changeLanguage(lng);
       dayjs.locale(lng);
+
+      document.documentElement.setAttribute('dir', i18n.dir());
+      document.documentElement.setAttribute('lang', lng);
     },
     [i18n],
   );

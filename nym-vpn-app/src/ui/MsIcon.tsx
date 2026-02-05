@@ -15,7 +15,7 @@ function MsIcon({ icon, className, ...rest }: MsIconProps) {
   return (
     <span
       className={clsx([
-        'font-icon text-2xl select-none',
+        'font-icon text-2xl select-none inline-block rtl:-scale-x-100',
         className && className,
       ])}
       data-testid={testId}

@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   children: React.ReactNode;
@@ -8,19 +9,17 @@ type Props = {
   'data-testid'?: string;
 };
 
-function PageAnim({
-  children,
-  className,
-  slideOrigin = 'left',
-  ...rest
-}: Props) {
+function PageAnim({ children, className, slideOrigin, ...rest }: Props) {
+  const { i18n } = useTranslation();
   const testId = rest['data-testid'] || 'page-animation';
+
+  const origin = slideOrigin ?? (i18n.dir() === 'rtl' ? 'right' : 'left');
 
   return (
     <motion.div
       initial={{
         opacity: 0,
-        translateX: slideOrigin === 'left' ? -6 : 6,
+        translateX: origin === 'left' ? -6 : 6,
       }}
       animate={{
         opacity: 1,
