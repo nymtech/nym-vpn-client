@@ -36,7 +36,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
-
         await tunnelActor.setTunnelProvider(self)
 
         guard let tunnelProviderProtocol = protocolConfiguration as? NETunnelProviderProtocol,
@@ -77,19 +76,11 @@ extension PacketTunnelProvider {
     }
 
     func configureLogger() {
-        let logPath = LogFileManager.logFileURL(logFileType: .library)?.path()
-
-        Task {
-            let debugLevel = await MainActor.run { ConfigurationManager.shared.debugLevel }
-            let logLevel: LogLevel
-            switch debugLevel {
-            case .debug:
-                logLevel = .debug
-            case .info:
-                logLevel = .info
-            }
-            initLogger(logDir: logPath, logLevel: logLevel, sentryMonitoring: true)
-        }
+        let logDir = LogFileManager.logsDirectory()?.path()
+        // Extracted from ConfigurationManager.shared.debugLevel
+        let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+        let logLevel: LogLevel = isTestFlight ? .debug : .info
+        initLogger(logDir: logDir, logLevel: logLevel, sentryMonitoring: true)
     }
 }
 
