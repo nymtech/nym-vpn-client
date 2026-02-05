@@ -61,8 +61,7 @@ public struct MixnetConfig: Codable, Equatable {
 // MARK: - VpnConfig -
 extension MixnetConfig {
     public func asVpnConfig(tunProvider: OsTunProvider, tunStatusListener: TunnelStatusListener?) throws -> VpnConfig {
-        let tunProvider = NymTunProvider()
-        return VpnConfig(
+        VpnConfig(
             configDir: configPath,
             dataDir: dataPath,
             entryGateway: entryGateway.entryPoint,
@@ -96,11 +95,3 @@ extension MixnetConfig {
         return try? decoder.decode(MixnetConfig.self, from: jsonData)
     }
 }
-
-#if os(iOS)
-final class NymTunProvider: OsTunProvider {
-    func setTunnelNetworkSettings(tunnelSettings: NymVPNLib.TunnelNetworkSettings) async throws {
-        print("🔥 setTunnelNetworkSettings \(tunnelSettings)")
-    }
-}
-#endif
