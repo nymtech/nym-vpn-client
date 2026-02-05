@@ -77,6 +77,7 @@ import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
+import net.nymtech.nymvpn.ui.screens.settings.tuning.MixnetTuningScreen
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.screens.technical.TechnicalOptScreen
@@ -332,6 +333,8 @@ class MainActivity : AppCompatActivity() {
 								}
 
 								composable<Route.Welcome> { WelcomeScreen() }
+
+								composable<Route.MixnetTuning> { MixnetTuningScreen(appState) }
 							}
 						}
 					}

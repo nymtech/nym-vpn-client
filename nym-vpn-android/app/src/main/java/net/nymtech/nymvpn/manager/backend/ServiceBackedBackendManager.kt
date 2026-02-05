@@ -85,6 +85,7 @@ class ServiceBackedBackendManager @Inject constructor(
 				statisticsEnabled = settingsRepository.getStatisticsEnabled(),
 				enableDebugLog = settingsRepository.getLogsDebugEnabled(),
 				userAgent = context.toUserAgent(),
+				mixnetParamConfig = settingsRepository.getMixnetTrafficConfig(),
 			)
 
 			runCatching { api.init(initReq) }

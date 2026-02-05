@@ -4,4 +4,5 @@ interface EnvironmentManager {
 	suspend fun isQuicEnabled(): Boolean
 	suspend fun isDomainFrontingEnabled(): Boolean
 	suspend fun isPrivyEnabled(): Boolean
+	suspend fun isMixnetTuningEnabled(): Boolean
 }
