@@ -302,3 +302,45 @@ impl VpnAccountSummary {
         self.traffic_used_gb != self.traffic_limit_gb
     }
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum StoredAccountMode {
+    Api,
+    Decentralised,
+    Privy,
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_store::types::StoredAccountMode> for StoredAccountMode {
+    fn from(value: nym_vpn_store::types::StoredAccountMode) -> Self {
+        match value {
+            nym_vpn_store::types::StoredAccountMode::Api => StoredAccountMode::Api,
+            nym_vpn_store::types::StoredAccountMode::Decentralised => {
+                StoredAccountMode::Decentralised
+            }
+            nym_vpn_store::types::StoredAccountMode::Privy => StoredAccountMode::Privy,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<StoredAccountMode> for nym_vpn_store::types::StoredAccountMode {
+    fn from(value: StoredAccountMode) -> Self {
+        match value {
+            StoredAccountMode::Api => nym_vpn_store::types::StoredAccountMode::Api,
+            StoredAccountMode::Decentralised => {
+                nym_vpn_store::types::StoredAccountMode::Decentralised
+            }
+            StoredAccountMode::Privy => nym_vpn_store::types::StoredAccountMode::Privy,
+        }
+    }
+}

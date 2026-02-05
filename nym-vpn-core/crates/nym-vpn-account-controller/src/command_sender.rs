@@ -15,7 +15,7 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{
     AccountCommandError, DeeplinkKind, RegisterAccountResponse, VpnAccountSummary,
 };
-use nym_vpn_store::types::StorableAccount;
+use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::instrument;
 use url::Url;
@@ -92,6 +92,15 @@ impl AccountCommandSender {
             .send(AccountCommand::Common(CommonCommand::GetAccountIdentity(
                 tx,
             )))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(CommonCommand::GetAccountMode(tx)))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
