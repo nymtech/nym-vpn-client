@@ -142,7 +142,7 @@ import PathManager
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
         let name = "default"
 #if os(iOS)
-        deeplinks = try NymDeeplinks(networkEnv: configurationManager.networkEnv)
+        deeplinks = NymDeeplinks(networkEnv: configurationManager.networkEnv)
         return try await deeplinks?.getDeeplink(
             params: .init(
                 client: .mobile,
