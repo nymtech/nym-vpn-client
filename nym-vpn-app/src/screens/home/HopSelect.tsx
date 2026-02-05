@@ -197,7 +197,7 @@ export default function HopSelect({
 
       <Button
         className={clsx([
-          'flex flex-1 pl-4 items-center justify-center h-full py-3 rounded-none rounded-l-lg overflow-hidden',
+          'flex flex-1 ps-4 items-center justify-center h-full py-3 rounded-none rounded-l-lg overflow-hidden',
           !disabled && 'hover:text-baltic-sea/80 dark:hover:text-white/80',
         ])}
         onClick={handleClick}
@@ -208,7 +208,7 @@ export default function HopSelect({
       {!!gateway && (
         <Button
           className={clsx(
-            'h-11 w-11 my-2 mr-2 flex items-center justify-center rounded-full',
+            'h-11 w-11 my-2 me-2 flex items-center justify-center rounded-full',
             !disabled && 'hover:bg-mercury dark:hover:bg-mine-shaft',
           )}
           onClick={handleDetailsClick}
