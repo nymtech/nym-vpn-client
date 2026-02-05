@@ -17,7 +17,7 @@ import SettingsGroup from '../SettingsGroup';
 import { CCache } from '../../../cache';
 import { useInAppNotify, useMainState } from '../../../contexts';
 import { routes } from '../../../router';
-import { useDeepLink } from '../../../hooks';
+import { useDeepLink, useLogout } from '../../../hooks';
 import { getAccountColor, getAccountDescription } from './utils';
 
 const IdsTimeToLive = 120; // sec
@@ -26,6 +26,7 @@ function Account() {
   const { t, i18n } = useTranslation('settings');
   const navigate = useNavigate();
 
+  const { logout, loading } = useLogout();
   const { accountLinks, account, accountState, accountSyncing, daemonStatus } =
     useMainState();
   const needAPlan =
@@ -73,6 +74,10 @@ function Account() {
     getAccountId();
     getDeviceId();
   }, []);
+
+  useEffect(() => {
+    if (!account) navigate(routes.settings);
+  }, [account, navigate]);
 
   const handleGoToAccount = async () => {
     const linkUrl = await invoke<string>('get_deep_link', {
@@ -188,7 +193,13 @@ function Account() {
       </p>
 
       <div className="flex flex-col gap-2">
-        <Button color="red" outline onClick={() => {}}>
+        <Button
+          color="red"
+          outline
+          onClick={() => logout()}
+          disabled={loading}
+          spinner={loading}
+        >
           {t('account.logout')}
         </Button>
       </div>

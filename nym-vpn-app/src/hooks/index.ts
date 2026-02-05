@@ -10,3 +10,4 @@ export { default as useClipboard } from './useClipboard';
 export { default as useClickAway } from './useClickAway';
 export { default as useScore } from './useScore';
 export { default as useDeepLink } from './useDeepLink';
+export { default as useLogout } from './useLogout';
