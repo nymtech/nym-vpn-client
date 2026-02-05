@@ -12,11 +12,6 @@ import Constants
 import Logging
 import PathManager
 
-public enum AppType {
-    case main
-    case networkExtension
-}
-
 @MainActor public final class ConfigurationManager: ObservableObject {
     private let appSettings: AppSettings
     private let logger = Logger(label: "Configuration Manager")
@@ -103,7 +98,7 @@ public enum AppType {
     }
 #endif
 
-    public func setup(for appType: AppType) async throws {
+    public func setup() async throws {
         try await configure()
 
         appSettings.$isCredentialImportedPublisher
@@ -170,12 +165,16 @@ public enum AppType {
 private extension ConfigurationManager {
     func configure() async throws {
 #if os(iOS)
-        self.networkEnv = try await NymEnvironment.newWithCacheDir(
-            cacheDir: PathManager.cacheFolderURL().path(),
-            networkName: currentEnvString,
-            userAgent: .appUserAgent
-        )
-        logger.info("\(self.networkEnv.current())")
+        do {
+            self.networkEnv = try await NymEnvironment.newWithCacheDir(
+                cacheDir: PathManager.cacheFolderURL().path(),
+                networkName: currentEnvString,
+                userAgent: .appUserAgent
+            )
+            logger.info("Configured environment: \(currentEnvString)")
+        } catch {
+            logger.error("Failed to initialize environment: \(currentEnvString). Error: \(error)")
+        }
 #else
         try await setDaemonEnvironmentVariables()
         try? await updateErrorReportingIfNeeded()

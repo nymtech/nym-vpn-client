@@ -41,8 +41,14 @@ import PathManager
         appSettings.accountToken
     }
 
-    private init() {
-        setup()
+    private init() {}
+
+    public func setup() {
+#if os(iOS)
+        checkCredentialImport()
+#elseif os(macOS)
+        setupGRPCManagerObservers()
+#endif
     }
 
     public func add(credential: String) async throws {
@@ -174,16 +180,6 @@ import PathManager
 }
 
 private extension CredentialsManager {
-    func setup() {
-#if os(iOS)
-        Task {
-            checkCredentialImport()
-        }
-#elseif os(macOS)
-        setupGRPCManagerObservers()
-#endif
-    }
-
     func setupGRPCManagerObservers() {
 #if os(macOS)
         grpcManager.$errorReason.sink { [weak self] error in
@@ -214,7 +210,6 @@ private extension CredentialsManager {
             do {
                 let isImported: Bool
 #if os(iOS)
-
                 isImported = try await NymVpnAccountStorage(
                     dataDir: PathManager.dataFolderURL().path(),
                     environment: configurationManager.networkEnv

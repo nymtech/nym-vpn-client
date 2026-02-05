@@ -68,7 +68,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
 extension PacketTunnelProvider {
     func setup(vpnConfig: VpnConfig) async throws {
-        try await ConfigurationManager.shared.setup(for: .networkExtension)
+        try await ConfigurationManager.shared.setup()
         vpnService = try await NymVpnService.newService(
             config: vpnConfig,
             environment: ConfigurationManager.shared.networkEnv,

@@ -142,7 +142,8 @@ private extension NymVPNDaemonApp {
         ThemeConfiguration.setup()
         Task {
             // Things dependant on environment beeing set.
-            try await ConfigurationManager.shared.setup(for: .main)
+            try await ConfigurationManager.shared.setup()
+            CredentialsManager.shared.setup()
             FeatureFlagsManager.shared.setup()
             GatewayManager.shared.setup()
             MessagesManager.shared.setup()

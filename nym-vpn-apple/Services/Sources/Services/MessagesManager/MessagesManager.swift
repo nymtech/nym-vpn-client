@@ -12,7 +12,9 @@ import MessageModels
 
 @MainActor public final class MessagesManager: ObservableObject {
     private let appSettings: AppSettings
+#if os(iOS)
     private let configurationManager: ConfigurationManager
+#endif
 #if os(macOS)
     private let grpcManager: GRPCManager
 #endif
