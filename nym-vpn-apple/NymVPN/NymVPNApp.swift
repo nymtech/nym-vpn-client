@@ -19,9 +19,22 @@ import NotificationsManager
 import PurchasesManager
 import SentryManager
 import Theme
+#if os(iOS)
+import NymVPNLib
+#endif
+
+#if os(iOS)
+var runtimeInit: () = {
+    initializeTokioRuntime()
+    initLogger(logDir: nil, logLevel: .debug, sentryMonitoring: false)
+}()
+#endif
 
 @main
 struct NymVPNApp: App {
+#if os(iOS)
+    private let runtimeInitOnce: () = runtimeInit
+#endif
     private let logFileManager = LogFileManager(logFileType: .app)
 
     @AppStorage(AppSettingKey.currentAppearance.rawValue)

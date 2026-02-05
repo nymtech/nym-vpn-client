@@ -20,8 +20,9 @@ pub struct NymGatewayCache {
 
 #[uniffi::export(async_runtime = "tokio")]
 impl NymGatewayCache {
+    // Keep this method async because spawn needs runtime!
     #[uniffi::constructor]
-    pub fn new(
+    pub async fn new(
         user_agent: UserAgent,
         environment: Arc<NymEnvironment>,
         offline_monitor: Arc<NymOfflineMonitor>,

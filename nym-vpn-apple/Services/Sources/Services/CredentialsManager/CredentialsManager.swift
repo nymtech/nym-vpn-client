@@ -51,7 +51,7 @@ import PathManager
 #if os(iOS)
                 try await NymVpnAccountStorage(
                     dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+                    environment: configurationManager.networkEnv
                 ).login(request: .vpn(mnemonic: credential))
 #elseif os(macOS)
                 try await grpcManager.storeAccount(with: .vpn(mnemonic: credential))
@@ -76,7 +76,7 @@ import PathManager
         try await Task {
             try await NymVpnAccountStorage(
                 dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+                environment: configurationManager.networkEnv
             ).createAccount()
             Task { @MainActor in
                 checkCredentialImport()
@@ -90,7 +90,7 @@ import PathManager
         try await Task {
             try await NymVpnAccountStorage(
                 dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+                environment: configurationManager.networkEnv
             ).getStoredMnemonic()
         }.value
 #elseif os(macOS)
@@ -105,7 +105,7 @@ import PathManager
             do {
                 let result = try await NymVpnAccountStorage(
                     dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+                    environment: configurationManager.networkEnv
                 ).registerAccount()
                 Task { @MainActor in
                     appSettings.accountToken = result.accountToken
@@ -122,7 +122,7 @@ import PathManager
 #if os(iOS)
                 try await NymVpnAccountStorage(
                     dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+                    environment: configurationManager.networkEnv
                 ).forgetAccount()
 #elseif os(macOS)
                 try await grpcManager.forgetAccount()
@@ -142,7 +142,7 @@ import PathManager
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
         let name = "default"
 #if os(iOS)
-        deeplinks = try NymDeeplinks(networkEnv: configurationManager.networkEnv ?? .newWithMainnetFallback())
+        deeplinks = try NymDeeplinks(networkEnv: configurationManager.networkEnv)
         return try await deeplinks?.getDeeplink(
             params: .init(
                 client: .mobile,
@@ -162,7 +162,7 @@ import PathManager
         let mnemonic = try await deeplinks.deriveMnemonic(deeplinkCallbackUrl: callbackURLString)
         try await NymVpnAccountStorage(
             dataDir: PathManager.dataFolderURL().path(),
-            environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+            environment: configurationManager.networkEnv
         ).loginWithDeeplinkMnemonic(deeplinkMnemonic: mnemonic)
         self.deeplinks = nil
         checkCredentialImport()
@@ -217,7 +217,7 @@ private extension CredentialsManager {
 
                 isImported = try await NymVpnAccountStorage(
                     dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+                    environment: configurationManager.networkEnv
                 ).isAccountMnemonicStored()
 #elseif os(macOS)
                 isImported = try await grpcManager.isAccountStored()
@@ -246,7 +246,7 @@ private extension CredentialsManager {
 #if os(iOS)
             deviceIdentifier = try? await NymVpnAccountStorage(
                 dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+                environment: configurationManager.networkEnv
             ).getDeviceIdentity()
 #elseif os(macOS)
             deviceIdentifier = try? await grpcManager.deviceIdentifier()
@@ -260,7 +260,7 @@ private extension CredentialsManager {
 #if os(iOS)
             newAccIdentifier = try? await NymVpnAccountStorage(
                 dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+                environment: configurationManager.networkEnv
             ).getAccountIdentity()
 #elseif os(macOS)
             newAccIdentifier = try? await grpcManager.accountIdentifier()

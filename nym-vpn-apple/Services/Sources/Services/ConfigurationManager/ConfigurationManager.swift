@@ -52,7 +52,7 @@ public enum AppType {
         }
     }
 #if os(iOS)
-    public var networkEnv: NymEnvironment?
+    public var networkEnv: NymEnvironment = try! .newWithMainnetFallback()
 #endif
 
     let isRunningOnCI: Bool = {
@@ -141,14 +141,12 @@ public enum AppType {
 #if os(iOS)
                 let accountId = try? await NymVpnAccountStorage(
                     dataDir: PathManager.dataFolderURL().path(),
-                    environment: networkEnv ?? .newWithMainnetFallback()
+                    environment: networkEnv
                 ).getAccountIdentity()
-                guard let links = try await networkEnv?.accountLinks(
+                let links = try await networkEnv.accountLinks(
                     locale: locale,
                     accountId: accountId
-                ) else {
-                    return
-                }
+                )
                 await MainActor.run {
                     self.accountLinks = AccountLinks(account: links.account, signIn: links.signIn, signUp: links.signUp)
                 }
@@ -172,13 +170,12 @@ public enum AppType {
 private extension ConfigurationManager {
     func configure() async throws {
 #if os(iOS)
-        initializeTokioRuntime()
-
         self.networkEnv = try await NymEnvironment.newWithCacheDir(
             cacheDir: PathManager.cacheFolderURL().path(),
             networkName: currentEnvString,
             userAgent: .appUserAgent
         )
+        logger.info("\(self.networkEnv.current())")
 #else
         try await setDaemonEnvironmentVariables()
         try? await updateErrorReportingIfNeeded()
@@ -194,7 +191,7 @@ private extension ConfigurationManager {
             guard let self else { return }
             do {
 #if os(iOS)
-                let versions = await networkEnv?.networkCompatibility()
+                let versions = await networkEnv.networkCompatibility()
                 await MainActor.run {
                     self.lastCompatibleAppVersion = versions?.ios
                     self.lastCompatibleCoreVersion = versions?.core

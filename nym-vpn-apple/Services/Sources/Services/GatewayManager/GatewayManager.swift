@@ -259,9 +259,7 @@ extension GatewayManager {
 extension GatewayManager {
     func fetchGateways() async {
         do {
-            let result = try await Task.detached { [worker] in
-                try await worker.fetchGateways()
-            }.value
+            let result = try await worker.fetchGateways()
 
             guard !result.entry.isEmpty, !result.exit.isEmpty, !result.vpn.isEmpty
             else {
@@ -341,7 +339,7 @@ private extension GatewayManager {
         }
         isLoading = true
 
-        Task { [weak self] in
+        Task { @MainActor [weak self] in
             guard let self else { return }
             await self.fetchGateways()
         }

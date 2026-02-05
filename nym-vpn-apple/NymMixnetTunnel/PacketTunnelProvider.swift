@@ -71,7 +71,7 @@ extension PacketTunnelProvider {
         try await ConfigurationManager.shared.setup(for: .networkExtension)
         vpnService = try await NymVpnService.newService(
             config: vpnConfig,
-            environment: ConfigurationManager.shared.networkEnv ?? .newWithMainnetFallback(),
+            environment: ConfigurationManager.shared.networkEnv,
             eventListener: self
         )
     }
@@ -88,7 +88,7 @@ extension PacketTunnelProvider {
             case .info:
                 logLevel = .info
             }
-            await initLogger(logDir: logPath, logLevel: logLevel, sentryMonitoring: true)
+            initLogger(logDir: logPath, logLevel: logLevel, sentryMonitoring: true)
         }
     }
 }

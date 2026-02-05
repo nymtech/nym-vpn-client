@@ -86,8 +86,7 @@ private extension MessagesManager {
             do {
                 let newMessages: [NymNetworkMessage]
 #if os(iOS)
-                guard let networkEnv = configurationManager.networkEnv else { return }
-                newMessages = networkEnv.systemMessages().map {
+                newMessages = configurationManager.networkEnv.systemMessages().map {
                     NymNetworkMessage(name: $0.name, message: $0.message, properties: $0.properties)
                 }
 #elseif os(macOS)
