@@ -29,7 +29,7 @@ zbus_polkit = { workspace = true, optional = true }
 
 
 [target.'cfg(windows)'.dependencies]
-windows = { workspace = true, features = ["Win32_Foundation"], optional = true }
+windows = { workspace = true, features = ["Win32_Foundation"] }
 nym-windows = { workspace = true, optional = true }
 
 [dev-dependencies]
@@ -37,4 +37,4 @@ strum.workspace = true
 
 [features]
 authentication = []
-daemon = ["async-stream", "async-trait", "nix", "nym-windows", "thiserror", "tokio-util", "tonic", "windows", "zbus", "zbus_polkit"]
+daemon = ["async-stream", "async-trait", "nix", "nym-windows", "thiserror", "tokio-util", "tonic", "zbus", "zbus_polkit"]
