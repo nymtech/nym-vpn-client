@@ -6,9 +6,11 @@ use tokio_util::sync::CancellationToken;
 
 use crate::authentication::error::AuthenticationError;
 
+// Not implemented yet, implicit is to consider it authenticated
 pub(crate) async fn is_authenticated(
-    stream: UnixStream,
+    _stream: &mut UnixStream,
+    _nym_certificate_serial_number: String,
     _shutdown_token: CancellationToken,
-) -> Result<UnixStream, AuthenticationError> {
-    Ok(stream)
+) -> Result<(), AuthenticationError> {
+    Ok(())
 }

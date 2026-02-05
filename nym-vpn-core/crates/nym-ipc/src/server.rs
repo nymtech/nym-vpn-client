@@ -10,15 +10,20 @@ use tonic::transport::server::Connected;
 
 pub fn create_incoming(
     socket_path: PathBuf,
-    _shutdown_token: CancellationToken,
+    nym_certificate_serial_number: String,
+    shutdown_token: CancellationToken,
 ) -> Result<impl Stream<Item = Result<impl AsyncRead + AsyncWrite + Connected + 'static>>> {
     #[cfg(unix)]
     {
-        crate::uds::incoming(socket_path, _shutdown_token)
+        crate::uds::incoming(socket_path, nym_certificate_serial_number, shutdown_token)
     }
 
     #[cfg(windows)]
     {
-        crate::named_pipe::incoming(socket_path.into_os_string())
+        crate::named_pipe::incoming(
+            socket_path.into_os_string(),
+            nym_certificate_serial_number,
+            shutdown_token,
+        )
     }
 }

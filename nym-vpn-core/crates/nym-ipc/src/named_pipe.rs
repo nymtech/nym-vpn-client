@@ -14,6 +14,7 @@ use tokio::{
     net::windows::named_pipe::{NamedPipeServer, ServerOptions},
 };
 use tokio_stream::Stream;
+use tokio_util::sync::CancellationToken;
 use tonic::transport::server::Connected;
 
 use nym_windows::security::{
@@ -21,8 +22,12 @@ use nym_windows::security::{
     SecurityAttributes, Sid, Trustee, TrusteeType, WellKnownSid,
 };
 
+use crate::authentication;
+
 pub fn incoming(
     pipe_name: OsString,
+    nym_certificate_serial_number: String,
+    shutdown_token: CancellationToken,
 ) -> io::Result<impl Stream<Item = io::Result<Connector<NamedPipeServer>>>> {
     let trustee = Trustee::new(
         Sid::well_known(WellKnownSid::World)?,
@@ -42,11 +47,12 @@ pub fn incoming(
     security_descriptor.set_dacl(acl)?;
 
     let security_attributes = SecurityAttributes::new(security_descriptor);
+    let named_pipe = NamedPipeListener::new(pipe_name, security_attributes);
 
-    NamedPipeListener::new(pipe_name, security_attributes).incoming()
+    authentication::incoming(named_pipe, nym_certificate_serial_number, shutdown_token)
 }
 
-struct NamedPipeListener {
+pub(crate) struct NamedPipeListener {
     pipe_name: OsString,
     created_listener: bool,
     security_attributes: SecurityAttributes,
@@ -61,7 +67,7 @@ impl NamedPipeListener {
         }
     }
 
-    fn incoming(
+    pub(crate) fn incoming(
         mut self,
     ) -> io::Result<impl Stream<Item = io::Result<Connector<NamedPipeServer>>>> {
         let mut listener = self.create_listener()?;

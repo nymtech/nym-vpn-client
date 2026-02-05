@@ -29,6 +29,8 @@ use nym_vpn_lib::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
 
+const NYM_CERTIFICATE_SERIAL_NUMBER: &str = "4ec9356d8c87f9cf3ccf60e7bdad022f";
+
 pub struct CommandInterface {
     // Send commands to the VPN service
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
@@ -1011,8 +1013,11 @@ pub async fn start_command_interface(
     tracing::info!("Starting socket listener on: {}", socket_path.display());
 
     // Wrap the unix socket or named pipe into a stream that can be used by tonic
-    let incoming =
-        nym_ipc::server::create_incoming(socket_path.clone(), shutdown_token.child_token())?;
+    let incoming = nym_ipc::server::create_incoming(
+        socket_path.clone(),
+        NYM_CERTIFICATE_SERIAL_NUMBER.to_string(),
+        shutdown_token.child_token(),
+    )?;
 
     let server_handle = tokio::spawn(async move {
         let socket_listener_handle = tokio::spawn(async move {

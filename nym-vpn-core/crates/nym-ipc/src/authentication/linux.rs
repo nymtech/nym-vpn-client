@@ -11,7 +11,7 @@ use zbus_polkit::policykit1::{
     AuthorityProxy, AuthorizationResult, CheckAuthorizationFlags, Subject,
 };
 
-use crate::{auth_result::AuthenticaticationResult, authentication::error::AuthenticationError};
+use crate::authentication::error::AuthenticationError;
 
 const ACTION_ID: &str = "com.nymvpn.vpnd.unix-access";
 const CANCELLATION_ID: &str = "com.nymvpn.vpnd.cancel";
@@ -130,38 +130,27 @@ async fn wait_for_authorization(
     }
 }
 
-async fn authorize(stream: &mut UnixStream) {
-    AuthenticaticationResult::Accepted.send(stream).await;
-}
-
-// Return back the stream if the authentication succeeded, and `None` otherwise
+// Check that the user can authenticate via system password
 // This function depends on user interaction, so it must ensure it doesn't await
 // indefinitely and starve the consumer.
 pub(crate) async fn is_authenticated(
-    mut stream: UnixStream,
+    stream: &mut UnixStream,
+    _nym_certificate_serial_number: String,
     shutdown_token: CancellationToken,
-) -> Result<UnixStream, AuthenticationError> {
-    // Let debug builds skip authorization process
-    // TODO: Disable feature gating once front-end prevents spamming
-    if cfg!(debug_assertions) || cfg!(not(feature = "authentication")) {
-        authorize(&mut stream).await;
-        return Ok(stream);
-    }
+) -> Result<(), AuthenticationError> {
     authenticate_with_prompt(stream, PolkitPrompter::new(shutdown_token)).await
 }
 
 async fn authenticate_with_prompt(
-    mut stream: UnixStream,
+    stream: &mut UnixStream,
     prompter: impl Prompter,
-) -> Result<UnixStream, AuthenticationError> {
-    let cred = getsockopt(&stream, PeerCredentials).map_err(AuthenticationError::GetSockOpt)?;
+) -> Result<(), AuthenticationError> {
+    let cred = getsockopt(stream, PeerCredentials).map_err(AuthenticationError::GetSockOpt)?;
     let auth_result = prompter.prompt_for_authorization(cred).await?;
 
     if auth_result.is_authorized {
-        authorize(&mut stream).await;
-        Ok(stream)
+        Ok(())
     } else {
-        AuthenticaticationResult::Denied.send(&mut stream).await;
         Err(AuthenticationError::AuthorizationDenied)
     }
 }
@@ -178,6 +167,8 @@ mod tests {
     };
 
     use tokio::sync::{Mutex, RwLock};
+
+    use crate::auth_result::{AuthenticaticationResult, authorize};
 
     use super::*;
 
@@ -336,21 +327,10 @@ mod tests {
     }
 
     #[tokio::test]
-    // Debug builds (like tests or dev runs) are automatically authorized
-    async fn debug_build_authorized() {
-        let (mut client, server) = UnixStream::pair().unwrap();
-        is_authenticated(server, CancellationToken::new())
-            .await
-            .unwrap();
-        let client_res = AuthenticaticationResult::recv(&mut client).await;
-        assert!(client_res.accepted());
-    }
-
-    #[tokio::test]
     async fn authorized_by_prompt() {
-        let (mut client, server) = UnixStream::pair().unwrap();
+        let (mut client, mut server) = UnixStream::pair().unwrap();
         authenticate_with_prompt(
-            server,
+            &mut server,
             MockPrompter {
                 is_authorized: true,
             },
@@ -363,9 +343,9 @@ mod tests {
 
     #[tokio::test]
     async fn denied_by_prompt() {
-        let (mut client, server) = UnixStream::pair().unwrap();
+        let (mut client, mut server) = UnixStream::pair().unwrap();
         let err = authenticate_with_prompt(
-            server,
+            &mut server,
             MockPrompter {
                 is_authorized: false,
             },

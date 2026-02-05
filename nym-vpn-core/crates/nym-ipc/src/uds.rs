@@ -42,6 +42,7 @@ impl Stream for Uds {
 
 pub fn incoming(
     socket_path: PathBuf,
+    nym_certificate_serial_number: String,
     shutdown_token: CancellationToken,
 ) -> Result<impl Stream<Item = Result<UnixStream>>> {
     let listener = UnixListener::bind(&socket_path)?;
@@ -51,5 +52,9 @@ pub fn incoming(
         inner: UnixListenerStream::new(listener),
     };
 
-    Ok(authentication::incoming(uds, shutdown_token))
+    Ok(authentication::incoming(
+        uds,
+        nym_certificate_serial_number,
+        shutdown_token,
+    ))
 }
