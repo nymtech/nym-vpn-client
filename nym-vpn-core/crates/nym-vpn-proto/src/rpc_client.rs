@@ -393,7 +393,7 @@ impl RpcClient {
 
     pub async fn get_canonical_account_identity(&mut self) -> Result<Option<String>> {
         self.0
-            .get_canonical_account_identity()
+            .get_canonical_account_identity(())
             .await
             .map(|v| v.into_inner().account_identity)
             .map_err(Error::Rpc)
