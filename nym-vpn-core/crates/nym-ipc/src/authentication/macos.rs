@@ -4,11 +4,12 @@
 use tokio::net::UnixStream;
 use tokio_util::sync::CancellationToken;
 
-use crate::authentication::error::AuthenticationError;
+use crate::{auth_result::authorize, authentication::error::AuthenticationError};
 
 pub(crate) async fn is_authenticated(
-    stream: UnixStream,
+    mut stream: UnixStream,
     _shutdown_token: CancellationToken,
 ) -> Result<UnixStream, AuthenticationError> {
+    authorize(&mut stream).await;
     Ok(stream)
 }
