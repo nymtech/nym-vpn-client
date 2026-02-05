@@ -333,16 +333,39 @@ impl NetworkCache {
     /// In such case use `fetch_if_stale` to fetch the network details from network.
     pub fn network(&self) -> Result<Box<Network>> {
         let discovery = self.persistent_discovery.value().clone();
-        let network_details = self
+        let mut network_details = self
             .persistent_network_details
             .as_ref()
             .ok_or(Error::NetworkDetailsNotFetched)?
             .value()
             .clone();
 
+        Self::patch_network_details_from_discovery(&mut network_details, &discovery);
+
         let network_env = Network::new_from_discovery(discovery, network_details)?;
 
         Ok(Box::new(network_env))
+    }
+
+    // Patch network details from discovery.
+    //
+    // Sometimes deployments go wrong and nym-vpn-api-urls aren't set properly which can be a show stopper.
+    // Patch it up manually from discovery since some of VpnClient initializers use network details.
+    fn patch_network_details_from_discovery(
+        network_details: &mut NymNetworkDetails,
+        discovery: &Discovery,
+    ) {
+        if network_details.nym_vpn_api_urls.is_none()
+            || network_details
+                .nym_vpn_api_urls
+                .as_ref()
+                .is_some_and(|v| v.is_empty())
+        {
+            tracing::debug!(
+                "Patching up network details from discovery due to missing network details!"
+            );
+            network_details.nym_vpn_api_urls = Some(discovery.nym_vpn_api_urls());
+        }
     }
 
     /// Query registered networks held in persistent store.
