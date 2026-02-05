@@ -60,7 +60,7 @@ public struct MixnetConfig: Codable, Equatable {
 #if os(iOS)
 // MARK: - VpnConfig -
 extension MixnetConfig {
-    public func asVpnConfig(tunProvider: OsTunProvider, tunStatusListener: TunnelStatusListener?) throws -> VpnConfig {
+    public func asVpnConfig(tunProvider: OsTunProvider) throws -> VpnConfig {
         VpnConfig(
             configDir: configPath,
             dataDir: dataPath,
