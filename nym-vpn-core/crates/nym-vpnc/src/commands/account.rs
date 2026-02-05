@@ -69,12 +69,14 @@ impl Command {
         match self {
             Command::Get => {
                 let account_id = rpc_client.get_account_identity().await?;
+                let account_mode = rpc_client.get_account_mode().await?;
                 let account_state = rpc_client.get_account_state().await?;
 
                 println!(
                     "Account identity: {}",
                     account_id.unwrap_or("unset".to_owned())
                 );
+                println!("Account mode: {account_mode:?}");
                 println!("Account state: {account_state:?}");
                 Ok(())
             }

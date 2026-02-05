@@ -225,8 +225,7 @@ impl RpcClient {
     }
 
     pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>> {
-        let mode = self.inner.clone().get_account_mode().await?;
-        Ok(mode.into())
+        Ok(self.inner.clone().get_account_mode().await?)
     }
 
     pub async fn get_account_links(&self, locale: String) -> Result<ParsedAccountLinks> {

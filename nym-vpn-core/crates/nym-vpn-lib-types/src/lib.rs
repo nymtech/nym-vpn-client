@@ -53,8 +53,8 @@ mod user_agent;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use account::RegisterAccountRequest;
 pub use account::{
-    AccountCommandError, RegisterAccountResponse, VpnAccountSummary, VpnApiError,
-    VpnApiErrorResponse,
+    AccountCommandError, RegisterAccountResponse, StoredAccountMode, VpnAccountSummary,
+    VpnApiError, VpnApiErrorResponse,
     controller_error::{AccountControllerError, AccountControllerErrorStateReason},
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
@@ -101,7 +101,3 @@ pub use user_agent::UserAgent;
 
 #[cfg(feature = "uniffi-bindings")]
 uniffi::setup_scaffolding!();
-
-// Re-export
-#[cfg(any(feature = "nym-type-conversions", feature = "serde"))]
-pub use nym_vpn_store::types::StoredAccountMode;
