@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix fdsan crashes (https://github.com/nymtech/nym-vpn-client/pull/4533)
 - Fix Always-On VPN behavior on system restart (https://github.com/nymtech/nym-vpn-client/pull/4533)
+- Fix auth issue for Passphrase screen (https://github.com/nymtech/nym-vpn-client/pull/4556)
 
 ## [2.8.0]
 

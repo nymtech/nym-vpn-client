@@ -59,6 +59,10 @@ internal class VpnServiceApiImpl(
 		core.requireCoreSender { it.forgetAccount() }
 	}
 
+	override suspend fun getStoredMnemonic(): String {
+		return core.requireCoreSender { it.getStoredMnemonic() }
+	}
+
 	override suspend fun createAccount() {
 		Timber.tag(TAG).d("createAccount requested")
 		core.requireCoreSender { it.createAccount() }

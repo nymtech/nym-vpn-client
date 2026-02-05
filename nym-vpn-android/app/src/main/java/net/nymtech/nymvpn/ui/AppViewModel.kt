@@ -98,7 +98,7 @@ constructor(
 
 	private suspend fun performLogout(onComplete: (() -> Unit)? = null) {
 		backendManager.removeMnemonic()
-		backendManager.refresh()
+		backendManager.refreshAccount()
 		onComplete?.invoke()
 	}
 
