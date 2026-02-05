@@ -13,8 +13,9 @@ workspace = true
 bitflags.workspace = true
 thiserror.workspace = true
 futures.workspace = true
-tokio = { workspace = true, features = ["sync"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "sync"] }
 tracing.workspace = true
+verifysign.workspace = true
 
 [target.'cfg(windows)'.dependencies.windows]
 workspace = true
@@ -32,6 +33,7 @@ features = [
     "Win32_System_Threading",
     "Win32_System_Diagnostics_ToolHelp",
     "Win32_System_IO",
+    "Win32_System_Pipes",
     "Win32_UI_WindowsAndMessaging",
     "Win32_Networking_WinSock",
     "Win32_NetworkManagement_IpHelper",
@@ -40,3 +42,4 @@ features = [
 
 [target.'cfg(windows)'.dev-dependencies]
 tempfile.workspace = true
+tokio-stream = { workspace = true, features = ["net"] }

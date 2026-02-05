@@ -42,7 +42,7 @@ impl Stream for Uds {
 
 pub fn incoming(
     socket_path: PathBuf,
-    shutdown_token: CancellationToken,
+    _shutdown_token: CancellationToken,
 ) -> Result<impl Stream<Item = Result<UnixStream>>> {
     let listener = UnixListener::bind(&socket_path)?;
     fs::set_permissions(&socket_path, PermissionsExt::from_mode(0o766))?;
@@ -51,5 +51,9 @@ pub fn incoming(
         inner: UnixListenerStream::new(listener),
     };
 
-    Ok(authentication::incoming(uds, shutdown_token))
+    Ok(authentication::incoming(
+        uds,
+        #[cfg(target_os = "linux")]
+        _shutdown_token,
+    ))
 }

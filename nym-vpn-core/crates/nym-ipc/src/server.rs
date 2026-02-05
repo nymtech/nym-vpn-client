@@ -5,20 +5,20 @@ use std::{io::Result, path::PathBuf};
 
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio_stream::Stream;
-use tokio_util::sync::CancellationToken;
 use tonic::transport::server::Connected;
 
 pub fn create_incoming(
     socket_path: PathBuf,
-    _shutdown_token: CancellationToken,
+    #[cfg(windows)] nym_certificate_serial_number: String,
+    #[cfg(unix)] shutdown_token: tokio_util::sync::CancellationToken,
 ) -> Result<impl Stream<Item = Result<impl AsyncRead + AsyncWrite + Connected + 'static>>> {
     #[cfg(unix)]
     {
-        crate::uds::incoming(socket_path, _shutdown_token)
+        crate::uds::incoming(socket_path, shutdown_token)
     }
 
     #[cfg(windows)]
     {
-        crate::named_pipe::incoming(socket_path.into_os_string())
+        crate::named_pipe::incoming(socket_path.into_os_string(), nym_certificate_serial_number)
     }
 }
