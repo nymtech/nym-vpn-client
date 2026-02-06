@@ -1,5 +1,0 @@
-Was ist neu:
-- Details zur Gateway-Auswahl
-- Datenverbrauchsoptimierungen
-- Kachel-Sync-Korrekturen
-- Weitere Fehlerbehebungen und Verbesserungen

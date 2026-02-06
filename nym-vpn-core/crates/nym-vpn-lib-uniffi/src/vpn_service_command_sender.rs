@@ -252,7 +252,7 @@ impl NymVpnServiceCommandSender {
             .await
             .ok()
             .flatten()
-            .map(|mode| nym_vpn_lib_types::StoredAccountMode::from(mode))
+            .map(nym_vpn_lib_types::StoredAccountMode::from)
     }
 
     pub async fn get_account_links(&self, locale: String) -> Result<ParsedAccountLinks> {

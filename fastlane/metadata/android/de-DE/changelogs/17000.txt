@@ -1,5 +1,0 @@
-Was ist neu:
-- Abstürze und ANR-Probleme behoben
-- Aufforderung zur Batterieoptimierung hinzugefügt
-- Separate Registerkarten für Protokolle hinzugefügt
-- Verbesserte Verbindungsstabilität

@@ -1,6 +1,0 @@
-Quais as novidades:
-- Pequenas atualizações e melhorias de interface do usuário
-- Correção para a abertura adequada de URL 
-- Melhores mensagens com baixa conectividade
-- Solicitar quando o tempo do dispositivo está fora de sincronia
-- Melhorias de conectividade

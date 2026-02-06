@@ -1,8 +1,0 @@
-Was ist neu
-- Neue Logging-Steuerelemente: Protokolle und Debug Verbose-Schalter aktivieren
-- Authentifizierungsprüfung für Verknüpfungsaktionen hinzugefügt
-- Aktualisiertes Protokoll-Exportformat (strukturierte Ordner und gruppierte Logs)
-- Verbesserte NavBar-Aktion Bearbeitung
-- Reduzierte unnötige Protokollgeräusche
-- Automatische Start-Behandlung repariert
-- Kleinere UI-Verbesserungen und -Korrekturen

@@ -1,3 +1,0 @@
-Novedades:
-- Corrección de errores
-- Añadir licencias

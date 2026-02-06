@@ -203,7 +203,13 @@ fun LanguageScreen(locales: List<Locale>, currentLocale: String?, onLocaleChange
 internal fun PreviewLanguageScreen() {
 	NymVPNTheme(Theme.default()) {
 		LanguageScreen(
-			locales = listOf(Locale.CANADA, Locale.UK, Locale.ITALIAN, Locale.CHINA, Locale.FRANCE, Locale.GERMANY, Locale.CANADA_FRENCH, Locale.JAPAN),
+			locales = listOf(
+				Locale.CANADA,
+				Locale.UK,
+				Locale.CHINA,
+				Locale.FRANCE,
+				Locale.GERMANY,
+			),
 			currentLocale = "en",
 			onLocaleChange = {},
 			onHelpClick = {},

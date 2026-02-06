@@ -1,4 +1,0 @@
-Yenilikler:
-- Batarya iyileştirmeleri
-- QR tarayıcı hatasının giderilmesi
-- Çeşitli düzeltmeler ve iyileştirmeler

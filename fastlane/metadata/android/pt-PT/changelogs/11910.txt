@@ -1,2 +1,0 @@
-Novidades:
-- Correção da falha de plano de fundo

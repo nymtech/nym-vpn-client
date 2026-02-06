@@ -1,4 +1,0 @@
-O que há de novo:
-- Refatoração do cliente VPN
-- Adicionados activos de imagem
-- Correção da sincronização do estado da interface do usuário com a VPN

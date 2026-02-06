@@ -1,2 +1,0 @@
-Novedades:
-- Corregido problema de conexión con el ciclo de vida del túnel.

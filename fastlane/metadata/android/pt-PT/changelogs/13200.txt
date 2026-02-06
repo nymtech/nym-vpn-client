@@ -1,3 +1,0 @@
-Quais as novidades:
-- Ignorar recurso LAN
-- Correções de erros e melhorias

@@ -1,4 +1,0 @@
-O que há de novo:
-- Adicionado ecrã de registos
-- Melhora do ecrã de estado do VPN
-- Adicionado Sentry

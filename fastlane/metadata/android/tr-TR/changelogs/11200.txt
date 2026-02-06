@@ -1,2 +1,0 @@
-Yenilikler:
-- Kayıt çökme hatası düzeltmesi

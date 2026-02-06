@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactor VPN service architecture (https://github.com/nymtech/nym-vpn-client/pull/4517)
 - Implement dynamic reconnectTunnel for config updates (https://github.com/nymtech/nym-vpn-client/pull/4533)
 - Optimize DnsViewModel logic (https://github.com/nymtech/nym-vpn-client/pull/4533)
+- Clean up locales (https://github.com/nymtech/nym-vpn-client/pull/4568)
+- Move translation download to build (https://github.com/nymtech/nym-vpn-client/pull/4568)
 
 ### Fixed
 - Fix fdsan crashes (https://github.com/nymtech/nym-vpn-client/pull/4533)

@@ -1,3 +1,0 @@
-Có gì mới:
-- Sửa lỗi bộ nhớ đệm quốc gia
-- Cải thiện hiệu suất Hilt

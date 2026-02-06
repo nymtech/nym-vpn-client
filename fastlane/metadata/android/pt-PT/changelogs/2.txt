@@ -1,3 +1,0 @@
-O que há de novo:
-- Correção do proguard
-- Atualização da interface do usuário
