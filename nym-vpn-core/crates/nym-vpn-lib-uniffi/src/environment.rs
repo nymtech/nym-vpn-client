@@ -66,10 +66,6 @@ impl NymEnvironment {
             .map_err(VpnError::internal)
     }
 
-    pub async fn __stub_to_keep_compiler_happy(&self) {
-        // todo: remove after updating to uniffi 0.31
-    }
-
     pub fn network_name(&self) -> String {
         self.network.nym_network.network_name.clone()
     }
