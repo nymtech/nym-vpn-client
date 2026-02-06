@@ -26,7 +26,9 @@ import Theme
                 accountIdentifier()
                 deviceIdentifier()
 #if os(iOS)
-                manageSubscription()
+                if !configurationManager.isTestFlight {
+                    manageSubscription()
+                }
 #endif
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
