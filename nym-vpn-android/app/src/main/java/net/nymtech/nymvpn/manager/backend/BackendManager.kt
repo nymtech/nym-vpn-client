@@ -13,35 +13,26 @@ import nym_vpn_lib_types.SystemMessage
 
 interface BackendManager {
 
+	val stateFlow: StateFlow<TunnelManagerState>
+
 	suspend fun stopTunnel()
 	suspend fun startTunnel()
 	suspend fun requestReconnect()
-
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()
-
 	suspend fun getAccountLinks(): ParsedAccountLinks?
 	suspend fun getSystemMessages(): List<SystemMessage>
 	suspend fun getGateways(gatewayType: GatewayType): List<NymGateway>
-
-	suspend fun refresh()
-
 	suspend fun createAccount()
 	suspend fun registerAccount(purchaseToken: String): String
 	suspend fun refreshAccount()
 	suspend fun getMnemonic(): List<String>
 	suspend fun getAccountState(): AccountControllerState
-
-	val stateFlow: StateFlow<TunnelManagerState>
-
 	fun getState(): Tunnel.State
 	fun initialize()
-
 	suspend fun getDaemonVersion(): String
-
 	suspend fun getDeviceId(): String?
-
 	suspend fun getAccountId(): String?
 	suspend fun getFeatureFlags(): FeatureFlags?
 	suspend fun getDeeplink(): String?

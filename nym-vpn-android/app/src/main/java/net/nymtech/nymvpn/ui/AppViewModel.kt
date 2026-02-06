@@ -218,4 +218,23 @@ constructor(
 			}
 		}
 	}
+
+	suspend fun isPrivyEnabled(): Boolean {
+		return backendManager.getFeatureFlags()?.isPrivyEnabled() ?: false
+	}
+
+	fun handleDeepLinkAuth(url: String) {
+		viewModelScope.launch {
+			if (!isPrivyEnabled()) {
+				Timber.tag(TAG).w("DeepLink ignored: Privy feature is disabled")
+				return@launch
+			}
+
+			try {
+				backendManager.storeDeeplinkAccount(url)
+			} catch (e: Exception) {
+				Timber.tag(TAG).e(e, "FailedStoreDeeplink")
+			}
+		}
+	}
 }

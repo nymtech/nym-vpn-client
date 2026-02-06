@@ -43,7 +43,7 @@ class CreateAccountViewModel @Inject constructor(
 			}
 
 			_uiState.value = _uiState.value.copy(
-				isPrivyEnabled = environmentManager.isPrivyEnabled(),
+				isPrivyEnabled = true,
 			)
 
 			val billingAllowed = BuildConfig.APPLICATION_ID == Constants.APP_ID

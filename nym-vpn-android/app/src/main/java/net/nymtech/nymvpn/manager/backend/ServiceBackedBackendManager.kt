@@ -196,9 +196,6 @@ class ServiceBackedBackendManager @Inject constructor(
 	override suspend fun refreshAccount() {
 		serviceConnectionManager.withApi { it.refreshAccount() }
 	}
-	override suspend fun refresh() {
-		// add
-	}
 
 	override suspend fun getDaemonVersion(): String = serviceConnectionManager.withApi { it.getNetworkVersions()?.core ?: "" }
 
@@ -213,7 +210,7 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun getDeeplink(): String? {
 		val params = GetDeeplinkParams(
-			client = DeeplinkClient.MOBILE,
+			client = DeeplinkClient.DESKTOP,
 			locale = Locale.getDefault().language.lowercase(),
 			kind = DeeplinkKind.PRIVY,
 			name = "default",
@@ -224,6 +221,7 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun storeDeeplinkAccount(url: String) {
 		serviceConnectionManager.withApi { it.storeDeeplinkAccount(url = url) }
+		refreshIdentityState()
 	}
 
 	override suspend fun getAccountMode(): StoredAccountMode? {
