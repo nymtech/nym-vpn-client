@@ -7,7 +7,6 @@ use crate::vpnd::account::StoredAccountMode;
 use crate::vpnd::account_links::AccountLinks;
 use crate::vpnd::tunnel::TunnelState;
 use crate::{error::BackendError, vpnd::client::VpndClient};
-use nym_vpn_lib_types::{self as lib};
 
 #[instrument(skip_all)]
 #[tauri::command]
