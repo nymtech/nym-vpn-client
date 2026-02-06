@@ -167,7 +167,7 @@ import PathManager
             params: .init(
                 client: .mobile,
                 locale: locale,
-                kind: .privy,
+                kind: isLink ? .privyLink : .privy,
                 name: name
             )
         )
