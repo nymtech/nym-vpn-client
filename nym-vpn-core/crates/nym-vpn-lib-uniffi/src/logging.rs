@@ -36,7 +36,7 @@ impl From<LogLevel> for tracing::Level {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub async fn initLogger(log_dir: Option<PathBuf>, log_level: LogLevel, sentry_monitoring: bool) {
+pub fn initLogger(log_dir: Option<PathBuf>, log_level: LogLevel, sentry_monitoring: bool) {
     let _ = SHARED_STATE.get_or_init(|| {
         let sentry_init_guard = if sentry_monitoring {
             nym_vpn_lib::sentry::init_sentry()
@@ -69,7 +69,7 @@ pub async fn initLogger(log_dir: Option<PathBuf>, log_level: LogLevel, sentry_mo
     });
 }
 
-pub async fn is_sentry_enabled() -> bool {
+pub fn is_sentry_enabled() -> bool {
     SHARED_STATE
         .get()
         .is_some_and(|state| state.sentry_init_guard.is_some())

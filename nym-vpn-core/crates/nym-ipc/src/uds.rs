@@ -1,18 +1,20 @@
-// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// Copyright 2025-2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
     fs,
     io::Result,
     os::unix::fs::PermissionsExt,
-    path::{Path, PathBuf},
+    path::PathBuf,
     pin::Pin,
     task::{Context, Poll},
 };
 
-use hyper_util::rt::TokioIo;
 use tokio::net::{UnixListener, UnixStream};
 use tokio_stream::{Stream, wrappers::UnixListenerStream};
+use tokio_util::sync::CancellationToken;
+
+use crate::authentication;
 
 pub struct Uds {
     socket_path: PathBuf,
@@ -38,17 +40,16 @@ impl Stream for Uds {
     }
 }
 
-pub async fn connect(socket_path: impl AsRef<Path>) -> Result<TokioIo<UnixStream>> {
-    Ok(TokioIo::new(UnixStream::connect(socket_path).await?))
-}
-
-pub fn incoming(socket_path: PathBuf) -> Result<Uds> {
-    let uds = UnixListener::bind(&socket_path)?;
-
+pub fn incoming(
+    socket_path: PathBuf,
+    shutdown_token: CancellationToken,
+) -> Result<impl Stream<Item = Result<UnixStream>>> {
+    let listener = UnixListener::bind(&socket_path)?;
     fs::set_permissions(&socket_path, PermissionsExt::from_mode(0o766))?;
-
-    Ok(Uds {
+    let uds = Uds {
         socket_path,
-        inner: UnixListenerStream::new(uds),
-    })
+        inner: UnixListenerStream::new(listener),
+    };
+
+    Ok(authentication::incoming(uds, shutdown_token))
 }

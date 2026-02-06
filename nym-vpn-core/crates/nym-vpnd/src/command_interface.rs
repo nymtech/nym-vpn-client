@@ -503,6 +503,18 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(is_stored))
     }
 
+    async fn get_account_mode(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::GetAccountModeResponse>> {
+        let mode = self
+            .send_and_wait(VpnServiceCommand::GetAccountMode, ())
+            .await?
+            .map(nym_vpn_lib_types::StoredAccountMode::from);
+
+        Ok(tonic::Response::new(mode.into()))
+    }
+
     async fn forget_account(
         &self,
         _request: tonic::Request<()>,
@@ -926,7 +938,7 @@ impl NymVpnService for CommandInterface {
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::PrivyDerivationMessage>> {
         Ok(tonic::Response::new(proto::PrivyDerivationMessage {
-            message: nym_vpn_lib::login::privy::message_to_sign(),
+            message: nym_vpn_lib::privy::message_to_sign(),
         }))
     }
 
@@ -981,19 +993,24 @@ pub async fn start_command_interface(
     tracing::info!("Starting socket listener on: {}", socket_path.display());
 
     // Wrap the unix socket or named pipe into a stream that can be used by tonic
-    let incoming = nym_ipc::server::create_incoming(socket_path.clone())?;
+    let incoming =
+        nym_ipc::server::create_incoming(socket_path.clone(), shutdown_token.child_token())?;
 
     let server_handle = tokio::spawn(async move {
-        let incoming_shutdown_token = shutdown_token.child_token();
         let socket_listener_handle = tokio::spawn(async move {
             let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx);
 
             let server = Server::builder().add_service(NymVpnServiceServer::new(command_interface));
-
-            match server
-                .serve_with_incoming_shutdown(incoming, incoming_shutdown_token.cancelled_owned())
-                .await
-            {
+            #[cfg(unix)]
+            let ret = server.serve_with_incoming(incoming).await;
+            #[cfg(windows)]
+            let ret = server
+                .serve_with_incoming_shutdown(
+                    incoming,
+                    shutdown_token.child_token().cancelled_owned(),
+                )
+                .await;
+            match ret {
                 Ok(()) => {
                     tracing::info!("Socket listener has finished");
                 }

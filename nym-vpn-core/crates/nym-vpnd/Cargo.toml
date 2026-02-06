@@ -31,11 +31,12 @@ tracing.workspace = true
 
 nym-bin-common.workspace = true
 nym-sdk.workspace = true
-nym-ipc.workspace = true
+
+nym-ipc = { workspace = true, features = ["daemon"] }
+nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-vpn-lib = { workspace = true }
 nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 nym-vpn-network-config = { workspace = true }
-nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 
 [target.'cfg(windows)'.dependencies]

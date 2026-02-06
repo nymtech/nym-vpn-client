@@ -67,8 +67,8 @@ impl AccountInformationStorage for VpnClientOnDiskStorage {
         self.account_storage.load_account().await
     }
 
-    async fn store_account(&self, mnemonic: StorableAccount) -> Result<(), Self::StorageError> {
-        self.account_storage.store_account(mnemonic).await
+    async fn store_account(&self, account: StorableAccount) -> Result<(), Self::StorageError> {
+        self.account_storage.store_account(account).await
     }
 
     async fn remove_account(&self) -> Result<(), Self::StorageError> {

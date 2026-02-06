@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Power
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -237,6 +238,41 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 					onClick = actions.onDnsClick,
 				),
 			)
+			if (values.isMixnetTuningEnabled) {
+				add(
+					SelectionItem(
+						leading = {
+							Icon(
+								Icons.Outlined.VisibilityOff,
+								stringResource(R.string.settings_mixnet_tuning_title),
+								modifier = Modifier.size(iconSize.scaledWidth()),
+								tint = MaterialTheme.colorScheme.outline,
+							)
+						},
+						trailing = {
+							Icon(
+								Icons.AutoMirrored.Outlined.ArrowRight,
+								stringResource(R.string.go),
+								modifier = Modifier.size(iconSize),
+								tint = MaterialTheme.colorScheme.onBackground,
+							)
+						},
+						description = {
+							Text(
+								stringResource(R.string.settings_mixnet_tuning_description),
+								style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+							)
+						},
+						title = {
+							Text(
+								stringResource(R.string.settings_mixnet_tuning_title),
+								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+							)
+						},
+						onClick = actions.onMixnetTuningClick,
+					),
+				)
+			}
 			add(
 				SelectionItem(
 					leading = {

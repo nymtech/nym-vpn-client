@@ -441,28 +441,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-stream"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b5a71a6f37880a80d1d7f19efd781e4b5de42c88f0722cc13bcb6cc2cfe8476"
-dependencies = [
- "async-stream-impl",
- "futures-core",
- "pin-project-lite",
-]
-
-[[package]]
-name = "async-stream-impl"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7c24de15d275a1ecfd47a380fb4d5ec9bfe0933f309ed5e705b775596a3574d"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.114",
-]
-
-[[package]]
 name = "async-task"
 version = "4.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -802,9 +780,9 @@ checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
 
 [[package]]
 name = "bytes"
-version = "1.11.1"
+version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
+checksum = "b35204fbdc0b3f4446b89fc1ac2cf84a8a68971995d0bf2e925ec7cd960f9cb3"
 dependencies = [
  "serde",
 ]
@@ -3521,14 +3499,10 @@ dependencies = [
 name = "nym-ipc"
 version = "1.24.0-beta"
 dependencies = [
- "async-stream",
  "hyper-util",
- "nym-windows",
  "tokio",
  "tokio-stream",
- "tonic",
  "tracing",
- "windows 0.62.2",
 ]
 
 [[package]]
@@ -3642,18 +3616,7 @@ dependencies = [
  "tonic-prost",
  "tonic-prost-build",
  "tower",
-]
-
-[[package]]
-name = "nym-windows"
-version = "1.24.0-beta"
-dependencies = [
- "bitflags 2.10.0",
- "futures",
- "thiserror 2.0.18",
- "tokio",
  "tracing",
- "windows 0.62.2",
 ]
 
 [[package]]

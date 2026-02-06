@@ -133,7 +133,8 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 			promptInfo = promptInfo,
 			onAuthenticated = { showSheet = true },
 			onUnavailable = { showSheet = true },
-			onError = { _, _ -> showSheet = true },
+			onError = { _, _ ->
+			},
 		)
 	}
 

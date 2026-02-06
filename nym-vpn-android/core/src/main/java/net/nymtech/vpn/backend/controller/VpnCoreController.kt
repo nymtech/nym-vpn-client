@@ -26,6 +26,7 @@ import nym_vpn_lib.initLogger
 import nym_vpn_lib.initializeTokioRuntime
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.MixnetTrafficConfig
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.UserAgent
 import timber.log.Timber
@@ -91,6 +92,7 @@ class VpnCoreController(
 				sentry = false,
 				userAgent = null,
 				useMainnetFallback = true,
+				mixnetParamConfig = null,
 			)
 			applyCanonicalConfigToRustIfReady(force = false, canonical = null)
 		}.onFailure { Timber.tag(TAG).w(it, "ensureReadyForManagement failed (non-fatal)") }
@@ -104,6 +106,7 @@ class VpnCoreController(
 				sentry = req.sentryMonitoringEnabled,
 				userAgent = req.userAgent,
 				useMainnetFallback = false,
+				mixnetParamConfig = req.mixnetParamConfig,
 			)
 			applyCanonicalConfigToRustIfReady(force = true, canonical = null)
 			ConnectResult.Ok
@@ -155,6 +158,7 @@ class VpnCoreController(
 				sentry = false,
 				userAgent = null,
 				useMainnetFallback = true,
+				mixnetParamConfig = null,
 			)
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "CoreInitFailed")
@@ -287,7 +291,14 @@ class VpnCoreController(
 		initLogger(storagePath, level, sentryMonitoring = sentry)
 	}
 
-	private suspend fun ensureCoreInitialized(networkName: String?, enableDebugLog: Boolean, sentry: Boolean, userAgent: UserAgent?, useMainnetFallback: Boolean) {
+	private suspend fun ensureCoreInitialized(
+		networkName: String?,
+		enableDebugLog: Boolean,
+		sentry: Boolean,
+		userAgent: UserAgent?,
+		useMainnetFallback: Boolean,
+		mixnetParamConfig: MixnetTrafficConfig?,
+	) {
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
 		val storagePath = service.filesDir.absolutePath
@@ -317,7 +328,7 @@ class VpnCoreController(
 			enableLewesProtocol = false,
 			customDns = emptyList(),
 			residentialExit = false,
-			mixnetTraffic = null,
+			mixnetTraffic = mixnetParamConfig,
 			networkStats = null,
 			userAgent = ua,
 			tunProvider = service,

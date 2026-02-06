@@ -7,9 +7,10 @@ use nym_vpn_lib_types::{
     HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkCompatibility,
     NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
-    SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
-use std::{net::IpAddr, path::PathBuf};
+use std::{error::Error as _, net::IpAddr, path::PathBuf};
 use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
@@ -24,12 +25,24 @@ pub struct RpcClient(ServiceClient);
 impl RpcClient {
     pub async fn new() -> Result<RpcClient> {
         let socket_path = get_rpc_socket_path();
-        let channel = Endpoint::from_static("unix://placeholder")
+        Endpoint::from_static("unix://placeholder")
             .connect_with_connector(service_fn(move |_: Uri| {
                 nym_ipc::client::connect(socket_path.clone())
             }))
-            .await?;
-        Ok(RpcClient(ServiceClient::new(channel)))
+            .await
+            .map(ServiceClient::new)
+            .map(RpcClient)
+            .map_err(|err| {
+                if let Some(std::io::ErrorKind::PermissionDenied) = err
+                    .source()
+                    .and_then(|source| source.downcast_ref::<std::io::Error>())
+                    .map(|s| s.kind())
+                {
+                    Error::AuthenticationRequired
+                } else {
+                    err.into()
+                }
+            })
     }
 
     pub async fn get_info(&mut self) -> Result<VpnServiceInfo> {
@@ -376,6 +389,20 @@ impl RpcClient {
             .await
             .map(|v| v.into_inner().account_identity)
             .map_err(Error::Rpc)
+    }
+
+    pub async fn get_account_mode(&mut self) -> Result<Option<StoredAccountMode>> {
+        let response = self
+            .0
+            .get_account_mode(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+
+        let opt_mode: Option<StoredAccountMode> =
+            response.try_into().map_err(Error::InvalidResponse)?;
+
+        Ok(opt_mode)
     }
 
     pub async fn get_account_links(&mut self, locale: String) -> Result<ParsedAccountLinks> {
@@ -754,6 +781,9 @@ pub enum Error {
 
     #[error("Failed to parse rpc response")]
     InvalidResponse(#[source] crate::conversions::ConversionError),
+
+    #[error("Authentication is required to access the daemon")]
+    AuthenticationRequired,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

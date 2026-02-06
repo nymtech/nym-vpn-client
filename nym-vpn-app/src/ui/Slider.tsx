@@ -1,4 +1,7 @@
-import { Slider as HuSlider } from '@base-ui-components/react';
+import {
+  DirectionProvider,
+  Slider as HuSlider,
+} from '@base-ui-components/react';
 import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +31,7 @@ function Slider({
   valueIndicator,
   className,
 }: SliderProps) {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
 
   const [internalValue, setInternalValue] = useState(value);
 
@@ -65,36 +68,38 @@ function Slider({
 
   return (
     <div className={clsx('w-full', className)}>
-      <HuSlider.Root
-        min={min}
-        max={max}
-        step={step}
-        defaultValue={defaultValue}
-        value={internalValue}
-        onValueCommitted={() => onValueCommitted?.(internalValue)}
-        onValueChange={(val) => {
-          setInternalValue(val);
-          onChange?.(val);
-        }}
-        className="relative flex w-full touch-none select-none items-center"
-      >
-        <HuSlider.Control className="w-full">
-          <HuSlider.Track className="relative h-2 w-full rounded-full bg-bombay dark:bg-iron">
-            <HuSlider.Indicator
-              className={clsx([
-                'absolute h-full rounded-full bg-malachite-moss dark:bg-malachite',
-                'transition-[width] duration-300 ease-out',
-              ])}
-            />
-            <HuSlider.Thumb
-              className={clsx([
-                'group block h-6 w-6 rounded-full border border-bombay dark:border-iron active:bg-faded-lavender bg-white hover:bg-faded-lavender shadow-md focus:outline-none focus:ring-2 focus:ring-malachite',
-                'transition-[inset] duration-300 ease-out ',
-              ])}
-            ></HuSlider.Thumb>
-          </HuSlider.Track>
-        </HuSlider.Control>
-      </HuSlider.Root>
+      <DirectionProvider direction={i18n.dir()}>
+        <HuSlider.Root
+          min={min}
+          max={max}
+          step={step}
+          defaultValue={defaultValue}
+          value={internalValue}
+          onValueCommitted={() => onValueCommitted?.(internalValue)}
+          onValueChange={(val) => {
+            setInternalValue(val);
+            onChange?.(val);
+          }}
+          className="relative flex w-full touch-none select-none items-center"
+        >
+          <HuSlider.Control className="w-full">
+            <HuSlider.Track className="relative h-2 w-full rounded-full bg-bombay dark:bg-iron">
+              <HuSlider.Indicator
+                className={clsx([
+                  'absolute h-full rounded-full bg-malachite-moss dark:bg-malachite',
+                  'transition-[width] duration-300 ease-out',
+                ])}
+              />
+              <HuSlider.Thumb
+                className={clsx([
+                  'group block h-6 w-6 rounded-full border border-bombay dark:border-iron active:bg-faded-lavender bg-white hover:bg-faded-lavender shadow-md focus:outline-none focus:ring-2 focus:ring-malachite',
+                  'transition-[inset] duration-300 ease-out ',
+                ])}
+              ></HuSlider.Thumb>
+            </HuSlider.Track>
+          </HuSlider.Control>
+        </HuSlider.Root>
+      </DirectionProvider>
 
       <div className="relative">
         {valueIndicator && (
@@ -106,27 +111,29 @@ function Slider({
           </div>
         )}
         {labels && (
-          <div className="mt-5 w-full h-10">
-            {labels.map((label, idx) => {
-              const position = getLabelPosition(idx);
-              return (
-                <div
-                  key={idx}
-                  className="absolute flex items-center justify-center"
-                  style={{
-                    left: `${position}%`,
-                    transform:
-                      idx === 0
-                        ? 'translateX(0)'
-                        : idx === labels.length - 1
-                          ? 'translateX(-100%)'
-                          : 'translateX(-50%)',
-                  }}
-                >
-                  {label}
-                </div>
-              );
-            })}
+          <div className="mt-5 w-full h-10 ">
+            {(i18n.dir() === 'rtl' ? [...labels].reverse() : labels).map(
+              (label, idx) => {
+                const position = getLabelPosition(idx);
+                return (
+                  <div
+                    key={idx}
+                    className="absolute flex items-center justify-center"
+                    style={{
+                      left: `${position}%`,
+                      transform:
+                        idx === 0
+                          ? 'translateX(0)'
+                          : idx === labels.length - 1
+                            ? 'translateX(-100%)'
+                            : 'translateX(-50%)',
+                    }}
+                  >
+                    {label}
+                  </div>
+                );
+              },
+            )}
           </div>
         )}
       </div>

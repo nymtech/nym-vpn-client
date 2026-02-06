@@ -8,8 +8,8 @@ pub mod cache_refresh;
 pub mod config;
 mod error;
 pub mod logging;
-pub mod login;
 mod mixnet;
+pub mod privy;
 pub mod sentry;
 pub mod service;
 #[cfg(any(target_os = "ios", target_os = "android"))]

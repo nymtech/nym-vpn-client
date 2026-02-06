@@ -24,21 +24,26 @@ export const ns = [
 ] as const;
 
 export const languages = [
+  { code: 'ar', name: 'العربية (Arabic)' }, // rtl
+  { code: 'fa', name: 'فارسی (Persian)' }, // rtl
   { code: 'bn', name: 'বাংলা' },
   { code: 'de', name: 'Deutsch' },
-  { code: 'el', name: 'ελληνικά' },
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Español' },
   { code: 'fr', name: 'Français' },
   { code: 'hi', name: 'हिन्दी' },
-  { code: 'it', name: 'Italiano' },
-  { code: 'ja', name: '日本語' },
-  { code: 'pt', name: 'Português' },
+  { code: 'pt', name: 'Português Brasileiro' },
   { code: 'ru', name: 'Русский язык' },
   { code: 'tr', name: 'Türkçe' },
   { code: 'uk', name: 'Українська' },
   { code: 'vi', name: 'Tiếng Việt' },
   { code: 'zh', name: '中文' },
+
+  // { code: 'cs', name: 'Čeština (Czech)' },
+  // { code: 'hu', name: 'Magyar (Hungarian)' },
+  // { code: 'el', name: 'ελληνικά' },
+  // { code: 'it', name: 'Italiano' },
+  // { code: 'ja', name: '日本語' },
 ] as const;
 
 export const supportedLngs = languages.map((lang) => lang.code);

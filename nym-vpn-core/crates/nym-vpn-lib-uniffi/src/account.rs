@@ -40,7 +40,8 @@ impl NymAccountController {
         network_env: Arc<NymEnvironment>,
         offline_monitor: Arc<NymOfflineMonitor>,
     ) -> Result<Self, VpnError> {
-        let storage = VpnClientOnDiskStorage::new(data_dir.clone());
+        let storage_path = data_dir.join(network_env.network_name());
+        let storage = VpnClientOnDiskStorage::new(&storage_path);
         let shutdown_token = CancellationToken::new();
 
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
@@ -55,7 +56,7 @@ impl NymAccountController {
 
         let nyxd_client = NyxdClient::new(network_env.inner());
         let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
-            data_dir,
+            data_dir: storage_path,
             network_env: network_env.inner().clone(),
         };
 
@@ -187,13 +188,13 @@ impl NymAccountController {
     }
 
     /// Import the account mnemonic
-    pub async fn login(&self, request: &StoreAccountRequest) -> Result<(), VpnError> {
-        let mnemonic = nym_vpn_lib::login::parse_account_request(request).map_err(|err| {
-            VpnError::InvalidSecret {
+    pub async fn login(&self, request: StoreAccountRequest) -> Result<(), VpnError> {
+        let account =
+            StorableAccount::try_from(request).map_err(|err| VpnError::InvalidMnemonic {
                 details: err.to_string(),
-            }
-        })?;
-        self.command_sender.store_account(mnemonic.into()).await?;
+            })?;
+
+        self.command_sender.store_account(account).await?;
         Ok(())
     }
 
@@ -242,6 +243,11 @@ impl NymAccountController {
     /// Get the account identity
     pub async fn get_account_identity(&self) -> Result<Option<String>, VpnError> {
         Ok(self.command_sender.get_account_id().await?)
+    }
+
+    /// Get the account mode
+    pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>, VpnError> {
+        Ok(self.command_sender.get_account_mode().await?)
     }
 
     /// Check if the account mnemonic is stored
