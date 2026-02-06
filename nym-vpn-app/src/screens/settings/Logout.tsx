@@ -17,10 +17,10 @@ function Logout() {
   const logoutCopy = capFirst(t('logout', { ns: 'glossary' }));
 
   useEffect(() => {
-    if (!loading && isOpen) {
+    if (!loading && isOpen && !account) {
       setIsOpen(false);
     }
-  }, [loading, isOpen]);
+  }, [loading, isOpen, account]);
 
   const handleLogout = async () => {
     await logout();

@@ -10,7 +10,7 @@ import { MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import { AccountSettingRow } from './account';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
-import Logout from './Logout';
+// import Logout from './Logout';
 
 function Settings() {
   const { desktopNotifications, ipv6Support, allowLan, backendFlags } =
@@ -169,7 +169,7 @@ function Settings() {
           },
         ]}
       />
-      <Logout />
+      {/* <Logout /> */}
       <SettingsMenuCard title={t('quit')} onClick={exit} />
       <InfoData />
     </PageAnim>
