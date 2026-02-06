@@ -36,7 +36,7 @@ class CreateAccountViewModel @Inject constructor(
 	init {
 		viewModelScope.launch {
 			runCatching {
-				val link = backendManager.getSocialDeeplink()
+				val link = backendManager.getDeeplink()
 				_uiState.value = _uiState.value.copy(deeplink = link)
 			}.onFailure { t ->
 				Timber.tag(TAG).w(t, "SocialDeeplinkLoadFailed")

@@ -40,7 +40,7 @@ class LoginViewModel @Inject constructor(
 		viewModelScope.launch {
 			_uiState.update { it.copy(isPrivyEnabled = environmentManager.isPrivyEnabled()) }
 
-			runCatching { backendManager.getSocialDeeplink() }
+			runCatching { backendManager.getDeeplink() }
 				.onSuccess { link -> _uiState.update { it.copy(deeplink = link) } }
 				.onFailure { t -> Timber.tag(TAG).w(t, "SocialDeeplinkLoadFailed") }
 		}

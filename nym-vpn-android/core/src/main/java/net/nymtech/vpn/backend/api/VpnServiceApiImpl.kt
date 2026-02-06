@@ -13,11 +13,13 @@ import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
+import nym_vpn_lib_types.GetDeeplinkParams
 import nym_vpn_lib_types.ListGatewaysOptions
 import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.RegisterAccountRequest
 import nym_vpn_lib_types.StoreAccountRequest
+import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
 
@@ -96,4 +98,11 @@ internal class VpnServiceApiImpl(
 	override suspend fun getAccountIdentity(): String? = core.tryWithCoreSender { it.getAccountIdentity() }
 
 	override suspend fun getFeatureFlags(): FeatureFlags? = core.tryWithCoreSender { it.getFeatureFlags() }
+	override suspend fun getDeeplink(params: GetDeeplinkParams): String? = core.tryWithCoreSender { it.getDeeplink(params) }
+
+	override suspend fun storeDeeplinkAccount(url: String) {
+		core.requireCoreSender { it.deeplinkStoreAccount(url) }
+	}
+
+	override suspend fun getAccountMode(): StoredAccountMode? = core.tryWithCoreSender { it.getAccountMode() }
 }

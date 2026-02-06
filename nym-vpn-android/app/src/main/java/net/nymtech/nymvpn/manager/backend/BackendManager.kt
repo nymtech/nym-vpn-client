@@ -8,6 +8,7 @@ import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.ParsedAccountLinks
+import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
 
 interface BackendManager {
@@ -38,11 +39,12 @@ interface BackendManager {
 	fun initialize()
 
 	suspend fun getDaemonVersion(): String
-	suspend fun getSocialDeeplink(): String
-	suspend fun storeSocialAccount(link: String)
 
 	suspend fun getDeviceId(): String?
 
 	suspend fun getAccountId(): String?
 	suspend fun getFeatureFlags(): FeatureFlags?
+	suspend fun getDeeplink(): String?
+	suspend fun storeDeeplinkAccount(url: String)
+	suspend fun getAccountMode(): StoredAccountMode?
 }
