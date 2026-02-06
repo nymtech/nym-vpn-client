@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
-import { type } from '@tauri-apps/plugin-os';
+import Spinner from './Spinner';
 
 export type ButtonProps = {
   children: ReactNode;
@@ -14,21 +14,6 @@ export type ButtonProps = {
   spinner?: boolean;
   'data-testid'?: string;
 };
-
-function Spinner() {
-  const os = type();
-
-  return (
-    <span
-      className={clsx([
-        'loader h-[22px] w-[22px]',
-        os !== 'linux' && 'border-4',
-        'border-baltic-sea dark:border-white border-b-transparent dark:border-b-transparent',
-      ])}
-      data-testid="button-spinner"
-    ></span>
-  );
-}
 
 function Button({
   onClick,

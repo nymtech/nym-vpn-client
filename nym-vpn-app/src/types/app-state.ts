@@ -9,6 +9,7 @@ import {
   NetworkCompat,
   NetworkEnv,
   SelectedNode,
+  TAccountMode,
   ThemeMode,
   Tunnel,
   TunnelError,
@@ -52,6 +53,7 @@ export type AppState = {
   connectingState?: ConnectingState | null;
   tunnelError?: TunnelError | null;
   accountState?: AccountState | null;
+  accountMode?: TAccountMode | null;
   accountError?: AppError | null;
   accountSyncing: boolean;
   daemonStatus: DaemonStatus;

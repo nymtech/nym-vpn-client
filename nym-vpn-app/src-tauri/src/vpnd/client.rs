@@ -6,6 +6,7 @@ pub use super::{
     socks5::{HttpRpcSettings, Socks5Settings, Socks5Status},
     system_message::SystemMessage,
     vpnd_status::{VersionCheck, VpndInfo, VpndStatus},
+    account::StoredAccountMode,
 };
 use super::{
     config::{MixnetTrafficConfig, VpndConfig},
@@ -513,14 +514,14 @@ impl VpndClient {
     /// Get account mode
     /// Privy, Decentralised, Api
     #[instrument(skip_all)]
-    pub async fn account_mode(&self) -> Result<Option<lib::StoredAccountMode>, VpndError> {
+    pub async fn account_mode(&self) -> Result<Option<StoredAccountMode>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let mode = vpnd.get_account_mode()
             .or_else(async |e| self.handle_rpc_error("get_account_mode", e).await)
             .await?;
 
-        Ok(mode.into())
+        Ok(mode.map(Into::into))
     }
 
     /// Get the device identity

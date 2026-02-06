@@ -12,6 +12,7 @@ import {
   CardNewHeader,
   MsIcon,
   PageAnim,
+  Spinner,
 } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 import { CCache } from '../../../cache';
@@ -23,22 +24,31 @@ import { getAccountColor, getAccountDescription } from './utils';
 const IdsTimeToLive = 120; // sec
 
 function Account() {
+  console.log('[Account] mainState: ', useMainState());
+
   const { t, i18n } = useTranslation('settings');
   const navigate = useNavigate();
 
   const { logout, loading } = useLogout();
-  const { accountLinks, account, accountState, accountSyncing, daemonStatus } =
-    useMainState();
+  const {
+    accountLinks,
+    account,
+    accountState,
+    accountSyncing,
+    daemonStatus,
+    accountMode,
+  } = useMainState();
   const needAPlan =
     account &&
     (accountState === 'no-subscription' ||
       accountState === 'bandwidth-exceeded');
 
+  const [isAccountLinking, setIsAccountLinking] = useState(false);
   const [accountId, setAccountId] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
 
-  const [accountMode, setAccountMode] = useState<string | null>(null);
-  const linkable = accountMode === 'Api';
+  // const [accountMode, setAccountMode] = useState<string | null>(null);
+  const linkable = accountMode === 'api';
 
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
@@ -81,7 +91,7 @@ function Account() {
   useEffect(() => {
     invoke<string>('get_account_mode').then((mode) => {
       console.log('account mode: ', mode);
-      setAccountMode(mode);
+      // setAccountMode(mode);
     });
   }, []);
 
@@ -89,14 +99,16 @@ function Account() {
   //   if (!account) navigate(routes.settings);
   // }, [account, navigate]);
 
-  const handleGoToAccount = async () => {
-    const linkUrl = await invoke<string>('get_deep_link', {
-      locale: i18n.language,
-      kind: 'PrivyLink',
-    });
-    openUrl(linkUrl);
+  const handleAccountLink = async () => {
+    setIsAccountLinking(true);
 
     try {
+      const linkUrl = await invoke<string>('get_deep_link', {
+        locale: i18n.language,
+        kind: 'PrivyLink',
+      });
+      openUrl(linkUrl);
+
       const deeplinkUrl = await Promise.race([
         startListening(),
         new Promise<never>((_, reject) =>
@@ -115,6 +127,8 @@ function Account() {
           type: 'error',
         });
       }
+    } finally {
+      setIsAccountLinking(false);
     }
   };
 
@@ -138,7 +152,6 @@ function Account() {
 
       <SettingsGroup
         settings={[
-          // Only display this settings group section if linkable is true
           ...(linkable
             ? [
                 {
@@ -162,9 +175,10 @@ function Account() {
           {
             title: t('account.account-on-nym'),
             desc: t('account.account-link-social-description'),
-            leadingIcon: 'person',
+            leadingIcon: isAccountLinking ? undefined : 'person',
+            leadingComponent: isAccountLinking ? <Spinner /> : undefined,
             trailingIcon: 'open_in_new',
-            onClick: handleGoToAccount,
+            onClick: handleAccountLink,
           },
         ]}
       />
