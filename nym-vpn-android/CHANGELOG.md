@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add support for account creation and registration in VpnService API (https://github.com/nymtech/nym-vpn-client/pull/4533)
 - Add Mixnet tuning UI and logic (https://github.com/nymtech/nym-vpn-client/pull/4555)
+- Add Privy account linking (https://github.com/nymtech/nym-vpn-client/pull/4571)
 
 ### Changed
 - Refactor VPN service architecture (https://github.com/nymtech/nym-vpn-client/pull/4517)
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimize DnsViewModel logic (https://github.com/nymtech/nym-vpn-client/pull/4533)
 - Clean up locales (https://github.com/nymtech/nym-vpn-client/pull/4568)
 - Move translation download to build (https://github.com/nymtech/nym-vpn-client/pull/4568)
+- Update Account Info screen UI and logic (https://github.com/nymtech/nym-vpn-client/pull/4571)
 
 ### Fixed
 - Fix fdsan crashes (https://github.com/nymtech/nym-vpn-client/pull/4533)
