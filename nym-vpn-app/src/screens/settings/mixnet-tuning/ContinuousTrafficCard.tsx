@@ -89,13 +89,13 @@ function BackgroundCoverTrafficRateSlider({
   );
 }
 
-const CONTINUOUS_LEVELS: {
+export const CONTINUOUS_LEVELS: {
   label: 'low' | 'balanced' | 'high';
   speed: string;
 }[] = [
-  { label: 'low', speed: '0.7 Mbps' },
-  { label: 'balanced', speed: '1 Mbps' },
-  { label: 'high', speed: '2 Mbps' },
+  { label: 'low', speed: '0.7' },
+  { label: 'balanced', speed: '1' },
+  { label: 'high', speed: '2' },
 ];
 
 // Slider index → Config value mappings
@@ -122,7 +122,7 @@ const BACKGROUND_COVER_TRAFFIC_TO_SLIDER = new Map<number, number>(
 const sliderToContinuousTrafficValue = (sliderValue: number): number =>
   CONTINUOUS_TRAFFIC_VALUES[sliderValue] ?? CONTINUOUS_TRAFFIC_VALUES[0];
 
-const continuousTrafficValueToSlider = (configValue: number): number =>
+export const continuousTrafficValueToSlider = (configValue: number): number =>
   CONTINUOUS_TRAFFIC_TO_SLIDER.get(configValue) ?? 0;
 
 const sliderToBackgroundCoverTrafficValue = (sliderValue: number): number =>
@@ -184,7 +184,14 @@ function ContinuousTrafficSlider({
                 `mixnet-tuning.continuous-traffic.continuous.${item.label}.label`,
               )}
             </span>
-            <span className="whitespace-nowrap">{item.speed}</span>
+            <span className="whitespace-nowrap">
+              {t(
+                `mixnet-tuning.continuous-traffic.continuous.${item.label}.speed`,
+                {
+                  value: item.speed,
+                },
+              )}
+            </span>
           </button>
         ))}
       />
