@@ -31,7 +31,9 @@ import Theme
                 deviceIdentifier()
                 deviceIdText()
 #if os(iOS)
-                manageSubscription()
+                if !configurationManager.isTestFlight {
+                    manageSubscription()
+                }
 #endif
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
@@ -52,7 +54,6 @@ import Theme
             await updateIsAccountLinkAvailable()
         }
         .onChange(of: credentialsManager.didReceiveAccountLinkCallback) { _, newValue in
-            print("bobr")
             Task {
                 await updateIsAccountLinkAvailable()
             }
