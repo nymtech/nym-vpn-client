@@ -184,14 +184,6 @@ static TOKIO_RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
         .expect("failed to initialize tokio runtime")
 });
 
-/// Initialize tokio runtime once before interacting with nym-vpn-lib.
-/// Repeat calls do nothing.
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn initializeTokioRuntime() {
-    let _rt = &*TOKIO_RUNTIME;
-}
-
 /// Get the message to be signed using the Privy signing API.
 #[allow(non_snake_case)]
 #[uniffi::export]
