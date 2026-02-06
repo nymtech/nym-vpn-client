@@ -112,6 +112,11 @@ pub struct NymVpnAccountSummaryFairUsage {
     pub resetsOnUtc: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct NymVpnCanonicalAccountIdentityResponse {
+    pub canonical_account_addr: String,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnHealthResponse {

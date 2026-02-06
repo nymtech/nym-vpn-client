@@ -391,6 +391,14 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
+    pub async fn get_canonical_account_identity(&mut self) -> Result<Option<String>> {
+        self.0
+            .get_canonical_account_identity(())
+            .await
+            .map(|v| v.into_inner().account_identity)
+            .map_err(Error::Rpc)
+    }
+
     pub async fn get_account_mode(&mut self) -> Result<Option<StoredAccountMode>> {
         let response = self
             .0

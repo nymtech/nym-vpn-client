@@ -553,7 +553,25 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::GetAccountIdentity, ())
             .await?
             .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get account identity: {err}"))
+                tonic::Status::internal(format!("Failed to get account identity: {err:?}"))
+            })?;
+
+        Ok(tonic::Response::new(proto::GetAccountIdentityResponse {
+            account_identity,
+        }))
+    }
+
+    async fn get_canonical_account_identity(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::GetAccountIdentityResponse>> {
+        let account_identity = self
+            .send_and_wait(VpnServiceCommand::GetCanonicalAccountIdentity, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!(
+                    "Failed to get canonical account identity: {err:?}"
+                ))
             })?;
 
         Ok(tonic::Response::new(proto::GetAccountIdentityResponse {

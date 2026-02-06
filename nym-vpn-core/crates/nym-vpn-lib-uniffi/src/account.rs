@@ -245,6 +245,11 @@ impl NymAccountController {
         Ok(self.command_sender.get_account_id().await?)
     }
 
+    /// Get the canonical account identity
+    pub async fn get_canonical_account_identity(&self) -> Result<Option<String>, VpnError> {
+        Ok(self.command_sender.get_canonical_account_id().await?)
+    }
+
     /// Get the account mode
     pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>, VpnError> {
         Ok(self

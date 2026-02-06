@@ -1008,6 +1008,9 @@ service NymVpnService {
   // Get the account identity of the currently logged-in user.
   rpc GetAccountIdentity(google.protobuf.Empty) returns (GetAccountIdentityResponse) {}
 
+  // Get the account identity of the canonical (API) account.
+  rpc GetCanonicalAccountIdentity(google.protobuf.Empty) returns (GetAccountIdentityResponse) {}
+
   // Get the account mode of the currently logged-in user.
   rpc GetAccountMode(google.protobuf.Empty) returns (GetAccountModeResponse) {}
 

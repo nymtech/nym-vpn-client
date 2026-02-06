@@ -247,6 +247,14 @@ impl NymVpnServiceCommandSender {
         Ok(value)
     }
 
+    pub async fn get_canonical_account_identity(&self) -> Result<Option<String>> {
+        let value = self
+            .send_and_wait(VpnServiceCommand::GetCanonicalAccountIdentity, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?;
+        Ok(value)
+    }
+
     pub async fn get_account_mode(&self) -> Option<StoredAccountMode> {
         self.send_and_wait(VpnServiceCommand::GetAccountMode, ())
             .await

@@ -27,11 +27,11 @@ use crate::{
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
-        NymVpnAccountSummaryResponse, NymVpnAccountSummaryWithDeviceResponse, NymVpnDevice,
-        NymVpnDevicesResponse, NymVpnHealthResponse, NymVpnRegisterAccountResponse,
-        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
-        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
-        NymWellknownDiscoveryItem, StatusOk,
+        NymVpnAccountSummaryResponse, NymVpnAccountSummaryWithDeviceResponse,
+        NymVpnCanonicalAccountIdentityResponse, NymVpnDevice, NymVpnDevicesResponse,
+        NymVpnHealthResponse, NymVpnRegisterAccountResponse, NymVpnSubscription,
+        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym,
+        NymVpnZkNymPost, NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     types::{
@@ -825,8 +825,30 @@ impl VpnApiClient {
             None,
         )
         .await
+        .inspect_err(|e| tracing::error!("Failed to link account: {e:?}"))
         .map_err(Box::new)
         .map_err(VpnApiClientError::LinkPrivyAccount)
+    }
+
+    pub async fn get_canonical_account_identity(
+        &self,
+        account: &VpnAccount,
+    ) -> Result<NymVpnCanonicalAccountIdentityResponse> {
+        self.get_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::CANONICAL,
+            ],
+            account,
+            None,
+        )
+        .await
+        .inspect_err(|e| tracing::error!("Failed to get canonical account identity: {e:?}"))
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetCanonicalAccountIdentity)
     }
 
     // DEVICES

@@ -97,6 +97,17 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
+    pub async fn get_canonical_account_id(&self) -> Result<Option<String>, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::Common(
+                CommonCommand::GetCanonicalAccountIdentity(tx),
+            ))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
     pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx

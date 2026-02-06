@@ -82,6 +82,9 @@ impl AccountCommand {
             AccountCommand::Common(common_command) => match common_command {
                 CommonCommand::GetStoredAccount(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Err(error)),
+                CommonCommand::GetCanonicalAccountIdentity(return_sender) => {
+                    return_sender.send(Err(error))
+                }
                 CommonCommand::GetAccountMode(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDeviceIdentity(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetUsage(return_sender) => return_sender.send(Err(error)),
@@ -117,6 +120,9 @@ pub enum CommonCommand {
 
     /// Returns Some(address) if an account is stored, None otherwise
     GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),
+
+    /// Returns the identifier of the canonical (API) account, or error.
+    GetCanonicalAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),
 
     /// Returns Some(mode) if an account is logged-in, None otherwise
     GetAccountMode(ReturnSender<Option<StoredAccountMode>, AccountCommandError>),
