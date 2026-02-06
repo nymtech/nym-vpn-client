@@ -53,13 +53,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     override func stopTunnel(with reason: NEProviderStopReason) async {
         logger.info("Stop tunnel... \(reason.rawValue)")
 
-        do {
-            _ = try await commandSender?.disconnectTunnel()
-            await vpnService?.shutdownAndWait()
-        } catch {
-            logger.error("Failed to stop the tunnel: \(error)")
-        }
-
+        await vpnService?.shutdownAndWait()
         await tunnelActor.setTunnelProvider(nil)
         vpnService = nil
         commandSender = nil
