@@ -23,7 +23,6 @@ import nym_vpn_lib.NymVpnServiceCommandException
 import nym_vpn_lib.NymVpnServiceCommandSender
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.initLogger
-import nym_vpn_lib.initializeTokioRuntime
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.MixnetTrafficConfig
@@ -285,12 +284,6 @@ class VpnCoreController(
 		return runCatching { block(sender) }.getOrNull()
 	}
 
-	private suspend fun ensureTokioAndLogger(storagePath: String, enableDebugLog: Boolean, sentry: Boolean) {
-		initializeTokioRuntime()
-		val level = if (enableDebugLog) LogLevel.DEBUG else LogLevel.INFO
-		initLogger(storagePath, level, sentryMonitoring = sentry)
-	}
-
 	private suspend fun ensureCoreInitialized(
 		networkName: String?,
 		enableDebugLog: Boolean,
@@ -302,7 +295,8 @@ class VpnCoreController(
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
 		val storagePath = service.filesDir.absolutePath
-		ensureTokioAndLogger(storagePath, enableDebugLog, sentry)
+		val level = if (enableDebugLog) LogLevel.DEBUG else LogLevel.INFO
+		initLogger(storagePath, level, sentryMonitoring = sentry)
 
 		val env =
 			if (useMainnetFallback) {

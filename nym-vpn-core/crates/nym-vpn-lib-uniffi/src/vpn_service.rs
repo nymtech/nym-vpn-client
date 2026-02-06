@@ -1,10 +1,10 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use nym_vpn_lib::service::ServiceConfigStorageType;
-use nym_vpn_lib_types::TunnelEvent;
+use nym_vpn_lib_types::{TunnelEvent, TunnelState};
 use nym_vpn_network_config::NetworkCache;
 use tokio::{
     sync::{Mutex, broadcast, mpsc},
@@ -17,10 +17,14 @@ use crate::{
     vpn_service_command_sender::NymVpnServiceCommandSender,
 };
 
+/// Max amount of time to wait for the VPN to disconnect before shutting down.
+const DISCONNECT_TIMEOUT: Duration = Duration::from_secs(5);
+
 struct State {
     event_handler: JoinHandle<()>,
     vpn_service_handle: JoinHandle<()>,
     shutdown_drop_guard: DropGuard,
+    tunnel_state: tokio::sync::watch::Receiver<Option<TunnelState>>,
 }
 
 #[uniffi::export(with_foreign)]
@@ -103,8 +107,12 @@ impl NymVpnService {
                     shutdown_token.child_token(),
                 );
 
+                let (tunnel_state_tx, tunnel_state_rx) = tokio::sync::watch::channel(None);
                 let event_handler = tokio::spawn(async move {
                     while let Ok(event) = tunnel_event_rx.recv().await {
+                        if let TunnelEvent::NewState(tunnel_state) = &event {
+                            let _ = tunnel_state_tx.send_replace(Some(tunnel_state.clone()));
+                        }
                         event_listener.on_event(event);
                     }
                 });
@@ -115,6 +123,7 @@ impl NymVpnService {
                         event_handler,
                         vpn_service_handle,
                         shutdown_drop_guard: shutdown_token.drop_guard(),
+                        tunnel_state: tunnel_state_rx,
                     }))),
                 })
             })
@@ -133,9 +142,28 @@ impl NymVpnService {
             return;
         };
 
+        let _ = self.command_sender.disconnect_tunnel().await;
+        self.wait_for_disconnect(state.tunnel_state).await;
+
         drop(state.shutdown_drop_guard);
 
         state.event_handler.await.unwrap();
         state.vpn_service_handle.await.unwrap();
+    }
+}
+
+impl NymVpnService {
+    async fn wait_for_disconnect(
+        &self,
+        mut tunnel_state_rx: tokio::sync::watch::Receiver<Option<TunnelState>>,
+    ) {
+        let _ = tokio::time::timeout(
+            DISCONNECT_TIMEOUT,
+            tunnel_state_rx.wait_for(|tunnel_state| match tunnel_state {
+                Some(TunnelState::Disconnected { .. } | TunnelState::Offline { .. }) => true,
+                _ => false,
+            }),
+        )
+        .await;
     }
 }
