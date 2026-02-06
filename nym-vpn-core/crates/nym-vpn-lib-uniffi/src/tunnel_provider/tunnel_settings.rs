@@ -236,6 +236,64 @@ pub struct TunnelNetworkSettings {
     pub mtu: u16,
 }
 
+#[cfg(target_os = "android")]
+#[uniffi::export]
+impl TunnelNetworkSettings {
+    /// Returns CIDRs for all tunnel networks excluding LAN networks when `allow_lan` is true.
+    pub fn compute_tunnel_networks(&self, allow_lan: bool) -> Vec<String> {
+        use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
+
+        let mut tunnel_ipv4 = self
+            .ipv4_settings
+            .as_ref()
+            .map(|v| v.tunnel_networks())
+            .unwrap_or_default();
+        let mut tunnel_ipv6 = self
+            .ipv6_settings
+            .as_ref()
+            .map(|v| v.tunnel_networks())
+            .unwrap_or_default();
+
+        if allow_lan {
+            let mut exclude_ipv4_lan = IpRange::<Ipv4Net>::new();
+            let mut exclude_ipv6_lan = IpRange::<Ipv6Net>::new();
+
+            for network in ALLOWED_LAN_NETS
+                .iter()
+                .chain(ALLOWED_LAN_MULTICAST_NETS.iter())
+            {
+                match network {
+                    IpNetwork::V4(address) => match Ipv4Net::new(address.ip(), address.prefix()) {
+                        Ok(ipv4_net) => {
+                            exclude_ipv4_lan.add(ipv4_net);
+                        }
+                        Err(e) => {
+                            tracing::error!("Failed to create IPv4 network for {}: {}", address, e)
+                        }
+                    },
+                    IpNetwork::V6(address) => match Ipv6Net::new(address.ip(), address.prefix()) {
+                        Ok(ipv6_net) => {
+                            exclude_ipv6_lan.add(ipv6_net);
+                        }
+                        Err(e) => {
+                            tracing::error!("Failed to create IPv6 network for {}: {}", address, e)
+                        }
+                    },
+                }
+            }
+
+            tunnel_ipv4 = tunnel_ipv4.exclude(&exclude_ipv4_lan);
+            tunnel_ipv6 = tunnel_ipv6.exclude(&exclude_ipv6_lan);
+        }
+
+        tunnel_ipv4
+            .into_iter()
+            .map(|ip| ip.to_string())
+            .chain(tunnel_ipv6.into_iter().map(|ip| ip.to_string()))
+            .collect()
+    }
+}
+
 #[derive(Debug, uniffi::Record)]
 pub struct DnsSettings {
     /// DNS IP addresses.
@@ -369,62 +427,4 @@ impl TunnelNetworkSettings {
             IpNetwork::V6(address) => Either::Right(address),
         })
     }
-}
-
-#[cfg(target_os = "android")]
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn computeTunnelNetworks(
-    ipv4_settings: Option<Ipv4Settings>,
-    ipv6_settings: Option<Ipv6Settings>,
-    allow_lan: bool,
-) -> Vec<String> {
-    use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
-
-    let mut tunnel_ipv4 = ipv4_settings
-        .as_ref()
-        .map(|v| v.tunnel_networks())
-        .unwrap_or_default();
-    let mut tunnel_ipv6 = ipv6_settings
-        .as_ref()
-        .map(|v| v.tunnel_networks())
-        .unwrap_or_default();
-
-    if allow_lan {
-        let mut exclude_ipv4_lan = IpRange::<Ipv4Net>::new();
-        let mut exclude_ipv6_lan = IpRange::<Ipv6Net>::new();
-
-        for network in ALLOWED_LAN_NETS
-            .iter()
-            .chain(ALLOWED_LAN_MULTICAST_NETS.iter())
-        {
-            match network {
-                IpNetwork::V4(address) => match Ipv4Net::new(address.ip(), address.prefix()) {
-                    Ok(ipv4_net) => {
-                        exclude_ipv4_lan.add(ipv4_net);
-                    }
-                    Err(e) => {
-                        tracing::error!("Failed to create IPv4 network for {}: {}", address, e)
-                    }
-                },
-                IpNetwork::V6(address) => match Ipv6Net::new(address.ip(), address.prefix()) {
-                    Ok(ipv6_net) => {
-                        exclude_ipv6_lan.add(ipv6_net);
-                    }
-                    Err(e) => {
-                        tracing::error!("Failed to create IPv6 network for {}: {}", address, e)
-                    }
-                },
-            }
-        }
-
-        tunnel_ipv4 = tunnel_ipv4.exclude(&exclude_ipv4_lan);
-        tunnel_ipv6 = tunnel_ipv6.exclude(&exclude_ipv6_lan);
-    }
-
-    tunnel_ipv4
-        .into_iter()
-        .map(|ip| ip.to_string())
-        .chain(tunnel_ipv6.into_iter().map(|ip| ip.to_string()))
-        .collect()
 }
