@@ -198,7 +198,7 @@
 	<string name="connection_state_selecting_gateways">सर्वश्रेष्ठ सर्वर चुना जा रहा है (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">सर्वरों के साथ गुमनाम रूप से पंजीकरण किया जा रहा है (5/6)</string>
 	<string name="connection_state_connecting_tunnel">सर्वर कनेक्शन स्थापित किया जा रहा है (6/6)</string>
-	<string name="main_button_select_plan">Select plan</string>
+	<string name="main_button_select_plan">प्लान चुनें</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">एंटी-सेंसरशिप</string>
 	<string name="settings_passphrase_title">पासफ़्रेज़</string>
@@ -214,6 +214,8 @@
 	<string name="settings_system_tray_description">बंद होने पर भी ऐप चालू रखें</string>
 	<string name="settings_reset_app_title">ऐप डेटा रीसेट करें</string>
 	<string name="settings_system_status_title">सिस्टम स्टेटस</string>
+	<string name="settings_mixnet_tuning_title">Mixnet tuning</string>
+	<string name="settings_mixnet_tuning_description">Customize traffic patterns of Anonymous mode</string>
 	<string name="settings_quit_title">NymVPN को बंद करें</string>
 	<string name="settings_app_version_line">ऐप वर्ज़न: %1$s</string>
 	<string name="settings_daemon_version_line">Daemon वर्ज़न: %1$s</string>
@@ -221,11 +223,11 @@
 	<string name="settings_language_help_description">अपनी भाषा में ऐप को बहतर बनाएँ।</string>
 	<string name="settings_event_lan_reconnecting">LAN सेटिंग्स लागू करने के लिए पुनः कनेक्ट किया जा रहा है...</string>
 	<!-- Shortcuts activity -->
-	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
-	<string name="shortcut_title">Confirm action</string>
-	<string name="shortcut_subtitle_stop">Unlock to disconnect VPN</string>
-	<string name="shortcut_subtitle_start_mixnet">Unlock to start Mixnet</string>
-	<string name="shortcut_subtitle_start_wg">Unlock to start Fast mode</string>
+	<string name="shortcuts_info_message">शॉर्टकट का उपयोग करने के लिए स्क्रीन लॉक आवश्यक है।</string>
+	<string name="shortcut_title">कन्फ़र्म करें</string>
+	<string name="shortcut_subtitle_stop">VPN को डिस्कनेक्ट करने के लिए अनलॉक करें</string>
+	<string name="shortcut_subtitle_start_mixnet">मिक्सनेट शुरू करने के लिए अनलॉक करें</string>
+	<string name="shortcut_subtitle_start_wg">फास्ट मोड शुरू करने के लिए अनलॉक करें</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">सबसे अच्छे कनेक्शन के लिए</string>
 	<string name="battery_opt_descr">अधिक स्थिर VPN कनेक्शनों के लिए NymVPN बैटरी अनुकूलन अक्षम करें।</string>
@@ -264,7 +266,7 @@
 	<string name="onboarding_title_3">ऑनलाइन ट्रैकिंग से बचें</string>
 	<string name="onboarding_title_4">भुगतान से लेकर वेब तक गुमनामी</string>
 	<string name="onboarding_description_base">दुनिया का सबसे निजी VPN</string>
-	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
+	<string name="onboarding_description_1">दुनिया का सबसे प्राइवेट VPN\n7 दिनों के लिए निःशुल्क आजमाएँ:\nसभी सुविधाएँ शामिल हैं, कोई विज्ञापन नहीं।</string>
 	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
 	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
 	<string name="onboarding_description_4">कार्ड, क्रिप्टोकरेंसी या नकद से भुगतान करें—ईमेल की आवश्यकता नहीं है। ज़ीरो-नॉलेज प्रूफ़ आपके भुगतानों को आपकी ऑनलाइन गतिविधियों से लिंक होने से रोकते हैं।</string>
@@ -463,4 +465,36 @@
 	<string name="dns_learn_more_text">DNS के बारे में और जानें</string>
 	<string name="dns_event_saved">कस्टम DNS सेव कर लिया गया।</string>
 	<string name="dns_event_reconnecting">कस्टम DNS सेटिंग्स लागू करने के लिए पुनः कनेक्ट किया जा रहा है...</string>
+	<!-- Mixnet tuning screen -->
+	<string name="mixnet_tuning_description">Customize your mixnet traffic patterns</string>
+	<string name="mixnet_tuning_current_title">Expected performance of current settings:</string>
+	<string name="mixnet_tuning_current_speed">गति</string>
+	<string name="mixnet_tuning_current_latency">Latency</string>
+	<string name="mixnet_tuning_internet_speed">Up to internet speed</string>
+	<string name="mixnet_tuning_current_description">Expected round-trip latency (RTT) on a standard network</string>
+	<string name="mixnet_tuning_traffic_title">Send traffic continuously</string>
+	<string name="mixnet_tuning_traffic_off_title">Background cover traffic rate</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.</string>
+	<string name="mixnet_tuning_traffic_on_description">Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.</string>
+	<string name="mixnet_tuning_traffic_off_description">We’ll still send cover traffic independently of your real traffic.  Choose how much cover you need. </string>
+	<string name="mixnet_tuning_traffic_min">Use less battery &amp; data</string>
+	<string name="mixnet_tuning_traffic_on_low">Low\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">High\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">Balanced\n1 Mbps</string>
+	<string name="mixnet_tuning_traffic_off_low">Base</string>
+	<string name="mixnet_tuning_traffic_off_high">High\n20x</string>
+	<string name="mixnet_tuning_traffic_off_balanced">Balanced\n5x</string>
+	<string name="mixnet_tuning_traffic_off_medium">Medium\n10x</string>
+	<string name="mixnet_tuning_delays_title">Mixing delays</string>
+	<string name="mixnet_tuning_delays_description">Adjust timing delays to change how well your packets are mixed.</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Timing protection is currently turned off. This could put your privacy at risk.</string>
+	<string name="mixnet_tuning_delays_min">Faster speed</string>
+	<string name="mixnet_tuning_delays_low">Low\n0m</string>
+	<string name="mixnet_tuning_delays_high">High\n200 ms</string>
+	<string name="mixnet_tuning_delays_default">Default\n15 ms</string>
+	<string name="mixnet_tuning_delays_current">Current\n%1$s</string>
+	<string name="mixnet_tuning_max">Max. anonymity</string>
+	<string name="mixnet_tuning_link_text">Learn more about mixnet parameters</string>
+	<string name="mixnet_tuning_save_button">Save custom settings</string>
+	<string name="mixnet_tuning_restore_button">Restore default settings</string>
 </resources>

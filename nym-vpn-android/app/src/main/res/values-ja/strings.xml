@@ -214,6 +214,8 @@
 	<string name="settings_system_tray_description">終了時にアプリを起動させ続ける</string>
 	<string name="settings_reset_app_title">アプリのデータをリセット</string>
 	<string name="settings_system_status_title">システムの状態</string>
+	<string name="settings_mixnet_tuning_title">Mixnet チューニング</string>
+	<string name="settings_mixnet_tuning_description">匿名モードのトラフィックパターンをカスタマイズ</string>
 	<string name="settings_quit_title">NymVPNを終了</string>
 	<string name="settings_app_version_line">アプリのバージョン: %1$s</string>
 	<string name="settings_daemon_version_line">デーモンバージョン： %1$s</string>
@@ -462,4 +464,36 @@
 	<string name="dns_learn_more_text">DNS についてもっと知る</string>
 	<string name="dns_event_saved">カスタムDNSを保存しました</string>
 	<string name="dns_event_reconnecting">再接続してカスタムDNS設定を適用...</string>
+	<!-- Mixnet tuning screen -->
+	<string name="mixnet_tuning_description">ミックスネットのトラフィックパターンをカスタマイズします</string>
+	<string name="mixnet_tuning_current_title">現在の設定のパフォーマンスが予想されます:</string>
+	<string name="mixnet_tuning_current_speed">速度</string>
+	<string name="mixnet_tuning_current_latency">レイテンシー</string>
+	<string name="mixnet_tuning_internet_speed">インターネット速度まで</string>
+	<string name="mixnet_tuning_current_description">標準ネットワーク上での往復待ち時間(RTT)</string>
+	<string name="mixnet_tuning_traffic_title">トラフィックを継続的に送信</string>
+	<string name="mixnet_tuning_traffic_off_title">バックグラウンドカバーのトラフィック</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ 連続トラフィックが無効になります。パケットが利用可能になると送信されます。トラフィックパターンが明らかになる可能性があります。</string>
+	<string name="mixnet_tuning_traffic_on_description">カバートラフィックは常にパターンを均一に保つために送信されます。パケットの送信率を調整してください。</string>
+	<string name="mixnet_tuning_traffic_off_description">実際のトラフィックとは独立してカバートラフィックを送信します。必要なカバー額を選択してください。 </string>
+	<string name="mixnet_tuning_traffic_min">少ないバッテリー &amp; データを使用する</string>
+	<string name="mixnet_tuning_traffic_on_low">低い\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">高\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">バランスの取れた\n1 Mbps</string>
+	<string name="mixnet_tuning_traffic_off_low">Base</string>
+	<string name="mixnet_tuning_traffic_off_high">高い\n20x</string>
+	<string name="mixnet_tuning_traffic_off_balanced">バランシング\n5x</string>
+	<string name="mixnet_tuning_traffic_off_medium">中\n10x</string>
+	<string name="mixnet_tuning_delays_title">ミキシング遅延</string>
+	<string name="mixnet_tuning_delays_description">タイミングの遅延を調整して、パケットがどの程度混在しているかを変更します。</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ タイミング保護は現在オフになっています。これによりプライバシーが危険にさらされる可能性があります。</string>
+	<string name="mixnet_tuning_delays_min">速いスピード</string>
+	<string name="mixnet_tuning_delays_low">低い\n0m</string>
+	<string name="mixnet_tuning_delays_high">高い\n200 ms</string>
+	<string name="mixnet_tuning_delays_default">デフォルト\n15 ms</string>
+	<string name="mixnet_tuning_delays_current">現在の\n%1$s</string>
+	<string name="mixnet_tuning_max">Max. anonymity</string>
+	<string name="mixnet_tuning_link_text">mixnetパラメータについてもっと詳しく</string>
+	<string name="mixnet_tuning_save_button">カスタム設定を保存</string>
+	<string name="mixnet_tuning_restore_button">既定の設定に戻す</string>
 </resources>

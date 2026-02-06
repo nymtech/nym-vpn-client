@@ -214,6 +214,8 @@
 	<string name="settings_system_tray_description">Зберігати роботу програми після закриття</string>
 	<string name="settings_reset_app_title">Скинути дані програми</string>
 	<string name="settings_system_status_title">Стан системи</string>
+	<string name="settings_mixnet_tuning_title">Налаштування Mixnet</string>
+	<string name="settings_mixnet_tuning_description">Налаштування моделей трафіку в анонімному режимі</string>
 	<string name="settings_quit_title">Вийти з NymVPN</string>
 	<string name="settings_app_version_line">Версія програми: %1$s</string>
 	<string name="settings_daemon_version_line">Версія Daemon: %1$s</string>
@@ -463,4 +465,36 @@
 	<string name="dns_learn_more_text">Дізнайтеся більше про DNS</string>
 	<string name="dns_event_saved">Збережено власний DNS</string>
 	<string name="dns_event_reconnecting">Повторне підключення для застосування налаштувань DNS...</string>
+	<!-- Mixnet tuning screen -->
+	<string name="mixnet_tuning_description">Налаштуйте свої моделі трафіку в мікснеті</string>
+	<string name="mixnet_tuning_current_title">Очікувана продуктивність поточних налаштувань:</string>
+	<string name="mixnet_tuning_current_speed">Швидкість</string>
+	<string name="mixnet_tuning_current_latency">Затримка</string>
+	<string name="mixnet_tuning_internet_speed">До швидкості інтернету</string>
+	<string name="mixnet_tuning_current_description">Очікувана затримка в обох напрямках (RTT) у стандартній мережі</string>
+	<string name="mixnet_tuning_traffic_title">Постійно надсилати трафік</string>
+	<string name="mixnet_tuning_traffic_off_title">Швидкість трафіку фонового покриття</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Безперервний трафік вимкнено. Ваші пакети будуть надсилатися по мірі їхньої доступності. Це може розкрити схеми трафіку.</string>
+	<string name="mixnet_tuning_traffic_on_description">Трафік покриття завжди надсилається для забезпечення однорідності структури. Налаштуйте швидкість надсилання пакетів.</string>
+	<string name="mixnet_tuning_traffic_off_description">Ми все одно будемо надсилати додатковий трафік незалежно від вашого реального трафіку.  Виберіть, скільки додаткового трафіку вам потрібно. </string>
+	<string name="mixnet_tuning_traffic_min">Використовувати менше заряду батареї &amp; </string>
+	<string name="mixnet_tuning_traffic_on_low">Низький\n0.7 Мбіт/с</string>
+	<string name="mixnet_tuning_traffic_on_high">Високий\n2 Мбіт/с</string>
+	<string name="mixnet_tuning_traffic_on_balanced">Збалансований\n1 Мбіт/с</string>
+	<string name="mixnet_tuning_traffic_off_low">Основи</string>
+	<string name="mixnet_tuning_traffic_off_high">Високий\n20x</string>
+	<string name="mixnet_tuning_traffic_off_balanced">Збалансований\n5x</string>
+	<string name="mixnet_tuning_traffic_off_medium">Середній\n10х</string>
+	<string name="mixnet_tuning_delays_title">Затримки змішування</string>
+	<string name="mixnet_tuning_delays_description">Налаштуйте затримки синхронізації, щоб змінити якість змішування пакетів.</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Захист від синхронізації наразі вимкнено. Це може становити загрозу для вашої конфіденційності.</string>
+	<string name="mixnet_tuning_delays_min">Більша швидкість</string>
+	<string name="mixnet_tuning_delays_low">Низький\n0м</string>
+	<string name="mixnet_tuning_delays_high">Високий\n200 мс</string>
+	<string name="mixnet_tuning_delays_default">За замовчуванням\n15 мс</string>
+	<string name="mixnet_tuning_delays_current">Поточний\n%1$s</string>
+	<string name="mixnet_tuning_max">Максимальна анонімність</string>
+	<string name="mixnet_tuning_link_text">Дізнайтеся більше про параметри мікснету</string>
+	<string name="mixnet_tuning_save_button">Зберегти власні налаштування</string>
+	<string name="mixnet_tuning_restore_button">Відновіть налаштування за замовчуванням</string>
 </resources>

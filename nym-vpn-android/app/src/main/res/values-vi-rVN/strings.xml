@@ -214,6 +214,8 @@
 	<string name="settings_system_tray_description">Giữ ứng dụng chạy khi đóng</string>
 	<string name="settings_reset_app_title">Đặt lại dữ liệu ứng dụng</string>
 	<string name="settings_system_status_title">Trạng thái hệ thống</string>
+	<string name="settings_mixnet_tuning_title">Điều chỉnh mixnet</string>
+	<string name="settings_mixnet_tuning_description">Tùy chỉnh mô hình lưu lượng truy cập của Chế độ ẩn danh</string>
 	<string name="settings_quit_title">Thoát NymVPN</string>
 	<string name="settings_app_version_line">Phiên bản ứng dụng: %1$s</string>
 	<string name="settings_daemon_version_line">Phiên bản daemon: %1$s</string>
@@ -462,4 +464,36 @@
 	<string name="dns_learn_more_text">Tìm hiểu thêm về DNS</string>
 	<string name="dns_event_saved">Đã lưu DNS tùy chỉnh</string>
 	<string name="dns_event_reconnecting">Đang kết nối lại để áp dụng cài đặt DNS tùy chỉnh...</string>
+	<!-- Mixnet tuning screen -->
+	<string name="mixnet_tuning_description">Customize your mixnet traffic patterns</string>
+	<string name="mixnet_tuning_current_title">Expected performance of current settings:</string>
+	<string name="mixnet_tuning_current_speed">Tốc độ</string>
+	<string name="mixnet_tuning_current_latency">Độ trễ</string>
+	<string name="mixnet_tuning_internet_speed">Up to internet speed</string>
+	<string name="mixnet_tuning_current_description">Độ trễ khứ hồi (RTT) dự kiến ​​trên mạng tiêu chuẩn</string>
+	<string name="mixnet_tuning_traffic_title">Gửi lưu lượng truy cập liên tục</string>
+	<string name="mixnet_tuning_traffic_off_title">Tỷ lệ lưu lượng truy cập che phủ chạy nền</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Chế độ lưu lượng truy cập liên tục đã bị tắt. Gói dữ liệu của bạn sẽ được gửi đi khi khả dụng. Điều này có thể tiết lộ các mô hình lưu lượng truy cập.</string>
+	<string name="mixnet_tuning_traffic_on_description">Lưu lượng truy cập bao phủ luôn được gửi đi để duy trì mô hình đồng nhất. Điều chỉnh tốc độ gửi gói tin của bạn.</string>
+	<string name="mixnet_tuning_traffic_off_description">We’ll still send cover traffic independently of your real traffic.  Choose how much cover you need. </string>
+	<string name="mixnet_tuning_traffic_min">Use less battery &amp; data</string>
+	<string name="mixnet_tuning_traffic_on_low">Low\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">High\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">Balanced\n1 Mbps</string>
+	<string name="mixnet_tuning_traffic_off_low">Cơ bản</string>
+	<string name="mixnet_tuning_traffic_off_high">High\n20x</string>
+	<string name="mixnet_tuning_traffic_off_balanced">Balanced\n5x</string>
+	<string name="mixnet_tuning_traffic_off_medium">Medium\n10x</string>
+	<string name="mixnet_tuning_delays_title">Độ trễ xáo trộn dữ liệu</string>
+	<string name="mixnet_tuning_delays_description">Adjust timing delays to change how well your packets are mixed.</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Chức năng bảo vệ theo thời gian hiện đang bị tắt. Điều này có thể gây nguy hiểm cho quyền riêng tư của bạn.</string>
+	<string name="mixnet_tuning_delays_min">Faster speed</string>
+	<string name="mixnet_tuning_delays_low">Low\n0m</string>
+	<string name="mixnet_tuning_delays_high">High\n200 ms</string>
+	<string name="mixnet_tuning_delays_default">Default\n15 ms</string>
+	<string name="mixnet_tuning_delays_current">Current\n%1$s</string>
+	<string name="mixnet_tuning_max">Ẩn danh tối đa</string>
+	<string name="mixnet_tuning_link_text">Tìm hiểu thêm về các thông số mixnet</string>
+	<string name="mixnet_tuning_save_button">Lưu cài đặt tùy chỉnh</string>
+	<string name="mixnet_tuning_restore_button">Restore default settings</string>
 </resources>

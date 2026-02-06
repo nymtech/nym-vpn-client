@@ -1,8 +1,8 @@
 Що нового
-- New logging controls: Enable Logs and Debug Verbose toggles
-- Added authentication check for shortcut actions
-- Updated logs export format (structured folders and grouped logs)
-- Improved NavBar action handling
-- Reduced unnecessary log noise
-- Fixed Auto Start handling
-- Minor UI improvements and fixes
+- Нові елементи керування журналами: увімкнення перемикачів «Журнали» та «Детальне налагодження»
+- Додано перевірку автентичності для дій ярликів
+- Оновлено формат експорту журналів (структуровані папки та згруповані журнали)
+- Покращено обробку дій NavBar
+- Зменшення непотрібного шуму в журналі
+- Виправлено обробку автоматичного запуску
+- Незначні вдосконалення та виправлення інтерфейсу користувача

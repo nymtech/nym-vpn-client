@@ -216,6 +216,8 @@
 	<string name="settings_system_tray_description">Manter o aplicativo em execução quando fechado</string>
 	<string name="settings_reset_app_title">Redefinir dados do aplicativo</string>
 	<string name="settings_system_status_title">Status do sistema</string>
+	<string name="settings_mixnet_tuning_title">Ajuste Mixnet</string>
+	<string name="settings_mixnet_tuning_description">Personalizar os padrões de tráfego do modo anônimo</string>
 	<string name="settings_quit_title">Sair do NymVPN</string>
 	<string name="settings_app_version_line">Versão do app: %1$s</string>
 	<string name="settings_daemon_version_line">Versão do Daemon: %1$s</string>
@@ -266,7 +268,7 @@
 	<string name="onboarding_title_3">Parar de ser monitorado online</string>
 	<string name="onboarding_title_4">Anonimato de pagamento para web</string>
 	<string name="onboarding_description_base">A VPN mais privada do mundo</string>
-	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
+	<string name="onboarding_description_1">A VPN mais privada do mundo\nExperimente gratuitamente por 7 dias\nTodos os recursos inclusos, sem anúncios.</string>
 	<string name="onboarding_description_2">Rápido: mais de 250 Mbps com dVPN.\nanônimo: 5 saltos de ruído gerando Mixnet.</string>
 	<string name="onboarding_description_3">A rede descentralizada do Nilo torna \"no-log\"\n promete obsoleto.</string>
 	<string name="onboarding_description_4">Pague com cartão, cripto ou dinheiro sem necessidade de e-mail. As provas de conhecimento zero tornam seus pagamentos não vinculáveis às suas atividades on-line.</string>
@@ -464,4 +466,36 @@
 	<string name="dns_learn_more_text">Saiba mais sobre DNS</string>
 	<string name="dns_event_saved">DNS personalizado salvo</string>
 	<string name="dns_event_reconnecting">Reconectando para aplicar as configurações de DNS personalizadas...</string>
+	<!-- Mixnet tuning screen -->
+	<string name="mixnet_tuning_description">Personalize seus padrões de tráfego mixnet</string>
+	<string name="mixnet_tuning_current_title">Desempenho esperado das configurações atuais:</string>
+	<string name="mixnet_tuning_current_speed">Velocidade</string>
+	<string name="mixnet_tuning_current_latency">Latência</string>
+	<string name="mixnet_tuning_internet_speed">Velocidade de até internet</string>
+	<string name="mixnet_tuning_current_description">latência de ida e volta esperada (RTT) em uma rede padrão</string>
+	<string name="mixnet_tuning_traffic_title">Enviar tráfego continuamente</string>
+	<string name="mixnet_tuning_traffic_off_title">Taxa de tráfego de fundo</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ O tráfego contínuo está desativado. Seus pacotes serão enviados assim que estiverem disponíveis. Isso pode revelar padrões de tráfego.</string>
+	<string name="mixnet_tuning_traffic_on_description">O tráfego da capa é sempre enviado para manter o padrão uniforme. Ajuste a taxa de envio dos seus pacotes.</string>
+	<string name="mixnet_tuning_traffic_off_description">Ainda enviaremos o tráfego de cobertura independentemente do seu tráfego real. Escolha a quantidade de cobertura que você precisa. </string>
+	<string name="mixnet_tuning_traffic_min">Usar menos bateria &amp; dados</string>
+	<string name="mixnet_tuning_traffic_on_low">A Baixa\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">\nMais 2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">\n1 Mbps Balanceados</string>
+	<string name="mixnet_tuning_traffic_off_low">Base</string>
+	<string name="mixnet_tuning_traffic_off_high">\n20x alto</string>
+	<string name="mixnet_tuning_traffic_off_balanced">\n5x Balanceado</string>
+	<string name="mixnet_tuning_traffic_off_medium">\nMédia 10x</string>
+	<string name="mixnet_tuning_delays_title">Atraso misturado</string>
+	<string name="mixnet_tuning_delays_description">Ajuste atrasos de tempo para alterar a forma como os seus pacotes são misturados.</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ A proteção de tempo está desativada no momento. Isso pode colocar sua privacidade em risco.</string>
+	<string name="mixnet_tuning_delays_min">Velocidade mais rápida</string>
+	<string name="mixnet_tuning_delays_low">Mínima\n0m</string>
+	<string name="mixnet_tuning_delays_high">Alta em\n200 ms</string>
+	<string name="mixnet_tuning_delays_default">Padrão\n15 ms</string>
+	<string name="mixnet_tuning_delays_current">Atual\n%1$s</string>
+	<string name="mixnet_tuning_max">Max. anonymity</string>
+	<string name="mixnet_tuning_link_text">Saiba mais sobre parâmetros mixnet</string>
+	<string name="mixnet_tuning_save_button">Salvar configurações personalizadas</string>
+	<string name="mixnet_tuning_restore_button">Restaurar configurações padrão</string>
 </resources>
