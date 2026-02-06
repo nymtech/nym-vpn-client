@@ -8,8 +8,7 @@ mod vpn_service;
 
 pub use config::{
     ConfigSetupError, DEFAULT_GLOBAL_CONFIG_FILE_JSON, DEFAULT_GLOBAL_CONFIG_FILE_TOML,
-    DEFAULT_LOG_FILE, DEFAULT_OLD_LOG_FILE, read_json_config_file, read_toml_config_file,
-    write_json_config_file,
+    read_json_config_file, read_toml_config_file, write_json_config_file,
 };
 pub use error::{AccountLinksError, Error, GlobalConfigError, ListGatewaysError, SetNetworkError};
 pub use socks5::{
