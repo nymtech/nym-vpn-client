@@ -33,6 +33,7 @@ pub use discovery::Discovery;
 pub use discovery_refresher::{DiscoveryRefresher, DiscoveryRefresherCommand};
 pub use envs::RegisteredNetworks;
 pub use feature_flags::{FeatureFlags, FlagValue};
+pub use fetcher::Fetcher;
 pub use nym_network_defaults::NymNetworkDetails;
 pub use nym_vpn_network::NymVpnNetwork;
 pub use system_configuration::{ScoreThresholds, SystemConfiguration};
@@ -45,7 +46,6 @@ use nym_vpn_api_client::{ResolverOverrides, str_to_socket_addr};
 
 use crate::{
     discovery::DiscoveryFromNymWellknownDiscoveryError,
-    fetcher::Fetcher,
     nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
     persistent_discovery::PersistentDiscovery,
     persistent_envs::PersistentEnvs,

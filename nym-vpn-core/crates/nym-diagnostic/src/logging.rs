@@ -9,6 +9,9 @@ pub(crate) fn setup_tracing_logger(args: &CliArgs) -> anyhow::Result<()> {
     fn directive_checked(directive: impl Into<String>) -> anyhow::Result<Directive> {
         directive.into().parse().map_err(From::from)
     }
+    if args.no_log {
+        return Ok(());
+    }
 
     let log_builder = tracing_subscriber::fmt()
         // Use a more compact, abbreviated log format
