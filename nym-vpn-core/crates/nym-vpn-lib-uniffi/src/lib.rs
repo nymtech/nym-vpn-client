@@ -13,17 +13,33 @@
 //! ```swift
 //! import NymVpnLib
 //!
-//! // Somewhere in main()
-//! // Setup tokio runtime used by Rust library
-//! initializeTokioRuntime()
-//!
 //! // Configure logging
-//! await initLogger("/path/to/log/dir", LogLevel::Info, /* enable sentry */ true)
+//! initLogger(logDir: "/path/to/log/dir", logLevel: LogLevel::Info, sentryMonitoring: true)
 //! ```
 //!
 //! ## Environment initialization
 //!
 //! Initialize the environment: `NymEnvironment::new_with_cache_dir(cache_dir, network_name)` or `NymEnvironment::new_with_mainnet_fallback()`.
+//!
+//! ```swift
+//! import NymVpnLib
+//!
+//! // create mainnet fallback environment
+//! let mainnetFallback = try! await NymEnvironment.newWithMainnetFallback()
+//!
+//! // create environment with cache dir
+//! let userAgent = UserAgent {
+//!     application: "MyApp",
+//!     version: "1.0",
+//!     platform: "ios",
+//!     git_commit: "",
+//! }
+//! let environment = try! await NymEnvironment.newWithCacheDir(
+//!     cacheDir: "/path/to/cache/dir",
+//!     networkName: "mainnet",
+//!     userAgent: userAgent
+//! )
+//! ```
 //!
 //! ## Query gateways
 //!
@@ -32,17 +48,25 @@
 //! ```swift
 //! import NymVpnLib
 //!
-//! let environment = try! await NymEnvironment("/path/to/config/dir", "mainnet");
-//! let offlineMonitor = try! await OfflineMonitor);
-//!
 //! let userAgent = UserAgent {
 //!     application: "MyApp",
 //!     version: "1.0",
 //!     platform: "ios",
 //!     git_commit: "",
 //! }
-//! let gatewayCache = await NymGatewayCache(userAgent, environment, offlineMonitor);
-//! let gateways = try! await gatewayCache.getGateways(GatewayType::Wg);
+//! let environment = try! await NymEnvironment.newWithCacheDir(
+//!     cacheDir: "/path/to/cache/dir",
+//!     networkName: "mainnet",
+//!     userAgent: userAgent
+//! )
+//! let offlineMonitor = await NymOfflineMonitor()
+//!
+//! let gatewayCache = try await NymGatewayCache(
+//!     userAgent: userAgent,
+//!     environment: environment,
+//!     offlineMonitor: offlineMonitor
+//! )
+//! let gateways = try! await gatewayCache.getGateways(gwType: .wg);
 //!
 //! // Destroy gateway cache when no longer needed
 //! // Or simply release all references to it
@@ -56,10 +80,20 @@
 //! ```swift
 //! import NymVpnLib
 //!
-//! let environment = try! await NymEnvironment("/path/to/config/dir", "mainnet")
-//! let accountStorage = try! await NymVpnAccountStorage("/path/to/config/dir", environment)
+//! let userAgent = UserAgent {
+//!     application: "MyApp",
+//!     version: "1.0",
+//!     platform: "ios",
+//!     git_commit: "",
+//! }
+//! let environment = try! await NymEnvironment.newWithCacheDir(
+//!     cacheDir: "/path/to/cache/dir",
+//!     networkName: "mainnet",
+//!     userAgent: userAgent
+//! )
+//! let accountStorage = try! await NymVpnAccountStorage(dataDir: "/path/to/config/dir", environment: environment)
 //!
-//! try! await accountStorage.login(.vpn(mnemonic: "my awesome mnemonic!"))
+//! try! await accountStorage.login(request: .vpn(mnemonic: "my awesome mnemonic!"))
 //! ```
 //!
 //! ## Interact with account controller
@@ -69,22 +103,30 @@
 //! ```swift
 //! import NymVpnLib
 //!
-//! let environment = try! await NymEnvironment("/path/to/config/dir", "mainnet")
-//! let offlineMonitor = try! await OfflineMonitor()
-//!
 //! let userAgent = UserAgent {
 //!     application: "MyApp",
 //!     version: "1.0",
 //!     platform: "ios",
 //!     git_commit: "",
 //! }
-//! let accountController = try! await NymAccountController("/path/to/data/dir", userAgent, environment, offlineMonitor);
+//! let environment = try! await NymEnvironment.newWithCacheDir(
+//!     cacheDir: "/path/to/cache/dir",
+//!     networkName: "mainnet",
+//!     userAgent: userAgent
+//! )
+//! let offlineMonitor = await NymOfflineMonitor()
+//! let accountController = try! await NymAccountController(
+//!     data_dir: "/path/to/data/dir",
+//!     userAgent: userAgent,
+//!     environment: environment,
+//!     offlineMonitor: offlineMonitor
+//! );
 //!
 //! // Log in
-//! try! await accountController.login(.vpn(mnemonic: "my awesome mnemonic!"))
+//! try! await accountController.login(request: .vpn(mnemonic: "my awesome mnemonic!"))
 //!
 //! // Wait for account to be ready to connect
-//! try! await accountController.waitForAccountReadyToConnect()
+//! try! await accountController.waitForAccountReadyToConnect(timeout: 3600)
 //!
 //! // Destroy account controller when no longer needed
 //! await accountController.shutdownAndWait()
@@ -110,13 +152,17 @@
 //! let tunnelEventHandler = TunnelStatusListener()
 //!
 //! // Create VPN service and retain it throughout the application lifecycle
-//! let vpnService = NymVpnService(config, environment, tunnelEventHandler)
+//! let vpnService = NymVpnService.newService(
+//!     config: config,
+//!     environment: environment,
+//!     eventListener: tunnelEventHandler
+//! )
 //!
 //! // Create command sender
 //! let commandSender = vpnService.getCommandSender()
 //!
 //! // Manage VPN service
-//! try! await commandSender.setEnableTwoHop(true)
+//! try! await commandSender.setEnableTwoHop(enableTwoHop: true)
 //! try! await commandSender.connectTunnel()
 //!
 //! // When no longer needed, release the VPN service
