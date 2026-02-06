@@ -2,11 +2,10 @@ package net.nymtech.vpn.util.extensions
 
 import android.net.VpnService
 import nym_vpn_lib.TunnelNetworkSettings
-import nym_vpn_lib.computeTunnelNetworks
 import timber.log.Timber
 
 fun VpnService.Builder.addRoutes(config: TunnelNetworkSettings, allowLan: Boolean) {
-	val tunnelNetworks = computeTunnelNetworks(config.ipv4Settings, config.ipv6Settings, allowLan)
+	val tunnelNetworks = config.computeTunnelNetworks(allowLan)
 	val addressesWithPrefixes = tunnelNetworks.mapNotNull {
 		val parts = it.split("/")
 		if (parts.size == 2) {

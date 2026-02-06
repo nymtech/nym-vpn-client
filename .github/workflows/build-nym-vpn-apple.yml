@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
     inputs:
       release_type:
-        description: | 
-              Select build mode:
-              🚜 pr — Pull Request
-              🧪 qa — QA Release
-              🚢 ship — Ship Release
+        description: |
+          Select build mode:
+          🚜 pr — Pull Request
+          🧪 qa — QA Release
+          🚢 ship — Ship Release
         type: choice
         options:
           - pr
@@ -128,7 +128,7 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-swift
-          version: 0.10.0
+          version: 0.11.0
 
       - name: Install cargo-license
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
@@ -997,7 +997,7 @@ jobs:
           ls -la "$PUBLISH_DIR"
 
           echo "publish_relative_path=nym-vpn-apple/build/pkg/$PUBLISH_DIR" >> "$GITHUB_ENV"
-          
+
           echo "🧩 Extracting <item> block for nym-websites…"
           awk '
             BEGIN { p=0 }
@@ -1063,7 +1063,7 @@ jobs:
             - Branch: ${{ github.ref_name }}
             - Commit: ${{ github.sha }}
             - Built at: ${{ github.run_started_at }}
-      
+
       - name: Publish macOS GitHub Release
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
         uses: softprops/action-gh-release@v2
@@ -1335,7 +1335,7 @@ jobs:
           type: "stream"
           topic: ${{ secrets.ZULIP_BOT_APPLE_TOPIC_MACOS }}
           content: ${{ env.MESSAGE_MACOS }}
-  
+
       - name: Cleanup Keychain
         if: always()
         run: |
