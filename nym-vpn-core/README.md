@@ -30,10 +30,10 @@ After installing Rust, install the following Rust targets and dependencies to en
     xcode-select -p
     # /Library/Developer/CommandLineTools
     ```
-1. Install `cargo-swift` compatible with uniffi 0.30:
+1. Install `cargo-swift` compatible with uniffi 0.31:
 
     ```sh
-    cargo install cargo-swift@0.10.0
+    cargo install cargo-swift@0.11.0
     ```
 1. Install iOS targets:
 
