@@ -214,6 +214,8 @@
 	<string name="settings_system_tray_description">Garde l\'application en cours d\'exécution quand elle est fermée</string>
 	<string name="settings_reset_app_title">Réinitialiser les données de l\'application</string>
 	<string name="settings_system_status_title">Statut du système</string>
+	<string name="settings_mixnet_tuning_title">Réglage Mixnet</string>
+	<string name="settings_mixnet_tuning_description">Personnaliser les modèles de trafic du mode anonyme</string>
 	<string name="settings_quit_title">Quitter NymVPN</string>
 	<string name="settings_app_version_line">Version de l\'application : %1$s</string>
 	<string name="settings_daemon_version_line">Version du daemon : %1$s</string>
@@ -462,4 +464,36 @@
 	<string name="dns_learn_more_text">En savoir plus sur le DNS</string>
 	<string name="dns_event_saved">DNS personnalisé sauvegardé</string>
 	<string name="dns_event_reconnecting">Reconnexion pour appliquer les paramètres DNS personnalisés...</string>
+	<!-- Mixnet tuning screen -->
+	<string name="mixnet_tuning_description">Personnalisez vos modèles de trafic mixnet</string>
+	<string name="mixnet_tuning_current_title">Performances attendues des paramètres actuels:</string>
+	<string name="mixnet_tuning_current_speed">Rapidité</string>
+	<string name="mixnet_tuning_current_latency">Latence</string>
+	<string name="mixnet_tuning_internet_speed">Jusqu\'à la vitesse d\'Internet</string>
+	<string name="mixnet_tuning_current_description">latence aller-retour attendue (RTT) sur un réseau standard</string>
+	<string name="mixnet_tuning_traffic_title">Envoyer du trafic en continu</string>
+	<string name="mixnet_tuning_traffic_off_title">Taux de trafic de couverture de l\'arrière-plan</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ Le trafic continu est désactivé. Vos paquets seront envoyés dès qu\'ils seront disponibles. Cela pourrait révéler des schémas de trafic.</string>
+	<string name="mixnet_tuning_traffic_on_description">Le trafic de couverture est toujours envoyé pour garder le modèle uniforme. Ajustez le taux d\'envoi de vos paquets.</string>
+	<string name="mixnet_tuning_traffic_off_description">Nous enverrons toujours le trafic de couverture indépendamment de votre trafic réel. Choisissez la quantité de couverture dont vous avez besoin. </string>
+	<string name="mixnet_tuning_traffic_min">Utiliser moins de données &amp; batterie</string>
+	<string name="mixnet_tuning_traffic_on_low">Faible\n0,7 Mbit/s</string>
+	<string name="mixnet_tuning_traffic_on_high">Haut\n2 Mbit/s</string>
+	<string name="mixnet_tuning_traffic_on_balanced">\n1 Mbit/s équilibrés</string>
+	<string name="mixnet_tuning_traffic_off_low">Base</string>
+	<string name="mixnet_tuning_traffic_off_high">Haute\n20 x</string>
+	<string name="mixnet_tuning_traffic_off_balanced">Équilibré\n5x</string>
+	<string name="mixnet_tuning_traffic_off_medium">Moyenne\n10 x</string>
+	<string name="mixnet_tuning_delays_title">Mixer les retards</string>
+	<string name="mixnet_tuning_delays_description">Ajustez les délais de synchronisation pour modifier la qualité des mixages de vos paquets.</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ La protection contre le temps est actuellement désactivée. Cela pourrait mettre votre vie privée en danger.</string>
+	<string name="mixnet_tuning_delays_min">Vitesse plus rapide</string>
+	<string name="mixnet_tuning_delays_low">Faible\nà 0m</string>
+	<string name="mixnet_tuning_delays_high">Haute\n200 ms</string>
+	<string name="mixnet_tuning_delays_default">\n15 ms par défaut</string>
+	<string name="mixnet_tuning_delays_current">Current\n%1$s</string>
+	<string name="mixnet_tuning_max">Max. anonymity</string>
+	<string name="mixnet_tuning_link_text">En savoir plus sur les paramètres mixnet</string>
+	<string name="mixnet_tuning_save_button">Enregistrer les paramètres personnalisés</string>
+	<string name="mixnet_tuning_restore_button">Restaurer les paramètres par défaut</string>
 </resources>

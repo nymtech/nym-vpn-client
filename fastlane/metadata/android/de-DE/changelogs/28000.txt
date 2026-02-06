@@ -1,8 +1,8 @@
 Was ist neu
-- Neue Logging-Steuerelemente: Protokolle und Debug Verbose-Schalter aktivieren
-- Authentifizierungsprüfung für Verknüpfungsaktionen hinzugefügt
-- Aktualisiertes Protokoll-Exportformat (strukturierte Ordner und gruppierte Logs)
-- Verbesserte NavBar-Aktion Bearbeitung
-- Reduzierte unnötige Protokollgeräusche
-- Automatische Start-Behandlung repariert
-- Kleinere UI-Verbesserungen und -Korrekturen
+- Neue Log-Steuerelemente: "Logging aktivieren" und "Ausführliches Logging aktivieren"
+- Authentifizierungsprüfung für App-Verknüpfungsaktionen hinzugefügt
+- Aktualisiertes Exportformat für Logs (strukturierte Ordner und gruppierte Logs)
+- Verbesserte Handhabung von NavBar-Aktionen
+Reduzierung von unnötigem Overhead in den Logs
+- Behebung eines Problems beim automatischen Start
+- Kleinere Verbesserungen und Fehlerbehebungen an der Benutzeroberfläche

@@ -1,8 +1,8 @@
 Có gì mới
-- New logging controls: Enable Logs and Debug Verbose toggles
-- Added authentication check for shortcut actions
-- Updated logs export format (structured folders and grouped logs)
-- Improved NavBar action handling
-- Reduced unnecessary log noise
-- Fixed Auto Start handling
-- Minor UI improvements and fixes
+- Thêm các tùy chọn ghi nhật ký: Bật/tắt Nhật ký và Chế độ gỡ lỗi chi tiết
+- Thêm kiểm tra xác thực cho các thao tác phím tắt
+- Cập nhật định dạng xuất nhật ký (thư mục có cấu trúc và nhật ký được nhóm)
+- Cải thiện khả năng xử lý thao tác trên Thanh điều hướng
+- Giảm bớt thông tin nhật ký nhiễu
+- Sửa lỗi xử lý Tự động khởi động
+- Cải tiến và sửa lỗi giao diện người dùng nhỏ

@@ -214,6 +214,8 @@
 	<string name="settings_system_tray_description">关闭时保持应用程序运行</string>
 	<string name="settings_reset_app_title">重置应用数据</string>
 	<string name="settings_system_status_title">系统状态</string>
+	<string name="settings_mixnet_tuning_title">混合调整</string>
+	<string name="settings_mixnet_tuning_description">自定义匿名模式的流量模式</string>
 	<string name="settings_quit_title">退出 NymVPN</string>
 	<string name="settings_app_version_line">应用版本: %1$s</string>
 	<string name="settings_daemon_version_line">守护进程版本: %1$s</string>
@@ -462,4 +464,36 @@
 	<string name="dns_learn_more_text">了解更多关于DNS的信息</string>
 	<string name="dns_event_saved">自定义DNS已保存</string>
 	<string name="dns_event_reconnecting">正在重新连接以应用自定义DNS设置……</string>
+	<!-- Mixnet tuning screen -->
+	<string name="mixnet_tuning_description">自定义您的 mixnet 流量模式</string>
+	<string name="mixnet_tuning_current_title">当前设置的预期性能：</string>
+	<string name="mixnet_tuning_current_speed">速度</string>
+	<string name="mixnet_tuning_current_latency">延迟</string>
+	<string name="mixnet_tuning_internet_speed">网络速度</string>
+	<string name="mixnet_tuning_current_description">标准网络上的预期往返延迟(RTT)</string>
+	<string name="mixnet_tuning_traffic_title">连续发送流量</string>
+	<string name="mixnet_tuning_traffic_off_title">背景覆盖流速率</string>
+	<string name="mixnet_tuning_traffic_warning">:警告 ︰ 连续流量已关闭。您的数据包将在可用时发送。这可能会显示流量模式。</string>
+	<string name="mixnet_tuning_traffic_on_description">封面流总是为了保持图案的一致性。调整数据包的发送率。</string>
+	<string name="mixnet_tuning_traffic_off_description">我们仍将发送封面流量，而不依赖您的实际流量。请选择您需要多少封面。 </string>
+	<string name="mixnet_tuning_traffic_min">使用较少电量的 &amp; 数据</string>
+	<string name="mixnet_tuning_traffic_on_low">低\n0.7Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">高\n2 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">平衡\n1 Mbps</string>
+	<string name="mixnet_tuning_traffic_off_low">基数</string>
+	<string name="mixnet_tuning_traffic_off_high">高\n20x</string>
+	<string name="mixnet_tuning_traffic_off_balanced">平衡的\n5x</string>
+	<string name="mixnet_tuning_traffic_off_medium">中\n10x</string>
+	<string name="mixnet_tuning_delays_title">混合延迟</string>
+	<string name="mixnet_tuning_delays_description">调整时间延迟，以改变您的数据包混合的程度。</string>
+	<string name="mixnet_tuning_delays_warning">:警告：时间保护当前已关闭。这可能会使您的隐私处于危险之中。</string>
+	<string name="mixnet_tuning_delays_min">更快速度</string>
+	<string name="mixnet_tuning_delays_low">低\n0m</string>
+	<string name="mixnet_tuning_delays_high">高\n200 毫秒</string>
+	<string name="mixnet_tuning_delays_default">默认\n15 毫秒</string>
+	<string name="mixnet_tuning_delays_current">当前\n%1$s</string>
+	<string name="mixnet_tuning_max">Max. anonymity</string>
+	<string name="mixnet_tuning_link_text">了解更多关于 mixnet参数</string>
+	<string name="mixnet_tuning_save_button">保存自定义设置</string>
+	<string name="mixnet_tuning_restore_button">恢复默认设置</string>
 </resources>

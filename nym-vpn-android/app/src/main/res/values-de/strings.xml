@@ -216,6 +216,8 @@
 	<string name="settings_system_tray_description">App beim Schließen laufen lassen</string>
 	<string name="settings_reset_app_title">App-Daten zurücksetzen</string>
 	<string name="settings_system_status_title">Systemstatus</string>
+	<string name="settings_mixnet_tuning_title">Mixnetztuning</string>
+	<string name="settings_mixnet_tuning_description">Passen Sie Verkehrsmuster im Anonymen Modus an</string>
 	<string name="settings_quit_title">NymVPN beenden</string>
 	<string name="settings_app_version_line">App-Version: %1$s</string>
 	<string name="settings_daemon_version_line">Daemon Version: %1$s</string>
@@ -464,4 +466,36 @@
 	<string name="dns_learn_more_text">Erfahre mehr über DNS</string>
 	<string name="dns_event_saved">Eigene DNS gespeichert</string>
 	<string name="dns_event_reconnecting">Verbinde neu, um eigene DNS-Einstellungen anzuwenden...</string>
+	<!-- Mixnet tuning screen -->
+	<string name="mixnet_tuning_description">Passen Sie Ihre Verkehrsmuster im Mixnet an</string>
+	<string name="mixnet_tuning_current_title">Erwartete Leistung der aktuellen Einstellungen:</string>
+	<string name="mixnet_tuning_current_speed">Geschwindigkeit</string>
+	<string name="mixnet_tuning_current_latency">Latenz</string>
+	<string name="mixnet_tuning_internet_speed">Bis zur Internetgeschwindigkeit</string>
+	<string name="mixnet_tuning_current_description">Erwartete Rundstreckenlatenz (RTT) in einem Standard-Netzwerk</string>
+	<string name="mixnet_tuning_traffic_title">Traffic kontinuierlich senden</string>
+	<string name="mixnet_tuning_traffic_off_title">Datenverkehr im Hintergrund</string>
+	<string name="mixnet_tuning_traffic_warning">:warnung: Dauerhafter Datenverkehr ist deaktiviert. Ihre Pakete werden gesendet, sobald sie verfügbar sind. Dies kann Verkehrsmuster aufzeigen.</string>
+	<string name="mixnet_tuning_traffic_on_description">Cover Traffic wird immer gesendet, um das Muster einheitlich zu halten. Passen Sie die Versandrate Ihrer Pakete an.</string>
+	<string name="mixnet_tuning_traffic_off_description">Wir senden weiterhin Cover-Traffic unabhängig von Ihrem tatsächlichen Traffic. Wählen Sie, wie viel Cover Sie benötigen. </string>
+	<string name="mixnet_tuning_traffic_min">Weniger Akku &amp; Daten verwenden</string>
+	<string name="mixnet_tuning_traffic_on_low">Niedrige\n0,7 Mbit/s</string>
+	<string name="mixnet_tuning_traffic_on_high">Hoch\n2 Mbit/s</string>
+	<string name="mixnet_tuning_traffic_on_balanced">Ausgewogen\n1 Mbit/s</string>
+	<string name="mixnet_tuning_traffic_off_low">Basis</string>
+	<string name="mixnet_tuning_traffic_off_high">Hoch\n20x</string>
+	<string name="mixnet_tuning_traffic_off_balanced">Ausgeglichene\n5x</string>
+	<string name="mixnet_tuning_traffic_off_medium">Mittel\n10x</string>
+	<string name="mixnet_tuning_delays_title">Mischverzögerungen</string>
+	<string name="mixnet_tuning_delays_description">Zeitverzögerungen anpassen, um zu ändern, wie gut Ihre Pakete gemischt sind.</string>
+	<string name="mixnet_tuning_delays_warning">:warnung: Timing-Schutz ist derzeit deaktiviert. Dies könnte Ihre Privatsphäre gefährden.</string>
+	<string name="mixnet_tuning_delays_min">Schnellere Geschwindigkeit</string>
+	<string name="mixnet_tuning_delays_low">Niedrig\n0m</string>
+	<string name="mixnet_tuning_delays_high">Hoch\n200 ms</string>
+	<string name="mixnet_tuning_delays_default">Standard\n15 ms</string>
+	<string name="mixnet_tuning_delays_current">Aktuelle\n%1$s</string>
+	<string name="mixnet_tuning_max">Max. anonymity</string>
+	<string name="mixnet_tuning_link_text">Erfahren Sie mehr über Mixnet-Parameter</string>
+	<string name="mixnet_tuning_save_button">Benutzerdefinierte Einstellungen speichern</string>
+	<string name="mixnet_tuning_restore_button">Standardeinstellungen wiederherstellen</string>
 </resources>
