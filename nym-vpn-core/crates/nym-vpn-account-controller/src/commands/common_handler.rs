@@ -5,6 +5,7 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
+    types::VpnAccountMode,
 };
 use nym_vpn_lib_types::{AccountCommandError, DeeplinkKind, VpnAccountSummary};
 
@@ -95,16 +96,17 @@ pub(crate) async fn handle_get_canonical_account_identity<C: ConnectivityMonitor
         return Err(AccountCommandError::NoAccountStored);
     };
 
-    if account.mode().is_api() {
-        return Ok(Some(account.id().to_string()));
+    match account.mode() {
+        VpnAccountMode::Api | VpnAccountMode::Decentralised => Ok(Some(account.id().to_string())),
+        VpnAccountMode::Privy => {
+            let response = shared_state
+                .vpn_api_client
+                .get_canonical_account_identity(account)
+                .await?;
+
+            Ok(Some(response.canonical_account_addr))
+        }
     }
-
-    let response = shared_state
-        .vpn_api_client
-        .get_canonical_account_identity(account)
-        .await?;
-
-    Ok(Some(response.canonical_account_addr))
 }
 
 pub(crate) fn handle_get_account_mode<C: ConnectivityMonitor>(

@@ -252,16 +252,20 @@ impl NymVpnAccountStorage {
 
         let vpn_account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
 
-        if vpn_account.mode().is_api() {
-            return Ok(vpn_account.id().to_string());
+        match vpn_account.mode() {
+            nym_vpn_lib_types::StoredAccountMode::Api
+            | nym_vpn_lib_types::StoredAccountMode::Decentralised => {
+                Ok(vpn_account.id().to_string())
+            }
+            nym_vpn_lib_types::StoredAccountMode::Privy => {
+                let vpn_api_client = self.create_vpn_api_client().await?;
+                let response = vpn_api_client
+                    .get_canonical_account_identity(&vpn_account)
+                    .await
+                    .map_err(VpnError::internal)?;
+                Ok(response.canonical_account_addr)
+            }
         }
-
-        let vpn_api_client = self.create_vpn_api_client().await?;
-        let response = vpn_api_client
-            .get_canonical_account_identity(&vpn_account)
-            .await
-            .map_err(VpnError::internal)?;
-        Ok(response.canonical_account_addr)
     }
 
     /// Get the type of account the user is logged in with
