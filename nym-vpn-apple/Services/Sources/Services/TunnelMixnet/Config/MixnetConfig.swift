@@ -24,6 +24,7 @@ public struct MixnetConfig: Codable, Equatable {
     public let isErrorReportingEnabled: Bool
     public let isStatisticsEnabled: Bool
     public let isLanBypassEnabled: Bool
+    public let mixnetTuning: MixnetTuningConfig
 
     public var name = "NymVPN Mixnet"
 #if os(iOS)
@@ -33,6 +34,7 @@ public struct MixnetConfig: Codable, Equatable {
         configPath: String,
         dataPath: String,
         customDns: [IpAddr],
+        mixnetTuning: MixnetTuningConfig,
         isErrorReportingEnabled: Bool,
         isStatisticsEnabled: Bool,
         isQuicEnabled: Bool,
@@ -46,6 +48,7 @@ public struct MixnetConfig: Codable, Equatable {
         self.configPath = configPath
         self.dataPath = dataPath
         self.customDns = customDns
+        self.mixnetTuning = mixnetTuning
         self.isErrorReportingEnabled = isErrorReportingEnabled
         self.isStatisticsEnabled = isStatisticsEnabled
         self.isQuicEnabled = isQuicEnabled
@@ -71,7 +74,7 @@ extension MixnetConfig {
             enableLewesProtocol: isLewesEnabled,
             residentialExit: false,
             customDns: customDns,
-            mixnetTraffic: nil,
+            mixnetTraffic: mixnetTuning.mixnetTrafficConfig(),
             networkStats: nil,
             userAgent: .appUserAgent,
             tunProvider: tunProvider

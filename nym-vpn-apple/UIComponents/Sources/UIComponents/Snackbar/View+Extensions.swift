@@ -1,5 +1,6 @@
 import SwiftUI
 import MessageModels
+import Theme
 
 extension View {
     public func snackbar(
@@ -9,6 +10,12 @@ extension View {
         self.modifier(
             SnackbarModifier(isDisplayed: isDisplayed, message: message)
         )
+    }
+
+    public func nymText(color: Color, style: NymTextStyle) -> some View {
+        self
+            .foregroundStyle(color)
+            .textStyle(style)
     }
 }
 

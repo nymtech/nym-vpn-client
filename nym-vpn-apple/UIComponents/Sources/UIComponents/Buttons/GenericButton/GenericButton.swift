@@ -72,7 +72,6 @@ public struct GenericButton: View {
     private let titleColor: Color?
     private let style: Style
     private let height: CGFloat
-    private let isDisabled: Bool
     private let isWidthExpanded: Bool
     private let isExternalLink: Bool
     private let systemImageName: String?
@@ -80,13 +79,14 @@ public struct GenericButton: View {
 
     @State private var isHovered = false
     @Binding private var isLoading: Bool
+    @Binding private var isDisabled: Bool
 
     public init(
         title: String,
         titleColor: Color? = nil,
         style: Style = .normal,
         height: CGFloat = 56,
-        isDisabled: Bool = false,
+        isDisabled: Binding<Bool> = .constant(false),
         isLoading: Binding<Bool> = .constant(false),
         isWidthExpanded: Bool = true,
         isExternalLink: Bool = false,
@@ -97,12 +97,13 @@ public struct GenericButton: View {
         self.titleColor = titleColor
         self.style = style
         self.height = height
-        self.isDisabled = isDisabled
+
         self.isWidthExpanded = isWidthExpanded
         self.isExternalLink = isExternalLink
         self.systemImageName = systemImageName
         self.isSystemImageFlipped = isSystemImageFlipped
         _isLoading = isLoading
+        _isDisabled = isDisabled
     }
 
     public var body: some View {

@@ -73,7 +73,12 @@ private extension ConnectionStorage {
             enableBridges: appSettings.isQuicEnabled,
             enableLewes: false,
             netstack: false,
-            residentialExit: false
+            residentialExit: false,
+            mixnetTuningConfig: MixnetTuningConfig(
+                backgroundTraffic: BackgroundTraffic(actualValue: nil),
+                continuousTraffic: ContinuousTraffic(actualValue: nil),
+                dissablePoissonRate: false
+            )
         )
     }
 }
