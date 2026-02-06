@@ -14,8 +14,16 @@ fn pretty_build_info_static() -> &'static str {
 #[clap(author = "Nymtech", version, long_version = pretty_build_info_static(), about)]
 pub(crate) struct CliArgs {
     /// Logging verbosity.
-    #[arg(long, short = 'v', action = clap::ArgAction::Count)]
+    #[arg(long, short = 'v', global = true, action = clap::ArgAction::Count)]
     pub verbose: u8,
+
+    /// Disable logging altogether
+    #[arg(long, global = true, action = clap::ArgAction::SetTrue)]
+    pub no_log: bool,
+
+    /// Env to run the diagnostic in
+    #[arg(short, long, global = true, value_parser = ["mainnet", "sandbox", "canary","evil"], default_value = "mainnet")]
+    pub network: String,
 
     /// Subcommand to execute
     #[command(subcommand)]
