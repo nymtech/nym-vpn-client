@@ -101,7 +101,13 @@ public final class LogFileManager: ObservableObject, @unchecked Sendable {
             .appendingPathComponent("Logs")
 
         try? fileManager.createDirectory(at: logsDirectory, withIntermediateDirectories: true, attributes: nil)
-        let fileName = "\(logFileType.rawValue)\(Constants.logFileName.rawValue)"
+        let fileName: String
+        if logFileType == .library {
+            fileName = Constants.logFileName.rawValue
+        } else {
+            fileName = "\(logFileType.rawValue)\(Constants.logFileName.rawValue)"
+        }
+
         return logsDirectory.appendingPathComponent(fileName)
     }
 
@@ -111,7 +117,6 @@ public final class LogFileManager: ObservableObject, @unchecked Sendable {
         guard let logsDirectory = fileManager.containerURL(forSecurityApplicationGroupIdentifier: Constants.groupID.rawValue)?
             .appendingPathComponent("net.nymtech.vpn")
             .appendingPathComponent("Logs") else { return nil }
-
 
         try? fileManager.createDirectory(at: logsDirectory, withIntermediateDirectories: true)
 
