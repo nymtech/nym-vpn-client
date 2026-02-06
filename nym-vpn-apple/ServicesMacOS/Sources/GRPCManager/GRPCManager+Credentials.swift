@@ -28,17 +28,24 @@ extension GRPCManager {
         }.value
     }
 
-    public func privyLogin(locale: String, name: String) async throws -> String? {
+    public func privyLogin(locale: String, name: String, isLink: Bool) async throws -> String? {
         try await Task.detached { [weak self] in
             try await self?.rpcClient?.getDeeplink(
                 params:
                     GetDeeplinkParams(
                         client: .desktop,
                         locale: locale,
-                        kind: .privy,
+                        kind: isLink ? .privyLink : .privy,
                         name: name
                     )
             )
+        }.value
+    }
+
+    public func isLinkAccountAvailable() async throws -> Bool {
+        try await Task.detached { [weak self] in
+            let result = try await self?.rpcClient?.getAccountMode()
+            return result == .api
         }.value
     }
 

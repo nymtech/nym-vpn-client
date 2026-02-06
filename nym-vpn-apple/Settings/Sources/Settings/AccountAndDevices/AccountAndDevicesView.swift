@@ -16,6 +16,8 @@ import Theme
 
     @Binding private var path: NavigationPath
 
+    @State private var isLinkAccountAvailable = false
+
     public var body: some View {
         VStack(spacing: 0) {
             navbar()
@@ -23,8 +25,11 @@ import Theme
                 .frame(height: 24)
             VStack(spacing: 24) {
                 nymAccountSection()
+                nymLinkingText()
                 accountIdentifier()
+                accountIdText()
                 deviceIdentifier()
+                deviceIdText()
 #if os(iOS)
                 manageSubscription()
 #endif
@@ -43,6 +48,15 @@ import Theme
             NymColor.background
                 .ignoresSafeArea()
         }
+        .task {
+            await updateIsAccountLinkAvailable()
+        }
+        .onChange(of: credentialsManager.didReceiveAccountLinkCallback) { _, newValue in
+            print("bobr")
+            Task {
+                await updateIsAccountLinkAvailable()
+            }
+        }
     }
 
     public init(path: Binding<NavigationPath>) {
@@ -59,18 +73,58 @@ private extension AccountAndDevicesView {
         )
     }
 
+    @ViewBuilder
     func nymAccountSection() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .externalLink,
-                title: "settings.account.nymAccount".localizedString,
-                imageName: "person",
-                position: SettingsListItemPosition(isFirst: true, isLast: true),
-                action: {
-                    navigateToAccount()
-                }
-            )
-        )
+        VStack(spacing: 0) {
+            if isLinkAccountAvailable {
+                SettingsListItem(
+                    viewModel: SettingsListItemViewModel(
+                        accessory: .externalLink,
+                        title: "settings.account.manageAccount".localizedString,
+                        systemImageName: "cloud",
+                        position: SettingsListItemPosition(isFirst: true, isLast: false),
+                        action: {
+                            navigateToAccount()
+                        }
+                    )
+                )
+                SettingsListItem(
+                    viewModel: SettingsListItemViewModel(
+                        accessory: .externalLink,
+                        title: "settings.account.nymAccount".localizedString,
+                        subtitle: "settings.account.nymAccount.subtitle".localizedString,
+                        imageName: "person",
+                        position: SettingsListItemPosition(isFirst: false, isLast: true),
+                        action: {
+                            Task {
+                                await linkAccount()
+                            }
+                        }
+                    )
+                )
+            } else {
+                SettingsListItem(
+                    viewModel: SettingsListItemViewModel(
+                        accessory: .externalLink,
+                        title: "settings.account.manageAccount".localizedString,
+                        systemImageName: "cloud",
+                        position: SettingsListItemPosition(isFirst: true, isLast: true),
+                        action: {
+                            navigateToAccount()
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    func nymLinkingText() -> some View {
+        HStack(spacing: 0) {
+            Text("⚠️ \("settings.account.linking".localizedString)")
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+            Spacer()
+        }
     }
 
     @ViewBuilder
@@ -85,6 +139,15 @@ private extension AccountAndDevicesView {
         }
     }
 
+    func accountIdText() -> some View {
+        HStack(spacing: 0) {
+            Text("settings.account.accountId".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+            Spacer()
+        }
+    }
+
     @ViewBuilder
     func deviceIdentifier() -> some View {
         if let deviceIdentifier = credentialsManager.deviceIdentifier {
@@ -94,6 +157,15 @@ private extension AccountAndDevicesView {
                 systemImageName: "macbook.and.iphone",
                 imageSize: 24
             )
+        }
+    }
+
+    func deviceIdText() -> some View {
+        HStack(spacing: 0) {
+            Text("settings.account.deviceId".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+            Spacer()
         }
     }
 
@@ -134,6 +206,15 @@ private extension AccountAndDevicesView {
     }
 }
 
+// MARK: - Helpers -
+private extension AccountAndDevicesView {
+    func updateIsAccountLinkAvailable() async {
+        if let isAvailable = try? await credentialsManager.isAccountLinkAvailable() {
+            isLinkAccountAvailable = isAvailable
+        }
+    }
+}
+
 // MARK: - Actions -
 private extension AccountAndDevicesView {
     func navigateBack() {
@@ -143,5 +224,11 @@ private extension AccountAndDevicesView {
     func navigateToAccount() {
         impactGenerator.softImpact()
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
+    }
+
+    func linkAccount() async {
+        impactGenerator.softImpact()
+        let link = try? await credentialsManager.privyLogin(isLink: true)
+        try? externalLinkManager.openExternalURL(urlString: link)
     }
 }
