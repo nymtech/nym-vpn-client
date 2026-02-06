@@ -170,7 +170,7 @@ impl Ipv4Settings {
 
 #[derive(Debug, Default, uniffi::Record)]
 pub struct Ipv6Settings {
-    /// IPv4 addresses that will be set on tunnel interface.
+    /// IPv6 addresses that will be set on tunnel interface.
     pub addresses: Vec<Ipv6Network>,
 
     /// Traffic matching these routes will be routed over the tun interface.
