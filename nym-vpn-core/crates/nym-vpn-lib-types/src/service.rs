@@ -117,7 +117,11 @@ uniffi::custom_type!(BoxedVpnServiceConfig, VpnServiceConfig, {
 });
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "uniffi-bindings",
+    derive(uniffi::Record),
+    uniffi::export(Display)
+)]
 #[cfg_attr(
     feature = "typescript-bindings",
     derive(TS),
@@ -161,6 +165,7 @@ impl fmt::Display for MixnetTrafficConfig {
     }
 }
 
+#[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
 impl MixnetTrafficConfig {
     pub fn validate(&self) -> Result<(), String> {
         if let Some(v) = self.poisson_parameter_for_loop_cover_stream
