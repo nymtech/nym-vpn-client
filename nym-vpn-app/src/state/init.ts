@@ -64,7 +64,6 @@ export async function initFirstBatch(
     name: 'getAccountModeRq',
     request: () => invoke<TAccountMode>('get_account_mode'),
     onFulfilled: (mode) => {
-      console.log('[getAccountModeRq] account mode: ', mode);
       if (mode) {
         dispatch({ type: 'set-account-mode', mode });
       }

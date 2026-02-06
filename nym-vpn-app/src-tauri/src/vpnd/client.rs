@@ -512,7 +512,6 @@ impl VpndClient {
     }
 
     /// Get account mode
-    /// Privy, Decentralised, Api
     #[instrument(skip_all)]
     pub async fn account_mode(&self) -> Result<Option<StoredAccountMode>, VpndError> {
         let mut vpnd = self.vpnd().await?;
