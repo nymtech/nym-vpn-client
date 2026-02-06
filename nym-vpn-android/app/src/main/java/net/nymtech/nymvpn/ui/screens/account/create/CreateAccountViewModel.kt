@@ -14,15 +14,14 @@ import net.nymtech.billing.model.BillingCode
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
-import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.util.Constants
+import nym_vpn_lib_types.DeeplinkKind
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateAccountViewModel @Inject constructor(
 	private val billingManager: BillingManager,
-	private val environmentManager: EnvironmentManager,
 	private val backendManager: BackendManager,
 ) : ViewModel() {
 
@@ -36,7 +35,7 @@ class CreateAccountViewModel @Inject constructor(
 	init {
 		viewModelScope.launch {
 			runCatching {
-				val link = backendManager.getDeeplink()
+				val link = backendManager.getDeeplink(DeeplinkKind.PRIVY)
 				_uiState.value = _uiState.value.copy(deeplink = link)
 			}.onFailure { t ->
 				Timber.tag(TAG).w(t, "SocialDeeplinkLoadFailed")

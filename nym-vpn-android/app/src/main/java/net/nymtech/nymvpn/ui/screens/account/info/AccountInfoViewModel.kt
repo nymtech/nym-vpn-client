@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.StoredAccountMode
 import timber.log.Timber
 import javax.inject.Inject
@@ -40,12 +41,13 @@ class AccountInfoViewModel @Inject constructor(
 			val isPrivyEnabled = backendManager.getFeatureFlags()?.isPrivyEnabled() ?: false
 
 			val links = backendManager.getAccountLinks()
-			val linkUrl = links?.account
+			var linkUrl = backendManager.getDeeplink(DeeplinkKind.PRIVY_LINK)
 			val manageUrl = links?.account
 
 			if (accountMode == StoredAccountMode.PRIVY) {
 				try {
 					displayAccountId
+					linkUrl = links?.account
 				} catch (e: Exception) {
 					Timber.tag(TAG).e(e, "canonicalRequestFailed")
 				}
@@ -57,7 +59,7 @@ class AccountInfoViewModel @Inject constructor(
 						showLinkAccount = false,
 						accountId = displayAccountId,
 						deviceId = deviceId,
-						accountLinkUrl = null,
+						accountLinkUrl = linkUrl,
 						manageUrl = manageUrl,
 						isPrivyEnabled = isPrivyEnabled,
 					)

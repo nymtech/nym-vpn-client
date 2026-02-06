@@ -208,11 +208,11 @@ class ServiceBackedBackendManager @Inject constructor(
 		}
 	}
 
-	override suspend fun getDeeplink(): String? {
+	override suspend fun getDeeplink(kind: DeeplinkKind): String? {
 		val params = GetDeeplinkParams(
-			client = DeeplinkClient.DESKTOP,
+			client = DeeplinkClient.MOBILE,
 			locale = Locale.getDefault().language.lowercase(),
-			kind = DeeplinkKind.PRIVY,
+			kind = kind,
 			name = "default",
 
 		)

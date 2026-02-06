@@ -5,6 +5,7 @@ import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.ParsedAccountLinks
@@ -35,7 +36,7 @@ interface BackendManager {
 	suspend fun getDeviceId(): String?
 	suspend fun getAccountId(): String?
 	suspend fun getFeatureFlags(): FeatureFlags?
-	suspend fun getDeeplink(): String?
+	suspend fun getDeeplink(kind: DeeplinkKind): String?
 	suspend fun storeDeeplinkAccount(url: String)
 	suspend fun getAccountMode(): StoredAccountMode?
 }

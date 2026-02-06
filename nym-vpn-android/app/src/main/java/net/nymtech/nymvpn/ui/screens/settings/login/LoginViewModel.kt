@@ -16,6 +16,7 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
+import nym_vpn_lib_types.DeeplinkKind
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -40,7 +41,7 @@ class LoginViewModel @Inject constructor(
 		viewModelScope.launch {
 			_uiState.update { it.copy(isPrivyEnabled = environmentManager.isPrivyEnabled()) }
 
-			runCatching { backendManager.getDeeplink() }
+			runCatching { backendManager.getDeeplink(DeeplinkKind.PRIVY) }
 				.onSuccess { link -> _uiState.update { it.copy(deeplink = link) } }
 				.onFailure { t -> Timber.tag(TAG).w(t, "SocialDeeplinkLoadFailed") }
 		}
