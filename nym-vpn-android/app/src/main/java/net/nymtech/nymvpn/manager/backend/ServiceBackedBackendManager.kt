@@ -27,8 +27,12 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
+import nym_vpn_lib_types.DeeplinkClient
+import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
+import nym_vpn_lib_types.GetDeeplinkParams
+import nym_vpn_lib_types.StoredAccountMode
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
@@ -192,16 +196,8 @@ class ServiceBackedBackendManager @Inject constructor(
 	override suspend fun refreshAccount() {
 		serviceConnectionManager.withApi { it.refreshAccount() }
 	}
-	override suspend fun refresh() {
-		// add
-	}
 
 	override suspend fun getDaemonVersion(): String = serviceConnectionManager.withApi { it.getNetworkVersions()?.core ?: "" }
-
-	override suspend fun getSocialDeeplink(): String = ""
-	override suspend fun storeSocialAccount(link: String) {
-		// add
-	}
 
 	override suspend fun getFeatureFlags(): FeatureFlags? {
 		return runCatching {
@@ -210,6 +206,26 @@ class ServiceBackedBackendManager @Inject constructor(
 			Timber.e(it, "GetFeatureFlagsFailed")
 			null
 		}
+	}
+
+	override suspend fun getDeeplink(kind: DeeplinkKind): String? {
+		val params = GetDeeplinkParams(
+			client = DeeplinkClient.MOBILE,
+			locale = Locale.getDefault().language.lowercase(),
+			kind = kind,
+			name = "default",
+
+		)
+		return serviceConnectionManager.withApi { it.getDeeplink(params = params) }
+	}
+
+	override suspend fun storeDeeplinkAccount(url: String) {
+		serviceConnectionManager.withApi { it.storeDeeplinkAccount(url = url) }
+		refreshIdentityState()
+	}
+
+	override suspend fun getAccountMode(): StoredAccountMode? {
+		return serviceConnectionManager.withApi { it.getAccountMode() }
 	}
 
 	private fun notifyVpnPermissionRequired() {

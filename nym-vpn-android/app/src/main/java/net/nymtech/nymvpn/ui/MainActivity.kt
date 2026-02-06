@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -43,6 +44,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
@@ -103,8 +105,9 @@ class MainActivity : AppCompatActivity() {
 	private var pendingDeepLink: Uri? = null
 	private var navControllerRef: NavHostController? = null
 
+	val appViewModel by viewModels<AppViewModel>()
+
 	override fun onCreate(savedInstanceState: Bundle?) {
-		val appViewModel by viewModels<AppViewModel>()
 		installSplashScreen().setKeepOnScreenCondition { false }
 		enableEdgeToEdge(
 			statusBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT),
@@ -321,7 +324,7 @@ class MainActivity : AppCompatActivity() {
 									)
 								}
 
-								composable<Route.Account> { AccountInfoScreen(appState) }
+								composable<Route.Account> { AccountInfoScreen(appViewModel, appState) }
 
 								composable<Route.SplitTunneling> {
 									SplitTunnelingScreen(
@@ -370,16 +373,21 @@ class MainActivity : AppCompatActivity() {
 			pendingDeepLink = uri
 			return
 		}
-		handleDeepLink(uri, navController)
+		handleDeepLink(uri)
 	}
-
-	private fun handleDeepLink(uri: Uri, navController: NavHostController) {
-		val host = uri.host.orEmpty()
-		val path = uri.path.orEmpty()
-		val target = (host.ifBlank { path.removePrefix("/") }).lowercase()
-
-		when (target) {
-			else -> Timber.d("handleDeepLink $target")
+	private fun handleDeepLink(uri: Uri) {
+		val host = uri.host
+		val path = uri.path
+		if (host == "auth" && path?.startsWith("/privy/privateKey") == true) {
+			lifecycleScope.launch {
+				if (appViewModel.isPrivyEnabled()) {
+					val fullUrl = uri.toString()
+					appViewModel.handleDeepLinkAuth(fullUrl)
+					navControllerRef?.navigate(Route.Main)
+				} else {
+					Timber.d("DeepLink received but Privy feature is disabled. Ignoring.")
+				}
+			}
 		}
 	}
 }

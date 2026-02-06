@@ -409,15 +409,15 @@
 	<string name="passphrase_info_belongs">Belongs only to you (self-custody)</string>
 	<!-- Account screen -->
 	<string name="account_title">Account and devices</string>
-	<string name="account_info_plan">Plan</string>
-	<string name="account_info_payments">Payments</string>
-	<string name="account_info_devices">Devices</string>
+	<string name="account_info_manage_button">Manage your subscription</string>
+	<string name="account_info_account_button">Account on nym.com</string>
+	<string name="account_info_link_description">Link a social account for effortless login.</string>
+	<string name="account_info_link_warning">⚠️ Linking a social account with your Nym account reduces your anonymity. Changes take effect after logging out and logging back in with the chosen social. </string>
+	<string name="account_info_linked_info">⚡ This account is linked with a social login method via privy.  </string>
 	<string name="account_info_id_title">Account ID</string>
-	<string name="account_info_id_description">Use this ID for support requests</string>
-	<string name="account_info_id_important">⚠️ Important: Nym support will never ask for your 24-word passphrase. Never share it with anyone.</string>
-	<string name="account_on_nym">Account on nym.com</string>
-	<string name="account_device_id_title">Device ID</string>
-	<string name="account_id_title">Account ID</string>
+	<string name="account_info_id_info">Use your account ID if you need to contact Nym customer support.  This is safe to share!</string>
+	<string name="account_info_device_title">Device ID</string>
+	<string name="account_info_device_info">Use this to link this device to your account on nym.com</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Enable logging</string>
 	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>

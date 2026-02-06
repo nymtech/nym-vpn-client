@@ -5,44 +5,38 @@ import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.ParsedAccountLinks
+import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
 
 interface BackendManager {
 
+	val stateFlow: StateFlow<TunnelManagerState>
+
 	suspend fun stopTunnel()
 	suspend fun startTunnel()
 	suspend fun requestReconnect()
-
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()
-
 	suspend fun getAccountLinks(): ParsedAccountLinks?
 	suspend fun getSystemMessages(): List<SystemMessage>
 	suspend fun getGateways(gatewayType: GatewayType): List<NymGateway>
-
-	suspend fun refresh()
-
 	suspend fun createAccount()
 	suspend fun registerAccount(purchaseToken: String): String
 	suspend fun refreshAccount()
 	suspend fun getMnemonic(): List<String>
 	suspend fun getAccountState(): AccountControllerState
-
-	val stateFlow: StateFlow<TunnelManagerState>
-
 	fun getState(): Tunnel.State
 	fun initialize()
-
 	suspend fun getDaemonVersion(): String
-	suspend fun getSocialDeeplink(): String
-	suspend fun storeSocialAccount(link: String)
-
 	suspend fun getDeviceId(): String?
-
 	suspend fun getAccountId(): String?
 	suspend fun getFeatureFlags(): FeatureFlags?
+	suspend fun getDeeplink(kind: DeeplinkKind): String?
+	suspend fun storeDeeplinkAccount(url: String)
+	suspend fun getAccountMode(): StoredAccountMode?
 }
