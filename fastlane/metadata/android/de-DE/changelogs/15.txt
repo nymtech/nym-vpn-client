@@ -1,3 +1,0 @@
-Was ist neu:
-- Anmeldedatenprüfung hinzufügen
-- Verschlüsselten Speicher für Anmeldeinformationen hinzufügen

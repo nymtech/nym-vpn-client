@@ -1,3 +1,0 @@
-Was ist neu:
-- Logs Bildschirm verbessern
-- Fehlerbehebungen

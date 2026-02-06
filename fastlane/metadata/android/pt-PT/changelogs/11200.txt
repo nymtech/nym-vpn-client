@@ -1,2 +1,0 @@
-O que há de novidade:
-- Correção do erro de falha dos registos

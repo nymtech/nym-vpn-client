@@ -1,4 +1,0 @@
-O que há de novo:
-- Adicionada a integração da biblioteca vpn
-- Tela de abertura
-- Lista de países

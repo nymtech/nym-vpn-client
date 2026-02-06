@@ -1,4 +1,0 @@
-What's new:
-- Add logs screen
-- Improve VPN status display
-- Add Sentry

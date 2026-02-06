@@ -1,3 +1,0 @@
-Yenilikler:
-- Kayıt ekranı iyileştirildi
-- Hata düzeltmeleri yapıldı

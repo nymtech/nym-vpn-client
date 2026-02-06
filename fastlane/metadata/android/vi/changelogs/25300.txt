@@ -1,2 +1,0 @@
-Có gì mới:
-- Đã khắc phục sự cố kết nối với vòng đời tunnel.

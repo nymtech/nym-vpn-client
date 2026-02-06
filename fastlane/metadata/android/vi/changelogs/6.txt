@@ -1,4 +1,0 @@
-Có gì mới:
-- Thêm màn hình nhật ký
-- Cải thiện hiển thị trạng thái VPN
-- Thêm Sentry

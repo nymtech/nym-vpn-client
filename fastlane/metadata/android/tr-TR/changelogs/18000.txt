@@ -1,3 +1,0 @@
-Yenilikler:
-- Çökme düzeltmeleri ve kararlılık iyileştirmeleri
-- Navigasyonla ilgili düzenlemeler

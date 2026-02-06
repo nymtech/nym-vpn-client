@@ -1,3 +1,0 @@
-Yenilikler:
-- Arayüz iyileştirmeleri ve düzeltmeleri
-- Çeşitli iyileştirmeler ve geliştirmeler yapıldı

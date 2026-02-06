@@ -1,3 +1,0 @@
-Was ist neu:
-- Problem beim Caching des Landes beheben
-- Hilt Leistungsverbesserung

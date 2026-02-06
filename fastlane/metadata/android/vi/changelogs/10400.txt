@@ -1,4 +1,0 @@
-Có gì mới:
-- Cải tiến ghi nhật ký vào tệp
-- Sửa lỗi
-- Tối ưu hóa và cải thiện khác

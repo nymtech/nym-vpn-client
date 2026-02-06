@@ -1,2 +1,0 @@
-Yenilikler:
-- Tünel yaşam döngüsüyle ilgili bağlantı sorunu giderildi

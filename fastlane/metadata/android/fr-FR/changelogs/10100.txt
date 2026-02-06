@@ -1,4 +1,0 @@
-Quoi de neuf :
-- Améliorations de l'interface utilisateur
-- Ajouter une limite d'identifiants
-- Correction temporaire des erreurs de connexion

@@ -1,5 +1,0 @@
-Quais as novidades:
-- Resolvidos problemas de travamentos e ANR
-- Adicionado aviso de otimização de bateria
-- Adicionadas abas separadas para logs
-- Estabilidade da conexão melhorada
