@@ -6,6 +6,7 @@ use crate::vpnd::account::AccountState;
 use crate::vpnd::account_links::AccountLinks;
 use crate::vpnd::tunnel::TunnelState;
 use crate::{error::BackendError, vpnd::client::VpndClient};
+use nym_vpn_lib_types::{self as lib};
 
 #[instrument(skip_all)]
 #[tauri::command]
@@ -151,6 +152,18 @@ pub async fn store_deeplink_account(
         .await
         .map_err(|e| {
             error!("failed to store deeplink account: {e}");
+            e.into()
+        })
+}
+
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_account_mode(vpnd: State<'_, VpndClient>) -> Result<Option<lib::StoredAccountMode>, BackendError> {
+    vpnd.account_mode()
+        .await
+        .map_err(|e| {
+            warn!("failed to get account mode: {e}");
             e.into()
         })
 }

@@ -37,6 +37,9 @@ function Account() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
 
+  const [accountMode, setAccountMode] = useState<string | null>(null);
+  const linkable = accountMode === 'Api';
+
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
 
@@ -76,8 +79,15 @@ function Account() {
   }, []);
 
   useEffect(() => {
-    if (!account) navigate(routes.settings);
-  }, [account, navigate]);
+    invoke<string>('get_account_mode').then((mode) => {
+      console.log('account mode: ', mode);
+      setAccountMode(mode);
+    });
+  }, []);
+
+  // useEffect(() => {
+  //   if (!account) navigate(routes.settings);
+  // }, [account, navigate]);
 
   const handleGoToAccount = async () => {
     const linkUrl = await invoke<string>('get_deep_link', {
@@ -106,14 +116,15 @@ function Account() {
         });
       }
     }
-
-    // if (accountLinks?.account) {
-    //   openUrl(accountLinks.account);
-    // } else if (accountLinks?.signIn) {
-    //   openUrl(accountLinks.signIn);
-    // }
   };
 
+  const handleManageSubscription = () => {
+    if (accountLinks?.account) {
+      openUrl(accountLinks.account);
+    } else if (accountLinks?.signIn) {
+      openUrl(accountLinks.signIn);
+    }
+  };
   return (
     <PageAnim className="h-full flex flex-col mt-2 pb-2 gap-6 select-none">
       {needAPlan && (
@@ -127,17 +138,31 @@ function Account() {
 
       <SettingsGroup
         settings={[
+          // Only display this settings group section if linkable is true
+          ...(linkable
+            ? [
+                {
+                  title: t('account.manage-subscriptoin'),
+                  desc: (
+                    <span
+                      className={clsx(
+                        getAccountColor(accountSyncing, accountState),
+                      )}
+                    >
+                      {getAccountDescription(t, accountSyncing, accountState) ??
+                        t('account.account-link-social-description')}
+                    </span>
+                  ),
+                  leadingIcon: 'event_repeat',
+                  trailingIcon: 'open_in_new',
+                  onClick: handleManageSubscription,
+                },
+              ]
+            : []),
           {
             title: t('account.account-on-nym'),
-            desc: (
-              <span
-                className={clsx(getAccountColor(accountSyncing, accountState))}
-              >
-                {getAccountDescription(t, accountSyncing, accountState) ??
-                  t('account.account-link-social-description')}
-              </span>
-            ),
-            leadingIcon: 'event_repeat',
+            desc: t('account.account-link-social-description'),
+            leadingIcon: 'person',
             trailingIcon: 'open_in_new',
             onClick: handleGoToAccount,
           },
@@ -145,7 +170,9 @@ function Account() {
       />
 
       <p className="text-sm text-iron dark:text-bombay">
-        {t('account.account-linked')}
+        {linkable
+          ? t('account.account-not-linked')
+          : t('account.account-linked')}
       </p>
 
       <CardNew>

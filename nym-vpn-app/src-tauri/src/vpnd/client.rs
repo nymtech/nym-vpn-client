@@ -510,6 +510,19 @@ impl VpndClient {
         Ok(id)
     }
 
+    /// Get account mode
+    /// Privy, Decentralised, Api
+    #[instrument(skip_all)]
+    pub async fn account_mode(&self) -> Result<Option<lib::StoredAccountMode>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let mode = vpnd.get_account_mode()
+            .or_else(async |e| self.handle_rpc_error("get_account_mode", e).await)
+            .await?;
+
+        Ok(mode.into())
+    }
+
     /// Get the device identity
     #[instrument(skip_all)]
     pub async fn device_id(&self) -> Result<Option<String>, VpndError> {
