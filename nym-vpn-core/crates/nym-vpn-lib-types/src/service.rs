@@ -165,43 +165,57 @@ impl fmt::Display for MixnetTrafficConfig {
     }
 }
 
+#[derive(Debug, thiserror::Error)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Error))]
+pub enum MixnetTrafficConfigValidationError {
+    #[error(
+        "poisson_parameter_for_loop_cover_stream must be between {start} and {end} ms (got {actual})"
+    )]
+    InvalidPoissonParameterForLoopCoverStream { start: u32, end: u32, actual: u32 },
+
+    #[error("average_packet_delay must be between {start} and {end} ms (got {actual})")]
+    InvalidAveragePacketDelay { start: u32, end: u32, actual: u32 },
+
+    #[error("message_sending_average_delay must be between {start} and {end} ms (got {actual})")]
+    InvalidMessageSendingAverageDelay { start: u32, end: u32, actual: u32 },
+}
+
 #[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
 impl MixnetTrafficConfig {
-    pub fn validate(&self) -> Result<(), String> {
+    pub fn validate(&self) -> Result<(), MixnetTrafficConfigValidationError> {
         if let Some(v) = self.poisson_parameter_for_loop_cover_stream
             && !LOOP_COVER_DELAY_RANGE.contains(&v)
         {
-            return Err(format!(
-                "poisson_parameter_for_loop_cover_stream must be between {} and {} ms (got {})",
-                LOOP_COVER_DELAY_RANGE.start(),
-                LOOP_COVER_DELAY_RANGE.end(),
-                v
-            ));
-        }
-
-        if let Some(v) = self.average_packet_delay
+            Err(
+                MixnetTrafficConfigValidationError::InvalidPoissonParameterForLoopCoverStream {
+                    start: *LOOP_COVER_DELAY_RANGE.start(),
+                    end: *LOOP_COVER_DELAY_RANGE.end(),
+                    actual: v,
+                },
+            )
+        } else if let Some(v) = self.average_packet_delay
             && !AVG_PACKET_DELAY_RANGE.contains(&v)
         {
-            return Err(format!(
-                "average_packet_delay must be between {} and {} ms (got {})",
-                AVG_PACKET_DELAY_RANGE.start(),
-                AVG_PACKET_DELAY_RANGE.end(),
-                v
-            ));
-        }
-
-        if let Some(v) = self.message_sending_average_delay
+            Err(
+                MixnetTrafficConfigValidationError::InvalidAveragePacketDelay {
+                    start: *AVG_PACKET_DELAY_RANGE.start(),
+                    end: *AVG_PACKET_DELAY_RANGE.end(),
+                    actual: v,
+                },
+            )
+        } else if let Some(v) = self.message_sending_average_delay
             && !MESSAGE_SENDING_DELAY_RANGE.contains(&v)
         {
-            return Err(format!(
-                "message_sending_average_delay must be between {} and {} ms (got {})",
-                MESSAGE_SENDING_DELAY_RANGE.start(),
-                MESSAGE_SENDING_DELAY_RANGE.end(),
-                v
-            ));
+            Err(
+                MixnetTrafficConfigValidationError::InvalidMessageSendingAverageDelay {
+                    start: *MESSAGE_SENDING_DELAY_RANGE.start(),
+                    end: *MESSAGE_SENDING_DELAY_RANGE.end(),
+                    actual: v,
+                },
+            )
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 
     /// Calculate the expected round-trip latency (RTT) in milliseconds based on the current
