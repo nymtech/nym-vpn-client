@@ -23,7 +23,17 @@ use tracing_subscriber::{
 
 use nym_vpn_lib_types::LogPath;
 
-use crate::service;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub const DEFAULT_LOG_FILE: &str = "libnymvpn.log";
+
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub const DEFAULT_OLD_LOG_FILE: &str = "libnymvpn.log";
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
 
 static INFO_TARGETS: [&str; 14] = [
     "hyper",
@@ -61,16 +71,19 @@ pub struct FileAppender {
 }
 
 impl FileAppender {
-    pub fn new(log_dir: PathBuf) -> Self {
-        let log_file = service::DEFAULT_LOG_FILE.to_string();
+    /// Create new file appender and making a backup of existing log file
+    ///
+    /// ## Arguments
+    ///
+    /// * `log_dir`: Directory where the log files are stored.
+    /// * `log_file_name`: Current log file (i.e. "nym_vpn.log")
+    /// * `old_log_file_name`: Backup log file (i.e. "nym_vpn.log.old")
+    pub fn new(log_dir: PathBuf, log_file_name: &str, old_log_file_name: &str) -> Self {
+        let log_file_path = log_dir.join(log_file_name);
+        let old_log_file_path = log_dir.join(old_log_file_name);
 
-        let mut log_file_path = log_dir.clone();
-        log_file_path.push(&log_file);
-        let mut old_log_file_path = log_dir.clone();
-        old_log_file_path.push(service::DEFAULT_OLD_LOG_FILE);
-
-        if std::fs::exists(&log_file_path).unwrap_or(false)
-            && std::fs::rename(&log_file_path, &old_log_file_path).is_err()
+        if let Err(err) = std::fs::rename(&log_file_path, &old_log_file_path)
+            && err.kind() != std::io::ErrorKind::NotFound
         {
             tracing::warn!(
                 "Log rotation could not be performed, we're going to just append to the same file"
@@ -79,12 +92,13 @@ impl FileAppender {
 
         let inner = Arc::new(Mutex::new(Some(tracing_appender::rolling::never(
             log_dir.clone(),
-            &log_file,
+            log_file_name,
         ))));
+
         Self {
             inner,
             log_dir,
-            log_file,
+            log_file: log_file_name.to_owned(),
         }
     }
 
@@ -309,7 +323,7 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     let worker_guard = if let Some(log_dir) = options.log_dir
         && options.enable_file_log
     {
-        let file_appender = FileAppender::new(log_dir);
+        let file_appender = FileAppender::new(log_dir, DEFAULT_LOG_FILE, DEFAULT_OLD_LOG_FILE);
         let file_manager = FileManager::new(file_appender.clone());
         let (file_writer, worker_guard) = tracing_appender::non_blocking(file_manager);
         let file_layer = tracing_subscriber::fmt::layer()
