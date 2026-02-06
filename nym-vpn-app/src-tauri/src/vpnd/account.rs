@@ -78,7 +78,6 @@ pub fn log_account_state(state: &lib::AccountControllerState) {
 #[ts(export, export_to = "tauri.ts", rename = "TAccountMode")]
 #[serde(rename_all = "kebab-case")]
 pub enum StoredAccountMode {
-    // #[default]
     Privy,
     Decentralised,
     Api,
