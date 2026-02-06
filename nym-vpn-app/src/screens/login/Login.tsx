@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
-import { BackendError, StateDispatch } from '../../types';
+import { BackendError, StateDispatch, TAccountMode } from '../../types';
 import { Button, Link, PageAnim, TextArea } from '../../ui';
 import { CCache } from '../../cache';
 import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
@@ -39,6 +39,11 @@ function Login() {
     }
   };
 
+  const refreshAccountMode = async () => {
+    const accountMode = await invoke<TAccountMode>('get_account_mode');
+    dispatch({ type: 'set-account-mode', mode: accountMode });
+  };
+
   const handleClick = async () => {
     if (phrase.length === 0 || loading) {
       return;
@@ -59,6 +64,7 @@ function Login() {
         navigate(routes.root);
       }
       dispatch({ type: 'set-account', stored: true });
+      await refreshAccountMode();
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
@@ -121,7 +127,7 @@ function Login() {
             className={clsx(
               'h-14',
               daemonStatus === 'down' &&
-                'opacity-50 disabled:opacity-50 hover:opacity-50',
+              'opacity-50 disabled:opacity-50 hover:opacity-50',
             )}
             spinner={loading}
             data-testid="login-submit-button"
