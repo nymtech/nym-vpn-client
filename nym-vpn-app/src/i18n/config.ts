@@ -24,8 +24,8 @@ export const ns = [
 ] as const;
 
 export const languages = [
-  { code: 'ar', name: 'العربية (Arabic)' }, // rtl
-  { code: 'fa', name: 'فارسی (Persian)' }, // rtl
+  { code: 'ar', name: 'العربية' }, // rtl
+  { code: 'fa', name: 'فارسی' }, // rtl
   { code: 'bn', name: 'বাংলা' },
   { code: 'de', name: 'Deutsch' },
   { code: 'en', name: 'English' },

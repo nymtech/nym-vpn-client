@@ -120,13 +120,16 @@
         "use-less-battery-and-data": "Use less battery & data",
         "max-anonymity": "Max. anonymity",
         "low": {
-          "label": "Low"
+          "label": "Low",
+          "speed": "{{value}} Mbps"
         },
         "balanced": {
-          "label": "Balanced"
+          "label": "Balanced",
+          "speed": "{{value}} Mbps"
         },
         "high": {
-          "label": "High"
+          "label": "High",
+          "speed": "{{value}} Mbps"
         }
       },
       "background-cover-traffic": {
