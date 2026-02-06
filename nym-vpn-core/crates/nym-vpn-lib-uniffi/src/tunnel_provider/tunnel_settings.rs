@@ -24,9 +24,8 @@ pub enum Ipv4Route {
     },
 }
 
-// todo: allow unused for now; we should expose these methods for Android/iOS after migration to uniffi 0.31
+#[uniffi::export]
 impl Ipv4Route {
-    #[allow(unused)]
     pub fn prefix_length(&self) -> u8 {
         match self {
             Self::Default => 0,
@@ -36,15 +35,16 @@ impl Ipv4Route {
         }
     }
 
-    #[allow(unused)]
     pub fn destination(&self) -> Ipv4Addr {
         match self {
             Self::Default => Ipv4Addr::UNSPECIFIED,
             Self::Specific { destination, .. } => *destination,
         }
     }
+}
 
-    #[cfg(target_os = "android")]
+#[cfg(target_os = "android")]
+impl Ipv4Route {
     fn as_ipv4net(&self) -> Option<Ipv4Net> {
         let addr = self.destination();
         let prefix = self.prefix_length();
@@ -79,9 +79,8 @@ pub enum Ipv6Route {
     },
 }
 
-// todo: allow unused for now; we should expose these methods for Android/iOS after migration to uniffi 0.31
+#[uniffi::export]
 impl Ipv6Route {
-    #[allow(unused)]
     pub fn destination(&self) -> Ipv6Addr {
         match self {
             Self::Default => Ipv6Addr::UNSPECIFIED,
@@ -89,15 +88,16 @@ impl Ipv6Route {
         }
     }
 
-    #[allow(unused)]
     pub fn prefix_length(&self) -> u8 {
         match self {
             Self::Default => 0,
             Self::Specific { prefix_length, .. } => *prefix_length,
         }
     }
+}
 
-    #[cfg(target_os = "android")]
+#[cfg(target_os = "android")]
+impl Ipv6Route {
     fn as_ipv6net(&self) -> Option<Ipv6Net> {
         let addr = self.destination();
         let prefix = self.prefix_length();
