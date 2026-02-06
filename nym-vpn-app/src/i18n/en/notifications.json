@@ -13,5 +13,6 @@
   "copied-to-clipboard": "Copied to clipboard",
   "daemon-no-compat": "Daemon version is not compatible with the app version! Daemon version: {{version}}, expected: {{required}}. Please update either the app or the daemon.",
   "daemon-not-connected": "Can't connect to daemon. Restart the app or device. If this persists, reinstall NymVPN.",
-  "account-linking-timeout": "Account linking timeout"
+  "account-linking-timeout": "Account linking timeout",
+  "account-linking-error": "Failed to link account"
 }

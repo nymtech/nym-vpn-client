@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
@@ -16,16 +16,19 @@ import {
 } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 import { CCache } from '../../../cache';
-import { useInAppNotify, useMainState } from '../../../contexts';
+import {
+  useInAppNotify,
+  useMainDispatch,
+  useMainState,
+} from '../../../contexts';
 import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
+import { StateDispatch, TAccountMode } from '../../../types';
 import { getAccountColor, getAccountDescription } from './utils';
 
 const IdsTimeToLive = 120; // sec
 
 function Account() {
-  console.log('[Account] mainState: ', useMainState());
-
   const { t, i18n } = useTranslation('settings');
   const navigate = useNavigate();
 
@@ -37,7 +40,9 @@ function Account() {
     accountSyncing,
     daemonStatus,
     accountMode,
+    backendFlags,
   } = useMainState();
+  const dispatch = useMainDispatch() as StateDispatch;
   const needAPlan =
     account &&
     (accountState === 'no-subscription' ||
@@ -47,7 +52,6 @@ function Account() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
 
-  // const [accountMode, setAccountMode] = useState<string | null>(null);
   const linkable = accountMode === 'api';
 
   const { startListening } = useDeepLink();
@@ -89,15 +93,13 @@ function Account() {
   }, []);
 
   useEffect(() => {
-    invoke<string>('get_account_mode').then((mode) => {
-      console.log('account mode: ', mode);
-      // setAccountMode(mode);
-    });
-  }, []);
+    if (!account) navigate(routes.settings);
+  }, [account, navigate]);
 
-  // useEffect(() => {
-  //   if (!account) navigate(routes.settings);
-  // }, [account, navigate]);
+  const refreshAccountMode = useCallback(async () => {
+    const mode = await invoke<TAccountMode>('get_account_mode');
+    dispatch({ type: 'set-account-mode', mode });
+  }, [dispatch]);
 
   const handleAccountLink = async () => {
     setIsAccountLinking(true);
@@ -119,12 +121,22 @@ function Account() {
       await invoke('store_deeplink_account', {
         callbackUrl: deeplinkUrl,
       });
+      await refreshAccountMode();
     } catch (error) {
       console.error('Account login error: ', error);
       if (error instanceof Error && error.message === 'Login timeout') {
         push({
           message: t('account-linking-timeout', { ns: 'notifications' }),
           type: 'error',
+          duration: 3000,
+          close: true,
+        });
+      } else {
+        push({
+          message: t('account-linking-error', { ns: 'notifications' }),
+          type: 'error',
+          duration: 3000,
+          close: true,
         });
       }
     } finally {
@@ -172,22 +184,28 @@ function Account() {
                 },
               ]
             : []),
-          {
-            title: t('account.account-on-nym'),
-            desc: t('account.account-link-social-description'),
-            leadingIcon: isAccountLinking ? undefined : 'person',
-            leadingComponent: isAccountLinking ? <Spinner /> : undefined,
-            trailingIcon: 'open_in_new',
-            onClick: handleAccountLink,
-          },
+          ...(backendFlags.privy
+            ? [
+                {
+                  title: t('account.account-on-nym'),
+                  desc: t('account.account-link-social-description'),
+                  leadingIcon: isAccountLinking ? undefined : 'person',
+                  leadingComponent: isAccountLinking ? <Spinner /> : undefined,
+                  trailingIcon: 'open_in_new',
+                  onClick: handleAccountLink,
+                },
+              ]
+            : []),
         ]}
       />
 
-      <p className="text-sm text-iron dark:text-bombay">
-        {linkable
-          ? t('account.account-not-linked')
-          : t('account.account-linked')}
-      </p>
+      {backendFlags.privy && (
+        <p className="text-sm text-iron dark:text-bombay">
+          {linkable
+            ? t('account.account-not-linked')
+            : t('account.account-linked')}
+        </p>
+      )}
 
       <CardNew>
         <CardNewHeader>
@@ -229,9 +247,11 @@ function Account() {
         </CardNewBody>
       </CardNew>
 
-      <p className="text-sm text-iron dark:text-bombay">
-        {t('account.device-id-description')}
-      </p>
+      {backendFlags.privy && (
+        <p className="text-sm text-iron dark:text-bombay">
+          {t('account.device-id-description')}
+        </p>
+      )}
 
       <div className="flex flex-col gap-2">
         <Button

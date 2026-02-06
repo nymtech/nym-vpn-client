@@ -1,22 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
-import { invoke } from '@tauri-apps/api/core';
-import { StateDispatch } from '../types/app-state';
-import { useMainDispatch } from '../contexts';
-import { TAccountMode } from '../types/tauri';
 
 const PRIVY_DEEPLINK_URL = 'nymvpn://auth/privy/privateKey';
 
 const useDeepLink = () => {
-  const dispatch = useMainDispatch() as StateDispatch;
-
   const unlistenRef = useRef<(() => void) | null>(null);
   const isCleanedUpRef = useRef(false);
-
-  const refreshAccountMode = useCallback(async () => {
-    const mode = await invoke<TAccountMode>('get_account_mode');
-    dispatch({ type: 'set-account-mode', mode });
-  }, [dispatch]);
 
   const cleanup = useCallback(() => {
     if (unlistenRef.current && !isCleanedUpRef.current) {
@@ -46,7 +35,6 @@ const useDeepLink = () => {
         const url = urls[0];
 
         cleanup();
-        refreshAccountMode();
         resolve(url);
       })
         .then((unlistenFn) => {
@@ -63,7 +51,7 @@ const useDeepLink = () => {
           }
         });
     });
-  }, [cleanup, refreshAccountMode]);
+  }, [cleanup]);
 
   return { startListening };
 };
