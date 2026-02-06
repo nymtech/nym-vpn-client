@@ -1,3 +1,0 @@
-O que há de novo:
-- Correcções de erros
-- Adicionadas licenças

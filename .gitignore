@@ -39,3 +39,14 @@ nym-vpn-core/upload/mac
 
 # GitHub Copilot
 .github/copilot-instructions.md
+
+# Fastlane metadata (Crowdin)
+fastlane/metadata/android/*/
+!fastlane/metadata/android/en-US/
+
+# Fastlane reports
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/readme.md

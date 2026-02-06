@@ -1,3 +1,0 @@
-Was ist neu:
-- Proguard repariert
-- UI aktualisiert

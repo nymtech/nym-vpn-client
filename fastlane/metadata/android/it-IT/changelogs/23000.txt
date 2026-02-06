@@ -1,8 +1,0 @@
-Cosa c'è di nuovo:
-- Aggiunti lo stato QUIC e dettagli del server
-- Nuova icona di streaming e suggerimenti aggiornati su Home/Exit
-- Nuova schermata passphrase e flusso di creazione account
-- Le schermate di entrata/uscita ora mostrano i nomi delle città invece degli ID del server
-- Dettagli migliorati del gateway con relativi tempi di aggiornamento
-- Visualizzazione uptime del server fisso
-- Vari miglioramenti e correzioni dell'interfaccia utente

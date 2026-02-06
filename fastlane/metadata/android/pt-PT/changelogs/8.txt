@@ -1,3 +1,0 @@
-O que há de novo:
-- Melhora do ecrã de registos
-- Correcções de erros

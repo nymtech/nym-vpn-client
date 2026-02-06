@@ -370,6 +370,26 @@ jobs:
           version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
+      # === CROWDIN DOWNLOAD START ===
+      - name: Install Crowdin CLI
+        run: npm install -g @crowdin/cli
+
+      - name: Download translations
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          export PATH="$PATH:$(npm config get prefix)/bin"
+
+          # Change to workspace root to access crowdin-configs
+          cd ${{ github.workspace }}
+
+          echo "⬇️ Downloading translations..."
+          crowdin download translations \
+            --config crowdin-configs/android.yml \
+            --project-id "$CROWDIN_PROJECT_ID" \
+            --token "$CROWDIN_PERSONAL_TOKEN"
+      # === CROWDIN DOWNLOAD END ===
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}
         run: |

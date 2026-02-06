@@ -33,6 +33,10 @@ on:
         required: false
       ANDROID_KEYSTORE:
         required: false
+      CROWDIN_PROJECT_ID:
+        required: false
+      CROWDIN_PERSONAL_TOKEN:
+        required: false
   workflow_call:
     inputs:
       build_type:
@@ -57,6 +61,10 @@ on:
       ANDROID_SERVICE_ACCOUNT_JSON:
         required: false
       ANDROID_KEYSTORE:
+        required: false
+      CROWDIN_PROJECT_ID:
+        required: false
+      CROWDIN_PERSONAL_TOKEN:
         required: false
 env:
   UPLOAD_DIR_ANDROID: android_artifacts
@@ -133,6 +141,28 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
 
+      # === CROWDIN DOWNLOAD START ===
+      - name: Install Crowdin CLI
+        if: ${{ inputs.build_type != 'debug' }}
+        run: npm install -g @crowdin/cli
+
+      - name: Download translations
+        if: ${{ inputs.build_type != 'debug' }}
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          export PATH="$PATH:$(npm config get prefix)/bin"
+
+          # Change to workspace root to access crowdin-configs
+          cd ${{ github.workspace }}
+
+          echo "⬇️ Downloading translations..."
+          crowdin download translations \
+            --config crowdin-configs/android.yml \
+            --project-id "$CROWDIN_PROJECT_ID" \
+            --token "$CROWDIN_PERSONAL_TOKEN"
+      # === CROWDIN DOWNLOAD END ===
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
       - name: Decode Keystore

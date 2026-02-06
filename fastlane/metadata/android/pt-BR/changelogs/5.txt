@@ -1,3 +1,0 @@
-Quais as novidades:
-- Correção de erros
-- Adição de licenças

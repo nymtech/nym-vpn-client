@@ -1,4 +1,0 @@
-Yenilikler:
-- Kayıt sistemi hata düzeltmeleri
-- Stabilite iyileştirmeleri
-- İstemci güncelleme bildirimleri

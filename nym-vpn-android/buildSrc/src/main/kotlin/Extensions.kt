@@ -70,13 +70,20 @@ fun Project.isBundleBuild(): Boolean {
 }
 
 fun Project.languageList(): List<String> {
-	return fileTree("../app/src/main/res") { include("**/strings.xml") }
-		.asSequence()
-		.map { stringFile -> stringFile.parentFile.name }
-		.map { valuesFolderName -> valuesFolderName.replace("values-", "") }
-		.filter { valuesFolderName -> valuesFolderName != "values" }
-		.map { languageCode -> languageCode.replace("-r", "_") }
-		.distinct()
-		.sorted()
-		.toList() + "en"
+	return listOf(
+		"ar",      // Arabic
+		"bn",      // Bengali
+		"de",      // German
+		"en",      // English (Default)
+		"es",      // Spanish
+		"fa",      // Persian
+		"fr",      // French
+		"hi",      // Hindi
+		"pt_BR",   // Portuguese (Brazil)
+		"ru",      // Russian
+		"tr",      // Turkish
+		"uk",      // Ukrainian
+		"vi",      // Vietnamese
+		"zh_CN"    // Chinese (Simplified)
+	).sorted()
 }

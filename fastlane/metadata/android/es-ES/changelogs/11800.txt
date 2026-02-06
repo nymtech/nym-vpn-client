@@ -1,3 +1,0 @@
-Novedades:
-- Corrección de errores
-- Actualizaciones de la interfaz

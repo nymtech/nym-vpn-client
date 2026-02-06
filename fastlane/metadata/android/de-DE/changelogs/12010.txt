@@ -1,4 +1,0 @@
-Was ist neu:
-- Individuelle Gateway-Auswahl
-- Fehlerbehebungen
-- Optimierungsverbesserung

@@ -1,4 +1,0 @@
-Quoi de neuf :
-- Corrections de bugs dans le journal
-- Amélioration de la stabilité
-- Mise à jour de la messagerie du client

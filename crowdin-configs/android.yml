@@ -7,47 +7,35 @@ preserve_hierarchy: true
 languages_mapping:
   # res/values
   android_code: &android-code
-    ar:    ar
-    bn:    bn-rBD
-    cs:    cs
-    de:    de
-    el:    el-rGR
+    ar: ar
+    bn: bn-rBD
+    de: de
     es-ES: es
-    fa:    fa
-    fr:    fr
-    hi:    hi
-    hu:    hu
-    it:    it
-    ja:    ja
+    fa: fa
+    fr: fr
+    hi: hi
     pt-BR: pt-rBR
-    pt-PT: pt-rPT
-    ru:    ru
-    tr:    tr
-    uk:    uk
-    vi:    vi-rVN
+    ru: ru
+    tr: tr
+    uk: uk
+    vi: vi-rVN
     zh-CN: zh-rCN
 
   # fastlane / Google Play
   locale: &play-locale
-    ar:    ar
-    bn:    bn-BD
-    cs:    cs-CZ
-    de:    de-DE
-    el:    el-GR
+    ar: ar
+    bn: bn-BD
+    de: de-DE
     en-US: en-US
     es-ES: es-ES
-    fa:    fa
-    fr:    fr-FR
-    hi:    hi-IN
-    hu:    hu-HU    
-    it:    it-IT
-    ja:    ja-JP
+    fa: fa
+    fr: fr-FR
+    hi: hi-IN
     pt-BR: pt-BR
-    pt-PT: pt-PT
-    ru:    ru-RU
-    tr:    tr-TR
-    uk:    uk
-    vi:    vi
+    ru: ru-RU
+    tr: tr-TR
+    uk: uk
+    vi: vi
     zh-CN: zh-CN
 
 files:

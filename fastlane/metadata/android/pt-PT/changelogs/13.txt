@@ -1,5 +1,0 @@
-Novidade:
-- Correção do bug do descritor de arquivo
-- Correção do bug da API v5 nym
-- Correção de paradas de vpn ipv6/ipv4
-- Outras correções de erros

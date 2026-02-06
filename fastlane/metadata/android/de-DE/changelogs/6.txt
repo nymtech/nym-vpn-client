@@ -1,4 +1,0 @@
-Was ist neu:
-- Bildschirm-Protokolle hinzufügen
-- Verbesserung der VPN-Statusanzeige
-- Hinzufügen

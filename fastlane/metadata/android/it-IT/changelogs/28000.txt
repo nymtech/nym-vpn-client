@@ -1,8 +1,0 @@
-Cosa c'è di nuovo
-- Nuovi controlli di registrazione: Abilita log e debug Verbose.
-- Aggiunto controllo di autenticazione per le azioni di scorciatoie
-- Formato di esportazione log aggiornato (cartelle strutturate e registri raggruppati)
-- Migliorata gestione delle azioni NavBar
-- Riduzione del rumore inutile del registro
-- Manipolazione automatica fissa
-- Miglioramenti e correzioni minori dell'interfaccia utente

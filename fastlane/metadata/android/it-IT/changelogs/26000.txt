@@ -1,8 +1,0 @@
-Cosa c’è di nuovo:
-- Aggiunti i dettagli del nodo di entrata e uscita alle notifiche di connessione
-- Ora è possibile visualizzare i dettagli del server direttamente dalla schermata iniziale
-- Introduced impostazioni DNS personalizzate per un maggiore controllo di rete
-- Le sezioni riorganizzate sullo schermo della censura per una maggiore chiarezza
-- Registri di configurazione del tunnel migliorati con dettagli più chiari, passo dopo passo
-- Gestione di applicazioni con restrizioni fisse nelle configurazioni del tunnel
-- Risolto un problema in cui il timer di connessione poteva resettare casualmente

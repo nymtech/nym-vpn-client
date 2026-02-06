@@ -1,5 +1,0 @@
-Quais as novidades:
-- Detalhes de seleção do Gateway
-- Otimizações de uso de dados
-- Mosaico de correções
-- Outras correções de erros e melhorias

@@ -1,4 +1,0 @@
-Có gì mới:
-- Tái cấu trúc máy khách VPN
-- Thêm tài nguyên hình ảnh
-- Sửa lỗi đồng bộ trạng thái giao diện người dùng với VPN

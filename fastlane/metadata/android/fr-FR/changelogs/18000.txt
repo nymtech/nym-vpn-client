@@ -1,3 +1,0 @@
-Ce qui change :
-- Amélioration de la stabilité de l'application et réduction des crashs
-- Ajustements dans la navigation

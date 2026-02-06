@@ -1,2 +1,0 @@
-Cosa c'è di nuovo:
-- Versione api bump

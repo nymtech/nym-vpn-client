@@ -1,2 +1,0 @@
-Was ist neu:
-- Reproduzierbare Builds
