@@ -113,7 +113,6 @@ pub struct NymVpnAccountSummaryFairUsage {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
 pub struct NymVpnCanonicalAccountIdentityResponse {
     pub canonical_account_addr: String,
 }

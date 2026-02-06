@@ -825,6 +825,7 @@ impl VpnApiClient {
             None,
         )
         .await
+        .inspect_err(|e| tracing::error!("Failed to link account: {e:?}"))
         .map_err(Box::new)
         .map_err(VpnApiClientError::LinkPrivyAccount)
     }
@@ -845,8 +846,9 @@ impl VpnApiClient {
             None,
         )
         .await
+        .inspect_err(|e| tracing::error!("Failed to get canonical account identity: {e:?}"))
         .map_err(Box::new)
-        .map_err(VpnApiClientError::GetAccountSummary)
+        .map_err(VpnApiClientError::GetCanonicalAccountIdentity)
     }
 
     // DEVICES

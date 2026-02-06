@@ -24,6 +24,9 @@ pub enum VpnApiClientError {
     #[error("failed to get account summary")]
     GetAccountSummary(#[source] Box<HttpClientError>),
 
+    #[error("failed to get canonical account identity")]
+    GetCanonicalAccountIdentity(#[source] Box<HttpClientError>),
+
     #[error("failed to get account summary with device")]
     GetAccountSummaryWithDevice(#[source] Box<HttpClientError>),
 
