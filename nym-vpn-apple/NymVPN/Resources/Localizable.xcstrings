@@ -30992,6 +30992,50 @@
         }
       }
     },
+    "settings.account.accountId" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use your account ID if you need to contact Nym customer support.  This is safe to share!"
+          }
+        }
+      }
+    },
+    "settings.account.deviceId" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use this to link this device to your account on nym.com"
+          }
+        }
+      }
+    },
+    "settings.account.linking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linking a social account with your Nym account reduces your anonymity. Changes take effect after logging out and logging back in with the chosen social. "
+          }
+        }
+      }
+    },
+    "settings.account.manageAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage account"
+          }
+        }
+      }
+    },
     "settings.account.nymAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -30999,6 +31043,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Account on nym.com"
+          }
+        }
+      }
+    },
+    "settings.account.nymAccount.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link a social account for effortless login."
           }
         }
       }

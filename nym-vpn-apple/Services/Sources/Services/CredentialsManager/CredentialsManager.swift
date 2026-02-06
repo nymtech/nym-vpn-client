@@ -32,6 +32,7 @@ import PathManager
 
     public var deviceIdentifier: String?
     @Published public var accountIdentifier: String?
+    @Published public var didReceiveAccountLinkCallback = false
 
     public var isValidCredentialImported: Bool {
         appSettings.isCredentialImported
@@ -144,7 +145,20 @@ import PathManager
         }.value
     }
 
-    public func privyLogin() async throws -> String? {
+    public func isAccountLinkAvailable() async throws -> Bool {
+#if os(iOS)
+        let result = try await NymVpnAccountStorage(
+            dataDir: PathManager.dataFolderURL().path(),
+            environment: configurationManager.networkEnv
+        ).getAccountMode()
+        return result == .api
+#elseif os(macOS)
+        return try await grpcManager.isLinkAccountAvailable()
+#endif
+    }
+
+    public func privyLogin(isLink: Bool = false) async throws -> String? {
+        didReceiveAccountLinkCallback = false
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
         let name = "default"
 #if os(iOS)
@@ -158,7 +172,7 @@ import PathManager
             )
         )
 #elseif os(macOS)
-        return try await grpcManager.privyLogin(locale: locale, name: name)
+        return try await grpcManager.privyLogin(locale: locale, name: name, isLink: isLink)
 #endif
     }
 
@@ -175,6 +189,7 @@ import PathManager
 #elseif os(macOS)
         try await grpcManager.storePrivyAccount(with: callbackURLString)
         checkCredentialImport()
+        didReceiveAccountLinkCallback = true
 #endif
     }
 }
