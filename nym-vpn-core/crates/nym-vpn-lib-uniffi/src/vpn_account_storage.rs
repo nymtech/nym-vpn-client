@@ -9,7 +9,7 @@ use nym_sdk::mixnet::StoragePaths;
 use nym_vpn_api_client::{
     VpnApiClient,
     response::NymVpnRegisterAccountResponse,
-    types::{Device, DeviceStatus, Platform, VpnAccount},
+    types::{Device, DeviceStatus, Platform, VpnAccount, VpnAccountMode},
 };
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
@@ -253,11 +253,8 @@ impl NymVpnAccountStorage {
         let vpn_account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
 
         match vpn_account.mode() {
-            nym_vpn_lib_types::StoredAccountMode::Api
-            | nym_vpn_lib_types::StoredAccountMode::Decentralised => {
-                Ok(vpn_account.id().to_string())
-            }
-            nym_vpn_lib_types::StoredAccountMode::Privy => {
+            VpnAccountMode::Api | VpnAccountMode::Decentralised => Ok(vpn_account.id().to_string()),
+            VpnAccountMode::Privy => {
                 let vpn_api_client = self.create_vpn_api_client().await?;
                 let response = vpn_api_client
                     .get_canonical_account_identity(&vpn_account)
