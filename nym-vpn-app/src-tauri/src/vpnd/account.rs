@@ -73,3 +73,22 @@ pub fn log_account_state(state: &lib::AccountControllerState) {
         _ => debug!("account state: [{state:?}]"),
     }
 }
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TAccountMode")]
+#[serde(rename_all = "kebab-case")]
+pub enum StoredAccountMode {
+    Privy,
+    Decentralised,
+    Api,
+}
+
+impl From<lib::StoredAccountMode> for StoredAccountMode {
+    fn from(mode: lib::StoredAccountMode) -> Self {
+        match mode {
+            lib::StoredAccountMode::Privy => StoredAccountMode::Privy,
+            lib::StoredAccountMode::Decentralised => StoredAccountMode::Decentralised,
+            lib::StoredAccountMode::Api => StoredAccountMode::Api,
+        }
+    }
+}

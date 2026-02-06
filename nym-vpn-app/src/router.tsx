@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
 import {
   AccountRouteIndex,
+  AccountScreen,
   AntiCensorship,
   Appearance,
   AppearanceRouteIndex,
@@ -62,6 +63,7 @@ export const routes = {
   welcome: '/hideout/welcome',
   onboarding: '/onboarding',
   mixnetTuning: '/settings/mixnet-tuning',
+  accountSettings: '/settings/account',
 } as const;
 
 // ⚠ router instance creation must remain outside of React
@@ -108,6 +110,11 @@ const router = createBrowserRouter([
         Component: SettingsRouteIndex,
         errorElement: <Error />,
         children: [
+          {
+            path: routes.accountSettings,
+            Component: AccountScreen,
+            errorElement: <Error />,
+          },
           {
             Component: Settings,
             errorElement: <Error />,

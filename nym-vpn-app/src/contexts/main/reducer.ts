@@ -19,6 +19,7 @@ import {
   NodeHop,
   ProgressMsg,
   SelectedNode,
+  TAccountMode,
   ThemeMode,
   Tunnel,
   TunnelAction,
@@ -72,6 +73,7 @@ export type StateAction =
   | { type: 'set-allow-lan'; enabled: boolean }
   | { type: 'set-network-stats'; enabled: boolean }
   | { type: 'set-account-state'; state: AccountState }
+  | { type: 'set-account-mode'; mode: TAccountMode }
   | { type: 'set-account-syncing'; syncing: boolean }
   | { type: 'set-welcome-checked'; checked: boolean }
   | { type: 'set-account-error'; error: AppError | null }
@@ -90,6 +92,7 @@ export const initialState: AppState = {
   tunnel: null,
   tunnelError: null,
   accountState: null,
+  accountMode: null,
   accountSyncing: false,
   accountError: null,
   daemonStatus: 'down',
@@ -357,6 +360,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         accountState: action.state,
+      };
+    case 'set-account-mode':
+      return {
+        ...state,
+        accountMode: action.mode,
       };
     case 'set-account-syncing':
       return {

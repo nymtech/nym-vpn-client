@@ -1,4 +1,5 @@
 pub use super::{
+    account::StoredAccountMode,
     account_links::AccountLinks,
     error::VpndError,
     feature_flags::FeatureFlags,
@@ -510,6 +511,19 @@ impl VpndClient {
         Ok(id)
     }
 
+    /// Get account mode
+    #[instrument(skip_all)]
+    pub async fn account_mode(&self) -> Result<Option<StoredAccountMode>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let mode = vpnd
+            .get_account_mode()
+            .or_else(async |e| self.handle_rpc_error("get_account_mode", e).await)
+            .await?;
+
+        Ok(mode.map(Into::into))
+    }
+
     /// Get the device identity
     #[instrument(skip_all)]
     pub async fn device_id(&self) -> Result<Option<String>, VpndError> {
@@ -829,14 +843,18 @@ impl VpndClient {
     }
 
     #[instrument(skip_all)]
-    pub async fn get_deep_link(&self, locale: String) -> Result<Option<String>, VpndError> {
+    pub async fn get_deep_link(
+        &self,
+        locale: String,
+        kind: lib::DeeplinkKind,
+    ) -> Result<Option<String>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let deeplink = vpnd
             .get_deeplink(lib::GetDeeplinkParams {
                 client: lib::DeeplinkClient::Desktop,
                 locale,
-                kind: lib::DeeplinkKind::Privy,
+                kind,
                 name: "default".to_string(),
             })
             .or_else(async |e| self.handle_rpc_error("get_deeplink", e).await)

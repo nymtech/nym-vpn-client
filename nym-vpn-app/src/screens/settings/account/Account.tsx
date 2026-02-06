@@ -1,131 +1,270 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
+import { useCallback, useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { useNavigate } from 'react-router';
+import clsx from 'clsx';
+import {
+  Button,
+  CardNew,
+  CardNewBody,
+  CardNewCopyableRow,
+  CardNewHeader,
+  MsIcon,
+  PageAnim,
+  Spinner,
+} from '../../../ui';
+import SettingsGroup from '../SettingsGroup';
+import { CCache } from '../../../cache';
+import {
+  useInAppNotify,
+  useMainDispatch,
+  useMainState,
+} from '../../../contexts';
 import { routes } from '../../../router';
-import { useMainDispatch, useMainState } from '../../../contexts';
-import { AccountState, StateDispatch } from '../../../types';
-import { Button, SettingsMenuCard } from '../../../ui';
-import { capFirst } from '../../../util';
+import { useDeepLink, useLogout } from '../../../hooks';
+import { StateDispatch, TAccountMode } from '../../../types';
+import { getAccountColor, getAccountDescription } from './utils';
+
+const IdsTimeToLive = 120; // sec
 
 function Account() {
-  const { daemonStatus, account, accountState, accountSyncing, accountLinks } =
-    useMainState();
-
+  const { t, i18n } = useTranslation('settings');
   const navigate = useNavigate();
+
+  const { logout, loading } = useLogout();
+  const {
+    accountLinks,
+    account,
+    accountState,
+    accountSyncing,
+    daemonStatus,
+    accountMode,
+    backendFlags,
+  } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
-  const { t } = useTranslation('settings');
-  const accountUrl = accountLinks?.account;
-  const accountLoginUrl = accountLinks?.signIn;
   const needAPlan =
     account &&
     (accountState === 'no-subscription' ||
       accountState === 'bandwidth-exceeded');
 
+  const [isAccountLinking, setIsAccountLinking] = useState(false);
+  const [accountId, setAccountId] = useState<string | null>(null);
+  const [deviceId, setDeviceId] = useState<string | null>(null);
+
+  const linkable = accountMode === 'api';
+
+  const { startListening } = useDeepLink();
+  const { push } = useInAppNotify();
+
+  const getAccountId = async () => {
+    const accountId = await CCache.get<string>('cache-account-id');
+    if (accountId) {
+      setAccountId(accountId);
+      return;
+    }
+    try {
+      const accountId = await invoke<string>('get_account_id');
+      setAccountId(accountId);
+      CCache.set('cache-account-id', accountId, IdsTimeToLive);
+    } catch {
+      setAccountId(null);
+    }
+  };
+
+  const getDeviceId = async () => {
+    const deviceId = await CCache.get<string>('cache-device-id');
+    if (deviceId) {
+      setDeviceId(deviceId);
+      return;
+    }
+    try {
+      const deviceId = await invoke<string>('get_device_id');
+      setDeviceId(deviceId);
+      CCache.set('cache-device-id', deviceId, IdsTimeToLive);
+    } catch {
+      setDeviceId(null);
+    }
+  };
+
   useEffect(() => {
-    const checkAccount = async () => {
-      try {
-        const stored = await invoke<boolean | undefined>('is_account_stored');
-        dispatch({ type: 'set-account', stored: stored || false });
-      } catch {}
-    };
+    getAccountId();
+    getDeviceId();
+  }, []);
 
-    if (daemonStatus !== 'down') {
-      checkAccount();
-    }
-  }, [daemonStatus, dispatch]);
+  useEffect(() => {
+    if (!account) navigate(routes.settings);
+  }, [account, navigate]);
 
-  const handleGoToAccount = () => {
-    if (accountUrl) {
-      openUrl(accountUrl);
-    } else if (accountLoginUrl) {
-      openUrl(accountLoginUrl);
+  const refreshAccountMode = useCallback(async () => {
+    const mode = await invoke<TAccountMode>('get_account_mode');
+    dispatch({ type: 'set-account-mode', mode });
+  }, [dispatch]);
+
+  const handleAccountLink = async () => {
+    setIsAccountLinking(true);
+
+    try {
+      const linkUrl = await invoke<string>('get_deep_link', {
+        locale: i18n.language,
+        kind: 'PrivyLink',
+      });
+      openUrl(linkUrl);
+
+      const deeplinkUrl = await Promise.race([
+        startListening(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Login timeout')), 300000),
+        ),
+      ]);
+
+      await invoke('store_deeplink_account', {
+        callbackUrl: deeplinkUrl,
+      });
+      await refreshAccountMode();
+    } catch (error) {
+      console.error('Account login error: ', error);
+      if (error instanceof Error && error.message === 'Login timeout') {
+        push({
+          message: t('account-linking-timeout', { ns: 'notifications' }),
+          type: 'error',
+          duration: 3000,
+          close: true,
+        });
+      } else {
+        push({
+          message: t('account-linking-error', { ns: 'notifications' }),
+          type: 'error',
+          duration: 3000,
+          close: true,
+        });
+      }
+    } finally {
+      setIsAccountLinking(false);
     }
   };
 
-  const getAccountDescription = (state?: AccountState | null) => {
-    if (!state) {
-      return null;
-    }
-    if (accountSyncing) {
-      return t('account.syncing');
-    }
-    switch (state) {
-      case 'no-subscription':
-        return t('account.no-plan');
-      case 'max-device-reached':
-        return t('account.max-device-reached');
-      case 'status-not-active':
-        return t('account.status-inactive');
-      case 'bandwidth-exceeded':
-        return t('account.bandwidth-exceeded');
-      case 'requesting-zk-nyms':
-        return t('account.requesting-zknyms');
-      case 'offline':
-      case 'error':
-        return t('account.error');
-      default:
-        return null;
+  const handleManageSubscription = () => {
+    if (accountLinks?.account) {
+      openUrl(accountLinks.account);
+    } else if (accountLinks?.signIn) {
+      openUrl(accountLinks.signIn);
     }
   };
-
-  const getAccountColor = (state?: AccountState | null) => {
-    if (accountSyncing) {
-      return 'normal';
-    }
-    if (
-      state === 'no-subscription' ||
-      state === 'bandwidth-exceeded' ||
-      state === 'max-device-reached' ||
-      state === 'error'
-    ) {
-      return 'red';
-    }
-    if (state === 'offline' || state === 'status-not-active') {
-      return 'yellow';
-    }
-    return 'normal';
-  };
-
-  const getAccountButtonText = () => {
-    if (needAPlan) {
-      return t('account.choose-plan');
-    }
-    return t('account.get-started');
-  };
-
-  if (!account) {
-    return (
-      <Button
-        onClick={() => navigate(routes.onboarding)}
-        disabled={daemonStatus === 'down'}
-      >
-        {t('account.get-started')}
-      </Button>
-    );
-  }
-
   return (
-    <>
+    <PageAnim className="h-full flex flex-col mt-2 pb-2 gap-6 select-none">
       {needAPlan && (
         <Button
           onClick={() => navigate(routes.selectPlan)}
           disabled={daemonStatus === 'down' || accountSyncing}
         >
-          {getAccountButtonText()}
+          {t('account.choose-plan')}
         </Button>
       )}
-      <SettingsMenuCard
-        title={capFirst(t('account', { ns: 'glossary' }))}
-        onClick={handleGoToAccount}
-        description={getAccountDescription(accountState) as string | undefined}
-        descriptionColor={getAccountColor(accountState)}
-        leadingIcon="account_circle"
-        trailingIcon="open_in_new"
-        disabled={!accountLoginUrl && !accountUrl}
+
+      <SettingsGroup
+        settings={[
+          ...(linkable
+            ? [
+                {
+                  title: t('account.manage-subscriptoin'),
+                  desc: (
+                    <span
+                      className={clsx(
+                        getAccountColor(accountSyncing, accountState),
+                      )}
+                    >
+                      {getAccountDescription(t, accountSyncing, accountState) ??
+                        t('account.account-link-social-description')}
+                    </span>
+                  ),
+                  leadingIcon: 'event_repeat',
+                  trailingIcon: 'open_in_new',
+                  onClick: handleManageSubscription,
+                },
+              ]
+            : []),
+          ...(backendFlags.privy
+            ? [
+                {
+                  title: t('account.account-on-nym'),
+                  desc: t('account.account-link-social-description'),
+                  leadingIcon: isAccountLinking ? undefined : 'person',
+                  leadingComponent: isAccountLinking ? <Spinner /> : undefined,
+                  trailingIcon: 'open_in_new',
+                  onClick: handleAccountLink,
+                },
+              ]
+            : []),
+        ]}
       />
-    </>
+
+      {backendFlags.privy && (
+        <p className="text-sm text-iron dark:text-bombay">
+          {linkable
+            ? t('account.account-not-linked')
+            : t('account.account-linked')}
+        </p>
+      )}
+
+      <CardNew>
+        <CardNewHeader>
+          <div className="flex flex-row items-center gap-2">
+            <MsIcon icon="numbers" className="text-iron dark:text-bombay" />
+            <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
+              {t('account.account-id')}
+            </p>
+          </div>
+        </CardNewHeader>
+        <CardNewBody className="pb-5">
+          <CardNewCopyableRow
+            value={accountId ?? ''}
+            label={accountId ?? ''}
+            loading={!accountId}
+          />
+        </CardNewBody>
+      </CardNew>
+
+      <p className="text-sm text-iron dark:text-bombay">
+        {t('account.account-id-description')}
+      </p>
+
+      <CardNew>
+        <CardNewHeader>
+          <div className="flex flex-row items-center gap-2">
+            <MsIcon icon="devices" className="text-iron dark:text-bombay" />
+            <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
+              {t('account.device-id')}
+            </p>
+          </div>
+        </CardNewHeader>
+        <CardNewBody className="pb-5">
+          <CardNewCopyableRow
+            value={deviceId ?? ''}
+            label={deviceId ?? ''}
+            loading={!deviceId}
+          />
+        </CardNewBody>
+      </CardNew>
+
+      {backendFlags.privy && (
+        <p className="text-sm text-iron dark:text-bombay">
+          {t('account.device-id-description')}
+        </p>
+      )}
+
+      <div className="flex flex-col gap-2">
+        <Button
+          color="red"
+          outline
+          onClick={() => logout()}
+          disabled={loading}
+          spinner={loading}
+        >
+          {t('account.logout')}
+        </Button>
+      </div>
+    </PageAnim>
   );
 }
 

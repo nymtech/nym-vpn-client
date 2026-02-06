@@ -7,10 +7,10 @@ import { useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
 import { MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
-import { Account } from './account';
+import { AccountSettingRow } from './account';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
-import Logout from './Logout';
+// import Logout from './Logout';
 
 function Settings() {
   const { desktopNotifications, ipv6Support, allowLan, backendFlags } =
@@ -49,7 +49,7 @@ function Settings() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
-      <Account />
+      <AccountSettingRow />
       <SettingsGroup
         settings={[
           {
@@ -169,7 +169,7 @@ function Settings() {
           },
         ]}
       />
-      <Logout />
+      {/* <Logout /> */}
       <SettingsMenuCard title={t('quit')} onClick={exit} />
       <InfoData />
     </PageAnim>

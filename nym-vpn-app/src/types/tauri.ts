@@ -267,6 +267,8 @@ export type SystemMessage = {
   properties: { [key in string]?: string } | null;
 };
 
+export type TAccountMode = 'privy' | 'decentralised' | 'api';
+
 export type TAccountState =
   | 'ready'
   | 'logged-out'

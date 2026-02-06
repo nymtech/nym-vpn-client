@@ -3,6 +3,7 @@ use tracing::{error, info, instrument, warn};
 
 use crate::state::SharedAppState;
 use crate::vpnd::account::AccountState;
+use crate::vpnd::account::StoredAccountMode;
 use crate::vpnd::account_links::AccountLinks;
 use crate::vpnd::tunnel::TunnelState;
 use crate::{error::BackendError, vpnd::client::VpndClient};
@@ -133,8 +134,9 @@ pub async fn get_device_id(vpnd: State<'_, VpndClient>) -> Result<Option<String>
 pub async fn get_deep_link(
     vpnd: State<'_, VpndClient>,
     locale: String,
+    kind: nym_vpn_lib_types::DeeplinkKind,
 ) -> Result<Option<String>, BackendError> {
-    vpnd.get_deep_link(locale).await.map_err(|e| {
+    vpnd.get_deep_link(locale, kind).await.map_err(|e| {
         error!("failed to get deep link: {e}");
         e.into()
     })
@@ -152,4 +154,15 @@ pub async fn store_deeplink_account(
             error!("failed to store deeplink account: {e}");
             e.into()
         })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_account_mode(
+    vpnd: State<'_, VpndClient>,
+) -> Result<Option<StoredAccountMode>, BackendError> {
+    vpnd.account_mode().await.map_err(|e| {
+        warn!("failed to get account mode: {e}");
+        e.into()
+    })
 }

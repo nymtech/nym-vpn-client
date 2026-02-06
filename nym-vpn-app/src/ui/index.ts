@@ -25,6 +25,7 @@ export { default as PulseDot } from './PulseDot';
 export { default as Skeleton } from './Skeleton';
 export { default as Toast } from './Toast';
 export { default as ConfirmationDialog } from './ConfirmationDialog';
+export { default as Spinner } from './Spinner';
 export * from './Button';
 export * from './ButtonIcon';
 export * from './ButtonText';

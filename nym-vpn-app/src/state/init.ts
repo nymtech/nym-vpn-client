@@ -13,6 +13,7 @@ import {
   InitState,
   NetworkCompat,
   StateDispatch,
+  TAccountMode,
   TAccountState,
   TTunnelState,
   ThemeMode,
@@ -58,6 +59,16 @@ export async function initFirstBatch(
         }
       },
     };
+
+  const getAccountModeRq: TauriReq<() => Promise<TAccountMode | undefined>> = {
+    name: 'getAccountModeRq',
+    request: () => invoke<TAccountMode>('get_account_mode'),
+    onFulfilled: (mode) => {
+      if (mode) {
+        dispatch({ type: 'set-account-mode', mode });
+      }
+    },
+  };
 
   const getStoredAccountRq: TauriReq<() => Promise<boolean | undefined>> = {
     name: 'getStoredAccountRq',
@@ -202,6 +213,7 @@ export async function initFirstBatch(
       initStateRq,
       getStoredAccountRq,
       getAccountStateRq,
+      getAccountModeRq,
       getFeatureFlagsRq,
       ...requests,
     ];

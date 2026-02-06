@@ -291,6 +291,7 @@ async fn main() -> Result<()> {
             cmd_log::log_js,
             account::get_account_state,
             account::add_account,
+            account::get_account_mode,
             account::forget_account,
             account::is_account_stored,
             account::get_account_id,
