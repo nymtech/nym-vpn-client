@@ -3,11 +3,11 @@ use tracing::{error, info, instrument, warn};
 
 use crate::state::SharedAppState;
 use crate::vpnd::account::AccountState;
+use crate::vpnd::account::StoredAccountMode;
 use crate::vpnd::account_links::AccountLinks;
 use crate::vpnd::tunnel::TunnelState;
 use crate::{error::BackendError, vpnd::client::VpndClient};
 use nym_vpn_lib_types::{self as lib};
-use crate::vpnd::account::StoredAccountMode;
 
 #[instrument(skip_all)]
 #[tauri::command]
@@ -157,14 +157,13 @@ pub async fn store_deeplink_account(
         })
 }
 
-
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_account_mode(vpnd: State<'_, VpndClient>) -> Result<Option<StoredAccountMode>, BackendError> {
-    vpnd.account_mode()
-        .await
-        .map_err(|e| {
-            warn!("failed to get account mode: {e}");
-            e.into()
-        })
+pub async fn get_account_mode(
+    vpnd: State<'_, VpndClient>,
+) -> Result<Option<StoredAccountMode>, BackendError> {
+    vpnd.account_mode().await.map_err(|e| {
+        warn!("failed to get account mode: {e}");
+        e.into()
+    })
 }

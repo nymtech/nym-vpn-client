@@ -127,7 +127,7 @@ function Login() {
             className={clsx(
               'h-14',
               daemonStatus === 'down' &&
-              'opacity-50 disabled:opacity-50 hover:opacity-50',
+                'opacity-50 disabled:opacity-50 hover:opacity-50',
             )}
             spinner={loading}
             data-testid="login-submit-button"

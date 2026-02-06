@@ -1,4 +1,5 @@
 pub use super::{
+    account::StoredAccountMode,
     account_links::AccountLinks,
     error::VpndError,
     feature_flags::FeatureFlags,
@@ -6,7 +7,6 @@ pub use super::{
     socks5::{HttpRpcSettings, Socks5Settings, Socks5Status},
     system_message::SystemMessage,
     vpnd_status::{VersionCheck, VpndInfo, VpndStatus},
-    account::StoredAccountMode,
 };
 use super::{
     config::{MixnetTrafficConfig, VpndConfig},
@@ -517,7 +517,8 @@ impl VpndClient {
     pub async fn account_mode(&self) -> Result<Option<StoredAccountMode>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let mode = vpnd.get_account_mode()
+        let mode = vpnd
+            .get_account_mode()
             .or_else(async |e| self.handle_rpc_error("get_account_mode", e).await)
             .await?;
 
