@@ -371,6 +371,11 @@ jobs:
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
       # === CROWDIN DOWNLOAD START ===
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Install Crowdin CLI
         run: npm install -g @crowdin/cli
 
