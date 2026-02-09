@@ -74,7 +74,7 @@ jobs:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         shell: pwsh
         run: |
-          crowdin download translations --config ./crowdin-configs/linux-windows.yml $(node -p "'-l ' + require('crowdin-configs/languages.json').languages.join(' -l ')")
+          crowdin download translations --config ./crowdin-configs/linux-windows.yml $(node -p "'-l ' + require('./crowdin-configs/languages.json').languages.join(' -l ')")
 
       - name: Typecheck
         working-directory: nym-vpn-app
