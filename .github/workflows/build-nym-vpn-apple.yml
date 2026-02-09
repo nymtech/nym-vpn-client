@@ -1064,8 +1064,23 @@ jobs:
             - Commit: ${{ github.sha }}
             - Built at: ${{ github.run_started_at }}
 
-      - name: Publish macOS GitHub Release
+      - name: Check if macOS release tag already exists
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        id: macos_tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="nym-vpn-macOS-v${MACOS_VERSION}"
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag already exists: ${TAG}"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Tag does not exist: ${TAG}"
+          fi
+
+      - name: Publish macOS GitHub Release
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && steps.macos_tag.outputs.exists != 'true' }}
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
