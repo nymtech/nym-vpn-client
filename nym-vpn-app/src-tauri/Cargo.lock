@@ -3469,7 +3469,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#cb3d195c69a6371a90713979050784b978a74310"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -3509,7 +3509,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#cb3d195c69a6371a90713979050784b978a74310"
 dependencies = [
  "pem",
  "tracing",
@@ -3531,7 +3531,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#83bf9dc7cc2b01f65cab671733f2bf6c3abd471d"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.2-oscypek#cb3d195c69a6371a90713979050784b978a74310"
 dependencies = [
  "thiserror 2.0.18",
 ]
