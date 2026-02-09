@@ -364,7 +364,7 @@ impl VpnApiClient {
                     tracing::info!("Response: {:#?}", response_text);
 
                     Err(HttpClientError::EndpointFailure {
-                        url,
+                        url: Box::new(url),
                         status,
                         headers: Box::new(headers),
                         error: response_text,
@@ -372,7 +372,7 @@ impl VpnApiClient {
                 }
             }
             Err(err) => Err(HttpClientError::RequestFailure {
-                url,
+                url: Box::new(url),
                 status,
                 headers: Box::new(headers),
             }),

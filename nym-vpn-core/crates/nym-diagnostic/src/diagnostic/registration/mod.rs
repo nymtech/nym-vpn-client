@@ -7,7 +7,6 @@ use nym_bandwidth_controller::{BandwidthController, BandwidthTicketProvider};
 use nym_client_core::client::topology_control::nym_api_provider::Config;
 use nym_credentials_interface::TicketType;
 use nym_platform_metadata::new_user_agent;
-use nym_registration_common::GatewayData;
 use nym_sdk::{
     DebugConfig, NymApiTopologyProvider, NymNetworkDetails, TopologyProvider,
     mixnet::{
@@ -23,6 +22,7 @@ use nym_validator_client::{
 use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
 use nym_vpn_network_config::Network;
 
+use nym_registration_common::WireguardConfiguration;
 use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Duration};
 use tokio_util::sync::CancellationToken;
 
@@ -168,7 +168,7 @@ impl RegistrationDiagnostic {
     async fn wireguard_registration(
         mixnet_client: MixnetClient,
         wg_registration_config: &WgRegistrationConfig,
-    ) -> Result<GatewayData, RegistrationError> {
+    ) -> Result<WireguardConfiguration, RegistrationError> {
         let address = *mixnet_client.nym_address();
 
         let mixnet_listener =

@@ -1,10 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::SocketAddr;
-
 use crate::tunnel_state_machine::TunnelMetadata;
-use nym_registration_common::GatewayData;
+use nym_registration_common::WireguardConfiguration;
+use std::net::SocketAddr;
 
 use nym_vpn_lib_types::BridgeAddress;
 
@@ -19,8 +18,8 @@ pub mod two_hop_config;
 #[derive(Debug, Clone)]
 pub struct ConnectionData {
     pub entry_bridge_addr: Option<BridgeAddress>,
-    pub entry: GatewayData,
-    pub exit: GatewayData,
+    pub entry: WireguardConfiguration,
+    pub exit: WireguardConfiguration,
 }
 
 impl ConnectionData {
@@ -33,10 +32,10 @@ impl ConnectionData {
     }
 
     /// Returns effective entry gateway data set to bridge listen endpoint when entry bridge address is available.
-    pub fn effective_entry_gateway_data(&self) -> GatewayData {
-        let mut gateway_data = self.entry.clone();
-        gateway_data.endpoint = self.effective_entry_endpoint();
-        gateway_data
+    pub fn effective_entry_gateway_data(&self) -> WireguardConfiguration {
+        let mut wireguard_config = self.entry.clone();
+        wireguard_config.endpoint = self.effective_entry_endpoint();
+        wireguard_config
     }
 
     /// Returns effective *remote* entry endpoint set to bridge remote endpoint when entry bridge address is available. Otherwise, returns the wireguard entry endpoint.

@@ -5,7 +5,7 @@ use std::{net::IpAddr, time::Duration};
 
 use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
-use nym_registration_common::GatewayData;
+use nym_registration_common::WireguardConfiguration;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
@@ -612,22 +612,22 @@ impl BandwidthController {
         selected_gateways: &SelectedGateways,
         entry_auth_client: AuthenticatorClient,
         exit_auth_client: AuthenticatorClient,
-        entry_gateway_data: GatewayData,
-        exit_gateway_data: GatewayData,
+        entry_wireguard_config: WireguardConfiguration,
+        exit_wireguard_config: WireguardConfiguration,
         entry_signal_channel: TunUpReceiver,
         exit_signal_channel: TunUpReceiver,
         gateway_metadata_update_version: Option<semver::Version>,
         cancel_token: CancellationToken,
     ) -> BandwidthController {
         let wg_entry_client = Self::construct_bandwidth_client(
-            entry_gateway_data.private_ipv4.into(),
+            entry_wireguard_config.private_ipv4.into(),
             entry_signal_channel,
             selected_gateways.entry_gateway(),
             entry_auth_client,
             gateway_metadata_update_version.clone(),
         );
         let wg_exit_client = Self::construct_bandwidth_client(
-            exit_gateway_data.private_ipv4.into(),
+            exit_wireguard_config.private_ipv4.into(),
             exit_signal_channel,
             selected_gateways.exit_gateway(),
             exit_auth_client,

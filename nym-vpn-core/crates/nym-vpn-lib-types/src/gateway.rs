@@ -827,8 +827,8 @@ impl From<nym_gateway_directory::Country> for Country {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
-    fn from(node_description: nym_validator_client::models::NymNodeDescription) -> Self {
+impl From<nym_validator_client::models::NymNodeDescriptionV1> for Gateway {
+    fn from(node_description: nym_validator_client::models::NymNodeDescriptionV1) -> Self {
         let build_version = Some(node_description.version().to_owned());
         let (exit_ipv4s, exit_ipv6s) = nym_gateway_directory::split_ips(
             node_description.description.host_information.ip_address,

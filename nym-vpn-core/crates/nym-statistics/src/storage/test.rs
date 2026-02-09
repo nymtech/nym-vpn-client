@@ -1,4 +1,4 @@
-use sqlx_pool_guard::SqlitePoolGuard;
+use nym_sqlx_pool_guard::SqlitePoolGuard;
 
 use crate::storage::{StatsStorage, sqlite::SqliteStatsStorageManager};
 

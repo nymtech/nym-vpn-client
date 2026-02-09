@@ -133,7 +133,7 @@ impl ConnectedTunnel {
         tunnel_constants: TunnelConstants,
         entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
-        let mut wg_entry_config = WgNodeConfig::with_gateway_data(
+        let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.effective_entry_gateway_data(),
             self.entry_wg_keypair.private_key(),
             AllowedIps::Specific(vec![
@@ -149,7 +149,7 @@ impl ConnectedTunnel {
             wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
         }
 
-        let wg_exit_config = WgNodeConfig::with_gateway_data(
+        let wg_exit_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.exit.clone(),
             self.exit_wg_keypair.private_key(),
             AllowedIps::All,
@@ -257,7 +257,7 @@ impl ConnectedTunnel {
         tunnel_constants: TunnelConstants,
         entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
-        let mut wg_entry_config = WgNodeConfig::with_gateway_data(
+        let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.effective_entry_gateway_data(),
             self.entry_wg_keypair.private_key(),
             AllowedIps::Specific(vec![
@@ -274,7 +274,7 @@ impl ConnectedTunnel {
             wg_entry_config = wg_entry_config.with_amnezia_config(AmneziaConfig::BASE);
         }
 
-        let wg_exit_config = WgNodeConfig::with_gateway_data(
+        let wg_exit_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.exit.clone(),
             self.exit_wg_keypair.private_key(),
             AllowedIps::All,

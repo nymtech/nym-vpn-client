@@ -186,8 +186,8 @@ pub struct GatewayDataReport {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_registration_common::GatewayData> for GatewayDataReport {
-    fn from(value: nym_registration_common::GatewayData) -> Self {
+impl From<nym_registration_common::WireguardConfiguration> for GatewayDataReport {
+    fn from(value: nym_registration_common::WireguardConfiguration) -> Self {
         Self {
             public_key: value.public_key.to_base58_string(),
             endpoint: value.endpoint,

@@ -11,9 +11,9 @@ use std::{
     time::Duration,
 };
 
+use nym_sqlx_pool_guard::SqlitePoolGuard;
 use sqlite::SqliteZkNymRequestsStorageManager;
 use sqlx::ConnectOptions;
-use sqlx_pool_guard::SqlitePoolGuard;
 use time::OffsetDateTime;
 use tracing::log::LevelFilter;
 

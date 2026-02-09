@@ -1,7 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_registration_common::GatewayData;
+use nym_registration_common::WireguardConfiguration;
 use nym_sdk::mixnet::x25519;
 use nym_vpn_lib_types::{DiagnosticResult, PingReport};
 
@@ -31,26 +31,26 @@ pub struct WireguardDiagnostic {
 
 impl WireguardDiagnostic {
     pub async fn run_diagnostic(
-        gateway_data: GatewayData,
+        gateway_config: WireguardConfiguration,
         gateway_keypair: Arc<x25519::KeyPair>,
     ) -> anyhow::Result<Vec<PingReport>> {
         // We only have one endpoint so we have to adapt, we can't do both
-        let use_ipv6 = gateway_data.endpoint.is_ipv6();
+        let use_ipv6 = gateway_config.endpoint.is_ipv6();
 
         let (private_ip, bind_address) = if use_ipv6 {
-            (gateway_data.private_ipv6.into(), "[::]:0")
+            (gateway_config.private_ipv6.into(), "[::]:0")
         } else {
-            (gateway_data.private_ipv4.into(), "0.0.0.0:0")
+            (gateway_config.private_ipv4.into(), "0.0.0.0:0")
         };
         // UDP socket setup
         tracing::info!("Running wireguard test");
         let udp_socket = UdpSocket::bind(bind_address).await?;
-        udp_socket.connect(gateway_data.endpoint).await?;
+        udp_socket.connect(gateway_config.endpoint).await?;
 
         // Wireguard tunnel set up
         let wg_tunnel = Tunn::new(
             gateway_keypair.private_key().inner().clone(), // Yes this is cloning a private key. It is ephemeral and dropped at the end of the run anyway
-            gateway_data.public_key.inner(),
+            gateway_config.public_key.inner(),
             None,
             None,
             0,
