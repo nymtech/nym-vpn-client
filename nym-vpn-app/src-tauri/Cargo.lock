@@ -3486,7 +3486,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "1.24.0-beta"
+version = "1.25.0-beta"
 dependencies = [
  "dbus",
  "libc",
@@ -3497,7 +3497,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "1.24.0-beta"
+version = "1.25.0-beta"
 dependencies = [
  "hyper-util",
  "tokio",
@@ -3518,7 +3518,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "1.24.0-beta"
+version = "1.25.0-beta"
 dependencies = [
  "nym-dbus",
  "objc2-foundation",
@@ -3538,7 +3538,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.24.0-beta"
+version = "1.25.0-beta"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3590,7 +3590,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "1.24.0-beta"
+version = "1.25.0-beta"
 dependencies = [
  "nym-crypto",
  "serde",
@@ -3603,7 +3603,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.24.0-beta"
+version = "1.25.0-beta"
 dependencies = [
  "nym-ipc",
  "nym-vpn-lib-types",
