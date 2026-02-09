@@ -1198,8 +1198,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
+            entry: WireguardNode::from(conn_data.entry),
+            exit: WireguardNode::from(conn_data.exit),
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
@@ -1425,8 +1425,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
+            entry: WireguardNode::from(conn_data.entry),
+            exit: WireguardNode::from(conn_data.exit),
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
@@ -1658,8 +1658,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
+            entry: WireguardNode::from(conn_data.entry),
+            exit: WireguardNode::from(conn_data.exit),
         });
 
         let dns_servers = self
