@@ -130,12 +130,16 @@ jobs:
 
           # put -beta suffix back
           BETA_VERSION="$VERSION-beta"
+          # export ~beta version for debian
+          BETA_TILDE_VERSION="$VERSION~beta"
+
           # cargo set-version doesn't allow downgrades, patch toml directly
           toml set Cargo.toml workspace.package.version "$BETA_VERSION" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
 
           echo "::notice:: Next version: $BETA_VERSION"
           echo "next_version=$BETA_VERSION" >> "$GITHUB_OUTPUT"
+          echo "next_version_tilde=$BETA_TILDE_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Update nym-vpn-core/Cargo.toml
         working-directory: nym-vpn-core
@@ -156,6 +160,22 @@ jobs:
         run: |
           toml set vpnd_compat.toml version ">=${{ steps.next-version.outputs.next_version }}" > new_vpnd_compat.toml
           mv new_vpnd_compat.toml vpnd_compat.toml
+
+      - name: Update nym-vpn-app/src-tauri/tauri.conf.json
+        working-directory: nym-vpn-app/src-tauri
+        run: |
+          # replace version of deb dependency on nym-vpnd
+          QUERY=$(cat <<- 'EOD'
+              .bundle.linux.deb.depends[] |= if (. | startswith("nym-vpnd"))
+              then
+                  "nym-vpnd (>= ${{ steps.next-version.outputs.next_version_tilde }})"
+              else
+                  .
+              end
+          EOD
+          )
+          jq -r "$QUERY" tauri.conf.json > new_tauri.conf.json
+          mv new_tauri.conf.json tauri.conf.json
 
       - name: Create PR to bump develop to v${{ steps.next-version.outputs.next_version }}
         env:
