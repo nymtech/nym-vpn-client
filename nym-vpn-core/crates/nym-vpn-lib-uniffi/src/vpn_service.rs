@@ -160,7 +160,7 @@ impl NymVpnService {
         let _ = tokio::time::timeout(
             DISCONNECT_TIMEOUT,
             tunnel_state_rx.wait_for(|tunnel_state| match tunnel_state {
-                Some(TunnelState::Disconnected { .. } | TunnelState::Offline { .. }) => true,
+                Some(TunnelState::Disconnected | TunnelState::Offline { .. }) => true,
                 _ => false,
             }),
         )
