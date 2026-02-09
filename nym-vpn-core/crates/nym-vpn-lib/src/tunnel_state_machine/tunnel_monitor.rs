@@ -580,8 +580,8 @@ impl TunnelMonitor {
             RegistrationResult::Wireguard(result) => {
                 TunnelConnectionData::Wireguard(WireguardConnectionData {
                     entry_bridge_addr: None, // not known yet
-                    entry: WireguardNode::from(result.entry_gateway_data.clone()),
-                    exit: WireguardNode::from(result.exit_gateway_data.clone()),
+                    entry: WireguardNode::from(result.entry_gateway_data),
+                    exit: WireguardNode::from(result.exit_gateway_data),
                 })
             }
             RegistrationResult::Lp(_) => {
@@ -1062,8 +1062,8 @@ impl TunnelMonitor {
             selected_gateways,
             entry_gateway_client,
             exit_gateway_client,
-            entry_gateway_data.clone(),
-            exit_gateway_data.clone(),
+            entry_gateway_data,
+            exit_gateway_data,
             entry_signal_rx,
             exit_signal_rx,
             gw_update_version,
@@ -1273,8 +1273,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
+            entry: WireguardNode::from(conn_data.entry),
+            exit: WireguardNode::from(conn_data.exit),
         });
 
         #[cfg(not(target_os = "linux"))]
@@ -1507,8 +1507,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
+            entry: WireguardNode::from(conn_data.entry),
+            exit: WireguardNode::from(conn_data.exit),
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();

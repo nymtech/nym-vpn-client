@@ -150,7 +150,7 @@ impl ConnectedTunnel {
         }
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
-            self.connection_data.exit.clone(),
+            self.connection_data.exit,
             self.exit_wg_keypair.private_key(),
             AllowedIps::All,
             options.dns,
@@ -275,7 +275,7 @@ impl ConnectedTunnel {
         }
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
-            self.connection_data.exit.clone(),
+            self.connection_data.exit,
             self.exit_wg_keypair.private_key(),
             AllowedIps::All,
             options.dns,

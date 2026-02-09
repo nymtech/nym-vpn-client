@@ -33,7 +33,7 @@ impl ConnectionData {
 
     /// Returns effective entry gateway data set to bridge listen endpoint when entry bridge address is available.
     pub fn effective_entry_gateway_data(&self) -> WireguardConfiguration {
-        let mut wireguard_config = self.entry.clone();
+        let mut wireguard_config = self.entry;
         wireguard_config.endpoint = self.effective_entry_endpoint();
         wireguard_config
     }
