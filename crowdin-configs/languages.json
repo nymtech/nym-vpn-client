@@ -1,0 +1,18 @@
+{
+  "languages": [
+    "ar",
+    "fa",
+    "bn",
+    "de",
+    "es-ES",
+    "fr",
+    "hi",
+    "pt-BR",
+    "ru",
+    "tr",
+    "uk",
+    "vi",
+    "zh-CN"
+  ],
+  "excludedLanguages": ["cs", "hu", "el", "ja"]
+}
