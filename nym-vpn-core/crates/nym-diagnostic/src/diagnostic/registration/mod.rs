@@ -122,7 +122,7 @@ impl RegistrationDiagnostic {
             match Self::wireguard_registration(mixnet_client, &registration_config).await {
                 Ok(response) => {
                     registration_report.wireguard_registration =
-                        Some(DiagnosticResult::from_value(response.clone().into()));
+                        Some(DiagnosticResult::from_value(response.into()));
                     response
                 }
                 Err(e) => {

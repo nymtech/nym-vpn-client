@@ -31,26 +31,26 @@ pub struct WireguardDiagnostic {
 
 impl WireguardDiagnostic {
     pub async fn run_diagnostic(
-        gateway_config: WireguardConfiguration,
+        wireguard_config: WireguardConfiguration,
         gateway_keypair: Arc<x25519::KeyPair>,
     ) -> anyhow::Result<Vec<PingReport>> {
         // We only have one endpoint so we have to adapt, we can't do both
-        let use_ipv6 = gateway_config.endpoint.is_ipv6();
+        let use_ipv6 = wireguard_config.endpoint.is_ipv6();
 
         let (private_ip, bind_address) = if use_ipv6 {
-            (gateway_config.private_ipv6.into(), "[::]:0")
+            (wireguard_config.private_ipv6.into(), "[::]:0")
         } else {
-            (gateway_config.private_ipv4.into(), "0.0.0.0:0")
+            (wireguard_config.private_ipv4.into(), "0.0.0.0:0")
         };
         // UDP socket setup
         tracing::info!("Running wireguard test");
         let udp_socket = UdpSocket::bind(bind_address).await?;
-        udp_socket.connect(gateway_config.endpoint).await?;
+        udp_socket.connect(wireguard_config.endpoint).await?;
 
         // Wireguard tunnel set up
         let wg_tunnel = Tunn::new(
             gateway_keypair.private_key().inner().clone(), // Yes this is cloning a private key. It is ephemeral and dropped at the end of the run anyway
-            gateway_config.public_key.inner(),
+            wireguard_config.public_key.inner(),
             None,
             None,
             0,

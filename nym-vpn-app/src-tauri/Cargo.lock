@@ -3614,7 +3614,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -3654,7 +3654,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "pem",
  "tracing",
@@ -3676,7 +3676,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "sphinx-packet",
  "thiserror 2.0.18",

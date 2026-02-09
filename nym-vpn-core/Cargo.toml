@@ -216,40 +216,40 @@ nym-wg-metadata-client = { path = "crates/nym-wg-metadata-client" }
 nym-windows = { path = "crates/nym-windows" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
-nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "release/2026.3-parmigiano" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
+nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.3-parmigiano" }
 
 # For local development
 #[patch."https://github.com/nymtech/nym"]
