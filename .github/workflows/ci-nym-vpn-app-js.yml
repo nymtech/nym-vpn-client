@@ -74,12 +74,16 @@ jobs:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         shell: pwsh
         run: |
-          $languages = (Get-Content ./crowdin-configs/languages.json | ConvertFrom-Json).languages
-          $langArgs = $languages | ForEach-Object { "-l $_" } | Join-String " "
+          $languages = (Get-Content ./crowdin-configs/languages.json -Raw | ConvertFrom-Json).languages
 
-          crowdin download translations `
-            --config ./crowdin-configs/linux-windows.yml `
-            $langArgs
+          # Run the CLI, passing each "-l" individually
+          $args = @("--config", "./crowdin-configs/linux-windows.yml")
+          foreach ($lang in $languages) {
+              $args += "-l"
+              $args += $lang
+          }
+
+          crowdin download translations @args
 
       - name: Typecheck
         working-directory: nym-vpn-app
