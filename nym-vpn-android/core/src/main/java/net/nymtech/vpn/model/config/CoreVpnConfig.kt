@@ -16,4 +16,8 @@ data class CoreVpnConfig(
 	val customDnsEnabled: Boolean = false,
 	val customDns: List<String> = emptyList(),
 	val restrictedApps: List<String> = emptyList(),
+
+	val network: String = Tunnel.Environment.MAINNET.networkName(),
+	val debugLog: Boolean = false,
+	val sentry: Boolean = false,
 )

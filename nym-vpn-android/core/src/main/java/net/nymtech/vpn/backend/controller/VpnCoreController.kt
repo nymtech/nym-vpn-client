@@ -14,6 +14,7 @@ import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import net.nymtech.vpn.backend.service.VpnService
+import net.nymtech.vpn.model.config.CoreAppConfigProvider
 import net.nymtech.vpn.util.extensions.asTunnelState
 import nym_vpn_lib.LogLevel
 import nym_vpn_lib.NoHandle
@@ -30,14 +31,12 @@ import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.UserAgent
 import timber.log.Timber
 
-/**
- * Owns Rust core lifecycle & state.
- */
 class VpnCoreController(
 	private val service: VpnService,
 	private val events: MutableSharedFlow<VpnServiceEvent>,
 	private val foreground: VpnForegroundController,
 	private val tun: VpnTunController,
+	private val appConfigProvider: CoreAppConfigProvider,
 ) {
 	companion object {
 		private const val TAG = "core-vpn"
@@ -85,29 +84,40 @@ class VpnCoreController(
 
 	suspend fun ensureReadyForManagementBestEffort() = coreMutex.withLock {
 		runCatching {
+			val savedConfig = configRepo.get()
+			val currentUserAgent = appConfigProvider.getUserAgent()
+
+			val networkName = savedConfig.network
+
+			Timber.tag(TAG).d("ensureReady: net=$networkName debug=${savedConfig.debugLog}")
+
 			ensureCoreInitialized(
-				networkName = null,
-				enableDebugLog = true,
-				sentry = false,
-				userAgent = null,
-				useMainnetFallback = true,
+				networkName = networkName,
+				enableDebugLog = savedConfig.debugLog,
+				sentry = savedConfig.sentry,
+				userAgent = currentUserAgent,
+				useMainnetFallback = false,
 				mixnetParamConfig = null,
 			)
-			applyCanonicalConfigToRustIfReady(force = false, canonical = null)
-		}.onFailure { Timber.tag(TAG).w(it, "ensureReadyForManagement failed (non-fatal)") }
+			applyCanonicalConfigToRustIfReady(force = false, canonical = savedConfig)
+		}.onFailure { Timber.tag(TAG).w(it, "ensureReadyForManagement failed") }
 	}
 
 	suspend fun init(req: ConnectInitRequest): ConnectResult = coreMutex.withLock {
 		runCatching {
+			val config = configRepo.get()
+			val ua = appConfigProvider.getUserAgent()
+			val net = config.network
 			ensureCoreInitialized(
-				networkName = req.networkName,
-				enableDebugLog = req.enableDebugLog,
-				sentry = req.sentryMonitoringEnabled,
-				userAgent = req.userAgent,
+				networkName = net,
+				enableDebugLog = config.debugLog,
+				sentry = config.sentry,
+				userAgent = ua,
 				useMainnetFallback = false,
 				mixnetParamConfig = req.mixnetParamConfig,
 			)
-			applyCanonicalConfigToRustIfReady(force = true, canonical = null)
+
+			applyCanonicalConfigToRustIfReady(force = true, canonical = config)
 			ConnectResult.Ok
 		}.getOrElse { t ->
 			Timber.tag(TAG).e(t, "InitCoreFailed")
@@ -151,12 +161,16 @@ class VpnCoreController(
 		foreground.promoteMinimal("connect")
 
 		runCatching {
+			val cfg = configRepo.get()
+			val ua = appConfigProvider.getUserAgent()
+			val net = cfg.network
+
 			ensureCoreInitialized(
-				networkName = null,
-				enableDebugLog = true,
-				sentry = false,
-				userAgent = null,
-				useMainnetFallback = true,
+				networkName = net,
+				enableDebugLog = cfg.debugLog,
+				sentry = cfg.sentry,
+				userAgent = ua,
+				useMainnetFallback = false,
 				mixnetParamConfig = null,
 			)
 		}.onFailure { t ->
@@ -292,6 +306,8 @@ class VpnCoreController(
 		useMainnetFallback: Boolean,
 		mixnetParamConfig: MixnetTrafficConfig?,
 	) {
+		Timber.d("ensureCoreInitialized networkName=$networkName userAgent=$userAgent fallback=$useMainnetFallback")
+
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
 		val storagePath = service.filesDir.absolutePath

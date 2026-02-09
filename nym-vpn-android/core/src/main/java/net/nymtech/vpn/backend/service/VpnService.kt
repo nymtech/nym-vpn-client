@@ -3,6 +3,10 @@ package net.nymtech.vpn.backend.service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,6 +24,7 @@ import net.nymtech.vpn.backend.controller.VpnCoreController
 import net.nymtech.vpn.backend.controller.VpnForegroundController
 import net.nymtech.vpn.backend.controller.VpnTunController
 import net.nymtech.vpn.model.VpnServiceEvent
+import net.nymtech.vpn.model.config.CoreAppConfigProvider
 import net.nymtech.vpn.util.LifecycleVpnService
 import net.nymtech.vpn.util.notifications.StopVpnReceiver
 import nym_vpn_lib.AndroidConnectivityMonitor
@@ -50,6 +55,12 @@ class VpnService :
 		fun api(): VpnServiceApi = api
 	}
 
+	@EntryPoint
+	@InstallIn(SingletonComponent::class)
+	interface ServiceEntryPoint {
+		fun appConfigProvider(): CoreAppConfigProvider
+	}
+
 	private val binder = LocalBinder()
 
 	private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -66,14 +77,23 @@ class VpnService :
 	override fun onCreate() {
 		super.onCreate()
 
+		val entryPoint = EntryPointAccessors.fromApplication(
+			applicationContext,
+			ServiceEntryPoint::class.java,
+		)
+		val appConfigProvider = entryPoint.appConfigProvider()
+
 		foreground = VpnForegroundController(service = this)
 		tun = VpnTunController(service = this)
+
 		core = VpnCoreController(
 			service = this,
 			events = _events,
 			foreground = foreground,
 			tun = tun,
+			appConfigProvider = appConfigProvider,
 		)
+
 		connectivity = VpnConnectivityBridge(
 			service = this,
 			scope = ioScope,

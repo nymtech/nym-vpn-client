@@ -66,7 +66,7 @@ fun DeveloperOptionsSection(
 						onExpandedChange = onEnvironmentExpandedChange,
 					) {
 						TextField(
-							value = appUiState.settings.environment.name,
+							value = appUiState.vpnConfig.network,
 							onValueChange = {},
 							readOnly = true,
 							textStyle = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSurface),
@@ -82,7 +82,7 @@ fun DeveloperOptionsSection(
 									text = { Text(item.name) },
 									onClick = {
 										scope.launch {
-											if (appUiState.settings.environment == item) return@launch
+											if (appUiState.vpnConfig.network == item.networkName()) return@launch
 											appViewModel.logout()
 											appViewModel.onEnvironmentChange(item)
 											onEnvironmentExpandedChange(false)

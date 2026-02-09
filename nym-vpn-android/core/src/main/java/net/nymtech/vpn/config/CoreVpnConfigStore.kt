@@ -35,6 +35,10 @@ class CoreVpnConfigStore(private val context: Context) {
 		private val KEY_CUSTOM_DNS_LIST = stringPreferencesKey("CUSTOM_DNS_LIST")
 		private val KEY_RESTRICTED_APPS = stringPreferencesKey("RESTRICTED_APPS")
 
+		private val KEY_ENV_NETWORK = stringPreferencesKey("ENV_NETWORK")
+		private val KEY_ENV_DEBUG = booleanPreferencesKey("ENV_DEBUG")
+		private val KEY_ENV_SENTRY = booleanPreferencesKey("ENV_SENTRY")
+
 		private const val SEP = "|"
 		private const val MAX_DNS = 5
 	}
@@ -72,6 +76,10 @@ class CoreVpnConfigStore(private val context: Context) {
 		val customDns = decodeList(this[KEY_CUSTOM_DNS_LIST]).take(MAX_DNS)
 		val restrictedApps = decodeList(this[KEY_RESTRICTED_APPS])
 
+		val network = this[KEY_ENV_NETWORK] ?: Tunnel.Environment.MAINNET.networkName()
+		val debug = this[KEY_ENV_DEBUG] ?: true
+		val sentry = this[KEY_ENV_SENTRY] ?: false
+
 		return CoreVpnConfig(
 			entryPoint = entry,
 			exitPoint = exit,
@@ -81,6 +89,9 @@ class CoreVpnConfigStore(private val context: Context) {
 			customDnsEnabled = customDnsEnabled,
 			customDns = customDns,
 			restrictedApps = restrictedApps,
+			network = network,
+			debugLog = debug,
+			sentry = sentry,
 		)
 	}
 
@@ -93,6 +104,9 @@ class CoreVpnConfigStore(private val context: Context) {
 		this[KEY_CUSTOM_DNS_ENABLED] = cfg.customDnsEnabled
 		this[KEY_CUSTOM_DNS_LIST] = encodeList(cfg.customDns)
 		this[KEY_RESTRICTED_APPS] = encodeList(cfg.restrictedApps)
+		this[KEY_ENV_NETWORK] = cfg.network
+		this[KEY_ENV_DEBUG] = cfg.debugLog
+		this[KEY_ENV_SENTRY] = cfg.sentry
 	}
 
 	private fun MutablePreferences.fromCoreConfig(cfg: CoreVpnConfig) {
@@ -104,6 +118,9 @@ class CoreVpnConfigStore(private val context: Context) {
 		this[KEY_CUSTOM_DNS_ENABLED] = cfg.customDnsEnabled
 		this[KEY_CUSTOM_DNS_LIST] = encodeList(cfg.customDns)
 		this[KEY_RESTRICTED_APPS] = encodeList(cfg.restrictedApps)
+		this[KEY_ENV_NETWORK] = cfg.network
+		this[KEY_ENV_DEBUG] = cfg.debugLog
+		this[KEY_ENV_SENTRY] = cfg.sentry
 	}
 
 	private fun encodeList(list: List<String>): String = list.asSequence()
