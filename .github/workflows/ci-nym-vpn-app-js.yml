@@ -62,6 +62,7 @@ jobs:
         run: |
           crowdin download translations \
             --config crowdin-configs/linux-windows.yml \
+            $(node -p "'-l ' + require('crowdin-configs/languages.json').languages.join(' -l ')")
 
       - name: Download translations from Crowdin (Windows)
         if: matrix.os == 'custom-windows-11' && steps.crowdin-cache.outputs.cache-hit != 'true'
@@ -71,8 +72,7 @@ jobs:
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         shell: pwsh
         run: |
-          crowdin download translations `
-            --config crowdin-configs/linux-windows.yml `
+          crowdin download translations --config crowdin-configs/linux-windows.yml $(node -p "'-l ' + require('crowdin-configs/languages.json').languages.join(' -l ')")
 
       - name: Typecheck
         working-directory: nym-vpn-app
