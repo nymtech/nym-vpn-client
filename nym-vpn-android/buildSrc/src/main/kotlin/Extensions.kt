@@ -72,18 +72,18 @@ fun Project.isBundleBuild(): Boolean {
 fun Project.languageList(): List<String> {
 	return listOf(
 		"ar",      // Arabic
-		"bn",      // Bengali
+		"bn-rBD",  // Bengali (Bangladesh)
 		"de",      // German
 		"en",      // English (Default)
 		"es",      // Spanish
 		"fa",      // Persian
 		"fr",      // French
 		"hi",      // Hindi
-		"pt_BR",   // Portuguese (Brazil)
+		"pt-rBR",  // Portuguese (Brazil)
 		"ru",      // Russian
 		"tr",      // Turkish
 		"uk",      // Ukrainian
-		"vi",      // Vietnamese
-		"zh_CN"    // Chinese (Simplified)
+		"vi-rVN",  // Vietnamese
+		"zh-rCN"   // Chinese (Simplified)
 	).sorted()
 }

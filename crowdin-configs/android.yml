@@ -5,7 +5,7 @@ base_path: "../"
 preserve_hierarchy: true
 
 languages_mapping:
-  # res/values
+  # Mapping for Android Resource Folders (res/values-*)
   android_code: &android-code
     ar: ar
     bn: bn-rBD
@@ -21,7 +21,7 @@ languages_mapping:
     vi: vi-rVN
     zh-CN: zh-rCN
 
-  # fastlane / Google Play
+  # Mapping for Fastlane / Google Play Store Metadata
   locale: &play-locale
     ar: ar
     bn: bn-BD
@@ -41,23 +41,19 @@ languages_mapping:
 files:
   - source: "nym-vpn-android/app/src/main/res/values/strings.xml"
     translation: "nym-vpn-android/app/src/main/res/values-%android_code%/strings.xml"
-    languages_mapping:
-      android_code: *android-code
+    languages_mapping: { android_code: *android-code }
 
   - source: "nym-vpn-android/core/src/main/res/values/strings.xml"
     translation: "nym-vpn-android/core/src/main/res/values-%android_code%/strings.xml"
-    languages_mapping:
-      android_code: *android-code
+    languages_mapping: { android_code: *android-code }
 
   - source: "fastlane/metadata/android/en-US/*.txt"
     translation: "fastlane/metadata/android/%locale%/%original_file_name%"
-    languages_mapping:
-      locale: *play-locale
+    languages_mapping: { locale: *play-locale }
     ignore:
       - "fastlane/metadata/android/en-US/full_description.txt"
       - "fastlane/metadata/android/en-US/short_description.txt"
 
   - source: "fastlane/metadata/android/en-US/changelogs/*.txt"
     translation: "fastlane/metadata/android/%locale%/changelogs/%original_file_name%"
-    languages_mapping:
-      locale: *play-locale
+    languages_mapping: { locale: *play-locale }
