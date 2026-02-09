@@ -28,8 +28,6 @@ impl NymOfflineMonitor {
             connectivity_handle,
         }
     }
-
-    pub async fn __stub_to_keep_compiler_happy(&self) {}
 }
 
 #[cfg(target_os = "ios")]
@@ -42,8 +40,6 @@ impl NymOfflineMonitor {
             connectivity_handle,
         }
     }
-
-    pub async fn __stub_to_keep_compiler_happy(&self) {}
 }
 
 impl NymOfflineMonitor {

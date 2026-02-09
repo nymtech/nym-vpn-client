@@ -1,6 +1,17 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::{
+    net::IpAddr,
+    path::{Path, PathBuf},
+    time::Duration,
+};
+
+use nym_common::trace_err_chain;
+use nym_registration_client::MixnetClientConfig;
+use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
+use tokio::{fs, sync::broadcast};
+
 use crate::{
     DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE,
     service::{
@@ -16,14 +27,6 @@ use crate::{
         WireguardMultihopMode, WireguardTunnelOptions,
     },
 };
-use nym_common::trace_err_chain;
-use nym_registration_client::MixnetClientConfig;
-use std::{
-    net::IpAddr,
-    path::{Path, PathBuf},
-    time::Duration,
-};
-use tokio::{fs, sync::broadcast};
 
 pub struct VpnServiceConfigManager {
     json_config_path: Option<PathBuf>,
@@ -195,7 +198,7 @@ impl VpnServiceConfigManager {
     pub async fn set_mixnet_traffic_config(
         &mut self,
         mixnet_traffic: nym_vpn_lib_types::MixnetTrafficConfig,
-    ) -> Result<(), String> {
+    ) -> Result<(), MixnetTrafficConfigValidationError> {
         mixnet_traffic.validate()?;
         if self.config.mixnet_traffic != mixnet_traffic {
             self.config.mixnet_traffic = mixnet_traffic;

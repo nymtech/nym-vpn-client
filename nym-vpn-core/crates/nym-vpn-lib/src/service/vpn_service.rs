@@ -1136,16 +1136,12 @@ impl NymVpnService {
         &mut self,
         mixnet_traffic_config: MixnetTrafficConfig,
     ) -> Result<(), String> {
-        let res = self
-            .config_manager
+        self.config_manager
             .set_mixnet_traffic_config(mixnet_traffic_config)
-            .await;
-
-        if res.is_ok() {
-            self.update_tunnel_settings_with_throttle();
-        }
-
-        res
+            .await
+            .map_err(|err| err.to_string())?;
+        self.update_tunnel_settings_with_throttle();
+        Ok(())
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
