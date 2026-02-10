@@ -9,11 +9,12 @@
 //!   lets us use the routing table to determine where to send them, instead of them being forced
 //!   out on the primary interface (in some cases).
 //!
-//! See [start_resolver].
+//! Platform-specific responsibilities (binding sockets, adding loopback aliases, flushing system
+//! DNS caches) are delegated to `platform`.
+
 use std::{
     io,
     net::{IpAddr, Ipv4Addr, SocketAddr},
-    os::fd::AsRawFd,
     str::FromStr,
     sync::{Arc, LazyLock},
     time::{Duration, Instant},
@@ -37,20 +38,36 @@ use hickory_server::{
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
 };
-use nix::{
-    fcntl,
-    sys::socket::{self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrStorage},
-};
 use rand::Rng;
 use tokio::{
     net::UdpSocket,
     sync::{mpsc, oneshot},
-    task::JoinHandle,
 };
-use tokio_util::{
-    either::Either,
-    sync::{CancellationToken, DropGuard},
-};
+use tokio_util::{either::Either, sync::CancellationToken};
+
+#[cfg(target_os = "macos")]
+mod macos;
+
+#[cfg(target_os = "macos")]
+pub(crate) use macos::{flush_system_cache, new_random_socket};
+
+#[cfg(windows)]
+mod windows;
+
+#[cfg(windows)]
+pub(crate) use windows::{flush_system_cache, new_random_socket};
+
+#[cfg(test)]
+mod tests;
+
+pub(crate) trait LoopbackAlias: Send {
+    fn addr(&self) -> IpAddr;
+
+    fn unassign(self: Box<Self>)
+    -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>;
+}
+
+pub(crate) type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
 
 /// If a local DNS resolver should be used.
 ///
@@ -69,9 +86,6 @@ pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
 
 /// Local DNS resolver listen port.
 const DNS_LISTEN_PORT: u16 = if cfg!(test) { 1053 } else { 53 };
-
-/// Loopback interface name.
-const LOOPBACK: &str = "lo0";
 
 /// Types of records that are spoofed for captive portal domains.
 const ALLOWED_RECORD_TYPES: &[RecordType] = &[RecordType::A, RecordType::CNAME];
@@ -237,12 +251,12 @@ impl ResolverHandle {
         Self { tx, listen_addr }
     }
 
-    /// Get listening port for resolver handle
+    /// Get listening address for resolver handle.
     pub fn listen_addr(&self) -> SocketAddr {
         self.listen_addr
     }
 
-    /// Set the DNS server to forward queries to `dns_servers`
+    /// Set the DNS servers to forward queries to `dns_servers`.
     pub async fn enable_forward(&self, dns_servers: Vec<IpAddr>) {
         let (response_tx, response_rx) = oneshot::channel();
         if self
@@ -257,7 +271,7 @@ impl ResolverHandle {
         };
     }
 
-    // Disable forwarding
+    /// Disable forwarding.
     pub async fn disable_forward(&self) {
         let (response_tx, response_rx) = oneshot::channel();
         if self
@@ -274,7 +288,7 @@ impl ResolverHandle {
 }
 
 impl LocalResolver {
-    /// Spawn new filtering resolver and it's handle.
+    /// Spawn new filtering resolver and its handle.
     pub async fn spawn(
         use_random_loopback: bool,
         shutdown_token: CancellationToken,
@@ -282,7 +296,7 @@ impl LocalResolver {
         let (tx, rx) = mpsc::unbounded_channel();
 
         let (resolver_socket, loopback_alias) =
-            Self::new_random_socket(use_random_loopback).await?;
+            new_random_socket(DNS_LISTEN_PORT, use_random_loopback).await?;
         let resolver_addr = resolver_socket.local_addr().map_err(Error::GetSocketAddr)?;
 
         let mut server = Self::new_server(resolver_socket, tx.clone()).await?;
@@ -354,7 +368,7 @@ impl LocalResolver {
 
         let join_handle = tokio::spawn(resolver.run());
 
-        Ok((ResolverHandle::new(tx.clone(), resolver_addr), join_handle))
+        Ok((ResolverHandle::new(tx, resolver_addr), join_handle))
     }
 
     async fn new_server(
@@ -366,9 +380,7 @@ impl LocalResolver {
         Ok(server)
     }
 
-    /// Runs the filtering resolver as an actor, listening for new queries instances.  When all
-    /// related [ResolverHandle] instances are dropped, this function will return, closing the DNS
-    /// server.
+    /// Runs the filtering resolver as an actor.
     async fn run(mut self) {
         loop {
             tokio::select! {
@@ -409,69 +421,6 @@ impl LocalResolver {
         }
     }
 
-    /// Create a new [net::UdpSocket] bound to port 53 on loopback.
-    ///
-    /// This socket will try to bind to random ip in the range `127. 1-255. 0-255. 1-254 : 53`.
-    /// After 3 failed attempts it will attempt to bind to `127.0.0.1 : 53`
-    ///
-    /// This is done this way to avoid collisions with other DNS servers running on the same system.
-    ///
-    /// If [use_random_loopback] is `false`, it will only try to bind to `127.0.0.1`.
-    ///
-    /// Returns `UdpSocket` and `Option<RandomLoopbackAlias>` upon success, otherwise an error.
-    /// `RandomLoopbackAlias` removes the loopback alias when dropped.
-    async fn new_random_socket(
-        use_random_loopback: bool,
-    ) -> Result<(UdpSocket, Option<RandomLoopbackAlias>), Error> {
-        for attempt in 0.. {
-            let (socket_addr, on_drop) = match attempt {
-                ..3 if !use_random_loopback => continue,
-                ..3 => match RandomLoopbackAlias::assign().await {
-                    Ok(random) => (random.addr(), Some(random)),
-                    Err(_) => continue,
-                },
-                3 => (IpAddr::from(Ipv4Addr::LOCALHOST), None),
-                4.. => break,
-            };
-
-            let sock = match socket::socket(
-                AddressFamily::Inet,
-                SockType::Datagram,
-                SockFlag::empty(),
-                SockProtocol::Udp,
-            ) {
-                Ok(sock) => sock,
-                Err(error) => {
-                    tracing::error!("Failed to open IPv4/UDP socket: {error}");
-                    continue;
-                }
-            };
-
-            // SO_NONBLOCK is required for turning this into a tokio socket.
-            if let Err(error) = fcntl::fcntl(&sock, fcntl::F_SETFL(fcntl::OFlag::O_NONBLOCK)) {
-                tracing::warn!("Failed to set socket as nonblocking: {error}");
-                continue;
-            }
-
-            // SO_REUSEADDR allows us to bind to `127.x.y.z` even if another socket is bound to
-            // `0.0.0.0`. This can happen e.g. when macOS "Internet Sharing" is turned on.
-            if let Err(error) = socket::setsockopt(&sock, socket::sockopt::ReuseAddr, &true) {
-                tracing::warn!("Failed to set SO_REUSEADDR on resolver socket: {error}");
-            }
-
-            let sin = SockaddrStorage::from(SocketAddr::new(socket_addr, DNS_LISTEN_PORT));
-
-            match socket::bind(sock.as_raw_fd(), &sin) {
-                Ok(()) => {
-                    let socket = UdpSocket::from_std(sock.into()).expect("socket is non-blocking");
-                    return Ok((socket, on_drop));
-                }
-                Err(err) => tracing::warn!("Failed to bind DNS server to {socket_addr}: {err}"),
-            }
-        }
-        Err(Error::UdpBind)
-    }
-
     /// Update the current DNS config.
     fn update_config(&mut self, config: Config) {
         match config {
@@ -505,91 +454,6 @@ impl LocalResolver {
     }
 }
 
-struct RandomLoopbackAlias {
-    addr: IpAddr,
-    drop_guard: DropGuard,
-    unassign_task: JoinHandle<()>,
-}
-
-impl RandomLoopbackAlias {
-    /// Assign a random IPv4 alias for the loopback interface.
-    ///
-    /// The alias is automatically removed when the struct is dropped.
-    /// However it's recommended to call `unassign` to avoid race conditions.
-    pub async fn assign() -> std::io::Result<Self> {
-        let addr = IpAddr::from(Ipv4Addr::new(
-            127,
-            rand::thread_rng().gen_range(1..=255),
-            rand::random(),
-            // keep last octet in the range of 1-254 to avoid special addresses
-            rand::thread_rng().gen_range(1..=254),
-        ));
-
-        // TODO: this command requires root privileges and will thus not work in `cargo test`.
-        // This means that the tests will fall back to 127.0.0.1, and will not assert that the
-        // ifconfig stuff actually works. We probably do want to test this, so what do?
-        nym_macos::net::add_alias(LOOPBACK, addr)
-            .await
-            .inspect_err(|e| {
-                tracing::warn!("Failed to add loopback {LOOPBACK} alias {addr}: {e}");
-            })?;
-
-        tracing::debug!("Created loopback address {addr}");
-
-        let shutdown_token = CancellationToken::new();
-
-        let child_token = shutdown_token.child_token();
-        let unassign_task = tokio::task::spawn(async move {
-            child_token.cancelled().await;
-
-            tracing::debug!("Cleaning up loopback address {addr}");
-            if let Err(e) = nym_macos::net::remove_alias(LOOPBACK, addr).await {
-                tracing::warn!("Failed to clean up {LOOPBACK} alias {addr}: {e}");
-            }
-        });
-
-        let drop_guard = shutdown_token.drop_guard();
-
-        Ok(Self {
-            addr,
-            drop_guard,
-            unassign_task,
-        })
-    }
-
-    /// Unassign the loopback alias.
-    pub async fn unassign(self) {
-        // Dispose drop guard to trigger cancellation.
-        drop(self.drop_guard);
-        self.unassign_task.await.ok();
-    }
-
-    /// Returns loopback IP address alias.
-    pub fn addr(&self) -> IpAddr {
-        self.addr
-    }
-}
-
-/// Flush the DNS cache.
-fn flush_system_cache() {
-    if let Err(error) = kill_mdnsresponder() {
-        tracing::error!("Failed to kill mDNSResponder: {error}");
-    }
-}
-
-const MDNS_RESPONDER_PATH: &str = "/usr/sbin/mDNSResponder";
-
-/// Find and kill mDNSResponder. The OS will restart the service.
-fn kill_mdnsresponder() -> io::Result<()> {
-    if let Some(mdns_pid) = nym_macos::process::pid_of_path(MDNS_RESPONDER_PATH) {
-        nix::sys::signal::kill(
-            nix::unistd::Pid::from_raw(mdns_pid),
-            nix::sys::signal::SIGHUP,
-        )?;
-    }
-    Ok(())
-}
-
 type LookupResponse<'a> = MessageResponse<
     'a,
     'a,
@@ -599,8 +463,7 @@ type LookupResponse<'a> = MessageResponse<
     std::iter::Empty<&'a Record>,
 >;
 
-/// An implementation of [hickory_server::server::RequestHandler] that forwards queries to
-/// `FilteringResolver`.
+/// An implementation of [hickory_server::server::RequestHandler] that forwards queries.
 struct ResolverImpl {
     tx: mpsc::UnboundedSender<ResolverMessage>,
 }
@@ -619,14 +482,14 @@ impl ResolverImpl {
         MessageResponseBuilder::from_message_request(message).build(
             response_header,
             lookup.iter(),
-            // forwarder responses only contain query answers, no ns,soa or additionals
+            // forwarder responses only contain query answers, no ns/soa or additionals
             std::iter::empty(),
             std::iter::empty(),
             std::iter::empty(),
         )
     }
 
-    /// This function is called when a DNS query is sent to the local resolver
+    /// Called when a DNS query is sent to the local resolver.
     async fn lookup<R: ResponseHandler>(&self, message: &Request, mut response_handler: R) {
         tracing::trace!(
             "Lookup for: {}, client: {}/{}",
@@ -645,8 +508,7 @@ impl ResolverImpl {
             return;
         };
 
-        // BIND does not support multiple questions
-        // See: https://stackoverflow.com/a/4083071/3042552
+        // BIND does not support multiple questions.
         if message.queries().len() > 1 {
             tracing::error!("Received a message with multiple queries, using only the first one");
         }
@@ -723,14 +585,13 @@ impl RequestHandler for ResolverImpl {
             };
         }
 
-        return Header::new().into();
+        Header::new().into()
     }
 }
 
 struct ForwardLookup(Lookup);
 
-/// This trait has to be reimplemented for the Lookup so that it can be sent back to the
-/// RequestHandler implementation.
+/// Reimplemented so that Lookup can be sent back to the RequestHandler implementation.
 impl LookupObject for ForwardLookup {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
@@ -745,184 +606,12 @@ impl LookupObject for ForwardLookup {
     }
 }
 
-#[cfg(test)]
-mod test {
-    use std::{net::UdpSocket, time::Duration};
-
-    use hickory_server::resolver::{
-        TokioResolver,
-        config::{NameServerConfigGroup, ResolverConfig},
-        name_server::TokioConnectionProvider,
-    };
-    use nix::sys::socket::{
-        self, AddressFamily, SockFlag, SockProtocol, SockType, SockaddrStorage, sockopt,
-    };
-    use tokio_util::sync::CancellationToken;
-
-    use super::*;
-
-    /// Test whether we can successfully bind the socket even if the address is already used to
-    /// in different scenarios.
-    ///
-    /// # Note
-    ///
-    /// This test does not test aliases on lo0, as that requires root privileges.
-    #[tokio::test]
-    #[serial_test::serial]
-    async fn test_bind() {
-        // bind() succeeds if wildcard address is bound without REUSEADDR and REUSEPORT
-        let _sock = bind_sock(
-            BindParams::builder()
-                .bind_addr(format!("0.0.0.0:{DNS_LISTEN_PORT}").parse().unwrap())
-                .reuse_addr(false)
-                .reuse_port(false)
-                .build(),
-        )
-        .unwrap();
-
-        let shutdown_token = CancellationToken::new();
-        let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-            .await
-            .unwrap();
-        let test_resolver = get_test_resolver(handle.listen_addr());
-        test_resolver
-            .lookup(&ALLOWED_DOMAINS[0], RecordType::A)
-            .await
-            .expect("lookup should succeed");
-        drop(_sock);
-        shutdown_token.cancel();
-        join_handle.await.unwrap();
-        tokio::time::sleep(Duration::from_millis(300)).await;
-
-        // bind() succeeds if wildcard address is bound with REUSEADDR and REUSEPORT
-        let _sock = bind_sock(
-            BindParams::builder()
-                .bind_addr(format!("0.0.0.0:{DNS_LISTEN_PORT}").parse().unwrap())
-                .reuse_addr(true)
-                .reuse_port(true)
-                .build(),
-        )
-        .unwrap();
-
-        let shutdown_token = CancellationToken::new();
-        let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-            .await
-            .unwrap();
-        let test_resolver = get_test_resolver(handle.listen_addr());
-        test_resolver
-            .lookup(&ALLOWED_DOMAINS[0], RecordType::A)
-            .await
-            .expect("lookup should succeed");
-        drop(_sock);
-        shutdown_token.cancel();
-        join_handle.await.unwrap();
-
-        // bind() should succeeds if 127.0.0.1 is already bound without REUSEADDR and REUSEPORT
-        // NOTE: We cannot test this as creating an alias requires root privileges.
-    }
-
-    #[tokio::test]
-    #[serial_test::serial]
-    async fn test_successful_lookup() {
-        let shutdown_token = CancellationToken::new();
-        let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-            .await
-            .unwrap();
-        let test_resolver = get_test_resolver(handle.listen_addr());
-
-        for domain in &*ALLOWED_DOMAINS {
-            test_resolver
-                .lookup(domain, RecordType::A)
-                .await
-                .expect("domain resolution failed");
-        }
-
-        shutdown_token.cancel();
-        join_handle.await.unwrap();
-    }
-
-    #[tokio::test]
-    #[serial_test::serial]
-    async fn test_failed_lookup() {
-        let shutdown_token = CancellationToken::new();
-        let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-            .await
-            .unwrap();
-        let test_resolver = get_test_resolver(handle.listen_addr());
-
-        let captive_portal_domain = LowerName::from(Name::from_str("apple.com").unwrap());
-        assert!(
-            test_resolver
-                .lookup(captive_portal_domain, RecordType::A)
-                .await
-                .is_err(),
-            "Non-whitelisted DNS request should fail"
-        );
-        shutdown_token.cancel();
-        join_handle.await.unwrap();
-    }
-
-    /// Test that we close the socket when shutting down the local resolver.
-    #[tokio::test]
-    #[serial_test::serial]
-    async fn test_unbind_socket_on_stop() {
-        // Bind resolver to 127.0.0.1 so that we can easily bind to the same address here.
-        let shutdown_token = CancellationToken::new();
-        let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-            .await
-            .unwrap();
-        let addr = handle.listen_addr();
-        assert_eq!(
-            addr,
-            SocketAddr::from((Ipv4Addr::LOCALHOST, DNS_LISTEN_PORT))
-        );
-        shutdown_token.cancel();
-        join_handle.await.unwrap();
-        tokio::time::sleep(Duration::from_millis(300)).await;
-        UdpSocket::bind(addr).expect("Failed to bind to a port that should have been removed");
-    }
-
-    fn get_test_resolver(listen_addr: SocketAddr) -> TokioResolver {
-        let resolver_config = ResolverConfig::from_parts(
-            None,
-            vec![],
-            NameServerConfigGroup::from_ips_clear(&[listen_addr.ip()], listen_addr.port(), true),
-        );
-        TokioResolver::builder_with_config(resolver_config, TokioConnectionProvider::default())
-            .build()
-    }
-
-    #[derive(typed_builder::TypedBuilder)]
-    struct BindParams {
-        bind_addr: SocketAddr,
-        reuse_addr: bool,
-        reuse_port: bool,
-        #[builder(default)]
-        connect_addr: Option<SocketAddr>,
-    }
-
-    /// Helper function for creating and binding a UDP socket
-    fn bind_sock(params: BindParams) -> io::Result<UdpSocket> {
-        let sock = socket::socket(
-            AddressFamily::Inet,
-            SockType::Datagram,
-            SockFlag::empty(),
-            SockProtocol::Udp,
-        )?;
-
-        socket::setsockopt(&sock, sockopt::ReuseAddr, &params.reuse_addr)?;
-        socket::setsockopt(&sock, sockopt::ReusePort, &params.reuse_port)?;
-
-        socket::bind(sock.as_raw_fd(), &SockaddrStorage::from(params.bind_addr))?;
-
-        if let Some(connect_addr) = params.connect_addr.map(SockaddrStorage::from) {
-            socket::connect(sock.as_raw_fd(), &connect_addr)?;
-        }
-
-        println!(
-            "Bound to {} (reuseport: {}, reuseaddr: {})",
-            params.bind_addr, params.reuse_port, params.reuse_addr
-        );
-        Ok(UdpSocket::from(sock))
-    }
+pub(crate) fn random_loopback_ipv4() -> IpAddr {
+    IpAddr::from(Ipv4Addr::new(
+        127,
+        rand::thread_rng().gen_range(1..=255),
+        rand::random(),
+        // keep last octet in the range of 1-254 to avoid special addresses
+        rand::thread_rng().gen_range(1..=254),
+    ))
 }

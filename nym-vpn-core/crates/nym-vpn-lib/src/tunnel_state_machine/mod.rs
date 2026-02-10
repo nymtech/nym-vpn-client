@@ -7,7 +7,7 @@ mod dns_handler;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod gateway_ext;
 mod ipv6_availability;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 mod resolver;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod route_handler;
@@ -67,8 +67,8 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
+    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, GatewayDirectoryError,
+    UserAgent,
 };
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
