@@ -40,7 +40,7 @@ fun TechnicalOptScreen(appUiState: AppUiState, viewModel: TechnicalOptViewModel 
 	val navController = LocalNavController.current
 	TechnicalOptScreen(
 		statsEnabled = appUiState.settings.statsEnabled,
-		sentryEnabled = appUiState.settings.sentryEnabled,
+		sentryEnabled = appUiState.vpnConfig.sentry,
 		onNetworkStatsEnable = {
 			viewModel.onNetworkStatsEnabled(it)
 		},

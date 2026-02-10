@@ -130,7 +130,7 @@ fun LogsScreen(appUiState: AppUiState, navBarEvent: NavBarEvent?, onNavBarEventC
 
 	LogsScreenContent(
 		logsEnabled = appUiState.settings.logsEnabled,
-		logsDebugEnabled = appUiState.settings.logsDebugEnabled,
+		logsDebugEnabled = appUiState.vpnConfig.debugLog,
 		onLogsEnable = { viewModel.onLogsEnabled(it) },
 		onLogsDebugEnable = { viewModel.onLogsDebugEnabled(it) },
 		selectedTab = selectedTab,
