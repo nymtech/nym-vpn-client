@@ -1,0 +1,154 @@
+// Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use crate::diagnostic::{build_api_client, registration::setup_bandwidth_provider};
+
+use nym_bandwidth_controller::BandwidthTicketProvider;
+use nym_credentials_interface::TicketType;
+use nym_lp::{packet::version, peer::LpRemotePeer};
+use nym_registration_client::LpRegistrationClient;
+use nym_registration_common::WireguardConfiguration;
+use nym_sdk::mixnet::{ed25519, x25519};
+use nym_validator_client::client::NymApiClientExt;
+use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
+use nym_vpn_network_config::Network;
+use std::{net::SocketAddr, path::PathBuf, sync::Arc};
+use tokio::net::TcpStream;
+
+struct WgRegistrationConfig {
+    local_wg_keypair: Arc<x25519::KeyPair>,
+    gateway_id_key: ed25519::PublicKey,
+    bandwidth_provider: Box<dyn BandwidthTicketProvider>,
+}
+
+pub(crate) struct LpClientRegistration;
+
+impl LpClientRegistration {
+    pub(crate) async fn register_with_lp(
+        registration_report: &mut RegistrationReport,
+        network: &Network,
+        parameters: &DiagnosticRegisterParams,
+    ) -> Option<(WireguardConfiguration, Arc<x25519::KeyPair>)> {
+        tracing::info!("Starting LP regsitration");
+
+        let (registration_config, mut lp_client) = match setup_registration(
+            network,
+            &parameters.gateway,
+            parameters.storage_path.as_ref(),
+        )
+        .await
+        {
+            Ok(config) => config,
+            Err(e) => {
+                registration_report.lp_based_dvpn_registration = Some(DiagnosticResult::from_err(
+                    format!("Failed to setup LP registration: {e}"),
+                ));
+                return None;
+            }
+        };
+        tracing::info!("LP Handshake...");
+        // Perform handshake with gateway
+        if let Err(e) = lp_client.perform_handshake().await {
+            registration_report.lp_handshake = Some(DiagnosticResult::from_err(e));
+            return None;
+        } else {
+            registration_report.lp_handshake = Some(DiagnosticResult::<()>::SUCCESS)
+        }
+        // dVPN registration
+        tracing::info!("Registering with entry gateway");
+        match lp_client
+            .register_dvpn(
+                &mut rand::rngs::OsRng,
+                &registration_config.local_wg_keypair,
+                &registration_config.gateway_id_key,
+                &registration_config.bandwidth_provider,
+                TicketType::V1WireguardEntry,
+            )
+            .await
+        {
+            Ok(response) => {
+                registration_report.lp_based_dvpn_registration =
+                    Some(DiagnosticResult::from_value(response.into()));
+                Some((response, registration_config.local_wg_keypair))
+            }
+            Err(e) => {
+                registration_report.lp_based_dvpn_registration =
+                    Some(DiagnosticResult::from_err(e));
+                None
+            }
+        }
+    }
+}
+
+async fn setup_registration(
+    network: &Network,
+    gateway_id: &str,
+    storage_path: Option<&PathBuf>,
+) -> anyhow::Result<(WgRegistrationConfig, LpRegistrationClient)> {
+    let storage_path = storage_path.ok_or(anyhow::anyhow!("No storage path provided"))?;
+
+    let api_client = build_api_client(network).await?;
+
+    let described_nodes = api_client
+        .get_all_described_nodes_v2()
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to fetch described nodes : {e}"))?;
+    let gateway = described_nodes
+        .iter()
+        .find(|g| g.ed25519_identity_key().to_base58_string() == gateway_id)
+        .ok_or(anyhow::anyhow!("Gateway requested not found"))?
+        .clone();
+
+    let mut rng = rand::rngs::OsRng;
+    let local_wg_keypair = Arc::new(x25519::KeyPair::new(&mut rng));
+    let local_ed_keypair = Arc::new(ed25519::KeyPair::new(&mut rng));
+
+    let gateway_ip = *gateway
+        .description
+        .host_information
+        .ip_address
+        .first()
+        .ok_or(anyhow::anyhow!(
+            "Chosen gateway does not have announced IP addresses",
+        ))?;
+    let gateway_id_key = gateway.ed25519_identity_key();
+
+    // Extract and validate LP data
+    let gateay_lp_data = gateway.description.lewes_protocol.ok_or(anyhow::anyhow!(
+        "Node doesn't have published LP data : {gateway_id}"
+    ))?;
+
+    let gateway_lp_address = SocketAddr::new(gateway_ip, gateay_lp_data.control_port);
+
+    tracing::debug!("Entry gateway LP address: {gateway_lp_address}");
+
+    let gateway_lp_peer = LpRemotePeer::new(gateway_id_key, gateay_lp_data.x25519)
+        .with_key_digests(
+            gateay_lp_data
+                .kem_keys()
+                .map_err(|e| anyhow::anyhow!("Incorrect kem key digests : {e}"))?,
+            gateay_lp_data
+                .signing_keys()
+                .map_err(|e| anyhow::anyhow!("Incorrect digning key digests : {e}"))?,
+        );
+
+    let bandwidth_provider = setup_bandwidth_provider(network, storage_path)
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to setup bandwidth provider : {e}"))?;
+
+    let lp_client = LpRegistrationClient::<TcpStream>::new_with_default_config(
+        local_ed_keypair.clone(),
+        gateway_lp_peer.clone(),
+        gateway_lp_address,
+        version::CURRENT,
+    );
+
+    Ok((
+        WgRegistrationConfig {
+            local_wg_keypair,
+            gateway_id_key,
+            bandwidth_provider,
+        },
+        lp_client,
+    ))
+}

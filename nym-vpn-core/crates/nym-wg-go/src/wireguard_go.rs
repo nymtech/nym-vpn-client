@@ -6,16 +6,17 @@ use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 use std::{
     ffi::{CStr, CString, c_char, c_void},
     fmt,
+    sync::Arc,
 };
 
+use nym_crypto::asymmetric::x25519;
 #[cfg(windows)]
 use nym_windows::net::AddressFamily;
 #[cfg(windows)]
 use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use super::{
-    Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey, Result,
-    uapi::UapiConfigBuilder,
+    Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, Result, uapi::UapiConfigBuilder,
 };
 #[cfg(feature = "amnezia")]
 use crate::amnezia::AmneziaConfig;
@@ -23,7 +24,7 @@ use crate::amnezia::AmneziaConfig;
 /// Classic WireGuard interface configuration.
 pub struct InterfaceConfig {
     pub listen_port: Option<u16>,
-    pub private_key: PrivateKey,
+    pub keypair: Arc<x25519::KeyPair>,
     pub mtu: u16,
     #[cfg(target_os = "linux")]
     pub fwmark: Option<u32>,
@@ -54,11 +55,11 @@ pub struct Config {
 }
 
 impl Config {
-    fn as_uapi_config(&self) -> Vec<u8> {
+    fn into_uapi_config(self) -> Vec<u8> {
         let mut config_builder = UapiConfigBuilder::new();
         config_builder.add(
             "private_key",
-            self.interface.private_key.to_bytes().as_ref(),
+            self.interface.keypair.private_key().to_bytes().as_ref(),
         );
 
         if let Some(listen_port) = self.interface.listen_port {
@@ -77,7 +78,7 @@ impl Config {
 
         if !self.peers.is_empty() {
             config_builder.add("replace_peers", "true");
-            for peer in self.peers.iter() {
+            for peer in self.peers.into_iter() {
                 peer.append_to(&mut config_builder);
             }
         }
@@ -117,14 +118,15 @@ impl Tunnel {
     /// Start new WireGuard tunnel
     #[cfg(not(windows))]
     pub fn start(config: Config, tun_fd: OwnedFd) -> Result<Self> {
-        let settings = CString::new(config.as_uapi_config())
+        let interface_mtu = config.interface.mtu;
+        let settings = CString::new(config.into_uapi_config())
             .map_err(|_| Error::ConvertToCString("uapi config"))?;
 
         let tunnel_handle = unsafe {
             wgTurnOn(
                 // note: not all platforms accept mtu = 0
                 #[cfg(any(target_os = "linux", target_os = "macos"))]
-                i32::from(config.interface.mtu),
+                i32::from(interface_mtu),
                 settings.as_ptr(),
                 tun_fd.into_raw_fd(),
                 wg_logger_callback,
@@ -147,7 +149,8 @@ impl Tunnel {
         requested_guid: &str,
         wintun_tunnel_type: &str,
     ) -> Result<Self> {
-        let settings = CString::new(config.as_uapi_config())
+        let interface_mtu = config.interface.mtu;
+        let settings = CString::new(config.into_uapi_config())
             .map_err(|_| Error::ConvertToCString("settings"))?;
         let interface_name_cstr =
             CString::new(interface_name).map_err(|_| Error::ConvertToCString("interface name"))?;
@@ -167,7 +170,7 @@ impl Tunnel {
                 interface_name_cstr.as_ptr(),
                 requested_guid_cstr.as_ptr(),
                 wintun_tunnel_type_cstr.as_ptr(),
-                i32::from(config.interface.mtu),
+                i32::from(interface_mtu),
                 settings.as_ptr(),
                 out_interface_name_ptr,
                 out_interface_luid_ptr,

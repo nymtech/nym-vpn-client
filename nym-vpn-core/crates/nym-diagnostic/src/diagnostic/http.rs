@@ -31,7 +31,7 @@ impl HttpDiagnostic {
             .map(ApiTimeSkew::from);
 
         let nb_nodes = api_client
-            .get_all_described_nodes()
+            .get_all_described_nodes_v2()
             .await
             .map(|list| list.len());
 

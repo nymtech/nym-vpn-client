@@ -4,17 +4,17 @@
 use std::{
     fmt,
     net::{IpAddr, SocketAddr},
+    sync::Arc,
 };
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_registration_common::WireguardConfiguration;
+use nym_sdk::mixnet::x25519;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
-use nym_wg_go::{
-    PeerConfig, PrivateKey, PublicKey, amnezia::AmneziaConfig, netstack, wireguard_go,
-};
+use nym_wg_go::{PeerConfig, PresharedKey, amnezia::AmneziaConfig, netstack, wireguard_go};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct WgNodeConfig {
     /// Interface configuration
     pub interface: WgInterface,
@@ -26,13 +26,12 @@ pub struct WgNodeConfig {
     pub allowed_ips: AllowedIps,
 }
 
-#[derive(Clone)]
 pub struct WgInterface {
     /// WG client port.
     pub listen_port: Option<u16>,
 
-    /// Private key used by wg client.
-    pub private_key: PrivateKey,
+    /// Keypair, whose private key used by wg client.
+    pub keypair: Arc<x25519::KeyPair>,
 
     /// Addresses assigned on wg interface.
     pub addresses: Vec<IpNetwork>,
@@ -76,10 +75,11 @@ pub enum AllowedIps {
     Specific(Vec<IpNetwork>),
 }
 
-#[derive(Debug, Clone)]
 pub struct WgPeer {
     /// Gateway public key.
-    pub public_key: PublicKey,
+    pub public_key: x25519::PublicKey,
+
+    pub preshared_key: Option<PresharedKey>,
 
     /// Gateway endpoint
     pub endpoint: SocketAddr,
@@ -95,12 +95,22 @@ impl WgPeer {
     }
 }
 
+impl fmt::Debug for WgPeer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut d = f.debug_struct("WgPeer");
+        d.field("public_key", &self.public_key)
+            .field("preshared_key", &"(hidden)")
+            .field("endpoint", &self.endpoint);
+        d.finish()
+    }
+}
+
 impl WgNodeConfig {
     pub fn into_netstack_config(self) -> netstack::Config {
         let allowed_ips = self.allowed_ips();
         netstack::Config {
             interface: netstack::InterfaceConfig {
-                private_key: self.interface.private_key,
+                keypair: self.interface.keypair,
                 local_addrs: self
                     .interface
                     .addresses
@@ -115,7 +125,7 @@ impl WgNodeConfig {
             },
             peers: vec![PeerConfig {
                 public_key: self.peer.public_key,
-                preshared_key: None,
+                preshared_key: self.peer.preshared_key,
                 endpoint: self.peer.endpoint,
                 // todo: limit to loopback?
                 allowed_ips,
@@ -128,7 +138,7 @@ impl WgNodeConfig {
         wireguard_go::Config {
             interface: wireguard_go::InterfaceConfig {
                 listen_port: self.interface.listen_port,
-                private_key: self.interface.private_key,
+                keypair: self.interface.keypair,
                 mtu: self.interface.mtu,
                 #[cfg(target_os = "linux")]
                 fwmark: self.interface.fwmark,
@@ -136,7 +146,7 @@ impl WgNodeConfig {
             },
             peers: vec![PeerConfig {
                 public_key: self.peer.public_key,
-                preshared_key: None,
+                preshared_key: self.peer.preshared_key,
                 endpoint: self.peer.endpoint,
                 allowed_ips,
             }],
@@ -165,7 +175,7 @@ impl WgNodeConfig {
 impl WgNodeConfig {
     pub fn with_wireguard_config(
         wireguard_config: WireguardConfiguration,
-        private_key: &nym_crypto::asymmetric::encryption::PrivateKey,
+        keypair: Arc<x25519::KeyPair>,
         allowed_ips: AllowedIps,
         dns: Vec<IpAddr>,
         mtu: u16,
@@ -174,7 +184,7 @@ impl WgNodeConfig {
         Self {
             interface: WgInterface {
                 listen_port: None,
-                private_key: PrivateKey::from(private_key.to_bytes()),
+                keypair,
                 addresses: vec![
                     IpNetwork::V4(Ipv4Network::from(wireguard_config.private_ipv4)),
                     IpNetwork::V6(Ipv6Network::from(wireguard_config.private_ipv6)),
@@ -186,7 +196,8 @@ impl WgNodeConfig {
                 azwg_config: Some(AmneziaConfig::OFF),
             },
             peer: WgPeer {
-                public_key: PublicKey::from(*wireguard_config.public_key.as_bytes()),
+                public_key: wireguard_config.public_key,
+                preshared_key: wireguard_config.psk.map(Into::into),
                 endpoint: wireguard_config.endpoint,
             },
             allowed_ips,

@@ -12,6 +12,7 @@ use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 pub use nym_credential_proxy_requests::api::v1::ticketbook::models::UpgradeModeAttestation;
+use nym_validator_client::models::LewesProtocolDetailsV1;
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, UtcDateTime, format_description::well_known::Iso8601};
 
@@ -368,6 +369,7 @@ pub struct NymDirectoryGateway {
     pub role: Role,
     pub entry: EntryInformation,
     pub bridges: Option<BridgeInformation>,
+    pub lp_information: Option<LewesProtocolDetailsV1>,
     // The performance data here originates from the nym-api, and is effectively mixnet performance
     // at the time of writing this
     pub performance: Percent,

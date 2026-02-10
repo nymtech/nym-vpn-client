@@ -148,6 +148,9 @@ pub struct GatewayReport {
 
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub websocket_request: Option<DiagnosticResult<String>>,
+
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub lp_handshake: Option<DiagnosticResult<()>>,
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -159,7 +162,13 @@ pub struct RegistrationReport {
     pub mixnet_client_start: Option<DiagnosticResult<()>>,
 
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    pub wireguard_registration: Option<DiagnosticResult<GatewayDataReport>>,
+    pub mixnet_based_dvpn_registration: Option<DiagnosticResult<GatewayDataReport>>,
+
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub lp_handshake: Option<DiagnosticResult<()>>,
+
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub lp_based_dvpn_registration: Option<DiagnosticResult<GatewayDataReport>>,
 
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub wireguard_pings: Option<DiagnosticResult<Vec<PingReport>>>,
@@ -170,7 +179,9 @@ impl RegistrationReport {
         Self {
             mixnet_client_build: DiagnosticResult::from_err(error),
             mixnet_client_start: None,
-            wireguard_registration: None,
+            mixnet_based_dvpn_registration: None,
+            lp_handshake: None,
+            lp_based_dvpn_registration: None,
             wireguard_pings: None,
         }
     }
@@ -215,5 +226,25 @@ pub struct DiagnosticRunParams {
 pub struct DiagnosticRegisterParams {
     pub gateway: String,
     pub storage_path: Option<PathBuf>,
+    pub registration_mode: RegistrationMode,
     pub skip_wireguard: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub enum RegistrationMode {
+    #[default]
+    Mixnet,
+    Lp,
+}
+
+impl RegistrationMode {
+    pub fn from_cli_flags(mixnet: bool, lp: bool) -> Self {
+        if lp {
+            Self::Lp
+        } else if mixnet {
+            Self::Mixnet
+        } else {
+            Self::default()
+        }
+    }
 }

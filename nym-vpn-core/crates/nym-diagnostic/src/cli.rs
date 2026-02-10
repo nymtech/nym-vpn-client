@@ -76,6 +76,11 @@ impl From<RunParams> for nym_vpn_lib_types::DiagnosticRunParams {
 }
 
 #[derive(Debug, Clone, clap::Args)]
+#[command(group(
+    clap::ArgGroup::new("mode")
+        .args(["mixnet", "lp"])
+        .multiple(false) // mutually exclusive
+))]
 pub struct RegisterParams {
     /// Id of the gateway we are going to connect to.
     #[arg(long)]
@@ -86,16 +91,28 @@ pub struct RegisterParams {
     pub storage_path: Option<PathBuf>,
 
     /// Skip Wireguard diagnostic
-    #[clap(long, action = clap::ArgAction::SetTrue)]
+    #[arg(long, action = clap::ArgAction::SetTrue)]
     pub skip_wireguard: bool,
+
+    /// Registration via mixnet
+    #[arg(long, action = clap::ArgAction::SetTrue)]
+    pub mixnet: bool,
+
+    /// Registration via LP
+    #[arg(long, action = clap::ArgAction::SetTrue)]
+    pub lp: bool,
 }
 
 impl From<RegisterParams> for nym_vpn_lib_types::DiagnosticRegisterParams {
     fn from(value: RegisterParams) -> Self {
+        // Mixnet is the default
+        let registration_mode =
+            nym_vpn_lib_types::RegistrationMode::from_cli_flags(value.mixnet, value.lp);
         Self {
             gateway: value.gateway,
             storage_path: value.storage_path,
             skip_wireguard: value.skip_wireguard,
+            registration_mode,
         }
     }
 }

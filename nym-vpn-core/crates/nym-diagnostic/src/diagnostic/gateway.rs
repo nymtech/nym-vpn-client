@@ -5,12 +5,17 @@ use crate::error::{Error, Result};
 
 use nym_crypto::asymmetric::ed25519;
 use nym_gateway_directory::{Gateway, GatewayClient};
+use nym_lp::peer::LpRemotePeer;
 use nym_platform_metadata::new_user_agent;
+use nym_registration_client::LpRegistrationClient;
 use nym_vpn_lib_types::{DiagnosticResult, GatewayReport};
 use nym_vpn_network_config::Network;
 
 use futures::{SinkExt, StreamExt};
-use std::net::{IpAddr, SocketAddr};
+use std::{
+    net::{IpAddr, SocketAddr},
+    sync::Arc,
+};
 use tokio::net::{TcpSocket, TcpStream};
 use tokio_tungstenite::{WebSocketStream, tungstenite::http::Response};
 
@@ -25,6 +30,7 @@ impl GatewayDiagnostic {
             tcp: None,
             websocket: None,
             websocket_request: None,
+            lp_handshake: None,
         };
 
         let gateway_id_key = if let Ok(key) = ed25519::PublicKey::from_base58_string(gateway_id) {
@@ -71,6 +77,15 @@ impl GatewayDiagnostic {
             }
         };
 
+        match Self::lp_handshake_test(&gateway, ip).await {
+            Ok(()) => {
+                gateway_report.lp_handshake = Some(DiagnosticResult::<()>::SUCCESS);
+            }
+            Err(e) => {
+                gateway_report.lp_handshake = Some(DiagnosticResult::from_err(e));
+            }
+        };
+
         let tcp_stream = match Self::tcp_connection_test(ip, port).await {
             Ok(stream) => {
                 gateway_report.tcp = Some(DiagnosticResult::<()>::SUCCESS);
@@ -95,7 +110,7 @@ impl GatewayDiagnostic {
 
         match Self::ws_request_test(ws_stream).await {
             Ok(response) => {
-                gateway_report.websocket_request = Some(DiagnosticResult::from_value(response))
+                gateway_report.websocket_request = Some(DiagnosticResult::from_value(response));
             }
             Err(e) => {
                 gateway_report.websocket_request = Some(DiagnosticResult::from_err(e));
@@ -166,5 +181,37 @@ impl GatewayDiagnostic {
         let response = ws_stream.next().await.ok_or(Error::WsStreamClosed)??;
 
         Ok(response.to_text()?.into())
+    }
+
+    async fn lp_handshake_test(gateway: &Gateway, gateway_ip: IpAddr) -> anyhow::Result<()> {
+        let gateway_id_key = gateway.identity();
+
+        let gateway_lp_data = gateway.lp_information.clone().ok_or(anyhow::anyhow!(
+            "Node doesn't have published LP data : {}",
+            gateway_id_key.to_base58_string()
+        ))?;
+
+        let gateway_lp_address = SocketAddr::new(gateway_ip, gateway_lp_data.control_port);
+
+        tracing::debug!("Entry gateway LP address: {gateway_lp_address}");
+
+        let gateway_lp_peer = LpRemotePeer::new(gateway_id_key, gateway_lp_data.x25519)
+            .with_key_digests(
+                gateway_lp_data
+                    .kem_keys()
+                    .map_err(|e| anyhow::anyhow!("Incorrect kem key digests : {e}"))?,
+                gateway_lp_data
+                    .signing_keys()
+                    .map_err(|e| anyhow::anyhow!("Incorrect digning key digests : {e}"))?,
+            );
+
+        let mut lp_client = LpRegistrationClient::<TcpStream>::new_with_default_config(
+            Arc::new(ed25519::KeyPair::new(&mut rand::rngs::OsRng)),
+            gateway_lp_peer.clone(),
+            gateway_lp_address,
+            1,
+        );
+
+        Ok(lp_client.perform_handshake().await?)
     }
 }

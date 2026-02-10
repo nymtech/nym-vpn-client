@@ -395,6 +395,7 @@ impl VpnServiceConfigManager {
             allow_lan: self.config.allow_lan,
             residential_exit: self.config.residential_exit,
             tunnel_type,
+            enable_lewes_protocol: self.config.enable_lewes_protocol,
             mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },
             wireguard_tunnel_options: WireguardTunnelOptions {
                 #[cfg(not(any(target_os = "android", target_os = "ios")))]

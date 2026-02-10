@@ -137,6 +137,9 @@ pub struct TunnelSettings {
     /// Select residential exit gateways only.
     pub residential_exit: bool,
 
+    /// Lewes Protocol enabled
+    pub enable_lewes_protocol: bool,
+
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
 

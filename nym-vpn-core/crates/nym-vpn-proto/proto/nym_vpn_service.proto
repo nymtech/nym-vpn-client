@@ -899,6 +899,8 @@ message DiagnosticRegisterParams {
   GatewayId gateway = 1;
   optional string storage_path = 2;
   bool skip_wireguard = 3;
+  bool mixnet = 4;
+  bool lp = 5;
 }
 
 // Very nested struct and more often than not just used for logging, so JSON will do

@@ -7,7 +7,7 @@ mod tests;
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
-use nym_validator_client::models::{KeyRotationId, NymNodeDescriptionV1};
+use nym_validator_client::models::{KeyRotationId, LewesProtocolDetailsV1, NymNodeDescriptionV2};
 use nym_vpn_api_client::{
     response::{BridgeInformation, BridgeParameters},
     types::Percent,
@@ -48,6 +48,8 @@ pub struct Gateway {
     #[builder(default)]
     pub bridge_params: Option<BridgeInformation>,
     #[builder(default)]
+    pub lp_information: Option<LewesProtocolDetailsV1>,
+    #[builder(default)]
     pub last_probe: Option<Probe>,
     #[builder(default=vec![])]
     pub ips: Vec<IpAddr>,
@@ -68,7 +70,7 @@ pub struct Gateway {
 
 impl Gateway {
     pub fn try_from_node_description(
-        node_description: NymNodeDescriptionV1,
+        node_description: NymNodeDescriptionV2,
         current_key_rotation: KeyRotationId,
     ) -> Result<Self> {
         let identity = node_description.description.host_information.keys.ed25519;
@@ -105,6 +107,9 @@ impl Gateway {
             .network_requester
             .as_ref()
             .map(|nr| nr.address.clone());
+
+        let lp_information = node_description.description.lewes_protocol.clone();
+
         let version = Some(node_description.version().to_string());
         let role = if node_description.description.declared_role.entry {
             nym_validator_client::nym_nodes::NodeRole::EntryGateway
@@ -137,6 +142,7 @@ impl Gateway {
             authenticator_address,
             nr_address,
             bridge_params: None,
+            lp_information,
             last_probe: None,
             ips,
             host,
@@ -636,6 +642,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             authenticator_address,
             nr_address: None,
             bridge_params: gateway.bridges,
+            lp_information: gateway.lp_information,
             last_probe,
             ips: gateway.ip_addresses,
             host,
