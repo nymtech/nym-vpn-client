@@ -38,28 +38,30 @@ public struct GeneratePassphraseView: View {
             Spacer()
                 .frame(height: 24)
 
-            StepView(stepCount: 4, currentStep: $currentStep)
-            Spacer()
+            VStack(spacing: 0) {
+                StepView(stepCount: 4, currentStep: $currentStep)
+                Spacer()
 
-            if !(didFinishAnimatingText && didRegisterAccount) {
-                // Generate account
-                dotsAnimationView
-                Spacer()
-                    .frame(height: 16)
+                if !(didFinishAnimatingText && didRegisterAccount) {
+                    // Generate account
+                    dotsAnimationView
+                    Spacer()
+                        .frame(height: 16)
 
-                animatingTextView
-                Spacer()
-            } else {
-                // Purchase plan
-                checkmarkImage
-                Spacer()
-                    .frame(height: 12)
-                titleSubtitleView
-                Spacer()
-                selectPlanButton
+                    animatingTextView
+                    Spacer()
+                } else {
+                    // Purchase plan
+                    checkmarkImage
+                    Spacer()
+                        .frame(height: 12)
+                    titleSubtitleView
+                    Spacer()
+                    selectPlanButton
+                }
             }
+            .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
-        .frame(maxWidth: MagicNumbers.moreMaxWidth)
         .padding(16)
         .navigationBarBackButtonHidden(true)
         .background {
