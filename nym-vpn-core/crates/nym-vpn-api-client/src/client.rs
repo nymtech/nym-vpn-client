@@ -45,6 +45,12 @@ pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(30);
 
+// Number of retries for remote time synchronization (not including the initial attempt)
+const REMOTE_TIME_MAX_RETRIES: u8 = 2;
+
+// Wait delay between retries for remote time synchronization
+const REMOTE_TIME_WAIT_DELAY: Duration = Duration::from_secs(1);
+
 const SKEW_CACHE_TTL: Duration = Duration::from_secs(4 * 60 * 60); // 4 hours
 
 #[derive(Debug)]
@@ -164,15 +170,45 @@ impl VpnApiClient {
     }
 
     pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
-        let time_before = OffsetDateTime::now_utc();
-        let remote_timestamp = self.get_health().await?.timestamp_utc;
-        let time_after = OffsetDateTime::now_utc();
+        let mut last_error: Option<VpnApiClientError> = None;
 
-        Ok(VpnApiTime::from_remote_timestamp(
-            time_before,
-            remote_timestamp,
-            time_after,
-        ))
+        for retry in 0..=REMOTE_TIME_MAX_RETRIES {
+            let time_before = OffsetDateTime::now_utc();
+            match self.get_health_no_retry().await {
+                Ok(res) => {
+                    let remote_timestamp = res.timestamp_utc;
+                    let time_after = OffsetDateTime::now_utc();
+                    let request_time = time_after - time_before;
+
+                    // Detect sleep or time travel and retry the request
+                    if request_time.is_negative() {
+                        tracing::warn!(
+                            "Request time is negative. Time traveling? ({}/{REMOTE_TIME_MAX_RETRIES})",
+                            retry + 1
+                        );
+                        tokio::time::sleep(REMOTE_TIME_WAIT_DELAY).await;
+                        continue;
+                    } else if request_time > NYM_VPN_API_TIMEOUT {
+                        tracing::warn!(
+                            "Request time exceeds the timeout. Device fell asleep? ({}/{REMOTE_TIME_MAX_RETRIES})",
+                            retry + 1
+                        );
+                        tokio::time::sleep(REMOTE_TIME_WAIT_DELAY).await;
+                        continue;
+                    } else {
+                        return Ok(VpnApiTime::from_remote_timestamp(
+                            time_before,
+                            remote_timestamp,
+                            time_after,
+                        ));
+                    }
+                }
+                Err(err) => {
+                    last_error = Some(err);
+                }
+            }
+        }
+        Err(last_error.unwrap_or(VpnApiClientError::TimeTravelTooMuch))
     }
 
     fn use_remote_time(remote_time: VpnApiTime) -> bool {
@@ -703,6 +739,14 @@ impl VpnApiClient {
 
     pub async fn get_health(&self) -> Result<NymVpnHealthResponse> {
         self.get_json_with_retry(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
+            .await
+            .map_err(Box::new)
+            .map_err(VpnApiClientError::GetHealth)
+    }
+
+    pub async fn get_health_no_retry(&self) -> Result<NymVpnHealthResponse> {
+        self.inner
+            .get_json(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
             .await
             .map_err(Box::new)
             .map_err(VpnApiClientError::GetHealth)

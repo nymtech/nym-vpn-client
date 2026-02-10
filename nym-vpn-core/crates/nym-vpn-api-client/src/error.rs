@@ -146,6 +146,11 @@ pub enum VpnApiClientError {
 
     #[error("account api client error: {0}")]
     AccountError(#[source] Box<AccountError>),
+
+    /// Error that happens when device is suspended or time travelling while receiving remote time
+    /// Multiple attempts to receive remote time should happen before this error is returned
+    #[error("too much time travel preventing receiving remote time")]
+    TimeTravelTooMuch,
 }
 
 pub type Result<T, E = VpnApiClientError> = std::result::Result<T, E>;
