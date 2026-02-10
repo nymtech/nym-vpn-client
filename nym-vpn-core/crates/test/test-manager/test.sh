@@ -112,7 +112,21 @@ function build_deps() {
     popd
 }
 
+function build_nym_wireguard() {
+    pushd "${CARGO_WORKSPACE_ROOT}/../wireguard"
+    echo -e "======== ${YELLOW} Building nym-wireguard${NC} ========"
+    if ! command -v go &> /dev/null; then
+        echo "Error: go is not installed. Please install Go before building wireguard."
+        exit 1
+    fi
+    ./build-wireguard-go.sh
+    echo -e "======== ${GREEN} Finished building nym-wireguard${NC} ========"
+    popd
+}
+
 function build_nym_deps() {
+    build_nym_wireguard
+
     pushd ${CARGO_WORKSPACE_ROOT}
     echo -e "======== ${YELLOW} Building Nym deps${NC} ========"
     cargo build --package nym-vpnc --release
@@ -156,7 +170,11 @@ COMMAND="$1"
 
 case "$COMMAND" in
     configure)
+        build_nym_wireguard
         configure
+        ;;
+    list)
+        list
         ;;
     run-tests)
         run_tests
