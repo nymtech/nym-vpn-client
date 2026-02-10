@@ -14,7 +14,7 @@ sealed class CoreVpnConfigUpdate {
 	data class SetCustomDns(val value: List<String>) : CoreVpnConfigUpdate()
 	data class SetRestrictedApps(val value: List<String>) : CoreVpnConfigUpdate()
 
-	data class SetNetwork(val value: String) : CoreVpnConfigUpdate()
+	data class SetNetwork(val value: Tunnel.Environment) : CoreVpnConfigUpdate()
 	data class SetDebugLog(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetSentry(val value: Boolean) : CoreVpnConfigUpdate()
 }

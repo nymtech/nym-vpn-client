@@ -115,7 +115,7 @@ constructor(
 		val tunnelState = backendManager.getState()
 		if (tunnelState == Tunnel.State.Down) {
 			Timber.tag(TAG).i("EnvironmentChangeApplied env=%s", environment)
-			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetNetwork(environment.networkName()))
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetNetwork(environment))
 			SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 		} else {
 			Timber.tag(TAG).w("EnvironmentChangeRejected reason=tunnel_not_down state=%s", tunnelState)

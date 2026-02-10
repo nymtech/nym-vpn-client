@@ -86,13 +86,9 @@ class VpnCoreController(
 		runCatching {
 			val savedConfig = configRepo.get()
 			val currentUserAgent = appConfigProvider.getUserAgent()
-
-			val networkName = savedConfig.network
-
-			Timber.tag(TAG).d("ensureReady: net=$networkName debug=${savedConfig.debugLog}")
-
+			val network = savedConfig.network
 			ensureCoreInitialized(
-				networkName = networkName,
+				network = network,
 				enableDebugLog = savedConfig.debugLog,
 				sentry = savedConfig.sentry,
 				userAgent = currentUserAgent,
@@ -109,7 +105,7 @@ class VpnCoreController(
 			val ua = appConfigProvider.getUserAgent()
 			val net = config.network
 			ensureCoreInitialized(
-				networkName = net,
+				network = net,
 				enableDebugLog = config.debugLog,
 				sentry = config.sentry,
 				userAgent = ua,
@@ -166,7 +162,7 @@ class VpnCoreController(
 			val net = cfg.network
 
 			ensureCoreInitialized(
-				networkName = net,
+				network = net,
 				enableDebugLog = cfg.debugLog,
 				sentry = cfg.sentry,
 				userAgent = ua,
@@ -299,15 +295,13 @@ class VpnCoreController(
 	}
 
 	private suspend fun ensureCoreInitialized(
-		networkName: String?,
+		network: Tunnel.Environment,
 		enableDebugLog: Boolean,
 		sentry: Boolean,
-		userAgent: UserAgent?,
+		userAgent: UserAgent,
 		useMainnetFallback: Boolean,
 		mixnetParamConfig: MixnetTrafficConfig?,
 	) {
-		Timber.d("ensureCoreInitialized networkName=$networkName userAgent=$userAgent fallback=$useMainnetFallback")
-
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
 		val storagePath = service.filesDir.absolutePath
@@ -319,9 +313,8 @@ class VpnCoreController(
 				NymEnvironment.newWithMainnetFallback()
 			} else {
 				runCatching {
-					requireNotNull(networkName) { "networkName required for init()" }
 					requireNotNull(userAgent) { "userAgent required for init()" }
-					NymEnvironment.newWithCacheDir(storagePath, networkName, userAgent)
+					NymEnvironment.newWithCacheDir(storagePath, network.networkName(), userAgent)
 				}.getOrElse { NymEnvironment.newWithMainnetFallback() }
 			}
 

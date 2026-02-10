@@ -76,7 +76,10 @@ class CoreVpnConfigStore(private val context: Context) {
 		val customDns = decodeList(this[KEY_CUSTOM_DNS_LIST]).take(MAX_DNS)
 		val restrictedApps = decodeList(this[KEY_RESTRICTED_APPS])
 
-		val network = this[KEY_ENV_NETWORK] ?: Tunnel.Environment.MAINNET.networkName()
+		val network = this[KEY_ENV_NETWORK] ?.let {
+			runCatching { Tunnel.Environment.valueOf(it) }.getOrElse { Tunnel.Environment.MAINNET }
+		} ?: Tunnel.Environment.MAINNET
+
 		val debug = this[KEY_ENV_DEBUG] ?: true
 		val sentry = this[KEY_ENV_SENTRY] ?: false
 
@@ -95,20 +98,6 @@ class CoreVpnConfigStore(private val context: Context) {
 		)
 	}
 
-	private fun MutableMap<Preferences.Key<*>, Any>.fromCoreConfig(cfg: CoreVpnConfig) {
-		this[KEY_ENTRY] = cfg.entryPoint.asString()
-		this[KEY_EXIT] = cfg.exitPoint.asString()
-		this[KEY_MODE] = cfg.mode.name
-		this[KEY_BYPASS_LAN] = cfg.bypassLan
-		this[KEY_BRIDGES] = cfg.enableBridges
-		this[KEY_CUSTOM_DNS_ENABLED] = cfg.customDnsEnabled
-		this[KEY_CUSTOM_DNS_LIST] = encodeList(cfg.customDns)
-		this[KEY_RESTRICTED_APPS] = encodeList(cfg.restrictedApps)
-		this[KEY_ENV_NETWORK] = cfg.network
-		this[KEY_ENV_DEBUG] = cfg.debugLog
-		this[KEY_ENV_SENTRY] = cfg.sentry
-	}
-
 	private fun MutablePreferences.fromCoreConfig(cfg: CoreVpnConfig) {
 		this[KEY_ENTRY] = cfg.entryPoint.asString()
 		this[KEY_EXIT] = cfg.exitPoint.asString()
@@ -118,7 +107,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		this[KEY_CUSTOM_DNS_ENABLED] = cfg.customDnsEnabled
 		this[KEY_CUSTOM_DNS_LIST] = encodeList(cfg.customDns)
 		this[KEY_RESTRICTED_APPS] = encodeList(cfg.restrictedApps)
-		this[KEY_ENV_NETWORK] = cfg.network
+		this[KEY_ENV_NETWORK] = cfg.network.networkName().uppercase()
 		this[KEY_ENV_DEBUG] = cfg.debugLog
 		this[KEY_ENV_SENTRY] = cfg.sentry
 	}

@@ -18,12 +18,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
@@ -75,6 +76,9 @@ class NymVpn : Application() {
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
+	lateinit var vpnConfigRepository: VpnConfigRepository
+
+	@Inject
 	lateinit var backendManager: BackendManager
 
 	@Inject
@@ -102,8 +106,12 @@ class NymVpn : Application() {
 
 		logsObserverJob?.cancel()
 		logsObserverJob = applicationScope.launch(ioDispatcher) {
-			settingsRepository.settingsFlow
-				.map { it.logsEnabled to it.logsDebugEnabled }
+			combine(
+				settingsRepository.settingsFlow,
+				vpnConfigRepository.configFlow,
+			) { settings, coreConfig ->
+				settings.logsEnabled to coreConfig.debugLog
+			}
 				.distinctUntilChanged()
 				.collect { (enabled, debugEnabled) ->
 					applyLoggingConfig(enabled, debugEnabled)
@@ -138,7 +146,9 @@ class NymVpn : Application() {
 			}
 
 			runCatching {
-				val sentryEnabled = settingsRepository.getSentryMonitoringEnabled()
+				val config = vpnConfigRepository.getConfig()
+				val sentryEnabled = config.sentry
+
 				if (sentryEnabled) {
 					initSentry()
 					Timber.tag(TAG).i("SentryInitRequested")
@@ -194,7 +204,7 @@ class NymVpn : Application() {
 		StrictMode.setVmPolicy(StrictMode.VmPolicy.LAX)
 	}
 
-	private suspend fun ensureLogReaderStarted() {
+	private fun ensureLogReaderStarted() {
 		if (logReaderStarted) return
 
 		runCatching {
