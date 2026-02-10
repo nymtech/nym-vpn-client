@@ -26,6 +26,7 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
 import javax.inject.Inject
@@ -114,7 +115,7 @@ constructor(
 		val tunnelState = backendManager.getState()
 		if (tunnelState == Tunnel.State.Down) {
 			Timber.tag(TAG).i("EnvironmentChangeApplied env=%s", environment)
-			settingsRepository.setEnvironment(environment)
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetNetwork(environment))
 			SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 		} else {
 			Timber.tag(TAG).w("EnvironmentChangeRejected reason=tunnel_not_down state=%s", tunnelState)

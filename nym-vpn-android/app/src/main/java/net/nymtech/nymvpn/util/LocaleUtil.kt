@@ -10,7 +10,8 @@ object LocaleUtil {
 
 	fun changeLocale(locale: String) {
 		if (locale == OPTION_PHONE_LANGUAGE) return resetToSystemLanguage()
-		val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(locale)
+		val tag = locale.replace("r", "").replace("_", "-")
+		val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(tag)
 		AppCompatDelegate.setApplicationLocales(appLocale)
 	}
 

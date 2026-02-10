@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.data
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.MixnetTrafficConfig
 
 interface SettingsRepository {
@@ -17,9 +16,6 @@ interface SettingsRepository {
 	suspend fun isApplicationShortcutsEnabled(): Boolean
 	suspend fun setApplicationShortcuts(enabled: Boolean)
 
-	suspend fun getEnvironment(): Tunnel.Environment
-	suspend fun setEnvironment(environment: Tunnel.Environment)
-
 	suspend fun setManualGatewayOverride(enabled: Boolean)
 
 	suspend fun setCredentialMode(enabled: Boolean?)
@@ -30,9 +26,6 @@ interface SettingsRepository {
 
 	suspend fun setBatteryDialogSkipped(skip: Boolean)
 	suspend fun isBatteryDialogSkipped(): Boolean
-
-	suspend fun getSentryMonitoringEnabled(): Boolean
-	suspend fun setSentryMonitoring(enabled: Boolean)
 
 	suspend fun getStatisticsEnabled(): Boolean
 	suspend fun setStatisticsEnabled(enabled: Boolean)
@@ -54,9 +47,6 @@ interface SettingsRepository {
 
 	suspend fun getLogsEnabled(): Boolean
 	suspend fun setLogsEnabled(enabled: Boolean)
-
-	suspend fun getLogsDebugEnabled(): Boolean
-	suspend fun setLogsDebugEnabled(enabled: Boolean)
 
 	val settingsFlow: Flow<Settings>
 

@@ -142,6 +142,12 @@ jobs:
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
 
       # === CROWDIN DOWNLOAD START ===
+      - name: Setup Node.js
+        if: ${{ inputs.build_type != 'debug' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Install Crowdin CLI
         if: ${{ inputs.build_type != 'debug' }}
         run: npm install -g @crowdin/cli
@@ -161,7 +167,8 @@ jobs:
           crowdin download translations \
             --config crowdin-configs/android.yml \
             --project-id "$CROWDIN_PROJECT_ID" \
-            --token "$CROWDIN_PERSONAL_TOKEN"
+            --token "$CROWDIN_PERSONAL_TOKEN" \
+            -l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN
       # === CROWDIN DOWNLOAD END ===
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration

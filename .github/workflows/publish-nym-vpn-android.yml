@@ -371,10 +371,18 @@ jobs:
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
       # === CROWDIN DOWNLOAD START ===
+      - name: Setup Node.js
+        if: ${{ inputs.build_type != 'debug' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Install Crowdin CLI
+        if: ${{ inputs.build_type != 'debug' }}
         run: npm install -g @crowdin/cli
 
       - name: Download translations
+        if: ${{ inputs.build_type != 'debug' }}
         env:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
@@ -388,7 +396,8 @@ jobs:
           crowdin download translations \
             --config crowdin-configs/android.yml \
             --project-id "$CROWDIN_PROJECT_ID" \
-            --token "$CROWDIN_PERSONAL_TOKEN"
+            --token "$CROWDIN_PERSONAL_TOKEN" \
+            -l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN
       # === CROWDIN DOWNLOAD END ===
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}
