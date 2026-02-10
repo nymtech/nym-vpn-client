@@ -43,7 +43,7 @@ use crate::{
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 
 // GET requests can unfortunately take a long time over the mixnet
-pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
+pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(30);
 
 const SKEW_CACHE_TTL: Duration = Duration::from_secs(4 * 60 * 60); // 4 hours
 
