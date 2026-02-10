@@ -4,49 +4,49 @@ import net.nymtech.nymvpn.data.domain.Settings
 import nym_vpn_lib_types.MixnetTrafficConfig
 
 data class MixnetTuningUiState(
-	val trafficEnabled: Boolean = true,
-	val messageSendingDelay: Float = 20f,
-	val poissonParameter: Float = 200f,
-	val averagePacketDelay: Float = 15f,
+	val trafficEnabled: Boolean = false,
+	val currentTrafficValue: Float = 0f,
+	val averagePacketDelay: Float = 0f,
+
+	val calculatedLatencyMs: Double = 0.0,
+	val calculatedSpeedMbps: Float = 0f,
+
 	val hasUnsavedChanges: Boolean = false,
 	val isCurrentStateDefault: Boolean = true,
+	val validationError: String? = null,
 ) {
-	val currentTrafficValue: Float
-		get() = if (trafficEnabled) messageSendingDelay else poissonParameter
-
 	fun fromConfig(config: MixnetTrafficConfig): MixnetTuningUiState {
-		return copy(
-			trafficEnabled = !config.disablePoissonRate,
-			messageSendingDelay = config.messageSendingAverageDelay?.toFloat() ?: 20f,
-			poissonParameter = config.poissonParameterForLoopCoverStream?.toFloat() ?: 200f,
-			averagePacketDelay = config.averagePacketDelay?.toFloat() ?: 15f,
+		val trafficEnabled = !config.disableBackgroundCoverTraffic
+		val trafficValue = if (trafficEnabled) {
+			config.messageSendingAverageDelay?.toFloat() ?: 0f
+		} else {
+			config.poissonParameterForLoopCoverStream?.toFloat() ?: 0f
+		}
+
+		return this.copy(
+			trafficEnabled = trafficEnabled,
+			currentTrafficValue = trafficValue,
+			averagePacketDelay = config.averagePacketDelay?.toFloat() ?: 0f,
 		)
 	}
 
-	fun toConfig(original: MixnetTrafficConfig = Settings.MIXNET_CONFIG_DEFAULT): MixnetTrafficConfig {
+	fun toConfig(original: MixnetTrafficConfig): MixnetTrafficConfig {
 		return original.copy(
+			disableBackgroundCoverTraffic = !trafficEnabled,
 			disablePoissonRate = !trafficEnabled,
-			messageSendingAverageDelay = messageSendingDelay.toInt().toUInt(),
-			poissonParameterForLoopCoverStream = poissonParameter.toInt().toUInt(),
-			averagePacketDelay = averagePacketDelay.toInt().toUInt(),
+			averagePacketDelay = averagePacketDelay.toUInt(),
+			messageSendingAverageDelay = if (trafficEnabled) currentTrafficValue.toUInt() else original.messageSendingAverageDelay,
+			poissonParameterForLoopCoverStream = if (!trafficEnabled) currentTrafficValue.toUInt() else original.poissonParameterForLoopCoverStream,
 		)
 	}
 
 	fun checkState(savedConfig: MixnetTrafficConfig): MixnetTuningUiState {
-		val currentConfigCandidate = this.toConfig(savedConfig)
-		val defaultConfig = Settings.MIXNET_CONFIG_DEFAULT
-		val isDifferentFromSaved = !areUiFieldsEqual(currentConfigCandidate, savedConfig)
-		val isDefault = areUiFieldsEqual(currentConfigCandidate, defaultConfig)
-
+		val currentConfig = toConfig(savedConfig)
+		val isDefault = currentConfig == Settings.MIXNET_CONFIG_DEFAULT
+		val hasChanges = currentConfig != savedConfig
 		return copy(
-			hasUnsavedChanges = isDifferentFromSaved,
+			hasUnsavedChanges = hasChanges,
 			isCurrentStateDefault = isDefault,
 		)
-	}
-	private fun areUiFieldsEqual(c1: MixnetTrafficConfig, c2: MixnetTrafficConfig): Boolean {
-		return c1.disablePoissonRate == c2.disablePoissonRate &&
-			c1.messageSendingAverageDelay == c2.messageSendingAverageDelay &&
-			c1.poissonParameterForLoopCoverStream == c2.poissonParameterForLoopCoverStream &&
-			c1.averagePacketDelay == c2.averagePacketDelay
 	}
 }
