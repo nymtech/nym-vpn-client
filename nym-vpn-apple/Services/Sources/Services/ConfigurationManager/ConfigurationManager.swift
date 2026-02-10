@@ -110,8 +110,7 @@ import PathManager
     }
 
     public func updateEnv(to env: Env) {
-        Task.detached(priority: .low) { [weak self] in
-            guard let self else { return }
+        Task {
             guard self.isTestFlight || Device.isMacOS else { return }
             do {
                 await MainActor.run {
