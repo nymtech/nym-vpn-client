@@ -37,7 +37,6 @@ strum.workspace = true
 strum_macros.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
-tracing-test.workspace = true
 time = { workspace = true, features = [
     "serde-human-readable",
     "serde-well-known",
@@ -48,6 +47,7 @@ zeroize.workspace = true
 
 [dev-dependencies]
 bip39 = { workspace = true, features = ["zeroize"] }
+tracing-test.workspace = true
 
 [features]
 default = ["network-defaults"]

@@ -86,7 +86,7 @@ impl SkewManager {
 
                 VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time)
             }
-            Some(SkewStatus::Expired()) | None => {
+            Some(SkewStatus::Expired) | None => {
                 tracing::debug!("VPN API time skew expired or not present, refreshing");
 
                 self.refresh_skew().await?
@@ -173,15 +173,7 @@ impl SkewManager {
         let skew = remote_time.local_time_ahead_skew();
         let now = Instant::now();
 
-        match &mut self.skew_state {
-            Some(state) => {
-                state.update(skew, now);
-            }
-            skew_state @ None => {
-                skew_state.replace(SkewState::new(skew, now));
-            }
-        }
-
+        self.skew_state.replace(SkewState::new(skew, now));
         tracing::debug!(skew = ?skew, "Refreshed VPN API time skew");
 
         Ok(remote_time)
@@ -200,7 +192,7 @@ struct SkewState {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum SkewStatus {
-    Expired(),
+    Expired,
     Valid(TimeDuration),
 }
 
@@ -212,16 +204,11 @@ impl SkewState {
         }
     }
 
-    fn update(&mut self, skew: TimeDuration, now: Instant) {
-        self.skew = skew;
-        self.expires_at = now + SKEW_CACHE_TTL;
-    }
-
     fn status(&self, now: Instant) -> SkewStatus {
         if self.expires_at > now {
             SkewStatus::Valid(self.skew)
         } else {
-            SkewStatus::Expired()
+            SkewStatus::Expired
         }
     }
 }
