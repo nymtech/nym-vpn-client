@@ -8,7 +8,7 @@ public struct MixnetTuningConfig: Codable, Equatable {
     // 'background cover traffic' slider
     public var backgroundTraffic: BackgroundTraffic
     // Mixing delay
-    public var averagePacketDelay = 25
+    public var averagePacketDelay = 15
     // 0.7, 1, 2 Mpbs
     public var continuousTraffic: ContinuousTraffic
 
@@ -28,7 +28,7 @@ public struct MixnetTuningConfig: Codable, Equatable {
         backgroundTraffic: BackgroundTraffic,
         continuousTraffic: ContinuousTraffic,
         dissablePoissonRate: Bool,
-        averagePacketDelay: Int = 25
+        averagePacketDelay: Int = 15
     ) {
         self.backgroundTraffic = backgroundTraffic
         self.averagePacketDelay = averagePacketDelay
@@ -38,7 +38,7 @@ public struct MixnetTuningConfig: Codable, Equatable {
 
     public init(from config: MixnetTrafficConfig) {
         self.backgroundTraffic = BackgroundTraffic(actualValue: config.poissonParameterForLoopCoverStream)
-        self.averagePacketDelay = Int(config.averagePacketDelay ?? 25)
+        self.averagePacketDelay = Int(config.averagePacketDelay ?? 15)
         self.continuousTraffic = ContinuousTraffic(actualValue: config.messageSendingAverageDelay)
         self.disablePoissonRate = config.disablePoissonRate
     }

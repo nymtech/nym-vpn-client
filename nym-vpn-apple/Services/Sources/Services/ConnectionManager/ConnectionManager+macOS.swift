@@ -21,7 +21,8 @@ extension ConnectionManager {
         }
     }
 
-    func updateConnectionConfig() {
+    func updateConnectionConfig(oldConfig: ConnectionConfig?) {
+        guard isReconnectNeeded(with: oldConfig) else { return }
         Task {
             try? await grpcManager.updateConfig(newConfig: connectionConfig)
         }
@@ -68,9 +69,10 @@ extension ConnectionManager {
         appSettings.$isQuicEnabledPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newValue in
+                let oldConfig = self?.connectionConfig
                 self?.connectionConfig.enableBridges = newValue
                 guard let self, currentTunnelStatus == .connected, appSettings.shouldReconnect else { return }
-                updateConnectionConfig()
+                updateConnectionConfig(oldConfig: oldConfig)
             }
             .store(in: &cancellables)
 
@@ -78,9 +80,10 @@ extension ConnectionManager {
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newValue in
+                let oldConfig = self?.connectionConfig
                 self?.connectionConfig.enableLewes = newValue
                 guard let self, currentTunnelStatus == .connected, appSettings.shouldReconnect else { return }
-                updateConnectionConfig()
+                updateConnectionConfig(oldConfig: oldConfig)
             }
             .store(in: &cancellables)
     }

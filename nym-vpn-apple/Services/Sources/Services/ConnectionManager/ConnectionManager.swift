@@ -54,11 +54,6 @@ import GRPCManager
 #endif
 
     @Published public var connectionConfig: ConnectionConfig
-//    {
-//        didSet {
-//            connectionStorage.connectionConfig = connectionConfig
-//        }
-//    }
     @Published public var connectedDate: Date?
     @Published public var connectionRetryAttempt: Int?
     @Published public var afterDisconnectAction: AfterDisconnectAction?
@@ -68,14 +63,14 @@ import GRPCManager
 
     @Published public var connectionType: ConnectionType {
         didSet {
+            let oldConfig = connectionConfig
             switch connectionType {
             case .mixnet5hop:
                 connectionConfig.enableTwoHop = false
             case .wireguard:
                 connectionConfig.enableTwoHop = true
             }
-            appSettings.connectionType = connectionType.rawValue
-            updateConnectionConfig()
+            updateConnectionConfig(oldConfig: oldConfig)
         }
     }
     public var entryGatewayType: NodeType { connectionType == .wireguard ? .vpn : .entry }
@@ -98,17 +93,17 @@ import GRPCManager
         didSet {
             Task { @MainActor in
                 connectionConfig.entry = entryGateway
-                connectionStorage.entryGateway = entryGateway
-                updateConnectionConfig()
+                let oldConfig = connectionConfig
+                updateConnectionConfig(oldConfig: oldConfig)
             }
         }
     }
     @Published public var exitRouter: ExitRouter {
         didSet {
             Task { @MainActor in
+                let oldConfig = connectionConfig
                 connectionConfig.exit = exitRouter
-                connectionStorage.exitRouter = exitRouter
-                updateConnectionConfig()
+                updateConnectionConfig(oldConfig: oldConfig)
             }
         }
     }
@@ -210,7 +205,7 @@ extension ConnectionManager {
         }
     }
 }
-// MARK: - Countries -
+// MARK: - Setup -
 
 private extension ConnectionManager {
     func setupAppSettingsObservers() {
@@ -226,7 +221,8 @@ private extension ConnectionManager {
             .filter { $0 }
             .sink { [weak self] shouldReconnect in
                 guard shouldReconnect else { return }
-                self?.updateConnectionConfig()
+                let oldConfig = self?.connectionConfig
+                self?.updateConnectionConfig(oldConfig: oldConfig)
                 self?.appSettings.shouldReconnect = false
             }
             .store(in: &cancellables)
@@ -234,16 +230,18 @@ private extension ConnectionManager {
         appSettings.$isIPv6TrafficEnabledPublisher
             .removeDuplicates()
             .sink { [weak self] newValue in
+                let oldConfig = self?.connectionConfig
                 self?.connectionConfig.disableIpv6 = !newValue
-                self?.updateConnectionConfig()
+                self?.updateConnectionConfig(oldConfig: oldConfig)
             }
             .store(in: &cancellables)
 
         appSettings.$isLanBypassEnabledPublisher
             .removeDuplicates()
             .sink { [weak self] newValue in
+                let oldConfig = self?.connectionConfig
                 self?.connectionConfig.allowLan = newValue
-                self?.updateConnectionConfig()
+                self?.updateConnectionConfig(oldConfig: oldConfig)
             }
             .store(in: &cancellables)
     }
@@ -255,8 +253,9 @@ private extension ConnectionManager {
         .store(in: &cancellables)
 
         $connectionConfig.sink { [weak self] newConnectionConfig in
+            let oldConfig = self?.connectionStorage.connectionConfig
             self?.connectionStorage.connectionConfig = newConnectionConfig
-            self?.updateConnectionConfig()
+            self?.updateConnectionConfig(oldConfig: oldConfig)
         }
         .store(in: &cancellables)
     }
@@ -288,5 +287,21 @@ private extension ConnectionManager {
     func updateConnectionHops() {
         entryGateway = connectionStorage.entryGateway
         exitRouter = connectionStorage.exitRouter
+    }
+}
+
+// MARK: - Helpers -
+
+extension ConnectionManager {
+    func isReconnectNeeded(with oldConfig: ConnectionConfig?) -> Bool {
+        guard let oldConfig else { return true }
+        guard oldConfig != connectionConfig else { return false }
+
+        if connectionConfig.enableTwoHop == true,
+           oldConfig.mixnetTuningConfig != connectionConfig.mixnetTuningConfig {
+            return false
+        } else {
+            return true
+        }
     }
 }

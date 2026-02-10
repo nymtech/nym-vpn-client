@@ -2,6 +2,7 @@
 import NetworkExtension
 import AppSettings
 import Constants
+import ConnectionTypes
 import NymVPNLib
 import PathManager
 import TunnelMixnet
@@ -139,29 +140,6 @@ extension ConnectionManager {
         }
     }
 
-    /// Sends connect command to lib if entry/exit gateways changed while connected,
-    /// to initiate reconnect
-    func reconnectIfNeeded() async {
-        do {
-            let newConfig = try generateConfig()
-            guard currentTunnelStatus == .connected || currentTunnelStatus == .connecting,
-                  let tunnelProviderProtocol = activeTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
-                  let mixnetConfig = tunnelProviderProtocol.asMixnetConfig(),
-                  newConfig.toJson() != mixnetConfig.toJson(),
-                  !isReconnecting
-            else {
-                return
-            }
-            isReconnecting = true
-            try await disconnectActiveTunnel()
-            await waitForTunnelStatus(with: .disconnected)
-            try await connectDisconnect()
-            isReconnecting = false
-        } catch {
-            lastError = error
-        }
-    }
-
     func disconnectActiveTunnel() async throws {
         guard let activeTunnel,
               shouldDisconnectActiveTunnel()
@@ -186,10 +164,30 @@ extension ConnectionManager {
         }
     }
 
-    // Placeholders after rpcClient
-    func updateConnectionConfig() {
-        Task { @MainActor in
-            await reconnectIfNeeded()
+    @MainActor func updateConnectionConfig(oldConfig: ConnectionConfig?) {
+        guard isReconnectNeeded(with: oldConfig)
+        else {
+            return
+        }
+        Task {
+            do {
+                let newConfig = try generateConfig()
+                guard currentTunnelStatus == .connected || currentTunnelStatus == .connecting,
+                      let configuration = activeTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
+                      let mixnetConfig = configuration.asMixnetConfig(),
+                      newConfig.toJson() != mixnetConfig.toJson(),
+                      !isReconnecting
+                else {
+                    return
+                }
+                isReconnecting = true
+                try await disconnectActiveTunnel()
+                await waitForTunnelStatus(with: .disconnected)
+                try await connectDisconnect()
+                isReconnecting = false
+            } catch {
+                lastError = error
+            }
         }
     }
 

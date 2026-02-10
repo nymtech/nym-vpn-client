@@ -407,7 +407,7 @@ private extension MixnetTuningView {
     }
 
     func resetToDefaults() {
-        mixingDelayIndex = 25
+        mixingDelayIndex = 15
         continuousTrafficIndex = 1
         coverTrafficIndex = 0
         isSendTrafficContinuouslyOn = true

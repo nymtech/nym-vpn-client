@@ -19,22 +19,14 @@ import GatewayManager
     private var exitGatewayType: NodeType { connectionType == .wireguard ? .vpn : .exit }
 
     var connectionType: ConnectionType {
-        if let storedType = appSettings.connectionType,
-           let type = ConnectionType(rawValue: storedType) {
-            type
-        } else {
-            .wireguard
-        }
+        connectionConfig.enableTwoHop ? .wireguard : .mixnet5hop
     }
 
     var entryGateway: EntryGateway {
-        get { EntryGateway.from(jsonString: appSettings.entryGateway ?? "") ?? .country("CH") }
-        set { appSettings.entryGateway = newValue.toJson() }
+        connectionConfig.entry
     }
-
     var exitRouter: ExitRouter {
-        get { ExitRouter.from(jsonString: appSettings.exitRouter ?? "") ?? .country("CH") }
-        set { appSettings.exitRouter = newValue.toJson() }
+        connectionConfig.exit
     }
 
     var connectionConfig: ConnectionConfig {
@@ -67,9 +59,10 @@ private extension ConnectionStorage {
         ConnectionConfig(
             entry: entryGateway,
             exit: exitRouter,
+            dns: nil,
             allowLan: false,
             disableIpv6: !appSettings.isIPv6TrafficEnabled,
-            enableTwoHop: connectionType == .wireguard,
+            enableTwoHop: true,
             enableBridges: appSettings.isQuicEnabled,
             enableLewes: false,
             netstack: false,
