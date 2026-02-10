@@ -3,6 +3,9 @@
 
 use std::{fmt, net::IpAddr, ops::RangeInclusive};
 
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
+
 const LOOP_COVER_DELAY_RANGE: RangeInclusive<u32> = 0..=200;
 const AVG_PACKET_DELAY_RANGE: RangeInclusive<u32> = 0..=200;
 const MESSAGE_SENDING_DELAY_RANGE: RangeInclusive<u32> = 5..=50;
@@ -236,6 +239,153 @@ impl MixnetTrafficConfig {
         let latency = 2.0 * (NUM_HOPS * BASE_HOP_DELAY_MS + NUM_MIX_NODES * mixing_delay);
 
         (latency / 10.0).round() * 10.0
+    }
+}
+
+/// Type providing default values and constraints for mixnet traffic configuration.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Object))]
+pub struct MixnetTrafficDefaults;
+
+#[allow(unused)]
+#[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
+impl MixnetTrafficDefaults {
+    #[cfg(feature = "uniffi-bindings")]
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub fn default_mixing_delay(&self) -> MixingDelay {
+        MixingDelay::default()
+    }
+
+    pub fn default_disable_poission_rate(&self) -> bool {
+        false
+    }
+
+    pub fn default_background_traffic(&self) -> BackgroundCoverTrafficRate {
+        BackgroundCoverTrafficRate::default()
+    }
+
+    pub fn default_continuous_traffic(&self) -> ContinuousTrafficSendingRate {
+        ContinuousTrafficSendingRate::default()
+    }
+
+    pub fn all_background_traffic(&self) -> Vec<BackgroundCoverTrafficRate> {
+        BackgroundCoverTrafficRate::iter().collect()
+    }
+
+    pub fn all_continuous_traffic(&self) -> Vec<ContinuousTrafficSendingRate> {
+        ContinuousTrafficSendingRate::iter().collect()
+    }
+}
+
+// Maps to average_packet_delay
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct MixingDelay {
+    pub min_value: u32,
+    pub max_value: u32,
+    pub default_value: u32,
+}
+
+impl Default for MixingDelay {
+    fn default() -> Self {
+        Self {
+            min_value: *AVG_PACKET_DELAY_RANGE.start(),
+            max_value: *AVG_PACKET_DELAY_RANGE.end(),
+            default_value: 15, // DEFAULT_AVERAGE_PACKET_DELAY
+        }
+    }
+}
+
+// Maps to poisson_parameter_for_loop_cover_stream
+#[derive(Clone, Debug, Default, Eq, PartialEq, EnumIter)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum BackgroundCoverTrafficRate {
+    #[default]
+    Ms200, // DEFAULT_LOOP_COVER_STREAM_AVERAGE_DELAY
+    Ms40,
+    Ms20,
+    Ms10,
+}
+
+#[allow(unused)]
+#[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
+impl BackgroundCoverTrafficRate {
+    pub fn value(&self) -> u32 {
+        match self {
+            Self::Ms10 => 10,
+            Self::Ms20 => 20,
+            Self::Ms40 => 40,
+            Self::Ms200 => 200,
+        }
+    }
+
+    pub fn multiplier(&self) -> String {
+        match self {
+            Self::Ms200 => "Base",
+            Self::Ms40 => "5x",
+            Self::Ms20 => "10x",
+            Self::Ms10 => "20x",
+        }
+        .to_owned()
+    }
+}
+
+// Maps to message_sending_average_delay
+#[derive(Clone, Debug, Default, Eq, PartialEq, EnumIter)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum ContinuousTrafficSendingRate {
+    Ms30,
+    #[default]
+    Ms20,
+    Ms10,
+}
+
+#[allow(unused)]
+#[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
+impl ContinuousTrafficSendingRate {
+    pub fn value(&self) -> u32 {
+        match self {
+            Self::Ms10 => 10,
+            Self::Ms20 => 20,
+            Self::Ms30 => 30,
+        }
+    }
+
+    pub fn throughput(&self) -> String {
+        match self {
+            Self::Ms10 => "2 Mpbs",
+            Self::Ms20 => "1 Mpbs",
+            Self::Ms30 => "0.7 Mpbs",
+        }
+        .to_owned()
     }
 }
 

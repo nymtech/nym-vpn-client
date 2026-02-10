@@ -6300,6 +6300,8 @@ dependencies = [
  "nym-vpn-store",
  "serde",
  "si-scale 0.3.0",
+ "strum",
+ "strum_macros",
  "thiserror 2.0.18",
  "time",
  "ts-rs",
