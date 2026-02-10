@@ -11,9 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Detect time travel and sleep when obtaining remote time (https://github.com/nymtech/nym-vpn-client/pull/4604)
+
 ### Removed
 
 ### Changed
+
+- Changed VPN API HTTP timeout from 60s to 30s. (https://github.com/nymtech/nym-vpn-client/pull/4604)
 
 ## [1.24.0] - 2026-02-12
 
