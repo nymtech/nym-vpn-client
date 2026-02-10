@@ -48,6 +48,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         try await setup(vpnConfig: vpnConfig)
 
         _ = try await commandSender?.connectTunnel()
+        try await tunnelActor.waitUntilStarted()
     }
 
     override func stopTunnel(with reason: NEProviderStopReason) async {
