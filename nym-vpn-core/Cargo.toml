@@ -149,7 +149,7 @@ tap = "1.0.1"
 tempfile = "3.24"
 tabled = "0.20"
 thiserror = "2.0"
-time = "0.3.46"
+time = "0.3.47"
 tokio = "1.49"
 tokio-rustls = { version = "0.26", default-features = false }
 tokio-stream = "0.1.18"
