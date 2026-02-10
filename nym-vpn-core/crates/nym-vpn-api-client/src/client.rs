@@ -187,14 +187,12 @@ impl VpnApiClient {
                             retry + 1
                         );
                         tokio::time::sleep(REMOTE_TIME_WAIT_DELAY).await;
-                        continue;
                     } else if request_time > NYM_VPN_API_TIMEOUT {
                         tracing::warn!(
                             "Request time exceeds the timeout. Device fell asleep? ({}/{REMOTE_TIME_MAX_RETRIES})",
                             retry + 1
                         );
                         tokio::time::sleep(REMOTE_TIME_WAIT_DELAY).await;
-                        continue;
                     } else {
                         return Ok(VpnApiTime::from_remote_timestamp(
                             time_before,
