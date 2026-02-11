@@ -3741,6 +3741,8 @@ dependencies = [
  "nym-crypto",
  "serde",
  "si-scale",
+ "strum",
+ "strum_macros",
  "thiserror 2.0.18",
  "time",
  "uniffi",
