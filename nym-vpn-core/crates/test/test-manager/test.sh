@@ -14,8 +14,12 @@ export RUST_LOG=debug
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEST_FRAMEWORK_ROOT="$(realpath "$SCRIPT_DIR/..")"
 CARGO_WORKSPACE_ROOT="$(realpath "${TEST_FRAMEWORK_ROOT}/../..")"
+REPO_DIR="$(realpath "${TEST_FRAMEWORK_ROOT}/../../..")"
 OUTPUT_DIR="${TEST_FRAMEWORK_ROOT}/target/x86_64-unknown-linux-gnu/release"
-PACKAGE_DIR="${HOME}/.cache/nym-test/packages"
+PACKAGE_DIR="${PACKAGE_DIR:-${HOME}/.cache/nym-test/packages}"
+CONTAINER_RUNNER="${CONTAINER_RUNNER:-podman}"
+CARGO_REGISTRY_VOLUME_NAME="${CARGO_REGISTRY_VOLUME_NAME:-cargo-registry}"
+IMAGE_TAG="nym-test-builder"
 
 # Default values (can be overridden by env vars or CLI params)
 NYM_TEST_QCOW_IMAGE="${NYM_TEST_QCOW_IMAGE:-}"
@@ -97,51 +101,39 @@ function run_vm() {
         # --keep-changes
 }
 
-function build_deps() {
-    # needs to be build within a containerized environment
-    # NOT raw like this
-    # cargo build --release \
-    #     -p test-runner \
-    #     -p connection-checker
-    pushd $TEST_FRAMEWORK_ROOT
-    pwd
-    ./scripts/container-run.sh ./scripts/build/test-runner.sh linux
+function build_all_in_container() {
+    mkdir -p "${PACKAGE_DIR}"
 
-    cp "${OUTPUT_DIR}/connection-checker" "${PACKAGE_DIR}/"
-    cp "${OUTPUT_DIR}/test-runner" "${PACKAGE_DIR}/"
-    popd
-}
+    echo -e "======== ${YELLOW} Building container image${NC} ========"
+    "$CONTAINER_RUNNER" build -t "${IMAGE_TAG}" -f "${TEST_FRAMEWORK_ROOT}/Dockerfile" "${REPO_DIR}"
+    echo -e "======== ${GREEN} Container image ready${NC} ========"
 
-function build_nym_wireguard() {
-    pushd "${CARGO_WORKSPACE_ROOT}/../wireguard"
-    echo -e "======== ${YELLOW} Building nym-wireguard${NC} ========"
-    if ! command -v go &> /dev/null; then
-        echo "Error: go is not installed. Please install Go before building wireguard."
-        exit 1
-    fi
-    ./build-wireguard-go.sh
-    echo -e "======== ${GREEN} Finished building nym-wireguard${NC} ========"
-    popd
-}
-
-function build_nym_deps() {
-    build_nym_wireguard
-
-    pushd ${CARGO_WORKSPACE_ROOT}
-    echo -e "======== ${YELLOW} Building Nym deps${NC} ========"
-    cargo build --package nym-vpnc --release
-    cargo build --package nym-vpnd --release
-    echo -e "======== ${GREEN} Finished building Nym deps ${NC} ========"
-
-    cp ./target/release/nym-vpnc ${PACKAGE_DIR}
-    cp ./target/release/nym-vpnd ${PACKAGE_DIR}
-
-    popd
+    echo -e "======== ${YELLOW} Building all binaries in container${NC} ========"
+    "$CONTAINER_RUNNER" run --rm \
+        -v "${CARGO_REGISTRY_VOLUME_NAME}":/root/.cargo/registry:Z \
+        -v "${REPO_DIR}":/build:z \
+        -w /build \
+        -v "${PACKAGE_DIR}":/packages:Z \
+        "${IMAGE_TAG}" \
+        /bin/bash -c "
+            set -ex && \
+            cd /build && ./wireguard/build-wireguard-go.sh && \
+            cd /build/nym-vpn-core && \
+            cargo build --package nym-vpnc --package nym-vpnd --release && \
+            cd /build/nym-vpn-core/crates/test && \
+            CARGO_TARGET_DIR=/build/nym-vpn-core/crates/test/target \
+            cargo build --package test-runner --package connection-checker \
+                --release --target x86_64-unknown-linux-gnu && \
+            cp /build/nym-vpn-core/target/release/nym-vpnc /packages/ && \
+            cp /build/nym-vpn-core/target/release/nym-vpnd /packages/ && \
+            cp /build/nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner /packages/ && \
+            cp /build/nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/connection-checker /packages/
+        "
+    echo -e "======== ${GREEN} All binaries built and copied to ${PACKAGE_DIR}${NC} ========"
 }
 
 function run_tests() {
-    build_deps
-    build_nym_deps
+    build_all_in_container
 
     pushd "${TEST_FRAMEWORK_ROOT}"
     cargo run \
@@ -170,7 +162,6 @@ COMMAND="$1"
 
 case "$COMMAND" in
     configure)
-        build_nym_wireguard
         configure
         ;;
     list)
