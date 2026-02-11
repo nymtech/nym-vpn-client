@@ -392,8 +392,9 @@ private extension MixnetTuningView {
 
     func saveSettings() {
         guard let config else { return }
-        let connectionConfig = connectionManager.connectionConfig
+        var connectionConfig = connectionManager.connectionConfig
         connectionConfig.mixnetTuningConfig = config
+
         connectionManager.connectionConfig = connectionConfig
         updateIsSaveButtonEnabled()
 
@@ -407,7 +408,7 @@ private extension MixnetTuningView {
     }
 
     func resetToDefaults() {
-        mixingDelayIndex = 25
+        mixingDelayIndex = 15
         continuousTrafficIndex = 1
         coverTrafficIndex = 0
         isSendTrafficContinuouslyOn = true

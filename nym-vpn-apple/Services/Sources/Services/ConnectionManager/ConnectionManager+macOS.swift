@@ -21,7 +21,8 @@ extension ConnectionManager {
         }
     }
 
-    func updateConnectionConfig() {
+    func updateConnectionConfig(forceReconnect: Bool = false) {
+        guard isReconnectNeeded(with: connectionStorage.previousConnectionConfig) || forceReconnect else { return }
         Task {
             try? await grpcManager.updateConfig(newConfig: connectionConfig)
         }
@@ -70,7 +71,7 @@ extension ConnectionManager {
             .sink { [weak self] newValue in
                 self?.connectionConfig.enableBridges = newValue
                 guard let self, currentTunnelStatus == .connected, appSettings.shouldReconnect else { return }
-                updateConnectionConfig()
+                updateConnectionConfig(forceReconnect: appSettings.shouldReconnect)
             }
             .store(in: &cancellables)
 
@@ -80,7 +81,7 @@ extension ConnectionManager {
             .sink { [weak self] newValue in
                 self?.connectionConfig.enableLewes = newValue
                 guard let self, currentTunnelStatus == .connected, appSettings.shouldReconnect else { return }
-                updateConnectionConfig()
+                updateConnectionConfig(forceReconnect: appSettings.shouldReconnect)
             }
             .store(in: &cancellables)
     }

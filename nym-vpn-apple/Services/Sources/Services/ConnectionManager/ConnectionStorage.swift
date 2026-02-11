@@ -19,37 +19,26 @@ import GatewayManager
     private var exitGatewayType: NodeType { connectionType == .wireguard ? .vpn : .exit }
 
     var connectionType: ConnectionType {
-        if let storedType = appSettings.connectionType,
-           let type = ConnectionType(rawValue: storedType) {
-            type
-        } else {
-            .wireguard
-        }
+        connectionConfig.enableTwoHop ? .wireguard : .mixnet5hop
     }
 
     var entryGateway: EntryGateway {
-        get { EntryGateway.from(jsonString: appSettings.entryGateway ?? "") ?? .country("CH") }
-        set { appSettings.entryGateway = newValue.toJson() }
+        connectionConfig.entry
     }
-
     var exitRouter: ExitRouter {
-        get { ExitRouter.from(jsonString: appSettings.exitRouter ?? "") ?? .country("CH") }
-        set { appSettings.exitRouter = newValue.toJson() }
+        connectionConfig.exit
     }
 
     var connectionConfig: ConnectionConfig {
-        get {
-            guard let storedConfig = appSettings.connectionConfig,
-                  let decodedConfig = ConnectionConfig.from(jsonString: storedConfig)
-            else {
-                return generateInitialConfig()
-            }
-            return decodedConfig
+        willSet {
+            previousConnectionConfig = connectionConfig
         }
-        set {
-            appSettings.connectionConfig = newValue.toJson()
+        didSet {
+            appSettings.connectionConfig = connectionConfig.toJson()
         }
     }
+
+    var previousConnectionConfig: ConnectionConfig?
 
     public init(
         appSettings: AppSettings,
@@ -59,18 +48,29 @@ import GatewayManager
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.gatewayManager = gatewayManager
+        self.connectionConfig = Self.decodeStoredConfig(appSettings: appSettings)
     }
 }
 
 private extension ConnectionStorage {
-    func generateInitialConfig() -> ConnectionConfig {
+    static func decodeStoredConfig(appSettings: AppSettings) -> ConnectionConfig {
+        guard let storedConfig = appSettings.connectionConfig,
+              let decodedConfig = ConnectionConfig.from(jsonString: storedConfig)
+        else {
+            return generateInitialConfig()
+        }
+        return decodedConfig
+    }
+
+    static func generateInitialConfig() -> ConnectionConfig {
         ConnectionConfig(
-            entry: entryGateway,
-            exit: exitRouter,
+            entry: .country("CH"),
+            exit: .country("CH"),
+            dns: nil,
             allowLan: false,
-            disableIpv6: !appSettings.isIPv6TrafficEnabled,
-            enableTwoHop: connectionType == .wireguard,
-            enableBridges: appSettings.isQuicEnabled,
+            disableIpv6: false,
+            enableTwoHop: true,
+            enableBridges: false,
             enableLewes: false,
             netstack: false,
             residentialExit: false,

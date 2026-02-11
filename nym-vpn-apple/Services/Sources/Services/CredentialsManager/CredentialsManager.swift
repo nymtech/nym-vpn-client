@@ -189,8 +189,8 @@ import PathManager
 #elseif os(macOS)
         try await grpcManager.storePrivyAccount(with: callbackURLString)
         checkCredentialImport()
-        didReceiveAccountLinkCallback = true
 #endif
+        didReceiveAccountLinkCallback = true
     }
 }
 

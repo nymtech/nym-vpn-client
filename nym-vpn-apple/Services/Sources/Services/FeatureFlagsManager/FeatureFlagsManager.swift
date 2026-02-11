@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import AppSettings
 import ConfigurationManager
 #if os(iOS)
 import NymVPNLib
@@ -11,16 +12,18 @@ import GRPCManager
 #if os(macOS)
     private let grpcManager: GRPCManager
 #endif
+    private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager
 
     private var cancellables = Set<AnyCancellable>()
 
 #if os(iOS)
-    public static let shared = FeatureFlagsManager(configurationManager: .shared)
+    public static let shared = FeatureFlagsManager(configurationManager: .shared, appSettings: .shared)
 #elseif os(macOS)
     public static let shared = FeatureFlagsManager(
         configurationManager: .shared,
-        grpcManager: .shared
+        grpcManager: .shared,
+        appSettings: .shared
     )
 #endif
 
@@ -28,17 +31,20 @@ import GRPCManager
     public var isMixnetTuningEnabled = false
 
 #if os(iOS)
-    init(configurationManager: ConfigurationManager) {
+    init(configurationManager: ConfigurationManager, appSettings: AppSettings) {
         self.configurationManager = configurationManager
+        self.appSettings = appSettings
         setup()
     }
 #elseif os(macOS)
     init(
         configurationManager: ConfigurationManager,
-        grpcManager: GRPCManager
+        grpcManager: GRPCManager,
+        appSettings: AppSettings
     ) {
         self.configurationManager = configurationManager
         self.grpcManager = grpcManager
+        self.appSettings = appSettings
         setupIsServingObserver()
         setupEnvironmentChangeObserver()
     }
@@ -47,6 +53,7 @@ import GRPCManager
     public func setup() {
         setupPeriodicRefresh()
         setupEnvironmentChangeObserver()
+        setupAppSettingsObservers()
         updateFeatureFlags()
     }
 }
@@ -75,6 +82,16 @@ private extension FeatureFlagsManager {
         }
     }
 
+    func setupAppSettingsObservers() {
+        appSettings.$isMixnetTuningEnabledPublisher
+            .sink { [weak self] newValue in
+                self?.isMixnetTuningEnabled = newValue
+                guard !newValue else { return }
+                self?.updateFeatureFlags()
+            }
+            .store(in: &cancellables)
+    }
+
     func setupPeriodicRefresh() {
         Timer
             .publish(every: 600, on: .main, in: .common)
@@ -98,7 +115,7 @@ private extension FeatureFlagsManager {
 #endif
             Task { @MainActor in
                 isPrivyEnabled = flags.isPrivyEnabled() ?? false
-                isMixnetTuningEnabled = flags.isMixnetTuningEnabled() ?? false
+                isMixnetTuningEnabled = flags.isMixnetTuningEnabled() ?? appSettings.isMixnetTuningEnabled
             }
         }
     }
