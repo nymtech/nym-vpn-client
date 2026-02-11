@@ -13,11 +13,10 @@ import GRPCManager
 #endif
 
 @MainActor public final class ConnectionManager: ObservableObject {
-    private let connectionStorage: ConnectionStorage
-
     private var timerCancellable: AnyCancellable?
 
     let appSettings: AppSettings
+    let connectionStorage: ConnectionStorage
     let credentialsManager: CredentialsManager
     let tunnelsManager: TunnelsManager
 #if os(macOS)
@@ -54,11 +53,6 @@ import GRPCManager
 #endif
 
     @Published public var connectionConfig: ConnectionConfig
-//    {
-//        didSet {
-//            connectionStorage.connectionConfig = connectionConfig
-//        }
-//    }
     @Published public var connectedDate: Date?
     @Published public var connectionRetryAttempt: Int?
     @Published public var afterDisconnectAction: AfterDisconnectAction?
@@ -74,8 +68,6 @@ import GRPCManager
             case .wireguard:
                 connectionConfig.enableTwoHop = true
             }
-            appSettings.connectionType = connectionType.rawValue
-            updateConnectionConfig()
         }
     }
     public var entryGatewayType: NodeType { connectionType == .wireguard ? .vpn : .entry }
@@ -98,8 +90,6 @@ import GRPCManager
         didSet {
             Task { @MainActor in
                 connectionConfig.entry = entryGateway
-                connectionStorage.entryGateway = entryGateway
-                updateConnectionConfig()
             }
         }
     }
@@ -107,8 +97,6 @@ import GRPCManager
         didSet {
             Task { @MainActor in
                 connectionConfig.exit = exitRouter
-                connectionStorage.exitRouter = exitRouter
-                updateConnectionConfig()
             }
         }
     }
@@ -210,7 +198,7 @@ extension ConnectionManager {
         }
     }
 }
-// MARK: - Countries -
+// MARK: - Setup -
 
 private extension ConnectionManager {
     func setupAppSettingsObservers() {
@@ -225,8 +213,9 @@ private extension ConnectionManager {
             .removeDuplicates()
             .filter { $0 }
             .sink { [weak self] shouldReconnect in
+                // Used in censorship view, dns
                 guard shouldReconnect else { return }
-                self?.updateConnectionConfig()
+                self?.updateConnectionConfig(forceReconnect: shouldReconnect)
                 self?.appSettings.shouldReconnect = false
             }
             .store(in: &cancellables)
@@ -235,7 +224,6 @@ private extension ConnectionManager {
             .removeDuplicates()
             .sink { [weak self] newValue in
                 self?.connectionConfig.disableIpv6 = !newValue
-                self?.updateConnectionConfig()
             }
             .store(in: &cancellables)
 
@@ -243,7 +231,6 @@ private extension ConnectionManager {
             .removeDuplicates()
             .sink { [weak self] newValue in
                 self?.connectionConfig.allowLan = newValue
-                self?.updateConnectionConfig()
             }
             .store(in: &cancellables)
     }
@@ -288,5 +275,21 @@ private extension ConnectionManager {
     func updateConnectionHops() {
         entryGateway = connectionStorage.entryGateway
         exitRouter = connectionStorage.exitRouter
+    }
+}
+
+// MARK: - Helpers -
+
+extension ConnectionManager {
+    func isReconnectNeeded(with oldConfig: ConnectionConfig?) -> Bool {
+        guard let oldConfig else { return true }
+        guard oldConfig != connectionStorage.connectionConfig else { return false }
+
+        if connectionStorage.connectionConfig .enableTwoHop == true,
+           oldConfig.mixnetTuningConfig != connectionStorage.connectionConfig.mixnetTuningConfig {
+            return false
+        } else {
+            return true
+        }
     }
 }

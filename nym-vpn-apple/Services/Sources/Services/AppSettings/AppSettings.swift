@@ -41,17 +41,8 @@ import CountriesManagerTypes
     @AppStorage(AppSettingKey.onboardingDidDisplay.rawValue)
     public var onboardingDidDisplay = false
 
-    @AppStorage(AppSettingKey.entryGateway.rawValue)
-    public var entryGateway: String?
-
-    @AppStorage(AppSettingKey.exitRouter.rawValue)
-    public var exitRouter: String?
-
     @AppStorage(AppSettingKey.connectionConfig.rawValue)
     public var connectionConfig: String?
-
-    @AppStorage(AppSettingKey.connectionType.rawValue)
-    public var connectionType: Int?
 
     @AppStorage(AppSettingKey.countryStore.rawValue)
     public var countryStore: String?
@@ -103,6 +94,13 @@ import CountriesManagerTypes
         didSet { isCustomDnsEnabledPublisher = isCustomDnsEnabled }
     }
 
+    @AppStorage(AppSettingKey.isMixnetTuningEnabled.rawValue)
+    public var isMixnetTuningEnabled = false {
+        didSet {
+            isMixnetTuningEnabledPublisher = isMixnetTuningEnabled
+        }
+    }
+
     @AppStorage(AppSettingKey.customDns.rawValue)
     public var customDns: [String] = []
 
@@ -116,6 +114,7 @@ import CountriesManagerTypes
     @Published public var isIPv6TrafficEnabledPublisher: Bool
     @Published public var isLanBypassEnabledPublisher: Bool
     @Published public var isLewesEnabledPublisher: Bool
+    @Published public var isMixnetTuningEnabledPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
     private init() {
@@ -128,6 +127,7 @@ import CountriesManagerTypes
         self.isIPv6TrafficEnabledPublisher = true
         self.isLanBypassEnabledPublisher = false
         self.isLewesEnabledPublisher = false
+        self.isMixnetTuningEnabledPublisher = false
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
@@ -138,6 +138,7 @@ import CountriesManagerTypes
         self.isIPv6TrafficEnabledPublisher = self.isIPv6TrafficEnabled
         self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
         self.isLewesEnabledPublisher = self.isLewesEnabled
+        self.isMixnetTuningEnabledPublisher = self.isMixnetTuningEnabled
     }
 
     public func resetUserDefaults() {
@@ -168,9 +169,6 @@ public enum AppSettingKey: String {
     case smallScreen
     case welcomeScreenDidDisplay
     case onboardingDidDisplay
-    case entryGateway
-    case exitRouter
-    case connectionType
     case lastConnectionIntent
     case currentEnv
     case countryStore
@@ -187,6 +185,7 @@ public enum AppSettingKey: String {
     case customDnsIsEnabled
     case customDns
     case isLewesEnabled
+    case isMixnetTuningEnabled
 }
 
 extension Array: @retroactive RawRepresentable where Element: Codable {
