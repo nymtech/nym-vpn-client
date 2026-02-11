@@ -4,7 +4,7 @@
 use crate::storage::models::{SessionReport, SessionReportWithId};
 
 use super::error::StatsStorageError;
-use sqlx_pool_guard::SqlitePoolGuard;
+use nym_sqlx_pool_guard::SqlitePoolGuard;
 
 #[derive(Clone, Debug)]
 pub struct SqliteStatsStorageManager {
