@@ -66,19 +66,16 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 			if (mode == GeneratingMode.CreateAccount && success == true) {
 				navController.replaceCurrentWith(Route.SelectPlan)
 			}
-		}
+		},
 	)
 }
 
 @Composable
-fun GeneratingContent(
-	mode: GeneratingMode,
-	onAnimationEnd: () -> Unit
-) {
+fun GeneratingContent(mode: GeneratingMode, onAnimationEnd: () -> Unit) {
 	if (mode == GeneratingMode.DeepLinkLogin) {
 		SimpleLoadingScreen(
 			title = stringResource(R.string.account_generating_deeplink_title),
-			description = stringResource(R.string.account_generating_deeplink_description)
+			description = stringResource(R.string.account_generating_deeplink_description),
 		)
 	} else {
 		AccountCreationAnimationScreen(onAnimationEnd)
@@ -92,7 +89,7 @@ fun SimpleLoadingScreen(title: String, description: String) {
 			.fillMaxSize()
 			.background(MaterialTheme.colorScheme.background),
 		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.Center
+		verticalArrangement = Arrangement.Center,
 	) {
 		Box(
 			modifier = Modifier
@@ -241,5 +238,5 @@ private fun PreviewLoginLoader() {
 
 enum class GeneratingMode {
 	CreateAccount,
-	DeepLinkLogin
+	DeepLinkLogin,
 }

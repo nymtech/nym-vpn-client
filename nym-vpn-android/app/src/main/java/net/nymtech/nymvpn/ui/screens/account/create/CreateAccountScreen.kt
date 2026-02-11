@@ -77,7 +77,7 @@ fun CreateAccountScreen(appUiState: AppUiState, viewModel: CreateAccountViewMode
 					navController.replaceCurrentWith(Route.Generating())
 				}
 			} else {
-				appUiState.managerState.accountLinks?.signUp?.let { context.openWebUrl(it) }
+				ui.signUpLink?.let { context.openWebUrl(it) }
 				navController.replaceCurrentWith(Route.Login)
 			}
 		},

@@ -274,7 +274,7 @@ class ServiceBackedBackendManager @Inject constructor(
 				isMnemonicStored = mnemonicStored,
 				deviceId = deviceId,
 				accountId = accountId,
-				accountState = accountState ?: it.accountState
+				accountState = accountState ?: it.accountState,
 			)
 		}
 	}

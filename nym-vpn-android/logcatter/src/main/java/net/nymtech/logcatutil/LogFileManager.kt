@@ -23,7 +23,7 @@ class LogFileManager(
 	private data class WriterState(
 		var currentFile: File? = null,
 		var outputStream: BufferedOutputStream? = null,
-		var bytesWritten: Long = 0L
+		var bytesWritten: Long = 0L,
 	)
 
 	private val writers: MutableMap<LogType, WriterState> = mutableMapOf(
@@ -109,7 +109,9 @@ class LogFileManager(
 	fun close() {
 		runCatching {
 			writers.values.forEach { st ->
-				try { st.outputStream?.close() } catch (_: Exception) {}
+				try {
+					st.outputStream?.close()
+				} catch (_: Exception) {}
 				st.outputStream = null
 				st.currentFile = null
 				st.bytesWritten = 0
@@ -119,7 +121,9 @@ class LogFileManager(
 
 	private fun closeAllLocked() {
 		writers.values.forEach { st ->
-			try { st.outputStream?.close() } catch (_: Exception) {}
+			try {
+				st.outputStream?.close()
+			} catch (_: Exception) {}
 			st.outputStream = null
 			st.currentFile = null
 			st.bytesWritten = 0
@@ -133,7 +137,9 @@ class LogFileManager(
 			state.bytesWritten >= maxFileSize
 
 		if (needsRotate) {
-			try { state.outputStream?.close() } catch (_: Exception) {}
+			try {
+				state.outputStream?.close()
+			} catch (_: Exception) {}
 			state.outputStream = null
 			state.bytesWritten = 0
 
@@ -169,7 +175,9 @@ class LogFileManager(
 			val openedEntry = writers.entries.find { it.value.currentFile?.absolutePath == oldest.absolutePath }
 			if (openedEntry != null) {
 				val st = openedEntry.value
-				try { st.outputStream?.close() } catch (_: Exception) {}
+				try {
+					st.outputStream?.close()
+				} catch (_: Exception) {}
 				st.outputStream = null
 				st.currentFile = null
 				st.bytesWritten = 0

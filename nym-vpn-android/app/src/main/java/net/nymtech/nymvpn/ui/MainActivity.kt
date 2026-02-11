@@ -395,12 +395,8 @@ class MainActivity : AppCompatActivity() {
 					}
 					val destination = appViewModel.handleDeepLinkAuth(fullUrl)
 
-					if (isLoggedIn) {
-						navControllerRef?.navigate(destination)
-					} else {
-						navControllerRef?.navigate(destination) {
-							popUpTo(Route.Splash) { inclusive = true }
-						}
+					navControllerRef?.navigate(destination) {
+						popUpTo(Route.Splash) { inclusive = true }
 					}
 				} else {
 					Timber.d("DeepLink received but Privy feature is disabled. Ignoring.")

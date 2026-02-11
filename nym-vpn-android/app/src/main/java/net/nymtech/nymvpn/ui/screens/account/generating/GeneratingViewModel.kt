@@ -21,7 +21,7 @@ class GeneratingViewModel
 @Inject
 constructor(
 	private val backendManager: BackendManager,
-	savedStateHandle: SavedStateHandle
+	savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
 	companion object {

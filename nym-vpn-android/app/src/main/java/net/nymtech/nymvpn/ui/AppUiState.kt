@@ -9,7 +9,6 @@ import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 

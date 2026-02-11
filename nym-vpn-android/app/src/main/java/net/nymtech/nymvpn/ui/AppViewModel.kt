@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -288,7 +287,6 @@ constructor(
 				Timber.tag(TAG).w("DeepLinkAuth timeout. Defaulting to Main.")
 				Route.Main()
 			}
-
 		} catch (e: Exception) {
 			Timber.tag(TAG).e(e, "FailedStoreDeeplink or processing error")
 			if (backendManager.isMnemonicStored()) Route.Account else Route.Main(autoStart = false)
