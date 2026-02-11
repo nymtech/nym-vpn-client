@@ -19,7 +19,7 @@ impl DisconnectedState {
         tombstone: Option<Tombstone>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         Self::reset_dns(shared_state).await;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]

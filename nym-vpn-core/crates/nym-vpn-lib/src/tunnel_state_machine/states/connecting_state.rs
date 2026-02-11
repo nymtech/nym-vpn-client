@@ -8,27 +8,27 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use futures::{
-    FutureExt,
     future::{BoxFuture, Fuse},
+    FutureExt,
 };
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::Error;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::tunnel_state_machine::Error;
 use crate::tunnel_state_machine::{
-    ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
-    SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
-    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
-    tunnel::{SelectedGateways, Tombstone},
-    tunnel_monitor::{
+    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState}, tunnel::{SelectedGateways, Tombstone}, tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
         TunnelMonitorHandle, TunnelParameters,
-    },
+    }, ErrorStateReason, NextTunnelState,
+    PrivateActionAfterDisconnect, PrivateTunnelState, Result, SharedState,
+    TunnelCommand,
+    TunnelInterface,
+    TunnelStateHandler,
 };
 
 use nym_common::trace_err_chain;
@@ -91,7 +91,7 @@ impl ConnectingState {
         #[cfg(any(target_os = "android", target_os = "ios"))]
         shared_state.allow_networking().await;
 
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
             trace_err_chain!(e, "Failed to configure system to use filtering resolver",);
             return ErrorState::enter(ErrorStateReason::SetDns, shared_state).await;
@@ -197,7 +197,7 @@ impl ConnectingState {
             .map_err(Error::SetFirewallPolicy)
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
         if *LOCAL_DNS_RESOLVER {
             // Set system DNS to our local DNS resolver
@@ -833,7 +833,7 @@ impl ConnectingPolicyParameters {
         let dns_config = DnsConfig::from_addresses(&[], &self.dns_servers).resolve(
             // pass empty because we already override the config with non-tunnel addresses.
             &[],
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             53,
         );
 

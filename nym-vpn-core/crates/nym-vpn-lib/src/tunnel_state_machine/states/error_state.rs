@@ -9,7 +9,7 @@ use std::{
 
 #[cfg(target_os = "ios")]
 use ipnetwork::IpNetwork;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_dns::DnsConfig;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -26,17 +26,17 @@ use nym_firewall::FirewallPolicy;
 
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::{OSTunProvider, TunnelSettings};
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
+use crate::tunnel_state_machine::{
+    states::{ConnectingState, DisconnectedState, OfflineState}, ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState,
+    TunnelCommand,
+    TunnelStateHandler,
+};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result};
-use crate::tunnel_state_machine::{
-    ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
-    TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState, OfflineState},
-};
 
 /// Interface addresses used as placeholders when in error state.
 #[cfg(target_os = "ios")]
@@ -60,7 +60,7 @@ impl ErrorState {
         // Disallow networking in error state since there are no configured firewall exceptions
         shared_state.disallow_networking().await;
 
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         if !reason.prevents_filtering_resolver() {
             // Set system DNS to our local DNS resolver
             if Self::set_local_dns_resolver(shared_state).await.is_err() {
@@ -120,7 +120,7 @@ impl ErrorState {
         }
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
         // Set system DNS to our local DNS resolver
         let system_dns = DnsConfig::default().resolve(
@@ -169,7 +169,7 @@ impl TunnelStateHandler for ErrorState {
                 tracing::debug!("ErrorState received command: {command:?}");
                 match command {
                     TunnelCommand::Connect => {
-                        #[cfg(target_os = "macos")]
+                        #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if !*LOCAL_DNS_RESOLVER {
                             // This is probably unnecessary, since DNS is already configured on the
                             // primary interface.

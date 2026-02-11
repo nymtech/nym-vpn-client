@@ -10,17 +10,17 @@ use nym_vpn_lib_types::{ErrorStateReason, TunnelType};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
-use crate::tunnel_state_machine::{
-    ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
-    TunnelCommand, TunnelInterface, TunnelStateHandler,
-    states::{ConnectingState, DisconnectingState},
-    tunnel::SelectedGateways,
-    tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
-};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
+use crate::tunnel_state_machine::{gateway_ext::GatewayExt, Error, Result};
+use crate::tunnel_state_machine::{
+    states::{ConnectingState, DisconnectingState}, tunnel::SelectedGateways, tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle}, ConnectionData, NextTunnelState,
+    PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
+    TunnelCommand,
+    TunnelInterface,
+    TunnelStateHandler,
+};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -139,14 +139,14 @@ impl ConnectedState {
         let dns_config = shared_state.tunnel_settings.resolved_dns_config();
         let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
 
-        #[cfg(any(target_os = "linux", target_os = "windows"))]
+        #[cfg(target_os = "linux")]
         shared_state
             .dns_handler
             .set(tunnel_metadata.interface.clone(), dns_config)
             .await
             .map_err(Error::SetDns)?;
 
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         // We do not want to forward DNS queries to *our* local resolver if we do not run a local
         // DNS resolver *or* if the DNS config points to a loopback address.
         if *LOCAL_DNS_RESOLVER {
@@ -165,7 +165,7 @@ impl ConnectedState {
         Ok(())
     }
 
-    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[cfg(target_os = "linux")]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state
             .dns_handler
@@ -176,7 +176,7 @@ impl ConnectedState {
         }
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     async fn reset_dns(shared_state: &mut SharedState) {
         // On macOS, configure only the local DNS resolver
         if *LOCAL_DNS_RESOLVER {
@@ -452,7 +452,7 @@ mod tests {
         use nym_dns::DnsConfig;
         let dns_config = DnsConfig::default().resolve(
             &[IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1))],
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             53,
         );
 

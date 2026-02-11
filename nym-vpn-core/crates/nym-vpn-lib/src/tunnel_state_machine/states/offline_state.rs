@@ -4,20 +4,20 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
-#[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
+use crate::tunnel_state_machine::{states::error_state::BlockedPolicyParameters, Error, Result};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::tunnel_state_machine::{states::ErrorState, ErrorStateReason};
 use crate::tunnel_state_machine::{
-    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState},
-    tunnel::SelectedGateways,
+    states::{ConnectingState, DisconnectedState}, tunnel::SelectedGateways, NextTunnelState, PrivateTunnelState, SharedState,
+    TunnelCommand,
+    TunnelStateHandler,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_dns::DnsConfig;
 
 pub struct OfflineState {
@@ -39,7 +39,7 @@ impl OfflineState {
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         shared_state.disallow_networking().await;
 
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         if Self::set_local_dns_resolver(shared_state).await.is_err() {
             return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, shared_state)).await;
         }
@@ -92,13 +92,11 @@ impl OfflineState {
         }
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
         // Set system DNS to our local DNS resolver
-        let system_dns = DnsConfig::default().resolve(
-            &[shared_state.filtering_resolver.listen_addr().ip()],
-            shared_state.filtering_resolver.listen_addr().port(),
-        );
+        let listen_addr = shared_state.filtering_resolver.listen_addr();
+        let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
         shared_state
             .dns_handler
             .set("lo".to_owned(), system_dns)
@@ -169,7 +167,7 @@ impl TunnelStateHandler for OfflineState {
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else {
-                    #[cfg(target_os = "macos")]
+                    #[cfg(any(target_os = "macos", target_os = "windows"))]
                     if !*LOCAL_DNS_RESOLVER {
                         // This is probably unnecessary, since DNS is already configured on the
                         // primary interface.
