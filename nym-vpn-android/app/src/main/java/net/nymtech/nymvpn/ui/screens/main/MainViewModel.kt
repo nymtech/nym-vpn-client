@@ -140,7 +140,9 @@ constructor(
 				}
 			}
 
-			is Tunnel.State.Down -> {
+			is Tunnel.State.Down,
+			is Tunnel.State.Error,
+			-> {
 				if (connectedAt == null) lastConnectedAt = null
 				stopConnectionTimerInternal()
 			}
