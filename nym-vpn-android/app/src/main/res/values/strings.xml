@@ -375,6 +375,8 @@
 	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
 	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
 	<string name="account_generating_error">Failed to register account. Please, try again later</string>
+	<string name="account_generating_deeplink_title">Logging in...</string>
+	<string name="account_generating_deeplink_description">Please wait while we verify your account</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processing your payment securely…</string>
 	<string name="account_payment_verifying">We\'re verifying your subscription—no personal details are ever tied to your identity</string>

@@ -84,16 +84,11 @@ class ServiceBackedBackendManager @Inject constructor(
 			runCatching { vpnConfigRepository.getConfig() }
 				.onFailure { Timber.tag(TAG).e(it, "vpnConfigRepository.refresh failed") }
 
-			val mnemonicStored = runCatching { api.isMnemonicStored() }.getOrDefault(false)
-			val deviceId = if (mnemonicStored) runCatching { api.getDeviceIdentity() }.getOrNull() else null
-			val accountId = if (mnemonicStored) runCatching { api.getAccountIdentity() }.getOrNull() else null
+			refreshIdentityState()
 
 			_state.update {
 				it.copy(
 					isInitialized = true,
-					isMnemonicStored = mnemonicStored,
-					deviceId = deviceId,
-					accountId = accountId,
 					isNetworkCompatible = true,
 				)
 			}
@@ -221,7 +216,11 @@ class ServiceBackedBackendManager @Inject constructor(
 	}
 
 	override suspend fun storeDeeplinkAccount(url: String) {
-		serviceConnectionManager.withApi { it.storeDeeplinkAccount(url = url) }
+		runCatching {
+			serviceConnectionManager.withApi { it.storeDeeplinkAccount(url = url) }
+		}.onFailure {
+			Timber.tag(TAG).e(it, "Failed to store deeplink account")
+		}
 		refreshIdentityState()
 	}
 
@@ -262,11 +261,20 @@ class ServiceBackedBackendManager @Inject constructor(
 			null
 		}
 
+		val accountState = if (mnemonicStored) {
+			runCatching {
+				serviceConnectionManager.withApi { it.getAccountState() }
+			}.getOrNull()
+		} else {
+			null
+		}
+
 		_state.update {
 			it.copy(
 				isMnemonicStored = mnemonicStored,
 				deviceId = deviceId,
 				accountId = accountId,
+				accountState = accountState ?: it.accountState
 			)
 		}
 	}

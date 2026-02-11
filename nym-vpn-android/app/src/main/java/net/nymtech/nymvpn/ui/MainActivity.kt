@@ -55,6 +55,7 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
 import net.nymtech.nymvpn.ui.screens.account.create.CreateAccountScreen
+import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingMode
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
@@ -304,7 +305,10 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Technical> { TechnicalOptScreen(appState) }
 								composable<Route.SelectPlan> { SelectPlanScreen(appState) }
 								composable<Route.CreateAccount> { CreateAccountScreen(appState) }
-								composable<Route.Generating> { GeneratingScreen() }
+
+								composable<Route.Generating> {
+									GeneratingScreen()
+								}
 
 								composable<Route.ServerDetails> {
 									val args = it.toRoute<Route.ServerDetails>()
@@ -375,6 +379,7 @@ class MainActivity : AppCompatActivity() {
 		}
 		handleDeepLink(uri)
 	}
+
 	private fun handleDeepLink(uri: Uri) {
 		val host = uri.host
 		val path = uri.path
@@ -382,8 +387,21 @@ class MainActivity : AppCompatActivity() {
 			lifecycleScope.launch {
 				if (appViewModel.isPrivyEnabled()) {
 					val fullUrl = uri.toString()
-					appViewModel.handleDeepLinkAuth(fullUrl)
-					navControllerRef?.navigate(Route.Main)
+
+					val isLoggedIn = appViewModel.isUserLoggedIn()
+
+					if (!isLoggedIn) {
+						navControllerRef?.navigate(Route.Generating(mode = GeneratingMode.DeepLinkLogin))
+					}
+					val destination = appViewModel.handleDeepLinkAuth(fullUrl)
+
+					if (isLoggedIn) {
+						navControllerRef?.navigate(destination)
+					} else {
+						navControllerRef?.navigate(destination) {
+							popUpTo(Route.Splash) { inclusive = true }
+						}
+					}
 				} else {
 					Timber.d("DeepLink received but Privy feature is disabled. Ignoring.")
 				}
