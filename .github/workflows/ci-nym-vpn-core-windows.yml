@@ -91,7 +91,7 @@ jobs:
           crate: cargo-get
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib/x86_64-pc-windows-msvc

@@ -126,7 +126,7 @@ jobs:
         run: mkdir ${{ github.workspace }}/temp
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
@@ -240,7 +240,7 @@ jobs:
         run: mkdir ${{ github.workspace }}/temp
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp

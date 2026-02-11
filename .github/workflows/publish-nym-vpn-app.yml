@@ -110,7 +110,7 @@ jobs:
           fi
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
 
       # Setup TAG_NAME
       - if: github.event_name == 'workflow_dispatch'
