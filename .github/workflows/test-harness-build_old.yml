@@ -1,0 +1,106 @@
+# name: Test Harness Build
+
+# on:
+#   push:
+#     branches:
+#       - main
+#       - develop
+#     paths:
+#       - 'nym-vpn-core/crates/test/**'
+#       - 'nym-vpn-core/crates/nym-vpnd/**'
+#       - 'nym-vpn-core/crates/nym-vpnc/**'
+#   pull_request:
+#     branches:
+#       - main
+#       - develop
+#     paths:
+#       - 'nym-vpn-core/crates/test/**'
+#       - 'nym-vpn-core/crates/nym-vpnd/**'
+#       - 'nym-vpn-core/crates/nym-vpnc/**'
+#   workflow_dispatch:
+
+# env:
+#   CARGO_TERM_COLOR: always
+#   RUST_BACKTRACE: 1
+
+# jobs:
+#   build-test-binaries:
+#     name: Build Test Binaries
+#     runs-on: ubuntu-latest
+#     timeout-minutes: 30
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Install system dependencies
+#         run: |
+#           sudo apt-get update
+#           sudo apt-get install -y \
+#             git \
+#             build-essential \
+#             pkg-config \
+#             libpcap-dev \
+#             libssl-dev \
+#             protobuf-compiler \
+#             curl
+
+#       - name: Install Rust toolchain
+#         uses: dtolnay/rust-toolchain@stable
+#         with:
+#           targets: x86_64-unknown-linux-gnu
+
+#       - name: Cache Cargo registry
+#         uses: actions/cache@v4
+#         with:
+#           path: |
+#             ~/.cargo/registry
+#             ~/.cargo/git
+#           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+#           restore-keys: |
+#             ${{ runner.os }}-cargo-
+
+#       - name: Cache Cargo build artifacts
+#         uses: actions/cache@v4
+#         with:
+#           path: |
+#             nym-vpn-core/target
+#             nym-vpn-core/crates/test/target
+#           key: ${{ runner.os }}-test-harness-${{ hashFiles('nym-vpn-core/**/Cargo.lock') }}
+#           restore-keys: |
+#             ${{ runner.os }}-test-harness-
+
+#       - name: Build test-runner and connection-checker
+#         working-directory: nym-vpn-core/crates/test
+#         run: |
+#           cargo build --release --target x86_64-unknown-linux-gnu \
+#             -p test-runner \
+#             -p connection-checker
+
+#       - name: Build Nym VPN binaries
+#         working-directory: nym-vpn-core
+#         run: |
+#           cargo build --release \
+#             -p nym-vpnd \
+#             -p nym-vpnc
+
+#       - name: Verify binaries
+#         run: |
+#           echo "Built binaries:"
+#           ls -lh nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner || echo "test-runner not found"
+#           ls -lh nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/connection-checker || echo "connection-checker not found"
+#           ls -lh nym-vpn-core/target/release/nym-vpnd || echo "nym-vpnd not found"
+#           ls -lh nym-vpn-core/target/release/nym-vpnc || echo "nym-vpnc not found"
+
+#       - name: Upload binaries as artifacts
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: test-binaries
+#           path: |
+#             nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner
+#             nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/connection-checker
+#             nym-vpn-core/target/release/nym-vpnd
+#             nym-vpn-core/target/release/nym-vpnc
+#           retention-days: 7
+
+
