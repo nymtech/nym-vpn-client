@@ -16,7 +16,7 @@ use nym_vpn_lib_types::{
     GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig,
     NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage,
     Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
-    TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
@@ -254,6 +254,11 @@ impl RpcClient {
             .into_iter()
             .collect::<Vec<_>>();
         Ok(usage)
+    }
+
+    pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>> {
+        let summary = self.inner.clone().get_account_summary().await?;
+        Ok(summary)
     }
 
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String> {
