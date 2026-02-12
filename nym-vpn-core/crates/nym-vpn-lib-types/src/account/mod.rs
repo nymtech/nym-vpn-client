@@ -274,6 +274,7 @@ pub struct VpnAccountSummary {
 #[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
 #[allow(unused)]
 impl VpnAccountSummary {
+    #[cfg_attr(feature = "uniffi-bindings", uniffi::constructor)]
     pub fn new(
         subscription_expiry_time: Option<String>,
         traffic_used_gb: u64,
