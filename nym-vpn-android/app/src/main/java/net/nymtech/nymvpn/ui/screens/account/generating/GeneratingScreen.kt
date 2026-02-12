@@ -89,26 +89,30 @@ fun SimpleLoadingScreen(title: String, description: String) {
 			.fillMaxSize()
 			.background(MaterialTheme.colorScheme.background),
 		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.Center,
 	) {
-		Box(
-			modifier = Modifier
-				.size(56.dp)
-				.background(
-					color = CustomColors.iconBackground,
-					shape = RoundedCornerShape(size = 8.dp),
-				)
-				.border(
-					width = 1.dp,
-					color = CustomColors.iconBorder,
-					shape = RoundedCornerShape(size = 8.dp),
-				),
+		Column(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			modifier = Modifier.padding(top = 200.dp),
 		) {
-			PulsingDotsWave(
+			Box(
 				modifier = Modifier
-					.align(Alignment.Center)
-					.padding(8.dp),
-			)
+					.size(56.dp)
+					.background(
+						color = CustomColors.iconBackground,
+						shape = RoundedCornerShape(size = 8.dp),
+					)
+					.border(
+						width = 1.dp,
+						color = CustomColors.iconBorder,
+						shape = RoundedCornerShape(size = 8.dp),
+					),
+			) {
+				PulsingDotsWave(
+					modifier = Modifier
+						.align(Alignment.Center)
+						.padding(8.dp),
+				)
+			}
 		}
 
 		Text(
