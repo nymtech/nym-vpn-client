@@ -58,6 +58,8 @@ pub async fn connect(
         info!("QUIC mode: {}", config.bridges);
         info!("allow LAN: {}", config.allow_lan);
         info!("no IPv6: {}", config.disable_ipv6);
+        info!("mixnet traffic config: {:?}", config.mixnet_traffic);
+
     } else {
         warn!("no vpnd config available");
     }
