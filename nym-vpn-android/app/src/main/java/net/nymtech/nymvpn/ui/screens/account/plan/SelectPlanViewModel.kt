@@ -9,20 +9,27 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.BuildConfig
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
 class SelectPlanViewModel @Inject constructor(
+	private val backendManager: BackendManager,
 	private val billingManager: BillingManager,
 ) : ViewModel() {
 
 	private val _subscriptions = MutableStateFlow<List<ProductData>>(emptyList())
 	val subscriptions: StateFlow<List<ProductData>> = _subscriptions
 
+	private val _signUpLink = MutableStateFlow<String?>(null)
+	val signUpLink: StateFlow<String?> = _signUpLink
 	init {
 		viewModelScope.launch {
+
+			_signUpLink.value = backendManager.getAccountLinks()?.signUp
+
 			billingManager.initialize()
 			billingManager.products.collectLatest { productList ->
 				_subscriptions.value = productList

@@ -303,7 +303,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Developer> { DeveloperScreen(appState, appViewModel) }
 								composable<Route.LoginScanner> { ScannerScreen() }
 								composable<Route.Technical> { TechnicalOptScreen(appState) }
-								composable<Route.SelectPlan> { SelectPlanScreen(appState) }
+								composable<Route.SelectPlan> { SelectPlanScreen() }
 								composable<Route.CreateAccount> { CreateAccountScreen(appState) }
 
 								composable<Route.Generating> {
@@ -391,7 +391,7 @@ class MainActivity : AppCompatActivity() {
 					val isLoggedIn = appViewModel.isUserLoggedIn()
 
 					if (!isLoggedIn) {
-						navControllerRef?.navigate(Route.Generating(mode = GeneratingMode.DeepLinkLogin))
+						navControllerRef?.navigate(Route.Generating(mode = GeneratingMode.DeepLinkLogin.name))
 					}
 					val destination = appViewModel.handleDeepLinkAuth(fullUrl)
 
