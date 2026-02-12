@@ -164,37 +164,30 @@ function Account() {
 
       <SettingsGroup
         settings={[
-          ...(linkable
+          {
+            title: t('account.manage-subscriptoin'),
+            desc: (
+              <span
+                className={clsx(getAccountColor(accountSyncing, accountState))}
+              >
+                {getAccountDescription(t, accountSyncing, accountState)}
+              </span>
+            ),
+            leadingIcon: 'event_repeat',
+            trailingIcon: 'open_in_new',
+            onClick: handleManageSubscription,
+          },
+          ...(backendFlags.privy && linkable
             ? [
-                {
-                  title: t('account.manage-subscriptoin'),
-                  desc: (
-                    <span
-                      className={clsx(
-                        getAccountColor(accountSyncing, accountState),
-                      )}
-                    >
-                      {getAccountDescription(t, accountSyncing, accountState) ??
-                        t('account.account-link-social-description')}
-                    </span>
-                  ),
-                  leadingIcon: 'event_repeat',
-                  trailingIcon: 'open_in_new',
-                  onClick: handleManageSubscription,
-                },
-              ]
-            : []),
-          ...(backendFlags.privy
-            ? [
-                {
-                  title: t('account.account-on-nym'),
-                  desc: t('account.account-link-social-description'),
-                  leadingIcon: isAccountLinking ? undefined : 'person',
-                  leadingComponent: isAccountLinking ? <Spinner /> : undefined,
-                  trailingIcon: 'open_in_new',
-                  onClick: handleAccountLink,
-                },
-              ]
+              {
+                title: t('account.account-on-nym'),
+                desc: t('account.account-link-social-description'),
+                leadingIcon: isAccountLinking ? undefined : 'person',
+                leadingComponent: isAccountLinking ? <Spinner /> : undefined,
+                trailingIcon: 'open_in_new',
+                onClick: handleAccountLink,
+              },
+            ]
             : []),
         ]}
       />
