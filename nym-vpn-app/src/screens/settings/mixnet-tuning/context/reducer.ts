@@ -1,4 +1,7 @@
 import { MixnetTrafficConfig } from '../../../../types';
+import { NonNullableProps } from '../../../../utils/types';
+
+export type MixnetConfigState = NonNullableProps<MixnetTrafficConfig>;
 
 export type MixnetTrafficConfigAction =
   | {
@@ -6,30 +9,20 @@ export type MixnetTrafficConfigAction =
       field: keyof MixnetTrafficConfig;
       value: number | boolean;
     }
-  | { type: 'restore-defaults' };
-
-export const DEFAULT_MIXNET_TRAFFIC_CONFIG: NonNullable<MixnetTrafficConfig> = {
-  poissonParameterForLoopCoverStream: 200,
-  averagePacketDelay: 15,
-  messageSendingAverageDelay: 20,
-  disablePoissonRate: false,
-  disableBackgroundCoverTraffic: false,
-  minMixnodePerformance: null,
-  minGatewayMixnetPerformance: null,
-} as const;
+  | { type: 'update-fields'; state: MixnetConfigState };
 
 export function reducer(
-  state: MixnetTrafficConfig,
+  state: MixnetConfigState,
   action: MixnetTrafficConfigAction,
-): NonNullable<MixnetTrafficConfig> {
+): MixnetConfigState {
   switch (action.type) {
     case 'update-field':
       return {
         ...state,
         [action.field]: action.value,
       };
-    case 'restore-defaults':
-      return DEFAULT_MIXNET_TRAFFIC_CONFIG;
+    case 'update-fields':
+      return action.state;
     default:
       return state;
   }

@@ -5,7 +5,7 @@ use crate::{
     state::{SharedAppState, app::VpnMode},
     vpnd::{
         client::{Node, VpndClient, VpndError},
-        config::{MixnetTrafficConfig, VpndConfig},
+        config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
         tunnel::{ConnectingState, TunnelState},
     },
 };
@@ -216,4 +216,10 @@ pub async fn set_mixnet_traffic_config(
 pub async fn calculate_traffic_latency(config: MixnetTrafficConfig) -> Result<f64, BackendError> {
     let lib_config: nym_vpn_lib_types::MixnetTrafficConfig = config.into();
     Ok(lib_config.calculate_traffic_latency())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_mixnet_traffic_defaults() -> Result<MixnetTrafficDefaults, BackendError> {
+    Ok(MixnetTrafficDefaults::get())
 }
