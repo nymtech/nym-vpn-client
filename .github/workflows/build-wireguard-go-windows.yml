@@ -13,7 +13,7 @@ env:
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
-  build:
+  build-libwg:
     if: github.actor != 'dependabot[bot]'
     runs-on: "custom-windows-11"
 

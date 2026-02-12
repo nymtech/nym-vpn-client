@@ -9,18 +9,23 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  UPLOAD_DIR_DEB: deb_artifacts
 
 jobs:
   build-wireguard-go-linux:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
     with:
-      artifact_name: wireguard-go_deb_x86_64
+      artifact_suffix: "deb"
 
   build-linux:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-22.04-arm]
+
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-linux
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
+    env:
+      UPLOAD_DIR_DEB: deb_artifacts-${{ matrix.os }}
     outputs:
       UPLOAD_DIR_DEB: ${{ env.UPLOAD_DIR_DEB }}
     steps:
@@ -65,8 +70,8 @@ jobs:
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v7
         with:
-          name: wireguard-go_deb_x86_64
-          path: build/lib/x86_64-unknown-linux-gnu
+          name: wireguard_go_deb-${{ matrix.os }}
+          path: build/lib
 
       - name: Build nym-vpn-core debian packages
         working-directory: nym-vpn-core
@@ -82,8 +87,8 @@ jobs:
           SRC_BINARY: nym-vpn-core/target/debian
         run: |
           mkdir ${{ env.UPLOAD_DIR_DEB }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc_*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd_*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc_*.deb ${{ env.UPLOAD_DIR_DEB }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd_*.deb ${{ env.UPLOAD_DIR_DEB }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v6
