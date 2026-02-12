@@ -1,5 +1,6 @@
 package net.nymtech.logcatutil
 
+import android.os.StrictMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -21,7 +22,8 @@ class LogFileManager(
 
 	private data class WriterState(
 		var currentFile: File? = null,
-		var outputStream: FileOutputStream? = null,
+		var outputStream: BufferedOutputStream? = null,
+		var bytesWritten: Long = 0L,
 	)
 
 	private val writers: MutableMap<LogType, WriterState> = mutableMapOf(
@@ -31,48 +33,56 @@ class LogFileManager(
 		LogType.LOGCAT to WriterState(),
 	)
 
-	init {
-		File(logDir).mkdirs()
-	}
-
 	suspend fun writeLog(type: LogType, line: String) = withContext(ioDispatcher) {
-		mutex.withLock {
-			rotateIfNeededLocked(type)
+		val oldPolicy = StrictMode.allowThreadDiskWrites()
+		try {
+			mutex.withLock {
+				rotateIfNeededLocked(type)
 
-			val state = writers.getValue(type)
-			try {
-				state.outputStream?.write((line + System.lineSeparator()).toByteArray())
-				state.outputStream?.flush()
-			} catch (_: Exception) {
-				// ignore (or log if you want)
+				val state = writers.getValue(type)
+				try {
+					val bytes = (line + System.lineSeparator()).toByteArray()
+					state.outputStream?.write(bytes)
+					state.outputStream?.flush()
+					state.bytesWritten += bytes.size
+				} catch (_: Exception) {
+					// ignore
+				}
 			}
+		} finally {
+			StrictMode.setThreadPolicy(oldPolicy)
 		}
 	}
 
 	suspend fun writeLog(line: String) = writeLog(LogType.APP, line)
 
 	suspend fun zipLogs(zipFilePath: String) = withContext(ioDispatcher) {
-		mutex.withLock {
-			closeAllLocked()
+		val oldPolicy = StrictMode.allowThreadDiskWrites()
+		try {
+			mutex.withLock {
+				closeAllLocked()
 
-			val sourceDir = File(logDir)
-			if (!sourceDir.exists() || !sourceDir.isDirectory) return@withLock
+				val sourceDir = File(logDir)
+				if (!sourceDir.exists() || !sourceDir.isDirectory) return@withLock
 
-			val outputZipFile = File(zipFilePath)
-			ZipOutputStream(BufferedOutputStream(FileOutputStream(outputZipFile))).use { zos ->
-				sourceDir.listFiles()
-					?.asSequence()
-					?.filter { it.exists() && it.isFile }
-					?.filter { it.length() > 0L }
-					?.sortedBy { it.lastModified() }
-					?.forEach { file ->
-						val folder = folderForZip(file.name)
-						val entryName = "$folder/${file.name}"
-						zos.putNextEntry(ZipEntry(entryName))
-						file.inputStream().use { it.copyTo(zos) }
-						zos.closeEntry()
-					}
+				val outputZipFile = File(zipFilePath)
+				ZipOutputStream(BufferedOutputStream(FileOutputStream(outputZipFile))).use { zos ->
+					sourceDir.listFiles()
+						?.asSequence()
+						?.filter { it.exists() && it.isFile }
+						?.filter { it.length() > 0L }
+						?.sortedBy { it.lastModified() }
+						?.forEach { file ->
+							val folder = folderForZip(file.name)
+							val entryName = "$folder/${file.name}"
+							zos.putNextEntry(ZipEntry(entryName))
+							file.inputStream().use { it.copyTo(zos) }
+							zos.closeEntry()
+						}
+				}
 			}
+		} finally {
+			StrictMode.setThreadPolicy(oldPolicy)
 		}
 	}
 
@@ -85,49 +95,69 @@ class LogFileManager(
 	}
 
 	suspend fun deleteAllLogs() = withContext(ioDispatcher) {
-		mutex.withLock {
-			closeAllLocked()
-			File(logDir).listFiles()?.forEach { it.deleteRecursively() }
-			File(logDir).mkdirs()
+		val oldPolicy = StrictMode.allowThreadDiskWrites()
+		try {
+			mutex.withLock {
+				closeAllLocked()
+				File(logDir).listFiles()?.forEach { it.deleteRecursively() }
+			}
+		} finally {
+			StrictMode.setThreadPolicy(oldPolicy)
 		}
 	}
 
 	fun close() {
 		runCatching {
 			writers.values.forEach { st ->
-				st.outputStream?.close()
+				try {
+					st.outputStream?.close()
+				} catch (_: Exception) {}
 				st.outputStream = null
 				st.currentFile = null
+				st.bytesWritten = 0
 			}
 		}
 	}
 
 	private fun closeAllLocked() {
 		writers.values.forEach { st ->
-			st.outputStream?.close()
+			try {
+				st.outputStream?.close()
+			} catch (_: Exception) {}
 			st.outputStream = null
 			st.currentFile = null
+			st.bytesWritten = 0
 		}
 	}
 
 	private fun rotateIfNeededLocked(type: LogType) {
-		enforceFolderLimitLocked()
-
 		val state = writers.getValue(type)
-		val currentSize = state.currentFile?.length() ?: 0L
 		val needsRotate = state.currentFile == null ||
 			state.outputStream == null ||
-			currentSize >= maxFileSize
+			state.bytesWritten >= maxFileSize
 
 		if (needsRotate) {
-			state.outputStream?.close()
+			try {
+				state.outputStream?.close()
+			} catch (_: Exception) {}
 			state.outputStream = null
+			state.bytesWritten = 0
 
-			File(logDir).mkdirs()
+			val dir = File(logDir)
+			if (!dir.exists()) {
+				dir.mkdirs()
+			}
+
+			enforceFolderLimitLocked()
 
 			val file = File(logDir, "${type.prefix}_${System.currentTimeMillis()}.txt")
 			state.currentFile = file
-			state.outputStream = FileOutputStream(file, true)
+			try {
+				state.outputStream = BufferedOutputStream(FileOutputStream(file, true))
+			} catch (e: Exception) {
+				state.currentFile = null
+				state.outputStream = null
+			}
 		}
 	}
 
@@ -142,16 +172,15 @@ class LogFileManager(
 				?.minByOrNull { it.lastModified() }
 				?: break
 
-			val opened = writers.values.any { it.currentFile?.absolutePath == oldest.absolutePath }
-			if (opened) {
-				writers.entries.forEach { (type, st) ->
-					if (st.currentFile?.absolutePath == oldest.absolutePath) {
-						st.outputStream?.close()
-						st.outputStream = null
-						st.currentFile = null
-						rotateIfNeededLocked(type)
-					}
-				}
+			val openedEntry = writers.entries.find { it.value.currentFile?.absolutePath == oldest.absolutePath }
+			if (openedEntry != null) {
+				val st = openedEntry.value
+				try {
+					st.outputStream?.close()
+				} catch (_: Exception) {}
+				st.outputStream = null
+				st.currentFile = null
+				st.bytesWritten = 0
 			}
 
 			oldest.delete()

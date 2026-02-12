@@ -26,7 +26,6 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -37,15 +36,7 @@ import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.ErrorStateReason
 
 @Composable
-fun ConnectionStatus(
-	connectionState: ConnectionState,
-	vpnMode: Tunnel.Mode,
-	stateMessage: StateMessage,
-	connectionTime: String?,
-	theme: Theme,
-	modifier: Modifier = Modifier,
-	isAppInForeground: Boolean,
-) {
+fun ConnectionStatus(connectionState: ConnectionState, vpnMode: Tunnel.Mode, connectionTime: String?, theme: Theme, modifier: Modifier = Modifier, isAppInForeground: Boolean) {
 	val isDarkMode = isSystemInDarkTheme()
 	val surfaceAvailable by rememberSurfaceAvailability()
 	val context = LocalContext.current
@@ -85,42 +76,44 @@ fun ConnectionStatus(
 			)
 		}
 
-		ConnectionStateDisplay(connectionState = connectionState, stateMessage, theme = theme)
+		ConnectionStateDisplay(connectionState = connectionState, theme = theme)
 
-		when (stateMessage) {
-			is StateMessage.Status -> StatusInfoLabel(
-				message = stateMessage.message.asString(context),
+		when (connectionState) {
+			is ConnectionState.Connecting -> StatusInfoLabel(
+				message = connectionState.label.asString(context),
 				textColor = MaterialTheme.colorScheme.onSurfaceVariant,
 			)
 
-			is StateMessage.Error ->
-				when (stateMessage.reason) {
-					ErrorStateReason.InactiveSubscription -> {
-						if (isVpnAlwaysOn(context)) {
-							StatusInfoLabel(
-								message = context.getString(R.string.error_kill_switch),
-								textColor = CustomColors.error,
-							)
-						} else {
-							StatusInfoLabel(
-								message = stateMessage.reason.toUserMessage(context),
-								textColor = CustomColors.error,
-							)
-						}
-					}
+			is ConnectionState.Error -> {
+				val isKillSwitchError = connectionState.reason == ErrorStateReason.InactiveSubscription && isVpnAlwaysOn(context)
 
-					else -> {
-						StatusInfoLabel(
-							message = stateMessage.reason.toUserMessage(context),
-							textColor = CustomColors.error,
-						)
-					}
+				val msg = if (isKillSwitchError) {
+					context.getString(R.string.error_kill_switch)
+				} else {
+					connectionState.reason.toUserMessage(context)
 				}
 
-			is StateMessage.StartError -> StatusInfoLabel(
-				message = stateMessage.exception.toUserMessage(context),
+				StatusInfoLabel(
+					message = msg,
+					textColor = CustomColors.error,
+				)
+			}
+
+			is ConnectionState.StartFailure -> StatusInfoLabel(
+				message = connectionState.exception.localizedMessage ?: context.getString(R.string.unexpected_error, "Unknown"),
 				textColor = CustomColors.error,
 			)
+
+			is ConnectionState.Offline, ConnectionState.WaitingForConnection -> StatusInfoLabel(
+				message = context.getString(R.string.no_internet),
+				textColor = MaterialTheme.colorScheme.onSurfaceVariant,
+			)
+
+			is ConnectionState.Connected -> {
+				// Optional
+			}
+
+			else -> Unit
 		}
 
 		AnimatedVisibility(visible = connectionTime != null) {
@@ -159,7 +152,6 @@ private fun ConnectionStatusPreview() {
 		ConnectionStatus(
 			ConnectionState.Disconnected,
 			Tunnel.Mode.TWO_HOP_MIXNET,
-			StateMessage.Error(ErrorStateReason.InactiveSubscription),
 			null,
 			Theme.default(),
 			isAppInForeground = false,

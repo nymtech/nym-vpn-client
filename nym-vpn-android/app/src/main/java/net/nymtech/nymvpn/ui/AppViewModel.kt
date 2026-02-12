@@ -4,15 +4,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.R
@@ -27,6 +31,8 @@ import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import nym_vpn_lib_types.AccountControllerErrorStateReason
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
 import javax.inject.Inject
@@ -45,6 +51,7 @@ constructor(
 
 	companion object {
 		private const val TAG = "app-vm"
+		private const val AUTH_TIMEOUT_MS = 20_000L
 	}
 
 	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
@@ -83,7 +90,7 @@ constructor(
 		_configurationChange.value = false
 	}
 
-	fun logout(onComplete: (() -> Unit)? = null) = viewModelScope.launch {
+	fun logout(onComplete: (() -> Unit)? = null) = viewModelScope.launch(Dispatchers.IO) {
 		Timber.tag(TAG).i("LogoutRequested")
 		runCatching {
 			if (backendManager.getState() != Tunnel.State.Down) {
@@ -94,13 +101,18 @@ constructor(
 			Timber.tag(TAG).i("LogoutSuccess")
 		}.onFailure {
 			Timber.tag(TAG).e(it, "LogoutFailed")
+			withContext(Dispatchers.Main) {
+				onComplete?.invoke()
+			}
 		}
 	}
 
 	private suspend fun performLogout(onComplete: (() -> Unit)? = null) {
 		backendManager.removeMnemonic()
 		backendManager.refreshAccount()
-		onComplete?.invoke()
+		withContext(Dispatchers.Main) {
+			onComplete?.invoke()
+		}
 	}
 
 	fun onLocaleChange(localeTag: String) = viewModelScope.launch {
@@ -224,18 +236,60 @@ constructor(
 		return backendManager.getFeatureFlags()?.isPrivyEnabled() ?: false
 	}
 
-	fun handleDeepLinkAuth(url: String) {
-		viewModelScope.launch {
-			if (!isPrivyEnabled()) {
-				Timber.tag(TAG).w("DeepLink ignored: Privy feature is disabled")
-				return@launch
+	suspend fun isUserLoggedIn(): Boolean {
+		return backendManager.isMnemonicStored()
+	}
+
+	suspend fun handleDeepLinkAuth(url: String): Route = withContext(Dispatchers.IO) {
+		if (!isPrivyEnabled()) {
+			Timber.tag(TAG).w("DeepLink ignored: Privy feature is disabled")
+			return@withContext Route.Main(autoStart = false)
+		}
+
+		try {
+			val isLoggedIn = backendManager.isMnemonicStored()
+
+			Timber.tag(TAG).i("DeepLinkAuth started. isLoggedIn=$isLoggedIn")
+			backendManager.storeDeeplinkAccount(url)
+
+			runCatching { backendManager.refreshAccount() }
+
+			if (isLoggedIn) {
+				Timber.tag(TAG).i("DeepLinkAuth: Account linked successfully")
+				return@withContext Route.Account
 			}
 
-			try {
-				backendManager.storeDeeplinkAccount(url)
-			} catch (e: Exception) {
-				Timber.tag(TAG).e(e, "FailedStoreDeeplink")
+			val finalRoute = withTimeoutOrNull(AUTH_TIMEOUT_MS) {
+				backendManager.stateFlow
+					.map { it.accountState }
+					.filterNotNull()
+					.filter { state ->
+						val isSuccess = state is AccountControllerState.ReadyToConnect
+						val isSubscriptionError = state is AccountControllerState.Error && (
+							state.v1 is AccountControllerErrorStateReason.AccountStatusNotActive ||
+								state.v1 is AccountControllerErrorStateReason.InactiveSubscription
+							)
+						isSuccess || isSubscriptionError
+					}
+					.first()
+					.let { finalState ->
+						if (finalState is AccountControllerState.ReadyToConnect) {
+							Timber.tag(TAG).i("DeepLinkAuth Success")
+							Route.Main()
+						} else {
+							Timber.tag(TAG).i("DeepLinkAuth Inactive Subscription")
+							Route.SelectPlan
+						}
+					}
 			}
+
+			finalRoute ?: run {
+				Timber.tag(TAG).w("DeepLinkAuth timeout. Defaulting to Main.")
+				Route.Main()
+			}
+		} catch (e: Exception) {
+			Timber.tag(TAG).e(e, "FailedStoreDeeplink or processing error")
+			if (backendManager.isMnemonicStored()) Route.Account else Route.Main(autoStart = false)
 		}
 	}
 }

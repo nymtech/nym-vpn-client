@@ -1,5 +1,6 @@
 package net.nymtech.logcatutil
 
+import android.os.StrictMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -21,7 +22,7 @@ class LogcatStreamReader(
 		private const val MERGE_WINDOW_MS = 250L
 	}
 
-	private val bufferSize = 1024
+	private val bufferSize = 8192
 	private var process: Process? = null
 	private var reader: BufferedReader? = null
 
@@ -85,47 +86,52 @@ class LogcatStreamReader(
 	}
 
 	fun readLogs(): Flow<LogMessage> = flow {
-		runCatching { clearLogs() }
-			.onFailure { Timber.tag(TAG).w(it, "LogcatClearFailed") }
-		var pending: LogMessage? = null
+		val oldPolicy = StrictMode.allowThreadDiskWrites()
 		try {
-			process = Runtime.getRuntime().exec(buildCommand())
-			reader = BufferedReader(InputStreamReader(process!!.inputStream), bufferSize)
+			runCatching { clearLogs() }
+				.onFailure { Timber.tag(TAG).w(it, "LogcatClearFailed") }
+			var pending: LogMessage? = null
+			try {
+				process = Runtime.getRuntime().exec(buildCommand())
+				reader = BufferedReader(InputStreamReader(process!!.inputStream), bufferSize)
 
-			reader!!.lineSequence().forEach { raw ->
-				val line = raw.trimEnd()
-				if (line.isBlank()) return@forEach
-				val parsed = LogMessage.tryFromThreadtime(line)
-				if (parsed != null) {
-					if (pending != null && shouldMerge(pending, parsed)) {
-						pending = pending.copy(
-							message = pending.message + "\n" + parsed.message.trimEnd(),
-						)
-					} else {
-						flushPending(pending) { emit(it) }
-						pending = parsed
+				reader!!.lineSequence().forEach { raw ->
+					val line = raw.trimEnd()
+					if (line.isBlank()) return@forEach
+					val parsed = LogMessage.tryFromThreadtime(line)
+					if (parsed != null) {
+						if (pending != null && shouldMerge(pending!!, parsed)) {
+							pending = pending!!.copy(
+								message = pending!!.message + "\n" + parsed.message.trimEnd(),
+							)
+						} else {
+							flushPending(pending) { emit(it) }
+							pending = parsed
+						}
+						return@forEach
 					}
-					return@forEach
+
+					pending = if (pending != null) {
+						appendContinuation(pending!!, line)
+					} else {
+						LogMessage.system(line)
+					}
 				}
 
-				pending = if (pending != null) {
-					appendContinuation(pending, line)
-				} else {
-					LogMessage.system(line)
-				}
+				flushPending(pending) { emit(it) }
+				Timber.tag(TAG).d("LogcatStreamEnded")
+			} catch (e: IOException) {
+				Timber.tag(TAG).w(e, "LogcatStreamFailedFallbackToTimber")
+				fallbackToTimber = true
+				val log = LogMessage.system("Logcat is not accessible. Falling back to Timber logs")
+				runCatching { fileManager.writeLog(LogType.APP, log.toString()) }
+					.onFailure { Timber.tag(TAG).w(it, "FallbackLogWriteFailed") }
+				emit(log)
+			} finally {
+				stop()
 			}
-
-			flushPending(pending) { emit(it) }
-			Timber.tag(TAG).d("LogcatStreamEnded")
-		} catch (e: IOException) {
-			Timber.tag(TAG).w(e, "LogcatStreamFailedFallbackToTimber")
-			fallbackToTimber = true
-			val log = LogMessage.system("Logcat is not accessible. Falling back to Timber logs")
-			runCatching { fileManager.writeLog(LogType.APP, log.toString()) }
-				.onFailure { Timber.tag(TAG).w(it, "FallbackLogWriteFailed") }
-			emit(log)
 		} finally {
-			stop()
+			StrictMode.setThreadPolicy(oldPolicy)
 		}
 	}.flowOn(ioDispatcher)
 
