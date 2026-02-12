@@ -1,12 +1,19 @@
 import { createContext, useContext } from 'react';
 import { MixnetTrafficConfig } from '../../../../types';
-import { MixnetTrafficConfigAction } from './reducer';
+import { MixnetConfigState } from './reducer';
 
 export type MixnetTrafficConfigContextType = {
-  state: MixnetTrafficConfig;
-  dispatch: React.Dispatch<MixnetTrafficConfigAction>;
+  state: MixnetConfigState;
   hasUnsavedSettings: boolean;
   hasSettingsOtherThanDefaults: boolean;
+  updateField: (
+    field: keyof MixnetTrafficConfig,
+    value: number | boolean,
+  ) => void;
+  restoreDefaults: () => void;
+  continuousItems: { value: number; label: string }[];
+  backgroundCoverItems: { value: number; label: string }[];
+  mixingDelay: { minValue: number; maxValue: number; defaultValue: number };
 };
 
 export const MixnetTrafficConfigContext =

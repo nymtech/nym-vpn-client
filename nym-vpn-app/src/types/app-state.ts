@@ -6,6 +6,7 @@ import {
   ConnectingState,
   FeatureFlags,
   MixnetTrafficConfig,
+  MixnetTrafficDefaults,
   NetworkCompat,
   NetworkEnv,
   SelectedNode,
@@ -43,6 +44,7 @@ export type InitState = {
   customDns: string[];
   enableLewesProtocol: boolean;
   mixnetTrafficConfig: MixnetTrafficConfig;
+  mixnetTrafficDefaults: MixnetTrafficDefaults;
 };
 
 export type AppState = {
@@ -100,4 +102,5 @@ export type AppState = {
   defaultDns: string[];
   enableLewesProtocol: boolean;
   mixnetTrafficConfig: MixnetTrafficConfig;
+  mixnetTrafficDefaults: MixnetTrafficDefaults;
 };

@@ -1,66 +1,129 @@
-import { useMemo, useReducer } from 'react';
+import { useCallback, useMemo, useReducer } from 'react';
 import { MixnetTrafficConfig } from '../../../../types';
+import { useMainState } from '../../../../contexts';
 import { MixnetTrafficConfigContext } from './context';
-import { DEFAULT_MIXNET_TRAFFIC_CONFIG, reducer } from './reducer';
+import { reducer } from './reducer';
 
 function MixnetTrafficConfigProvider({
   children,
-  initialConfig,
 }: {
   children: React.ReactNode;
-  initialConfig: MixnetTrafficConfig;
 }) {
-  const [state, dispatch] = useReducer(reducer, initialConfig, (config) => ({
-    poissonParameterForLoopCoverStream:
-      config.poissonParameterForLoopCoverStream ??
-      DEFAULT_MIXNET_TRAFFIC_CONFIG.poissonParameterForLoopCoverStream!,
-    averagePacketDelay:
-      config.averagePacketDelay ??
-      DEFAULT_MIXNET_TRAFFIC_CONFIG.averagePacketDelay!,
-    messageSendingAverageDelay:
-      config.messageSendingAverageDelay ??
-      DEFAULT_MIXNET_TRAFFIC_CONFIG.messageSendingAverageDelay!,
-    disablePoissonRate: config.disablePoissonRate,
-    disableBackgroundCoverTraffic: config.disableBackgroundCoverTraffic,
-    minMixnodePerformance: config.minMixnodePerformance,
-    minGatewayMixnetPerformance: config.minGatewayMixnetPerformance,
-  }));
+  const { mixnetTrafficConfig, mixnetTrafficDefaults } = useMainState();
+
+  const [state, dispatch] = useReducer(
+    reducer,
+    mixnetTrafficConfig,
+    (config) => ({
+      poissonParameterForLoopCoverStream:
+        config.poissonParameterForLoopCoverStream === null
+          ? mixnetTrafficDefaults.defaultBackgroundTraffic.value
+          : config.poissonParameterForLoopCoverStream,
+      averagePacketDelay:
+        config.averagePacketDelay === null
+          ? mixnetTrafficDefaults.mixingDelay.defaultValue
+          : config.averagePacketDelay,
+      messageSendingAverageDelay:
+        config.messageSendingAverageDelay === null
+          ? mixnetTrafficDefaults.defaultContinuousTraffic.value
+          : config.messageSendingAverageDelay,
+      disablePoissonRate: config.disablePoissonRate,
+      disableBackgroundCoverTraffic: config.disableBackgroundCoverTraffic,
+      minMixnodePerformance: 0,
+      minGatewayMixnetPerformance: 0,
+    }),
+  );
+
+  const defaultState = useMemo(() => {
+    return {
+      poissonParameterForLoopCoverStream:
+        mixnetTrafficDefaults.mixingDelay.defaultValue,
+      averagePacketDelay: mixnetTrafficDefaults.mixingDelay.defaultValue,
+      messageSendingAverageDelay:
+        mixnetTrafficDefaults.mixingDelay.defaultValue,
+      disablePoissonRate: mixnetTrafficDefaults.disablePoissonRate,
+      disableBackgroundCoverTraffic: mixnetTrafficDefaults.disablePoissonRate,
+      minGatewayMixnetPerformance: 0,
+      minMixnodePerformance: 0,
+    };
+  }, [mixnetTrafficDefaults]);
 
   const hasUnsavedSettings = useMemo(() => {
     return (
       state.poissonParameterForLoopCoverStream !==
-        initialConfig.poissonParameterForLoopCoverStream ||
-      state.averagePacketDelay !== initialConfig.averagePacketDelay ||
+        mixnetTrafficConfig.poissonParameterForLoopCoverStream ||
+      state.averagePacketDelay !== mixnetTrafficConfig.averagePacketDelay ||
       state.messageSendingAverageDelay !==
-        initialConfig.messageSendingAverageDelay ||
-      state.disablePoissonRate !== initialConfig.disablePoissonRate ||
+        mixnetTrafficConfig.messageSendingAverageDelay ||
+      state.disablePoissonRate !== mixnetTrafficConfig.disablePoissonRate ||
       state.disableBackgroundCoverTraffic !==
-        initialConfig.disableBackgroundCoverTraffic
+        mixnetTrafficConfig.disableBackgroundCoverTraffic
     );
-  }, [state, initialConfig]);
+  }, [state, mixnetTrafficConfig]);
 
   const hasSettingsOtherThanDefaults = useMemo(() => {
     return (
       state.poissonParameterForLoopCoverStream !==
-        DEFAULT_MIXNET_TRAFFIC_CONFIG.poissonParameterForLoopCoverStream ||
+        mixnetTrafficDefaults.mixingDelay.defaultValue ||
       state.averagePacketDelay !==
-        DEFAULT_MIXNET_TRAFFIC_CONFIG.averagePacketDelay ||
+        mixnetTrafficDefaults.mixingDelay.defaultValue ||
       state.messageSendingAverageDelay !==
-        DEFAULT_MIXNET_TRAFFIC_CONFIG.messageSendingAverageDelay ||
-      state.disablePoissonRate !==
-        DEFAULT_MIXNET_TRAFFIC_CONFIG.disablePoissonRate ||
+        mixnetTrafficDefaults.mixingDelay.defaultValue ||
+      state.disablePoissonRate !== mixnetTrafficDefaults.disablePoissonRate ||
       state.disableBackgroundCoverTraffic !==
-        DEFAULT_MIXNET_TRAFFIC_CONFIG.disableBackgroundCoverTraffic
+        mixnetTrafficDefaults.allBackgroundTraffic.length > 0
     );
-  }, [state]);
+  }, [state, mixnetTrafficDefaults]);
+
+  const updateField = useCallback(
+    (field: keyof MixnetTrafficConfig, value: number | boolean) => {
+      dispatch({ type: 'update-field', field, value });
+    },
+    [dispatch],
+  );
+
+  const restoreDefaults = useCallback(() => {
+    dispatch({ type: 'update-fields', state: defaultState });
+  }, [dispatch, defaultState]);
+
+  const continuousItems = useMemo(
+    () =>
+      mixnetTrafficDefaults.allContinuousTraffic.map((item) => ({
+        value: item.value,
+        label: item.throughput,
+      })),
+    [mixnetTrafficDefaults],
+  );
+
+  const backgroundCoverItems = useMemo(
+    () =>
+      mixnetTrafficDefaults.allBackgroundTraffic.map((item) => ({
+        value: item.value,
+        label: item.multiplier,
+      })),
+    [mixnetTrafficDefaults],
+  );
+
+  const mixingDelay = useMemo(
+    () => ({
+      minValue: mixnetTrafficDefaults.mixingDelay.minValue,
+      maxValue: mixnetTrafficDefaults.mixingDelay.maxValue,
+      defaultValue: mixnetTrafficDefaults.mixingDelay.defaultValue,
+    }),
+    [mixnetTrafficDefaults],
+  );
 
   return (
     <MixnetTrafficConfigContext.Provider
       value={{
         state,
-        dispatch,
         hasUnsavedSettings,
         hasSettingsOtherThanDefaults,
+        updateField,
+        restoreDefaults,
+        continuousItems,
+        backgroundCoverItems,
+        mixingDelay,
       }}
     >
       {children}
