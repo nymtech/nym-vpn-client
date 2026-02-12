@@ -83,13 +83,19 @@ fun GeneratingContent(mode: GeneratingMode, onAnimationEnd: () -> Unit) {
 }
 
 @Composable
-fun SimpleLoadingScreen(title: String, description: String) {
+private fun GeneratingBaseLayout(
+	title: String,
+	description: String,
+	topContent: @Composable (() -> Unit)? = null
+) {
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
 			.background(MaterialTheme.colorScheme.background),
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
+		topContent?.invoke()
+
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
 			modifier = Modifier.padding(top = 200.dp),
@@ -113,25 +119,30 @@ fun SimpleLoadingScreen(title: String, description: String) {
 						.padding(8.dp),
 				)
 			}
+
+			Text(
+				text = title,
+				style = Typography.titleMedium,
+				color = MaterialTheme.colorScheme.onBackground,
+				modifier = Modifier.padding(top = 24.dp),
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			)
+
+			Text(
+				text = description,
+				style = Typography.bodyMedium,
+				textAlign = TextAlign.Center,
+				modifier = Modifier.padding(top = 8.dp, start = 32.dp, end = 32.dp),
+				color = MaterialTheme.colorScheme.outline,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			)
 		}
-
-		Text(
-			text = title,
-			style = Typography.titleMedium,
-			color = MaterialTheme.colorScheme.onBackground,
-			modifier = Modifier.padding(top = 24.dp),
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-		)
-
-		Text(
-			text = description,
-			style = Typography.bodyMedium,
-			textAlign = TextAlign.Center,
-			modifier = Modifier.padding(top = 8.dp, start = 32.dp, end = 32.dp),
-			color = MaterialTheme.colorScheme.outline,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-		)
 	}
+}
+
+@Composable
+fun SimpleLoadingScreen(title: String, description: String) {
+	GeneratingBaseLayout(title = title, description = description)
 }
 
 @Composable
@@ -147,81 +158,39 @@ fun AccountCreationAnimationScreen(onAnimationEnd: () -> Unit) {
 		onAnimationEnd()
 	}
 
-	Column(
-		modifier = Modifier
-			.fillMaxSize()
-			.background(MaterialTheme.colorScheme.background),
-		horizontalAlignment = Alignment.CenterHorizontally,
-	) {
-		Row(
-			modifier = Modifier
-				.padding(horizontal = 16.dp)
-				.fillMaxWidth()
-				.height(4.dp),
-			horizontalArrangement = Arrangement.spacedBy(4.dp),
-		) {
-			repeat(4) { index ->
-				val isFilled = index < 3 && step >= index
-				Box(
-					modifier = Modifier
-						.weight(1f)
-						.fillMaxHeight()
-						.background(
-							if (isFilled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
-							shape = RoundedCornerShape(4.dp),
-						),
-				)
-			}
-		}
-
-		Column(
-			horizontalAlignment = Alignment.CenterHorizontally,
-			modifier = Modifier.padding(top = 200.dp),
-		) {
-			Box(
-				modifier = Modifier
-					.size(56.dp)
-					.background(
-						color = CustomColors.iconBackground,
-						shape = RoundedCornerShape(size = 8.dp),
-					)
-					.border(
-						width = 1.dp,
-						color = CustomColors.iconBorder,
-						shape = RoundedCornerShape(size = 8.dp),
-					),
-			) {
-				PulsingDotsWave(
-					modifier = Modifier
-						.align(Alignment.Center)
-						.padding(8.dp),
-				)
-			}
-
-			val (titleRes, textRes) = when (step) {
-				0 -> R.string.account_generating_title_1 to R.string.account_generating_description_1
-				1 -> R.string.account_generating_title_2 to R.string.account_generating_description_2
-				else -> R.string.account_generating_title_3 to R.string.account_generating_description_3
-			}
-
-			Text(
-				text = stringResource(titleRes),
-				style = Typography.titleMedium,
-				color = MaterialTheme.colorScheme.onBackground,
-				modifier = Modifier.padding(top = 16.dp),
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			)
-
-			Text(
-				text = stringResource(textRes),
-				style = Typography.bodyMedium,
-				textAlign = TextAlign.Center,
-				modifier = Modifier.padding(top = 16.dp),
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			)
-		}
+	val (titleRes, textRes) = when (step) {
+		0 -> R.string.account_generating_title_1 to R.string.account_generating_description_1
+		1 -> R.string.account_generating_title_2 to R.string.account_generating_description_2
+		else -> R.string.account_generating_title_3 to R.string.account_generating_description_3
 	}
+
+	GeneratingBaseLayout(
+		title = stringResource(titleRes),
+		description = stringResource(textRes),
+		topContent = {
+			Row(
+				modifier = Modifier
+					.padding(horizontal = 16.dp)
+					.fillMaxWidth()
+					.height(4.dp),
+				horizontalArrangement = Arrangement.spacedBy(4.dp),
+			) {
+				repeat(4) { index ->
+					val isFilled = index < 3 && step >= index
+					Box(
+						modifier = Modifier
+							.weight(1f)
+							.fillMaxHeight()
+							.background(
+								color = if (isFilled) MaterialTheme.colorScheme.primary
+								else MaterialTheme.colorScheme.surfaceContainer,
+								shape = RoundedCornerShape(4.dp),
+							),
+					)
+				}
+			}
+		}
+	)
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
