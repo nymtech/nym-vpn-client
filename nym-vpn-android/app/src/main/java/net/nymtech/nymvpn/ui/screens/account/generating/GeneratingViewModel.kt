@@ -31,7 +31,7 @@ constructor(
 	private val _success = MutableSharedFlow<Boolean?>()
 	val success = _success.asSharedFlow()
 
-	val mode: GeneratingMode = savedStateHandle.toRoute<Route.Generating>().mode
+	val mode: GeneratingMode = GeneratingMode.valueOf(savedStateHandle.toRoute<Route.Generating>().mode)
 
 	init {
 		if (mode == GeneratingMode.CreateAccount) {
