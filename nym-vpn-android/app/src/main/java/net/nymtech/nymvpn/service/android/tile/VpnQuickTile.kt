@@ -92,6 +92,11 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 				setTileDescription(this@VpnQuickTile.getString(R.string.offline))
 				setActive()
 			}
+
+			is Tunnel.State.Error -> {
+				setTileDescription(this@VpnQuickTile.getString(R.string.pill_error))
+				setActive()
+			}
 		}
 	}
 

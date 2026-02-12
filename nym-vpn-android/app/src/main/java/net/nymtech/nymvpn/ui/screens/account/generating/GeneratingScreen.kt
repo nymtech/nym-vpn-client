@@ -49,23 +49,89 @@ import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 	val success by viewModel.success.collectAsStateWithLifecycle(null)
 	val navController = LocalNavController.current
+	val mode = viewModel.mode
 
-	LaunchedEffect(success) {
-		if (success == false) {
-			SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
-			navController.replaceCurrentWith(Route.CreateAccount)
+	if (mode == GeneratingMode.CreateAccount) {
+		LaunchedEffect(success) {
+			if (success == false) {
+				SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
+				navController.replaceCurrentWith(Route.CreateAccount)
+			}
 		}
 	}
 
-	GeneratingScreen {
-		if (success == true) {
-			navController.replaceCurrentWith(Route.SelectPlan)
-		}
+	GeneratingContent(
+		mode = mode,
+		onAnimationEnd = {
+			if (mode == GeneratingMode.CreateAccount && success == true) {
+				navController.replaceCurrentWith(Route.SelectPlan)
+			}
+		},
+	)
+}
+
+@Composable
+fun GeneratingContent(mode: GeneratingMode, onAnimationEnd: () -> Unit) {
+	if (mode == GeneratingMode.DeepLinkLogin) {
+		SimpleLoadingScreen(
+			title = stringResource(R.string.account_generating_deeplink_title),
+			description = stringResource(R.string.account_generating_deeplink_description),
+		)
+	} else {
+		AccountCreationAnimationScreen(onAnimationEnd)
 	}
 }
 
 @Composable
-fun GeneratingScreen(onAnimationEnd: () -> Unit) {
+fun SimpleLoadingScreen(title: String, description: String) {
+	Column(
+		modifier = Modifier
+			.fillMaxSize()
+			.background(MaterialTheme.colorScheme.background),
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.Center,
+	) {
+		Box(
+			modifier = Modifier
+				.size(56.dp)
+				.background(
+					color = CustomColors.iconBackground,
+					shape = RoundedCornerShape(size = 8.dp),
+				)
+				.border(
+					width = 1.dp,
+					color = CustomColors.iconBorder,
+					shape = RoundedCornerShape(size = 8.dp),
+				),
+		) {
+			PulsingDotsWave(
+				modifier = Modifier
+					.align(Alignment.Center)
+					.padding(8.dp),
+			)
+		}
+
+		Text(
+			text = title,
+			style = Typography.titleMedium,
+			color = MaterialTheme.colorScheme.onBackground,
+			modifier = Modifier.padding(top = 24.dp),
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		)
+
+		Text(
+			text = description,
+			style = Typography.bodyMedium,
+			textAlign = TextAlign.Center,
+			modifier = Modifier.padding(top = 8.dp, start = 32.dp, end = 32.dp),
+			color = MaterialTheme.colorScheme.outline,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		)
+	}
+}
+
+@Composable
+fun AccountCreationAnimationScreen(onAnimationEnd: () -> Unit) {
 	var step by remember { mutableIntStateOf(0) }
 
 	LaunchedEffect(Unit) {
@@ -91,19 +157,13 @@ fun GeneratingScreen(onAnimationEnd: () -> Unit) {
 			horizontalArrangement = Arrangement.spacedBy(4.dp),
 		) {
 			repeat(4) { index ->
-				val isFilled =
-					index < 3 && step >= index
-
+				val isFilled = index < 3 && step >= index
 				Box(
 					modifier = Modifier
 						.weight(1f)
 						.fillMaxHeight()
 						.background(
-							if (isFilled) {
-								MaterialTheme.colorScheme.primary
-							} else {
-								MaterialTheme.colorScheme.surfaceContainer
-							},
+							if (isFilled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
 							shape = RoundedCornerShape(4.dp),
 						),
 				)
@@ -164,6 +224,19 @@ fun GeneratingScreen(onAnimationEnd: () -> Unit) {
 @Composable
 private fun PreviewGeneratingScreen() {
 	NymVPNTheme(Theme.default()) {
-		GeneratingScreen({})
+		GeneratingContent(GeneratingMode.CreateAccount) {}
 	}
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Composable
+private fun PreviewLoginLoader() {
+	NymVPNTheme(Theme.default()) {
+		GeneratingContent(GeneratingMode.DeepLinkLogin) {}
+	}
+}
+
+enum class GeneratingMode {
+	CreateAccount,
+	DeepLinkLogin,
 }

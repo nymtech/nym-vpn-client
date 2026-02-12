@@ -186,6 +186,9 @@
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
 	<string name="streaming_server_banner_action">Check new\nexit servers</string>
+	<!-- Status pill -->
+	<string name="pill_error">Error</string>
+	<string name="pill_subscription_expired">Subscription expired</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Cannot connect with the same entry and exit server. Change either the entry or exit server and reconnect.</string>
 	<string name="unexpected_error">An unexpected error occurred:</string>
@@ -375,6 +378,8 @@
 	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
 	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
 	<string name="account_generating_error">Failed to register account. Please, try again later</string>
+	<string name="account_generating_deeplink_title">Logging in...</string>
+	<string name="account_generating_deeplink_description">Please wait while we verify your account</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processing your payment securely…</string>
 	<string name="account_payment_verifying">We\'re verifying your subscription—no personal details are ever tied to your identity</string>
