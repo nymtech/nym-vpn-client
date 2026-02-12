@@ -74,7 +74,7 @@ sealed class Route {
 	data object SelectPlan : Route()
 
 	@Serializable
-	data class Generating(val mode: GeneratingMode = GeneratingMode.CreateAccount) : Route()
+	data class Generating(val mode: String = GeneratingMode.CreateAccount.name) : Route()
 
 	@Serializable
 	data class Payment(val productId: String) : Route()
