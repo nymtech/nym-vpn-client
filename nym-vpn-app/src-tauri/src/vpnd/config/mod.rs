@@ -1,5 +1,5 @@
-mod config;
+mod vpnd_config;
 pub mod mixnet_config;
 
-pub use config::VpndConfig;
+pub use vpnd_config::VpndConfig;
 pub use mixnet_config::{MixnetTrafficConfig, MixnetTrafficDefaults};
