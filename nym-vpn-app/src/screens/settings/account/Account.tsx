@@ -93,7 +93,7 @@ function Account() {
   }, []);
 
   useEffect(() => {
-    if (!account) navigate(routes.settings);
+    if (!account) navigate(routes.settings, { replace: true });
   }, [account, navigate]);
 
   const refreshAccountMode = useCallback(async () => {

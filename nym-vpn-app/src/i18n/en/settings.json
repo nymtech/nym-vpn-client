@@ -105,7 +105,7 @@
       "title": "Expected performance based on current settings",
       "speed": {
         "title": "Speed",
-        "value": "Up to {{value}} Mbps"
+        "value": "Up to {{value}}"
       },
       "privacy": {
         "title": "Latency",
@@ -120,16 +120,13 @@
         "use-less-battery-and-data": "Use less battery & data",
         "max-anonymity": "Max. anonymity",
         "low": {
-          "label": "Low",
-          "speed": "{{value}} Mbps"
+          "label": "Low"
         },
         "balanced": {
-          "label": "Balanced",
-          "speed": "{{value}} Mbps"
+          "label": "Balanced"
         },
         "high": {
-          "label": "High",
-          "speed": "{{value}} Mbps"
+          "label": "High"
         }
       },
       "background-cover-traffic": {
@@ -142,13 +139,13 @@
           "label": "Base"
         },
         "balanced": {
-          "label": "Balanced"
+          "label": "Balanced\n5x"
         },
         "medium": {
-          "label": "Medium"
+          "label": "Medium\n10x"
         },
         "high": {
-          "label": "High"
+          "label": "High\n20x"
         }
       }
     },

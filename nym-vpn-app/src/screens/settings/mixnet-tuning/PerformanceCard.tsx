@@ -9,26 +9,15 @@ import {
   CardNewFooter,
   CardNewHeader,
 } from '../../../ui';
-import {
-  DEFAULT_MIXNET_TRAFFIC_CONFIG,
-  useMixnetTrafficConfig,
-} from './context';
-import {
-  CONTINUOUS_LEVELS,
-  continuousTrafficValueToSlider,
-} from './ContinuousTrafficCard';
+import { useMixnetTrafficConfig } from './context';
 
 export function PerformanceCard() {
   const { t } = useTranslation('settings');
-  const { state } = useMixnetTrafficConfig();
+  const { state, continuousItems } = useMixnetTrafficConfig();
 
-  const speed =
-    CONTINUOUS_LEVELS[
-      continuousTrafficValueToSlider(
-        state.messageSendingAverageDelay ??
-          DEFAULT_MIXNET_TRAFFIC_CONFIG.messageSendingAverageDelay!,
-      )
-    ].speed;
+  const speed = continuousItems.find(
+    (item) => item.value === state.messageSendingAverageDelay,
+  )?.label;
 
   const [privacy, setPrivacy] = useState(0);
 

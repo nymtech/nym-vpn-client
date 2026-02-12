@@ -12,6 +12,8 @@ export type Asn = { asn: string; name: string; type: AsnType };
 
 export type AsnType = 'other' | 'residential';
 
+export type BackgroundCoverTrafficRate = { value: number; multiplier: string };
+
 export type BridgeAddress = { listenAddr: string; remoteAddr: string };
 
 export type Cli = {
@@ -53,6 +55,11 @@ export type ConnectingState = {
   retryAttempt: number;
   entryGwId: string | null;
   exitGwId: string | null;
+};
+
+export type ContinuousTrafficSendingRate = {
+  value: number;
+  throughput: string;
 };
 
 export type Country = { name: string; code: string };
@@ -167,6 +174,12 @@ export type Location = {
   region: string;
 };
 
+export type MixingDelay = {
+  minValue: number;
+  maxValue: number;
+  defaultValue: number;
+};
+
 export type MixnetData = {
   nymAddress: Address;
   exitIpr: Address;
@@ -198,6 +211,15 @@ export type MixnetTrafficConfig = {
   disableBackgroundCoverTraffic: boolean;
   minMixnodePerformance: number | null;
   minGatewayMixnetPerformance: number | null;
+};
+
+export type MixnetTrafficDefaults = {
+  mixingDelay: MixingDelay;
+  disablePoissonRate: boolean;
+  defaultBackgroundTraffic: BackgroundCoverTrafficRate;
+  defaultContinuousTraffic: ContinuousTrafficSendingRate;
+  allBackgroundTraffic: Array<BackgroundCoverTrafficRate>;
+  allContinuousTraffic: Array<ContinuousTrafficSendingRate>;
 };
 
 export type NetworkCompat = { core: boolean | null; tauri: boolean | null };
@@ -378,6 +400,7 @@ export type VpndConfig = {
   residentialExit: boolean;
   enableLewesProtocol: boolean;
   mixnetTraffic: MixnetTrafficConfig;
+  mixnetTrafficDefaults: MixnetTrafficDefaults;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

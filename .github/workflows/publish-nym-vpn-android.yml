@@ -126,7 +126,7 @@ jobs:
         run: mkdir ${{ github.workspace }}/temp
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
@@ -240,7 +240,7 @@ jobs:
         run: mkdir ${{ github.workspace }}/temp
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
@@ -271,7 +271,7 @@ jobs:
             --key-pass 'pass:${{ env.SIGNING_KEY_PASSWORD }}'
 
       - name: Upload APKS artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: app-apks
           path: app-fdroid-release.apks
@@ -371,10 +371,18 @@ jobs:
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
       # === CROWDIN DOWNLOAD START ===
+      - name: Setup Node.js
+        if: ${{ inputs.build_type != 'debug' }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
       - name: Install Crowdin CLI
+        if: ${{ inputs.build_type != 'debug' }}
         run: npm install -g @crowdin/cli
 
       - name: Download translations
+        if: ${{ inputs.build_type != 'debug' }}
         env:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
@@ -388,7 +396,8 @@ jobs:
           crowdin download translations \
             --config crowdin-configs/android.yml \
             --project-id "$CROWDIN_PROJECT_ID" \
-            --token "$CROWDIN_PERSONAL_TOKEN"
+            --token "$CROWDIN_PERSONAL_TOKEN" \
+            -l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN
       # === CROWDIN DOWNLOAD END ===
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}

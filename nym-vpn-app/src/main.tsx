@@ -24,7 +24,6 @@ import 'dayjs/locale/ru';
 import 'dayjs/locale/tr';
 import 'dayjs/locale/uk';
 import 'dayjs/locale/zh';
-import { DEFAULT_MIXNET_TRAFFIC_CONFIG } from './screens/settings/mixnet-tuning/context';
 
 console.log('env', window._APP);
 
@@ -36,6 +35,28 @@ const defaultNoIpv6 = false;
 const defaultAllowLan = false;
 const defaultEnableLewesProtocol = false;
 const ErrorWindowLabel = 'error';
+const defaultMixnetTrafficConfig = {
+  poissonParameterForLoopCoverStream: null,
+  averagePacketDelay: null,
+  messageSendingAverageDelay: null,
+  disablePoissonRate: false,
+  disableBackgroundCoverTraffic: false,
+  minMixnodePerformance: null,
+  minGatewayMixnetPerformance: null,
+};
+
+const defaultMixnetTrafficDefaults = {
+  mixingDelay: {
+    minValue: 0,
+    maxValue: 0,
+    defaultValue: 0,
+  },
+  disablePoissonRate: false,
+  defaultBackgroundTraffic: { value: 0, multiplier: '' },
+  defaultContinuousTraffic: { value: 0, throughput: '' },
+  allBackgroundTraffic: [],
+  allContinuousTraffic: [],
+};
 
 if (!import.meta.env.DEV) {
   // In production env, disable right-click context menu
@@ -105,9 +126,9 @@ dayjs.extend(duration);
       config?.enableLewesProtocol !== undefined
         ? config.enableLewesProtocol
         : defaultEnableLewesProtocol,
-    mixnetTrafficConfig: config?.mixnetTraffic || {
-      ...DEFAULT_MIXNET_TRAFFIC_CONFIG,
-    },
+    mixnetTrafficConfig: config?.mixnetTraffic || defaultMixnetTrafficConfig,
+    mixnetTrafficDefaults:
+      config?.mixnetTrafficDefaults || defaultMixnetTrafficDefaults,
   };
   console.log('initial state:', initState);
 

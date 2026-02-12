@@ -22,7 +22,6 @@ import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.nymvpn.util.extensions.toUserAgent
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.connect.ConnectInitRequest
@@ -38,10 +37,6 @@ import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Backend manager over VpnServiceApi.
- * Owns state, binds service, handles events and restart flow.
- */
 @Singleton
 class ServiceBackedBackendManager @Inject constructor(
 	private val settingsRepository: SettingsRepository,
@@ -81,33 +76,19 @@ class ServiceBackedBackendManager @Inject constructor(
 					_state.update { s -> s.copy(isInitialized = true) }
 					return@launch
 				}
-
-			val env = settingsRepository.getEnvironment()
-			val initReq = ConnectInitRequest(
-				networkName = env.networkName(),
-				sentryMonitoringEnabled = settingsRepository.getSentryMonitoringEnabled(),
-				statisticsEnabled = settingsRepository.getStatisticsEnabled(),
-				enableDebugLog = settingsRepository.getLogsDebugEnabled(),
-				userAgent = context.toUserAgent(),
-				mixnetParamConfig = settingsRepository.getMixnetTrafficConfig(),
-			)
-
-			runCatching { api.init(initReq) }
-				.onFailure { Timber.tag(TAG).e(it, "Core init failed") }
+			runCatching {
+				val initReq = buildInitRequest()
+				api.init(initReq)
+			}.onFailure { Timber.tag(TAG).e(it, "Core init failed") }
 
 			runCatching { vpnConfigRepository.getConfig() }
 				.onFailure { Timber.tag(TAG).e(it, "vpnConfigRepository.refresh failed") }
 
-			val mnemonicStored = runCatching { api.isMnemonicStored() }.getOrDefault(false)
-			val deviceId = if (mnemonicStored) runCatching { api.getDeviceIdentity() }.getOrNull() else null
-			val accountId = if (mnemonicStored) runCatching { api.getAccountIdentity() }.getOrNull() else null
+			refreshIdentityState()
 
 			_state.update {
 				it.copy(
 					isInitialized = true,
-					isMnemonicStored = mnemonicStored,
-					deviceId = deviceId,
-					accountId = accountId,
 					isNetworkCompatible = true,
 				)
 			}
@@ -116,13 +97,17 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun startTunnel() {
 		val restrictedApps = getRestrictedAppsPackages()
+		val initReq = buildInitRequest()
 
 		val res = serviceConnectionManager.withApi { api ->
 			runCatching {
 				api.applyUpdates(listOf(CoreVpnConfigUpdate.SetRestrictedApps(restrictedApps)))
 			}.onFailure { t ->
-				Timber.tag(TAG).w(t, "apply restricted apps failed (non-fatal)")
+				Timber.tag(TAG).w(t, "apply restricted apps failed")
 			}
+
+			runCatching { api.init(initReq) }
+				.onFailure { t -> Timber.tag(TAG).w(t, "Auto-init before connect failed") }
 
 			api.connect()
 		}
@@ -133,6 +118,18 @@ class ServiceBackedBackendManager @Inject constructor(
 			is ConnectResult.Failed -> Timber.tag(TAG).e("StartTunnelFailed %s", res.message)
 			is ConnectResult.NotReady -> Timber.tag(TAG).w("StartTunnelNotReady")
 		}
+	}
+
+	private suspend fun buildInitRequest(): ConnectInitRequest {
+		val mixnetParamConfig = getFeatureFlags()?.let {
+			it.isMixnetTuningEnabled()?.let {
+				settingsRepository.getMixnetTrafficConfig()
+			}
+		}
+
+		return ConnectInitRequest(
+			mixnetParamConfig = mixnetParamConfig,
+		)
 	}
 
 	override suspend fun stopTunnel() {
@@ -214,13 +211,16 @@ class ServiceBackedBackendManager @Inject constructor(
 			locale = Locale.getDefault().language.lowercase(),
 			kind = kind,
 			name = "default",
-
 		)
 		return serviceConnectionManager.withApi { it.getDeeplink(params = params) }
 	}
 
 	override suspend fun storeDeeplinkAccount(url: String) {
-		serviceConnectionManager.withApi { it.storeDeeplinkAccount(url = url) }
+		runCatching {
+			serviceConnectionManager.withApi { it.storeDeeplinkAccount(url = url) }
+		}.onFailure {
+			Timber.tag(TAG).e(it, "Failed to store deeplink account")
+		}
 		refreshIdentityState()
 	}
 
@@ -261,11 +261,20 @@ class ServiceBackedBackendManager @Inject constructor(
 			null
 		}
 
+		val accountState = if (mnemonicStored) {
+			runCatching {
+				serviceConnectionManager.withApi { it.getAccountState() }
+			}.getOrNull()
+		} else {
+			null
+		}
+
 		_state.update {
 			it.copy(
 				isMnemonicStored = mnemonicStored,
 				deviceId = deviceId,
 				accountId = accountId,
+				accountState = accountState ?: it.accountState,
 			)
 		}
 	}

@@ -6,40 +6,7 @@ use ts_rs::TS;
 use crate::state::app::VpnMode;
 use crate::vpnd::node::Node;
 
-#[derive(Serialize, Deserialize, Debug, Clone, TS)]
-#[serde(rename_all = "camelCase")]
-#[ts(export, export_to = "tauri.ts")]
-pub struct MixnetTrafficConfig {
-    pub poisson_parameter_for_loop_cover_stream: Option<u32>,
-    pub average_packet_delay: Option<u32>,
-    pub message_sending_average_delay: Option<u32>,
-    pub disable_poisson_rate: bool,
-    pub disable_background_cover_traffic: bool,
-    pub min_mixnode_performance: Option<u8>,
-    pub min_gateway_mixnet_performance: Option<u8>,
-}
-
-macro_rules! impl_mixnet_traffic_config_conversion {
-    ($from:ty => $to:ty) => {
-        impl From<$from> for $to {
-            fn from(value: $from) -> Self {
-                Self {
-                    poisson_parameter_for_loop_cover_stream: value
-                        .poisson_parameter_for_loop_cover_stream,
-                    average_packet_delay: value.average_packet_delay,
-                    message_sending_average_delay: value.message_sending_average_delay,
-                    disable_poisson_rate: value.disable_poisson_rate,
-                    disable_background_cover_traffic: value.disable_background_cover_traffic,
-                    min_mixnode_performance: value.min_mixnode_performance,
-                    min_gateway_mixnet_performance: value.min_gateway_mixnet_performance,
-                }
-            }
-        }
-    };
-}
-
-impl_mixnet_traffic_config_conversion!(lib::MixnetTrafficConfig => MixnetTrafficConfig);
-impl_mixnet_traffic_config_conversion!(MixnetTrafficConfig => lib::MixnetTrafficConfig);
+use super::mixnet_config::{MixnetTrafficConfig, MixnetTrafficDefaults};
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "camelCase")]
@@ -58,6 +25,7 @@ pub struct VpndConfig {
     pub residential_exit: bool,
     pub enable_lewes_protocol: bool,
     pub mixnet_traffic: MixnetTrafficConfig,
+    pub mixnet_traffic_defaults: MixnetTrafficDefaults,
 }
 
 impl VpndConfig {
@@ -82,6 +50,7 @@ impl VpndConfig {
             residential_exit: config.residential_exit,
             enable_lewes_protocol: config.enable_lewes_protocol,
             mixnet_traffic: config.mixnet_traffic.into(),
+            mixnet_traffic_defaults: MixnetTrafficDefaults::get(),
         })
     }
 }

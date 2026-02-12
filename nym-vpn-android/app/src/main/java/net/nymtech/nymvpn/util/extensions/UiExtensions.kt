@@ -132,29 +132,37 @@ fun NavController.safePopBackStack() {
 }
 
 fun ErrorStateReason.toUserMessage(context: Context): String {
-	return when (val error = this) {
+	return when (this) {
 		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.error_same_entry_exit)
+
 		ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.error_invalid_entry_gateway_country)
 		ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.error_invalid_exit_gateway_country)
+
 		ErrorStateReason.BandwidthExceeded -> context.getString(R.string.bandwidth_error)
-		is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error) + " ${error.v1}"
 		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_error)
 		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.device_time_out_of_sync)
 		ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.error_ipv6_unavailable)
-		is ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_active_plan)
 		ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_device_logged_out)
 		ErrorStateReason.InactiveAccount -> context.getString(R.string.error_inactive_account)
+
 		ErrorStateReason.SetDns -> context.getString(R.string.error_set_dns)
 		ErrorStateReason.SetFirewallPolicy -> context.getString(R.string.error_set_firewall_policy)
 		ErrorStateReason.SetRouting -> context.getString(R.string.error_set_routing)
 		ErrorStateReason.TunDevice -> context.getString(R.string.error_tun_device)
 		ErrorStateReason.TunnelProvider -> context.getString(R.string.error_tunnel_provider)
+
+		ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_active_plan)
+
 		ErrorStateReason.CredentialWastedOnEntryGateway -> context.getString(R.string.error_bandwidth_entry)
 		ErrorStateReason.CredentialWastedOnExitGateway -> context.getString(R.string.error_bandwidth_exit)
+
 		ErrorStateReason.PerformantEntryGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_entry)
 		ErrorStateReason.PerformantExitGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_exit)
+
 		ErrorStateReason.InvalidEntryGatewayIdentity -> context.getString(R.string.error_invalid_entry_gateway_identity)
 		ErrorStateReason.InvalidExitGatewayIdentity -> context.getString(R.string.error_invalid_exit_gateway_identity)
+
+		is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error, this.v1)
 	}
 }
 

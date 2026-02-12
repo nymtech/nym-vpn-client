@@ -77,7 +77,7 @@ jobs:
             ${{ runner.os }}-cargo-build-
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: wireguard-go_apple_universal
           path: build/lib/universal-apple-darwin

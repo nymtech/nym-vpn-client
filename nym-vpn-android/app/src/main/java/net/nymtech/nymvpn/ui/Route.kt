@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui
 
 import kotlinx.serialization.Serializable
+import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingMode
 
 sealed class Route {
 	@Serializable
@@ -73,7 +74,7 @@ sealed class Route {
 	data object SelectPlan : Route()
 
 	@Serializable
-	data object Generating : Route()
+	data class Generating(val mode: String = GeneratingMode.CreateAccount.name) : Route()
 
 	@Serializable
 	data class Payment(val productId: String) : Route()

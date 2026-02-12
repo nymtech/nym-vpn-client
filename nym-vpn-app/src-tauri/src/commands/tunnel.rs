@@ -5,7 +5,7 @@ use crate::{
     state::{SharedAppState, app::VpnMode},
     vpnd::{
         client::{Node, VpndClient, VpndError},
-        config::{MixnetTrafficConfig, VpndConfig},
+        config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
         tunnel::{ConnectingState, TunnelState},
     },
 };
@@ -58,6 +58,7 @@ pub async fn connect(
         info!("QUIC mode: {}", config.bridges);
         info!("allow LAN: {}", config.allow_lan);
         info!("no IPv6: {}", config.disable_ipv6);
+        info!("mixnet traffic config: {:?}", config.mixnet_traffic);
     } else {
         warn!("no vpnd config available");
     }
@@ -216,4 +217,10 @@ pub async fn set_mixnet_traffic_config(
 pub async fn calculate_traffic_latency(config: MixnetTrafficConfig) -> Result<f64, BackendError> {
     let lib_config: nym_vpn_lib_types::MixnetTrafficConfig = config.into();
     Ok(lib_config.calculate_traffic_latency())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_mixnet_traffic_defaults() -> Result<MixnetTrafficDefaults, BackendError> {
+    Ok(MixnetTrafficDefaults::get())
 }

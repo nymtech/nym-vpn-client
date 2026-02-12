@@ -7,7 +7,7 @@ use std::{
 };
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use nym_registration_common::GatewayData;
+use nym_registration_common::WireguardConfiguration;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
 use nym_wg_go::{
@@ -48,7 +48,7 @@ pub struct WgInterface {
     pub fwmark: Option<u32>,
 
     /// Amnezia Configuration
-    pub azwg_config: Option<nym_wg_go::amnezia::AmneziaConfig>,
+    pub azwg_config: Option<AmneziaConfig>,
 }
 
 impl fmt::Debug for WgInterface {
@@ -163,8 +163,8 @@ impl WgNodeConfig {
 }
 
 impl WgNodeConfig {
-    pub fn with_gateway_data(
-        gateway_data: GatewayData,
+    pub fn with_wireguard_config(
+        wireguard_config: WireguardConfiguration,
         private_key: &nym_crypto::asymmetric::encryption::PrivateKey,
         allowed_ips: AllowedIps,
         dns: Vec<IpAddr>,
@@ -176,8 +176,8 @@ impl WgNodeConfig {
                 listen_port: None,
                 private_key: PrivateKey::from(private_key.to_bytes()),
                 addresses: vec![
-                    IpNetwork::V4(Ipv4Network::from(gateway_data.private_ipv4)),
-                    IpNetwork::V6(Ipv6Network::from(gateway_data.private_ipv6)),
+                    IpNetwork::V4(Ipv4Network::from(wireguard_config.private_ipv4)),
+                    IpNetwork::V6(Ipv6Network::from(wireguard_config.private_ipv6)),
                 ],
                 dns,
                 mtu,
@@ -186,8 +186,8 @@ impl WgNodeConfig {
                 azwg_config: Some(AmneziaConfig::OFF),
             },
             peer: WgPeer {
-                public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
-                endpoint: gateway_data.endpoint,
+                public_key: PublicKey::from(*wireguard_config.public_key.as_bytes()),
+                endpoint: wireguard_config.endpoint,
             },
             allowed_ips,
         }

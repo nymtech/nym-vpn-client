@@ -1,10 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::{sync::Arc, time::Duration};
 
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
@@ -12,7 +9,7 @@ use nym_http_api_client::{
     ApiClient, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url, UserAgent,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use time::{Duration as TimeDuration, OffsetDateTime};
+use time::OffsetDateTime;
 use tokio::sync::RwLock;
 
 use crate::{
@@ -34,9 +31,9 @@ use crate::{
         NymVpnZkNymPost, NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
+    skew_manager::{RemoteTimeProvider, SkewManager},
     types::{
         Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform, VpnAccount, VpnApiTime,
-        VpnApiTimeSynced,
     },
 };
 
@@ -45,54 +42,12 @@ pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(30);
 
-// Number of retries for remote time synchronization (not including the initial attempt)
-const REMOTE_TIME_MAX_RETRIES: u8 = 2;
-
-// Wait delay between retries for remote time synchronization
-const REMOTE_TIME_WAIT_DELAY: Duration = Duration::from_secs(1);
-
-const SKEW_CACHE_TTL: Duration = Duration::from_secs(4 * 60 * 60); // 4 hours
-
-#[derive(Debug)]
-struct SkewState {
-    skew: TimeDuration,
-    expires_at: Instant,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum SkewStatus {
-    Expired(),
-    Valid(TimeDuration),
-}
-
-impl SkewState {
-    fn new(skew: TimeDuration, now: Instant) -> Self {
-        Self {
-            skew,
-            expires_at: now + SKEW_CACHE_TTL,
-        }
-    }
-
-    fn update(&mut self, skew: TimeDuration, now: Instant) {
-        self.skew = skew;
-        self.expires_at = now + SKEW_CACHE_TTL;
-    }
-
-    fn status(&self, now: Instant) -> SkewStatus {
-        if self.expires_at > now {
-            SkewStatus::Valid(self.skew)
-        } else {
-            SkewStatus::Expired()
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: Client,
     urls: Vec<Url>,
     user_agent: Option<UserAgent>,
-    skew_state: Arc<RwLock<Option<SkewState>>>,
+    skew_manager: Arc<RwLock<SkewManager>>,
 }
 
 impl VpnApiClient {
@@ -108,11 +63,13 @@ impl VpnApiClient {
             resolver_overrides,
         )?;
 
+        let time_provider = VpnApiRemoteTimeProvider::new(inner.clone());
+
         Ok(Self {
             inner,
             urls,
             user_agent,
-            skew_state: Arc::new(RwLock::new(None)),
+            skew_manager: Arc::new(RwLock::new(SkewManager::new(time_provider))),
         })
     }
 
@@ -139,11 +96,13 @@ impl VpnApiClient {
             resolver_overrides,
         )?;
 
+        let time_provider = VpnApiRemoteTimeProvider::new(inner.clone());
+
         Ok(Self {
             inner,
             urls,
             user_agent,
-            skew_state: Arc::new(RwLock::new(None)),
+            skew_manager: Arc::new(RwLock::new(SkewManager::new(time_provider))),
         })
     }
 
@@ -170,119 +129,7 @@ impl VpnApiClient {
     }
 
     pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
-        let mut last_error: Option<VpnApiClientError> = None;
-
-        for retry in 0..=REMOTE_TIME_MAX_RETRIES {
-            let time_before = OffsetDateTime::now_utc();
-            match self.get_health_no_retry().await {
-                Ok(res) => {
-                    let remote_timestamp = res.timestamp_utc;
-                    let time_after = OffsetDateTime::now_utc();
-                    let request_time = time_after - time_before;
-
-                    // Detect sleep or time travel and retry the request
-                    if request_time.is_negative() {
-                        tracing::warn!(
-                            "Request time is negative. Time traveling? ({}/{REMOTE_TIME_MAX_RETRIES})",
-                            retry + 1
-                        );
-                        tokio::time::sleep(REMOTE_TIME_WAIT_DELAY).await;
-                    } else if request_time > NYM_VPN_API_TIMEOUT {
-                        tracing::warn!(
-                            "Request time exceeds the timeout. Device fell asleep? ({}/{REMOTE_TIME_MAX_RETRIES})",
-                            retry + 1
-                        );
-                        tokio::time::sleep(REMOTE_TIME_WAIT_DELAY).await;
-                    } else {
-                        return Ok(VpnApiTime::from_remote_timestamp(
-                            time_before,
-                            remote_timestamp,
-                            time_after,
-                        ));
-                    }
-                }
-                Err(err) => {
-                    last_error = Some(err);
-                }
-            }
-        }
-        Err(last_error.unwrap_or(VpnApiClientError::TimeTravelTooMuch))
-    }
-
-    fn use_remote_time(remote_time: VpnApiTime) -> bool {
-        match remote_time.is_synced() {
-            VpnApiTimeSynced::AlmostSame => {
-                tracing::debug!("{remote_time}");
-                false
-            }
-            VpnApiTimeSynced::AcceptableSynced => {
-                tracing::info!("{remote_time}");
-                false
-            }
-            VpnApiTimeSynced::NotSynced => {
-                tracing::warn!(
-                    "The time skew between the local and remote time is too large, we'll use remote instead for JWT ({remote_time})."
-                );
-                true
-            }
-        }
-    }
-
-    async fn refresh_skew(&self) -> Result<VpnApiTime> {
-        let remote_time = self.get_remote_time().await?;
-        let skew = remote_time.local_time_ahead_skew();
-        let now = Instant::now();
-
-        {
-            let mut skew_state = self.skew_state.write().await;
-            match skew_state.as_mut() {
-                Some(state) => state.update(skew, now),
-                None => *skew_state = Some(SkewState::new(skew, now)),
-            }
-        }
-
-        tracing::debug!(skew = ?skew, "Refreshed VPN API time skew");
-
-        Ok(remote_time)
-    }
-
-    async fn current_remote_time(&self) -> Result<Option<VpnApiTime>> {
-        let now = Instant::now();
-        let status = {
-            let state = self.skew_state.read().await;
-            state.as_ref().map(|state| state.status(now))
-        };
-
-        let cached_remote_time = match status {
-            Some(SkewStatus::Valid(skew)) => {
-                tracing::debug!("Valid VPN API time skew");
-                let local_time = OffsetDateTime::now_utc();
-                let estimated_remote_time = local_time - skew;
-
-                VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time)
-            }
-            Some(SkewStatus::Expired()) | None => {
-                tracing::debug!("VPN API time skew expired or not present, refreshing");
-
-                self.refresh_skew().await?
-            }
-        };
-
-        Ok(if Self::use_remote_time(cached_remote_time) {
-            Some(cached_remote_time)
-        } else {
-            None
-        })
-    }
-
-    async fn sync_with_remote_time(&self) -> Result<Option<VpnApiTime>> {
-        let remote_time = self.refresh_skew().await?;
-
-        if Self::use_remote_time(remote_time) {
-            Ok(Some(remote_time))
-        } else {
-            Ok(None)
-        }
+        self.skew_manager.write().await.get_remote_time().await
     }
 
     async fn get_query<T>(
@@ -320,13 +167,19 @@ impl VpnApiClient {
     where
         T: DeserializeOwned,
     {
-        let jwt = self.current_remote_time().await.unwrap_or_else(|err| {
-            tracing::debug!(
-                error = %err,
-                "Failed to determine cached remote time"
-            );
-            None
-        });
+        let jwt = self
+            .skew_manager
+            .write()
+            .await
+            .current_remote_time()
+            .await
+            .unwrap_or_else(|err| {
+                tracing::debug!(
+                    error = %err,
+                    "Failed to determine cached remote time"
+                );
+                None
+            });
 
         match self.get_query::<T>(path, account, device, jwt).await {
             Ok(response) => Ok(response),
@@ -337,9 +190,16 @@ impl VpnApiClient {
                     tracing::warn!(
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
-                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
-                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
-                    }) {
+                    if let Ok(Some(jwt)) = self
+                        .skew_manager
+                        .write()
+                        .await
+                        .sync_with_remote_time()
+                        .await
+                        .inspect_err(|err| {
+                            tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                        })
+                    {
                         // retry with remote vpn api time, and return that only if it succeeds,
                         // otherwise return the initial error
                         let res = self.get_query(path, account, device, Some(jwt)).await;
@@ -398,7 +258,7 @@ impl VpnApiClient {
                     tracing::info!("Response: {:#?}", response_text);
 
                     Err(HttpClientError::EndpointFailure {
-                        url,
+                        url: Box::new(url),
                         status,
                         headers: Box::new(headers),
                         error: response_text,
@@ -406,7 +266,7 @@ impl VpnApiClient {
                 }
             }
             Err(err) => Err(HttpClientError::RequestFailure {
-                url,
+                url: Box::new(url),
                 status,
                 headers: Box::new(headers),
             }),
@@ -494,13 +354,19 @@ impl VpnApiClient {
         T: DeserializeOwned,
         B: Serialize,
     {
-        let jwt = self.current_remote_time().await.unwrap_or_else(|err| {
-            tracing::debug!(
-                error = %err,
-                "Failed to determine cached remote time"
-            );
-            None
-        });
+        let jwt = self
+            .skew_manager
+            .write()
+            .await
+            .current_remote_time()
+            .await
+            .unwrap_or_else(|err| {
+                tracing::debug!(
+                    error = %err,
+                    "Failed to determine cached remote time"
+                );
+                None
+            });
 
         match self
             .post_query::<T, B>(path, json_body, account, device, jwt)
@@ -514,9 +380,18 @@ impl VpnApiClient {
                     tracing::warn!(
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
-                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
-                        tracing::error!("Failed to get remote time: {err}. Not retrying anymore")
-                    }) {
+                    if let Ok(Some(jwt)) = self
+                        .skew_manager
+                        .write()
+                        .await
+                        .sync_with_remote_time()
+                        .await
+                        .inspect_err(|err| {
+                            tracing::error!(
+                                "Failed to get remote time: {err}. Not retrying anymore"
+                            )
+                        })
+                    {
                         // retry with remote vpn api time, and return that only if it succeeds,
                         // otherwise return the initial error
                         let res = self
@@ -576,9 +451,16 @@ impl VpnApiClient {
                     tracing::warn!(
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
-                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
-                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
-                    }) {
+                    if let Ok(Some(jwt)) = self
+                        .skew_manager
+                        .write()
+                        .await
+                        .sync_with_remote_time()
+                        .await
+                        .inspect_err(|err| {
+                            tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                        })
+                    {
                         // retry with remote vpn api time, and return that only if it succeeds,
                         // otherwise return the initial error
                         let res = self.delete_query(path, account, device, Some(jwt)).await;
@@ -643,9 +525,16 @@ impl VpnApiClient {
                     tracing::warn!(
                         "Encountered possible JWT error: {error}. Retrying query with remote time"
                     );
-                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
-                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
-                    }) {
+                    if let Ok(Some(jwt)) = self
+                        .skew_manager
+                        .write()
+                        .await
+                        .sync_with_remote_time()
+                        .await
+                        .inspect_err(|err| {
+                            tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                        })
+                    {
                         // retry with remote vpn api time, and return that only if it succeeds,
                         // otherwise return the initial error
                         let res = self
@@ -737,14 +626,6 @@ impl VpnApiClient {
 
     pub async fn get_health(&self) -> Result<NymVpnHealthResponse> {
         self.get_json_with_retry(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
-            .await
-            .map_err(Box::new)
-            .map_err(VpnApiClientError::GetHealth)
-    }
-
-    pub async fn get_health_no_retry(&self) -> Result<NymVpnHealthResponse> {
-        self.inner
-            .get_json(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
             .await
             .map_err(Box::new)
             .map_err(VpnApiClientError::GetHealth)
@@ -1495,4 +1376,29 @@ impl VpnApiClient {
 
 fn jwt_error(error: &str) -> bool {
     error.to_lowercase().contains("jwt")
+}
+
+#[derive(Debug)]
+struct VpnApiRemoteTimeProvider {
+    inner: Client,
+}
+
+impl VpnApiRemoteTimeProvider {
+    pub fn new(inner: Client) -> Self {
+        Self { inner }
+    }
+}
+
+#[async_trait::async_trait]
+impl RemoteTimeProvider for VpnApiRemoteTimeProvider {
+    async fn request_remote_time(&self) -> Result<OffsetDateTime> {
+        let res: NymVpnHealthResponse = self
+            .inner
+            .get_json(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
+            .await
+            .map_err(Box::new)
+            .map_err(VpnApiClientError::GetHealth)?;
+
+        Ok(res.timestamp_utc)
+    }
 }

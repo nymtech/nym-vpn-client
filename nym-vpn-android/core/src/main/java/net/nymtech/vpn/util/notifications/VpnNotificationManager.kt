@@ -19,6 +19,7 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.SingletonHolder
 import net.nymtech.vpn.util.extensions.toDisplayCountry
+import net.nymtech.vpn.util.extensions.toHumanReadableString
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 
@@ -204,6 +205,7 @@ internal class VpnNotificationManager private constructor(
 		Tunnel.State.Up -> context.getString(R.string.state_connected)
 		Tunnel.State.InitializingClient -> context.getString(R.string.state_initializing)
 		Tunnel.State.EstablishingConnection -> context.getString(R.string.state_establishing)
+		is Tunnel.State.Error -> this.reason.toHumanReadableString(context)
 		else -> toString()
 	}
 }

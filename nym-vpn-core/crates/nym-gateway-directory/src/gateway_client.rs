@@ -10,7 +10,7 @@ use std::{
 use nym_network_defaults::ApiUrl;
 use nym_sdk::UserAgent;
 use nym_validator_client::{
-    models::NymNodeDescription, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
+    models::NymNodeDescriptionV1, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::{
     ResolverOverrides, api_urls_to_urls, fronted_http_client,
@@ -240,7 +240,7 @@ impl GatewayClient {
             .and_then(|min_performance| min_performance.vpn_min_performance)
     }
 
-    async fn lookup_described_nodes(&self) -> Result<Vec<NymNodeDescription>> {
+    async fn lookup_described_nodes(&self) -> Result<Vec<NymNodeDescriptionV1>> {
         debug!("Fetching all described nodes from nym-api...");
         self.api_client
             .get_all_described_nodes()
