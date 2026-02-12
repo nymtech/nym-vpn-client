@@ -72,22 +72,42 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 
 @Composable
 fun GeneratingContent(mode: GeneratingMode, onAnimationEnd: () -> Unit) {
-	if (mode == GeneratingMode.DeepLinkLogin) {
-		SimpleLoadingScreen(
-			title = stringResource(R.string.account_generating_deeplink_title),
-			description = stringResource(R.string.account_generating_deeplink_description),
-		)
-	} else {
-		AccountCreationAnimationScreen(onAnimationEnd)
+	var step by remember { mutableIntStateOf(0) }
+	val isDeepLink = mode == GeneratingMode.DeepLinkLogin
+
+	LaunchedEffect(isDeepLink) {
+		if (!isDeepLink) {
+			delay(3000)
+			step = 1
+			delay(3000)
+			step = 2
+			delay(3000)
+			onAnimationEnd()
+		}
 	}
+
+	val (titleRes, descRes) = when {
+		isDeepLink -> R.string.account_generating_deeplink_title to R.string.account_generating_deeplink_description
+		step == 0 -> R.string.account_generating_title_1 to R.string.account_generating_description_1
+		step == 1 -> R.string.account_generating_title_2 to R.string.account_generating_description_2
+		else -> R.string.account_generating_title_3 to R.string.account_generating_description_3
+	}
+
+	GeneratingBaseLayout(
+		title = stringResource(titleRes),
+		description = stringResource(descRes),
+		topContent = if (!isDeepLink) {
+			{ StepProgressBar(step = step) }
+		} else {
+			null
+		},
+	)
 }
 
 @Composable
-private fun GeneratingBaseLayout(
-	title: String,
-	description: String,
-	topContent: @Composable (() -> Unit)? = null
-) {
+private fun GeneratingBaseLayout(title: String, description: String, topContent: @Composable (() -> Unit)? = null) {
+	val labGrotesque = FontFamily(Font(R.font.lab_grotesque_regular))
+
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
@@ -125,7 +145,7 @@ private fun GeneratingBaseLayout(
 				style = Typography.titleMedium,
 				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier.padding(top = 24.dp),
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				fontFamily = labGrotesque,
 			)
 
 			Text(
@@ -134,63 +154,38 @@ private fun GeneratingBaseLayout(
 				textAlign = TextAlign.Center,
 				modifier = Modifier.padding(top = 8.dp, start = 32.dp, end = 32.dp),
 				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				fontFamily = labGrotesque,
 			)
 		}
 	}
 }
 
 @Composable
-fun SimpleLoadingScreen(title: String, description: String) {
-	GeneratingBaseLayout(title = title, description = description)
-}
-
-@Composable
-fun AccountCreationAnimationScreen(onAnimationEnd: () -> Unit) {
-	var step by remember { mutableIntStateOf(0) }
-
-	LaunchedEffect(Unit) {
-		delay(3000)
-		step = 1
-		delay(3000)
-		step = 2
-		delay(3000)
-		onAnimationEnd()
-	}
-
-	val (titleRes, textRes) = when (step) {
-		0 -> R.string.account_generating_title_1 to R.string.account_generating_description_1
-		1 -> R.string.account_generating_title_2 to R.string.account_generating_description_2
-		else -> R.string.account_generating_title_3 to R.string.account_generating_description_3
-	}
-
-	GeneratingBaseLayout(
-		title = stringResource(titleRes),
-		description = stringResource(textRes),
-		topContent = {
-			Row(
+private fun StepProgressBar(step: Int) {
+	Row(
+		modifier = Modifier
+			.padding(horizontal = 16.dp)
+			.fillMaxWidth()
+			.height(4.dp),
+		horizontalArrangement = Arrangement.spacedBy(4.dp),
+	) {
+		repeat(4) { index ->
+			val isFilled = index < 3 && step >= index
+			Box(
 				modifier = Modifier
-					.padding(horizontal = 16.dp)
-					.fillMaxWidth()
-					.height(4.dp),
-				horizontalArrangement = Arrangement.spacedBy(4.dp),
-			) {
-				repeat(4) { index ->
-					val isFilled = index < 3 && step >= index
-					Box(
-						modifier = Modifier
-							.weight(1f)
-							.fillMaxHeight()
-							.background(
-								color = if (isFilled) MaterialTheme.colorScheme.primary
-								else MaterialTheme.colorScheme.surfaceContainer,
-								shape = RoundedCornerShape(4.dp),
-							),
-					)
-				}
-			}
+					.weight(1f)
+					.fillMaxHeight()
+					.background(
+						color = if (isFilled) {
+							MaterialTheme.colorScheme.primary
+						} else {
+							MaterialTheme.colorScheme.surfaceContainer
+						},
+						shape = RoundedCornerShape(4.dp),
+					),
+			)
 		}
-	)
+	}
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
