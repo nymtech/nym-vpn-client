@@ -179,15 +179,15 @@ function Account() {
           },
           ...(backendFlags.privy && linkable
             ? [
-              {
-                title: t('account.account-on-nym'),
-                desc: t('account.account-link-social-description'),
-                leadingIcon: isAccountLinking ? undefined : 'person',
-                leadingComponent: isAccountLinking ? <Spinner /> : undefined,
-                trailingIcon: 'open_in_new',
-                onClick: handleAccountLink,
-              },
-            ]
+                {
+                  title: t('account.account-on-nym'),
+                  desc: t('account.account-link-social-description'),
+                  leadingIcon: isAccountLinking ? undefined : 'person',
+                  leadingComponent: isAccountLinking ? <Spinner /> : undefined,
+                  trailingIcon: 'open_in_new',
+                  onClick: handleAccountLink,
+                },
+              ]
             : []),
         ]}
       />
