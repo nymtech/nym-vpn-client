@@ -170,8 +170,7 @@ function Account() {
               <span
                 className={clsx(getAccountColor(accountSyncing, accountState))}
               >
-                {getAccountDescription(t, accountSyncing, accountState) ??
-                  t('account.account-link-social-description')}
+                {getAccountDescription(t, accountSyncing, accountState)}
               </span>
             ),
             leadingIcon: 'event_repeat',
