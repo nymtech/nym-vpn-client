@@ -271,6 +271,7 @@ pub struct VpnAccountSummary {
     pub traffic_reset_time: Option<OffsetDateTime>,
 }
 
+// Non-exported methods
 impl VpnAccountSummary {
     pub fn new(
         subscription_expiry_time: Option<String>,
@@ -296,6 +297,18 @@ impl VpnAccountSummary {
             traffic_limit_gb,
             traffic_reset_time,
         })
+    }
+}
+
+// Exported methods
+#[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
+#[allow(unused)]
+impl VpnAccountSummary {
+    /// Returns true if subscription is active
+    pub fn is_subscription_active(&self) -> bool {
+        self.subscription_valid_until
+            .map(|time| time > OffsetDateTime::now_utc())
+            .unwrap_or(false)
     }
 
     pub fn fair_usage_left(&self) -> bool {

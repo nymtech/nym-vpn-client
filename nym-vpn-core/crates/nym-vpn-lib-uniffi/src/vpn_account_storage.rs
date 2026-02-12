@@ -14,6 +14,7 @@ use nym_vpn_api_client::{
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     DeeplinkKind, ParsedAccountLinks, RegisterAccountResponse, StoreAccountRequest,
+    VpnAccountSummary,
 };
 use nym_vpn_store::{
     account::AccountInformationStorage,
@@ -263,6 +264,45 @@ impl NymVpnAccountStorage {
                 Ok(response.canonical_account_addr)
             }
         }
+    }
+
+    /// Get a summary of account usage
+    pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
+        let Some(account) = self
+            .storage
+            .load_account()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+        else {
+            return Ok(None);
+        };
+
+        let vpn_account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+
+        let device = self.load_device().await?;
+
+        let vpn_api_client = self.create_vpn_api_client().await?;
+        let summary = vpn_api_client
+            .get_account_summary_with_device(&vpn_account, &device)
+            .await
+            .map_err(VpnError::internal)?;
+
+        let vpn_account_summary = VpnAccountSummary::new(
+            summary
+                .account_summary
+                .subscription
+                .active
+                .as_ref()
+                .map(|a| a.valid_until_utc.clone()),
+            summary.account_summary.fair_usage.usedGB,
+            summary.account_summary.fair_usage.limitGB,
+            summary.account_summary.fair_usage.resetsOnUtc.clone(),
+        )
+        .map_err(VpnError::internal)?;
+
+        Ok(Some(vpn_account_summary))
     }
 
     /// Get the type of account the user is logged in with
