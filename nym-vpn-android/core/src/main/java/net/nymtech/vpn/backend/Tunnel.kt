@@ -1,5 +1,7 @@
 package net.nymtech.vpn.backend
 
+import nym_vpn_lib_types.ErrorStateReason
+
 /**
  * VPN tunnel interface:
  * - lifecycle state
@@ -15,6 +17,7 @@ interface Tunnel {
 		data object EstablishingConnection : State()
 		data object Disconnecting : State()
 		data object Offline : State()
+		data class Error(val reason: ErrorStateReason) : State()
 	}
 
 	enum class Mode {

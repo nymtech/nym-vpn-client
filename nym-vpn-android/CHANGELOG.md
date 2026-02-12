@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support for account creation and registration in VpnService API (https://github.com/nymtech/nym-vpn-client/pull/4533)
 - Add Mixnet tuning UI and logic (https://github.com/nymtech/nym-vpn-client/pull/4555)
 - Add Privy account linking (https://github.com/nymtech/nym-vpn-client/pull/4571)
+- Add Error state for Tunnel (https://github.com/nymtech/nym-vpn-client/pull/4621)
 
 ### Changed
 - Refactor VPN service architecture (https://github.com/nymtech/nym-vpn-client/pull/4517)
@@ -21,11 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clean up locales (https://github.com/nymtech/nym-vpn-client/pull/4568)
 - Move translation download to build (https://github.com/nymtech/nym-vpn-client/pull/4568)
 - Update Account Info screen UI and logic (https://github.com/nymtech/nym-vpn-client/pull/4571)
+- Update notification status for Tunnel state (https://github.com/nymtech/nym-vpn-client/pull/4621)
+- Update UI for Connection state handling (https://github.com/nymtech/nym-vpn-client/pull/4621)
 
 ### Fixed
 - Fix fdsan crashes (https://github.com/nymtech/nym-vpn-client/pull/4533)
 - Fix Always-On VPN behavior on system restart (https://github.com/nymtech/nym-vpn-client/pull/4533)
 - Fix auth issue for Passphrase screen (https://github.com/nymtech/nym-vpn-client/pull/4556)
+- Fix deeplink handling issue (https://github.com/nymtech/nym-vpn-client/pull/4621)
 
 ## [2.8.0]
 

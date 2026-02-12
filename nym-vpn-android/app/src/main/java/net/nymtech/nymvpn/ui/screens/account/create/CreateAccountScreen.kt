@@ -74,10 +74,10 @@ fun CreateAccountScreen(appUiState: AppUiState, viewModel: CreateAccountViewMode
 				if (ui.hasActiveSubscription) {
 					showSubscriptionDialog = true
 				} else {
-					navController.replaceCurrentWith(Route.Generating)
+					navController.replaceCurrentWith(Route.Generating())
 				}
 			} else {
-				appUiState.managerState.accountLinks?.signUp?.let { context.openWebUrl(it) }
+				ui.signUpLink?.let { context.openWebUrl(it) }
 				navController.replaceCurrentWith(Route.Login)
 			}
 		},

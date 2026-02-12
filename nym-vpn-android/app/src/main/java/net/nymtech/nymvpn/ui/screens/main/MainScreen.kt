@@ -57,8 +57,6 @@ import net.nymtech.nymvpn.ui.common.snackbar.IconAction
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarAction
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.model.StateMessage.Error
-import net.nymtech.nymvpn.ui.model.StateMessage.StartError
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionButton
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
@@ -85,8 +83,7 @@ import nym_vpn_lib_types.ExitPoint
 fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState = remember(appUiState.managerState, appUiState.networkStatus) {
 		with(appUiState) {
-			val connectionState = when {
-				// Prevent "Connect" button during restart; offline takes precedence
+			val baseState = when {
 				managerState.isRestarting && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
 				managerState.isRestarting && managerState.tunnelState == Tunnel.State.Down -> ConnectionState.Disconnecting
 				managerState.isRestarting && managerState.tunnelState == Tunnel.State.InitializingClient ->
@@ -99,7 +96,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						managerState.tunnelState,
 						managerState.establishConnectionState,
 					)
-				managerState.tunnelState != Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
+				managerState.tunnelState !is Tunnel.State.Down && managerState.tunnelState !is Tunnel.State.Error && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
 				managerState.tunnelState == Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
 				else ->
 					ConnectionState.from(
@@ -107,15 +104,16 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						managerState.establishConnectionState,
 					)
 			}
-			val stateMessage = when (val event = managerState.backendUiEvent) {
-				is BackendUiEvent.BandwidthAlert, null -> connectionState.stateMessage
-				is BackendUiEvent.Failure -> Error(event.reason)
-				is BackendUiEvent.StartFailure -> StartError(event.exception)
+
+			val finalState = when (val event = managerState.backendUiEvent) {
+				is BackendUiEvent.BandwidthAlert, null -> baseState
+				is BackendUiEvent.Failure -> ConnectionState.Error(event.reason)
+				is BackendUiEvent.StartFailure -> ConnectionState.StartFailure(event.exception)
 			}
+
 			MainUiState(
 				connectionTime = managerState.connectionData?.connectedAt,
-				connectionState = connectionState,
-				stateMessage = stateMessage,
+				connectionState = finalState,
 			)
 		}
 	}
@@ -251,11 +249,6 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	}
 
 	LaunchedEffect(Unit) {
-// 		if (!appUiState.settings.isPerAppSecurityBannerDisplayed) {
-// 			showPerAppSecurityBanner = true
-// 		} else if (!appUiState.settings.isStreamingServerBannerDisplayed) {
-// 			showBanner = true
-// 		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 			requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
 		}
@@ -284,7 +277,6 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 			ConnectionStatus(
 				connectionState = uiState.connectionState,
 				vpnMode = appUiState.vpnConfig.mode,
-				stateMessage = uiState.stateMessage,
 				connectionTime = connectionTime,
 				theme = appUiState.settings.theme ?: Theme.AUTOMATIC,
 				isAppInForeground = isAppInForeground,
@@ -349,7 +341,6 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 				}
 				ConnectionButton(
 					connectionState = uiState.connectionState,
-					stateMessage = uiState.stateMessage,
 					isMnemonicStored = appUiState.managerState.isMnemonicStored,
 					onConnect = { onConnectPressed() },
 					onDisconnect = { onDisconnectPressed() },
