@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 use nix::sys::socket::{UnixCredentials, getsockopt, sockopt::PeerCredentials};
-use tokio::net::UnixStream;
+use tokio::{fs::File, io::AsyncWriteExt, net::UnixStream};
 use tokio_util::sync::CancellationToken;
 use zbus::Connection;
 use zbus_polkit::policykit1::{
@@ -16,11 +16,25 @@ use crate::{auth_result::AuthenticaticationResult, authentication::error::Authen
 const ACTION_ID: &str = "com.nymvpn.vpnd.unix-access";
 const CANCELLATION_ID: &str = "com.nymvpn.vpnd.cancel";
 const USER_INTERACTION_TIMEOUT: Duration = Duration::from_secs(60);
+const POLKIT_POLICY: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
+<policyconfig>
+  <action id="com.nymvpn.vpnd.unix-access">
+    <description>Connect via unix socket</description>
+    <message>Authentication is required to connect to the daemon</message>
+
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_self</allow_active>
+    </defaults>
+  </action>
+</policyconfig>
+"#;
 
 #[async_trait::async_trait]
 trait AuthorizationChecker {
-    async fn check_authorization(&self) -> Result<AuthorizationResult, zbus::Error>;
-    async fn cancel_check_authorization(&self) -> Result<(), zbus::Error>;
+    async fn check_authorization(&self) -> Result<AuthorizationResult, AuthenticationError>;
+    async fn cancel_check_authorization(&self) -> Result<(), AuthenticationError>;
 }
 
 #[async_trait::async_trait]
@@ -38,7 +52,24 @@ struct AuthProxy<'a> {
 
 #[async_trait::async_trait]
 impl AuthorizationChecker for AuthProxy<'_> {
-    async fn check_authorization(&self) -> Result<AuthorizationResult, zbus::Error> {
+    async fn check_authorization(&self) -> Result<AuthorizationResult, AuthenticationError> {
+        if !self
+            .proxy
+            .enumerate_actions("")
+            .await
+            .map_err(AuthenticationError::EnumerateActions)?
+            .iter()
+            .any(|action| action.action_id == ACTION_ID)
+        {
+            let mut file =
+                File::create(format!("/usr/share/polkit-1/actions/{}.policy", ACTION_ID))
+                    .await
+                    .map_err(AuthenticationError::CreateActionPolicy)?;
+            file.write_all(POLKIT_POLICY.as_bytes())
+                .await
+                .map_err(AuthenticationError::WriteActionPolicy)?;
+        }
+
         // details might be useful to set some locale-sensitive messages and icon images in the authentication dialog
         let details = std::collections::HashMap::new();
         self.proxy
@@ -50,9 +81,13 @@ impl AuthorizationChecker for AuthProxy<'_> {
                 CANCELLATION_ID,
             )
             .await
+            .map_err(AuthenticationError::CheckAuthorization)
     }
-    async fn cancel_check_authorization(&self) -> Result<(), zbus::Error> {
-        self.proxy.cancel_check_authorization(CANCELLATION_ID).await
+    async fn cancel_check_authorization(&self) -> Result<(), AuthenticationError> {
+        self.proxy
+            .cancel_check_authorization(CANCELLATION_ID)
+            .await
+            .map_err(AuthenticationError::CancelAuthorization)
     }
 }
 
@@ -114,11 +149,11 @@ async fn wait_for_authorization(
     tokio::select! {
         biased;
         auth_result = check_authorization_fut => {
-            auth_result.map_err(AuthenticationError::CheckAuthorization)
+            auth_result
         }
         _ = timeout => {
             tracing::warn!("User authorization timed out");
-            proxy.cancel_check_authorization().await.map_err(AuthenticationError::CancelAuthorization)?;
+            proxy.cancel_check_authorization().await?;
             Err(AuthenticationError::Timeout)
         }
         _ = shutdown_token.cancelled() => {
@@ -143,7 +178,7 @@ pub(crate) async fn is_authenticated(
 ) -> Result<UnixStream, AuthenticationError> {
     // Let debug builds skip authorization process
     // TODO: Disable feature gating once front-end prevents spamming
-    if cfg!(debug_assertions) || cfg!(not(feature = "authentication")) {
+    if cfg!(not(feature = "authentication")) {
         authorize(&mut stream).await;
         return Ok(stream);
     }
@@ -199,7 +234,7 @@ mod tests {
 
     #[async_trait::async_trait]
     impl AuthorizationChecker for &Arc<Mutex<MockProxy>> {
-        async fn check_authorization(&self) -> Result<AuthorizationResult, zbus::Error> {
+        async fn check_authorization(&self) -> Result<AuthorizationResult, AuthenticationError> {
             let mut inner = self.lock().await;
             inner.check_tried = true;
             inner.cancelled = false;
@@ -210,7 +245,7 @@ mod tests {
             })
         }
 
-        async fn cancel_check_authorization(&self) -> Result<(), zbus::Error> {
+        async fn cancel_check_authorization(&self) -> Result<(), AuthenticationError> {
             self.lock().await.cancelled = true;
             Ok(())
         }
