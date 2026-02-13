@@ -75,6 +75,9 @@ impl ConnectedState {
             // to establish direct connections to the exit gateway
             ws_endpoints.extend(selected_gateways.exit_gateway().endpoints());
 
+            #[cfg(target_os = "macos")]
+            let redirect_interface = _shared_state.split_tunnel.interface().await;
+
             ConnectedPolicyParameters {
                 enable_ipv6: _shared_state.tunnel_settings.enable_ipv6,
                 allow_lan: _shared_state.tunnel_settings.allow_lan,
@@ -82,6 +85,8 @@ impl ConnectedState {
                 ws_entry_endpoints: ws_endpoints,
                 dns_config: _shared_state.tunnel_settings.resolved_dns_config(),
                 tunnel_interface: tunnel_interface.clone(),
+                #[cfg(target_os = "macos")]
+                redirect_interface,
             }
         };
 
@@ -101,7 +106,7 @@ impl ConnectedState {
             trace_err_chain!(e, "failed to apply firewall policy");
             return DisconnectingState::enter(
                 PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
-                connected_state.tunnel_monitor_handle,
+                Some(connected_state.tunnel_monitor_handle),
                 _shared_state,
             )
             .await;
@@ -109,7 +114,7 @@ impl ConnectedState {
             trace_err_chain!(e, "failed to set dns");
             return DisconnectingState::enter(
                 PrivateActionAfterDisconnect::Error(ErrorStateReason::SetDns),
-                connected_state.tunnel_monitor_handle,
+                Some(connected_state.tunnel_monitor_handle),
                 _shared_state,
             )
             .await;
@@ -242,8 +247,12 @@ impl ConnectedState {
         }
 
         NextTunnelState::NewState(
-            DisconnectingState::enter(after_disconnect, self.tunnel_monitor_handle, shared_state)
-                .await,
+            DisconnectingState::enter(
+                after_disconnect,
+                Some(self.tunnel_monitor_handle),
+                shared_state,
+            )
+            .await,
         )
     }
 
@@ -295,25 +304,61 @@ impl TunnelStateHandler for ConnectedState {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
+                        shared_state.tunnel_settings = tunnel_settings;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        let mut new_firewall_policy = self.firewall_policy_params.clone();
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
-                            if diff.allow_lan_changed() {
-                                self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
+                            new_firewall_policy.allow_lan = shared_state.tunnel_settings.allow_lan;
+                        }
 
-                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                    trace_err_chain!(e, "failed to set firewall policy");
-                                    return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                        #[cfg(target_os = "macos")]
+                        {
+                            if diff.split_tunnel_changed() {
+                                match shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths()).await {
+                                    Ok(interface_changed) => {
+                                        if interface_changed {
+                                            new_firewall_policy.redirect_interface = shared_state.split_tunnel.interface().await;
+                                        }
+                                    }
+                                    Err(st_error_cause) => {
+                                        let after_disconnect = match st_error_cause {
+                                            nym_split_tunnel::SplitTunnelErrorCause::NeedFullDiskPermissions => {
+                                                PrivateActionAfterDisconnect::Error(ErrorStateReason::NeedFullDiskPermissions)
+                                            }
+                                            nym_split_tunnel::SplitTunnelErrorCause::Other => {
+                                                PrivateActionAfterDisconnect::Error(ErrorStateReason::SplitTunnel)
+                                            }
+                                            nym_split_tunnel::SplitTunnelErrorCause::IsOffline => {
+                                                PrivateActionAfterDisconnect::Offline {
+                                                    reconnect: true,
+                                                    gateways: Some(self.selected_gateways.clone()),
+                                                }
+                                            }
+                                        };
+                                        return self.disconnect(after_disconnect, shared_state).await;
+                                    }
                                 }
                             }
                         }
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if diff.enable_ad_blocking_changed() {
-                            shared_state.enable_ad_blocking(tunnel_settings.enable_ad_blocking).await;
+                            shared_state.enable_ad_blocking(shared_state.tunnel_settings.enable_ad_blocking).await;
                         }
 
-                        shared_state.tunnel_settings = tunnel_settings;
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        {
+                            if new_firewall_policy != self.firewall_policy_params {
+                                self.firewall_policy_params = new_firewall_policy;
+
+                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                    trace_err_chain!(e, "failed to set firewall policy");
+                                    return self.disconnect(PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy), shared_state).await
+                                }
+                            }
+                        }
 
                         // Not all changes require the tunnel to be reconnected
                         if diff.should_not_reconnect(shared_state.tunnel_settings.tunnel_type) {
@@ -321,6 +366,9 @@ impl TunnelStateHandler for ConnectedState {
                         } else {
                             self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                         }
+                    }
+                    TunnelCommand::Block(reason) => {
+                        self.disconnect(PrivateActionAfterDisconnect::Error(reason), shared_state).await
                     }
                 }
             }
@@ -355,7 +403,7 @@ impl TunnelStateHandler for ConnectedState {
 
 /// Firewall policy configuration when connected
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 struct ConnectedPolicyParameters {
     /// Whether IPv6 is enabled
     enable_ipv6: bool,
@@ -374,6 +422,10 @@ struct ConnectedPolicyParameters {
 
     /// Tunnel interface
     tunnel_interface: TunnelInterface,
+
+    /// Split tunnel redirect interface
+    #[cfg(target_os = "macos")]
+    redirect_interface: Option<String>,
 }
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -425,9 +477,8 @@ impl ConnectedPolicyParameters {
             tunnel,
             allow_lan: self.allow_lan,
             dns_config: self.dns_config.clone(),
-            // todo: split tunneling
             #[cfg(target_os = "macos")]
-            redirect_interface: None,
+            redirect_interface: self.redirect_interface.clone(),
         }
     }
 }
@@ -506,6 +557,8 @@ mod tests {
             ws_entry_endpoints: ws_endpoints,
             dns_config,
             tunnel_interface,
+            #[cfg(target_os = "macos")]
+            redirect_interface: None,
         };
 
         // Build firewall policy

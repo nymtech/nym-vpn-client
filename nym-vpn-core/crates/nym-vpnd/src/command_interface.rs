@@ -15,6 +15,8 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tonic::{Request, Response, Status, transport::Server};
 
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
     LookupGatewayFilters, TargetState, TunnelEvent,
@@ -1014,6 +1016,71 @@ impl NymVpnService for CommandInterface {
         })?;
 
         Ok(tonic::Response::new(proto_report))
+    }
+
+    async fn set_enable_split_tunnel(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            self.send_and_wait(
+                VpnServiceCommand::SetEnableSplitTunnel,
+                request.into_inner(),
+            )
+            .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn add_split_tunnel_app(
+        &self,
+        request: tonic::Request<proto::SplitApp>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            let app = SplitApp::from(request.into_inner());
+            self.send_and_wait(VpnServiceCommand::AddSplitTunnelApp, app)
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn remove_split_tunnel_app(
+        &self,
+        request: tonic::Request<proto::SplitApp>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            let app = SplitApp::from(request.into_inner());
+            self.send_and_wait(VpnServiceCommand::RemoveSplitTunnelApp, app)
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn clear_split_tunnel_apps(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            self.send_and_wait(VpnServiceCommand::ClearSplitTunnelApps, ())
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
     }
 }
 

@@ -1,6 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::{error::Error as _, net::IpAddr, path::PathBuf};
+
+use tokio_stream::{Stream, StreamExt};
+use tonic::transport::{Endpoint, Uri};
+use tower::service_fn;
+
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
     DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway, GetDeeplinkParams,
@@ -10,10 +18,6 @@ use nym_vpn_lib_types::{
     StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
 };
-use std::{error::Error as _, net::IpAddr, path::PathBuf};
-use tokio_stream::{Stream, StreamExt};
-use tonic::transport::{Endpoint, Uri};
-use tower::service_fn;
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
 
@@ -773,6 +777,42 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
         RegistrationReport::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn set_enable_split_tunnel(&mut self, enable: bool) -> Result<()> {
+        self.0
+            .set_enable_split_tunnel(enable)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn add_split_tunnel_app(&mut self, app: SplitApp) -> Result<()> {
+        self.0
+            .add_split_tunnel_app(proto::SplitApp::from(app))
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn remove_split_tunnel_app(&mut self, app: SplitApp) -> Result<()> {
+        self.0
+            .remove_split_tunnel_app(proto::SplitApp::from(app))
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn clear_split_tunnel_apps(&mut self) -> Result<()> {
+        self.0
+            .clear_split_tunnel_apps(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
     }
 }
 

@@ -264,10 +264,13 @@ impl TunnelInterface {
         }
     }
 
-    pub fn inner_metadatas(&self) -> Vec<&TunnelMetadata> {
+    /// Returns names of all tunnel interfaces
+    pub fn tunnel_interfaces(&self) -> Vec<&str> {
         match self {
-            TunnelInterface::One(tunnel_metadata) => vec![tunnel_metadata],
-            TunnelInterface::Two { entry, exit } => vec![entry, exit],
+            TunnelInterface::One(tunnel_metadata) => vec![tunnel_metadata.interface.as_str()],
+            TunnelInterface::Two { entry, exit } => {
+                vec![entry.interface.as_str(), exit.interface.as_str()]
+            }
         }
     }
 }

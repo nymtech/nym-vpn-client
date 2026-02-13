@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "macos")]
+use std::{collections::HashSet, path::PathBuf};
 use std::{fmt, net::IpAddr, ops::RangeInclusive};
 
 use strum::IntoEnumIterator;
@@ -45,6 +47,7 @@ pub struct VpnServiceConfig {
     pub custom_dns: Vec<IpAddr>,
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
+    pub split_tunnel: SplitTunnelSettings,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -83,6 +86,7 @@ impl fmt::Display for VpnServiceConfig {
         )?;
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
+        writeln!(f, "split tunnel settings: {}", self.split_tunnel)?;
 
         Ok(())
     }
@@ -110,6 +114,7 @@ impl Default for VpnServiceConfig {
             custom_dns: vec![],
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
+            split_tunnel: SplitTunnelSettings::default(),
         }
     }
 }
@@ -390,6 +395,100 @@ impl ContinuousTrafficSendingRate {
             Self::Ms30 => "0.7 Mpbs",
         }
         .to_owned()
+    }
+}
+
+/// Single application participating in split tunneling.
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct SplitApp {
+    /// Path to executable
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    pub path: String,
+}
+
+impl SplitApp {
+    pub fn new(path: String) -> Self {
+        Self { path }
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl SplitApp {
+    pub fn path_buf(&self) -> PathBuf {
+        PathBuf::from(&self.path)
+    }
+}
+
+impl fmt::Display for SplitApp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.path)
+    }
+}
+
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct SplitTunnelSettings {
+    /// Whether split tunneling is enabled.
+    pub enabled: bool,
+
+    /// Applications participating in split tunneling.
+    pub apps: Vec<SplitApp>,
+}
+
+impl SplitTunnelSettings {
+    pub fn add_app(&mut self, app: SplitApp) {
+        if !self.apps.iter().any(|v| v.path == app.path) {
+            self.apps.push(app);
+        }
+    }
+
+    pub fn remove_app(&mut self, app: SplitApp) {
+        self.apps.retain(|v| v.path != app.path);
+    }
+
+    pub fn clear_apps(&mut self) {
+        self.apps.clear();
+    }
+
+    /// Returns the effective list of applications participating in split tunneling when split tunneling is enabled.
+    /// Otherwise, returns an empty slice.
+    pub fn effective_apps(&self) -> &[SplitApp] {
+        if self.enabled { &self.apps } else { &[] }
+    }
+
+    /// Returns effective list of application paths participating in split tunneling when split tunneling is enabled.
+    /// Otherwise, returns an empty set.
+    #[cfg(target_os = "macos")]
+    pub fn effective_app_paths(&self) -> HashSet<PathBuf> {
+        HashSet::from_iter(self.effective_apps().iter().map(|v| v.path_buf()))
+    }
+}
+
+impl fmt::Display for SplitTunnelSettings {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "enabled: {}", self.enabled)?;
+        writeln!(f, "apps:")?;
+        for app in self.apps.iter() {
+            writeln!(f, "- {app}")?;
+        }
+        Ok(())
     }
 }
 
