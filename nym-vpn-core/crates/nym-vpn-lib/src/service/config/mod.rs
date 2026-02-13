@@ -6,6 +6,7 @@ mod entry_exit;
 mod legacy;
 mod mixnet_traffic;
 mod network_stats;
+mod split_tunnel_settings;
 mod v1;
 mod v2;
 mod v3;
@@ -33,6 +34,7 @@ use crate::service::config::{
     entry_exit::v2::{EntryPoint, ExitPoint},
     mixnet_traffic::v5::MixnetTrafficConfig,
     network_stats::v1::NetworkStatisticsConfig,
+    split_tunnel_settings::v7::SplitTunnelSettings,
 };
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -178,6 +180,8 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let network_stats = NetworkStatisticsConfig::from(&value.network_stats);
 
+        let split_tunnel = SplitTunnelSettings::from(&value.split_tunnel);
+
         let v7 = v7::VpnServiceConfig {
             entry_point,
             exit_point,
@@ -194,6 +198,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             custom_dns,
             mixnet_traffic,
             network_stats,
+            split_tunnel,
         };
 
         Ok(VpnServiceConfigExt::V7(v7))

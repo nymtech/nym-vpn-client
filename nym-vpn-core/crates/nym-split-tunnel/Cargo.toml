@@ -1,0 +1,37 @@
+[package]
+name = "nym-split-tunnel"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+either = { workspace = true, features = ["serde"] }
+futures-util.workspace = true
+insta = { workspace = true, features = ["yaml"] }
+libc.workspace = true
+nix = { workspace = true, features = ["net"] }
+ipnetwork.workspace = true
+pnet_packet.workspace = true
+pcap = { workspace = true, features = ["capture-stream"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+tun = { workspace = true, features = ["async"] }
+thiserror.workspace = true
+tracing.workspace = true
+tokio = { workspace = true, features = ["test-util"] }
+tokio-util.workspace = true
+
+nym-platform-metadata.workspace = true
+nym-routing.workspace = true
+nym-macos.workspace = true
+nym-firewall-config.workspace = true
+nym-common.workspace = true
+nym-ifconfig.workspace = true
+
+[lints]
+workspace = true

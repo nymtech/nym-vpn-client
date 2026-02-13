@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::NetworkStatisticsConfig;
+use nym_vpn_lib_types::{NetworkStatisticsConfig, SplitApp, SplitTunnelSettings};
 use std::{net::IpAddr, str::FromStr};
 
 use pretty_assertions::assert_eq;
@@ -169,6 +169,10 @@ location = "BE"
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -228,6 +232,10 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -292,6 +300,10 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -345,6 +357,10 @@ exit_point = "Random"
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -405,6 +421,10 @@ async fn test_service_config_migrate_from_v1() {
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -474,6 +494,10 @@ async fn test_service_config_migrate_from_v2() {
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -549,6 +573,10 @@ async fn test_service_config_migrate_from_v3() {
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -588,6 +616,10 @@ async fn test_service_config_migrate_from_v4() {
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -629,6 +661,10 @@ async fn test_service_config_migrate_from_v4() {
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -673,6 +709,10 @@ async fn test_service_config_migrate_from_v5() {
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -714,6 +754,10 @@ async fn test_service_config_migrate_from_v5() {
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -800,6 +844,10 @@ async fn test_service_config_migrate_from_v6() {
   "network_stats": {
     "enabled": true,
     "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
   }
 }"#;
 
@@ -1103,6 +1151,12 @@ async fn test_service_config_serialize_full() {
         network_stats: NetworkStatisticsConfig {
             enabled: true,
             allow_disconnected: false,
+        },
+        split_tunnel: SplitTunnelSettings {
+            enabled: true,
+            apps: vec![SplitApp {
+                path: "/Applications/Firefox.app/Contents/MacOS/firefox".to_owned(),
+            }],
         },
     };
     run_serialize_test(config).await;

@@ -144,11 +144,17 @@ impl TunnelStateHandler for OfflineState {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
+                        shared_state.tunnel_settings = tunnel_settings;
+
+                        #[cfg(target_os = "macos")]
+                        if diff.split_tunnel_changed() {
+                            let _ = shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths()).await;
+                        }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
                             if diff.allow_lan_changed() {
-                                self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
+                                self.firewall_policy_params.allow_lan = shared_state.tunnel_settings.allow_lan;
 
                                 if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
                                     trace_err_chain!(e, "failed to set firewall policy");
@@ -160,8 +166,10 @@ impl TunnelStateHandler for OfflineState {
                             self.selected_gateways = None;
                         };
 
-                        shared_state.tunnel_settings = tunnel_settings;
                         NextTunnelState::SameState(self)
+                    }
+                    TunnelCommand::Block(reason) => {
+                        NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)
                     }
                 }
             }
