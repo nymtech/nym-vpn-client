@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [Windows] Authentication layer for windows, still feature gated (https://github.com/nymtech/nym-vpn-client/pull/4618)
 
 ### Fixed
 
