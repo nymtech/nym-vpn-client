@@ -12,7 +12,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-libwg:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-linux-latest
 

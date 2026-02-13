@@ -72,8 +72,8 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v7
         with:
-          name: wireguard-go_ubuntu-24.04_x86_64
-          path: build/lib/x86_64-unknown-linux-gnu
+          name: wireguard_go-ubuntu-22.04
+          path: build/lib
 
       - name: rustfmt check
         working-directory: nym-vpn-core
