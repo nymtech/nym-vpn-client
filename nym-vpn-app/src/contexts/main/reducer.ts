@@ -14,6 +14,7 @@ import {
   DaemonStatus,
   FeatureFlags,
   MixnetTrafficConfig,
+  MixnetTrafficDefaults,
   NetworkCompat,
   NetworkEnv,
   NodeHop,
@@ -29,7 +30,6 @@ import {
   VpndConfig,
   VpndInfo,
 } from '../../types';
-import { DEFAULT_MIXNET_TRAFFIC_CONFIG } from '../../screens/settings/mixnet-tuning/context';
 
 export type StateAction =
   | { type: 'init-done' }
@@ -129,7 +129,35 @@ export const initialState: AppState = {
   customDns: [],
   defaultDns: [],
   enableLewesProtocol: false,
-  mixnetTrafficConfig: DEFAULT_MIXNET_TRAFFIC_CONFIG,
+
+  mixnetTrafficConfig: {
+    poissonParameterForLoopCoverStream: null,
+    averagePacketDelay: null,
+    messageSendingAverageDelay: null,
+    disablePoissonRate: false,
+    disableBackgroundCoverTraffic: false,
+    minMixnodePerformance: null,
+    minGatewayMixnetPerformance: null,
+  },
+
+  mixnetTrafficDefaults: {
+    mixingDelay: {
+      minValue: 0,
+      maxValue: 0,
+      defaultValue: 0,
+    },
+    disablePoissonRate: false,
+    defaultBackgroundTraffic: {
+      value: 0,
+      multiplier: '',
+    },
+    defaultContinuousTraffic: {
+      value: 0,
+      throughput: '',
+    },
+    allBackgroundTraffic: [],
+    allContinuousTraffic: [],
+  } as MixnetTrafficDefaults,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {

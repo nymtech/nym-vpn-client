@@ -1,7 +1,7 @@
 import { Trans, useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { useMainDispatch, useMainState } from '../../../contexts';
+import { useMainDispatch } from '../../../contexts';
 import { Button, Link, PageAnim } from '../../../ui';
 import { StateDispatch } from '../../../types';
 import { MixnetParametersLearnMoreUrl } from '../../../constants';
@@ -15,8 +15,12 @@ function MixnetTuning() {
 
   const [loading, setLoading] = useState(false);
 
-  const { state, dispatch, hasUnsavedSettings, hasSettingsOtherThanDefaults } =
-    useMixnetTrafficConfig();
+  const {
+    state,
+    restoreDefaults,
+    hasUnsavedSettings,
+    hasSettingsOtherThanDefaults,
+  } = useMixnetTrafficConfig();
   const mainDispatch = useMainDispatch() as StateDispatch;
 
   const handleSaveCustomSettings = async () => {
@@ -75,7 +79,7 @@ function MixnetTuning() {
           <Button
             outline
             color="gray"
-            onClick={() => dispatch({ type: 'restore-defaults' })}
+            onClick={restoreDefaults}
             className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
           >
             <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
@@ -89,10 +93,12 @@ function MixnetTuning() {
 }
 
 function MixnetTuningWrapper() {
-  const { mixnetTrafficConfig } = useMainState();
+  // const { mixnetTrafficConfig, mixnetTrafficDefaults } = useMainState();
+
+  // console.log('[MixnetTuningWrapper] mainstate', useMainState());
 
   return (
-    <MixnetTrafficConfigProvider initialConfig={mixnetTrafficConfig}>
+    <MixnetTrafficConfigProvider>
       <MixnetTuning />
     </MixnetTrafficConfigProvider>
   );

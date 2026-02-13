@@ -8,7 +8,7 @@ import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useDeepLink } from '../../hooks';
 import { routes } from '../../router';
 import { CCache } from '../../cache';
-import { StateDispatch } from '../../types';
+import { StateDispatch, TAccountMode } from '../../types';
 
 function PrivyButton() {
   const { t, i18n } = useTranslation('login');
@@ -20,6 +20,11 @@ function PrivyButton() {
   const dispatch = useMainDispatch() as StateDispatch;
 
   const [loading, setLoading] = useState(false);
+
+  const refreshAccountMode = async () => {
+    const accountMode = await invoke<TAccountMode>('get_account_mode');
+    dispatch({ type: 'set-account-mode', mode: accountMode });
+  };
 
   const handlePrivy = async () => {
     setLoading(true);
@@ -49,6 +54,7 @@ function PrivyButton() {
       }
 
       dispatch({ type: 'set-account', stored: true });
+      await refreshAccountMode();
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });

@@ -93,7 +93,7 @@ function Account() {
   }, []);
 
   useEffect(() => {
-    if (!account) navigate(routes.settings);
+    if (!account) navigate(routes.settings, { replace: true });
   }, [account, navigate]);
 
   const refreshAccountMode = useCallback(async () => {
@@ -164,27 +164,20 @@ function Account() {
 
       <SettingsGroup
         settings={[
-          ...(linkable
-            ? [
-                {
-                  title: t('account.manage-subscriptoin'),
-                  desc: (
-                    <span
-                      className={clsx(
-                        getAccountColor(accountSyncing, accountState),
-                      )}
-                    >
-                      {getAccountDescription(t, accountSyncing, accountState) ??
-                        t('account.account-link-social-description')}
-                    </span>
-                  ),
-                  leadingIcon: 'event_repeat',
-                  trailingIcon: 'open_in_new',
-                  onClick: handleManageSubscription,
-                },
-              ]
-            : []),
-          ...(backendFlags.privy
+          {
+            title: t('account.manage-subscriptoin'),
+            desc: (
+              <span
+                className={clsx(getAccountColor(accountSyncing, accountState))}
+              >
+                {getAccountDescription(t, accountSyncing, accountState)}
+              </span>
+            ),
+            leadingIcon: 'event_repeat',
+            trailingIcon: 'open_in_new',
+            onClick: handleManageSubscription,
+          },
+          ...(backendFlags.privy && linkable
             ? [
                 {
                   title: t('account.account-on-nym'),
