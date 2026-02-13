@@ -21,6 +21,7 @@ export const ns = [
   'glossary',
   'notifications',
   'login',
+  'onboarding',
 ] as const;
 
 export const languages = [
