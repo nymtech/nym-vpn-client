@@ -12,14 +12,16 @@ use std::{
     time::Duration,
 };
 
+use nym_common::trace_err_chain;
+use nym_windows::net::{index_from_luid, loopback_luid, luid_from_alias};
 use tokio::{
     io::AsyncWriteExt,
     process::{Child, Command},
 };
-use windows::Win32::{Foundation::MAX_PATH, System::SystemInformation::GetSystemDirectoryW};
-
-use nym_common::trace_err_chain;
-use nym_windows::net::{index_from_luid, luid_from_alias};
+use windows::Win32::{
+    Foundation::MAX_PATH, NetworkManagement::Ndis::NET_LUID_LH,
+    System::SystemInformation::GetSystemDirectoryW,
+};
 
 use crate::{DnsMonitorT, ResolvedDnsConfig};
 
@@ -29,20 +31,12 @@ const NETSH_TIMEOUT: Duration = Duration::from_secs(10);
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("failed to obtain LUID for the interface '{interface_alias}'")]
-    ObtainInterfaceLuid {
-        interface_alias: String,
-        #[source]
-        error: io::Error,
-    },
+    #[error("failed to obtain LUID for the interface")]
+    ObtainInterfaceLuid(#[source] io::Error),
 
     /// Failure to obtain an interface index.
-    #[error("failed to obtain index of the interface '{interface_alias}'")]
-    ObtainInterfaceIndex {
-        interface_alias: String,
-        #[source]
-        error: io::Error,
-    },
+    #[error("failed to obtain index of the interface")]
+    ObtainInterfaceIndex(#[source] io::Error),
 
     /// Failure to spawn netsh subprocess.
     #[error("failed to spawn 'netsh'")]
@@ -73,28 +67,15 @@ pub struct DnsMonitor {
     current_index: Option<u32>,
 }
 
-impl DnsMonitorT for DnsMonitor {
-    type Error = Error;
+impl DnsMonitor {
+    async fn set_luid(
+        &mut self,
+        luid: &NET_LUID_LH,
+        config: ResolvedDnsConfig,
+    ) -> Result<(), Error> {
+        let interface_index = index_from_luid(luid).map_err(Error::ObtainInterfaceIndex)?;
 
-    fn new() -> Result<Self, Error> {
-        Ok(DnsMonitor {
-            current_index: None,
-        })
-    }
-
-    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let servers = config.tunnel_config();
-
-        let luid = luid_from_alias(interface).map_err(|error| Error::ObtainInterfaceLuid {
-            interface_alias: interface.to_string(),
-            error,
-        })?;
-
-        let interface_index =
-            index_from_luid(&luid).map_err(|error| Error::ObtainInterfaceIndex {
-                interface_alias: interface.to_string(),
-                error,
-            })?;
 
         self.current_index = Some(interface_index);
 
@@ -131,6 +112,26 @@ impl DnsMonitorT for DnsMonitor {
         run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT).await?;
 
         Ok(())
+    }
+}
+
+impl DnsMonitorT for DnsMonitor {
+    type Error = Error;
+
+    fn new() -> Result<Self, Error> {
+        Ok(DnsMonitor {
+            current_index: None,
+        })
+    }
+
+    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
+        let luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
+        self.set_luid(&luid, config).await
+    }
+
+    async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), Self::Error> {
+        let luid = loopback_luid().map_err(Error::ObtainInterfaceLuid)?;
+        self.set_luid(&luid, config).await
     }
 
     async fn reset(&mut self) -> Result<(), Error> {

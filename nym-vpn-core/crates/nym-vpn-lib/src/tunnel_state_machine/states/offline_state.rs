@@ -12,7 +12,7 @@ use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPol
 use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState, LOOPBACK_INTERFACE},
+    states::{ConnectingState, DisconnectedState},
     tunnel::SelectedGateways,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -99,7 +99,7 @@ impl OfflineState {
         let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
         shared_state
             .dns_handler
-            .set(LOOPBACK_INTERFACE, system_dns)
+            .set_loopback(system_dns)
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to configure system to use filtering resolver");

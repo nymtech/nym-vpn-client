@@ -60,6 +60,16 @@ impl DnsMonitorT for DnsMonitor {
         Ok(())
     }
 
+    async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), Error> {
+        match self.inner {
+            DnsMonitorHolder::Auto(ref mut inner) => inner.set_loopback(config).await?,
+            DnsMonitorHolder::Iphlpapi(ref mut inner) => inner.set_loopback(config).await?,
+            DnsMonitorHolder::Netsh(ref mut inner) => inner.set_loopback(config).await?,
+            DnsMonitorHolder::Tcpip(ref mut inner) => inner.set_loopback(config).await?,
+        }
+        Ok(())
+    }
+
     async fn reset(&mut self) -> Result<(), Error> {
         match self.inner {
             DnsMonitorHolder::Auto(ref mut inner) => inner.reset().await?,

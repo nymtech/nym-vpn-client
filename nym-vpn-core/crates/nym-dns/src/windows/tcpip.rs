@@ -4,33 +4,28 @@
 
 use crate::{DnsMonitorT, ResolvedDnsConfig};
 use nym_common::ErrorExt;
-use nym_windows::net::{guid_from_luid, luid_from_alias};
+use nym_windows::net::{guid_from_luid, loopback_luid, luid_from_alias};
 use std::{io, net::IpAddr};
-use windows::{core::GUID, Win32::System::Com::StringFromGUID2};
+use windows::{
+    Win32::{NetworkManagement::Ndis::NET_LUID_LH, System::Com::StringFromGUID2},
+    core::GUID,
+};
 use winreg::{
+    RegKey,
     enums::{HKEY_LOCAL_MACHINE, KEY_SET_VALUE},
     transaction::Transaction,
-    RegKey,
 };
 
 /// Errors that can happen when configuring DNS on Windows.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("failed to obtain LUID for the interface '{interface_alias}'")]
-    ObtainInterfaceLuid {
-        interface_alias: String,
-        #[source]
-        error: io::Error,
-    },
+    #[error("failed to obtain LUID for the interface")]
+    ObtainInterfaceLuid(#[source] io::Error),
 
     /// Failure to obtain an interface GUID.
-    #[error("failed to obtain GUID for the interface '{interface_alias}'")]
-    ObtainInterfaceGuid {
-        interface_alias: String,
-        #[source]
-        error: io::Error,
-    },
+    #[error("failed to obtain GUID for the interface")]
+    ObtainInterfaceGuid(#[source] io::Error),
 
     /// Failure to flush DNS cache.
     #[error("failed to flush DNS resolver cache")]
@@ -50,6 +45,25 @@ pub struct DnsMonitor {
     should_flush: bool,
 }
 
+impl DnsMonitor {
+    async fn set_luid(
+        &mut self,
+        luid: &NET_LUID_LH,
+        config: ResolvedDnsConfig,
+    ) -> Result<(), Error> {
+        let guid = guid_from_luid(&luid).map_err(Error::ObtainInterfaceGuid)?;
+
+        let servers = config.tunnel_config();
+
+        set_dns(&guid, servers)?;
+        self.current_guid = Some(guid);
+        if self.should_flush {
+            flush_dns_cache()?;
+        }
+        Ok(())
+    }
+}
+
 impl DnsMonitorT for DnsMonitor {
     type Error = Error;
 
@@ -61,24 +75,13 @@ impl DnsMonitorT for DnsMonitor {
     }
 
     async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
-        let servers = config.tunnel_config();
+        let luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
+        self.set_luid(&luid, config).await
+    }
 
-        let luid = luid_from_alias(interface).map_err(|error| Error::ObtainInterfaceLuid {
-            interface_alias: interface.to_string(),
-            error,
-        })?;
-
-        let guid = guid_from_luid(&luid).map_err(|error| Error::ObtainInterfaceGuid {
-            interface_alias: interface.to_string(),
-            error,
-        })?;
-
-        set_dns(&guid, servers)?;
-        self.current_guid = Some(guid);
-        if self.should_flush {
-            flush_dns_cache()?;
-        }
-        Ok(())
+    async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), Error> {
+        let luid = loopback_luid().map_err(Error::ObtainInterfaceLuid)?;
+        self.set_luid(&luid, config).await
     }
 
     async fn reset(&mut self) -> Result<(), Error> {

@@ -6,21 +6,60 @@ use std::{
     process::Command,
 };
 
-use tokio::net::UdpSocket;
-
 use crate::tunnel_state_machine::resolver::{
     BoxedLoopbackAlias, Error, LoopbackAlias, random_loopback_ipv4,
 };
+use nym_windows::net::{
+    add_ip_address_for_interface, loopback_luid, remove_ip_address_for_interface,
+};
+use tokio::{net::UdpSocket, task::JoinHandle};
+use tokio_util::sync::{CancellationToken, DropGuard};
 
-/// Windows currently doesn't create/remove loopback aliases here.
-///
-/// We still keep the alias interface around so the rest of the resolver code can use a uniform
-/// interface. A future improvement is to add proper loopback aliasing using IP Helper APIs.
-struct NoopAlias {
+struct RandomLoopbackAlias {
     addr: IpAddr,
+    drop_guard: DropGuard,
+    unassign_task: JoinHandle<()>,
 }
 
-impl LoopbackAlias for NoopAlias {
+impl RandomLoopbackAlias {
+    async fn assign() -> std::io::Result<Self> {
+        let addr = random_loopback_ipv4();
+        let luid = loopback_luid()?;
+
+        // Adding/removing IPs typically requires elevation.
+        // If this fails, the caller will just try another address or fall back to 127.0.0.1.
+        add_ip_address_for_interface(luid, addr).map_err(|e| {
+            std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                format!("failed to add loopback alias {addr}: {e}"),
+            )
+        })?;
+
+        tracing::debug!("Created Windows loopback address {addr}");
+
+        let shutdown_token = CancellationToken::new();
+
+        let child_token = shutdown_token.child_token();
+        let unassign_task = tokio::task::spawn(async move {
+            child_token.cancelled().await;
+
+            tracing::debug!("Cleaning up Windows loopback address {addr}");
+            if let Err(e) = remove_ip_address_for_interface(luid, addr) {
+                tracing::warn!("Failed to clean up loopback alias {addr}: {e}");
+            }
+        });
+
+        let drop_guard = shutdown_token.drop_guard();
+
+        Ok(Self {
+            addr,
+            drop_guard,
+            unassign_task,
+        })
+    }
+}
+
+impl LoopbackAlias for RandomLoopbackAlias {
     fn addr(&self) -> IpAddr {
         self.addr
     }
@@ -28,7 +67,10 @@ impl LoopbackAlias for NoopAlias {
     fn unassign(
         self: Box<Self>,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
-        Box::pin(async move {})
+        Box::pin(async move {
+            drop(self.drop_guard);
+            self.unassign_task.await.ok();
+        })
     }
 }
 
@@ -42,15 +84,13 @@ pub(crate) async fn new_random_socket(
     for attempt in 0.. {
         let (ip, alias): (IpAddr, Option<BoxedLoopbackAlias>) = match attempt {
             ..3 if !use_random_loopback => continue,
-            ..3 => {
-                let addr = random_loopback_ipv4();
-                // We don't currently assign the alias at the OS level. Binding will only work if
-                // the IP is already usable on loopback. If it fails, we just try again.
-                (
-                    addr,
-                    Some(Box::new(NoopAlias { addr }) as BoxedLoopbackAlias),
-                )
-            }
+            ..3 => match RandomLoopbackAlias::assign().await {
+                Ok(random) => (random.addr(), Some(Box::new(random) as BoxedLoopbackAlias)),
+                Err(e) => {
+                    tracing::warn!("Failed to add random loopback alias: {e}");
+                    continue;
+                }
+            },
             3 => (IpAddr::V4(Ipv4Addr::LOCALHOST), None),
             4.. => break,
         };
@@ -76,6 +116,10 @@ pub(crate) async fn new_random_socket(
         let addr = std::net::SocketAddr::new(ip, port);
         if let Err(e) = sock.bind(&addr.into()) {
             tracing::warn!("Failed to bind DNS server to {ip}: {e}");
+            // Ensure we clean up the alias before retrying.
+            if let Some(alias) = alias {
+                alias.unassign().await;
+            }
             continue;
         }
 

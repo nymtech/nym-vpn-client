@@ -191,6 +191,12 @@ impl DnsMonitor {
         self.inner.set(interface, config).await
     }
 
+    /// Set DNS to the given servers. And start monitoring the system for changes.
+    pub async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), Error> {
+        tracing::info!("Setting DNS servers: {config}");
+        self.inner.set_loopback(config).await
+    }
+
     /// Reset system DNS settings to what it was before being set by this instance.
     /// This succeeds if the interface does not exist.
     pub async fn reset(&mut self) -> Result<(), Error> {
@@ -216,6 +222,8 @@ trait DnsMonitorT: Sized {
 
     async fn set(&mut self, interface: &str, servers: ResolvedDnsConfig)
     -> Result<(), Self::Error>;
+
+    async fn set_loopback(&mut self, servers: ResolvedDnsConfig) -> Result<(), Self::Error>;
 
     async fn reset(&mut self) -> Result<(), Self::Error>;
 

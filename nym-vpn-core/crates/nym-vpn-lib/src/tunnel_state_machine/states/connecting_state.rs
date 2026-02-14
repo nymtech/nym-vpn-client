@@ -31,7 +31,6 @@ use crate::tunnel_state_machine::{
     },
 };
 
-use crate::tunnel_state_machine::states::LOOPBACK_INTERFACE;
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::DnsConfig;
@@ -206,7 +205,7 @@ impl ConnectingState {
             let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
             shared_state
                 .dns_handler
-                .set(LOOPBACK_INTERFACE, system_dns)
+                .set_loopback(system_dns)
                 .await
                 .map_err(Error::SetDns)
         } else {

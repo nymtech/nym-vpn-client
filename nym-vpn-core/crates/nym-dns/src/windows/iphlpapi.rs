@@ -8,7 +8,7 @@
 //! back on other methods if it is not available.
 
 use crate::{DnsMonitorT, ResolvedDnsConfig};
-use nym_windows::net::{guid_from_luid, luid_from_alias};
+use nym_windows::net::{guid_from_luid, loopback_luid, luid_from_alias};
 use once_cell::sync::OnceCell;
 use std::{
     ffi::OsString,
@@ -17,35 +17,30 @@ use std::{
     os::windows::ffi::OsStrExt,
 };
 use windows::{
-    core::{s, w, GUID, PWSTR},
     Win32::{
-        Foundation::{FreeLibrary, ERROR_PROC_NOT_FOUND, WIN32_ERROR},
-        NetworkManagement::IpHelper::{
-            DNS_INTERFACE_SETTINGS, DNS_INTERFACE_SETTINGS_VERSION1, DNS_SETTING_IPV6,
-            DNS_SETTING_NAMESERVER,
+        Foundation::{ERROR_PROC_NOT_FOUND, FreeLibrary, HMODULE, WIN32_ERROR},
+        NetworkManagement::{
+            IpHelper::{
+                DNS_INTERFACE_SETTINGS, DNS_INTERFACE_SETTINGS_VERSION1, DNS_SETTING_IPV6,
+                DNS_SETTING_NAMESERVER,
+            },
+            Ndis::NET_LUID_LH,
         },
-        System::LibraryLoader::{GetProcAddress, LoadLibraryExW, LOAD_LIBRARY_SEARCH_SYSTEM32},
+        System::LibraryLoader::{GetProcAddress, LOAD_LIBRARY_SEARCH_SYSTEM32, LoadLibraryExW},
     },
+    core::{GUID, PWSTR, s, w},
 };
 
 /// Errors that can happen when configuring DNS on Windows.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("failed to obtain LUID for the interface '{interface_alias}'")]
-    ObtainInterfaceLuid {
-        interface_alias: String,
-        #[source]
-        error: io::Error,
-    },
+    #[error("failed to obtain LUID for the interface")]
+    ObtainInterfaceLuid(#[source] io::Error),
 
     /// Failure to obtain an interface GUID.
-    #[error("failed to obtain GUID for the interface '{interface_alias}'")]
-    ObtainInterfaceGuid {
-        interface_alias: String,
-        #[source]
-        error: io::Error,
-    },
+    #[error("failed to obtain GUID for the interface")]
+    ObtainInterfaceGuid(#[source] io::Error),
 
     /// Failed to set DNS settings on interface.
     #[error("failed to set DNS settings on interface")]
@@ -70,6 +65,7 @@ type SetInterfaceDnsSettingsFn = unsafe extern "system" fn(
 ) -> WIN32_ERROR;
 
 struct IphlpApi {
+    module: HMODULE,
     set_interface_dns_settings: SetInterfaceDnsSettingsFn,
 }
 
@@ -110,10 +106,19 @@ impl IphlpApi {
         // NOTE: Leaking `module` here, since we're lazily initializing it
 
         Ok(Self {
+            module,
             set_interface_dns_settings: unsafe {
                 *(&set_interface_dns_settings as *const _ as *const _)
             },
         })
+    }
+}
+
+impl Drop for IphlpApi {
+    fn drop(&mut self) {
+        if let Err(e) = unsafe { FreeLibrary(self.module) } {
+            tracing::error!("Failed to free library iphlpapi.dll: {}", e);
+        }
     }
 }
 
@@ -125,27 +130,15 @@ impl DnsMonitor {
     pub fn is_supported() -> bool {
         IPHLPAPI_HANDLE.get_or_try_init(IphlpApi::new).is_ok()
     }
-}
 
-impl DnsMonitorT for DnsMonitor {
-    type Error = Error;
+    async fn set_luid(
+        &mut self,
+        luid: &NET_LUID_LH,
+        config: ResolvedDnsConfig,
+    ) -> Result<(), Error> {
+        let guid = guid_from_luid(luid).map_err(Error::ObtainInterfaceGuid)?;
 
-    fn new() -> Result<Self, Error> {
-        Ok(DnsMonitor { current_guid: None })
-    }
-
-    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let servers = config.tunnel_config();
-
-        let luid = &luid_from_alias(interface).map_err(|error| Error::ObtainInterfaceLuid {
-            interface_alias: interface.to_string(),
-            error,
-        })?;
-
-        let guid = guid_from_luid(&luid).map_err(|error| Error::ObtainInterfaceGuid {
-            interface_alias: interface.to_string(),
-            error,
-        })?;
 
         let mut v4_servers = vec![];
         let mut v6_servers = vec![];
@@ -169,6 +162,24 @@ impl DnsMonitorT for DnsMonitor {
         flush_dns_cache()?;
 
         Ok(())
+    }
+}
+
+impl DnsMonitorT for DnsMonitor {
+    type Error = Error;
+
+    fn new() -> Result<Self, Error> {
+        Ok(DnsMonitor { current_guid: None })
+    }
+
+    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
+        let luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
+        self.set_luid(&luid, config).await
+    }
+
+    async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), Error> {
+        let luid = loopback_luid().map_err(Error::ObtainInterfaceLuid)?;
+        self.set_luid(&luid, config).await
     }
 
     async fn reset(&mut self) -> Result<(), Error> {

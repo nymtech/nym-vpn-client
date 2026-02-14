@@ -35,7 +35,7 @@ use crate::tunnel_state_machine::{Error, Result};
 use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState, LOOPBACK_INTERFACE, OfflineState},
+    states::{ConnectingState, DisconnectedState, OfflineState},
 };
 
 /// Interface addresses used as placeholders when in error state.
@@ -127,7 +127,7 @@ impl ErrorState {
         let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
         shared_state
             .dns_handler
-            .set(LOOPBACK_INTERFACE, system_dns)
+            .set_loopback(system_dns)
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to configure system to use filtering resolver");

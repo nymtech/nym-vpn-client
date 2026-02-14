@@ -13,7 +13,7 @@ workspace = true
 bitflags.workspace = true
 thiserror.workspace = true
 futures.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread", "sync"] }
+tokio = { workspace = true, features = ["net", "sync"] }
 tracing.workspace = true
 verifysign.workspace = true
 
