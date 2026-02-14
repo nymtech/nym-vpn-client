@@ -29,12 +29,20 @@ const NETSH_TIMEOUT: Duration = Duration::from_secs(10);
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("failed to obtain LUID for the interface alias")]
-    ObtainInterfaceLuid(#[source] io::Error),
+    #[error("failed to obtain LUID for the interface '{interface_alias}'")]
+    ObtainInterfaceLuid {
+        interface_alias: String,
+        #[source]
+        error: io::Error,
+    },
 
     /// Failure to obtain an interface index.
-    #[error("failed to obtain index of the interface")]
-    ObtainInterfaceIndex(#[source] io::Error),
+    #[error("failed to obtain index of the interface '{interface_alias}'")]
+    ObtainInterfaceIndex {
+        interface_alias: String,
+        #[source]
+        error: io::Error,
+    },
 
     /// Failure to spawn netsh subprocess.
     #[error("failed to spawn 'netsh'")]
@@ -76,9 +84,17 @@ impl DnsMonitorT for DnsMonitor {
 
     async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let servers = config.tunnel_config();
-        let interface_luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
+
+        let luid = luid_from_alias(interface).map_err(|error| Error::ObtainInterfaceLuid {
+            interface_alias: interface.to_string(),
+            error,
+        })?;
+
         let interface_index =
-            index_from_luid(&interface_luid).map_err(Error::ObtainInterfaceIndex)?;
+            index_from_luid(&luid).map_err(|error| Error::ObtainInterfaceIndex {
+                interface_alias: interface.to_string(),
+                error,
+            })?;
 
         self.current_index = Some(interface_index);
 

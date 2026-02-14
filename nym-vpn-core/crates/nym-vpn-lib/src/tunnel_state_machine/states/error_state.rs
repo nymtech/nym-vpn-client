@@ -30,13 +30,13 @@ use crate::tunnel_provider::{OSTunProvider, TunnelSettings};
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
-use crate::tunnel_state_machine::{
-    states::{ConnectingState, DisconnectedState, OfflineState}, ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState,
-    TunnelCommand,
-    TunnelStateHandler,
-};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result};
+use crate::tunnel_state_machine::{
+    ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
+    TunnelStateHandler,
+    states::{ConnectingState, DisconnectedState, LOOPBACK_INTERFACE, OfflineState},
+};
 
 /// Interface addresses used as placeholders when in error state.
 #[cfg(target_os = "ios")]
@@ -123,13 +123,11 @@ impl ErrorState {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
         // Set system DNS to our local DNS resolver
-        let system_dns = DnsConfig::default().resolve(
-            &[shared_state.filtering_resolver.listen_addr().ip()],
-            shared_state.filtering_resolver.listen_addr().port(),
-        );
+        let listen_addr = shared_state.filtering_resolver.listen_addr();
+        let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
         shared_state
             .dns_handler
-            .set("lo".to_owned(), system_dns)
+            .set(LOOPBACK_INTERFACE, system_dns)
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to configure system to use filtering resolver");

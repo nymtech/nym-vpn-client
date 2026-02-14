@@ -6,23 +6,31 @@ use crate::{DnsMonitorT, ResolvedDnsConfig};
 use nym_common::ErrorExt;
 use nym_windows::net::{guid_from_luid, luid_from_alias};
 use std::{io, net::IpAddr};
-use windows::{Win32::System::Com::StringFromGUID2, core::GUID};
+use windows::{core::GUID, Win32::System::Com::StringFromGUID2};
 use winreg::{
-    RegKey,
     enums::{HKEY_LOCAL_MACHINE, KEY_SET_VALUE},
     transaction::Transaction,
+    RegKey,
 };
 
 /// Errors that can happen when configuring DNS on Windows.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("failed to obtain LUID for the interface alias")]
-    ObtainInterfaceLuid(#[source] io::Error),
+    #[error("failed to obtain LUID for the interface '{interface_alias}'")]
+    ObtainInterfaceLuid {
+        interface_alias: String,
+        #[source]
+        error: io::Error,
+    },
 
     /// Failure to obtain an interface GUID.
-    #[error("failed to obtain GUID for the interface")]
-    ObtainInterfaceGuid(#[source] io::Error),
+    #[error("failed to obtain GUID for the interface '{interface_alias}'")]
+    ObtainInterfaceGuid {
+        interface_alias: String,
+        #[source]
+        error: io::Error,
+    },
 
     /// Failure to flush DNS cache.
     #[error("failed to flush DNS resolver cache")]
@@ -30,7 +38,11 @@ pub enum Error {
 
     /// Failed to update DNS servers for interface.
     #[error("failed to update interface DNS servers")]
-    SetResolvers(#[source] io::Error),
+    SetResolvers {
+        interface_guid: GUID,
+        #[source]
+        error: io::Error,
+    },
 }
 
 pub struct DnsMonitor {
@@ -51,8 +63,16 @@ impl DnsMonitorT for DnsMonitor {
     async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let servers = config.tunnel_config();
 
-        let guid = guid_from_luid(&luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?)
-            .map_err(Error::ObtainInterfaceGuid)?;
+        let luid = luid_from_alias(interface).map_err(|error| Error::ObtainInterfaceLuid {
+            interface_alias: interface.to_string(),
+            error,
+        })?;
+
+        let guid = guid_from_luid(&luid).map_err(|error| Error::ObtainInterfaceGuid {
+            interface_alias: interface.to_string(),
+            error,
+        })?;
+
         set_dns(&guid, servers)?;
         self.current_guid = Some(guid);
         if self.should_flush {
@@ -80,12 +100,19 @@ impl DnsMonitor {
 }
 
 fn set_dns(interface: &GUID, servers: &[IpAddr]) -> Result<(), Error> {
-    let transaction = Transaction::new().map_err(Error::SetResolvers)?;
+    let transaction = Transaction::new().map_err(|error| Error::SetResolvers {
+        interface_guid: *interface,
+        error,
+    })?;
+
     let result = match set_dns_inner(&transaction, interface, servers) {
         Ok(()) => transaction.commit(),
         Err(error) => transaction.rollback().and(Err(error)),
     };
-    result.map_err(Error::SetResolvers)
+    result.map_err(|error| Error::SetResolvers {
+        interface_guid: *interface,
+        error,
+    })
 }
 
 fn set_dns_inner(

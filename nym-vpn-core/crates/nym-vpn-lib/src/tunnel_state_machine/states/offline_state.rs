@@ -7,13 +7,13 @@ use tokio_util::sync::CancellationToken;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{states::error_state::BlockedPolicyParameters, Error, Result};
+use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
 #[cfg(any(target_os = "macos", target_os = "windows"))]
-use crate::tunnel_state_machine::{states::ErrorState, ErrorStateReason};
+use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
 use crate::tunnel_state_machine::{
-    states::{ConnectingState, DisconnectedState}, tunnel::SelectedGateways, NextTunnelState, PrivateTunnelState, SharedState,
-    TunnelCommand,
-    TunnelStateHandler,
+    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
+    states::{ConnectingState, DisconnectedState, LOOPBACK_INTERFACE},
+    tunnel::SelectedGateways,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
@@ -99,7 +99,7 @@ impl OfflineState {
         let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
         shared_state
             .dns_handler
-            .set("lo".to_owned(), system_dns)
+            .set(LOOPBACK_INTERFACE, system_dns)
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to configure system to use filtering resolver");

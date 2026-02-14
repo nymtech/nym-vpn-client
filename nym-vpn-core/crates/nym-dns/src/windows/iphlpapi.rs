@@ -17,27 +17,35 @@ use std::{
     os::windows::ffi::OsStrExt,
 };
 use windows::{
+    core::{s, w, GUID, PWSTR},
     Win32::{
-        Foundation::{ERROR_PROC_NOT_FOUND, FreeLibrary, WIN32_ERROR},
+        Foundation::{FreeLibrary, ERROR_PROC_NOT_FOUND, WIN32_ERROR},
         NetworkManagement::IpHelper::{
             DNS_INTERFACE_SETTINGS, DNS_INTERFACE_SETTINGS_VERSION1, DNS_SETTING_IPV6,
             DNS_SETTING_NAMESERVER,
         },
-        System::LibraryLoader::{GetProcAddress, LOAD_LIBRARY_SEARCH_SYSTEM32, LoadLibraryExW},
+        System::LibraryLoader::{GetProcAddress, LoadLibraryExW, LOAD_LIBRARY_SEARCH_SYSTEM32},
     },
-    core::{GUID, PWSTR, s, w},
 };
 
 /// Errors that can happen when configuring DNS on Windows.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("failed to obtain LUID for the interface alias")]
-    ObtainInterfaceLuid(#[source] io::Error),
+    #[error("failed to obtain LUID for the interface '{interface_alias}'")]
+    ObtainInterfaceLuid {
+        interface_alias: String,
+        #[source]
+        error: io::Error,
+    },
 
     /// Failure to obtain an interface GUID.
-    #[error("failed to obtain GUID for the interface")]
-    ObtainInterfaceGuid(#[source] io::Error),
+    #[error("failed to obtain GUID for the interface '{interface_alias}'")]
+    ObtainInterfaceGuid {
+        interface_alias: String,
+        #[source]
+        error: io::Error,
+    },
 
     /// Failed to set DNS settings on interface.
     #[error("failed to set DNS settings on interface")]
@@ -128,8 +136,16 @@ impl DnsMonitorT for DnsMonitor {
 
     async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let servers = config.tunnel_config();
-        let guid = guid_from_luid(&luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?)
-            .map_err(Error::ObtainInterfaceGuid)?;
+
+        let luid = &luid_from_alias(interface).map_err(|error| Error::ObtainInterfaceLuid {
+            interface_alias: interface.to_string(),
+            error,
+        })?;
+
+        let guid = guid_from_luid(&luid).map_err(|error| Error::ObtainInterfaceGuid {
+            interface_alias: interface.to_string(),
+            error,
+        })?;
 
         let mut v4_servers = vec![];
         let mut v6_servers = vec![];

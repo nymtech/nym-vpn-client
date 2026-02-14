@@ -5,9 +5,9 @@
 use std::net::SocketAddr;
 
 use hickory_server::resolver::{
+    TokioResolver,
     config::{NameServerConfigGroup, ResolverConfig},
     name_server::TokioConnectionProvider,
-    TokioResolver,
 };
 use tokio_util::sync::CancellationToken;
 

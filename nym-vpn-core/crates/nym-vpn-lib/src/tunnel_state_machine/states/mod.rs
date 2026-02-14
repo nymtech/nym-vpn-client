@@ -14,3 +14,9 @@ pub use disconnected_state::DisconnectedState;
 pub use disconnecting_state::DisconnectingState;
 pub use error_state::ErrorState;
 pub use offline_state::OfflineState;
+
+#[cfg(unix)]
+pub(crate) const LOOPBACK_INTERFACE: &str = "lo";
+
+#[cfg(windows)]
+pub(crate) const LOOPBACK_INTERFACE: &str = "Loopback Pseudo-Interface 1";

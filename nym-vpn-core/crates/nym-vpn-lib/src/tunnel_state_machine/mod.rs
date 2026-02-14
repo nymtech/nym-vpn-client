@@ -67,8 +67,8 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, GatewayDirectoryError,
-    UserAgent,
+    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    mixnet::VpnTopologyServiceHandle,
 };
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]

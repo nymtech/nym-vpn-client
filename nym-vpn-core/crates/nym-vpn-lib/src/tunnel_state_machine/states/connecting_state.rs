@@ -8,29 +8,30 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use futures::{
-    future::{BoxFuture, Fuse},
     FutureExt,
+    future::{BoxFuture, Fuse},
 };
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::tunnel_state_machine::Error;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::Error;
 use crate::tunnel_state_machine::{
-    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState}, tunnel::{SelectedGateways, Tombstone}, tunnel_monitor::{
+    ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
+    SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
+    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
+    tunnel::{SelectedGateways, Tombstone},
+    tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
         TunnelMonitorHandle, TunnelParameters,
-    }, ErrorStateReason, NextTunnelState,
-    PrivateActionAfterDisconnect, PrivateTunnelState, Result, SharedState,
-    TunnelCommand,
-    TunnelInterface,
-    TunnelStateHandler,
+    },
 };
 
+use crate::tunnel_state_machine::states::LOOPBACK_INTERFACE;
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::DnsConfig;
@@ -201,13 +202,11 @@ impl ConnectingState {
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
         if *LOCAL_DNS_RESOLVER {
             // Set system DNS to our local DNS resolver
-            let system_dns = DnsConfig::default().resolve(
-                &[shared_state.filtering_resolver.listen_addr().ip()],
-                shared_state.filtering_resolver.listen_addr().port(),
-            );
+            let listen_addr = shared_state.filtering_resolver.listen_addr();
+            let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
             shared_state
                 .dns_handler
-                .set("lo".to_owned(), system_dns)
+                .set(LOOPBACK_INTERFACE, system_dns)
                 .await
                 .map_err(Error::SetDns)
         } else {
