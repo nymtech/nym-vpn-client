@@ -410,6 +410,13 @@ impl super::DnsMonitorT for DnsMonitor {
         state.apply_new_config(&self.store, interface, &servers, port)
     }
 
+    async fn set_loopback(
+        &mut self,
+        servers: ResolvedDnsConfig,
+    ) -> std::result::Result<(), Self::Error> {
+        self.set("lo", servers).await
+    }
+
     async fn reset(&mut self) -> Result<()> {
         self.state.lock().await.reset(&self.store)
     }
