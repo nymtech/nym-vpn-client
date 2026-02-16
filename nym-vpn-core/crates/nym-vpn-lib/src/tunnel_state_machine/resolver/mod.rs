@@ -63,8 +63,7 @@ mod tests;
 pub(crate) trait LoopbackAlias: Send {
     fn addr(&self) -> IpAddr;
 
-    fn unassign(self: Box<Self>)
-    -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>;
+    fn unassign(self: Box<Self>) -> std::pin::Pin<Box<dyn Future<Output = ()> + Send>>;
 }
 
 pub(crate) type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
@@ -144,7 +143,7 @@ enum ResolverMessage {
         dns_query: LowerQuery,
 
         /// Channel for the query response
-        response_tx: oneshot::Sender<std::result::Result<Box<dyn LookupObject>, ResolveError>>,
+        response_tx: oneshot::Sender<Result<Box<dyn LookupObject>, ResolveError>>,
     },
 }
 
@@ -174,8 +173,9 @@ impl Resolver {
     pub fn resolve(
         &self,
         query: LowerQuery,
-        tx: oneshot::Sender<std::result::Result<Box<dyn LookupObject>, ResolveError>>,
+        tx: oneshot::Sender<Result<Box<dyn LookupObject>, ResolveError>>,
     ) {
+        tracing::info!("resolve query: {}", query.to_string());
         let lookup = match self {
             Resolver::Blocking => Either::Left(async move { Self::resolve_blocked(query) }),
             Resolver::Forwarding(resolver) => {
@@ -189,9 +189,7 @@ impl Resolver {
     }
 
     /// Resolution in blocked state will return spoofed records for captive portal domains.
-    fn resolve_blocked(
-        query: LowerQuery,
-    ) -> std::result::Result<Box<dyn LookupObject>, ResolveError> {
+    fn resolve_blocked(query: LowerQuery) -> Result<Box<dyn LookupObject>, ResolveError> {
         if !Self::is_captive_portal_domain(&query) {
             return Ok(Box::new(EmptyLookup));
         }
@@ -226,7 +224,7 @@ impl Resolver {
     async fn resolve_forward(
         resolver: TokioResolver,
         query: LowerQuery,
-    ) -> std::result::Result<Box<dyn LookupObject>, ResolveError> {
+    ) -> Result<Box<dyn LookupObject>, ResolveError> {
         let return_query = query.original().clone();
 
         let lookup = resolver
@@ -372,7 +370,7 @@ impl LocalResolver {
     }
 
     async fn new_server(
-        server_socket: tokio::net::UdpSocket,
+        server_socket: UdpSocket,
         tx: mpsc::UnboundedSender<ResolverMessage>,
     ) -> Result<ServerFuture<ResolverImpl>, Error> {
         let mut server = ServerFuture::new(ResolverImpl { tx });
@@ -463,7 +461,7 @@ type LookupResponse<'a> = MessageResponse<
     std::iter::Empty<&'a Record>,
 >;
 
-/// An implementation of [hickory_server::server::RequestHandler] that forwards queries.
+/// An implementation of [RequestHandler] that forwards queries.
 struct ResolverImpl {
     tx: mpsc::UnboundedSender<ResolverMessage>,
 }

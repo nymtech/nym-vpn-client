@@ -9,7 +9,7 @@ use std::{
 
 #[cfg(target_os = "ios")]
 use ipnetwork::IpNetwork;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -60,7 +60,7 @@ impl ErrorState {
         // Disallow networking in error state since there are no configured firewall exceptions
         shared_state.disallow_networking().await;
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(target_os = "macos")]
         if !reason.prevents_filtering_resolver() {
             // Set system DNS to our local DNS resolver
             if Self::set_local_dns_resolver(shared_state).await.is_err() {
@@ -120,7 +120,7 @@ impl ErrorState {
         }
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(target_os = "macos")]
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
         // Set system DNS to our local DNS resolver
         let listen_addr = shared_state.filtering_resolver.listen_addr();

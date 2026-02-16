@@ -4,11 +4,9 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
@@ -17,7 +15,7 @@ use crate::tunnel_state_machine::{
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
 
 pub struct OfflineState {
@@ -39,9 +37,11 @@ impl OfflineState {
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         shared_state.disallow_networking().await;
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
-        if Self::set_local_dns_resolver(shared_state).await.is_err() {
-            return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, shared_state)).await;
+        #[cfg(target_os = "macos")]
+        {
+            if Self::set_local_dns_resolver(shared_state).await.is_err() {
+                return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, shared_state)).await;
+            }
         }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -92,7 +92,7 @@ impl OfflineState {
         }
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(target_os = "macos")]
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
         // Set system DNS to our local DNS resolver
         let listen_addr = shared_state.filtering_resolver.listen_addr();
@@ -167,14 +167,7 @@ impl TunnelStateHandler for OfflineState {
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else {
-                    #[cfg(any(target_os = "macos", target_os = "windows"))]
-                    if !*LOCAL_DNS_RESOLVER {
-                        // This is probably unnecessary, since DNS is already configured on the
-                        // primary interface.
-                        Self::reset_dns(shared_state).await;
-                    }
-
-                    #[cfg(any(target_os = "linux", target_os = "windows"))]
+                    #[cfg(not(any(target_os = "android", target_os = "ios")))]
                     Self::reset_dns(shared_state).await;
 
                     if self.reconnect {

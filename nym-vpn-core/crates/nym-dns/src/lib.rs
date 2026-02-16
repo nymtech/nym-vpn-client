@@ -187,13 +187,13 @@ impl DnsMonitor {
 
     /// Set DNS to the given servers. And start monitoring the system for changes.
     pub async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
-        tracing::info!("Setting DNS servers: {config}");
+        tracing::info!("Setting DNS servers on interface '{interface}': {config}");
         self.inner.set(interface, config).await
     }
 
     /// Set DNS to the given servers. And start monitoring the system for changes.
     pub async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), Error> {
-        tracing::info!("Setting DNS servers: {config}");
+        tracing::info!("Setting DNS servers on loopback interface: {config}");
         self.inner.set_loopback(config).await
     }
 

@@ -63,7 +63,7 @@ enum DnsHandlerCommand {
     Reset {
         reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
     },
-    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[cfg(target_os = "linux")]
     ResetBeforeInterfaceRemoval {
         reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
     },

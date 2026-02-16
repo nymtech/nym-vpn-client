@@ -5,7 +5,7 @@
 use std::net::SocketAddr;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_dns::ResolvedDnsConfig;
+use nym_dns::{DnsConfig, ResolvedDnsConfig};
 use nym_vpn_lib_types::{ErrorStateReason, TunnelType};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -153,6 +153,20 @@ impl ConnectedState {
             let ips = dns_config.addresses().collect::<Vec<_>>();
             tracing::debug!("Enabling local DNS forwarder to: {:?}", ips);
             shared_state.filtering_resolver.enable_forward(ips).await;
+
+            #[cfg(target_os = "windows")]
+            {
+                // Point the tunnel interface DNS at the local filtering resolver so that the OS actually
+                // sends DNS queries to it.
+                let listen_addr = shared_state.filtering_resolver.listen_addr();
+                let system_dns =
+                    DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
+                shared_state
+                    .dns_handler
+                    .set(&tunnel_metadata.interface, system_dns)
+                    .await
+                    .map_err(Error::SetDns)?;
+            }
         } else {
             tracing::debug!("Not enabling local DNS resolver");
             shared_state
