@@ -4,8 +4,12 @@
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::SocketAddr;
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use nym_dns::DnsConfig;
+
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_dns::{DnsConfig, ResolvedDnsConfig};
+use nym_dns::ResolvedDnsConfig;
+
 use nym_vpn_lib_types::{ErrorStateReason, TunnelType};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -142,7 +146,7 @@ impl ConnectedState {
         #[cfg(target_os = "linux")]
         shared_state
             .dns_handler
-            .set(tunnel_metadata.interface.clone(), dns_config)
+            .set(&tunnel_metadata.interface, dns_config)
             .await
             .map_err(Error::SetDns)?;
 
