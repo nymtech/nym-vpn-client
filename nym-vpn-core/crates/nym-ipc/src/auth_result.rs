@@ -6,6 +6,51 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(test, derive(strum::EnumIter))]
+pub enum AuthenticaticationQuery {
+    Status = 0,
+    Undefined = 255,
+}
+
+impl From<AuthenticaticationQuery> for u8 {
+    fn from(value: AuthenticaticationQuery) -> Self {
+        value as u8
+    }
+}
+
+impl From<u8> for AuthenticaticationQuery {
+    fn from(value: u8) -> Self {
+        if value == 0 {
+            AuthenticaticationQuery::Status
+        } else {
+            AuthenticaticationQuery::Undefined
+        }
+    }
+}
+
+impl AuthenticaticationQuery {
+    pub async fn query(mut stream: impl AsyncWrite + Unpin) {
+        stream
+            .write_u8(AuthenticaticationQuery::Status.into())
+            .await
+            .ok();
+    }
+
+    pub async fn recv(mut stream: impl AsyncRead + Unpin) -> Self {
+        stream
+            .read_u8()
+            .await
+            .map(Into::into)
+            .unwrap_or(Self::Undefined)
+    }
+
+    pub fn status(&self) -> bool {
+        matches!(self, Self::Status)
+    }
+}
+
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(test, derive(strum::EnumIter))]
 pub enum AuthenticaticationResult {
     Accepted = 0,
     Denied = 1,
@@ -52,6 +97,9 @@ mod tests {
 
     #[test]
     fn enum_to_u8() {
+        for (idx, res) in AuthenticaticationQuery::iter().enumerate() {
+            assert_eq!(idx as u8, res.into());
+        }
         for (idx, res) in AuthenticaticationResult::iter().enumerate() {
             assert_eq!(idx as u8, res.into());
         }
@@ -59,6 +107,15 @@ mod tests {
 
     #[test]
     fn u8_to_enum() {
+        let zero = AuthenticaticationQuery::from(0);
+        assert!(matches!(zero, AuthenticaticationQuery::Status));
+        assert!(zero.status());
+        for idx in 1u8..255 {
+            let other = AuthenticaticationQuery::from(idx);
+            assert!(matches!(other, AuthenticaticationQuery::Undefined));
+            assert!(!other.status());
+        }
+
         let zero = AuthenticaticationResult::from(0);
         assert!(matches!(zero, AuthenticaticationResult::Accepted));
         assert!(zero.accepted());
@@ -73,6 +130,14 @@ mod tests {
     async fn send_recv() {
         let (mut client, mut server) = tokio::io::duplex(64);
 
+        for sent in AuthenticaticationQuery::iter() {
+            AuthenticaticationQuery::query(&mut client).await;
+            let received = AuthenticaticationQuery::recv(&mut server).await;
+            assert_eq!(sent, received);
+        }
+
+        let (mut client, mut server) = tokio::io::duplex(64);
+
         for sent in AuthenticaticationResult::iter() {
             sent.send(&mut server).await;
             let received = AuthenticaticationResult::recv(&mut client).await;
@@ -85,5 +150,12 @@ mod tests {
         let (mut client, _) = tokio::io::duplex(64);
         let received = AuthenticaticationResult::recv(&mut client).await;
         assert_eq!(received, AuthenticaticationResult::Denied);
+    }
+
+    #[tokio::test]
+    async fn zero_means_undefined() {
+        let (mut server, _) = tokio::io::duplex(64);
+        let received = AuthenticaticationQuery::recv(&mut server).await;
+        assert_eq!(received, AuthenticaticationQuery::Undefined);
     }
 }

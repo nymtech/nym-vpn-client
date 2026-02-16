@@ -1,0 +1,152 @@
+// Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use std::pin::Pin;
+
+use objc2::{
+    AnyThread, DefinedClass as _, define_class, msg_send, rc::Retained, runtime::ProtocolObject,
+};
+use objc2_foundation::{
+    NSObject, NSObjectProtocol, NSString, NSXPCConnection, NSXPCInterface, NSXPCListener,
+    NSXPCListenerDelegate,
+};
+use tokio::sync::mpsc;
+use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
+use tokio_util::sync::CancellationToken;
+
+use crate::xpc::{
+    common::{
+        ConnectionInterfaceObj, DAEMON_BUNDLE_IDENTIFIER, NSConnectionInterface, XpcConnection,
+        connection_interface,
+    },
+    local_spawner::LocalSpawner,
+};
+
+#[derive(Clone)]
+struct ListenerDelegateIvars {
+    connection_interface: Retained<NSXPCInterface>,
+    conn_sender: mpsc::UnboundedSender<XpcConnection>,
+}
+
+define_class!(
+    #[unsafe(super(NSObject))]
+    #[ivars = ListenerDelegateIvars]
+    struct ListenerDelegate;
+
+    unsafe impl NSObjectProtocol for ListenerDelegate {}
+
+    unsafe impl NSXPCListenerDelegate for ListenerDelegate {
+        #[allow(non_snake_case)]
+        #[unsafe(method(listener:shouldAcceptNewConnection:))]
+        fn listener_shouldAcceptNewConnection(
+            &self,
+            _listener: &NSXPCListener,
+            new_connection: &NSXPCConnection,
+        ) -> bool {
+            let (data_tx, data_rx) = mpsc::unbounded_channel();
+            let exported_conn_int_obj = ConnectionInterfaceObj::new(data_tx);
+            unsafe {
+                new_connection.setExportedObject(Some(&exported_conn_int_obj));
+            }
+
+            new_connection.setExportedInterface(Some(&self.ivars().connection_interface));
+            new_connection.setRemoteObjectInterface(Some(&self.ivars().connection_interface));
+
+            new_connection.setRemoteObjectInterface(Some(&self.ivars().connection_interface));
+
+            let proxy_obj = new_connection.remoteObjectProxy();
+            let proxy = unsafe {
+                Retained::cast_unchecked::<ProtocolObject<dyn NSConnectionInterface + Send + Sync>>(
+                    proxy_obj,
+                )
+            };
+
+            let xpc_conn = XpcConnection::new(exported_conn_int_obj, proxy, data_rx.into());
+            let forwarded = self.ivars().conn_sender.send(xpc_conn);
+
+            new_connection.resume();
+
+            if let Err(err) = forwarded {
+                tracing::error!("Connection could not be forwarded: {err:?}");
+                false
+            } else {
+                true
+            }
+        }
+    }
+);
+
+impl ListenerDelegate {
+    fn new(
+        connection_interface: Retained<NSXPCInterface>,
+        conn_sender: mpsc::UnboundedSender<XpcConnection>,
+    ) -> Retained<Self> {
+        let this = Self::alloc().set_ivars(ListenerDelegateIvars {
+            connection_interface,
+            conn_sender,
+        });
+        unsafe { msg_send![super(this), init] }
+    }
+}
+
+enum Task {
+    CreateListener(mpsc::UnboundedSender<XpcConnection>),
+}
+
+async fn create_listener(
+    conn_sender: mpsc::UnboundedSender<XpcConnection>,
+    shutdown_token: CancellationToken,
+) {
+    let service_name = NSString::from_str(DAEMON_BUNDLE_IDENTIFIER);
+    let listener = NSXPCListener::initWithMachServiceName(NSXPCListener::alloc(), &service_name);
+    let interface = connection_interface();
+    let listener_delegate = ListenerDelegate::new(interface, conn_sender);
+    let protocol_obj = ProtocolObject::from_retained(listener_delegate);
+    listener.setDelegate(Some(&protocol_obj));
+    listener.resume();
+    tracing::info!("Started XPC listener");
+
+    // Wait for shutdown, keeping the listener and protocol objects alive
+    shutdown_token.cancelled().await;
+    tracing::info!("Stopped XPC listener");
+}
+
+async fn run_task(task: Task, shutdown_token: CancellationToken) {
+    match task {
+        Task::CreateListener(conn_sender) => create_listener(conn_sender, shutdown_token).await,
+    }
+}
+
+pub(crate) struct XpcService {
+    inner: UnboundedReceiverStream<XpcConnection>,
+    // needed to keep the XPC listener object alive for the lifetime of this
+    // service
+    _shutdown_token: CancellationToken,
+}
+
+impl XpcService {
+    pub(crate) fn spawn(shutdown_token: CancellationToken) -> std::io::Result<Self> {
+        let local_spawner = LocalSpawner::new(run_task, shutdown_token.child_token())?;
+
+        let (conn_sender, conn_receiver) = mpsc::unbounded_channel();
+        local_spawner.spawn(Task::CreateListener(conn_sender));
+
+        Ok(XpcService {
+            inner: UnboundedReceiverStream::new(conn_receiver),
+            _shutdown_token: shutdown_token,
+        })
+    }
+}
+
+impl Stream for XpcService {
+    type Item = std::io::Result<XpcConnection>;
+
+    fn poll_next(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Option<Self::Item>> {
+        Pin::new(&mut self.inner)
+            .poll_next(cx)
+            .map(|conn| conn.map(Ok))
+    }
+}
