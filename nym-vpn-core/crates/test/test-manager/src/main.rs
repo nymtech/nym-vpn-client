@@ -356,14 +356,6 @@ async fn main() -> Result<()> {
                 .await
                 .context("Tests failed");
 
-            // TODO dz consider making this a CLI flag
-            let sleep_amount = core::time::Duration::from_secs(60 * 60 * 4);
-            log::info!(
-                "Tests done, you may inspect the VM via VNC during the next {}s...",
-                sleep_amount.as_secs()
-            );
-            tokio::time::sleep(sleep_amount).await;
-
             if display {
                 instance.wait().await;
             }
