@@ -155,7 +155,7 @@ tokio-rustls = { version = "0.26", default-features = false }
 tokio-stream = "0.1.18"
 tokio-tungstenite = { version = "0.28" }
 tokio-util = { version = "0.7.18", features = ["codec"] }
-toml = "0.9.11"
+toml = "1.0.1"
 tonic = "0.14.4"
 tonic-prost = "0.14.4"
 tonic-prost-build = "0.14.4"
