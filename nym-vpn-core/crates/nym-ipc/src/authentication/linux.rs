@@ -175,7 +175,7 @@ async fn wait_for_authorization(
 // This function depends on user interaction, so it must ensure it doesn't await
 // indefinitely and starve the consumer.
 pub(crate) async fn is_authenticated(
-    stream: &mut UnixStream,
+    stream: &mut StreamItem,
     shutdown_token: CancellationToken,
 ) -> Result<(), AuthenticationError> {
     authenticate_with_prompt(stream, PolkitPrompter::new(shutdown_token)).await

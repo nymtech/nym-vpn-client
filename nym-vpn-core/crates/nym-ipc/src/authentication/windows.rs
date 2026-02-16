@@ -20,7 +20,7 @@ fn verify(
 
 // Check the stream is from a binary signed by Nym
 pub(crate) async fn is_authenticated(
-    stream: &mut Connector<NamedPipeServer>,
+    stream: &mut StreamItem,
     nym_certificate_serial_number: String,
 ) -> Result<(), AuthenticationError> {
     if let Err(err) = verify(stream, nym_certificate_serial_number) {

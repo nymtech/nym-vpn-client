@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf};
+use std::net::IpAddr;
 
 use futures::{StreamExt, stream::BoxStream};
 use tokio::{
@@ -1090,18 +1090,21 @@ pub async fn start_command_interface(
 ) -> std::io::Result<(JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>)> {
     tracing::debug!("Starting command interface");
 
-    let socket_path = default_socket_path();
     let (vpn_command_tx, vpn_command_rx) = mpsc::unbounded_channel();
 
-    // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
-    #[cfg(unix)]
-    remove_previous_socket_file(&socket_path).await;
-    tracing::info!("Starting socket listener on: {}", socket_path.display());
+    #[cfg(target_os = "linux")]
+    {
+        let socket_path = default_socket_path();
+        // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
+        remove_previous_socket_file(&socket_path).await;
+        tracing::info!("Starting socket listener on: {}", socket_path.display());
+    }
 
     // Wrap the unix socket or named pipe into a stream that can be used by tonic
     let incoming = nym_ipc::server::create_incoming(
-        socket_path.clone(),
-        #[cfg(windows)]
+        #[cfg(target_os = "linux")]
+        default_socket_path(),
+        #[cfg(target_os = "windows")]
         NYM_CERTIFICATE_SERIAL_NUMBER.to_string(),
         #[cfg(unix)]
         shutdown_token.child_token(),
@@ -1141,7 +1144,7 @@ pub async fn start_command_interface(
     Ok((server_handle, vpn_command_rx))
 }
 
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
 async fn remove_previous_socket_file(socket_path: &std::path::Path) {
     match tokio::fs::remove_file(socket_path).await {
         Ok(_) => tracing::info!(
@@ -1158,14 +1161,15 @@ async fn remove_previous_socket_file(socket_path: &std::path::Path) {
     }
 }
 
-fn default_socket_path() -> PathBuf {
+#[cfg(target_os = "linux")]
+fn default_socket_path() -> std::path::PathBuf {
     #[cfg(unix)]
     {
-        PathBuf::from("/var/run/nym-vpn.sock")
+        std::path::PathBuf::from("/var/run/nym-vpn.sock")
     }
 
     #[cfg(windows)]
     {
-        PathBuf::from(r"\\.\pipe\nym-vpn")
+        std::path::PathBuf::from(r"\\.\pipe\nym-vpn")
     }
 }

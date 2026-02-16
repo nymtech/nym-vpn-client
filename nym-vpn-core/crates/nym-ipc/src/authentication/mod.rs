@@ -24,7 +24,7 @@ use tokio_stream::{Stream, StreamExt};
 
 use std::io::Result;
 
-use crate::auth_result::AuthenticaticationResult;
+use crate::auth_result::{AuthenticaticationQuery, AuthenticaticationResult};
 
 pub(crate) async fn authorize(stream: impl AsyncWrite + Unpin) {
     AuthenticaticationResult::Accepted.send(stream).await;
@@ -69,6 +69,9 @@ async fn authorized_stream(
     #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
     #[cfg(target_os = "linux")] shutdown_token: tokio_util::sync::CancellationToken,
 ) -> bool {
+    if !AuthenticaticationQuery::recv(&mut *stream).await.status() {
+        tracing::warn!("Query not recognized");
+    }
     if skip_authentication_checks() {
         authorize(stream).await;
         return true;
