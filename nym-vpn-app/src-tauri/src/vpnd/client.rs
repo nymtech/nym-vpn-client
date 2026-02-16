@@ -97,6 +97,7 @@ impl VpndClient {
                 c
             }
             Err(nym_vpn_proto::rpc_client::Error::AuthenticationRequired) => {
+                self.log_connect_failed("need to authenticate").await;
                 return Err(VpndError::AuthenticationRequired);
             }
             Err(e) => {
