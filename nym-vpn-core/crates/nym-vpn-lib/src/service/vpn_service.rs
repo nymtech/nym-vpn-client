@@ -79,10 +79,11 @@ pub enum VpnServiceCommand {
     SetExitPoint(oneshot::Sender<()>, ExitPoint),
     SetDisableIPv6(oneshot::Sender<()>, bool),
     SetEnableTwoHop(oneshot::Sender<()>, bool),
-    SetEnableLewesProtocol(oneshot::Sender<()>, bool),
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
     SetEnableBridges(oneshot::Sender<()>, bool),
+    SetEnableLewesProtocol(oneshot::Sender<()>, bool),
+    SetEnableAdBlocking(oneshot::Sender<()>, bool),
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
@@ -106,6 +107,7 @@ pub enum VpnServiceCommand {
     ),
     DisableSocks5(oneshot::Sender<Result<(), Socks5Error>>, ()),
     GetSocks5Status(oneshot::Sender<Result<Socks5Status, Socks5Error>>, ()),
+    GetAdBlockingList(oneshot::Sender<Vec<String>>, ()),
     SetTargetState(oneshot::Sender<bool>, TargetState),
     Reconnect(oneshot::Sender<bool>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
@@ -841,6 +843,10 @@ impl NymVpnService {
                     .await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetEnableAdBlocking(tx, enable_ad_blocking) => {
+                self.handle_set_enable_ad_blocking(enable_ad_blocking).await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetstack(tx, netstack) => {
                 self.handle_set_netstack(netstack).await;
                 let _ = tx.send(());
@@ -1030,6 +1036,10 @@ impl NymVpnService {
                 let result = self.handle_get_socks5_status().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::GetAdBlockingList(tx, ()) => {
+                let result = self.handle_get_ad_blocking_list().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::RunDiagnostic(tx, params) => {
                 let _ = tx.send(self.handle_run_diagnostic(params).await);
             }
@@ -1078,13 +1088,6 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
-        self.config_manager
-            .set_enable_lewes_protocol(enable_lewes_protocol)
-            .await;
-        self.update_tunnel_settings_with_throttle();
-    }
-
     async fn handle_set_netstack(&mut self, netstack: bool) {
         self.config_manager.set_netstack(netstack).await;
         self.update_tunnel_settings_with_throttle();
@@ -1097,6 +1100,20 @@ impl NymVpnService {
 
     async fn handle_set_enable_bridges(&mut self, enable_bridges: bool) {
         self.config_manager.set_enable_bridges(enable_bridges).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
+        self.config_manager
+            .set_enable_lewes_protocol(enable_lewes_protocol)
+            .await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) {
+        self.config_manager
+            .set_enable_ad_blocking(enable_ad_blocking)
+            .await;
         self.update_tunnel_settings_with_throttle();
     }
 
@@ -1532,6 +1549,14 @@ impl NymVpnService {
 
     async fn handle_get_socks5_status(&self) -> Result<Socks5Status, Socks5Error> {
         self.socks5_service.get_status().await
+    }
+
+    async fn handle_get_ad_blocking_list(&self) -> Vec<String> {
+        vec![
+            "todo".to_string(),
+            "very".to_string(),
+            "shortly".to_string(),
+        ]
     }
 
     async fn handle_get_tunnel_state(&self) -> TunnelState {

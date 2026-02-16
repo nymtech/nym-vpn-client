@@ -207,7 +207,7 @@ impl ConnectingState {
             );
             shared_state
                 .dns_handler
-                .set("lo".to_owned(), system_dns)
+                .set("lo", system_dns)
                 .await
                 .map_err(Error::SetDns)
         } else {

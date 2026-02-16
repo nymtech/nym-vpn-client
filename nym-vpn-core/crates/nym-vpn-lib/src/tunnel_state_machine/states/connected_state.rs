@@ -155,7 +155,7 @@ impl ConnectedState {
         // DNS resolver *or* if the DNS config points to a loopback address.
         if *LOCAL_DNS_RESOLVER {
             let ips = dns_config.addresses().collect::<Vec<_>>();
-            tracing::debug!("Enabling local DNS forwarder to: {:?}", ips);
+            tracing::debug!("Enabling local DNS forwarder to: {ips:?}");
             shared_state.filtering_resolver.enable_forward(ips).await;
 
             #[cfg(target_os = "windows")]

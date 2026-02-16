@@ -265,6 +265,7 @@ message VpnServiceConfig {
   bool enable_two_hop = 5;
   bool enable_bridges = 21;
   bool enable_lewes_protocol = 26;
+  bool enable_ad_blocking = 27;
   bool residential_exit = 15;
   bool netstack = 13;
   bool enable_custom_dns = 17;
@@ -929,6 +930,10 @@ enum DeeplinkKind {
   KIND_PRIVY_LINK = 1;
 }
 
+message GetAdBlockingListResponse {
+  repeated string domains = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
@@ -943,6 +948,7 @@ service NymVpnService {
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableLewesProtocol(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableAdBlocking(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetResidentialExit(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
@@ -1090,6 +1096,9 @@ service NymVpnService {
 
   // Get Privy derivation message to be signed
   rpc GetPrivyDerivationMessage(google.protobuf.Empty) returns (PrivyDerivationMessage) {}
+
+  // Get a list of the domains blocked by the ad-blocking feature
+  rpc GetAdBlockingList(google.protobuf.Empty) returns (GetAdBlockingListResponse) {}
 
   // Diagnostic stuff
   rpc RunDiagnostic(DiagnosticRunParams) returns (DiagnosticReport) {}

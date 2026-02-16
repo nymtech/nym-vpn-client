@@ -129,7 +129,7 @@ impl ErrorState {
         );
         shared_state
             .dns_handler
-            .set("lo".to_owned(), system_dns)
+            .set("lo", system_dns)
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to configure system to use filtering resolver");

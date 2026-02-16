@@ -13,6 +13,9 @@ pub enum Command {
     /// Display current tunnel configuration
     Get,
 
+    /// Display the list of ad-blocked domains
+    GetAdBlockingList,
+
     /// Update tunnel configuration
     Set(Box<SetParams>),
 }
@@ -31,6 +34,10 @@ pub struct SetParams {
     /// Enable or disable lewes-protocol
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     lewes_protocol: Option<BooleanOption>,
+
+    /// Enable or disable Ad blocking
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
+    ad_blocking: Option<BooleanOption>,
 
     /// Enable or disable netstack in two-hop mode
     /// Normally this is only used for testing purposes and should always be off
@@ -89,6 +96,7 @@ impl Command {
                     "Lewes protocol: {}",
                     display_on_off(config.enable_lewes_protocol)
                 );
+                println!("Ad blocking: {}", display_on_off(config.enable_ad_blocking));
                 println!("Netstack: {}", display_on_off(config.netstack));
                 println!(
                     "Circumvention transports: {}",
@@ -96,6 +104,18 @@ impl Command {
                 );
                 println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
 
+                Ok(())
+            }
+            Command::GetAdBlockingList => {
+                let domains = rpc_client.get_ad_blocking_list().await?;
+                if domains.is_empty() {
+                    println!("No ad-blocked domains configured.");
+                } else {
+                    println!("Ad-blocked domains:");
+                    for domain in domains {
+                        println!("{domain}");
+                    }
+                }
                 Ok(())
             }
             Command::Set(params) => {
@@ -107,6 +127,10 @@ impl Command {
                     rpc_client
                         .set_enable_lewes_protocol(*lewes_protocol)
                         .await?;
+                }
+
+                if let Some(ad_blocking) = params.ad_blocking {
+                    rpc_client.set_enable_ad_blocking(*ad_blocking).await?;
                 }
 
                 if let Some(netstack) = params.netstack {

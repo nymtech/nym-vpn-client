@@ -22,6 +22,7 @@ pub struct VpnServiceConfig {
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
+    pub enable_ad_blocking: bool,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -32,8 +33,8 @@ pub struct VpnServiceConfig {
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
-    fn from(v6: VpnServiceConfig) -> Self {
-        VpnServiceConfigExt::V6(v6)
+    fn from(v7: VpnServiceConfig) -> Self {
+        VpnServiceConfigExt::V7(v7)
     }
 }
 
@@ -66,6 +67,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_two_hop: value.enable_two_hop,
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
+            enable_ad_blocking: value.enable_ad_blocking,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
@@ -73,7 +75,6 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_custom_dns: value.enable_custom_dns,
             custom_dns,
             network_stats,
-            ..Default::default()
         };
 
         Ok(config)

@@ -181,6 +181,22 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_enable_ad_blocking(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_ad_blocking = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetEnableAdBlocking, enable_ad_blocking)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set ad-blocking config: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_netstack(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
         let netstack = request.into_inner();
 
@@ -963,6 +979,21 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(proto::PrivyDerivationMessage {
             message: nym_vpn_lib::privy::message_to_sign(),
         }))
+    }
+
+    async fn get_ad_blocking_list(
+        &self,
+        _: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::GetAdBlockingListResponse>> {
+        let domains = self
+            .send_and_wait(VpnServiceCommand::GetAdBlockingList, ())
+            .await?;
+
+        let response = proto::GetAdBlockingListResponse {
+            domains: domains.into_iter().collect(),
+        };
+
+        Ok(tonic::Response::new(response))
     }
 
     async fn run_diagnostic(

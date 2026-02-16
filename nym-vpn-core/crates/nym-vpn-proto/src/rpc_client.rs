@@ -118,6 +118,15 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) -> Result<()> {
+        self.0
+            .set_enable_ad_blocking(enable_ad_blocking)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_netstack(&mut self, netstack: bool) -> Result<()> {
         self.0
             .set_netstack(netstack)
@@ -736,6 +745,17 @@ impl RpcClient {
             .map_err(Error::Rpc)?;
 
         Ok(PrivyDerivationMessage::from(response))
+    }
+
+    pub async fn get_ad_blocking_list(&mut self) -> Result<Vec<String>> {
+        let response = self
+            .0
+            .get_ad_blocking_list(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+
+        Ok(response.domains)
     }
 
     pub async fn run_diagnostic(
