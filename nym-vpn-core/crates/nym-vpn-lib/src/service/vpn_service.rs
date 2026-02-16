@@ -1,9 +1,15 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use std::{
+    net::IpAddr,
+    path::PathBuf,
+    pin::{Pin, pin},
+    sync::Arc,
+};
+
+use futures::{FutureExt, StreamExt, future::Fuse};
 use nym_diagnostic::DiagnosticHandler;
-use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{RwLock, broadcast, mpsc, oneshot, watch},
@@ -631,7 +637,7 @@ impl NymVpnService {
         if let Some(state_machine_handle) = self.state_machine_handle.take() {
             // Drain tunnel events channel and wait for the tunnel state machine to quit
             let fused_state_machine_handle = state_machine_handle.fuse();
-            pin_mut!(fused_state_machine_handle);
+            let mut fused_state_machine_handle = pin!(fused_state_machine_handle);
 
             loop {
                 tokio::select! {

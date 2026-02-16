@@ -3,9 +3,6 @@
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
-
-use std::ops::Deref;
-
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
 use std::os::fd::BorrowedFd;
 #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -14,12 +11,14 @@ use std::os::fd::{AsRawFd, IntoRawFd};
 use std::os::fd::{FromRawFd, OwnedFd};
 use std::{
     net::{IpAddr, SocketAddr},
+    ops::Deref,
+    pin::pin,
     time::Duration,
 };
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-use futures::{FutureExt, future::Fuse, pin_mut};
+use futures::{FutureExt, future::Fuse};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
@@ -741,7 +740,7 @@ impl TunnelMonitor {
         let mixnet_monitoring_token = mixnet_client_token
             .map(|token| token.cancelled_owned().fuse())
             .unwrap_or(Fuse::terminated());
-        pin_mut!(mixnet_monitoring_token);
+        let mut mixnet_monitoring_token = pin!(mixnet_monitoring_token);
 
         let (tunnel_connection_monitor_tx, mut tunnel_connection_monitor_rx) =
             mpsc::unbounded_channel();

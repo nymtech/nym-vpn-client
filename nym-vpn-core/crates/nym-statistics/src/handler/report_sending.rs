@@ -1,7 +1,14 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, future::Fuse, pin_mut};
+use std::{pin::pin, time::Duration};
+
+use futures::{FutureExt, future::Fuse};
+use rand::{distributions::Uniform, prelude::Distribution};
+use sysinfo::System;
+use tokio::sync::mpsc::{self, Receiver, Sender};
+use tokio_util::sync::CancellationToken;
+
 use nym_statistics_api_client::StatisticsApiClient;
 use nym_statistics_common::{
     generate_vpn_client_stats_id,
@@ -12,12 +19,6 @@ use nym_vpn_lib_types::NetworkStatisticsConfig;
 use crate::{
     commands::ConfigCommand, error::Error, events::ReportSendingEvent, storage::StatsStorage,
 };
-
-use rand::{distributions::Uniform, prelude::Distribution};
-use std::time::Duration;
-use sysinfo::System;
-use tokio::sync::mpsc::{self, Receiver, Sender};
-use tokio_util::sync::CancellationToken;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 enum TunnelState {
@@ -272,8 +273,8 @@ impl InnerHandler {
         } else {
             Fuse::terminated()
         };
-        pin_mut!(timer);
-        pin_mut!(sending_task);
+        let mut timer = pin!(timer);
+        let mut sending_task = pin!(sending_task);
         loop {
             tokio::select! {
                 biased;
