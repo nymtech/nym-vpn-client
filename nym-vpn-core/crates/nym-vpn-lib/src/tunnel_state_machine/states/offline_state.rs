@@ -4,6 +4,8 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "macos")]
+use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
 #[cfg(target_os = "macos")]
@@ -38,10 +40,8 @@ impl OfflineState {
         shared_state.disallow_networking().await;
 
         #[cfg(target_os = "macos")]
-        {
-            if Self::set_local_dns_resolver(shared_state).await.is_err() {
-                return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, shared_state)).await;
-            }
+        if Self::set_local_dns_resolver(shared_state).await.is_err() {
+            return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, shared_state)).await;
         }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -95,11 +95,13 @@ impl OfflineState {
     #[cfg(target_os = "macos")]
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
         // Set system DNS to our local DNS resolver
-        let listen_addr = shared_state.filtering_resolver.listen_addr();
-        let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
+        let system_dns = DnsConfig::default().resolve(
+            &[shared_state.filtering_resolver.listen_addr().ip()],
+            shared_state.filtering_resolver.listen_addr().port(),
+        );
         shared_state
             .dns_handler
-            .set_loopback(system_dns)
+            .set("lo".to_owned(), system_dns)
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to configure system to use filtering resolver");
@@ -167,7 +169,14 @@ impl TunnelStateHandler for OfflineState {
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else {
-                    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                    #[cfg(target_os = "macos")]
+                    if !*LOCAL_DNS_RESOLVER {
+                        // This is probably unnecessary, since DNS is already configured on the
+                        // primary interface.
+                        Self::reset_dns(shared_state).await;
+                    }
+
+                    #[cfg(any(target_os = "linux", target_os = "windows"))]
                     Self::reset_dns(shared_state).await;
 
                     if self.reconnect {

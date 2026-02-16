@@ -410,13 +410,6 @@ impl super::DnsMonitorT for DnsMonitor {
         state.apply_new_config(&self.store, interface, &servers, port)
     }
 
-    async fn set_loopback(
-        &mut self,
-        servers: ResolvedDnsConfig,
-    ) -> std::result::Result<(), Self::Error> {
-        self.set("lo", servers).await
-    }
-
     async fn reset(&mut self) -> Result<()> {
         self.state.lock().await.reset(&self.store)
     }
@@ -553,7 +546,6 @@ fn state_to_setup_path(state_path: &str) -> Option<String> {
 
 #[cfg(test)]
 mod test {
-
     use crate::imp::DNS_PORT;
 
     use super::{DnsSettings, State};

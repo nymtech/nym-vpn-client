@@ -4,7 +4,7 @@
 
 use crate::{DnsMonitorT, ResolvedDnsConfig};
 use nym_common::ErrorExt;
-use nym_windows::net::{guid_from_luid, loopback_luid, luid_from_alias};
+use nym_windows::net::{guid_from_luid, luid_from_alias};
 use std::{io, net::IpAddr};
 use windows::{
     Win32::{NetworkManagement::Ndis::NET_LUID_LH, System::Com::StringFromGUID2},
@@ -76,11 +76,6 @@ impl DnsMonitorT for DnsMonitor {
 
     async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
-        self.set_luid(&luid, config).await
-    }
-
-    async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), Error> {
-        let luid = loopback_luid().map_err(Error::ObtainInterfaceLuid)?;
         self.set_luid(&luid, config).await
     }
 

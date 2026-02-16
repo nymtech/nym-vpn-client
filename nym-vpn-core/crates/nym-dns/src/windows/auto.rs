@@ -29,15 +29,6 @@ impl InnerMonitor {
         Ok(())
     }
 
-    async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), super::Error> {
-        match self {
-            InnerMonitor::Iphlpapi(monitor) => monitor.set_loopback(config).await?,
-            InnerMonitor::Netsh(monitor) => monitor.set_loopback(config).await?,
-            InnerMonitor::Tcpip(monitor) => monitor.set_loopback(config).await?,
-        }
-        Ok(())
-    }
-
     async fn reset(&mut self) -> Result<(), super::Error> {
         match self {
             InnerMonitor::Iphlpapi(monitor) => monitor.reset().await?,
@@ -74,14 +65,6 @@ impl DnsMonitorT for DnsMonitor {
         let result = self.current_monitor.set(interface, config.clone()).await;
         if self.fallback_due_to_dnscache(&result) {
             return Box::pin(self.set(interface, config)).await;
-        }
-        result
-    }
-
-    async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), Self::Error> {
-        let result = self.current_monitor.set_loopback(config.clone()).await;
-        if self.fallback_due_to_dnscache(&result) {
-            return Box::pin(self.set_loopback(config)).await;
         }
         result
     }

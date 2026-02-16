@@ -35,10 +35,6 @@ impl DnsHandler {
         self.inner.set(interface, config).await
     }
 
-    pub async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), nym_dns::Error> {
-        self.inner.set_loopback(config).await
-    }
-
     pub async fn reset(&mut self) -> Result<(), nym_dns::Error> {
         self.inner.reset().await
     }
@@ -52,10 +48,6 @@ impl DnsHandler {
 enum DnsHandlerCommand {
     Set {
         interface: String,
-        config: ResolvedDnsConfig,
-        reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
-    },
-    SetLoopback {
         config: ResolvedDnsConfig,
         reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
     },
@@ -97,12 +89,6 @@ impl DnsHandlerHandle {
                             } => {
                                 _ = reply_tx.send(dns_handler.set(&interface, config).await);
                             }
-                            DnsHandlerCommand::SetLoopback {
-                                config,
-                                reply_tx,
-                            } => {
-                                _ = reply_tx.send(dns_handler.set_loopback(config).await);
-                            }
                             DnsHandlerCommand::Reset { reply_tx } => {
                                 _ = reply_tx.send(dns_handler.reset().await);
                             }
@@ -131,16 +117,6 @@ impl DnsHandlerHandle {
                 config,
                 reply_tx,
             },
-            reply_rx,
-        )
-        .await
-    }
-
-    pub async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<()> {
-        let (reply_tx, reply_rx) = oneshot::channel();
-
-        self.send_and_wait(
-            DnsHandlerCommand::SetLoopback { config, reply_tx },
             reply_rx,
         )
         .await

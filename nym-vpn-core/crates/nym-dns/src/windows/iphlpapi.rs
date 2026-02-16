@@ -8,7 +8,7 @@
 //! back on other methods if it is not available.
 
 use crate::{DnsMonitorT, ResolvedDnsConfig};
-use nym_windows::net::{guid_from_luid, loopback_luid, luid_from_alias};
+use nym_windows::net::{guid_from_luid, luid_from_alias};
 use once_cell::sync::OnceCell;
 use std::{
     ffi::OsString,
@@ -174,11 +174,6 @@ impl DnsMonitorT for DnsMonitor {
 
     async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
-        self.set_luid(&luid, config).await
-    }
-
-    async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<(), Error> {
-        let luid = loopback_luid().map_err(Error::ObtainInterfaceLuid)?;
         self.set_luid(&luid, config).await
     }
 

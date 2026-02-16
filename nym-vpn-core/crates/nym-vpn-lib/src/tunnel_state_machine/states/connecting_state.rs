@@ -18,7 +18,7 @@ use tokio_util::sync::CancellationToken;
 use crate::tunnel_state_machine::Error;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
@@ -91,7 +91,7 @@ impl ConnectingState {
         #[cfg(any(target_os = "android", target_os = "ios"))]
         shared_state.allow_networking().await;
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
             trace_err_chain!(e, "Failed to configure system to use filtering resolver",);
             return ErrorState::enter(ErrorStateReason::SetDns, shared_state).await;
@@ -197,15 +197,17 @@ impl ConnectingState {
             .map_err(Error::SetFirewallPolicy)
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(target_os = "macos")]
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
         if *LOCAL_DNS_RESOLVER {
             // Set system DNS to our local DNS resolver
-            let listen_addr = shared_state.filtering_resolver.listen_addr();
-            let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
+            let system_dns = DnsConfig::default().resolve(
+                &[shared_state.filtering_resolver.listen_addr().ip()],
+                shared_state.filtering_resolver.listen_addr().port(),
+            );
             shared_state
                 .dns_handler
-                .set_loopback(system_dns)
+                .set("lo".to_owned(), system_dns)
                 .await
                 .map_err(Error::SetDns)
         } else {
