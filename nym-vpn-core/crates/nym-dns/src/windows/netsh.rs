@@ -12,16 +12,14 @@ use std::{
     time::Duration,
 };
 
-use nym_common::trace_err_chain;
-use nym_windows::net::{index_from_luid, luid_from_alias};
 use tokio::{
     io::AsyncWriteExt,
     process::{Child, Command},
 };
-use windows::Win32::{
-    Foundation::MAX_PATH, NetworkManagement::Ndis::NET_LUID_LH,
-    System::SystemInformation::GetSystemDirectoryW,
-};
+use windows::Win32::{Foundation::MAX_PATH, System::SystemInformation::GetSystemDirectoryW};
+
+use nym_common::trace_err_chain;
+use nym_windows::net::{index_from_luid, luid_from_alias};
 
 use crate::{DnsMonitorT, ResolvedDnsConfig};
 
@@ -31,7 +29,7 @@ const NETSH_TIMEOUT: Duration = Duration::from_secs(10);
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("failed to obtain LUID for the interface")]
+    #[error("failed to obtain LUID for the interface alias")]
     ObtainInterfaceLuid(#[source] io::Error),
 
     /// Failure to obtain an interface index.
@@ -67,15 +65,20 @@ pub struct DnsMonitor {
     current_index: Option<u32>,
 }
 
-impl DnsMonitor {
-    async fn set_luid(
-        &mut self,
-        luid: &NET_LUID_LH,
-        config: ResolvedDnsConfig,
-    ) -> Result<(), Error> {
-        let interface_index = index_from_luid(luid).map_err(Error::ObtainInterfaceIndex)?;
+impl DnsMonitorT for DnsMonitor {
+    type Error = Error;
 
+    fn new() -> Result<Self, Error> {
+        Ok(DnsMonitor {
+            current_index: None,
+        })
+    }
+
+    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let servers = config.tunnel_config();
+        let interface_luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
+        let interface_index =
+            index_from_luid(&interface_luid).map_err(Error::ObtainInterfaceIndex)?;
 
         self.current_index = Some(interface_index);
 
@@ -112,21 +115,6 @@ impl DnsMonitor {
         run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT).await?;
 
         Ok(())
-    }
-}
-
-impl DnsMonitorT for DnsMonitor {
-    type Error = Error;
-
-    fn new() -> Result<Self, Error> {
-        Ok(DnsMonitor {
-            current_index: None,
-        })
-    }
-
-    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
-        let luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
-        self.set_luid(&luid, config).await
     }
 
     async fn reset(&mut self) -> Result<(), Error> {
