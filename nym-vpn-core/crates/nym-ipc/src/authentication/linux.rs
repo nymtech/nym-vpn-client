@@ -181,7 +181,7 @@ mod tests {
 
     use tokio::sync::{Mutex, RwLock};
 
-    use crate::auth_result::{AuthenticaticationResult, authorize};
+    use crate::{auth_result::AuthenticaticationResult, authentication::authorize};
 
     use super::*;
 
@@ -341,7 +341,7 @@ mod tests {
 
     #[tokio::test]
     async fn authorized_by_prompt() {
-        let (client, mut server) = UnixStream::pair().unwrap();
+        let (_, mut server) = UnixStream::pair().unwrap();
         authenticate_with_prompt(
             &mut server,
             MockPrompter {
@@ -354,7 +354,7 @@ mod tests {
 
     #[tokio::test]
     async fn denied_by_prompt() {
-        let (client, mut server) = UnixStream::pair().unwrap();
+        let (_, mut server) = UnixStream::pair().unwrap();
         let err = authenticate_with_prompt(
             &mut server,
             MockPrompter {

@@ -13,6 +13,7 @@ pub(crate) use macos::{StreamItem, incoming, is_authenticated};
 
 #[cfg(target_os = "windows")]
 mod windows;
+use tokio::io::AsyncWrite;
 #[cfg(target_os = "windows")]
 pub(crate) use windows::{StreamItem, incoming, is_authenticated};
 
@@ -23,7 +24,15 @@ use tokio_stream::{Stream, StreamExt};
 
 use std::io::Result;
 
-use crate::auth_result::{authorize, deny};
+use crate::auth_result::AuthenticaticationResult;
+
+pub(crate) async fn authorize(stream: impl AsyncWrite + Unpin) {
+    AuthenticaticationResult::Accepted.send(stream).await;
+}
+
+pub(crate) async fn deny(stream: impl AsyncWrite + Unpin) {
+    AuthenticaticationResult::Denied.send(stream).await;
+}
 
 pub struct AuthenticationLayer<T> {
     listener: T,
