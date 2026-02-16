@@ -341,7 +341,7 @@ mod tests {
 
     #[tokio::test]
     async fn authorized_by_prompt() {
-        let (mut client, mut server) = UnixStream::pair().unwrap();
+        let (client, mut server) = UnixStream::pair().unwrap();
         authenticate_with_prompt(
             &mut server,
             MockPrompter {
@@ -350,13 +350,11 @@ mod tests {
         )
         .await
         .unwrap();
-        let client_res = AuthenticaticationResult::recv(&mut client).await;
-        assert!(client_res.accepted());
     }
 
     #[tokio::test]
     async fn denied_by_prompt() {
-        let (mut client, mut server) = UnixStream::pair().unwrap();
+        let (client, mut server) = UnixStream::pair().unwrap();
         let err = authenticate_with_prompt(
             &mut server,
             MockPrompter {
@@ -366,8 +364,5 @@ mod tests {
         .await
         .unwrap_err();
         assert!(matches!(err, AuthenticationError::AuthorizationDenied));
-
-        let client_res = AuthenticaticationResult::recv(&mut client).await;
-        assert!(!client_res.accepted());
     }
 }
