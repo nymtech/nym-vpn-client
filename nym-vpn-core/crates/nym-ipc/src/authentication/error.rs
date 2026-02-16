@@ -51,7 +51,7 @@ pub enum AuthenticationError {
     #[error("process is shutting down")]
     ShuttingDown,
 
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
     #[error("authorization denied")]
     AuthorizationDenied,
 }
