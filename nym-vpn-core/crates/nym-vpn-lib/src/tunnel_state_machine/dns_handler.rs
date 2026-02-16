@@ -43,7 +43,7 @@ impl DnsHandler {
         self.inner.reset().await
     }
 
-    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[cfg(target_os = "linux")]
     pub async fn reset_before_interface_removal(&mut self) -> Result<(), nym_dns::Error> {
         self.inner.reset_before_interface_removal().await
     }
@@ -106,7 +106,7 @@ impl DnsHandlerHandle {
                             DnsHandlerCommand::Reset { reply_tx } => {
                                 _ = reply_tx.send(dns_handler.reset().await);
                             }
-                            #[cfg(any(target_os = "linux", target_os = "windows"))]
+                            #[cfg(target_os = "linux")]
                             DnsHandlerCommand::ResetBeforeInterfaceRemoval { reply_tx } => {
                                 _ = reply_tx.send(dns_handler.reset_before_interface_removal().await);
                             }
@@ -153,7 +153,7 @@ impl DnsHandlerHandle {
             .await
     }
 
-    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[cfg(target_os = "linux")]
     pub async fn reset_before_interface_removal(&mut self) -> Result<()> {
         let (reply_tx, reply_rx) = oneshot::channel();
 

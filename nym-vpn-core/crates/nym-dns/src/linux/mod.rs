@@ -70,6 +70,10 @@ impl super::DnsMonitorT for DnsMonitor {
         Ok(())
     }
 
+    async fn set_loopback(&mut self, config: ResolvedDnsConfig) -> Result<()> {
+        self.set("lo", config).await
+    }
+
     async fn reset(&mut self) -> Result<()> {
         if let Some(mut inner) = self.inner.take() {
             inner.reset().await?;
