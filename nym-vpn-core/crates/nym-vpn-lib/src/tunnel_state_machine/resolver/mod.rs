@@ -12,36 +12,36 @@
 //! Platform-specific responsibilities (binding sockets, adding loopback aliases, flushing system
 //! DNS caches) are delegated to `platform`.
 
+use hickory_server::{
+    authority::{
+        EmptyLookup, LookupObject, MessageRequest, MessageResponse, MessageResponseBuilder,
+    },
+    proto::{
+        op::{header::MessageType, op_code::OpCode, Header, LowerQuery, ResponseCode},
+        rr::{domain::Name, rdata, record_data::RData, LowerName, Record, RecordType},
+        ProtoErrorKind,
+    },
+    resolver::{
+        config::{NameServerConfigGroup, ResolverConfig}, lookup::Lookup,
+        name_server::TokioConnectionProvider,
+        ResolveError,
+        TokioResolver,
+    },
+    server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
+    ServerFuture,
+};
+use rand::Rng;
 use std::{
+    collections::HashSet,
     io,
     net::{IpAddr, Ipv4Addr, SocketAddr},
     str::FromStr,
     sync::{Arc, LazyLock},
     time::{Duration, Instant},
 };
-
-use hickory_server::{
-    ServerFuture,
-    authority::{
-        EmptyLookup, LookupObject, MessageRequest, MessageResponse, MessageResponseBuilder,
-    },
-    proto::{
-        ProtoErrorKind,
-        op::{Header, LowerQuery, ResponseCode, header::MessageType, op_code::OpCode},
-        rr::{LowerName, Record, RecordType, domain::Name, rdata, record_data::RData},
-    },
-    resolver::{
-        ResolveError, TokioResolver,
-        config::{NameServerConfigGroup, ResolverConfig},
-        lookup::Lookup,
-        name_server::TokioConnectionProvider,
-    },
-    server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
-};
-use rand::Rng;
 use tokio::{
     net::UdpSocket,
-    sync::{mpsc, oneshot},
+    sync::{mpsc, oneshot, Mutex},
 };
 use tokio_util::{either::Either, sync::CancellationToken};
 
@@ -125,6 +125,8 @@ pub struct LocalResolver {
     dns_server_task: tokio::task::JoinHandle<()>,
     bound_to: SocketAddr,
     inner_resolver: Resolver,
+    ad_blocking: bool,
+    ad_blocked_domains: Mutex<HashSet<LowerName>>,
     shutdown_token: CancellationToken,
 }
 
@@ -134,6 +136,22 @@ enum ResolverMessage {
     SetConfig {
         /// New DNS config to use
         new_config: Config,
+        /// Response channel when resolvers have been updated
+        response_tx: oneshot::Sender<()>,
+    },
+
+    /// Turn on Ad-blocking
+    EnableAdBlocking {
+        /// Enable or disable
+        enable: bool,
+        /// Response channel when resolvers have been updated
+        response_tx: oneshot::Sender<()>,
+    },
+
+    /// Update Ad-blocked domains
+    UpdateAdBlockedDomains {
+        /// New set of ad-blocked domains
+        domains: HashSet<LowerName>,
         /// Response channel when resolvers have been updated
         response_tx: oneshot::Sender<()>,
     },
@@ -361,6 +379,8 @@ impl LocalResolver {
             dns_server_task,
             bound_to: resolver_addr,
             inner_resolver: Resolver::Blocking,
+            ad_blocking: false,
+            ad_blocked_domains: Mutex::new(HashSet::new()),
             shutdown_token,
         };
 
@@ -391,6 +411,22 @@ impl LocalResolver {
                             tracing::info!("Updating config: {new_config:?}");
 
                             self.update_config(new_config);
+                            flush_system_cache();
+                            let _ = response_tx.send(());
+                        }
+                        Some(ResolverMessage::EnableAdBlocking {
+                            enable,
+                            response_tx,
+                        }) => {
+                            tracing::info!("{} ad-blocking", if enable { "Enabling" } else { "Disabling" });
+                            self.ad_blocking = enable;
+                            flush_system_cache();
+                            let _ = response_tx.send(());
+                        }
+                        Some(ResolverMessage::UpdateAdBlockedDomains { domains, response_tx }) => {
+                            tracing::info!("Updating Ad-blocked domains");
+                            let mut guard = self.ad_blocked_domains.lock().await;
+                            *guard = domains;
                             flush_system_cache();
                             let _ = response_tx.send(());
                         }
