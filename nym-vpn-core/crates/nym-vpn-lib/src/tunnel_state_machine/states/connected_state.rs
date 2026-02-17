@@ -4,7 +4,7 @@
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::SocketAddr;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(target_os = "windows")]
 use nym_dns::DnsConfig;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -423,9 +423,9 @@ impl ConnectedPolicyParameters {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr};
-
     use super::*;
+    use nym_dns::DnsConfig;
+    use std::net::{IpAddr, Ipv4Addr};
 
     fn create_mock_gateway_with_websocket_endpoints(
         ip: Ipv4Addr,
@@ -482,7 +482,6 @@ mod tests {
         let tunnel_interface = TunnelInterface::One(tunnel_metadata);
 
         // Create ResolvedDnsConfig using DnsConfig::default().resolve()
-        use nym_dns::DnsConfig;
         let dns_config = DnsConfig::default().resolve(
             &[IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1))],
             #[cfg(any(target_os = "macos", target_os = "windows"))]
