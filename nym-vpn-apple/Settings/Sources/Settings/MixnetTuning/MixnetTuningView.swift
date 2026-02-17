@@ -8,11 +8,21 @@ import ImpactGenerator
 import MessageModels
 import Theme
 import UIComponents
+#if os(iOS)
+import NymVPNLib
+#elseif os(macOS)
+import NymVPNRpc
+#endif
 
 struct MixnetTuningView: View {
-    private let continuousTrafficOptions = ContinuousTraffic.allCases
-    private let coverTrafficOptions = BackgroundTraffic.allCases
-    private let mixingDelayValues = Array(0...200)
+    private let mixnetDefaults = MixnetTrafficDefaults()
+
+    private var coverTrafficOptions: [BackgroundCoverTrafficRate] {
+        mixnetDefaults.allBackgroundTraffic()
+    }
+    private var continuousTrafficOptions: [ContinuousTrafficSendingRate] {
+        mixnetDefaults.allContinuousTraffic()
+    }
 
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
@@ -44,8 +54,8 @@ struct MixnetTuningView: View {
         .task {
             let oldConfig = connectionManager.connectionConfig.mixnetTuningConfig
             config = oldConfig
-            coverTrafficIndex = Double(oldConfig.backgroundTraffic.rawValue)
-            continuousTrafficIndex = Double(oldConfig.continuousTraffic.rawValue)
+            coverTrafficIndex = Double(coverTrafficOptions.firstIndex(of: oldConfig.backgroundTraffic) ?? 0)
+            continuousTrafficIndex = Double(continuousTrafficOptions.firstIndex(of: oldConfig.continuousTraffic) ?? 0)
             mixingDelayIndex = Double(oldConfig.averagePacketDelay)
             isSendTrafficContinuouslyOn = !oldConfig.disablePoissonRate
 
@@ -54,11 +64,11 @@ struct MixnetTuningView: View {
         }
 
         .onChange(of: coverTrafficIndex) { _, newValue in
-            config?.backgroundTraffic = BackgroundTraffic.fromIndex(newValue)
+            config?.backgroundTraffic = coverTrafficOptions[Int(newValue)]
             updateIsSaveButtonEnabled()
         }
         .onChange(of: continuousTrafficIndex) { _, newValue in
-            config?.continuousTraffic = ContinuousTraffic.fromIndex(newValue)
+            config?.continuousTraffic = continuousTrafficOptions[Int(newValue)]
             updateIsSaveButtonEnabled()
         }
         .onChange(of: mixingDelayIndex) { _, newValue in
@@ -105,7 +115,7 @@ private extension MixnetTuningView {
         }
     }
 
-    var continuousTrafficMbps: ContinuousTraffic {
+    var continuousTrafficMbps: ContinuousTrafficSendingRate {
         continuousTrafficOptions[Int(continuousTrafficIndex)]
     }
 
@@ -117,7 +127,7 @@ private extension MixnetTuningView {
                 .frame(height: 12)
             performanceCell(
                 title: "mixnetTuning.speed".localizedString,
-                subtitle: "\("mixnetTuning.upTo".localizedString) \(continuousTrafficMbps.uiValue) Mbps"
+                subtitle: "\("mixnetTuning.upTo".localizedString) \(continuousTrafficMbps.uiThroughput) Mbps"
             )
             separatorLine()
             performanceCell(
@@ -300,7 +310,11 @@ private extension MixnetTuningView {
         }
         Spacer()
             .frame(height: 16)
-        Slider(value: $mixingDelayIndex, in: 0.0...Double(mixingDelayValues.count - 1), step: 1)
+        Slider(
+            value: $mixingDelayIndex,
+            in: Double(mixnetDefaults.defaultMixingDelay().minValue)...Double(mixnetDefaults.defaultMixingDelay().maxValue),
+            step: 1
+        )
             .tint(NymColor.accent)
             .onChange(of: mixingDelayIndex) { _, _ in
                 updateLatencyRTT()
@@ -310,22 +324,23 @@ private extension MixnetTuningView {
     }
 
     var sliderExplanation: some View {
-        HStack(spacing: 0) {
-            Text("\("mixnetTuning.low".localizedString)\n0 ms")
+        let defaultDelay = mixnetDefaults.defaultMixingDelay()
+        return HStack(spacing: 0) {
+            Text("\("mixnetTuning.low".localizedString)\n\(defaultDelay.minValue) ms")
                 .nymText(color: NymColor.primary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
-            if mixingDelayIndex != 15 {
+            if mixingDelayIndex != Double(defaultDelay.defaultValue) {
                 Text("\("mixnetTuning.current".localizedString)\n \(Int(mixingDelayIndex)) ms")
                     .nymText(color: NymColor.info, style: .Body.Medium.regular)
                     .multilineTextAlignment(.center)
             } else {
-                Text("\("mixnetTuning.default".localizedString)\n15 ms")
+                Text("\("mixnetTuning.default".localizedString)\n\(defaultDelay.defaultValue) ms")
                     .nymText(color: NymColor.info, style: .Body.Medium.regular)
                     .multilineTextAlignment(.center)
             }
             Spacer()
-            Text("\("mixnetTuning.high".localizedString)\n200 ms")
+            Text("\("mixnetTuning.high".localizedString)\n\(defaultDelay.maxValue) ms")
                 .nymText(color: NymColor.primary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
         }
@@ -408,9 +423,15 @@ private extension MixnetTuningView {
     }
 
     func resetToDefaults() {
-        mixingDelayIndex = 15
-        continuousTrafficIndex = 1
-        coverTrafficIndex = 0
-        isSendTrafficContinuouslyOn = true
+        let defaultDelay = mixnetDefaults.defaultMixingDelay()
+        mixingDelayIndex = Double(defaultDelay.defaultValue)
+
+        let defaultBgTraffic = mixnetDefaults.defaultBackgroundTraffic()
+        coverTrafficIndex = Double(coverTrafficOptions.firstIndex(of: defaultBgTraffic) ?? 0)
+
+        let defaultContTraffic = mixnetDefaults.defaultContinuousTraffic()
+        continuousTrafficIndex = Double(continuousTrafficOptions.firstIndex(of: defaultContTraffic) ?? 0)
+
+        isSendTrafficContinuouslyOn = !mixnetDefaults.defaultDisablePoissionRate()
     }
 }

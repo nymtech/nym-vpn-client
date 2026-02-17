@@ -75,8 +75,8 @@ private extension ConnectionStorage {
             netstack: false,
             residentialExit: false,
             mixnetTuningConfig: MixnetTuningConfig(
-                backgroundTraffic: BackgroundTraffic(actualValue: nil),
-                continuousTraffic: ContinuousTraffic(actualValue: nil),
+                backgroundTraffic: .ms200,
+                continuousTraffic: .ms20,
                 dissablePoissonRate: false
             )
         )
