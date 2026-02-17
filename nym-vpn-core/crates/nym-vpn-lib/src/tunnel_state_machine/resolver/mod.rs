@@ -128,7 +128,7 @@ pub struct LocalResolver {
     bound_to: SocketAddr,
     inner_resolver: Resolver,
     ad_blocking: bool,
-    ad_blocked_domains: Mutex<HashSet<LowerName>>,
+    ad_blocked_domains: Mutex<HashSet<String>>, // Will be Mutex<FilterSet> when adblock crate is used
     shutdown_token: CancellationToken,
 }
 
@@ -153,7 +153,7 @@ enum ResolverMessage {
     /// Update Ad-blocked domains
     UpdateAdBlockedDomains {
         /// New set of ad-blocked domains
-        domains: HashSet<LowerName>,
+        domains: HashSet<String>,
         /// Response channel when resolvers have been updated
         response_tx: oneshot::Sender<()>,
     },
@@ -296,6 +296,38 @@ impl ResolverHandle {
             .tx
             .send(ResolverMessage::SetConfig {
                 new_config: Config::Blocking,
+                response_tx,
+            })
+            .is_ok()
+        {
+            response_rx.await.ok();
+        }
+    }
+
+    /// Enable or disable ad-blocking.
+    #[allow(dead_code)] // TEMP: REMOVE
+    pub async fn enable_ad_blocking(&self, enable: bool) {
+        let (response_tx, response_rx) = oneshot::channel();
+        if self
+            .tx
+            .send(ResolverMessage::EnableAdBlocking {
+                enable,
+                response_tx,
+            })
+            .is_ok()
+        {
+            response_rx.await.ok();
+        }
+    }
+
+    /// Update ad-blocked domains.
+    #[allow(dead_code)] // TEMP: REMOVE
+    pub async fn update_ad_blocked_domains(&self, domains: HashSet<String>) {
+        let (response_tx, response_rx) = oneshot::channel();
+        if self
+            .tx
+            .send(ResolverMessage::UpdateAdBlockedDomains {
+                domains,
                 response_tx,
             })
             .is_ok()

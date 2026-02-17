@@ -18,14 +18,12 @@ base64.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
-
 ed25519-dalek = { workspace = true, features = [
     "pkcs8",
     "alloc",
     "pem",
     "rand_core",
 ] }
-
 futures.workspace = true
 hex.workspace = true
 hickory-resolver = { workspace = true, features = [
@@ -39,7 +37,6 @@ http-body-util = { workspace = true }
 ipnetwork.workspace = true
 itertools.workspace = true
 log-panics.workspace = true
-
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
@@ -51,7 +48,6 @@ nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
-
 nym-apple-network.workspace = true
 nym-authenticator-client.workspace = true
 nym-common.workspace = true
@@ -73,20 +69,17 @@ nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-wg-go = { workspace = true, features = ["amnezia"] }
 nym-wg-metadata-client.workspace = true
-
 opentelemetry.workspace = true
 opentelemetry_sdk.workspace = true
 quinn.workspace = true
 quinn-proto.workspace = true
 rand.workspace = true
 reqwest = { workspace = true, features = ["socks", "rustls-tls"] }
-
 rustls = { workspace = true, default-features = false, features = [
     "std",
     "ring",
     "logging",
 ] }
-
 serial_test.workspace = true
 serde.workspace = true
 serde_json.workspace = true
