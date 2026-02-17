@@ -197,7 +197,7 @@ impl Resolver {
         query: LowerQuery,
         tx: oneshot::Sender<Result<Box<dyn LookupObject>, ResolveError>>,
     ) {
-        tracing::info!("resolve query: {}", query.to_string());
+        tracing::trace!("resolve query: {}", query.to_string());
         let lookup = match self {
             Resolver::Blocking => Either::Left(async move { Self::resolve_blocked(query) }),
             Resolver::Forwarding(resolver) => {

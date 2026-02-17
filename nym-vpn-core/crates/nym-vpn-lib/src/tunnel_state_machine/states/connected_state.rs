@@ -194,12 +194,27 @@ impl ConnectedState {
         }
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(target_os = "macos")]
     async fn reset_dns(shared_state: &mut SharedState) {
         // On macOS, configure only the local DNS resolver
         if *LOCAL_DNS_RESOLVER {
             shared_state.filtering_resolver.disable_forward().await;
         } else if let Err(error) = shared_state.dns_handler.reset().await {
+            trace_err_chain!(error, "Failed to reset DNS");
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    async fn reset_dns(shared_state: &mut SharedState) {
+        if *LOCAL_DNS_RESOLVER {
+            shared_state.filtering_resolver.disable_forward().await;
+        }
+
+        if let Err(error) = shared_state
+            .dns_handler
+            .reset_before_interface_removal()
+            .await
+        {
             trace_err_chain!(error, "Failed to reset DNS");
         }
     }
