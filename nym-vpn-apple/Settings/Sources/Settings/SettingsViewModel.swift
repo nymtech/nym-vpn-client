@@ -28,38 +28,11 @@ import UIComponents
 #if os(macOS)
     @Binding private var isServing: Bool
 #endif
-    @Published var isLogoutConfirmationDisplayed = false
-    @Published var isLogoutLoading = false
     @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
 
     var isValidCredentialImported: Bool {
         credentialsManager.isValidCredentialImported
-    }
-
-    var logoutDialogConfiguration: ActionDialogConfiguration {
-        ActionDialogConfiguration(
-            systemIconImageName: "rectangle.portrait.and.arrow.right",
-            titleLocalizedString: "settings.logoutTitle".localizedString,
-            subtitleLocalizedString: "settings.logoutSubtitle".localizedString,
-            yesLocalizedString: "settings.logout".localizedString,
-            noLocalizedString: "cancel".localizedString,
-            isYesDestructive: true,
-            yesAction: { [weak self] in
-                self?.isLogoutLoading = true
-                Task {
-                    await self?.logout()
-                    try? await Task.sleep(for: .seconds(1))
-                    Task { @MainActor in
-                        self?.isLogoutConfirmationDisplayed = false
-                        self?.isLogoutLoading = false
-                    }
-                }
-            },
-            loadingText: "settings.loggingOut".localizedString,
-            shouldCloseAfterYesAction: false,
-            verticalButtonsLayout: true
-        )
     }
 
     var versionTitle: String {
@@ -253,21 +226,10 @@ private extension SettingsViewModel {
                     systemStatusSection()
                 ]
             )
-            if appSettings.isCredentialImported {
-                newSections.append(logoutSection())
-            }
             await MainActor.run {
                 sections = newSections
             }
         }
-    }
-}
-
-// MARK: - Actions -
-private extension SettingsViewModel {
-    func logout() async {
-        await connectionManager.disconnectBeforeLogout()
-        try? await credentialsManager.removeCredential()
     }
 }
 
@@ -494,20 +456,6 @@ private extension SettingsViewModel {
             )
         ]
         return AppSettingsSection(kind: .systemStatus, viewModels: viewModels)
-    }
-
-    func logoutSection() -> AppSettingsSection {
-        let viewModels = [
-            SettingsListItemViewModel(
-                accessory: .empty,
-                title: "settings.logout".localizedString,
-                type: .destructive,
-                action: { [weak self] in
-                    self?.isLogoutConfirmationDisplayed = true
-                }
-            )
-        ]
-        return AppSettingsSection(kind: .logout, viewModels: viewModels)
     }
 }
 

@@ -42,18 +42,6 @@ private extension SettingsView {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
-        .overlay {
-            if viewModel.isLogoutConfirmationDisplayed {
-                ActionDialogView(
-                    viewModel: ActionDialogViewModel(
-                        isDisplayed: $viewModel.isLogoutConfirmationDisplayed,
-                        configuration: viewModel.logoutDialogConfiguration,
-                        impactGenerator: .shared,
-                        isLoading: $viewModel.isLogoutLoading
-                    )
-                )
-            }
-        }
         .background {
             NymColor.background
                 .ignoresSafeArea()
