@@ -747,17 +747,6 @@ impl RpcClient {
         Ok(PrivyDerivationMessage::from(response))
     }
 
-    pub async fn get_ad_blocking_list(&mut self) -> Result<Vec<String>> {
-        let response = self
-            .0
-            .get_ad_blocking_list(())
-            .await
-            .map(|v| v.into_inner())
-            .map_err(Error::Rpc)?;
-
-        Ok(response.domains)
-    }
-
     pub async fn run_diagnostic(
         &mut self,
         params: nym_vpn_lib_types::DiagnosticRunParams,

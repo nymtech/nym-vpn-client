@@ -930,10 +930,6 @@ enum DeeplinkKind {
   KIND_PRIVY_LINK = 1;
 }
 
-message GetAdBlockingListResponse {
-  repeated string domains = 1;
-}
-
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
@@ -1096,9 +1092,6 @@ service NymVpnService {
 
   // Get Privy derivation message to be signed
   rpc GetPrivyDerivationMessage(google.protobuf.Empty) returns (PrivyDerivationMessage) {}
-
-  // Get a list of the domains blocked by the ad-blocking feature
-  rpc GetAdBlockingList(google.protobuf.Empty) returns (GetAdBlockingListResponse) {}
 
   // Diagnostic stuff
   rpc RunDiagnostic(DiagnosticRunParams) returns (DiagnosticReport) {}

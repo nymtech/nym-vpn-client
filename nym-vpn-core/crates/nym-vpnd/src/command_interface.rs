@@ -981,21 +981,6 @@ impl NymVpnService for CommandInterface {
         }))
     }
 
-    async fn get_ad_blocking_list(
-        &self,
-        _: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetAdBlockingListResponse>> {
-        let domains = self
-            .send_and_wait(VpnServiceCommand::GetAdBlockingList, ())
-            .await?;
-
-        let response = proto::GetAdBlockingListResponse {
-            domains: domains.into_iter().collect(),
-        };
-
-        Ok(tonic::Response::new(response))
-    }
-
     async fn run_diagnostic(
         &self,
         request: tonic::Request<proto::DiagnosticRunParams>,

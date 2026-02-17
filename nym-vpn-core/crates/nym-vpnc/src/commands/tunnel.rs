@@ -13,9 +13,6 @@ pub enum Command {
     /// Display current tunnel configuration
     Get,
 
-    /// Display the list of ad-blocked domains
-    GetAdBlockingList,
-
     /// Update tunnel configuration
     Set(Box<SetParams>),
 }
@@ -104,18 +101,6 @@ impl Command {
                 );
                 println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
 
-                Ok(())
-            }
-            Command::GetAdBlockingList => {
-                let domains = rpc_client.get_ad_blocking_list().await?;
-                if domains.is_empty() {
-                    println!("No ad-blocked domains configured.");
-                } else {
-                    println!("Ad-blocked domains:");
-                    for domain in domains {
-                        println!("{domain}");
-                    }
-                }
                 Ok(())
             }
             Command::Set(params) => {

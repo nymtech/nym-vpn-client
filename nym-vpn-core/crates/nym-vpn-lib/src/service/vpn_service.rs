@@ -107,7 +107,6 @@ pub enum VpnServiceCommand {
     ),
     DisableSocks5(oneshot::Sender<Result<(), Socks5Error>>, ()),
     GetSocks5Status(oneshot::Sender<Result<Socks5Status, Socks5Error>>, ()),
-    GetAdBlockingList(oneshot::Sender<Vec<String>>, ()),
     SetTargetState(oneshot::Sender<bool>, TargetState),
     Reconnect(oneshot::Sender<bool>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
@@ -1036,10 +1035,6 @@ impl NymVpnService {
                 let result = self.handle_get_socks5_status().await;
                 let _ = tx.send(result);
             }
-            VpnServiceCommand::GetAdBlockingList(tx, ()) => {
-                let result = self.handle_get_ad_blocking_list().await;
-                let _ = tx.send(result);
-            }
             VpnServiceCommand::RunDiagnostic(tx, params) => {
                 let _ = tx.send(self.handle_run_diagnostic(params).await);
             }
@@ -1549,14 +1544,6 @@ impl NymVpnService {
 
     async fn handle_get_socks5_status(&self) -> Result<Socks5Status, Socks5Error> {
         self.socks5_service.get_status().await
-    }
-
-    async fn handle_get_ad_blocking_list(&self) -> Vec<String> {
-        vec![
-            "todo".to_string(),
-            "very".to_string(),
-            "shortly".to_string(),
-        ]
     }
 
     async fn handle_get_tunnel_state(&self) -> TunnelState {
