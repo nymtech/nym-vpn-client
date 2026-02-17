@@ -9,5 +9,4 @@ public enum AppSettingsSectionKind: SettingsSectionKind {
     case killSwitch
     case legal
     case systemStatus
-    case logout
 }

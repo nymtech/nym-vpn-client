@@ -1,5 +1,6 @@
 import NymVPNRpc
 import Constants
+import ConnectionTypes
 import ErrorReason
 
 extension GRPCManager {
@@ -18,6 +19,18 @@ extension GRPCManager {
     public func isAccountStored() async throws -> Bool {
         try await Task.detached { [weak self] in
             try await self?.rpcClient?.isAccountStored() ?? false
+        }.value
+    }
+
+    public func accountSummary() async throws -> AccountSummary {
+        try await Task.detached { [weak self] in
+            let summary = try await self?.rpcClient?.getAccountSummary()
+            return AccountSummary(
+                validUntilTimeInterval: summary?.subscriptionValidUntil,
+                trafficUsedGb: summary?.trafficUsedGb,
+                trafficLimitGb: summary?.trafficLimitGb,
+                trafficResetTimeInterval: summary?.trafficResetTime
+            )
         }.value
     }
 
