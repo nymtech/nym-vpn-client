@@ -1,10 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{ops::Deref, result::Result, time::Duration};
+use std::{ops::Deref, pin::pin, result::Result, time::Duration};
 
 use bytes::{Bytes, BytesMut};
-use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use futures::{FutureExt, StreamExt, future::Fuse};
 use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::{
     codec::{IprPacket, MultiIpPacketCodec},
@@ -127,7 +127,7 @@ impl MixnetProcessor {
 
         // Ipr disconnect timeout future set upon cancellation
         let ipr_disconnect_timeout = Fuse::terminated();
-        pin_mut!(ipr_disconnect_timeout);
+        let mut ipr_disconnect_timeout = pin!(ipr_disconnect_timeout);
 
         let mut payload_topup_interval =
             tokio::time::interval(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
