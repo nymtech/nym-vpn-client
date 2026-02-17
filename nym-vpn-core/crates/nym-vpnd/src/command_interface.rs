@@ -181,6 +181,22 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_enable_ad_blocking(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_ad_blocking = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetEnableAdBlocking, enable_ad_blocking)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set ad-blocking config: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_netstack(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
         let netstack = request.into_inner();
 

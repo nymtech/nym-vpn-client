@@ -58,13 +58,13 @@ impl DnsConfig {
     pub fn resolve(
         &self,
         default_tun_config: &[IpAddr],
-        #[cfg(target_os = "macos")] port: u16,
+        #[cfg(any(target_os = "macos", target_os = "windows"))] port: u16,
     ) -> ResolvedDnsConfig {
         match &self.config {
             InnerDnsConfig::Default => ResolvedDnsConfig {
                 tunnel_config: default_tun_config.to_owned(),
                 non_tunnel_config: vec![],
-                #[cfg(target_os = "macos")]
+                #[cfg(any(target_os = "macos", target_os = "windows"))]
                 port,
             },
             InnerDnsConfig::Override {
@@ -73,7 +73,7 @@ impl DnsConfig {
             } => ResolvedDnsConfig {
                 tunnel_config: tunnel_config.to_owned(),
                 non_tunnel_config: non_tunnel_config.to_owned(),
-                #[cfg(target_os = "macos")]
+                #[cfg(any(target_os = "macos", target_os = "windows"))]
                 port,
             },
         }
@@ -105,7 +105,7 @@ pub struct ResolvedDnsConfig {
     /// on non-tunnel interface, only allow them in the firewall.
     non_tunnel_config: Vec<IpAddr>,
     /// Port to use
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     port: u16,
 }
 
@@ -187,7 +187,7 @@ impl DnsMonitor {
 
     /// Set DNS to the given servers. And start monitoring the system for changes.
     pub async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
-        tracing::info!("Setting DNS servers: {config}");
+        tracing::info!("Setting DNS servers on interface '{interface}': {config}");
         self.inner.set(interface, config).await
     }
 

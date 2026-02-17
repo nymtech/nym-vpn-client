@@ -118,6 +118,15 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) -> Result<()> {
+        self.0
+            .set_enable_ad_blocking(enable_ad_blocking)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_netstack(&mut self, netstack: bool) -> Result<()> {
         self.0
             .set_netstack(netstack)

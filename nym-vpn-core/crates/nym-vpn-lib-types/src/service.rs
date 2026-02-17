@@ -37,6 +37,7 @@ pub struct VpnServiceConfig {
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
+    pub enable_ad_blocking: bool,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -55,13 +56,15 @@ impl fmt::Display for VpnServiceConfig {
         )?;
         writeln!(
             f,
-            "allow_lan: {}, disable_ipv6: {}, enable_two_hop: {}, enable_lewes_protocol: {}, netstack: {}",
-            self.allow_lan,
-            self.disable_ipv6,
-            self.enable_two_hop,
-            self.enable_lewes_protocol,
-            self.netstack
+            "allow_lan: {}, disable_ipv6: {}, enable_two_hop: {},",
+            self.allow_lan, self.disable_ipv6, self.enable_two_hop,
         )?;
+        writeln!(
+            f,
+            "enable_lewes_protocol: {}, enable_ad_blocking: {}, netstack: {}",
+            self.enable_lewes_protocol, self.enable_ad_blocking, self.netstack
+        )?;
+
         writeln!(
             f,
             "min_gateway_vpn_performance: {:?}",
@@ -99,6 +102,7 @@ impl Default for VpnServiceConfig {
             enable_two_hop: true,
             enable_bridges: false,
             enable_lewes_protocol: false,
+            enable_ad_blocking: false,
             netstack: false,
             min_gateway_vpn_performance: None,
             residential_exit: false,

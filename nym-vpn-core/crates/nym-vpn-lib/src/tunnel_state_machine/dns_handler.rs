@@ -108,12 +108,12 @@ impl DnsHandlerHandle {
         Ok((Self { tx }, join_handle))
     }
 
-    pub async fn set(&mut self, interface: String, config: ResolvedDnsConfig) -> Result<()> {
+    pub async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<()> {
         let (reply_tx, reply_rx) = oneshot::channel();
 
         self.send_and_wait(
             DnsHandlerCommand::Set {
-                interface,
+                interface: interface.to_string(),
                 config,
                 reply_tx,
             },

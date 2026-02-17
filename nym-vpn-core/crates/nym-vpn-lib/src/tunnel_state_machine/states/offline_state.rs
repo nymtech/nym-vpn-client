@@ -5,7 +5,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
+use crate::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
 #[cfg(target_os = "macos")]
@@ -101,7 +101,7 @@ impl OfflineState {
         );
         shared_state
             .dns_handler
-            .set("lo".to_owned(), system_dns)
+            .set("lo", system_dns)
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to configure system to use filtering resolver");

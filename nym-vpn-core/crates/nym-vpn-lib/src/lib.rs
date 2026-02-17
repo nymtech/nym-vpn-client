@@ -10,6 +10,8 @@ mod error;
 pub mod logging;
 mod mixnet;
 pub mod privy;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+mod resolver;
 pub mod sentry;
 pub mod service;
 #[cfg(any(target_os = "ios", target_os = "android"))]

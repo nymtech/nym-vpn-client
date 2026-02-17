@@ -134,13 +134,6 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
-        if self.config.enable_lewes_protocol != enable_lewes_protocol {
-            self.config.enable_lewes_protocol = enable_lewes_protocol;
-            self.save_config_and_send_event().await;
-        }
-    }
-
     pub async fn set_netstack(&mut self, netstack: bool) {
         if self.config.netstack != netstack {
             self.config.netstack = netstack;
@@ -158,6 +151,20 @@ impl VpnServiceConfigManager {
     pub async fn set_enable_bridges(&mut self, enable_bridges: bool) {
         if self.config.enable_bridges != enable_bridges {
             self.config.enable_bridges = enable_bridges;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
+        if self.config.enable_lewes_protocol != enable_lewes_protocol {
+            self.config.enable_lewes_protocol = enable_lewes_protocol;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) {
+        if self.config.enable_ad_blocking != enable_ad_blocking {
+            self.config.enable_ad_blocking = enable_ad_blocking;
             self.save_config_and_send_event().await;
         }
     }

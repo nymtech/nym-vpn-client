@@ -7,8 +7,6 @@ mod dns_handler;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod gateway_ext;
 mod ipv6_availability;
-#[cfg(target_os = "macos")]
-mod resolver;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod route_handler;
 mod states;
@@ -62,6 +60,8 @@ use tunnel::SelectedGateways;
 #[cfg(windows)]
 use wintun::SetupWintunAdapterError;
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::resolver;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
@@ -70,7 +70,6 @@ use crate::{
     GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
     mixnet::VpnTopologyServiceHandle,
 };
-
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -166,7 +165,7 @@ impl TunnelSettings {
     pub fn resolved_dns_config(&self) -> ResolvedDnsConfig {
         self.dns.to_dns_config().resolve(
             &self.dns_ips(),
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             53,
         )
     }
@@ -542,7 +541,7 @@ pub struct SharedState {
     dns_handler: DnsHandlerHandle,
     connectivity_handle: ConnectivityHandle,
     /// Filtering resolver handle
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     filtering_resolver: resolver::ResolverHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
@@ -639,7 +638,7 @@ pub struct TunnelStateMachine {
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_shutdown_token: CancellationToken,
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     filtering_resolver_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
@@ -669,7 +668,7 @@ impl TunnelStateMachine {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let dns_handler_shutdown_token = CancellationToken::new();
 
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         let (filtering_resolver, filtering_resolver_handle) =
             resolver::LocalResolver::spawn(true, dns_handler_shutdown_token.child_token())
                 .await
@@ -700,7 +699,7 @@ impl TunnelStateMachine {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler,
             connectivity_handle,
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             filtering_resolver,
             nym_config,
             tunnel_settings,
@@ -739,7 +738,7 @@ impl TunnelStateMachine {
             dns_handler_task,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_shutdown_token,
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             filtering_resolver_handle,
             shutdown_token,
         };
@@ -787,7 +786,7 @@ impl TunnelStateMachine {
             self.shared_state.route_handler.stop().await;
         }
 
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         {
             if let Err(e) = self.filtering_resolver_handle.await {
                 tracing::error!("Failed to join on filtering resolver task: {}", e)
@@ -817,7 +816,7 @@ pub enum Error {
     #[error("failed to resolve API hostnames")]
     ResolveApiHostnames(#[source] Box<nym_gateway_directory::Error>),
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     #[error("failed to start local dns resolver")]
     StartLocalDnsResolver(#[source] resolver::Error),
 
@@ -914,7 +913,7 @@ impl Error {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             Self::ResolveApiHostnames(_) => None?,
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             Self::StartLocalDnsResolver(_) => None?,
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
