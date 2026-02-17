@@ -177,6 +177,7 @@ jobs:
           name: translations
           path: nym-vpn-android/app/src/main/res/values-*
           if-no-files-found: warn
+          retention-days: 1
       # === CROWDIN DOWNLOAD END ===
       - name: Decode Keystore
         if: ${{ inputs.build_type != 'debug' }}
