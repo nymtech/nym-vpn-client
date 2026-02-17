@@ -80,6 +80,12 @@ pub enum Command {
         subcommand: commands::lan::Command,
     },
 
+    /// Ad blocking
+    AdBlock {
+        #[command(subcommand)]
+        subcommand: commands::ad_block::Command,
+    },
+
     /// DNS
     Dns {
         #[command(subcommand)]
@@ -144,6 +150,7 @@ impl Command {
             Command::Gateway(args) => args.execute(rpc_client).await,
             Command::Tunnel { subcommand } => subcommand.execute(rpc_client).await,
             Command::Lan { subcommand } => subcommand.execute(rpc_client).await,
+            Command::AdBlock { subcommand } => subcommand.execute(rpc_client).await,
             Command::Dns { subcommand } => subcommand.execute(rpc_client).await,
             Command::Network { subcommand } => subcommand.execute(rpc_client).await,
             Command::Account { subcommand } => subcommand.execute(rpc_client).await,

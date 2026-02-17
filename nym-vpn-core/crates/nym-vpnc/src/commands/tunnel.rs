@@ -32,10 +32,6 @@ pub struct SetParams {
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     lewes_protocol: Option<BooleanOption>,
 
-    /// Enable or disable Ad blocking
-    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
-    ad_blocking: Option<BooleanOption>,
-
     /// Enable or disable netstack in two-hop mode
     /// Normally this is only used for testing purposes and should always be off
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
@@ -93,7 +89,6 @@ impl Command {
                     "Lewes protocol: {}",
                     display_on_off(config.enable_lewes_protocol)
                 );
-                println!("Ad blocking: {}", display_on_off(config.enable_ad_blocking));
                 println!("Netstack: {}", display_on_off(config.netstack));
                 println!(
                     "Circumvention transports: {}",
@@ -112,10 +107,6 @@ impl Command {
                     rpc_client
                         .set_enable_lewes_protocol(*lewes_protocol)
                         .await?;
-                }
-
-                if let Some(ad_blocking) = params.ad_blocking {
-                    rpc_client.set_enable_ad_blocking(*ad_blocking).await?;
                 }
 
                 if let Some(netstack) = params.netstack {

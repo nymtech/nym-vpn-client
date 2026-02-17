@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod account;
+pub mod ad_block;
 pub mod device;
 pub mod diagnostic;
 pub mod dns;
