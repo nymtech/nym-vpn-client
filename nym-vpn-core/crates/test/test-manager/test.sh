@@ -12,9 +12,16 @@ NC='\e[0m'
 
 export RUST_LOG=debug
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEST_FRAMEWORK_ROOT="$(realpath "$SCRIPT_DIR/..")"
-CARGO_WORKSPACE_ROOT="$(realpath "${TEST_FRAMEWORK_ROOT}/../..")"
-REPO_DIR="$(realpath "${TEST_FRAMEWORK_ROOT}/../../..")"
+
+if [ -n "${TEST_DIST_DIR:-}" ]; then
+    # CI: script was SCP'd to VM, repo structure doesn't exist
+    TEST_FRAMEWORK_ROOT="$(pwd)"
+else
+    TEST_FRAMEWORK_ROOT="$(realpath "$SCRIPT_DIR/..")"
+fi
+
+CARGO_WORKSPACE_ROOT="$(realpath "${TEST_FRAMEWORK_ROOT}/../.." 2>/dev/null || echo "")"
+REPO_DIR="$(realpath "${TEST_FRAMEWORK_ROOT}/../../.." 2>/dev/null || echo "")"
 OUTPUT_DIR="${TEST_FRAMEWORK_ROOT}/target/x86_64-unknown-linux-gnu/release"
 PACKAGE_DIR="${PACKAGE_DIR:-${HOME}/.cache/nym-test/packages}"
 CONTAINER_RUNNER="${CONTAINER_RUNNER:-podman}"
@@ -43,6 +50,8 @@ function check_required_vars() {
     local missing=0
     local qcow_image_var_name="NYM_TEST_QCOW_IMAGE"
     local vm_config_var_name="NYM_TEST_VM_CONFIG"
+    local mnemonic_var_name="MAINNET_MNEMONIC"
+
 
     if [ -z "$NYM_TEST_QCOW_IMAGE" ]; then
         echo "Error: ${qcow_image_var_name} is not set"
@@ -53,6 +62,12 @@ function check_required_vars() {
     if [ -z "$NYM_TEST_VM_CONFIG" ]; then
         echo "Error: ${vm_config_var_name} is not set"
         echo "  Set it via environment variable: export ${vm_config_var_name}=config-name"
+        missing=1
+    fi
+
+    if [ -z "$MAINNET_MNEMONIC" ]; then
+        echo "Error: ${mnemonic_var_name} is not set"
+        echo "  Set it via environment variable: export ${mnemonic_var_name}=config-name"
         missing=1
     fi
 
@@ -69,16 +84,36 @@ function check_required_vars() {
     echo ""
 }
 
+function build_wireguard_deps() {
+    pushd "${REPO_DIR}"
+    make build-wireguard
+    popd
+}
+
 function help() {
     cargo run -- config vm set --help
 }
 
 function list() {
-    cargo run -- config vm list
+    if [ -n "${TEST_DIST_DIR:-}" ]; then
+        "${TEST_DIST_DIR}/test-manager" config vm list
+    else
+        cargo run -- config vm list
+    fi
 }
 
 function configure() {
-    cargo run -- config vm set \
+    if [ -n "${TEST_DIST_DIR:-}" ]; then
+        # CI mode: use pre-built test-manager binary
+        local test_manager="${TEST_DIST_DIR}/test-manager"
+    else
+        # Local mode: build wireguard deps first, then use cargo run
+        build_wireguard_deps
+        local test_manager="cargo run --"
+    fi
+
+    pushd "${TEST_FRAMEWORK_ROOT}"
+    $test_manager config vm set \
         ${NYM_TEST_VM_CONFIG} \
         "qemu" \
         "${NYM_TEST_QCOW_IMAGE}" \
@@ -90,13 +125,19 @@ function configure() {
         --ssh-password "test" \
         --vcpus 2 \
         --memory 1024
+    popd
 
     list
 }
 
 function run_vm() {
-    cargo run \
-        -- run-vm ${NYM_TEST_VM_CONFIG} \
+    if [ -n "${TEST_DIST_DIR:-}" ]; then
+        local test_manager="${TEST_DIST_DIR}/test-manager"
+    else
+        local test_manager="cargo run --"
+    fi
+
+    $test_manager run-vm ${NYM_TEST_VM_CONFIG} \
         --vnc 5901
         # --keep-changes
 }
@@ -133,18 +174,33 @@ function build_all_in_container() {
 }
 
 function run_tests() {
-    build_all_in_container
+    if [ -n "${TEST_DIST_DIR:-}" ]; then
+        # CI: use pre-built binaries
+        RUNNER_DIR="${TEST_DIST_DIR}"
+        TEST_MANAGER="${TEST_DIST_DIR}/test-manager"
+    else
+        # Local: build everything in container
+        build_all_in_container
+        RUNNER_DIR="${PACKAGE_DIR}"
+        TEST_MANAGER="cargo run -p test-manager --"
+    fi
+
+    local test_report_arg=()
+    if [ -n "${TEST_REPORT:-}" ]; then
+        test_report_arg=(--test-report "${TEST_REPORT}")
+    fi
+
+    local test_filters="${TEST_FILTERS:-basic_functionality}"
 
     pushd "${TEST_FRAMEWORK_ROOT}"
-    cargo run \
-        -p test-manager \
-        -- run-tests \
+    $TEST_MANAGER run-tests \
         --vm ${NYM_TEST_VM_CONFIG} \
         --vnc 5901 \
         --nym-mnemonic "${MAINNET_MNEMONIC}" \
-        --runner-dir "${PACKAGE_DIR}"\
+        --runner-dir "${RUNNER_DIR}" \
+        "${test_report_arg[@]}" \
         --verbose \
-        "basic_functionality"
+        ${test_filters}
     popd
 }
 
@@ -156,21 +212,23 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-check_required_vars
 
 COMMAND="$1"
 
 case "$COMMAND" in
     configure)
+        check_required_vars
         configure
         ;;
     list)
         list
         ;;
     run-tests)
+        check_required_vars
         run_tests
         ;;
     run-vm)
+        check_required_vars
         run_vm
         ;;
     *)

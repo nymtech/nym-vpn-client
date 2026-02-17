@@ -1,0 +1,248 @@
+name: e2e-test
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_filter:
+        # No `default:` here — the inline fallback `inputs.test_filter || 'basic_functionality'`
+        # in the run-tests step handles both manual runs (empty field) and scheduled runs
+        # (no inputs at all). A `default:` would only cover workflow_dispatch, creating a
+        # second source of truth that can silently diverge.
+        description: "Test filter (passed to test-manager). Defaults to basic_functionality."
+        required: false
+      instance_type:
+        description: "Exoscale compute instance type"
+        type: choice
+        options:
+          - standard.large
+          - standard.medium
+          # TODO once merged, consider running daily
+  # schedule:
+    # run periodically
+    # - cron: "0 3 * * *"
+
+env:
+  CARGO_TERM_COLOR: always
+  TEST_CRATE_DIR: nym-vpn-core/crates/test
+
+jobs:
+  build:
+    name: Build test binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y \
+            gcc make pkg-config \
+            libdbus-1-dev libmnl-dev libnftnl-dev \
+            protobuf-compiler libssl-dev libpcap-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Cache Cargo registry and build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            nym-vpn-core/target
+            ${{ env.TEST_CRATE_DIR }}/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: wireguard/libwg/go.mod
+
+      - name: Build wireguard-go
+        run: ./wireguard/build-wireguard-go.sh
+
+      - name: Build nym-vpnc and nym-vpnd
+        run: cargo build --release -p nym-vpnc -p nym-vpnd
+        working-directory: nym-vpn-core
+
+      - name: Build test-manager, test-runner, connection-checker
+        run: |
+          cargo build --release \
+            -p test-manager -p test-runner -p connection-checker
+        working-directory: ${{ env.TEST_CRATE_DIR }}
+
+      - name: Collect binaries
+        run: |
+          mkdir -p /tmp/dist
+          cp nym-vpn-core/target/release/nym-vpnc /tmp/dist/
+          cp nym-vpn-core/target/release/nym-vpnd /tmp/dist/
+          cp ${{ env.TEST_CRATE_DIR }}/target/release/test-manager /tmp/dist/
+          cp ${{ env.TEST_CRATE_DIR }}/target/release/test-runner /tmp/dist/
+          cp ${{ env.TEST_CRATE_DIR }}/target/release/connection-checker /tmp/dist/
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-binaries
+          path: /tmp/dist/
+          retention-days: 3
+
+  e2e-test:
+    name: Run E2E tests
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      SSH_KEY_PATH: /tmp/exoscale_key
+      SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10"
+      VM_USER: ubuntu
+      VM_DIST_DIR: /home/ubuntu/dist
+      TF_DIR: nym-vpn-core/crates/test/ci
+    steps:
+      - name: Resolve instance type
+        id: instance-type
+        run: |
+          TYPE="${{ inputs.instance_type || vars.EXOSCALE_TEST_HARNESS_COMPUTE_INSTANCE_TYPE }}"
+          if [ -z "$TYPE" ]; then
+            echo "ERROR: No instance type specified. Set the workflow input or the EXOSCALE_TEST_HARNESS_COMPUTE_INSTANCE_TYPE repository variable."
+            exit 1
+          fi
+          echo "value=$TYPE" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: test-binaries
+          path: /tmp/dist
+
+      - name: Make binaries executable
+        run: chmod +x /tmp/dist/*
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EXOSCALE_SSH_PRIVATE_KEY }}" > ${{ env.SSH_KEY_PATH }}
+          chmod 600 ${{ env.SSH_KEY_PATH }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform init
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init
+
+      - name: Terraform apply
+        working-directory: ${{ env.TF_DIR }}
+        env:
+          TF_VAR_exoscale_api_key: ${{ secrets.EXOSCALE_API_KEY }}
+          TF_VAR_exoscale_api_secret: ${{ secrets.EXOSCALE_API_SECRET }}
+          TF_VAR_data_volume_id: ${{ vars.EXOSCALE_DATA_VOLUME_ID }}
+          TF_VAR_template_id: ${{ vars.EXOSCALE_TEMPLATE_ID }}
+          TF_VAR_instance_type: ${{ steps.instance-type.outputs.value }}
+          TF_VAR_run_id: ${{ github.run_id }}
+        run: terraform apply -auto-approve
+
+      - name: Get VM IP
+        id: vm-ip
+        working-directory: ${{ env.TF_DIR }}
+        run: echo "ip=$(terraform output -raw instance_ip)" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for SSH
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+        run: |
+          echo "Waiting for VM SSH to become available..."
+          for i in $(seq 1 30); do
+            if ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+              ${{ env.VM_USER }}@${VM_IP} "echo ok" 2>/dev/null; then
+              echo "SSH is ready"
+              exit 0
+            fi
+            echo "Attempt $i/30 — waiting 10s..."
+            sleep 10
+          done
+          echo "ERROR: SSH never became available after 30 attempts"
+          exit 1
+
+      - name: SCP binaries and test script to VM
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+        run: |
+          ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.VM_USER }}@${VM_IP} "mkdir -p ${{ env.VM_DIST_DIR }}"
+
+          scp ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            /tmp/dist/* ${{ env.VM_USER }}@${VM_IP}:${{ env.VM_DIST_DIR }}/
+
+          scp ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.TEST_CRATE_DIR }}/test-manager/test.sh \
+            ${{ env.VM_USER }}@${VM_IP}:${{ env.VM_DIST_DIR }}/test.sh
+
+      - name: Configure test VM
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+        run: |
+          ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.VM_USER }}@${VM_IP} \
+            "NYM_TEST_QCOW_IMAGE=/mnt/data/fresh_debian12_cli.qcow2 \
+             NYM_TEST_VM_CONFIG=debian12_cli \
+             MAINNET_MNEMONIC='${{ secrets.MAINNET_MNEMONIC }}' \
+             TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
+             bash ${{ env.VM_DIST_DIR }}/test.sh configure"
+
+      - name: Run E2E tests
+        timeout-minutes: 45
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+        run: |
+          ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.VM_USER }}@${VM_IP} \
+            "NYM_TEST_QCOW_IMAGE=/mnt/data/fresh_debian12_cli.qcow2 \
+             NYM_TEST_VM_CONFIG=debian12_cli \
+             MAINNET_MNEMONIC='${{ secrets.MAINNET_MNEMONIC }}' \
+             TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
+             TEST_REPORT=/tmp/test-report.json \
+             TEST_FILTERS='${{ inputs.test_filter || 'basic_functionality' }}' \
+             bash ${{ env.VM_DIST_DIR }}/test.sh run-tests"
+
+      - name: Retrieve test report
+        if: always()
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+        run: |
+          scp ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.VM_USER }}@${VM_IP}:/tmp/test-report.json /tmp/test-report.json 2>/dev/null || \
+            echo "No test report found"
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: /tmp/test-report.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Terraform destroy
+        if: always()
+        working-directory: ${{ env.TF_DIR }}
+        env:
+          TF_VAR_exoscale_api_key: ${{ secrets.EXOSCALE_API_KEY }}
+          TF_VAR_exoscale_api_secret: ${{ secrets.EXOSCALE_API_SECRET }}
+          TF_VAR_data_volume_id: ${{ vars.EXOSCALE_DATA_VOLUME_ID }}
+          TF_VAR_template_id: ${{ vars.EXOSCALE_TEMPLATE_ID }}
+          TF_VAR_instance_type: ${{ steps.instance-type.outputs.value }}
+          TF_VAR_run_id: ${{ github.run_id }}
+        run: terraform destroy -auto-approve
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ${{ env.SSH_KEY_PATH }}
