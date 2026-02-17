@@ -1,14 +1,14 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::resolver::{BoxedLoopbackAlias, Error, LoopbackAlias, random_loopback_ipv4};
+use async_trait::async_trait;
+use nym_windows::net::{
+    add_ip_address_for_interface, loopback_luid, remove_ip_address_for_interface,
+};
 use std::{
     net::{IpAddr, Ipv4Addr},
     process::Command,
-};
-
-use crate::resolver::{BoxedLoopbackAlias, Error, LoopbackAlias, random_loopback_ipv4};
-use nym_windows::net::{
-    add_ip_address_for_interface, loopback_luid, remove_ip_address_for_interface,
 };
 use tokio::{net::UdpSocket, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
@@ -57,18 +57,15 @@ impl RandomLoopbackAlias {
     }
 }
 
+#[async_trait]
 impl LoopbackAlias for RandomLoopbackAlias {
     fn addr(&self) -> IpAddr {
         self.addr
     }
 
-    fn unassign(
-        self: Box<Self>,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
-        Box::pin(async move {
-            drop(self.drop_guard);
-            self.unassign_task.await.ok();
-        })
+    async fn unassign(self: Box<Self>) {
+        drop(self.drop_guard);
+        self.unassign_task.await.ok();
     }
 }
 

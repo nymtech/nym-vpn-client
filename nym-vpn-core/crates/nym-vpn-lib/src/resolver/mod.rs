@@ -29,6 +29,7 @@ mod ad_block;
 #[cfg(test)]
 mod tests;
 
+use async_trait::async_trait;
 use hickory_server::{
     ServerFuture,
     authority::{
@@ -62,10 +63,11 @@ use tokio::{
 };
 use tokio_util::{either::Either, sync::CancellationToken};
 
+#[async_trait]
 pub(crate) trait LoopbackAlias: Send {
     fn addr(&self) -> IpAddr;
 
-    fn unassign(self: Box<Self>) -> std::pin::Pin<Box<dyn Future<Output = ()> + Send>>;
+    async fn unassign(self: Box<Self>);
 }
 
 pub(crate) type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
