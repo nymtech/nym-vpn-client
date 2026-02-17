@@ -35,8 +35,9 @@ impl RpcClient {
             .map_err(|err| {
                 if let Some(std::io::ErrorKind::PermissionDenied) = err
                     .source()
-                    .and_then(|source| source.downcast_ref::<std::io::Error>())
-                    .map(|s| s.kind())
+                    .and_then(|err| err.source())
+                    .and_then(|err| err.downcast_ref::<std::io::Error>())
+                    .map(|err| err.kind())
                 {
                     Error::AuthenticationRequired
                 } else {
