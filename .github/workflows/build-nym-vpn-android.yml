@@ -1,3 +1,6 @@
+type: uploaded file
+fileName: build-nym-vpn-android.yml
+fullContent:
 name: build-nym-vpn-android
 on:
   workflow_dispatch:
@@ -169,6 +172,14 @@ jobs:
             --project-id "$CROWDIN_PROJECT_ID" \
             --token "$CROWDIN_PERSONAL_TOKEN" \
             -l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN
+
+      - name: Upload translations artifact
+        if: ${{ inputs.build_type != 'debug' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: translations
+          path: nym-vpn-android/app/src/main/res/values-*
+          if-no-files-found: warn
       # === CROWDIN DOWNLOAD END ===
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
