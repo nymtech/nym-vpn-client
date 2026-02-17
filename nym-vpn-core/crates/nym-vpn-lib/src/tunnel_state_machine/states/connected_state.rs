@@ -15,7 +15,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
-use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
+use crate::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
     TunnelCommand, TunnelInterface, TunnelStateHandler,

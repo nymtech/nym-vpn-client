@@ -10,9 +10,7 @@ use std::{
 use tokio::{net::UdpSocket, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
-use crate::tunnel_state_machine::resolver::{
-    BoxedLoopbackAlias, Error, LoopbackAlias, random_loopback_ipv4,
-};
+use crate::resolver::{BoxedLoopbackAlias, Error, LoopbackAlias, random_loopback_ipv4};
 
 /// Loopback interface name.
 const LOOPBACK: &str = "lo0";

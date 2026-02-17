@@ -6,9 +6,7 @@ use std::{
     process::Command,
 };
 
-use crate::tunnel_state_machine::resolver::{
-    BoxedLoopbackAlias, Error, LoopbackAlias, random_loopback_ipv4,
-};
+use crate::resolver::{BoxedLoopbackAlias, Error, LoopbackAlias, random_loopback_ipv4};
 use nym_windows::net::{
     add_ip_address_for_interface, loopback_luid, remove_ip_address_for_interface,
 };

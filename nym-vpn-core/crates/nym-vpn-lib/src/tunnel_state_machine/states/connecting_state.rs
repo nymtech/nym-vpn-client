@@ -14,12 +14,12 @@ use futures::{
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "macos")]
+use crate::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::Error;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
-#[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
     SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,

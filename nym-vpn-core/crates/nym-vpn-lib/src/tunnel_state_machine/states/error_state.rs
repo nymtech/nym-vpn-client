@@ -24,10 +24,10 @@ use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::FirewallPolicy;
 
+#[cfg(target_os = "macos")]
+use crate::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::{OSTunProvider, TunnelSettings};
-#[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
