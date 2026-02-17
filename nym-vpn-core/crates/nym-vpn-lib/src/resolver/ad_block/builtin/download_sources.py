@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""Download blocklist sources and store them compressed.
+
+This script does NOT process/parse the lists.
+It simply downloads the two hard-coded URLs and writes:
+- <name>.txt.xz   (XZ / lzma compressed at max+extreme)
+- <name>.txt.meta (metadata in JSON format)
+
+The meta file records server-provided timestamps:
+- `server_date_utc` parsed from HTTP `Date` when present.
+
+Some CDNs do not provide `Date`; in that case it will be blank and you can fall
+back to `updated_from_website_utc` (when this script fetched it).
+"""
+
+from __future__ import annotations
+
+import datetime as _dt
+import email.utils
+import hashlib
+import json
+import lzma
+import urllib.error
+import urllib.request
+from dataclasses import asdict, dataclass
+from pathlib import Path
+
+
+SOURCES: list[tuple[str, str]] = [
+    (
+        "easylist_adservers.txt",
+        "https://raw.githubusercontent.com/easylist/easylist/refs/heads/master/easylist/easylist_adservers.txt",
+    ),
+    (
+        "light.txt",
+        "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/hosts/light.txt",
+    ),
+]
+
+USER_AGENT = "ad-blocker-lists/1.0 (+download_sources.py)"
+TIMEOUT_SECS = 60
+
+# Maximum + "extreme" preset (equivalent to: xz -9e)
+XZ_PRESET = 9 | lzma.PRESET_EXTREME
+
+
+def _parse_http_datetime(value: str | None) -> _dt.datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = email.utils.parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=_dt.timezone.utc)
+    return parsed.astimezone(_dt.timezone.utc)
+
+
+def _iso_utc(dt: _dt.datetime) -> str:
+    return dt.astimezone(_dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+@dataclass(frozen=True)
+class DownloadMeta:
+    updated_from_website_utc: str
+    etag: str
+    sha256: str
+    bytes: int
+
+
+def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
+    fetched_at = _dt.datetime.now(tz=_dt.timezone.utc)
+
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": USER_AGENT,
+            "Accept": "text/plain,*/*;q=0.9",
+            "Accept-Encoding": "gzip",
+        },
+    )
+
+    try:
+        resp = urllib.request.urlopen(req, timeout=TIMEOUT_SECS)
+    except urllib.error.URLError as e:
+        raise SystemExit(f"Failed to download {url}: {e}")
+
+    date_raw = resp.headers.get("Date") or ""
+    date_dt = _parse_http_datetime(date_raw)
+    server_date_utc = _iso_utc(date_dt) if date_dt else ""
+
+    etag = resp.headers.get("ETag")
+
+    sha = hashlib.sha256()
+    total_bytes = 0
+
+    tmp_path = xz_path.with_suffix(xz_path.suffix + ".tmp")
+    tmp_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with lzma.open(
+        tmp_path,
+        mode="wb",
+        format=lzma.FORMAT_XZ,
+        check=lzma.CHECK_CRC64,
+        preset=XZ_PRESET,
+    ) as out:
+        while True:
+            chunk = resp.read(1024 * 1024)
+            if not chunk:
+                break
+            total_bytes += len(chunk)
+            sha.update(chunk)
+            out.write(chunk)
+
+    tmp_path.replace(xz_path)
+
+    return DownloadMeta(
+        updated_from_website_utc=_iso_utc(fetched_at),
+        etag=etag,
+        sha256=sha.hexdigest(),
+        bytes=total_bytes,
+    )
+
+
+def _write_meta(meta_path: Path, meta: DownloadMeta) -> None:
+    meta_path.write_text(
+        json.dumps(asdict(meta), indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+
+def main() -> int:
+    wrote = 0
+    for filename, url in SOURCES:
+        xz_path = Path(filename + ".xz")
+        meta_path = Path(filename + ".meta")
+
+        meta = _download_to_xz(url, xz_path)
+        _write_meta(meta_path, meta)
+
+        print(
+            f"Wrote {xz_path} ({meta.bytes} bytes source, "
+            f"updated_from_website_utc={meta.updated_from_website_utc}"
+        )
+        print(f"Wrote {meta_path}")
+        wrote += 1
+
+    return 0 if wrote else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
