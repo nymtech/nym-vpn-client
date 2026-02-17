@@ -1,6 +1,3 @@
-type: uploaded file
-fileName: publish-nym-vpn-android.yml
-fullContent:
 name: publish-nym-vpn-android
 
 on:
@@ -385,7 +382,6 @@ jobs:
       # === CROWDIN (ARTIFACT) END ===
 
       # === CROWDIN (FALLBACK) START ===
-      # Only run if the build job was skipped (e.g., release_type was 'none')
       - name: Setup Node.js (Fallback)
         if: ${{ needs.build-nym-vpn-android-apk.result == 'skipped' }}
         uses: actions/setup-node@v4
