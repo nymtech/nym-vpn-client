@@ -12,6 +12,23 @@
 //! Platform-specific responsibilities (binding sockets, adding loopback aliases, flushing system
 //! DNS caches) are delegated to `platform`.
 
+#[cfg(target_os = "macos")]
+mod macos;
+
+#[cfg(target_os = "macos")]
+pub(crate) use macos::{flush_system_cache, new_random_socket};
+
+#[cfg(windows)]
+mod windows;
+
+#[cfg(windows)]
+pub(crate) use windows::{flush_system_cache, new_random_socket};
+
+mod ad_block;
+
+#[cfg(test)]
+mod tests;
+
 use hickory_server::{
     authority::{
         EmptyLookup, LookupObject, MessageRequest, MessageResponse, MessageResponseBuilder,
@@ -44,21 +61,6 @@ use tokio::{
     sync::{mpsc, oneshot, Mutex},
 };
 use tokio_util::{either::Either, sync::CancellationToken};
-
-#[cfg(target_os = "macos")]
-mod macos;
-
-#[cfg(target_os = "macos")]
-pub(crate) use macos::{flush_system_cache, new_random_socket};
-
-#[cfg(windows)]
-mod windows;
-
-#[cfg(windows)]
-pub(crate) use windows::{flush_system_cache, new_random_socket};
-
-#[cfg(test)]
-mod tests;
 
 pub(crate) trait LoopbackAlias: Send {
     fn addr(&self) -> IpAddr;
