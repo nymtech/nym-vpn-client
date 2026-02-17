@@ -45,15 +45,6 @@ impl AuthenticaticationResult {
     }
 }
 
-pub(crate) async fn authorize(stream: impl AsyncWrite + Unpin) {
-    AuthenticaticationResult::Accepted.send(stream).await;
-}
-
-#[allow(unused)]
-pub(crate) async fn deny(stream: impl AsyncWrite + Unpin) {
-    AuthenticaticationResult::Denied.send(stream).await;
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
