@@ -30,22 +30,22 @@ mod ad_block;
 mod tests;
 
 use hickory_server::{
+    ServerFuture,
     authority::{
         EmptyLookup, LookupObject, MessageRequest, MessageResponse, MessageResponseBuilder,
     },
     proto::{
-        op::{header::MessageType, op_code::OpCode, Header, LowerQuery, ResponseCode},
-        rr::{domain::Name, rdata, record_data::RData, LowerName, Record, RecordType},
         ProtoErrorKind,
+        op::{Header, LowerQuery, ResponseCode, header::MessageType, op_code::OpCode},
+        rr::{LowerName, Record, RecordType, domain::Name, rdata, record_data::RData},
     },
     resolver::{
-        config::{NameServerConfigGroup, ResolverConfig}, lookup::Lookup,
+        ResolveError, TokioResolver,
+        config::{NameServerConfigGroup, ResolverConfig},
+        lookup::Lookup,
         name_server::TokioConnectionProvider,
-        ResolveError,
-        TokioResolver,
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
-    ServerFuture,
 };
 use rand::Rng;
 use std::{
@@ -58,7 +58,7 @@ use std::{
 };
 use tokio::{
     net::UdpSocket,
-    sync::{mpsc, oneshot, Mutex},
+    sync::{Mutex, mpsc, oneshot},
 };
 use tokio_util::{either::Either, sync::CancellationToken};
 
