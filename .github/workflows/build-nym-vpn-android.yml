@@ -1,6 +1,3 @@
-type: uploaded file
-fileName: build-nym-vpn-android.yml
-fullContent:
 name: build-nym-vpn-android
 on:
   workflow_dispatch:
@@ -181,8 +178,6 @@ jobs:
           path: nym-vpn-android/app/src/main/res/values-*
           if-no-files-found: warn
       # === CROWDIN DOWNLOAD END ===
-      # Here we need to decode keystore.jks from base64 string and place it
-      # in the folder specified in the release signing configuration
       - name: Decode Keystore
         if: ${{ inputs.build_type != 'debug' }}
         id: decode_keystore
