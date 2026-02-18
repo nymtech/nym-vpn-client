@@ -24,6 +24,7 @@ mod windows;
 #[cfg(windows)]
 pub(crate) use windows::{flush_system_cache, new_random_socket};
 
+#[cfg(any(target_os = "macos", target_os = "windows"))] // Linux soon
 mod ad_block;
 
 #[cfg(test)]

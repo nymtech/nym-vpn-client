@@ -3,6 +3,8 @@
 
 mod files;
 
+pub use files::{init_files, load_filter_set, update_files};
+
 #[cfg(test)]
 mod tests;
 
@@ -59,24 +61,30 @@ pub enum AdBlockingError {
         error: reqwest::Error,
     },
 
-    #[error("missing etag in ad-blocking data file response from {url}")]
-    MissingEtag { url: String },
+    #[error("missing header {header} in ad-blocking data file response from {url}")]
+    MissingHeader {
+        header: reqwest::header::HeaderName,
+        url: String,
+    },
 
-    #[error("invalid etag in ad-blocking data file response from {url}")]
-    InvalidEtag {
+    #[error("invalid header {header} in ad-blocking data file response from {url}")]
+    InvalidHeader {
+        header: reqwest::header::HeaderName,
         url: String,
         #[source]
         error: reqwest::header::ToStrError,
     },
 
-    #[error("failed to compress ad-blocking file data")]
+    #[error("failed to compress ad-blocking file data to {file_path}")]
     CompressData {
+        file_path: PathBuf,
         #[source]
         error: std::io::Error,
     },
 
-    #[error("failed to decompress ad-blocking file data")]
+    #[error("failed to decompress ad-blocking file data from {file_path}")]
     DecompressData {
+        file_path: PathBuf,
         #[source]
         error: std::io::Error,
     },

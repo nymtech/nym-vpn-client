@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import email.utils
+import gzip
 import hashlib
 import json
 import lzma
@@ -60,9 +61,11 @@ def _iso_utc(dt: _dt.datetime) -> str:
     return dt.astimezone(_dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+
 @dataclass(frozen=True)
 class DownloadMeta:
     updated_from_website_utc: str
+    server_date_utc: str
     etag: str
     sha256: str
     bytes: int
@@ -89,7 +92,8 @@ def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
     date_dt = _parse_http_datetime(date_raw)
     server_date_utc = _iso_utc(date_dt) if date_dt else ""
 
-    etag = resp.headers.get("ETag")
+    etag = resp.headers.get("ETag") or ""
+    content_encoding = (resp.headers.get("Content-Encoding") or "").lower()
 
     sha = hashlib.sha256()
     total_bytes = 0
@@ -104,8 +108,11 @@ def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
         check=lzma.CHECK_CRC64,
         preset=XZ_PRESET,
     ) as out:
+        stream = resp
+        if content_encoding == "gzip":
+            stream = gzip.GzipFile(fileobj=resp)
         while True:
-            chunk = resp.read(1024 * 1024)
+            chunk = stream.read(1024 * 1024)
             if not chunk:
                 break
             total_bytes += len(chunk)
@@ -116,6 +123,7 @@ def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
 
     return DownloadMeta(
         updated_from_website_utc=_iso_utc(fetched_at),
+        server_date_utc=server_date_utc,
         etag=etag,
         sha256=sha.hexdigest(),
         bytes=total_bytes,
