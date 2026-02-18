@@ -284,8 +284,9 @@ impl Resolver {
 
         let blocked = {
             let guard = adblocker.lock().await;
-            if let Some(ab) = guard.as_ref() {
-                ab.should_block_domain(&qname)
+            if let Some(adblocker) = guard.as_ref() {
+                adblocker
+                    .should_block_domain(&qname)
                     .await
                     .inspect_err(|error| {
                         tracing::error!("Ad-blocker error for domain {qname}: {error}");

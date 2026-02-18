@@ -44,11 +44,30 @@ impl AdBlocker {
     }
 
     pub async fn should_block_domain(&self, domain: &str) -> Result<bool> {
+        // Some DNS qname strings can crash `Request::new()`, so clean them up before parsing.
+        let mut domain = domain.trim();
+
+        // Treat empty / root as non\-blockable.
+        if domain.is_empty() || domain == "." || domain == "./" {
+            return Ok(false);
+        }
+
+        // Remove any trailing "/"
+        domain = domain.trim_end_matches('/');
+
+        // Remove any trailing "." (including cases like "example.com./")
+        domain = domain.trim_end_matches('.');
+
+        if domain.is_empty() {
+            return Ok(false);
+        }
+
         let domain_url = format!("https://{domain}");
         let url = url::Url::parse(&domain_url).map_err(|error| AdBlockError::ParseUrl {
             url: domain_url,
             error,
         })?;
+
         self.should_block_url(url).await
     }
 
