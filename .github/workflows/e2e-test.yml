@@ -8,7 +8,9 @@ on:
         # in the run-tests step handles both manual runs (empty field) and scheduled runs
         # (no inputs at all). A `default:` would only cover workflow_dispatch, creating a
         # second source of truth that can silently diverge.
-        description: "Test filter (passed to test-manager). Defaults to basic_functionality."
+        description:
+          "Test filter (passed to test-manager). If not provided, default is set
+          below in TEST_FILTERS"
         required: false
       instance_type:
         description: "Exoscale compute instance type"
@@ -18,8 +20,8 @@ on:
           - standard.medium
           # TODO once merged, consider running daily
   # schedule:
-    # run periodically
-    # - cron: "0 3 * * *"
+  # run periodically
+  # - cron: "0 3 * * *"
 
 env:
   CARGO_TERM_COLOR: always
@@ -33,17 +35,23 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Read MSRV from workspace Cargo.toml
+        id: msrv
+        run: |
+          version=$(grep '^rust-version' nym-vpn-core/Cargo.toml | sed 's/.*"\(.*\)"/\1/')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
+
       - name: Install system dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y \
             gcc make pkg-config \
             libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libssl-dev libpcap-dev
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
 
       - name: Cache Cargo registry and build artifacts
         uses: actions/cache@v4
@@ -97,7 +105,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SSH_KEY_PATH: /tmp/exoscale_key
-      SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10"
+      SSH_OPTS:
+        "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o
+        ConnectTimeout=10"
       VM_USER: ubuntu
       VM_DIST_DIR: /home/ubuntu/dist
       TF_DIR: nym-vpn-core/crates/test/ci
