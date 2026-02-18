@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 import { DefaultRootFontSize } from '../../../../constants';
 import { useMainDispatch, useMainState } from '../../../../contexts';
 import { kvSet } from '../../../../kvStore';
@@ -7,6 +8,7 @@ import { StateDispatch } from '../../../../types';
 import { Slider } from '../../../../ui';
 
 function UiScaler() {
+  const { t } = useTranslation('display');
   const [slideValue, setSlideValue] = useState(DefaultRootFontSize);
   const dispatch = useMainDispatch() as StateDispatch;
   const { rootFontSize } = useMainState();
@@ -48,6 +50,7 @@ function UiScaler() {
         max={20}
         onChange={handleChange}
         onValueCommitted={handleFinalChange}
+        ariaLabel={t('zoom-section-title')}
       />
     </div>
   );

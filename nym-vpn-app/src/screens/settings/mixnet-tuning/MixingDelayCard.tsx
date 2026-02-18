@@ -33,6 +33,7 @@ function MixingDelaySlider({
         max={mixingDelay.maxValue}
         step={1}
         valueIndicator
+        ariaLabel={t('mixnet-tuning.mixing-delay.title')}
         labels={MIXING_DELAY_LEVELS.map((item, index) => (
           <div
             key={item.label}

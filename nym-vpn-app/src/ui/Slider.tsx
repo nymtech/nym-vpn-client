@@ -17,6 +17,7 @@ export type SliderProps = {
   labels?: React.ReactNode[];
   className?: string;
   valueIndicator?: boolean;
+  ariaLabel?: string;
 };
 
 function Slider({
@@ -30,6 +31,7 @@ function Slider({
   labels,
   valueIndicator,
   className,
+  ariaLabel,
 }: SliderProps) {
   const { t, i18n } = useTranslation('common');
 
@@ -91,11 +93,13 @@ function Slider({
                 ])}
               />
               <HuSlider.Thumb
+                aria-label={ariaLabel}
+                getAriaValueText={(_formattedValue, val) => val.toString()}
                 className={clsx([
                   'group block h-6 w-6 rounded-full border border-bombay dark:border-iron active:bg-faded-lavender bg-white hover:bg-faded-lavender shadow-md focus:outline-none focus:ring-2 focus:ring-malachite',
                   'transition-[inset] duration-300 ease-out ',
                 ])}
-              ></HuSlider.Thumb>
+              />
             </HuSlider.Track>
           </HuSlider.Control>
         </HuSlider.Root>
