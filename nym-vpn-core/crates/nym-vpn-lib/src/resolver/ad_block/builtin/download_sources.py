@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
-"""Download ad-block sources and store them compressed, along with associated metadata.
+"""Download blocklist sources and store them compressed.
 
-Given the ad-blocking source files change frequently, it might be an idea to run this
-frequently as well, in order to keep-up and avoid unnessary user downloads.
+This script does NOT process/parse the lists.
+It simply downloads the two hard-coded URLs and writes:
+- <name>.txt.xz   (XZ / lzma compressed at max+extreme)
+- <name>.txt.meta (metadata in JSON format)
+
+The meta file records server-provided timestamps:
+- `server_date_utc` parsed from HTTP `Date` when present.
+
+Some CDNs do not provide `Date`; in that case it will be blank and you can fall
+back to `updated_from_website_utc` (when this script fetched it).
 """
 
 from __future__ import annotations
@@ -17,6 +25,7 @@ import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass
 from pathlib import Path
+
 
 SOURCES: list[tuple[str, str]] = [
     (
@@ -52,10 +61,10 @@ def _iso_utc(dt: _dt.datetime) -> str:
     return dt.astimezone(_dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+
 @dataclass(frozen=True)
 class DownloadMeta:
     updated_from_website_utc: str
-    server_date_utc: str
     etag: str
     sha256: str
     bytes: int
@@ -92,11 +101,11 @@ def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
     tmp_path.parent.mkdir(parents=True, exist_ok=True)
 
     with lzma.open(
-            tmp_path,
-            mode="wb",
-            format=lzma.FORMAT_XZ,
-            check=lzma.CHECK_CRC64,
-            preset=XZ_PRESET,
+        tmp_path,
+        mode="wb",
+        format=lzma.FORMAT_XZ,
+        check=lzma.CHECK_CRC64,
+        preset=XZ_PRESET,
     ) as out:
         stream = resp
         if content_encoding == "gzip":
@@ -113,7 +122,6 @@ def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
 
     return DownloadMeta(
         updated_from_website_utc=_iso_utc(fetched_at),
-        server_date_utc=server_date_utc,
         etag=etag,
         sha256=sha.hexdigest(),
         bytes=total_bytes,
