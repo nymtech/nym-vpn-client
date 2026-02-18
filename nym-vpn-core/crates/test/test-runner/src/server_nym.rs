@@ -665,10 +665,20 @@ impl Service for NymTestServer {
         return Err(test_rpc::Error::TargetNotImplemented);
 
         #[cfg(target_os = "macos")]
-        talpid_macos::net::add_alias(&interface, alias)
-            .await
-            .map_err(|e| format!("{e:#}"))
-            .map_err(test_rpc::Error::Other)
+        {
+            let output = Command::new("ifconfig")
+                .args([&interface, "alias", &alias.to_string()])
+                .output()
+                .await
+                .map_err(|e| test_rpc::Error::Other(format!("Failed to run ifconfig: {e:#}")))?;
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                return Err(test_rpc::Error::Other(format!(
+                    "ifconfig alias add failed: {stderr}"
+                )));
+            }
+            Ok(())
+        }
     }
 
     #[cfg_attr(not(target_os = "macos"), allow(unused_variables))]
@@ -682,9 +692,19 @@ impl Service for NymTestServer {
         return Err(test_rpc::Error::TargetNotImplemented);
 
         #[cfg(target_os = "macos")]
-        talpid_macos::net::remove_alias(&interface, alias)
-            .await
-            .map_err(|e| format!("{e:#}"))
-            .map_err(test_rpc::Error::Other)
+        {
+            let output = Command::new("ifconfig")
+                .args([&interface, "-alias", &alias.to_string()])
+                .output()
+                .await
+                .map_err(|e| test_rpc::Error::Other(format!("Failed to run ifconfig: {e:#}")))?;
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                return Err(test_rpc::Error::Other(format!(
+                    "ifconfig alias remove failed: {stderr}"
+                )));
+            }
+            Ok(())
+        }
     }
 }
