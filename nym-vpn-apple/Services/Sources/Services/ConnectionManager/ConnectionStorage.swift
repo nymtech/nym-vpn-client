@@ -72,6 +72,7 @@ private extension ConnectionStorage {
             enableTwoHop: true,
             enableBridges: false,
             enableLewes: false,
+            enableAdBlocking: false,
             netstack: false,
             residentialExit: false,
             mixnetTuningConfig: MixnetTuningConfig(

@@ -31478,6 +31478,39 @@
         }
       }
     },
+    "settings.adblock.subtitle.off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ads and trackers allowed"
+          }
+        }
+      }
+    },
+    "settings.adblock.subtitle.on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocking ads and tracker"
+          }
+        }
+      }
+    },
+    "settings.adblock.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block ads"
+          }
+        }
+      }
+    },
     "settings.anonymousErrorReports.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import Theme
 
-public final class SettingsListItemViewModel: Hashable {
+public final class SettingsListItemViewModel: ObservableObject, Hashable {
     public enum Accessory: Hashable {
         case arrow
         case toggle(viewModel: ToggleViewModel)
@@ -82,7 +82,6 @@ public final class SettingsListItemViewModel: Hashable {
 
     let title: String
     let titleTextStyle: NymTextStyle
-    let subtitle: AttributedString?
     let multilineText: AttributedString?
     let imageName: String?
     let systemImageName: String?
@@ -91,6 +90,7 @@ public final class SettingsListItemViewModel: Hashable {
     let accessory: Accessory
     let action: (() -> Void)
 
+    @Published public var subtitle: AttributedString?
     var position: SettingsListItemPosition
 
     public init(
