@@ -270,7 +270,7 @@ impl Source {
             })?;
 
         let mut decoder = XzDecoder::new(&data_bytes[..]);
-        let mut decompressed_bytes = Vec::new();
+        let mut decompressed_bytes = Vec::with_capacity(meta_data.length);
         decoder
             .read_to_end(&mut decompressed_bytes)
             .map_err(|error| AdBlockError::DecompressData {
@@ -278,20 +278,20 @@ impl Source {
                 error,
             })?;
 
-        if decompressed_bytes.len() != meta_data.bytes {
+        if decompressed_bytes.len() != meta_data.length {
             return Err(AdBlockError::InvalidDataFileLength {
                 file_path: file_path.to_path_buf(),
-                expected: meta_data.bytes,
+                expected: meta_data.length,
                 actual: decompressed_bytes.len(),
             });
         }
 
-        let actual_sha256 = format!("{:x}", Sha256::digest(&decompressed_bytes));
-        if actual_sha256 != meta_data.sha256 {
+        let sha256 = hex::encode(Sha256::digest(&decompressed_bytes));
+        if sha256 != meta_data.sha256 {
             return Err(AdBlockError::InvalidDataFileHash {
                 file_path: file_path.to_path_buf(),
                 expected: meta_data.sha256.clone(),
-                actual: actual_sha256,
+                actual: sha256,
             });
         }
 
@@ -308,7 +308,7 @@ impl Source {
     /// Save the data file to disk and update the meta data with the new file length and SHA256 hash.
     async fn save_data_file(file_path: &Path, data: &[u8], etag: &str) -> Result<SourceMetaData> {
         let byte_len = data.len();
-        let sha256 = format!("{:x}", Sha256::digest(data));
+        let sha256 = hex::encode(Sha256::digest(data));
 
         // Compress the data
         let mut encoder = XzEncoder::new(Vec::new(), 9);
@@ -335,7 +335,7 @@ impl Source {
 
         // Return the new meta data
         Ok(SourceMetaData {
-            bytes: byte_len,
+            length: byte_len,
             etag: etag.to_string(),
             sha256,
             updated_from_website_utc: OffsetDateTime::now_utc(),
@@ -367,8 +367,8 @@ impl Source {
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct SourceMetaData {
-    pub(crate) bytes: usize, // Size of uncompressed data
     pub(crate) etag: String,
+    pub(crate) length: usize,  // Size of uncompressed data
     pub(crate) sha256: String, // Hash of uncompressed data
     #[serde(with = "time::serde::iso8601")]
     pub(crate) updated_from_website_utc: OffsetDateTime,

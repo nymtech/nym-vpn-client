@@ -67,7 +67,7 @@ class DownloadMeta:
     updated_from_website_utc: str
     etag: str
     sha256: str
-    bytes: int
+    length: int
 
 
 def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
@@ -124,7 +124,7 @@ def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
         updated_from_website_utc=_iso_utc(fetched_at),
         etag=etag,
         sha256=sha.hexdigest(),
-        bytes=total_bytes,
+        length=total_bytes,
     )
 
 
@@ -145,7 +145,7 @@ def main() -> int:
         _write_meta(meta_path, meta)
 
         print(
-            f"Wrote {xz_path} ({meta.bytes} bytes source, "
+            f"Wrote {xz_path} ({meta.length} bytes source, "
             f"updated_from_website_utc={meta.updated_from_website_utc}"
         )
         print(f"Wrote {meta_path}")
