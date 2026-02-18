@@ -62,11 +62,13 @@ jobs:
 
   build-nym-vpn-android-aab:
     if: ${{ github.event.inputs.publish-accrescent == 'true' }}
+    needs: [build-nym-vpn-android-apk]
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
       build_type: release
       build_format: aab
+      skip_crowdin: true
 
   publish-github:
     if: ${{ inputs.release_type != 'none' }}
@@ -379,6 +381,13 @@ jobs:
         with:
           name: translations
           path: nym-vpn-android/app/src/main/res
+
+      - name: Download changelog translations artifact
+        if: ${{ needs.build-nym-vpn-android-apk.result == 'success' }}
+        uses: actions/download-artifact@v6
+        with:
+          name: changelog-translations
+          path: fastlane/metadata/android
       # === CROWDIN (ARTIFACT) END ===
 
       # === CROWDIN (FALLBACK) START ===
