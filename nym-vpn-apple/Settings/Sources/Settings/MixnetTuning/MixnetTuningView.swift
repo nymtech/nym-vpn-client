@@ -375,7 +375,7 @@ private extension MixnetTuningView {
         }
         Spacer()
             .frame(height: 24)
-        GenericButton(title: "mixnetTuning.reset".localizedString, style: .primaryBorderOnly, height: 36)
+        GenericButton(title: "mixnetTuning.reset".localizedString, style: .primaryBorderOnly, height: 42)
             .onTapGesture {
                 resetToDefaults()
             }
