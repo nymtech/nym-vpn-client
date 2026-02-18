@@ -157,7 +157,7 @@ jobs:
       SSH_KEY_PATH: /tmp/exoscale_key
       SSH_OPTS:
         "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o
-        ConnectTimeout=10"
+        ConnectTimeout=10 -o ServerAliveInterval=30 -o ServerAliveCountMax=3"
       VM_USER: ubuntu
       VM_DIST_DIR: /home/ubuntu/dist
       TF_DIR: nym-vpn-core/crates/test/ci
