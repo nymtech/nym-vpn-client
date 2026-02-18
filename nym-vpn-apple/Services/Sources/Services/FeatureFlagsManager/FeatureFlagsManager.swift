@@ -107,15 +107,15 @@ private extension FeatureFlagsManager {
 
 private extension FeatureFlagsManager {
     func updateFeatureFlags() {
-        Task {
+        Task { [weak self] in
 #if os(iOS)
             guard let flags = configurationManager.networkEnv.current().featureFlags else { return }
 #elseif os(macOS)
-            guard let flags = try? await grpcManager.fetchFeatureFlags() else { return }
+            guard let flags = try? await self?.grpcManager.fetchFeatureFlags() else { return }
 #endif
-            Task { @MainActor in
-                isPrivyEnabled = flags.isPrivyEnabled() ?? false
-                isMixnetTuningEnabled = flags.isMixnetTuningEnabled() ?? appSettings.isMixnetTuningEnabled
+            Task { @MainActor [weak self]  in
+                self?.isPrivyEnabled = flags.isPrivyEnabled() ?? false
+                self?.isMixnetTuningEnabled = flags.isMixnetTuningEnabled() ?? appSettings.isMixnetTuningEnabled
             }
         }
     }

@@ -321,11 +321,9 @@ private extension SettingsViewModel {
 
         let adBlockViewModel = SettingsListItemViewModel(
             accessory: .toggle(
-                viewModel: ToggleViewModel(
-                    isOn: appSettings.$isAdBlockerEnabled,
-                    action: { [weak self] isOn in
-                        self?.appSettings.isAdBlockerEnabled = isOn
-                    }
+                isOn: Binding(
+                    get: { [weak appSettings] in appSettings?.isAdBlockerEnabled ?? false },
+                    set: { [weak appSettings] in appSettings?.isAdBlockerEnabled = $0 }
                 )
             ),
             title: "settings.adblock.title".localizedString,
@@ -348,11 +346,9 @@ private extension SettingsViewModel {
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: appSettings.$isIPv6TrafficEnabled,
-                        action: { [weak self] isOn in
-                            self?.appSettings.isIPv6TrafficEnabled = isOn
-                        }
+                    isOn: Binding(
+                        get: { [weak appSettings] in appSettings?.isIPv6TrafficEnabled ?? true },
+                        set: { [weak appSettings] in appSettings?.isIPv6TrafficEnabled = $0 }
                     )
                 ),
                 title: "settings.ipv6.title".localizedString,
@@ -365,11 +361,9 @@ private extension SettingsViewModel {
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: appSettings.$isLanBypassEnabled,
-                        action: { [weak self] isOn in
-                            self?.appSettings.isLanBypassEnabled = isOn
-                        }
+                    isOn: Binding(
+                        get: { [weak appSettings] in appSettings?.isLanBypassEnabled ?? false },
+                        set: { [weak appSettings] in appSettings?.isLanBypassEnabled = $0 }
                     )
                 ),
                 title: "settings.lanBypass.title".localizedString,

@@ -63,15 +63,25 @@ private extension ProxyView {
     }
 
     func proxyStatusSection() -> some View {
-        SettingsListItemCustomContent(
+        let proxyBinding = Binding<Bool>(
+            get: { viewModel.proxyIsOn },
+            set: { newValue in
+                if viewModel.connectionManager.currentTunnelStatus == .connected {
+                    viewModel.proxyIsOn = newValue
+                    Task { await viewModel.toggleProxy() }
+                } else if !viewModel.proxyStatusLoading {
+                    Task { await viewModel.toggleProxy() }
+                }
+            }
+        )
+        let isDisabled = viewModel.connectionManager.currentTunnelStatus != .connected
+        && viewModel.proxyStatusLoading
+
+        return SettingsListItemCustomContent(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: $viewModel.proxyIsOn,
-                        isDisabled: viewModel.connectionManager.currentTunnelStatus != .connected,
-                        isInteractiveWhenDisabled: !viewModel.proxyStatusLoading,
-                        action: { _ in Task { await viewModel.toggleProxy() } }
-                    )
+                    isOn: proxyBinding,
+                    isDisabled: isDisabled
                 ),
                 title: "proxy.status.title".localizedString,
                 position: .init(isFirst: true, isLast: true),

@@ -93,9 +93,11 @@ private extension SantasView {
             Toggle(isOn: $appSettings.isLewesEnabled) {
                 Text("Lewes enabled")
             }
+            .tint(NymColor.accent)
             Toggle(isOn: $appSettings.isMixnetTuningEnabled) {
                 Text("Mixnet tuning")
             }
+            .tint(NymColor.accent)
         }.padding()
     }
 }

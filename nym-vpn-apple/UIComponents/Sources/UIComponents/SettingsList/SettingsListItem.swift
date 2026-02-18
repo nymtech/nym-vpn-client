@@ -6,19 +6,32 @@ public struct SettingsListItem: View {
     @ObservedObject private var viewModel: SettingsListItemViewModel
 
     @State private var isHovered = false
+    @State private var isToggleOn = false
 
     public init(viewModel: SettingsListItemViewModel) {
         self.viewModel = viewModel
+        if case let .toggle(isOn, _) = viewModel.accessory {
+            _isToggleOn = State(initialValue: isOn.wrappedValue)
+        }
     }
 
     public var body: some View {
         VStack(alignment: .center, spacing: 0) {
             HStack(spacing: 0) {
-                iconImage()
-                    .padding(.leading, 16)
-                titleSubtitle()
-                    .padding(.horizontal, 16)
-                Spacer()
+                HStack(spacing: 0) {
+                    iconImage()
+                        .padding(.leading, 16)
+                    titleSubtitle()
+                        .padding(.horizontal, 16)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if case let .toggle(_, isDisabled) = viewModel.accessory, !isDisabled {
+                        isToggleOn.toggle()
+                    }
+                    viewModel.action()
+                }
                 HStack(spacing: 0) {
                     optionalAccessoryImage()
                     optionalToggleView()
@@ -45,6 +58,7 @@ public struct SettingsListItem: View {
                 topTrailingRadius: viewModel.topRadius
             )
             .stroke(viewModel.type.strokeColor, lineWidth: 1)
+            .allowsHitTesting(false)
         }
         .clipShape(
             UnevenRoundedRectangle(
@@ -54,12 +68,14 @@ public struct SettingsListItem: View {
                 topTrailingRadius: viewModel.topRadius
             )
         )
-        .onTapGesture {
-            viewModel.action()
-        }
         .onHover { newValue in
             guard !viewModel.isHoveredHighlightDisabled else { return }
             isHovered = newValue
+        }
+        .onChange(of: isToggleOn) { _, newValue in
+            if case let .toggle(isOn, _) = viewModel.accessory {
+                isOn.wrappedValue = newValue
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle ?? "")")
@@ -123,8 +139,12 @@ private extension SettingsListItem {
 
     @ViewBuilder
     func optionalToggleView() -> some View {
-        if case let .toggle(viewModel: viewModel) = viewModel.accessory {
-            ToggleView(viewModel: viewModel)
+        if case let .toggle(_, isDisabled) = viewModel.accessory {
+            Toggle("", isOn: $isToggleOn)
+                .toggleStyle(.switch)
+                .tint(NymColor.accent)
+                .labelsHidden()
+                .disabled(isDisabled)
                 .padding(.trailing, 16)
         }
     }
