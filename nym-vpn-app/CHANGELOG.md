@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Ad blocker
 
+### Fixed
+
+- Improve Accessibility for sliders
+
 ## [1.24.0] - 2026-02-17
 
 ### Added
