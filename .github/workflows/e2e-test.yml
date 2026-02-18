@@ -114,9 +114,9 @@ jobs:
           mkdir -p /tmp/dist
           cp nym-vpn-core/target/release/nym-vpnc /tmp/dist/
           cp nym-vpn-core/target/release/nym-vpnd /tmp/dist/
-          cp ${{ env.TEST_CRATE_DIR }}/target/release/test-manager /tmp/dist/
-          cp ${{ env.TEST_CRATE_DIR }}/target/release/test-runner /tmp/dist/
-          cp ${{ env.TEST_CRATE_DIR }}/target/release/connection-checker /tmp/dist/
+          cp nym-vpn-core/target/release/test-manager /tmp/dist/
+          cp nym-vpn-core/target/release/test-runner /tmp/dist/
+          cp nym-vpn-core/target/release/connection-checker /tmp/dist/
 
       - name: Upload binaries
         uses: actions/upload-artifact@v6
