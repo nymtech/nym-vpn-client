@@ -315,6 +315,36 @@ private extension SettingsViewModel {
             )
         )
 #if os(macOS)
+        let adBlockSubtitle = appSettings.isAdBlockerEnabled
+        ? "settings.adblock.subtitle.on".localizedString
+        : "settings.adblock.subtitle.off".localizedString
+
+        let adBlockViewModel = SettingsListItemViewModel(
+            accessory: .toggle(
+                viewModel: ToggleViewModel(
+                    isOn: appSettings.$isAdBlockerEnabled,
+                    action: { [weak self] isOn in
+                        self?.appSettings.isAdBlockerEnabled = isOn
+                    }
+                )
+            ),
+            title: "settings.adblock.title".localizedString,
+            subtitle: adBlockSubtitle,
+            systemImageName: "exclamationmark.shield",
+            action: {}
+        )
+        appSettings.$isAdBlockerEnabledPublisher
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { isOn in
+                adBlockViewModel.subtitle = AttributedString(
+                    isOn
+                        ? "settings.adblock.subtitle.on".localizedString
+                        : "settings.adblock.subtitle.off".localizedString
+                )
+            }
+            .store(in: &cancellables)
+        viewModels.append(adBlockViewModel)
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .toggle(

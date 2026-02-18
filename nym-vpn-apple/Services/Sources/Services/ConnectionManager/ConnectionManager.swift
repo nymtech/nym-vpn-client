@@ -233,6 +233,13 @@ private extension ConnectionManager {
                 self?.connectionConfig.allowLan = newValue
             }
             .store(in: &cancellables)
+
+        appSettings.$isAdBlockerEnabledPublisher
+            .removeDuplicates()
+            .sink { [weak self] newValue in
+                self?.connectionConfig.enableAdBlocking = newValue
+            }
+            .store(in: &cancellables)
     }
 
     func setupConnectionChangeObserver() {
