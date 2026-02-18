@@ -56,7 +56,6 @@ pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
 }
 
 /// Update the ad-blocker domain lists by downloading the latest versions from their respective URLs.
-/// The data files are considered out-of-date if they were last updated longer than `expired_duration` ago.
 pub(crate) async fn update_files(data_dir: &Path) -> Result<bool> {
     let ad_blocking_path = get_ad_blocking_path(data_dir);
     let mut updated = false;

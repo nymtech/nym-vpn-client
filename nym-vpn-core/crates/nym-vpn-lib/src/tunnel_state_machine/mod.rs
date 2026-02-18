@@ -693,6 +693,9 @@ impl TunnelStateMachine {
         .await
         .map_err(Error::StartLocalDnsResolver)?;
 
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        let _ = data_dir; // Fix unused variable warning
+
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         if tunnel_settings.enable_ad_blocking {
             filtering_resolver.enable_ad_blocker().await;
