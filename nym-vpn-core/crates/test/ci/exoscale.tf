@@ -20,19 +20,28 @@ variable "run_id" {
   description = "Unique run identifier (GH Actions run_id or 'local' for dev)"
 }
 
+variable "template_id" {
+  type        = string
+  description = "Exoscale template ID for the VM image"
+
+  validation {
+    condition     = var.template_id != ""
+    error_message = "template_id must be set. Configure the EXOSCALE_TEMPLATE_ID repository variable."
+  }
+}
+
+variable "instance_type" {
+  type        = string
+  description = "Exoscale compute instance type"
+}
+
 provider "exoscale" {
   key    = var.exoscale_api_key
   secret = var.exoscale_api_secret
 }
 
 locals {
-  zone_ch     = "ch-gva-2"
-  debian_template = "Linux Ubuntu 24.04 LTS 64-bit"
-}
-
-data "exoscale_template" "debian_template" {
-  zone = local.zone_ch
-  name = local.debian_template
+  zone_ch = "ch-gva-2"
 }
 
 resource "exoscale_security_group" "test_harness_sg" {
@@ -63,8 +72,8 @@ resource "exoscale_compute_instance" "test_harness_instance" {
   zone        = local.zone_ch
   name        = "test-harness-${var.run_id}"
 
-  template_id = data.exoscale_template.debian_template.id
-  type        = "standard.large"
+  template_id = var.template_id
+  type        = var.instance_type
   disk_size   = 80
 
   security_group_ids = [exoscale_security_group.test_harness_sg.id]
