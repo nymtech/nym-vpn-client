@@ -33,7 +33,7 @@ private extension StatusInfoView {
         Text(infoState.localizedTitle)
             .foregroundStyle(infoState.textColor)
             .textStyle(.Body.Medium.regular)
-            .lineLimit(3, reservesSpace: infoState.localizedTitle.count > 30)
+            .lineLimit(3, reservesSpace: true)
             .multilineTextAlignment(.center)
     }
 
