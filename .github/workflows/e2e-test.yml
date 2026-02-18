@@ -23,6 +23,9 @@ on:
   # run periodically
   # - cron: "0 3 * * *"
 
+permissions:
+  contents: read
+
 env:
   CARGO_TERM_COLOR: always
   TEST_CRATE_DIR: nym-vpn-core/crates/test
