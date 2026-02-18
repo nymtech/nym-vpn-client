@@ -74,6 +74,14 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_ad_blocking(&self, enable_ad_blocking: bool) -> Result<()> {
+        self.inner
+            .clone()
+            .set_enable_ad_blocking(enable_ad_blocking)
+            .await?;
+        Ok(())
+    }
+
     pub async fn set_netstack(&self, netstack: bool) -> Result<()> {
         self.inner.clone().set_netstack(netstack).await?;
         Ok(())
