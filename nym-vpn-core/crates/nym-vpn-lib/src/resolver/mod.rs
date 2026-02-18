@@ -30,6 +30,7 @@ mod ad_block;
 #[cfg(test)]
 mod tests;
 
+use crate::resolver::ad_block::{AdBlockError, AdBlocker};
 use async_trait::async_trait;
 use hickory_server::{
     ServerFuture,
@@ -51,9 +52,9 @@ use hickory_server::{
 };
 use rand::Rng;
 use std::{
-    collections::HashSet,
     io,
     net::{IpAddr, Ipv4Addr, SocketAddr},
+    path::{Path, PathBuf},
     str::FromStr,
     sync::{Arc, LazyLock},
     time::{Duration, Instant},
@@ -106,6 +107,7 @@ static ALLOWED_DOMAINS: LazyLock<Vec<LowerName>> = LazyLock::new(|| {
 });
 
 const TTL_SECONDS: u32 = 3;
+
 /// An IP address to be used in the DNS response to the captive domain query. The address itself
 /// belongs to the documentation range so should never be reachable.
 const RESOLVED_ADDR: Ipv4Addr = Ipv4Addr::new(198, 51, 100, 1);
@@ -126,12 +128,17 @@ pub enum Error {
 ///
 /// Is controlled by commands sent through [ResolverHandle]s.
 pub struct LocalResolver {
+    data_dir: PathBuf,
+
     rx: mpsc::UnboundedReceiver<ResolverMessage>,
+    tx: mpsc::UnboundedSender<ResolverMessage>,
     dns_server_task: tokio::task::JoinHandle<()>,
     bound_to: SocketAddr,
     inner_resolver: Resolver,
-    ad_blocking: bool,
-    ad_blocked_domains: Mutex<HashSet<String>>, // Will be Mutex<FilterSet> when adblock crate is used
+
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    adblocker: Arc<Mutex<Option<AdBlocker>>>,
+
     shutdown_token: CancellationToken,
 }
 
@@ -145,20 +152,24 @@ enum ResolverMessage {
         response_tx: oneshot::Sender<()>,
     },
 
-    /// Turn on Ad-blocking
-    EnableAdBlocking {
-        /// Enable or disable
-        enable: bool,
+    /// Enable Ad-blocker.
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    EnableAdBlocker {
         /// Response channel when resolvers have been updated
         response_tx: oneshot::Sender<()>,
     },
 
-    /// Update Ad-blocked domains
-    UpdateAdBlockedDomains {
-        /// New set of ad-blocked domains
-        domains: HashSet<String>,
+    /// Disable Ad-blocker.
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    DisableAdBlocker {
         /// Response channel when resolvers have been updated
         response_tx: oneshot::Sender<()>,
+    },
+
+    /// Background ad-blocking init/update finished.
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    AdBlockerReady {
+        result: Result<Option<AdBlocker>, AdBlockError>,
     },
 
     /// Send a DNS query to the resolver
@@ -189,7 +200,12 @@ enum Resolver {
     Blocking,
 
     /// Forward DNS queries to a configured server
-    Forwarding(Box<TokioResolver>),
+    Forwarding {
+        resolver: Box<TokioResolver>,
+
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        adblocker: Arc<Mutex<Option<AdBlocker>>>,
+    },
 }
 
 impl Resolver {
@@ -201,6 +217,18 @@ impl Resolver {
         tracing::trace!("resolve query: {}", query.to_string());
         let lookup = match self {
             Resolver::Blocking => Either::Left(async move { Self::resolve_blocked(query) }),
+
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            Resolver::Forwarding {
+                resolver,
+                adblocker,
+            } => Either::Right(Self::resolve_forward(
+                resolver.as_ref().clone(),
+                query,
+                adblocker.clone(),
+            )),
+
+            #[cfg(not(any(target_os = "macos", target_os = "windows")))]
             Resolver::Forwarding(resolver) => {
                 Either::Right(Self::resolve_forward(resolver.as_ref().clone(), query))
             }
@@ -244,6 +272,44 @@ impl Resolver {
     }
 
     /// Forward DNS queries to the specified DNS resolver.
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    async fn resolve_forward(
+        resolver: TokioResolver,
+        query: LowerQuery,
+        adblocker: Arc<Mutex<Option<AdBlocker>>>,
+    ) -> Result<Box<dyn LookupObject>, ResolveError> {
+        let return_query = query.original().clone();
+
+        let qname = return_query.name().to_ascii();
+
+        let blocked = {
+            let guard = adblocker.lock().await;
+            if let Some(ab) = guard.as_ref() {
+                ab.should_block_domain(&qname)
+                    .await
+                    .inspect_err(|error| {
+                        tracing::error!("Ad-blocker error for domain {qname}: {error}");
+                    })
+                    .unwrap_or(false)
+            } else {
+                false
+            }
+        };
+
+        if blocked {
+            tracing::debug!("Blocked by ad-blocker: {qname}");
+            return Ok(Box::new(EmptyLookup));
+        }
+
+        let lookup = resolver
+            .lookup(return_query.name().clone(), return_query.query_type())
+            .await;
+
+        lookup.map(|lookup| Box::new(ForwardLookup(lookup)) as Box<_>)
+    }
+
+    /// Forward DNS queries to the specified DNS resolver.
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     async fn resolve_forward(
         resolver: TokioResolver,
         query: LowerQuery,
@@ -307,32 +373,26 @@ impl ResolverHandle {
         }
     }
 
-    /// Enable or disable ad-blocking.
-    #[allow(dead_code)] // TEMP: REMOVE
-    pub async fn enable_ad_blocking(&self, enable: bool) {
+    /// Enable Ad-blocker.
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    pub async fn enable_ad_blocker(&self) {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
-            .send(ResolverMessage::EnableAdBlocking {
-                enable,
-                response_tx,
-            })
+            .send(ResolverMessage::EnableAdBlocker { response_tx })
             .is_ok()
         {
             response_rx.await.ok();
         }
     }
 
-    /// Update ad-blocked domains.
-    #[allow(dead_code)] // TEMP: REMOVE
-    pub async fn update_ad_blocked_domains(&self, domains: HashSet<String>) {
+    /// Disable Ad-blocker.
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    pub async fn disable_ad_blocker(&self) {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
-            .send(ResolverMessage::UpdateAdBlockedDomains {
-                domains,
-                response_tx,
-            })
+            .send(ResolverMessage::DisableAdBlocker { response_tx })
             .is_ok()
         {
             response_rx.await.ok();
@@ -343,6 +403,7 @@ impl ResolverHandle {
 impl LocalResolver {
     /// Spawn new filtering resolver and its handle.
     pub async fn spawn(
+        data_dir: &Path,
         use_random_loopback: bool,
         shutdown_token: CancellationToken,
     ) -> Result<(ResolverHandle, tokio::task::JoinHandle<()>), Error> {
@@ -412,15 +473,18 @@ impl LocalResolver {
         });
 
         let resolver = Self {
+            data_dir: data_dir.to_path_buf(),
             rx,
+            tx: tx.clone(),
             dns_server_task,
             bound_to: resolver_addr,
             inner_resolver: Resolver::Blocking,
-            ad_blocking: false,
-            ad_blocked_domains: Mutex::new(HashSet::new()),
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            adblocker: Arc::new(Mutex::new(None)),
             shutdown_token,
         };
 
+        // Spawn onto the multi-thread runtime (requires LocalResolver: Send)
         let join_handle = tokio::spawn(resolver.run());
 
         Ok((ResolverHandle::new(tx, resolver_addr), join_handle))
@@ -436,50 +500,87 @@ impl LocalResolver {
     }
 
     /// Runs the filtering resolver as an actor.
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     async fn run(mut self) {
         loop {
             tokio::select! {
                 request = self.rx.recv() => {
                     match request {
-                        Some(ResolverMessage::SetConfig {
-                            new_config,
-                            response_tx,
-                        }) => {
+                        Some(ResolverMessage::SetConfig { new_config, response_tx }) => {
                             tracing::info!("Updating config: {new_config:?}");
-
                             self.update_config(new_config);
                             flush_system_cache();
                             let _ = response_tx.send(());
                         }
-                        Some(ResolverMessage::EnableAdBlocking {
-                            enable,
-                            response_tx,
-                        }) => {
-                            tracing::info!("{} ad-blocking", if enable { "Enabling" } else { "Disabling" });
-                            self.ad_blocking = enable;
-                            flush_system_cache();
-                            let _ = response_tx.send(());
-                        }
-                        Some(ResolverMessage::UpdateAdBlockedDomains { domains, response_tx }) => {
-                            tracing::info!("Updating Ad-blocked domains");
-                            let mut guard = self.ad_blocked_domains.lock().await;
-                            *guard = domains;
-                            flush_system_cache();
-                            let _ = response_tx.send(());
-                        }
-                        Some(ResolverMessage::Query {
-                            dns_query,
-                            response_tx,
-                        }) => {
+                        Some(ResolverMessage::Query { dns_query, response_tx }) => {
                             self.inner_resolver.resolve(dns_query, response_tx);
                         }
                         None => {
-                            // Channel closed, cancel server task
                             self.shutdown_token.cancel();
                             break;
                         }
                     }
                 },
+
+                _ = self.shutdown_token.cancelled() => {
+                    break;
+                }
+            }
+        }
+
+        tracing::debug!("Waiting for dns server task to finish");
+        if let Err(e) = self.dns_server_task.await {
+            tracing::error!("DNS server task failed: {e}");
+        }
+    }
+
+    /// Runs the filtering resolver as an actor.
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    async fn run(mut self) {
+        const INITIAL_ADBLOCK_UPDATE_DELAY: Duration = Duration::from_secs(2 * 60);
+        const ADBLOCK_UPDATE_DELAY: Duration = Duration::from_secs(60 * 60);
+
+        let adblock_update_fuse = tokio::time::sleep(INITIAL_ADBLOCK_UPDATE_DELAY);
+        tokio::pin!(adblock_update_fuse);
+
+        loop {
+            tokio::select! {
+                request = self.rx.recv() => {
+                    match request {
+                        Some(ResolverMessage::SetConfig { new_config, response_tx }) => {
+                            self.update_config(new_config);
+                            flush_system_cache();
+                            let _ = response_tx.send(());
+                        }
+                        Some(ResolverMessage::EnableAdBlocker { response_tx }) => {
+                            self.enable_ad_blocker(&self.data_dir).await;
+                            let _ = response_tx.send(());
+                        }
+                        Some(ResolverMessage::DisableAdBlocker { response_tx }) => {
+                            self.disable_ad_blocker().await;
+                            let _ = response_tx.send(());
+                        }
+                        Some(ResolverMessage::AdBlockerReady { result }) => {
+                            self.handle_ad_blocker_ready(result).await;
+                        }
+                        Some(ResolverMessage::Query { dns_query, response_tx }) => {
+                            self.inner_resolver.resolve(dns_query, response_tx);
+                        }
+                        None => {
+                            self.shutdown_token.cancel();
+                            break;
+                        }
+                    }
+                },
+
+                _ = &mut adblock_update_fuse => {
+                    self.update_ad_blocker(&self.data_dir).await;
+
+                    adblock_update_fuse
+                        .as_mut()
+                        .reset(tokio::time::Instant::now() + ADBLOCK_UPDATE_DELAY);
+                },
+
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
@@ -494,6 +595,8 @@ impl LocalResolver {
 
     /// Update the current DNS config.
     fn update_config(&mut self, config: Config) {
+        tracing::info!("Updating config: {config:?}");
+
         match config {
             Config::Blocking => {
                 self.blocking();
@@ -502,6 +605,78 @@ impl LocalResolver {
                 // make sure not to accidentally forward queries to ourselves
                 dns_servers.retain(|addr| *addr != self.bound_to.ip());
                 self.forwarding(dns_servers);
+            }
+        }
+    }
+
+    /// Enable Ad-blocker.  This is very expensive, so we spawn a new task to perform
+    /// initialization in the background, and update the resolver once it is done.
+    /// (see `handle_ad_blocker_ready()`)
+    async fn enable_ad_blocker(&self, data_dir: &Path) {
+        if self.adblocker.lock().await.is_some() {
+            tracing::warn!("Ad-blocking is already enabled!");
+            return;
+        }
+
+        tracing::info!("Enabling ad-blocking");
+
+        let data_dir = data_dir.to_path_buf();
+        let tx = self.tx.clone();
+        tokio::spawn(async move {
+            let result = AdBlocker::new(data_dir).await;
+            let _ = tx.send(ResolverMessage::AdBlockerReady { result });
+        });
+    }
+
+    /// Disable Ad-blocking
+    async fn disable_ad_blocker(&mut self) {
+        let mut guard = self.adblocker.lock().await;
+        if guard.is_some() {
+            tracing::info!("Disabling ad-blocking");
+            *guard = None;
+        } else {
+            tracing::warn!("Ad-blocking is already disabled!");
+        }
+    }
+
+    /// Update Ad-blocker filters.  This is potentially very expensive, so we spawn a
+    /// new task to perform initialization in the background, and update the resolver
+    /// once it is done (see `handle_ad_blocker_ready()`).
+    async fn update_ad_blocker(&self, data_dir: &Path) {
+        if self.adblocker.lock().await.is_none() {
+            tracing::warn!("Ad-blocking is not enabled, cannot update filters!");
+            return;
+        }
+
+        let data_dir = data_dir.to_path_buf();
+        let tx = self.tx.clone();
+        tokio::spawn(async move {
+            let result = AdBlocker::with_updated_files(data_dir).await;
+            let _ = tx.send(ResolverMessage::AdBlockerReady { result });
+        });
+    }
+
+    /// Handle the Ad blocker enable/update response
+    async fn handle_ad_blocker_ready(&mut self, result: Result<Option<AdBlocker>, AdBlockError>) {
+        match result {
+            Ok(adblocker) => {
+                if adblocker.is_some() {
+                    let mut guard = self.adblocker.lock().await;
+                    tracing::debug!(
+                        "Ad-blocker was {} successfully",
+                        if guard.is_some() {
+                            "updated"
+                        } else {
+                            "initialized"
+                        }
+                    );
+                    *guard = adblocker;
+                } else {
+                    tracing::debug!("Ad-blocker was not updated");
+                }
+            }
+            Err(error) => {
+                tracing::error!("Failed to initialize or update ad-blocker: {error}");
             }
         }
     }
@@ -521,7 +696,12 @@ impl LocalResolver {
             TokioResolver::builder_with_config(forward_config, TokioConnectionProvider::default())
                 .build();
 
-        self.inner_resolver = Resolver::Forwarding(Box::new(resolver));
+        self.inner_resolver = Resolver::Forwarding {
+            resolver: Box::new(resolver),
+
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            adblocker: self.adblocker.clone(),
+        }
     }
 }
 

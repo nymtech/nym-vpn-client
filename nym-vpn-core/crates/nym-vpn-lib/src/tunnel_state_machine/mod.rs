@@ -35,7 +35,7 @@ use std::sync::Arc;
 use std::{
     collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 use tokio::{
     sync::{mpsc, watch},
@@ -133,6 +133,9 @@ pub struct TunnelSettings {
     /// Allow LAN connections outside of tunnel.
     pub allow_lan: bool,
 
+    /// Enable Ad blocking
+    pub enable_ad_blocking: bool,
+
     /// Select residential exit gateways only.
     pub residential_exit: bool,
 
@@ -207,6 +210,9 @@ impl TunnelSettings {
         if self.allow_lan != other.allow_lan {
             diff.add(TunnelSettingsDiffFields::AllowLan);
         }
+        if self.enable_ad_blocking != other.enable_ad_blocking {
+            diff.add(TunnelSettingsDiffFields::EnableAdBlocking);
+        }
         if self.residential_exit != other.residential_exit {
             diff.add(TunnelSettingsDiffFields::ResidentialExit);
         }
@@ -253,6 +259,7 @@ pub enum TunnelSettingsDiffFields {
     EnableIpv6 = 0,
     TunnelType,
     AllowLan,
+    EnableAdBlocking,
     ResidentialExit,
     MixnetTunnelOptions,
     WireguardTunnelOptions,
@@ -285,7 +292,7 @@ impl TunnelSettingsDiff {
     }
 
     pub fn only_field_changed(&self, field: &TunnelSettingsDiffFields) -> bool {
-        self.is_field_changed(field) && self.0.len() == 1
+        self.0.len() == 1 && self.is_field_changed(field)
     }
 
     pub fn allow_lan_changed(&self) -> bool {
@@ -294,6 +301,14 @@ impl TunnelSettingsDiff {
 
     pub fn only_allow_lan_changed(&self) -> bool {
         self.only_field_changed(&TunnelSettingsDiffFields::AllowLan)
+    }
+
+    pub fn enable_ad_blocking_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
+    }
+
+    pub fn only_enable_ad_blocking_changed(&self) -> bool {
+        self.only_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
     }
 
     pub fn entry_point_changed(&self) -> bool {
@@ -646,6 +661,7 @@ pub struct TunnelStateMachine {
 impl TunnelStateMachine {
     #[allow(clippy::too_many_arguments)]
     pub async fn spawn(
+        data_dir: &Path,
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,
@@ -669,10 +685,18 @@ impl TunnelStateMachine {
         let dns_handler_shutdown_token = CancellationToken::new();
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
-        let (filtering_resolver, filtering_resolver_handle) =
-            resolver::LocalResolver::spawn(true, dns_handler_shutdown_token.child_token())
-                .await
-                .map_err(Error::StartLocalDnsResolver)?;
+        let (filtering_resolver, filtering_resolver_handle) = resolver::LocalResolver::spawn(
+            data_dir,
+            true,
+            dns_handler_shutdown_token.child_token(),
+        )
+        .await
+        .map_err(Error::StartLocalDnsResolver)?;
+
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        if tunnel_settings.enable_ad_blocking {
+            filtering_resolver.enable_ad_blocker().await;
+        }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(

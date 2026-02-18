@@ -1,7 +1,7 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::resolver::ad_block::{AdBlockingError, Result};
+use super::{AdBlockError, Result};
 use adblock::{
     FilterSet,
     lists::{FilterFormat, ParseOptions, RuleTypes},
@@ -12,7 +12,7 @@ use std::{
     io::{Read, Write},
     path::{Path, PathBuf},
 };
-use time::{Duration, OffsetDateTime};
+use time::OffsetDateTime;
 use tokio::fs;
 use xz2::{read::XzDecoder, write::XzEncoder};
 
@@ -37,13 +37,13 @@ pub(crate) static SOURCES: &[Source] = &[
 
 static USER_AGENT: &str = "nym-vpn-ad-blocker/1.0";
 
-/// Initialize the ad-blocking domain lists using the ones built-into the binary.
-pub async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
+/// Initialize the ad-blocker domain lists using the ones built-into the binary.
+pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
     let ad_blocking_path = get_ad_blocking_path(data_dir);
 
     fs::create_dir_all(&ad_blocking_path)
         .await
-        .map_err(|error| AdBlockingError::CreateDirectory {
+        .map_err(|error| AdBlockError::CreateDirectory {
             dir: ad_blocking_path.clone(),
             error,
         })?;
@@ -55,16 +55,16 @@ pub async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
     Ok(())
 }
 
-/// Update the ad-blocking domain lists by downloading the latest versions from their respective URLs.
+/// Update the ad-blocker domain lists by downloading the latest versions from their respective URLs.
 /// The data files are considered out-of-date if they were last updated longer than `expired_duration` ago.
-pub async fn update_files(data_dir: &Path, expired_duration: Duration) -> Result<bool> {
+pub(crate) async fn update_files(data_dir: &Path) -> Result<bool> {
     let ad_blocking_path = get_ad_blocking_path(data_dir);
     let mut updated = false;
     let http_client = reqwest::Client::new();
 
     for source in SOURCES.iter() {
         if source
-            .update_data_file(&ad_blocking_path, &http_client, expired_duration)
+            .update_data_file(&ad_blocking_path, &http_client)
             .await?
         {
             updated = true;
@@ -75,7 +75,7 @@ pub async fn update_files(data_dir: &Path, expired_duration: Duration) -> Result
 }
 
 /// Create an `adblock::FilterSet` from the data files on disk.
-pub async fn load_filter_set(data_dir: &Path) -> Result<FilterSet> {
+pub(crate) async fn load_filter_set(data_dir: &Path) -> Result<FilterSet> {
     let ad_blocking_path = get_ad_blocking_path(data_dir);
     let mut filter_set = FilterSet::new(cfg!(debug_assertions));
 
@@ -111,15 +111,18 @@ pub(crate) struct Source {
 }
 
 impl Source {
+    const TEMP_DATA_FILE_NAME: &'static str = "temp_data";
+    const TEMP_META_FILE_NAME: &'static str = "temp_meta";
+
     async fn init(&self, ad_blocking_path: &Path, force: bool) -> Result<()> {
         let data_path = ad_blocking_path.join(self.file_name);
         if force || !data_path.exists() {
-            fs::write(&data_path, self.builtin).await.map_err(|error| {
-                AdBlockingError::WriteFile {
+            fs::write(&data_path, self.builtin)
+                .await
+                .map_err(|error| AdBlockError::WriteFile {
                     file_path: data_path.clone(),
                     error,
-                }
-            })?;
+                })?;
             tracing::debug!("Initialized ad-blocking data file {}", data_path.display());
         }
 
@@ -127,7 +130,7 @@ impl Source {
         if force || !meta_path.exists() {
             fs::write(&meta_path, self.meta_builtin)
                 .await
-                .map_err(|error| AdBlockingError::WriteFile {
+                .map_err(|error| AdBlockError::WriteFile {
                     file_path: meta_path.clone(),
                     error,
                 })?;
@@ -143,22 +146,14 @@ impl Source {
         &self,
         ad_blocking_path: &Path,
         http_client: &reqwest::Client,
-        expired_duration: Duration,
     ) -> Result<bool> {
+        if let Err(error) = Self::cleanup_temp_files(ad_blocking_path).await {
+            tracing::warn!("Failed to clean up temporary ad-blocker files: {error}; Ignoring.");
+        }
+
         // Read the current meta file
         let meta_path = ad_blocking_path.join(self.meta_file_name);
         let meta_data = SourceMetaData::from_file(&meta_path).await?;
-
-        let now = OffsetDateTime::now_utc();
-        if now - meta_data.updated_from_website_utc < expired_duration {
-            tracing::trace!(
-                "Ad-blocking data file {} is up-to-date (last updated {} and expired duration is {}).",
-                self.file_name,
-                meta_data.updated_from_website_utc,
-                expired_duration
-            );
-            return Ok(false);
-        }
 
         // Request a new version of the data file, as long as it's different to the current one
         // Note: Accept-Encoding: gzip is required to get the etag back in the right format.
@@ -172,13 +167,13 @@ impl Source {
         let response = request
             .send()
             .await
-            .map_err(|error| AdBlockingError::FetchData {
+            .map_err(|error| AdBlockError::FetchData {
                 url: self.url.to_string(),
                 error,
             })?;
 
         if response.status() == reqwest::StatusCode::NOT_MODIFIED {
-            tracing::debug!("Ad-blocking data file {} is up to date", self.file_name);
+            tracing::debug!("Ad-blocker data file {} is up to date", self.file_name);
             return Ok(false);
         }
 
@@ -187,14 +182,14 @@ impl Source {
 
         if etag == meta_data.etag {
             tracing::warn!(
-                "Ad-blocking data file {} is up to date (etag matches). However server didn't return 'NOT_MODIFIED'!",
+                "Ad-blocker data file {} is up to date (etag matches). However server didn't return 'NOT_MODIFIED'!",
                 self.file_name
             );
             return Ok(false);
         }
 
         tracing::trace!(
-            "Updating ad-blocking data file {}. Etag: old='{}', new='{}'",
+            "Updating ad-blocker data file {}. Etag: old='{}', new='{}'",
             self.file_name,
             meta_data.etag,
             etag
@@ -204,24 +199,24 @@ impl Source {
         let data_bytes = response
             .bytes()
             .await
-            .map_err(|error| AdBlockingError::FetchData {
+            .map_err(|error| AdBlockError::FetchData {
                 url: self.url.to_string(),
                 error,
             })?;
 
-        // Write the data to a temporary file in the ad-blocking directory
-        let temp_data_path = ad_blocking_path.join("temp_data");
+        // Write the data to a temporary file in the ad-blocker directory
+        let temp_data_path = ad_blocking_path.join(Self::TEMP_DATA_FILE_NAME);
         let temp_meta_data = Self::save_data_file(&temp_data_path, &data_bytes, &etag).await?;
 
-        // Write the new meta data to a temporary file in the ad-blocking directory
-        let temp_meta_path = ad_blocking_path.join("temp_meta");
+        // Write the new meta data to a temporary file in the ad-blocker directory
+        let temp_meta_path = ad_blocking_path.join(Self::TEMP_META_FILE_NAME);
         temp_meta_data.write_to_file(&temp_meta_path).await?;
 
         // Now all the data is on-disk, switch the old files with the new ones by renaming them.
         let data_path = ad_blocking_path.join(self.file_name);
         fs::rename(&temp_data_path, &data_path)
             .await
-            .map_err(|error| AdBlockingError::RenameFile {
+            .map_err(|error| AdBlockError::RenameFile {
                 from: temp_data_path.clone(),
                 to: data_path.clone(),
                 error,
@@ -230,22 +225,47 @@ impl Source {
         let meta_path = ad_blocking_path.join(self.meta_file_name);
         fs::rename(&temp_meta_path, &meta_path)
             .await
-            .map_err(|error| AdBlockingError::RenameFile {
+            .map_err(|error| AdBlockError::RenameFile {
                 from: temp_meta_path.clone(),
                 to: meta_path.clone(),
                 error,
             })?;
 
-        tracing::info!("Updated ad-blocking data file {}", self.file_name);
+        tracing::debug!("Updated ad-blocker data file {}", self.file_name);
 
         Ok(true)
+    }
+
+    /// Clean-up any extraneous temporary files that may be left over from a failed update.
+    async fn cleanup_temp_files(ad_blocking_path: &Path) -> Result<()> {
+        let temp_data_path = ad_blocking_path.join(Self::TEMP_DATA_FILE_NAME);
+        if temp_data_path.exists() {
+            fs::remove_file(&temp_data_path)
+                .await
+                .map_err(|error| AdBlockError::RemoveFile {
+                    file_path: temp_data_path.clone(),
+                    error,
+                })?;
+        }
+
+        let temp_meta_path = ad_blocking_path.join(Self::TEMP_META_FILE_NAME);
+        if temp_meta_path.exists() {
+            fs::remove_file(&temp_meta_path)
+                .await
+                .map_err(|error| AdBlockError::RemoveFile {
+                    file_path: temp_meta_path.clone(),
+                    error,
+                })?;
+        }
+
+        Ok(())
     }
 
     /// Load the data file from disk and uncompress it and check the file length and SHA256 are correct.
     async fn load_data_file(file_path: &Path, meta_data: &SourceMetaData) -> Result<String> {
         let data_bytes = fs::read(&file_path)
             .await
-            .map_err(|error| AdBlockingError::ReadFile {
+            .map_err(|error| AdBlockError::ReadFile {
                 file_path: file_path.to_path_buf(),
                 error,
             })?;
@@ -254,13 +274,13 @@ impl Source {
         let mut decompressed_bytes = Vec::new();
         decoder
             .read_to_end(&mut decompressed_bytes)
-            .map_err(|error| AdBlockingError::DecompressData {
+            .map_err(|error| AdBlockError::DecompressData {
                 file_path: file_path.to_path_buf(),
                 error,
             })?;
 
         if decompressed_bytes.len() != meta_data.bytes {
-            return Err(AdBlockingError::InvalidDataFileLength {
+            return Err(AdBlockError::InvalidDataFileLength {
                 file_path: file_path.to_path_buf(),
                 expected: meta_data.bytes,
                 actual: decompressed_bytes.len(),
@@ -269,7 +289,7 @@ impl Source {
 
         let actual_sha256 = format!("{:x}", Sha256::digest(&decompressed_bytes));
         if actual_sha256 != meta_data.sha256 {
-            return Err(AdBlockingError::InvalidDataFileHash {
+            return Err(AdBlockError::InvalidDataFileHash {
                 file_path: file_path.to_path_buf(),
                 expected: meta_data.sha256.clone(),
                 actual: actual_sha256,
@@ -277,7 +297,7 @@ impl Source {
         }
 
         let domain_list = String::from_utf8(decompressed_bytes).map_err(|error| {
-            AdBlockingError::InvalidDataFileEncoding {
+            AdBlockError::InvalidDataFileEncoding {
                 file_path: file_path.to_path_buf(),
                 error,
             }
@@ -292,17 +312,16 @@ impl Source {
         let sha256 = format!("{:x}", Sha256::digest(data));
 
         // Compress the data
-
         let mut encoder = XzEncoder::new(Vec::new(), 9);
         encoder
             .write_all(data)
-            .map_err(|error| AdBlockingError::CompressData {
+            .map_err(|error| AdBlockError::CompressData {
                 file_path: file_path.to_path_buf(),
                 error,
             })?;
         let compressed_data = encoder
             .finish()
-            .map_err(|error| AdBlockingError::CompressData {
+            .map_err(|error| AdBlockError::CompressData {
                 file_path: file_path.to_path_buf(),
                 error,
             })?;
@@ -310,7 +329,7 @@ impl Source {
         // Write the compressed data to file
         fs::write(&file_path, &compressed_data)
             .await
-            .map_err(|error| AdBlockingError::WriteFile {
+            .map_err(|error| AdBlockError::WriteFile {
                 file_path: file_path.to_path_buf(),
                 error,
             })?;
@@ -332,12 +351,12 @@ impl Source {
         let etag = response
             .headers()
             .get(&header)
-            .ok_or(AdBlockingError::MissingHeader {
+            .ok_or(AdBlockError::MissingHeader {
                 header: header.clone(),
                 url: url.to_string(),
             })?
             .to_str()
-            .map_err(|error| AdBlockingError::InvalidHeader {
+            .map_err(|error| AdBlockError::InvalidHeader {
                 header: header.clone(),
                 url: url.to_string(),
                 error,
@@ -361,13 +380,13 @@ impl SourceMetaData {
         let meta_content =
             fs::read_to_string(&file_path)
                 .await
-                .map_err(|error| AdBlockingError::ReadFile {
+                .map_err(|error| AdBlockError::ReadFile {
                     file_path: file_path.to_path_buf(),
                     error,
                 })?;
 
         let meta_data: Self = serde_json::from_str(&meta_content).map_err(|error| {
-            AdBlockingError::DeserializeMetaFile {
+            AdBlockError::DeserializeMetaFile {
                 file_path: file_path.to_path_buf(),
                 error,
             }
@@ -378,11 +397,11 @@ impl SourceMetaData {
 
     pub(crate) async fn write_to_file(&self, file_path: &Path) -> Result<()> {
         let meta_content = serde_json::to_string_pretty(self)
-            .map_err(|error| AdBlockingError::SerializeMetaFile { error })?;
+            .map_err(|error| AdBlockError::SerializeMetaFile { error })?;
 
         fs::write(&file_path, &meta_content)
             .await
-            .map_err(|error| AdBlockingError::WriteFile {
+            .map_err(|error| AdBlockError::WriteFile {
                 file_path: file_path.to_path_buf(),
                 error,
             })?;

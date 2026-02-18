@@ -545,6 +545,7 @@ impl NymVpnService {
         );
 
         let state_machine_handle = TunnelStateMachine::spawn(
+            &data_dir,
             command_receiver,
             event_sender,
             nym_config,

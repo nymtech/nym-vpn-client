@@ -4,14 +4,13 @@
 
 use std::net::SocketAddr;
 
+use super::*;
 use hickory_server::resolver::{
     TokioResolver,
     config::{NameServerConfigGroup, ResolverConfig},
     name_server::TokioConnectionProvider,
 };
 use tokio_util::sync::CancellationToken;
-
-use super::*;
 
 /// Test whether we can successfully bind the socket even if the address is already used in
 /// different scenarios.
@@ -22,10 +21,13 @@ async fn test_bind() {
     let _sock = std::net::UdpSocket::bind(SocketAddr::from(([0, 0, 0, 0], DNS_LISTEN_PORT)))
         .expect("failed to bind wildcard port");
 
+    let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
+
     let shutdown_token = CancellationToken::new();
-    let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-        .await
-        .unwrap();
+    let (handle, join_handle) =
+        LocalResolver::spawn(temp_dir.path(), false, shutdown_token.child_token())
+            .await
+            .unwrap();
 
     let test_resolver = get_test_resolver(handle.listen_addr());
     test_resolver
@@ -45,10 +47,12 @@ async fn test_bind() {
 #[tokio::test]
 #[serial_test::serial]
 async fn test_successful_lookup() {
+    let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
     let shutdown_token = CancellationToken::new();
-    let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-        .await
-        .unwrap();
+    let (handle, join_handle) =
+        LocalResolver::spawn(temp_dir.path(), false, shutdown_token.child_token())
+            .await
+            .unwrap();
     let test_resolver = get_test_resolver(handle.listen_addr());
 
     for domain in &*ALLOWED_DOMAINS {
@@ -65,10 +69,12 @@ async fn test_successful_lookup() {
 #[tokio::test]
 #[serial_test::serial]
 async fn test_failed_lookup() {
+    let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
     let shutdown_token = CancellationToken::new();
-    let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-        .await
-        .unwrap();
+    let (handle, join_handle) =
+        LocalResolver::spawn(temp_dir.path(), false, shutdown_token.child_token())
+            .await
+            .unwrap();
     let test_resolver = get_test_resolver(handle.listen_addr());
 
     let captive_portal_domain = LowerName::from(Name::from_str("apple.com").unwrap());
@@ -88,10 +94,12 @@ async fn test_failed_lookup() {
 #[serial_test::serial]
 async fn test_unbind_socket_on_stop() {
     // Bind resolver to 127.0.0.1 so we can easily bind to the same address here.
+    let temp_dir = tempfile::tempdir().expect("Failed to create temp dir");
     let shutdown_token = CancellationToken::new();
-    let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
-        .await
-        .unwrap();
+    let (handle, join_handle) =
+        LocalResolver::spawn(temp_dir.path(), false, shutdown_token.child_token())
+            .await
+            .unwrap();
     let addr = handle.listen_addr();
     assert_eq!(
         addr,
