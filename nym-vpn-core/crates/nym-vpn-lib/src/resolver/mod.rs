@@ -53,7 +53,7 @@ use hickory_server::{
 use rand::Rng;
 use std::{
     io,
-    net::{IpAddr, Ipv4Addr, SocketAddr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::{Path, PathBuf},
     str::FromStr,
     sync::{Arc, LazyLock},
@@ -112,6 +112,14 @@ const TTL_SECONDS: u32 = 3;
 /// belongs to the documentation range so should never be reachable.
 const RESOLVED_ADDR: Ipv4Addr = Ipv4Addr::new(198, 51, 100, 1);
 
+/// How to handle an ad-blocked domain query.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AdBlockedResponse {
+    EmptyRecord, // Return an empty record.
+    Localhost,   // Return localhost
+}
+const AD_BLOCKED_RESPONSE: AdBlockedResponse = AdBlockedResponse::Localhost;
+
 /// Resolver errors
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -166,9 +174,17 @@ enum ResolverMessage {
         response_tx: oneshot::Sender<()>,
     },
 
-    /// Background ad-blocking init/update finished.
+    /// Ad-blocker initialized in the background
     #[cfg(any(target_os = "macos", target_os = "windows"))]
-    AdBlockerReady {
+    AdBlockerInitted {
+        result: Result<AdBlocker, AdBlockError>,
+        count: usize, // Avoid retrying too many times if initialization keeps failing
+    },
+
+    /// Ad-blocker updated in the background
+    /// (it may not have actually updated if the data files didn't change)
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    AdBlockerUpdated {
         result: Result<Option<AdBlocker>, AdBlockError>,
     },
 
@@ -299,7 +315,34 @@ impl Resolver {
 
         if blocked {
             tracing::debug!("Blocked by ad-blocker: {qname}");
-            return Ok(Box::new(EmptyLookup));
+            return match AD_BLOCKED_RESPONSE {
+                AdBlockedResponse::EmptyRecord => Ok(Box::new(EmptyLookup)),
+                AdBlockedResponse::Localhost => {
+                    let rdata = match return_query.query_type() {
+                        RecordType::A => RData::A(rdata::A(Ipv4Addr::LOCALHOST)),
+                        RecordType::AAAA => RData::AAAA(rdata::AAAA(Ipv6Addr::LOCALHOST)),
+                        RecordType::CNAME => {
+                            RData::CNAME(rdata::CNAME(Name::from_str("localhost.")?))
+                        }
+                        other => {
+                            tracing::error!(
+                                "Ad-blocker is configured to return localhost, but received unsupported query type {other} for domain {qname}"
+                            );
+                            return Ok(Box::new(EmptyLookup));
+                        }
+                    };
+
+                    let return_record =
+                        Record::from_rdata(return_query.name().clone(), TTL_SECONDS, rdata);
+
+                    let lookup = Lookup::new_with_deadline(
+                        return_query,
+                        Arc::new([return_record]),
+                        Instant::now() + Duration::from_secs(3),
+                    );
+                    Ok(Box::new(ForwardLookup(lookup)) as Box<_>)
+                }
+            };
         }
 
         let lookup = resolver
@@ -554,15 +597,18 @@ impl LocalResolver {
                             let _ = response_tx.send(());
                         }
                         Some(ResolverMessage::EnableAdBlocker { response_tx }) => {
-                            self.enable_ad_blocker(&self.data_dir).await;
+                            self.enable_ad_blocker(&self.data_dir, false, 0).await;
                             let _ = response_tx.send(());
                         }
                         Some(ResolverMessage::DisableAdBlocker { response_tx }) => {
                             self.disable_ad_blocker().await;
                             let _ = response_tx.send(());
                         }
-                        Some(ResolverMessage::AdBlockerReady { result }) => {
-                            self.handle_ad_blocker_ready(result).await;
+                        Some(ResolverMessage::AdBlockerInitted { result, count }) => {
+                            self.handle_ad_blocker_initted(result, count).await;
+                        }
+                        Some(ResolverMessage::AdBlockerUpdated { result }) => {
+                            self.handle_ad_blocker_updated(result).await;
                         }
                         Some(ResolverMessage::Query { dns_query, response_tx }) => {
                             self.inner_resolver.resolve(dns_query, response_tx);
@@ -612,20 +658,18 @@ impl LocalResolver {
 
     /// Enable Ad-blocker.  This is very expensive, so we spawn a new task to perform
     /// initialization in the background, and update the resolver once it is done.
-    /// (see `handle_ad_blocker_ready()`)
-    async fn enable_ad_blocker(&self, data_dir: &Path) {
+    /// (see `handle_ad_blocker_initted()`)
+    async fn enable_ad_blocker(&self, data_dir: &Path, force_init: bool, count: usize) {
         if self.adblocker.lock().await.is_some() {
-            tracing::warn!("Ad-blocking is already enabled!");
+            tracing::warn!("Ad-blocker is already enabled!");
             return;
         }
-
-        tracing::info!("Enabling ad-blocking");
 
         let data_dir = data_dir.to_path_buf();
         let tx = self.tx.clone();
         tokio::spawn(async move {
-            let result = AdBlocker::new(data_dir).await;
-            let _ = tx.send(ResolverMessage::AdBlockerReady { result });
+            let result = AdBlocker::new(data_dir, force_init).await;
+            let _ = tx.send(ResolverMessage::AdBlockerInitted { result, count });
         });
     }
 
@@ -633,19 +677,19 @@ impl LocalResolver {
     async fn disable_ad_blocker(&mut self) {
         let mut guard = self.adblocker.lock().await;
         if guard.is_some() {
-            tracing::info!("Disabling ad-blocking");
+            tracing::info!("Disabling Ad-blocker");
             *guard = None;
         } else {
-            tracing::warn!("Ad-blocking is already disabled!");
+            tracing::warn!("Ad-blocker is already disabled!");
         }
     }
 
     /// Update Ad-blocker filters.  This is potentially very expensive, so we spawn a
-    /// new task to perform initialization in the background, and update the resolver
-    /// once it is done (see `handle_ad_blocker_ready()`).
+    /// new task to perform update in the background, and update the resolver
+    /// once it is done (see `handle_ad_blocker_updated()`).
     async fn update_ad_blocker(&self, data_dir: &Path) {
         if self.adblocker.lock().await.is_none() {
-            tracing::warn!("Ad-blocking is not enabled, cannot update filters!");
+            tracing::warn!("Ad-blocker is not enabled; cannot update filters!");
             return;
         }
 
@@ -653,28 +697,51 @@ impl LocalResolver {
         let tx = self.tx.clone();
         tokio::spawn(async move {
             let result = AdBlocker::with_updated_files(data_dir).await;
-            let _ = tx.send(ResolverMessage::AdBlockerReady { result });
+            let _ = tx.send(ResolverMessage::AdBlockerUpdated { result });
         });
     }
 
-    /// Handle the Ad blocker enable/update response
-    async fn handle_ad_blocker_ready(&mut self, result: Result<Option<AdBlocker>, AdBlockError>) {
+    /// Handle the Ad blocker initialization result.
+    async fn handle_ad_blocker_initted(
+        &mut self,
+        result: ad_block::Result<AdBlocker>,
+        count: usize,
+    ) {
         match result {
             Ok(adblocker) => {
-                if adblocker.is_some() {
-                    let mut guard = self.adblocker.lock().await;
+                let mut guard = self.adblocker.lock().await;
+                *guard = Some(adblocker);
+                tracing::debug!("Ad-blocker was initialized successfully");
+            }
+            Err(error) => {
+                tracing::error!("Failed to initialize or update ad-blocker: {error}");
+                if count == 0 {
+                    // This was the first try; let's try again but this time force the overwriting of
+                    // the data files with the built-in files
                     tracing::debug!(
-                        "Ad-blocker was {} successfully",
-                        if guard.is_some() {
-                            "updated"
-                        } else {
-                            "initialized"
-                        }
+                        "Retrying ad-blocker initialization, forcing data file initialization"
                     );
-                    *guard = adblocker;
+                    self.enable_ad_blocker(&self.data_dir, true, count + 1)
+                        .await;
                 } else {
-                    tracing::debug!("Ad-blocker was not updated");
+                    tracing::error!(
+                        "Ad-blocker initialization has failed twice, so will remain disabled!"
+                    );
                 }
+            }
+        }
+    }
+
+    /// Handle Ad blocker update result.
+    async fn handle_ad_blocker_updated(&mut self, result: ad_block::Result<Option<AdBlocker>>) {
+        match result {
+            Ok(Some(adblocker)) => {
+                let mut guard = self.adblocker.lock().await;
+                *guard = Some(adblocker);
+                tracing::debug!("Ad-blocker was updated successfully");
+            }
+            Ok(None) => {
+                tracing::debug!("Ad-blocker is already up-to-date");
             }
             Err(error) => {
                 tracing::error!("Failed to initialize or update ad-blocker: {error}");

@@ -10,31 +10,19 @@ pub struct AdBlocker {
 }
 
 impl AdBlocker {
-    pub async fn new(data_dir: PathBuf) -> Result<Option<Self>> {
+    pub async fn new(data_dir: PathBuf, force_init: bool) -> Result<Self> {
         tracing::debug!("Initializing ad-blocker");
 
-        init_files(&data_dir, false).await?;
+        init_files(&data_dir, force_init).await?;
         let filter_set = load_filter_set(&data_dir).await?;
         let engine = Engine::from_filter_set(filter_set, true);
-        Ok(Some(Self { engine }))
+        Ok(Self { engine })
     }
 
     pub async fn with_updated_files(data_dir: PathBuf) -> Result<Option<Self>> {
         tracing::debug!("Checking for Ad-blocker file updates");
 
-        // Attempt to update the data files, and if we fail then re-initialize them with the
-        // built-in files.
-        // TODO: Detect which files have an issue and only re-initialize those, instead of all of them.
-        let updated = match update_files(&data_dir).await {
-            Ok(updated) => updated,
-            Err(error) => {
-                tracing::error!("Failed to update ad-blocker files: {error}. Re-initializing.");
-                init_files(&data_dir, true).await?;
-                true
-            }
-        };
-
-        if updated {
+        if update_files(&data_dir).await? {
             let filter_set = load_filter_set(&data_dir).await?;
             let engine = Engine::from_filter_set(filter_set, true);
             Ok(Some(Self { engine }))
