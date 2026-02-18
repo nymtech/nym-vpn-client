@@ -119,6 +119,8 @@ dayjs.extend(duration);
       config?.disableIpv6 !== undefined ? config.disableIpv6 : defaultNoIpv6,
     allowLan:
       config?.allowLan !== undefined ? config.allowLan : defaultAllowLan,
+    enableAdBlocking:
+      config?.enableAdBlocking !== undefined ? config.enableAdBlocking : false,
     customDnsEnabled:
       config?.enableCustomDns !== undefined ? config.enableCustomDns : false,
     customDns: !config?.customDns ? [] : config.customDns,

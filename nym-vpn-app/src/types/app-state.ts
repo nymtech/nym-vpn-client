@@ -40,6 +40,7 @@ export type InitState = {
   quic: boolean;
   noIpv6: boolean;
   allowLan: boolean;
+  enableAdBlocking: boolean;
   customDnsEnabled: boolean;
   customDns: string[];
   enableLewesProtocol: boolean;
@@ -90,6 +91,7 @@ export type AppState = {
   networkCompat?: NetworkCompat | null;
   ipv6Support: boolean;
   allowLan: boolean;
+  enableAdBlocking: boolean;
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   welcomeChecked: boolean;

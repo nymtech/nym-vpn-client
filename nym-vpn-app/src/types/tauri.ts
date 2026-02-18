@@ -392,6 +392,7 @@ export type VpndConfig = {
   customDns: Array<string> | null;
   enableCustomDns: boolean;
   allowLan: boolean;
+  enableAdBlocking: boolean;
   disableIpv6: boolean;
   vpnMode: VpnMode;
   bridges: boolean;
