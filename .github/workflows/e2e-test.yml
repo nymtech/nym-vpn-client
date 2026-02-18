@@ -141,7 +141,7 @@ jobs:
       - name: Resolve instance type
         id: instance-type
         run: |
-          TYPE="${{ inputs.instance_type || vars.EXOSCALE_TEST_HARNESS_COMPUTE_INSTANCE_TYPE }}"
+          TYPE="${{ inputs.instance_type || secrets.EXOSCALE_TEST_HARNESS_COMPUTE_INSTANCE_TYPE }}"
           if [ -z "$TYPE" ]; then
             echo "ERROR: No instance type specified. Set the workflow input or the EXOSCALE_TEST_HARNESS_COMPUTE_INSTANCE_TYPE repository variable."
             exit 1
@@ -180,8 +180,8 @@ jobs:
         env:
           TF_VAR_exoscale_api_key: ${{ secrets.EXOSCALE_API_KEY }}
           TF_VAR_exoscale_api_secret: ${{ secrets.EXOSCALE_API_SECRET }}
-          TF_VAR_data_volume_id: ${{ vars.EXOSCALE_DATA_VOLUME_ID }}
-          TF_VAR_template_id: ${{ vars.EXOSCALE_TEMPLATE_ID }}
+          TF_VAR_data_volume_id: ${{ secrets.EXOSCALE_DATA_VOLUME_ID }}
+          TF_VAR_template_id: ${{ secrets.EXOSCALE_TEMPLATE_ID }}
           TF_VAR_instance_type: ${{ steps.instance-type.outputs.value }}
           TF_VAR_run_id: ${{ github.run_id }}
         run: terraform apply -auto-approve
@@ -273,8 +273,8 @@ jobs:
         env:
           TF_VAR_exoscale_api_key: ${{ secrets.EXOSCALE_API_KEY }}
           TF_VAR_exoscale_api_secret: ${{ secrets.EXOSCALE_API_SECRET }}
-          TF_VAR_data_volume_id: ${{ vars.EXOSCALE_DATA_VOLUME_ID }}
-          TF_VAR_template_id: ${{ vars.EXOSCALE_TEMPLATE_ID }}
+          TF_VAR_data_volume_id: ${{ secrets.EXOSCALE_DATA_VOLUME_ID }}
+          TF_VAR_template_id: ${{ secrets.EXOSCALE_TEMPLATE_ID }}
           TF_VAR_instance_type: ${{ steps.instance-type.outputs.value }}
           TF_VAR_run_id: ${{ github.run_id }}
         run: terraform destroy -auto-approve
