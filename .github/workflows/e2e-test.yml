@@ -56,22 +56,45 @@ jobs:
           version: "21.12"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cache Cargo registry and build artifacts
+      - name: Cache cargo registry
         uses: actions/cache@v5
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            nym-vpn-core/target
-            ${{ env.TEST_CRATE_DIR }}/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-cargo-${{ vars.REQUIRED_RUSTC_VERSION }}-
+          save-always: true
+
+      - name: Cache cargo build
+        uses: actions/cache@v5
+        with:
+          path: nym-vpn-core/target/
+          key: ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
+            ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-
+          save-always: true
 
       - name: Install Go
         uses: actions/setup-go@v6
         with:
           go-version-file: wireguard/libwg/go.mod
+          cache: false
+
+      - name: Cache Go modules
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+          save-always: true
 
       - name: Build wireguard-go
         run: ./wireguard/build-wireguard-go.sh
