@@ -3,13 +3,26 @@
     "title": "Auto-connect",
     "desc": "Auto connect at app startup"
   },
+  "ad-block": {
+    "title": "Block ads",
+    "desc": "Blocking ads and tracker",
+    "errors": {
+      "failed": "Failed to enable ad blocking"
+    }
+  },
   "ipv6-support": {
     "title": "Support IPv6",
-    "desc": "Allow IPv6 connections"
+    "desc": "Allow IPv6 connections",
+    "errors": {
+      "failed": "Failed to enable IPv6 support"
+    }
   },
   "allow-lan": {
     "title": "Bypass LAN",
-    "desc": "Allow direct local network access"
+    "desc": "Allow direct local network access",
+    "errors": {
+      "failed": "Failed to enable LAN bypass"
+    }
   },
   "notifications": {
     "title": "Desktop notifications"

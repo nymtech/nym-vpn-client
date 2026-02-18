@@ -392,6 +392,16 @@ impl VpndClient {
             .await
     }
 
+    /// Enable or disable ad blocking
+    #[instrument(skip_all)]
+    pub async fn set_ad_block(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_enable_ad_blocking(enabled)
+            .or_else(async |e| self.handle_rpc_error("set_enable_ad_blocking", e).await)
+            .await
+    }
+
     /// Connect to the VPN
     #[instrument(skip_all)]
     #[allow(clippy::too_many_arguments)]

@@ -71,6 +71,7 @@ export type StateAction =
   | { type: 'set-network-compat'; compat: NetworkCompat | null }
   | { type: 'set-ipv6-support'; enabled: boolean }
   | { type: 'set-allow-lan'; enabled: boolean }
+  | { type: 'set-enable-ad-blocking'; enabled: boolean }
   | { type: 'set-network-stats'; enabled: boolean }
   | { type: 'set-account-state'; state: AccountState }
   | { type: 'set-account-mode'; mode: TAccountMode }
@@ -118,6 +119,7 @@ export const initialState: AppState = {
   quic: false,
   allowLan: false,
   domainFronting: false,
+  enableAdBlocking: false,
   backendFlags: {
     quic: false,
     domainFronting: false,
@@ -199,6 +201,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ipv6Support: !action.config.disableIpv6,
         allowLan: action.config.allowLan,
         enableLewesProtocol: action.config.enableLewesProtocol,
+        enableAdBlocking: action.config.enableAdBlocking,
       };
 
     case 'set-daemon-info':
@@ -242,6 +245,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         allowLan: action.enabled,
+      };
+    case 'set-enable-ad-blocking':
+      return {
+        ...state,
+        enableAdBlocking: action.enabled,
       };
     case 'set-desktop-notifications':
       return {

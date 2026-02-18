@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { routes } from '../../router';
-import { useMainDispatch, useMainState } from '../../contexts';
+import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
 import { MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
@@ -13,8 +13,13 @@ import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support, allowLan, backendFlags } =
-    useMainState();
+  const {
+    desktopNotifications,
+    ipv6Support,
+    allowLan,
+    enableAdBlocking,
+    backendFlags,
+  } = useMainState();
 
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -22,6 +27,7 @@ function Settings() {
   const { exit } = useExit();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
+  const { push } = useInAppNotify();
 
   const handleAutostartChanged = async () => {
     await toggleAutostart();
@@ -32,8 +38,13 @@ function Settings() {
     try {
       await invoke('set_no_ipv6', { enabled: !switched });
       dispatch({ type: 'set-ipv6-support', enabled: switched });
-    } catch {
-      /* TODO */
+    } catch (error) {
+      console.error('[settings] IPv6 support error', error);
+      push({
+        message: t('ipv6-support.errors.failed'),
+        close: true,
+        type: 'error',
+      });
     }
   };
 
@@ -42,11 +53,30 @@ function Settings() {
     try {
       await invoke('set_allow_lan', { enabled: switched });
       dispatch({ type: 'set-allow-lan', enabled: switched });
-    } catch {
-      /* TODO */
+    } catch (error) {
+      console.error('[settings] allow lan error', error);
+      push({
+        message: t('allow-lan.errors.failed'),
+        close: true,
+        type: 'error',
+      });
     }
   };
 
+  const handleAdBlock = async () => {
+    const switched = !enableAdBlocking;
+    try {
+      await invoke('set_ad_block', { enabled: switched });
+      dispatch({ type: 'set-enable-ad-blocking', enabled: switched });
+    } catch (error) {
+      console.error('[settings] ad block error', error);
+      push({
+        message: t('ad-block.errors.failed'),
+        close: true,
+        type: 'error',
+      });
+    }
+  };
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
       <AccountSettingRow />
@@ -66,6 +96,15 @@ function Settings() {
             title: t('killswitch.title'),
             desc: t('killswitch.desc'),
             leadingIcon: 'power',
+          },
+          {
+            title: t('ad-block.title'),
+            desc: t('ad-block.desc'),
+            leadingIcon: 'gpp_maybe',
+            onClick: handleAdBlock,
+            trailing: (
+              <Switch checked={enableAdBlocking} onChange={handleAdBlock} />
+            ),
           },
           {
             title: t('ipv6-support.title'),
