@@ -1,9 +1,15 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, StreamExt, future::Fuse, pin_mut};
+use std::{
+    net::IpAddr,
+    path::PathBuf,
+    pin::{Pin, pin},
+    sync::Arc,
+};
+
+use futures::{FutureExt, StreamExt, future::Fuse};
 use nym_diagnostic::DiagnosticHandler;
-use std::{net::IpAddr, path::PathBuf, pin::Pin, sync::Arc};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{RwLock, broadcast, mpsc, oneshot, watch},
@@ -73,10 +79,11 @@ pub enum VpnServiceCommand {
     SetExitPoint(oneshot::Sender<()>, ExitPoint),
     SetDisableIPv6(oneshot::Sender<()>, bool),
     SetEnableTwoHop(oneshot::Sender<()>, bool),
-    SetEnableLewesProtocol(oneshot::Sender<()>, bool),
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
     SetEnableBridges(oneshot::Sender<()>, bool),
+    SetEnableLewesProtocol(oneshot::Sender<()>, bool),
+    SetEnableAdBlocking(oneshot::Sender<()>, bool),
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
@@ -631,7 +638,7 @@ impl NymVpnService {
         if let Some(state_machine_handle) = self.state_machine_handle.take() {
             // Drain tunnel events channel and wait for the tunnel state machine to quit
             let fused_state_machine_handle = state_machine_handle.fuse();
-            pin_mut!(fused_state_machine_handle);
+            let mut fused_state_machine_handle = pin!(fused_state_machine_handle);
 
             loop {
                 tokio::select! {
@@ -833,6 +840,10 @@ impl NymVpnService {
             VpnServiceCommand::SetEnableLewesProtocol(tx, enable_lewes_protocol) => {
                 self.handle_set_enable_lewes_protocol(enable_lewes_protocol)
                     .await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetEnableAdBlocking(tx, enable_ad_blocking) => {
+                self.handle_set_enable_ad_blocking(enable_ad_blocking).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetNetstack(tx, netstack) => {
@@ -1072,13 +1083,6 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
-        self.config_manager
-            .set_enable_lewes_protocol(enable_lewes_protocol)
-            .await;
-        self.update_tunnel_settings_with_throttle();
-    }
-
     async fn handle_set_netstack(&mut self, netstack: bool) {
         self.config_manager.set_netstack(netstack).await;
         self.update_tunnel_settings_with_throttle();
@@ -1091,6 +1095,20 @@ impl NymVpnService {
 
     async fn handle_set_enable_bridges(&mut self, enable_bridges: bool) {
         self.config_manager.set_enable_bridges(enable_bridges).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
+        self.config_manager
+            .set_enable_lewes_protocol(enable_lewes_protocol)
+            .await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) {
+        self.config_manager
+            .set_enable_ad_blocking(enable_ad_blocking)
+            .await;
         self.update_tunnel_settings_with_throttle();
     }
 

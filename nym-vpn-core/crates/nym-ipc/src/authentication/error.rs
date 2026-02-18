@@ -24,6 +24,18 @@ pub enum AuthenticationError {
     Subject(#[source] zbus_polkit::Error),
 
     #[cfg(target_os = "linux")]
+    #[error("failed to enumerate system polkit actions")]
+    EnumerateActions(#[source] zbus::Error),
+
+    #[cfg(target_os = "linux")]
+    #[error("failed to create the polkit action policy file")]
+    CreateActionPolicy(#[source] std::io::Error),
+
+    #[cfg(target_os = "linux")]
+    #[error("failed to write to disk the polkit action policy")]
+    WriteActionPolicy(#[source] std::io::Error),
+
+    #[cfg(target_os = "linux")]
     #[error("failed to check authorization")]
     CheckAuthorization(#[source] zbus::Error),
 
@@ -39,7 +51,7 @@ pub enum AuthenticationError {
     #[error("process is shutting down")]
     ShuttingDown,
 
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
     #[error("authorization denied")]
     AuthorizationDenied,
 }

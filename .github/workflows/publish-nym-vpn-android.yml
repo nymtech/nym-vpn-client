@@ -62,11 +62,13 @@ jobs:
 
   build-nym-vpn-android-aab:
     if: ${{ github.event.inputs.publish-accrescent == 'true' }}
+    needs: [build-nym-vpn-android-apk]
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
       build_type: release
       build_format: aab
+      skip_crowdin: true
 
   publish-github:
     if: ${{ inputs.release_type != 'none' }}
@@ -126,7 +128,7 @@ jobs:
         run: mkdir ${{ github.workspace }}/temp
 
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v6
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
@@ -240,7 +242,7 @@ jobs:
         run: mkdir ${{ github.workspace }}/temp
 
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v6
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
@@ -271,15 +273,17 @@ jobs:
             --key-pass 'pass:${{ env.SIGNING_KEY_PASSWORD }}'
 
       - name: Upload APKS artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v5
         with:
           name: app-apks
           path: app-fdroid-release.apks
           if-no-files-found: error
 
   publish-play:
-    if: ${{ inputs.track != 'none' && inputs.track != '' }}
-    # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
+    # SERIALIZATION & ARTIFACTS FIX: Wait for build job.
+    needs: [build-nym-vpn-android-apk]
+    # Ensure this runs even if the build job was skipped (if release_type='none')
+    if: ${{ always() && inputs.track != 'none' && inputs.track != '' && (needs.build-nym-vpn-android-apk.result == 'success' || needs.build-nym-vpn-android-apk.result == 'skipped') }}
     runs-on: arc-linux-latest
     defaults:
       run:
@@ -370,35 +374,48 @@ jobs:
           version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
-      # === CROWDIN DOWNLOAD START ===
-      - name: Setup Node.js
-        if: ${{ inputs.build_type != 'debug' }}
-        uses: actions/setup-node@v6
+      # === CROWDIN (ARTIFACT) START ===
+      - name: Download translations artifact
+        if: ${{ needs.build-nym-vpn-android-apk.result == 'success' }}
+        uses: actions/download-artifact@v6
+        with:
+          name: translations
+          path: nym-vpn-android/app/src/main/res
+
+      - name: Download changelog translations artifact
+        if: ${{ needs.build-nym-vpn-android-apk.result == 'success' }}
+        uses: actions/download-artifact@v6
+        with:
+          name: changelog-translations
+          path: fastlane/metadata/android
+      # === CROWDIN (ARTIFACT) END ===
+
+      # === CROWDIN (FALLBACK) START ===
+      - name: Setup Node.js (Fallback)
+        if: ${{ needs.build-nym-vpn-android-apk.result == 'skipped' }}
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Install Crowdin CLI
-        if: ${{ inputs.build_type != 'debug' }}
+      - name: Install Crowdin CLI (Fallback)
+        if: ${{ needs.build-nym-vpn-android-apk.result == 'skipped' }}
         run: npm install -g @crowdin/cli
 
-      - name: Download translations
-        if: ${{ inputs.build_type != 'debug' }}
+      - name: Download translations (Fallback)
+        if: ${{ needs.build-nym-vpn-android-apk.result == 'skipped' }}
         env:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         run: |
           export PATH="$PATH:$(npm config get prefix)/bin"
-
-          # Change to workspace root to access crowdin-configs
           cd ${{ github.workspace }}
-
           echo "⬇️ Downloading translations..."
           crowdin download translations \
             --config crowdin-configs/android.yml \
             --project-id "$CROWDIN_PROJECT_ID" \
             --token "$CROWDIN_PERSONAL_TOKEN" \
             -l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN
-      # === CROWDIN DOWNLOAD END ===
+      # === CROWDIN (FALLBACK) END ===
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}
         run: |

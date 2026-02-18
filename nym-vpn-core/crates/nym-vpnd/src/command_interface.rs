@@ -29,6 +29,11 @@ use nym_vpn_lib::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
 
+#[cfg(windows)]
+// The Nym serial number of the SSL certificate we use to sign release builds
+// in CI.
+const NYM_CERTIFICATE_SERIAL_NUMBER: &str = "4ec9356d8c87f9cf3ccf60e7bdad022f";
+
 pub struct CommandInterface {
     // Send commands to the VPN service
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
@@ -171,6 +176,22 @@ impl NymVpnService for CommandInterface {
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to set lewes-protocol config: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_enable_ad_blocking(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_ad_blocking = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetEnableAdBlocking, enable_ad_blocking)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set ad-blocking config: {e}"))
             })?;
 
         Ok(tonic::Response::new(()))
@@ -1011,17 +1032,22 @@ pub async fn start_command_interface(
     tracing::info!("Starting socket listener on: {}", socket_path.display());
 
     // Wrap the unix socket or named pipe into a stream that can be used by tonic
-    let incoming =
-        nym_ipc::server::create_incoming(socket_path.clone(), shutdown_token.child_token())?;
+    let incoming = nym_ipc::server::create_incoming(
+        socket_path.clone(),
+        #[cfg(windows)]
+        NYM_CERTIFICATE_SERIAL_NUMBER.to_string(),
+        #[cfg(unix)]
+        shutdown_token.child_token(),
+    )?;
 
     let server_handle = tokio::spawn(async move {
         let socket_listener_handle = tokio::spawn(async move {
             let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx);
 
             let server = Server::builder().add_service(NymVpnServiceServer::new(command_interface));
-            #[cfg(unix)]
+            #[cfg(target_os = "linux")]
             let ret = server.serve_with_incoming(incoming).await;
-            #[cfg(windows)]
+            #[cfg(not(target_os = "linux"))]
             let ret = server
                 .serve_with_incoming_shutdown(
                     incoming,

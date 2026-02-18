@@ -14,12 +14,12 @@ use futures::{
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "macos")]
+use crate::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::Error;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
-#[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
     SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
@@ -207,7 +207,7 @@ impl ConnectingState {
             );
             shared_state
                 .dns_handler
-                .set("lo".to_owned(), system_dns)
+                .set("lo", system_dns)
                 .await
                 .map_err(Error::SetDns)
         } else {
@@ -833,7 +833,7 @@ impl ConnectingPolicyParameters {
         let dns_config = DnsConfig::from_addresses(&[], &self.dns_servers).resolve(
             // pass empty because we already override the config with non-tunnel addresses.
             &[],
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             53,
         );
 

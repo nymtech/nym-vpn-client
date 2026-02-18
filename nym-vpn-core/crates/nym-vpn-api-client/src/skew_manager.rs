@@ -221,7 +221,7 @@ mod tests {
     #[tracing_test::traced_test]
     async fn test_time_travel() {
         let device_time_provider = MockDeviceTimeProvider::new(
-            vec![
+            [
                 OffsetDateTime::now_utc(),
                 OffsetDateTime::now_utc() - Duration::from_hours(1),
             ]
@@ -239,7 +239,7 @@ mod tests {
     #[tracing_test::traced_test]
     async fn test_device_sleep() {
         let device_time_provider = MockDeviceTimeProvider::new(
-            vec![
+            [
                 OffsetDateTime::now_utc(),
                 OffsetDateTime::now_utc() + NYM_VPN_API_TIMEOUT + Duration::from_secs(1),
             ]

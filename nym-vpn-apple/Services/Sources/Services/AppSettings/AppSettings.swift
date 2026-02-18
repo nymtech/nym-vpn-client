@@ -69,6 +69,11 @@ import CountriesManagerTypes
         didSet { isLanBypassEnabledPublisher = isLanBypassEnabled }
     }
 
+    @AppStorage(AppSettingKey.isAdBlockerEnabled.rawValue)
+    public var isAdBlockerEnabled = false {
+        didSet { isAdBlockerEnabledPublisher = isAdBlockerEnabled}
+    }
+
     @AppStorage(AppSettingKey.isLewesEnabled.rawValue)
     public var isLewesEnabled = false {
         didSet { isLewesEnabledPublisher = isLewesEnabled }
@@ -115,6 +120,7 @@ import CountriesManagerTypes
     @Published public var isLanBypassEnabledPublisher: Bool
     @Published public var isLewesEnabledPublisher: Bool
     @Published public var isMixnetTuningEnabledPublisher: Bool
+    @Published public var isAdBlockerEnabledPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
     private init() {
@@ -128,6 +134,7 @@ import CountriesManagerTypes
         self.isLanBypassEnabledPublisher = false
         self.isLewesEnabledPublisher = false
         self.isMixnetTuningEnabledPublisher = false
+        isAdBlockerEnabledPublisher = false
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
@@ -139,6 +146,7 @@ import CountriesManagerTypes
         self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
         self.isLewesEnabledPublisher = self.isLewesEnabled
         self.isMixnetTuningEnabledPublisher = self.isMixnetTuningEnabled
+        self.isAdBlockerEnabledPublisher = self.isAdBlockerEnabled
     }
 
     public func resetUserDefaults() {
@@ -186,6 +194,7 @@ public enum AppSettingKey: String {
     case customDns
     case isLewesEnabled
     case isMixnetTuningEnabled
+    case isAdBlockerEnabled
 }
 
 extension Array: @retroactive RawRepresentable where Element: Codable {

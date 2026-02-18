@@ -13,6 +13,7 @@ public struct ConnectionConfig: Codable {
     public var enableTwoHop: Bool
     public var enableBridges: Bool
     public var enableLewes: Bool
+    public var enableAdBlocking: Bool
     public var netstack: Bool
     public var residentialExit: Bool
     public var mixnetTuningConfig: MixnetTuningConfig
@@ -38,6 +39,7 @@ public struct ConnectionConfig: Codable {
         enableTwoHop: Bool,
         enableBridges: Bool,
         enableLewes: Bool,
+        enableAdBlocking: Bool,
         netstack: Bool,
         residentialExit: Bool,
         mixnetTuningConfig: MixnetTuningConfig
@@ -50,6 +52,7 @@ public struct ConnectionConfig: Codable {
         self.enableTwoHop = enableTwoHop
         self.enableBridges = enableBridges
         self.enableLewes = enableLewes
+        self.enableAdBlocking = enableAdBlocking
         self.netstack = netstack
         self.residentialExit = residentialExit
         self.mixnetTuningConfig = mixnetTuningConfig
@@ -70,6 +73,7 @@ public struct ConnectionConfig: Codable {
         self.netstack = config.netstack
         self.residentialExit = config.residentialExit
         self.mixnetTuningConfig = MixnetTuningConfig(from: config.mixnetTraffic)
+        self.enableAdBlocking = config.enableAdBlocking
     }
 #endif
 }

@@ -31,6 +31,11 @@ public extension HomeViewModel {
                 navigateToOnboarding()
                 return
             }
+            guard await credentialsManager.isAccountValid()
+            else {
+                navigateToPlanPurchase()
+                return
+            }
         }
 
         do {

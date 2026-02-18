@@ -20,6 +20,11 @@ on:
         options:
           - bundle
           - apk
+      skip_crowdin:
+        type: boolean
+        description: "Skip Crowdin translations download"
+        required: false
+        default: false
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
@@ -49,6 +54,11 @@ on:
         description: "Build format"
         required: true
         default: apk
+      skip_crowdin:
+        type: boolean
+        description: "Skip Crowdin translations download"
+        required: false
+        default: false
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
@@ -143,17 +153,17 @@ jobs:
 
       # === CROWDIN DOWNLOAD START ===
       - name: Setup Node.js
-        if: ${{ inputs.build_type != 'debug' }}
-        uses: actions/setup-node@v6
+        if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install Crowdin CLI
-        if: ${{ inputs.build_type != 'debug' }}
+        if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
         run: npm install -g @crowdin/cli
 
       - name: Download translations
-        if: ${{ inputs.build_type != 'debug' }}
+        if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
         env:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
@@ -169,9 +179,25 @@ jobs:
             --project-id "$CROWDIN_PROJECT_ID" \
             --token "$CROWDIN_PERSONAL_TOKEN" \
             -l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN
+
+      - name: Upload translations artifact
+        if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: translations
+          path: nym-vpn-android/app/src/main/res/values-*
+          if-no-files-found: warn
+          retention-days: 1
+
+      - name: Upload changelog translations artifact
+        if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: changelog-translations
+          path: fastlane/metadata/android/*/changelogs/
+          if-no-files-found: warn
+          retention-days: 1
       # === CROWDIN DOWNLOAD END ===
-      # Here we need to decode keystore.jks from base64 string and place it
-      # in the folder specified in the release signing configuration
       - name: Decode Keystore
         if: ${{ inputs.build_type != 'debug' }}
         id: decode_keystore
@@ -252,7 +278,7 @@ jobs:
           fi
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/nym-vpn-android${{ steps.output-path.outputs.path }}

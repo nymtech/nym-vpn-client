@@ -1,10 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::UnixStream,
-};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -31,11 +28,11 @@ impl From<u8> for AuthenticaticationResult {
 }
 
 impl AuthenticaticationResult {
-    pub async fn send(self, stream: &mut UnixStream) {
+    pub async fn send(self, mut stream: impl AsyncWrite + Unpin) {
         stream.write_u8(self.into()).await.ok();
     }
 
-    pub async fn recv(stream: &mut UnixStream) -> Self {
+    pub async fn recv(mut stream: impl AsyncRead + Unpin) -> Self {
         stream
             .read_u8()
             .await
@@ -74,7 +71,7 @@ mod tests {
 
     #[tokio::test]
     async fn send_recv() {
-        let (mut client, mut server) = UnixStream::pair().unwrap();
+        let (mut client, mut server) = tokio::io::duplex(64);
 
         for sent in AuthenticaticationResult::iter() {
             sent.send(&mut server).await;
@@ -85,7 +82,7 @@ mod tests {
 
     #[tokio::test]
     async fn no_value_means_denied() {
-        let (mut client, _) = UnixStream::pair().unwrap();
+        let (mut client, _) = tokio::io::duplex(64);
         let received = AuthenticaticationResult::recv(&mut client).await;
         assert_eq!(received, AuthenticaticationResult::Denied);
     }

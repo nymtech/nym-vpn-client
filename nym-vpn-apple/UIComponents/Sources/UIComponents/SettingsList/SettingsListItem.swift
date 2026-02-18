@@ -3,7 +3,7 @@ import AppSettings
 import Theme
 
 public struct SettingsListItem: View {
-    private let viewModel: SettingsListItemViewModel
+    @ObservedObject private var viewModel: SettingsListItemViewModel
 
     @State private var isHovered = false
 

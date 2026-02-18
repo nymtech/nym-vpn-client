@@ -4,14 +4,13 @@
 use std::{io::Result, path::PathBuf};
 
 use hyper_util::rt::TokioIo;
+use tokio::io::AsyncRead;
 
 /// Connect timeout used when the pipe reports that it's busy.
 #[cfg(windows)]
 const PIPE_AVAILABILITY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 
-#[cfg(target_os = "linux")]
-pub async fn connect(socket_path: PathBuf) -> Result<TokioIo<tokio::net::UnixStream>> {
-    let mut conn = tokio::net::UnixStream::connect(socket_path).await?;
+async fn accepted<T: AsyncRead + Unpin>(mut conn: T) -> Result<TokioIo<T>> {
     let auth_res = crate::auth_result::AuthenticaticationResult::recv(&mut conn).await;
     if auth_res.accepted() {
         Ok(TokioIo::new(conn))
@@ -20,11 +19,10 @@ pub async fn connect(socket_path: PathBuf) -> Result<TokioIo<tokio::net::UnixStr
     }
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(unix)]
 pub async fn connect(socket_path: PathBuf) -> Result<TokioIo<tokio::net::UnixStream>> {
-    Ok(TokioIo::new(
-        tokio::net::UnixStream::connect(socket_path).await?,
-    ))
+    let conn = tokio::net::UnixStream::connect(socket_path).await?;
+    accepted(conn).await
 }
 
 #[cfg(windows)]
@@ -33,7 +31,7 @@ pub async fn connect(
 ) -> Result<TokioIo<tokio::net::windows::named_pipe::NamedPipeClient>> {
     let attempt_start = tokio::time::Instant::now();
     let pipe_name = socket_path.into_os_string();
-    loop {
+    let conn = loop {
         match tokio::net::windows::named_pipe::ClientOptions::new()
             .read(true)
             .write(true)
@@ -50,7 +48,9 @@ pub async fn connect(
                     return Err(e);
                 }
             }
-            result => return result.map(TokioIo::new),
+            result => break result?,
         }
-    }
+    };
+
+    accepted(conn).await
 }

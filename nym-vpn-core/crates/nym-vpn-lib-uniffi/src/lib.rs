@@ -243,17 +243,21 @@ pub fn getPrivyDerivationMessage() -> PrivyDerivationMessage {
 pub struct VPNConfig {
     /// Path to configuration directory on disk
     pub config_dir: PathBuf,
+
     /// Path to data directory on disk
     pub data_dir: PathBuf,
+
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
     pub residential_exit: bool,
+
     /// Custom DNS used when set.
     /// Leave empty to use default DNS servers.
     pub custom_dns: Vec<IpAddr>,
+
     pub mixnet_traffic: Option<MixnetTrafficConfig>,
     pub network_stats: Option<NetworkStatisticsConfig>,
     pub user_agent: UserAgent,
@@ -270,14 +274,21 @@ impl VPNConfig {
         Box::new(VpnServiceConfig {
             entry_point: self.entry_gateway.clone(),
             exit_point: self.exit_router.clone(),
+
             // Does not have effect on mobile platforms
             allow_lan: true,
+
             disable_ipv6: false,
             enable_two_hop: self.enable_two_hop,
             enable_bridges: self.enable_bridges,
             enable_lewes_protocol: self.enable_lewes_protocol,
+
+            // Only currently supported on desktop platforms
+            enable_ad_blocking: false,
+
             // Always true on mobile platforms
             netstack: true,
+
             residential_exit: self.residential_exit,
             enable_custom_dns: !self.custom_dns.is_empty(),
             custom_dns: self.custom_dns.clone(),

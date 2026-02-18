@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.24.0] - 2026-02-17
+
 ### Added
 
 - Support for rtl languages
@@ -15,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Cleanup languages list
+
+### Fixed
+
+- Add missing translations
 
 ## [1.23.0] - 2026-02-02
 

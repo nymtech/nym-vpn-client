@@ -17,9 +17,10 @@ use windows::{
         Foundation::{ERROR_NOT_FOUND, HANDLE},
         NetworkManagement::{
             IpHelper::{
-                CancelMibChangeNotify2, ConvertInterfaceAliasToLuid, ConvertInterfaceLuidToAlias,
-                ConvertInterfaceLuidToGuid, ConvertInterfaceLuidToIndex, CreateIpForwardEntry2,
-                CreateUnicastIpAddressEntry, FreeMibTable, GetIpInterfaceEntry,
+                CancelMibChangeNotify2, ConvertInterfaceAliasToLuid, ConvertInterfaceIndexToLuid,
+                ConvertInterfaceLuidToAlias, ConvertInterfaceLuidToGuid,
+                ConvertInterfaceLuidToIndex, CreateIpForwardEntry2, CreateUnicastIpAddressEntry,
+                DeleteUnicastIpAddressEntry, FreeMibTable, GetIpInterfaceEntry,
                 GetUnicastIpAddressEntry, GetUnicastIpAddressTable, InitializeIpForwardEntry,
                 InitializeUnicastIpAddressEntry, MIB_IPINTERFACE_ROW, MIB_NOTIFICATION_TYPE,
                 MIB_UNICASTIPADDRESS_ROW, MIB_UNICASTIPADDRESS_TABLE, MibAddInstance,
@@ -72,6 +73,15 @@ pub enum Error {
     #[cfg(windows)]
     #[error("failed to create IP forwarding entry")]
     CreateForwardEntry(#[source] windows::core::Error),
+
+    /// Error returned from `DeleteUnicastIpAddressEntry`
+    #[cfg(windows)]
+    #[error("failed to delete unicast IP address entry (code: {win32_error_code})")]
+    DeleteUnicastEntry {
+        win32_error_code: u32,
+        #[source]
+        source: windows::core::Error,
+    },
 
     /// Unexpected DAD state returned for a unicast address
     #[cfg(windows)]
@@ -362,46 +372,79 @@ pub fn add_ip_address_for_interface(luid: NET_LUID_LH, address: IpAddr) -> Resul
         })
 }
 
+/// Removes a unicast IP address for the given interface.
+///
+/// This is the inverse of [add_ip_address_for_interface]. If the address isn't present, this
+/// returns `Ok(())`.
+pub fn remove_ip_address_for_interface(luid: NET_LUID_LH, address: IpAddr) -> Result<()> {
+    // Build a key row matching the address+interface
+    let mut row = unsafe { mem::zeroed() };
+    unsafe { InitializeUnicastIpAddressEntry(&mut row) };
+
+    row.InterfaceLuid = luid;
+    row.Address = SOCKADDR_INET::from(SocketAddr::new(address, 0));
+
+    // Populate the rest of the fields (required by DeleteUnicastIpAddressEntry)
+    let win32_err = unsafe { GetUnicastIpAddressEntry(&mut row) };
+    if win32_err == ERROR_NOT_FOUND {
+        return Ok(());
+    }
+
+    win32_err.ok().map_err(Error::ObtainUnicastAddress)?;
+
+    let win32_err = unsafe { DeleteUnicastIpAddressEntry(&row) };
+    win32_err
+        .ok()
+        .map_err(|source: windows::core::Error| Error::DeleteUnicastEntry {
+            win32_error_code: win32_err.0,
+            source,
+        })
+}
+
 /// Add default IPv4 gateway for the given interface.
 pub fn add_default_ipv4_gateway_for_interface(luid: NET_LUID_LH, address: Ipv4Addr) -> Result<()> {
     let mut forward_row = unsafe { mem::zeroed() };
-    unsafe { InitializeIpForwardEntry(&mut forward_row) };
+    unsafe {
+        InitializeIpForwardEntry(&mut forward_row);
 
-    forward_row.InterfaceLuid = luid;
-    forward_row.DestinationPrefix.Prefix.si_family = AF_INET;
-    forward_row.DestinationPrefix.Prefix.Ipv4.sin_family = AF_INET;
-    forward_row.NextHop.si_family = AF_INET;
-    forward_row.NextHop.Ipv4.sin_family = AF_INET;
-    forward_row.NextHop.Ipv4.sin_addr = IN_ADDR::from(address);
-    forward_row.SitePrefixLength = 0;
-    forward_row.Metric = 1;
-    forward_row.Protocol = MIB_IPPROTO_NT_STATIC;
-    forward_row.Origin = NlroManual;
+        forward_row.InterfaceLuid = luid;
+        forward_row.DestinationPrefix.Prefix.si_family = AF_INET;
+        forward_row.DestinationPrefix.Prefix.Ipv4.sin_family = AF_INET;
+        forward_row.NextHop.si_family = AF_INET;
+        forward_row.NextHop.Ipv4.sin_family = AF_INET;
+        forward_row.NextHop.Ipv4.sin_addr = IN_ADDR::from(address);
+        forward_row.SitePrefixLength = 0;
+        forward_row.Metric = 1;
+        forward_row.Protocol = MIB_IPPROTO_NT_STATIC;
+        forward_row.Origin = NlroManual;
 
-    unsafe { CreateIpForwardEntry2(&forward_row) }
-        .ok()
-        .map_err(Error::CreateForwardEntry)
+        CreateIpForwardEntry2(&forward_row)
+            .ok()
+            .map_err(Error::CreateForwardEntry)
+    }
 }
 
 /// Add default IPv6 gateway for the given interface.
 pub fn add_default_ipv6_gateway_for_interface(luid: NET_LUID_LH, address: Ipv6Addr) -> Result<()> {
     let mut forward_row = unsafe { mem::zeroed() };
-    unsafe { InitializeIpForwardEntry(&mut forward_row) };
+    unsafe {
+        InitializeIpForwardEntry(&mut forward_row);
 
-    forward_row.InterfaceLuid = luid;
-    forward_row.DestinationPrefix.Prefix.si_family = AF_INET6;
-    forward_row.DestinationPrefix.Prefix.Ipv6.sin6_family = AF_INET6;
-    forward_row.NextHop.si_family = AF_INET6;
-    forward_row.NextHop.Ipv6.sin6_family = AF_INET6;
-    forward_row.NextHop.Ipv6.sin6_addr = IN6_ADDR::from(address);
-    forward_row.SitePrefixLength = 0;
-    forward_row.Metric = 1;
-    forward_row.Protocol = MIB_IPPROTO_NT_STATIC;
-    forward_row.Origin = NlroManual;
+        forward_row.InterfaceLuid = luid;
+        forward_row.DestinationPrefix.Prefix.si_family = AF_INET6;
+        forward_row.DestinationPrefix.Prefix.Ipv6.sin6_family = AF_INET6;
+        forward_row.NextHop.si_family = AF_INET6;
+        forward_row.NextHop.Ipv6.sin6_family = AF_INET6;
+        forward_row.NextHop.Ipv6.sin6_addr = IN6_ADDR::from(address);
+        forward_row.SitePrefixLength = 0;
+        forward_row.Metric = 1;
+        forward_row.Protocol = MIB_IPPROTO_NT_STATIC;
+        forward_row.Origin = NlroManual;
 
-    unsafe { CreateIpForwardEntry2(&forward_row) }
-        .ok()
-        .map_err(Error::CreateForwardEntry)
+        CreateIpForwardEntry2(&forward_row)
+            .ok()
+            .map_err(Error::CreateForwardEntry)
+    }
 }
 
 /// Sets MTU on the specified network interface identified by `luid`.
@@ -449,6 +492,15 @@ pub fn guid_from_luid(luid: &NET_LUID_LH) -> io::Result<GUID> {
 pub fn luid_from_alias<T: AsRef<OsStr>>(alias: T) -> io::Result<NET_LUID_LH> {
     let mut luid: NET_LUID_LH = unsafe { std::mem::zeroed() };
     unsafe { ConvertInterfaceAliasToLuid(&HSTRING::from(alias.as_ref()), &mut luid) }.ok()?;
+    Ok(luid)
+}
+
+/// Return the LUID for the Windows software loopback interface.
+///
+/// The loopback interface is consistently interface index 1 on Windows.
+pub fn loopback_luid() -> std::io::Result<NET_LUID_LH> {
+    let mut luid = NET_LUID_LH::default();
+    unsafe { ConvertInterfaceIndexToLuid(1, &mut luid) }.ok()?;
     Ok(luid)
 }
 

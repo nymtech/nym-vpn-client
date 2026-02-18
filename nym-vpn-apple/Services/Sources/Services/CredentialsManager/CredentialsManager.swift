@@ -4,6 +4,7 @@ import SwiftUI
 import Foundation
 import AppSettings
 import AppVersionProvider
+import ConnectionTypes
 import ConfigurationManager
 import Constants
 import ErrorReason
@@ -33,6 +34,7 @@ import PathManager
     public var deviceIdentifier: String?
     @Published public var accountIdentifier: String?
     @Published public var didReceiveAccountLinkCallback = false
+    @Published public var accountSummary: AccountSummary?
 
     public var isValidCredentialImported: Bool {
         appSettings.isCredentialImported
@@ -108,18 +110,16 @@ import PathManager
 
     public func registerAccount() async throws {
 #if os(iOS)
-        try await Task {
-            do {
-                let result = try await NymVpnAccountStorage(
-                    dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv
-                ).registerAccount()
-                Task { @MainActor in
-                    appSettings.accountToken = result.accountToken
-                    checkCredentialImport()
-                }
+        do {
+            let result = try await NymVpnAccountStorage(
+                dataDir: PathManager.dataFolderURL().path(),
+                environment: configurationManager.networkEnv
+            ).registerAccount()
+            Task { @MainActor in
+                appSettings.accountToken = result.accountToken
+                checkCredentialImport()
             }
-        }.value
+        }
 #endif
     }
 
@@ -192,6 +192,18 @@ import PathManager
 #endif
         didReceiveAccountLinkCallback = true
     }
+
+    /// Fetches account summary from API if current accountSummary.validUntilDate does not exist or is in past,
+    /// stores value and returns true if validUntilDate is in the future
+    /// - Returns: Bool
+    public func isAccountValid() async -> Bool {
+        if isAccountSubscriptionDateValid() {
+            return true
+        } else {
+            await updateAccountSummary()
+            return isAccountSubscriptionDateValid()
+        }
+    }
 }
 
 private extension CredentialsManager {
@@ -220,6 +232,17 @@ private extension CredentialsManager {
 }
 
 private extension CredentialsManager {
+    /// Checks if accountSummary.validUntilDate is in the future
+    /// - Returns: Bool
+    func isAccountSubscriptionDateValid() -> Bool {
+        guard let validUntilDate = accountSummary?.validUntilDate,
+              validUntilDate > Date()
+        else {
+            return false
+        }
+        return true
+    }
+
     func checkCredentialImport() {
         Task {
             do {
@@ -237,8 +260,9 @@ private extension CredentialsManager {
                 logger.error("Failed to check credential import: \(error.localizedDescription)")
                 updateIsCredentialImported(with: false)
             }
-            updateDeviceIdentifier()
-            updateAccountIdentifier()
+            await updateDeviceIdentifier()
+            await updateAccountIdentifier()
+            await updateAccountSummary()
         }
     }
 
@@ -251,33 +275,46 @@ private extension CredentialsManager {
 }
 
 private extension CredentialsManager {
-    func updateDeviceIdentifier() {
-        Task {
+    func updateDeviceIdentifier() async {
 #if os(iOS)
-            deviceIdentifier = try? await NymVpnAccountStorage(
-                dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv
-            ).getDeviceIdentity()
+        deviceIdentifier = try? await NymVpnAccountStorage(
+            dataDir: PathManager.dataFolderURL().path(),
+            environment: configurationManager.networkEnv
+        ).getDeviceIdentity()
 #elseif os(macOS)
-            deviceIdentifier = try? await grpcManager.deviceIdentifier()
+        deviceIdentifier = try? await grpcManager.deviceIdentifier()
 #endif
+    }
+
+    func updateAccountIdentifier() async {
+        let newAccIdentifier: String?
+#if os(iOS)
+        newAccIdentifier = try? await NymVpnAccountStorage(
+            dataDir: PathManager.dataFolderURL().path(),
+            environment: configurationManager.networkEnv
+        ).getAccountIdentity()
+#elseif os(macOS)
+        newAccIdentifier = try? await grpcManager.accountIdentifier()
+#endif
+        Task { @MainActor in
+            accountIdentifier = newAccIdentifier
         }
     }
 
-    func updateAccountIdentifier() {
-        Task {
-            let newAccIdentifier: String?
+    func updateAccountSummary() async {
 #if os(iOS)
-            newAccIdentifier = try? await NymVpnAccountStorage(
-                dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv
-            ).getAccountIdentity()
+        let summary = try? await NymVpnAccountStorage(
+            dataDir: PathManager.dataFolderURL().path(),
+            environment: configurationManager.networkEnv
+        ).getAccountSummary()
+        accountSummary = AccountSummary(
+            validUntilTimeInterval: summary?.subscriptionValidUntil,
+            trafficUsedGb: summary?.trafficUsedGb,
+            trafficLimitGb: summary?.trafficLimitGb,
+            trafficResetTimeInterval: summary?.trafficResetTime
+        )
 #elseif os(macOS)
-            newAccIdentifier = try? await grpcManager.accountIdentifier()
+        accountSummary = try? await grpcManager.accountSummary()
 #endif
-            Task { @MainActor in
-                accountIdentifier = newAccIdentifier
-            }
-        }
     }
 }

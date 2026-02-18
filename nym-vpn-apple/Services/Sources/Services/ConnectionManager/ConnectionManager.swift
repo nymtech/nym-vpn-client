@@ -233,6 +233,13 @@ private extension ConnectionManager {
                 self?.connectionConfig.allowLan = newValue
             }
             .store(in: &cancellables)
+
+        appSettings.$isAdBlockerEnabledPublisher
+            .removeDuplicates()
+            .sink { [weak self] newValue in
+                self?.connectionConfig.enableAdBlocking = newValue
+            }
+            .store(in: &cancellables)
     }
 
     func setupConnectionChangeObserver() {
@@ -285,11 +292,36 @@ extension ConnectionManager {
         guard let oldConfig else { return true }
         guard oldConfig != connectionStorage.connectionConfig else { return false }
 
-        if connectionStorage.connectionConfig .enableTwoHop == true,
-           oldConfig.mixnetTuningConfig != connectionStorage.connectionConfig.mixnetTuningConfig {
+        guard shouldReconnectMixnetTunningSettings(with: oldConfig),
+              shouldEntryReconnect() || shouldExitRecconnect()
+        else {
             return false
-        } else {
+        }
+        return true
+    }
+
+    func shouldReconnectMixnetTunningSettings(with oldConfig: ConnectionConfig) -> Bool {
+        guard connectionStorage.connectionConfig.enableTwoHop == true,
+              oldConfig.mixnetTuningConfig == connectionStorage.connectionConfig.mixnetTuningConfig
+        else {
+            return false
+        }
+        return true
+    }
+
+    func shouldEntryReconnect() -> Bool {
+        guard connectionStorage.connectionConfig.entry.gatewayId == connectionInfoData?.entryGatewayId
+        else {
             return true
         }
+        return false
+    }
+
+    func shouldExitRecconnect() -> Bool {
+        guard connectionStorage.connectionConfig.exit.gatewayId == connectionInfoData?.exitGatewayId
+        else {
+            return true
+        }
+        return false
     }
 }

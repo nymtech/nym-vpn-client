@@ -4,14 +4,18 @@
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::SocketAddr;
 
+#[cfg(target_os = "windows")]
+use nym_dns::DnsConfig;
+
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
+
 use nym_vpn_lib_types::{ErrorStateReason, TunnelType};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
     TunnelCommand, TunnelInterface, TunnelStateHandler,
@@ -139,25 +143,39 @@ impl ConnectedState {
         let dns_config = shared_state.tunnel_settings.resolved_dns_config();
         let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
 
-        #[cfg(any(target_os = "linux", target_os = "windows"))]
+        #[cfg(target_os = "linux")]
         shared_state
             .dns_handler
-            .set(tunnel_metadata.interface.clone(), dns_config)
+            .set(&tunnel_metadata.interface, dns_config)
             .await
             .map_err(Error::SetDns)?;
 
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         // We do not want to forward DNS queries to *our* local resolver if we do not run a local
         // DNS resolver *or* if the DNS config points to a loopback address.
         if *LOCAL_DNS_RESOLVER {
             let ips = dns_config.addresses().collect::<Vec<_>>();
-            tracing::debug!("Enabling local DNS forwarder to: {:?}", ips);
+            tracing::debug!("Enabling local DNS forwarder to: {ips:?}");
             shared_state.filtering_resolver.enable_forward(ips).await;
+
+            #[cfg(target_os = "windows")]
+            {
+                // Point the tunnel interface DNS at the local filtering resolver so that the OS actually
+                // sends DNS queries to it.
+                let listen_addr = shared_state.filtering_resolver.listen_addr();
+                let system_dns =
+                    DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
+                shared_state
+                    .dns_handler
+                    .set(&tunnel_metadata.interface, system_dns)
+                    .await
+                    .map_err(Error::SetDns)?;
+            }
         } else {
             tracing::debug!("Not enabling local DNS resolver");
             shared_state
                 .dns_handler
-                .set(tunnel_metadata.interface.clone(), dns_config)
+                .set(&tunnel_metadata.interface, dns_config)
                 .await
                 .map_err(Error::SetDns)?;
         }
@@ -165,7 +183,7 @@ impl ConnectedState {
         Ok(())
     }
 
-    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[cfg(target_os = "linux")]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state
             .dns_handler
@@ -182,6 +200,21 @@ impl ConnectedState {
         if *LOCAL_DNS_RESOLVER {
             shared_state.filtering_resolver.disable_forward().await;
         } else if let Err(error) = shared_state.dns_handler.reset().await {
+            trace_err_chain!(error, "Failed to reset DNS");
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    async fn reset_dns(shared_state: &mut SharedState) {
+        if *LOCAL_DNS_RESOLVER {
+            shared_state.filtering_resolver.disable_forward().await;
+        }
+
+        if let Err(error) = shared_state
+            .dns_handler
+            .reset_before_interface_removal()
+            .await
+        {
             trace_err_chain!(error, "Failed to reset DNS");
         }
     }
@@ -390,9 +423,9 @@ impl ConnectedPolicyParameters {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr};
-
     use super::*;
+    use nym_dns::DnsConfig;
+    use std::net::{IpAddr, Ipv4Addr};
 
     fn create_mock_gateway_with_websocket_endpoints(
         ip: Ipv4Addr,
@@ -449,10 +482,9 @@ mod tests {
         let tunnel_interface = TunnelInterface::One(tunnel_metadata);
 
         // Create ResolvedDnsConfig using DnsConfig::default().resolve()
-        use nym_dns::DnsConfig;
         let dns_config = DnsConfig::default().resolve(
             &[IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1))],
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             53,
         );
 

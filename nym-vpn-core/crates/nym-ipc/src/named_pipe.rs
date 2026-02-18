@@ -21,8 +21,11 @@ use nym_windows::security::{
     SecurityAttributes, Sid, Trustee, TrusteeType, WellKnownSid,
 };
 
+use crate::authentication;
+
 pub fn incoming(
     pipe_name: OsString,
+    nym_certificate_serial_number: String,
 ) -> io::Result<impl Stream<Item = io::Result<Connector<NamedPipeServer>>>> {
     let trustee = Trustee::new(
         Sid::well_known(WellKnownSid::World)?,
@@ -42,11 +45,12 @@ pub fn incoming(
     security_descriptor.set_dacl(acl)?;
 
     let security_attributes = SecurityAttributes::new(security_descriptor);
+    let named_pipe = NamedPipeListener::new(pipe_name, security_attributes);
 
-    NamedPipeListener::new(pipe_name, security_attributes).incoming()
+    authentication::incoming(named_pipe, nym_certificate_serial_number)
 }
 
-struct NamedPipeListener {
+pub(crate) struct NamedPipeListener {
     pipe_name: OsString,
     created_listener: bool,
     security_attributes: SecurityAttributes,
@@ -61,7 +65,7 @@ impl NamedPipeListener {
         }
     }
 
-    fn incoming(
+    pub(crate) fn incoming(
         mut self,
     ) -> io::Result<impl Stream<Item = io::Result<Connector<NamedPipeServer>>>> {
         let mut listener = self.create_listener()?;

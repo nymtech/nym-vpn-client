@@ -334,7 +334,7 @@ impl std::fmt::Display for ErrorStateReason {
 
 impl ErrorStateReason {
     /// Returns true if block reason indicates that filtering resolver cannot be configured.
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub fn prevents_filtering_resolver(&self) -> bool {
         matches!(self, ErrorStateReason::SetDns)
     }

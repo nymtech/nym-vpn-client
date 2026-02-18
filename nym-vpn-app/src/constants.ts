@@ -62,3 +62,4 @@ export const LocationAccuracyLink =
 export const CustomDnsHelpUrl = 'https://nym.com/features/custom-dns';
 export const MixnetParametersLearnMoreUrl =
   'https://nym.com/features/mixnet-customization';
+export const DocsUrl = 'https://nym.com/docs';

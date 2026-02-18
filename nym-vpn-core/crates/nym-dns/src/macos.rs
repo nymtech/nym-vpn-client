@@ -546,7 +546,6 @@ fn state_to_setup_path(state_path: &str) -> Option<String> {
 
 #[cfg(test)]
 mod test {
-
     use crate::imp::DNS_PORT;
 
     use super::{DnsSettings, State};

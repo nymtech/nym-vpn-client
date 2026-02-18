@@ -71,5 +71,9 @@
     },
     "select-button": "Select server"
   },
-  "search-other-nodes": "Other search results"
+  "search-other-nodes": "Other search results",
+  "no-results-found": {
+    "title": "No results found.",
+    "description": "Try another location or check the server name.\n<1>Contact us for help</1> or learn <2>how to run a server</2>."
+  }
 }
