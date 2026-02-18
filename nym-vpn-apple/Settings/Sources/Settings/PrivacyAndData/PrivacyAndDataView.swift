@@ -60,15 +60,7 @@ private extension PrivacyAndDataView {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: $appSettings.isStatisticsEnabled,
-                        action: { isOn in
-                            appSettings.isStatisticsEnabled = isOn
-#if os(macOS)
-                            enableMacOSNetworkStatsIfNeeded(with: isOn)
-#endif
-                        }
-                    )
+                    isOn: $appSettings.isStatisticsEnabled
                 ),
                 title: "privacyData.anonymousStats".localizedString,
                 multilineText: privacyMultilineText(),
@@ -76,6 +68,11 @@ private extension PrivacyAndDataView {
                 action: {}
             )
         )
+#if os(macOS)
+        .onChange(of: appSettings.isStatisticsEnabled) {
+            enableMacOSNetworkStatsIfNeeded(with: appSettings.isStatisticsEnabled)
+        }
+#endif
     }
 
     func privacyMultilineText() -> AttributedString? {
@@ -103,15 +100,7 @@ private extension PrivacyAndDataView {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: $appSettings.isErrorReportingOn,
-                        action: { isOn in
-                            appSettings.isErrorReportingOn = isOn
-#if os(macOS)
-                            enableMacOSErrorReportingIfNeeded(with: isOn)
-#endif
-                        }
-                    )
+                    isOn: $appSettings.isErrorReportingOn
                 ),
                 title: "privacyData.errorCrashReports".localizedString,
                 multilineText: errorReportingMultilineText(),
@@ -119,6 +108,11 @@ private extension PrivacyAndDataView {
                 action: {}
             )
         )
+#if os(macOS)
+        .onChange(of: appSettings.isErrorReportingOn) {
+            enableMacOSErrorReportingIfNeeded(with: appSettings.isErrorReportingOn)
+        }
+#endif
     }
 
     func errorReportingMultilineText() -> AttributedString? {

@@ -165,13 +165,7 @@ private extension MixnetTuningView {
         SettingsListItemCustomContent(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: $isSendTrafficContinuouslyOn,
-                        action: { isOn in
-                            config?.disablePoissonRate = !isOn
-                            updateIsSaveButtonEnabled()
-                        }
-                    )
+                    isOn: $isSendTrafficContinuouslyOn
                 ),
                 title: "mixnetTuning.sendTrafficContinously".localizedString,
                 position: .init(isFirst: true, isLast: true),
@@ -181,6 +175,10 @@ private extension MixnetTuningView {
                 trafficSubsection
             }
         )
+        .onChange(of: isSendTrafficContinuouslyOn) {
+            config?.disablePoissonRate = !isSendTrafficContinuouslyOn
+            updateIsSaveButtonEnabled()
+        }
     }
 
     @ViewBuilder var trafficSubsection: some View {

@@ -69,23 +69,23 @@ private extension CensorshipView {
 
     // MARK: - QUIC -
     func quicSection() -> some View {
-        SettingsListItem(
+        let quicBinding = Binding<Bool>(
+            get: { appSettings.isQuicEnabled },
+            set: { _ in
+                guard connectionManager.currentTunnelStatus == .connected ||
+                        connectionManager.currentTunnelStatus == .connecting
+                else {
+                    appSettings.isQuicEnabled.toggle()
+                    return
+                }
+                isConfirmationDisplayed = true
+            }
+        )
+
+        return SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: $appSettings.isQuicEnabled,
-                        controlInAlert: true,
-                        isDisplayingAlert: $isConfirmationDisplayed,
-                        action: { _ in
-                            guard connectionManager.currentTunnelStatus == .connected ||
-                                    connectionManager.currentTunnelStatus == .connecting
-                            else {
-                                appSettings.isQuicEnabled.toggle()
-                                return
-                            }
-                            isConfirmationDisplayed = true
-                        }
-                    )
+                    isOn: quicBinding
                 ),
                 title: "censorship.quic.title".localizedString,
                 multilineText: quicMultilineText(),
@@ -122,10 +122,8 @@ private extension CensorshipView {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: .constant(true),
-                        isDisabled: true
-                    )
+                    isOn: .constant(true),
+                    isDisabled: true
                 ),
                 title: "censorship.amneziawg.title".localizedString,
                 multilineText: amneziaWGMultilineText(),
@@ -162,10 +160,8 @@ private extension CensorshipView {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: .constant(true),
-                        isDisabled: true
-                    )
+                    isOn: .constant(true),
+                    isDisabled: true
                 ),
                 title: "censorship.stealhapi.title".localizedString,
                 multilineText: stealthApiMultilineText(),

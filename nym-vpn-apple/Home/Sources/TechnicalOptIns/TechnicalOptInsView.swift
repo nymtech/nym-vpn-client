@@ -84,13 +84,7 @@ private extension TechnicalOptInsView {
     func sentryViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
             accessory: .toggle(
-                viewModel:
-                    ToggleViewModel(
-                        isOn: appSettings.$isErrorReportingOn,
-                        action: { isOn in
-                            appSettings.isErrorReportingOn = isOn
-                        }
-                    )
+                isOn: $appSettings.isErrorReportingOn
             ),
             title: "settings.anonymousErrorReports.title".localizedString,
             titleTextStyle: .Body.Medium.regular,
@@ -113,13 +107,7 @@ private extension TechnicalOptInsView {
     func statisticsViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
             accessory: .toggle(
-                viewModel:
-                    ToggleViewModel(
-                        isOn: appSettings.$isStatisticsEnabled,
-                        action: { isOn in
-                            appSettings.isStatisticsEnabled = isOn
-                        }
-                    )
+                isOn: $appSettings.isStatisticsEnabled
             ),
             title: "welcome.analytics".localizedString,
             titleTextStyle: .Body.Medium.regular,

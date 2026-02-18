@@ -132,11 +132,8 @@ private extension DnsView {
         SettingsListItemCustomContent(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: $viewModel.isCustomDnsEnabled,
-                        isDisabled: viewModel.customDns.isEmpty,
-                        action: { _ in Task { await viewModel.toggleCustomDns() } }
-                    )
+                    isOn: $viewModel.isCustomDnsEnabled,
+                    isDisabled: viewModel.customDns.isEmpty
                 ),
                 title: "dns.custom.title".localizedString,
                 position: .init(isFirst: true, isLast: true),
@@ -146,6 +143,9 @@ private extension DnsView {
                 customDnsInstructionsAndList()
             }
         )
+        .onChange(of: viewModel.isCustomDnsEnabled) {
+            Task { await viewModel.toggleCustomDns() }
+        }
         .onHover { newValue in
             isCustomDnsHovered = newValue
         }
