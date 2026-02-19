@@ -14,6 +14,7 @@ workspace = true
 [dependencies]
 adblock.workspace = true
 anyhow.workspace = true
+async-compression = { workspace = true, features = ["tokio", "gzip"] }
 async-trait.workspace = true
 base64.workspace = true
 bincode.workspace = true
@@ -120,7 +121,6 @@ url.workspace = true
 urlencoding.workspace = true
 webpki-roots.workspace = true
 x509-parser = { workspace = true, features = ["verify"] }
-xz2 = { workspace = true, features = ["tokio"] }
 
 # UNIX-specific dependencies
 [target.'cfg(unix)'.dependencies]

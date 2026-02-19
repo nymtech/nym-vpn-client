@@ -3,7 +3,7 @@
 
 This script does NOT process/parse the lists.
 It simply downloads the two hard-coded URLs and writes:
-- <name>.txt.xz   (XZ / lzma compressed at max+extreme)
+- <name>.txt.gz   (gzip compressed)
 - <name>.txt.meta (metadata in JSON format)
 
 The meta file records server-provided timestamps:
@@ -20,7 +20,6 @@ import email.utils
 import gzip
 import hashlib
 import json
-import lzma
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass
@@ -40,9 +39,6 @@ SOURCES: list[tuple[str, str]] = [
 
 USER_AGENT = "ad-blocker-lists/1.0 (+download_sources.py)"
 TIMEOUT_SECS = 60
-
-# Maximum + "extreme" preset (equivalent to: xz -9e)
-XZ_PRESET = 9 | lzma.PRESET_EXTREME
 
 
 def _parse_http_datetime(value: str | None) -> _dt.datetime | None:
@@ -70,7 +66,7 @@ class DownloadMeta:
     length: int
 
 
-def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
+def _download_to_gz(url: str, gz_path: Path) -> DownloadMeta:
     fetched_at = _dt.datetime.now(tz=_dt.timezone.utc)
 
     req = urllib.request.Request(
@@ -97,16 +93,10 @@ def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
     sha = hashlib.sha256()
     total_bytes = 0
 
-    tmp_path = xz_path.with_suffix(xz_path.suffix + ".tmp")
+    tmp_path = gz_path.with_suffix(gz_path.suffix + ".tmp")
     tmp_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with lzma.open(
-        tmp_path,
-        mode="wb",
-        format=lzma.FORMAT_XZ,
-        check=lzma.CHECK_CRC64,
-        preset=XZ_PRESET,
-    ) as out:
+    with gzip.open(tmp_path, mode="wb", compresslevel=9) as out:
         stream = resp
         if content_encoding == "gzip":
             stream = gzip.GzipFile(fileobj=resp)
@@ -118,7 +108,7 @@ def _download_to_xz(url: str, xz_path: Path) -> DownloadMeta:
             sha.update(chunk)
             out.write(chunk)
 
-    tmp_path.replace(xz_path)
+    tmp_path.replace(gz_path)
 
     return DownloadMeta(
         updated_from_website_utc=_iso_utc(fetched_at),
@@ -138,14 +128,14 @@ def _write_meta(meta_path: Path, meta: DownloadMeta) -> None:
 def main() -> int:
     wrote = 0
     for filename, url in SOURCES:
-        xz_path = Path(filename + ".xz")
+        gz_path = Path(filename + ".gz")
         meta_path = Path(filename + ".meta")
 
-        meta = _download_to_xz(url, xz_path)
+        meta = _download_to_gz(url, gz_path)
         _write_meta(meta_path, meta)
 
         print(
-            f"Wrote {xz_path} ({meta.length} bytes source, "
+            f"Wrote {gz_path} ({meta.length} bytes source, "
             f"updated_from_website_utc={meta.updated_from_website_utc}"
         )
         print(f"Wrote {meta_path}")

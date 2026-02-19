@@ -6,20 +6,20 @@ use adblock::{
     FilterSet,
     lists::{FilterFormat, ParseOptions, RuleTypes},
 };
+use async_compression::tokio::{bufread::GzipDecoder, write::GzipEncoder};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::{
-    io::{Read, Write},
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 use time::OffsetDateTime;
-use tokio::fs;
-use xz2::{read::XzDecoder, write::XzEncoder};
+use tokio::{
+    fs,
+    io::{AsyncReadExt, AsyncWriteExt, BufReader},
+};
 
 pub(crate) static SOURCES: &[Source] = &[
     Source {
         file_name: "easylist_adservers.txt.xz",
-        builtin: include_bytes!("builtin/easylist_adservers.txt.xz"),
+        builtin: include_bytes!("builtin/easylist_adservers.txt.gz"),
         url: "https://raw.githubusercontent.com/easylist/easylist/refs/heads/master/easylist/easylist_adservers.txt",
         meta_file_name: "easylist_adservers.txt.meta",
         meta_builtin: include_str!("builtin/easylist_adservers.txt.meta"),
@@ -27,7 +27,7 @@ pub(crate) static SOURCES: &[Source] = &[
     },
     Source {
         file_name: "light.txt.xz",
-        builtin: include_bytes!("builtin/light.txt.xz"),
+        builtin: include_bytes!("builtin/light.txt.gz"),
         url: "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/hosts/light.txt",
         meta_file_name: "light.txt.meta",
         meta_builtin: include_str!("builtin/light.txt.meta"),
@@ -260,33 +260,49 @@ impl Source {
         Ok(())
     }
 
-    /// Load the data file from disk and uncompress it and check the file length and SHA256 are correct.
+    /// Load the data file from disk, gunzip it, and check the uncompressed length and SHA256.
     async fn load_data_file(file_path: &Path, meta_data: &SourceMetaData) -> Result<String> {
-        let data_bytes = fs::read(&file_path)
+        let file = fs::File::open(file_path)
             .await
             .map_err(|error| AdBlockError::ReadFile {
                 file_path: file_path.to_path_buf(),
                 error,
             })?;
 
-        let mut decoder = XzDecoder::new(&data_bytes[..]);
-        let mut decompressed_bytes = Vec::with_capacity(meta_data.length);
-        decoder
-            .read_to_end(&mut decompressed_bytes)
-            .map_err(|error| AdBlockError::DecompressData {
-                file_path: file_path.to_path_buf(),
-                error,
-            })?;
+        let reader = BufReader::new(file);
+        let mut decoder = GzipDecoder::new(reader);
+        let mut hasher = Sha256::new();
+        let mut decompressed = Vec::with_capacity(meta_data.length);
+        let mut total_len: usize = 0;
 
-        if decompressed_bytes.len() != meta_data.length {
+        let mut buf = [0u8; 32 * 1024];
+        loop {
+            let n = decoder
+                .read(&mut buf)
+                .await
+                .map_err(|error| AdBlockError::DecompressData {
+                    file_path: file_path.to_path_buf(),
+                    error,
+                })?;
+
+            if n == 0 {
+                break;
+            }
+
+            hasher.update(&buf[..n]);
+            decompressed.extend_from_slice(&buf[..n]);
+            total_len = total_len.saturating_add(n);
+        }
+
+        if total_len != meta_data.length {
             return Err(AdBlockError::InvalidDataFileLength {
                 file_path: file_path.to_path_buf(),
                 expected: meta_data.length,
-                actual: decompressed_bytes.len(),
+                actual: total_len,
             });
         }
 
-        let sha256 = hex::encode(Sha256::digest(&decompressed_bytes));
+        let sha256 = hex::encode(hasher.finalize());
         if sha256 != meta_data.sha256 {
             return Err(AdBlockError::InvalidDataFileHash {
                 file_path: file_path.to_path_buf(),
@@ -295,7 +311,7 @@ impl Source {
             });
         }
 
-        let domain_list = String::from_utf8(decompressed_bytes).map_err(|error| {
+        let domain_list = String::from_utf8(decompressed).map_err(|error| {
             AdBlockError::InvalidDataFileEncoding {
                 file_path: file_path.to_path_buf(),
                 error,
@@ -305,35 +321,36 @@ impl Source {
         Ok(domain_list)
     }
 
-    /// Save the data file to disk and update the meta data with the new file length and SHA256 hash.
+    /// Save the data file to disk (gzip) and update the meta data with the new uncompressed length and SHA256.
     async fn save_data_file(file_path: &Path, data: &[u8], etag: &str) -> Result<SourceMetaData> {
         let byte_len = data.len();
         let sha256 = hex::encode(Sha256::digest(data));
 
-        // Compress the data
-        let mut encoder = XzEncoder::new(Vec::new(), 9);
+        let mut encoder = GzipEncoder::new(Vec::new());
         encoder
             .write_all(data)
-            .map_err(|error| AdBlockError::CompressData {
-                file_path: file_path.to_path_buf(),
-                error,
-            })?;
-        let compressed_data = encoder
-            .finish()
+            .await
             .map_err(|error| AdBlockError::CompressData {
                 file_path: file_path.to_path_buf(),
                 error,
             })?;
 
-        // Write the compressed data to file
-        fs::write(&file_path, &compressed_data)
+        let compressed_data = encoder
+            .shutdown()
+            .await
+            .map_err(|error| AdBlockError::CompressData {
+                file_path: file_path.to_path_buf(),
+                error,
+            })
+            .map(|_| encoder.into_inner())?;
+
+        fs::write(file_path, &compressed_data)
             .await
             .map_err(|error| AdBlockError::WriteFile {
                 file_path: file_path.to_path_buf(),
                 error,
             })?;
 
-        // Return the new meta data
         Ok(SourceMetaData {
             length: byte_len,
             etag: etag.to_string(),

@@ -1,3 +1,6 @@
+// Copyright 2026 Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use super::{
     AdBlockError, Result,
     files::{init_files, load_filter_set, update_files},
