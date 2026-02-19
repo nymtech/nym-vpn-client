@@ -35,7 +35,7 @@ use std::sync::Arc;
 use std::{
     collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 use tokio::{
     sync::{mpsc, watch},
@@ -67,8 +67,8 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
+    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, GatewayDirectoryError,
+    UserAgent,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use dns_handler::DnsHandlerHandle;
@@ -661,7 +661,6 @@ pub struct TunnelStateMachine {
 impl TunnelStateMachine {
     #[allow(clippy::too_many_arguments)]
     pub async fn spawn(
-        data_dir: &Path,
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,
@@ -686,7 +685,7 @@ impl TunnelStateMachine {
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         let (filtering_resolver, filtering_resolver_handle) = resolver::LocalResolver::spawn(
-            data_dir,
+            nym_config.data_path.as_ref().unwrap(), // FIXME: remove
             true,
             dns_handler_shutdown_token.child_token(),
         )

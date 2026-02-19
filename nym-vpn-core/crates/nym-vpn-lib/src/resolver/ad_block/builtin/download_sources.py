@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
 """Download blocklist sources and store them compressed.
-
-This script does NOT process/parse the lists.
-It simply downloads the two hard-coded URLs and writes:
-- <name>.txt.gz   (gzip compressed)
-- <name>.txt.meta (metadata in JSON format)
-
-The meta file records server-provided timestamps:
-- `server_date_utc` parsed from HTTP `Date` when present.
-
-Some CDNs do not provide `Date`; in that case it will be blank and you can fall
-back to `updated_from_website_utc` (when this script fetched it).
 """
 
 from __future__ import annotations
@@ -60,7 +49,7 @@ def _iso_utc(dt: _dt.datetime) -> str:
 
 @dataclass(frozen=True)
 class DownloadMeta:
-    updated_from_website_utc: str
+    updated_utc: str
     etag: str
     sha256: str
     length: int
@@ -111,7 +100,7 @@ def _download_to_gz(url: str, gz_path: Path) -> DownloadMeta:
     tmp_path.replace(gz_path)
 
     return DownloadMeta(
-        updated_from_website_utc=_iso_utc(fetched_at),
+        updated_utc=_iso_utc(fetched_at),
         etag=etag,
         sha256=sha.hexdigest(),
         length=total_bytes,
@@ -136,7 +125,7 @@ def main() -> int:
 
         print(
             f"Wrote {gz_path} ({meta.length} bytes source, "
-            f"updated_from_website_utc={meta.updated_from_website_utc}"
+            f"updated_utc={meta.updated_utc}"
         )
         print(f"Wrote {meta_path}")
         wrote += 1

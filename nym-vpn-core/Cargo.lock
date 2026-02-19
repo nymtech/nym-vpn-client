@@ -6363,6 +6363,7 @@ dependencies = [
  "tracing-opentelemetry",
  "tracing-oslog",
  "tracing-subscriber",
+ "tracing-test",
  "tun",
  "url",
  "urlencoding",

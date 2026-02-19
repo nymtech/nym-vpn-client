@@ -2,28 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::files::*;
-use std::{path::Path, sync::Once};
+use std::path::Path;
 use tempfile::TempDir;
 
-const INIT_TRACING: bool = false;
-static TRACING_INIT: Once = Once::new();
-
-#[allow(dead_code)]
-fn init_tracing() {
-    TRACING_INIT.call_once(|| {
-        let _ = tracing_subscriber::fmt()
-            .with_env_filter(
-                tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-                    tracing_subscriber::EnvFilter::new("info,nym_vpn_lib=trace")
-                }),
-            )
-            .with_test_writer()
-            .compact()
-            .try_init();
-    });
-}
+const USER_AGENT: &str = "nym-vpn-ad-blocker-tests/0.1";
 
 #[tokio::test]
+#[tracing_test::traced_test]
 async fn test_init_files() {
     let temp_dir = init_tests()
         .await
@@ -48,6 +33,7 @@ async fn test_init_files() {
 }
 
 #[tokio::test]
+#[tracing_test::traced_test]
 #[ignore] // This test is not practical as the easylist_adservers.txt file changes very frequently
 async fn test_update_nothing() {
     let temp_dir = init_tests()
@@ -55,7 +41,7 @@ async fn test_update_nothing() {
         .expect("Failed to initialize ad-blocker files");
     let data_dir = temp_dir.path();
 
-    let updated = update_files(data_dir)
+    let updated = update_files(data_dir, USER_AGENT)
         .await
         .expect("Failed to update ad-blocker files");
 
@@ -66,6 +52,7 @@ async fn test_update_nothing() {
 }
 
 #[tokio::test]
+#[tracing_test::traced_test]
 async fn test_update_0() {
     let temp_dir = init_tests()
         .await
@@ -77,7 +64,7 @@ async fn test_update_0() {
         .await
         .expect("Failed to update ad-blocker metadata 1");
 
-    let updated = update_files(data_dir)
+    let updated = update_files(data_dir, USER_AGENT)
         .await
         .expect("Failed to update ad-blocker files");
 
@@ -88,6 +75,7 @@ async fn test_update_0() {
 }
 
 #[tokio::test]
+#[tracing_test::traced_test]
 async fn test_update_1() {
     let temp_dir = init_tests()
         .await
@@ -99,7 +87,7 @@ async fn test_update_1() {
         .await
         .expect("Failed to update ad-blocker metadata 0");
 
-    let updated = update_files(data_dir)
+    let updated = update_files(data_dir, USER_AGENT)
         .await
         .expect("Failed to update ad-blocker files");
 
@@ -110,6 +98,7 @@ async fn test_update_1() {
 }
 
 #[tokio::test]
+#[tracing_test::traced_test]
 async fn test_load_filterset_default() {
     let temp_dir = init_tests()
         .await
@@ -122,6 +111,7 @@ async fn test_load_filterset_default() {
 }
 
 #[tokio::test]
+#[tracing_test::traced_test]
 async fn test_load_filterset_updated() {
     let temp_dir = init_tests()
         .await
@@ -136,7 +126,7 @@ async fn test_load_filterset_updated() {
         .await
         .expect("Failed to update ad-blocker metadata 1");
 
-    let _updated = update_files(data_dir)
+    let _updated = update_files(data_dir, USER_AGENT)
         .await
         .expect("Failed to update ad-blocker files");
 
@@ -146,10 +136,6 @@ async fn test_load_filterset_updated() {
 }
 
 async fn init_tests() -> Result<TempDir, String> {
-    if INIT_TRACING {
-        init_tracing();
-    }
-
     let temp_dir =
         tempfile::tempdir().map_err(|e| format!("failed to create temporary directory: {e}"))?;
     let data_dir = temp_dir.path();

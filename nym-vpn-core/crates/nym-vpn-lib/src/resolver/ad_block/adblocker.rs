@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{
-    AdBlockError, Result,
-    files::{init_files, load_filter_set, update_files},
+    files::{init_files, load_filter_set, update_files}, AdBlockError,
+    Result,
 };
-use adblock::{Engine, request::Request};
+use adblock::{request::Request, Engine};
 use std::path::PathBuf;
 
 pub struct AdBlocker {
@@ -22,10 +22,10 @@ impl AdBlocker {
         Ok(Self { engine })
     }
 
-    pub async fn with_updated_files(data_dir: PathBuf) -> Result<Option<Self>> {
+    pub async fn with_updated_files(data_dir: PathBuf, user_agent: &str) -> Result<Option<Self>> {
         tracing::debug!("Checking for Ad-blocker file updates");
 
-        if update_files(&data_dir).await? {
+        if update_files(&data_dir, user_agent).await? {
             let filter_set = load_filter_set(&data_dir).await?;
             let engine = Engine::from_filter_set(filter_set, true);
             Ok(Some(Self { engine }))

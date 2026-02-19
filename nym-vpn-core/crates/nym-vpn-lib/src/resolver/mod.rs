@@ -33,22 +33,22 @@ mod tests;
 use crate::resolver::ad_block::{AdBlockError, AdBlocker};
 use async_trait::async_trait;
 use hickory_server::{
-    ServerFuture,
     authority::{
         EmptyLookup, LookupObject, MessageRequest, MessageResponse, MessageResponseBuilder,
     },
     proto::{
+        op::{header::MessageType, op_code::OpCode, Header, LowerQuery, ResponseCode},
+        rr::{domain::Name, rdata, record_data::RData, LowerName, Record, RecordType},
         ProtoErrorKind,
-        op::{Header, LowerQuery, ResponseCode, header::MessageType, op_code::OpCode},
-        rr::{LowerName, Record, RecordType, domain::Name, rdata, record_data::RData},
     },
     resolver::{
-        ResolveError, TokioResolver,
-        config::{NameServerConfigGroup, ResolverConfig},
-        lookup::Lookup,
+        config::{NameServerConfigGroup, ResolverConfig}, lookup::Lookup,
         name_server::TokioConnectionProvider,
+        ResolveError,
+        TokioResolver,
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
+    ServerFuture,
 };
 use rand::Rng;
 use std::{
@@ -61,7 +61,7 @@ use std::{
 };
 use tokio::{
     net::UdpSocket,
-    sync::{Mutex, mpsc, oneshot},
+    sync::{mpsc, oneshot, Mutex},
 };
 use tokio_util::{either::Either, sync::CancellationToken};
 
@@ -114,12 +114,12 @@ const RESOLVED_ADDR: Ipv4Addr = Ipv4Addr::new(198, 51, 100, 1);
 
 /// How to handle an ad-blocked domain query.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum AdBlockedResponse {
+enum AdBlockStrategy {
     #[allow(dead_code)]
     EmptyRecord, // Return an empty record.
     Localhost, // Return localhost
 }
-const AD_BLOCKED_RESPONSE: AdBlockedResponse = AdBlockedResponse::Localhost;
+const AD_BLOCKED_RESPONSE: AdBlockStrategy = AdBlockStrategy::Localhost;
 
 /// Resolver errors
 #[derive(thiserror::Error, Debug)]
@@ -319,8 +319,8 @@ impl Resolver {
 
             // We can respond to blocked queries in different ways
             return match AD_BLOCKED_RESPONSE {
-                AdBlockedResponse::EmptyRecord => Ok(Box::new(EmptyLookup)),
-                AdBlockedResponse::Localhost => {
+                AdBlockStrategy::EmptyRecord => Ok(Box::new(EmptyLookup)),
+                AdBlockStrategy::Localhost => {
                     let rdata = match return_query.query_type() {
                         RecordType::A => RData::A(rdata::A(Ipv4Addr::LOCALHOST)),
                         RecordType::AAAA => RData::AAAA(rdata::AAAA(Ipv6Addr::LOCALHOST)),
@@ -557,7 +557,6 @@ impl LocalResolver {
                 request = self.rx.recv() => {
                     match request {
                         Some(ResolverMessage::SetConfig { new_config, response_tx }) => {
-                            tracing::info!("Updating config: {new_config:?}");
                             self.update_config(new_config);
                             flush_system_cache();
                             let _ = response_tx.send(());
@@ -702,7 +701,7 @@ impl LocalResolver {
         let data_dir = self.data_dir.clone();
         let tx = self.tx.clone();
         tokio::spawn(async move {
-            let result = AdBlocker::with_updated_files(data_dir).await;
+            let result = AdBlocker::with_updated_files(data_dir, "fix-me").await;
             let _ = tx.send(ResolverMessage::AdBlockerUpdated { result });
         });
     }

@@ -3,13 +3,17 @@
 
 use super::{AdBlockError, Result};
 use adblock::{
-    FilterSet,
     lists::{FilterFormat, ParseOptions, RuleTypes},
+    FilterSet,
 };
 use async_compression::tokio::{bufread::GzipDecoder, write::GzipEncoder};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::path::{Path, PathBuf};
+use std::{
+    future::Future,
+    path::{Path, PathBuf},
+    pin::Pin,
+};
 use time::OffsetDateTime;
 use tokio::{
     fs,
@@ -18,7 +22,7 @@ use tokio::{
 
 pub(crate) static SOURCES: &[Source] = &[
     Source {
-        file_name: "easylist_adservers.txt.xz",
+        file_name: "easylist_adservers.txt.gz",
         builtin: include_bytes!("builtin/easylist_adservers.txt.gz"),
         url: "https://raw.githubusercontent.com/easylist/easylist/refs/heads/master/easylist/easylist_adservers.txt",
         meta_file_name: "easylist_adservers.txt.meta",
@@ -26,7 +30,7 @@ pub(crate) static SOURCES: &[Source] = &[
         filterset_format: FilterFormat::Standard,
     },
     Source {
-        file_name: "light.txt.xz",
+        file_name: "light.txt.gz",
         builtin: include_bytes!("builtin/light.txt.gz"),
         url: "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/hosts/light.txt",
         meta_file_name: "light.txt.meta",
@@ -34,8 +38,6 @@ pub(crate) static SOURCES: &[Source] = &[
         filterset_format: FilterFormat::Hosts,
     },
 ];
-
-static USER_AGENT: &str = "nym-vpn-ad-blocker/1.0";
 
 /// Initialize the ad-blocker domain lists using the ones built-into the binary.
 pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
@@ -56,14 +58,14 @@ pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
 }
 
 /// Update the ad-blocker domain lists by downloading the latest versions from their respective URLs.
-pub(crate) async fn update_files(data_dir: &Path) -> Result<bool> {
+pub(crate) async fn update_files(data_dir: &Path, user_agent: &str) -> Result<bool> {
     let ad_blocking_path = get_ad_blocking_path(data_dir);
     let mut updated = false;
     let http_client = reqwest::Client::new();
 
     for source in SOURCES.iter() {
         if source
-            .update_data_file(&ad_blocking_path, &http_client)
+            .update_data_file(&ad_blocking_path, &http_client, user_agent)
             .await?
         {
             updated = true;
@@ -101,12 +103,12 @@ pub(crate) fn get_ad_blocking_path(data_dir: &Path) -> PathBuf {
 }
 
 pub(crate) struct Source {
-    pub(crate) file_name: &'static str,
-    pub(crate) builtin: &'static [u8],
-    pub(crate) url: &'static str,
-    pub(crate) meta_file_name: &'static str,
-    pub(crate) meta_builtin: &'static str,
-    pub(crate) filterset_format: FilterFormat,
+    pub file_name: &'static str,
+    pub builtin: &'static [u8],
+    pub url: &'static str,
+    pub meta_file_name: &'static str,
+    pub meta_builtin: &'static str,
+    pub filterset_format: FilterFormat,
 }
 
 impl Source {
@@ -145,6 +147,7 @@ impl Source {
         &self,
         ad_blocking_path: &Path,
         http_client: &reqwest::Client,
+        user_agent: &str,
     ) -> Result<bool> {
         if let Err(error) = Self::cleanup_temp_files(ad_blocking_path).await {
             tracing::warn!("Failed to clean up temporary ad-blocker files: {error}; Ignoring.");
@@ -159,7 +162,7 @@ impl Source {
         let request = http_client
             .get(self.url)
             .header(reqwest::header::IF_NONE_MATCH, &meta_data.etag)
-            .header(reqwest::header::USER_AGENT, USER_AGENT)
+            .header(reqwest::header::USER_AGENT, user_agent)
             .header(reqwest::header::ACCEPT, "text/plain; charset=utf-8,*/*")
             .header(reqwest::header::ACCEPT_CHARSET, "utf-8")
             .header(reqwest::header::ACCEPT_ENCODING, "gzip");
@@ -261,64 +264,71 @@ impl Source {
     }
 
     /// Load the data file from disk, gunzip it, and check the uncompressed length and SHA256.
-    async fn load_data_file(file_path: &Path, meta_data: &SourceMetaData) -> Result<String> {
-        let file = fs::File::open(file_path)
-            .await
-            .map_err(|error| AdBlockError::ReadFile {
-                file_path: file_path.to_path_buf(),
-                error,
-            })?;
-
-        let reader = BufReader::new(file);
-        let mut decoder = GzipDecoder::new(reader);
-        let mut hasher = Sha256::new();
-        let mut decompressed = Vec::with_capacity(meta_data.length);
-        let mut total_len: usize = 0;
-
-        let mut buf = [0u8; 32 * 1024];
-        loop {
-            let n = decoder
-                .read(&mut buf)
+    // Note: Pinned box is necessary in order to avoid "large future size" warnings.
+    fn load_data_file<'a>(
+        file_path: &'a Path,
+        meta_data: &'a SourceMetaData,
+    ) -> Pin<Box<dyn Future<Output = Result<String>> + Send + 'a>> {
+        Box::pin(async move {
+            let file = fs::File::open(file_path)
                 .await
-                .map_err(|error| AdBlockError::DecompressData {
+                .map_err(|error| AdBlockError::ReadFile {
                     file_path: file_path.to_path_buf(),
                     error,
                 })?;
 
-            if n == 0 {
-                break;
+            let reader = BufReader::new(file);
+            let mut decoder = GzipDecoder::new(reader);
+            let mut hasher = Sha256::new();
+            let mut decompressed = Vec::with_capacity(meta_data.length);
+            let mut total_len: usize = 0;
+
+            let mut buf = [0u8; 32 * 1024];
+            loop {
+                let n =
+                    decoder
+                        .read(&mut buf)
+                        .await
+                        .map_err(|error| AdBlockError::DecompressData {
+                            file_path: file_path.to_path_buf(),
+                            error,
+                        })?;
+
+                if n == 0 {
+                    break;
+                }
+
+                hasher.update(&buf[..n]);
+                decompressed.extend_from_slice(&buf[..n]);
+                total_len = total_len.saturating_add(n);
             }
 
-            hasher.update(&buf[..n]);
-            decompressed.extend_from_slice(&buf[..n]);
-            total_len = total_len.saturating_add(n);
-        }
-
-        if total_len != meta_data.length {
-            return Err(AdBlockError::InvalidDataFileLength {
-                file_path: file_path.to_path_buf(),
-                expected: meta_data.length,
-                actual: total_len,
-            });
-        }
-
-        let sha256 = hex::encode(hasher.finalize());
-        if sha256 != meta_data.sha256 {
-            return Err(AdBlockError::InvalidDataFileHash {
-                file_path: file_path.to_path_buf(),
-                expected: meta_data.sha256.clone(),
-                actual: sha256,
-            });
-        }
-
-        let domain_list = String::from_utf8(decompressed).map_err(|error| {
-            AdBlockError::InvalidDataFileEncoding {
-                file_path: file_path.to_path_buf(),
-                error,
+            if total_len != meta_data.length {
+                return Err(AdBlockError::InvalidDataFileLength {
+                    file_path: file_path.to_path_buf(),
+                    expected: meta_data.length,
+                    actual: total_len,
+                });
             }
-        })?;
 
-        Ok(domain_list)
+            let sha256 = hex::encode(hasher.finalize());
+            if sha256 != meta_data.sha256 {
+                return Err(AdBlockError::InvalidDataFileHash {
+                    file_path: file_path.to_path_buf(),
+                    expected: meta_data.sha256.clone(),
+                    actual: sha256,
+                });
+            }
+
+            let domain_list = String::from_utf8(decompressed).map_err(|error| {
+                AdBlockError::InvalidDataFileEncoding {
+                    file_path: file_path.to_path_buf(),
+                    error,
+                }
+            })?;
+
+            Ok(domain_list)
+        })
     }
 
     /// Save the data file to disk (gzip) and update the meta data with the new uncompressed length and SHA256.
@@ -355,7 +365,7 @@ impl Source {
             length: byte_len,
             etag: etag.to_string(),
             sha256,
-            updated_from_website_utc: OffsetDateTime::now_utc(),
+            updated_utc: OffsetDateTime::now_utc(),
         })
     }
 
@@ -384,11 +394,11 @@ impl Source {
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct SourceMetaData {
-    pub(crate) etag: String,
-    pub(crate) length: usize,  // Size of uncompressed data
-    pub(crate) sha256: String, // Hash of uncompressed data
+    pub etag: String,
+    pub length: usize,  // Length of uncompressed data
+    pub sha256: String, // Hash of uncompressed data
     #[serde(with = "time::serde::iso8601")]
-    pub(crate) updated_from_website_utc: OffsetDateTime,
+    pub updated_utc: OffsetDateTime,
 }
 
 impl SourceMetaData {

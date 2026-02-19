@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod files;
-
 mod adblocker;
-
-pub use adblocker::AdBlocker;
+mod task;
 
 #[cfg(test)]
 mod tests;
+
+pub use adblocker::AdBlocker;
 
 use std::path::PathBuf;
 
