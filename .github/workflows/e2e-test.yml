@@ -96,7 +96,7 @@ jobs:
           cp ${{ env.TEST_CRATE_DIR }}/target/release/connection-checker /tmp/dist/
 
       - name: Upload binaries
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-binaries
           path: /tmp/dist/
@@ -237,7 +237,7 @@ jobs:
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-report
           path: /tmp/test-report.json
