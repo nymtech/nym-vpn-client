@@ -15,7 +15,6 @@ import {
   Spinner,
 } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
-import { CCache } from '../../../cache';
 import {
   useInAppNotify,
   useMainDispatch,
@@ -24,9 +23,8 @@ import {
 import { routes } from '../../../router';
 import { useDeepLink, useI18nError, useLogout } from '../../../hooks';
 import { BackendError, StateDispatch, TAccountMode } from '../../../types';
+import { getAccountId, getDeviceId } from '../../../utils';
 import { getAccountColor, getAccountDescription } from './utils';
-
-const IdsTimeToLive = 120; // sec
 
 function Account() {
   const { t, i18n } = useTranslation('settings');
@@ -59,39 +57,9 @@ function Account() {
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
 
-  const getAccountId = async () => {
-    const accountId = await CCache.get<string>('cache-account-id');
-    if (accountId) {
-      setAccountId(accountId);
-      return;
-    }
-    try {
-      const accountId = await invoke<string>('get_account_id');
-      setAccountId(accountId);
-      CCache.set('cache-account-id', accountId, IdsTimeToLive);
-    } catch {
-      setAccountId(null);
-    }
-  };
-
-  const getDeviceId = async () => {
-    const deviceId = await CCache.get<string>('cache-device-id');
-    if (deviceId) {
-      setDeviceId(deviceId);
-      return;
-    }
-    try {
-      const deviceId = await invoke<string>('get_device_id');
-      setDeviceId(deviceId);
-      CCache.set('cache-device-id', deviceId, IdsTimeToLive);
-    } catch {
-      setDeviceId(null);
-    }
-  };
-
   useEffect(() => {
-    getAccountId();
-    getDeviceId();
+    getAccountId().then(setAccountId);
+    getDeviceId().then(setDeviceId);
   }, []);
 
   useEffect(() => {

@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useMainState } from '../../../contexts';
-import { CCache } from '../../../cache';
 import { useClipboard } from '../../../hooks';
 import { ButtonText } from '../../../ui';
-
-const IdsTimeToLive = 120; // sec
+import { getAccountId, getDeviceId } from '../../../utils';
 
 function AccountData() {
   const [accountId, setAccountId] = useState<string | null>(null);
@@ -17,40 +14,10 @@ function AccountData() {
 
   const { t } = useTranslation('settings');
 
-  const getAccountId = async () => {
-    const id = await CCache.get<string>('cache-account-id');
-    if (id) {
-      setAccountId(id);
-      return;
-    }
-    try {
-      const id = await invoke<string | null>('get_account_id');
-      setAccountId(id);
-      CCache.set('cache-account-id', id, IdsTimeToLive);
-    } catch {
-      setAccountId(null);
-    }
-  };
-
-  const getDeviceId = async () => {
-    const id = await CCache.get<string>('cache-device-id');
-    if (id) {
-      setDeviceId(id);
-      return;
-    }
-    try {
-      const id = await invoke<string | null>('get_device_id');
-      setDeviceId(id);
-      await CCache.set('cache-device-id', id, IdsTimeToLive);
-    } catch {
-      setDeviceId(null);
-    }
-  };
-
   useEffect(() => {
     if (account) {
-      getAccountId();
-      getDeviceId();
+      getAccountId().then(setAccountId);
+      getDeviceId().then(setDeviceId);
     }
   }, [account]);
 
