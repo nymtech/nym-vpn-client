@@ -232,10 +232,10 @@ jobs:
     needs:
       - build-nym-vpn-android-aab
     steps:
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
-          java-version: "17"
+          java-version: "21"
           distribution: "temurin"
 
       - name: Make download dir
@@ -280,9 +280,7 @@ jobs:
           if-no-files-found: error
 
   publish-play:
-    # SERIALIZATION & ARTIFACTS FIX: Wait for build job.
     needs: [build-nym-vpn-android-apk]
-    # Ensure this runs even if the build job was skipped (if release_type='none')
     if: ${{ always() && inputs.track != 'none' && inputs.track != '' && (needs.build-nym-vpn-android-apk.result == 'success' || needs.build-nym-vpn-android-apk.result == 'skipped') }}
     runs-on: arc-linux-latest
     defaults:
@@ -306,11 +304,11 @@ jobs:
           ruby-version: "3.3"
           bundler-cache: true
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: "17"
+          java-version: "21"
           cache: gradle
 
       - name: Install deps
@@ -374,48 +372,6 @@ jobs:
           version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
-      # === CROWDIN (ARTIFACT) START ===
-      - name: Download translations artifact
-        if: ${{ needs.build-nym-vpn-android-apk.result == 'success' }}
-        uses: actions/download-artifact@v6
-        with:
-          name: translations
-          path: nym-vpn-android/app/src/main/res
-
-      - name: Download changelog translations artifact
-        if: ${{ needs.build-nym-vpn-android-apk.result == 'success' }}
-        uses: actions/download-artifact@v6
-        with:
-          name: changelog-translations
-          path: fastlane/metadata/android
-      # === CROWDIN (ARTIFACT) END ===
-
-      # === CROWDIN (FALLBACK) START ===
-      - name: Setup Node.js (Fallback)
-        if: ${{ needs.build-nym-vpn-android-apk.result == 'skipped' }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install Crowdin CLI (Fallback)
-        if: ${{ needs.build-nym-vpn-android-apk.result == 'skipped' }}
-        run: npm install -g @crowdin/cli
-
-      - name: Download translations (Fallback)
-        if: ${{ needs.build-nym-vpn-android-apk.result == 'skipped' }}
-        env:
-          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
-          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-        run: |
-          export PATH="$PATH:$(npm config get prefix)/bin"
-          cd ${{ github.workspace }}
-          echo "⬇️ Downloading translations..."
-          crowdin download translations \
-            --config crowdin-configs/android.yml \
-            --project-id "$CROWDIN_PROJECT_ID" \
-            --token "$CROWDIN_PERSONAL_TOKEN" \
-            -l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN
-      # === CROWDIN (FALLBACK) END ===
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}
         run: |
