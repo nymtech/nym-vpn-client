@@ -1,0 +1,2 @@
+Quoi de neuf :
+- Correction du bug de plantage des logs

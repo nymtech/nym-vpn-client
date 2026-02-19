@@ -1,0 +1,5 @@
+Quoi de neuf :
+- Détails de la sélection de passerelle
+- Optimisations d'utilisation des données
+- Corrections de synchronisation des tuiles
+- Autres corrections de bugs et améliorations

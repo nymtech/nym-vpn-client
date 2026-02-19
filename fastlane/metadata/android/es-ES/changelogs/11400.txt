@@ -1,0 +1,6 @@
+Novedades:
+- Añadidas credenciales anónimas
+- Mejorada la fiabilidad del túnel
+- Actualizaciones de la interfaz
+- Mejora en la gestión de cambios de red
+- Otras correcciones y mejoras

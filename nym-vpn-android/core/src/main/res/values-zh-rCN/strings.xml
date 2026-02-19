@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">NymVPN 频道</string>
+	<string name="channel_description">VPN 相关通知的通道。</string>
+	<string name="disconnect">断开</string>
+	<string name="state_connected">已连接</string>
+	<string name="state_error">错误</string>
+	<string name="state_disconnected">未连接</string>
+	<string name="state_initializing">初始化客户端…</string>
+	<string name="state_establishing">正在建立连接……</string>
+	<string name="notification_entry">入口: %1$s</string>
+	<string name="notification_exit">出口: %1$s</string>
+	<string name="error_reason_set_firewall_policy">防火墙策略配置失败。</string>
+	<string name="error_reason_set_routing">路由配置失败。</string>
+	<string name="error_reason_set_dns">配置 DNS 设置失败。</string>
+	<string name="error_reason_tun_device">初始化 VPN 隧道接口失败。</string>
+	<string name="error_reason_tunnel_provider">数据包隧道提供程序配置失败。</string>
+	<string name="error_reason_ipv6_unavailable">此系统禁用IPv6。</string>
+	<string name="error_reason_same_entry_and_exit_gateway">入口和出口网关不能相同。</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">未找到符合条件的入口网关。</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">未找到符合条件的出口网关。</string>
+	<string name="error_reason_invalid_entry_gateway_identity">无效的入口网关身份。</string>
+	<string name="error_reason_invalid_exit_gateway_identity">无效的出口网关身份。</string>
+	<string name="error_reason_invalid_entry_gateway_country">选定的入口国家无效。</string>
+	<string name="error_reason_invalid_exit_gateway_country">选定的出口国家无效。</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">入口网关没有响应。</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">出口网关没有响应。</string>
+	<string name="error_reason_bandwidth_exceeded">带宽已达上限。</string>
+	<string name="error_reason_inactive_account">您的账号未激活。</string>
+	<string name="error_reason_inactive_subscription">您的订购未激活。</string>
+	<string name="error_reason_max_devices_reached">设备数量已达上限。</string>
+	<string name="error_reason_device_time_out_of_sync">设备时间未同步。</string>
+	<string name="error_reason_device_logged_out">已登出此设备。</string>
+	<string name="error_reason_internal">内部错误： %1$s</string>
+</resources>

@@ -1,0 +1,8 @@
+Quoi de neuf :
+- Améliorations et correctifs de navigation
+- Amélioration de l'exportation des journaux
+- Meilleure stabilité de l'application
+- Améliorations de l'interface utilisateur et de l'expérience utilisateur
+- Messages d'erreur et d'information mis à jour
+- Amélioration de la gestion des notifications
+- Mise en œuvre de contrôles appropriés des autorisations d'exécution

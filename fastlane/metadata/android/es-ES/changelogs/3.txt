@@ -1,0 +1,4 @@
+Novedades:
+- Añadir integración de vpn lib
+- Pantalla Splash
+- Lista de países

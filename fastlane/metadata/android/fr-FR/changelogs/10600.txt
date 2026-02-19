@@ -1,0 +1,3 @@
+Quoi de neuf :
+- Ajouter plus de langues
+- Ajouter des améliorations à l'écran d'accueil

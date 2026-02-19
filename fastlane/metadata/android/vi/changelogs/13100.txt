@@ -1,0 +1,2 @@
+Có gì mới:
+- Cải thiện độ tin cậy của kết nối

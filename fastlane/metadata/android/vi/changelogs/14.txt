@@ -1,0 +1,4 @@
+Có gì mới:
+- Cải tiến giao diện người dùng
+- Màn hình lựa chọn phân tích
+- Nhiều cải tiến và nâng cao khác nhau

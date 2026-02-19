@@ -1,0 +1,8 @@
+Novedades:
+- Añadidos detalles de entrada y salida del nodo a las notificaciones de conexión
+- Ahora puede ver los detalles del servidor directamente desde la pantalla de inicio
+- Opciones DNS personalizadas para un mayor control de red
+- Secciones reorganizadas en la pantalla de censura para una mayor claridad
+- Registros de configuración de túneles mejorados con detalles más claros y paso a paso
+- Arreglado el manejo de aplicaciones restringidas en configuraciones de túneles
+- Se ha resuelto un problema en el que el temporizador de conexión podría restablecerse al azar

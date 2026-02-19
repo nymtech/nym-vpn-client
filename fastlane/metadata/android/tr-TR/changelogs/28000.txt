@@ -1,0 +1,8 @@
+Yenilikler
+- Yeni kayıt kontrolleri: Kayıtları Etkinleştirme ve Detaylı Hata Ayıklama seçenekleri eklendi
+- Kısayol eylemleri için kimlik doğrulama kontrolü eklendi
+- Kayıtların dışa aktarım formatı güncellendi (dizili klasörler ve gruplandırılmış günlükler)
+- Navigasyon çubuğu (NavBar) eylem işlemleri iyileştirildi
+- Gereksiz kayıt gürültüsü azaltıldı
+- Otomatik Başlat işleyişi düzeltildi
+- Küçük kullanıcı arayüzü iyileştirmeleri ve hata düzeltmeleri yapıldı

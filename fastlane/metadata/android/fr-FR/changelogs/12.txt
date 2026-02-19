@@ -1,0 +1,4 @@
+Quoi de neuf :
+- Ajout du découpage abi pour l'optimisation de la taille de l'apk
+- Ajout d'un test de fumée
+- Correction d'un bug de minification

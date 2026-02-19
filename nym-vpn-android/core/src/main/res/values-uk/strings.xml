@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">Canal NymVPN</string>
+	<string name="channel_description">Um canal para notificações relacionadas a VPN.</string>
+	<string name="disconnect">Від\'єднати</string>
+	<string name="state_connected">Підключено</string>
+	<string name="state_error">Помилка</string>
+	<string name="state_disconnected">Від\'єднано</string>
+	<string name="state_initializing">Ініціалізація клієнта…</string>
+	<string name="state_establishing">Встановлення з\'єднання…</string>
+	<string name="notification_entry">Вхід: %1$s</string>
+	<string name="notification_exit">Вихід: %1$s</string>
+	<string name="error_reason_set_firewall_policy">Не вдалося застосувати політику брандмауера.</string>
+	<string name="error_reason_set_routing">Не вдалося налаштувати маршрутизацію мережі.</string>
+	<string name="error_reason_set_dns">Не вдалося налаштувати параметри DNS.</string>
+	<string name="error_reason_tun_device">Не вдалося ініціалізувати інтерфейс тунелю VPN.</string>
+	<string name="error_reason_tunnel_provider">Не вдалося налаштувати постачальника тунелю пакетів.</string>
+	<string name="error_reason_ipv6_unavailable">IPv6 вимкнено в цій системі.</string>
+	<string name="error_reason_same_entry_and_exit_gateway">Шлюзи входу та виходу не можуть бути однаковими.</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">Не знайдено відповідних шлюзів входу.</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">Не знайдено відповідних шлюзів виходу.</string>
+	<string name="error_reason_invalid_entry_gateway_identity">Неправильна адреса вхідного шлюзу.</string>
+	<string name="error_reason_invalid_exit_gateway_identity">Неправильна адреса вихідного шлюзу.</string>
+	<string name="error_reason_invalid_entry_gateway_country">Вибрана країна входу не дійсна.</string>
+	<string name="error_reason_invalid_exit_gateway_country">Вибрана країна виходу не дійсна.</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">Вхідний шлюз не відповідає.</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">Вихідний шлюз не відповідає.</string>
+	<string name="error_reason_bandwidth_exceeded">Перевищено ліміт пропускної здатності.</string>
+	<string name="error_reason_inactive_account">Ваш обліковий запис неактивний.</string>
+	<string name="error_reason_inactive_subscription">Ваша підписка неактивна.</string>
+	<string name="error_reason_max_devices_reached">Досягнуто максимальної кількості пристроїв.</string>
+	<string name="error_reason_device_time_out_of_sync">Час пристрою не синхронізовано.</string>
+	<string name="error_reason_device_logged_out">Пристрій вимкнено.</string>
+	<string name="error_reason_internal">Внутрішня помилка: %1$s</string>
+</resources>

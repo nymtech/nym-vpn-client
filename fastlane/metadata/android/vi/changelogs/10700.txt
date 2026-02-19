@@ -1,0 +1,5 @@
+Có gì mới:
+- Trình lựa chọn ngôn ngữ trong ứng dụng
+- Nhiều ngôn ngữ hơn
+- Cải thiện đồng bộ hóa trạng thái
+- Sửa nhiều lỗi và cải tiến đa dạng

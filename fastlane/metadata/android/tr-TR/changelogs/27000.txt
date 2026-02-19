@@ -1,0 +1,9 @@
+Yenilikler
+- İlk kez kullananlar için yeni karşılama sayfası
+- Giriş veya satın alma sonrası teknik tercihler ekranı
+- Detaylar ekranında dil ve bölgeye uygun metin desteği
+Değişiklikler
+- Artık kurtarma ifadesi ile doğrulama yapılıyor
+- “Gateway” terimi uygulamada “sunucu” olarak değiştirildi
+- Bağlantı güvenilirliği artırıldı: akıllı yeniden bağlanma, LAN atlama, bölünmüş tünelleme, özel DNS
+- Sansürle başa çıkma mantığı daha tutarlı hâle getirildi

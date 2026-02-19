@@ -1,0 +1,9 @@
+Yenilikler:
+- Kayıtlar ekranı için indirme butonu eklendi
+- Yeni Gizlilik ve Veri ekranı
+- Ağ İzleme akışı eklendi
+- Hoş geldiniz ekranı eklendi
+- Modal ve SnackBar arayüzleri güncellendi
+- Veri Deposu geliştirmeleri
+- Belirli cihazlarda donanım çökmeleri için düzeltmeler
+- Belirli cihazlarda kayıt okuyucu çökme sorunu düzeltildi

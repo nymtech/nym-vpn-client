@@ -1,0 +1,4 @@
+Was ist neu:
+- Integration von vpn lib hinzufügen
+- Splitterbildschirm
+- Länderliste

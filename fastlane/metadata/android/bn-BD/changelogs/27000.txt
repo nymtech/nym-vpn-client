@@ -1,0 +1,9 @@
+What’s new
+- New onboarding flow for first-time users
+- Technical opt-in screen shown after login or purchase
+- Locale support for high/low copy on the Details screen
+Changes
+- Switched to passphrase-based authentication
+- Replaced “gateway” with “server” across the app
+- Improved connection reliability (smarter reconnect, LAN bypass, split tunneling, Custom DNS)
+- More consistent censorship-handling logic

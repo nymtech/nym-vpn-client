@@ -1,0 +1,8 @@
+Quoi de neuf :
+- Ajout des détails des entrées et des nœuds de sortie aux notifications de connexion
+- Vous pouvez maintenant voir les détails du serveur directement à partir de l'écran d'accueil
+- Introduction des paramètres DNS personnalisés pour un meilleur contrôle du réseau
+- Réorganiser les sections sur l'écran de censure pour plus de clarté
+- Des journaux de configuration de tunnels améliorés avec des détails plus clairs et pas à pas
+- Correction de la gestion des applications restreintes dans les configurations des tunnels
+- Résolution d'un problème où le minuteur de connexion pourrait réinitialiser aléatoirement

@@ -1,0 +1,5 @@
+O que há de novo:
+- Corrigidos problemas de travamento e ANR
+- Adicionado o prompt de otimização de bateria
+- Adicionadas abas separadas para logs
+- Melhoria na confiabilidade da conexão

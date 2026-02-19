@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">Canal NymVPN</string>
+	<string name="channel_description">Un canal pour les notifications relatives à NymVPN.</string>
+	<string name="disconnect">Déconnecter</string>
+	<string name="state_connected">Connecté</string>
+	<string name="state_error">Erreur</string>
+	<string name="state_disconnected">Déconnecté</string>
+	<string name="state_initializing">Démarrage du client…</string>
+	<string name="state_establishing">Connexion en cours…</string>
+	<string name="notification_entry">Entrée : %1$s</string>
+	<string name="notification_exit">Sortie : %1$s</string>
+	<string name="error_reason_set_firewall_policy">Impossible d\'appliquer la politique de pare-feu.</string>
+	<string name="error_reason_set_routing">Impossible de configurer le routage réseau.</string>
+	<string name="error_reason_set_dns">Impossible de configurer les paramètres DNS.</string>
+	<string name="error_reason_tun_device">Impossible d\'initialiser l\'interface du tunnel VPN.</string>
+	<string name="error_reason_tunnel_provider">Impossible de configurer le fournisseur de tunnel de paquets.</string>
+	<string name="error_reason_ipv6_unavailable">IPv6 est désactivé sur ce système.</string>
+	<string name="error_reason_same_entry_and_exit_gateway">Les passerelles d\'entrée et de sortie ne peuvent pas être identiques.</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">Aucune passerelle d\'entrée appropriée trouvée.</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">Aucune passerelle de sortie appropriée trouvée.</string>
+	<string name="error_reason_invalid_entry_gateway_identity">Identité de passerelle d\'entrée non valide.</string>
+	<string name="error_reason_invalid_exit_gateway_identity">Identité de passerelle de sortie invalide.</string>
+	<string name="error_reason_invalid_entry_gateway_country">Le pays d’entrée sélectionné n’est pas valide.</string>
+	<string name="error_reason_invalid_exit_gateway_country">Le pays de sortie sélectionné n\'est pas valide.</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">La passerelle d\'entrée n\'est pas réactive.</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">La passerelle de sortie ne répond pas.</string>
+	<string name="error_reason_bandwidth_exceeded">Limite de bande passante dépassée.</string>
+	<string name="error_reason_inactive_account">Votre compte est inactif.</string>
+	<string name="error_reason_inactive_subscription">Votre abonnement est inactif.</string>
+	<string name="error_reason_max_devices_reached">Nombre maximum d\'appareils atteint.</string>
+	<string name="error_reason_device_time_out_of_sync">L\'heure de l\'appareil est désynchronisée.</string>
+	<string name="error_reason_device_logged_out">L\'appareil est déconnecté.</string>
+	<string name="error_reason_internal">Erreur interne : %1$s</string>
+</resources>

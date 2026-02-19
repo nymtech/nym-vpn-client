@@ -1,0 +1,7 @@
+O que há de novo:
+- Adicionado suporte para ícones temáticos
+- A conexão de status agora mostra informações mais detalhadas
+- Nome do servidor é exibido abaixo do país na tela principal
+- Correções na interface do usuário após logout
+- Tela de detalhes do servidor adicionada
+- Atualizações de resistência à censura

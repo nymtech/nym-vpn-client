@@ -1,0 +1,5 @@
+Yenilikler:
+- Play Store için uygulama içi satın alımlar eklendi
+- Yeni diller eklendi: BN, EL, VI
+- Arayüzde çeşitli iyileştirmeler ve hata düzeltmeleri yapıldı
+- Bağlantı kararlılığı iyileştirildi 
