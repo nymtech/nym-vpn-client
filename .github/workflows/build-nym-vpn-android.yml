@@ -98,11 +98,12 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: true
-      - name: Set up JDK 17
+
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: "17"
+          java-version: "21"
           cache: gradle
 
       - name: Setup Android SDK
@@ -151,53 +152,6 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
 
-      # === CROWDIN DOWNLOAD START ===
-      - name: Setup Node.js
-        if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install Crowdin CLI
-        if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
-        run: npm install -g @crowdin/cli
-
-      - name: Download translations
-        if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
-        env:
-          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
-          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-        run: |
-          export PATH="$PATH:$(npm config get prefix)/bin"
-
-          # Change to workspace root to access crowdin-configs
-          cd ${{ github.workspace }}
-
-          echo "⬇️ Downloading translations..."
-          crowdin download translations \
-            --config crowdin-configs/android.yml \
-            --project-id "$CROWDIN_PROJECT_ID" \
-            --token "$CROWDIN_PERSONAL_TOKEN" \
-            -l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN
-
-      - name: Upload translations artifact
-        if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: translations
-          path: nym-vpn-android/app/src/main/res/values-*
-          if-no-files-found: warn
-          retention-days: 1
-
-      - name: Upload changelog translations artifact
-        if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: changelog-translations
-          path: fastlane/metadata/android/*/changelogs/
-          if-no-files-found: warn
-          retention-days: 1
-      # === CROWDIN DOWNLOAD END ===
       - name: Decode Keystore
         if: ${{ inputs.build_type != 'debug' }}
         id: decode_keystore
@@ -207,7 +161,6 @@ jobs:
           fileDir: ${{ env.KEY_STORE_LOCATION }}
           encodedString: ${{ secrets.ANDROID_KEYSTORE }}
 
-      # create keystore path for gradle to read
       - name: Create keystore path env var
         if: ${{ inputs.build_type != 'debug' }}
         run: |
