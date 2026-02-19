@@ -21,6 +21,7 @@ import nym_vpn_lib_types.RegisterAccountRequest
 import nym_vpn_lib_types.StoreAccountRequest
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
+import nym_vpn_lib_types.VpnAccountSummary
 import timber.log.Timber
 
 /**
@@ -105,4 +106,5 @@ internal class VpnServiceApiImpl(
 	}
 
 	override suspend fun getAccountMode(): StoredAccountMode? = core.tryWithCoreSender { it.getAccountMode() }
+	override suspend fun getAccountSummary(): VpnAccountSummary? = core.tryWithCoreSender { it.getAccountSummary() }
 }

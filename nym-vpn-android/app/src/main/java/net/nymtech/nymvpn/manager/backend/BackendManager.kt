@@ -11,6 +11,7 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
+import nym_vpn_lib_types.VpnAccountSummary
 
 interface BackendManager {
 
@@ -39,4 +40,5 @@ interface BackendManager {
 	suspend fun getDeeplink(kind: DeeplinkKind): String?
 	suspend fun storeDeeplinkAccount(url: String)
 	suspend fun getAccountMode(): StoredAccountMode?
+	suspend fun getAccountSummary(): VpnAccountSummary?
 }

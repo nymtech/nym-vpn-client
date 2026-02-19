@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -31,7 +30,6 @@ import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
-import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
@@ -240,6 +238,22 @@ constructor(
 		return backendManager.isMnemonicStored()
 	}
 
+	private suspend fun hasValidSubscription(): Boolean {
+		return runCatching {
+			val summary = backendManager.getAccountSummary()
+			if (summary == null) {
+				Timber.tag(TAG).w("AccountSummaryNull, treating as no subscription")
+				return false
+			}
+			val isActive = summary.isSubscriptionActive()
+			Timber.tag(TAG).i("SubscriptionCheck active=%s", isActive)
+			isActive
+		}.getOrElse { t ->
+			Timber.tag(TAG).e(t, "AccountSummaryFetchFailed")
+			false
+		}
+	}
+
 	suspend fun handleDeepLinkAuth(url: String): Route = withContext(Dispatchers.IO) {
 		if (!isPrivyEnabled()) {
 			Timber.tag(TAG).w("DeepLink ignored: Privy feature is disabled")
@@ -247,49 +261,50 @@ constructor(
 		}
 
 		try {
-			val isLoggedIn = backendManager.isMnemonicStored()
-
-			Timber.tag(TAG).i("DeepLinkAuth started. isLoggedIn=$isLoggedIn")
+			Timber.tag(TAG).i("DeepLinkAuth started.")
 			backendManager.storeDeeplinkAccount(url)
 
 			runCatching { backendManager.refreshAccount() }
 
-			if (isLoggedIn) {
-				Timber.tag(TAG).i("DeepLinkAuth: Account linked successfully")
-				return@withContext Route.Account
-			}
-
-			val finalRoute = withTimeoutOrNull(AUTH_TIMEOUT_MS) {
+			val accountState = withTimeoutOrNull(AUTH_TIMEOUT_MS) {
 				backendManager.stateFlow
 					.map { it.accountState }
-					.filterNotNull()
 					.filter { state ->
-						val isSuccess = state is AccountControllerState.ReadyToConnect
-						val isSubscriptionError = state is AccountControllerState.Error && (
-							state.v1 is AccountControllerErrorStateReason.AccountStatusNotActive ||
-								state.v1 is AccountControllerErrorStateReason.InactiveSubscription
-							)
-						isSuccess || isSubscriptionError
+						state is AccountControllerState.ReadyToConnect ||
+							state is AccountControllerState.Decentralised ||
+							state is AccountControllerState.UpgradeMode ||
+							state is AccountControllerState.Error
 					}
 					.first()
-					.let { finalState ->
-						if (finalState is AccountControllerState.ReadyToConnect) {
-							Timber.tag(TAG).i("DeepLinkAuth Success")
-							Route.Main()
-						} else {
-							Timber.tag(TAG).i("DeepLinkAuth Inactive Subscription")
-							Route.SelectPlan
-						}
-					}
 			}
 
-			finalRoute ?: run {
-				Timber.tag(TAG).w("DeepLinkAuth timeout. Defaulting to Main.")
-				Route.Main()
+			when (accountState) {
+				is AccountControllerState.ReadyToConnect,
+				is AccountControllerState.Decentralised,
+				is AccountControllerState.UpgradeMode,
+				-> {
+					if (hasValidSubscription()) {
+						Timber.tag(TAG).i("DeepLinkAuth Success with active subscription")
+						Route.Main()
+					} else {
+						Timber.tag(TAG).i("DeepLinkAuth Success but no active subscription")
+						Route.SelectPlan
+					}
+				}
+
+				is AccountControllerState.Error -> {
+					Timber.tag(TAG).i("DeepLinkAuth Error reason=%s", accountState.v1)
+					Route.SelectPlan
+				}
+
+				else -> {
+					Timber.tag(TAG).w("DeepLinkAuth timeout. Defaulting to Main without starting tunnel.")
+					Route.Main(autoStart = false)
+				}
 			}
 		} catch (e: Exception) {
 			Timber.tag(TAG).e(e, "FailedStoreDeeplink or processing error")
-			if (backendManager.isMnemonicStored()) Route.Account else Route.Main(autoStart = false)
+			Route.Main(autoStart = false)
 		}
 	}
 }

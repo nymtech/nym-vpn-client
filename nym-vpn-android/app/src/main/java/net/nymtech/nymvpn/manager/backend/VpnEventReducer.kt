@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
@@ -13,6 +14,7 @@ import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.manager.backend.model.toInfo
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.backend.api.VpnServiceApi
 import net.nymtech.vpn.model.VpnServiceEvent
 import timber.log.Timber
 
@@ -23,7 +25,7 @@ class VpnEventReducer(
 	private val context: Context,
 	private val state: MutableStateFlow<TunnelManagerState>,
 ) {
-	fun observe(scope: CoroutineScope, dispatcher: CoroutineDispatcher, apiFlow: kotlinx.coroutines.flow.StateFlow<net.nymtech.vpn.backend.api.VpnServiceApi?>) {
+	fun observe(scope: CoroutineScope, dispatcher: CoroutineDispatcher, apiFlow: StateFlow<VpnServiceApi?>) {
 		scope.launch(dispatcher) {
 			apiFlow
 				.filterNotNull()
