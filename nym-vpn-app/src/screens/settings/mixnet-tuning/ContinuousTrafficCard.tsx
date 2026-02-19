@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
+import { Button } from '@headlessui/react';
 import { CardHeaderSwitch, CardNew, CardNewBody, Slider } from '../../../ui';
 import { useMixnetTrafficConfig } from './context';
 
@@ -63,8 +64,11 @@ function BackgroundCoverTrafficRateSlider({
         min={0}
         max={3}
         step={1}
+        ariaLabel={t(
+          'mixnet-tuning.continuous-traffic.background-cover-traffic.title',
+        )}
         labels={items.map((item, index) => (
-          <button
+          <Button
             onClick={() => setValue(index)}
             key={item.label}
             className={clsx('flex flex-col text-sm whitespace-nowrap ', {
@@ -81,7 +85,7 @@ function BackgroundCoverTrafficRateSlider({
                 `mixnet-tuning.continuous-traffic.background-cover-traffic.${item.label}.label`,
               )}
             </span>
-          </button>
+          </Button>
         ))}
       />
     </div>
@@ -136,8 +140,9 @@ function ContinuousTrafficSlider({
         min={0}
         max={2}
         step={1}
+        ariaLabel={t('mixnet-tuning.continuous-traffic.continuous.title')}
         labels={items.map((item, index) => (
-          <button
+          <Button
             key={item.label}
             className={clsx('flex flex-col text-sm', {
               'text-baltic-sea dark:text-white': value === index,
@@ -154,8 +159,8 @@ function ContinuousTrafficSlider({
                 `mixnet-tuning.continuous-traffic.continuous.${item.label}.label`,
               )}
             </span>
-            <span className="">{item.speed}</span>
-          </button>
+            <span className="whitespace-nowrap">{item.speed}</span>
+          </Button>
         ))}
       />
     </div>
