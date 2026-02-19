@@ -9,8 +9,8 @@ use std::{
     time::Duration,
 };
 use tokio::{
-    sync::{Mutex, mpsc, oneshot},
-    time::{Instant, sleep},
+    sync::{mpsc, oneshot, Mutex},
+    time::{sleep, Instant},
 };
 use tokio_util::sync::CancellationToken;
 
@@ -63,6 +63,8 @@ impl AdBlockerTask {
 
     /// Runs the ad-blocker manager as an actor.
     async fn run(mut self) {
+        tracing::debug!("Ad-blocker task started");
+
         let adblock_update_fuse = sleep(Self::WAKE_UP_DEFAULT_DELAY);
         tokio::pin!(adblock_update_fuse);
 
@@ -81,7 +83,7 @@ impl AdBlockerTask {
                             self.handle_ad_blocker_updated(result).await;
                         }
                         Some(AdBlockerTaskMessage::GetDnsFilter { response_tx }) => {
-                            let _ = response_tx.send(self.adblocker.clone());
+                            self.handle_get_dns_filter(response_tx).await;
                         }
                         Some(AdBlockerTaskMessage::StoppedUsingDnsFilter { response_tx }) => {
                             self.handle_stopped_using_dns_filter().await;
@@ -97,6 +99,7 @@ impl AdBlockerTask {
                 _ = &mut adblock_update_fuse => {
                     let now = Instant::now();
                     if self.next_update_due <= now {
+                        self.next_update_due = now + Self::ADBLOCK_UPDATE_DELAY;
                         self.update_ad_blocker().await;
                     }
                     adblock_update_fuse
@@ -109,11 +112,15 @@ impl AdBlockerTask {
                 }
             }
         }
+
+        tracing::debug!("Ad-blocker task stopped");
     }
 
     /// Initialize Ad-blocker. This is expensive, so we spawn a new task to perform
     /// initialization in the background, and update once it is done.
     async fn init_ad_blocker(&self, force_init: bool, retry_count: usize) {
+        tracing::debug!("Starting ad-blocker initialization");
+
         let data_dir = self.data_dir.clone();
         let tx = self.tx.clone();
         tokio::spawn(async move {
@@ -128,6 +135,8 @@ impl AdBlockerTask {
     /// Update filters. Potentially expensive, so perform work in the background.
     async fn update_ad_blocker(&self) -> Duration {
         if self.adblocker_initted {
+            tracing::debug!("Starting ad-blocker update");
+
             let data_dir = self.data_dir.clone();
             let user_agent = self.user_agent.clone();
             let tx = self.tx.clone();
@@ -155,7 +164,6 @@ impl AdBlockerTask {
             Err(error) => {
                 tracing::error!("Failed to initialize or update ad-blocker: {error}");
                 self.adblocker_initted = false;
-                self.next_update_due = Instant::now() + Self::ADBLOCK_UPDATE_DELAY;
                 if retry_count == 0 {
                     tracing::debug!(
                         "Retrying ad-blocker initialization, forcing data file initialization"
@@ -187,15 +195,20 @@ impl AdBlockerTask {
                 tracing::error!("Failed to initialize or update ad-blocker: {error}");
             }
         }
+    }
 
-        self.next_update_due = Instant::now() + Self::ADBLOCK_UPDATE_DELAY;
+    async fn handle_get_dns_filter(&self, response_tx: oneshot::Sender<DnsFilter>) {
+        tracing::debug!("Ad-blocker has started to be used");
+
+        let _ = response_tx.send(self.adblocker.clone());
     }
 
     async fn handle_stopped_using_dns_filter(&mut self) {
+        tracing::debug!("Ad-blocker is no longer in use");
+
         let mut guard = self.adblocker.lock().await;
         *guard = Box::new(AdBlocker::default());
         self.adblocker_initted = false;
-        self.next_update_due = Instant::now() + Self::ADBLOCK_UPDATE_DELAY;
     }
 }
 
