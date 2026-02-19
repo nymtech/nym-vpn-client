@@ -1,0 +1,5 @@
+Novedades:
+- Se han solucionado problemas de bloqueos y ANR
+- Añadido indicador de optimización de batería
+- Añadidas pestañas separadas para logs
+- Mejora de la estabilidad de la conexión

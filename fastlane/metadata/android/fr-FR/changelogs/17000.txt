@@ -1,0 +1,5 @@
+Ce qui change :
+- Réduction des crashs et du client qui ne répondait plus
+- Ajout d'une fenêtre de dialogue concernant l'optimisation de la batterie
+- Ajout d'onglets séparés pour les journaux
+- Amélioration de la fiabilité des connexions

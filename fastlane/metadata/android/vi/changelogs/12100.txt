@@ -1,0 +1,5 @@
+Có gì mới:
+- Chi tiết lựa chọn cổng
+- Tối ưu hóa sử dụng dữ liệu
+- Sửa lỗi đồng bộ ô
+- Các sửa lỗi và cải tiến khác

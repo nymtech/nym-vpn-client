@@ -1,0 +1,8 @@
+Novidades
+- Novos controles de log: Habilitar logs e alternância de esquema de depuração
+- Verificação de autenticação adicionada por ações de atalho
+- Formato de exportação de logs atualizado (pastas estruturadas e logs agrupados)
+- Manipulação de ação NavBar melhorada
+- Redução de ruído desnecessário de registro
+- Manipulação de início automático corrigida
+- Pequenas melhorias e correções de IU

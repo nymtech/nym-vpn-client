@@ -1,0 +1,4 @@
+Was ist neu:
+- UI-Erweiterungen
+- Analyseauswahlbildschirm
+- Diverse Erweiterungen und Verbesserungen

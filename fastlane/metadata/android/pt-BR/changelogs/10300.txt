@@ -1,0 +1,5 @@
+Quais as novidades:
+- Tempo de expiração de credenciais
+- Leitura de código QR para obter credenciais
+- Link do Kill switch
+- Aprimoramentos da UI

@@ -1,0 +1,3 @@
+Yenilikler:
+- Daha fazla dil eklendi
+- Ana ekran iyileştirmeleri eklendi

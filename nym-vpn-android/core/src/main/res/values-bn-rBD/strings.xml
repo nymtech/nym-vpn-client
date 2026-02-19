@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">NymVPN চ্যানেল</string>
+	<string name="channel_description">NymVPN চ্যানেল অনুসন্ধান করুন</string>
+	<string name="disconnect">সংযোগ বিচ্ছিন্ন করুন</string>
+	<string name="state_connected">সংযুক্ত</string>
+	<string name="state_error">ত্রুটি</string>
+	<string name="state_disconnected">সংযুক্তি বিচ্ছিন্ন</string>
+	<string name="state_initializing">ক্লায়েন্ট ইনিশিয়ালাইজ করা হচ্ছে</string>
+	<string name="state_establishing">সংযোগ স্থাপন করা হচ্ছে</string>
+	<string name="notification_entry">এন্ট্রি: %1$s</string>
+	<string name="notification_exit">এক্সিট: %1$s</string>
+	<string name="error_reason_set_firewall_policy">Failed to apply firewall policy.</string>
+	<string name="error_reason_set_routing">Failed to configure network routing.</string>
+	<string name="error_reason_set_dns">Failed to configure DNS settings.</string>
+	<string name="error_reason_tun_device">Failed to initialize VPN tunnel interface.</string>
+	<string name="error_reason_tunnel_provider">প্যাকেট টানেল প্রদানকারী কনফিগার করা ব্যর্থ হয়েছে।</string>
+	<string name="error_reason_ipv6_unavailable">IPv6 is disabled on this system.</string>
+	<string name="error_reason_same_entry_and_exit_gateway">Entry and Exit gateways cannot be the same.</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">No suitable Entry gateway found.</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">No suitable Exit gateway found.</string>
+	<string name="error_reason_invalid_entry_gateway_identity">Invalid Entry gateway identity.</string>
+	<string name="error_reason_invalid_exit_gateway_identity">Invalid Exit gateway identity.</string>
+	<string name="error_reason_invalid_entry_gateway_country">Selected Entry country is invalid.</string>
+	<string name="error_reason_invalid_exit_gateway_country">Selected Exit country is invalid.</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">Entry gateway is unresponsive.</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">Exit gateway is unresponsive.</string>
+	<string name="error_reason_bandwidth_exceeded">Bandwidth limit exceeded.</string>
+	<string name="error_reason_inactive_account">Your account is inactive.</string>
+	<string name="error_reason_inactive_subscription">Your subscription is inactive.</string>
+	<string name="error_reason_max_devices_reached">Maximum number of devices reached.</string>
+	<string name="error_reason_device_time_out_of_sync">Device time is out of sync.</string>
+	<string name="error_reason_device_logged_out">ডিভাইস থেকে লগ আউট করা হয়েছে।</string>
+	<string name="error_reason_internal">Internal error: %1$s</string>
+</resources>

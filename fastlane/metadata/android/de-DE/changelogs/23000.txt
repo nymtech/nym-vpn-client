@@ -1,0 +1,8 @@
+Was ist neu:
+- QUIC Status und Server Details hinzugefügt
+- Neues Streaming-Symbol und aktualisierte Tooltips bei Home/Beenden
+- Neue Ansicht für Passphrase und neuer Ablauf zur Kontoerstellung
+- Ein-/Ausblendbildschirme zeigen nun Ortsnamen statt Server-IDs an
+- Verbesserte Gatewaydetails mit relativen Update-Zeiten
+- Fehlerhafte Uptime-Anzeige des Servers
+- Verschiedene UI-Verbesserungen und -Korrekturen

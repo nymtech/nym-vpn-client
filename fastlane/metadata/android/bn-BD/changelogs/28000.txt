@@ -1,0 +1,8 @@
+What’s new
+- New logging controls: Enable Logs and Debug Verbose toggles
+- Added authentication check for shortcut actions
+- Updated logs export format (structured folders and grouped logs)
+- Improved NavBar action handling
+- Reduced unnecessary log noise
+- Fixed Auto Start handling
+- Minor UI improvements and fixes

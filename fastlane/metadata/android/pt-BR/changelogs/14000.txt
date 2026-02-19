@@ -1,0 +1,12 @@
+Quais as novidades:
+
+Melhorias:
+- Atualizar pares de cores e estilos
+- Configurações atualizadas / suporte & menu de feedback
+
+Erros:
+- Correção ao reabrir um aplicativo minimizado, o Connect leva à tela de login
+Erro forSyncAccount corrigido
+Corrigido quedas de conexão e instabilidade
+- Correções para travamentos do app durante testes de velocidade no modo mixnet
+- [Android 12] Correção para desconexão/congelamento após 1 ou 2 horas
