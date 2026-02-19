@@ -67,7 +67,7 @@ extension PacketTunnelProvider {
 
         vpnService = try await NymVpnService.newService(
             config: vpnConfig,
-            environment: ConfigurationManager.shared.networkEnv,
+            environment: ConfigurationManager.shared.networkEnv ?? .newWithMainnetFallback(),
             eventListener: self
         )
         commandSender = vpnService?.getCommandSender()

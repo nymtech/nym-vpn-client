@@ -109,7 +109,7 @@ private extension FeatureFlagsManager {
     func updateFeatureFlags() {
         Task { [weak self] in
 #if os(iOS)
-            guard let flags = configurationManager.networkEnv.current().featureFlags else { return }
+            guard let flags = self?.configurationManager.networkEnv?.current().featureFlags else { return }
 #elseif os(macOS)
             guard let flags = try? await self?.grpcManager.fetchFeatureFlags() else { return }
 #endif
