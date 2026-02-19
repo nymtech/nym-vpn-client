@@ -31,7 +31,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -53,6 +56,7 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 	val scrollState = rememberScrollState()
 	val context = LocalContext.current
 	val navController = LocalNavController.current
+	val lifecycleOwner = LocalLifecycleOwner.current
 
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val activity = context as? MainActivity
@@ -65,14 +69,22 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 		onDispose { activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE) }
 	}
 
-	LaunchedEffect(Unit) {
-		viewModel.events.collectLatest { event ->
-			when (event) {
-				is LoginEvent.NavigateAfterLogin -> {
-					if (event.showTechnicalOpt) {
-						navController.navigateAndClearWelcome(Route.Technical)
-					} else {
-						navController.navigateAndClearWelcome(Route.Main())
+	LaunchedEffect(lifecycleOwner) {
+		lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+			viewModel.events.collectLatest { event ->
+				when (event) {
+					is LoginEvent.NavigateAfterLogin -> {
+						when {
+							!event.hasValidSubscription -> {
+								navController.navigateAndClearWelcome(Route.SelectPlan)
+							}
+							event.showTechnicalOpt -> {
+								navController.navigateAndClearWelcome(Route.Technical)
+							}
+							else -> {
+								navController.navigateAndClearWelcome(Route.Main())
+							}
+						}
 					}
 				}
 			}
