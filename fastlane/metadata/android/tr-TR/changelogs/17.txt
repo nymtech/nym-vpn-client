@@ -1,0 +1,3 @@
+Yenilikler:
+- Ülke önbellekleme hatası düzeltildi
+- Hilt performans iyileştirmeleri

@@ -1,0 +1,4 @@
+Quoi de neuf :
+- Correction du bug d'animation de navigation
+- Corrige les bugs de l'écran d'authentification
+- Corrige la liste des pays API et recherche

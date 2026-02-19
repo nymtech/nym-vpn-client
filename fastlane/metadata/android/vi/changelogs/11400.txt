@@ -1,0 +1,6 @@
+Có gì mới:
+- Thêm thông tin đăng nhập ẩn danh
+- Cải thiện độ tin cậy của tunnel
+- Cập nhật giao diện người dùng
+- Cải thiện xử lý khi thay đổi mạng
+- Sửa lỗi và cải tiến khác

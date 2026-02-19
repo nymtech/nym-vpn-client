@@ -1,0 +1,5 @@
+Was ist neu:
+- Zwei Sprunggeschwindigkeitsverbesserungen mit WireGuard
+- Leistungsverbesserung der App
+- UI-Verbesserungen
+- Verschiedene Fehlerbehebungen

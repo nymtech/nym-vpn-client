@@ -1,0 +1,8 @@
+Yenilikler:
+Navigasyonda yapılan iyileştirmeler ve hataların giderilmesi
+- Kayıtları dışa aktarma özelliği iyileştirmeleri
+Uygulamanın performansı daha kararlı hale getirildi
+Arayüz ve kullanıcı deneyimi iyileştirmeleri
+Hata ve bilgilendirme mesajları güncellendi
+Bildirimlerin yönetimi ve iletimi iyileştirildi
+Çalışma zamanı izin kontrolleri düzgün şekilde uygulandı

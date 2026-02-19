@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">NymVPN Kanal</string>
+	<string name="channel_description">Ein Kanal für Benachrichtigungen zu NymVPN.</string>
+	<string name="disconnect">Trennen</string>
+	<string name="state_connected">Verbunden</string>
+	<string name="state_error">Fehler</string>
+	<string name="state_disconnected">Getrennt</string>
+	<string name="state_initializing">Client wird initialisiert…</string>
+	<string name="state_establishing">Verbindung wird hergestellt…</string>
+	<string name="notification_entry">Eintritt: %1$s</string>
+	<string name="notification_exit">Austritt: %1$s</string>
+	<string name="error_reason_set_firewall_policy">Die Firewall-Richtlinie konnte nicht angewendet werden.</string>
+	<string name="error_reason_set_routing">Die Konfiguration des Netzwerk-Routings ist fehlgeschlagen.</string>
+	<string name="error_reason_set_dns">Die DNS-Einstellungen konnten nicht konfiguriert werden.</string>
+	<string name="error_reason_tun_device">Die Initialisierung der VPN-Tunnelschnittstelle ist fehlgeschlagen.</string>
+	<string name="error_reason_tunnel_provider">Fehler beim Konfigurieren des Tunnel-Providers.</string>
+	<string name="error_reason_ipv6_unavailable">IPv6 ist auf diesem System deaktiviert.</string>
+	<string name="error_reason_same_entry_and_exit_gateway">Ein- und Austrittsserver dürfen nicht identisch sein.</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">Keinen passenden Eintrittsserver gefunden.</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">Keinen passenden Austrittsserver gefunden.</string>
+	<string name="error_reason_invalid_entry_gateway_identity">Ungültige Eintrittsserveridentität.</string>
+	<string name="error_reason_invalid_exit_gateway_identity">Ungültige Austrittsserveridentität.</string>
+	<string name="error_reason_invalid_entry_gateway_country">Das ausgewählte Eintrittsland ist ungültig.</string>
+	<string name="error_reason_invalid_exit_gateway_country">Das ausgewählte Austrittsland ist ungültig.</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">Eintrittsserver reagiert nicht.</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">Austrittsserver reagiert nicht.</string>
+	<string name="error_reason_bandwidth_exceeded">Bandbreitenlimit überschritten.</string>
+	<string name="error_reason_inactive_account">Dein Konto ist inaktiv.</string>
+	<string name="error_reason_inactive_subscription">Dein Abonnement ist inaktiv.</string>
+	<string name="error_reason_max_devices_reached">Maximale Anzahl an Geräten erreicht.</string>
+	<string name="error_reason_device_time_out_of_sync">Gerätezeit ist nicht synchronisiert.</string>
+	<string name="error_reason_device_logged_out">Gerät ist ausgeloggt.</string>
+	<string name="error_reason_internal">Interner Fehler: %1$s</string>
+</resources>

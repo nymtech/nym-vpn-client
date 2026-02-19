@@ -1,0 +1,7 @@
+Novedades:
+- Mejorar el rendimiento de la API
+- Añadidos accesos directos básicos de la aplicación
+- Mejoras de la interfaz
+- Comprobación de caducidad de credenciales corregida
+- Corregido error de sincronización de conexión
+- Mejorada sincronización rápida

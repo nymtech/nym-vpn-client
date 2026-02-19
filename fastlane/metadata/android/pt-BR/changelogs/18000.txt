@@ -1,0 +1,3 @@
+O que há de novo:
+- Correções de erros e melhorias de estabilidade
+- Ajustes de navegação

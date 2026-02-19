@@ -1,0 +1,4 @@
+Quais as novidades:
+- Correções de erros no logger
+- Melhorias de estabilidade
+- Mensagem de atualização do cliente

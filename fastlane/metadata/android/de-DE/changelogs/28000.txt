@@ -1,0 +1,8 @@
+Was ist neu
+- Neue Log-Steuerelemente: "Logging aktivieren" und "Ausführliches Logging aktivieren"
+- Authentifizierungsprüfung für App-Verknüpfungsaktionen hinzugefügt
+- Aktualisiertes Exportformat für Logs (strukturierte Ordner und gruppierte Logs)
+- Verbesserte Handhabung von NavBar-Aktionen
+Reduzierung von unnötigem Overhead in den Logs
+- Behebung eines Problems beim automatischen Start
+- Kleinere Verbesserungen und Fehlerbehebungen an der Benutzeroberfläche

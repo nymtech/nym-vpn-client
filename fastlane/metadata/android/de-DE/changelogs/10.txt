@@ -1,0 +1,4 @@
+Was ist neu:
+- Unterstützung für immer VPN hinzugefügt
+- Unterstützung für Schnelleinstellungen Kachel hinzugefügt
+- Fehler bei automatischer Verbindung beim Booten behoben
