@@ -9,8 +9,8 @@ use std::{
     time::Duration,
 };
 use tokio::{
-    sync::{mpsc, oneshot, Mutex},
-    time::{sleep, Instant},
+    sync::{Mutex, mpsc, oneshot},
+    time::{Instant, sleep},
 };
 use tokio_util::sync::CancellationToken;
 
@@ -88,6 +88,10 @@ impl AdBlockerTask {
                         Some(AdBlockerTaskMessage::StoppedUsingDnsFilter { response_tx }) => {
                             self.handle_stopped_using_dns_filter().await;
                             let _ = response_tx.send(());
+                        }
+                        #[cfg(test)]
+                        Some(AdBlockerTaskMessage::IsAdBlockerInitted { response_tx }) => {
+                            let _ = response_tx.send(self.adblocker_initted);
                         }
                         None => {
                             self.shutdown_token.cancel();
@@ -199,7 +203,6 @@ impl AdBlockerTask {
 
     async fn handle_get_dns_filter(&self, response_tx: oneshot::Sender<DnsFilter>) {
         tracing::debug!("Ad-blocker has started to be used");
-
         let _ = response_tx.send(self.adblocker.clone());
     }
 
@@ -238,6 +241,10 @@ enum AdBlockerTaskMessage {
 
     /// Signal that we've stopped using the DNS filter, so we can free up memory used by the Ad-blocker filters
     StoppedUsingDnsFilter { response_tx: oneshot::Sender<()> },
+
+    /// Has the Ad-blocker been initialized yet?
+    #[cfg(test)]
+    IsAdBlockerInitted { response_tx: oneshot::Sender<bool> },
 }
 
 /// A handle to control the Ad-blocker task.
@@ -287,6 +294,21 @@ impl AdBlockerTaskHandle {
             .is_ok()
         {
             response_rx.await.ok();
+        }
+    }
+
+    /// Is the Ad-blocker initialized yet?
+    #[cfg(test)]
+    pub async fn is_ad_blocker_initted(&self) -> bool {
+        let (response_tx, response_rx) = oneshot::channel();
+        if self
+            .tx
+            .send(AdBlockerTaskMessage::IsAdBlockerInitted { response_tx })
+            .is_ok()
+        {
+            response_rx.await.ok().unwrap_or(false)
+        } else {
+            false
         }
     }
 }

@@ -78,6 +78,7 @@ pub enum DnsFilterStrategy {
 }
 
 /// DNS filter decision
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DnsFilterDecision {
     Pass,
     Block(DnsFilterStrategy),
@@ -279,13 +280,16 @@ impl Resolver {
         let return_query = query.original().clone();
         let qname = return_query.name().to_ascii();
 
-        // Lock only long enough to make a decision; don't hold the guard across awaits.
-        let blocked = {
+        let decision = {
             let guard = dns_filter.lock().await;
             guard.should_block(&qname)
         };
 
-        match blocked {
+        if decision != DnsFilterDecision::Pass {
+            tracing::trace!("Blocking DNS query for {qname} with strategy {decision:?}");
+        }
+
+        match decision {
             DnsFilterDecision::Pass => {
                 let lookup = resolver
                     .lookup(return_query.name().clone(), return_query.query_type())
@@ -300,9 +304,7 @@ impl Resolver {
                     RecordType::AAAA => RData::AAAA(rdata::AAAA(Ipv6Addr::LOCALHOST)),
                     RecordType::CNAME => RData::CNAME(rdata::CNAME(Name::from_str("localhost.")?)),
                     other => {
-                        tracing::error!(
-                            "Ad-blocker is configured to return localhost, but received unsupported query type {other} for domain {qname}"
-                        );
+                        tracing::warn!("Unsupported query type {other} for domain {qname}");
                         return Ok(Box::new(EmptyLookup));
                     }
                 };

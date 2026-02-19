@@ -1,11 +1,15 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::files::*;
-use std::path::Path;
+use super::{files::*, task::AdBlockerTask};
+use crate::resolver::DnsFilterDecision;
+use std::{path::Path, time::Duration};
 use tempfile::TempDir;
+use tokio::time::{Instant, sleep};
+use tokio_util::sync::CancellationToken;
 
 const USER_AGENT: &str = "nym-vpn-ad-blocker-tests/0.1";
+const SHOULD_BE_BLOCKED_DOMAIN: &str = "www.0.beer";
 
 #[tokio::test]
 #[tracing_test::traced_test]
@@ -133,6 +137,89 @@ async fn test_load_filterset_updated() {
     let _filter_set = load_filter_set(data_dir)
         .await
         .expect("Failed to load filter set from ad-blocker files");
+}
+
+#[tokio::test]
+#[tracing_test::traced_test]
+async fn test_task_allows_domains_before_init() {
+    let temp_dir = init_tests()
+        .await
+        .expect("Failed to initialize ad-blocker files");
+    let data_dir = temp_dir.path();
+
+    let shutdown_token = CancellationToken::new();
+    let (task_handle, join_handle) = AdBlockerTask::spawn(
+        data_dir,
+        USER_AGENT.to_string(),
+        shutdown_token.child_token(),
+    )
+    .await
+    .expect("Failed to spawn AdBlockerTask");
+
+    let dns_filter = task_handle
+        .get_dns_filter()
+        .await
+        .expect("Expected DNS filter");
+
+    // AdBlocker::default() should not block anything.
+    let decision = {
+        let guard = dns_filter.lock().await;
+        guard.should_block(SHOULD_BE_BLOCKED_DOMAIN)
+    };
+
+    assert!(matches!(decision, DnsFilterDecision::Pass));
+
+    shutdown_token.cancel();
+    let _ = join_handle.await;
+}
+
+#[tokio::test]
+#[tracing_test::traced_test]
+async fn test_task_blocks_domain_after_init() {
+    let temp_dir = init_tests()
+        .await
+        .expect("Failed to initialize ad-blocker files");
+    let data_dir = temp_dir.path();
+
+    let shutdown_token = CancellationToken::new();
+    let (task_handle, join_handle) = AdBlockerTask::spawn(
+        data_dir,
+        USER_AGENT.to_string(),
+        shutdown_token.child_token(),
+    )
+    .await
+    .expect("Failed to spawn AdBlockerTask");
+
+    let dns_filter = task_handle
+        .get_dns_filter()
+        .await
+        .expect("Expected DNS filter");
+
+    // Kick off initialization.
+    task_handle.init_ad_blocker().await;
+
+    // Wait for initialization to complete.
+    let deadline = Instant::now() + Duration::from_secs(30);
+    loop {
+        if task_handle.is_ad_blocker_initted().await {
+            break;
+        }
+        if Instant::now() > deadline {
+            panic!("Timed out waiting for ad-blocker initialization");
+        }
+        sleep(Duration::from_millis(50)).await;
+    }
+
+    // After init, it should block this known ad-blocked domain.
+    let decision = {
+        let guard = dns_filter.lock().await;
+        guard.should_block(SHOULD_BE_BLOCKED_DOMAIN)
+    };
+
+    assert!(matches!(decision, DnsFilterDecision::Block(_)));
+
+    shutdown_token.cancel();
+    let _ = join_handle.await;
 }
 
 async fn init_tests() -> Result<TempDir, String> {

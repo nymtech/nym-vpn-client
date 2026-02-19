@@ -16,15 +16,15 @@ use tokio_util::sync::CancellationToken;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::resolver::LOCAL_DNS_RESOLVER;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{gateway_ext::GatewayExt, Error, Result};
 use crate::tunnel_state_machine::{
-    states::{ConnectingState, DisconnectingState}, tunnel::SelectedGateways, tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle}, ConnectionData, NextTunnelState,
-    PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
-    TunnelCommand,
-    TunnelInterface,
-    TunnelStateHandler,
+    ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
+    TunnelCommand, TunnelInterface, TunnelStateHandler,
+    states::{ConnectingState, DisconnectingState},
+    tunnel::SelectedGateways,
+    tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
 };
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -207,7 +207,6 @@ impl ConnectedState {
         } else if let Err(error) = shared_state.dns_handler.reset().await {
             trace_err_chain!(error, "Failed to reset DNS");
         }
-
     }
 
     #[cfg(target_os = "windows")]
@@ -224,7 +223,6 @@ impl ConnectedState {
         {
             trace_err_chain!(error, "Failed to reset DNS");
         }
-
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

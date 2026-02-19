@@ -89,11 +89,11 @@ impl DnsFilterT for AdBlocker {
         };
 
         match self.should_block_url(url) {
-            Ok(pass) => {
-                if pass {
-                    Self::PASS
-                } else {
+            Ok(matched) => {
+                if matched {
                     Self::BLOCK
+                } else {
+                    Self::PASS
                 }
             }
             Err(error) => {
