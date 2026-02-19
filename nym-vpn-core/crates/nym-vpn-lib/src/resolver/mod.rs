@@ -33,22 +33,22 @@ mod tests;
 use crate::resolver::ad_block::{AdBlockError, AdBlocker};
 use async_trait::async_trait;
 use hickory_server::{
-    ServerFuture,
     authority::{
         EmptyLookup, LookupObject, MessageRequest, MessageResponse, MessageResponseBuilder,
     },
     proto::{
+        op::{header::MessageType, op_code::OpCode, Header, LowerQuery, ResponseCode},
+        rr::{domain::Name, rdata, record_data::RData, LowerName, Record, RecordType},
         ProtoErrorKind,
-        op::{Header, LowerQuery, ResponseCode, header::MessageType, op_code::OpCode},
-        rr::{LowerName, Record, RecordType, domain::Name, rdata, record_data::RData},
     },
     resolver::{
-        ResolveError, TokioResolver,
-        config::{NameServerConfigGroup, ResolverConfig},
-        lookup::Lookup,
+        config::{NameServerConfigGroup, ResolverConfig}, lookup::Lookup,
         name_server::TokioConnectionProvider,
+        ResolveError,
+        TokioResolver,
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
+    ServerFuture,
 };
 use rand::Rng;
 use std::{
@@ -61,7 +61,7 @@ use std::{
 };
 use tokio::{
     net::UdpSocket,
-    sync::{Mutex, mpsc, oneshot},
+    sync::{mpsc, oneshot, Mutex},
 };
 use tokio_util::{either::Either, sync::CancellationToken};
 
@@ -178,7 +178,7 @@ enum ResolverMessage {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     AdBlockerInitted {
         result: Result<AdBlocker, AdBlockError>,
-        count: usize, // Avoid retrying too many times if initialization keeps failing
+        retry_count: usize,
     },
 
     /// Ad-blocker updated in the background
@@ -315,6 +315,8 @@ impl Resolver {
 
         if blocked {
             tracing::debug!("Blocked by ad-blocker: {qname}");
+
+            // We can respond to blocked queries in different ways
             return match AD_BLOCKED_RESPONSE {
                 AdBlockedResponse::EmptyRecord => Ok(Box::new(EmptyLookup)),
                 AdBlockedResponse::Localhost => {
@@ -445,6 +447,9 @@ impl ResolverHandle {
 }
 
 impl LocalResolver {
+    const INITIAL_ADBLOCK_UPDATE_DELAY: Duration = Duration::from_secs(2 * 60);
+    const ADBLOCK_UPDATE_DELAY: Duration = Duration::from_secs(60 * 60);
+
     /// Spawn new filtering resolver and its handle.
     pub async fn spawn(
         data_dir: &Path,
@@ -581,10 +586,7 @@ impl LocalResolver {
     /// Runs the filtering resolver as an actor.
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     async fn run(mut self) {
-        const INITIAL_ADBLOCK_UPDATE_DELAY: Duration = Duration::from_secs(2 * 60);
-        const ADBLOCK_UPDATE_DELAY: Duration = Duration::from_secs(60 * 60);
-
-        let adblock_update_fuse = tokio::time::sleep(INITIAL_ADBLOCK_UPDATE_DELAY);
+        let adblock_update_fuse = tokio::time::sleep(Self::INITIAL_ADBLOCK_UPDATE_DELAY);
         tokio::pin!(adblock_update_fuse);
 
         loop {
@@ -597,15 +599,15 @@ impl LocalResolver {
                             let _ = response_tx.send(());
                         }
                         Some(ResolverMessage::EnableAdBlocker { response_tx }) => {
-                            self.enable_ad_blocker(&self.data_dir, false, 0).await;
+                            self.enable_ad_blocker(false, 0).await;
                             let _ = response_tx.send(());
                         }
                         Some(ResolverMessage::DisableAdBlocker { response_tx }) => {
                             self.disable_ad_blocker().await;
                             let _ = response_tx.send(());
                         }
-                        Some(ResolverMessage::AdBlockerInitted { result, count }) => {
-                            self.handle_ad_blocker_initted(result, count).await;
+                        Some(ResolverMessage::AdBlockerInitted { result, retry_count }) => {
+                            self.handle_ad_blocker_initted(result, retry_count).await;
                         }
                         Some(ResolverMessage::AdBlockerUpdated { result }) => {
                             self.handle_ad_blocker_updated(result).await;
@@ -621,11 +623,11 @@ impl LocalResolver {
                 },
 
                 _ = &mut adblock_update_fuse => {
-                    self.update_ad_blocker(&self.data_dir).await;
+                    self.update_ad_blocker().await;
 
                     adblock_update_fuse
                         .as_mut()
-                        .reset(tokio::time::Instant::now() + ADBLOCK_UPDATE_DELAY);
+                        .reset(tokio::time::Instant::now() + Self::ADBLOCK_UPDATE_DELAY);
                 },
 
                 _ = self.shutdown_token.cancelled() => {
@@ -658,22 +660,25 @@ impl LocalResolver {
 
     /// Enable Ad-blocker.  This is very expensive, so we spawn a new task to perform
     /// initialization in the background, and update the resolver once it is done.
-    /// (see `handle_ad_blocker_initted()`)
-    async fn enable_ad_blocker(&self, data_dir: &Path, force_init: bool, count: usize) {
+    /// (see `handle_ad_blocker_initted()`).
+    async fn enable_ad_blocker(&self, force_init: bool, retry_count: usize) {
         if self.adblocker.lock().await.is_some() {
             tracing::warn!("Ad-blocker is already enabled!");
             return;
         }
 
-        let data_dir = data_dir.to_path_buf();
+        let data_dir = self.data_dir.clone();
         let tx = self.tx.clone();
         tokio::spawn(async move {
             let result = AdBlocker::new(data_dir, force_init).await;
-            let _ = tx.send(ResolverMessage::AdBlockerInitted { result, count });
+            let _ = tx.send(ResolverMessage::AdBlockerInitted {
+                result,
+                retry_count,
+            });
         });
     }
 
-    /// Disable Ad-blocking
+    /// Disable Ad-blocker
     async fn disable_ad_blocker(&mut self) {
         let mut guard = self.adblocker.lock().await;
         if guard.is_some() {
@@ -687,13 +692,13 @@ impl LocalResolver {
     /// Update Ad-blocker filters.  This is potentially very expensive, so we spawn a
     /// new task to perform update in the background, and update the resolver
     /// once it is done (see `handle_ad_blocker_updated()`).
-    async fn update_ad_blocker(&self, data_dir: &Path) {
+    async fn update_ad_blocker(&self) {
         if self.adblocker.lock().await.is_none() {
             tracing::warn!("Ad-blocker is not enabled; cannot update filters!");
             return;
         }
 
-        let data_dir = data_dir.to_path_buf();
+        let data_dir = self.data_dir.clone();
         let tx = self.tx.clone();
         tokio::spawn(async move {
             let result = AdBlocker::with_updated_files(data_dir).await;
@@ -705,7 +710,7 @@ impl LocalResolver {
     async fn handle_ad_blocker_initted(
         &mut self,
         result: ad_block::Result<AdBlocker>,
-        count: usize,
+        retry_count: usize,
     ) {
         match result {
             Ok(adblocker) => {
@@ -715,14 +720,13 @@ impl LocalResolver {
             }
             Err(error) => {
                 tracing::error!("Failed to initialize or update ad-blocker: {error}");
-                if count == 0 {
+                if retry_count == 0 {
                     // This was the first try; let's try again but this time force the overwriting of
                     // the data files with the built-in files
                     tracing::debug!(
                         "Retrying ad-blocker initialization, forcing data file initialization"
                     );
-                    self.enable_ad_blocker(&self.data_dir, true, count + 1)
-                        .await;
+                    self.enable_ad_blocker(true, retry_count + 1).await;
                 } else {
                     tracing::error!(
                         "Ad-blocker initialization has failed twice, so will remain disabled!"

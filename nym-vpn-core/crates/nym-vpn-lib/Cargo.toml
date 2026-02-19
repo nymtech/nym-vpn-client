@@ -120,7 +120,7 @@ url.workspace = true
 urlencoding.workspace = true
 webpki-roots.workspace = true
 x509-parser = { workspace = true, features = ["verify"] }
-xz2.workspace = true
+xz2 = { workspace = true, features = ["tokio"] }
 
 # UNIX-specific dependencies
 [target.'cfg(unix)'.dependencies]

@@ -654,7 +654,7 @@ checksum = "edca88bc138befd0323b20752846e6587272d3b03b0343c8ea28a6f819e6e71f"
 dependencies = [
  "async-trait",
  "axum-core 0.4.5",
- "bytes",
+ "bytes 1.11.1",
  "futures-util",
  "http 1.3.1",
  "http-body 1.0.1",
@@ -687,7 +687,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98e529aee37b5c8206bb4bf4c44797127566d72f76952c970bd3d1e85de8f4e2"
 dependencies = [
  "axum-core 0.5.4",
- "bytes",
+ "bytes 1.11.1",
  "futures-util",
  "http 1.3.1",
  "http-body 1.0.1",
@@ -712,7 +712,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09f2bd6146b97ae3359fa0cc6d6b376d9539582c7b4220f041a33ec24c226199"
 dependencies = [
  "async-trait",
- "bytes",
+ "bytes 1.11.1",
  "futures-util",
  "http 1.3.1",
  "http-body 1.0.1",
@@ -732,7 +732,7 @@ version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ac7a6beb1182c7e30253ee75c3e918080bfb83f5a3023bcdf7209d85fd147e6"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "futures-core",
  "http 1.3.1",
  "http-body 1.0.1",
@@ -1090,6 +1090,16 @@ name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
+
+[[package]]
+name = "bytes"
+version = "0.4.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "206fdffcfa2df7cbe15601ef46c813fce0965eb3286db6b56c583b814b51c81c"
+dependencies = [
+ "byteorder",
+ "iovec",
+]
 
 [[package]]
 name = "bytes"
@@ -2512,6 +2522,12 @@ dependencies = [
 
 [[package]]
 name = "futures"
+version = "0.1.31"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a471a38ef8ed83cd6e40aa59c1ffe17db6855c18e3604d9c4ed8c08ebc28678"
+
+[[package]]
+name = "futures"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b147ee9d1f6d097cef9ce628cd2ee62288d963e16fb287bd9286455b241382d"
@@ -2772,7 +2788,7 @@ version = "0.3.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0beca50380b1fc32983fc1cb4587bfa4bb9e78fc259aad4a0032d2080309222d"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "fnv",
  "futures-core",
  "futures-sink",
@@ -2792,7 +2808,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3c0b69cfcb4e1b9f1bf2f53f95f766e4661169728ec61cd3fe5a0166f2d1386"
 dependencies = [
  "atomic-waker",
- "bytes",
+ "bytes 1.11.1",
  "fnv",
  "futures-core",
  "futures-sink",
@@ -2931,7 +2947,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8a6fe56c0038198998a6f217ca4e7ef3a5e51f46163bd6dd60b5c71ca6c6502"
 dependencies = [
  "async-trait",
- "bytes",
+ "bytes 1.11.1",
  "cfg-if",
  "data-encoding",
  "enum-as-inner",
@@ -2988,7 +3004,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d53e5fe811b941c74ee46b8818228bfd2bc2688ba276a0eaeb0f2c95ea3b2585"
 dependencies = [
  "async-trait",
- "bytes",
+ "bytes 1.11.1",
  "cfg-if",
  "data-encoding",
  "enum-as-inner",
@@ -3073,7 +3089,7 @@ version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "601cbb57e577e2f5ef5be8e7b83f0f63994f25aa94d673e54a92d5c516d101f1"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "fnv",
  "itoa",
 ]
@@ -3084,7 +3100,7 @@ version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4a85d31aea989eead29a3aaf9e1115a180df8282431156e533de47660892565"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "fnv",
  "itoa",
 ]
@@ -3095,7 +3111,7 @@ version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ceab25649e9960c0311ea418d17bee82c0dcec1bd053b5f9a66e265a693bed2"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "http 0.2.12",
  "pin-project-lite",
 ]
@@ -3106,7 +3122,7 @@ version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1efedce1fb8e6913f23e0c92de8e62cd5b772a67e7b3946df930a62566c93184"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "http 1.3.1",
 ]
 
@@ -3116,7 +3132,7 @@ version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b021d93e26becf5dc7e1b75b1bed1fd93124b374ceb73f43d4d4eafec896a64a"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "futures-core",
  "http 1.3.1",
  "http-body 1.0.1",
@@ -3167,7 +3183,7 @@ version = "0.14.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "41dfc780fdec9373c01bae43289ea34c972e40ee3c9f6b3c8801a35f35586ce7"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "futures-channel",
  "futures-core",
  "futures-util",
@@ -3192,7 +3208,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ab2d4f250c3d7b1c9fcdff1cece94ea4e2dfbec68614f7b87cb205f24ca9d11"
 dependencies = [
  "atomic-waker",
- "bytes",
+ "bytes 1.11.1",
  "futures-channel",
  "futures-core",
  "h2 0.4.12",
@@ -3259,7 +3275,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96547c2556ec9d12fb1578c4eaf448b04993e7fb79cbaad930a656880a6bdfa0"
 dependencies = [
  "base64 0.22.1",
- "bytes",
+ "bytes 1.11.1",
  "futures-channel",
  "futures-util",
  "http 1.3.1",
@@ -3487,6 +3503,15 @@ name = "ioctl-sys"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8bd11f3a29434026f5ff98c730b668ba74b1033637b8817940b54d040696133c"
+
+[[package]]
+name = "iovec"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2b3ea6ff95e175473f8ffe6a7eb7c00d054240321b84c57051175fe3c1e075e"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "ip_network"
@@ -4182,8 +4207,8 @@ version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b65d130ee111430e47eed7896ea43ca693c387f097dd97376bffafbf25812128"
 dependencies = [
- "bytes",
- "futures",
+ "bytes 1.11.1",
+ "futures 0.3.32",
  "log",
  "netlink-packet-core",
  "netlink-sys",
@@ -4196,7 +4221,7 @@ version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd6c30ed10fa69cc491d491b85cc971f6bdeb8e7367b7cde2ee6cc878d583fae"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "futures-util",
  "libc",
  "log",
@@ -4459,7 +4484,7 @@ version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "bincode",
- "futures",
+ "futures 0.3.32",
  "nym-authenticator-requests",
  "nym-bandwidth-controller",
  "nym-credentials-interface",
@@ -4559,7 +4584,7 @@ dependencies = [
  "base64 0.22.1",
  "bs58",
  "cfg-if",
- "futures",
+ "futures 0.3.32",
  "gloo-timers",
  "http-body-util",
  "humantime",
@@ -4729,7 +4754,7 @@ name = "nym-connection-monitor"
 version = "1.25.0-beta"
 dependencies = [
  "async-trait",
- "futures",
+ "futures 0.3.32",
  "nix 0.31.1",
  "nym-common",
  "pretty_assertions",
@@ -4912,7 +4937,7 @@ dependencies = [
  "async-trait",
  "boringtun",
  "clap",
- "futures",
+ "futures 0.3.32",
  "hickory-resolver",
  "nym-authenticator-client",
  "nym-bandwidth-controller",
@@ -4950,7 +4975,7 @@ name = "nym-dns"
 version = "1.25.0-beta"
 dependencies = [
  "duct",
- "futures",
+ "futures 0.3.32",
  "inotify",
  "nix 0.31.1",
  "nym-common",
@@ -5054,7 +5079,7 @@ name = "nym-gateway-client"
 version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
- "futures",
+ "futures 0.3.32",
  "getrandom 0.2.16",
  "gloo-utils",
  "nym-bandwidth-controller",
@@ -5119,7 +5144,7 @@ version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "bs58",
- "futures",
+ "futures 0.3.32",
  "generic-array 0.14.7",
  "nym-credentials",
  "nym-credentials-interface",
@@ -5162,7 +5187,7 @@ source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmi
 dependencies = [
  "async-trait",
  "bincode",
- "bytes",
+ "bytes 1.11.1",
  "cfg-if",
  "encoding_rs",
  "hickory-resolver",
@@ -5229,8 +5254,8 @@ version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "bincode",
- "bytes",
- "futures",
+ "bytes 1.11.1",
+ "futures 0.3.32",
  "nym-ip-packet-requests",
  "nym-sdk",
  "thiserror 2.0.18",
@@ -5245,7 +5270,7 @@ version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "bincode",
- "bytes",
+ "bytes 1.11.1",
  "nym-bin-common",
  "nym-crypto",
  "nym-service-provider-requests-common",
@@ -5317,7 +5342,7 @@ version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "bs58",
- "bytes",
+ "bytes 1.11.1",
  "chacha20poly1305",
  "dashmap",
  "libcrux-kem",
@@ -5379,7 +5404,7 @@ version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "dashmap",
- "futures",
+ "futures 0.3.32",
  "nym-noise",
  "nym-sphinx",
  "nym-task",
@@ -5474,8 +5499,8 @@ version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "arc-swap",
- "bytes",
- "futures",
+ "bytes 1.11.1",
+ "futures 0.3.32",
  "nym-crypto",
  "nym-noise-keys",
  "pin-project",
@@ -5518,7 +5543,7 @@ dependencies = [
  "async-trait",
  "debounced",
  "dispatch2",
- "futures",
+ "futures 0.3.32",
  "nym-apple-network",
  "nym-common",
  "nym-routing",
@@ -5600,8 +5625,8 @@ name = "nym-registration-client"
 version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
- "bytes",
- "futures",
+ "bytes 1.11.1",
+ "futures 0.3.32",
  "nym-authenticator-client",
  "nym-bandwidth-controller",
  "nym-credential-storage",
@@ -5645,7 +5670,7 @@ name = "nym-routing"
 version = "1.25.0-beta"
 dependencies = [
  "bitflags 2.11.0",
- "futures",
+ "futures 0.3.32",
  "ipnetwork",
  "libc",
  "nix 0.31.1",
@@ -5670,11 +5695,11 @@ dependencies = [
  "bincode",
  "bip39",
  "bytecodec",
- "bytes",
+ "bytes 1.11.1",
  "clap",
  "dashmap",
  "dirs",
- "futures",
+ "futures 0.3.32",
  "http 1.3.1",
  "httpcodec",
  "log",
@@ -5767,7 +5792,7 @@ source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmi
 dependencies = [
  "anyhow",
  "dirs",
- "futures",
+ "futures 0.3.32",
  "log",
  "nym-bandwidth-controller",
  "nym-client-core",
@@ -5798,8 +5823,8 @@ name = "nym-socks5-proxy-helpers"
 version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
- "bytes",
- "futures",
+ "bytes 1.11.1",
+ "futures 0.3.32",
  "log",
  "nym-ordered-buffer",
  "nym-socks5-requests",
@@ -5950,7 +5975,7 @@ name = "nym-sphinx-framing"
 version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "cfg-if",
  "nym-sphinx-acknowledgements",
  "nym-sphinx-addressing",
@@ -6009,7 +6034,7 @@ dependencies = [
 name = "nym-statistics"
 version = "1.25.0-beta"
 dependencies = [
- "futures",
+ "futures 0.3.32",
  "nym-bin-common",
  "nym-sqlx-pool-guard",
  "nym-statistics-api-client",
@@ -6042,7 +6067,7 @@ name = "nym-statistics-common"
 version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
- "futures",
+ "futures 0.3.32",
  "log",
  "nym-credentials-interface",
  "nym-crypto",
@@ -6068,7 +6093,7 @@ version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
  "cfg-if",
- "futures",
+ "futures 0.3.32",
  "log",
  "thiserror 2.0.18",
  "tokio",
@@ -6150,7 +6175,7 @@ dependencies = [
  "cw4",
  "eyre",
  "flate2",
- "futures",
+ "futures 0.3.32",
  "itertools 0.14.0",
  "nym-api-requests",
  "nym-coconut-dkg-common",
@@ -6204,7 +6229,7 @@ dependencies = [
  "bincode",
  "bip39",
  "bs58",
- "futures",
+ "futures 0.3.32",
  "hkdf",
  "nym-common",
  "nym-compact-ecash",
@@ -6292,11 +6317,11 @@ dependencies = [
  "base64 0.22.1",
  "bincode",
  "bs58",
- "bytes",
+ "bytes 1.11.1",
  "debounced",
  "dispatch2",
  "ed25519-dalek",
- "futures",
+ "futures 0.3.32",
  "hex",
  "hickory-resolver",
  "hickory-server",
@@ -6495,7 +6520,7 @@ dependencies = [
 name = "nym-vpn-rpc-uniffi"
 version = "1.25.0-beta"
 dependencies = [
- "futures",
+ "futures 0.3.32",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "tokio",
@@ -6549,7 +6574,7 @@ dependencies = [
  "anyhow",
  "clap",
  "eventlog",
- "futures",
+ "futures 0.3.32",
  "nym-bin-common",
  "nym-ipc",
  "nym-platform-metadata",
@@ -6575,7 +6600,7 @@ name = "nym-wasm-utils"
 version = "1.20.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
 dependencies = [
- "futures",
+ "futures 0.3.32",
  "getrandom 0.2.16",
  "gloo-net",
  "gloo-utils",
@@ -6621,7 +6646,7 @@ name = "nym-windows"
 version = "1.25.0-beta"
 dependencies = [
  "bitflags 2.11.0",
- "futures",
+ "futures 0.3.32",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",
@@ -7437,7 +7462,7 @@ version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2796faa41db3ec313a31f7624d9286acf277b52de526150b7e69f3debf891ee5"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "prost-derive 0.13.5",
 ]
 
@@ -7447,7 +7472,7 @@ version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2ea70524a2f82d518bce41317d0fae74151505651af45faf1ffbd6fd33f0568"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "prost-derive 0.14.3",
 ]
 
@@ -7584,7 +7609,7 @@ version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9e20a958963c291dc322d98411f541009df2ced7b5a4f2bd52337638cfccf20"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "cfg_aliases",
  "pin-project-lite",
  "quinn-proto",
@@ -7604,7 +7629,7 @@ version = "0.11.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1906b49b0c3bc04b5fe5d86a77925ae6524a19b816ae38ce1e426255f1d8a31"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "getrandom 0.3.3",
  "lru-slab",
  "rand 0.9.2",
@@ -7826,7 +7851,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd67538700a17451e7cba03ac727fb961abb7607553461627b97de0b89cf4a62"
 dependencies = [
  "base64 0.21.7",
- "bytes",
+ "bytes 1.11.1",
  "encoding_rs",
  "futures-core",
  "futures-util",
@@ -7867,7 +7892,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eddd3ca559203180a307f12d114c268abf583f59b03cb906fd0b3ff8646c1147"
 dependencies = [
  "base64 0.22.1",
- "bytes",
+ "bytes 1.11.1",
  "futures-channel",
  "futures-core",
  "futures-util",
@@ -8730,7 +8755,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f880fc8562bdeb709793f00eb42a2ad0e672c4f883bbe59122b926eca935c8f6"
 dependencies = [
  "async-trait",
- "bytes",
+ "bytes 1.11.1",
  "hex",
  "sha2 0.10.9",
  "tokio",
@@ -8958,7 +8983,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee6798b1838b6a0f69c007c133b8df5866302197e404e8b6ee8ed3e3a5e68dc6"
 dependencies = [
  "base64 0.22.1",
- "bytes",
+ "bytes 1.11.1",
  "crc",
  "crossbeam-queue",
  "either",
@@ -9036,7 +9061,7 @@ dependencies = [
  "base64 0.22.1",
  "bitflags 2.11.0",
  "byteorder",
- "bytes",
+ "bytes 1.11.1",
  "crc",
  "digest 0.10.7",
  "dotenvy",
@@ -9411,12 +9436,12 @@ version = "0.40.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc997743ecfd4864bbca8170d68d9b2bee24653b034210752c2d883ef4b838b1"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "digest 0.10.7",
  "ed25519",
  "ed25519-consensus",
  "flex-error",
- "futures",
+ "futures 0.3.32",
  "k256",
  "num-traits",
  "once_cell",
@@ -9455,7 +9480,7 @@ version = "0.40.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2c40e13d39ca19082d8a7ed22de7595979350319833698f8b1080f29620a094"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "flex-error",
  "prost 0.13.5",
  "serde",
@@ -9471,9 +9496,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35e0569a4b4cc42ff00df5a665be2858a39ff79df4790b176f1cd0e169bc0fc2"
 dependencies = [
  "async-trait",
- "bytes",
+ "bytes 1.11.1",
  "flex-error",
- "futures",
+ "futures 0.3.32",
  "getrandom 0.2.16",
  "peg",
  "pin-project",
@@ -9669,7 +9694,7 @@ version = "1.49.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72a2903cd7736441aac9df9d7688bd0ce48edccaadf181c3b90be801e81d3d86"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "libc",
  "mio",
  "parking_lot",
@@ -9678,6 +9703,17 @@ dependencies = [
  "socket2 0.6.2",
  "tokio-macros",
  "windows-sys 0.61.1",
+]
+
+[[package]]
+name = "tokio-io"
+version = "0.1.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57fc868aae093479e3131e3d165c93b1c7474109d13c90ec0dda2a1bbfff0674"
+dependencies = [
+ "bytes 0.4.12",
+ "futures 0.1.31",
+ "log",
 ]
 
 [[package]]
@@ -9756,7 +9792,7 @@ version = "0.7.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ae9cec805b01e8fc3fd2fe289f89149a9b66dd16786abd8b19cfa7b48cb0098"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "futures-core",
  "futures-sink",
  "futures-util",
@@ -9899,7 +9935,7 @@ dependencies = [
  "async-trait",
  "axum 0.8.5",
  "base64 0.22.1",
- "bytes",
+ "bytes 1.11.1",
  "h2 0.4.12",
  "http 1.3.1",
  "http-body 1.0.1",
@@ -9937,7 +9973,7 @@ version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f86539c0089bfd09b1f8c0ab0239d80392af74c21bc9e0f15e1b4aca4c1647f"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "prost 0.14.3",
  "tonic",
 ]
@@ -9985,7 +10021,7 @@ checksum = "d4e6559d53cc268e5031cd8429d05415bc4cb4aefc4aa5d6cc35fbf5b924a1f8"
 dependencies = [
  "async-compression",
  "bitflags 2.11.0",
- "bytes",
+ "bytes 1.11.1",
  "futures-core",
  "futures-util",
  "http 1.3.1",
@@ -10228,9 +10264,9 @@ version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b35f176015650e3bd849e85808d809e5b54da2ba7df983c5c3b601a2a8f1095e"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "cfg-if",
- "futures",
+ "futures 0.3.32",
  "futures-core",
  "ipnet",
  "libc",
@@ -10250,7 +10286,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e3dac10fd62eaf6617d3a904ae222845979aec67c615d1c842b4002c7666fb9"
 dependencies = [
  "byteorder",
- "bytes",
+ "bytes 1.11.1",
  "data-encoding",
  "http 0.2.12",
  "httparse",
@@ -10270,7 +10306,7 @@ version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8628dcc84e5a09eb3d8423d6cb682965dea9133204e8fb3efee74c2a0c259442"
 dependencies = [
- "bytes",
+ "bytes 1.11.1",
  "data-encoding",
  "http 1.3.1",
  "httparse",
@@ -10447,7 +10483,7 @@ checksum = "b0ef62e69762fbb9386dcb6c87cd3dd05d525fa8a3a579a290892e60ddbda47e"
 dependencies = [
  "anyhow",
  "async-compat",
- "bytes",
+ "bytes 1.11.1",
  "once_cell",
  "static_assertions",
 ]
@@ -10870,7 +10906,7 @@ version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c598d6b99ea013e35844697fc4670d08339d5cda15588f193c6beedd12f644b"
 dependencies = [
- "futures",
+ "futures 0.3.32",
  "js-sys",
  "parking_lot",
  "pin-utils",
@@ -11546,7 +11582,7 @@ checksum = "b88303b411e20a1319b368dcd04db1480003ed46ac35193e139f542720b15fbf"
 dependencies = [
  "blocking",
  "c2rust-bitfields",
- "futures",
+ "futures 0.3.32",
  "libloading",
  "log",
  "thiserror 2.0.18",
@@ -11563,7 +11599,7 @@ dependencies = [
  "assert-json-diff",
  "base64 0.22.1",
  "deadpool",
- "futures",
+ "futures 0.3.32",
  "http 1.3.1",
  "http-body-util",
  "hyper 1.8.1",
@@ -11590,7 +11626,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e49d9da833ef7c4419d8c3a18f0f7a8eca8ccc85f7ab8f359281c24100251211"
 dependencies = [
  "chrono",
- "futures",
+ "futures 0.3.32",
  "log",
  "serde",
  "thiserror 2.0.18",
@@ -11640,7 +11676,9 @@ version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "388c44dc09d76f1536602ead6d325eb532f5c122f17782bd57fb47baeeb767e2"
 dependencies = [
+ "futures 0.1.31",
  "lzma-sys",
+ "tokio-io",
 ]
 
 [[package]]
