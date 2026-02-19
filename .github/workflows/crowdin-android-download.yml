@@ -2,12 +2,6 @@ name: crowdin-android-download
 
 on:
   workflow_dispatch:
-    inputs:
-      target_branch:
-        description: "Target branch for the translation PR"
-        required: true
-        default: "develop"
-        type: string
 
 jobs:
   crowdin-download:
@@ -21,7 +15,7 @@ jobs:
       - name: Checkout target branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.target_branch }}
+          ref: ${{ github.ref_name }}
 
       - name: crowdin action
         uses: crowdin/github-action@v2
@@ -31,11 +25,11 @@ jobs:
           download_translations: true
           config: "crowdin-configs/android.yml"
           command_args: "-l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN"
-          localization_branch_name: "l10n_crowdin_android_${{ inputs.target_branch }}"
+          localization_branch_name: "l10n_crowdin_android_${{ github.ref_name }}"
           create_pull_request: true
-          pull_request_title: "Localization: Update Android Translations (${{ inputs.target_branch }})"
-          pull_request_body: "Manual PR to sync translations from Crowdin to the `${{ inputs.target_branch }}` branch. Merge this before cutting a release to ensure F-Droid reproducibility."
-          pull_request_base_branch_name: "${{ inputs.target_branch }}"
+          pull_request_title: "Localization: Update Android Translations (${{ github.ref_name }})"
+          pull_request_body: "Manual PR to sync translations from Crowdin to the `${{ github.ref_name }}` branch."
+          pull_request_base_branch_name: "${{ github.ref_name }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
