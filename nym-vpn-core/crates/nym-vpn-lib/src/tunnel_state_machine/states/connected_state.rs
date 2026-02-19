@@ -10,21 +10,21 @@ use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
 
-use nym_vpn_lib_types::{ErrorStateReason, TunnelType};
+use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::resolver::LOCAL_DNS_RESOLVER;
-use crate::tunnel_state_machine::{
-    ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
-    TunnelCommand, TunnelInterface, TunnelStateHandler,
-    states::{ConnectingState, DisconnectingState},
-    tunnel::SelectedGateways,
-    tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
-};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
+use crate::tunnel_state_machine::{gateway_ext::GatewayExt, Error, Result};
+use crate::tunnel_state_machine::{
+    states::{ConnectingState, DisconnectingState}, tunnel::SelectedGateways, tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle}, ConnectionData, NextTunnelState,
+    PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
+    TunnelCommand,
+    TunnelInterface,
+    TunnelStateHandler,
+};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -316,7 +316,7 @@ impl TunnelStateHandler for ConnectedState {
                         shared_state.tunnel_settings = tunnel_settings;
 
                         // Not all changes require the tunnel to be reconnected
-                        if diff.only_allow_lan_changed() || diff.only_enable_ad_blocking_changed() || (diff.only_mixnet_performance_options_changed() && shared_state.tunnel_settings.tunnel_type == TunnelType::Wireguard) {
+                        if diff.should_not_reconnect(shared_state.tunnel_settings.tunnel_type) {
                             NextTunnelState::SameState(self)
                         } else {
                             self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
