@@ -1,19 +1,23 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod files;
 mod adblocker;
+mod files;
+pub use adblocker::AdBlocker;
+
 mod task;
+pub use task::{AdBlockerTask, AdBlockerTaskHandle};
 
 #[cfg(test)]
 mod tests;
 
-pub use adblocker::AdBlocker;
-
 use std::path::PathBuf;
 
 #[derive(thiserror::Error, Debug)]
-pub enum AdBlockError {
+pub enum AdBlockerError {
+    #[error("data path is not available")]
+    DataPathUnavailable,
+
     #[error("failed to set up ad-blocker data directory {dir}")]
     CreateDirectory {
         dir: PathBuf,
@@ -123,13 +127,6 @@ pub enum AdBlockError {
         error: std::string::FromUtf8Error,
     },
 
-    #[error("invalid ad-blocker request URL {url}")]
-    ParseUrl {
-        url: String,
-        #[source]
-        error: url::ParseError,
-    },
-
     #[error("failed to create adblock engine request for URL {url}")]
     CreateRequest {
         url: String,
@@ -138,4 +135,4 @@ pub enum AdBlockError {
     },
 }
 
-pub(crate) type Result<T, E = AdBlockError> = std::result::Result<T, E>;
+pub(crate) type Result<T, E = AdBlockerError> = std::result::Result<T, E>;

@@ -304,11 +304,7 @@ impl TunnelStateHandler for ConnectedState {
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if diff.enable_ad_blocking_changed() {
-                            if tunnel_settings.enable_ad_blocking {
-                                shared_state.filtering_resolver.enable_ad_blocker().await;
-                            } else {
-                                shared_state.filtering_resolver.disable_ad_blocker().await;
-                            }
+                            shared_state.enable_ad_blocking(tunnel_settings.enable_ad_blocking).await;
                         }
 
                         shared_state.tunnel_settings = tunnel_settings;

@@ -3,6 +3,8 @@
 
 pub mod storage;
 
+#[cfg(any(target_os = "macos", target_os = "windows"))] // Linux soon
+mod adblocker;
 mod bandwidth_controller;
 pub mod cache_refresh;
 pub mod config;

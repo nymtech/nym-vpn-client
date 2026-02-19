@@ -4,15 +4,15 @@
 use std::{
     net::IpAddr,
     path::PathBuf,
-    pin::{pin, Pin},
+    pin::{Pin, pin},
     sync::Arc,
 };
 
-use futures::{future::Fuse, FutureExt, StreamExt};
+use futures::{FutureExt, StreamExt, future::Fuse};
 use nym_diagnostic::DiagnosticHandler;
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
-    sync::{broadcast, mpsc, oneshot, watch, RwLock},
+    sync::{RwLock, broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
     time::{Duration, Instant},
 };
@@ -45,24 +45,24 @@ use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 use super::{
-    config::{NetworkEnvironments, VpnServiceConfigManager}, error::{
+    Socks5Error, Socks5Service, Socks5Status,
+    config::{NetworkEnvironments, VpnServiceConfigManager},
+    error::{
         AccountLinksError, Error, GlobalConfigError, ListGatewaysError, Result, SetNetworkError,
-    }, socks5::Socks5EnableConfig,
-    socks5_idle_timeout,
-    socks5_request_timeout,
-    Socks5Error,
-    Socks5Service, Socks5Status,
+    },
+    socks5::Socks5EnableConfig,
+    socks5_idle_timeout, socks5_request_timeout,
 };
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    config::GlobalConfig, gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, logging::LogFileRemoverHandle, tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
-    NodeIdentity,
-    UserAgent,
-    VpnTopologyService,
-    DEFAULT_DNS_SERVERS,
+    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
+    config::GlobalConfig,
+    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
+    logging::LogFileRemoverHandle,
+    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 
 // Seed used to generate device identity keys
