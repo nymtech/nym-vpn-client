@@ -1,0 +1,93 @@
+name: Build test harness crates
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-test-crates.yml"
+      - "nym-vpn-core/crates/test/**"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+# have to build these outside of standard workflow files because they're not
+# default members of the workspace so won't get built unless explicitly specified
+jobs:
+  build-linux:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build test crates
+        working-directory: nym-vpn-core
+        run:
+          cargo build -p test-manager -p test-runner -p test-rpc -p
+          connection-checker
+
+  build-windows:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: custom-windows-11
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Install GNU make
+        run: |
+          winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make
+          echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build test crates
+        working-directory: nym-vpn-core
+        run:
+          cargo build -p test-manager -p test-runner -p test-rpc -p
+          connection-checker
+
+  build-mac:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: custom-macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build test crates
+        working-directory: nym-vpn-core
+        run:
+          cargo build -p test-manager -p test-runner -p test-rpc -p
+          connection-checker
