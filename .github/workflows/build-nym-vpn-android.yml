@@ -154,7 +154,7 @@ jobs:
       # === CROWDIN DOWNLOAD START ===
       - name: Setup Node.js
         if: ${{ inputs.build_type != 'debug' && inputs.skip_crowdin != true }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
 

@@ -393,7 +393,7 @@ jobs:
       # === CROWDIN (FALLBACK) START ===
       - name: Setup Node.js (Fallback)
         if: ${{ needs.build-nym-vpn-android-apk.result == 'skipped' }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
 
