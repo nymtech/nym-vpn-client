@@ -70,13 +70,13 @@ actor GatewayWorker {
         switch state {
         case .initial:
             let task = Task {
-                let networkName = await configurationManager.networkEnv.networkName()
+                let networkName = await configurationManager.networkEnv?.networkName()
                 logger.info("Setup gateway cache with \(networkName)")
 
                 let offlineMonitor = await NymOfflineMonitor()
                 let gatewayCache = try await NymGatewayCache(
                     userAgent: .appUserAgent,
-                    environment: configurationManager.networkEnv,
+                    environment: configurationManager.networkEnv ?? .newWithMainnetFallback(),
                     offlineMonitor: offlineMonitor
                 )
 

@@ -24,7 +24,7 @@ import Theme
 
     var actualEnv: String {
 #if os(iOS)
-        configurationManager.networkEnv.current().nymNetwork.networkName
+        configurationManager.networkEnv?.current().nymNetwork.networkName ?? "unknown"
 #elseif os(macOS)
         grpcManager.networkName ?? "Restart app to see"
 #endif
