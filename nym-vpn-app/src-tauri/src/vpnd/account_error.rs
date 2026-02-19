@@ -129,6 +129,8 @@ impl From<lib::VpnApiError> for BackendError {
     }
 }
 
+const ACCOUNT_ALREADY_LINKED_ID: &str = "e8cccbba-f4ef-49a3-be89-be835c60f289";
+
 impl From<lib::VpnApiErrorResponse> for BackendError {
     fn from(error: lib::VpnApiErrorResponse) -> Self {
         let mut detail = format!("VPN API response error: {}", error.message);
@@ -137,7 +139,16 @@ impl From<lib::VpnApiErrorResponse> for BackendError {
         }
         if let Some(id) = error.code_reference_id {
             detail.push_str(&format!(" (code: {id})"));
+
+            if id == ACCOUNT_ALREADY_LINKED_ID {
+                return BackendError::with_detail(
+                    "Account already linked",
+                    ErrorKey::AccountAlreadyLinked,
+                    detail,
+                );
+            }
         }
+
         BackendError::internal_with_detail("VPN API response error", detail)
     }
 }

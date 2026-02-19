@@ -112,7 +112,8 @@ export type ErrorKey =
   | 'device-time-desync'
   | 'get-mixnet-entry-countries-query'
   | 'get-mixnet-exit-countries-query'
-  | 'get-wg-countries-query';
+  | 'get-wg-countries-query'
+  | 'account-already-linked';
 
 export type FeatureFlags = {
   quic: boolean;

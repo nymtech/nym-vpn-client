@@ -22,14 +22,16 @@ import {
   useMainState,
 } from '../../../contexts';
 import { routes } from '../../../router';
-import { useDeepLink, useLogout } from '../../../hooks';
-import { StateDispatch, TAccountMode } from '../../../types';
+import { useDeepLink, useI18nError, useLogout } from '../../../hooks';
+import { BackendError, StateDispatch, TAccountMode } from '../../../types';
 import { getAccountColor, getAccountDescription } from './utils';
 
 const IdsTimeToLive = 120; // sec
 
 function Account() {
   const { t, i18n } = useTranslation('settings');
+  const { tE } = useI18nError();
+
   const navigate = useNavigate();
 
   const { logout, loading } = useLogout();
@@ -122,23 +124,21 @@ function Account() {
         callbackUrl: deeplinkUrl,
       });
       await refreshAccountMode();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Account login error: ', error);
+      let message = '';
+
       if (error instanceof Error && error.message === 'Login timeout') {
-        push({
-          message: t('account-linking-timeout', { ns: 'notifications' }),
-          type: 'error',
-          duration: 3000,
-          close: true,
-        });
+        message = t('account-linking-timeout', { ns: 'notifications' });
       } else {
-        push({
-          message: t('account-linking-error', { ns: 'notifications' }),
-          type: 'error',
-          duration: 3000,
-          close: true,
-        });
+        message = tE((error as BackendError).key);
       }
+      push({
+        message,
+        type: 'error',
+        duration: 3000,
+        close: true,
+      });
     } finally {
       setIsAccountLinking(false);
     }

@@ -146,6 +146,7 @@ pub enum ErrorKey {
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
     GetWgCountriesQuery,
+    AccountAlreadyLinked,
 }
 
 impl From<GatewayType> for ErrorKey {

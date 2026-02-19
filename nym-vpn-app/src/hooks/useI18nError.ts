@@ -59,6 +59,8 @@ function useI18nError() {
           return t('account.device-time-out-of-sync');
         case 'bandwidth-exceeded':
           return t('account.bandwidth-exceeded');
+        case 'account-already-linked':
+          return t('account.already-linked');
       }
 
       console.warn('unhandled backend error', error);
