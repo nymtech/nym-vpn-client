@@ -26,12 +26,14 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkClient
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
 import nym_vpn_lib_types.StoredAccountMode
+import nym_vpn_lib_types.VpnAccountSummary
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
@@ -228,6 +230,10 @@ class ServiceBackedBackendManager @Inject constructor(
 		return serviceConnectionManager.withApi { it.getAccountMode() }
 	}
 
+	override suspend fun getAccountSummary(): VpnAccountSummary? {
+		return serviceConnectionManager.withApi { it.getAccountSummary() }
+	}
+
 	private fun notifyVpnPermissionRequired() {
 		val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground.value
 		if (!isAppInForeground) {
@@ -245,29 +251,21 @@ class ServiceBackedBackendManager @Inject constructor(
 		.map { it.packageName }
 
 	private suspend fun refreshIdentityState() {
-		val mnemonicStored = runCatching {
-			serviceConnectionManager.withApi { it.isMnemonicStored() }
-		}.getOrDefault(false)
+		val updateData = runCatching {
+			serviceConnectionManager.withApi { api ->
+				val stored = api.isMnemonicStored()
+				val devId = if (stored) runCatching { api.getDeviceIdentity() }.getOrNull() else null
+				val accId = if (stored) runCatching { api.getAccountIdentity() }.getOrNull() else null
+				val state = if (stored) runCatching { api.getAccountState() }.getOrNull() else null
 
-		val deviceId = if (mnemonicStored) {
-			runCatching { serviceConnectionManager.withApi { it.getDeviceIdentity() } }.getOrNull()
-		} else {
-			null
-		}
+				listOf(stored, devId, accId, state)
+			}
+		}.getOrNull()
 
-		val accountId = if (mnemonicStored) {
-			runCatching { serviceConnectionManager.withApi { it.getAccountIdentity() } }.getOrNull()
-		} else {
-			null
-		}
-
-		val accountState = if (mnemonicStored) {
-			runCatching {
-				serviceConnectionManager.withApi { it.getAccountState() }
-			}.getOrNull()
-		} else {
-			null
-		}
+		val mnemonicStored = updateData?.get(0) as? Boolean ?: false
+		val deviceId = updateData?.get(1) as? String
+		val accountId = updateData?.get(2) as? String
+		val accountState = updateData?.get(3) as? AccountControllerState
 
 		_state.update {
 			it.copy(

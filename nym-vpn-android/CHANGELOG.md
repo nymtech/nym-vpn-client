@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.9.0]
+### Added
+- Add subscription checks after login (https://github.com/nymtech/nym-vpn-client/pull/4683)
+- Expose account summary for handling Account state (https://github.com/nymtech/nym-vpn-client/pull/4683)
+
+## [2.9.0] - 18.02.2026
 
 ### Added
 - Add support for account creation and registration in VpnService API (https://github.com/nymtech/nym-vpn-client/pull/4533)

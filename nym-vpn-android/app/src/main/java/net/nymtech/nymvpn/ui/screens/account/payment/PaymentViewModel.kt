@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -14,7 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import net.nymtech.billing.model.BillingCode
 import net.nymtech.billing.model.PurchaseState
@@ -38,7 +38,6 @@ constructor(
 
 	companion object {
 		private const val TAG = "ui-payment-vm"
-		private const val ACCOUNT_STATE_POLL_INTERVAL_MS = 2_000L
 	}
 
 	private val _events = MutableSharedFlow<PaymentUiEvent>(
@@ -88,7 +87,7 @@ constructor(
 									_events.tryEmit(PaymentUiEvent.PaymentSuccess)
 									Timber.tag(TAG).i("PaymentRegisterSuccess")
 
-									startAccountStatesUpdate()
+									startAccountStateSubscription()
 								}.onFailure { e ->
 									Timber.tag(TAG).e(e, "PaymentRegisterFailed")
 									_events.tryEmit(PaymentUiEvent.PaymentError(e.message ?: "Register account failed"))
@@ -112,7 +111,7 @@ constructor(
 							_nextRoute.value = decidePostPaymentRoute()
 
 							_events.tryEmit(PaymentUiEvent.SubscriptionOwned)
-							startAccountStatesUpdate()
+							startAccountStateSubscription()
 						}
 
 						BillingCode.USER_CANCELED -> {
@@ -170,38 +169,48 @@ constructor(
 		}
 	}
 
-	private fun startAccountStatesUpdate() {
+	private fun startAccountStateSubscription() {
 		stateUpdatesJob?.cancel()
 
-		Timber.tag(TAG).d("AccountStatePollStart")
+		Timber.tag(TAG).d("AccountStateSubscriptionStart")
 
 		stateUpdatesJob = viewModelScope.launch {
-			while (isActive) {
-				try {
-					val state = backendManager.getAccountState()
-
-					if (state is AccountControllerState.Error &&
-						state.v1 == AccountControllerErrorStateReason.InactiveSubscription
-					) {
-						Timber.tag(TAG).i("AccountStateInactiveSubscription action=refresh")
-						refreshAccount()
-					}
-
+			backendManager.stateFlow
+				.map { it.accountState }
+				.filter { state ->
+					state is AccountControllerState.ReadyToConnect ||
+						state is AccountControllerState.Decentralised ||
+						state is AccountControllerState.UpgradeMode ||
+						(
+							state is AccountControllerState.Error &&
+								state.v1 == AccountControllerErrorStateReason.InactiveSubscription
+							)
+				}
+				.collect { state ->
 					_accountState.value = state
 
-					if (state == AccountControllerState.ReadyToConnect) {
-						Timber.tag(TAG).i("AccountStateReadyToConnect")
-						break
+					when (state) {
+						is AccountControllerState.ReadyToConnect,
+						is AccountControllerState.Decentralised,
+						is AccountControllerState.UpgradeMode,
+						-> {
+							Timber.tag(TAG).i("AccountStateReadyToConnect")
+							stateUpdatesJob?.cancel()
+						}
+
+						is AccountControllerState.Error -> {
+							if (state.v1 == AccountControllerErrorStateReason.InactiveSubscription) {
+								Timber.tag(TAG).i("AccountStateInactiveSubscription action=refresh")
+								refreshAccount()
+							}
+						}
+
+						else -> Unit
 					}
-				} catch (t: Throwable) {
-					Timber.tag(TAG).w(t, "AccountStatePollFailed")
 				}
-
-				delay(ACCOUNT_STATE_POLL_INTERVAL_MS)
-			}
-
-			Timber.tag(TAG).d("AccountStatePollStop")
 		}
+
+		Timber.tag(TAG).d("AccountStateSubscriptionStarted")
 	}
 
 	fun consumeNextRoute() {

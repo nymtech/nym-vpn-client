@@ -17,6 +17,7 @@ import nym_vpn_lib_types.NetworkCompatibility
 import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
+import nym_vpn_lib_types.VpnAccountSummary
 
 interface VpnServiceApi {
 
@@ -62,4 +63,5 @@ interface VpnServiceApi {
 	suspend fun getDeeplink(params: GetDeeplinkParams): String?
 	suspend fun storeDeeplinkAccount(url: String)
 	suspend fun getAccountMode(): StoredAccountMode?
+	suspend fun getAccountSummary(): VpnAccountSummary?
 }
