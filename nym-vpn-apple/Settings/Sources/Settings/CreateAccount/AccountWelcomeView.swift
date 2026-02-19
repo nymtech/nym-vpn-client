@@ -13,8 +13,9 @@ import UIComponents
 import Routes
 import Theme
 
-public struct CreateAccountWelcomeView: View {
-    private let navigationSource: CreateAccountNavigationSource
+public struct AccountWelcomeView: View {
+    private let navigationSource: AccountWelcomeNavigationSource
+    private let type: AccountWelcomeType
 
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var credentialsManager: CredentialsManager
@@ -49,7 +50,6 @@ public struct CreateAccountWelcomeView: View {
                     Spacer()
                         .frame(height: 24)
                 }
-                alreadyHaveAnAccount
                 Spacer()
                 TermsAndConditionsView()
                 Spacer()
@@ -73,13 +73,18 @@ public struct CreateAccountWelcomeView: View {
         }
     }
 
-    public init(path: Binding<NavigationPath>, navigationSource: CreateAccountNavigationSource) {
+    public init(
+        path: Binding<NavigationPath>,
+        type: AccountWelcomeType,
+        navigationSource: AccountWelcomeNavigationSource
+    ) {
         _path = path
+        self.type = type
         self.navigationSource = navigationSource
     }
 }
 
-private extension CreateAccountWelcomeView {
+private extension AccountWelcomeView {
     var navbar: some View {
         CustomNavBar(
             useElevationBackground: true,
@@ -88,9 +93,18 @@ private extension CreateAccountWelcomeView {
     }
 
     var createAccountTitle: some View {
-        Text("createAccount".localizedString)
+        Text(accountLocalizedString)
             .textStyle(.Headline.Large.regular)
             .foregroundStyle(NymColor.primary)
+    }
+
+    var accountLocalizedString: String {
+        switch type {
+        case .createAccount:
+            "createAccount".localizedString
+        case .login:
+            "login".localizedString
+        }
     }
 
     var createAccountSection: some View {
@@ -106,7 +120,7 @@ private extension CreateAccountWelcomeView {
 
     var maximumPrivacyTitle: some View {
         HStack {
-            Text("⚡️ \("createAccount.instantAndAnonymous".localizedString)")
+            Text("🔒 \("createAccount.maximumPrivacy".localizedString)")
                 .textStyle(.Headline.Small.regular)
                 .foregroundStyle(NymColor.primary)
             Spacer()
@@ -115,7 +129,7 @@ private extension CreateAccountWelcomeView {
 
     var maximumPrivacySubtitle: some View {
         HStack {
-            Text("createAccount.singleTap.subtitle".localizedString)
+            Text("\("createAccount.singleTap.subtitle".localizedString) \n\n\("createAccount.singleTap.subtitle1".localizedString)")
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
             Spacer()
@@ -162,7 +176,7 @@ private extension CreateAccountWelcomeView {
 
     var privyTitle: some View {
         HStack {
-            Text("🔑 \("createAccount.useExistingLogin".localizedString)")
+            Text("⚡️ \("createAccount.quickSetup".localizedString)")
                 .textStyle(.Headline.Small.regular)
                 .foregroundStyle(NymColor.primary)
             Spacer()
@@ -180,7 +194,7 @@ private extension CreateAccountWelcomeView {
 
     var privyLoginButton: some View {
         GenericButton(
-            title: "createAccount.continueOnSocial".localizedString,
+            title: privyLoginButtonTitle,
             style: .primaryBorderOnly,
             isLoading: $isLoggingInWithPrivy
         )
@@ -192,25 +206,18 @@ private extension CreateAccountWelcomeView {
         }
     }
 
-    @ViewBuilder var alreadyHaveAnAccount: some View {
-        if let loginAttributedString = loginAttributedString() {
-            Text(loginAttributedString)
-                .tint(NymColor.accent)
-                .textStyle(.Body.Large.regular)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(NymColor.gray1)
-                .padding(.bottom, 24)
-                .environment(\.openURL, OpenURLAction { url in
-                    guard url.absoluteString == "login" else { return .discarded }
-                    navigateToLogin()
-                    return .handled
-                })
+    var privyLoginButtonTitle: String {
+        switch type {
+        case .login:
+            "createAccount.loginWithSocialAccount".localizedString
+        case .createAccount:
+            "createAccount.continueOnSocial".localizedString
         }
     }
 }
 
 // MARK: - Actions -
-private extension CreateAccountWelcomeView {
+private extension AccountWelcomeView {
     func navigateHome() {
         path = .init()
     }
@@ -238,7 +245,7 @@ private extension CreateAccountWelcomeView {
 
     func navigateToLogin() {
         ImpactGenerator.shared.impact()
-        path.append(SettingLink.addCredentials(navigationSource: .createAccountWelcome))
+        path.append(SettingLink.addCredentials(navigationSource: .accountWelcome))
     }
 
     func privyLogin() {
@@ -257,7 +264,7 @@ private extension CreateAccountWelcomeView {
 }
 
 // MARK: - Helpers -
-private extension CreateAccountWelcomeView {
+private extension AccountWelcomeView {
     func loginAttributedString() -> AttributedString? {
         let alreadyHaveAcccount = "createAccount.alreadyHaveAccount".localizedString
         let login = "createAccount.login".localizedString

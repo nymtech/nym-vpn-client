@@ -1,4 +1,4 @@
-public enum CreateAccountNavigationSource {
+public enum AccountWelcomeNavigationSource {
     case onboarding
     case settings
     case home

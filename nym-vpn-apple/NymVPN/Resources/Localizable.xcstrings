@@ -6444,17 +6444,6 @@
         }
       }
     },
-    "createAccount.instantAndAnonymous" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instant & anonymous (recommended)"
-          }
-        }
-      }
-    },
     "createAccount.introOffer" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6567,6 +6556,28 @@
         }
       }
     },
+    "createAccount.loginWithSocialAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in with social account"
+          }
+        }
+      }
+    },
+    "createAccount.maximumPrivacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximum privacy"
+          }
+        }
+      }
+    },
     "createAccount.noPassphraseNoAccess" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6664,6 +6675,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我理解：没有密码，没有访问权限。"
+          }
+        }
+      }
+    },
+    "createAccount.quickSetup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick setup"
           }
         }
       }
@@ -6775,7 +6797,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "One tap to checkout. Anonymous account generated on your device. No password, no personal info."
+            "value" : "Create an anonymous account on nym.com. You'll receive a 24-word passphrase. Save it to log back into the app."
+          }
+        }
+      }
+    },
+    "createAccount.singleTap.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No personal info required."
           }
         }
       }
@@ -6892,24 +6925,13 @@
         }
       }
     },
-    "createAccount.useExistingLogin" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use existing login"
-          }
-        }
-      }
-    },
     "createAccount.useExistingLogin.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Privately sign in with email, Google or crypto wallet, through our partner Privy"
+            "value" : "Use existing account like Google or crypto wallet through our login partner Privy."
           }
         }
       }

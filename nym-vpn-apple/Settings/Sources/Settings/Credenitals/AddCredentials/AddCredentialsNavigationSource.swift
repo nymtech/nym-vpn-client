@@ -1,5 +1,5 @@
 public enum AddCredentialsNavigationSource {
     case onboarding
-    case createAccountWelcome
+    case accountWelcome
     case settings
 }
