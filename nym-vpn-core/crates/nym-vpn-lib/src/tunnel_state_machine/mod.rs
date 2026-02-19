@@ -19,6 +19,20 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
+#[cfg(target_os = "android")]
+use crate::tunnel_provider::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use crate::tunnel_provider::OSTunProvider;
+use crate::{
+    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    mixnet::VpnTopologyServiceHandle,
+};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::{
+    adblocker,
+    resolver::{self, DnsFilter, NullDnsFilter},
+};
+
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
@@ -30,16 +44,17 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
-#[cfg(any(target_os = "ios", target_os = "android"))]
+#[cfg(not(target_os = "linux"))]
 use std::sync::Arc;
 use std::{
     collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
-    sync::Arc,
 };
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use tokio::sync::Mutex;
 use tokio::{
-    sync::{Mutex, mpsc, watch},
+    sync::{mpsc, watch},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
@@ -61,18 +76,6 @@ use tunnel::SelectedGateways;
 #[cfg(windows)]
 use wintun::SetupWintunAdapterError;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use crate::resolver;
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::OSTunProvider;
-use crate::{
-    GatewayDirectoryError, UserAgent, adblocker,
-    bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
-    resolver::{DnsFilter, NullDnsFilter},
-};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -636,6 +639,7 @@ impl SharedState {
         }
     }
 
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     async fn enable_ad_blocking(&self, enable: bool) {
         if enable {
             // Get the DNS filter implementation from the ad-blocker, however in order to
@@ -732,6 +736,8 @@ impl TunnelStateMachine {
                 adblocker::AdBlockerError::DataPathUnavailable,
             ));
         };
+
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         let (adblocker, adblocker_handle) = adblocker::AdBlockerTask::spawn(
             data_path,
             user_agent.to_string(),

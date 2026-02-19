@@ -494,7 +494,14 @@ impl LocalResolver {
                             let _ = response_tx.send(());
                         }
                         Some(ResolverMessage::SetDnsFilter { dns_filter, response_tx }) => {
+                            // Store the new filter.
                             self.dns_filter = dns_filter;
+
+                            // If we're currently forwarding, update the live resolver too.
+                            if let Resolver::Forwarding { dns_filter, .. } = &mut self.inner_resolver {
+                                *dns_filter = self.dns_filter.clone();
+                            }
+
                             let _ = response_tx.send(());
                         }
                         Some(ResolverMessage::Query { dns_query, response_tx }) => {
