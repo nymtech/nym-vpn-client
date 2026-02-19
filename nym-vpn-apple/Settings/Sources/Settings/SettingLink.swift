@@ -3,7 +3,7 @@ import Foundation
 public enum SettingLink: Hashable, Identifiable {
     case accountAndDevices
     case addCredentials(navigationSource: AddCredentialsNavigationSource)
-    case createAccountWelcome(navigationSource: CreateAccountNavigationSource)
+    case accountWelcome(type: AccountWelcomeType, navigationSource: AccountWelcomeNavigationSource)
     case generatePassphrase(displayPurchaseView: Bool)
     case processingAccount
     case passphrase

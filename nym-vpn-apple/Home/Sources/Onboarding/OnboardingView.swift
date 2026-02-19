@@ -150,13 +150,13 @@ private extension OnboardingView {
     func navigateToCreateAccount() {
         appSettings.onboardingDidDisplay = true
         path = NavigationPath([HomeLink.settings])
-        path.append(SettingLink.createAccountWelcome(navigationSource: .onboarding))
+        path.append(SettingLink.accountWelcome(type: .createAccount, navigationSource: .onboarding))
     }
 
     func navigateTologin() {
         appSettings.onboardingDidDisplay = true
         path = NavigationPath([HomeLink.settings])
-        path.append(SettingLink.addCredentials(navigationSource: .onboarding))
+        path.append(SettingLink.accountWelcome(type: .login, navigationSource: .onboarding))
     }
 }
 
