@@ -6,6 +6,7 @@
 #[path = "macos/mod.rs"]
 mod imp;
 
+#[cfg(target_os = "macos")]
 pub use imp::*;
 
 /// Type describing what caused split tunneling to fail.
