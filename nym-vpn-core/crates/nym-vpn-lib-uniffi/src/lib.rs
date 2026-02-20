@@ -202,7 +202,7 @@ use tokio::runtime::Runtime;
 
 use nym_vpn_lib_types::{
     EntryPoint, ExitPoint, MixnetTrafficConfig, NetworkStatisticsConfig, PrivyDerivationMessage,
-    UserAgent, VpnServiceConfig,
+    SplitTunnelSettings, UserAgent, VpnServiceConfig,
 };
 
 #[cfg(target_os = "android")]
@@ -295,6 +295,9 @@ impl VPNConfig {
             min_gateway_vpn_performance: None,
             mixnet_traffic: self.mixnet_traffic.clone().unwrap_or_default(),
             network_stats: self.network_stats.unwrap_or_default(),
+
+            // Not available via vpn service on mobile platforms
+            split_tunnel: SplitTunnelSettings::default(),
         })
     }
 }
