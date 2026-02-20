@@ -53,6 +53,16 @@ constructor(
 			val enabled = environmentManager.isQuicEnabled()
 			_isQuicFeatureFlagEnabled.update { enabled }
 		}
+
+		viewModelScope.launch {
+			isAppInForeground.collect { inForeground ->
+				if (inForeground) {
+					Timber.tag(TAG).i("App returned to foreground, refreshing account state")
+					runCatching { backendManager.refreshAccount() }
+						.onFailure { Timber.tag(TAG).w(it, "Foreground account refresh failed") }
+				}
+			}
+		}
 	}
 
 	fun onTwoHopSelected() = viewModelScope.launch {

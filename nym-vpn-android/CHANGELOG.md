@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add subscription checks after login (https://github.com/nymtech/nym-vpn-client/pull/4683)
 - Expose account summary for handling Account state (https://github.com/nymtech/nym-vpn-client/pull/4683)
 
+### Fixed
+- Fix No subscription error handling on Main screen (https://github.com/nymtech/nym-vpn-client/pull/4685)
+
 ## [2.9.0] - 18.02.2026
 
 ### Added

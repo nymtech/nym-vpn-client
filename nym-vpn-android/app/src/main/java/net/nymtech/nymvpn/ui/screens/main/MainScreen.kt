@@ -75,6 +75,7 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
@@ -107,7 +108,18 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 
 			val finalState = when (val event = managerState.backendUiEvent) {
 				is BackendUiEvent.BandwidthAlert, null -> baseState
-				is BackendUiEvent.Failure -> ConnectionState.Error(event.reason)
+				is BackendUiEvent.Failure -> {
+					val isSubError = event.reason is nym_vpn_lib_types.ErrorStateReason.InactiveSubscription ||
+						event.reason is nym_vpn_lib_types.ErrorStateReason.InactiveAccount
+					val isAccountReady = managerState.accountState is AccountControllerState.ReadyToConnect ||
+						managerState.accountState is AccountControllerState.Decentralised ||
+						managerState.accountState is AccountControllerState.UpgradeMode
+					if (isSubError && isAccountReady) {
+						baseState
+					} else {
+						ConnectionState.Error(event.reason)
+					}
+				}
 				is BackendUiEvent.StartFailure -> ConnectionState.StartFailure(event.exception)
 			}
 

@@ -97,7 +97,7 @@ fun ConnectionButton(
 							onClick = onGetStart,
 							content = {
 								Text(
-									stringResource(R.string.main_button_select_plan),
+									stringResource(R.string.get_started),
 									style = CustomTypography.buttonMain,
 								)
 							},
