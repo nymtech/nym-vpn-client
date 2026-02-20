@@ -4,14 +4,13 @@
 
 use std::net::SocketAddr;
 
+use super::*;
 use hickory_server::resolver::{
     TokioResolver,
     config::{NameServerConfigGroup, ResolverConfig},
     name_server::TokioConnectionProvider,
 };
 use tokio_util::sync::CancellationToken;
-
-use super::*;
 
 /// Test whether we can successfully bind the socket even if the address is already used in
 /// different scenarios.

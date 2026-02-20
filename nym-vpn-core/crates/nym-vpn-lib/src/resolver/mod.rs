@@ -24,8 +24,6 @@ mod windows;
 #[cfg(windows)]
 pub(crate) use windows::{flush_system_cache, new_random_socket};
 
-mod ad_block;
-
 #[cfg(test)]
 mod tests;
 
@@ -50,9 +48,9 @@ use hickory_server::{
 };
 use rand::Rng;
 use std::{
-    collections::HashSet,
+    any::Any,
     io,
-    net::{IpAddr, Ipv4Addr, SocketAddr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     str::FromStr,
     sync::{Arc, LazyLock},
     time::{Duration, Instant},
@@ -71,6 +69,42 @@ pub(crate) trait LoopbackAlias: Send {
 }
 
 pub(crate) type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
+
+/// How to handle a DNS-filtered blocking decisions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DnsFilterStrategy {
+    #[allow(dead_code)]
+    EmptyRecord, // Return an empty record.
+    Localhost, // Return localhost
+}
+
+/// DNS filter decision
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DnsFilterDecision {
+    Pass,
+    Block(DnsFilterStrategy),
+}
+
+/// DNS filter trait.
+pub trait DnsFilterT: Send + Sync + 'static {
+    fn should_block(&self, domain: &str) -> DnsFilterDecision;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+}
+
+/// DNS filter type
+pub type DnsFilter = Arc<Mutex<Box<dyn DnsFilterT + Send + Sync>>>;
+
+/// Null DNS Filter (always passes).
+pub struct NullDnsFilter;
+
+impl DnsFilterT for NullDnsFilter {
+    fn should_block(&self, _domain: &str) -> DnsFilterDecision {
+        DnsFilterDecision::Pass
+    }
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+}
 
 /// If a local DNS resolver should be used.
 ///
@@ -105,6 +139,7 @@ static ALLOWED_DOMAINS: LazyLock<Vec<LowerName>> = LazyLock::new(|| {
 });
 
 const TTL_SECONDS: u32 = 3;
+
 /// An IP address to be used in the DNS response to the captive domain query. The address itself
 /// belongs to the documentation range so should never be reachable.
 const RESOLVED_ADDR: Ipv4Addr = Ipv4Addr::new(198, 51, 100, 1);
@@ -129,8 +164,7 @@ pub struct LocalResolver {
     dns_server_task: tokio::task::JoinHandle<()>,
     bound_to: SocketAddr,
     inner_resolver: Resolver,
-    ad_blocking: bool,
-    ad_blocked_domains: Mutex<HashSet<String>>, // Will be Mutex<FilterSet> when adblock crate is used
+    dns_filter: DnsFilter,
     shutdown_token: CancellationToken,
 }
 
@@ -144,18 +178,10 @@ enum ResolverMessage {
         response_tx: oneshot::Sender<()>,
     },
 
-    /// Turn on Ad-blocking
-    EnableAdBlocking {
-        /// Enable or disable
-        enable: bool,
-        /// Response channel when resolvers have been updated
-        response_tx: oneshot::Sender<()>,
-    },
-
-    /// Update Ad-blocked domains
-    UpdateAdBlockedDomains {
-        /// New set of ad-blocked domains
-        domains: HashSet<String>,
+    /// Set the DNS-filter
+    SetDnsFilter {
+        /// New DNS filter to use
+        dns_filter: DnsFilter,
         /// Response channel when resolvers have been updated
         response_tx: oneshot::Sender<()>,
     },
@@ -188,7 +214,10 @@ enum Resolver {
     Blocking,
 
     /// Forward DNS queries to a configured server
-    Forwarding(Box<TokioResolver>),
+    Forwarding {
+        resolver: Box<TokioResolver>,
+        dns_filter: DnsFilter,
+    },
 }
 
 impl Resolver {
@@ -200,9 +229,15 @@ impl Resolver {
         tracing::trace!("resolve query: {}", query.to_string());
         let lookup = match self {
             Resolver::Blocking => Either::Left(async move { Self::resolve_blocked(query) }),
-            Resolver::Forwarding(resolver) => {
-                Either::Right(Self::resolve_forward(resolver.as_ref().clone(), query))
-            }
+
+            Resolver::Forwarding {
+                resolver,
+                dns_filter,
+            } => Either::Right(Self::resolve_forward(
+                resolver.as_ref().clone(),
+                query,
+                dns_filter.clone(),
+            )),
         };
 
         tokio::spawn(async move {
@@ -242,18 +277,54 @@ impl Resolver {
         ALLOWED_RECORD_TYPES.contains(&query.query_type()) && ALLOWED_DOMAINS.contains(query.name())
     }
 
-    /// Forward DNS queries to the specified DNS resolver.
     async fn resolve_forward(
         resolver: TokioResolver,
         query: LowerQuery,
+        dns_filter: DnsFilter,
     ) -> Result<Box<dyn LookupObject>, ResolveError> {
         let return_query = query.original().clone();
+        let qname = return_query.name().to_ascii();
 
-        let lookup = resolver
-            .lookup(return_query.name().clone(), return_query.query_type())
-            .await;
+        let decision = {
+            let guard = dns_filter.lock().await;
+            guard.should_block(&qname)
+        };
 
-        lookup.map(|lookup| Box::new(ForwardLookup(lookup)) as Box<_>)
+        if decision != DnsFilterDecision::Pass {
+            tracing::trace!("Blocking DNS query for {qname} with strategy {decision:?}");
+        }
+
+        match decision {
+            DnsFilterDecision::Pass => {
+                let lookup = resolver
+                    .lookup(return_query.name().clone(), return_query.query_type())
+                    .await;
+
+                lookup.map(|lookup| Box::new(ForwardLookup(lookup)) as Box<_>)
+            }
+            DnsFilterDecision::Block(DnsFilterStrategy::EmptyRecord) => Ok(Box::new(EmptyLookup)),
+            DnsFilterDecision::Block(DnsFilterStrategy::Localhost) => {
+                let rdata = match return_query.query_type() {
+                    RecordType::A => RData::A(rdata::A(Ipv4Addr::LOCALHOST)),
+                    RecordType::AAAA => RData::AAAA(rdata::AAAA(Ipv6Addr::LOCALHOST)),
+                    RecordType::CNAME => RData::CNAME(rdata::CNAME(Name::from_str("localhost.")?)),
+                    other => {
+                        tracing::warn!("Unsupported query type {other} for domain {qname}");
+                        return Ok(Box::new(EmptyLookup));
+                    }
+                };
+
+                let return_record =
+                    Record::from_rdata(return_query.name().clone(), TTL_SECONDS, rdata);
+
+                let lookup = Lookup::new_with_deadline(
+                    return_query,
+                    Arc::new([return_record]),
+                    Instant::now() + Duration::from_secs(3),
+                );
+                Ok(Box::new(ForwardLookup(lookup)) as Box<_>)
+            }
+        }
     }
 }
 
@@ -306,30 +377,13 @@ impl ResolverHandle {
         }
     }
 
-    /// Enable or disable ad-blocking.
-    #[allow(dead_code)] // TEMP: REMOVE
-    pub async fn enable_ad_blocking(&self, enable: bool) {
+    /// Set the DNS filter.
+    pub async fn set_dns_filter(&self, dns_filter: DnsFilter) {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
-            .send(ResolverMessage::EnableAdBlocking {
-                enable,
-                response_tx,
-            })
-            .is_ok()
-        {
-            response_rx.await.ok();
-        }
-    }
-
-    /// Update ad-blocked domains.
-    #[allow(dead_code)] // TEMP: REMOVE
-    pub async fn update_ad_blocked_domains(&self, domains: HashSet<String>) {
-        let (response_tx, response_rx) = oneshot::channel();
-        if self
-            .tx
-            .send(ResolverMessage::UpdateAdBlockedDomains {
-                domains,
+            .send(ResolverMessage::SetDnsFilter {
+                dns_filter,
                 response_tx,
             })
             .is_ok()
@@ -410,16 +464,18 @@ impl LocalResolver {
             }
         });
 
+        let dns_filter: DnsFilter = Arc::new(Mutex::new(Box::new(NullDnsFilter)));
+
         let resolver = Self {
             rx,
             dns_server_task,
             bound_to: resolver_addr,
             inner_resolver: Resolver::Blocking,
-            ad_blocking: false,
-            ad_blocked_domains: Mutex::new(HashSet::new()),
+            dns_filter,
             shutdown_token,
         };
 
+        // Spawn onto the multi-thread runtime (requires LocalResolver: Send)
         let join_handle = tokio::spawn(resolver.run());
 
         Ok((ResolverHandle::new(tx, resolver_addr), join_handle))
@@ -434,51 +490,37 @@ impl LocalResolver {
         Ok(server)
     }
 
-    /// Runs the filtering resolver as an actor.
     async fn run(mut self) {
         loop {
             tokio::select! {
                 request = self.rx.recv() => {
                     match request {
-                        Some(ResolverMessage::SetConfig {
-                            new_config,
-                            response_tx,
-                        }) => {
-                            tracing::info!("Updating config: {new_config:?}");
-
+                        Some(ResolverMessage::SetConfig { new_config, response_tx }) => {
                             self.update_config(new_config);
                             flush_system_cache();
                             let _ = response_tx.send(());
                         }
-                        Some(ResolverMessage::EnableAdBlocking {
-                            enable,
-                            response_tx,
-                        }) => {
-                            tracing::info!("{} ad-blocking", if enable { "Enabling" } else { "Disabling" });
-                            self.ad_blocking = enable;
-                            flush_system_cache();
+                        Some(ResolverMessage::SetDnsFilter { dns_filter, response_tx }) => {
+                            // Store the new filter.
+                            self.dns_filter = dns_filter;
+
+                            // If we're currently forwarding, update the live resolver too.
+                            if let Resolver::Forwarding { dns_filter, .. } = &mut self.inner_resolver {
+                                *dns_filter = self.dns_filter.clone();
+                            }
+
                             let _ = response_tx.send(());
                         }
-                        Some(ResolverMessage::UpdateAdBlockedDomains { domains, response_tx }) => {
-                            tracing::info!("Updating Ad-blocked domains");
-                            let mut guard = self.ad_blocked_domains.lock().await;
-                            *guard = domains;
-                            flush_system_cache();
-                            let _ = response_tx.send(());
-                        }
-                        Some(ResolverMessage::Query {
-                            dns_query,
-                            response_tx,
-                        }) => {
+                        Some(ResolverMessage::Query { dns_query, response_tx }) => {
                             self.inner_resolver.resolve(dns_query, response_tx);
                         }
                         None => {
-                            // Channel closed, cancel server task
                             self.shutdown_token.cancel();
                             break;
                         }
                     }
                 },
+
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
@@ -493,6 +535,8 @@ impl LocalResolver {
 
     /// Update the current DNS config.
     fn update_config(&mut self, config: Config) {
+        tracing::info!("Updating config: {config:?}");
+
         match config {
             Config::Blocking => {
                 self.blocking();
@@ -520,7 +564,10 @@ impl LocalResolver {
             TokioResolver::builder_with_config(forward_config, TokioConnectionProvider::default())
                 .build();
 
-        self.inner_resolver = Resolver::Forwarding(Box::new(resolver));
+        self.inner_resolver = Resolver::Forwarding {
+            resolver: Box::new(resolver),
+            dns_filter: self.dns_filter.clone(),
+        }
     }
 }
 

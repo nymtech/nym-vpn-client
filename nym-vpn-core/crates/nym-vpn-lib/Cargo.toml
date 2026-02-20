@@ -12,7 +12,9 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+adblock.workspace = true
 anyhow.workspace = true
+async-compression = { workspace = true, features = ["tokio", "gzip"] }
 async-trait.workspace = true
 base64.workspace = true
 bincode.workspace = true
@@ -93,6 +95,7 @@ sentry = { workspace = true, features = [
     "tracing",
     "logs",
 ] }
+sha2.workspace = true
 strum.workspace = true
 toml.workspace = true
 thiserror.workspace = true
@@ -165,6 +168,7 @@ dispatch2.workspace = true
 [dev-dependencies]
 pretty_assertions.workspace = true
 tempfile.workspace = true
+tracing-test.workspace = true
 
 [build-dependencies]
 vergen-gitcl = { workspace = true, default-features = false, features = [

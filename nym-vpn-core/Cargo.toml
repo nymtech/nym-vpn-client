@@ -60,8 +60,12 @@ lto = true
 large_futures = "warn"
 
 [workspace.dependencies]
+# We need to turn off the feature "single-thread" to avoid "future cannot be sent between threads safely".
+adblock = { version = "0.12.1", default-features = false, features = ["embedded-domain-resolver"] }
+
 aes-gcm = "0.10"
 anyhow = "1.0.101"
+async-compression = "0.4.40"
 async-stream = "0.3.6"
 async-trait = "0.1.89"
 backon = "1.6"

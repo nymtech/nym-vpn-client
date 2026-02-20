@@ -400,6 +400,7 @@ impl VpnServiceConfigManager {
         TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,
             allow_lan: self.config.allow_lan,
+            enable_ad_blocking: self.config.enable_ad_blocking,
             residential_exit: self.config.residential_exit,
             tunnel_type,
             mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },

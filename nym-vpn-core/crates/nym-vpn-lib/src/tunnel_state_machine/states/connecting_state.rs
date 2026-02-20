@@ -42,9 +42,7 @@ use nym_firewall::{
 use nym_gateway_directory::ResolvedConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
-use nym_vpn_lib_types::{
-    EstablishConnectionData, EstablishConnectionState, GatewayLightInfo, TunnelType,
-};
+use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayLightInfo};
 
 /// Initial delay between retry attempts.
 const INITIAL_WAIT_DELAY: Duration = Duration::from_secs(2);
@@ -684,7 +682,7 @@ impl TunnelStateHandler for ConnectingState {
                         shared_state.tunnel_settings = tunnel_settings;
 
                         // Not all changes require the tunnel to be reconnected
-                        if diff.only_allow_lan_changed() || (diff.only_mixnet_performance_options_changed() && shared_state.tunnel_settings.tunnel_type == TunnelType::Wireguard) {
+                        if diff.should_not_reconnect(shared_state.tunnel_settings.tunnel_type) {
                             return NextTunnelState::SameState(self);
                         }
 

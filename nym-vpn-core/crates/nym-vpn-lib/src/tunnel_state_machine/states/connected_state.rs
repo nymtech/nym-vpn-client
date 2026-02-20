@@ -10,7 +10,7 @@ use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
 
-use nym_vpn_lib_types::{ErrorStateReason, TunnelType};
+use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -171,6 +171,10 @@ impl ConnectedState {
                     .await
                     .map_err(Error::SetDns)?;
             }
+
+            if shared_state.tunnel_settings.enable_ad_blocking {
+                shared_state.enable_ad_blocking(true).await;
+            }
         } else {
             tracing::debug!("Not enabling local DNS resolver");
             shared_state
@@ -198,6 +202,7 @@ impl ConnectedState {
     async fn reset_dns(shared_state: &mut SharedState) {
         // On macOS, configure only the local DNS resolver
         if *LOCAL_DNS_RESOLVER {
+            shared_state.enable_ad_blocking(false).await;
             shared_state.filtering_resolver.disable_forward().await;
         } else if let Err(error) = shared_state.dns_handler.reset().await {
             trace_err_chain!(error, "Failed to reset DNS");
@@ -207,6 +212,7 @@ impl ConnectedState {
     #[cfg(target_os = "windows")]
     async fn reset_dns(shared_state: &mut SharedState) {
         if *LOCAL_DNS_RESOLVER {
+            shared_state.enable_ad_blocking(false).await;
             shared_state.filtering_resolver.disable_forward().await;
         }
 
@@ -302,10 +308,15 @@ impl TunnelStateHandler for ConnectedState {
                             }
                         }
 
+                        #[cfg(any(target_os = "macos", target_os = "windows"))]
+                        if diff.enable_ad_blocking_changed() {
+                            shared_state.enable_ad_blocking(tunnel_settings.enable_ad_blocking).await;
+                        }
+
                         shared_state.tunnel_settings = tunnel_settings;
 
                         // Not all changes require the tunnel to be reconnected
-                        if diff.only_allow_lan_changed() || (diff.only_mixnet_performance_options_changed() && shared_state.tunnel_settings.tunnel_type == TunnelType::Wireguard) {
+                        if diff.should_not_reconnect(shared_state.tunnel_settings.tunnel_type) {
                             NextTunnelState::SameState(self)
                         } else {
                             self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await

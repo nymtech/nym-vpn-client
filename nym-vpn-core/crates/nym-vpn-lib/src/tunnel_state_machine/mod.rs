@@ -19,6 +19,20 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
+#[cfg(target_os = "android")]
+use crate::tunnel_provider::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use crate::tunnel_provider::OSTunProvider;
+use crate::{
+    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    mixnet::VpnTopologyServiceHandle,
+};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::{
+    adblocker,
+    resolver::{self},
+};
+
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
@@ -30,7 +44,7 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
-#[cfg(any(target_os = "ios", target_os = "android"))]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 use std::sync::Arc;
 use std::{
     collections::HashSet,
@@ -60,16 +74,6 @@ use tunnel::SelectedGateways;
 #[cfg(windows)]
 use wintun::SetupWintunAdapterError;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use crate::resolver;
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::OSTunProvider;
-use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
-};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -132,6 +136,9 @@ pub struct TunnelSettings {
 
     /// Allow LAN connections outside of tunnel.
     pub allow_lan: bool,
+
+    /// Enable Ad blocking
+    pub enable_ad_blocking: bool,
 
     /// Select residential exit gateways only.
     pub residential_exit: bool,
@@ -207,6 +214,9 @@ impl TunnelSettings {
         if self.allow_lan != other.allow_lan {
             diff.add(TunnelSettingsDiffFields::AllowLan);
         }
+        if self.enable_ad_blocking != other.enable_ad_blocking {
+            diff.add(TunnelSettingsDiffFields::EnableAdBlocking);
+        }
         if self.residential_exit != other.residential_exit {
             diff.add(TunnelSettingsDiffFields::ResidentialExit);
         }
@@ -253,6 +263,7 @@ pub enum TunnelSettingsDiffFields {
     EnableIpv6 = 0,
     TunnelType,
     AllowLan,
+    EnableAdBlocking,
     ResidentialExit,
     MixnetTunnelOptions,
     WireguardTunnelOptions,
@@ -285,7 +296,7 @@ impl TunnelSettingsDiff {
     }
 
     pub fn only_field_changed(&self, field: &TunnelSettingsDiffFields) -> bool {
-        self.is_field_changed(field) && self.0.len() == 1
+        self.0.len() == 1 && self.is_field_changed(field)
     }
 
     pub fn allow_lan_changed(&self) -> bool {
@@ -294,6 +305,14 @@ impl TunnelSettingsDiff {
 
     pub fn only_allow_lan_changed(&self) -> bool {
         self.only_field_changed(&TunnelSettingsDiffFields::AllowLan)
+    }
+
+    pub fn enable_ad_blocking_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
+    }
+
+    pub fn only_enable_ad_blocking_changed(&self) -> bool {
+        self.only_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
     }
 
     pub fn entry_point_changed(&self) -> bool {
@@ -310,6 +329,14 @@ impl TunnelSettingsDiff {
 
     pub fn only_mixnet_performance_options_changed(&self) -> bool {
         self.only_field_changed(&TunnelSettingsDiffFields::MixnetPerformanceOptions)
+    }
+
+    // Can we keep the tunnel connected, or do we need to disconnect and reconnect it?
+    pub fn should_not_reconnect(&self, tunnel_type: TunnelType) -> bool {
+        self.only_allow_lan_changed()
+            || self.only_enable_ad_blocking_changed()
+            || (self.only_mixnet_performance_options_changed()
+                && tunnel_type == TunnelType::Wireguard)
     }
 }
 
@@ -540,9 +567,10 @@ pub struct SharedState {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler: DnsHandlerHandle,
     connectivity_handle: ConnectivityHandle,
-    /// Filtering resolver handle
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     filtering_resolver: resolver::ResolverHandle,
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    adblocker: adblocker::AdBlockerTaskHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
     tunnel_constants: TunnelConstants,
@@ -609,6 +637,15 @@ impl SharedState {
         }
     }
 
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    async fn enable_ad_blocking(&self, enable: bool) {
+        if enable {
+            self.adblocker.enable().await;
+        } else {
+            self.adblocker.disable().await;
+        }
+    }
+
     /// Reset DNS resolver overrides on HTTP clients used by discovery and account controller
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn reset_resolver_overrides(&self) {
@@ -640,6 +677,8 @@ pub struct TunnelStateMachine {
     dns_handler_shutdown_token: CancellationToken,
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     filtering_resolver_handle: JoinHandle<()>,
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    adblocker_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
@@ -674,6 +713,32 @@ impl TunnelStateMachine {
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        let Some(data_path) = nym_config.data_path.as_ref() else {
+            tracing::error!("Ad-blocking cannot be enabled without a data path configured");
+            return Err(Error::StartAdBlockerTask(
+                adblocker::AdBlockerError::DataPathUnavailable,
+            ));
+        };
+
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        let (adblocker, adblocker_handle) = adblocker::AdBlockerTask::spawn(
+            data_path,
+            user_agent.to_string(),
+            dns_handler_shutdown_token.child_token(),
+        )
+        .await
+        .map_err(Error::StartAdBlockerTask)?;
+
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        if let Some(dns_filter) = adblocker.get_dns_filter().await {
+            // Note that once the Ad-blocker is set, it won't be reset, but innstead the AdBlocker
+            // filter-set will change internally in response to it being enabled/disabled.
+            filtering_resolver.set_dns_filter(dns_filter).await;
+        } else {
+            tracing::error!("Failed to get DNS Filter from Ad-blocker");
+        }
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
             #[cfg(target_os = "linux")]
@@ -701,6 +766,8 @@ impl TunnelStateMachine {
             connectivity_handle,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             filtering_resolver,
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            adblocker,
             nym_config,
             tunnel_settings,
             tunnel_constants,
@@ -740,6 +807,8 @@ impl TunnelStateMachine {
             dns_handler_shutdown_token,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             filtering_resolver_handle,
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            adblocker_handle,
             shutdown_token,
         };
 
@@ -791,6 +860,10 @@ impl TunnelStateMachine {
             if let Err(e) = self.filtering_resolver_handle.await {
                 tracing::error!("Failed to join on filtering resolver task: {}", e)
             }
+
+            if let Err(e) = self.adblocker_handle.await {
+                tracing::error!("Failed to join on ad-blocker task: {}", e)
+            }
         }
     }
 }
@@ -819,6 +892,10 @@ pub enum Error {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     #[error("failed to start local dns resolver")]
     StartLocalDnsResolver(#[source] resolver::Error),
+
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[error("failed to start ad blocker task")]
+    StartAdBlockerTask(#[source] adblocker::AdBlockerError),
 
     #[error("failed to create tunnel device")]
     CreateTunDevice(#[source] tun::Error),
@@ -915,6 +992,8 @@ impl Error {
             Self::ResolveApiHostnames(_) => None?,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             Self::StartLocalDnsResolver(_) => None?,
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            Self::StartAdBlockerTask(_) => None?,
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
             Self::Tunnel(e) => e.error_state_reason()?,
