@@ -1,0 +1,4 @@
+Có gì mới:
+- Đã thêm phân tách ABI để tối ưu kích thước APK
+- Đã thêm smoke test
+- Đã sửa lỗi thu gọn mã

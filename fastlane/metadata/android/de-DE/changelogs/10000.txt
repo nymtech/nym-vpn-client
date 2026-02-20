@@ -1,0 +1,7 @@
+Was ist neu:
+- Verbesserte API-Leistung
+- Grundlegende App-Verknüpfungen hinzugefügt
+- UI-Erweiterungen
+- Überprüfung der Anmeldeinformationen
+- Fehler bei Verbindungs-UI-Synchronisation
+- Verbesserte Schnell-Kachel-Synchronisation

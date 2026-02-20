@@ -1,0 +1,6 @@
+Yenilikler:
+Kullanıcı arayüzünde çeşitli güncellemeler ve iyileştirmeler
+URL’lerin doğru şekilde açılmasının düzeltilmesi 
+Düşük bağlantı durumunda daha iyi hata mesajları
+Cihaz saatinin senkronize olmaması durumunda uyarılar
+Bağlantı iyileştirmeleri

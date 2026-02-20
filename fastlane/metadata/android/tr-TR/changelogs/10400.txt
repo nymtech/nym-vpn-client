@@ -1,0 +1,4 @@
+Yenilikler:
+- Dosyaya kayıt sistemi geliştirildi
+- Hata düzeltmeleri yapıldı
+- Ek optimizasyonlar ve çeşitli iyileştirmeler

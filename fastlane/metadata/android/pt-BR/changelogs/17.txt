@@ -1,0 +1,3 @@
+Quais as novidades:
+- Correção do problema de cache do país
+- Melhorias no desempenho do Hilt

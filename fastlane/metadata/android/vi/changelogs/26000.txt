@@ -1,0 +1,8 @@
+Có gì mới:
+- Thêm thông tin chi tiết về node vào và node thoát vào thông báo kết nối
+- Giờ đây bạn có thể xem chi tiết máy chủ trực tiếp từ màn hình chính
+- Tích hợp cài đặt DNS tùy chỉnh để kiểm soát mạng tốt hơn
+- Sắp xếp lại các mục trên màn hình Kiểm duyệt giúp hiển thị rõ ràng hơn
+- Cải thiện nhật ký cấu hình tunnel với thông tin chi tiết từng bước rõ ràng hơn
+- Sửa lỗi xử lý ứng dụng bị hạn chế trong cấu hình tunnel
+- Khắc phục sự cố bộ hẹn giờ kết nối có thể đặt lại ngẫu nhiên

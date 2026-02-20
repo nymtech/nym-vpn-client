@@ -1,0 +1,8 @@
+Yenilikler:
+- QUIC durumu ve sunucu bilgileri eklendi
+- Ana ve Çıkış ekranlarına yeni yayın ikonu ve güncellenmiş bilgilendirmeler eklendi
+- Yeni kurtarma ifadesi ekranı ve hesap oluşturma akışı tasarlandı
+- Giriş ve Çıkış ekranları artık sunucu ID’leri yerine şehir isimlerini gösteriyor
+- Gateway detayları iyileştirildi; güncelleme zamanları artık göreli olarak gösteriliyor
+- Sunucu çalışma süresi gösterimi düzeltildi
+- Arayüzde çeşitli iyileştirmeler ve hata düzeltmeleri yapıldı

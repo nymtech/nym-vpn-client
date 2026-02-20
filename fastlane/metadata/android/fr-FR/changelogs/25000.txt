@@ -1,0 +1,5 @@
+Ce qui change :
+- Ajout des détails du nœud aux paramètres rapides et d'un nouvel écran de compte
+- Introduction du bi-mode tunnel fractionné sur Android
+- Mise à jour des paramètres, de la confidentialité, de la censure et de l'interface utilisateur de navigation
+- Amélioration de la stabilité de la connexion et de la gestion des erreurs

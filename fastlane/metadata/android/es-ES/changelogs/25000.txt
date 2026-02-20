@@ -1,0 +1,5 @@
+Novedades:
+- Añadidos detalles del nodo a los ajustes rápidos y a una nueva pantalla de cuenta
+- Se ha introducido túnel de división en dos modos en Android
+- Configuración actualizada, privacidad, censura e interfaz de navegación
+- Mejora de la estabilidad de la conexión y de la gestión de errores

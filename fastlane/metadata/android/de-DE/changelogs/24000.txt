@@ -1,0 +1,5 @@
+Was ist neu:
+- In App Käufe für Play Store hinzugefügt
+- Neue Sprachen hinzugefügt: BN, EL, VI
+- UI und UX Verbesserungen und Korrekturen
+- Verbesserung der Verbindungsstabilität 

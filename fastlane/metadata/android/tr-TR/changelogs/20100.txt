@@ -1,0 +1,5 @@
+Yenilikler:
+- Kill switch ekranları ve işlevi artık devre dışı bırakılabilir
+- Daha anlaşılır olması için hata mesajları iyileştirildi
+- Bağlantı verilerinin yönetimi yenilendi
+- Karşılama ekranında geri dönüş sorunu düzeltildi.

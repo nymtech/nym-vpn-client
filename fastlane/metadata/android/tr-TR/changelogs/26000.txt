@@ -1,0 +1,8 @@
+Yenilikler:
+- Bağlantı bildirimlerine giriş ve çıkış node detayları eklendi
+- Artık sunucu detaylarını doğrudan ana ekrandan görüntüleyebilirsiniz
+- Daha fazla ağ kontrolü için Özel DNS ayarları getirildi
+- Sansür ekranındaki bölümler daha iyi anlaşılması için yeniden düzenlendi
+- Tünel yapılandırma kayıtları adım adım daha net detaylarla geliştirildi
+- Tünel yapılandırmalarında kısıtlı uygulama yönetimi hatası giderildi
+- Bağlantı sayacının rastgele sıfırlanmasına neden olan bir sorun çözüldü

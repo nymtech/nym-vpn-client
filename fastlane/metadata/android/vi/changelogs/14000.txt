@@ -1,0 +1,12 @@
+Có gì mới:
+
+Cải thiện:
+- Cập nhật các cặp màu và phong cách
+- Cập nhật Cài đặt / Danh mục hỗ trợ & phản hồi
+
+Lỗi:
+- Sửa lỗi khi mở lại ứng dụng đã thu nhỏ, Kết nối đến màn hình đăng nhập
+- Sửa lỗi đồng bộ tài khoản
+- Sửa lỗi mất kết nối và không ổn định
+- Sửa lỗi ứng dụng bị treo trong các bài test tốc độ ở chế độ mixnet
+- [Android 12] Sửa lỗi mất kết nối/đứng hình sau 1 hoặc 2 giờ

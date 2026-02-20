@@ -1,0 +1,7 @@
+What's New:
+- Account Setup: Support for in-app account creation and registration.
+- Privy Integration: Link your accounts easily with new Privy support.
+- Mixnet Tuning: New UI to fine-tune your privacy and connection settings.
+- Stability Fixes: Resolved Always-On VPN issues after system restarts and fixed app crashes.
+- Better Connectivity: Improved VPN architecture for more reliable, dynamic reconnections and updated Account Info UI.
+- Updated translations workflow.

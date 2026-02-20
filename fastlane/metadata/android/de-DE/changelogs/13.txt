@@ -1,0 +1,5 @@
+Was ist neu:
+- Dateideskriptor-Fehler behoben
+- Behebung v5 nym api Fehler
+- IPV6- / IPV4-VPN-Stopps beheben
+- Andere Fehlerbehebungen

@@ -1,0 +1,5 @@
+Có gì mới:
+- Màn hình killswitch và chức năng giờ có thể được vô hiệu hóa
+- Cải thiện thông báo lỗi để trở nên rõ ràng hơn
+- Cập nhật xử lý dữ liệu kết nối
+- Sửa lỗi backstack trên màn hình Chào mừng

@@ -1,0 +1,5 @@
+Was ist neu:
+- Kill-Switch-Bildschirme und -Funktionen können jetzt deaktiviert werden
+- Verbesserte Fehlermeldungen für bessere Klarheit
+- Verarbeitung der Verbindungsdaten aktualisiert
+- Fehler im Backstack auf dem Willkommensbildschirm behoben

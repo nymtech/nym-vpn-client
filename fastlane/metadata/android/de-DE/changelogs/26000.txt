@@ -1,0 +1,8 @@
+Was ist neu:
+- Details von Ein- und Austrittsservern den Verbindungsbenachrichtigungen hinzugefügt
+- Du kannst die Serverdetails jetzt direkt vom Startbildschirm aus einsehen
+- Einführung von benutzerdefinierten DNS-Einstellungen für mehr Netzwerkkontrolle
+- Die Abschnitte auf dem Bildschirm „Zensurumgehung“ wurden zur besseren Übersichtlichkeit neu geordnet
+- Verbesserte Tunnelkonfigurations-Logs mit klareren, schrittweisen Details
+- Behebung von eingeschränkten Apps in Tunnelkonfigurationen
+- Ein Problem wurde behoben, bei dem der Verbindungstimer zufällig zurückgesetzt werden konnte

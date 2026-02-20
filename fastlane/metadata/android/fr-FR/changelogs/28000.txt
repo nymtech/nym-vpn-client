@@ -1,0 +1,8 @@
+Quoi de neuf
+- Nouveaux contrôles de journalisation : Activer les paramètres de journalisation et de débogage verbeux
+- Ajout de la vérification de l'authentification pour les actions de raccourci
+- Mise à jour du format d'exportation des journaux (dossiers structurés et journaux groupés)
+- Amélioration de la gestion des actions de la barre de navigation
+- Réduction du bruit de journalisation inutile
+- Correction de la gestion du démarrage automatique
+- Améliorations et corrections mineures de l'interface utilisateur

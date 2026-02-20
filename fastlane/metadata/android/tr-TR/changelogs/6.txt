@@ -1,0 +1,4 @@
+Yenilikler:
+- Kayıtlar ekranı eklendi
+- VPN durumu görüntülemesi iyileştirildi
+- Sentry eklendi
