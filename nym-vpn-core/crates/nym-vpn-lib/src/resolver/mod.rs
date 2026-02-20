@@ -464,12 +464,14 @@ impl LocalResolver {
             }
         });
 
+        let dns_filter: DnsFilter = Arc::new(Mutex::new(Box::new(NullDnsFilter)));
+
         let resolver = Self {
             rx,
             dns_server_task,
             bound_to: resolver_addr,
             inner_resolver: Resolver::Blocking,
-            dns_filter: Arc::new(Mutex::new(Box::new(NullDnsFilter))),
+            dns_filter,
             shutdown_token,
         };
 

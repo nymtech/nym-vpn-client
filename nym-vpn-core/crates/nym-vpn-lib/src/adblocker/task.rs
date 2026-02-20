@@ -87,7 +87,7 @@ impl AdBlockerTask {
                             self.handle_update_completed(result).await;
                         }
                         Some(AdBlockerTaskMessage::GetDnsFilter { response_tx }) => {
-                            self.handle_get_dns_filter(response_tx).await;
+                            let _ = response_tx.send(self.adblocker.clone());
                         }
                         None => {
                             break;
@@ -149,11 +149,6 @@ impl AdBlockerTask {
         }
     }
 
-    async fn handle_get_dns_filter(&self, response_tx: oneshot::Sender<DnsFilter>) {
-        let dns_filter: DnsFilter = self.adblocker.clone() as _;
-        let _ = response_tx.send(dns_filter);
-    }
-
     async fn handle_init_completed(&mut self, result: Result<Box<FilterSet>>, retry_count: usize) {
         match result {
             Ok(filter_set) => {
@@ -197,30 +192,29 @@ impl AdBlockerTask {
 
     async fn is_initted(&self) -> bool {
         let mut guard = self.adblocker.lock().await;
-        if let Some(adblocker) = guard.as_any_mut().downcast_mut::<AdBlocker>() {
-            adblocker.is_initted()
-        } else {
-            tracing::error!("AdBlocker downcast failed!"); // Should never happen
-            false
-        }
+        let adblocker = guard
+            .as_any_mut()
+            .downcast_mut::<AdBlocker>()
+            .expect("Failed to downcast to AdBlocker");
+        adblocker.is_initted()
     }
 
     async fn use_filter_set(&self, filter_set: Box<FilterSet>) {
         let mut guard = self.adblocker.lock().await;
-        if let Some(adblocker) = guard.as_any_mut().downcast_mut::<AdBlocker>() {
-            adblocker.use_filter_set(filter_set).await;
-        } else {
-            tracing::error!("AdBlocker downcast failed!"); // Should never happen
-        }
+        let adblocker = guard
+            .as_any_mut()
+            .downcast_mut::<AdBlocker>()
+            .expect("Failed to downcast to AdBlocker");
+        adblocker.use_filter_set(filter_set).await;
     }
 
     async fn clear_filter_set(&self) {
         let mut guard = self.adblocker.lock().await;
-        if let Some(adblocker) = guard.as_any_mut().downcast_mut::<AdBlocker>() {
-            adblocker.clear_filter_set().await;
-        } else {
-            tracing::error!("AdBlocker downcast failed!"); // Should never happen
-        }
+        let adblocker = guard
+            .as_any_mut()
+            .downcast_mut::<AdBlocker>()
+            .expect("Failed to downcast to AdBlocker");
+        adblocker.clear_filter_set().await;
     }
 }
 

@@ -17,11 +17,13 @@ impl AdBlocker {
     const BLOCK: DnsFilterDecision = DnsFilterDecision::Block(DnsFilterStrategy::Localhost);
 
     pub async fn use_filter_set(&mut self, filter_set: Box<FilterSet>) {
+        tracing::trace!("AdBlocker using new filter-set");
         self.engine = Engine::from_filter_set(*filter_set, true);
         self.initted = true;
     }
 
     pub async fn clear_filter_set(&mut self) {
+        tracing::trace!("AdBlocker clearing filter-set");
         self.engine = Engine::default();
         self.initted = false;
     }
@@ -31,6 +33,11 @@ impl AdBlocker {
     }
 
     pub fn should_block_url(&self, url: url::Url) -> Result<bool> {
+        // If we're not initialized, then we already know the answer
+        if !self.initted {
+            return Ok(false);
+        }
+
         // Use empty string for source URL since it is unavailable.
         let source_url = "";
 
@@ -55,9 +62,9 @@ impl DnsFilterT for AdBlocker {
         // Some DNS qname strings can crash `Request::new()`, so clean them up before parsing.
         let mut domain = domain.trim();
 
-        // Treat empty / root as non\-blockable.
+        // Treat empty / root as non-blockable.
         if domain.is_empty() || domain == "." || domain == "./" {
-            return Self::BLOCK;
+            return Self::PASS;
         }
 
         // Remove any trailing "/"
@@ -77,15 +84,15 @@ impl DnsFilterT for AdBlocker {
         };
 
         match self.should_block_url(url) {
-            Ok(matched) => {
-                if matched {
+            Ok(block) => {
+                if block {
                     Self::BLOCK
                 } else {
                     Self::PASS
                 }
             }
             Err(error) => {
-                tracing::error!("Ad-blocker failed when checking domain {domain}: {error}");
+                tracing::error!("Ad-blocker failed to check domain {domain}: {error}");
                 Self::BLOCK
             }
         }
