@@ -30,7 +30,7 @@ use crate::{
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::{
     adblocker,
-    resolver::{self, DnsFilter, NullDnsFilter},
+    resolver::{self},
 };
 
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
@@ -44,15 +44,13 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
-#[cfg(not(target_os = "linux"))]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 use std::sync::Arc;
 use std::{
     collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
 };
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use tokio::sync::Mutex;
 use tokio::{
     sync::{mpsc, watch},
     task::JoinHandle,
@@ -642,23 +640,9 @@ impl SharedState {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     async fn enable_ad_blocking(&self, enable: bool) {
         if enable {
-            // Get the DNS filter implementation from the ad-blocker, however in order to
-            // save memory we do not actually initialize the ad-blocker data until we start
-            // using it.  This means the ad-blocker will allow everything until initialization
-            // has completed.  That window is short though and it's highly likely the tunnel
-            // won't have even connected yet.
-            if let Some(dns_filter) = self.adblocker.get_dns_filter().await {
-                self.filtering_resolver.set_dns_filter(dns_filter).await;
-                self.adblocker.init_ad_blocker().await;
-            } else {
-                tracing::error!("Cannot enable ad-blocker as its task is not running");
-            }
+            self.adblocker.enable().await;
         } else {
-            // Set a null DNS filter in the resolver and tell the adblocker that we've stopped using
-            // it, so it can free-up any memory.
-            let dns_filter: DnsFilter = Arc::new(Mutex::new(Box::new(NullDnsFilter)));
-            self.filtering_resolver.set_dns_filter(dns_filter).await;
-            self.adblocker.stopped_using_dns_filter().await;
+            self.adblocker.disable().await;
         }
     }
 
@@ -745,6 +729,15 @@ impl TunnelStateMachine {
         )
         .await
         .map_err(Error::StartAdBlockerTask)?;
+
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        if let Some(dns_filter) = adblocker.get_dns_filter().await {
+            // Note that once the Ad-blocker is set, it won't be reset, but innstead the AdBlocker
+            // filter-set will change internally in response to it being enabled/disabled.
+            filtering_resolver.set_dns_filter(dns_filter).await;
+        } else {
+            tracing::error!("Failed to get DNS Filter from Ad-blocker");
+        }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(

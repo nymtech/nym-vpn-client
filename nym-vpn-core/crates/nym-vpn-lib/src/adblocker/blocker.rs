@@ -1,45 +1,33 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{
-    AdBlockerError, Result,
-    files::{init_files, load_filter_set, update_files},
-};
+use super::{AdBlockerError, Result};
 use crate::resolver::{DnsFilterDecision, DnsFilterStrategy, DnsFilterT};
-use adblock::{Engine, request::Request};
-use std::path::PathBuf;
+use adblock::{Engine, FilterSet, request::Request};
+use std::any::Any;
 
 #[derive(Default)]
 pub struct AdBlocker {
     engine: Engine,
+    initted: bool,
 }
 
 impl AdBlocker {
     const PASS: DnsFilterDecision = DnsFilterDecision::Pass;
     const BLOCK: DnsFilterDecision = DnsFilterDecision::Block(DnsFilterStrategy::Localhost);
 
-    pub async fn with_files(data_dir: PathBuf, force_init: bool) -> Result<Box<Self>> {
-        tracing::debug!("Initializing ad-blocker");
-
-        init_files(&data_dir, force_init).await?;
-        let filter_set = load_filter_set(&data_dir).await?;
-        let engine = Engine::from_filter_set(filter_set, true);
-        Ok(Box::new(Self { engine }))
+    pub async fn use_filter_set(&mut self, filter_set: Box<FilterSet>) {
+        self.engine = Engine::from_filter_set(*filter_set, true);
+        self.initted = true;
     }
 
-    pub async fn with_updated_files(
-        data_dir: PathBuf,
-        user_agent: String,
-    ) -> Result<Option<Box<Self>>> {
-        tracing::debug!("Checking for Ad-blocker file updates");
+    pub async fn clear_filter_set(&mut self) {
+        self.engine = Engine::default();
+        self.initted = false;
+    }
 
-        if update_files(&data_dir, &user_agent).await? {
-            let filter_set = load_filter_set(&data_dir).await?;
-            let engine = Engine::from_filter_set(filter_set, true);
-            Ok(Some(Box::new(Self { engine })))
-        } else {
-            Ok(None)
-        }
+    pub fn is_initted(&self) -> bool {
+        self.initted
     }
 
     pub fn should_block_url(&self, url: url::Url) -> Result<bool> {
@@ -101,5 +89,9 @@ impl DnsFilterT for AdBlocker {
                 Self::BLOCK
             }
         }
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
     }
 }

@@ -196,12 +196,12 @@ async fn test_task_blocks_domain_after_init() {
         .expect("Expected DNS filter");
 
     // Kick off initialization.
-    task_handle.init_ad_blocker().await;
+    task_handle.enable().await;
 
     // Wait for initialization to complete.
     let deadline = Instant::now() + Duration::from_secs(30);
     loop {
-        if task_handle.is_ad_blocker_initted().await {
+        if task_handle.is_initted().await {
             break;
         }
         if Instant::now() > deadline {

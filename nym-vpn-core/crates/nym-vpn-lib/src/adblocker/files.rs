@@ -39,6 +39,31 @@ pub(crate) static SOURCES: &[Source] = &[
     },
 ];
 
+/// Initialize the ad-blocker domain lists using the ones built-into the binary
+/// and load them into a filter set.
+pub(crate) async fn init_and_load_filter_set(
+    data_dir: PathBuf,
+    force: bool,
+) -> Result<Box<FilterSet>> {
+    init_files(&data_dir, force).await?;
+    load_filter_set(&data_dir).await
+}
+
+/// Update the ad-blocker domain lists by downloading the latest versions,
+/// and load thedm into a filter set.  If they were not updated when return `Ok(None)`.
+pub(crate) async fn update_and_load_filter_set(
+    data_dir: PathBuf,
+    user_agent: String,
+) -> Result<Option<Box<FilterSet>>> {
+    let updated = update_files(&data_dir, &user_agent).await?;
+    if updated {
+        let filter_set = load_filter_set(&data_dir).await?;
+        Ok(Some(filter_set))
+    } else {
+        Ok(None)
+    }
+}
+
 /// Initialize the ad-blocker domain lists using the ones built-into the binary.
 pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
     let ad_blocking_path = get_ad_blocking_path(data_dir);
@@ -57,7 +82,7 @@ pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
     Ok(())
 }
 
-/// Update the ad-blocker domain lists by downloading the latest versions from their respective URLs.
+/// Update the ad-blocker domain lists by downloading the latest versions
 pub(crate) async fn update_files(data_dir: &Path, user_agent: &str) -> Result<bool> {
     let ad_blocking_path = get_ad_blocking_path(data_dir);
     let mut updated = false;
@@ -76,7 +101,7 @@ pub(crate) async fn update_files(data_dir: &Path, user_agent: &str) -> Result<bo
 }
 
 /// Create an `adblock::FilterSet` from the data files on disk.
-pub(crate) async fn load_filter_set(data_dir: &Path) -> Result<FilterSet> {
+pub(crate) async fn load_filter_set(data_dir: &Path) -> Result<Box<FilterSet>> {
     let ad_blocking_path = get_ad_blocking_path(data_dir);
     let mut filter_set = FilterSet::new(cfg!(debug_assertions));
 
@@ -95,7 +120,7 @@ pub(crate) async fn load_filter_set(data_dir: &Path) -> Result<FilterSet> {
         );
     }
 
-    Ok(filter_set)
+    Ok(Box::new(filter_set))
 }
 
 pub(crate) fn get_ad_blocking_path(data_dir: &Path) -> PathBuf {

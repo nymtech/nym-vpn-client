@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{AdBlocker, AdBlockerError, Result};
-use crate::resolver::DnsFilter;
+use crate::{
+    adblocker::files::{init_and_load_filter_set, update_and_load_filter_set},
+    resolver::DnsFilter,
+};
+use adblock::FilterSet;
 use std::{
     path::{Path, PathBuf},
     sync::Arc,
@@ -19,7 +23,6 @@ pub struct AdBlockerTask {
     rx: mpsc::UnboundedReceiver<AdBlockerTaskMessage>,
     tx: mpsc::UnboundedSender<AdBlockerTaskMessage>,
     adblocker: DnsFilter,
-    adblocker_initted: bool,
     next_update_due: Instant,
     user_agent: String,
     shutdown_token: CancellationToken,
@@ -30,12 +33,6 @@ impl AdBlockerTask {
     const INITIAL_ADBLOCK_UPDATE_DELAY: Duration = Duration::from_secs(2 * 60);
     const ADBLOCK_UPDATE_DELAY: Duration = Duration::from_secs(60 * 60);
 
-    /// Spawn the AdBlocker task.
-    ///
-    /// Returns:
-    /// - a handle to control the task
-    /// - a `DnsFilter` used by the resolver to check domains
-    /// - the join handle for the background task
     pub async fn spawn(
         data_dir: &Path,
         user_agent: String,
@@ -48,8 +45,7 @@ impl AdBlockerTask {
             data_dir: data_dir.to_path_buf(),
             rx,
             tx: tx.clone(),
-            adblocker: adblocker.clone(),
-            adblocker_initted: false,
+            adblocker,
             next_update_due: Instant::now(),
             user_agent,
             shutdown_token,
@@ -65,48 +61,47 @@ impl AdBlockerTask {
     async fn run(mut self) {
         tracing::debug!("Ad-blocker task started");
 
-        let adblock_update_fuse = sleep(Self::WAKE_UP_DEFAULT_DELAY);
-        tokio::pin!(adblock_update_fuse);
+        let update_fuse = sleep(Self::WAKE_UP_DEFAULT_DELAY);
+        tokio::pin!(update_fuse);
 
         loop {
             tokio::select! {
                 msg = self.rx.recv() => {
                     match msg {
-                        Some(AdBlockerTaskMessage::InitAdBlocker { response_tx }) => {
-                            self.init_ad_blocker(false, 0).await;
+                        Some(AdBlockerTaskMessage::Init { response_tx }) => {
+                            self.init(false, 0).await;
                             let _ = response_tx.send(());
                         }
-                        Some(AdBlockerTaskMessage::AdBlockerInitted { result, retry_count }) => {
-                            self.handle_ad_blocker_initted(result, retry_count).await;
+                        #[cfg(test)]
+                        Some(AdBlockerTaskMessage::IsInitted { response_tx }) => {
+                            let _ = response_tx.send(self.is_initted().await);
                         }
-                        Some(AdBlockerTaskMessage::AdBlockerUpdated { result }) => {
-                            self.handle_ad_blocker_updated(result).await;
+                        Some(AdBlockerTaskMessage::Disable { response_tx }) => {
+                            self.handle_disable().await;
+                            let _ = response_tx.send(());
+                        }
+                        Some(AdBlockerTaskMessage::InitComplete { result, retry_count }) => {
+                            self.handle_init_completed(result, retry_count).await;
+                        }
+                        Some(AdBlockerTaskMessage::UpdateComplete { result }) => {
+                            self.handle_update_completed(result).await;
                         }
                         Some(AdBlockerTaskMessage::GetDnsFilter { response_tx }) => {
                             self.handle_get_dns_filter(response_tx).await;
                         }
-                        Some(AdBlockerTaskMessage::StoppedUsingDnsFilter { response_tx }) => {
-                            self.handle_stopped_using_dns_filter().await;
-                            let _ = response_tx.send(());
-                        }
-                        #[cfg(test)]
-                        Some(AdBlockerTaskMessage::IsAdBlockerInitted { response_tx }) => {
-                            let _ = response_tx.send(self.adblocker_initted);
-                        }
                         None => {
-                            self.shutdown_token.cancel();
                             break;
                         }
                     }
                 }
 
-                _ = &mut adblock_update_fuse => {
+                _ = &mut update_fuse => {
                     let now = Instant::now();
                     if self.next_update_due <= now {
                         self.next_update_due = now + Self::ADBLOCK_UPDATE_DELAY;
-                        self.update_ad_blocker().await;
+                        self.update().await;
                     }
-                    adblock_update_fuse
+                    update_fuse
                         .as_mut()
                         .reset(Instant::now() + Self::WAKE_UP_DEFAULT_DELAY);
                 }
@@ -120,59 +115,59 @@ impl AdBlockerTask {
         tracing::debug!("Ad-blocker task stopped");
     }
 
-    /// Initialize Ad-blocker. This is expensive, so we spawn a new task to perform
-    /// initialization in the background, and update once it is done.
-    async fn init_ad_blocker(&self, force_init: bool, retry_count: usize) {
-        tracing::debug!("Starting ad-blocker initialization");
+    async fn init(&self, force_init: bool, retry_count: usize) {
+        tracing::debug!("Ad-blocker initializing");
 
         let data_dir = self.data_dir.clone();
         let tx = self.tx.clone();
         tokio::spawn(async move {
-            let result = AdBlocker::with_files(data_dir, force_init).await;
-            let _ = tx.send(AdBlockerTaskMessage::AdBlockerInitted {
+            let result = init_and_load_filter_set(data_dir.clone(), force_init).await;
+            let _ = tx.send(AdBlockerTaskMessage::InitComplete {
                 result,
                 retry_count,
             });
         });
     }
 
-    /// Update filters. Potentially expensive, so perform work in the background.
-    async fn update_ad_blocker(&self) -> Duration {
-        if self.adblocker_initted {
-            tracing::debug!("Starting ad-blocker update");
+    async fn handle_disable(&mut self) {
+        tracing::debug!("Ad-blocker disabled");
+
+        self.clear_filter_set().await;
+    }
+
+    async fn update(&self) {
+        if self.is_initted().await {
+            tracing::debug!("Ad-blocker updating");
 
             let data_dir = self.data_dir.clone();
             let user_agent = self.user_agent.clone();
             let tx = self.tx.clone();
             tokio::spawn(async move {
-                let result = AdBlocker::with_updated_files(data_dir, user_agent).await;
-                let _ = tx.send(AdBlockerTaskMessage::AdBlockerUpdated { result });
+                let result = update_and_load_filter_set(data_dir, user_agent).await;
+                let _ = tx.send(AdBlockerTaskMessage::UpdateComplete { result });
             });
         }
-        Self::ADBLOCK_UPDATE_DELAY
     }
 
-    async fn handle_ad_blocker_initted(
-        &mut self,
-        result: Result<Box<AdBlocker>, AdBlockerError>,
-        retry_count: usize,
-    ) {
+    async fn handle_get_dns_filter(&self, response_tx: oneshot::Sender<DnsFilter>) {
+        let dns_filter: DnsFilter = self.adblocker.clone() as _;
+        let _ = response_tx.send(dns_filter);
+    }
+
+    async fn handle_init_completed(&mut self, result: Result<Box<FilterSet>>, retry_count: usize) {
         match result {
-            Ok(adblocker) => {
-                let mut guard = self.adblocker.lock().await;
-                *guard = adblocker;
-                self.adblocker_initted = true;
+            Ok(filter_set) => {
+                self.use_filter_set(filter_set).await;
                 self.next_update_due = Instant::now() + Self::INITIAL_ADBLOCK_UPDATE_DELAY;
                 tracing::debug!("Ad-blocker was initialized successfully");
             }
             Err(error) => {
                 tracing::error!("Failed to initialize or update ad-blocker: {error}");
-                self.adblocker_initted = false;
                 if retry_count == 0 {
                     tracing::debug!(
                         "Retrying ad-blocker initialization, forcing data file initialization"
                     );
-                    self.init_ad_blocker(true, retry_count + 1).await;
+                    self.init(true, retry_count + 1).await;
                 } else {
                     tracing::error!(
                         "Ad-blocker initialization has failed twice, so will remain disabled!"
@@ -182,69 +177,79 @@ impl AdBlockerTask {
         }
     }
 
-    async fn handle_ad_blocker_updated(
+    async fn handle_update_completed(
         &mut self,
-        result: Result<Option<Box<AdBlocker>>, AdBlockerError>,
+        result: Result<Option<Box<FilterSet>>, AdBlockerError>,
     ) {
         match result {
-            Ok(Some(adblocker)) => {
-                let mut guard = self.adblocker.lock().await;
-                *guard = adblocker;
+            Ok(Some(filter_set)) => {
+                self.use_filter_set(filter_set).await;
                 tracing::debug!("Ad-blocker was updated successfully");
             }
             Ok(None) => {
                 tracing::debug!("Ad-blocker is already up-to-date");
             }
             Err(error) => {
-                tracing::error!("Failed to initialize or update ad-blocker: {error}");
+                tracing::error!("Ad-blocker update failed: {error}");
             }
         }
     }
 
-    async fn handle_get_dns_filter(&self, response_tx: oneshot::Sender<DnsFilter>) {
-        tracing::debug!("Ad-blocker has started to be used");
-        let _ = response_tx.send(self.adblocker.clone());
+    async fn is_initted(&self) -> bool {
+        let mut guard = self.adblocker.lock().await;
+        if let Some(adblocker) = guard.as_any_mut().downcast_mut::<AdBlocker>() {
+            adblocker.is_initted()
+        } else {
+            tracing::error!("AdBlocker downcast failed!"); // Should never happen
+            false
+        }
     }
 
-    async fn handle_stopped_using_dns_filter(&mut self) {
-        tracing::debug!("Ad-blocker is no longer in use");
-
+    async fn use_filter_set(&self, filter_set: Box<FilterSet>) {
         let mut guard = self.adblocker.lock().await;
-        *guard = Box::new(AdBlocker::default());
-        self.adblocker_initted = false;
+        if let Some(adblocker) = guard.as_any_mut().downcast_mut::<AdBlocker>() {
+            adblocker.use_filter_set(filter_set).await;
+        } else {
+            tracing::error!("AdBlocker downcast failed!"); // Should never happen
+        }
+    }
+
+    async fn clear_filter_set(&self) {
+        let mut guard = self.adblocker.lock().await;
+        if let Some(adblocker) = guard.as_any_mut().downcast_mut::<AdBlocker>() {
+            adblocker.clear_filter_set().await;
+        } else {
+            tracing::error!("AdBlocker downcast failed!"); // Should never happen
+        }
     }
 }
 
 enum AdBlockerTaskMessage {
     /// Initialize Ad-blocker.
-    InitAdBlocker {
-        /// Response channel when the task has accepted the command.
-        response_tx: oneshot::Sender<()>,
-    },
+    Init { response_tx: oneshot::Sender<()> },
 
-    /// Ad-blocker initialized in the background.
-    AdBlockerInitted {
-        result: Result<Box<AdBlocker>, AdBlockerError>,
-        retry_count: usize,
-    },
+    /// Has the Ad-blocker been initialized yet?
+    #[cfg(test)]
+    IsInitted { response_tx: oneshot::Sender<bool> },
 
-    /// Ad-blocker updated in the background.
-    /// (it may not have actually updated if the data files didn't change)
-    AdBlockerUpdated {
-        result: Result<Option<Box<AdBlocker>>, AdBlockerError>,
-    },
+    /// Disable the ad-blocker, by removing the filter-set, allowing all domains to pass.
+    Disable { response_tx: oneshot::Sender<()> },
 
     /// Get the DNS filter
     GetDnsFilter {
         response_tx: oneshot::Sender<DnsFilter>,
     },
 
-    /// Signal that we've stopped using the DNS filter, so we can free up memory used by the Ad-blocker filters
-    StoppedUsingDnsFilter { response_tx: oneshot::Sender<()> },
+    /// Ad-blocker initialized in the background.
+    InitComplete {
+        result: Result<Box<FilterSet>>,
+        retry_count: usize,
+    },
 
-    /// Has the Ad-blocker been initialized yet?
-    #[cfg(test)]
-    IsAdBlockerInitted { response_tx: oneshot::Sender<bool> },
+    /// Ad-blocker updated in the background.
+    UpdateComplete {
+        result: Result<Option<Box<FilterSet>>>,
+    },
 }
 
 /// A handle to control the Ad-blocker task.
@@ -258,12 +263,39 @@ impl AdBlockerTaskHandle {
         Self { tx }
     }
 
-    /// Initialize Ad-blocker.
-    pub async fn init_ad_blocker(&self) {
+    /// Enable Ad-blocker.
+    pub async fn enable(&self) {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
-            .send(AdBlockerTaskMessage::InitAdBlocker { response_tx })
+            .send(AdBlockerTaskMessage::Init { response_tx })
+            .is_ok()
+        {
+            response_rx.await.ok();
+        }
+    }
+
+    /// Is the Ad-blocker initted yet? (Only used in testing).
+    #[cfg(test)]
+    pub async fn is_initted(&self) -> bool {
+        let (response_tx, response_rx) = oneshot::channel();
+        if self
+            .tx
+            .send(AdBlockerTaskMessage::IsInitted { response_tx })
+            .is_ok()
+        {
+            response_rx.await.ok().unwrap_or(false)
+        } else {
+            false
+        }
+    }
+
+    /// Disable Ad-blocker.
+    pub async fn disable(&self) {
+        let (response_tx, response_rx) = oneshot::channel();
+        if self
+            .tx
+            .send(AdBlockerTaskMessage::Disable { response_tx })
             .is_ok()
         {
             response_rx.await.ok();
@@ -281,34 +313,6 @@ impl AdBlockerTaskHandle {
             response_rx.await.ok()
         } else {
             None
-        }
-    }
-
-    /// Signal that we've stopped using the DNS filter, so we can free up memory
-    /// used by the Ad-blocker filters
-    pub async fn stopped_using_dns_filter(&self) {
-        let (response_tx, response_rx) = oneshot::channel();
-        if self
-            .tx
-            .send(AdBlockerTaskMessage::StoppedUsingDnsFilter { response_tx })
-            .is_ok()
-        {
-            response_rx.await.ok();
-        }
-    }
-
-    /// Is the Ad-blocker initialized yet?
-    #[cfg(test)]
-    pub async fn is_ad_blocker_initted(&self) -> bool {
-        let (response_tx, response_rx) = oneshot::channel();
-        if self
-            .tx
-            .send(AdBlockerTaskMessage::IsAdBlockerInitted { response_tx })
-            .is_ok()
-        {
-            response_rx.await.ok().unwrap_or(false)
-        } else {
-            false
         }
     }
 }

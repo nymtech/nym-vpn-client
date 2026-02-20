@@ -48,6 +48,7 @@ use hickory_server::{
 };
 use rand::Rng;
 use std::{
+    any::Any,
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     str::FromStr,
@@ -87,6 +88,7 @@ pub enum DnsFilterDecision {
 /// DNS filter trait.
 pub trait DnsFilterT: Send + Sync + 'static {
     fn should_block(&self, domain: &str) -> DnsFilterDecision;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
 }
 
 /// DNS filter type
@@ -98,6 +100,9 @@ pub struct NullDnsFilter;
 impl DnsFilterT for NullDnsFilter {
     fn should_block(&self, _domain: &str) -> DnsFilterDecision {
         DnsFilterDecision::Pass
+    }
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
     }
 }
 
