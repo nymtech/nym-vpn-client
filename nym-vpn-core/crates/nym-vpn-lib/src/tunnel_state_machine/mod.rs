@@ -771,7 +771,9 @@ pub struct TunnelStateMachine {
 impl TunnelStateMachine {
     #[allow(clippy::too_many_arguments)]
     pub async fn spawn(
-        command_sender: Weak<mpsc::UnboundedSender<TunnelCommand>>,
+        #[cfg_attr(not(target_os = "macos"), allow(unused))] command_sender: Weak<
+            mpsc::UnboundedSender<TunnelCommand>,
+        >,
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,

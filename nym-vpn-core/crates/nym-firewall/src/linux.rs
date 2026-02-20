@@ -504,11 +504,7 @@ impl<'a> PolicyBatch<'a> {
         // Outgoing Router solicitation (part of NDP)
         for chain in &[&self.out_chain, &self.forward_chain] {
             let mut rule = Rule::new(chain);
-            check_ip(
-                &mut rule,
-                End::Dst,
-                super::ROUTER_SOLICITATION_OUT_DST_ADDR,
-            );
+            check_ip(&mut rule, End::Dst, super::ROUTER_SOLICITATION_OUT_DST_ADDR);
             check_icmpv6(&mut rule, 133, 0);
             add_verdict(&mut rule, &Verdict::Accept);
             self.batch.add(&rule, nftnl::MsgType::Add);

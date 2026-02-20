@@ -1020,13 +1020,13 @@ impl NymVpnService for CommandInterface {
 
     async fn set_enable_split_tunnel(
         &self,
-        request: tonic::Request<bool>,
+        _request: tonic::Request<bool>,
     ) -> Result<tonic::Response<()>> {
         #[cfg(target_os = "macos")]
         {
             self.send_and_wait(
                 VpnServiceCommand::SetEnableSplitTunnel,
-                request.into_inner(),
+                _request.into_inner(),
             )
             .await?;
             Ok(tonic::Response::new(()))
@@ -1038,11 +1038,11 @@ impl NymVpnService for CommandInterface {
 
     async fn add_split_tunnel_app(
         &self,
-        request: tonic::Request<proto::SplitApp>,
+        _request: tonic::Request<proto::SplitApp>,
     ) -> Result<tonic::Response<()>> {
         #[cfg(target_os = "macos")]
         {
-            let app = SplitApp::from(request.into_inner());
+            let app = SplitApp::from(_request.into_inner());
             self.send_and_wait(VpnServiceCommand::AddSplitTunnelApp, app)
                 .await?;
             Ok(tonic::Response::new(()))
@@ -1054,11 +1054,11 @@ impl NymVpnService for CommandInterface {
 
     async fn remove_split_tunnel_app(
         &self,
-        request: tonic::Request<proto::SplitApp>,
+        _request: tonic::Request<proto::SplitApp>,
     ) -> Result<tonic::Response<()>> {
         #[cfg(target_os = "macos")]
         {
-            let app = SplitApp::from(request.into_inner());
+            let app = SplitApp::from(_request.into_inner());
             self.send_and_wait(VpnServiceCommand::RemoveSplitTunnelApp, app)
                 .await?;
             Ok(tonic::Response::new(()))
