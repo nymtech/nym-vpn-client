@@ -273,4 +273,11 @@ impl TunnelInterface {
             }
         }
     }
+
+    pub fn inner_metadatas(&self) -> Vec<&TunnelMetadata> {
+        match self {
+            TunnelInterface::One(tunnel_metadata) => vec![tunnel_metadata],
+            TunnelInterface::Two { entry, exit } => vec![entry, exit],
+        }
+    }
 }
