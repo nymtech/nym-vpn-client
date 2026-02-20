@@ -6,13 +6,13 @@ use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "macos")]
 use crate::resolver::LOCAL_DNS_RESOLVER;
+#[cfg(target_os = "macos")]
+use crate::tunnel_state_machine::ErrorStateReason;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
-#[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState},
+    states::{ConnectingState, DisconnectedState, ErrorState},
     tunnel::SelectedGateways,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
