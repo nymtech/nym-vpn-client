@@ -151,6 +151,9 @@ pub enum VpnApiClientError {
     /// Multiple attempts to receive remote time should happen before this error is returned
     #[error("too much time travel preventing receiving remote time")]
     TimeTravelTooMuch,
+
+    #[error("payload error: {0}")]
+    PayloadError(String),
 }
 
 pub type Result<T, E = VpnApiClientError> = std::result::Result<T, E>;

@@ -46,6 +46,8 @@ pub fn mock_subscription_summary_with_device(
                 last_updated_utc: "whatever".to_string(),
                 account_addr: "whatever".to_string(),
                 status: account_status,
+                canonical_account_addr: None,
+                auth_methods: vec![],
             },
             subscription: NymVpnAccountSummarySubscription {
                 is_active: active_sub,
