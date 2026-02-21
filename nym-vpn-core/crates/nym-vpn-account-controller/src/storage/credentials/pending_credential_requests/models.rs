@@ -6,22 +6,20 @@ use nym_credentials_interface::RequestInfo;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use time::Date;
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::Zeroize;
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow, Zeroize, ZeroizeOnDrop)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct PendingCredentialRequestStored {
     pub id: String,
-    #[zeroize(skip)]
     pub expiration_date: Date,
     pub request_info: Vec<u8>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Zeroize, ZeroizeOnDrop)]
-pub struct PendingCredentialRequest {
-    pub id: String,
-    #[zeroize(skip)]
-    pub expiration_date: Date,
-    pub request_info: RequestInfo,
+impl Drop for PendingCredentialRequestStored {
+    fn drop(&mut self) {
+        self.id.zeroize();
+        self.request_info.zeroize();
+    }
 }
 
 impl TryFrom<PendingCredentialRequestStored> for PendingCredentialRequest {
@@ -34,6 +32,20 @@ impl TryFrom<PendingCredentialRequestStored> for PendingCredentialRequest {
             expiration_date: value.expiration_date,
             request_info,
         })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingCredentialRequest {
+    pub id: String,
+    pub expiration_date: Date,
+    pub request_info: RequestInfo,
+}
+
+impl Drop for PendingCredentialRequest {
+    fn drop(&mut self) {
+        self.id.zeroize();
+        self.request_info.zeroize();
     }
 }
 
@@ -50,8 +62,7 @@ impl TryFrom<PendingCredentialRequest> for PendingCredentialRequestStored {
     }
 }
 
-fn binary_serialiser() -> impl bincode::Options {
-    use bincode::Options;
+fn binary_serialiser() -> impl Options {
     bincode::DefaultOptions::new()
         .with_big_endian()
         .with_varint_encoding()
