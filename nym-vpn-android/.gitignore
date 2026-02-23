@@ -69,3 +69,6 @@ lint/tmp/
 .DS_Store
 *.so
 !libjnidispatch.so
+
+# Maestro test debug output
+maestro/tests/
