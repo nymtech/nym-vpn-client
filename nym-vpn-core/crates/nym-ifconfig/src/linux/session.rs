@@ -279,6 +279,7 @@ mod tests {
     use super::{super::tun::Tun, *};
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_add_p2p_ipv4_address() {
         let tun = Tun::new().unwrap();
         let interface = tun.name().unwrap();
@@ -302,6 +303,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_add_p2p_ipv4_destination() {
         let tun = Tun::new().unwrap();
         let interface = tun.name().unwrap();
@@ -325,6 +327,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_set_p2p_ipv6_address() {
         let tun = Tun::new().unwrap();
         let interface = tun.name().unwrap();
@@ -350,6 +353,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_set_p2p_mtu() {
         let tun = Tun::new().unwrap();
         let interface = tun.name().unwrap();
@@ -365,6 +369,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[serial_test::serial]
     async fn test_p2p_interface_up_down() {
         let tun = Tun::new().unwrap();
         let interface = tun.name().unwrap();

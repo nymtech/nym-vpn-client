@@ -406,6 +406,7 @@ mod tests {
     use super::{super::utun::Utun, *};
 
     #[test]
+    #[serial_test::serial]
     fn test_create_fake_ethernet() {
         let mut sess = Session::default();
 
@@ -415,6 +416,7 @@ mod tests {
     }
 
     #[test]
+    #[serial_test::serial]
     fn test_add_p2p_ipv4_address() {
         let tun = Utun::new().unwrap();
         let interface = tun.name().unwrap();
@@ -449,6 +451,7 @@ mod tests {
     }
 
     #[test]
+    #[serial_test::serial]
     fn test_add_p2p_ipv6_address() {
         let tun = Utun::new().unwrap();
         let interface = tun.name().unwrap();
@@ -483,6 +486,7 @@ mod tests {
     }
 
     #[test]
+    #[serial_test::serial]
     fn test_add_feth_ipv4_address() {
         let mut sess = Session::default();
 
@@ -506,6 +510,7 @@ mod tests {
     }
 
     #[test]
+    #[serial_test::serial]
     fn test_change_feth_ipv4_prefix() {
         let mut sess = Session::default();
         let interface = sess.create_interface("feth").unwrap();
@@ -547,6 +552,7 @@ mod tests {
     }
 
     #[test]
+    #[serial_test::serial]
     fn test_add_feth_ipv6_address() {
         let mut sess = Session::default();
         let interface = sess.create_interface("feth").unwrap();
@@ -571,6 +577,7 @@ mod tests {
     }
 
     #[test]
+    #[serial_test::serial]
     fn test_macos_does_not_change_feth_ipv6_prefix() {
         let mut sess = Session::default();
         let interface = sess.create_interface("feth").unwrap();
@@ -613,6 +620,7 @@ mod tests {
     }
 
     #[test]
+    #[serial_test::serial]
     fn test_add_loopback_ipv4_alias() {
         let interface = "lo0";
         let ipv4_addr: Ipv4Network = "127.24.32.254/16".parse().unwrap();
@@ -644,6 +652,7 @@ mod tests {
     }
 
     #[test]
+    #[serial_test::serial]
     fn test_set_nd6_flags() {
         let tun = Utun::new().unwrap();
         let interface = tun.name().unwrap();
@@ -666,6 +675,7 @@ mod tests {
     }
 
     #[test]
+    #[serial_test::serial]
     fn test_set_mtu() {
         use rand::Rng;
 
