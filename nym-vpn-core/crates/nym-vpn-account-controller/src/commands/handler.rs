@@ -204,7 +204,7 @@ pub(crate) async fn handle_link_account<C: ConnectivityMonitor>(
 
         let _status_ok = shared_state
             .vpn_api_client
-            .link_account(current_account, &privy_vpn_account, "Social login")
+            .link_account(current_account, &privy_vpn_account, "Passphrase")
             .await
             .inspect_err(|err| {
                 tracing::error!("Failed to link Privy account with API account: {err:?}")
