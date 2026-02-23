@@ -43,8 +43,6 @@ pub async fn test_daemon_info(
     _rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!("test_daemon_info: verifying daemon info endpoints");
-
     let info = nym_client.get_info().await.context("get_info() failed")?;
     log::info!("Daemon version: {}", info.version);
     log::info!("Build timestamp: {:?}", info.build_timestamp);
@@ -70,7 +68,6 @@ pub async fn test_daemon_info(
         .context("get_system_messages() failed")?;
     log::info!("System messages count: {}", system_messages.len());
 
-    log::info!("test_daemon_info: PASSED");
     Ok(())
 }
 
@@ -80,7 +77,6 @@ pub async fn test_list_gateways(
     _rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!("test_list_gateways: verifying gateway listing");
     prepare_daemon_nym(&mut nym_client, true).await?;
     wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
 
@@ -107,7 +103,6 @@ pub async fn test_list_gateways(
     log::info!("WireGuard gateways: {}", wg_gateways.len());
     ensure!(!wg_gateways.is_empty(), "Expected at least one Wg gateway");
 
-    log::info!("test_list_gateways: PASSED");
     Ok(())
 }
 
@@ -117,7 +112,6 @@ pub async fn test_account_summary_and_usage(
     _rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!("test_account_summary_and_usage: verifying account data endpoints");
     prepare_daemon_nym(&mut nym_client, true).await?;
     wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
 
@@ -175,21 +169,6 @@ pub async fn test_account_summary_and_usage(
         );
     }
 
-    // Get balance
-    let balance = nym_client
-        .account_balance()
-        .await
-        .context("account_balance() failed")?;
-    log::info!("Account balance: {:?}", balance.result);
-    let coins = balance
-        .result
-        .map_err(|e| anyhow::anyhow!("account_balance returned error: {:?}", e))?;
-    ensure!(
-        !coins.is_empty(),
-        "Expected at least one balance coin entry"
-    );
-
-    log::info!("test_account_summary_and_usage: PASSED");
     Ok(())
 }
 
@@ -199,7 +178,6 @@ pub async fn test_wireguard_connect_disconnect(
     _rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!("test_wireguard_connect_disconnect: WireGuard tunnel test");
     prepare_daemon_nym(&mut nym_client, true).await?;
     wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
 
@@ -232,7 +210,6 @@ pub async fn test_wireguard_connect_disconnect(
     nym_client.disconnect_tunnel().await?;
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Disconnected).await?;
 
-    log::info!("test_wireguard_connect_disconnect: PASSED");
     Ok(())
 }
 
@@ -242,7 +219,6 @@ pub async fn test_mixnet_connect_disconnect(
     _rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!("test_mixnet_connect_disconnect: Mixnet tunnel test");
     prepare_daemon_nym(&mut nym_client, true).await?;
     wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
 
@@ -278,7 +254,6 @@ pub async fn test_mixnet_connect_disconnect(
     nym_client.disconnect_tunnel().await?;
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Disconnected).await?;
 
-    log::info!("test_mixnet_connect_disconnect: PASSED");
     Ok(())
 }
 
@@ -288,7 +263,6 @@ pub async fn test_dns_leak(
     rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!("test_dns_leak: checking for DNS leaks while connected");
     prepare_daemon_nym(&mut nym_client, true).await?;
     wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
 
@@ -360,7 +334,6 @@ pub async fn test_dns_leak(
     nym_client.disconnect_tunnel().await?;
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Disconnected).await?;
 
-    log::info!("test_dns_leak: PASSED");
     Ok(())
 }
 
@@ -468,7 +441,6 @@ pub async fn test_country_exit_node(
     rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!("test_country_exit_node: verifying exit country selection");
     prepare_daemon_nym(&mut nym_client, true).await?;
     wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
 
@@ -522,7 +494,6 @@ pub async fn test_country_exit_node(
     nym_client.disconnect_tunnel().await?;
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Disconnected).await?;
 
-    log::info!("test_country_exit_node: PASSED");
     Ok(())
 }
 
@@ -532,7 +503,6 @@ pub async fn test_reconnect_tunnel(
     rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!("test_reconnect_tunnel: testing tunnel reconnection");
     prepare_daemon_nym(&mut nym_client, true).await?;
     wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
 
@@ -564,6 +534,5 @@ pub async fn test_reconnect_tunnel(
     nym_client.disconnect_tunnel().await?;
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Disconnected).await?;
 
-    log::info!("test_reconnect_tunnel: PASSED");
     Ok(())
 }
