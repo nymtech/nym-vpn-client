@@ -292,8 +292,9 @@ extension ConnectionManager {
         guard let oldConfig else { return true }
         guard oldConfig != connectionStorage.connectionConfig else { return false }
 
-        guard shouldReconnectMixnetTunningSettings(with: oldConfig),
-              shouldEntryReconnect() || shouldExitRecconnect()
+        guard shouldReconnectMixnetTunningSettings(with: oldConfig)
+                || shouldEntryReconnect()
+                || shouldExitRecconnect()
         else {
             return false
         }
@@ -301,12 +302,18 @@ extension ConnectionManager {
     }
 
     func shouldReconnectMixnetTunningSettings(with oldConfig: ConnectionConfig) -> Bool {
-        guard connectionStorage.connectionConfig.enableTwoHop == true,
-              oldConfig.mixnetTuningConfig == connectionStorage.connectionConfig.mixnetTuningConfig
-        else {
+        let newConfig = connectionStorage.connectionConfig
+
+        if oldConfig.enableTwoHop != newConfig.enableTwoHop {
+            return true
+        }
+
+        if newConfig.enableTwoHop == true,
+           oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig {
             return false
         }
-        return true
+
+        return oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig
     }
 
     func shouldEntryReconnect() -> Bool {

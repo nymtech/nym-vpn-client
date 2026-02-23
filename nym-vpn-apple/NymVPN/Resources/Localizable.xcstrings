@@ -6556,6 +6556,17 @@
         }
       }
     },
+    "createAccount.loginAnonymously" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in anonymously"
+          }
+        }
+      }
+    },
     "createAccount.loginWithSocialAccount" : {
       "extractionState" : "manual",
       "localizations" : {
