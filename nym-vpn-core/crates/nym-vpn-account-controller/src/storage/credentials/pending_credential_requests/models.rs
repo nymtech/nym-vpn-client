@@ -1,25 +1,29 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#![allow(unused_assignments)]
+
 use bincode::Options;
 use nym_credentials_interface::RequestInfo;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use time::Date;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, Zeroize, ZeroizeOnDrop)]
 pub struct PendingCredentialRequestStored {
     pub id: String,
+    #[zeroize(skip)]
     pub expiration_date: Date,
     pub request_info: Vec<u8>,
 }
 
-impl Drop for PendingCredentialRequestStored {
-    fn drop(&mut self) {
-        self.id.zeroize();
-        self.request_info.zeroize();
-    }
+#[derive(Debug, Clone, Serialize, Deserialize, Zeroize, ZeroizeOnDrop)]
+pub struct PendingCredentialRequest {
+    pub id: String,
+    #[zeroize(skip)]
+    pub expiration_date: Date,
+    pub request_info: RequestInfo,
 }
 
 impl TryFrom<PendingCredentialRequestStored> for PendingCredentialRequest {
@@ -32,20 +36,6 @@ impl TryFrom<PendingCredentialRequestStored> for PendingCredentialRequest {
             expiration_date: value.expiration_date,
             request_info,
         })
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PendingCredentialRequest {
-    pub id: String,
-    pub expiration_date: Date,
-    pub request_info: RequestInfo,
-}
-
-impl Drop for PendingCredentialRequest {
-    fn drop(&mut self) {
-        self.id.zeroize();
-        self.request_info.zeroize();
     }
 }
 
@@ -62,7 +52,8 @@ impl TryFrom<PendingCredentialRequest> for PendingCredentialRequestStored {
     }
 }
 
-fn binary_serialiser() -> impl Options {
+fn binary_serialiser() -> impl bincode::Options {
+    use bincode::Options;
     bincode::DefaultOptions::new()
         .with_big_endian()
         .with_varint_encoding()
