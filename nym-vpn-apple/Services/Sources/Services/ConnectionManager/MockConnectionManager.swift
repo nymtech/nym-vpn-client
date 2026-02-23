@@ -3,14 +3,18 @@ import Foundation
 import TunnelStatus
 
 /// Detects whether the app was launched in mock mode.
-/// Checks both environment variable and launch argument.
+/// Primary: compile-time MOCK_MODE flag (set via xcodebuild or Xcode scheme).
+/// Fallback: launch argument in DEBUG builds only (for Maestro/SPM compatibility).
+/// Release builds always return false regardless of arguments.
 public enum MockMode {
     public static var isEnabled: Bool {
         #if MOCK_MODE
         return true
+        #elseif DEBUG
+        return ProcessInfo.processInfo.arguments.contains("-MOCK_MODE")
+            || ProcessInfo.processInfo.arguments.contains("MOCK_MODE")
         #else
-        return ProcessInfo.processInfo.environment["MOCK_MODE"] == "1"
-            || ProcessInfo.processInfo.arguments.contains("-MOCK_MODE")
+        return false
         #endif
     }
 }

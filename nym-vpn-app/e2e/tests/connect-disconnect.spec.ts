@@ -14,7 +14,9 @@ test.describe('Connect / Disconnect', () => {
     const connectBtn = page.getByRole('button', { name: /connect/i });
     await expect(connectBtn).toBeVisible({ timeout: 10_000 });
     await connectBtn.click();
-    await page.waitForTimeout(2000);
+
+    const disconnectBtn = page.getByRole('button', { name: /disconnect/i });
+    await expect(disconnectBtn).toBeVisible({ timeout: 10_000 });
   });
 
   test('disconnect flow works after connecting', async ({ page }) => {
@@ -22,17 +24,15 @@ test.describe('Connect / Disconnect', () => {
     await expect(page.locator('#root')).not.toBeEmpty({ timeout: 15_000 });
 
     const connectBtn = page.getByRole('button', { name: /connect/i });
-    if (await connectBtn.isVisible()) {
-      await connectBtn.click();
-      await page.waitForTimeout(3000);
+    await expect(connectBtn).toBeVisible({ timeout: 10_000 });
+    await connectBtn.click();
 
-      const disconnectBtn = page.getByRole('button', {
-        name: /disconnect/i,
-      });
-      if (await disconnectBtn.isVisible()) {
-        await disconnectBtn.click();
-        await page.waitForTimeout(2000);
-      }
-    }
+    const disconnectBtn = page.getByRole('button', { name: /disconnect/i });
+    await expect(disconnectBtn).toBeVisible({ timeout: 10_000 });
+    await disconnectBtn.click();
+
+    await expect(
+      page.getByRole('button', { name: /connect/i }),
+    ).toBeVisible({ timeout: 10_000 });
   });
 });

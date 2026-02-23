@@ -206,6 +206,12 @@ androidComponents {
 	}
 }
 
+androidComponents {
+	beforeVariants(selector().withFlavor("type" to "mock")) { variant ->
+		variant.enable = variant.buildType == "debug"
+	}
+}
+
 dependencies {
 	implementation(project(":core"))
 	implementation(project(":connectivity"))

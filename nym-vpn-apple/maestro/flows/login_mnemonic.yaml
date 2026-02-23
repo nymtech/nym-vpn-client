@@ -1,6 +1,6 @@
 appId: net.nymtech.vpn
 ---
-- clearState
+- stopApp
 - launchApp:
     arguments:
       MOCK_MODE: "1"
