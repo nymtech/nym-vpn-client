@@ -227,6 +227,7 @@ private extension HomeViewModel {
         setupGatewayManagerObserver()
         setupSystemMessageObservers()
         setupIsMnemonicImportedObserver()
+        setupCurrentTunnelStatusObservation()
 
 #if os(iOS)
         setupConnectionErrorObservers()
@@ -234,6 +235,18 @@ private extension HomeViewModel {
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
+    }
+
+    func setupCurrentTunnelStatusObservation() {
+        connectionManager.$currentTunnelStatus
+            .removeDuplicates()
+            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
+            .sink { [weak self] status in
+                MainActor.assumeIsolated {
+                    self?.updateUI(with: status)
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func setupTunnelManagerObservers() {

@@ -138,12 +138,12 @@ private extension AccountWelcomeView {
 
     var createAccountButton: some View {
 #if os(iOS)
-        GenericButton(title: "createAccount.startAnonymously".localizedString)
+        GenericButton(title: createAccountButtonLocalizedTitle)
             .onTapGesture {
-                navigateToCreateAccount()
+                navigateToLoginOrCreateAccount()
             }
             .accessibilityAction {
-                navigateToCreateAccount()
+                navigateToLoginOrCreateAccount()
             }
 #elseif os(macOS)
         GenericButton(title: "createAccount.startAnonymously".localizedString, isExternalLink: true)
@@ -154,6 +154,15 @@ private extension AccountWelcomeView {
                 navigateToCreateAccount()
             }
 #endif
+    }
+
+    var createAccountButtonLocalizedTitle: String {
+        switch type {
+        case .createAccount:
+            "createAccount.startAnonymously".localizedString
+        case .login:
+            "createAccount.loginAnonymously".localizedString
+        }
     }
 
     var separatorLine: some View {
@@ -230,6 +239,15 @@ private extension AccountWelcomeView {
             if !path.isEmpty { path.removeLast() }
         case .home:
             path = .init()
+        }
+    }
+
+    func navigateToLoginOrCreateAccount() {
+        switch type {
+        case .createAccount:
+            navigateToCreateAccount()
+        case .login:
+            navigateToLogin()
         }
     }
 

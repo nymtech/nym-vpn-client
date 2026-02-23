@@ -24,6 +24,15 @@ import PathManager
     private let appSettings = AppSettings.shared
     private let configurationManager = ConfigurationManager.shared
 
+    private var isMockMode: Bool {
+        #if MOCK_MODE
+        return true
+        #else
+        return ProcessInfo.processInfo.environment["MOCK_MODE"] == "1"
+            || ProcessInfo.processInfo.arguments.contains("-MOCK_MODE")
+        #endif
+    }
+
 #if os(iOS)
     var deeplinks: NymDeeplinks?
 #endif
@@ -55,6 +64,11 @@ import PathManager
     }
 
     public func add(credential: String) async throws {
+        if isMockMode {
+            logger.info("Mock mode: accepting credential without backend validation")
+            updateIsCredentialImported(with: true)
+            return
+        }
         try await Task {
             do {
 #if os(iOS)
@@ -81,6 +95,11 @@ import PathManager
     }
 
     public func createMnemonic() async throws {
+        if isMockMode {
+            logger.info("Mock mode: simulating account creation")
+            updateIsCredentialImported(with: true)
+            return
+        }
 #if os(iOS)
         try await Task {
             try await NymVpnAccountStorage(
@@ -124,6 +143,12 @@ import PathManager
     }
 
     public func removeCredential() async throws {
+        if isMockMode {
+            logger.info("Mock mode: simulating credential removal")
+            updateIsCredentialImported(with: false)
+            appSettings.accountToken = nil
+            return
+        }
         try await Task {
             do {
 #if os(iOS)
@@ -199,6 +224,7 @@ import PathManager
     /// stores value and returns true if validUntilDate is in the future
     /// - Returns: Bool
     public func isAccountValid() async -> Bool {
+        if isMockMode { return true }
         if isAccountSubscriptionDateValid() {
             return true
         } else {
@@ -246,6 +272,9 @@ private extension CredentialsManager {
     }
 
     func checkCredentialImport() {
+        if isMockMode {
+            return
+        }
         Task {
             do {
                 let isImported: Bool

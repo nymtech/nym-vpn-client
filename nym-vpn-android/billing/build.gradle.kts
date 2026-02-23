@@ -41,6 +41,9 @@ android {
 		create(Constants.GENERAL) {
 			dimension = Constants.TYPE
 		}
+		create(Constants.MOCK) {
+			dimension = Constants.TYPE
+		}
 	}
 
 	compileOptions {

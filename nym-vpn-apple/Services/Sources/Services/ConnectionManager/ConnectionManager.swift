@@ -117,6 +117,7 @@ import GRPCManager
         self.connectionType = connectionStorage.connectionType
         self.connectionConfig = connectionStorage.connectionConfig
         setup()
+        setupMockObserverIfNeeded()
     }
 #endif
 
@@ -138,8 +139,11 @@ import GRPCManager
         self.connectionType = connectionStorage.connectionType
         self.connectionConfig = connectionStorage.connectionConfig
         setup()
+        setupMockObserverIfNeeded()
     }
 #endif
+
+    public var isMockModeEnabled: Bool { MockMode.isEnabled }
 
     /// Disconnects tunnel if connected.
     /// iOS removes tunnel profile.
@@ -167,6 +171,18 @@ private extension ConnectionManager {
         setupAppSettingsObservers()
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
+    }
+
+    func setupMockObserverIfNeeded() {
+        guard MockMode.isEnabled else { return }
+        MockConnectionState.shared.$tunnelStatus
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] status in
+                MainActor.assumeIsolated {
+                    self?.currentTunnelStatus = status
+                }
+            }
+            .store(in: &cancellables)
     }
 }
 
@@ -292,8 +308,9 @@ extension ConnectionManager {
         guard let oldConfig else { return true }
         guard oldConfig != connectionStorage.connectionConfig else { return false }
 
-        guard shouldReconnectMixnetTunningSettings(with: oldConfig),
-              shouldEntryReconnect() || shouldExitRecconnect()
+        guard shouldReconnectMixnetTunningSettings(with: oldConfig)
+                || shouldEntryReconnect()
+                || shouldExitRecconnect()
         else {
             return false
         }
@@ -301,12 +318,18 @@ extension ConnectionManager {
     }
 
     func shouldReconnectMixnetTunningSettings(with oldConfig: ConnectionConfig) -> Bool {
-        guard connectionStorage.connectionConfig.enableTwoHop == true,
-              oldConfig.mixnetTuningConfig == connectionStorage.connectionConfig.mixnetTuningConfig
-        else {
+        let newConfig = connectionStorage.connectionConfig
+
+        if oldConfig.enableTwoHop != newConfig.enableTwoHop {
+            return true
+        }
+
+        if newConfig.enableTwoHop == true,
+           oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig {
             return false
         }
-        return true
+
+        return oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig
     }
 
     func shouldEntryReconnect() -> Bool {

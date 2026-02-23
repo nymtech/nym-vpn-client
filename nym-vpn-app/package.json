@@ -24,6 +24,9 @@
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
     "tscheck": "tsc --noEmit",
     "tsgen": "cd src-tauri && cargo test && prettier --write ../src/types/tauri.ts",
+    "test:e2e": "npx playwright test --config=e2e/playwright.config.ts",
+    "test:e2e:ui": "npx playwright test --config=e2e/playwright.config.ts --ui",
+    "test:e2e:report": "npx playwright show-report playwright-report",
     "tauri": "tauri",
     "gen:licenses": "run-p --aggregate-output gen:licenses:rust gen:licenses:js",
     "gen:licenses:js": "npx --yes license-checker-rseidelsohn@4.4.2 --production --json --depth 0 > public/licenses-js.json",
@@ -89,6 +92,7 @@
     "typescript": "^5.0.2",
     "typescript-eslint": "^8.0.1",
     "vite": "^7.0.4",
-    "vite-plugin-svgr": "^4.2.0"
+    "vite-plugin-svgr": "^4.2.0",
+    "@playwright/test": "~1.58.0"
   }
 }

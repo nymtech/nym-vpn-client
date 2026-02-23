@@ -17,7 +17,7 @@ public extension HomeViewModel {
         resetStatusInfoState()
 
 #if os(macOS)
-        guard grpcManager.isServing
+        guard connectionManager.isMockModeEnabled || grpcManager.isServing
         else {
             navigateToDaemonEnable()
             return
