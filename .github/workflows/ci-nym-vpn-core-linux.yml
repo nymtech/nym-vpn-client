@@ -19,7 +19,7 @@ jobs:
 
   build:
     if: github.actor != 'dependabot[bot]'
-    runs-on: arc-linux-latest-dind
+    runs-on: arc-linux-latest
     needs: build-wireguard-go-linux
 
     steps:
