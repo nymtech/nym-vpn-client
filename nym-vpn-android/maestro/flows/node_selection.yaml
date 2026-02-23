@@ -1,0 +1,23 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- launchApp
+
+- runFlow:
+    when:
+      visible: "Connection request"
+    commands:
+      - tapOn: "OK"
+
+- extendedWaitUntil:
+    visible:
+      text: "CONNECT TO"
+    timeout: 15000
+
+- assertVisible:
+    text: "Entry location"
+
+- assertVisible:
+    text: "Exit location"
+
+- assertVisible:
+    text: "Random"

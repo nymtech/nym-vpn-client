@@ -1,0 +1,23 @@
+appId: net.nymtech.vpn
+---
+- clearState
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      text: "Welcome to NymVPN"
+    timeout: 15000
+
+- assertVisible:
+    text: "Create account"
+
+- assertVisible:
+    text: "Log in"
+
+- tapOn:
+    point: "95%,12%"
+
+- extendedWaitUntil:
+    visible:
+      text: "Disconnected"
+    timeout: 10000

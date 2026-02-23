@@ -1,0 +1,86 @@
+name: ci-maestro-ios
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'nym-vpn-apple/**'
+      - '.github/workflows/ci-maestro-ios.yml'
+  workflow_dispatch:
+
+jobs:
+  maestro-ui-tests:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: macos-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Build mock app for simulator
+        working-directory: nym-vpn-apple
+        run: |
+          xcodebuild build-for-testing \
+            -workspace NymVPN.xcworkspace \
+            -scheme NymVPN-Mock \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS='MOCK_MODE' \
+            | xcpretty || true
+
+      - name: Boot iOS simulator
+        run: |
+          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          for runtime, devices in data['devices'].items():
+              if 'iOS' in runtime:
+                  for d in devices:
+                      if 'iPhone 16' in d['name'] and d['isAvailable']:
+                          print(d['udid'])
+                          sys.exit(0)
+          sys.exit(1)
+          ")
+          xcrun simctl boot "$DEVICE_ID" || true
+          echo "DEVICE_ID=$DEVICE_ID" >> $GITHUB_ENV
+
+      - name: Install Maestro
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Log tool versions
+        run: |
+          echo "--- Xcode ---"
+          xcodebuild -version
+          echo "--- Maestro ---"
+          $HOME/.maestro/bin/maestro --version
+          echo "--- Simulator ---"
+          xcrun simctl list devices available | head -20
+
+      - name: Install app on simulator
+        working-directory: nym-vpn-apple
+        run: |
+          APP_PATH=$(find build -name "NymVPN.app" -path "*/Debug-iphonesimulator/*" | head -1)
+          xcrun simctl install "$DEVICE_ID" "$APP_PATH"
+
+      - name: Run Maestro UI tests
+        working-directory: nym-vpn-apple
+        run: |
+          maestro test maestro/flows/ \
+            --format junit \
+            --output maestro-ios-report.xml
+
+      - name: Upload Maestro report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-ios-report
+          path: nym-vpn-apple/maestro-ios-report.xml

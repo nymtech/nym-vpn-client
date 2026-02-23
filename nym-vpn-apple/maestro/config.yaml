@@ -1,0 +1,5 @@
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+onFlowStart:
+  - clearState

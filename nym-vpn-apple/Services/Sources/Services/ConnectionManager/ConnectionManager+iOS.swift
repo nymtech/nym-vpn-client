@@ -220,6 +220,14 @@ extension ConnectionManager {
 extension ConnectionManager {
     /// connects disconnects VPN, depending on current VPN status
     @MainActor public func connectDisconnect() async throws {
+        if MockMode.isEnabled {
+            if currentTunnelStatus == .connected || currentTunnelStatus == .connecting {
+                MockConnectionState.shared.disconnect()
+            } else {
+                MockConnectionState.shared.connect()
+            }
+            return
+        }
         do {
             if shouldDisconnectActiveTunnel() {
                 isDisconnecting = true

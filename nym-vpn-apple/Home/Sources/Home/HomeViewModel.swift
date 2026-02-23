@@ -266,6 +266,7 @@ private extension HomeViewModel {
         setupAccountSummaryObserver()
         setupSubscriptionPaymentObserver()
         configurePassphraseBanner()
+        setupCurrentTunnelStatusObservation()
 #if os(iOS)
         setupConnectionErrorObservers()
         setupNetworkMonitorObservers()
@@ -283,6 +284,18 @@ private extension HomeViewModel {
                 self?.path.append(SettingLink.passphrase)
             }
         )
+    }
+
+    func setupCurrentTunnelStatusObservation() {
+        connectionManager.$currentTunnelStatus
+            .removeDuplicates()
+            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
+            .sink { [weak self] status in
+                MainActor.assumeIsolated {
+                    self?.updateUI(with: status)
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func setupTunnelManagerObservers() {

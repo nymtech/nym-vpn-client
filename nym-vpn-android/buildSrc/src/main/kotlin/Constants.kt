@@ -31,6 +31,7 @@ object Constants {
 
 	const val FDROID = "fdroid"
 	const val GENERAL = "general"
+	const val MOCK = "mock"
 	const val BUILD_LIB_TASK = "buildDeps"
 
 	//licensee
