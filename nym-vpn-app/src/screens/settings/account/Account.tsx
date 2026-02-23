@@ -52,10 +52,17 @@ function Account() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
 
+  console.log('accountMode', accountMode);
   const linkable = accountMode === 'api';
 
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
+
+  useEffect(() => {
+    invoke('get_account_summary').then((summary) => {
+      console.log('account summary', summary);
+    });
+  }, []);
 
   const getAccountId = async () => {
     const accountId = await CCache.get<string>('cache-account-id');

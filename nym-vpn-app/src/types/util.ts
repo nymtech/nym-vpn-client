@@ -191,6 +191,19 @@ export function isAccountError(
   return (state as AccountStateError).error !== undefined;
 }
 
+// export function isAccountSynced(state: TAccountState): boolean {
+//  return (state as AccountStateError).error === undefined && state !== 'syncing' && state !== 'logged-out' && state !== ''
+// }
+
+export function doesAccountNeedSubscription(state: AccountState): boolean {
+  return (
+    state === 'no-subscription' ||
+    state === 'bandwidth-exceeded' ||
+    state === 'status-not-active' ||
+    state === 'max-device-reached'
+  );
+}
+
 export type CodeDependency = {
   name: string;
   version?: string;

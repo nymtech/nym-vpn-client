@@ -305,6 +305,13 @@ export type TAccountState =
   | 'requesting-zk-nyms'
   | { error: TBackendError };
 
+export type TAccountSummary = {
+  'subscription-valid-until': string | null;
+  'traffic-used-gb': bigint;
+  'traffic-limit-gb': bigint;
+  'traffic-reset-time': string | null;
+};
+
 /**
  * Generic error type made to be passed to the frontend and
  * displayed in the UI as localized error message

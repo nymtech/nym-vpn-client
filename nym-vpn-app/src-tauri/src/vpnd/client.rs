@@ -1,5 +1,5 @@
 pub use super::{
-    account::StoredAccountMode,
+    account::{StoredAccountMode, AccountSummary},
     account_links::AccountLinks,
     error::VpndError,
     feature_flags::FeatureFlags,
@@ -907,5 +907,15 @@ impl VpndClient {
         vpnd.set_mixnet_traffic_config(config.into())
             .or_else(async |e| self.handle_rpc_error("set_mixnet_traffic_config", e).await)
             .await
+    }
+
+    pub async fn get_account_summary(&self) -> Result<Option<AccountSummary>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let summary = vpnd.get_account_summary()
+            .or_else(async |e| self.handle_rpc_error("get_account_summary", e).await)
+            .await?;
+
+        Ok(summary.map(Into::into))
     }
 }
