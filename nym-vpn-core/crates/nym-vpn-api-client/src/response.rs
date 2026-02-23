@@ -38,6 +38,8 @@ pub struct NymVpnAccountResponse {
     pub last_updated_utc: String,
     pub account_addr: String,
     pub status: NymVpnAccountStatusResponse,
+    pub canonical_account_addr: Option<String>,
+    pub auth_methods: Vec<NymVpnAccountAuthMethodResponse>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, strum_macros::Display)]
@@ -46,6 +48,17 @@ pub enum NymVpnAccountStatusResponse {
     Active,
     Inactive,
     DeleteMe,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub struct NymVpnAccountAuthMethodResponse {
+    pub id: String,
+    pub pubkey: String,
+    pub kind: String,
+    pub label: String,
+    pub status: NymVpnAccountStatusResponse,
+    pub created: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

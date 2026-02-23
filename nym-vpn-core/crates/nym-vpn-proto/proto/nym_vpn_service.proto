@@ -836,6 +836,24 @@ message VpnAccountSummary {
   uint64 traffic_used_gb = 2;
   uint64 traffic_limit_gb = 3;
   optional google.protobuf.Timestamp traffic_reset_time = 4;
+  string account_addr = 5;
+  optional string canonical_account_addr = 6;
+  repeated VpnAccountAuthMethod auth_methods = 7;
+}
+
+message VpnAccountAuthMethod {
+  string id = 1;
+  string pubkey = 2;
+  string kind = 3;
+  string label = 4;
+  VpnAccountStatus status = 5;
+  google.protobuf.Timestamp created = 6;
+}
+
+enum VpnAccountStatus {
+  ACTIVE = 0;
+  INACTIVE = 1;
+  DELETE_ME = 2;
 }
 
 message DeleteLogFileResponse {
