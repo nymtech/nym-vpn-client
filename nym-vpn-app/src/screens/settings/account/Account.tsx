@@ -58,7 +58,7 @@ function Account() {
     accountSummary?.['account-addr'] !==
     accountSummary?.['canonical-account-addr'];
   const hasLinkedAuthMethod = accountSummary?.['auth-methods']?.some(
-    (it) => it.label === 'Social login' || it.label === 'PassPhrase',
+    (it) => it.label === 'Social login' || it.label === 'Passphrase',
   );
 
   const isAccountLinked =
