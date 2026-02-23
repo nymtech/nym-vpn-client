@@ -11,6 +11,10 @@ on:
         description:
           "Space-separated list of tests to skip. Can be used in conjunction with test_filters"
         required: false
+      delay_deprovision_on_failure:
+        description: "Delay teardown by 1 hour on failure so you can SSH in to debug"
+        type: boolean
+        default: false
       instance_type:
         description: "Exoscale compute instance type"
         type: choice
@@ -290,6 +294,20 @@ jobs:
           path: /tmp/test-report.json
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Delay deprovision for debugging
+        if: >-
+          always()
+          && inputs.delay_deprovision_on_failure == true
+          && steps.vm-ip.outputs.ip
+          && job.status == 'failure'
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+        run: |
+          echo "Tests failed, keeping the VM around for 1 hour for debugging..."
+          echo "You can SSH into the VM at ${{ env.VM_USER }}@${VM_IP}"
+          echo "If you want to trigger VM deprovision earlier, cancel this workflow"
+          sleep 3600
 
       - name: Terraform destroy
         if: always()
