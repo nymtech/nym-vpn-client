@@ -71,3 +71,6 @@ lint/tmp/
 !libjnidispatch.so
 #include platform verifier .aar
 !core/libs/rustls-maven/**/*.aar
+
+# Maestro test debug output
+maestro/tests/
