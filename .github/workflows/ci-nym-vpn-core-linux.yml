@@ -18,7 +18,7 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
 
   build:
-    runs-on: arc-linux-latest
+    runs-on: arc-linux-latest-dind
     needs: build-wireguard-go-linux
 
     steps:
