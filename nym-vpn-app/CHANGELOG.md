@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Improve Accessibility for sliders
+- Fix privy social linking check
 
 ## [1.24.0] - 2026-02-17
 
