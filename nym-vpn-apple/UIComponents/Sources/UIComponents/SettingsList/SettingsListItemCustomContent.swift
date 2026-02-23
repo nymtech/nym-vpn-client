@@ -5,16 +5,19 @@ import Theme
 public struct SettingsListItemCustomContent<CustomContent: View>: View {
     private let viewModel: SettingsListItemViewModel
     private let customContent: (() -> CustomContent)?
+    private let combineAccessibilityChildren: Bool
 
     @State private var isHovered = false
     @State private var isToggleOn = false
 
     public init(
         viewModel: SettingsListItemViewModel,
-        customContent: (() -> CustomContent)? = nil
+        customContent: (() -> CustomContent)? = nil,
+        combineAccessibilityChildren: Bool = true
     ) {
         self.viewModel = viewModel
         self.customContent = customContent
+        self.combineAccessibilityChildren = combineAccessibilityChildren
         if case let .toggle(isOn, _) = viewModel.accessory {
             _isToggleOn = State(initialValue: isOn.wrappedValue)
         }
@@ -83,11 +86,7 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
                 isOn.wrappedValue = newValue
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle ?? "")")
-        .accessibilityValue(viewModel.accessory.accessibilityValue)
-        .accessibilityHint(viewModel.accessory.accessibilityHint)
-        .accessibilityAddTraits([.isButton])
+        .settingsListAccessibility(viewModel, combineChildren: combineAccessibilityChildren)
     }
 }
 
@@ -150,6 +149,8 @@ private extension SettingsListItemCustomContent {
                 .labelsHidden()
                 .disabled(isDisabled)
                 .padding(.trailing, 16)
+                .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle ?? "")")
+                .accessibilityHint(viewModel.accessory.accessibilityHint)
         }
     }
 
@@ -173,6 +174,21 @@ private extension SettingsListItemCustomContent {
     func optionalCustomContent() -> some View {
         if let customContent {
             customContent()
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func settingsListAccessibility(_ viewModel: SettingsListItemViewModel, combineChildren: Bool) -> some View {
+        if combineChildren {
+            accessibilityElement(children: .combine)
+                .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle ?? "")")
+                .accessibilityValue(viewModel.accessory.accessibilityValue)
+                .accessibilityHint(viewModel.accessory.accessibilityHint)
+                .accessibilityAddTraits([.isButton])
+        } else {
+            accessibilityElement(children: .contain)
         }
     }
 }

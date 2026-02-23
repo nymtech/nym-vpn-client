@@ -173,7 +173,8 @@ private extension MixnetTuningView {
             ),
             customContent: {
                 trafficSubsection
-            }
+            },
+            combineAccessibilityChildren: false
         )
         .onChange(of: isSendTrafficContinuouslyOn) {
             config?.disablePoissonRate = !isSendTrafficContinuouslyOn
@@ -222,6 +223,11 @@ private extension MixnetTuningView {
             .frame(height: 16)
         Slider(value: $coverTrafficIndex, in: 0.0...Double(coverTrafficOptions.count - 1), step: 1)
             .tint(NymColor.accent)
+            .accessibilityLabel("mixnetTuning.backgroundCoverTrafficState.title".localizedString)
+            .accessibilityValue(coverTrafficAccessibilityValue)
+            .accessibilityAdjustableAction { direction in
+                adjustCoverTraffic(direction)
+            }
         Spacer()
             .frame(height: 16)
         HStack(spacing: 0) {
@@ -259,6 +265,11 @@ private extension MixnetTuningView {
             .frame(height: 16)
         Slider(value: $continuousTrafficIndex, in: 0.0...Double(continuousTrafficOptions.count - 1), step: 1)
             .tint(NymColor.accent)
+            .accessibilityLabel("mixnetTuning.sendTrafficContinously".localizedString)
+            .accessibilityValue(continuousTrafficAccessibilityValue)
+            .accessibilityAdjustableAction { direction in
+                adjustContinuousTraffic(direction)
+            }
         Spacer()
             .frame(height: 16)
         HStack(spacing: 0) {
@@ -314,6 +325,11 @@ private extension MixnetTuningView {
             step: 1
         )
             .tint(NymColor.accent)
+            .accessibilityLabel("mixnetTuning.mixingDelays".localizedString)
+            .accessibilityValue(mixingDelayAccessibilityValue)
+            .accessibilityAdjustableAction { direction in
+                adjustMixingDelay(direction)
+            }
             .onChange(of: mixingDelayIndex) { _, _ in
                 updateLatencyRTT()
             }
@@ -385,6 +401,79 @@ private extension MixnetTuningView {
 
 // MARK: - Helpers -
 private extension MixnetTuningView {
+    var coverTrafficAccessibilityValue: String {
+        switch safeCoverTrafficIndex {
+        case 0:
+            "mixnetTuning.base".localizedString
+        case 1:
+            "mixnetTuning.balanced".localizedString
+        case 2:
+            "mixnetTuning.medium".localizedString
+        case 3:
+            "mixnetTuning.high".localizedString
+        default:
+            "mixnetTuning.base".localizedString
+        }
+    }
+
+    var continuousTrafficAccessibilityValue: String {
+        "\(continuousTrafficOptions[safeContinuousTrafficIndex].uiThroughput) Mbps"
+    }
+
+    var mixingDelayAccessibilityValue: String {
+        "\(safeMixingDelayValue) ms"
+    }
+
+    var safeCoverTrafficIndex: Int {
+        min(max(Int(coverTrafficIndex.rounded()), 0), coverTrafficOptions.count - 1)
+    }
+
+    var safeContinuousTrafficIndex: Int {
+        min(max(Int(continuousTrafficIndex.rounded()), 0), continuousTrafficOptions.count - 1)
+    }
+
+    var safeMixingDelayValue: Int {
+        let defaultDelay = mixnetDefaults.defaultMixingDelay()
+        return min(
+            max(Int(mixingDelayIndex.rounded()), Int(defaultDelay.minValue)),
+            Int(defaultDelay.maxValue)
+        )
+    }
+
+    func adjustCoverTraffic(_ direction: AccessibilityAdjustmentDirection) {
+        switch direction {
+        case .increment:
+            coverTrafficIndex = min(coverTrafficIndex + 1, Double(coverTrafficOptions.count - 1))
+        case .decrement:
+            coverTrafficIndex = max(coverTrafficIndex - 1, 0)
+        @unknown default:
+            break
+        }
+    }
+
+    func adjustContinuousTraffic(_ direction: AccessibilityAdjustmentDirection) {
+        switch direction {
+        case .increment:
+            continuousTrafficIndex = min(continuousTrafficIndex + 1, Double(continuousTrafficOptions.count - 1))
+        case .decrement:
+            continuousTrafficIndex = max(continuousTrafficIndex - 1, 0)
+        @unknown default:
+            break
+        }
+    }
+
+    func adjustMixingDelay(_ direction: AccessibilityAdjustmentDirection) {
+        let defaultDelay = mixnetDefaults.defaultMixingDelay()
+        switch direction {
+        case .increment:
+            mixingDelayIndex = min(mixingDelayIndex + 1, Double(defaultDelay.maxValue))
+        case .decrement:
+            mixingDelayIndex = max(mixingDelayIndex - 1, Double(defaultDelay.minValue))
+        @unknown default:
+            break
+        }
+    }
+
     func updateLatencyRTT() {
         let latencyRaw = 2 * (6 * 50 + 3 * Int(mixingDelayIndex))
         latency = ((latencyRaw + 5) / 10) * 10
