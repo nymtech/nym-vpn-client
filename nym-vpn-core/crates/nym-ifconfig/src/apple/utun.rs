@@ -1,16 +1,19 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::os::fd::{AsFd, AsRawFd, BorrowedFd, OwnedFd};
+use std::os::fd::{AsFd, BorrowedFd};
+#[cfg(target_os = "macos")]
+use std::os::fd::{AsRawFd, OwnedFd};
 
-use nix::sys::socket::{
-    self, AddressFamily, SockFlag, SockProtocol, SockType, SysControlAddr, sockopt::UtunIfname,
-};
+use nix::sys::socket::sockopt::UtunIfname;
+#[cfg(target_os = "macos")]
+use nix::sys::socket::{self, AddressFamily, SockFlag, SockProtocol, SockType, SysControlAddr};
 
 use crate::{Error, ErrorKind, Result};
 
 // Name registered by the utun kernel control
 // usr/include/net/if_utun.h
+#[cfg(target_os = "macos")]
 const UTUN_CONTROL_NAME: &str = "com.apple.net.utun_control";
 
 #[derive(Debug)]
