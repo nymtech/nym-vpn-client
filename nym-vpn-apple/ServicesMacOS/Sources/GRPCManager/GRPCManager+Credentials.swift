@@ -22,14 +22,17 @@ extension GRPCManager {
         }.value
     }
 
-    public func accountSummary() async throws -> AccountSummary {
+    public func accountSummary() async throws -> AccountSummary? {
         try await Task.detached { [weak self] in
-            let summary = try await self?.rpcClient?.getAccountSummary()
+            guard let summary = try await self?.rpcClient?.getAccountSummary() else { return nil }
             return AccountSummary(
-                validUntilTimeInterval: summary?.subscriptionValidUntil,
-                trafficUsedGb: summary?.trafficUsedGb,
-                trafficLimitGb: summary?.trafficLimitGb,
-                trafficResetTimeInterval: summary?.trafficResetTime
+                validUntilTimeInterval: summary.subscriptionValidUntil,
+                trafficUsedGb: summary.trafficUsedGb,
+                trafficLimitGb: summary.trafficLimitGb,
+                trafficResetTimeInterval: summary.trafficResetTime,
+                accountAddress: summary.accountAddr,
+                cannonicalAccountAddress: summary.canonicalAccountAddr,
+                accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) }
             )
         }.value
     }

@@ -31399,6 +31399,17 @@
         }
       }
     },
+    "settings.account.nymAccount.linked.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This account is linked with a social login method via Privy."
+          }
+        }
+      }
+    },
     "settings.account.nymAccount.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
