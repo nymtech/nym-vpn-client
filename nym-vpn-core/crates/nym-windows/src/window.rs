@@ -27,7 +27,7 @@ const REQUEST_THREAD_SHUTDOWN: u32 = WM_USER + 1;
 /// Handle for closing an associated window.
 /// The window is not destroyed when this is dropped.
 pub struct WindowCloseHandle {
-    thread: Option<std::thread::JoinHandle<()>>,
+    thread: Option<thread::JoinHandle<()>>,
 }
 
 impl WindowCloseHandle {
@@ -91,9 +91,7 @@ pub fn create_hidden_window<F: (Fn(HWND, u32, WPARAM, LPARAM) -> LRESULT) + Send
             SetWindowLongPtrW(
                 dummy_window,
                 GWLP_WNDPROC,
-                // Clippy does not like casting function pointers to anything but usize.
-                // But this is correct, since the Windows API expects a signed int for pointer.
-                window_procedure::<F> as usize as isize,
+                window_procedure::<F> as *const u8 as usize as isize,
             );
         }
 
@@ -188,7 +186,7 @@ pub struct PowerManagementListener {
 impl PowerManagementListener {
     /// Creates a new listener. This is expensive compared to cloning an existing instance.
     pub fn new() -> Self {
-        let (tx, rx) = tokio::sync::broadcast::channel(16);
+        let (tx, rx) = broadcast::channel(16);
 
         let power_broadcast_callback = move |window, message, wparam, lparam: LPARAM| {
             if message == WM_POWERBROADCAST

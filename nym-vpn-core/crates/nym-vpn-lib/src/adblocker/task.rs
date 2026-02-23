@@ -46,7 +46,7 @@ impl AdBlockerTask {
             rx,
             tx: tx.clone(),
             adblocker,
-            next_update_due: Instant::now(),
+            next_update_due: Instant::now() + Self::ADBLOCK_UPDATE_DELAY,
             user_agent,
             shutdown_token,
         };
@@ -98,7 +98,6 @@ impl AdBlockerTask {
                 _ = &mut update_fuse => {
                     let now = Instant::now();
                     if self.next_update_due <= now {
-                        self.next_update_due = now + Self::ADBLOCK_UPDATE_DELAY;
                         self.update().await;
                     }
                     update_fuse
@@ -110,6 +109,17 @@ impl AdBlockerTask {
                     break;
                 }
             }
+
+            tracing::trace!(
+                // Delightful 😒
+                "Next Ad-blocker update due at {:?}",
+                time::OffsetDateTime::now_utc()
+                    + time::Duration::try_from(
+                        self.next_update_due
+                            .saturating_duration_since(Instant::now())
+                    )
+                    .unwrap_or(time::Duration::ZERO)
+            );
         }
 
         tracing::debug!("Ad-blocker task stopped");
@@ -153,8 +163,8 @@ impl AdBlockerTask {
         match result {
             Ok(filter_set) => {
                 self.use_filter_set(filter_set).await;
-                self.next_update_due = Instant::now() + Self::INITIAL_ADBLOCK_UPDATE_DELAY;
                 tracing::debug!("Ad-blocker was initialized successfully");
+                self.next_update_due = Instant::now() + Self::INITIAL_ADBLOCK_UPDATE_DELAY;
             }
             Err(error) => {
                 tracing::error!("Failed to initialize or update ad-blocker: {error}");
@@ -188,6 +198,8 @@ impl AdBlockerTask {
                 tracing::error!("Ad-blocker update failed: {error}");
             }
         }
+
+        self.next_update_due = Instant::now() + Self::ADBLOCK_UPDATE_DELAY;
     }
 
     async fn is_initted(&self) -> bool {

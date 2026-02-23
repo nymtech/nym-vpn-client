@@ -8,8 +8,7 @@ use std::any::Any;
 
 #[derive(Default)]
 pub struct AdBlocker {
-    engine: Engine,
-    initted: bool,
+    engine: Option<Engine>,
 }
 
 impl AdBlocker {
@@ -17,26 +16,24 @@ impl AdBlocker {
     const BLOCK: DnsFilterDecision = DnsFilterDecision::Block(DnsFilterStrategy::Localhost);
 
     pub async fn use_filter_set(&mut self, filter_set: Box<FilterSet>) {
-        tracing::trace!("AdBlocker using new filter-set");
-        self.engine = Engine::from_filter_set(*filter_set, true);
-        self.initted = true;
+        tracing::info!("AdBlocker using new filter-set");
+        self.engine = Some(Engine::from_filter_set(*filter_set, true));
     }
 
     pub async fn clear_filter_set(&mut self) {
-        tracing::trace!("AdBlocker clearing filter-set");
-        self.engine = Engine::default();
-        self.initted = false;
+        tracing::info!("AdBlocker using no filter-set (not blocking Ads)");
+        self.engine = None;
     }
 
     pub fn is_initted(&self) -> bool {
-        self.initted
+        self.engine.is_some()
     }
 
     pub fn should_block_url(&self, url: url::Url) -> Result<bool> {
-        // If we're not initialized, then we already know the answer
-        if !self.initted {
+        let Some(engine) = &self.engine else {
+            // If we're not initialized, then we already know the answer
             return Ok(false);
-        }
+        };
 
         // Use empty string for source URL since it is unavailable.
         let source_url = "";
@@ -51,7 +48,7 @@ impl AdBlocker {
             }
         })?;
 
-        let matched = self.engine.check_network_request(&request).matched;
+        let matched = engine.check_network_request(&request).matched;
 
         Ok(matched)
     }
