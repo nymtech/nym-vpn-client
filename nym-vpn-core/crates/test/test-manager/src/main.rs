@@ -13,14 +13,12 @@ mod summary;
 mod tests;
 mod vm;
 
+use anyhow::{Context, Ok, Result};
+use clap::Parser;
+use config::ConfigFile;
 #[cfg(target_os = "macos")]
 use std::net::IpAddr;
-use std::{net::SocketAddr, path::PathBuf};
-
-use anyhow::{Context, Ok, Result};
-use clap::{Parser, builder::PossibleValuesParser};
-use config::ConfigFile;
-use package::TargetInfo;
+use std::path::PathBuf;
 use tests::{config_nym::TEST_CONFIG_NYM, get_filtered_tests};
 use vm::provision;
 
@@ -293,7 +291,6 @@ async fn main() -> Result<()> {
             log::info!("🖥️ Display mode: {:?}", &config.runtime_opts.display);
 
             let vm_config = vm::get_vm_config(&config, &vm).context("Cannot get VM config")?;
-            let runner_target = TargetInfo::try_from(vm_config)?;
 
             let mut instance = vm::run(&config, &vm).await.context("Failed to start VM")?;
             let runner_dir = runner_dir.unwrap_or_else(|| {
@@ -323,7 +320,7 @@ async fn main() -> Result<()> {
                 test_rpc::meta::Os::from(vm_config.os_type),
             ));
 
-            let mut tests = get_filtered_tests(&test_filters, &[])?;
+            let mut tests = get_filtered_tests(&test_filters, &skip)?;
             log::info!("{} filtered tests:\n{:#?}", tests.len(), &tests);
 
             for test in tests.iter_mut() {

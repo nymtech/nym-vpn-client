@@ -103,6 +103,12 @@ pub fn get_filtered_tests(
     let mut tests: Vec<_> = inventory::iter::<TestMetadata>().cloned().collect();
     tests.sort_by_key(|test| test.priority.unwrap_or(0));
 
+    // Filter out empty strings that may come from shell expansion
+    let specified_tests: Vec<_> = specified_tests
+        .iter()
+        .filter(|s| !s.is_empty())
+        .collect();
+
     let mut tests = if specified_tests.is_empty() {
         // Keep all tests
         tests

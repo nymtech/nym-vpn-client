@@ -3,21 +3,20 @@ name: e2e-test
 on:
   workflow_dispatch:
     inputs:
-      test_filter:
-        # No `default:` here — the inline fallback `inputs.test_filter || 'basic_functionality'`
-        # in the run-tests step handles both manual runs (empty field) and scheduled runs
-        # (no inputs at all). A `default:` would only cover workflow_dispatch, creating a
-        # second source of truth that can silently diverge.
+      test_filters:
         description:
-          "Test filter (passed to test-manager). If not provided, default is set
-          below in TEST_FILTERS"
+          "Only execute these (space-separated) tests. Can be used in conjunction with skip_tests"
+        required: false
+      skip_tests:
+        description:
+          "Space-separated list of tests to skip. Can be used in conjunction with test_filters"
         required: false
       instance_type:
         description: "Exoscale compute instance type"
         type: choice
         options:
-          - standard.large
           - standard.medium
+          - standard.large
           # TODO once merged, consider running daily
   # schedule:
   # run periodically
@@ -270,7 +269,8 @@ jobs:
              MAINNET_MNEMONIC='${{ secrets.MAINNET_MNEMONIC }}' \
              TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
              TEST_REPORT=/tmp/test-report.json \
-             TEST_FILTERS='${{ inputs.test_filter || 'basic_functionality' }}' \
+             TEST_FILTERS='${{ inputs.test_filters }}' \
+             SKIP_TESTS='${{ inputs.skip_tests }}' \
              bash ${{ env.VM_DIST_DIR }}/test.sh run-tests"
 
       - name: Retrieve test report

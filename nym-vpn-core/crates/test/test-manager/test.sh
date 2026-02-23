@@ -190,7 +190,18 @@ function run_tests() {
         test_report_arg=(--test-report "${TEST_REPORT}")
     fi
 
-    local test_filters="${TEST_FILTERS:-basic_functionality}"
+    local test_filters_args=()
+    if [ -n "${TEST_FILTERS:-}" ]; then
+        # Split space-separated filters into individual args
+        read -ra test_filters_args <<< "${TEST_FILTERS}"
+    fi
+
+    local test_skip_args=()
+    if [ -n "${SKIP_TESTS:-}" ]; then
+        for skip in ${SKIP_TESTS}; do
+            test_skip_args+=(--skip "$skip")
+        done
+    fi
 
     pushd "${TEST_FRAMEWORK_ROOT}"
     $TEST_MANAGER run-tests \
@@ -199,8 +210,8 @@ function run_tests() {
         --nym-mnemonic "${MAINNET_MNEMONIC}" \
         --runner-dir "${RUNNER_DIR}" \
         "${test_report_arg[@]}" \
-        --verbose \
-        ${test_filters}
+        "${test_skip_args[@]}" \
+        --verbose "${test_filters_args[@]}"
     popd
 }
 
