@@ -27,6 +27,8 @@ mod imp;
 mod imp;
 
 pub use self::imp::Error;
+#[cfg(windows)]
+pub use imp::flush_resolver_cache;
 
 /// DNS configuration
 #[derive(Debug, Clone, PartialEq)]

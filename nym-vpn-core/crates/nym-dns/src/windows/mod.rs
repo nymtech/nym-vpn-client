@@ -12,6 +12,8 @@ mod iphlpapi;
 mod netsh;
 mod tcpip;
 
+pub use dnsapi::flush_resolver_cache;
+
 /// Errors that can happen when configuring DNS on Windows.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
