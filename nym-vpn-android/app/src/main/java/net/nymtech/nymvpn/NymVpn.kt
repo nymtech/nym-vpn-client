@@ -162,8 +162,13 @@ class NymVpn : Application() {
 	}
 
 	private fun applyLoggingConfig(enabled: Boolean, debugEnabled: Boolean) {
-		logsEnabled = enabled
-		logsDebugEnabled = debugEnabled
+		if (BuildConfig.DEBUG) {
+			logsEnabled = true
+			logsDebugEnabled = true
+		} else {
+			logsEnabled = enabled
+			logsDebugEnabled = debugEnabled
+		}
 
 		Timber.uprootAll()
 

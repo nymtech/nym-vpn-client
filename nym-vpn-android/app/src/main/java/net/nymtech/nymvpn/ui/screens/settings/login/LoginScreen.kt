@@ -4,7 +4,6 @@ import PrivacyText
 import android.content.res.Configuration
 import android.view.WindowManager
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,10 +36,12 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.Route.*
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.settings.login.components.LoginInputSection
@@ -48,6 +50,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.navigateAndClearWelcome
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
@@ -57,6 +60,7 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 	val context = LocalContext.current
 	val navController = LocalNavController.current
 	val lifecycleOwner = LocalLifecycleOwner.current
+	val scope = rememberCoroutineScope()
 
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val activity = context as? MainActivity
@@ -75,14 +79,24 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 				when (event) {
 					is LoginEvent.NavigateAfterLogin -> {
 						when {
-							!event.hasValidSubscription -> {
-								navController.navigateAndClearWelcome(Route.SelectPlan)
+							!event.hasValidSubscription && event.error.isNullOrBlank() -> {
+								navController.navigateAndClearWelcome(SelectPlan)
 							}
+
 							event.showTechnicalOpt -> {
-								navController.navigateAndClearWelcome(Route.Technical)
+								navController.navigateAndClearWelcome(Technical)
 							}
+
 							else -> {
-								navController.navigateAndClearWelcome(Route.Main())
+								navController.navigateAndClearWelcome(Main())
+							}
+						}
+					}
+					LoginEvent.Processing -> {
+						val pass = uiState.mnemonic.trim()
+						if (pass.isNotEmpty()) {
+							scope.launch {
+								savePasswordToManager(context = context, password = pass)
 							}
 						}
 					}
@@ -99,7 +113,9 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 		scrollState = scrollState,
 		uiState = uiState,
 		onMnemonicChange = viewModel::onMnemonicChange,
-		onSubmitMnemonic = viewModel::onSubmitMnemonic,
+		onSubmitMnemonic = {
+			viewModel.onSubmitMnemonic()
+		},
 		onCreateAccountClick = { navController.navigate(Route.CreateAccount) },
 		onSocialClick = { uiState.deeplink?.let { context.openWebUrl(it) } },
 	)
@@ -174,14 +190,7 @@ private fun LoginScreen(
 			}
 
 			Spacer(modifier = Modifier.weight(1f))
-		}
 
-		Box(
-			modifier = Modifier
-				.fillMaxWidth()
-				.padding(bottom = 24.dp),
-			contentAlignment = Alignment.BottomCenter,
-		) {
 			PrivacyText()
 		}
 	}

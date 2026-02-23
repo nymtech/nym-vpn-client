@@ -8,7 +8,6 @@ data class SettingsActions(
 	val onResetClick: () -> Unit = {},
 	val onLegalClick: () -> Unit = {},
 	val onSystemStatusClick: () -> Unit = {},
-	val onLogoutClick: () -> Unit = {},
 	val onQuitClick: () -> Unit = {},
 	val onAppVersionClick: () -> Unit = {},
 	val onSplitTunnelingClick: () -> Unit = {},

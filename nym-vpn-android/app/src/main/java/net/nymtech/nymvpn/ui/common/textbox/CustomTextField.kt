@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.common.textbox
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
@@ -44,6 +43,7 @@ fun CustomTextField(
 	placeholder: @Composable (() -> Unit)? = null,
 	supportingText: @Composable (() -> Unit)? = null,
 	keyboardActions: KeyboardActions = KeyboardActions(),
+	keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
 	leading: @Composable (() -> Unit)? = null,
 	trailing: @Composable (() -> Unit)? = null,
 	showClearIcon: Boolean = false,
@@ -84,9 +84,7 @@ fun CustomTextField(
 		onValueChange = { onValueChange(it) },
 		readOnly = readOnly,
 		keyboardActions = keyboardActions,
-		keyboardOptions = KeyboardOptions.Default.copy(
-			imeAction = ImeAction.Done,
-		),
+		keyboardOptions = keyboardOptions,
 		cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
 		modifier = modifier,
 		interactionSource = interactionSource,
