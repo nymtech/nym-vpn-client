@@ -119,7 +119,7 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
                 .auth_methods
                 .into_iter()
                 .map(AuthMethod::from)
-                .collect()
+                .collect(),
         }
     }
 }
