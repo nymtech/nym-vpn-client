@@ -332,9 +332,8 @@ impl TunnelSettingsDiff {
     }
 
     // Can we keep the tunnel connected, or do we need to disconnect and reconnect it?
-    pub fn should_not_reconnect(&self, tunnel_type: TunnelType) -> bool {
+    pub fn should_keep_state(&self, tunnel_type: TunnelType) -> bool {
         self.only_allow_lan_changed()
-            || self.only_enable_ad_blocking_changed()
             || (self.only_mixnet_performance_options_changed()
                 && tunnel_type == TunnelType::Wireguard)
     }
