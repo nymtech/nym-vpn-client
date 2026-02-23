@@ -198,7 +198,7 @@ pub async fn wait_for_account_state(
     loop {
         let current_state = nym_proxy_client.get_account_state().await?;
         if current_state == expected_state {
-            log::debug!("✅ Account state {current_state} reached!");
+            log::debug!("Account state {current_state} reached!");
             return Ok(());
         } else if Instant::now() > started + timeout {
             bail!(

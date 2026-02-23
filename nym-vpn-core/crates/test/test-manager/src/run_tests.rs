@@ -41,7 +41,7 @@ impl TestHandler<'_> {
         test_name: &'static str,
         nym_client: Option<NymProxyClient>,
     ) -> Result<(), anyhow::Error> {
-        log::info!("Running {test_name}");
+        log::info!("▶️ Running {test_name}");
 
         if self.print_failed_tests_only {
             // Stop live record
@@ -177,7 +177,7 @@ pub async fn run(
         // let mut nym_client = nym_test::prepare_daemon_nym(&nym_service_client, &rpc_provider)
         //     .await
         //     .context("Failed to reset daemon before test")?;
-        let mut nym_client = rpc_provider.new_client_nym().await;
+        let nym_client = rpc_provider.new_client_nym().await;
 
         // TODO dz unused for now, can be enabled for location-specific tests
         // tests::set_test_location(&mut nym_client, &test)

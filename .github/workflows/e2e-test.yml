@@ -257,7 +257,7 @@ jobs:
             ${{ env.VM_USER }}@${VM_IP} \
             "NYM_TEST_QCOW_IMAGE=/mnt/data/fresh_debian12_cli.qcow2 \
              NYM_TEST_VM_CONFIG=debian12_cli \
-             MAINNET_MNEMONIC='${{ secrets.MAINNET_MNEMONIC }}' \
+             MAINNET_MNEMONIC='${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}' \
              TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
              bash ${{ env.VM_DIST_DIR }}/test.sh configure"
 
@@ -270,7 +270,7 @@ jobs:
             ${{ env.VM_USER }}@${VM_IP} \
             "NYM_TEST_QCOW_IMAGE=/mnt/data/fresh_debian12_cli.qcow2 \
              NYM_TEST_VM_CONFIG=debian12_cli \
-             MAINNET_MNEMONIC='${{ secrets.MAINNET_MNEMONIC }}' \
+             MAINNET_MNEMONIC='${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}' \
              TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
              TEST_REPORT=/tmp/test-report.json \
              TEST_FILTERS='${{ inputs.test_filters }}' \
