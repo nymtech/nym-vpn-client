@@ -266,7 +266,9 @@ private extension HomeViewModel {
         setupAccountSummaryObserver()
         setupSubscriptionPaymentObserver()
         configurePassphraseBanner()
-        setupCurrentTunnelStatusObservation()
+        if connectionManager.isMockModeEnabled {
+            setupCurrentTunnelStatusObservation()
+        }
 #if os(iOS)
         setupConnectionErrorObservers()
         setupNetworkMonitorObservers()
