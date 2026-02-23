@@ -1,11 +1,13 @@
 import SwiftUI
 import AppSettings
+import CredentialsManager
 import Device
 import ConfigurationManager
 import UIComponents
 import Theme
 
 public struct SettingsView: View {
+    @EnvironmentObject private var credentialsManager: CredentialsManager
     @StateObject private var viewModel: SettingsViewModel
 
     public init(viewModel: SettingsViewModel) {
@@ -45,6 +47,11 @@ private extension SettingsView {
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .onAppear {
+            Task {
+                await credentialsManager.updateAccountSummary()
+            }
         }
     }
 

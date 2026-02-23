@@ -44,6 +44,10 @@ import PathManager
         appSettings.accountToken
     }
 
+    public var isSocialLogin: Bool {
+        accountSummary?.accountAddress != accountSummary?.canonicalAccountAddress
+    }
+
     private init() {}
 
     public func setup() {
@@ -141,6 +145,7 @@ import PathManager
             }
             Task { @MainActor in
                 appSettings.accountToken = nil
+                accountSummary = nil
             }
         }.value
     }
@@ -205,6 +210,31 @@ import PathManager
             await updateAccountSummary()
             return isAccountSubscriptionDateValid()
         }
+    }
+
+    public func updateAccountSummary() async {
+#if os(iOS)
+        guard let summary = try? await NymVpnAccountStorage(
+            dataDir: PathManager.dataFolderURL().path(),
+            environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+        ).getAccountSummary()
+        else {
+            return
+        }
+
+        accountSummary = AccountSummary(
+            validUntilTimeInterval: summary.subscriptionValidUntil,
+            trafficUsedGb: summary.trafficUsedGb,
+            trafficLimitGb: summary.trafficLimitGb,
+            trafficResetTimeInterval: summary.trafficResetTime,
+            accountAddress: summary.accountAddr,
+            cannonicalAccountAddress: summary.canonicalAccountAddr,
+            accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) }
+        )
+
+#elseif os(macOS)
+        accountSummary = try? await grpcManager.accountSummary()
+#endif
     }
 }
 
@@ -303,22 +333,5 @@ private extension CredentialsManager {
         Task { @MainActor in
             accountIdentifier = newAccIdentifier
         }
-    }
-
-    func updateAccountSummary() async {
-#if os(iOS)
-        let summary = try? await NymVpnAccountStorage(
-            dataDir: PathManager.dataFolderURL().path(),
-            environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
-        ).getAccountSummary()
-        accountSummary = AccountSummary(
-            validUntilTimeInterval: summary?.subscriptionValidUntil,
-            trafficUsedGb: summary?.trafficUsedGb,
-            trafficLimitGb: summary?.trafficLimitGb,
-            trafficResetTimeInterval: summary?.trafficResetTime
-        )
-#elseif os(macOS)
-        accountSummary = try? await grpcManager.accountSummary()
-#endif
     }
 }

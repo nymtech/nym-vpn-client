@@ -101,22 +101,12 @@ private extension AccountAndDevicesView {
     func nymAccountSection() -> some View {
         VStack(spacing: 0) {
             if isLinkAccountAvailable {
-                SettingsListItem(
-                    viewModel: SettingsListItemViewModel(
-                        accessory: .externalLink,
-                        title: "settings.account.manageAccount".localizedString,
-                        systemImageName: "cloud",
-                        position: SettingsListItemPosition(isFirst: true, isLast: false),
-                        action: {
-                            navigateToAccount()
-                        }
-                    )
-                )
+                manageAccountListItem(isFirst: true, isLast: false)
                 SettingsListItem(
                     viewModel: SettingsListItemViewModel(
                         accessory: .externalLink,
                         title: "settings.account.nymAccount".localizedString,
-                        subtitle: "settings.account.nymAccount.subtitle".localizedString,
+                        subtitle: accountSubtitle(),
                         imageName: "person",
                         position: SettingsListItemPosition(isFirst: false, isLast: true),
                         action: {
@@ -127,28 +117,42 @@ private extension AccountAndDevicesView {
                     )
                 )
             } else {
-                SettingsListItem(
-                    viewModel: SettingsListItemViewModel(
-                        accessory: .externalLink,
-                        title: "settings.account.manageAccount".localizedString,
-                        systemImageName: "cloud",
-                        position: SettingsListItemPosition(isFirst: true, isLast: true),
-                        action: {
-                            navigateToAccount()
-                        }
-                    )
-                )
+                manageAccountListItem(isFirst: true, isLast: true)
             }
         }
     }
 
+    func accountSubtitle() -> String? {
+        credentialsManager.isSocialLogin ? nil : "settings.account.nymAccount.subtitle".localizedString
+    }
+
+    func manageAccountListItem(isFirst: Bool, isLast: Bool) -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .externalLink,
+                title: "settings.account.manageAccount".localizedString,
+                systemImageName: "cloud",
+                position: SettingsListItemPosition(isFirst: isFirst, isLast: isLast),
+                action: {
+                    navigateToAccount()
+                }
+            )
+        )
+    }
+
     func nymLinkingText() -> some View {
         HStack(spacing: 0) {
-            Text("⚠️ \("settings.account.linking".localizedString)")
+            Text(linkingTitle())
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
             Spacer()
         }
+    }
+
+    func linkingTitle() -> String {
+        credentialsManager.isSocialLogin
+        ? "⚡️ \("settings.account.nymAccount.linked.subtitle".localizedString)"
+        : "⚠️ \("settings.account.linking".localizedString)"
     }
 
     @ViewBuilder
