@@ -227,7 +227,9 @@ private extension HomeViewModel {
         setupGatewayManagerObserver()
         setupSystemMessageObservers()
         setupIsMnemonicImportedObserver()
-        setupCurrentTunnelStatusObservation()
+        if connectionManager.isMockModeEnabled {
+            setupCurrentTunnelStatusObservation()
+        }
 
 #if os(iOS)
         setupConnectionErrorObservers()
