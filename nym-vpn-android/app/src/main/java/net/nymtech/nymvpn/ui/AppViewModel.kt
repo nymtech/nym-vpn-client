@@ -23,6 +23,7 @@ import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.backend.hasValidSubscription
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
@@ -238,22 +239,6 @@ constructor(
 		return backendManager.isMnemonicStored()
 	}
 
-	private suspend fun hasValidSubscription(): Boolean {
-		return runCatching {
-			val summary = backendManager.getAccountSummary()
-			if (summary == null) {
-				Timber.tag(TAG).w("AccountSummaryNull, treating as no subscription")
-				return false
-			}
-			val isActive = summary.isSubscriptionActive()
-			Timber.tag(TAG).i("SubscriptionCheck active=%s", isActive)
-			isActive
-		}.getOrElse { t ->
-			Timber.tag(TAG).e(t, "AccountSummaryFetchFailed")
-			false
-		}
-	}
-
 	suspend fun handleDeepLinkAuth(url: String): Route = withContext(Dispatchers.IO) {
 		if (!isPrivyEnabled()) {
 			Timber.tag(TAG).w("DeepLink ignored: Privy feature is disabled")
@@ -283,22 +268,18 @@ constructor(
 				is AccountControllerState.Decentralised,
 				is AccountControllerState.UpgradeMode,
 				-> {
-					if (hasValidSubscription()) {
-						Timber.tag(TAG).i("DeepLinkAuth Success with active subscription")
+					if (backendManager.hasValidSubscription(TAG)) {
 						Route.Main()
 					} else {
-						Timber.tag(TAG).i("DeepLinkAuth Success but no active subscription")
 						Route.SelectPlan
 					}
 				}
 
 				is AccountControllerState.Error -> {
-					Timber.tag(TAG).i("DeepLinkAuth Error reason=%s", accountState.v1)
 					Route.SelectPlan
 				}
 
 				else -> {
-					Timber.tag(TAG).w("DeepLinkAuth timeout. Defaulting to Main without starting tunnel.")
 					Route.Main(autoStart = false)
 				}
 			}

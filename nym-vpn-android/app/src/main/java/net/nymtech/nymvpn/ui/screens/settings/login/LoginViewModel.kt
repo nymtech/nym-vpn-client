@@ -17,6 +17,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.backend.hasValidSubscription
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
@@ -88,7 +89,7 @@ class LoginViewModel @Inject constructor(
 				is AccountControllerState.ReadyToConnect,
 				is AccountControllerState.Decentralised,
 				is AccountControllerState.UpgradeMode,
-				-> checkSubscriptionStatus()
+				-> backendManager.hasValidSubscription(TAG)
 
 				is AccountControllerState.Error -> {
 					Timber.tag(TAG).w("AccountStateError reason=%s", accountState.v1)
@@ -98,7 +99,7 @@ class LoginViewModel @Inject constructor(
 
 				else -> {
 					Timber.tag(TAG).w("AccountReadyTimeout, proceeding with subscription check")
-					checkSubscriptionStatus()
+					backendManager.hasValidSubscription(TAG)
 				}
 			}
 
@@ -141,22 +142,6 @@ class LoginViewModel @Inject constructor(
 						state is AccountControllerState.Error
 				}
 				.first()
-		}
-	}
-
-	private suspend fun checkSubscriptionStatus(): Boolean {
-		return runCatching {
-			val summary = backendManager.getAccountSummary()
-			if (summary == null) {
-				Timber.tag(TAG).w("AccountSummaryNull, treating as no subscription")
-				return false
-			}
-			val isActive = summary.isSubscriptionActive()
-			Timber.tag(TAG).i("SubscriptionCheck active=%s", isActive)
-			isActive
-		}.getOrElse { t ->
-			Timber.tag(TAG).e(t, "AccountSummaryFetchFailed")
-			false
 		}
 	}
 

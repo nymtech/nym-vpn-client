@@ -172,13 +172,13 @@ class NymVpn : Application() {
 
 		Timber.uprootAll()
 
-		if (!enabled) {
+		if (!logsEnabled) {
 			Timber.plant(NoLogTree())
 			disableStrictModeLoggingIfNeeded()
 			return
 		}
 
-		val minPriority = if (debugEnabled) Log.DEBUG else Log.INFO
+		val minPriority = if (logsDebugEnabled) Log.DEBUG else Log.INFO
 
 		if (BuildConfig.DEBUG) {
 			Timber.plant(DebugTree(minPriority))
