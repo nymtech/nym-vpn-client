@@ -123,9 +123,9 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     exit 1
 fi
 
+move_getty_to_another_port
 setup_systemd
 setup_systemd_nym
-move_getty_to_another_port
 
 # Run apt with some arguments
 robust_apt () {
