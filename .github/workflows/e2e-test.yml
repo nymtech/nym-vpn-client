@@ -69,7 +69,7 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: wireguard/libwg/go.mod
 
