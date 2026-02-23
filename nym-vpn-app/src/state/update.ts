@@ -11,6 +11,7 @@ import {
 } from '../types';
 
 export function updateTunnel(state: TTunnelState, dispatch: StateDispatch) {
+  console.log('updateTunnel', state);
   if (state === 'disconnected') {
     console.log('tunnel [disconnected]');
     dispatch({ type: 'set-tunnel-disconnected' });

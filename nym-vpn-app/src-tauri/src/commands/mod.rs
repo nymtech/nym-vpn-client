@@ -14,3 +14,5 @@ pub mod tunnel;
 pub mod updater;
 mod updater_types;
 pub mod window;
+
+pub mod tray;

@@ -8,6 +8,7 @@ use crate::fs::path::APP_CONFIG_DIR;
 use crate::startup_error::{ErrorKey, StartupError};
 #[cfg(windows)]
 use crate::updater::PendingUpdate;
+use crate::vpnd::tunnel::TunnelState;
 use crate::window::AppWindow;
 use crate::{
     cli::Cli,
@@ -15,6 +16,7 @@ use crate::{
     fs::{app::AppFs, config::AppConfig},
     vpnd::client::VpndClient,
 };
+use crate::tray::TrayManager;
 
 use anyhow::{Result, anyhow};
 use clap::Parser;
@@ -29,6 +31,7 @@ use commands::sys as cmd_sys;
 #[cfg(windows)]
 use commands::updater as cmd_updater;
 use commands::window as cmd_window;
+use commands::tray as cmd_tray;
 use commands::*;
 use state::app::AppState;
 use tauri::Manager;
@@ -233,7 +236,10 @@ async fn main() -> Result<()> {
             app.manage(Mutex::new(fs_config));
             app.manage(vpnd.clone());
 
-            tray::setup(app.handle())?;
+            // tray::setup(app.handle())?;
+            let tray_manager = TrayManager::new(app.handle())?;
+            // tray_manager.setup(app.handle())?;
+            app.manage(tray_manager);
 
             let handle = app.handle().clone();
             let mut c_vpnd = vpnd.clone();
@@ -264,6 +270,8 @@ async fn main() -> Result<()> {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            cmd_tray::update_tray_mode,
+            cmd_tray::update_tray_state,
             tunnel::get_vpn_config,
             tunnel::set_vpn_mode,
             tunnel::get_tunnel_state,

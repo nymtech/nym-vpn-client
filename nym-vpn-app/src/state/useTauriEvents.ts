@@ -24,7 +24,7 @@ import {
   TunnelStateEvent,
   VpnConfigEvent,
 } from '../constants';
-import { Notification } from '../contexts';
+import { Notification, useMainState } from '../contexts';
 import { CCache } from '../cache';
 import { daemonStatusUpdate, networkEnvChanged } from './helper';
 import { updateAccountState, updateTunnel } from './update';
@@ -33,6 +33,8 @@ export function useTauriEvents(
   dispatch: StateDispatch,
   push: (notification: Notification) => void,
 ) {
+  const mainstate = useMainState();
+  console.log('mainstate', mainstate);
   const registerDaemonListener = useCallback(() => {
     return listen<VpndStatus>(
       DaemonEvent,
@@ -78,6 +80,7 @@ export function useTauriEvents(
 
   const registerTunnelStateListener = useCallback(() => {
     return listen<TunnelStatePayload>(TunnelStateEvent, (event) => {
+      // console.log('tunnel state event', event.payload.state);
       updateTunnel(event.payload.state, dispatch);
       if (event.payload.error) {
         console.log('tunnel error', event.payload.error);

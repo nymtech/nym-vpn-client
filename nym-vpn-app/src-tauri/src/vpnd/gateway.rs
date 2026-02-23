@@ -67,6 +67,22 @@ pub struct Performance {
     pub uptime_24h: f32,
 }
 
+/// Lightweight info about an entry gateway for display (e.g. tray, logs).
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub struct EntryGatewayInfo {
+    pub name: String,
+    pub country: Country,
+    pub location: Location,
+}
+
+impl std::fmt::Display for EntryGatewayInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} ({}, {})", self.name, self.country.name, self.location.city)
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]

@@ -8,6 +8,7 @@ import { getStateProps, gwTypeToCacheKey } from './util';
 import { GatewaysContext, initialState } from './context';
 import { reducer } from './reducer';
 import { GatewaysState } from './types';
+import { useTray } from '../main/useTray';
 
 let init = false;
 
@@ -19,6 +20,8 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const { initialized, daemonStatus, vpnMode } = useMainState();
+
+  useTray();
 
   // use cached values if any, otherwise query from daemon
   const fetchGateways = useCallback(
