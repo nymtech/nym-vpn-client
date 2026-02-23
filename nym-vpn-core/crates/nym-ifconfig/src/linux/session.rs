@@ -355,11 +355,13 @@ mod tests {
     #[tokio::test]
     #[serial_test::serial]
     async fn test_set_p2p_mtu() {
+        use rand::Rng;
+
         let tun = Tun::new().unwrap();
         let interface = tun.name().unwrap();
         let mut sess = Session::new().unwrap();
 
-        let mtu = rand::random_range(1280..=1480);
+        let mtu = rand::thread_rng().gen_range(1280..=1480);
         sess.set_mtu(&interface, mtu).await.unwrap();
 
         let current_mtu = sess.mtu(&interface).await.unwrap();
