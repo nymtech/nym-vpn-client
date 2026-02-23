@@ -275,41 +275,6 @@ pub struct VpnAccountSummary {
     pub auth_methods: Vec<VpnAccountAuthMethod>,
 }
 
-// Non-exported methods
-impl VpnAccountSummary {
-    pub fn new(
-        subscription_expiry_time: Option<String>,
-        traffic_used_gb: u64,
-        traffic_limit_gb: u64,
-        traffic_reset_time: Option<String>,
-        account_addr: String,
-        canonical_account_addr: Option<String>,
-        auth_methods: Vec<VpnAccountAuthMethod>,
-    ) -> Result<Self, time::Error> {
-        let subscription_valid_until = subscription_expiry_time
-            .map(|time| {
-                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
-            })
-            .transpose()?;
-
-        let traffic_reset_time = traffic_reset_time
-            .map(|time| {
-                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
-            })
-            .transpose()?;
-
-        Ok(Self {
-            subscription_valid_until,
-            traffic_used_gb,
-            traffic_limit_gb,
-            traffic_reset_time,
-            account_addr,
-            canonical_account_addr,
-            auth_methods,
-        })
-    }
-}
-
 // Exported methods
 #[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
 #[allow(unused)]
