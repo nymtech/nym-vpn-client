@@ -281,13 +281,15 @@ mod tests {
     #[tokio::test]
     #[serial_test::serial]
     async fn test_add_p2p_ipv4_address() {
-        let tun = Tun::new().unwrap();
+        let tun = Tun::new().expect("failed to create tun");
         let interface = tun.name().unwrap();
 
         let ipv4_addr: IpNetwork = "10.2.0.10/32".parse().unwrap();
 
         let sess = Session::new().unwrap();
-        sess.add_address(&interface, ipv4_addr, None).await.unwrap();
+        sess.add_address(&interface, ipv4_addr, None)
+            .await
+            .expect("failed to add address");
         assert!(
             sess.addresses(&interface)
                 .await
@@ -296,8 +298,15 @@ mod tests {
                 .any(|ip| ip.address == ipv4_addr.ip())
         );
 
-        sess.remove_address(&interface, ipv4_addr).await.unwrap();
-        assert!(sess.addresses(&interface).await.unwrap().is_empty());
+        sess.remove_address(&interface, ipv4_addr)
+            .await
+            .expect("failed to remove address");
+        assert!(
+            sess.addresses(&interface)
+                .await
+                .expect("failed to obtain addresses")
+                .is_empty()
+        );
 
         ifconfig(&interface);
     }
@@ -305,13 +314,13 @@ mod tests {
     #[tokio::test]
     #[serial_test::serial]
     async fn test_add_p2p_ipv4_destination() {
-        let tun = Tun::new().unwrap();
-        let interface = tun.name().unwrap();
+        let tun = Tun::new().expect("failed to create tun");
+        let interface = tun.name().expect("failed to obtain interface name");
 
         let ipv4_addr: IpNetwork = "10.2.0.10/32".parse().unwrap();
         let ipv4_destination: Ipv4Addr = "10.2.0.1".parse().unwrap();
 
-        let sess = Session::new().unwrap();
+        let sess = Session::new().expect("failed to create session");
         sess.add_address(&interface, ipv4_addr, Some(IpAddr::from(ipv4_destination)))
             .await
             .unwrap();
@@ -329,15 +338,17 @@ mod tests {
     #[tokio::test]
     #[serial_test::serial]
     async fn test_set_p2p_ipv6_address() {
-        let tun = Tun::new().unwrap();
-        let interface = tun.name().unwrap();
+        let tun = Tun::new().expect("failed to create tun");
+        let interface = tun.name().expect("failed to obtain interface name");
 
-        let sess = Session::new().unwrap();
+        let sess = Session::new().expect("failed to create session");
         let ipv6_addr: IpNetwork = "0f9e:6e75:16c0:29a3:a5dc:d5db:2a73:2d85/64"
             .parse()
             .unwrap();
 
-        sess.add_address(&interface, ipv6_addr, None).await.unwrap();
+        sess.add_address(&interface, ipv6_addr, None)
+            .await
+            .expect("failed to add address");
         assert!(
             sess.addresses(&interface)
                 .await
@@ -346,8 +357,15 @@ mod tests {
                 .any(|ip| ip.address == ipv6_addr.ip())
         );
 
-        sess.remove_address(&interface, ipv6_addr).await.unwrap();
-        assert!(sess.addresses(&interface).await.unwrap().is_empty());
+        sess.remove_address(&interface, ipv6_addr)
+            .await
+            .expect("failed to remove session");
+        assert!(
+            sess.addresses(&interface)
+                .await
+                .expect("failed to get addresses")
+                .is_empty()
+        );
 
         ifconfig(&interface);
     }
@@ -357,14 +375,16 @@ mod tests {
     async fn test_set_p2p_mtu() {
         use rand::Rng;
 
-        let tun = Tun::new().unwrap();
-        let interface = tun.name().unwrap();
-        let mut sess = Session::new().unwrap();
+        let tun = Tun::new().expect("failed to create tun");
+        let interface = tun.name().expect("failed to obtain interface name");
+        let mut sess = Session::new().expect("failed to create session");
 
         let mtu = rand::thread_rng().gen_range(1280..=1480);
-        sess.set_mtu(&interface, mtu).await.unwrap();
+        sess.set_mtu(&interface, mtu)
+            .await
+            .expect("failed to set mtu");
 
-        let current_mtu = sess.mtu(&interface).await.unwrap();
+        let current_mtu = sess.mtu(&interface).await.expect("failed to get mtu");
         assert_eq!(mtu, current_mtu);
 
         ifconfig(&interface);
@@ -373,34 +393,38 @@ mod tests {
     #[tokio::test]
     #[serial_test::serial]
     async fn test_p2p_interface_up_down() {
-        let tun = Tun::new().unwrap();
-        let interface = tun.name().unwrap();
-        let mut sess = Session::new().unwrap();
+        let tun = Tun::new().expect("failed to create tun");
+        let interface = tun.name().expect("failed to obtain interface name");
+        let mut sess = Session::new().expect("failed to create session");
 
         assert!(
             !sess
                 .interface_flags(&interface)
                 .await
-                .unwrap()
+                .expect("failed to get interface flags")
                 .contains(LinkFlags::Up)
         );
 
-        sess.up(&interface).await.unwrap();
+        sess.up(&interface)
+            .await
+            .expect("failed to bring up interface");
 
         assert!(
             sess.interface_flags(&interface)
                 .await
-                .unwrap()
+                .expect("failed to get interface flags")
                 .contains(LinkFlags::Up)
         );
 
-        sess.down(&interface).await.unwrap();
+        sess.down(&interface)
+            .await
+            .expect("failed to bring down interface");
 
         assert!(
             !sess
                 .interface_flags(&interface)
                 .await
-                .unwrap()
+                .expect("failed to get interface flags")
                 .contains(LinkFlags::Up)
         );
 

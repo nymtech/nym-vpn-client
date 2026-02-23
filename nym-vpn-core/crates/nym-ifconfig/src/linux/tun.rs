@@ -59,8 +59,12 @@ impl Tun<'_, OwnedFd> {
             "/dev/net/tun",
             fcntl::OFlag::O_RDWR,
             nix::sys::stat::Mode::empty(),
-        )?;
-        unsafe { tunsetiff(tun_fd.as_raw_fd(), &mut req as *mut _ as _)? };
+        )
+        .map_err(|e| TunError::new(TunErrorKind::OpenTun, e))?;
+        unsafe {
+            tunsetiff(tun_fd.as_raw_fd(), &mut req as *mut _ as _)
+                .map_err(|e| TunError::new(TunErrorKind::CreateInterface, e))?
+        };
 
         Ok(Self {
             tun_fd,
@@ -134,6 +138,8 @@ pub enum TunErrorKind {
     Io,
     InterfaceNameIntoString,
     InterfaceNameTooLong,
+    OpenTun,
+    CreateInterface,
 }
 
 #[derive(Debug)]
@@ -167,6 +173,8 @@ impl std::fmt::Display for TunError {
             TunErrorKind::Io => "io error",
             TunErrorKind::InterfaceNameIntoString => "failed to convert interface name to string",
             TunErrorKind::InterfaceNameTooLong => "interface name is too long",
+            TunErrorKind::OpenTun => "failed to open tun",
+            TunErrorKind::CreateInterface => "failed to create interface",
         })
     }
 }
