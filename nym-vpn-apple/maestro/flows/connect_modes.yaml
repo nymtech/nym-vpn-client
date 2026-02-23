@@ -1,0 +1,79 @@
+appId: net.nymtech.vpn
+---
+# Prerequisite: Run login_mnemonic.yaml first to ensure user is logged in
+
+- launchApp:
+    arguments:
+      MOCK_MODE: "1"
+
+# Handle potential onboarding screen
+- runFlow:
+    when:
+      visible: "Welcome to NymVPN"
+    commands:
+      - tapOn:
+          point: "95%,6%"
+
+# Handle "Get started" if visible (needs login)
+- runFlow:
+    when:
+      visible: "Get started"
+    commands:
+      - tapOn: "Get started"
+
+# Wait for main screen with Connect button
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 15000
+
+# Verify mode cards are visible
+- assertVisible:
+    text: "Fast \\(WireGuard\\)"
+
+- assertVisible:
+    text: "Anonymous \\(mixnet\\)"
+
+# --- Test 1: Connect in Fast (WireGuard) mode ---
+- tapOn:
+    text: "Fast \\(WireGuard\\)"
+
+- tapOn:
+    text: "Connect"
+
+# Mock transitions: Connecting -> Connected (1.5s delay)
+- extendedWaitUntil:
+    visible:
+      text: "Disconnect"
+    timeout: 10000
+
+# Disconnect
+- tapOn:
+    text: "Disconnect"
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 10000
+
+# --- Test 2: Switch to Anonymous (mixnet) mode and connect ---
+- tapOn:
+    text: "Anonymous \\(mixnet\\)"
+
+- tapOn:
+    text: "Connect"
+
+# Mock transitions: Connecting -> Connected (1.5s delay)
+- extendedWaitUntil:
+    visible:
+      text: "Disconnect"
+    timeout: 10000
+
+# Disconnect
+- tapOn:
+    text: "Disconnect"
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 10000

@@ -1,0 +1,23 @@
+appId: net.nymtech.vpn
+---
+- launchApp
+
+- runFlow:
+    when:
+      visible: "Welcome to NymVPN"
+    commands:
+      - tapOn:
+          point: "95%,12%"
+
+- extendedWaitUntil:
+    visible:
+      text: "Disconnected"
+    timeout: 15000
+
+- tapOn:
+    point: "95%,12%"
+
+- extendedWaitUntil:
+    visible:
+      text: ".*"
+    timeout: 10000

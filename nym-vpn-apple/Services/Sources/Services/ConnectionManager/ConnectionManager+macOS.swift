@@ -73,6 +73,14 @@ extension ConnectionManager {
 
 extension ConnectionManager {
     @MainActor public func connectDisconnect() async throws {
+        if MockMode.isEnabled {
+            if currentTunnelStatus == .connected || currentTunnelStatus == .connecting {
+                MockConnectionState.shared.disconnect()
+            } else {
+                MockConnectionState.shared.connect()
+            }
+            return
+        }
         switch grpcManager.tunnelStatus {
         case .connected, .connecting, .offlineReconnect, .error:
             try await grpcManager.disconnect()

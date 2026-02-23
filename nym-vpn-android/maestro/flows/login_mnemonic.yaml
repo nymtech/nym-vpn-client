@@ -1,0 +1,105 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- clearState
+- launchApp
+
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+
+- runFlow:
+    when:
+      visible: "OK"
+    commands:
+      - tapOn: "OK"
+
+- runFlow:
+    when:
+      visible: "Skip"
+    commands:
+      - tapOn: "Skip"
+
+# Wait for main screen to fully load (mock starts in logged-in state)
+- extendedWaitUntil:
+    visible:
+      text: "Disconnected"
+    timeout: 20000
+
+# Tap the Settings gear icon (top right corner)
+- tapOn:
+    point: "93%,4%"
+
+- extendedWaitUntil:
+    visible:
+      text: "Settings"
+    timeout: 5000
+
+# Tap Account to go to Account Info screen
+- tapOn:
+    text: "Account"
+
+- extendedWaitUntil:
+    visible:
+      text: "Account and devices"
+    timeout: 5000
+
+# Find and tap Log out
+- scrollUntilVisible:
+    element:
+      text: "Log out"
+    direction: DOWN
+
+- tapOn:
+    text: "Log out"
+
+# Confirm logout in dialog
+- extendedWaitUntil:
+    visible:
+      text: "Log out of this device?"
+    timeout: 5000
+
+- tapOn:
+    text: "Log out"
+
+# Wait for Settings screen showing "Get started"
+- extendedWaitUntil:
+    visible:
+      text: "Get started"
+    timeout: 15000
+
+# Tap Get started to navigate to welcome screen
+- tapOn:
+    text: "Get started"
+
+# Welcome screen
+- extendedWaitUntil:
+    visible:
+      text: "Welcome to NymVPN"
+    timeout: 15000
+
+# Tap Log in on the welcome screen
+- tapOn:
+    text: "Log in"
+
+# Wait for the login form with passphrase field
+- extendedWaitUntil:
+    visible:
+      text: ".*passphrase.*"
+    timeout: 15000
+
+# Tap the passphrase input area and enter dummy mnemonic
+- tapOn:
+    text: ".*passphrase.*"
+
+- inputText: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+
+# Submit via keyboard Done action
+- pressKey: Enter
+
+# Verify login succeeded - should see main screen
+- extendedWaitUntil:
+    visible:
+      text: "Disconnected"
+    timeout: 20000

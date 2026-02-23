@@ -96,6 +96,7 @@ import GRPCManager
         self.connectionType = connectionStorage.connectionType
         self.connectionConfig = connectionStorage.connectionConfig
         setup()
+        setupMockObserverIfNeeded()
     }
 #endif
 
@@ -117,8 +118,11 @@ import GRPCManager
         self.connectionType = connectionStorage.connectionType
         self.connectionConfig = connectionStorage.connectionConfig
         setup()
+        setupMockObserverIfNeeded()
     }
 #endif
+
+    public var isMockModeEnabled: Bool { MockMode.isEnabled }
 
     /// Disconnects tunnel if connected.
     /// iOS removes tunnel profile when disconnect completes within the logout wait cap.
@@ -193,6 +197,18 @@ private extension ConnectionManager {
 #if SANTA
         registerForEnvironmentChanges()
 #endif
+    }
+
+    func setupMockObserverIfNeeded() {
+        guard MockMode.isEnabled else { return }
+        MockConnectionState.shared.$tunnelStatus
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] status in
+                MainActor.assumeIsolated {
+                    self?.currentTunnelStatus = status
+                }
+            }
+            .store(in: &cancellables)
     }
 }
 

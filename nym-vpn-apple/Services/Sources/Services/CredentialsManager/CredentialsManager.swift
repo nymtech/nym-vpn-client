@@ -27,6 +27,15 @@ import PathManager
     let appSettings = AppSettings.shared
     let configurationManager = ConfigurationManager.shared
 
+    private var isMockMode: Bool {
+        #if MOCK_MODE
+        return true
+        #else
+        return ProcessInfo.processInfo.environment["MOCK_MODE"] == "1"
+            || ProcessInfo.processInfo.arguments.contains("-MOCK_MODE")
+        #endif
+    }
+
 #if os(iOS)
     var deeplinks: NymDeeplinks?
 #endif
@@ -85,6 +94,11 @@ import PathManager
     }
 
     public func add(credential: String) async throws {
+        if isMockMode {
+            logger.info("Mock mode: accepting credential without backend validation")
+            updateIsCredentialImported(with: true)
+            return
+        }
 #if os(iOS)
         let env = try resolvedNetworkEnvironment()
         try await login(credential: credential, environment: env)
@@ -184,6 +198,11 @@ import PathManager
 #endif
 
     public func createMnemonic() async throws {
+        if isMockMode {
+            logger.info("Mock mode: simulating account creation")
+            updateIsCredentialImported(with: true)
+            return
+        }
 #if os(iOS)
         let env = try resolvedNetworkEnvironment()
         try await createMnemonic(environment: env)
@@ -336,6 +355,12 @@ import PathManager
     }
 
     public func removeCredential() async throws {
+        if isMockMode {
+            logger.info("Mock mode: simulating credential removal")
+            updateIsCredentialImported(with: false)
+            appSettings.accountToken = nil
+            return
+        }
 #if os(iOS)
         let envOpt = configurationManager.networkEnv
         try await Task {
@@ -445,6 +470,7 @@ import PathManager
     /// Uses `isActive` from AccountSummary (backend source of truth),
     /// falling back to local date check if accountSummary is nil.
     public func isAccountValid() async -> Bool {
+        if isMockMode { return true }
         if isAccountActive() {
             return true
         } else {
@@ -675,6 +701,9 @@ private extension CredentialsManager {
     }
 
     func checkCredentialImport() {
+        if isMockMode {
+            return
+        }
         Task {
             await ensureCredentialImportResolved()
             guard !isAccountRegistrationInFlight else { return }

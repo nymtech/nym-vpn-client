@@ -156,6 +156,11 @@ android {
 			proguardFile("proguard-rules.pro")
 			buildConfigField("String", Constants.FLAVOR, "\"${Constants.GENERAL}\"")
 		}
+		create(Constants.MOCK) {
+			dimension = Constants.TYPE
+			applicationIdSuffix = ".mock"
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.MOCK}\"")
+		}
 	}
 
 	compileOptions {
