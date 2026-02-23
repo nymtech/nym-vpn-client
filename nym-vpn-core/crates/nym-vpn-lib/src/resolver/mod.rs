@@ -71,11 +71,11 @@ pub(crate) trait LoopbackAlias: Send {
 pub(crate) type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
 
 /// How to handle a DNS-filtered blocking decisions.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DnsFilterStrategy {
-    #[allow(dead_code)]
     EmptyRecord, // Return an empty record.
-    Localhost, // Return localhost
+    Localhost,   // Return localhost
 }
 
 /// DNS filter decision
