@@ -11,6 +11,7 @@ import {
   NetworkEnv,
   SelectedNode,
   TAccountMode,
+  TAccountSummary,
   ThemeMode,
   Tunnel,
   TunnelError,
@@ -57,6 +58,7 @@ export type AppState = {
   tunnelError?: TunnelError | null;
   accountState?: AccountState | null;
   accountMode?: TAccountMode | null;
+  accountSummary?: TAccountSummary | null;
   accountError?: AppError | null;
   accountSyncing: boolean;
   daemonStatus: DaemonStatus;

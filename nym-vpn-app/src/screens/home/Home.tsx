@@ -64,6 +64,8 @@ function Home() {
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
+  console.log('mainstate', useMainState());
+
   const handleClick = () => {
     if (state === 'disconnected' && !account) {
       navigate(routes.onboarding);

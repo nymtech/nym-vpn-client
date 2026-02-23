@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
@@ -23,7 +23,7 @@ import {
 } from '../../../contexts';
 import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
-import { StateDispatch, TAccountMode } from '../../../types';
+import { StateDispatch, TAccountMode, TAccountSummary } from '../../../types';
 import { getAccountColor, getAccountDescription } from './utils';
 
 const IdsTimeToLive = 120; // sec
@@ -40,6 +40,7 @@ function Account() {
     accountSyncing,
     daemonStatus,
     accountMode,
+    accountSummary,
     backendFlags,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -49,28 +50,44 @@ function Account() {
       accountState === 'bandwidth-exceeded');
 
   const [isAccountLinking, setIsAccountLinking] = useState(false);
-  const [accountId, setAccountId] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState<string | null>(null);
 
-  const linkable = accountMode === 'api';
+  // Privy and linking logic
+  const isLoggedWithPrivy = accountMode === 'privy';
+  const isDifferentCanonical =
+    accountSummary?.['account-addr'] !==
+    accountSummary?.['canonical-account-addr'];
+  const hasLinkedAuthMethod = accountSummary?.['auth-methods']?.some(
+    (it) => it.label === 'Social login' || it.label === 'PassPhrase',
+  );
+
+  const isAccountLinked =
+    isLoggedWithPrivy || isDifferentCanonical || hasLinkedAuthMethod;
 
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
 
-  const getAccountId = async () => {
-    const accountId = await CCache.get<string>('cache-account-id');
-    if (accountId) {
-      setAccountId(accountId);
-      return;
+  const refreshAccount = async () => {
+    try {
+      const summary = await invoke<TAccountSummary>('get_account_summary');
+      console.log('account summary', summary);
+      dispatch({ type: 'set-account-summary', summary });
+    } catch (err) {
+      console.error('Failed to get account summary', err);
     }
     try {
-      const accountId = await invoke<string>('get_account_id');
-      setAccountId(accountId);
-      CCache.set('cache-account-id', accountId, IdsTimeToLive);
-    } catch {
-      setAccountId(null);
+      const mode = await invoke<TAccountMode>('get_account_mode');
+      console.log('account mode', mode);
+      dispatch({ type: 'set-account-mode', mode });
+    } catch (err) {
+      console.error('Failed to get account mode', err);
     }
   };
+
+  useEffect(() => {
+    refreshAccount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -88,18 +105,13 @@ function Account() {
   };
 
   useEffect(() => {
-    getAccountId();
     getDeviceId();
   }, []);
 
+  // When logged out, navigate to settings
   useEffect(() => {
     if (!account) navigate(routes.settings, { replace: true });
   }, [account, navigate]);
-
-  const refreshAccountMode = useCallback(async () => {
-    const mode = await invoke<TAccountMode>('get_account_mode');
-    dispatch({ type: 'set-account-mode', mode });
-  }, [dispatch]);
 
   const handleAccountLink = async () => {
     setIsAccountLinking(true);
@@ -121,7 +133,7 @@ function Account() {
       await invoke('store_deeplink_account', {
         callbackUrl: deeplinkUrl,
       });
-      await refreshAccountMode();
+      await refreshAccount();
     } catch (error) {
       console.error('Account login error: ', error);
       if (error instanceof Error && error.message === 'Login timeout') {
@@ -177,7 +189,7 @@ function Account() {
             trailingIcon: 'open_in_new',
             onClick: handleManageSubscription,
           },
-          ...(backendFlags.privy && linkable
+          ...(backendFlags.privy && isAccountLinked
             ? [
                 {
                   title: t('account.account-on-nym'),
@@ -194,7 +206,7 @@ function Account() {
 
       {backendFlags.privy && (
         <p className="text-sm text-iron dark:text-bombay">
-          {linkable
+          {isAccountLinked
             ? t('account.account-not-linked')
             : t('account.account-linked')}
         </p>
@@ -211,9 +223,10 @@ function Account() {
         </CardNewHeader>
         <CardNewBody className="pb-5">
           <CardNewCopyableRow
-            value={accountId ?? ''}
-            label={accountId ?? ''}
-            loading={!accountId}
+            // Displaying canonical account address, as this is NYM's default account address
+            value={accountSummary?.['canonical-account-addr'] ?? ''}
+            label={accountSummary?.['canonical-account-addr'] ?? ''}
+            loading={!accountSummary?.['canonical-account-addr']}
           />
         </CardNewBody>
       </CardNew>
