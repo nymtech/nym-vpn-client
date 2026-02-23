@@ -129,8 +129,7 @@ impl SyncingState {
             Ok(summary) => {
                 tracing::debug!("{summary:#?}");
 
-                let vpn_account_summary: VpnAccountSummary = (&summary.account_summary)
-                    .try_into()
+                let vpn_account_summary = VpnAccountSummary::try_from(&summary.account_summary)
                     .map_err(|e| SyncError::ApiResponseError {
                         details: format!("Failed to create account summary from API response: {e}"),
                     })?;
