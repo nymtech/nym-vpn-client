@@ -34,3 +34,9 @@ fastlane/report.xml
 fastlane/README.md
 
 .sentryclirc
+
+# Maestro test debug output
+maestro/tests/
+
+# Mock build derived data
+build-macos/
