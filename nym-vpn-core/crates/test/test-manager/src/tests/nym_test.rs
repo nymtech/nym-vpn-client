@@ -6,7 +6,7 @@
 use crate::nym_daemon::RpcClientProvider;
 use crate::tests::config_nym::TEST_CONFIG_NYM;
 use crate::tests::{TestContext, helpers_nym};
-use anyhow::{Context, anyhow, bail};
+use anyhow::{Context, anyhow, bail, ensure};
 use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerState, TunnelState};
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::time::Duration;
@@ -14,99 +14,128 @@ use test_macro::test_function_nym;
 use test_rpc::NymServiceClient;
 use tokio::time::Instant;
 
-// async fn ip() -> Result<(), Box<dyn std::error::Error>> {
-//     let resp = reqwest::get("https://ipinfo.io").await?.text().await?;
-//     println!("{}", resp);
-//     Ok(())
-// }
+/// Poll `is_account_stored()` until it returns `true`, or bail after `timeout`.
+pub async fn wait_for_account_stored(
+    nym_proxy_client: &mut NymProxyClient,
+    timeout: Duration,
+) -> anyhow::Result<()> {
+    let started = Instant::now();
+    loop {
+        if nym_proxy_client.is_account_stored().await? {
+            log::debug!("Account stored confirmed");
+            return Ok(());
+        }
+        if Instant::now() > started + timeout {
+            bail!("Account was not stored after {}s", timeout.as_secs());
+        }
+        tokio::time::sleep(Duration::from_secs(5)).await;
+    }
+}
 
 #[test_function_nym]
-pub async fn basic_functionality(
+pub async fn test_account_and_tunnel_roundtrip(
     _: TestContext,
     rpc: NymServiceClient,
     mut nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!(" 🏗 Basic functionality test");
+    log::info!("test_account_and_tunnel_roundtrip: account store, tunnel connect/disconnect, device & usage check");
     prepare_daemon_nym(&mut nym_proxy_client, false).await?;
 
-    let is_stored = nym_proxy_client.is_account_stored().await?;
-    let account_state = nym_proxy_client.get_account_state().await?;
-    let account_identity = nym_proxy_client.get_account_identity().await?;
-    log::debug!("nym-vpnd has a registered account: {is_stored}");
-    log::debug!("Account state: {account_state:?}");
-    log::debug!("Account identity: {account_identity:?}");
-
-    log::debug!("Registering a mnemonic...");
+    // Store account
+    log::info!("Storing account...");
     if let Some(err) = nym_proxy_client
         .store_account_friendly(&TEST_CONFIG_NYM.mnemonic)
         .await?
         .error
     {
-        log::error!("{}", err);
+        bail!("store_account_friendly returned error: {err}");
     }
 
-    loop {
-        let is_stored = nym_proxy_client.is_account_stored().await?;
-        log::debug!("nym-vpnd has a registered account: {is_stored}");
-        if is_stored {
-            break;
-        }
-        tokio::time::sleep(Duration::from_secs(5)).await;
-    }
+    // Wait for account to be stored (bounded)
+    wait_for_account_stored(&mut nym_proxy_client, Duration::from_secs(60)).await?;
     wait_for_account_state(
         &mut nym_proxy_client,
         AccountControllerState::ReadyToConnect,
     )
     .await?;
-    let account_identity = nym_proxy_client.get_account_identity().await?;
-    if let Some(identity) = account_identity {
-        log::debug!("Account identity: {}...", &identity[..5]);
-    }
 
-    log::info!("🚀 Connecting tunnel...");
+    // Verify account identity
+    let identity = nym_proxy_client
+        .get_account_identity()
+        .await
+        .context("get_account_identity failed")?;
+    let identity = identity.context("Expected account identity to be set")?;
+    ensure!(!identity.is_empty(), "Account identity should not be empty");
+    log::info!("Account identity: {}...", &identity[..5.min(identity.len())]);
+
+    // Connect tunnel
+    log::info!("Connecting tunnel...");
     nym_proxy_client.connect_tunnel_friendly().await?;
     wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Connected).await?;
 
-    let hostnames_to_test = vec![("nym.com", 443), ("google.com", 443)];
-    for host in hostnames_to_test {
-        log::debug!("🌍 Trying to resolve {}", host.0);
-        let result = helpers_nym::resolve_hostname_with_retries(host).await;
-        log::debug!("Result: {:?}", result);
-    }
-
-    log::info!("🔌 Disconnecting tunnel...");
-    nym_proxy_client.disconnect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Disconnected).await?;
-
-    let devices = nym_proxy_client.get_active_devices().await?;
-    log::debug!("Listing active devices:");
-    for device in devices {
-        log::debug!(
-            "{}...: created on: {}, status: {:?}",
-            &device.device_identity_key[..10],
-            device.created_on_utc,
-            device.status
+    // DNS resolution while connected (runs inside VM via tarpc)
+    let hostnames_to_test = ["nym.com", "google.com"];
+    for host in &hostnames_to_test {
+        log::info!("Resolving {} inside VM...", host);
+        let addrs = rpc
+            .resolve_hostname(host.to_string())
+            .await
+            .context(format!("DNS resolution failed for {} inside VM", host))?;
+        log::info!("Resolved {} to {:?}", host, addrs);
+        ensure!(
+            !addrs.is_empty(),
+            "DNS resolution returned no addresses for {} inside VM",
+            host
         );
     }
 
-    let usages = nym_proxy_client.get_account_usage().await?;
-    log::debug!("Usage details:");
-    let n = usages.len();
-    for (i, usage) in usages.iter().enumerate() {
-        log::debug!("\t{}/{}", i + 1, n);
-        log::debug!("\tCreated on: {}", usage.created_on_utc);
-        log::debug!("\tSubscription valid until: {}", usage.valid_until_utc);
-        log::debug!("\tBandwidth used: {}GB", usage.bandwidth_used_gb);
-        log::debug!("\tAllowance: {}GB", usage.bandwidth_allowance_gb);
+    // Disconnect tunnel
+    log::info!("Disconnecting tunnel...");
+    nym_proxy_client.disconnect_tunnel().await?;
+    wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Disconnected).await?;
+
+    // Verify devices
+    let devices = nym_proxy_client
+        .get_active_devices()
+        .await
+        .context("get_active_devices failed")?;
+    ensure!(!devices.is_empty(), "Expected at least one active device");
+    for device in &devices {
+        ensure!(
+            !device.device_identity_key.is_empty(),
+            "Device identity key should not be empty"
+        );
+        log::info!(
+            "Device: {}... created={}, status={:?}",
+            &device.device_identity_key[..10.min(device.device_identity_key.len())],
+            device.created_on_utc,
+            device.status,
+        );
     }
 
-    log::info!("🏁 🏁 🏁 Passed!");
+    // Verify usage
+    let usages = nym_proxy_client
+        .get_account_usage()
+        .await
+        .context("get_account_usage failed")?;
+    ensure!(!usages.is_empty(), "Expected at least one usage entry");
+    for (i, usage) in usages.iter().enumerate() {
+        log::info!(
+            "Usage [{}/{}]: valid_until={}, used={}GB, allowance={}GB",
+            i + 1,
+            usages.len(),
+            usage.valid_until_utc,
+            usage.bandwidth_used_gb,
+            usage.bandwidth_allowance_gb,
+        );
+    }
 
+    log::info!("test_account_and_tunnel_roundtrip: PASSED");
     Ok(())
 }
 
 #[derive(Debug, PartialEq)]
-enum ExpectedTunnelState {
+pub enum ExpectedTunnelState {
     Connected,
     Disconnected,
     Connecting,
@@ -128,11 +157,19 @@ impl From<TunnelState> for ExpectedTunnelState {
     }
 }
 
-async fn wait_for_tunnel_state(
+pub async fn wait_for_tunnel_state(
     nym_proxy_client: &mut NymProxyClient,
     expected_state: ExpectedTunnelState,
 ) -> anyhow::Result<()> {
-    let timeout = Duration::from_secs(60);
+    wait_for_tunnel_state_with_timeout(nym_proxy_client, expected_state, Duration::from_secs(60))
+        .await
+}
+
+pub async fn wait_for_tunnel_state_with_timeout(
+    nym_proxy_client: &mut NymProxyClient,
+    expected_state: ExpectedTunnelState,
+    timeout: Duration,
+) -> anyhow::Result<()> {
     let started = Instant::now();
 
     loop {
@@ -151,7 +188,7 @@ async fn wait_for_tunnel_state(
     }
 }
 
-async fn wait_for_account_state(
+pub async fn wait_for_account_state(
     nym_proxy_client: &mut NymProxyClient,
     expected_state: AccountControllerState,
 ) -> anyhow::Result<()> {

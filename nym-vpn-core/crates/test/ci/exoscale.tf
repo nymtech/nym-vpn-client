@@ -1,8 +1,8 @@
-# TODO dz: Terraform state is local — if a CI job is killed between apply and destroy
+# NOTE: Terraform state is local — if a CI job is killed between apply and destroy
 # (runner crash, GH outage, manual cancellation), the Exoscale VM leaks with no
-# state file to destroy it later. Mitigations:
-#   1. Use a remote backend (e.g. Exoscale Object Storage / S3-compatible) to persist state
-#   2. Add a scheduled cleanup job that terminates VMs named `test-harness-*` older than N hours
+# state file to destroy it later.
+# Mitigation: e2e-cleanup.yml runs daily at 04:00 UTC and deletes orphaned
+# test-harness-* instances older than 4 hours + their security groups.
 terraform {
   required_providers {
     exoscale = {

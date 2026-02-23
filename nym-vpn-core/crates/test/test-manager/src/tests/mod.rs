@@ -8,6 +8,7 @@ mod envs;
 mod helpers_nym;
 pub mod nym_test;
 mod test_metadata;
+mod tunnel_tests;
 
 use itertools::Itertools;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
