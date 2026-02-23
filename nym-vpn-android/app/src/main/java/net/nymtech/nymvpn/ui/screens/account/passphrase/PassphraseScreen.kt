@@ -2,7 +2,6 @@ package net.nymtech.nymvpn.ui.screens.account.passphrase
 
 import android.app.Activity
 import android.content.ClipData
-import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -46,8 +45,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.credentials.CreatePasswordRequest
-import androidx.credentials.CredentialManager
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
@@ -64,6 +61,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.DeviceAuthHelper
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
+import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
@@ -136,16 +134,6 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 			onError = { _, _ ->
 			},
 		)
-	}
-
-	suspend fun savePasswordToManager(context: Context, password: String) {
-		val credentialManager = CredentialManager.create(context)
-		val passwordCredential = CreatePasswordRequest(id = "nym-passphrase", password = password)
-		try {
-			credentialManager.createCredential(request = passwordCredential, context = context)
-		} catch (e: Exception) {
-			Timber.d(e)
-		}
 	}
 
 	PassphraseScreen(

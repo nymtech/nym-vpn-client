@@ -72,6 +72,9 @@ class LoginViewModel @Inject constructor(
 		runCatching {
 			backendManager.storeMnemonic(phrase)
 
+			_events.tryEmit(
+				LoginEvent.Processing,
+			)
 			Timber.tag(TAG).i("MnemonicImportSuccess")
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 
@@ -79,6 +82,7 @@ class LoginViewModel @Inject constructor(
 
 			val accountState = waitForAccountReady()
 			Timber.tag(TAG).i("AccountStateAfterLogin state=%s", accountState)
+			var error: String? = null
 
 			val hasValidSubscription = when (accountState) {
 				is AccountControllerState.ReadyToConnect,
@@ -88,6 +92,7 @@ class LoginViewModel @Inject constructor(
 
 				is AccountControllerState.Error -> {
 					Timber.tag(TAG).w("AccountStateError reason=%s", accountState.v1)
+					error = accountState.v1.toString()
 					false
 				}
 
@@ -103,6 +108,7 @@ class LoginViewModel @Inject constructor(
 				LoginEvent.NavigateAfterLogin(
 					showTechnicalOpt = shouldShowTechnical,
 					hasValidSubscription = hasValidSubscription,
+					error = error,
 				),
 			)
 
@@ -125,7 +131,9 @@ class LoginViewModel @Inject constructor(
 	private suspend fun waitForAccountReady(): AccountControllerState? {
 		return withTimeoutOrNull(ACCOUNT_READY_TIMEOUT_MS) {
 			backendManager.stateFlow
-				.map { it.accountState }
+				.map {
+					it.accountState
+				}
 				.filter { state ->
 					state is AccountControllerState.ReadyToConnect ||
 						state is AccountControllerState.Decentralised ||

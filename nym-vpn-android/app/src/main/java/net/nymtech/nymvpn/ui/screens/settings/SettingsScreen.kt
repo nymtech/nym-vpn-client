@@ -13,8 +13,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,8 +35,6 @@ import net.nymtech.nymvpn.ui.screens.settings.components.AppVersionSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppearanceSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LegalSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LoginSection
-import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
-import net.nymtech.nymvpn.ui.screens.settings.components.LogoutSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LogsSection
 import net.nymtech.nymvpn.ui.screens.settings.components.QuitSection
 import net.nymtech.nymvpn.ui.screens.settings.components.SupportSection
@@ -57,8 +53,6 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 	val context = LocalContext.current
 	val navController = LocalNavController.current
 
-	var loggingOut by remember { mutableStateOf(false) }
-	var showLogoutDialog by remember { mutableStateOf(false) }
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 	val shortcutsInfoText = stringResource(R.string.shortcuts_info_message)
@@ -77,26 +71,6 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 			context.launchVpnSettings()
 		}
 	}
-
-	LaunchedEffect(appUiState.managerState.isMnemonicStored) {
-		loggingOut = false
-		showLogoutDialog = false
-	}
-
-	LogoutDialog(
-		show = showLogoutDialog,
-		isLoggingOut = loggingOut,
-		onDismiss = { showLogoutDialog = false },
-		onConfirm = {
-			loggingOut = true
-			appViewModel.logout {
-				navController.navigate(Route.Main()) {
-					popUpTo(0) { inclusive = true }
-					launchSingleTop = true
-				}
-			}
-		},
-	)
 
 	SettingsScreen(
 		SettingsValues(
@@ -131,9 +105,6 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 				navController.navigate(Route.Legal)
 			},
 			onSystemStatusClick = {
-			},
-			onLogoutClick = {
-				showLogoutDialog = true
 			},
 			onQuitClick = {
 				(context as Activity).finishAffinity()
@@ -224,10 +195,6 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 			// ResetAppSection(actions.onResetClick)
 			LegalSection(actions.onLegalClick)
 			// SystemStatusSection(actions.onSystemStatusClick)
-			LogoutSection(
-				values.isMnemonicStored,
-				onLogoutClick = actions.onLogoutClick,
-			)
 			QuitSection(actions.onQuitClick)
 			AppVersionSection(appVersion = values.appVersion, daemonVersion = values.daemonVersion, onAppVersionClick = actions.onAppVersionClick)
 		}
