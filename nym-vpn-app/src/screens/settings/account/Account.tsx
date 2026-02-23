@@ -70,14 +70,12 @@ function Account() {
   const refreshAccount = async () => {
     try {
       const summary = await invoke<TAccountSummary>('get_account_summary');
-      console.log('account summary', summary);
       dispatch({ type: 'set-account-summary', summary });
     } catch (err) {
       console.error('Failed to get account summary', err);
     }
     try {
       const mode = await invoke<TAccountMode>('get_account_mode');
-      console.log('account mode', mode);
       dispatch({ type: 'set-account-mode', mode });
     } catch (err) {
       console.error('Failed to get account mode', err);
