@@ -310,6 +310,17 @@ export type TAccountSummary = {
   'traffic-used-gb': bigint;
   'traffic-limit-gb': bigint;
   'traffic-reset-time': string | null;
+  'account-addr': string;
+  'canonical-account-addr': string | null;
+  'auth-methods': Array<TAuthMethod>;
+};
+
+export type TAuthMethod = {
+  id: string;
+  pubkey: string;
+  kind: string;
+  label: string;
+  status: TVpnAccountStatus;
 };
 
 /**
@@ -339,6 +350,8 @@ export type TTunnelState =
   | { disconnecting: TunnelAction | null }
   | { error: TunnelError }
   | { offline: { reconnect: boolean } };
+
+export type TVpnAccountStatus = 'active' | 'inactive' | 'delete-me';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
