@@ -3,7 +3,9 @@
 
 #[cfg(target_os = "macos")]
 mod ctl_sockets;
+#[cfg(target_os = "macos")]
 pub mod session;
+#[cfg(target_os = "macos")]
 mod sys;
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 pub mod utun;
