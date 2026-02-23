@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add subscription checks after login (https://github.com/nymtech/nym-vpn-client/pull/4683)
 - Expose account summary for handling Account state (https://github.com/nymtech/nym-vpn-client/pull/4683)
+- Add Social linking check for Account Screen (https://github.com/nymtech/nym-vpn-client/pull/4714)
 
 ### Changed
 - Handle login input as password (https://github.com/nymtech/nym-vpn-client/pull/4708)

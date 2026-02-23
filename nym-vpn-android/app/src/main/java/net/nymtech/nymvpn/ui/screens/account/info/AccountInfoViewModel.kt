@@ -34,9 +34,12 @@ class AccountInfoViewModel @Inject constructor(
 		viewModelScope.launch {
 			_uiState.update { it.copy(isLoading = true) }
 
+			val accountSummary = backendManager.getAccountSummary()
+			Timber.d("accountSummary $accountSummary")
+
 			val isStored = backendManager.isMnemonicStored()
 			val deviceId = backendManager.getDeviceId() ?: ""
-			var displayAccountId = backendManager.getAccountId() ?: ""
+			val displayAccountId = backendManager.getAccountId() ?: ""
 			val accountMode = backendManager.getAccountMode()
 			val isPrivyEnabled = backendManager.getFeatureFlags()?.isPrivyEnabled() ?: false
 
@@ -44,39 +47,34 @@ class AccountInfoViewModel @Inject constructor(
 			var linkUrl = backendManager.getDeeplink(DeeplinkKind.PRIVY_LINK)
 			val manageUrl = links?.account
 
-			if (accountMode == StoredAccountMode.PRIVY) {
+			val isLoggedWithPrivy = accountMode == StoredAccountMode.PRIVY
+
+			val isDifferentCanonical = accountSummary?.accountAddr != accountSummary?.canonicalAccountAddr
+			val hasLinkedAuthMethod = accountSummary?.authMethods?.any {
+				it.label == "Social login" || it.label == "PassPhrase"
+			} == true
+
+			val isAccountLinked = isLoggedWithPrivy || isDifferentCanonical || hasLinkedAuthMethod
+
+			if (isLoggedWithPrivy) {
 				try {
-					displayAccountId
 					linkUrl = links?.account
 				} catch (e: Exception) {
 					Timber.tag(TAG).e(e, "canonicalRequestFailed")
 				}
+			}
 
-				_uiState.update {
-					it.copy(
-						isLoading = false,
-						isMnemonicStored = isStored,
-						showLinkAccount = false,
-						accountId = displayAccountId,
-						deviceId = deviceId,
-						accountLinkUrl = linkUrl,
-						manageUrl = manageUrl,
-						isPrivyEnabled = isPrivyEnabled,
-					)
-				}
-			} else {
-				_uiState.update {
-					it.copy(
-						isLoading = false,
-						isMnemonicStored = isStored,
-						showLinkAccount = true,
-						accountId = displayAccountId,
-						deviceId = deviceId,
-						accountLinkUrl = linkUrl,
-						manageUrl = manageUrl,
-						isPrivyEnabled = isPrivyEnabled,
-					)
-				}
+			_uiState.update {
+				it.copy(
+					isLoading = false,
+					isMnemonicStored = isStored,
+					showLinkAccount = !isAccountLinked,
+					accountId = displayAccountId,
+					deviceId = deviceId,
+					accountLinkUrl = linkUrl,
+					manageUrl = manageUrl,
+					isPrivyEnabled = isPrivyEnabled,
+				)
 			}
 		}
 	}

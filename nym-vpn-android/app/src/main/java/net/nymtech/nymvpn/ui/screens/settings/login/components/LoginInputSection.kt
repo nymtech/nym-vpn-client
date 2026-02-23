@@ -17,7 +17,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -99,6 +98,7 @@ fun LoginInputSection(
 						text = when (mnemonicError) {
 							MnemonicError.INVALID_RECOVERY_PHRASE ->
 								stringResource(R.string.invalid_recovery_phrase)
+
 							null -> ""
 						},
 						color = MaterialTheme.colorScheme.error,
@@ -121,7 +121,11 @@ fun LoginInputSection(
 
 		MainStyledButton(
 			testTag = Constants.LOGIN_TEST_TAG,
-			onClick = { submit() },
+			onClick = {
+				if (!loading) {
+					submit()
+				}
+			},
 			content = {
 				if (loading) {
 					SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
@@ -140,15 +144,12 @@ fun LoginInputSection(
 		if (isPrivyEnabled) {
 			OutlineStyledButton(
 				onClick = onSocialClick,
+				enabled = !loading,
 				content = {
-					if (loading) {
-						SpinningIcon(Icons.Outlined.Lock, "")
-					} else {
-						Text(
-							text = stringResource(R.string.account_welcome_social_button),
-							style = CustomTypography.buttonMain,
-						)
-					}
+					Text(
+						text = stringResource(R.string.account_welcome_social_button),
+						style = CustomTypography.buttonMain,
+					)
 				},
 				borderColor = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier
@@ -175,7 +176,11 @@ fun LoginInputSection(
 				style = MaterialTheme.typography.labelLarge,
 				color = MaterialTheme.colorScheme.primary,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-				modifier = Modifier.clickable { onCreateAccountClick() },
+				modifier = Modifier.clickable {
+					if (!loading) {
+						onCreateAccountClick()
+					}
+				},
 			)
 		}
 	}

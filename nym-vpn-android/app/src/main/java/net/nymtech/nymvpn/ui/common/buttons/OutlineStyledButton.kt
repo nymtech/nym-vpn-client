@@ -18,6 +18,7 @@ fun OutlineStyledButton(
 	testTag: String? = null,
 	onClick: () -> Unit,
 	content: @Composable () -> Unit,
+	enabled: Boolean = true,
 	modifier: Modifier = Modifier,
 	borderColor: Color = MaterialTheme.colorScheme.primary,
 	backgroundColor: Color = MaterialTheme.colorScheme.background,
@@ -28,6 +29,7 @@ fun OutlineStyledButton(
 			containerColor = backgroundColor,
 			contentColor = borderColor,
 		),
+		enabled = enabled,
 		contentPadding = PaddingValues(),
 		modifier = modifier
 			.testTag(testTag ?: "")

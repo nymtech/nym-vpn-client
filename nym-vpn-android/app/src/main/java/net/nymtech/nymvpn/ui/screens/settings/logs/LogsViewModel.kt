@@ -201,6 +201,9 @@ class LogsViewModel @Inject constructor(
 	fun onLogsEnabled(enabled: Boolean) = viewModelScope.launch {
 		Timber.tag(TAG).i("LogsEnabledChanged enabled=%s", enabled)
 		settingsRepository.setLogsEnabled(enabled)
+		if (!enabled) {
+			onLogsDebugEnabled(false)
+		}
 	}
 
 	fun onLogsDebugEnabled(enabled: Boolean) = viewModelScope.launch {
