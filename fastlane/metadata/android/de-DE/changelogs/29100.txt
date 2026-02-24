@@ -1,0 +1,7 @@
+Was ist Neu:
+- Konto-Einrichtung: Unterstützung für die Erstellung und Registrierung von In-App-Konten.
+- Private Integration: Verknüpfen Sie Ihre Konten einfach mit dem neuen Privaten Support.
+- Mixnet Tuning: Neue Benutzeroberfläche, um Ihre Privatsphäre- und Verbindungseinstellungen zu optimieren.
+- Stabilitäts-Korrekturen: Immer nach Systemneustart und fixen App-Abstürzen behoben VPN-Fehler.
+- Bessere Verbindung: Verbesserte VPN-Architektur für zuverlässigere, dynamische Wiederverbindungen und aktualisierte Benutzeroberfläche.
+- Aktualisierte Übersetzungsworkflow.

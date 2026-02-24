@@ -1,8 +1,8 @@
 موارد اضافه شده
-- New logging controls: Enable Logs and Debug Verbose toggles
-- Added authentication check for shortcut actions
-- Updated logs export format (structured folders and grouped logs)
-- Improved NavBar action handling
-- Reduced unnecessary log noise
-- Fixed Auto Start handling
-- Minor UI improvements and fixes
+کنترل‌های جدید ثبت لاگ: افزودن گزینه‌های فعال‌سازی Logs و Debug Verbose
+افزودن بررسی احراز هویت برای اقدامات میانبر
+به‌روزرسانی فرمت خروجی لاگ‌ها (پوشه‌های ساختاریافته و لاگ‌های گروه‌بندی‌شده)
+بهبود مدیریت عملکرد NavBar
+کاهش لاگ‌های غیرضروری
+رفع مشکل عملکرد شروع خودکار
+بهبودها و اصلاحات جزئی در رابط کاربری
