@@ -11,13 +11,12 @@ use crate::events::AppHandleEventEmitter;
 use crate::state::SharedAppState;
 use crate::sys::OsInfo;
 use crate::vpnd::account::AccountState;
-use crate::vpnd::client::{NetworkCompatVersions, VersionCheck, VpndClient};
-use crate::vpnd::gateway::{EntryGatewayInfo, GatewayType};
-use crate::vpnd::tunnel::{TunnelData, TunnelState};
+use crate::vpnd::client::{NetworkCompatVersions, VersionCheck};
+use crate::vpnd::tunnel::TunnelState;
 use crate::{
+    tray::TrayManager,
     vpnd::client::{VpndInfo, VpndStatus},
     vpnd::config::VpndConfig,
-    tray::TrayManager,
 };
 
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq, strum::Display)]
@@ -71,35 +70,10 @@ impl AppState {
 
     #[instrument(skip(self, app))]
     pub async fn update_tunnel(&mut self, app: &AppHandle, state: TunnelState) -> Result<()> {
-        let mystate = state.clone();
-        self.tunnel = mystate.clone();
-
-        let entry_gw_info = match &mystate {
-            TunnelState::Connected(tunnel) => {
-                let gw_type = match &tunnel.data {
-                    TunnelData::Wireguard(_) => GatewayType::Wg,
-                    TunnelData::Mixnet(_) => GatewayType::MxEntry,
-                };
-                app.state::<VpndClient>()
-                    .gateways(gw_type)
-                    .await
-                    .ok()
-                    .and_then(|gateways| {
-                        gateways
-                            .into_iter()
-                            .find(|g| g.id == tunnel.entry_gw_id)
-                            .map(|g| EntryGatewayInfo {
-                                name: g.name,
-                                country: g.country,
-                                location: g.location,
-                            })
-                    })
-            }
-            _ => None,
-        };
+        self.tunnel = state;
 
         let tray_manager = app.state::<TrayManager>();
-        tray_manager.update_tray_icon(mystate.clone()).await;
+        tray_manager.update_tray_icon(self.tunnel.clone()).await;
         app.emit_tunnel_update(&self.tunnel);
         Ok(())
     }
@@ -190,7 +164,9 @@ impl AppState {
             app.emit_vpnd_status(state.vpnd_status.clone());
         }
         let tray_manager = app.state::<TrayManager>();
-        tray_manager.update_tray_icon(TunnelState::Offline { reconnect: false }).await;
+        tray_manager
+            .update_tray_icon(TunnelState::Offline { reconnect: false })
+            .await;
     }
 }
 

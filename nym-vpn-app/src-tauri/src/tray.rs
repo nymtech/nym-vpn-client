@@ -1,22 +1,19 @@
 use anyhow::Result;
 use strum::AsRefStr;
 use tauri::{
+    AppHandle, Manager, Wry,
     image::Image,
+    include_image,
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
-    AppHandle,
-    Manager,
-    Wry,
-    include_image,
 };
 use tracing::{debug, error, info, instrument, trace, warn};
 
 #[cfg(not(target_os = "linux"))]
 use crate::APP_NAME;
-use crate::vpnd::tunnel::{TunnelState};
+use crate::vpnd::tunnel::TunnelState;
 use crate::{
-    MAIN_WINDOW_LABEL, state::SharedAppState, vpnd::client::VpndClient,
-    window::AppWindow,
+    MAIN_WINDOW_LABEL, state::SharedAppState, vpnd::client::VpndClient, window::AppWindow,
 };
 
 pub const TRAY_ICON_ID: &str = "main";
@@ -51,29 +48,76 @@ impl TrayManager {
         debug!("building system tray");
 
         // String labels are set in frontent (<TrayProvider>) to support localization
-        let show_hide = MenuItem::with_id(app, MenuItemId::ShowHide.as_ref(), "Show/Hide", true, None::<&str>).inspect_err(|e| error!("failed to create menu item: {e}"))?;
-        let quit = MenuItem::with_id(app, MenuItemId::Quit.as_ref(), "Quit (disconnect)", true, None::<&str>).inspect_err(|e| error!("failed to create menu item: {e}"))?;
-        
-        let status = MenuItem::with_id(app, MenuItemId::Status.as_ref(), "Status: Initial", true, None::<&str>).inspect_err(|e| error!("failed to create menu item: {e}"))?;
-        let mode = MenuItem::with_id(app, MenuItemId::Mode.as_ref(), "Mode: Initial", true, None::<&str>).inspect_err(|e| error!("failed to create menu item: {e}"))?;
-        let entry = MenuItem::with_id(app, MenuItemId::Entry.as_ref(), "Entry: Initial", true, None::<&str>).inspect_err(|e| error!("failed to create menu item: {e}"))?;
-        let exit = MenuItem::with_id(app, MenuItemId::Exit.as_ref(), "Exit: Initial", true, None::<&str>).inspect_err(|e| error!("failed to create menu item: {e}"))?;
+        let show_hide = MenuItem::with_id(
+            app,
+            MenuItemId::ShowHide.as_ref(),
+            "Show/Hide",
+            true,
+            None::<&str>,
+        )
+        .inspect_err(|e| error!("failed to create menu item: {e}"))?;
+        let quit = MenuItem::with_id(
+            app,
+            MenuItemId::Quit.as_ref(),
+            "Quit (disconnect)",
+            true,
+            None::<&str>,
+        )
+        .inspect_err(|e| error!("failed to create menu item: {e}"))?;
+
+        let status = MenuItem::with_id(
+            app,
+            MenuItemId::Status.as_ref(),
+            "Status: Initial",
+            true,
+            None::<&str>,
+        )
+        .inspect_err(|e| error!("failed to create menu item: {e}"))?;
+        let mode = MenuItem::with_id(
+            app,
+            MenuItemId::Mode.as_ref(),
+            "Mode: Initial",
+            true,
+            None::<&str>,
+        )
+        .inspect_err(|e| error!("failed to create menu item: {e}"))?;
+        let entry = MenuItem::with_id(
+            app,
+            MenuItemId::Entry.as_ref(),
+            "Entry: Initial",
+            true,
+            None::<&str>,
+        )
+        .inspect_err(|e| error!("failed to create menu item: {e}"))?;
+        let exit = MenuItem::with_id(
+            app,
+            MenuItemId::Exit.as_ref(),
+            "Exit: Initial",
+            true,
+            None::<&str>,
+        )
+        .inspect_err(|e| error!("failed to create menu item: {e}"))?;
         let separator = PredefinedMenuItem::separator(app)?;
 
-        let menu = Menu::with_items(app, &[&show_hide, &separator, &status, &mode, &entry, &exit, &separator, &quit])?;
+        let menu = Menu::with_items(
+            app,
+            &[
+                &show_hide, &separator, &status, &mode, &entry, &exit, &separator, &quit,
+            ],
+        )?;
 
         let tray = TrayIconBuilder::with_id(TRAY_ICON_ID)
             .icon(APP_ICON)
             .menu(&menu)
-            .on_tray_icon_event(|tray, event| Self::on_tray_event(tray, event))
-            .on_menu_event(|app, event| Self::on_menu_event(app, event))
+            .on_tray_icon_event(Self::on_tray_event)
+            .on_menu_event(Self::on_menu_event)
             .build(app)?;
 
         #[cfg(not(target_os = "linux"))]
         tray.set_tooltip(Some(APP_NAME))
             .inspect_err(|e| error!("failed to set tray tooltip {e}"))
             .ok();
-        
+
         Ok(Self {
             tray,
             show_hide,

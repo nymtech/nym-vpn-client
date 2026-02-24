@@ -86,7 +86,6 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
     gateways: GatewaysByCountry[],
     countryCode?: string,
   ) => {
-    // debugger;
     if (countryCode) {
       const byCountry = gateways.find(
         (c) => c.country.code.toLowerCase() === countryCode.toLowerCase(),
@@ -107,7 +106,6 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
 
   const lookupGw = useCallback(
     (id: string, type: 'entry' | 'exit', countryCode?: string) => {
-      // debugger;
       if (vpnMode === 'wg') {
         return findGateway(id, state.wg, countryCode);
       } else if (type === 'entry') {

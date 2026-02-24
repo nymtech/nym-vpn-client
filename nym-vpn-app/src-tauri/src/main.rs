@@ -6,9 +6,9 @@ use std::time::Duration;
 use crate::cli::{Commands, db_command};
 use crate::fs::path::APP_CONFIG_DIR;
 use crate::startup_error::{ErrorKey, StartupError};
+use crate::tray::TrayManager;
 #[cfg(windows)]
 use crate::updater::PendingUpdate;
-use crate::vpnd::tunnel::TunnelState;
 use crate::window::AppWindow;
 use crate::{
     cli::Cli,
@@ -16,7 +16,6 @@ use crate::{
     fs::{app::AppFs, config::AppConfig},
     vpnd::client::VpndClient,
 };
-use crate::tray::TrayManager;
 
 use anyhow::{Result, anyhow};
 use clap::Parser;
@@ -28,10 +27,10 @@ use commands::log as cmd_log;
 use commands::sentry as cmd_sentry;
 use commands::socks5 as cmd_socks5;
 use commands::sys as cmd_sys;
+use commands::tray as cmd_tray;
 #[cfg(windows)]
 use commands::updater as cmd_updater;
 use commands::window as cmd_window;
-use commands::tray as cmd_tray;
 use commands::*;
 use state::app::AppState;
 use tauri::Manager;
