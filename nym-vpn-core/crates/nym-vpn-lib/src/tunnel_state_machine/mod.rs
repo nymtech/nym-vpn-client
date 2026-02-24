@@ -854,10 +854,7 @@ impl TunnelStateMachine {
             }
 
             self.shared_state.route_handler.stop().await;
-        }
 
-        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
-        {
             if let Err(e) = self.filtering_resolver_handle.await {
                 tracing::error!("Failed to join on filtering resolver task: {}", e)
             }
