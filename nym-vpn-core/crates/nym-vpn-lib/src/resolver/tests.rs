@@ -59,6 +59,7 @@ async fn test_bind() {
 #[cfg(target_os = "linux")]
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // Won't work unless we are root
 async fn test_random_loopback_bind() {
     let shutdown_token = CancellationToken::new();
     let (handle, join_handle) = LocalResolver::spawn(true, shutdown_token.child_token())

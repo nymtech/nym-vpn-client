@@ -151,26 +151,13 @@ impl ConnectedState {
             tracing::debug!("Enabling local DNS forwarder to: {ips:?}");
             shared_state.filtering_resolver.enable_forward(ips).await;
 
-            #[cfg(target_os = "windows")]
+            #[cfg(any(target_os = "linux", target_os = "windows"))]
             {
                 // Point the tunnel interface DNS at the local filtering resolver so that the OS actually
                 // sends DNS queries to it.
                 let listen_addr = shared_state.filtering_resolver.listen_addr();
                 let system_dns =
                     DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
-                shared_state
-                    .dns_handler
-                    .set(&tunnel_metadata.interface, system_dns)
-                    .await
-                    .map_err(Error::SetDns)?;
-            }
-
-            #[cfg(target_os = "linux")]
-            {
-                // Point the tunnel interface DNS at the local filtering resolver so that the OS actually
-                // sends DNS queries to it.
-                let listen_addr = shared_state.filtering_resolver.listen_addr();
-                let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()]);
                 shared_state
                     .dns_handler
                     .set(&tunnel_metadata.interface, system_dns)
@@ -193,40 +180,16 @@ impl ConnectedState {
         Ok(())
     }
 
-    #[cfg(target_os = "linux")]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn reset_dns(shared_state: &mut SharedState) {
-        if *LOCAL_DNS_RESOLVER {
-            shared_state.enable_ad_blocking(false).await;
-            shared_state.filtering_resolver.disable_forward().await;
-        }
-
-        if let Err(error) = shared_state
-            .dns_handler
-            .reset_before_interface_removal()
-            .await
-        {
-            trace_err_chain!(error, "Failed to reset DNS");
-        }
-    }
-
-    #[cfg(target_os = "macos")]
-    async fn reset_dns(shared_state: &mut SharedState) {
-        // On macOS, configure only the local DNS resolver
         if *LOCAL_DNS_RESOLVER {
             shared_state.enable_ad_blocking(false).await;
             shared_state.filtering_resolver.disable_forward().await;
         } else if let Err(error) = shared_state.dns_handler.reset().await {
             trace_err_chain!(error, "Failed to reset DNS");
         }
-    }
 
-    #[cfg(target_os = "windows")]
-    async fn reset_dns(shared_state: &mut SharedState) {
-        if *LOCAL_DNS_RESOLVER {
-            shared_state.enable_ad_blocking(false).await;
-            shared_state.filtering_resolver.disable_forward().await;
-        }
-
+        #[cfg(any(target_os = "linux", target_os = "windows"))]
         if let Err(error) = shared_state
             .dns_handler
             .reset_before_interface_removal()
@@ -506,7 +469,7 @@ mod tests {
         // Create ResolvedDnsConfig using DnsConfig::default().resolve()
         let dns_config = DnsConfig::default().resolve(
             &[IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1))],
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             53,
         );
 

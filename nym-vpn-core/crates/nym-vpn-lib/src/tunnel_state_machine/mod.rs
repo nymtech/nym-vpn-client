@@ -173,7 +173,7 @@ impl TunnelSettings {
     pub fn resolved_dns_config(&self) -> ResolvedDnsConfig {
         self.dns.to_dns_config().resolve(
             &self.dns_ips(),
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             53,
         )
     }
