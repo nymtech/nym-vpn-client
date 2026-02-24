@@ -60,14 +60,10 @@ async fn assign_loopback_alias(addr: IpAddr) -> io::Result<()> {
     nym_macos::net::add_alias(LOOPBACK, addr).await
 }
 
-#[cfg(target_os = "macos")]
-async fn remove_loopback_alias(addr: IpAddr) -> io::Result<()> {
-    nym_macos::net::remove_alias(LOOPBACK, addr).await
-}
-
 #[cfg(target_os = "linux")]
 async fn assign_loopback_alias(addr: IpAddr) -> io::Result<()> {
     // Add as /32: the 127.0.0.0/8 route typically already exists on `lo`.
+    // TODO: Replace with nym-ifconfig
     let output = run_ip(["addr", "add", &format!("{addr}/32"), "dev", LOOPBACK]).await?;
     if output.status.success() {
         return Ok(());
@@ -83,8 +79,14 @@ async fn assign_loopback_alias(addr: IpAddr) -> io::Result<()> {
     )))
 }
 
+#[cfg(target_os = "macos")]
+async fn remove_loopback_alias(addr: IpAddr) -> io::Result<()> {
+    nym_macos::net::remove_alias(LOOPBACK, addr).await
+}
+
 #[cfg(target_os = "linux")]
 async fn remove_loopback_alias(addr: IpAddr) -> io::Result<()> {
+    // TODO: Replace with nym-ifconfig
     let output = run_ip(["addr", "del", &format!("{addr}/32"), "dev", LOOPBACK]).await?;
     if output.status.success() {
         return Ok(());
@@ -101,6 +103,7 @@ async fn remove_loopback_alias(addr: IpAddr) -> io::Result<()> {
 }
 
 #[cfg(target_os = "linux")]
+// TODO: Replace with nym-ifconfig
 async fn run_ip<'a>(args: impl IntoIterator<Item = &'a str>) -> io::Result<std::process::Output> {
     const CANDIDATES: &[&str] = &["ip", "/usr/sbin/ip", "/sbin/ip", "/usr/bin/ip", "/bin/ip"];
 
@@ -147,24 +150,13 @@ pub(crate) async fn new_random_socket(
         let (socket_addr, on_drop): (IpAddr, Option<BoxedLoopbackAlias>) = match attempt {
             ..3 if !use_random_loopback => continue,
 
-            #[cfg(target_os = "macos")]
             ..3 => match RandomLoopbackAlias::assign().await {
                 Ok(random) => (random.addr(), Some(Box::new(random) as BoxedLoopbackAlias)),
                 Err(_) => continue,
             },
 
-            #[cfg(target_os = "linux")]
-            ..3 => match RandomLoopbackAlias::assign().await {
-                Ok(random) => (random.addr(), Some(Box::new(random) as BoxedLoopbackAlias)),
-                Err(error) => {
-                    // Still keep the address random even if alias assignment fails.
-                    tracing::warn!(
-                        "Failed to add loopback alias on Linux; falling back to random bind: {error}"
-                    );
-                    (random_loopback_ipv4(), None)
-                }
-            },
             3 => (IpAddr::from(Ipv4Addr::LOCALHOST), None),
+
             4.. => break,
         };
 

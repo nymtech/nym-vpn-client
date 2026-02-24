@@ -733,8 +733,9 @@ impl TunnelStateMachine {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         if let Some(dns_filter) = adblocker.get_dns_filter().await {
-            // Note that once the Ad-blocker is set, it won't be reset, but innstead the AdBlocker
-            // filter-set will change internally in response to it being enabled/disabled.
+            // Note that once Ad-blocker is set as the DNS filter, it won't be reset, but
+            // instead the AdBlocker filter-set will change internally in response to it
+            // being enabled/disabled.
             filtering_resolver.set_dns_filter(dns_filter).await;
         } else {
             tracing::error!("Failed to get DNS Filter from Ad-blocker");
