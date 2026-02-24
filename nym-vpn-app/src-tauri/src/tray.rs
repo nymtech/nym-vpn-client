@@ -264,7 +264,7 @@ impl TrayManager {
     }
 
     pub async fn update_tray_state(&self, state: String) {
-        self.status.set_text(text).ok();
+        self.status.set_text(state).ok();
         // self.status.set_text(&format!("{}", state)).ok();
     }
     
