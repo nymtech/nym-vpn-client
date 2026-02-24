@@ -1,18 +1,20 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "linux")]
+use std::os::fd::OwnedFd;
 use std::{
     ffi::CStr,
-    os::fd::{AsFd, AsRawFd, BorrowedFd, OwnedFd},
+    os::fd::{AsFd, AsRawFd, BorrowedFd},
 };
 
-use nix::{
-    fcntl,
-    libc::{IFNAMSIZ, ifreq},
-    net::if_::InterfaceFlags,
-};
+#[cfg(any(target_os = "android", target_os = "linux"))]
+use nix::libc::ifreq;
+#[cfg(target_os = "linux")]
+use nix::{fcntl, libc::IFNAMSIZ, net::if_::InterfaceFlags};
 
 use super::sys::*;
+#[cfg(target_os = "linux")]
 use crate::copy_into::CopyInto;
 
 #[derive(Debug)]

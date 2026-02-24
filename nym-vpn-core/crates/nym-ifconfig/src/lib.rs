@@ -23,7 +23,7 @@ pub use linux::session::{InterfaceIpAddrEntry, Session};
 #[cfg(any(target_os = "linux", target_os = "android"))]
 pub use linux::tun::{Tun, TunError, TunErrorKind};
 
-#[cfg(any(target_os = "linux", target_os = "android", target_os = "macos"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 mod copy_into;
 
 #[cfg(not(windows))]
