@@ -1,0 +1,32 @@
+name: ci-nym-ifconfig-macos
+on:
+  pull_request:
+    paths:
+      - .github/workflows/ci-nym-ifconfig-macos.yml
+      - "crates/nym-ifconfig/**/*.rs"
+      - Cargo.toml
+      - Cargo.lock
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-macos:
+    strategy:
+      matrix:
+        os: [macos-14, macos-15, macos-26]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+
+      - name: Build
+        run: cargo build --package nym-ifconfig --locked
+
+      - name: Test
+        run: sudo cargo test --package nym-ifconfig
