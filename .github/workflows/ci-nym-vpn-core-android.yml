@@ -19,7 +19,6 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-android.yml
 
   build:
-    if: github.actor != 'dependabot[bot]'
     runs-on: arc-linux-latest
     needs: build-wireguard-go-android
 
