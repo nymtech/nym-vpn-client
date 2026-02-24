@@ -15,6 +15,7 @@ import {
   StateDispatch,
   TAccountMode,
   TAccountState,
+  TAccountSummary,
   TTunnelState,
   ThemeMode,
   UiTheme,
@@ -78,6 +79,18 @@ export async function initFirstBatch(
         type: 'set-account',
         stored: stored || false,
       });
+    },
+  };
+
+  const getAccountSummaryRq: TauriReq<
+    () => Promise<TAccountSummary | undefined>
+  > = {
+    name: 'getAccountSummaryRq',
+    request: () => invoke<TAccountSummary>('get_account_summary'),
+    onFulfilled: (summary) => {
+      if (summary) {
+        dispatch({ type: 'set-account-summary', summary });
+      }
     },
   };
 
@@ -214,6 +227,7 @@ export async function initFirstBatch(
       getStoredAccountRq,
       getAccountStateRq,
       getAccountModeRq,
+      getAccountSummaryRq,
       getFeatureFlagsRq,
       ...requests,
     ];

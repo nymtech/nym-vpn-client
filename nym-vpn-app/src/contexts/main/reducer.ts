@@ -21,6 +21,7 @@ import {
   ProgressMsg,
   SelectedNode,
   TAccountMode,
+  TAccountSummary,
   ThemeMode,
   Tunnel,
   TunnelAction,
@@ -85,7 +86,8 @@ export type StateAction =
   | { type: 'set-custom-dns'; dns: string[] }
   | { type: 'set-default-dns'; dns: string[] }
   | { type: 'set-enable-lewes-protocol'; enabled: boolean }
-  | { type: 'set-mixnet-traffic-config'; config: MixnetTrafficConfig };
+  | { type: 'set-mixnet-traffic-config'; config: MixnetTrafficConfig }
+  | { type: 'set-account-summary'; summary: TAccountSummary };
 
 export const initialState: AppState = {
   initialized: false,
@@ -94,6 +96,7 @@ export const initialState: AppState = {
   tunnelError: null,
   accountState: null,
   accountMode: null,
+  accountSummary: null,
   accountSyncing: false,
   accountError: null,
   daemonStatus: 'down',
@@ -456,6 +459,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         mixnetTrafficConfig: action.config,
+      };
+    case 'set-account-summary':
+      return {
+        ...state,
+        accountSummary: action.summary,
       };
     case 'reset':
       return initialState;

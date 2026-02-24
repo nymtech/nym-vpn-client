@@ -92,3 +92,76 @@ impl From<lib::StoredAccountMode> for StoredAccountMode {
         }
     }
 }
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TAccountSummary")]
+#[serde(rename_all = "kebab-case")]
+pub struct AccountSummary {
+    pub subscription_valid_until: Option<String>,
+    pub traffic_used_gb: u64,
+    pub traffic_limit_gb: u64,
+    pub traffic_reset_time: Option<String>,
+    pub account_addr: String,
+    pub canonical_account_addr: Option<String>,
+    pub auth_methods: Vec<AuthMethod>,
+}
+
+impl From<lib::VpnAccountSummary> for AccountSummary {
+    fn from(summary: lib::VpnAccountSummary) -> Self {
+        AccountSummary {
+            subscription_valid_until: summary.subscription_valid_until.map(|dt| dt.to_string()),
+            traffic_used_gb: summary.traffic_used_gb,
+            traffic_limit_gb: summary.traffic_limit_gb,
+            traffic_reset_time: summary.traffic_reset_time.map(|dt| dt.to_string()),
+            account_addr: summary.account_addr,
+            canonical_account_addr: summary.canonical_account_addr,
+            auth_methods: summary
+                .auth_methods
+                .into_iter()
+                .map(AuthMethod::from)
+                .collect(),
+        }
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TAuthMethod")]
+#[serde(rename_all = "kebab-case")]
+pub struct AuthMethod {
+    pub id: String,
+    pub pubkey: String,
+    pub kind: String,
+    pub label: String,
+    pub status: VpnAccountStatus,
+}
+
+impl From<lib::VpnAccountAuthMethod> for AuthMethod {
+    fn from(auth_method: lib::VpnAccountAuthMethod) -> Self {
+        AuthMethod {
+            id: auth_method.id,
+            pubkey: auth_method.pubkey,
+            kind: auth_method.kind,
+            label: auth_method.label,
+            status: auth_method.status.into(),
+        }
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TVpnAccountStatus")]
+#[serde(rename_all = "kebab-case")]
+pub enum VpnAccountStatus {
+    Active,
+    Inactive,
+    DeleteMe,
+}
+
+impl From<lib::VpnAccountStatus> for VpnAccountStatus {
+    fn from(status: lib::VpnAccountStatus) -> Self {
+        match status {
+            lib::VpnAccountStatus::Active => VpnAccountStatus::Active,
+            lib::VpnAccountStatus::Inactive => VpnAccountStatus::Inactive,
+            lib::VpnAccountStatus::DeleteMe => VpnAccountStatus::DeleteMe,
+        }
+    }
+}
