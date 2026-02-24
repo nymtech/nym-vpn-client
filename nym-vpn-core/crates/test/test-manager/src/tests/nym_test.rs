@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::tests::{
-    TestContext, account_nym::clear_devices, config_nym::TEST_CONFIG_NYM, helpers_nym,
+    TestContext, account_nym::forget_current_device, config_nym::TEST_CONFIG_NYM, helpers_nym,
 };
 use anyhow::{Context, bail, ensure};
 use nym_vpn_lib_types::{AccountControllerState, TunnelState};
@@ -230,11 +230,7 @@ pub async fn prepare_daemon_nym(
         helpers_nym::ensure_logged_in(nym_proxy_client).await?;
     } else {
         log::debug!("🔄 Resetting device identity...");
-        nym_proxy_client
-            .reset_device_identity(None)
-            .await
-            .context("Failed to reset settings")?;
-        clear_devices(nym_proxy_client).await?;
+        forget_current_device(nym_proxy_client).await?;
     }
     log::debug!("🔄 Daemon successfully reset 🔄");
 

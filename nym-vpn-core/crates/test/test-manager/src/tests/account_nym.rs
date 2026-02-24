@@ -2,13 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::tests::helpers_nym::login_with_retries;
-
-use super::{Error, TestContext};
-use anyhow::Context;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
-use std::time::Duration;
-use test_rpc::NymServiceClient;
 
 // TODO dz implement for Nym
 // /// Log out and remove the current device
@@ -43,14 +37,8 @@ use test_rpc::NymServiceClient;
 // }
 
 /// Remove all devices on the current account
-pub async fn clear_devices(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
-    log::debug!("Removing all devices for account");
-
-    // TODO dz there is no explicit way to remove a device through vpn client
-    // The low-level API client does have the capability:
-    // - update_device(account, device, DeviceStatus::DeleteMe) exists in nym-vpn-core/crates/nym-vpn-api-client/src/client.rs
-    // - DeviceStatus::DeleteMe is available as a status option
-    // In the meantime, we forget the account (but that does NOT deregister device from the server)
+pub async fn forget_current_device(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
+    log::debug!("Removing this device from account");
 
     nym_client.forget_account().await?;
     log::debug!("Successfully forgot account");

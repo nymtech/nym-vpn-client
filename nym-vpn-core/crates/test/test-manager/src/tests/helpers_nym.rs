@@ -358,28 +358,15 @@ pub async fn login_with_retries(nym_client: &mut NymProxyClient) -> Result<(), N
     Ok(())
 }
 
-/// Ensure that the test runner is logged in to an account.
-///
-/// This will first check whether we are logged in. If not, it will also try to login
-/// on your behalf. If this function returns without any errors, we are logged in to a valid
-/// account.
 pub async fn ensure_logged_in(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
     log::info!("Ensuring we're logged in by logging out and back in...");
-    // TODO dz nym doesn't expose get_device and update_device
-    // if !matches!(
-    //     nym_client.update_device().await,
-    //     Err(mullvad_management_interface::Error::DeviceNotFound)
-    // ) && nym_client.get_device().await?.is_logged_in()
-    // {
-    //     return Ok(());
-    // }
 
-    // re-log in...
     nym_client
         .forget_account()
         .await
         .context("Failed to forget account")?;
 
+    // re-log in...
     login_with_retries(nym_client)
         .await
         .context("Failed to log in")?;
@@ -445,7 +432,7 @@ pub async fn disconnect_and_wait(nym_client: &mut NymProxyClient) -> Result<(), 
     Ok(())
 }
 
-pub async fn wait_for_tunnel_state_(
+async fn wait_for_tunnel_state_(
     mut rpc: NymProxyClient,
     accept_state_fn: impl Fn(&TunnelState) -> bool,
 ) -> Result<TunnelState, Error> {
