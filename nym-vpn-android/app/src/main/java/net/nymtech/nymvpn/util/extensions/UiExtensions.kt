@@ -131,6 +131,7 @@ fun NavController.safePopBackStack() {
 	}
 }
 
+@Suppress("CyclomaticComplexMethod")
 fun ErrorStateReason.toUserMessage(context: Context): String {
 	return when (this) {
 		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.error_same_entry_exit)
