@@ -2,18 +2,17 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::tests::TestWrapperFunctionNym;
 use crate::{
     logging::{Logger, Panic, TestOutput, TestResult},
     nym_daemon::{self, RpcClientProvider},
     summary::SummaryLogger,
-    tests::{self, TestContext, TestMetadata, nym_test},
+    tests::{TestContext, TestMetadata, TestWrapperFunctionNym, nym_test},
     vm,
 };
 use anyhow::{Context, Result};
 use futures::FutureExt;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
-use std::{future::Future, panic, time::Duration};
+use std::{panic, time::Duration};
 use test_rpc::{client_nym::NymServiceClient, logging::Output};
 
 /// The baud rate of the serial connection between the test manager and the test runner.
@@ -34,7 +33,6 @@ struct TestHandler<'a> {
 }
 
 impl TestHandler<'_> {
-    /// Run `tests::test_upgrade_app` and register the result
     async fn run_test(
         &mut self,
         test: TestWrapperFunctionNym,
@@ -174,7 +172,9 @@ pub async fn run(
 
     for test in tests {
         // TODO dz commented out for faster iteration, uncomment before adding more tests
-        // let mut nym_client = nym_test::prepare_daemon_nym(&nym_service_client, &rpc_provider)
+        // TODO dz maybe not here but in each test separately instead ?
+        // let mut nym_proxy_client = rpc_provider.new_client_nym().await;
+        // nym_test::prepare_daemon_nym(&mut nym_proxy_client, false)
         //     .await
         //     .context("Failed to reset daemon before test")?;
         let nym_client = rpc_provider.new_client_nym().await;
@@ -221,7 +221,6 @@ async fn register_test_result(
     Ok(())
 }
 
-// pub async fn run_test_function<F, R>(
 pub async fn run_test_function(
     runner_rpc: NymServiceClient,
     proxy_rpc: Option<NymProxyClient>,

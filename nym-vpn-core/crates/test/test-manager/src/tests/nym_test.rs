@@ -2,12 +2,11 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-
-use crate::nym_daemon::RpcClientProvider;
-use crate::tests::config_nym::TEST_CONFIG_NYM;
-use crate::tests::{TestContext, helpers_nym};
-use anyhow::{Context, anyhow, bail, ensure};
-use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerState, TunnelState};
+use crate::tests::{
+    TestContext, account_nym::clear_devices, config_nym::TEST_CONFIG_NYM, helpers_nym,
+};
+use anyhow::{Context, bail, ensure};
+use nym_vpn_lib_types::{AccountControllerState, TunnelState};
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::time::Duration;
 use test_macro::test_function_nym;
@@ -38,7 +37,9 @@ pub async fn test_account_and_tunnel_roundtrip(
     rpc: NymServiceClient,
     mut nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!("test_account_and_tunnel_roundtrip: account store, tunnel connect/disconnect, device & usage check");
+    log::info!(
+        "test_account_and_tunnel_roundtrip: account store, tunnel connect/disconnect, device & usage check"
+    );
     prepare_daemon_nym(&mut nym_proxy_client, false).await?;
 
     // Store account
@@ -66,7 +67,10 @@ pub async fn test_account_and_tunnel_roundtrip(
         .context("get_account_identity failed")?;
     let identity = identity.context("Expected account identity to be set")?;
     ensure!(!identity.is_empty(), "Account identity should not be empty");
-    log::info!("Account identity: {}...", &identity[..5.min(identity.len())]);
+    log::info!(
+        "Account identity: {}...",
+        &identity[..5.min(identity.len())]
+    );
 
     // Connect tunnel
     log::info!("Connecting tunnel...");
@@ -216,26 +220,23 @@ pub async fn prepare_daemon_nym(
     nym_proxy_client: &mut NymProxyClient,
     ensure_logged_in: bool,
 ) -> anyhow::Result<()> {
-    // Check if daemon should be restarted
-    // let mut nym_client = ensure_daemon_version_nym(rpc, rpc_provider)
-    //     .await
-    //     .context("Failed to restart daemon")?;
-
     log::debug!("🔄 Resetting daemon settings before test...");
     helpers_nym::disconnect_and_wait(nym_proxy_client)
         .await
         .context("Failed to disconnect daemon after test")?;
-    log::debug!("🔄 Resetting device identity...");
-    nym_proxy_client
-        .reset_device_identity(None)
-        .await
-        .context("Failed to reset settings")?;
-    log::debug!("🔄 Ensuring account is logged in to nym-vpnd...");
 
-    log::debug!("🔄 Daemon successfully reset 🔄");
     if ensure_logged_in {
+        log::debug!("🔄 Ensuring account is logged in to nym-vpnd...");
         helpers_nym::ensure_logged_in(nym_proxy_client).await?;
+    } else {
+        log::debug!("🔄 Resetting device identity...");
+        nym_proxy_client
+            .reset_device_identity(None)
+            .await
+            .context("Failed to reset settings")?;
+        clear_devices(nym_proxy_client).await?;
     }
+    log::debug!("🔄 Daemon successfully reset 🔄");
 
     Ok(())
 }

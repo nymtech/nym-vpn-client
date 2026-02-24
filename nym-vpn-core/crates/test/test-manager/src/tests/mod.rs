@@ -2,7 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod account_nym;
+pub(crate) mod account_nym;
 pub mod config_nym;
 mod envs;
 mod helpers_nym;
@@ -10,16 +10,13 @@ pub mod nym_test;
 mod test_metadata;
 mod tunnel_tests;
 
+use futures::future::BoxFuture;
 use itertools::Itertools;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
+use std::{ops::Not, time::Duration};
 pub use test_metadata::TestMetadata;
 
-use anyhow::Context;
-use futures::future::BoxFuture;
-use std::{ops::Not, time::Duration};
-
-use crate::nym_daemon::RpcClientProvider;
-use crate::tests::config_nym::TEST_CONFIG_NYM;
+use crate::{nym_daemon::RpcClientProvider, tests::config_nym::TEST_CONFIG_NYM};
 use test_rpc::{NymServiceClient, meta::Os};
 
 const WAIT_FOR_TUNNEL_STATE_TIMEOUT: Duration = Duration::from_secs(40);
@@ -104,10 +101,7 @@ pub fn get_filtered_tests(
     tests.sort_by_key(|test| test.priority.unwrap_or(0));
 
     // Filter out empty strings that may come from shell expansion
-    let specified_tests: Vec<_> = specified_tests
-        .iter()
-        .filter(|s| !s.is_empty())
-        .collect();
+    let specified_tests: Vec<_> = specified_tests.iter().filter(|s| !s.is_empty()).collect();
 
     let mut tests = if specified_tests.is_empty() {
         // Keep all tests
