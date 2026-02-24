@@ -1,0 +1,5 @@
+What's New:
+- Added subscription checks, account summaries, and social linking.
+- Masked password inputs and resolved login errors.
+- Removed logout from settings and fixed main screen error alerts.
+- Fixed device startup (boot receiver) bugs.
