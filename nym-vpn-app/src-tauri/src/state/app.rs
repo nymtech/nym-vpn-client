@@ -99,8 +99,7 @@ impl AppState {
         };
 
         let tray_manager = app.state::<TrayManager>();
-        // tray_manager.update_tunnel(mystate.clone(), entry_gw_info);
-        tray_manager.update_tunnel(mystate.clone(), app).await;
+        tray_manager.update_tray_icon(mystate.clone()).await;
         app.emit_tunnel_update(&self.tunnel);
         Ok(())
     }
@@ -191,7 +190,7 @@ impl AppState {
             app.emit_vpnd_status(state.vpnd_status.clone());
         }
         let tray_manager = app.state::<TrayManager>();
-        tray_manager.update_tunnel(TunnelState::Offline { reconnect: false }, app).await;
+        tray_manager.update_tray_icon(TunnelState::Offline { reconnect: false }).await;
     }
 }
 

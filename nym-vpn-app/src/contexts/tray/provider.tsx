@@ -28,17 +28,23 @@ export function TrayProvider({ children }: TrayProviderProps) {
   const entryGwId = tunnel?.entryGwId || connectingState?.entryGwId || null;
   const exitGwId = tunnel?.exitGwId || connectingState?.exitGwId || null;
 
+  // Vpn Mode
   useEffect(() => {
     switch (vpnMode) {
       case 'mixnet':
-        invoke<void>('update_tray_mode', { mode: t('mode.anonymous-mixnet') });
+        invoke<void>('update_tray_mode', {
+          mode: `${t('mode.mode')}: ${t('mode.anonymous-mixnet')}`,
+        });
         break;
       case 'wg':
-        invoke<void>('update_tray_mode', { mode: t('mode.fast-wireguard') });
+        invoke<void>('update_tray_mode', {
+          mode: `${t('mode.mode')}: ${t('mode.fast-wireguard')}`,
+        });
         break;
     }
   }, [vpnMode, t]);
 
+  // Connection State
   useEffect(() => {
     switch (state) {
       case 'connected':
@@ -127,6 +133,16 @@ export function TrayProvider({ children }: TrayProviderProps) {
       exit: `${t('exit')}: ${displayValue || '-'}`,
     });
   }, [exitNode, exitGateway, getNodeDisplayValue, t]);
+
+  // Static tray menu items
+  useEffect(() => {
+    invoke<void>('update_tray_show_hide', {
+      show_hide: `${t('show-hide')}`,
+    });
+    invoke<void>('update_tray_quit', {
+      quit: `${t('quit')}`,
+    });
+  }, [t]);
 
   return <TrayContext.Provider value={null}>{children}</TrayContext.Provider>;
 }

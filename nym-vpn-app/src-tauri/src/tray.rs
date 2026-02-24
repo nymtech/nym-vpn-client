@@ -13,8 +13,7 @@ use tracing::{debug, error, info, instrument, trace, warn};
 
 #[cfg(not(target_os = "linux"))]
 use crate::APP_NAME;
-use crate::vpnd::gateway::{EntryGatewayInfo, GatewayType};
-use crate::vpnd::tunnel::{TunnelState, TunnelData};
+use crate::vpnd::tunnel::{TunnelState};
 use crate::{
     MAIN_WINDOW_LABEL, state::SharedAppState, vpnd::client::VpndClient,
     window::AppWindow,
@@ -39,6 +38,8 @@ enum MenuItemId {
 
 pub struct TrayManager {
     tray: TrayIcon,
+    show_hide: MenuItem<Wry>,
+    quit: MenuItem<Wry>,
     status: MenuItem<Wry>,
     mode: MenuItem<Wry>,
     entry: MenuItem<Wry>,
@@ -49,7 +50,7 @@ impl TrayManager {
     pub fn new(app: &AppHandle) -> Result<Self> {
         debug!("building system tray");
 
-
+        // String labels are set in frontent (<TrayProvider>) to support localization
         let show_hide = MenuItem::with_id(app, MenuItemId::ShowHide.as_ref(), "Show/Hide", true, None::<&str>).inspect_err(|e| error!("failed to create menu item: {e}"))?;
         let quit = MenuItem::with_id(app, MenuItemId::Quit.as_ref(), "Quit (disconnect)", true, None::<&str>).inspect_err(|e| error!("failed to create menu item: {e}"))?;
         
@@ -75,6 +76,8 @@ impl TrayManager {
         
         Ok(Self {
             tray,
+            show_hide,
+            quit,
             status,
             mode,
             entry,
@@ -83,198 +86,50 @@ impl TrayManager {
     }
 
     #[instrument(skip_all)]
-    // pub fn update_tunnel(&self, state: TunnelState, entry_gw_info: Option<EntryGatewayInfo>) {
-    pub async fn update_tunnel(&self, state: TunnelState, app: &AppHandle) {
-        debug!("updating tunnel state: {:?}", state);
+    pub async fn update_tray_icon(&self, state: TunnelState) {
         match state {
-            TunnelState::Connected(tunnel) => {
+            TunnelState::Connected(_) => {
                 self.tray.set_icon(Some(CONNECTED_ICON)).ok();
-
-                let gw_type = match &tunnel.data {
-                    TunnelData::Wireguard(_) => GatewayType::Wg,
-                    TunnelData::Mixnet(_) => GatewayType::MxEntry,
-                };
-                
-                let entry_gateway = app.state::<VpndClient>()
-                    .gateways(gw_type)
-                    .await
-                    .ok()
-                    .and_then(|gateways| {
-                        gateways
-                            .into_iter()
-                            .find(|g| g.id == tunnel.entry_gw_id)
-                            .map(|g| EntryGatewayInfo {
-                                name: g.name,
-                                country: g.country,
-                                location: g.location,
-                            })
-                    });
-
-                let exit_gateway = app.state::<VpndClient>()
-                    .gateways(gw_type)
-                    .await
-                    .ok()
-                    .and_then(|gateways| {
-                        gateways
-                            .into_iter()
-                            .find(|g| g.id == tunnel.exit_gw_id)
-                            .map(|g| EntryGatewayInfo {
-                                name: g.name,
-                                country: g.country,
-                                location: g.location,
-                            })
-                    });
-
-                let entry_gateway_display = entry_gateway
-                    .as_ref()
-                    .map(|g| g.to_string())
-                    .unwrap_or_else(|| tunnel.entry_gw_id.clone());
-
-                let exit_gateway_display = exit_gateway
-                    .as_ref()
-                    .map(|g| g.to_string())
-                    .unwrap_or_else(|| tunnel.exit_gw_id.clone());
-
-
-                 info!(
-                    "Updated tray icon to connected, entry gateway: {}",
-                    entry_gateway_display
-                );
-                info!(
-                    "Updated tray icon to connected, exit gateway: {}",
-                    exit_gateway_display
-                );
-                
-                self.status.set_text("Status: Connected").ok(); 
-                self.entry.set_text(&format!("Entry: {}", entry_gateway.unwrap().to_string())).ok();
-                self.exit.set_text(&format!("Exit: {}", exit_gateway.unwrap().to_string())).ok();
-                match gw_type {
-                    GatewayType::MxEntry => {
-                        self.mode.set_text("Mode: Anonymous(mixnet)").ok();
-                    }
-                    GatewayType::MxExit => {
-                        self.mode.set_text("Mode: Anonymous(mixnet)").ok();
-                    }
-                    GatewayType::Wg => {
-                        self.mode.set_text("Mode: Fast(WireGuard)").ok();
-                    }
-                }
-
-                // let gateway_display = entry_gw_info
-                //     .as_ref()
-                //     .map(|g| g.to_string())
-                //     .unwrap_or_else(|| tunnel.entry_gw_id.clone());
-                // info!(
-                //     "Updated tray icon to connected, entry gateway: {}",
-                //     gateway_display
-                // );
-                // self.tray.set_tooltip(Some(format!("Connected to {}", tunnel.exit_gw.name)));
             }
-            TunnelState::Connecting(connecting) => {
+            TunnelState::Connecting(_) => {
                 self.tray.set_icon(Some(CONNECTING_ICON)).ok();
-                self.status.set_text("Status: Connecting").ok();
-                info!("Updated tray icon to connecting, connecting: {:?}", connecting);
-                
-
-                // let entry_gateway = app.state::<VpndClient>()
-                //     .gateways(GatewayType::Wg)
-                //     .await
-                //     .ok()
-                //     .and_then(|gateways| {
-                //         gateways
-                //             .into_iter()
-                //             .find(|g| g.id == connecting.entry_gw_id)
-                //             .map(|g| EntryGatewayInfo {
-                //                 name: g.name,
-                //                 country: g.country,
-                //                 location: g.location,
-                //             })
-                //     });
-
-                // let entry_gateway_display = entry_gateway
-                //     .as_ref()
-                //     .map(|g| g.to_string())
-                //     .unwrap_or_else(|| connecting.entry_gw_id.clone().unwrap_or_else(|| "-".to_string()));
-
-                // info!(
-                //     "Updated tray icon to connecting, entry gateway: {}",
-                //     entry_gateway_display
-                // );
-
-                // let exit_gateway = app.state::<VpndClient>()
-                //     .gateways(GatewayType::Wg)
-                //     .await
-                //     .ok()
-                //     .and_then(|gateways| {
-                //         gateways
-                //             .into_iter()
-                //             .find(|g| g.id == connecting.exit_gw_id)
-                //             .map(|g| EntryGatewayInfo {
-                //                 name: g.name,
-                //                 country: g.country,
-                //                 location: g.location,
-                //             })
-                //     });
-
-                // let exit_gateway_display = exit_gateway
-                //     .as_ref()
-                //     .map(|g| g.to_string())
-                //     .unwrap_or_else(|| connecting.exit_gw_id.clone().unwrap_or_else(|| "-".to_string()));
-
-                // info!(
-                //     "Updated tray icon to connecting, exit gateway: {}",
-                //     exit_gateway_display
-                // );
-
-                // self.entry.set_text(&format!("Entry: {}", entry_gateway.unwrap().to_string())).ok();
-                // self.exit.set_text(&format!("Exit: {}", exit_gateway.unwrap().to_string())).ok();
             }
             TunnelState::Disconnected => {
                 self.tray.set_icon(Some(DISCONNECTED_ICON)).ok();
-                self.status.set_text("Status: Disconnected").ok();
-                self.entry.set_text("Entry: -").ok();
-                self.exit.set_text("Exit: -").ok();
-                info!("Updated tray icon to disconnected");
             }
             TunnelState::Disconnecting(_) => {
                 self.tray.set_icon(Some(CONNECTING_ICON)).ok();
-                self.status.set_text("Status: Disconnecting").ok();
-                info!("Updated tray icon to disconnecting");
             }
             TunnelState::Error(_) => {
                 self.tray.set_icon(Some(ERROR_ICON)).ok();
-                self.status.set_text("Status: Error").ok();
-                self.entry.set_text("Entry: -").ok();
-                self.exit.set_text("Exit: -").ok();
-                info!("Updated tray icon to error");
             }
             TunnelState::Offline { reconnect: _ } => {
                 self.tray.set_icon(Some(ERROR_ICON)).ok();
-                self.status.set_text("Status: Offline").ok();
-                self.entry.set_text("Entry: -").ok();
-                self.exit.set_text("Exit: -").ok();
-                info!("Updated tray icon to offline");
             }
-            _ => {}
         }
     }
 
+    pub async fn update_tray_show_hide(&self, show_hide: String) {
+        self.show_hide.set_text(show_hide).ok();
+    }
+
+    pub async fn update_tray_quit(&self, quit: String) {
+        self.quit.set_text(quit).ok();
+    }
+
     pub async fn update_tray_mode(&self, mode: String) {
-        self.mode.set_text(&format!("Mode: {}", mode)).ok();
+        self.mode.set_text(mode).ok();
     }
 
     pub async fn update_tray_state(&self, state: String) {
         self.status.set_text(state).ok();
-        // self.status.set_text(&format!("{}", state)).ok();
     }
 
     pub async fn update_tray_entry(&self, entry: String) {
-        info!("Updating tray entry: {}", entry);
         self.entry.set_text(entry).ok();
     }
 
     pub async fn update_tray_exit(&self, exit: String) {
-        info!("Updating tray exit: {}", exit);
         self.exit.set_text(exit).ok();
     }
 

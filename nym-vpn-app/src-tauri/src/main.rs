@@ -236,9 +236,7 @@ async fn main() -> Result<()> {
             app.manage(Mutex::new(fs_config));
             app.manage(vpnd.clone());
 
-            // tray::setup(app.handle())?;
             let tray_manager = TrayManager::new(app.handle())?;
-            // tray_manager.setup(app.handle())?;
             app.manage(tray_manager);
 
             let handle = app.handle().clone();
@@ -271,6 +269,8 @@ async fn main() -> Result<()> {
         })
         .invoke_handler(tauri::generate_handler![
             cmd_tray::update_tray_mode,
+            cmd_tray::update_tray_show_hide,
+            cmd_tray::update_tray_quit,
             cmd_tray::update_tray_state,
             cmd_tray::update_tray_entry,
             cmd_tray::update_tray_exit,
