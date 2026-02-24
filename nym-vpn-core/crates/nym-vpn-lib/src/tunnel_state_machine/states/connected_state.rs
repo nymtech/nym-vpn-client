@@ -4,7 +4,7 @@
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::SocketAddr;
 
-#[cfg(target_os = "windows")]
+#[cfg(any(target_os = "windows", target_os = "linux"))]
 use nym_dns::DnsConfig;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -14,7 +14,7 @@ use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
@@ -143,14 +143,7 @@ impl ConnectedState {
         let dns_config = shared_state.tunnel_settings.resolved_dns_config();
         let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
 
-        #[cfg(target_os = "linux")]
-        shared_state
-            .dns_handler
-            .set(&tunnel_metadata.interface, dns_config)
-            .await
-            .map_err(Error::SetDns)?;
-
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         // We do not want to forward DNS queries to *our* local resolver if we do not run a local
         // DNS resolver *or* if the DNS config points to a loopback address.
         if *LOCAL_DNS_RESOLVER {
@@ -165,6 +158,19 @@ impl ConnectedState {
                 let listen_addr = shared_state.filtering_resolver.listen_addr();
                 let system_dns =
                     DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
+                shared_state
+                    .dns_handler
+                    .set(&tunnel_metadata.interface, system_dns)
+                    .await
+                    .map_err(Error::SetDns)?;
+            }
+
+            #[cfg(target_os = "linux")]
+            {
+                // Point the tunnel interface DNS at the local filtering resolver so that the OS actually
+                // sends DNS queries to it.
+                let listen_addr = shared_state.filtering_resolver.listen_addr();
+                let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()]);
                 shared_state
                     .dns_handler
                     .set(&tunnel_metadata.interface, system_dns)
@@ -189,6 +195,11 @@ impl ConnectedState {
 
     #[cfg(target_os = "linux")]
     async fn reset_dns(shared_state: &mut SharedState) {
+        if *LOCAL_DNS_RESOLVER {
+            shared_state.enable_ad_blocking(false).await;
+            shared_state.filtering_resolver.disable_forward().await;
+        }
+
         if let Err(error) = shared_state
             .dns_handler
             .reset_before_interface_removal()
@@ -308,7 +319,7 @@ impl TunnelStateHandler for ConnectedState {
                             }
                         }
 
-                        #[cfg(any(target_os = "macos", target_os = "windows"))]
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         if diff.enable_ad_blocking_changed() {
                             shared_state.enable_ad_blocking(tunnel_settings.enable_ad_blocking).await;
                         }

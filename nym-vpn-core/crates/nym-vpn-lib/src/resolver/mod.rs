@@ -12,11 +12,11 @@
 //! Platform-specific responsibilities (binding sockets, adding loopback aliases, flushing system
 //! DNS caches) are delegated to `platform`.
 
-#[cfg(target_os = "macos")]
-mod macos;
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+mod unix;
 
-#[cfg(target_os = "macos")]
-pub(crate) use macos::{flush_system_cache, new_random_socket};
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+pub(crate) use unix::{flush_system_cache, new_random_socket};
 
 #[cfg(windows)]
 mod windows;
@@ -248,7 +248,7 @@ impl Resolver {
     /// Resolution in blocked state will return spoofed records for captive portal domains.
     fn resolve_blocked(query: LowerQuery) -> Result<Box<dyn LookupObject>, ResolveError> {
         if !Self::is_captive_portal_domain(&query) {
-            return Ok(Box::new(EmptyLookup));
+            return Ok(Box::new(EmptyLookup) as Box<dyn LookupObject>);
         }
 
         let return_query = query.original().clone();
@@ -300,9 +300,11 @@ impl Resolver {
                     .lookup(return_query.name().clone(), return_query.query_type())
                     .await;
 
-                lookup.map(|lookup| Box::new(ForwardLookup(lookup)) as Box<_>)
+                lookup.map(|lookup| Box::new(ForwardLookup(lookup)) as Box<dyn LookupObject>)
             }
-            DnsFilterDecision::Block(DnsFilterStrategy::EmptyRecord) => Ok(Box::new(EmptyLookup)),
+            DnsFilterDecision::Block(DnsFilterStrategy::EmptyRecord) => {
+                Ok(Box::new(EmptyLookup) as Box<dyn LookupObject>)
+            }
             DnsFilterDecision::Block(DnsFilterStrategy::Localhost) => {
                 let rdata = match return_query.query_type() {
                     RecordType::A => RData::A(rdata::A(Ipv4Addr::LOCALHOST)),
@@ -310,7 +312,7 @@ impl Resolver {
                     RecordType::CNAME => RData::CNAME(rdata::CNAME(Name::from_str("localhost.")?)),
                     other => {
                         tracing::warn!("Unsupported query type {other} for domain {qname}");
-                        return Ok(Box::new(EmptyLookup));
+                        return Ok(Box::new(EmptyLookup) as Box<dyn LookupObject>);
                     }
                 };
 

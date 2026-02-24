@@ -167,6 +167,7 @@ dispatch2.workspace = true
 
 [dev-dependencies]
 pretty_assertions.workspace = true
+socket2.workspace = true
 tempfile.workspace = true
 tracing-test.workspace = true
 

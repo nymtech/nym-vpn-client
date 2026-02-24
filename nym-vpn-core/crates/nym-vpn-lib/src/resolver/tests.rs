@@ -18,8 +18,23 @@ use tokio_util::sync::CancellationToken;
 #[serial_test::serial]
 async fn test_bind() {
     // Bind a wildcard socket to create potential collisions.
-    let _sock = std::net::UdpSocket::bind(SocketAddr::from(([0, 0, 0, 0], DNS_LISTEN_PORT)))
-        .expect("failed to bind wildcard port");
+    // On Linux, binding to a specific address after a wildcard bind requires SO_REUSEADDR
+    // semantics, so make the collision socket match what we'd expect from another daemon.
+    let addr = SocketAddr::from(([0, 0, 0, 0], DNS_LISTEN_PORT));
+    let _sock = {
+        use socket2::{Domain, Protocol, Socket, Type};
+        let sock = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP))
+            .expect("failed to create wildcard socket");
+        sock.set_reuse_address(true)
+            .expect("failed to set SO_REUSEADDR");
+        #[cfg(unix)]
+        sock.set_reuse_port(true)
+            .expect("failed to set SO_REUSEPORT");
+        sock.bind(&addr.into())
+            .expect("failed to bind wildcard port");
+        let std_sock: std::net::UdpSocket = sock.into();
+        std_sock
+    };
 
     let shutdown_token = CancellationToken::new();
     let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
@@ -39,6 +54,27 @@ async fn test_bind() {
 
     // bind() succeeds if wildcard address is bound with SO_REUSEADDR etc is platform specific; we
     // just ensure we can start/stop cleanly.
+}
+
+#[cfg(target_os = "linux")]
+#[tokio::test]
+#[serial_test::serial]
+async fn test_random_loopback_bind() {
+    let shutdown_token = CancellationToken::new();
+    let (handle, join_handle) = LocalResolver::spawn(true, shutdown_token.child_token())
+        .await
+        .unwrap();
+
+    let ip = handle.listen_addr().ip();
+    assert!(ip.is_ipv4(), "expected IPv4 loopback resolver address");
+    assert_ne!(
+        ip,
+        std::net::IpAddr::V4(Ipv4Addr::LOCALHOST),
+        "expected random 127/8 address, not 127.0.0.1"
+    );
+
+    shutdown_token.cancel();
+    join_handle.await.unwrap();
 }
 
 #[tokio::test]

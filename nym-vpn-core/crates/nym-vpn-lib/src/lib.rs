@@ -3,7 +3,7 @@
 
 pub mod storage;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))] // Linux soon
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod adblocker;
 mod bandwidth_controller;
 pub mod cache_refresh;
@@ -12,7 +12,7 @@ mod error;
 pub mod logging;
 mod mixnet;
 pub mod privy;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod resolver;
 pub mod sentry;
 pub mod service;
@@ -31,15 +31,15 @@ pub use nym_config;
 pub use nym_gateway_directory as gateway_directory;
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::{
-    UserAgent,
     mixnet::{NodeIdentity, Recipient, StoragePaths},
+    UserAgent,
 };
 
 pub use crate::{
     error::GatewayDirectoryError,
     mixnet::{
-        DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, MixnetError,
-        VpnTopologyProvider, VpnTopologyService, VpnTopologyServiceError, VpnTopologyServiceHandle,
+        MixnetError, VpnTopologyProvider, VpnTopologyService,
+        VpnTopologyServiceError, VpnTopologyServiceHandle, DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE,
     },
 };
 
