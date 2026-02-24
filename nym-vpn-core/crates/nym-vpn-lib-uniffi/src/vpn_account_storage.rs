@@ -278,6 +278,7 @@ impl NymVpnAccountStorage {
         else {
             return Ok(None);
         };
+        let account_mode = nym_vpn_lib_types::StoredAccountMode::from(account.mode);
 
         let vpn_account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
 
@@ -289,8 +290,9 @@ impl NymVpnAccountStorage {
             .await
             .map_err(VpnError::internal)?;
 
-        let vpn_account_summary =
+        let mut vpn_account_summary =
             VpnAccountSummary::try_from(&summary.account_summary).map_err(VpnError::internal)?;
+        vpn_account_summary.account_mode = Some(account_mode);
 
         Ok(Some(vpn_account_summary))
     }
