@@ -6,10 +6,7 @@ use async_trait::async_trait;
 use nym_windows::net::{
     add_ip_address_for_interface, loopback_luid, remove_ip_address_for_interface,
 };
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    process::Command,
-};
+use std::net::{IpAddr, Ipv4Addr};
 use tokio::{net::UdpSocket, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
@@ -128,5 +125,7 @@ pub(crate) async fn new_random_socket(
 
 pub(crate) fn flush_system_cache() {
     // Best-effort. If this fails we still keep running.
-    let _ = Command::new("ipconfig").arg("/flushdns").output();
+    if let Err(err) = nym_dns::flush_resolver_cache() {
+        tracing::warn!("Failed to flush dns: {err}");
+    }
 }
