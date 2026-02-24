@@ -30,49 +30,36 @@ export function TrayProvider({ children }: TrayProviderProps) {
 
   // Vpn Mode
   useEffect(() => {
-    switch (vpnMode) {
-      case 'mixnet':
-        invoke<void>('update_tray_mode', {
-          mode: `${t('mode.mode')}: ${t('mode.anonymous-mixnet')}`,
-        });
-        break;
-      case 'wg':
-        invoke<void>('update_tray_mode', {
-          mode: `${t('mode.mode')}: ${t('mode.fast-wireguard')}`,
-        });
-        break;
+    let mode = '';
+    if (vpnMode === 'mixnet') {
+      mode = `${t('mode.mode')}: ${t('mode.anonymous-mixnet')}`;
+    } else if (vpnMode === 'wg') {
+      mode = `${t('mode.mode')}: ${t('mode.fast-wireguard')}`;
     }
+    invoke<void>('update_tray_mode', { mode });
   }, [vpnMode, t]);
 
   // Connection State
   useEffect(() => {
+    let stateValue = '';
     switch (state) {
       case 'connected':
-        invoke<void>('update_tray_state', {
-          state: `${t('state.state')}: ${t('state.connected')}`,
-        });
+        stateValue = `${t('state.state')}: ${t('state.connected')}`;
         break;
       case 'disconnected':
-        invoke<void>('update_tray_state', {
-          state: `${t('state.state')}: ${t('state.disconnected')}`,
-        });
+        stateValue = `${t('state.state')}: ${t('state.disconnected')}`;
         break;
       case 'connecting':
-        invoke<void>('update_tray_state', {
-          state: `${t('state.state')}: ${t('state.connecting')}`,
-        });
+        stateValue = `${t('state.state')}: ${t('state.connecting')}`;
         break;
       case 'disconnecting':
-        invoke<void>('update_tray_state', {
-          state: `${t('state.state')}: ${t('state.disconnecting')}`,
-        });
+        stateValue = `${t('state.state')}: ${t('state.disconnecting')}`;
         break;
       case 'error':
-        invoke<void>('update_tray_state', {
-          state: `${t('state.state')}: ${t('state.error')}`,
-        });
+        stateValue = `${t('state.state')}: ${t('state.error')}`;
         break;
     }
+    invoke<void>('update_tray_state', { state: stateValue });
   }, [state, t]);
 
   const entryGateway = useMemo(() => {
