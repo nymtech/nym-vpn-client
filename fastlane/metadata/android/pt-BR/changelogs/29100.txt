@@ -1,0 +1,7 @@
+Novidades:
+- Configuração de conta: Suporte para criação e registro de conta dentro do aplicativo.
+- Integração com privacidade: Vincule suas contas facilmente com novo suporte ao Privado.
+- Ajuste Mixnet: Nova UI para ajustar sua privacidade e configurações de conexão.
+- Correções de estabilidade: Resolvido problemas de VPN sempre ativos depois que o sistema reinicia e os aplicativos corrigidos.
+- Melhor Conectividade: Arquitetura VPN melhorada para reconexões mais confiáveis e dinâmicas e interface de informação atualizada da conta.
+-Traduções atualizadas do workflow.
