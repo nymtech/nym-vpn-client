@@ -319,7 +319,6 @@ class VpnCoreController(
 				NymEnvironment.newWithMainnetFallback()
 			} else {
 				runCatching {
-					requireNotNull(userAgent) { "userAgent required for init()" }
 					NymEnvironment.newWithCacheDir(storagePath, network.networkName(), userAgent)
 				}.getOrElse {
 					Timber.tag(TAG).e(it, "Environment creation failed. Falling back to mainnet.")
@@ -329,7 +328,6 @@ class VpnCoreController(
 
 		nymEnvironment = env
 
-		val ua = userAgent ?: UserAgent("", "", "", "")
 		val initialConfig = VpnConfig(
 			configDir = storagePath,
 			dataDir = storagePath,
@@ -342,7 +340,7 @@ class VpnCoreController(
 			residentialExit = false,
 			mixnetTraffic = mixnetParamConfig,
 			networkStats = null,
-			userAgent = ua,
+			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,
 		)
