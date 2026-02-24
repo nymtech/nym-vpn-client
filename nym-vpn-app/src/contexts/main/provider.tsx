@@ -8,7 +8,6 @@ import { daemonStatusUpdate, networkEnvChanged } from '../../state/helper';
 import { CCache } from '../../cache';
 import { MainDispatchContext, MainStateContext } from './context';
 import { initialState, reducer } from './reducer';
-import { useTray } from './useTray';
 
 let initialized = false;
 let systemMessageInit = false;

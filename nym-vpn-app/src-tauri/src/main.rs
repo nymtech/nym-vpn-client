@@ -272,6 +272,8 @@ async fn main() -> Result<()> {
         .invoke_handler(tauri::generate_handler![
             cmd_tray::update_tray_mode,
             cmd_tray::update_tray_state,
+            cmd_tray::update_tray_entry,
+            cmd_tray::update_tray_exit,
             tunnel::get_vpn_config,
             tunnel::set_vpn_mode,
             tunnel::get_tunnel_state,

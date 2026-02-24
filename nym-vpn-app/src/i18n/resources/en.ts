@@ -13,6 +13,7 @@ import onboarding from '../en/onboarding.json';
 import glossary from '../en/glossary.json';
 import notifications from '../en/notifications.json';
 import login from '../en/login.json';
+import tray from '../en/tray.json';
 
 export const en = {
   account,
@@ -30,4 +31,5 @@ export const en = {
   glossary,
   notifications,
   login,
+  tray,
 } as const;

@@ -98,9 +98,9 @@ impl AppState {
             _ => None,
         };
 
-        // let tray_manager = app.state::<TrayManager>();
+        let tray_manager = app.state::<TrayManager>();
         // tray_manager.update_tunnel(mystate.clone(), entry_gw_info);
-        // tray_manager.update_tunnel(mystate.clone(), app).await;
+        tray_manager.update_tunnel(mystate.clone(), app).await;
         app.emit_tunnel_update(&self.tunnel);
         Ok(())
     }

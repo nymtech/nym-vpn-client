@@ -267,7 +267,17 @@ impl TrayManager {
         self.status.set_text(state).ok();
         // self.status.set_text(&format!("{}", state)).ok();
     }
-    
+
+    pub async fn update_tray_entry(&self, entry: String) {
+        info!("Updating tray entry: {}", entry);
+        self.entry.set_text(entry).ok();
+    }
+
+    pub async fn update_tray_exit(&self, exit: String) {
+        info!("Updating tray exit: {}", exit);
+        self.exit.set_text(exit).ok();
+    }
+
     #[instrument(skip_all)]
     fn on_tray_event(tray_icon: &TrayIcon, event: TrayIconEvent) {
         if let TrayIconEvent::Click {
