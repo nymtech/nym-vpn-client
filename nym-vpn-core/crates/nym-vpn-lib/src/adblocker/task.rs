@@ -218,6 +218,7 @@ impl AdBlockerTask {
             .downcast_mut::<AdBlocker>()
             .expect("Failed to downcast to AdBlocker");
         adblocker.use_filter_set(filter_set).await;
+        crate::resolver::flush_system_cache();
     }
 
     async fn clear_filter_set(&self) {
@@ -227,6 +228,7 @@ impl AdBlockerTask {
             .downcast_mut::<AdBlocker>()
             .expect("Failed to downcast to AdBlocker");
         adblocker.clear_filter_set().await;
+        crate::resolver::flush_system_cache();
     }
 }
 
