@@ -5,9 +5,9 @@ use std::os::fd::{AsFd, BorrowedFd};
 #[cfg(target_os = "macos")]
 use std::os::fd::{AsRawFd, OwnedFd};
 
-use nix::sys::socket::sockopt::{self, UtunIfname};
 #[cfg(target_os = "macos")]
 use nix::sys::socket::{AddressFamily, SockFlag, SockProtocol, SockType, SysControlAddr};
+use nix::sys::{socket, socket::sockopt::UtunIfname};
 
 use crate::{Error, ErrorKind, Result};
 
