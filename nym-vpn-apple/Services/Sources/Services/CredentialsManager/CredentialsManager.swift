@@ -44,10 +44,6 @@ import PathManager
         appSettings.accountToken
     }
 
-    public var isSocialLogin: Bool {
-        accountSummary?.accountAddress != accountSummary?.canonicalAccountAddress
-    }
-
     private init() {}
 
     public func setup() {
@@ -150,18 +146,6 @@ import PathManager
         }.value
     }
 
-    public func isAccountLinkAvailable() async throws -> Bool {
-#if os(iOS)
-        let result = try await NymVpnAccountStorage(
-            dataDir: PathManager.dataFolderURL().path(),
-            environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
-        ).getAccountMode()
-        return result == .api
-#elseif os(macOS)
-        return try await grpcManager.isLinkAccountAvailable()
-#endif
-    }
-
     public func privyLogin(isLink: Bool = false) async throws -> String? {
         didReceiveAccountLinkCallback = false
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
@@ -229,7 +213,9 @@ import PathManager
             trafficResetTimeInterval: summary.trafficResetTime,
             accountAddress: summary.accountAddr,
             cannonicalAccountAddress: summary.canonicalAccountAddr,
-            accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) }
+            accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
+            isLinked: summary.isLinked(),
+            isActive: summary.isSubscriptionActive()
         )
 
 #elseif os(macOS)
