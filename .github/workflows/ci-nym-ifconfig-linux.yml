@@ -1,0 +1,19 @@
+name: ci-nym-ifconfig-linux
+on:
+  pull_request:
+    paths:
+      - .github/workflows/ci-nym-ifconfig-linux.yml
+      - "crates/nym-ifconfig/**/*.rs"
+      - Cargo.toml
+      - Cargo.lock
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Test
+        run: echo "Test"

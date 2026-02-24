@@ -1,0 +1,19 @@
+name: ci-nym-ifconfig-macos
+on:
+  pull_request:
+    paths:
+      - .github/workflows/ci-nym-ifconfig-macos.yml
+      - "crates/nym-ifconfig/**/*.rs"
+      - Cargo.toml
+      - Cargo.lock
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-macos:
+    runs-on: macos-14
+    steps:
+      - name: Test
+        run: echo "Test"
