@@ -304,6 +304,12 @@ class VpnCoreController(
 	) {
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
+		val userManager = service.getSystemService(android.os.UserManager::class.java)
+		if (userManager?.isUserUnlocked == false) {
+			Timber.tag(TAG).w("Device locked (Direct Boot phase). Aborting initialization to prevent mainnet fallback.")
+			throw IllegalStateException("Device is locked. CE storage is inaccessible.")
+		}
+
 		val storagePath = service.filesDir.absolutePath
 		val level = if (enableDebugLog) LogLevel.DEBUG else LogLevel.INFO
 		initLogger(storagePath, level, sentryMonitoring = sentry)
@@ -315,7 +321,10 @@ class VpnCoreController(
 				runCatching {
 					requireNotNull(userAgent) { "userAgent required for init()" }
 					NymEnvironment.newWithCacheDir(storagePath, network.networkName(), userAgent)
-				}.getOrElse { NymEnvironment.newWithMainnetFallback() }
+				}.getOrElse {
+					Timber.tag(TAG).e(it, "Environment creation failed. Falling back to mainnet.")
+					NymEnvironment.newWithMainnetFallback()
+				}
 			}
 
 		nymEnvironment = env
