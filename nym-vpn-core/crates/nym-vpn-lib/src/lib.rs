@@ -31,15 +31,15 @@ pub use nym_config;
 pub use nym_gateway_directory as gateway_directory;
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::{
-    mixnet::{NodeIdentity, Recipient, StoragePaths},
     UserAgent,
+    mixnet::{NodeIdentity, Recipient, StoragePaths},
 };
 
 pub use crate::{
     error::GatewayDirectoryError,
     mixnet::{
-        MixnetError, VpnTopologyProvider, VpnTopologyService,
-        VpnTopologyServiceError, VpnTopologyServiceHandle, DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE,
+        DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, MixnetError,
+        VpnTopologyProvider, VpnTopologyService, VpnTopologyServiceError, VpnTopologyServiceHandle,
     },
 };
 
