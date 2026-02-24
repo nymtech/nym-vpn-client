@@ -839,6 +839,7 @@ message VpnAccountSummary {
   string account_addr = 5;
   optional string canonical_account_addr = 6;
   repeated VpnAccountAuthMethod auth_methods = 7;
+  optional StoredAccountMode account_mode = 8;
 }
 
 message VpnAccountAuthMethod {
