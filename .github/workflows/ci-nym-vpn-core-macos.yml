@@ -96,6 +96,3 @@ jobs:
         run: |
           cargo build --workspace --locked
           cargo test --workspace --locked --exclude nym-ifconfig
-
-          # This has to run as sudo because it needs root permissions to access the network interfaces
-          sudo cargo test --package nym-ifconfig --locked

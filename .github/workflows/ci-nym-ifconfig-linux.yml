@@ -13,7 +13,30 @@ env:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+
+      - name: Build
+        run: cargo build --package nym-ifconfig --locked
+
+      - name: Build tests
+        id: build-tests
+        run: |
+          EXEC=$(cargo test --package nym-ifconfig --no-run --locked --message-format json | jq 'select(.reason == "compiler-artifact" and .target.name == "nym_ifconfig" and .executable != null) | .executable')
+          echo "Got executable: $EXEC"
+          echo "exec=$EXEC" >> "$GITHUB_OUTPUT"
+
+      - name: Set cap_net_admin
+        run: sudo setcap 'cap_net_admin=ep' "${{ steps.build-tests.outputs.exec }}"
+
       - name: Test
-        run: echo "Test"
+        run: cargo test --package nym-ifconfig
