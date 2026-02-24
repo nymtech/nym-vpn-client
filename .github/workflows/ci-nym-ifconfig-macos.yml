@@ -26,7 +26,9 @@ jobs:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
 
       - name: Build
+        working-directory: nym-vpn-core
         run: cargo build --package nym-ifconfig --locked
 
       - name: Test
+        working-directory: nym-vpn-core
         run: sudo cargo test --package nym-ifconfig
