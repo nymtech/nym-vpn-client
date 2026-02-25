@@ -273,7 +273,6 @@ async fn main() -> Result<()> {
             cmd_tray::update_tray_state,
             cmd_tray::update_tray_entry,
             cmd_tray::update_tray_exit,
-            cmd_tray::update_tray_icon,
             tunnel::get_vpn_config,
             tunnel::set_vpn_mode,
             tunnel::get_tunnel_state,

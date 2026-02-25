@@ -219,34 +219,6 @@ function Home() {
         <div className="grow" data-testid="home-tunnel-state-container">
           <TunnelState />
         </div>
-        <button
-          onClick={() => invoke('update_tray_icon', { state: 'connected' })}
-        >
-          Update Connected Icon
-        </button>
-        <button
-          onClick={() => invoke('update_tray_icon', { state: 'connecting' })}
-        >
-          Update Connecting Icon
-        </button>
-        <button
-          onClick={() => invoke('update_tray_icon', { state: 'disconnected' })}
-        >
-          Update Disconnected Icon
-        </button>
-        <button
-          onClick={() => invoke('update_tray_icon', { state: 'disconnecting' })}
-        >
-          Update Disconnecting Icon
-        </button>
-        <button onClick={() => invoke('update_tray_icon', { state: 'error' })}>
-          Update Error Icon
-        </button>
-        <button
-          onClick={() => invoke('update_tray_icon', { state: 'offline' })}
-        >
-          Update Offline Icon
-        </button>
         <div
           className="flex flex-col justify-between gap-y-8 select-none"
           data-testid="home-controls-container"

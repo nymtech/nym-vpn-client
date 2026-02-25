@@ -147,12 +147,6 @@ impl TrayManager {
         self.tray.set_icon(Some(icon)).ok();
     }
 
-    async fn cancel_icon_debounce(&self) {
-        if let Some(handle) = self.icon_debounce.lock().await.take() {
-            handle.abort();
-        }
-    }
-
     #[instrument(skip_all)]
     pub async fn update_tray_icon(&self, state: TunnelState) {
         let mut pending = self.icon_debounce.lock().await;
@@ -165,33 +159,6 @@ impl TrayManager {
             let tray = app.state::<TrayManager>();
             tray.apply_icon(&state);
         }));
-    }
-
-    pub async fn manual_tray_icon_update(&self, state: String) {
-        match state.as_str() {
-            "connected" => {
-                self.tray.set_icon(Some(CONNECTED_ICON)).ok();
-            }
-            "connecting" => {
-                self.tray.set_icon(Some(CONNECTING_ICON)).ok();
-            }
-            "disconnected" => {
-                self.tray.set_icon(Some(DISCONNECTED_ICON)).ok();
-            }
-            "disconnecting" => {
-                self.tray.set_icon(Some(CONNECTING_ICON)).ok();
-            }
-            "error" => {
-                self.tray.set_icon(Some(ERROR_ICON)).ok();
-            }
-            "offline" => {
-                self.tray.set_icon(Some(ERROR_ICON)).ok();
-            }
-            _ => {
-                self.tray.set_icon(Some(ERROR_ICON)).ok();
-            }
-        }
-
     }
 
     pub async fn update_tray_show_hide(&self, show_hide: String) {

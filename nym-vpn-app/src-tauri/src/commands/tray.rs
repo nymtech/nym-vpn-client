@@ -62,13 +62,3 @@ pub async fn update_tray_quit(
     tray.update_tray_quit(quit).await;
     Ok(())
 }
-
-#[instrument(skip_all)]
-#[tauri::command]
-pub async fn update_tray_icon(
-    tray: State<'_, TrayManager>,
-    state: String,
-) -> Result<(), BackendError> {
-    tray.manual_tray_icon_update(state).await;
-    Ok(())
-}
