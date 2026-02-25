@@ -190,7 +190,7 @@ impl Source {
             .header(reqwest::header::USER_AGENT, user_agent)
             .header(reqwest::header::ACCEPT, "text/plain; charset=utf-8,*/*")
             .header(reqwest::header::ACCEPT_CHARSET, "utf-8")
-            .header(reqwest::header::ACCEPT_ENCODING, "gzip");
+            .header(reqwest::header::ACCEPT_ENCODING, "identity");
         let response = request
             .send()
             .await
@@ -205,7 +205,7 @@ impl Source {
         }
 
         // Grab the new etag from the HTTP response
-        let etag = Self::get_response_header(self.url, &response, reqwest::header::ETAG)?;
+        let etag = Self::get_response_etag(self.url, &response)?;
 
         if etag == meta_data.etag {
             tracing::warn!(
@@ -357,8 +357,10 @@ impl Source {
 
     /// Save the data file to disk (gzip) and update the meta data with the new uncompressed length and SHA256.
     async fn save_data_file(file_path: &Path, data: &[u8], etag: &str) -> Result<SourceMetaData> {
-        let byte_len = data.len();
+        let length = data.len();
+        let etag = Self::normalize_etag(etag);
         let sha256 = hex::encode(Sha256::digest(data));
+        let updated_utc = OffsetDateTime::now_utc();
 
         let mut encoder = GzipEncoder::new(Vec::new());
         encoder
@@ -386,11 +388,26 @@ impl Source {
             })?;
 
         Ok(SourceMetaData {
-            length: byte_len,
-            etag: etag.to_string(),
+            length,
+            etag,
             sha256,
-            updated_utc: OffsetDateTime::now_utc(),
+            updated_utc,
         })
+    }
+
+    fn normalize_etag(raw: &str) -> String {
+        let s = raw.trim();
+        let s = s.strip_prefix("W/").unwrap_or(s).trim();
+        if s.starts_with('"') && s.ends_with('"') {
+            s.trim_matches('"').to_string()
+        } else {
+            s.to_string()
+        }
+    }
+
+    fn get_response_etag(url: &str, response: &reqwest::Response) -> Result<String> {
+        let raw_etag = Self::get_response_header(url, response, reqwest::header::ETAG)?;
+        Ok(Self::normalize_etag(&raw_etag))
     }
 
     fn get_response_header(
