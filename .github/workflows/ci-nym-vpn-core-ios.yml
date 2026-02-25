@@ -19,7 +19,6 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-ios.yml
 
   build:
-    if: github.actor != 'dependabot[bot]'
     runs-on: custom-macos-15
     needs: [build-wireguard-go-ios]
     timeout-minutes: 30

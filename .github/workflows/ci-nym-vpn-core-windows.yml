@@ -19,7 +19,6 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build:
-    if: github.actor != 'dependabot[bot]'
     runs-on: custom-windows-11
     needs: build-wireguard-go-windows
 

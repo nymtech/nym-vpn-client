@@ -10,7 +10,6 @@ on:
 
 jobs:
   translations:
-    if: github.actor != 'dependabot[bot]'
     runs-on: arc-linux-latest
 
     steps:
@@ -48,7 +47,6 @@ jobs:
           path: nym-vpn-app/src/i18n
 
   check:
-    if: github.actor != 'dependabot[bot]'
     needs: translations
     strategy:
       fail-fast: false
