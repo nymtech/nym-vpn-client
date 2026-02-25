@@ -3,9 +3,7 @@ name = "nym-vpn-app"
 version = "1.26.0-beta"
 description = "NymVPN desktop client"
 authors = [
-    "Nym Technologies SA",
-    "Pierre <dommerc.pierre@gmail.com>",
-    "Zane <zanecschepke@gmail.com>",
+    "Nym Technologies SA <contact@nymtech.net>",
 ]
 license = "GPL-3.0-only"
 documentation = "https://nymtech.net"

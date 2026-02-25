@@ -4,8 +4,7 @@
     <name>NymVPN</name>
     <url type="homepage">https://nymtech.net/</url>
     <developer id="net.nymtech">
-        <name>PierreD</name>
-        <name>Nym</name>
+        <name>Nym Technologies SA</name>
     </developer>
     <summary>Decentralized, mixnet, and zero-knowledge VPN</summary>
     <metadata_license>MIT</metadata_license>
