@@ -153,6 +153,33 @@ impl TrayManager {
         }
     }
 
+    pub async fn manual_tray_icon_update(&self, state: String) {
+        match state.as_str() {
+            "connected" => {
+                self.tray.set_icon(Some(CONNECTED_ICON)).ok();
+            }
+            "connecting" => {
+                self.tray.set_icon(Some(CONNECTING_ICON)).ok();
+            }
+            "disconnected" => {
+                self.tray.set_icon(Some(DISCONNECTED_ICON)).ok();
+            }
+            "disconnecting" => {
+                self.tray.set_icon(Some(CONNECTING_ICON)).ok();
+            }
+            "error" => {
+                self.tray.set_icon(Some(ERROR_ICON)).ok();
+            }
+            "offline" => {
+                self.tray.set_icon(Some(ERROR_ICON)).ok();
+            }
+            _ => {
+                self.tray.set_icon(Some(ERROR_ICON)).ok();
+            }
+        }
+
+    }
+
     pub async fn update_tray_show_hide(&self, show_hide: String) {
         self.show_hide.set_text(show_hide).ok();
     }
