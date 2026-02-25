@@ -41,7 +41,7 @@ pub fn fronted_http_client_builder(
     }
 
     if has_front {
-        builder = builder.with_fronting(FrontPolicy::OnRetry);
+        builder = builder.with_fronting(Some(FrontPolicy::OnRetry));
     }
 
     // Add resolver overrides
