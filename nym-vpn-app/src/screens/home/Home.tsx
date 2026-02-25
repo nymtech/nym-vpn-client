@@ -46,6 +46,7 @@ function Home() {
     account,
     networkCompat,
   } = useMainState();
+  console.log('mainstate', useMainState());
   const dispatch = useMainDispatch() as StateDispatch;
   const { setFocused, setSearch, setExpanded } = useNodeListState();
   const { lookupGw } = useGateways();
@@ -63,6 +64,35 @@ function Home() {
   const exitGwId = tunnel?.exitGwId || connectingState?.exitGwId || null;
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
+  const [diagnosticRunning, setDiagnosticRunning] = useState(false);
+  const [diagnosticResult, setDiagnosticResult] = useState<{
+    ok: boolean;
+    data: string;
+  } | null>(null);
+
+  const handleDiagnostic = async () => {
+    setDiagnosticRunning(true);
+    setDiagnosticResult(null);
+    try {
+      const report = await invoke('run_diagnostic', {
+        params: { gateway: null, skipDns: false, skipHttp: false },
+      });
+      console.log('Diagnostic report:', report);
+      setDiagnosticResult({
+        ok: true,
+        data: JSON.stringify(report, null, 2),
+      });
+    } catch (e: unknown) {
+      console.error('Diagnostic failed:', e);
+      const err = e as BackendError;
+      setDiagnosticResult({
+        ok: false,
+        data: err?.message || 'Unknown error',
+      });
+    } finally {
+      setDiagnosticRunning(false);
+    }
+  };
 
   const handleClick = () => {
     if (state === 'disconnected' && !account) {
@@ -268,6 +298,45 @@ function Home() {
           >
             {getButtonText()}
           </Button>
+          <Button
+            onClick={handleDiagnostic}
+            color="gray"
+            disabled={diagnosticRunning || daemonStatus === 'down'}
+            spinner={diagnosticRunning}
+            className="h-10"
+            textSize="base"
+            data-testid="home-diagnostic-button"
+          >
+            {diagnosticRunning ? 'Running diagnostic...' : 'Run diagnostic'}
+          </Button>
+          {diagnosticResult && (
+            <div
+              className={clsx(
+                'mt-2 p-3 rounded-lg text-xs font-mono max-h-48 overflow-auto',
+                diagnosticResult.ok
+                  ? 'bg-green-900/20 text-green-300 border border-green-800'
+                  : 'bg-red-900/20 text-red-300 border border-red-800',
+              )}
+              data-testid="home-diagnostic-result"
+            >
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-semibold text-sm">
+                  {diagnosticResult.ok
+                    ? 'Diagnostic report'
+                    : 'Diagnostic error'}
+                </span>
+                <button
+                  onClick={() => setDiagnosticResult(null)}
+                  className="text-sm opacity-60 hover:opacity-100 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+              <pre className="whitespace-pre-wrap wrap-break-word">
+                {diagnosticResult.data}
+              </pre>
+            </div>
+          )}
         </div>
       </motion.div>
     </>
