@@ -730,20 +730,20 @@ impl TunnelStateHandler for ConnectingState {
                         }
 
                         // Not all changes require the tunnel to be reconnected
-                        if diff.should_not_reconnect(shared_state.tunnel_settings.tunnel_type) {
-                            return NextTunnelState::SameState(self);
-                        }
-
-                        // Skip disconnecting state if tunnel monitor isn't running yet
-                        if self.tunnel_monitor_handle.is_some() {
-                           self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
-                        } else {
-                            let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() || diff.quic_changed() {
-                                None
+                        if diff.should_reconnect(shared_state.tunnel_settings.tunnel_type) {
+                            // Skip disconnecting state if tunnel monitor isn't running yet
+                            if self.tunnel_monitor_handle.is_some() {
+                                self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                             } else {
-                                self.selected_gateways
-                            };
-                            NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
+                                let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() || diff.quic_changed() {
+                                    None
+                                } else {
+                                    self.selected_gateways
+                                };
+                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
+                            }
+                        } else {
+                             NextTunnelState::SameState(self)
                         }
                     }
                     TunnelCommand::Block(reason) => {

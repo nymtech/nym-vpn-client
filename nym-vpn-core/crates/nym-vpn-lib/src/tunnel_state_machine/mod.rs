@@ -281,6 +281,27 @@ pub enum TunnelSettingsDiffFields {
     SplitTunnel,
 }
 
+impl TunnelSettingsDiffFields {
+    /// Returns true when change of such setting requires reconnect
+    pub fn should_reconnect(&self, tunnel_type: TunnelType) -> bool {
+        match self {
+            Self::EnableIpv6
+            | Self::TunnelType
+            | Self::ResidentialExit
+            | Self::QUIC
+            | Self::EntryPoint
+            | Self::ExitPoint
+            | Self::GatewayPerformanceOptions
+            | Self::Dns => true,
+            Self::AllowLan | Self::EnableAdBlocking | Self::SplitTunnel => false,
+            Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
+                tunnel_type == TunnelType::Mixnet
+            }
+            Self::WireguardTunnelOptions => tunnel_type == TunnelType::Wireguard,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct TunnelSettingsDiff(HashSet<TunnelSettingsDiffFields>);
 
@@ -297,24 +318,12 @@ impl TunnelSettingsDiff {
         self.0.contains(field)
     }
 
-    pub fn only_field_changed(&self, field: &TunnelSettingsDiffFields) -> bool {
-        self.0.len() == 1 && self.is_field_changed(field)
-    }
-
     pub fn allow_lan_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::AllowLan)
     }
 
-    pub fn only_allow_lan_changed(&self) -> bool {
-        self.only_field_changed(&TunnelSettingsDiffFields::AllowLan)
-    }
-
     pub fn enable_ad_blocking_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
-    }
-
-    pub fn only_enable_ad_blocking_changed(&self) -> bool {
-        self.only_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
     }
 
     pub fn entry_point_changed(&self) -> bool {
@@ -333,16 +342,15 @@ impl TunnelSettingsDiff {
         self.is_field_changed(&TunnelSettingsDiffFields::SplitTunnel)
     }
 
-    pub fn only_mixnet_performance_options_changed(&self) -> bool {
-        self.only_field_changed(&TunnelSettingsDiffFields::MixnetPerformanceOptions)
+    pub fn mixnet_performance_options_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::MixnetPerformanceOptions)
     }
 
-    // Can we keep the tunnel connected, or do we need to disconnect and reconnect it?
-    pub fn should_not_reconnect(&self, tunnel_type: TunnelType) -> bool {
-        self.only_allow_lan_changed()
-            || self.only_enable_ad_blocking_changed()
-            || (self.only_mixnet_performance_options_changed()
-                && tunnel_type == TunnelType::Wireguard)
+    // Returns true if changed tunnel settings should lead to tunnel reconnect
+    pub fn should_reconnect(&self, tunnel_type: TunnelType) -> bool {
+        self.0
+            .iter()
+            .any(|change| change.should_reconnect(tunnel_type))
     }
 }
 
