@@ -214,14 +214,14 @@ impl TestOutput {
     pub fn print(&self) {
         match &self.result {
             TestResult::Pass => {
-                println_with_time!("{}", format!("✅ TEST {} SUCCEEDED!", self.test_name).green());
+                println_with_time!("{}", format!("[TEST] {} SUCCEEDED! ✅", self.test_name).green());
                 return;
             }
             TestResult::Fail(e) => {
                 println_with_time!(
                     "{}",
                     format!(
-                        "❌ TEST {} RETURNED ERROR: {}",
+                        "[TEST] {} RETURNED ERROR ❌: {}",
                         self.test_name,
                         format!("{e:?}").bold()
                     )
@@ -232,7 +232,7 @@ impl TestOutput {
                 println_with_time!(
                     "{}",
                     format!(
-                        "⛔ TEST {} PANICKED WITH MESSAGE: {}",
+                        "[TEST] {} PANICKED WITH MESSAGE ⛔: {}",
                         self.test_name,
                         panic_msg.as_string().bold()
                     )
@@ -241,7 +241,7 @@ impl TestOutput {
             }
         }
 
-        println_with_time!("{}", format!("TEST {} HAD LOGS:", self.test_name).red());
+        println_with_time!("{}", format!("[TEST] {} HAD LOGS:", self.test_name).red());
         match &self.log_output {
             Some(log) => {
                 match &log.settings_json {

@@ -50,7 +50,7 @@ function check_required_vars() {
     local missing=0
     local qcow_image_var_name="NYM_TEST_QCOW_IMAGE"
     local vm_config_var_name="NYM_TEST_VM_CONFIG"
-    local mnemonic_var_name="MAINNET_MNEMONIC"
+    local mnemonic_var_name="TEST_HARNESS_MNEMONIC"
 
 
     if [ -z "$NYM_TEST_QCOW_IMAGE" ]; then
@@ -65,7 +65,7 @@ function check_required_vars() {
         missing=1
     fi
 
-    if [ -z "$MAINNET_MNEMONIC" ]; then
+    if [ -z "$TEST_HARNESS_MNEMONIC" ]; then
         echo "Error: ${mnemonic_var_name} is not set"
         echo "  Set it via environment variable: export ${mnemonic_var_name}=config-name"
         missing=1
@@ -146,7 +146,11 @@ function build_all_in_container() {
     mkdir -p "${PACKAGE_DIR}"
 
     echo -e "======== ${YELLOW} Building container image${NC} ========"
-    "$CONTAINER_RUNNER" build -t "${IMAGE_TAG}" -f "${TEST_FRAMEWORK_ROOT}/Dockerfile" "${REPO_DIR}"
+    local rust_arg=""
+    if [ -n "${RUST_VERSION:-}" ]; then
+        rust_arg="--build-arg RUST_VERSION=${RUST_VERSION}"
+    fi
+    "$CONTAINER_RUNNER" build ${rust_arg} -t "${IMAGE_TAG}" -f "${TEST_FRAMEWORK_ROOT}/Dockerfile" "${REPO_DIR}"
     echo -e "======== ${GREEN} Container image ready${NC} ========"
 
     echo -e "======== ${YELLOW} Building all binaries in container${NC} ========"
@@ -207,7 +211,7 @@ function run_tests() {
     $TEST_MANAGER run-tests \
         --vm ${NYM_TEST_VM_CONFIG} \
         --vnc 5901 \
-        --nym-mnemonic "${MAINNET_MNEMONIC}" \
+        --nym-mnemonic "${TEST_HARNESS_MNEMONIC}" \
         --runner-dir "${RUNNER_DIR}" \
         "${test_report_arg[@]}" \
         "${test_skip_args[@]}" \

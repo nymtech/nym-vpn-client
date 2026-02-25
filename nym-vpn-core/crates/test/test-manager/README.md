@@ -25,7 +25,7 @@ desired nym-vpn published version so that it could be modified in one place and 
 - docker image used to build test-manager could be replaced with open source / in-house one
 
 
-# Writing tests for [MullvadVPN App](https://github.com/mullvad/mullvadvpn-app/)
+# Writing tests for Nym VPN App App
 
 The `test-manager` crate is where end-to-end tests for the [MullvadVPN
 App](https://github.com/mullvad/mullvadvpn-app/) resides. The tests are located

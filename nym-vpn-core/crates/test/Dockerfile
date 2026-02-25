@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # Debian 12 builder for reproducible builds of the test harness.
-# Test environment is also Debian 12 (imporatnt because ot )
+# Test environment is also Debian 12 (important because of dynamically linked libraries)
 
 FROM debian:bookworm-slim
 
@@ -15,9 +15,10 @@ RUN apt-get update && apt-get install -y \
     autoconf flex bison \
     && rm -rf /var/lib/apt/lists/*
 
-# version was hardcoded to what it's currently in workspace root
+# ideally should correspond to what's in workspace root
+ARG RUST_VERSION=1.91.0
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-    | sh -s -- -y --default-toolchain 1.88.0 --target x86_64-unknown-linux-gnu
+    | sh -s -- -y --default-toolchain "${RUST_VERSION}" --target x86_64-unknown-linux-gnu
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Go toolchain (version matches wireguard/libwg/go.mod)
