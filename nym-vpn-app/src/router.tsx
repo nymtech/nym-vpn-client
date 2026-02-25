@@ -9,6 +9,7 @@ import {
   CustomDNS,
   DataAndPrivacy,
   Dev,
+  Diagnostic,
   Display,
   Error,
   Lang,
@@ -64,6 +65,7 @@ export const routes = {
   onboarding: '/onboarding',
   mixnetTuning: '/settings/mixnet-tuning',
   accountSettings: '/settings/account',
+  diagnostic: '/settings/diagnostic',
 } as const;
 
 // ⚠ router instance creation must remain outside of React
@@ -113,6 +115,11 @@ const router = createBrowserRouter([
           {
             path: routes.accountSettings,
             Component: AccountScreen,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.diagnostic,
+            Component: Diagnostic,
             errorElement: <Error />,
           },
           {

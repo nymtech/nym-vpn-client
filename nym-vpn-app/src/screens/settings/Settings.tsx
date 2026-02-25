@@ -197,6 +197,12 @@ function Settings() {
             onClick: () => navigate(routes.dataPrivacy),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
+          {
+            title: t('diagnostic.title', { ns: 'settings' }),
+            leadingIcon: 'bug_report',
+            onClick: () => navigate(routes.diagnostic),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
         ]}
       />
       <SettingsGroup

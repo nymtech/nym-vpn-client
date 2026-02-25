@@ -261,6 +261,13 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/diagnostic': {
+        title: t('diagnostic.title', { ns: 'settings' }),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/account/select-a-plan': {
         title: (
           <NymVpnTextLogo

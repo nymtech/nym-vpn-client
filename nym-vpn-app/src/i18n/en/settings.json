@@ -294,5 +294,8 @@
     "status-inactive": "Account is inactive",
     "requesting-zknyms": "Requesting ZkNyms",
     "error": "Internal error"
+  },
+  "diagnostic": {
+    "title": "Diagnostic"
   }
 }
