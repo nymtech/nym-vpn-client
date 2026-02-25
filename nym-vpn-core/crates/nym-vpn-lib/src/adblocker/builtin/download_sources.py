@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import argparse
 import datetime as _dt
 import email.utils
 import gzip
@@ -28,6 +29,33 @@ SOURCES: list[tuple[str, str]] = [
 
 USER_AGENT = "ad-blocker-lists/1.0 (+download_sources.py)"
 TIMEOUT_SECS = 60
+
+
+def _normalize_etag(value: str | None) -> str:
+    """Return a canonical HTTP entity-tag string.
+
+    Strips weak-vs-strong semantics (i.e. removes any W/ prefix) and
+    normalizes whitespace and quoting so stored ETags are comparable.
+
+    The returned value is the bare tag (no surrounding quotes).
+    """
+
+    if not value:
+        return ""
+
+    s = value.strip()
+    if not s:
+        return ""
+
+    # Drop the weak validator prefix so all stored tags share the same format.
+    if len(s) >= 2 and s[:2].lower() == "w/":
+        s = s[2:].lstrip()
+
+    # RFC-style ETags are quoted strings; tolerate unquoted values.
+    if len(s) >= 2 and ((s[0] == '"' and s[-1] == '"') or (s[0] == "'" and s[-1] == "'")):
+        return s[1:-1]
+
+    return s.strip("\"'")
 
 
 def _parse_http_datetime(value: str | None) -> _dt.datetime | None:
@@ -76,7 +104,7 @@ def _download_to_gz(url: str, gz_path: Path) -> DownloadMeta:
     date_dt = _parse_http_datetime(date_raw)
     server_date_utc = _iso_utc(date_dt) if date_dt else ""
 
-    etag = resp.headers.get("ETag") or ""
+    etag = _normalize_etag(resp.headers.get("ETag"))
     content_encoding = (resp.headers.get("Content-Encoding") or "").lower()
 
     sha = hashlib.sha256()
@@ -114,7 +142,54 @@ def _write_meta(meta_path: Path, meta: DownloadMeta) -> None:
     )
 
 
+def _normalize_meta_files_in_place() -> int:
+    updated = 0
+    meta_files = sorted(Path(".").glob("*.meta"))
+    for meta_path in meta_files:
+        try:
+            raw = meta_path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            # Not JSON (e.g. domains.txt.meta) — ignore.
+            continue
+
+        if not isinstance(parsed, dict) or "etag" not in parsed:
+            continue
+
+        old = parsed.get("etag")
+        new = _normalize_etag(old if isinstance(old, str) else "")
+        if new == (old or ""):
+            continue
+
+        parsed["etag"] = new
+        meta_path.write_text(
+            json.dumps(parsed, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        print(f"Normalized ETag in {meta_path}")
+        updated += 1
+
+    if updated == 0:
+        print("No ETags needed normalization")
+    return 0
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--normalize-meta",
+        action="store_true",
+        help="Normalize ETag formatting in existing JSON .meta files without downloading",
+    )
+    args = parser.parse_args()
+
+    if args.normalize_meta:
+        return _normalize_meta_files_in_place()
+
     wrote = 0
     for filename, url in SOURCES:
         gz_path = Path(filename + ".gz")
