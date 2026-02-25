@@ -358,8 +358,8 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="account_generating_description_2">Anonim ağ giriş bilgileri oluşturuluyor</string>
 	<string name="account_generating_description_3">Giriş bilgileriniz cihaz anahtarınızla şifreleniyor; kilidini sadece siz açabilirsiniz</string>
 	<string name="account_generating_error">Hesap kaydı başarısız oldu. Lütfen daha sonra tekrar deneyin</string>
-	<string name="account_generating_deeplink_title">Logging in...</string>
-	<string name="account_generating_deeplink_description">Please wait while we verify your account</string>
+	<string name="account_generating_deeplink_title">Giriş yapılıyor...</string>
+	<string name="account_generating_deeplink_description">Lütfen hesabınızı doğrularken bekleyin</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Ödemeniz güvenli bir şekilde işleniyor…</string>
 	<string name="account_payment_verifying">Aboneliğinizi doğruluyoruz. Kişisel bilgileriniz asla kimliğinizle ilişkilendirilmez.</string>
@@ -475,7 +475,7 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="mixnet_tuning_current_title">Mevcut ayarların beklenen performansı:</string>
 	<string name="mixnet_tuning_current_speed">Hız</string>
 	<string name="mixnet_tuning_current_latency">Gecikme süresi</string>
-	<string name="mixnet_tuning_internet_speed">Up to internet speed</string>
+	<string name="mixnet_tuning_internet_speed">İnternet hızına bağlı olarak</string>
 	<string name="mixnet_tuning_current_description">Standart bir ağda tahmini gidiş-dönüş gecikme süresi (RTT)</string>
 	<string name="mixnet_tuning_traffic_title">Veri trafiğini sürekli gönder</string>
 	<string name="mixnet_tuning_traffic_off_title">Arka planda gönderilen sahte trafik hızı</string>
@@ -491,9 +491,9 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="mixnet_tuning_traffic_off_balanced">Dengeli\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Orta\n10x</string>
 	<string name="mixnet_tuning_delays_title">Paket karıştırma gecikmeleri</string>
-	<string name="mixnet_tuning_delays_description">Adjust timing delays to change how well your packets are mixed.</string>
+	<string name="mixnet_tuning_delays_description">Paketlerinizin karışma düzeyini değiştirmek için zamanlama gecikmelerini ayarlayabilirsiniz.</string>
 	<string name="mixnet_tuning_delays_warning">⚠️ Zamanlama koruması devre dışı. Bu durum, gizliliğinizi tehlikeye atabilir.</string>
-	<string name="mixnet_tuning_delays_min">Faster speed</string>
+	<string name="mixnet_tuning_delays_min">Daha yüksek hız</string>
 	<string name="mixnet_tuning_delays_low">Düşük\n0m</string>
 	<string name="mixnet_tuning_delays_high">Yüksek\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Varsayılan\n15 ms</string>
@@ -501,5 +501,5 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="mixnet_tuning_max">Maksimum anonimlik</string>
 	<string name="mixnet_tuning_link_text">Mixnet parametreleri hakkında daha fazla bilgi edinin</string>
 	<string name="mixnet_tuning_save_button">Özel ayarları kaydedin</string>
-	<string name="mixnet_tuning_restore_button">Restore default settings</string>
+	<string name="mixnet_tuning_restore_button">Varsayılan ayarları geri yükle</string>
 </resources>

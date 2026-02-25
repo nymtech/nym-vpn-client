@@ -282,6 +282,15 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             })
             .transpose()?;
 
+        let account_mode = value
+            .account_mode
+            .map(|mode| {
+                proto::StoredAccountMode::try_from(mode)
+                    .map(StoredAccountMode::from)
+                    .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.account_mode"))
+            })
+            .transpose()?;
+
         let auth_methods = value
             .auth_methods
             .into_iter()
@@ -296,6 +305,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             account_addr: value.account_addr,
             canonical_account_addr: value.canonical_account_addr,
             auth_methods,
+            account_mode,
         })
     }
 }
@@ -317,6 +327,10 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             .collect::<Result<_, ConversionError>>()
             .unwrap_or_default();
 
+        let account_mode = value
+            .account_mode
+            .map(|mode| proto::StoredAccountMode::from(mode) as i32);
+
         Self {
             subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
@@ -325,6 +339,7 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             account_addr: value.account_addr,
             canonical_account_addr: value.canonical_account_addr,
             auth_methods,
+            account_mode,
         }
     }
 }

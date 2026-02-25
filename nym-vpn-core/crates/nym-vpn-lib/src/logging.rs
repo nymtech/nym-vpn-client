@@ -344,12 +344,7 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     };
 
     if options.enable_stdout_log {
-        // When debugging using WinDBG, the ANSI escape codes play havoc with the terminal output.
-        let with_ansi = !(cfg!(debug_assertions) && cfg!(windows));
-
-        let console_layer = tracing_subscriber::fmt::layer()
-            .with_span_events(FmtSpan::CLOSE)
-            .with_ansi(with_ansi);
+        let console_layer = tracing_subscriber::fmt::layer().with_span_events(FmtSpan::CLOSE);
         if options.enable_json_log {
             let console_layer = console_layer.json().event_format(JsonLogFormatter {
                 enable_opentelemetry,

@@ -273,6 +273,7 @@ pub struct VpnAccountSummary {
     pub account_addr: String,
     pub canonical_account_addr: Option<String>,
     pub auth_methods: Vec<VpnAccountAuthMethod>,
+    pub account_mode: Option<StoredAccountMode>,
 }
 
 // Exported methods
@@ -288,6 +289,23 @@ impl VpnAccountSummary {
 
     pub fn fair_usage_left(&self) -> bool {
         self.traffic_used_gb != self.traffic_limit_gb
+    }
+
+    pub fn is_linked(&self) -> bool {
+        let canonical_differs = self
+            .canonical_account_addr
+            .as_ref()
+            .map(|canonical| canonical != &self.account_addr)
+            .unwrap_or(false);
+
+        let has_social_or_passphrase = self
+            .auth_methods
+            .iter()
+            .any(|method| method.label == "Social login" || method.label == "PassPhrase");
+
+        let is_privy_mode = self.account_mode == Some(StoredAccountMode::Privy);
+
+        canonical_differs || has_social_or_passphrase || is_privy_mode
     }
 }
 
@@ -342,6 +360,7 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             account_addr: value.account.account_addr.clone(),
             canonical_account_addr: value.account.canonical_account_addr.clone(),
             auth_methods,
+            account_mode: None,
         })
     }
 }

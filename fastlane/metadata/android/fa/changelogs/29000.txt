@@ -1,6 +1,6 @@
-What's New:
-- Account Setup: Support for in-app account creation and registration.
-- Privy Integration: Link your accounts easily with new Privy support.
-- Mixnet Tuning: New UI to fine-tune your privacy and connection settings.
-- Stability Fixes: Resolved Always-On VPN issues after system restarts and fixed app crashes.
-- Better Connectivity: Improved VPN architecture for more reliable, dynamic reconnections and updated Account Info UI.
+موارد اضافه شده:
+راه‌اندازی حساب: پشتیبانی از ایجاد و ثبت حساب درون‌برنامه‌ای.
+یکپارچه‌سازی Privy: اتصال آسان حساب‌ها با پشتیبانی جدید Privy.
+تنظیمات Mixnet: رابط کاربری جدید برای تنظیم دقیق حریم خصوصی و اتصال.
+بهبود پایداری: رفع مشکل VPN همیشه‌فعال پس از راه‌اندازی مجدد سیستم و اصلاح کرش‌های برنامه.
+اتصال بهتر: بهبود معماری VPN برای اتصال مجدد پایدارتر و پویا، و به‌روزرسانی رابط اطلاعات حساب.

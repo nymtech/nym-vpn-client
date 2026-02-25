@@ -947,11 +947,11 @@ impl GatewayList {
             }),
             ExitPoint::Country {
                 two_letter_iso_country_code,
-            } => Err(Error::NoMatchingEntryGatewayForLocation {
+            } => Err(Error::NoMatchingExitGatewayForLocation {
                 requested_location: two_letter_iso_country_code.clone(),
                 available_countries: self.all_iso_codes(),
             }),
-            ExitPoint::Region { region } => Err(Error::NoMatchingEntryGatewayForLocation {
+            ExitPoint::Region { region } => Err(Error::NoMatchingExitGatewayForLocation {
                 requested_location: region.clone(),
                 available_countries: self.all_iso_codes(),
             }),

@@ -101,6 +101,11 @@ jobs:
         with:
           ref: develop
 
+      - name: Install Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - name: Install cargo-edit
         uses: baptiste0928/cargo-install@v3
         with:
@@ -175,6 +180,7 @@ jobs:
           EOD
           )
           jq -r "$QUERY" tauri.conf.json > new_tauri.conf.json
+          npx prettier --config ../prettier.config.js --write new_tauri.conf.json
           mv new_tauri.conf.json tauri.conf.json
 
       - name: Create PR to bump develop to v${{ steps.next-version.outputs.next_version }}
@@ -191,5 +197,6 @@ jobs:
             git push origin "${{ env.BRANCH_NAME }}"
             gh pr create \
                 --title 'Bump develop to `v${{ steps.next-version.outputs.next_version }}`' \
-                --body 'This PR bumps develop to `v${{ steps.next-version.outputs.next_version }}`'
+                --body 'This PR bumps develop to `v${{ steps.next-version.outputs.next_version }}`' \
+                --milestone "no-milestone"
           fi

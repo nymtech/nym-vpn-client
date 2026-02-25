@@ -123,7 +123,8 @@ private extension AccountAndDevicesView {
     }
 
     func accountSubtitle() -> String? {
-        credentialsManager.isSocialLogin ? nil : "settings.account.nymAccount.subtitle".localizedString
+        guard let accountSummary = credentialsManager.accountSummary else { return nil }
+        return accountSummary.isLinked ? nil : "settings.account.nymAccount.subtitle".localizedString
     }
 
     func manageAccountListItem(isFirst: Bool, isLast: Bool) -> some View {
@@ -150,7 +151,8 @@ private extension AccountAndDevicesView {
     }
 
     func linkingTitle() -> String {
-        credentialsManager.isSocialLogin
+        guard let accountSummary = credentialsManager.accountSummary else { return "" }
+        return accountSummary.isLinked
         ? "⚡️ \("settings.account.nymAccount.linked.subtitle".localizedString)"
         : "⚠️ \("settings.account.linking".localizedString)"
     }
@@ -277,9 +279,9 @@ private extension AccountAndDevicesView {
 // MARK: - Helpers -
 private extension AccountAndDevicesView {
     func updateIsAccountLinkAvailable() async {
-        if let isAvailable = try? await credentialsManager.isAccountLinkAvailable() {
-            isLinkAccountAvailable = isAvailable
-        }
+        await credentialsManager.updateAccountSummary()
+        guard let accountSummary = credentialsManager.accountSummary else { return }
+        isLinkAccountAvailable = !accountSummary.isLinked
     }
 }
 

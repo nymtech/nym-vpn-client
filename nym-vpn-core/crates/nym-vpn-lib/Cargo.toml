@@ -76,7 +76,7 @@ opentelemetry_sdk.workspace = true
 quinn.workspace = true
 quinn-proto.workspace = true
 rand.workspace = true
-reqwest = { workspace = true, features = ["socks", "rustls-tls"] }
+reqwest = { workspace = true, features = ["socks", "rustls"] }
 rustls = { workspace = true, default-features = false, features = [
     "std",
     "ring",

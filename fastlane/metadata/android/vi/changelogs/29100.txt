@@ -1,0 +1,7 @@
+Có gì mới:
+- Thiết Lập Tài Khoản: Hỗ trợ tạo và đăng ký tài khoản ngay trong ứng dụng.
+- Tích Hợp Privy: Liên kết tài khoản của bạn dễ dàng hơn với tính năng hỗ trợ Privy mới.
+- Tinh chỉnh Mixnet: Giao diện người dùng mới để tinh chỉnh cài đặt quyền riêng tư và kết nối của bạn.
+- Sửa Lỗi Ổn Định: Khắc phục sự cố VPN luôn bật sau khi khởi động lại hệ thống và sửa lỗi ứng dụng bị sập.
+- Kết Nối Tốt Hơn: Cải thiện kiến ​​trúc VPN để kết nối lại đáng tin cậy và linh hoạt hơn, cùng với giao diện thông tin tài khoản được cập nhật.
+- Cập nhật quy trình dịch thuật.

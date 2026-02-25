@@ -144,7 +144,7 @@ jobs:
           chmod 600 ${{ env.SSH_KEY_PATH }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
 

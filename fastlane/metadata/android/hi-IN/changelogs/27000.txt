@@ -1,9 +1,9 @@
-What’s new
-- New onboarding flow for first-time users
-- Technical opt-in screen shown after login or purchase
-- Locale support for high/low copy on the Details screen
-Changes
-- Switched to passphrase-based authentication
-- Replaced “gateway” with “server” across the app
-- Improved connection reliability (smarter reconnect, LAN bypass, split tunneling, Custom DNS)
-- More consistent censorship-handling logic
+क्या नया है
+- पहली बार उपयोग करने वाले यूज़र्ज़ के लिए नई ऑनबोर्डिंग प्रक्रिया
+लॉगिन या खरीदारी के बाद तकनीकी सहमति स्क्रीन दिखाई देती है
+- विवरण स्क्रीन पर उच्च/निम्न प्रतिलिपि के लिए स्थानीय भाषा समर्थन
+परिवर्तन
+- पासफ़्रेज़-आधारित प्रमाणीकरण पर स्विच किया गया
+- ऐप में “गेटवे” को “सर्वर” से बदल दिया गया है
+- बेहतर कनेक्शन विश्वसनीयता (स्मार्टर रिकनेक्ट, LAN बाईपास, स्प्लिट टनलिंग, कस्टम DNS)
+- सेंसरशिप से निपटने के लिए अधिक सुसंगत तर्क

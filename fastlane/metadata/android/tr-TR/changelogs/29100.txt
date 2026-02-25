@@ -1,0 +1,7 @@
+Yenilikler:
+- Hesap Kurulumu: Uygulama içi hesap oluşturma ve kayıt desteği eklendi.
+- Privy Entegrasyonu: Yeni Privy desteğiyle hesaplarınızı kolayca bağlayın.
+- Mixnet Ayarları: Gizlilik ve bağlantı tercihlerinizi kolayca özelleştirmenizi sağlayan yeni kullanıcı arayüzü.
+- Kararlılık Düzeltmeleri: Sistem yeniden başlatıldıktan sonra Always-On VPN sorunları giderildi ve uygulama çökme problemleri düzeltildi.
+- Daha İyi Bağlantı: VPN altyapısı daha güvenilir ve dinamik yeniden bağlantılar sağlayacak şekilde iyileştirildi; Hesap Bilgileri arayüzü de güncellendi.
+- Çeviri iş akışı güncellendi.
