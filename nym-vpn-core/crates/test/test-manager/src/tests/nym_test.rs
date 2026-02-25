@@ -6,29 +6,32 @@ use crate::tests::{
     TestContext, account_nym::forget_current_device, config_nym::TEST_CONFIG_NYM, helpers_nym,
 };
 use anyhow::{Context, bail, ensure};
-use nym_vpn_lib_types::{AccountControllerState, TunnelState};
+use helpers_nym::ExpectedTunnelState;
+use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::time::Duration;
 use test_macro::test_function_nym;
 use test_rpc::NymServiceClient;
-use tokio::time::Instant;
 
 /// Poll `is_account_stored()` until it returns `true`, or bail after `timeout`.
 pub async fn wait_for_account_stored(
     nym_proxy_client: &mut NymProxyClient,
     timeout: Duration,
 ) -> anyhow::Result<()> {
-    let started = Instant::now();
-    loop {
-        if nym_proxy_client.is_account_stored().await? {
-            log::debug!("Account stored confirmed");
-            return Ok(());
+    tokio::time::timeout(timeout, async {
+        loop {
+            match nym_proxy_client.is_account_stored().await {
+                Ok(true) => {
+                    log::debug!("Account stored confirmed");
+                    return Ok(());
+                }
+                Ok(false) => continue,
+                Err(e) => bail!("Failed to check if account was stored: {e}"),
+            }
         }
-        if Instant::now() > started + timeout {
-            bail!("Account was not stored after {}s", timeout.as_secs());
-        }
-        tokio::time::sleep(Duration::from_secs(5)).await;
-    }
+    })
+    .await
+    .map_err(anyhow::Error::msg)?
 }
 
 #[test_function_nym]
@@ -37,9 +40,6 @@ pub async fn test_account_and_tunnel_roundtrip(
     rpc: NymServiceClient,
     mut nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    log::info!(
-        "test_account_and_tunnel_roundtrip: account store, tunnel connect/disconnect, device & usage check"
-    );
     prepare_daemon_nym(&mut nym_proxy_client, false).await?;
 
     // Store account
@@ -75,7 +75,8 @@ pub async fn test_account_and_tunnel_roundtrip(
     // Connect tunnel
     log::info!("Connecting tunnel...");
     nym_proxy_client.connect_tunnel_friendly().await?;
-    wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Connected).await?;
+    helpers_nym::wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Connected)
+        .await?;
 
     // DNS resolution while connected (runs inside VM via tarpc)
     let hostnames_to_test = ["nym.com", "google.com"];
@@ -96,7 +97,8 @@ pub async fn test_account_and_tunnel_roundtrip(
     // Disconnect tunnel
     log::info!("Disconnecting tunnel...");
     nym_proxy_client.disconnect_tunnel().await?;
-    wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Disconnected).await?;
+    helpers_nym::wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Disconnected)
+        .await?;
 
     // Verify devices
     let devices = nym_proxy_client
@@ -134,62 +136,7 @@ pub async fn test_account_and_tunnel_roundtrip(
         );
     }
 
-    log::info!("test_account_and_tunnel_roundtrip: PASSED");
     Ok(())
-}
-
-#[derive(Debug, PartialEq)]
-pub enum ExpectedTunnelState {
-    Connected,
-    Disconnected,
-    Connecting,
-    Disconnecting,
-    Offline,
-    Error(String),
-}
-
-impl From<TunnelState> for ExpectedTunnelState {
-    fn from(value: TunnelState) -> Self {
-        match value {
-            TunnelState::Connected { .. } => ExpectedTunnelState::Connected,
-            TunnelState::Disconnected { .. } => ExpectedTunnelState::Disconnected,
-            TunnelState::Connecting { .. } => ExpectedTunnelState::Connecting,
-            TunnelState::Disconnecting { .. } => ExpectedTunnelState::Disconnecting,
-            TunnelState::Offline { .. } => ExpectedTunnelState::Offline,
-            TunnelState::Error(reason) => ExpectedTunnelState::Error(reason.to_string()),
-        }
-    }
-}
-
-pub async fn wait_for_tunnel_state(
-    nym_proxy_client: &mut NymProxyClient,
-    expected_state: ExpectedTunnelState,
-) -> anyhow::Result<()> {
-    wait_for_tunnel_state_with_timeout(nym_proxy_client, expected_state, Duration::from_secs(60))
-        .await
-}
-
-pub async fn wait_for_tunnel_state_with_timeout(
-    nym_proxy_client: &mut NymProxyClient,
-    expected_state: ExpectedTunnelState,
-    timeout: Duration,
-) -> anyhow::Result<()> {
-    let started = Instant::now();
-
-    loop {
-        let current_state: ExpectedTunnelState = nym_proxy_client.get_tunnel_state().await?.into();
-        if current_state == expected_state {
-            log::debug!("✅ Tunnel state {current_state:?} reached!");
-            return Ok(());
-        } else if Instant::now() > started + timeout {
-            bail!(
-                "Couldn't reach {expected_state:?} state in {}s",
-                timeout.as_secs()
-            );
-        }
-        log::debug!("Tunnel state: {current_state:?} (expecting {expected_state:?})");
-        tokio::time::sleep(Duration::from_secs(5)).await;
-    }
 }
 
 pub async fn wait_for_account_state(
@@ -197,22 +144,31 @@ pub async fn wait_for_account_state(
     expected_state: AccountControllerState,
 ) -> anyhow::Result<()> {
     let timeout = Duration::from_secs(60);
-    let started = Instant::now();
 
-    loop {
-        let current_state = nym_proxy_client.get_account_state().await?;
-        if current_state == expected_state {
-            log::debug!("Account state {current_state} reached!");
-            return Ok(());
-        } else if Instant::now() > started + timeout {
-            bail!(
-                "Couldn't reach {expected_state:?} in {}s",
-                timeout.as_secs()
-            );
+    tokio::time::timeout(timeout, async {
+        loop {
+            match nym_proxy_client.get_account_state().await {
+                Ok(current_state) => {
+                    if current_state.eq(&expected_state) {
+                        log::debug!("Account state {current_state} reached!");
+                        return Ok(());
+                    } else {
+                        log::debug!(
+                            "Account state: {current_state:?} (expecting {expected_state:?})"
+                        );
+                    }
+                }
+                Err(e) => bail!("Failed to get account state: {e}"),
+            }
         }
-        log::debug!("Account state: {current_state:?} (expecting {expected_state:?})");
-        tokio::time::sleep(Duration::from_secs(5)).await;
-    }
+    })
+    .await
+    .map_err(|_| {
+        anyhow::anyhow!(
+            "Account state listener timed out after {}s",
+            timeout.as_secs()
+        )
+    })?
 }
 
 /// Make sure the daemon is installed and logged in and restore settings to the defaults.

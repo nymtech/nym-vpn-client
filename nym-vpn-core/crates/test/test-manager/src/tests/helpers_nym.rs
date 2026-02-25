@@ -2,16 +2,14 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{
-    Error, TestContext, WAIT_FOR_TUNNEL_STATE_TIMEOUT, config_nym::TEST_CONFIG_NYM, helpers_nym,
-};
+use super::{Error, TestContext, WAIT_FOR_TUNNEL_STATE_TIMEOUT, config_nym::TEST_CONFIG_NYM};
 use crate::{
     network_monitor::{
         self, MonitorOptions, MonitorUnexpectedlyStopped, PacketMonitor, start_packet_monitor,
     },
     nym_daemon::RpcClientProvider,
 };
-use anyhow::{Context, anyhow, bail};
+use anyhow::Context;
 use futures::StreamExt;
 use nym_vpn_lib_types::{TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
@@ -24,6 +22,29 @@ use std::{
 };
 use test_rpc::{NymServiceClient, nym_daemon::ServiceStatus, package::Package};
 use tokio::time::sleep;
+
+#[derive(Debug, PartialEq)]
+pub enum ExpectedTunnelState {
+    Connected,
+    Disconnected,
+    Connecting,
+    Disconnecting,
+    Offline,
+    Error(String),
+}
+
+impl From<TunnelState> for ExpectedTunnelState {
+    fn from(value: TunnelState) -> Self {
+        match value {
+            TunnelState::Connected { .. } => ExpectedTunnelState::Connected,
+            TunnelState::Disconnected { .. } => ExpectedTunnelState::Disconnected,
+            TunnelState::Connecting { .. } => ExpectedTunnelState::Connecting,
+            TunnelState::Disconnecting { .. } => ExpectedTunnelState::Disconnecting,
+            TunnelState::Offline { .. } => ExpectedTunnelState::Offline,
+            TunnelState::Error(reason) => ExpectedTunnelState::Error(reason.to_string()),
+        }
+    }
+}
 
 pub const THROTTLE_RETRY_DELAY: Duration = Duration::from_secs(120);
 
@@ -304,7 +325,7 @@ pub fn get_interface_mac(interface: &str) -> anyhow::Result<Option<[u8; 6]>> {
     if interface_exists {
         Ok(mac_addr)
     } else {
-        bail!("Interface not found: {interface:?}")
+        anyhow::bail!("Interface not found: {interface:?}")
     }
 }
 
@@ -314,7 +335,7 @@ pub fn get_interface_index(interface: &str) -> anyhow::Result<std::ffi::c_uint> 
     use nix::errno::Errno;
     use std::ffi::CString;
 
-    let interface = CString::new(interface).context(anyhow!(
+    let interface = CString::new(interface).context(anyhow::anyhow!(
         "Failed to turn interface name {interface:?} into cstr"
     ))?;
 
@@ -422,9 +443,11 @@ pub async fn disconnect_and_wait(nym_client: &mut NymProxyClient) -> Result<(), 
     log::trace!("Disconnecting");
     nym_client.disconnect_tunnel().await?;
 
-    wait_for_tunnel_state_(nym_client.clone(), |state| {
-        matches!(state, TunnelState::Disconnected { .. })
-    })
+    wait_for_tunnel_state_fn(
+        nym_client,
+        |state| matches!(state, TunnelState::Disconnected { .. }),
+        WAIT_FOR_TUNNEL_STATE_TIMEOUT,
+    )
     .await?;
 
     log::trace!("Disconnected");
@@ -432,12 +455,14 @@ pub async fn disconnect_and_wait(nym_client: &mut NymProxyClient) -> Result<(), 
     Ok(())
 }
 
-async fn wait_for_tunnel_state_(
-    mut rpc: NymProxyClient,
+/// Wait for the tunnel to reach a state accepted by `accept_state_fn`, using the daemon event
+/// stream. We subscribe to events before checking the current state, so no transitions are missed.
+pub async fn wait_for_tunnel_state_fn(
+    rpc: &mut NymProxyClient,
     accept_state_fn: impl Fn(&TunnelState) -> bool,
+    timeout: Duration,
 ) -> Result<TunnelState, Error> {
-    // TODO dz do we need this?
-    let events = rpc
+    let mut events = rpc
         .listen_to_events()
         .await
         .map_err(|status| Error::Daemon(format!("Failed to get event stream: {status}")))?;
@@ -447,48 +472,56 @@ async fn wait_for_tunnel_state_(
         .await
         .map_err(|error| Error::Daemon(format!("Failed to get tunnel state: {error:?}")))?;
 
+    log::debug!("Current tunnel state: {state:?}");
+
     if accept_state_fn(&state) {
         return Ok(state);
     }
 
-    find_next_tunnel_state(events, accept_state_fn).await
+    tokio::time::timeout(timeout, async {
+        loop {
+            match events.next().await {
+                Some(Ok(TunnelEvent::NewState(state))) if accept_state_fn(&state) => {
+                    log::debug!("Reached expected tunnel state: {state:?}");
+                    break Ok(state);
+                }
+                Some(Ok(event)) => {
+                    log::debug!("Ignoring tunnel event: {event:?}");
+                    continue;
+                }
+                Some(Err(status)) => {
+                    break Err(Error::Daemon(format!("Failed to get next event: {status}")));
+                }
+                None => break Err(Error::Daemon(String::from("Lost daemon event stream"))),
+            }
+        }
+    })
+    .await
+    .map_err(|_| Error::Daemon(String::from("Tunnel event listener timed out")))?
 }
 
-pub async fn find_next_tunnel_state(
-    stream: impl futures::Stream<Item = Result<TunnelEvent, NymClientError>> + Unpin,
-    accept_state_fn: impl Fn(&TunnelState) -> bool,
+pub async fn wait_for_tunnel_state(
+    rpc: &mut NymProxyClient,
+    expected: ExpectedTunnelState,
 ) -> Result<TunnelState, Error> {
-    tokio::time::timeout(
-        WAIT_FOR_TUNNEL_STATE_TIMEOUT,
-        find_daemon_event(stream, |daemon_event| match daemon_event {
-            TunnelEvent::NewState(state) if accept_state_fn(&state) => Some(state),
-            _ => None,
-        }),
+    wait_for_tunnel_state_with_timeout(rpc, expected, Duration::from_secs(60)).await
+}
+
+async fn wait_for_tunnel_state_with_timeout(
+    rpc: &mut NymProxyClient,
+    expected: ExpectedTunnelState,
+    timeout: Duration,
+) -> Result<TunnelState, Error> {
+    log::debug!(
+        "Waiting for tunnel state: {expected:?} (timeout: {}s)",
+        timeout.as_secs()
+    );
+    wait_for_tunnel_state_fn(
+        rpc,
+        move |state| ExpectedTunnelState::from(state.clone()) == expected,
+        timeout,
     )
     .await
-    .map_err(|_error| Error::Daemon(String::from("Tunnel event listener timed out")))?
-}
-
-// TODO dz does this work for nym?
-pub async fn find_daemon_event<Accept, AcceptedEvent>(
-    mut event_stream: impl futures::Stream<Item = Result<TunnelEvent, NymClientError>> + Unpin,
-    accept_event: Accept,
-) -> Result<AcceptedEvent, Error>
-where
-    Accept: Fn(TunnelEvent) -> Option<AcceptedEvent>,
-{
-    loop {
-        match event_stream.next().await {
-            Some(Ok(daemon_event)) => match accept_event(daemon_event) {
-                Some(accepted_event) => break Ok(accepted_event),
-                None => continue,
-            },
-            Some(Err(status)) => {
-                break Err(Error::Daemon(format!("Failed to get next event: {status}")));
-            }
-            None => break Err(Error::Daemon(String::from("Lost daemon event stream"))),
-        }
-    }
 }
 
 /// Set environment variables specified by `env` and restart the Nym daemon.

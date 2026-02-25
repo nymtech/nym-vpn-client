@@ -3,10 +3,8 @@
 
 use crate::tests::{
     TestContext,
-    nym_test::{
-        ExpectedTunnelState, prepare_daemon_nym, wait_for_account_state, wait_for_tunnel_state,
-        wait_for_tunnel_state_with_timeout,
-    },
+    helpers_nym::{ExpectedTunnelState, wait_for_tunnel_state},
+    nym_test::{prepare_daemon_nym, wait_for_account_state},
 };
 use anyhow::{Context, bail, ensure};
 use nym_vpn_lib_types::{
@@ -228,12 +226,7 @@ pub async fn test_mixnet_connect_disconnect(
     // Connect with longer timeout for mixnet
     log::info!("Connecting Mixnet tunnel (this may take longer)...");
     nym_client.connect_tunnel_friendly().await?;
-    wait_for_tunnel_state_with_timeout(
-        &mut nym_client,
-        ExpectedTunnelState::Connected,
-        Duration::from_secs(120),
-    )
-    .await?;
+    wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
 
     // Verify tunnel type
     let state = nym_client.get_tunnel_state().await?;
