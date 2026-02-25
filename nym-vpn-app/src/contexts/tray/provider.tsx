@@ -87,7 +87,10 @@ export function TrayProvider({ children }: TrayProviderProps) {
   const getNodeDisplayValue = useCallback(
     (node: SelectedNode, gateway: Gateway | null) => {
       let displayValue: string | null | undefined;
-      if (node === 'random') {
+      if (gateway) {
+        const location = `${gateway.location.city}, ${getCountryName(gateway.country.code)}`;
+        displayValue = `${gateway.name} (${location})`;
+      } else if (node === 'random') {
         displayValue = t('random');
       } else if (isCountry(node)) {
         displayValue = getCountryName(node.country.code);
@@ -96,9 +99,6 @@ export function TrayProvider({ children }: TrayProviderProps) {
           regionToCountryCode(node.region) || 'US',
         );
         displayValue = `${node.region}, ${country}`;
-      } else if (gateway) {
-        const location = `${gateway.location.city}, ${getCountryName(gateway.country.code)}`;
-        displayValue = `${gateway.name} (${location})`;
       }
       return displayValue;
     },
