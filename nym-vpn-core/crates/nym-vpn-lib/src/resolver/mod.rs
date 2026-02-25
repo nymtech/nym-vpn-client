@@ -294,15 +294,15 @@ impl Resolver {
             tracing::trace!("Blocking DNS query for {qname} with strategy {decision:?}");
         }
 
-        match decision {
+        let result: Box<dyn LookupObject> = match decision {
             DnsFilterDecision::Pass => {
                 let lookup = resolver
                     .lookup(return_query.name().clone(), return_query.query_type())
                     .await;
 
-                lookup.map(|lookup| Box::new(ForwardLookup(lookup)) as Box<_>)
+                lookup.map(|lookup| Box::new(ForwardLookup(lookup)))?
             }
-            DnsFilterDecision::Block(DnsFilterStrategy::EmptyRecord) => Ok(Box::new(EmptyLookup)),
+            DnsFilterDecision::Block(DnsFilterStrategy::EmptyRecord) => Box::new(EmptyLookup),
             DnsFilterDecision::Block(DnsFilterStrategy::Localhost) => {
                 let rdata = match return_query.query_type() {
                     RecordType::A => RData::A(rdata::A(Ipv4Addr::LOCALHOST)),
@@ -310,7 +310,7 @@ impl Resolver {
                     RecordType::CNAME => RData::CNAME(rdata::CNAME(Name::from_str("localhost.")?)),
                     other => {
                         tracing::warn!("Unsupported query type {other} for domain {qname}");
-                        return Ok(Box::new(EmptyLookup));
+                        return Ok(Box::new(EmptyLookup) as Box<dyn LookupObject>);
                     }
                 };
 
@@ -322,9 +322,11 @@ impl Resolver {
                     Arc::new([return_record]),
                     Instant::now() + Duration::from_secs(3),
                 );
-                Ok(Box::new(ForwardLookup(lookup)) as Box<_>)
+                Box::new(ForwardLookup(lookup))
             }
-        }
+        };
+
+        Ok(result)
     }
 }
 
