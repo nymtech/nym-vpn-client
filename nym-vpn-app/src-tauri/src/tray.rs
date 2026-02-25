@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use anyhow::Result;
 use strum::AsRefStr;
 use tauri::{
@@ -7,6 +9,7 @@ use tauri::{
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
 };
+use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::{debug, error, info, instrument, trace, warn};
 
 #[cfg(not(target_os = "linux"))]
@@ -22,6 +25,7 @@ const CONNECTED_ICON: Image<'_> = include_image!("icons/tray_icon_connected.png"
 const CONNECTING_ICON: Image<'_> = include_image!("icons/tray_icon_connecting.png");
 const DISCONNECTED_ICON: Image<'_> = include_image!("icons/tray_icon_disconnected.png");
 const ERROR_ICON: Image<'_> = include_image!("icons/tray_icon_error.png");
+const ICON_DEBOUNCE: Duration = Duration::from_millis(300);
 
 #[derive(AsRefStr, Debug)]
 enum MenuItemId {
@@ -34,6 +38,7 @@ enum MenuItemId {
 }
 
 pub struct TrayManager {
+    app: AppHandle,
     tray: TrayIcon,
     show_hide: MenuItem<Wry>,
     quit: MenuItem<Wry>,
@@ -41,6 +46,7 @@ pub struct TrayManager {
     mode: MenuItem<Wry>,
     entry: MenuItem<Wry>,
     exit: MenuItem<Wry>,
+    icon_debounce: Mutex<Option<JoinHandle<()>>>,
 }
 
 impl TrayManager {
@@ -119,6 +125,7 @@ impl TrayManager {
             .ok();
 
         Ok(Self {
+            app: app.clone(),
             tray,
             show_hide,
             quit,
@@ -126,31 +133,38 @@ impl TrayManager {
             mode,
             entry,
             exit,
+            icon_debounce: Mutex::new(None),
         })
+    }
+
+    fn apply_icon(&self, state: &TunnelState) {
+        let icon = match state {
+            TunnelState::Connected(_) => CONNECTED_ICON,
+            TunnelState::Connecting(_) | TunnelState::Disconnecting(_) => CONNECTING_ICON,
+            TunnelState::Disconnected => DISCONNECTED_ICON,
+            TunnelState::Error(_) | TunnelState::Offline { .. } => ERROR_ICON,
+        };
+        self.tray.set_icon(Some(icon)).ok();
+    }
+
+    async fn cancel_icon_debounce(&self) {
+        if let Some(handle) = self.icon_debounce.lock().await.take() {
+            handle.abort();
+        }
     }
 
     #[instrument(skip_all)]
     pub async fn update_tray_icon(&self, state: TunnelState) {
-        match state {
-            TunnelState::Connected(_) => {
-                self.tray.set_icon(Some(CONNECTED_ICON)).ok();
-            }
-            TunnelState::Connecting(_) => {
-                self.tray.set_icon(Some(CONNECTING_ICON)).ok();
-            }
-            TunnelState::Disconnected => {
-                self.tray.set_icon(Some(DISCONNECTED_ICON)).ok();
-            }
-            TunnelState::Disconnecting(_) => {
-                self.tray.set_icon(Some(CONNECTING_ICON)).ok();
-            }
-            TunnelState::Error(_) => {
-                self.tray.set_icon(Some(ERROR_ICON)).ok();
-            }
-            TunnelState::Offline { reconnect: _ } => {
-                self.tray.set_icon(Some(ERROR_ICON)).ok();
-            }
+        let mut pending = self.icon_debounce.lock().await;
+        if let Some(handle) = pending.take() {
+            handle.abort();
         }
+        let app = self.app.clone();
+        *pending = Some(tokio::spawn(async move {
+            tokio::time::sleep(ICON_DEBOUNCE).await;
+            let tray = app.state::<TrayManager>();
+            tray.apply_icon(&state);
+        }));
     }
 
     pub async fn manual_tray_icon_update(&self, state: String) {
