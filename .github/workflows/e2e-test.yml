@@ -272,7 +272,7 @@ jobs:
              NYM_TEST_VM_CONFIG=debian12_cli \
              TEST_HARNESS_MNEMONIC='${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}' \
              TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
-             TEST_REPORT=/tmp/test-report.json \
+             TEST_REPORT=/tmp/test-report.txt \
              TEST_FILTERS='${{ inputs.test_filters }}' \
              SKIP_TESTS='${{ inputs.skip_tests }}' \
              bash ${{ env.VM_DIST_DIR }}/test.sh run-tests"
@@ -283,15 +283,22 @@ jobs:
           VM_IP: ${{ steps.vm-ip.outputs.ip }}
         run: |
           scp ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
-            ${{ env.VM_USER }}@${VM_IP}:/tmp/test-report.json /tmp/test-report.json 2>/dev/null || \
+            ${{ env.VM_USER }}@${VM_IP}:/tmp/test-report.txt /tmp/test-report.txt 2>/dev/null || \
             echo "No test report found"
+
+      - name: Format test report
+        if: always() && hashFiles('/tmp/test-report.txt') != ''
+        run: |
+          /tmp/dist/test-manager format-test-reports /tmp/test-report.txt > /tmp/test-report.html
 
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: test-report
-          path: /tmp/test-report.json
+          path: |
+            /tmp/test-report.txt
+            /tmp/test-report.html
           if-no-files-found: warn
           retention-days: 30
 
