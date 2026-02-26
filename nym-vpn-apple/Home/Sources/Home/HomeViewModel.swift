@@ -227,7 +227,6 @@ private extension HomeViewModel {
         setupGatewayManagerObserver()
         setupSystemMessageObservers()
         setupIsMnemonicImportedObserver()
-
 #if os(iOS)
         setupConnectionErrorObservers()
         setupNetworkMonitorObservers()
