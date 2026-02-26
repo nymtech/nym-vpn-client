@@ -14,6 +14,8 @@ use tokio_util::sync::CancellationToken;
 
 /// Test whether we can successfully bind the socket even if the address is already used in
 /// different scenarios.
+// Linux requires `SO_REUSEADDR` and `SO_REUSEPORT` to bind to the same address, which is not the case on macOS and Windows.
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 #[tokio::test]
 #[serial_test::serial]
 async fn test_bind() {
