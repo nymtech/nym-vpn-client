@@ -17,25 +17,6 @@ use tokio_util::sync::CancellationToken;
 #[tokio::test]
 #[serial_test::serial]
 async fn test_bind() {
-    // Bind a wildcard socket to create potential collisions.
-    // On Linux, binding to a specific address after a wildcard bind requires SO_REUSEADDR
-    // semantics, so make the collision socket match what we'd expect from another daemon.
-    let addr = SocketAddr::from(([0, 0, 0, 0], DNS_LISTEN_PORT));
-    let _sock = {
-        use socket2::{Domain, Protocol, Socket, Type};
-        let sock = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP))
-            .expect("failed to create wildcard socket");
-        sock.set_reuse_address(true)
-            .expect("failed to set SO_REUSEADDR");
-        #[cfg(unix)]
-        sock.set_reuse_port(true)
-            .expect("failed to set SO_REUSEPORT");
-        sock.bind(&addr.into())
-            .expect("failed to bind wildcard port");
-        let std_sock: std::net::UdpSocket = sock.into();
-        std_sock
-    };
-
     let shutdown_token = CancellationToken::new();
     let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
         .await
@@ -47,7 +28,6 @@ async fn test_bind() {
         .await
         .expect("lookup should succeed");
 
-    drop(_sock);
     shutdown_token.cancel();
     join_handle.await.unwrap();
     tokio::time::sleep(Duration::from_millis(300)).await;
