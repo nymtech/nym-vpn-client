@@ -39,6 +39,7 @@ http-body-util = { workspace = true }
 ipnetwork.workspace = true
 itertools.workspace = true
 log-panics.workspace = true
+lazy_static.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true

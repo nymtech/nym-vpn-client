@@ -6505,6 +6505,7 @@ dependencies = [
  "hyper-util",
  "ipnetwork",
  "itertools 0.14.0",
+ "lazy_static",
  "log-panics",
  "nix 0.31.1",
  "nym-apple-network",
