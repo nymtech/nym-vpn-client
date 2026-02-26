@@ -32,7 +32,6 @@ tokio-util = { workspace = true, features = ["codec"]}
 
 test-rpc = { workspace = true }
 nym-ipc = { workspace = true }
-nym-vpnd = { path = "../../nym-vpnd" }
 
 
 [target.'cfg(unix)'.dependencies]

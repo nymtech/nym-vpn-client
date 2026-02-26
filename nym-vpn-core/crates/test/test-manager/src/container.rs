@@ -2,8 +2,6 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#![cfg(target_os = "linux")]
-
 use tokio::process::Command;
 
 /// Re-launch self with rootlesskit if we're not root.

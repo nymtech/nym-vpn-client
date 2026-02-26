@@ -8,8 +8,9 @@ export CROSS_CONTAINER_ENGINE := docker
 export CROSS_CONFIG           := Cross.toml
 
 .PHONY: check check-linux check-macos \
+		clippy-linux \
         check-runner-linux check-runner-macos check-manager-linux \
-		check-manager-macos clean
+		check-manager-macos
 
 # --- Aggregate targets ---
 
@@ -28,7 +29,11 @@ check-manager-macos:
 	cargo check -p test-manager --target $(MACOS_TARGET)
 
 check-runner-linux:
-	cross check -p test-runner -p connection-checker --target $(LINUX_TARGET)
+	cross check -p test-runner -p test-rpc -p connection-checker --target $(LINUX_TARGET)
 
 check-runner-macos:
-	cargo check -p test-runner -p connection-checker --target $(MACOS_TARGET)
+	cargo check -p test-runner -p test-rpc -p connection-checker --target $(MACOS_TARGET)
+
+clippy-linux:
+	cross clippy -p test-manager -p test-runner -p test-rpc -p connection-checker --target $(LINUX_TARGET) -- -D warnings
+

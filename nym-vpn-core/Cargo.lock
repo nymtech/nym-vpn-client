@@ -10291,7 +10291,6 @@ dependencies = [
  "log",
  "nix 0.31.1",
  "nym-ipc",
- "nym-vpnd",
  "rand 0.8.5",
  "rs-release",
  "serde",
