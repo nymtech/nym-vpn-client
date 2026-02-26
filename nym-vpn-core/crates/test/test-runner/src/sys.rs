@@ -8,9 +8,6 @@ use std::collections::HashMap;
 use test_rpc::nym_daemon::Verbosity;
 
 #[cfg(target_os = "linux")]
-pub(crate) const MULLVAD_SYSTEMD_OVERRIDE_FILE: &str =
-    "/etc/systemd/system/mullvad-daemon.service.d/override.conf";
-
 #[cfg(target_os = "linux")]
 pub(crate) const NYM_VPN_SYSTEMD_OVERRIDE_FILE: &str =
     "/etc/systemd/system/nymvpn.service.d/override.conf";

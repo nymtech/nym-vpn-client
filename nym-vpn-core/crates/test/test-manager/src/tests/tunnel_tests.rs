@@ -412,13 +412,13 @@ async fn check_dns_leak_bash_ws(
     );
 
     for entry in &dns_entries {
-        if let Some(ip) = entry.get("ip").and_then(|v| v.as_str()) {
-            if pre_vpn_nameservers.contains(&ip.to_string()) {
-                bail!(
-                    "DNS LEAK DETECTED: bash.ws observed resolver {} which matches a pre-VPN nameserver",
-                    ip
-                );
-            }
+        if let Some(ip) = entry.get("ip").and_then(|v| v.as_str())
+            && pre_vpn_nameservers.contains(&ip.to_string())
+        {
+            bail!(
+                "DNS LEAK DETECTED: bash.ws observed resolver {} which matches a pre-VPN nameserver",
+                ip
+            );
         }
     }
     log::info!(

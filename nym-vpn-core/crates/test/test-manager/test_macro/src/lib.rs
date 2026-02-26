@@ -141,7 +141,6 @@ fn get_test_macro_parameters(attributes: &syn::AttributeArgs) -> Result<MacroPar
     Ok(MacroParameters { priority, targets })
 }
 
-
 fn create_test_nym(test_function: TestFunction) -> proc_macro2::TokenStream {
     let test_function_priority = match test_function.macro_parameters.priority {
         Some(priority) => quote! { Some(#priority) },
@@ -167,7 +166,6 @@ fn create_test_nym(test_function: TestFunction) -> proc_macro2::TokenStream {
             })
         }
     };
-
 
     quote! {
         inventory::submit!(crate::tests::test_metadata::TestMetadata {

@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::TestWrapperFunctionNym;
-use std::pin::Pin;
 use test_rpc::meta::Os;
 
 #[derive(Clone, Debug)]

@@ -386,8 +386,8 @@ impl NymServiceClient {
     /// - `Result::Ok(env)` if the current environment variables could be read.
     /// - `Result::Err(Error)` if communication with the daemon failed or the environment values
     ///   could not be parsed.
-    /// This reads overrides to default env variables defined for that systemd service, not the process'
-    /// currently set environment.
+    ///   This reads overrides to default env variables defined for that systemd service, not the process'
+    ///   currently set environment.
     pub async fn get_daemon_environment_overrides(&self) -> Result<HashMap<String, String>, Error> {
         let env = self
             .client

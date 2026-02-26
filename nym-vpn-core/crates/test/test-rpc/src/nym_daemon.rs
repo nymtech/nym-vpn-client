@@ -5,7 +5,6 @@
 use serde::{Deserialize, Serialize};
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-pub const MULLVAD_SOCKET_PATH: &str = "/var/run/mullvad-vpn";
 pub const NYMVPN_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
 
 #[cfg(windows)]

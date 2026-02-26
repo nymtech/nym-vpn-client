@@ -23,7 +23,7 @@ const WAIT_FOR_TUNNEL_STATE_TIMEOUT: Duration = Duration::from_secs(40);
 
 #[derive(Clone)]
 pub struct TestContext {
-    pub rpc_provider: RpcClientProvider,
+    pub _rpc_provider: RpcClientProvider,
 }
 
 pub type TestWrapperFunctionNym = fn(
@@ -37,23 +37,11 @@ pub enum Error {
     #[error("RPC call failed")]
     Rpc(#[from] test_rpc::Error),
 
-    #[error("geoip lookup failed")]
-    GeoipLookup(#[source] test_rpc::Error),
-
-    #[error("Found running daemon unexpectedly")]
-    DaemonRunning,
-
-    #[error("Daemon unexpectedly not running")]
-    DaemonNotRunning,
-
     #[error("The daemon returned an error: {0}")]
     Daemon(String),
 
     #[error("Nym gRPC client ran into an error: {0}")]
     NymManagementInterface(#[from] nym_vpn_proto::rpc_client::Error),
-
-    #[error("GUI test binary missing")]
-    MissingGuiTest,
 
     #[error("An error occurred: {0}")]
     Other(#[from] anyhow::Error),

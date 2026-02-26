@@ -16,15 +16,13 @@ use std::{
 };
 use tokio_rustls::rustls::{self, ClientConfig};
 
-
-  static CLIENT_CONFIG: LazyLock<ClientConfig> = LazyLock::new(|| {
-      ClientConfig::builder_with_provider(Arc::new(rustls::crypto::ring::default_provider()))
-          .with_safe_default_protocol_versions()
-          .unwrap()
-          .with_root_certificates(read_cert_store())
-          .with_no_client_auth()
-  });
-
+static CLIENT_CONFIG: LazyLock<ClientConfig> = LazyLock::new(|| {
+    ClientConfig::builder_with_provider(Arc::new(rustls::crypto::ring::default_provider()))
+        .with_safe_default_protocol_versions()
+        .unwrap()
+        .with_root_certificates(read_cert_store())
+        .with_no_client_auth()
+});
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct SockHandleId(pub usize);
@@ -107,13 +105,13 @@ pub async fn http_get<T: DeserializeOwned>(url: Uri) -> Result<T, Error> {
         .collect()
         .await
         .map_err(|error| {
-            log::error!("Failed to collect response body: {}", error);
+            log::error!("Failed to collect response body: {error}");
             Error::DeserializeBody
         })?
         .to_bytes();
 
     serde_json::from_slice(&bytes).map_err(|error| {
-        log::error!("Failed to deserialize response: {}", error);
+        log::error!("Failed to deserialize response: {error}");
         Error::DeserializeBody
     })
 }
@@ -126,7 +124,6 @@ pub async fn http_get_with_timeout<T: DeserializeOwned>(
         .await
         .map_err(|_| Error::HttpRequest("Request timed out".into()))?
 }
-
 
 fn read_cert_store() -> rustls::RootCertStore {
     let mut cert_store = rustls::RootCertStore::empty();

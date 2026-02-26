@@ -2,7 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::Ipv4Addr, ops::Deref, path::Path, sync::OnceLock};
+use std::{net::Ipv4Addr, ops::Deref, sync::OnceLock};
 use test_rpc::meta::Os;
 
 pub static TEST_CONFIG_NYM: TestConfigContainer = TestConfigContainer::new();
@@ -19,11 +19,9 @@ pub const BOOTSTRAP_SCRIPT: &[u8] = include_bytes!(concat!(
 #[derive(Debug, Clone)]
 pub struct TestConfigNym {
     pub mnemonic: String,
-
-    pub artifacts_dir: String,
-
-    pub host_bridge_name: String,
-    pub host_bridge_ip: Ipv4Addr,
+    pub _artifacts_dir: String,
+    pub _host_bridge_name: String,
+    pub _host_bridge_ip: Ipv4Addr,
     pub os: Os,
 }
 
@@ -39,29 +37,11 @@ impl TestConfigNym {
     ) -> Self {
         Self {
             mnemonic,
-            artifacts_dir,
-            host_bridge_name,
-            host_bridge_ip,
+            _artifacts_dir: artifacts_dir,
+            _host_bridge_name: host_bridge_name,
+            _host_bridge_ip: host_bridge_ip,
             os,
         }
-    }
-}
-
-/// A script which should be run *in* the test runner before the test run begins.
-#[derive(Clone, Debug)]
-pub struct BootstrapScript(Vec<u8>);
-
-impl Deref for BootstrapScript {
-    type Target = [u8];
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl Default for BootstrapScript {
-    fn default() -> Self {
-        Self(Vec::from(BOOTSTRAP_SCRIPT))
     }
 }
 

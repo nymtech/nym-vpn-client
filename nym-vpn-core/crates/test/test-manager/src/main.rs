@@ -3,11 +3,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod config;
+#[cfg(target_os = "linux")]
 mod container;
 mod logging;
-mod network_monitor;
 mod nym_daemon;
-mod package;
 mod run_tests;
 mod summary;
 mod tests;
@@ -74,26 +73,6 @@ enum Commands {
         /// mnemonic in the form of 24 words to use in testing
         #[arg(long)]
         nym_mnemonic: String,
-
-        /// Given this argument, the `test_upgrade_app` test will run, which installs the previous
-        /// version then upgrades to the version specified in by `--app-package`. If left empty,
-        /// the test will be skipped. Parsed the same way as `--app-package`.
-        ///
-        /// # Note
-        ///
-        /// The CLI interface must be compatible with the upgrade test.
-        #[arg(long)]
-        app_package_to_upgrade_from: Option<String>,
-
-        /// Package used for GUI tests. Parsed the same way as `--app-package`.
-        /// If not specified, will look for a package matching the version of the app package. If
-        /// no such package is found, the GUI tests will fail.
-        #[arg(long)]
-        gui_package: Option<String>,
-
-        /// Folder to search for packages. Defaults to current directory.
-        #[arg(long, value_name = "DIR")]
-        package_dir: Option<PathBuf>,
 
         /// Names of tests to not run. Any tests given here will be skipped.
         #[arg(long)]
@@ -266,9 +245,6 @@ async fn main() -> Result<()> {
             keep_changes,
             vnc,
             nym_mnemonic,
-            app_package_to_upgrade_from,
-            gui_package,
-            package_dir,
             skip,
             test_filters,
             verbose,

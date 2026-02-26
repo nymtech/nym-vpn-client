@@ -4,7 +4,6 @@
 
 use crate::{
     config::{OsType, Provisioner, VmConfig},
-    package,
     tests::config_nym::BOOTSTRAP_SCRIPT,
 };
 use anyhow::{Context, Result, bail};
@@ -74,13 +73,14 @@ async fn provision_ssh(
                 os_type,
                 &local_runner_dir,
             );
-            if started.elapsed() < SSH_TIMEOUT {
-                if let Err(err) = last_result {
-                    log::error!("Failed to provision over SSH: {err}, retrying...");
-                    std::thread::sleep(Duration::from_secs(5));
-                    continue;
-                }
+            if started.elapsed() < SSH_TIMEOUT
+                && let Err(err) = last_result
+            {
+                log::error!("Failed to provision over SSH: {err}, retrying...");
+                std::thread::sleep(Duration::from_secs(5));
+                continue;
             }
+
             break last_result;
         }
     })

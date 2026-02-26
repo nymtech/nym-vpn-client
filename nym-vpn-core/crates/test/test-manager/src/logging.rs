@@ -214,7 +214,10 @@ impl TestOutput {
     pub fn print(&self) {
         match &self.result {
             TestResult::Pass => {
-                println_with_time!("{}", format!("[TEST] {} SUCCEEDED! ✅", self.test_name).green());
+                println_with_time!(
+                    "{}",
+                    format!("[TEST] {} SUCCEEDED! ✅", self.test_name).green()
+                );
                 return;
             }
             TestResult::Fail(e) => {

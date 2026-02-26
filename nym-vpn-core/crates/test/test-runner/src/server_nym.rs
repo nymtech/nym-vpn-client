@@ -28,6 +28,7 @@ use tokio::{
     time::sleep,
 };
 
+#[cfg(target_os = "linux")]
 const NYM_SYSTEMD_SERVICE_NAME: &str = "nymvpnd.service";
 
 #[derive(Clone, Default)]
@@ -123,7 +124,6 @@ impl Service for NymTestServer {
         Ok(result)
     }
 
-    /// TODO dz refers to Nym daemon in this case
     async fn nymvpn_daemon_get_status(
         self,
         _: context::Context,

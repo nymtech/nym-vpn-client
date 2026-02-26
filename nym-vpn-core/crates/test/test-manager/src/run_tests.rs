@@ -6,7 +6,7 @@ use crate::{
     logging::{Logger, Panic, TestOutput, TestResult},
     nym_daemon::{self, RpcClientProvider},
     summary::SummaryLogger,
-    tests::{TestContext, TestMetadata, TestWrapperFunctionNym, nym_test},
+    tests::{TestContext, TestMetadata, TestWrapperFunctionNym},
     vm,
 };
 use anyhow::{Context, Result};
@@ -52,7 +52,7 @@ impl TestHandler<'_> {
             test,
             test_name,
             TestContext {
-                rpc_provider: self.rpc_provider.clone(),
+                _rpc_provider: self.rpc_provider.clone(),
             },
         )
         .await;
@@ -113,19 +113,21 @@ pub async fn run(
 
     log::debug!("Connecting to PTY at {pty_path}");
 
+    let timeout = Duration::from_secs(60 * 5);
     // one serial connection for all communications with the test-runner
-    let serial_stream = loop {
-        // TODO dz undo infinite retries once code stabilizes
-        match tokio_serial::SerialStream::open(&tokio_serial::new(pty_path, BAUD)) {
-            Ok(stream) => break stream,
-            Err(err) => {
-                if err.description.to_lowercase().contains("resource busy") {}
-                log::warn!("{err}, retrying...");
-                tokio::time::sleep(Duration::from_secs(15)).await;
-                continue;
+    let serial_stream = tokio::time::timeout(timeout, async {
+        loop {
+            match tokio_serial::SerialStream::open(&tokio_serial::new(pty_path, BAUD)) {
+                Ok(stream) => break stream,
+                Err(err) => {
+                    log::warn!("{err}, retrying...");
+                    tokio::time::sleep(Duration::from_secs(15)).await;
+                    continue;
+                }
             }
         }
-    };
+    })
+    .await?;
     // runner transport - for tarpc test RPC calls to test-rpc
     // daemon transport - for gRPC calls to Nym daemon
     let (runner_transport, daemon_transport, mut connection_handle, completion_handle) =
@@ -261,16 +263,5 @@ pub async fn run_test_function(
         test_name,
         error_messages: output,
         result,
-    }
-}
-
-async fn print_os_version(client: &NymServiceClient) {
-    match client.get_os_version().await {
-        Ok(version) => {
-            log::debug!("Guest OS version: {version}");
-        }
-        Err(error) => {
-            log::debug!("Failed to obtain guest OS version: {error}");
-        }
     }
 }

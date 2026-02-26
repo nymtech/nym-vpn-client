@@ -3,21 +3,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use chrono::{DateTime, Utc};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use test_rpc::{AppTrace, Error};
 
+pub(crate) const NYMVPND_CLI_BIN: &str = "/opt/testing/nym-vpnd";
+
 /// Get the installed app version string
 pub async fn version() -> Result<String, Error> {
-    // The `mullvad` binary is seemingly not in PATH on Windows after upgrading the app..
-    // So, as a workaround we use the absolute path instead.
-    const NYMVPND_CLI_BIN: &str = if cfg!(target_os = "windows") {
-        // TODO dz adjust path for nymvpn
-        r"C:\Program Files\Mullvad VPN\resources\mullvad.exe"
-    } else {
-        // TODO dz this should be a module level constant
-        "/opt/testing/nym-vpnd"
-    };
+    // use the absolute path in case the binary isn't in PATH
     let version = tokio::process::Command::new(NYMVPND_CLI_BIN)
         .arg("--version")
         .output()
@@ -25,23 +19,26 @@ pub async fn version() -> Result<String, Error> {
         .map_err(|e| {
             Error::ServiceNotFound(format!(
                 "Failed to get version of {}: {}",
-                NYMVPND_CLI_BIN,
-                e.to_string()
+                NYMVPND_CLI_BIN, e
             ))
         })?;
     let stdout = String::from_utf8(version.stdout).map_err(|err| Error::Other(err.to_string()))?;
-    // output from `nym-vpnd --version` looks like this so we need to parse it
-    // nym-vpnd
-    // Binary Name:        nym-vpnd
-    // Build Timestamp:    2025-08-26T11:49:35.310099884Z
-    // Build Version:      1.14.0
-    // Commit SHA:         035b20a0a2bf5e35875afe308d93501c981bff69
-    // Commit Date:        2025-08-26T14:32:45.000000000+03:00
-    // Commit Branch:      release/2025.13-apricot-banana
-    // rustc Version:      1.88.0
-    // rustc Channel:      stable
-    // cargo Profile:      release
 
+    parse_version_from_output(stdout)
+}
+
+/// output from `nym-vpnd --version` looks like this so we need to parse it
+// nym-vpnd
+// Binary Name:        nym-vpnd
+// Build Timestamp:    2025-08-26T11:49:35.310099884Z
+// Build Version:      1.14.0
+// Commit SHA:         035b20a0a2bf5e35875afe308d93501c981bff69
+// Commit Date:        2025-08-26T14:32:45.000000000+03:00
+// Commit Branch:      release/2025.13-apricot-banana
+// rustc Version:      1.88.0
+// rustc Channel:      stable
+// cargo Profile:      release
+fn parse_version_from_output(stdout: String) -> Result<String, Error> {
     let version_line = stdout
         .lines()
         .find(|line| {
@@ -52,8 +49,8 @@ pub async fn version() -> Result<String, Error> {
         .ok_or("`Build Version:` line not found".to_string())
         .map_err(Error::Other)?;
     let version = version_line
-        .splitn(2, ':')
-        .nth(1)
+        .split_once(':')
+        .map(|x| x.1)
         .map(str::trim)
         .ok_or("malformed `Build Version:` line".to_string())
         .map_err(Error::Other)?;
@@ -62,29 +59,30 @@ pub async fn version() -> Result<String, Error> {
     Ok(version)
 }
 
-#[cfg(target_os = "windows")]
-pub fn find_traces() -> Result<Vec<AppTrace>, Error> {
-    // TODO: Check GUI data
-    // TODO: Check temp data
-    // TODO: Check devices and drivers
+#[allow(clippy::items_after_test_module)]
+#[cfg(test)]
+mod test {
+    use super::*;
 
-    let settings_dir = mullvad_paths::get_default_settings_dir().map_err(|error| {
-        log::error!("Failed to obtain system app data: {error}");
-        Error::Syscall
-    })?;
+    #[test]
+    fn parse_version() {
+        const EXPECTED_STDOUT: &str = r#"
+nym-vpnd
+Binary Name:        nym-vpnd
+Build Timestamp:    2025-08-26T11:49:35.310099884Z
+Build Version:      1.14.0
+Commit SHA:         035b20a0a2bf5e35875afe308d93501c981bff69
+Commit Date:        2025-08-26T14:32:45.000000000+03:00
+Commit Branch:      release/2025.13-apricot-banana
+rustc Version:      1.88.0
+rustc Channel:      stable
+cargo Profile:      release"#;
 
-    let caches = find_cache_traces()?;
-    let traces = vec![
-        Path::new(r"C:\Program Files\Mullvad VPN"),
-        // NOTE: This only works as of `499c06decda37dc639e5f` in the Mullvad app.
-        // Older builds have no way of silently fully uninstalling the app.
-        Path::new(r"C:\ProgramData\Mullvad VPN"),
-        // NOTE: Works as of `4116ebc` (Mullvad app).
-        &settings_dir,
-        &caches,
-    ];
+        let parsed_version = parse_version_from_output(EXPECTED_STDOUT.to_string())
+            .expect("Failed to parse version");
 
-    Ok(existing_paths(&traces))
+        assert_eq!("1.14.0", parsed_version);
+    }
 }
 
 #[cfg(target_os = "linux")]
@@ -98,6 +96,8 @@ pub fn find_cache_traces() -> Result<PathBuf, Error> {
 
 #[cfg(target_os = "macos")]
 pub fn find_traces() -> Result<Vec<AppTrace>, Error> {
+    use std::path::Path;
+
     // TODO: Check GUI data
     // TODO: Check temp data
 
@@ -121,8 +121,9 @@ pub fn find_traces() -> Result<Vec<AppTrace>, Error> {
     Ok(existing_paths(&traces))
 }
 
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 /// Find all present app traces on the test runner.
-fn existing_paths(paths: &[&Path]) -> Vec<AppTrace> {
+fn existing_paths(paths: &[&std::path::Path]) -> Vec<AppTrace> {
     paths
         .iter()
         .filter(|&path| path.try_exists().is_ok_and(|exists| exists))

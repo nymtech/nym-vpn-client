@@ -165,15 +165,6 @@ pub enum Architecture {
     Aarch64,
 }
 
-impl Architecture {
-    pub fn get_identifiers(self) -> Vec<&'static str> {
-        match self {
-            Architecture::X64 => vec!["x86_64", "amd64"],
-            Architecture::Aarch64 => vec!["arm64", "aarch64"],
-        }
-    }
-}
-
 #[derive(clap::ValueEnum, Default, Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum Provisioner {

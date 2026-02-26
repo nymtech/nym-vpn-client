@@ -3,59 +3,26 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{SinkExt, StreamExt, pin_mut};
-use std::{
-    collections::HashMap,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
-use util::OnDrop;
+use std::path::{Path, PathBuf};
 
 use crate::server_nym::NymTestServer;
 use tarpc::server::Channel;
 use test_rpc::{
     Service,
-    nym_daemon::{MULLVAD_SOCKET_PATH, NYMVPN_SOCKET_PATH, ServiceStatus},
+    nym_daemon::{NYMVPN_SOCKET_PATH, ServiceStatus},
     transport::GrpcForwarder,
 };
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    process::{ChildStdin, ChildStdout},
-    sync::Mutex,
-};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_util::codec::{Decoder, LengthDelimitedCodec};
 
 mod app_nymvpn;
 mod forward;
 mod logging;
 mod net;
-mod package;
 mod package_nym;
 mod server_nym;
 mod sys;
 mod util;
-
-#[derive(Clone, Default)]
-pub struct TestServer(Arc<Mutex<State>>);
-
-#[derive(Default)]
-struct State {
-    spawned_procs: HashMap<u32, SpawnedProcess>,
-}
-
-struct SpawnedProcess {
-    stdout: Option<ChildStdout>,
-    stdin: Option<ChildStdin>,
-
-    #[allow(dead_code)]
-    abort_handle: OnDrop,
-}
-
-fn get_mullvad_pipe_status() -> ServiceStatus {
-    match Path::new(MULLVAD_SOCKET_PATH).exists() {
-        true => ServiceStatus::Running,
-        false => ServiceStatus::NotRunning,
-    }
-}
 
 fn get_nymvpn_pipe_status() -> ServiceStatus {
     match Path::new(NYMVPN_SOCKET_PATH).exists() {
