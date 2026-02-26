@@ -332,6 +332,7 @@ async fn main() -> Result<()> {
             cmd_socks5::disable_socks5,
             cmd_socks5::get_socks5_status,
             cmd_diag::run_diagnostic,
+            cmd_diag::share_diagnostic,
             #[cfg(windows)]
             cmd_updater::fetch_update,
             #[cfg(windows)]

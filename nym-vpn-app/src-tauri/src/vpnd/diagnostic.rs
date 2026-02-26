@@ -2,7 +2,7 @@ use nym_vpn_lib_types as lib;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TDiagnosticResult")]
 pub struct DiagnosticResult<T: TS> {
     pub ok: bool,
@@ -32,7 +32,7 @@ impl<T: TS> From<lib::DiagnosticResult<T>> for DiagnosticResult<T> {
     }
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TDiagnosticReport")]
 #[serde(rename_all = "camelCase")]
 pub struct DiagnosticReport {
@@ -56,7 +56,7 @@ impl From<lib::DiagnosticReport> for DiagnosticReport {
     }
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TCompleteDnsReport")]
 #[serde(rename_all = "camelCase")]
 pub struct CompleteDnsReport {
@@ -79,7 +79,7 @@ impl From<lib::CompleteDnsReport> for CompleteDnsReport {
     }
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TDnsResolution")]
 #[serde(rename_all = "camelCase")]
 pub struct DnsResolution {
@@ -102,7 +102,7 @@ impl From<lib::DnsResolution> for DnsResolution {
     }
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "THttpReport")]
 #[serde(rename_all = "camelCase")]
 pub struct HttpReport {
@@ -130,7 +130,7 @@ impl From<lib::HttpReport> for HttpReport {
     }
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TDiagnosticHealthResponse")]
 #[serde(rename_all = "camelCase")]
 pub struct DiagnosticHealthResponse {
@@ -138,7 +138,7 @@ pub struct DiagnosticHealthResponse {
     pub timestamp_utc: String,
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TApiTimeSkew")]
 #[serde(rename_all = "camelCase")]
 pub struct ApiTimeSkew {
@@ -157,7 +157,7 @@ impl From<lib::ApiTimeSkew> for ApiTimeSkew {
     }
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TGatewayReport")]
 #[serde(rename_all = "camelCase")]
 pub struct GatewayReport {
@@ -183,7 +183,7 @@ impl From<lib::GatewayReport> for GatewayReport {
     }
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TDiagnosticGateway")]
 #[serde(rename_all = "camelCase")]
 pub struct DiagnosticGateway {

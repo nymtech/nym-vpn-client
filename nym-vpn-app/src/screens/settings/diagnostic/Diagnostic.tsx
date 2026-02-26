@@ -28,7 +28,15 @@ function Diagnostic() {
         Run Diagnostic
       </Button>
       {diagnosticResult && (
-        <Button outline onClick={() => {}}>
+        <Button
+          outline
+          color="gray"
+          onClick={() => {
+            invoke('share_diagnostic', {
+              report: JSON.parse(diagnosticResult),
+            });
+          }}
+        >
           Share report
         </Button>
       )}
