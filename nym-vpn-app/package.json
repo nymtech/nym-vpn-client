@@ -2,9 +2,8 @@
   "name": "nym-vpn-app",
   "version": "0.0.0",
   "type": "module",
-  "author": "Pierre Dommerc <dommerc.pierre@gmail.com>",
+  "author": "Nym Technologies SA <contact@nymtech.net>",
   "contributors": [
-    "Zane Schepke <zanecschepke@gmail.com>",
     "Nym team"
   ],
   "description": "NymVPN desktop client",
