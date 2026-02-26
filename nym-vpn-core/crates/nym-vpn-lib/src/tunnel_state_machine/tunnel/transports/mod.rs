@@ -342,6 +342,17 @@ where
     Ok(())
 }
 
+static CRYPTO_PROVIDER_SETUP: std::sync::Once = std::sync::Once::new();
+
+fn initialize_rustls() {
+    CRYPTO_PROVIDER_SETUP.call_once(|| {
+        // make sure that the crypto provider gets set up before we need it.
+        rustls::crypto::ring::default_provider()
+            .install_default()
+            .unwrap();
+    });
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct ClientOptions {
     /// Address describing the remote transport server
@@ -398,6 +409,7 @@ pub async fn transport_conn(
     #[cfg(any(target_os = "linux", target_os = "android"))] on_socket_open: impl FnOnce(RawFd),
 ) -> Result<quinn::Connection, TransportError> {
     info!("initializing from transport identity pubkey");
+    initialize_rustls();
     let transport_endpoint = options
         .get_ipv4()
         .ok_or(TransportError::config_err("No IPv4 endpoint provided"))?;
