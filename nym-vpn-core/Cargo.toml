@@ -138,6 +138,7 @@ pfctl = "0.7.0"
 pnet_packet = "0.35.0"
 pcap = "2.4.0"
 plist = "1.8.0"
+proc-macro2 = "1.0"
 prost = "0.14.3"
 prost-types = "0.14.3"
 pretty_assertions = "1.4.1"
@@ -149,6 +150,7 @@ quinn = { version = "0.11", default-features = false, features = [
 quinn-proto = { version = "0.11", default-features = false, features = [
     "rustls",
 ] }
+quote = "1.0"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 regex = "1"
@@ -171,6 +173,7 @@ socket2 = "0.6.2"
 surge-ping = "0.8.4"
 strum = "0.27.2"
 strum_macros = "0.27.2"
+syn = "1.0"
 sysinfo = "0.38"
 system-configuration = "0.7.0"
 tun = "0.8.5"
@@ -195,7 +198,6 @@ ssh2 = "0.9.5"
 tarpc = { version = "0.30", features = ["tokio1", "serde-transport", "serde1"] }
 tokio-serde = { version = "0.8.0", features = ["json"] }
 tokio-serial = "5.4.1"
-tonic-build = "0.13.1"
 tracing = "0.1"
 tracing-android = "0.2.0"
 tracing-appender = "0.2.4"
@@ -251,6 +253,7 @@ nym-vpn-store = { path = "crates/nym-vpn-store" }
 nym-wg-go = { path = "crates/nym-wg-go" }
 nym-wg-metadata-client = { path = "crates/nym-wg-metadata-client" }
 nym-windows = { path = "crates/nym-windows" }
+test-rpc = { path = "crates/test/test-rpc" }
 
 # For normal development
 nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.4-quark" }

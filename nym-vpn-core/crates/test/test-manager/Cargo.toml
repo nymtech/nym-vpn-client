@@ -47,15 +47,11 @@ tower = { workspace = true }
 uuid = { workspace = true }
 
 test_macro = { path = "./test_macro" }
-test-rpc = { path = "../test-rpc" }
+test-rpc = { workspace = true }
+tokio-util = { workspace = true, features = ["codec"]}
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 tun = "0.5.1"
 nix = { workspace = true, features = ["signal", "process"] }
-
-[dependencies.tokio-util]
-version = "0.7"
-features = ["codec"]
-default-features = false

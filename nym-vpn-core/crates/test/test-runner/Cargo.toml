@@ -27,20 +27,16 @@ thiserror = { workspace = true }
 tokio = { workspace = true, features = ["process"] }
 tokio-serde = { workspace = true }
 tokio-serial = { workspace = true }
+tokio-util = { workspace = true, features = ["codec"]}
 
 
-test-rpc = { path = "../test-rpc" }
-nym-ipc = { path = "../../nym-ipc" }
+test-rpc = { workspace = true }
+nym-ipc = { workspace = true }
 nym-vpnd = { path = "../../nym-vpnd" }
 
-
-[dependencies.tokio-util]
-version = "0.7"
-features = ["codec"]
-default-features = false
 
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = ["user"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-rs-release = "0.1.7"
+rs-release = {workspace = true}
