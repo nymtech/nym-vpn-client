@@ -18,7 +18,7 @@ jobs:
         os: [macos-14, macos-15, macos-26]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
