@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- [macOS] Use endpoint-security framework directly instead of parsing eslogger output (https://github.com/nymtech/nym-vpn-client/pull/4749)
+
+
+## [1.28.0] - 2026-04-14
+
 ### Added
 
 - [Windows] App Split Tunnelling (https://github.com/nymtech/nym-vpn-client/pull/4908).
@@ -22,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Fix bug in XPC buffering between XPC and gRPC layers (https://github.com/nymtech/nym-vpn-client/pull/4985)
 
 
-## [1.27.0] - TBD
+## [1.27.0] - 2026-03-31
 
 - [macOS] XPC as transport layer between clients and daemon (https://github.com/nymtech/nym-vpn-client/pull/4695)
 - [macOS] Authentication layer for windows, feature gated (https://github.com/nymtech/nym-vpn-client/pull/4802)

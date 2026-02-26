@@ -36,9 +36,17 @@ BIN_TARGETS := nym-vpnd nym-vpnc nym-setup nym-diagnostic
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: all $(BIN_TARGETS) create-upload-dir
+.PHONY: all $(BIN_TARGETS) create-upload-dir build-dev build-all clean
 
 all: build-all
+
+# Build workspace and codesign nym-vpnd for development.
+# This is required to develop split-tunnel which requires:
+# 1. Binary signed with "com.apple.developer.endpoint-security.client" entitlement.
+# 2. Disabled SIP. Apple require binary to be shipped as a part of app bundle. Otherwise executable is denied access to endpoint-security.
+build-dev:
+	cargo build
+	codesign --entitlements crates/nym-vpnd/Entitlements.plist --force -s - target/debug/nym-vpnd
 
 build-all: libwg $(BIN_TARGETS) rpc-swift-package
 

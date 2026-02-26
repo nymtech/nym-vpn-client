@@ -1482,18 +1482,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "console"
-version = "0.15.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "054ccb5b10f9f2cbf51eb355ca1d05c2d279ce1804688d0db74b4733a5aeafd8"
-dependencies = [
- "encode_unicode",
- "libc",
- "once_cell",
- "windows-sys 0.59.0",
-]
-
-[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2426,12 +2414,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "encode_unicode"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
-
-[[package]]
 name = "encoding_rs"
 version = "0.8.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2445,6 +2427,30 @@ name = "endi"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "66b7e2430c6dff6a955451e2cfc438f09cea1965a9d6f87f7e3b90decc014099"
+
+[[package]]
+name = "endpoint-sec"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89506bf3452f62dd7de96aeaf55f04160fe56653ef14eece1dbf4038bcf83fec"
+dependencies = [
+ "endpoint-sec-sys",
+ "libc",
+ "mach2",
+ "static_assertions",
+]
+
+[[package]]
+name = "endpoint-sec-sys"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5c4b165b88db7f63e30eab744cd30d61e592a69766ec7212781055697c85fa8"
+dependencies = [
+ "block2",
+ "libc",
+ "mach2",
+ "objc2",
+]
 
 [[package]]
 name = "enum-as-inner"
@@ -3709,19 +3715,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4250ce6452e92010fdf7268ccc5d14faa80bb12fc741938534c58f16804e03c7"
 dependencies = [
  "hybrid-array",
-]
-
-[[package]]
-name = "insta"
-version = "1.46.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e82db8c87c7f1ccecb34ce0c24399b8a73081427f3c7c50a5d597925356115e4"
-dependencies = [
- "console",
- "once_cell",
- "serde",
- "similar",
- "tempfile",
 ]
 
 [[package]]
@@ -6437,9 +6430,8 @@ version = "1.29.0-beta"
 dependencies = [
  "bitflags 2.11.0",
  "bytes",
- "either",
+ "endpoint-sec",
  "futures-util",
- "insta",
  "ipnetwork",
  "libc",
  "memoffset",
@@ -6460,8 +6452,7 @@ dependencies = [
  "nym-windows",
  "pcap",
  "pnet_packet 0.35.0",
- "serde",
- "serde_json",
+ "pretty_assertions",
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
@@ -9611,12 +9602,6 @@ name = "simd-adler32"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e320a6c5ad31d271ad523dcf3ad13e2767ad8b1cb8f047f75a8aeaf8da139da2"
-
-[[package]]
-name = "similar"
-version = "2.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbbb5d9659141646ae647b42fe094daf6c6192d1620870b449d9557f748b2daa"
 
 [[package]]
 name = "siphasher"

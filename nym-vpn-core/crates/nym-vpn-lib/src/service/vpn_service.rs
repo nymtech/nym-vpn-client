@@ -1197,7 +1197,7 @@ impl NymVpnService {
             }
             #[cfg(target_os = "macos")]
             VpnServiceCommand::NeedFullDiskPermissions(tx, ()) => {
-                let has_fda = nym_split_tunnel::has_full_disk_access().await;
+                let has_fda = nym_split_tunnel::has_full_disk_access();
                 let _ = tx.send(!has_fda);
             }
         }
