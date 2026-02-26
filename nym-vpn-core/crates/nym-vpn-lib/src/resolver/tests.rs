@@ -17,6 +17,10 @@ use tokio_util::sync::CancellationToken;
 #[tokio::test]
 #[serial_test::serial]
 async fn test_bind() {
+    // Bind a wildcard socket to create potential collisions.
+    let _sock = std::net::UdpSocket::bind(SocketAddr::from(([0, 0, 0, 0], DNS_LISTEN_PORT)))
+        .expect("failed to bind wildcard port");
+
     let shutdown_token = CancellationToken::new();
     let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
         .await
@@ -28,6 +32,7 @@ async fn test_bind() {
         .await
         .expect("lookup should succeed");
 
+    drop(_sock);
     shutdown_token.cancel();
     join_handle.await.unwrap();
     tokio::time::sleep(Duration::from_millis(300)).await;
