@@ -5,7 +5,7 @@
 use super::{Error, WAIT_FOR_TUNNEL_STATE_TIMEOUT, config_nym::TEST_CONFIG_NYM};
 use anyhow::Context;
 use futures::StreamExt;
-use nym_vpn_lib_types::{TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{AccountControllerState, TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
 use std::time::Duration;
 
@@ -102,6 +102,23 @@ pub async fn disconnect_and_wait(nym_client: &mut NymProxyClient) -> Result<(), 
     Ok(())
 }
 
+pub async fn wait_for_tunnel_state(
+    rpc: &mut NymProxyClient,
+    expected: ExpectedTunnelState,
+) -> Result<TunnelState, Error> {
+    let timeout = Duration::from_secs(60);
+    log::debug!(
+        "Waiting for tunnel state: {expected:?} (timeout: {}s)",
+        timeout.as_secs()
+    );
+    wait_for_tunnel_state_fn(
+        rpc,
+        move |state| ExpectedTunnelState::from(state.clone()) == expected,
+        timeout,
+    )
+    .await
+}
+
 /// Wait for the tunnel to reach a state accepted by `accept_state_fn`, using the daemon event
 /// stream. We subscribe to events before checking the current state, so no transitions are missed.
 pub async fn wait_for_tunnel_state_fn(
@@ -133,7 +150,7 @@ pub async fn wait_for_tunnel_state_fn(
                     break Ok(state);
                 }
                 Some(Ok(event)) => {
-                    log::debug!("Ignoring tunnel event: {event:?}");
+                    log::trace!("Ignoring tunnel event: {event:?}");
                     continue;
                 }
                 Some(Err(status)) => {
@@ -147,26 +164,55 @@ pub async fn wait_for_tunnel_state_fn(
     .map_err(|_| Error::Daemon(String::from("Tunnel event listener timed out")))?
 }
 
-pub async fn wait_for_tunnel_state(
+pub async fn wait_for_account_state(
     rpc: &mut NymProxyClient,
-    expected: ExpectedTunnelState,
-) -> Result<TunnelState, Error> {
-    wait_for_tunnel_state_with_timeout(rpc, expected, Duration::from_secs(60)).await
-}
-
-async fn wait_for_tunnel_state_with_timeout(
-    rpc: &mut NymProxyClient,
-    expected: ExpectedTunnelState,
-    timeout: Duration,
-) -> Result<TunnelState, Error> {
+    expected: AccountControllerState,
+) -> Result<AccountControllerState, Error> {
+    let timeout = Duration::from_secs(60);
     log::debug!(
-        "Waiting for tunnel state: {expected:?} (timeout: {}s)",
+        "Waiting for account state: {expected:?} (timeout: {}s)",
         timeout.as_secs()
     );
-    wait_for_tunnel_state_fn(
-        rpc,
-        move |state| ExpectedTunnelState::from(state.clone()) == expected,
-        timeout,
-    )
+    wait_for_account_state_fn(rpc, move |state| state.eq(&expected), timeout).await
+}
+
+/// Wait for the account to reach a state accepted by `accept_state_fn`, using the daemon event
+/// stream. We subscribe to events before checking the current state, so no transitions are missed.
+pub async fn wait_for_account_state_fn(
+    rpc: &mut NymProxyClient,
+    accept_state_fn: impl Fn(&AccountControllerState) -> bool,
+    timeout: Duration,
+) -> Result<AccountControllerState, Error> {
+    let mut events = rpc.listen_to_events().await.map_err(anyhow::Error::msg)?;
+
+    let state = rpc.get_account_state().await.map_err(anyhow::Error::msg)?;
+
+    log::debug!("Current account state: {state:?}");
+
+    if accept_state_fn(&state) {
+        return Ok(state);
+    }
+
+    tokio::time::timeout(timeout, async {
+        loop {
+            match events.next().await {
+                Some(Ok(TunnelEvent::AccountState(state))) if accept_state_fn(&state) => {
+                    log::debug!("Reached expected account state: {state:?}");
+                    break Ok(state);
+                }
+                Some(Ok(event)) => {
+                    log::trace!("Ignoring account event: {event:?}");
+                    continue;
+                }
+                Some(Err(status)) => {
+                    break Err(Error::Daemon(
+                        format!("Failed to get next event: {status}",),
+                    ));
+                }
+                None => break Err(Error::Daemon(String::from("Lost daemon event stream"))),
+            }
+        }
+    })
     .await
+    .map_err(|_| Error::Daemon(String::from("Account event listener timed out")))?
 }

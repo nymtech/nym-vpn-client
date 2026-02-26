@@ -9,31 +9,30 @@ export CROSS_CONFIG           := Cross.toml
 
 .PHONY: check check-linux check-macos \
 		clippy-linux \
-        check-runner-linux check-runner-macos check-manager-linux \
-		check-manager-macos
+        check-linux-runner check-macos-runner check-linux-manager \
+		check-macos-manager
 
 # --- Aggregate targets ---
 
-check-linux: check-manager-linux check-runner-linux
+check-linux: check-linux-manager check-linux-runner
 
-check-macos: check-manager-macos check-runner-macos
+check-macos: check-macos-manager check-macos-runner
 
 check: check-linux check-macos
 
 # --- Individual component targets ---
 
-check-manager-linux:
+check-linux-manager:
 	cross check -p test-manager --target $(LINUX_TARGET)
 
-check-manager-macos:
+check-macos-manager:
 	cargo check -p test-manager --target $(MACOS_TARGET)
 
-check-runner-linux:
+check-linux-runner:
 	cross check -p test-runner -p test-rpc -p connection-checker --target $(LINUX_TARGET)
 
-check-runner-macos:
+check-macos-runner:
 	cargo check -p test-runner -p test-rpc -p connection-checker --target $(MACOS_TARGET)
 
 clippy-linux:
 	cross clippy -p test-manager -p test-runner -p test-rpc -p connection-checker --target $(LINUX_TARGET) -- -D warnings
-

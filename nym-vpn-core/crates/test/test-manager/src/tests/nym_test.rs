@@ -3,7 +3,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::tests::{
-    TestContext, account_nym::forget_current_device, config_nym::TEST_CONFIG_NYM, helpers_nym,
+    TestContext,
+    account_nym::forget_current_device,
+    config_nym::TEST_CONFIG_NYM,
+    helpers_nym::{self, wait_for_account_state},
 };
 use anyhow::{Context, bail, ensure};
 use helpers_nym::ExpectedTunnelState;
@@ -25,9 +28,10 @@ pub async fn wait_for_account_stored(
                     log::debug!("Account stored confirmed");
                     return Ok(());
                 }
-                Ok(false) => continue,
+                Ok(false) => {}
                 Err(e) => bail!("Failed to check if account was stored: {e}"),
             }
+            tokio::time::sleep(Duration::from_millis(500)).await;
         }
     })
     .await
@@ -137,38 +141,6 @@ pub async fn test_account_and_tunnel_roundtrip(
     }
 
     Ok(())
-}
-
-pub async fn wait_for_account_state(
-    nym_proxy_client: &mut NymProxyClient,
-    expected_state: AccountControllerState,
-) -> anyhow::Result<()> {
-    let timeout = Duration::from_secs(60);
-
-    tokio::time::timeout(timeout, async {
-        loop {
-            match nym_proxy_client.get_account_state().await {
-                Ok(current_state) => {
-                    if current_state.eq(&expected_state) {
-                        log::debug!("Account state {current_state} reached!");
-                        return Ok(());
-                    } else {
-                        log::trace!(
-                            "Account state: {current_state:?} (expecting {expected_state:?})"
-                        );
-                    }
-                }
-                Err(e) => bail!("Failed to get account state: {e}"),
-            }
-        }
-    })
-    .await
-    .map_err(|_| {
-        anyhow::anyhow!(
-            "Account state listener timed out after {}s",
-            timeout.as_secs()
-        )
-    })?
 }
 
 /// Make sure the daemon is installed and logged in and restore settings to the defaults.

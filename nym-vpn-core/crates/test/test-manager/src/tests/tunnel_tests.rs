@@ -3,8 +3,8 @@
 
 use crate::tests::{
     TestContext,
-    helpers_nym::{ExpectedTunnelState, wait_for_tunnel_state},
-    nym_test::{prepare_daemon_nym, wait_for_account_state},
+    helpers_nym::{ExpectedTunnelState, wait_for_account_state, wait_for_tunnel_state},
+    nym_test::prepare_daemon_nym,
 };
 use anyhow::{Context, bail, ensure};
 use nym_vpn_lib_types::{
