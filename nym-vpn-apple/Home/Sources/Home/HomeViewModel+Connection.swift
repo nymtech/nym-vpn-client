@@ -33,7 +33,11 @@ public extension HomeViewModel {
             }
             guard await credentialsManager.isAccountValid()
             else {
-                navigateToPlanPurchase()
+                Task {
+                    await connectionManager.disconnectAndWaitForDisconnected()
+                    await credentialsManager.updateAccountSummary()
+                    navigateToPlanPurchase()
+                }
                 return
             }
         }

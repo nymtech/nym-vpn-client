@@ -144,11 +144,19 @@ import GRPCManager
     /// Disconnects tunnel if connected.
     /// iOS removes tunnel profile.
     public func disconnectBeforeLogout() async {
+        await disconnectAndWaitForDisconnected()
+#if os(iOS)
+        resetVpnProfile()
+#endif
+    }
+
+    /// Disconnect and wait for disconnected status
+    public func disconnectAndWaitForDisconnected() async {
         guard currentTunnelStatus != .disconnected else { return }
 #if os(iOS)
         try? await disconnectActiveTunnel()
         await waitForTunnelStatus(with: .disconnected)
-        resetVpnProfile()
+
 #elseif os(macOS)
         try? await grpcManager.disconnect()
         await waitForTunnelStatus(with: .disconnected)
