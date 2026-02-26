@@ -142,7 +142,7 @@ pub async fn wait_for_tunnel_state_fn(
         return Ok(state);
     }
 
-    tokio::time::timeout(timeout, async {
+    let result = tokio::time::timeout(timeout, async {
         loop {
             match events.next().await {
                 Some(Ok(TunnelEvent::NewState(state))) if accept_state_fn(&state) => {
@@ -160,8 +160,20 @@ pub async fn wait_for_tunnel_state_fn(
             }
         }
     })
-    .await
-    .map_err(|_| Error::Daemon(String::from("Tunnel event listener timed out")))?
+    .await;
+
+    match result {
+        Ok(inner) => inner,
+        Err(_) => {
+            let current = rpc.get_tunnel_state().await.ok();
+            let err = format!(
+                "Tunnel event listener timed out after {}s. Current state: {current:?}",
+                timeout.as_secs()
+            );
+            log::error!("{err}");
+            Err(Error::Daemon(err))
+        }
+    }
 }
 
 pub async fn wait_for_account_state(
@@ -193,7 +205,7 @@ pub async fn wait_for_account_state_fn(
         return Ok(state);
     }
 
-    tokio::time::timeout(timeout, async {
+    let result = tokio::time::timeout(timeout, async {
         loop {
             match events.next().await {
                 Some(Ok(TunnelEvent::AccountState(state))) if accept_state_fn(&state) => {
@@ -201,7 +213,7 @@ pub async fn wait_for_account_state_fn(
                     break Ok(state);
                 }
                 Some(Ok(event)) => {
-                    log::trace!("Ignoring account event: {event:?}");
+                    log::debug!("Ignoring account event: {event:?}");
                     continue;
                 }
                 Some(Err(status)) => {
@@ -213,6 +225,18 @@ pub async fn wait_for_account_state_fn(
             }
         }
     })
-    .await
-    .map_err(|_| Error::Daemon(String::from("Account event listener timed out")))?
+    .await;
+
+    match result {
+        Ok(inner) => inner,
+        Err(_) => {
+            let current = rpc.get_account_state().await.ok();
+            let err = format!(
+                "Account event listener timed out after {}s. Current state: {current:?}",
+                timeout.as_secs()
+            );
+            log::error!("{err}");
+            Err(Error::Daemon(err))
+        }
+    }
 }
