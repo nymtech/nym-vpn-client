@@ -252,12 +252,13 @@ jobs:
       - name: Configure test VM
         env:
           VM_IP: ${{ steps.vm-ip.outputs.ip }}
+          TEST_HARNESS_MNEMONIC: ${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}
         run: |
           ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
             ${{ env.VM_USER }}@${VM_IP} \
             "NYM_TEST_QCOW_IMAGE=/mnt/data/fresh_debian12_cli.qcow2 \
              NYM_TEST_VM_CONFIG=debian12_cli \
-             TEST_HARNESS_MNEMONIC='${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}' \
+             TEST_HARNESS_MNEMONIC='${TEST_HARNESS_MNEMONIC}' \
              TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
              bash ${{ env.VM_DIST_DIR }}/test.sh configure"
 
@@ -265,16 +266,19 @@ jobs:
         timeout-minutes: 45
         env:
           VM_IP: ${{ steps.vm-ip.outputs.ip }}
+          TEST_HARNESS_MNEMONIC: ${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}
+          TEST_FILTERS: ${{ inputs.test_filters }}
+          SKIP_TESTS: ${{ inputs.skip_tests }}
         run: |
           ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
             ${{ env.VM_USER }}@${VM_IP} \
             "NYM_TEST_QCOW_IMAGE=/mnt/data/fresh_debian12_cli.qcow2 \
              NYM_TEST_VM_CONFIG=debian12_cli \
-             TEST_HARNESS_MNEMONIC='${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}' \
+             TEST_HARNESS_MNEMONIC='${TEST_HARNESS_MNEMONIC}' \
              TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
              TEST_REPORT=/tmp/test-report.txt \
-             TEST_FILTERS='${{ inputs.test_filters }}' \
-             SKIP_TESTS='${{ inputs.skip_tests }}' \
+             TEST_FILTERS='${TEST_FILTERS}' \
+             SKIP_TESTS='${SKIP_TESTS}' \
              bash ${{ env.VM_DIST_DIR }}/test.sh run-tests"
 
       - name: Retrieve test report
