@@ -124,6 +124,18 @@ fn get_default_log_dir_nym() -> Result<PathBuf, Error> {
     Ok(PathBuf::from("/var/log/nym-vpnd"))
 }
 
+#[cfg(target_os = "windows")]
+fn get_default_settings_path_nym() -> Result<PathBuf, Error> {
+    // TODO: Determine correct Windows settings path for nym-vpnd
+    Ok(PathBuf::from(r"C:\ProgramData\nym\config.toml"))
+}
+
+#[cfg(target_os = "windows")]
+fn get_default_log_dir_nym() -> Result<PathBuf, Error> {
+    // TODO: Determine correct Windows log directory for nym-vpnd
+    Ok(PathBuf::from(r"C:\ProgramData\nym\logs"))
+}
+
 async fn list_logs<T: AsRef<Path>>(log_dir: T) -> Result<Vec<PathBuf>, Error> {
     let mut dir_entries = tokio::fs::read_dir(&log_dir)
         .await

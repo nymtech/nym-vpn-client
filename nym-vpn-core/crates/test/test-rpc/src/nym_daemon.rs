@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub const NYMVPN_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
 
 #[cfg(windows)]
-pub const SOCKET_PATH: &str = "//./pipe/Mullvad VPN";
+pub const NYMVPN_SOCKET_PATH: &str = "//./pipe/NymVPN";
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Error {

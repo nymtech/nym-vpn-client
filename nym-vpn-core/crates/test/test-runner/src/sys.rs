@@ -225,34 +225,47 @@ pub async fn set_daemon_environment(
 }
 
 #[cfg(target_os = "windows")]
-pub async fn set_daemon_environment(env: HashMap<String, String>) -> Result<(), test_rpc::Error> {
-    // Set environment globally (not for service) to prevent it from being lost on upgrade
-    for (k, v) in env.clone() {
-        tokio::process::Command::new("setx")
-            .arg("/m")
-            .args([k, v])
-            .status()
-            .await
-            .map_err(|e| test_rpc::Error::Registry(e.to_string()))?;
-    }
-    // Persist the changed environment variables, such that we can retrieve them at will.
-    use winreg::{RegKey, enums::*};
-    let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-    let path = Path::new(NYMVPN_WIN_REGISTRY).join("Environment");
-    let (registry, _) = hklm.create_subkey(&path).map_err(|error| {
-        test_rpc::Error::Registry(format!("Failed to open Mullvad VPN subkey: {error}"))
-    })?;
-    for (k, v) in env {
-        registry.set_value(k, &v).map_err(|error| {
-            test_rpc::Error::Registry(format!("Failed to set Environment var: {error}"))
-        })?;
-    }
+pub fn reboot() -> Result<(), test_rpc::Error> {
+    log::debug!("Rebooting system");
 
-    // Restart service
-    stop_app().await?;
-    start_app().await?;
+    std::thread::spawn(|| {
+        std::thread::sleep(std::time::Duration::from_secs(5));
+        let _ = std::process::Command::new("shutdown")
+            .args(["/r", "/t", "0"])
+            .spawn()
+            .map_err(|error| {
+                log::error!("Failed to spawn shutdown command: {error}");
+                error
+            });
+    });
 
     Ok(())
+}
+
+#[cfg(target_os = "windows")]
+pub fn get_system_path_var() -> Result<String, test_rpc::Error> {
+    std::env::var("PATH").map_err(|_| test_rpc::Error::Syscall)
+}
+
+#[cfg(target_os = "windows")]
+pub async fn disable_system_service_startup() -> Result<(), test_rpc::Error> {
+    // TODO: Implement Windows service disable
+    log::error!("disable_system_service_startup is not yet implemented on Windows");
+    Err(test_rpc::Error::Syscall)
+}
+
+#[cfg(target_os = "windows")]
+pub async fn enable_system_service_startup() -> Result<(), test_rpc::Error> {
+    // TODO: Implement Windows service enable
+    log::error!("enable_system_service_startup is not yet implemented on Windows");
+    Err(test_rpc::Error::Syscall)
+}
+
+#[cfg(target_os = "windows")]
+#[allow(dead_code)]
+pub fn get_os_version() -> Result<test_rpc::meta::OsVersion, test_rpc::Error> {
+    // TODO: Return proper Windows version
+    Err(test_rpc::Error::Syscall)
 }
 
 #[cfg(target_os = "linux")]

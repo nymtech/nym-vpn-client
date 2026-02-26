@@ -90,6 +90,12 @@ pub fn find_traces() -> Result<Vec<AppTrace>, Error> {
     todo!()
 }
 
+#[cfg(target_os = "windows")]
+pub fn find_traces() -> Result<Vec<AppTrace>, Error> {
+    // TODO: Implement Windows trace detection
+    Ok(Vec::new())
+}
+
 pub fn find_cache_traces() -> Result<PathBuf, Error> {
     unimplemented!()
 }
@@ -121,7 +127,7 @@ pub fn find_traces() -> Result<Vec<AppTrace>, Error> {
     Ok(existing_paths(&traces))
 }
 
-#[cfg(any(target_os = "windows", target_os = "macos"))]
+#[cfg(target_os = "macos")]
 /// Find all present app traces on the test runner.
 fn existing_paths(paths: &[&std::path::Path]) -> Vec<AppTrace> {
     paths

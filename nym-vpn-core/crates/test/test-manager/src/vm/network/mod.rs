@@ -20,6 +20,12 @@ pub fn bridge(
     {
         crate::vm::network::macos::find_vm_bridge(bridge_ip)
     }
-    #[cfg(not(target_os = "macos"))]
-    Ok((platform::BRIDGE_NAME.to_owned(), platform::NON_TUN_GATEWAY))
+    #[cfg(target_os = "linux")]
+    {
+        Ok((platform::BRIDGE_NAME.to_owned(), platform::NON_TUN_GATEWAY))
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+    {
+        anyhow::bail!("bridge() is not implemented on this platform")
+    }
 }

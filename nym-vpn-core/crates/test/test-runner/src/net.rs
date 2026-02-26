@@ -196,25 +196,10 @@ pub fn get_interface_ip(interface: &str) -> Result<IpAddr, test_rpc::Error> {
 }
 
 #[cfg(target_os = "windows")]
-pub fn get_interface_ip(interface: &str) -> Result<IpAddr, test_rpc::Error> {
-    // TODO: IPv6
-
-    get_interface_ip_for_family(interface, talpid_windows::net::AddressFamily::Ipv4)
-        .map_err(|_error| test_rpc::Error::Syscall)?
-        .ok_or(test_rpc::Error::InterfaceNotFound)
-}
-
-#[cfg(target_os = "windows")]
-fn get_interface_ip_for_family(
-    interface: &str,
-    family: talpid_windows::net::AddressFamily,
-) -> Result<Option<IpAddr>, ()> {
-    let luid = talpid_windows::net::luid_from_alias(interface).map_err(|error| {
-        log::error!("Failed to obtain interface LUID: {error}");
-    })?;
-    talpid_windows::net::get_ip_address_for_interface(family, luid).map_err(|error| {
-        log::error!("Failed to obtain interface IP: {error}");
-    })
+pub fn get_interface_ip(_interface: &str) -> Result<IpAddr, test_rpc::Error> {
+    // TODO: Implement Windows interface IP lookup without talpid_windows
+    log::error!("get_interface_ip is not yet implemented on Windows");
+    Err(test_rpc::Error::Syscall)
 }
 
 #[cfg(target_os = "linux")]
@@ -254,19 +239,8 @@ pub fn get_interface_mac(_interface: &str) -> Result<Option<[u8; 6]>, test_rpc::
 
 #[cfg(target_os = "windows")]
 pub fn get_default_interface() -> &'static str {
-    use std::sync::OnceLock;
-    use talpid_platform_metadata::WindowsVersion;
-
-    static WINDOWS_VERSION: OnceLock<WindowsVersion> = OnceLock::new();
-    let version = WINDOWS_VERSION
-        .get_or_init(|| WindowsVersion::new().expect("failed to obtain Windows version"));
-
-    if version.build_number() >= 22000 {
-        // Windows 11
-        return "Ethernet";
-    }
-
-    "Ethernet Instance 0"
+    // TODO: Detect Windows version to pick the right interface name
+    "Ethernet"
 }
 
 #[cfg(target_os = "linux")]
@@ -325,12 +299,8 @@ pub fn get_interface_mtu(interface_name: &str) -> Result<u16, test_rpc::Error> {
 }
 
 #[cfg(target_os = "windows")]
-pub fn get_interface_mtu(interface: &str) -> Result<u16, test_rpc::Error> {
-    let luid = talpid_windows::net::luid_from_alias(interface).map_err(|error| {
-        log::error!("Failed to obtain interface LUID: {error}");
-        test_rpc::Error::Syscall
-    })?;
-    talpid_windows::net::get_ip_interface_entry(talpid_windows::net::AddressFamily::Ipv4, &luid)
-        .map_err(|_error| test_rpc::Error::InterfaceNotFound)
-        .map(|row| row.NlMtu.try_into().unwrap())
+pub fn get_interface_mtu(_interface: &str) -> Result<u16, test_rpc::Error> {
+    // TODO: Implement Windows interface MTU lookup without talpid_windows
+    log::error!("get_interface_mtu is not yet implemented on Windows");
+    Err(test_rpc::Error::Syscall)
 }
