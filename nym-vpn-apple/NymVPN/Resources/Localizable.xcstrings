@@ -6556,6 +6556,17 @@
         }
       }
     },
+    "createAccount.Login.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in with your 24-word passphrase."
+          }
+        }
+      }
+    },
     "createAccount.loginAnonymously" : {
       "extractionState" : "manual",
       "localizations" : {
