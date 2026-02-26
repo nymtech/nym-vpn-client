@@ -153,7 +153,7 @@ pub async fn wait_for_account_state(
                         log::debug!("Account state {current_state} reached!");
                         return Ok(());
                     } else {
-                        log::debug!(
+                        log::trace!(
                             "Account state: {current_state:?} (expecting {expected_state:?})"
                         );
                     }
