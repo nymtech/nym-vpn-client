@@ -5,7 +5,7 @@
 
 set -eu
 
-# based on Debian requirements
+# requirements for the host system running test-manager
 sudo apt update && sudo apt install -y \
     git build-essential pkg-config libpcap-dev libssl-dev protobuf-compiler rootlesskit procps nftables wireguard dnsmasq curl
 
