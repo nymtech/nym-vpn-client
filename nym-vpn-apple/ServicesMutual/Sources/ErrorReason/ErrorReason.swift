@@ -42,6 +42,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case credentialWastedOnExitGateway
     case performantEntryGatewayUnavailable
     case performantExitGatewayUnavailable
+    case needFullDiskPermissions
+    case splitTunnel
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -95,6 +97,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .performantEntryGatewayUnavailable
         case .performantExitGatewayUnavailable:
             self = .performantExitGatewayUnavailable
+        case .needFullDiskPermissions:
+            self = .needFullDiskPermissions
+        case .splitTunnel:
+            self = .splitTunnel
         }
     }
 #endif
@@ -173,6 +179,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .performantEntryGatewayUnavailable
         case .performantExiGatewayUnavailable:
             self = .performantExitGatewayUnavailable
+        case .needFullDiskPermissions:
+            self = .needFullDiskPermissions
+        case .splitTunnel:
+            self = .splitTunnel
 #if os(macOS)
         case .existingAccount:
             self = .existingAccount
@@ -269,6 +279,10 @@ private extension ErrorReason {
             "errorReason.performantEntryGatewayUnavailable".localizedString
         case .performantExitGatewayUnavailable:
             "errorReason.performantExitGatewayUnavailable".localizedString
+        case .splitTunnel:
+            "errorReason.splitTunnel".localizedString
+        case .needFullDiskPermissions:
+            "errorReason.needFullDiskPermissions".localizedString
 #if os(macOS)
         case .existingAccount:
             "errorReason.existingAccount".localizedString
@@ -319,6 +333,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case credentialWastedOnExitGateway
     case performantEntryGatewayUnavailable
     case performantExiGatewayUnavailable
+    case needFullDiskPermissions
+    case splitTunnel
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -386,6 +402,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .performantEntryGatewayUnavailable
         case .performantExitGatewayUnavailable:
             self = .performantExiGatewayUnavailable
+        case .needFullDiskPermissions:
+            self = .needFullDiskPermissions
+        case .splitTunnel:
+            self = .splitTunnel
 #if os(macOS)
         case .existingAccount:
             self = .existingAccount
