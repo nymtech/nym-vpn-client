@@ -10,6 +10,8 @@ use std::{
 use nym_common::trace_err_chain;
 use nym_registration_client::MixnetClientConfig;
 use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::SplitApp;
 use tokio::{fs, sync::broadcast};
 
 use crate::{
@@ -240,6 +242,32 @@ impl VpnServiceConfigManager {
         }
     }
 
+    #[cfg(target_os = "macos")]
+    pub async fn set_enable_split_tunnel(&mut self, enabled: bool) {
+        if self.config.split_tunnel.enabled != enabled {
+            self.config.split_tunnel.enabled = enabled;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn add_split_tunnel_app(&mut self, app: SplitApp) {
+        self.config.split_tunnel.add_app(app);
+        self.save_config_and_send_event().await;
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn remove_split_tunnel_app(&mut self, app: SplitApp) {
+        self.config.split_tunnel.remove_app(app);
+        self.save_config_and_send_event().await;
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn clear_split_tunnel_apps(&mut self) {
+        self.config.split_tunnel.clear_apps();
+        self.save_config_and_send_event().await;
+    }
+
     async fn save_config_and_send_event(&self) {
         // This function already logs
         let _ = self.write_to_file().await;
@@ -420,6 +448,7 @@ impl VpnServiceConfigManager {
             entry_point: Box::new(self.config.entry_point.clone()),
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
+            split_tunnel: self.config.split_tunnel.clone(),
         }
     }
 }

@@ -131,6 +131,7 @@ fun NavController.safePopBackStack() {
 	}
 }
 
+@Suppress("CyclomaticComplexMethod")
 fun ErrorStateReason.toUserMessage(context: Context): String {
 	return when (this) {
 		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.error_same_entry_exit)
@@ -161,6 +162,10 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 
 		ErrorStateReason.InvalidEntryGatewayIdentity -> context.getString(R.string.error_invalid_entry_gateway_identity)
 		ErrorStateReason.InvalidExitGatewayIdentity -> context.getString(R.string.error_invalid_exit_gateway_identity)
+
+		// unused on Android
+		ErrorStateReason.NeedFullDiskPermissions -> ""
+		ErrorStateReason.SplitTunnel -> ""
 
 		is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error, this.v1)
 	}

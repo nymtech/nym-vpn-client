@@ -20,6 +20,11 @@ impl DisconnectedState {
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
+        if let Err(err) = shared_state.split_tunnel.reset_tunnel().await {
+            trace_err_chain!(err, "failed to reset split tunnel");
+        }
+
+        #[cfg(target_os = "macos")]
         Self::reset_dns(shared_state).await;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -68,7 +73,15 @@ impl TunnelStateHandler for DisconnectedState {
                     },
                     TunnelCommand::Disconnect => NextTunnelState::SameState(self),
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
+                        #[cfg(target_os = "macos")]
+                        if shared_state.tunnel_settings.diff(&tunnel_settings).is_some_and(|diff| diff.split_tunnel_changed()) {
+                            let _ = shared_state.set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths()).await;
+                        }
+
                         shared_state.tunnel_settings = tunnel_settings;
+                        NextTunnelState::SameState(self)
+                    }
+                    TunnelCommand::Block(_reason) => {
                         NextTunnelState::SameState(self)
                     }
                 }

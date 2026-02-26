@@ -23,7 +23,7 @@ pub struct DisconnectingState {
 impl DisconnectingState {
     pub async fn enter(
         after_disconnect: PrivateActionAfterDisconnect,
-        tunnel_monitor_handle: TunnelMonitorHandle,
+        tunnel_monitor_handle: Option<TunnelMonitorHandle>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         // Disallow networking when disconnecting to prevent new connections during tunnel shutdown
@@ -33,15 +33,42 @@ impl DisconnectingState {
         if let Some(status_listener_handle) = shared_state.status_listener_handle.take() {
             status_listener_handle.abort();
         }
-        tunnel_monitor_handle.cancel();
 
-        (
-            Box::new(Self {
-                after_disconnect: after_disconnect.clone(),
-                tunnel_wait_handle: tunnel_monitor_handle.wait().boxed().fuse(),
-            }),
-            PrivateTunnelState::Disconnecting { after_disconnect },
-        )
+        if let Some(tunnel_monitor_handle) = tunnel_monitor_handle {
+            tunnel_monitor_handle.cancel();
+
+            (
+                Box::new(Self {
+                    after_disconnect: after_disconnect.clone(),
+                    tunnel_wait_handle: tunnel_monitor_handle.wait().boxed().fuse(),
+                }) as _,
+                PrivateTunnelState::Disconnecting { after_disconnect },
+            )
+        } else {
+            Self::on_disconnect(after_disconnect, None, shared_state).await
+        }
+    }
+
+    async fn on_disconnect(
+        after_disconnect: PrivateActionAfterDisconnect,
+        tombstone: Option<Tombstone>,
+        shared_state: &mut SharedState,
+    ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        match after_disconnect {
+            PrivateActionAfterDisconnect::Nothing => {
+                DisconnectedState::enter(tombstone, shared_state).await
+            }
+            PrivateActionAfterDisconnect::Error(reason) => {
+                ErrorState::enter(reason, shared_state).await
+            }
+            PrivateActionAfterDisconnect::Reconnect => {
+                ConnectingState::enter(0, None, shared_state).await
+            }
+            PrivateActionAfterDisconnect::Offline {
+                reconnect,
+                gateways,
+            } => OfflineState::enter(reconnect, gateways, shared_state).await,
+        }
     }
 }
 
@@ -60,18 +87,7 @@ impl TunnelStateHandler for DisconnectingState {
 
         tokio::select! {
             tombstone = (&mut self.tunnel_wait_handle) => {
-                match self.after_disconnect {
-                    PrivateActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter(Some(tombstone), shared_state).await),
-                    PrivateActionAfterDisconnect::Error(reason) => {
-                        NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)
-                    },
-                    PrivateActionAfterDisconnect::Reconnect => {
-                        NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
-                    },
-                    PrivateActionAfterDisconnect::Offline { reconnect, gateways } => {
-                        NextTunnelState::NewState(OfflineState::enter(reconnect, gateways, shared_state).await)
-                    }
-                }
+                NextTunnelState::NewState(Self::on_disconnect(self.after_disconnect, Some(tombstone), shared_state).await)
             }
             Some(command) = command_rx.recv() => {
                 tracing::debug!("DisconnectingState received command: {command:?}");
@@ -95,7 +111,19 @@ impl TunnelStateHandler for DisconnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
+                        #[cfg(target_os = "macos")]
+                        {
+                            if shared_state.tunnel_settings.diff(&tunnel_settings).is_some_and(|diff| diff.split_tunnel_changed()) {
+                                let _ = shared_state.set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths()).await;
+                            }
+                        }
                         shared_state.tunnel_settings = tunnel_settings;
+                        NextTunnelState::SameState(self)
+                    }
+                    TunnelCommand::Block(reason) => {
+                        if !matches!(self.after_disconnect, PrivateActionAfterDisconnect::Nothing) {
+                            self.after_disconnect = PrivateActionAfterDisconnect::Error(reason);
+                        }
                         NextTunnelState::SameState(self)
                     }
                 }

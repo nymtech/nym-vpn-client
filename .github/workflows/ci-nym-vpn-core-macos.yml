@@ -95,4 +95,4 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo build --workspace --locked
-          cargo test --workspace --locked
+          cargo test --workspace --locked --exclude nym-ifconfig

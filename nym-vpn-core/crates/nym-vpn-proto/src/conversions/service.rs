@@ -25,19 +25,24 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             None => vec![],
         };
 
-        let mixnet_traffic: nym_vpn_lib_types::MixnetTrafficConfig = value
+        let mixnet_traffic = value
             .mixnet_traffic
+            .map(nym_vpn_lib_types::MixnetTrafficConfig::from)
             .ok_or(ConversionError::NoValueSet(
                 "VpnServiceConfig.mixnet_traffic",
-            ))?
-            .into();
+            ))?;
 
         let network_stats = value
             .network_stats
+            .map(nym_vpn_lib_types::NetworkStatisticsConfig::from)
             .ok_or(ConversionError::NoValueSet(
                 "VpnServiceConfig.network_stats",
-            ))?
-            .into();
+            ))?;
+
+        let split_tunnel = value
+            .split_tunnel
+            .map(nym_vpn_lib_types::SplitTunnelSettings::from)
+            .ok_or(ConversionError::NoValueSet("VpnServiceConfig.split_tunnel"))?;
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -55,6 +60,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             custom_dns,
             mixnet_traffic,
             network_stats,
+            split_tunnel,
         };
         Ok(config)
     }
@@ -63,14 +69,11 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
 impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
     fn from(value: nym_vpn_lib_types::VpnServiceConfig) -> Self {
         let entry_point = Some(proto::EntryNode::from(value.entry_point));
-
         let exit_point = Some(proto::ExitNode::from(value.exit_point));
-
         let custom_dns = Some(proto::IpAddrList::from(value.custom_dns));
-
         let mixnet_traffic = Some(proto::MixnetTrafficConfig::from(value.mixnet_traffic));
-
         let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
+        let split_tunnel = Some(proto::SplitTunnelSettings::from(value.split_tunnel));
 
         proto::VpnServiceConfig {
             entry_point,
@@ -88,6 +91,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             custom_dns,
             mixnet_traffic,
             network_stats,
+            split_tunnel,
         }
     }
 }

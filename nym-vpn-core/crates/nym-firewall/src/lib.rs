@@ -1,9 +1,9 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{borrow::Cow, fmt, net::IpAddr};
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-use std::{net::Ipv6Addr, sync::LazyLock};
+use std::net::Ipv6Addr;
+use std::{borrow::Cow, fmt, net::IpAddr};
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use ipnetwork::Ipv6Network;
@@ -40,23 +40,19 @@ pub use net::{
 pub use self::imp::Error;
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-static IPV6_LINK_LOCAL: LazyLock<Ipv6Network> =
-    LazyLock::new(|| Ipv6Network::new(Ipv6Addr::new(0xfe80, 0, 0, 0, 0, 0, 0, 0), 10).unwrap());
+const IPV6_LINK_LOCAL: Ipv6Network =
+    Ipv6Network::new_checked(Ipv6Addr::new(0xfe80, 0, 0, 0, 0, 0, 0, 0), 10).unwrap();
 /// The allowed target addresses of outbound DHCPv6 requests
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-static DHCPV6_SERVER_ADDRS: LazyLock<[Ipv6Addr; 2]> = LazyLock::new(|| {
-    [
-        Ipv6Addr::new(0xff02, 0, 0, 0, 0, 0, 1, 2),
-        Ipv6Addr::new(0xff05, 0, 0, 0, 0, 0, 1, 3),
-    ]
-});
+const DHCPV6_SERVER_ADDRS: [Ipv6Addr; 2] = [
+    Ipv6Addr::new(0xff02, 0, 0, 0, 0, 0, 1, 2),
+    Ipv6Addr::new(0xff05, 0, 0, 0, 0, 0, 1, 3),
+];
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-static ROUTER_SOLICITATION_OUT_DST_ADDR: LazyLock<Ipv6Addr> =
-    LazyLock::new(|| Ipv6Addr::new(0xff02, 0, 0, 0, 0, 0, 0, 2));
+const ROUTER_SOLICITATION_OUT_DST_ADDR: Ipv6Addr = Ipv6Addr::new(0xff02, 0, 0, 0, 0, 0, 0, 2);
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-static SOLICITED_NODE_MULTICAST: LazyLock<Ipv6Network> = LazyLock::new(|| {
-    Ipv6Network::new(Ipv6Addr::new(0xff02, 0, 0, 0, 0, 1, 0xFF00, 0), 104).unwrap()
-});
+const SOLICITED_NODE_MULTICAST: Ipv6Network =
+    Ipv6Network::new_checked(Ipv6Addr::new(0xff02, 0, 0, 0, 0, 1, 0xFF00, 0), 104).unwrap();
 
 #[cfg(all(unix, not(any(target_os = "android", target_os = "ios"))))]
 const DHCPV4_SERVER_PORT: u16 = 67;
@@ -201,6 +197,20 @@ impl FirewallPolicy {
         }
     }
 
+    /// Return the interface to redirect (VPN tunnel) traffic to, if any.
+    #[cfg(target_os = "macos")]
+    pub fn redirect_interface(&self) -> Option<&str> {
+        match self {
+            FirewallPolicy::Connecting {
+                redirect_interface, ..
+            } => redirect_interface.as_deref(),
+            FirewallPolicy::Connected {
+                redirect_interface, ..
+            } => redirect_interface.as_deref(),
+            FirewallPolicy::Blocked { .. } => None,
+        }
+    }
+
     #[cfg(not(target_os = "android"))]
     pub fn dns_config(&self) -> Option<&ResolvedDnsConfig> {
         match self {
@@ -223,7 +233,8 @@ impl fmt::Display for FirewallPolicy {
                 allowed_endpoints,
                 allowed_entry_tunnel_traffic,
                 allowed_exit_tunnel_traffic,
-                ..
+                #[cfg(target_os = "macos")]
+                redirect_interface,
             } => {
                 #[cfg(not(target_os = "android"))]
                 let dns_str = display_allowed_non_tunnel_dns(dns_config);
@@ -241,7 +252,7 @@ impl fmt::Display for FirewallPolicy {
                         if *allow_lan { "Allowing" } else { "Blocking" },
                         display_allowed_endpoints(allowed_endpoints),
                         dns_str
-                    )
+                    )?;
                 } else {
                     write!(
                         f,
@@ -250,8 +261,13 @@ impl fmt::Display for FirewallPolicy {
                         if *allow_lan { "Allowing" } else { "Blocking" },
                         display_allowed_endpoints(allowed_endpoints),
                         dns_str
-                    )
+                    )?;
                 }
+
+                #[cfg(target_os = "macos")]
+                write!(f, ". Redirect interface: {:?}", redirect_interface)?;
+
+                Ok(())
             }
             FirewallPolicy::Connected {
                 peer_endpoints,
@@ -259,7 +275,8 @@ impl fmt::Display for FirewallPolicy {
                 allow_lan,
                 #[cfg(not(target_os = "android"))]
                 dns_config,
-                ..
+                #[cfg(target_os = "macos")]
+                redirect_interface,
             } => {
                 #[cfg(not(target_os = "android"))]
                 let dns_str = display_allowed_non_tunnel_dns(dns_config);
@@ -273,12 +290,16 @@ impl fmt::Display for FirewallPolicy {
                     display_tunnel_interface(tunnel),
                     if *allow_lan { "Allowing" } else { "Blocking" },
                     dns_str
-                )
+                )?;
+
+                #[cfg(target_os = "macos")]
+                write!(f, ". Redirect interface: {:?}", redirect_interface)?;
+
+                Ok(())
             }
             FirewallPolicy::Blocked {
                 allow_lan,
                 allowed_endpoints,
-                ..
             } => write!(
                 f,
                 "Blocked. {} LAN. Allowing endpoints: {}",

@@ -87,6 +87,10 @@ fun ErrorStateReason.toHumanReadableString(context: Context): String {
 		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.error_reason_max_devices_reached)
 		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.error_reason_device_time_out_of_sync)
 		ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_reason_device_logged_out)
+
+		// unused on Android
+		ErrorStateReason.NeedFullDiskPermissions, ErrorStateReason.SplitTunnel -> ""
+
 		is ErrorStateReason.Internal -> context.getString(R.string.error_reason_internal, this.v1)
 	}
 }

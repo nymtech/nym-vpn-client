@@ -23,7 +23,7 @@ use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
     SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
-    states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
+    states::{ConnectedState, DisconnectingState, ErrorState, OfflineState},
     tunnel::{SelectedGateways, Tombstone},
     tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
@@ -120,6 +120,9 @@ impl ConnectingState {
                 bridge_endpoints = params.get_addrs();
             }
 
+            #[cfg(target_os = "macos")]
+            let redirect_interface = shared_state.split_tunnel.interface().await;
+
             let firewall_policy_params = ConnectingPolicyParameters {
                 enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
                 allow_lan: shared_state.tunnel_settings.allow_lan,
@@ -133,6 +136,8 @@ impl ConnectingState {
                 // Allow default DNS servers since hickory does not rely on custom DNS
                 dns_servers: shared_state.tunnel_settings.default_dns_ips(),
                 tunnel_interface: None,
+                #[cfg(target_os = "macos")]
+                redirect_interface,
             };
 
             if let Err(err) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
@@ -234,15 +239,16 @@ impl ConnectingState {
     }
 
     async fn disconnect(
+        self,
         after_disconnect: PrivateActionAfterDisconnect,
-        tunnel_monitor_handle: TunnelMonitorHandle,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Self::reset_routes(shared_state).await;
 
         NextTunnelState::NewState(
-            DisconnectingState::enter(after_disconnect, tunnel_monitor_handle, shared_state).await,
+            DisconnectingState::enter(after_disconnect, self.tunnel_monitor_handle, shared_state)
+                .await,
         )
     }
 
@@ -426,20 +432,56 @@ impl ConnectingState {
     }
 
     async fn handle_interface_up(
-        &mut self,
+        mut self: Box<Self>,
         _tunnel_interface: TunnelInterface,
         connection_data: Box<EstablishConnectionData>,
-        _shared_state: &mut SharedState,
-    ) -> Result<()> {
+        shared_state: &mut SharedState,
+    ) -> NextTunnelState {
         self.connection_data = Some(*connection_data);
+
+        #[cfg(target_os = "macos")]
+        if let Err(st_error_cause) = shared_state
+            .enable_split_tunnel(_tunnel_interface.exit_tunnel_metadata())
+            .await
+        {
+            let after_disconnect = match st_error_cause {
+                nym_split_tunnel::SplitTunnelErrorCause::NeedFullDiskPermissions => {
+                    PrivateActionAfterDisconnect::Error(ErrorStateReason::NeedFullDiskPermissions)
+                }
+                nym_split_tunnel::SplitTunnelErrorCause::Other => {
+                    PrivateActionAfterDisconnect::Error(ErrorStateReason::SplitTunnel)
+                }
+                nym_split_tunnel::SplitTunnelErrorCause::IsOffline => {
+                    PrivateActionAfterDisconnect::Offline {
+                        reconnect: true,
+                        gateways: self.selected_gateways.clone(),
+                    }
+                }
+            };
+
+            return self.disconnect(after_disconnect, shared_state).await;
+        }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             self.firewall_policy_params.tunnel_interface = Some(_tunnel_interface);
-            Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)?;
+
+            if let Err(err) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params)
+            {
+                trace_err_chain!(err, "Failed to set firewall policy");
+                return self
+                    .disconnect(
+                        PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
+                        shared_state,
+                    )
+                    .await;
+            }
         }
 
-        Ok(())
+        let state = self
+            .make_connecting_tunnel_state(shared_state, EstablishConnectionState::ConnectingTunnel);
+
+        NextTunnelState::NewState((self, state))
     }
 
     async fn handle_selected_gateways(
@@ -525,15 +567,11 @@ impl TunnelStateHandler for ConnectingState {
                             }
                             Err(e) => {
                                 trace_err_chain!(e, "Failed to set firewall policy");
-                                if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                                    NextTunnelState::NewState(DisconnectingState::enter(
-                                        PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
-                                        tunnel_monitor_handle,
-                                        shared_state
-                                    ).await)
-                                } else {
-                                    NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await)
-                                }
+                                NextTunnelState::NewState(DisconnectingState::enter(
+                                    PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
+                                    self.tunnel_monitor_handle.take(),
+                                    shared_state
+                                ).await)
                             }
                         };
                         _ = reply_tx.send(());
@@ -547,15 +585,11 @@ impl TunnelStateHandler for ConnectingState {
                             }
                             Err(e) => {
                                 trace_err_chain!(e, "Failed to set firewall policy");
-                                if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                                    NextTunnelState::NewState(DisconnectingState::enter(
-                                        PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
-                                        tunnel_monitor_handle,
-                                        shared_state
-                                    ).await)
-                                } else {
-                                    NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await)
-                                }
+                                NextTunnelState::NewState(DisconnectingState::enter(
+                                    PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
+                                    self.tunnel_monitor_handle.take(),
+                                    shared_state
+                                ).await)
                             }
                         };
                         _ = reply_tx.send(());
@@ -564,24 +598,7 @@ impl TunnelStateHandler for ConnectingState {
                     TunnelMonitorEvent::InterfaceUp {
                         tunnel_interface, connection_data, reply_tx
                     }  => {
-                        let next_state = match self.handle_interface_up(tunnel_interface, connection_data, shared_state).await {
-                            Ok(()) => {
-                                let state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::ConnectingTunnel);
-                                NextTunnelState::NewState((self, state))
-                            },
-                            Err(e) => {
-                                trace_err_chain!(e, "Failed to set firewall policy");
-                                if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                                    NextTunnelState::NewState(DisconnectingState::enter(
-                                        PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
-                                        tunnel_monitor_handle,
-                                        shared_state
-                                    ).await)
-                                } else {
-                                    NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await)
-                                }
-                            }
-                        };
+                        let next_state = self.handle_interface_up(tunnel_interface, connection_data, shared_state).await;
                         _ = reply_tx.send(());
                         next_state
                     }
@@ -613,7 +630,7 @@ impl TunnelStateHandler for ConnectingState {
                         if let Some(error_state_reason) = error_state_reason {
                             NextTunnelState::NewState(DisconnectingState::enter(
                                 PrivateActionAfterDisconnect::Error(error_state_reason),
-                                self.tunnel_monitor_handle.expect("monitor handle must be set!"),
+                                self.tunnel_monitor_handle.take(),
                                 shared_state
                             ).await)
                         } else {
@@ -647,80 +664,106 @@ impl TunnelStateHandler for ConnectingState {
                 tracing::debug!("ConnectingState received command: {command:?}");
                 match command {
                     TunnelCommand::Connect => {
-                        if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                            Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
+                        // Skip disconnecting state if tunnel monitor isn't running yet
+                        if self.tunnel_monitor_handle.is_some() {
+                            self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                         } else {
                             NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, None, shared_state).await)
                         }
                     },
                     TunnelCommand::Disconnect => {
-                        if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                            Self::disconnect(PrivateActionAfterDisconnect::Nothing, tunnel_monitor_handle, shared_state).await
-                        } else {
-                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                            Self::reset_routes(shared_state).await;
-                            NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
-                        }
+                        self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
+                        shared_state.tunnel_settings = tunnel_settings;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        let mut new_firewall_policy = self.firewall_policy_params.clone();
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
-                            if diff.allow_lan_changed() {
-                                self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
+                            new_firewall_policy.allow_lan = shared_state.tunnel_settings.allow_lan;
+                        }
 
-                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
-                                    trace_err_chain!(e, "failed to set firewall policy");
-                                    return NextTunnelState::NewState(ErrorState::enter(ErrorStateReason::SetFirewallPolicy, shared_state).await);
+                        #[cfg(target_os = "macos")]
+                        {
+                            if diff.split_tunnel_changed() {
+                                match shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths()).await {
+                                    Ok(interface_changed) => {
+                                        if interface_changed {
+                                            new_firewall_policy.redirect_interface = shared_state.split_tunnel.interface().await;
+                                        }
+                                    }
+                                    Err(st_error_cause) => {
+                                        let after_disconnect = match st_error_cause {
+                                            nym_split_tunnel::SplitTunnelErrorCause::NeedFullDiskPermissions => {
+                                                PrivateActionAfterDisconnect::Error(ErrorStateReason::NeedFullDiskPermissions)
+                                            }
+                                            nym_split_tunnel::SplitTunnelErrorCause::Other => {
+                                                PrivateActionAfterDisconnect::Error(ErrorStateReason::SplitTunnel)
+                                            }
+                                            nym_split_tunnel::SplitTunnelErrorCause::IsOffline => {
+                                                PrivateActionAfterDisconnect::Offline {
+                                                    reconnect: true,
+                                                    gateways: self.selected_gateways.clone(),
+                                                }
+                                            }
+                                        };
+                                        return self.disconnect(after_disconnect, shared_state).await;
+                                    }
                                 }
                             }
                         }
 
-                        shared_state.tunnel_settings = tunnel_settings;
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        {
+                            if new_firewall_policy != self.firewall_policy_params {
+                                self.firewall_policy_params = new_firewall_policy;
+
+                                if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
+                                    trace_err_chain!(e, "failed to set firewall policy");
+                                    return self.disconnect(PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy), shared_state).await;
+                                }
+                            }
+                        }
 
                         // Not all changes require the tunnel to be reconnected
-                        if diff.should_not_reconnect(shared_state.tunnel_settings.tunnel_type) {
-                            return NextTunnelState::SameState(self);
-                        }
-
-                        if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                           Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
-                        } else {
-                            let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() || diff.quic_changed() {
-                                None
+                        if diff.should_reconnect(shared_state.tunnel_settings.tunnel_type) {
+                            // Skip disconnecting state if tunnel monitor isn't running yet
+                            if self.tunnel_monitor_handle.is_some() {
+                                self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                             } else {
-                                self.selected_gateways
-                            };
-                            NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
+                                let next_gateways = if diff.entry_point_changed() || diff.exit_point_changed() || diff.quic_changed() {
+                                    None
+                                } else {
+                                    self.selected_gateways
+                                };
+                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
+                            }
+                        } else {
+                             NextTunnelState::SameState(self)
                         }
+                    }
+                    TunnelCommand::Block(reason) => {
+                        self.disconnect(PrivateActionAfterDisconnect::Error(reason), shared_state).await
                     }
                 }
             }
             Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
-                    if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                        Self::disconnect(PrivateActionAfterDisconnect::Offline {
-                            reconnect: true,
-                            gateways: self.selected_gateways
-                        }, tunnel_monitor_handle, shared_state).await
-                    } else {
-                        NextTunnelState::NewState(OfflineState::enter(true, self.selected_gateways, shared_state).await)
-                    }
+                    let gateways = self.selected_gateways.clone();
+                    self.disconnect(PrivateActionAfterDisconnect::Offline {
+                        reconnect: true,
+                        gateways,
+                    }, shared_state).await
                 } else {
                     NextTunnelState::SameState(self)
                 }
             }
             _ = shutdown_token.cancelled() => {
-                if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
-                    Self::disconnect(PrivateActionAfterDisconnect::Nothing, tunnel_monitor_handle, shared_state).await
-                } else {
-                    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                    Self::reset_routes(shared_state).await;
-                    NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
-                }
+                self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
             }
         }
     }
@@ -728,7 +771,7 @@ impl TunnelStateHandler for ConnectingState {
 
 /// Firewall policy configuration when connecting
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 struct ConnectingPolicyParameters {
     /// Whether IPv6 is enabled
     enable_ipv6: bool,
@@ -753,6 +796,10 @@ struct ConnectingPolicyParameters {
 
     /// Tunnel interface
     tunnel_interface: Option<TunnelInterface>,
+
+    /// Split tunnel redirect interface
+    #[cfg(target_os = "macos")]
+    redirect_interface: Option<String>,
 }
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -844,9 +891,8 @@ impl ConnectingPolicyParameters {
             // todo: only allow connection towards entry endpoint?
             allowed_entry_tunnel_traffic: AllowedTunnelTraffic::All,
             allowed_exit_tunnel_traffic: AllowedTunnelTraffic::All,
-            // todo: split tunneling
             #[cfg(target_os = "macos")]
-            redirect_interface: None,
+            redirect_interface: self.redirect_interface.clone(),
         }
     }
 }
