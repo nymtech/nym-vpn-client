@@ -15,10 +15,10 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  UPLOAD_DIR_LINUX_X86_64: linux_artifacts_x86_64
-  UPLOAD_DIR_LINUX_ARM: linux_artifacts_aarch64
-  UPLOAD_DIR_DEB_X86_64: deb_artifacts_x86_64
-  UPLOAD_DIR_DEB_ARM: deb_artifacts_aarch64
+  UPLOAD_DIR_LINUX_X86_64: linux_artifacts-ubuntu-22.04
+  UPLOAD_DIR_LINUX_ARM: linux_artifacts-ubuntu-22.04-arm
+  UPLOAD_DIR_DEB_X86_64: deb_artifacts-ubuntu-22.04
+  UPLOAD_DIR_DEB_ARM: deb_artifacts-ubuntu-22.04-arm
   UPLOAD_DIR_ANDROID: android_artifacts
   UPLOAD_DIR_WINDOWS: windows_artifacts
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -155,14 +155,14 @@ jobs:
 
           if [[ -d ${{ env.UPLOAD_DIR_DEB_X86_64 }} ]]; then
             pushd ${{ env.UPLOAD_DIR_DEB_X86_64 }}
-            for deb in nym-vpn*.deb; do
+            for deb in *.deb; do
               sha256sum ${deb} > ${deb}.sha256sum
             done
             popd
           fi
           if [[ -d ${{ env.UPLOAD_DIR_DEB_ARM }} ]]; then
             pushd ${{ env.UPLOAD_DIR_DEB_ARM }}
-            for deb in nym-vpn*.deb; do
+            for deb in *.deb; do
               sha256sum ${deb} > ${deb}.sha256sum
             done
             popd
@@ -176,13 +176,13 @@ jobs:
 
           if [[ -d ${{ env.UPLOAD_DIR_DEB_X86_64 }} ]]; then
             pushd ${{ env.UPLOAD_DIR_DEB_X86_64 }}
-            for deb_sha256 in nym-vpn*.deb.sha256sum; do
+            for deb_sha256 in *.sha256sum; do
               cat ${deb_sha256} >> $GITHUB_ENV
             done
           fi
           if [[ -d ${{ env.UPLOAD_DIR_DEB_ARM }} ]]; then
             pushd ${{ env.UPLOAD_DIR_DEB_ARM }}
-            for deb_sha256 in nym-vpn*.deb.sha256sum; do
+            for deb_sha256 in *.sha256sum; do
               cat ${deb_sha256} >> $GITHUB_ENV
             done
           fi
@@ -213,8 +213,8 @@ jobs:
             ${{ env.ARCHIVE_LINUX_ARM }}.tar.gz ${{ env.ARCHIVE_LINUX_ARM }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum \
-            ${{ env.UPLOAD_DIR_DEB_X86_64 }}/nym-vpn*.deb ${{ env.UPLOAD_DIR_DEB_X86_64 }}/nym-vpn*.deb.sha256sum \
-            ${{ env.UPLOAD_DIR_DEB_ARM }}/nym-vpn*.deb ${{ env.UPLOAD_DIR_DEB_ARM }}/nym-vpn*.deb.sha256sum
+            ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} \
+            ${{ env.UPLOAD_DIR_DEB_ARM }}/*.{deb,sha256sum}
 
       # Upload to CI server
 
@@ -233,6 +233,8 @@ jobs:
       - name: Prepare build output artifacts
         shell: bash
         run: |
+          ls -la ${{ env.UPLOAD_DIR_DEB_X86_64 }}
+          ls -la ${{ env.UPLOAD_DIR_DEB_ARM }}
           cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.OUTPUT_DIR }}
           cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
           cp -v ${{ env.ARCHIVE_LINUX_ARM }}.tar.gz ${{ env.OUTPUT_DIR }}
@@ -241,10 +243,8 @@ jobs:
           cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
           cp -v ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.OUTPUT_DIR }}
           cp -v ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.UPLOAD_DIR_DEB_X86_64 }}/nym-vpn*.deb ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.UPLOAD_DIR_DEB_X86_64 }}/nym-vpn*.deb.sha256sum ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.UPLOAD_DIR_DEB_ARM }}/nym-vpn*.deb ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.UPLOAD_DIR_DEB_ARM }}/nym-vpn*.deb.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.UPLOAD_DIR_DEB_ARM }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
 
       - name: Upload to www
         uses: easingthemes/ssh-deploy@main
