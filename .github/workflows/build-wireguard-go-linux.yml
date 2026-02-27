@@ -19,7 +19,11 @@ jobs:
   build-libwg:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm]
+        include:
+          - os: "ubuntu-22.04"
+            arch: "x86_64"
+          - os: "ubuntu-22.04-arm"
+            arch: "aarch64"
 
     if: github.actor != 'dependabot[bot]'
     runs-on: ${{ matrix.os }}
@@ -44,9 +48,9 @@ jobs:
         id: set_artifact_name
         run: |
           if [ -z "${{ inputs.artifact_suffix }}" ]; then
-            echo "artifact_name=wireguard_go-${{ matrix.os }}" >> $GITHUB_OUTPUT
+            echo "artifact_name=wireguard_go-${{ matrix.arch }}" >> $GITHUB_OUTPUT
           else
-            echo "artifact_name=wireguard_go_${{ inputs.artifact_suffix }}-${{ matrix.os }}" >> $GITHUB_OUTPUT
+            echo "artifact_name=wireguard_go_${{ inputs.artifact_suffix }}-${{ matrix.arch }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload artifacts
@@ -55,4 +59,4 @@ jobs:
           name: ${{ steps.set_artifact_name.outputs.artifact_name }}
           path: build/lib
           if-no-files-found: error
-          retention-days: 10
+          retention-days: 1
