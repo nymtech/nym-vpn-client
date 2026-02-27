@@ -15,10 +15,10 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  UPLOAD_DIR_LINUX_X86_64: linux_artifacts-ubuntu-22.04
-  UPLOAD_DIR_LINUX_ARM: linux_artifacts-ubuntu-22.04-arm
-  UPLOAD_DIR_DEB_X86_64: deb_artifacts-ubuntu-22.04
-  UPLOAD_DIR_DEB_ARM: deb_artifacts-ubuntu-22.04-arm
+  UPLOAD_DIR_LINUX_X86_64: linux_artifacts-x86_64
+  UPLOAD_DIR_LINUX_ARM: linux_artifacts-aarch64
+  UPLOAD_DIR_DEB_X86_64: deb_artifacts-x86_64
+  UPLOAD_DIR_DEB_ARM: deb_artifacts-aarch64
   UPLOAD_DIR_ANDROID: android_artifacts
   UPLOAD_DIR_WINDOWS: windows_artifacts
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
