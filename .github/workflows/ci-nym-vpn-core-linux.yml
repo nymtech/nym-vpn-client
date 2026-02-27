@@ -69,7 +69,7 @@ jobs:
           git diff
 
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: wireguard_go-ubuntu-22.04
           path: build/lib
