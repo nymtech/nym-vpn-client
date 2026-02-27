@@ -91,7 +91,7 @@ jobs:
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd_*.deb ${{ env.UPLOAD_DIR_DEB }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.UPLOAD_DIR_DEB }}
           path: ${{ env.UPLOAD_DIR_DEB }}

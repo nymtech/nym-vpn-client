@@ -76,7 +76,7 @@ jobs:
           cp -v -R crates/nym-vpn-rpc-uniffi/NymVPNRpc ${{ env.UPLOAD_DIR_MAC }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mac_artifacts
           path: ${{ env.UPLOAD_DIR_MAC }}

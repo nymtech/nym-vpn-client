@@ -29,7 +29,7 @@ jobs:
           release-tag-or-name-or-id: ${{ inputs.release_tag }}
 
       - name: Upload hashes.json
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: Asset Hashes
           path: hashes.json
