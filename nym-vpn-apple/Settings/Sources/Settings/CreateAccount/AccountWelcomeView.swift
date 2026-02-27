@@ -15,7 +15,6 @@ import Theme
 
 public struct AccountWelcomeView: View {
     private let navigationSource: AccountWelcomeNavigationSource
-    private let type: AccountWelcomeType
 
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var credentialsManager: CredentialsManager
@@ -30,6 +29,7 @@ public struct AccountWelcomeView: View {
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
     @State private var isLoggingInWithPrivy = false
+    private var type: AccountWelcomeType
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -129,10 +129,19 @@ private extension AccountWelcomeView {
 
     var maximumPrivacySubtitle: some View {
         HStack {
-            Text("\("createAccount.singleTap.subtitle".localizedString) \n\n\("createAccount.singleTap.subtitle1".localizedString)")
+            Text(privacySubtitleLocalizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
             Spacer()
+        }
+    }
+
+    var privacySubtitleLocalizedString: String {
+        switch type {
+        case .createAccount:
+            "\("createAccount.singleTap.subtitle".localizedString) \n\n\("createAccount.singleTap.subtitle1".localizedString)"
+        case .login:
+            "createAccount.Login.subtitle".localizedString
         }
     }
 
@@ -146,12 +155,12 @@ private extension AccountWelcomeView {
                 navigateToLoginOrCreateAccount()
             }
 #elseif os(macOS)
-        GenericButton(title: "createAccount.startAnonymously".localizedString, isExternalLink: true)
+        GenericButton(title: createAccountButtonLocalizedTitle, isExternalLink: true)
             .onTapGesture {
-                navigateToCreateAccount()
+                navigateToLoginOrCreateAccount()
             }
             .accessibilityAction {
-                navigateToCreateAccount()
+                navigateToLoginOrCreateAccount()
             }
 #endif
     }
@@ -204,8 +213,7 @@ private extension AccountWelcomeView {
     var privyLoginButton: some View {
         GenericButton(
             title: privyLoginButtonTitle,
-            style: .primaryBorderOnly,
-            isLoading: $isLoggingInWithPrivy
+            style: .primaryBorderOnly
         )
         .onTapGesture {
             privyLogin()
