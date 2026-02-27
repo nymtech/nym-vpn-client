@@ -19,10 +19,11 @@ jobs:
   build-libwg:
     strategy:
       matrix:
-        - os: "ubuntu-22.04"
-          arch: "x86_64"
-        - os: "ubuntu-22.04-arm"
-          arch: "aarch64"
+        include:
+          - os: "ubuntu-22.04"
+            arch: "x86_64"
+          - os: "ubuntu-22.04-arm"
+            arch: "aarch64"
 
     if: github.actor != 'dependabot[bot]'
     runs-on: ${{ matrix.os }}
