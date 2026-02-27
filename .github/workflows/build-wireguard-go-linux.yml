@@ -55,4 +55,4 @@ jobs:
           name: ${{ steps.set_artifact_name.outputs.artifact_name }}
           path: build/lib
           if-no-files-found: error
-          retention-days: 10
+          retention-days: 1

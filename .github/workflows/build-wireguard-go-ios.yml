@@ -49,4 +49,4 @@ jobs:
             build/lib/aarch64-apple-ios-sim
             build/lib/x86_64-apple-ios
           if-no-files-found: error
-          retention-days: 10
+          retention-days: 1
