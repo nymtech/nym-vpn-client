@@ -6910,6 +6910,7 @@ dependencies = [
 name = "nym-vpn-proto"
 version = "1.26.0-beta"
 dependencies = [
+ "hyper 1.8.1",
  "nym-ipc",
  "nym-vpn-lib-types",
  "prost 0.14.3",

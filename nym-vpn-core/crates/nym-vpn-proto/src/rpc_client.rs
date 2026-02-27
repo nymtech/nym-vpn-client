@@ -21,8 +21,7 @@ use nym_vpn_lib_types::{
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
 
-// TODO dz this wasn't `pub`, does it need to be? look into test-manager usage
-pub type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
+type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
 
 #[derive(Debug, Clone)]
 pub struct RpcClient(ServiceClient);
@@ -51,8 +50,27 @@ impl RpcClient {
             })
     }
 
-    pub fn from_rpc_client(client: ServiceClient) -> Self {
-        Self(client)
+    pub async fn new_over_serial<C>(
+        connector: C,
+        timeout: Option<std::time::Duration>,
+    ) -> Result<RpcClient>
+    where
+        C: tower::Service<Uri> + Send + 'static,
+        C::Response: hyper::rt::Read + hyper::rt::Write + Send + Unpin,
+        C::Future: Send,
+        C::Error: std::error::Error + Send + Sync + 'static,
+    {
+        let mut endpoint = Endpoint::from_static("serial://placeholder");
+        if let Some(timeout) = timeout {
+            endpoint = endpoint.timeout(timeout);
+        }
+
+        endpoint
+            .connect_with_connector(connector)
+            .await
+            .map(ServiceClient::new)
+            .map(RpcClient)
+            .map_err(Error::Transport)
     }
 
     pub async fn get_info(&mut self) -> Result<VpnServiceInfo> {
