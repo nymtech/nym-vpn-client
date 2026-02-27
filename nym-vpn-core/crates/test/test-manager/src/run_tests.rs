@@ -157,34 +157,8 @@ pub async fn run(
         logger: Logger::get_or_init(),
     };
 
-    // TODO dz: commented this out because the new `run_test` signature doesn't align with
-    // this specific test
-    // We need to handle the upgrade test separately since it expects the daemon to *not* be
-    // installed, which is done by `tests::prepare_daemon`, and only runs with
-    // `app_package_to_upgrade_from_filename` set.
-    // TODO: Extend `TestMetadata` and the `test_function` macro to specify what daemon state is
-    // expected, and to allow for skipping tests on arbitrary conditions.
-    // if TEST_CONFIG.app_package_to_upgrade_from_filename.is_some() {
-    //     test_handler
-    //         .run_test(&tests::test_upgrade_app, "test_upgrade_app", None)
-    //         .await?;
-    // } else {
-    //     log::warn!("No previous app to upgrade from, skipping upgrade test");
-    // };
-
     for test in tests {
-        // TODO dz commented out for faster iteration, uncomment before adding more tests
-        // TODO dz maybe not here but in each test separately instead ?
-        // let mut nym_proxy_client = rpc_provider.new_client_nym().await;
-        // nym_test::prepare_daemon_nym(&mut nym_proxy_client, false)
-        //     .await
-        //     .context("Failed to reset daemon before test")?;
         let nym_client = rpc_provider.new_client_nym().await;
-
-        // TODO dz unused for now, can be enabled for location-specific tests
-        // tests::set_test_location(&mut nym_client, &test)
-        //     .await
-        //     .context("Failed to create custom list from test locations")?;
 
         test_handler
             .run_test(test.func, test.name, Some(nym_client))

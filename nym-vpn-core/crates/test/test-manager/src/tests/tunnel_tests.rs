@@ -3,13 +3,11 @@
 
 use crate::tests::{
     TestContext,
-    helpers_nym::{ExpectedTunnelState, wait_for_account_state, wait_for_tunnel_state},
-    nym_test::prepare_daemon_nym,
+    helpers_nym::{ExpectedTunnelState, wait_for_tunnel_state},
+    nym_test::dc_and_ensure_logged_in,
 };
 use anyhow::{Context, bail, ensure};
-use nym_vpn_lib_types::{
-    AccountControllerState, ExitPoint, GatewayType, ListGatewaysOptions, TunnelState, TunnelType,
-};
+use nym_vpn_lib_types::{ExitPoint, GatewayType, ListGatewaysOptions, TunnelState, TunnelType};
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use std::{net::SocketAddr, time::Duration};
 use test_macro::test_function_nym;
@@ -75,8 +73,7 @@ pub async fn test_list_gateways(
     _rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    prepare_daemon_nym(&mut nym_client, true).await?;
-    wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
+    dc_and_ensure_logged_in(&mut nym_client, false).await?;
 
     let mixnet_gateways = nym_client
         .list_gateways(ListGatewaysOptions {
@@ -110,8 +107,7 @@ pub async fn test_account_summary_and_usage(
     _rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    prepare_daemon_nym(&mut nym_client, true).await?;
-    wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
+    dc_and_ensure_logged_in(&mut nym_client, false).await?;
 
     // Get account summary
     let summary = nym_client
@@ -176,8 +172,7 @@ pub async fn test_wireguard_connect_disconnect(
     _rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    prepare_daemon_nym(&mut nym_client, true).await?;
-    wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
+    dc_and_ensure_logged_in(&mut nym_client, false).await?;
 
     // Enable two-hop (WireGuard mode)
     nym_client.set_enable_two_hop(true).await?;
@@ -217,8 +212,7 @@ pub async fn test_mixnet_connect_disconnect(
     _rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    prepare_daemon_nym(&mut nym_client, true).await?;
-    wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
+    dc_and_ensure_logged_in(&mut nym_client, false).await?;
 
     // Disable two-hop (Mixnet mode)
     nym_client.set_enable_two_hop(false).await?;
@@ -256,8 +250,7 @@ pub async fn test_dns_leak(
     rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    prepare_daemon_nym(&mut nym_client, true).await?;
-    wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
+    dc_and_ensure_logged_in(&mut nym_client, false).await?;
 
     // pre-VPN DNS servers from guest VM's resolv.conf
     let pre_vpn_nameservers = get_vm_nameservers(&rpc).await?;
@@ -434,8 +427,7 @@ pub async fn test_country_exit_node(
     rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    prepare_daemon_nym(&mut nym_client, true).await?;
-    wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
+    dc_and_ensure_logged_in(&mut nym_client, false).await?;
 
     const TARGET_COUNTRY: &str = "CH";
 
@@ -496,8 +488,7 @@ pub async fn test_reconnect_tunnel(
     rpc: NymServiceClient,
     mut nym_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    prepare_daemon_nym(&mut nym_client, true).await?;
-    wait_for_account_state(&mut nym_client, AccountControllerState::ReadyToConnect).await?;
+    dc_and_ensure_logged_in(&mut nym_client, false).await?;
 
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;

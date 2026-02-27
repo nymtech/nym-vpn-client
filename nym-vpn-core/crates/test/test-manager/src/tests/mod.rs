@@ -2,7 +2,6 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-pub(crate) mod account_nym;
 pub mod config_nym;
 mod envs;
 mod helpers_nym;

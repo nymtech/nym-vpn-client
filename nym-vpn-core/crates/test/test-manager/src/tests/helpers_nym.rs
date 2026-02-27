@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{Error, WAIT_FOR_TUNNEL_STATE_TIMEOUT, config_nym::TEST_CONFIG_NYM};
-use anyhow::Context;
 use futures::StreamExt;
 use nym_vpn_lib_types::{AccountControllerState, TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
@@ -58,29 +57,6 @@ pub async fn login_with_retries(nym_client: &mut NymProxyClient) -> Result<(), N
             Err(err) => return Err(err),
             Ok(_) => break,
         }
-    }
-
-    // nym_client.reset_device_identity(None).await?;
-
-    Ok(())
-}
-
-pub async fn ensure_logged_in(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
-    log::info!("Ensuring we're logged in by logging out and back in...");
-
-    nym_client
-        .forget_account()
-        .await
-        .context("Failed to forget account")?;
-
-    // re-log in...
-    login_with_retries(nym_client)
-        .await
-        .context("Failed to log in")?;
-
-    let active_devices = nym_client.get_active_devices().await?;
-    if nym_client.is_account_stored().await? && !active_devices.is_empty() {
-        return Ok(());
     }
 
     Ok(())

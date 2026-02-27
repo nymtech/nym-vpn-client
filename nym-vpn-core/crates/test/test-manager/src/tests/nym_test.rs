@@ -4,7 +4,6 @@
 
 use crate::tests::{
     TestContext,
-    account_nym::forget_current_device,
     config_nym::TEST_CONFIG_NYM,
     helpers_nym::{self, wait_for_account_state},
 };
@@ -44,7 +43,7 @@ pub async fn test_account_and_tunnel_roundtrip(
     rpc: NymServiceClient,
     mut nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    prepare_daemon_nym(&mut nym_proxy_client, false).await?;
+    dc_and_ensure_logged_in(&mut nym_proxy_client, false).await?;
 
     // Store account
     log::info!("Storing account...");
@@ -144,23 +143,29 @@ pub async fn test_account_and_tunnel_roundtrip(
 }
 
 /// Make sure the daemon is installed and logged in and restore settings to the defaults.
-pub async fn prepare_daemon_nym(
+pub async fn dc_and_ensure_logged_in(
     nym_proxy_client: &mut NymProxyClient,
-    ensure_logged_in: bool,
+    forget_account: bool,
 ) -> anyhow::Result<()> {
     log::debug!("🔄 Resetting daemon settings before test...");
     helpers_nym::disconnect_and_wait(nym_proxy_client)
         .await
         .context("Failed to disconnect daemon after test")?;
 
-    if ensure_logged_in {
-        log::debug!("🔄 Ensuring account is logged in to nym-vpnd...");
-        helpers_nym::ensure_logged_in(nym_proxy_client).await?;
-    } else {
-        log::debug!("🔄 Resetting device identity...");
-        forget_current_device(nym_proxy_client).await?;
+    if forget_account {
+        log::debug!("🔄 Resetting device identity & ticketbooks...");
+        nym_proxy_client.forget_account().await?;
+        wait_for_account_state(nym_proxy_client, AccountControllerState::LoggedOut).await?;
+
+        log::debug!("🔄 Logging in...");
+        helpers_nym::login_with_retries(nym_proxy_client)
+            .await
+            .context("Failed to log in")?;
     }
-    log::debug!("🔄 Daemon successfully reset 🔄");
+
+    wait_for_account_state(nym_proxy_client, AccountControllerState::ReadyToConnect).await?;
+
+    log::debug!("🔄 Daemon successfully prepared 🔄");
 
     Ok(())
 }
