@@ -158,7 +158,7 @@ pub async fn run(
     };
 
     for test in tests {
-        let nym_client = rpc_provider.new_client_nym().await;
+        let nym_client = rpc_provider.new_client_nym().await?;
 
         test_handler
             .run_test(test.func, test.name, Some(nym_client))
