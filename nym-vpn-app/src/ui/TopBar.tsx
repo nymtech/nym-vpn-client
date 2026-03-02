@@ -130,16 +130,23 @@ export default function TopBar() {
         },
       },
       '/settings/data-privacy': {
-        title: t('data-privacy'),
+        title: t('privacy.title', { ns: 'settings' }),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
-      '/settings/logs': {
+      '/settings/data-privacy/logs': {
         title: t('logs'),
         leftIcon: 'arrow_back',
         rightComponent: <ActionMenu />,
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
+      '/settings/data-privacy/diagnostic': {
+        title: t('diagnostic.title', { ns: 'settings' }),
+        leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
         },
@@ -256,13 +263,6 @@ export default function TopBar() {
       },
       '/node-details': {
         title: t('server-details'),
-        leftIcon: 'arrow_back',
-        handleLeftNav: () => {
-          navigate(-1);
-        },
-      },
-      '/settings/diagnostic': {
-        title: t('diagnostic.title', { ns: 'settings' }),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);

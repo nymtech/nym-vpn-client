@@ -259,6 +259,7 @@
     "snackbar-disabled": "Proxy successfully disabled"
   },
   "privacy": {
+    "title": "Data, privacy & logs",
     "error-monitoring": {
       "label": "Error & crash reports",
       "sublabel": "Changes will apply after app and daemon restart.",
@@ -296,6 +297,9 @@
     "error": "Internal error"
   },
   "diagnostic": {
-    "title": "Diagnostic"
+    "title": "Diagnostic tool",
+    "run": "Run Diagnostic",
+    "share": "Share report",
+    "report-title": "Diagnostic report"
   }
 }

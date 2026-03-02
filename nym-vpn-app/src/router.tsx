@@ -46,11 +46,12 @@ export const routes = {
   appearance: '/settings/appearance',
   display: '/settings/appearance/display',
   lang: '/settings/appearance/lang',
-  logs: '/settings/logs',
   dns: '/settings/dns',
   antiCensorship: '/settings/anti-censorship',
   socks5: '/settings/socks5',
   dataPrivacy: '/settings/data-privacy',
+  logs: '/settings/data-privacy/logs',
+  diagnostic: '/settings/data-privacy/diagnostic',
   support: '/settings/support',
   legal: '/settings/legal',
   licensesRust: '/settings/legal/licenses-rust',
@@ -65,7 +66,6 @@ export const routes = {
   onboarding: '/onboarding',
   mixnetTuning: '/settings/mixnet-tuning',
   accountSettings: '/settings/account',
-  diagnostic: '/settings/diagnostic',
 } as const;
 
 // ⚠ router instance creation must remain outside of React
@@ -118,11 +118,6 @@ const router = createBrowserRouter([
             errorElement: <Error />,
           },
           {
-            path: routes.diagnostic,
-            Component: Diagnostic,
-            errorElement: <Error />,
-          },
-          {
             Component: Settings,
             errorElement: <Error />,
             index: true,
@@ -156,13 +151,24 @@ const router = createBrowserRouter([
           },
           {
             path: routes.dataPrivacy,
-            Component: DataAndPrivacy,
             errorElement: <Error />,
-          },
-          {
-            path: routes.logs,
-            Component: Logs,
-            errorElement: <Error />,
+            children: [
+              {
+                Component: DataAndPrivacy,
+                errorElement: <Error />,
+                index: true,
+              },
+              {
+                path: routes.logs,
+                Component: Logs,
+                errorElement: <Error />,
+              },
+              {
+                path: routes.diagnostic,
+                Component: Diagnostic,
+                errorElement: <Error />,
+              },
+            ],
           },
           {
             path: routes.dns,

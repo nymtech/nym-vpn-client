@@ -186,21 +186,10 @@ function Settings() {
       <SettingsGroup
         settings={[
           {
-            title: t('logs.title'),
-            leadingIcon: 'notes',
-            onClick: () => navigate(routes.logs),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
-          },
-          {
-            title: t('data-privacy', { ns: 'common' }),
+            title: t('privacy.title', { ns: 'settings' }),
             leadingIcon: 'privacy_tip',
-            onClick: () => navigate(routes.dataPrivacy),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
-          },
-          {
-            title: t('diagnostic.title', { ns: 'settings' }),
-            leadingIcon: 'bug_report',
-            onClick: () => navigate(routes.diagnostic),
+            onClick: () =>
+              navigate(routes.dataPrivacy, { state: { resetScroll: true } }),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
         ]}
