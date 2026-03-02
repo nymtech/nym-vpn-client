@@ -116,7 +116,8 @@ async fn read_log_files_nym() -> Result<Vec<Result<LogFile, Error>>, Error> {
 // use nym_vpnd::service::DEFAULT_LOG_DIR;
 #[cfg(unix)]
 fn get_default_settings_path_nym() -> Result<PathBuf, Error> {
-    Ok(PathBuf::from("/etc/nym").join("config.toml"))
+    // defined in nym-vpnd-lib
+    Ok(PathBuf::from("/etc/nym").join("config.json"))
 }
 
 #[cfg(unix)]
@@ -127,13 +128,13 @@ fn get_default_log_dir_nym() -> Result<PathBuf, Error> {
 #[cfg(target_os = "windows")]
 fn get_default_settings_path_nym() -> Result<PathBuf, Error> {
     // TODO: Determine correct Windows settings path for nym-vpnd
-    Ok(PathBuf::from(r"C:\ProgramData\nym\config.toml"))
+    Ok(PathBuf::from(r"C:\ProgramData\nym-vpnd\config\config.json"))
 }
 
 #[cfg(target_os = "windows")]
 fn get_default_log_dir_nym() -> Result<PathBuf, Error> {
     // TODO: Determine correct Windows log directory for nym-vpnd
-    Ok(PathBuf::from(r"C:\ProgramData\nym\logs"))
+    Ok(PathBuf::from(r"C:\ProgramData\nym-vpnd\log"))
 }
 
 async fn list_logs<T: AsRef<Path>>(log_dir: T) -> Result<Vec<PathBuf>, Error> {

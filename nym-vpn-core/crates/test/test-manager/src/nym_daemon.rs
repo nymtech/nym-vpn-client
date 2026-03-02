@@ -148,7 +148,7 @@ pub fn new_rpc_client(
                             break;
                         }
                         if num_bytes == 0 {
-                            log::debug!("👻 Nym daemon connection EOF");
+                            log::debug!("Nym daemon connection EOF (not an error)");
                             break;
                         }
                     }
