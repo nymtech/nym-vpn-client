@@ -770,7 +770,7 @@ pub struct TunnelStateMachine {
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_shutdown_token: CancellationToken,
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     filtering_resolver_handle: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker_handle: JoinHandle<()>,
@@ -945,7 +945,7 @@ impl TunnelStateMachine {
             dns_handler_task,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_shutdown_token,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             filtering_resolver_handle,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             adblocker_handle,
