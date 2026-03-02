@@ -117,12 +117,13 @@ impl From<lib::HttpReport> for HttpReport {
             remote_time: DiagnosticResult::from_lib(report.remote_time, ApiTimeSkew::from),
             health_response: DiagnosticResult {
                 ok: report.health_response.ok,
-                value: report.health_response.value.map(|h| {
-                    DiagnosticHealthResponse {
+                value: report
+                    .health_response
+                    .value
+                    .map(|h| DiagnosticHealthResponse {
                         status: h.status,
                         timestamp_utc: h.timestamp_utc.to_string(),
-                    }
-                }),
+                    }),
                 error: report.health_response.error,
             },
             nb_nymnodes: report.nb_nymnodes.into(),

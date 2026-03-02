@@ -1,8 +1,7 @@
-use tauri::{State, AppHandle};
+use tauri::{AppHandle, State};
 use tauri_plugin_dialog::DialogExt;
 
 use tracing::{error, info, instrument};
-
 
 use crate::{
     error::BackendError,
@@ -25,12 +24,10 @@ pub async fn run_diagnostic(
     Ok(report.into())
 }
 
-
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn share_diagnostic(
     app: AppHandle,
-    vpnd: State<'_, VpndClient>,
     report: DiagnosticReport,
 ) -> Result<(), BackendError> {
     let json = serde_json::to_string_pretty(&report).map_err(|e| {
