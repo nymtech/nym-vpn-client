@@ -15,7 +15,7 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
     GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig,
     NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage,
-    Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
+    Socks5Settings, Socks5Status, SplitApp, StoreAccountRequest, StoredAccountMode, SystemMessage,
     TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
@@ -124,6 +124,69 @@ impl RpcClient {
     pub async fn set_network(&self, network: String) -> Result<()> {
         self.inner.clone().set_network(network).await?;
         Ok(())
+    }
+
+    pub async fn set_enable_split_tunnel(&self, enable: bool) -> Result<()> {
+        #[cfg(target_os = "macos")]
+        {
+            self.inner.clone().set_enable_split_tunnel(enable).await?;
+            Ok(())
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = enable;
+            Err(RpcError::new(InnerRpcError::UnsupportedPlatform(
+                "split tunnel is only supported on macOS",
+            )))
+        }
+    }
+
+    pub async fn add_split_tunnel_app(&self, app: SplitApp) -> Result<()> {
+        #[cfg(target_os = "macos")]
+        {
+            self.inner.clone().add_split_tunnel_app(app).await?;
+            Ok(())
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = app;
+            Err(RpcError::new(InnerRpcError::UnsupportedPlatform(
+                "split tunnel is only supported on macOS",
+            )))
+        }
+    }
+
+    pub async fn remove_split_tunnel_app(&self, app: SplitApp) -> Result<()> {
+        #[cfg(target_os = "macos")]
+        {
+            self.inner.clone().remove_split_tunnel_app(app).await?;
+            Ok(())
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = app;
+            Err(RpcError::new(InnerRpcError::UnsupportedPlatform(
+                "split tunnel is only supported on macOS",
+            )))
+        }
+    }
+
+    pub async fn clear_split_tunnel_apps(&self) -> Result<()> {
+        #[cfg(target_os = "macos")]
+        {
+            self.inner.clone().clear_split_tunnel_apps().await?;
+            Ok(())
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            Err(RpcError::new(InnerRpcError::UnsupportedPlatform(
+                "split tunnel is only supported on macOS",
+            )))
+        }
     }
 
     pub async fn get_system_messages(&self) -> Result<Vec<SystemMessage>> {
@@ -383,6 +446,7 @@ impl RpcClient {
 pub enum InnerRpcError {
     RpcError(DaemonRpcError),
     AccountCommand(Arc<AccountCommandError>),
+    UnsupportedPlatform(&'static str),
 }
 
 impl std::fmt::Display for InnerRpcError {
@@ -390,6 +454,7 @@ impl std::fmt::Display for InnerRpcError {
         match self {
             InnerRpcError::RpcError(err) => write!(f, "{err}"),
             InnerRpcError::AccountCommand(err) => write!(f, "{err}"),
+            InnerRpcError::UnsupportedPlatform(message) => write!(f, "{message}"),
         }
     }
 }
