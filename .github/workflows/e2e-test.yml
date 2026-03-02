@@ -5,14 +5,17 @@ on:
     inputs:
       test_filters:
         description:
-          "Only execute these (space-separated) tests. Can be used in conjunction with skip_tests"
+          "Only execute these (space-separated) tests. Can be used in
+          conjunction with skip_tests"
         required: false
       skip_tests:
         description:
-          "Space-separated list of tests to skip. Can be used in conjunction with test_filters"
+          "Space-separated list of tests to skip. Can be used in conjunction
+          with test_filters"
         required: false
       delay_deprovision_on_failure:
-        description: "Delay teardown by 1 hour on failure so you can SSH in to debug"
+        description:
+          "Delay teardown by 1 hour on failure so you can SSH in to debug"
         type: boolean
         default: false
       instance_type:
@@ -269,7 +272,11 @@ jobs:
           TEST_HARNESS_MNEMONIC: ${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}
           TEST_FILTERS: ${{ inputs.test_filters }}
           SKIP_TESTS: ${{ inputs.skip_tests }}
+        # escaping metacharacters so they become literal - to avoid shell injection in GH job input fields
         run: |
+          SAFE_FILTERS=$(printf '%q' "$TEST_FILTERS")
+          SAFE_SKIP=$(printf '%q' "$SKIP_TESTS")
+
           ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
             ${{ env.VM_USER }}@${VM_IP} \
             "NYM_TEST_QCOW_IMAGE=/mnt/data/fresh_debian12_cli.qcow2 \
@@ -277,8 +284,8 @@ jobs:
              TEST_HARNESS_MNEMONIC='${TEST_HARNESS_MNEMONIC}' \
              TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
              TEST_REPORT=/tmp/test-report.txt \
-             TEST_FILTERS='${TEST_FILTERS}' \
-             SKIP_TESTS='${SKIP_TESTS}' \
+             TEST_FILTERS=${SAFE_FILTERS} \
+             SKIP_TESTS=${SAFE_SKIP} \
              bash ${{ env.VM_DIST_DIR }}/test.sh run-tests"
 
       - name: Retrieve test report
@@ -308,10 +315,8 @@ jobs:
 
       - name: Delay deprovision for debugging
         if: >-
-          always()
-          && inputs.delay_deprovision_on_failure == true
-          && steps.vm-ip.outputs.ip
-          && job.status == 'failure'
+          always() && inputs.delay_deprovision_on_failure == true &&
+          steps.vm-ip.outputs.ip && job.status == 'failure'
         env:
           VM_IP: ${{ steps.vm-ip.outputs.ip }}
         run: |

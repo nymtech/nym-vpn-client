@@ -6,8 +6,14 @@ terraform {
   }
 }
 
-variable "exoscale_api_key" { type = string }
-variable "exoscale_api_secret" { type = string }
+variable "exoscale_api_key" {
+  type = string
+  sensitive = true
+}
+variable "exoscale_api_secret" {
+  type = string
+  sensitive = true
+}
 
 variable "run_id" {
   type        = string
@@ -17,6 +23,7 @@ variable "run_id" {
 
 variable "template_id" {
   type        = string
+  sensitive = true
   description = "Exoscale template ID for the VM image"
 
   validation {
@@ -60,6 +67,7 @@ resource "exoscale_security_group_rule" "ssh" {
 # But you do NOT destroy it every time along the VM.
 variable "data_volume_id" {
   type        = string
+  sensitive = true
   description = "ID of a pre-existing block storage volume (for persistent data like qemu images)"
 }
 
