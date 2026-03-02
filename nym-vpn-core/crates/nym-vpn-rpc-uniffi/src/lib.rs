@@ -11,6 +11,8 @@ use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
     GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig,
@@ -376,6 +378,30 @@ impl RpcClient {
     pub async fn get_privy_derivation_message(&self) -> Result<PrivyDerivationMessage> {
         let message = self.inner.clone().get_privy_derivation_message().await?;
         Ok(message)
+    }
+}
+
+#[cfg(target_os = "macos")]
+#[uniffi::export(async_runtime = "tokio")]
+impl RpcClient {
+    pub async fn set_enable_split_tunnel(&self, enable: bool) -> Result<()> {
+        self.inner.clone().set_enable_split_tunnel(enable).await?;
+        Ok(())
+    }
+
+    pub async fn add_split_tunnel_app(&self, app: SplitApp) -> Result<()> {
+        self.inner.clone().add_split_tunnel_app(app).await?;
+        Ok(())
+    }
+
+    pub async fn remove_split_tunnel_app(&self, app: SplitApp) -> Result<()> {
+        self.inner.clone().remove_split_tunnel_app(app).await?;
+        Ok(())
+    }
+
+    pub async fn clear_split_tunnel_apps(&self) -> Result<()> {
+        self.inner.clone().clear_split_tunnel_apps().await?;
+        Ok(())
     }
 }
 
