@@ -269,7 +269,7 @@
 	<string name="onboarding_title_3">Çevrim içi izlenmeyi durdurun</string>
 	<string name="onboarding_title_4">Ödeme aşamasından web’e kadar anonim kalın</string>
 	<string name="onboarding_description_base">Dünyanın en gizli VPN\'i</string>
-	<string name="onboarding_description_1">Dünyanın en gizli VPN’i\n7 gün ücretsiz deneyin,\n tüm özellikler açık ve reklamsız deneyim.</string>
+	<string name="onboarding_description_1">Dünyanın en gizli VPN\'i</string>
 	<string name="onboarding_description_2">Hız: dVPN ile 250+ Mbps.\nAnonim: 5 katmanlı Gürültü Üreten Mixnet.</string>
 	<string name="onboarding_description_3">Nym’in merkeziyetsiz ağı sayesinde “kayıt tutmama”\n vaatlerine artık gerek kalmıyor.</string>
 	<string name="onboarding_description_4">Kart, kripto veya nakit ile ödeyin, e-posta girmenize gerek yok. Sıfır bilgi kanıtları sayesinde ödemeleriniz çevrim içi aktivitelerinizle ilişkilendirilemez.</string>
