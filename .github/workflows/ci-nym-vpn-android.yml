@@ -15,7 +15,6 @@ on:
 
 jobs:
   check:
-    if: github.actor != 'dependabot[bot]'
     runs-on: arc-linux-latest
     defaults:
       run:
@@ -47,7 +46,6 @@ jobs:
         run: ./gradlew detekt --info
 
   build-nym-vpn-android:
-    if: github.actor != 'dependabot[bot]'
     uses: ./.github/workflows/build-nym-vpn-android.yml
     with:
       build_type: "debug"

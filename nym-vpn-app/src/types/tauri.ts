@@ -313,6 +313,9 @@ export type TAccountSummary = {
   'account-addr': string;
   'canonical-account-addr': string | null;
   'auth-methods': Array<TAuthMethod>;
+  'is-linked': boolean;
+  'fair-usage-left': boolean;
+  'is-subscription-active': boolean;
 };
 
 export type TAuthMethod = {
@@ -388,7 +391,9 @@ export type TunnelError =
   | 'tunnel-provider'
   | 'inactive-account'
   | 'credential-wasted-on-entry-gateway'
-  | 'credential-wasted-on-exit-gateway';
+  | 'credential-wasted-on-exit-gateway'
+  | 'need-full-disk-permissions'
+  | 'split-tunnel';
 
 export type TunnelStateEvent = {
   state: TTunnelState;

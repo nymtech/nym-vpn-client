@@ -32,7 +32,9 @@ extension GRPCManager {
                 trafficResetTimeInterval: summary.trafficResetTime,
                 accountAddress: summary.accountAddr,
                 cannonicalAccountAddress: summary.canonicalAccountAddr,
-                accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) }
+                accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
+                isLinked: summary.isLinked(),
+                isActive: summary.isSubscriptionActive()
             )
         }.value
     }
@@ -55,13 +57,6 @@ extension GRPCManager {
                         name: name
                     )
             )
-        }.value
-    }
-
-    public func isLinkAccountAvailable() async throws -> Bool {
-        try await Task.detached { [weak self] in
-            let result = try await self?.rpcClient?.getAccountMode()
-            return result == .api
         }.value
     }
 

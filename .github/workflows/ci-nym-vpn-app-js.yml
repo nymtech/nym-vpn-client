@@ -10,7 +10,6 @@ on:
 
 jobs:
   translations:
-    if: github.actor != 'dependabot[bot]'
     runs-on: arc-linux-latest
 
     steps:
@@ -42,13 +41,12 @@ jobs:
             --config crowdin-configs/linux-windows.yml
 
       - name: Upload translations artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: crowdin-translations
           path: nym-vpn-app/src/i18n
 
   check:
-    if: github.actor != 'dependabot[bot]'
     needs: translations
     strategy:
       fail-fast: false
@@ -75,7 +73,7 @@ jobs:
         run: npm ci
 
       - name: Download translations artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: crowdin-translations
           path: nym-vpn-app/src/i18n

@@ -29,27 +29,29 @@ import Theme
             navbar()
             Spacer()
                 .frame(height: 24)
-            VStack(spacing: 24) {
-                if credentialsManager.isValidCredentialImported {
-                    nymAccountSection()
-                    nymLinkingText()
-                    accountIdentifier()
-                    accountIdText()
-                    deviceIdentifier()
-                    deviceIdText()
+            ScrollView {
+                VStack(spacing: 24) {
+                    if credentialsManager.isValidCredentialImported {
+                        nymAccountSection()
+                        nymLinkingText()
+                        accountIdentifier()
+                        accountIdText()
+                        deviceIdentifier()
+                        deviceIdText()
 #if os(iOS)
-                    if !configurationManager.isTestFlight {
-                        manageSubscription()
-                    }
+                        if !configurationManager.isTestFlight {
+                            manageSubscription()
+                        }
 #endif
-                    if appSettings.isCredentialImported {
-                        logoutButton()
+                        if appSettings.isCredentialImported {
+                            logoutButton()
+                        }
                     }
                 }
+                .frame(maxWidth: MagicNumbers.maxWidth)
+                .padding(.horizontal, 16)
+                Spacer()
             }
-            .frame(maxWidth: MagicNumbers.maxWidth)
-            .padding(.horizontal, 16)
-            Spacer()
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -123,7 +125,8 @@ private extension AccountAndDevicesView {
     }
 
     func accountSubtitle() -> String? {
-        credentialsManager.isSocialLogin ? nil : "settings.account.nymAccount.subtitle".localizedString
+        guard let accountSummary = credentialsManager.accountSummary else { return nil }
+        return accountSummary.isLinked ? nil : "settings.account.nymAccount.subtitle".localizedString
     }
 
     func manageAccountListItem(isFirst: Bool, isLast: Bool) -> some View {
@@ -150,7 +153,8 @@ private extension AccountAndDevicesView {
     }
 
     func linkingTitle() -> String {
-        credentialsManager.isSocialLogin
+        guard let accountSummary = credentialsManager.accountSummary else { return "" }
+        return accountSummary.isLinked
         ? "⚡️ \("settings.account.nymAccount.linked.subtitle".localizedString)"
         : "⚠️ \("settings.account.linking".localizedString)"
     }
@@ -277,9 +281,9 @@ private extension AccountAndDevicesView {
 // MARK: - Helpers -
 private extension AccountAndDevicesView {
     func updateIsAccountLinkAvailable() async {
-        if let isAvailable = try? await credentialsManager.isAccountLinkAvailable() {
-            isLinkAccountAvailable = isAvailable
-        }
+        await credentialsManager.updateAccountSummary()
+        guard let accountSummary = credentialsManager.accountSummary else { return }
+        isLinkAccountAvailable = !accountSummary.isLinked
     }
 }
 

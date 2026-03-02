@@ -427,20 +427,13 @@ jobs:
           # Build release notes
           RELEASE_NOTES="Date: ${DATE_TIME}\nBranch: ${BRANCH_NAME}\nLatest commit:\n- ${LATEST_COMMIT}"
 
-          # Escape newlines for JSON
-          ESCAPED_NOTES=$(printf "%s" "$RELEASE_NOTES" | awk '{printf "%s\\n", $0}')
-          ESCAPED_NOTES="${ESCAPED_NOTES%\\n}"
-
-          # Build whats_new.json
-          {
-            printf '[\n'
-            printf '  {\n'
-            printf '    "language": "en-US",\n'
-            printf '    "locale": "en-US",\n'
-            printf '    "whats_new": "%s"\n' "$ESCAPED_NOTES"
-            printf '  }\n'
-            printf ']\n'
-          } > whats_new.json
+          # Build whats_new.json with proper JSON escaping
+          export RELEASE_NOTES
+          ruby -rjson -e '
+            notes = ENV.fetch("RELEASE_NOTES")
+            payload = [{ language: "en-US", locale: "en-US", whats_new: notes }]
+            puts JSON.pretty_generate(payload)
+          ' > whats_new.json
 
           echo "Generated whats_new.json:"
           cat whats_new.json
@@ -1014,7 +1007,7 @@ jobs:
 
       - name: Upload artifacts (QA)
         if: ${{ env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.renamed_pkg_relative_path }}
@@ -1101,7 +1094,7 @@ jobs:
 
       - name: Upload artifacts (Ship + appcast + hash)
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.publish_relative_path }}

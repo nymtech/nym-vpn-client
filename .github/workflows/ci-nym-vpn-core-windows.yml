@@ -19,7 +19,6 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build:
-    if: github.actor != 'dependabot[bot]'
     runs-on: custom-windows-11
     needs: build-wireguard-go-windows
 
@@ -91,7 +90,7 @@ jobs:
           crate: cargo-get
 
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib/x86_64-pc-windows-msvc

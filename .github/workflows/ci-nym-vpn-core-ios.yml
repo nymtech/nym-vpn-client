@@ -19,7 +19,6 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-ios.yml
 
   build:
-    if: github.actor != 'dependabot[bot]'
     runs-on: custom-macos-15
     needs: [build-wireguard-go-ios]
     timeout-minutes: 30
@@ -63,7 +62,7 @@ jobs:
             ${{ runner.os }}-cargo-build-
 
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: wireguard-go_ios_universal
           path: build/lib

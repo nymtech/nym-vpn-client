@@ -149,6 +149,10 @@ extension GRPCManager {
             ErrorReason.invalidEntryGatewayCountry
         case .invalidExitGatewayIdentity:
             ErrorReason.invalidExitGatewayIdentity
+        case .needFullDiskPermissions:
+            ErrorReason.needFullDiskPermissions
+        case .splitTunnel:
+            ErrorReason.splitTunnel
         }
     }
 }
@@ -201,6 +205,10 @@ extension ErrorReason {
             self = .performantEntryGatewayUnavailable
         case .performantExitGatewayUnavailable:
             self = .performantExitGatewayUnavailable
+        case .needFullDiskPermissions:
+            self = .needFullDiskPermissions
+        case .splitTunnel:
+            self = .splitTunnel
         }
     }
 }

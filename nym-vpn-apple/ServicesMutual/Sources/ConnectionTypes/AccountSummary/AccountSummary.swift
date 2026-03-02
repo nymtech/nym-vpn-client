@@ -8,7 +8,8 @@ public struct AccountSummary {
     public var accountAddress: String
     public var canonicalAccountAddress: String?
     public var accountAuthMethod: [AccountAuthMethod]
-
+    public var isLinked: Bool
+    public var isActive: Bool
 
     public init(
         validUntilDate: Date?,
@@ -17,7 +18,9 @@ public struct AccountSummary {
         trafficResetDate: Date?,
         accountAddress: String,
         cannonicalAccountAddress: String?,
-        accountAuthMethod: [AccountAuthMethod]
+        accountAuthMethod: [AccountAuthMethod],
+        isLinked: Bool,
+        isActive: Bool
     ) {
         self.validUntilDate = validUntilDate
         self.trafficUsedGb = trafficUsedGb
@@ -26,6 +29,8 @@ public struct AccountSummary {
         self.accountAddress = accountAddress
         self.canonicalAccountAddress = cannonicalAccountAddress
         self.accountAuthMethod = accountAuthMethod
+        self.isLinked = isLinked
+        self.isActive = isActive
     }
 
     public init(
@@ -35,7 +40,9 @@ public struct AccountSummary {
         trafficResetTimeInterval: Int64?,
         accountAddress: String,
         cannonicalAccountAddress: String?,
-        accountAuthMethod: [AccountAuthMethod]
+        accountAuthMethod: [AccountAuthMethod],
+        isLinked: Bool,
+        isActive: Bool
     ) {
         self.validUntilDate = validUntilTimeInterval.map { Date(timeIntervalSince1970: TimeInterval($0)) }
         self.trafficUsedGb = trafficUsedGb.flatMap(Int.init(exactly:))
@@ -44,5 +51,7 @@ public struct AccountSummary {
         self.accountAddress = accountAddress
         self.canonicalAccountAddress = cannonicalAccountAddress
         self.accountAuthMethod = accountAuthMethod
+        self.isLinked = isLinked
+        self.isActive = isActive
     }
 }

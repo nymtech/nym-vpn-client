@@ -14,6 +14,7 @@ use crate::vpnd::account::AccountState;
 use crate::vpnd::client::{NetworkCompatVersions, VersionCheck};
 use crate::vpnd::tunnel::TunnelState;
 use crate::{
+    tray::TrayManager,
     vpnd::client::{VpndInfo, VpndStatus},
     vpnd::config::VpndConfig,
 };
@@ -70,6 +71,9 @@ impl AppState {
     #[instrument(skip(self, app))]
     pub async fn update_tunnel(&mut self, app: &AppHandle, state: TunnelState) -> Result<()> {
         self.tunnel = state;
+
+        let tray_manager = app.state::<TrayManager>();
+        tray_manager.update_tray_icon(self.tunnel.clone()).await;
         app.emit_tunnel_update(&self.tunnel);
         Ok(())
     }
@@ -159,6 +163,10 @@ impl AppState {
             state.vpnd_status = VpndStatus::Down;
             app.emit_vpnd_status(state.vpnd_status.clone());
         }
+        let tray_manager = app.state::<TrayManager>();
+        tray_manager
+            .update_tray_icon(TunnelState::Offline { reconnect: false })
+            .await;
     }
 }
 

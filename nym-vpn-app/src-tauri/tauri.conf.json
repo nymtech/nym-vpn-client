@@ -28,9 +28,7 @@
     ],
     "linux": {
       "deb": {
-        "depends": [
-          "nym-vpnd (>= 1.26.0~beta)"
-        ],
+        "depends": ["nym-vpnd (>= 1.26.0~beta)"],
         "desktopTemplate": "./bundle/deb/main.desktop"
       }
     }
@@ -53,9 +51,7 @@
     },
     "deep-link": {
       "desktop": {
-        "schemes": [
-          "nymvpn"
-        ]
+        "schemes": ["nymvpn"]
       }
     }
   }

@@ -104,10 +104,16 @@ pub struct AccountSummary {
     pub account_addr: String,
     pub canonical_account_addr: Option<String>,
     pub auth_methods: Vec<AuthMethod>,
+    pub is_linked: bool,
+    pub fair_usage_left: bool,
+    pub is_subscription_active: bool,
 }
 
 impl From<lib::VpnAccountSummary> for AccountSummary {
     fn from(summary: lib::VpnAccountSummary) -> Self {
+        let is_linked = summary.is_linked();
+        let fair_usage_left = summary.fair_usage_left();
+        let is_subscription_active = summary.is_subscription_active();
         AccountSummary {
             subscription_valid_until: summary.subscription_valid_until.map(|dt| dt.to_string()),
             traffic_used_gb: summary.traffic_used_gb,
@@ -120,6 +126,9 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
                 .into_iter()
                 .map(AuthMethod::from)
                 .collect(),
+            is_linked,
+            fair_usage_left,
+            is_subscription_active,
         }
     }
 }

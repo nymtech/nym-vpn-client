@@ -15,7 +15,6 @@ env:
 
 jobs:
   check:
-    if: github.actor != 'dependabot[bot]'
     strategy:
       fail-fast: false
       matrix:

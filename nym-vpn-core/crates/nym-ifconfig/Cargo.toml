@@ -1,0 +1,27 @@
+[package]
+name = "nym-ifconfig"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+nix = { workspace = true, features = ["ioctl", "socket", "net", "fs"] }
+ipnetwork.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+bitflags.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+futures.workspace = true
+rtnetlink.workspace = true
+tokio = { workspace = true, features = ["rt", "macros"] }
+tokio-util.workspace = true
+
+[dev-dependencies]
+rand.workspace = true
+serial_test.workspace = true

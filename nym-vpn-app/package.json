@@ -2,9 +2,8 @@
   "name": "nym-vpn-app",
   "version": "0.0.0",
   "type": "module",
-  "author": "Pierre Dommerc <dommerc.pierre@gmail.com>",
+  "author": "Nym Technologies SA <contact@nymtech.net>",
   "contributors": [
-    "Zane Schepke <zanecschepke@gmail.com>",
     "Nym team"
   ],
   "description": "NymVPN desktop client",
@@ -48,7 +47,7 @@
     "@tauri-apps/plugin-opener": "^2.5.3",
     "@tauri-apps/plugin-os": "^2.3.1",
     "@tauri-apps/plugin-process": "^2.3.0",
-    "@tauri-apps/plugin-updater": "^2.9.0",
+    "@tauri-apps/plugin-updater": "^2.10.0",
     "@tauri-apps/plugin-window-state": "^2.4.0",
     "clsx": "^2.0.0",
     "country-region-data": "^4.0.0",
@@ -58,12 +57,11 @@
     "i18next": "^25.2.1",
     "i18next-browser-languagedetector": "^8.2.1",
     "lodash-es": "^4.17.23",
-    "motion": "^12.4.3",
+    "motion": "^12.34.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-i18next": "^16.2.4",
     "react-router": "^7.12.0",
-    "react-virtualized-auto-sizer": "^1.0.23",
     "react-window": "^2.2.7"
   },
   "devDependencies": {
@@ -85,7 +83,7 @@
     "globals": "^16.0.0",
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.8.1",
-    "tailwindcss": "^4.0.0",
+    "tailwindcss": "^4.2.0",
     "typescript": "^5.0.2",
     "typescript-eslint": "^8.0.1",
     "vite": "^7.0.4",

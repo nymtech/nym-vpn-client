@@ -10,7 +10,6 @@ on:
   workflow_dispatch:
 jobs:
   cargo-deny:
-    if: github.actor != 'dependabot[bot]'
     runs-on: arc-linux-latest
     steps:
       - uses: actions/checkout@v6

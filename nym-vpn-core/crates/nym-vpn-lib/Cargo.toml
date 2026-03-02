@@ -62,6 +62,7 @@ nym-macos.workspace = true
 nym-offline-monitor.workspace = true
 nym-registration-client.workspace = true
 nym-registration-common.workspace = true
+nym-split-tunnel.workspace = true
 nym-statistics.workspace = true
 nym-statistics-api-client.workspace = true
 nym-vpn-api-client.workspace = true
@@ -76,7 +77,7 @@ opentelemetry_sdk.workspace = true
 quinn.workspace = true
 quinn-proto.workspace = true
 rand.workspace = true
-reqwest = { workspace = true, features = ["socks", "rustls-tls"] }
+reqwest = { workspace = true, features = ["socks", "rustls"] }
 rustls = { workspace = true, default-features = false, features = [
     "std",
     "ring",

@@ -257,6 +257,15 @@ message MixnetTrafficConfig {
   optional uint32 min_gateway_mixnet_performance = 7;
 }
 
+message SplitApp {
+  string path = 1;
+}
+
+message SplitTunnelSettings {
+  bool enabled = 1;
+  repeated SplitApp apps = 2;
+}
+
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
@@ -273,6 +282,7 @@ message VpnServiceConfig {
   optional uint32 min_gateway_vpn_performance = 10;
   NetworkStatsConfig network_stats = 18;
   MixnetTrafficConfig mixnet_traffic = 25;
+  SplitTunnelSettings split_tunnel = 28;
 }
 
 message NetworkStatsConfig {
@@ -468,6 +478,8 @@ message TunnelState {
     MAX_DEVICES_REACHED = 14;
     DEVICE_TIME_OUT_OF_SYNC = 15;
     DEVICE_LOGGED_OUT = 16;
+    NEED_FULL_DISK_PERMISSIONS = 22;
+    SPLIT_TUNNEL = 23;
     INTERNAL = 17;
   }
 
@@ -839,6 +851,7 @@ message VpnAccountSummary {
   string account_addr = 5;
   optional string canonical_account_addr = 6;
   repeated VpnAccountAuthMethod auth_methods = 7;
+  optional StoredAccountMode account_mode = 8;
 }
 
 message VpnAccountAuthMethod {
@@ -1067,10 +1080,10 @@ service NymVpnService {
   rpc GetAccountSummary(google.protobuf.Empty) returns (VpnAccountSummaryResponse) {}
 
   // Get the deeplink URL
-  rpc GetDeeplink (GetDeeplinkParams) returns (google.protobuf.StringValue) {}
+  rpc GetDeeplink(GetDeeplinkParams) returns (google.protobuf.StringValue) {}
 
   // Login using a deeplink callback URL
-  rpc DeeplinkStoreAccount (google.protobuf.StringValue) returns (AccountCommandResponse) {}
+  rpc DeeplinkStoreAccount(google.protobuf.StringValue) returns (AccountCommandResponse) {}
 
   // Get the log file path
   rpc GetLogPath(google.protobuf.Empty) returns (GetLogPathResponse) {}
@@ -1114,4 +1127,10 @@ service NymVpnService {
   // Diagnostic stuff
   rpc RunDiagnostic(DiagnosticRunParams) returns (DiagnosticReport) {}
   rpc RegisterDiagnostic(DiagnosticRegisterParams) returns (RegistrationReport) {}
+
+  // Split-tunnel
+  rpc SetEnableSplitTunnel(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc AddSplitTunnelApp(SplitApp) returns (google.protobuf.Empty) {}
+  rpc RemoveSplitTunnelApp(SplitApp) returns (google.protobuf.Empty) {}
+  rpc ClearSplitTunnelApps(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }

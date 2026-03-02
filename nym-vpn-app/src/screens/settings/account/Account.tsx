@@ -39,7 +39,6 @@ function Account() {
     accountState,
     accountSyncing,
     daemonStatus,
-    accountMode,
     accountSummary,
     backendFlags,
   } = useMainState();
@@ -51,18 +50,6 @@ function Account() {
 
   const [isAccountLinking, setIsAccountLinking] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
-
-  // Privy and linking logic
-  const isLoggedWithPrivy = accountMode === 'privy';
-  const isDifferentCanonical =
-    accountSummary?.['account-addr'] !==
-    accountSummary?.['canonical-account-addr'];
-  const hasLinkedAuthMethod = accountSummary?.['auth-methods']?.some(
-    (it) => it.label === 'Social login' || it.label === 'Passphrase',
-  );
-
-  const isAccountLinked =
-    isLoggedWithPrivy || isDifferentCanonical || hasLinkedAuthMethod;
 
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
@@ -187,7 +174,7 @@ function Account() {
             trailingIcon: 'open_in_new',
             onClick: handleManageSubscription,
           },
-          ...(backendFlags.privy && isAccountLinked
+          ...(backendFlags.privy && accountSummary?.['is-linked']
             ? [
                 {
                   title: t('account.account-on-nym'),
@@ -204,7 +191,7 @@ function Account() {
 
       {backendFlags.privy && (
         <p className="text-sm text-iron dark:text-bombay">
-          {isAccountLinked
+          {accountSummary?.['is-linked']
             ? t('account.account-not-linked')
             : t('account.account-linked')}
         </p>
