@@ -23,15 +23,13 @@ mod wintun;
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
-use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
-};
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::{
     adblocker,
     resolver::{self},
+};
+
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
 use std::{
@@ -71,16 +69,10 @@ use nym_vpn_lib_types::{
     SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::OSTunProvider;
 use crate::{
     GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
     mixnet::VpnTopologyServiceHandle,
 };
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use crate::{adblocker, resolver};
 
 use tunnel::SelectedGateways;
 #[cfg(windows)]

@@ -300,9 +300,9 @@ impl Resolver {
                     .lookup(return_query.name().clone(), return_query.query_type())
                     .await;
 
-                lookup.map(|lookup| Box::new(ForwardLookup(lookup)) as Box<_>)
+                lookup.map(|lookup| Box::new(ForwardLookup(lookup)))?
             }
-            DnsFilterDecision::Block(DnsFilterStrategy::EmptyRecord) => Ok(Box::new(EmptyLookup)),
+            DnsFilterDecision::Block(DnsFilterStrategy::EmptyRecord) => Box::new(EmptyLookup),
             DnsFilterDecision::Block(DnsFilterStrategy::Localhost) => {
                 let rdata = match return_query.query_type() {
                     RecordType::A => RData::A(rdata::A(Ipv4Addr::LOCALHOST)),

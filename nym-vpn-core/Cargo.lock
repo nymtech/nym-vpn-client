@@ -1392,7 +1392,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3386,7 +3386,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.5.10",
+ "socket2 0.6.2",
  "tokio",
  "tower-service",
  "tracing",
@@ -4557,8 +4557,8 @@ dependencies = [
 
 [[package]]
 name = "nym-api-requests"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bs58",
  "celes",
@@ -4610,8 +4610,8 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-client"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bincode",
  "futures",
@@ -4633,8 +4633,8 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-requests"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -4657,8 +4657,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bandwidth-controller"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "async-trait",
  "log",
@@ -4675,8 +4675,8 @@ dependencies = [
 
 [[package]]
 name = "nym-bin-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "const-str",
  "log",
@@ -4707,8 +4707,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -4766,8 +4766,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-config-types"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -4782,8 +4782,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-gateways-storage"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4802,8 +4802,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-surb-storage"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4821,8 +4821,8 @@ dependencies = [
 
 [[package]]
 name = "nym-coconut-dkg-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4843,8 +4843,8 @@ dependencies = [
 
 [[package]]
 name = "nym-compact-ecash"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bincode",
  "bs58",
@@ -4866,8 +4866,8 @@ dependencies = [
 
 [[package]]
 name = "nym-config"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "dirs",
  "handlebars",
@@ -4899,8 +4899,8 @@ dependencies = [
 
 [[package]]
 name = "nym-contracts-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4914,8 +4914,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-proxy-requests"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -4935,8 +4935,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-storage"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4956,8 +4956,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-utils"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -4975,8 +4975,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credentials"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bincode",
  "cosmrs",
@@ -4999,8 +4999,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credentials-interface"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-bls12_381-fork",
  "nym-compact-ecash",
@@ -5018,8 +5018,8 @@ dependencies = [
 
 [[package]]
 name = "nym-crypto"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "aead",
  "aes",
@@ -5126,8 +5126,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-contract-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -5140,8 +5140,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-signer-check-types"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-coconut-dkg-common",
  "nym-crypto",
@@ -5156,8 +5156,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-time"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -5165,8 +5165,8 @@ dependencies = [
 
 [[package]]
 name = "nym-exit-policy"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "serde",
  "serde_json",
@@ -5206,8 +5206,8 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-client"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "futures",
  "getrandom 0.2.16",
@@ -5270,8 +5270,8 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-requests"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bs58",
  "futures",
@@ -5300,8 +5300,8 @@ dependencies = [
 
 [[package]]
 name = "nym-group-contract-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -5312,8 +5312,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-client"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "async-trait",
  "bincode",
@@ -5344,8 +5344,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-client-macro"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -5356,8 +5356,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bincode",
  "serde",
@@ -5367,8 +5367,8 @@ dependencies = [
 
 [[package]]
 name = "nym-id"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -5395,8 +5395,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-client"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bincode",
  "bytes",
@@ -5411,8 +5411,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-requests"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bincode",
  "bytes",
@@ -5452,7 +5452,7 @@ dependencies = [
 [[package]]
 name = "nym-kkt"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "blake3",
  "classic-mceliece-rust",
@@ -5470,8 +5470,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt-ciphersuite"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "blake3",
  "libcrux-sha3",
@@ -5484,7 +5484,7 @@ dependencies = [
 [[package]]
 name = "nym-lp"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bs58",
  "bytes",
@@ -5513,12 +5513,12 @@ dependencies = [
 [[package]]
 name = "nym-lp-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 
 [[package]]
 name = "nym-lp-transport"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "tokio",
  "tracing",
@@ -5535,8 +5535,8 @@ dependencies = [
 
 [[package]]
 name = "nym-metrics"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -5546,8 +5546,8 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-client"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "dashmap",
  "futures",
@@ -5562,8 +5562,8 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-contract-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -5583,8 +5583,8 @@ dependencies = [
 
 [[package]]
 name = "nym-multisig-contract-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5599,8 +5599,8 @@ dependencies = [
 
 [[package]]
 name = "nym-network-defaults"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "cargo_metadata 0.19.2",
  "dotenvy",
@@ -5616,8 +5616,8 @@ dependencies = [
 
 [[package]]
 name = "nym-node-requests"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "celes",
  "humantime-serde",
@@ -5641,8 +5641,8 @@ dependencies = [
 
 [[package]]
 name = "nym-noise"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "arc-swap",
  "bytes",
@@ -5662,8 +5662,8 @@ dependencies = [
 
 [[package]]
 name = "nym-noise-keys"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-crypto",
  "schemars 0.8.22",
@@ -5673,8 +5673,8 @@ dependencies = [
 
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -5703,8 +5703,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ordered-buffer"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "log",
  "thiserror 2.0.18",
@@ -5712,8 +5712,8 @@ dependencies = [
 
 [[package]]
 name = "nym-outfox"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "blake3",
  "chacha20",
@@ -5730,8 +5730,8 @@ dependencies = [
 
 [[package]]
 name = "nym-pemstore"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "pem",
  "tracing",
@@ -5740,8 +5740,8 @@ dependencies = [
 
 [[package]]
 name = "nym-performance-contract-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5768,8 +5768,8 @@ dependencies = [
 
 [[package]]
 name = "nym-registration-client"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bytes",
  "futures",
@@ -5796,8 +5796,8 @@ dependencies = [
 
 [[package]]
 name = "nym-registration-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bincode",
  "nym-authenticator-requests",
@@ -5833,8 +5833,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sdk"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5888,8 +5888,8 @@ dependencies = [
 
 [[package]]
 name = "nym-serde-helpers"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -5900,8 +5900,8 @@ dependencies = [
 
 [[package]]
 name = "nym-service-provider-requests-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
@@ -5909,8 +5909,8 @@ dependencies = [
 
 [[package]]
 name = "nym-service-providers-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "async-trait",
  "log",
@@ -5933,8 +5933,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-client-core"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "anyhow",
  "dirs",
@@ -5966,8 +5966,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy-helpers"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bytes",
  "futures",
@@ -5981,8 +5981,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-requests"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bincode",
  "log",
@@ -5997,8 +5997,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-crypto",
  "nym-metrics",
@@ -6023,8 +6023,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-acknowledgements"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -6040,8 +6040,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-addressing"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -6051,8 +6051,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-anonymous-replies"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -6069,8 +6069,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-chunking"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "dashmap",
  "log",
@@ -6088,8 +6088,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-cover"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -6106,8 +6106,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-forwarding"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-anonymous-replies",
@@ -6118,8 +6118,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-framing"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "bytes",
  "cfg-if",
@@ -6135,8 +6135,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-params"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -6146,8 +6146,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-routing"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -6156,8 +6156,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-types"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -6193,8 +6193,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sqlx-pool-guard"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "proc_pidinfo",
  "sqlx",
@@ -6237,8 +6237,8 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "futures",
  "log",
@@ -6262,8 +6262,8 @@ dependencies = [
 
 [[package]]
 name = "nym-task"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "cfg-if",
  "futures",
@@ -6279,8 +6279,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ticketbooks-merkle"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -6294,8 +6294,8 @@ dependencies = [
 
 [[package]]
 name = "nym-topology"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -6314,8 +6314,8 @@ dependencies = [
 
 [[package]]
 name = "nym-upgrade-mode-check"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "jwt-simple",
  "nym-crypto",
@@ -6331,8 +6331,8 @@ dependencies = [
 
 [[package]]
 name = "nym-validator-client"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -6381,8 +6381,8 @@ dependencies = [
 
 [[package]]
 name = "nym-vesting-contract-common"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6772,8 +6772,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wasm-utils"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "futures",
  "getrandom 0.2.16",
@@ -6833,8 +6833,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-private-metadata-client"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "async-trait",
  "nym-http-api-client",
@@ -6844,8 +6844,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-private-metadata-shared"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "axum 0.7.9",
  "bincode",
@@ -6858,8 +6858,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-types"
-version = "1.20.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.3-parmigiano#801dcdda1e4622a75cbe39a2d559baac70977b22"
+version = "1.20.4"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.4-quark#a2081af6038ef3ef40b3d9368299d2676a2fbb6a"
 dependencies = [
  "base64 0.22.1",
  "nym-crypto",
@@ -7814,7 +7814,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash 2.1.1",
  "rustls 0.23.36",
- "socket2 0.5.10",
+ "socket2 0.6.2",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -7852,7 +7852,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.5.10",
+ "socket2 0.6.2",
  "tracing",
  "windows-sys 0.60.2",
 ]
@@ -8121,7 +8121,44 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "webpki-roots 1.0.6",
+ "webpki-roots 1.0.3",
+]
+
+[[package]]
+name = "reqwest"
+version = "0.13.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab3f43e3283ab1488b624b44b0e988d0acea0b3214e694730a055cb6b2efa801"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "futures-core",
+ "http 1.3.1",
+ "http-body 1.0.1",
+ "http-body-util",
+ "hyper 1.8.1",
+ "hyper-rustls 0.27.7",
+ "hyper-util",
+ "js-sys",
+ "log",
+ "percent-encoding",
+ "pin-project-lite",
+ "quinn",
+ "rustls 0.23.36",
+ "rustls-pki-types",
+ "rustls-platform-verifier",
+ "serde",
+ "serde_json",
+ "sync_wrapper 1.0.2",
+ "tokio",
+ "tokio-rustls 0.26.4",
+ "tower",
+ "tower-http",
+ "tower-service",
+ "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
@@ -11331,7 +11368,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.1",
 ]
 
 [[package]]
