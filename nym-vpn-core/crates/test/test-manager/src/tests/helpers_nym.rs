@@ -4,7 +4,7 @@
 
 use super::{Error, WAIT_FOR_TUNNEL_STATE_TIMEOUT, config_nym::TEST_CONFIG_NYM};
 use futures::StreamExt;
-use nym_vpn_lib_types::{AccountControllerState, TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{AccountCommandError, AccountControllerState, TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
 use std::time::Duration;
 
@@ -33,32 +33,50 @@ impl From<TunnelState> for ExpectedTunnelState {
 
 pub const THROTTLE_RETRY_DELAY: Duration = Duration::from_secs(120);
 
-/// Log in and retry if it fails due to throttling
-pub async fn login_with_retries(nym_client: &mut NymProxyClient) -> Result<(), NymClientError> {
-    log::debug!("Logging in/generating device");
-    // TODO dz loop is to avoid throttling (inherited from mullvad)
-    // is this necessary?
+pub async fn login_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
+    match nym_client
+        .get_account_state()
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to get account state: {e}"))?
+    {
+        AccountControllerState::ReadyToConnect => {
+            return Ok(());
+        }
+        AccountControllerState::LoggedOut => {
+            store_account_idempotent(nym_client).await?;
+        }
+        _ => {
+            // for other states just wait, AC will either reach ReadyToConnect or we'll timeout.
+        }
+    }
+    wait_for_account_state(nym_client, AccountControllerState::ReadyToConnect)
+        .await
+        .map(drop)
+        .map_err(From::from)
+}
+
+async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
     loop {
         match nym_client
             .store_account_friendly(&TEST_CONFIG_NYM.mnemonic)
             .await
         {
+            Ok(response) => match response.error {
+                None | Some(AccountCommandError::ExistingAccount) => break,
+                Some(err) => anyhow::bail!("store_account error: {err}"),
+            },
             Err(NymClientError::Rpc(status))
                 if status.message().to_uppercase().contains("THROTTLED") =>
             {
-                // Work around throttling errors by sleeping
                 log::debug!(
                     "Login failed due to throttling. Sleeping for {} seconds",
                     THROTTLE_RETRY_DELAY.as_secs()
                 );
-
                 tokio::time::sleep(THROTTLE_RETRY_DELAY).await;
             }
-            Err(err) => return Err(err),
-            Ok(_) => break,
+            Err(err) => anyhow::bail!("store_account RPC failed: {err}"),
         }
     }
-
     Ok(())
 }
 

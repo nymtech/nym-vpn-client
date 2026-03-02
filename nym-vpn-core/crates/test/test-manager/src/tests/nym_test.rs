@@ -5,7 +5,7 @@
 use crate::tests::{
     TestContext,
     config_nym::TEST_CONFIG_NYM,
-    helpers_nym::{self, wait_for_account_state, wait_for_tunnel_state},
+    helpers_nym::{self, wait_for_account_state},
 };
 use anyhow::{Context, bail, ensure};
 use helpers_nym::ExpectedTunnelState;
@@ -44,24 +44,6 @@ pub async fn test_account_and_tunnel_roundtrip(
     mut nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
     dc_and_ensure_logged_in(&mut nym_proxy_client, false).await?;
-
-    // Store account
-    log::info!("Storing account...");
-    if let Some(err) = nym_proxy_client
-        .store_account_friendly(&TEST_CONFIG_NYM.mnemonic)
-        .await?
-        .error
-    {
-        bail!("store_account_friendly returned error: {err}");
-    }
-
-    // Wait for account to be stored (bounded)
-    wait_for_account_stored(&mut nym_proxy_client, Duration::from_secs(60)).await?;
-    wait_for_account_state(
-        &mut nym_proxy_client,
-        AccountControllerState::ReadyToConnect,
-    )
-    .await?;
 
     // Verify account identity
     let identity = nym_proxy_client
@@ -150,23 +132,18 @@ pub async fn dc_and_ensure_logged_in(
     log::debug!("🔄 Resetting daemon settings before test...");
     helpers_nym::disconnect_and_wait(nym_proxy_client)
         .await
-        .context("Failed to disconnect daemon after test")?;
+        .context("Failed to disconnect")?;
 
     if forget_account {
         log::debug!("🔄 Resetting device identity & ticketbooks...");
         nym_proxy_client.forget_account().await?;
-        wait_for_account_state(nym_proxy_client, AccountControllerState::LoggedOut).await?;
+        helpers_nym::wait_for_account_state(nym_proxy_client, AccountControllerState::LoggedOut)
+            .await?;
     }
 
-    let acc_state = nym_proxy_client.get_account_state().await?;
-    if matches!(acc_state, AccountControllerState::LoggedOut) {
-        log::debug!("🔄 Logging in...");
-        helpers_nym::login_with_retries(nym_proxy_client)
-            .await
-            .context("Failed to log in")?;
-    }
-
-    wait_for_account_state(nym_proxy_client, AccountControllerState::ReadyToConnect).await?;
+    helpers_nym::login_idempotent(nym_proxy_client)
+        .await
+        .context("Failed to ensure logged in")?;
 
     log::debug!("🔄 Daemon successfully prepared 🔄");
 
