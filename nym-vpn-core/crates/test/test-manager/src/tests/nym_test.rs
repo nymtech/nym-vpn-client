@@ -5,7 +5,7 @@
 use crate::tests::{
     TestContext,
     config_nym::TEST_CONFIG_NYM,
-    helpers_nym::{self, wait_for_account_state},
+    helpers_nym::{self, wait_for_account_state, wait_for_tunnel_state},
 };
 use anyhow::{Context, bail, ensure};
 use helpers_nym::ExpectedTunnelState;
@@ -156,7 +156,10 @@ pub async fn dc_and_ensure_logged_in(
         log::debug!("🔄 Resetting device identity & ticketbooks...");
         nym_proxy_client.forget_account().await?;
         wait_for_account_state(nym_proxy_client, AccountControllerState::LoggedOut).await?;
+    }
 
+    let acc_state = nym_proxy_client.get_account_state().await?;
+    if matches!(acc_state, AccountControllerState::LoggedOut) {
         log::debug!("🔄 Logging in...");
         helpers_nym::login_with_retries(nym_proxy_client)
             .await
