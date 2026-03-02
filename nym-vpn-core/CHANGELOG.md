@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [Windows] Authentication layer for windows, still feature gated (https://github.com/nymtech/nym-vpn-client/pull/4618)
+- Ad-Blocking on Windows and macOS (https://github.com/nymtech/nym-vpn-client/pull/4462)
 
 ### Fixed
 
