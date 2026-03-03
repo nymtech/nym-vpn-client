@@ -30,10 +30,7 @@ impl RpcClient {
     pub async fn new() -> Result<RpcClient> {
         Endpoint::from_static("unix://placeholder")
             .connect_with_connector(service_fn(move |_: Uri| {
-                nym_ipc::client::connect(
-                    #[cfg(not(target_os = "macos"))]
-                    get_rpc_socket_path(),
-                )
+                nym_ipc::client::connect(get_rpc_socket_path())
             }))
             .await
             .map(ServiceClient::new)

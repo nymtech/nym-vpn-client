@@ -47,6 +47,7 @@ cc = { workspace = true }
 
 [features]
 authentication = []
+xpc = []
 daemon = [
     "async-stream",
     "async-trait",
