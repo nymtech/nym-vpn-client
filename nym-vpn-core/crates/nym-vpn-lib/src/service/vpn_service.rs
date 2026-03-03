@@ -206,6 +206,8 @@ pub enum VpnServiceCommand {
     RemoveSplitTunnelApp(oneshot::Sender<()>, SplitApp),
     #[cfg(target_os = "macos")]
     ClearSplitTunnelApps(oneshot::Sender<()>, ()),
+    #[cfg(target_os = "macos")]
+    NeedFullDiskPermissions(oneshot::Sender<bool>, ()),
 }
 
 /// Type of service configuration storage used by the VPN service.
@@ -1072,6 +1074,11 @@ impl NymVpnService {
             VpnServiceCommand::ClearSplitTunnelApps(tx, ()) => {
                 self.handle_clear_split_tunnel_apps().await;
                 let _ = tx.send(());
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::NeedFullDiskPermissions(tx, ()) => {
+                let has_fda = nym_split_tunnel::has_full_disk_access().await;
+                let _ = tx.send(!has_fda);
             }
         }
     }

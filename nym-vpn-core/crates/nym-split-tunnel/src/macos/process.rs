@@ -26,7 +26,7 @@ use nym_platform_metadata::AppleVersion;
 use serde::{Deserialize, de::Error as _};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
-    sync::{OnceCell, oneshot},
+    sync::oneshot,
 };
 
 use crate::SplitTunnelErrorCause;
@@ -107,20 +107,18 @@ impl ProcessMonitor {
 /// Return whether the process has full-disk access
 /// If it cannot be determined that access is available, it is assumed to be available
 pub async fn has_full_disk_access() -> bool {
-    static HAS_TCC_APPROVAL: OnceCell<bool> = OnceCell::const_new();
-    *HAS_TCC_APPROVAL
-        .get_or_try_init(|| async {
-            let mut proc = spawn_eslogger()?;
+    has_full_disk_access_inner().await.unwrap_or(true)
+}
 
-            let stdout = proc.stdout.take().unwrap();
-            let stderr = proc.stderr.take().unwrap();
-            drop(proc.stdin.take());
+async fn has_full_disk_access_inner() -> Result<bool, Error> {
+    let mut proc = spawn_eslogger()?;
 
-            let has_full_disk_access = parse_logger_status(stdout, stderr).await == NeedFda::No;
-            Ok::<bool, Error>(has_full_disk_access)
-        })
-        .await
-        .unwrap_or(&true)
+    let stdout = proc.stdout.take().unwrap();
+    let stderr = proc.stderr.take().unwrap();
+    drop(proc.stdin.take());
+
+    let has_full_disk_access = parse_logger_status(stdout, stderr).await == NeedFda::No;
+    Ok(has_full_disk_access)
 }
 
 #[derive(Debug, PartialEq)]

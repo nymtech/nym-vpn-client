@@ -814,6 +814,15 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
+
+    #[cfg(target_os = "macos")]
+    pub async fn need_full_disk_permissions(&mut self) -> Result<bool> {
+        self.0
+            .need_full_disk_permissions(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
 }
 
 pub fn get_rpc_socket_path() -> PathBuf {
