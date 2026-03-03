@@ -152,9 +152,9 @@ Check our [Contribution Guide](CONTRIBUTING.md).
 - Development: `rust` `open-source` `kotlin` `swiftui`
 - Protocols: `sphinx` `onion-routing` `distributed-systems` `network-privacy`
 
-# ©️ Copyright
+# ©️ Licensing and copyright information
 
-- Nym Copyright 2026. Nym Technologies SA.
+Nym Copyright 2026. Nym Technologies SA. Nym and NymVPN is made possible by [Adblock-rust](https://github.com/brave/adblock-rust/) and other [open source](https://opensource.org/osd) and [free software](https://www.gnu.org/philosophy/free-sw.en.html).
 
 # 😍 Acknowledgements
 
