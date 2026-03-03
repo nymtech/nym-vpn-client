@@ -79,7 +79,8 @@ private extension ConnectionStorage {
                 backgroundTraffic: .ms200,
                 continuousTraffic: .ms20,
                 dissablePoissonRate: false
-            )
+            ),
+            splitTunnelConfig: SplitTunnelConfig()
         )
     }
 }

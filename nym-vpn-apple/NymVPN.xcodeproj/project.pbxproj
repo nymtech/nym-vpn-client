@@ -31,6 +31,7 @@
 		D93466CB2E57A1F700BEF458 /* NymVPNLib in Frameworks */ = {isa = PBXBuildFile; productRef = D93466CA2E57A1F700BEF458 /* NymVPNLib */; };
 		D93466CD2E57A1FE00BEF458 /* NymVPNLib in Frameworks */ = {isa = PBXBuildFile; productRef = D93466CC2E57A1FE00BEF458 /* NymVPNLib */; };
 		D93551F22F4CED0C007AFE9D /* UINavigationController+SwipeBack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93551F12F4CED0C007AFE9D /* UINavigationController+SwipeBack.swift */; };
+		D93551F42F508D0A007AFE9D /* AppDiscoveryService in Frameworks */ = {isa = PBXBuildFile; productRef = D93551F32F508D0A007AFE9D /* AppDiscoveryService */; };
 		D9391F092E461E16002BE10F /* MessagesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9391F082E461E16002BE10F /* MessagesManager */; };
 		D9391F0B2E461E1C002BE10F /* MessagesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9391F0A2E461E1C002BE10F /* MessagesManager */; };
 		D9391F0D2E4624CD002BE10F /* MessageModels in Frameworks */ = {isa = PBXBuildFile; productRef = D9391F0C2E4624CD002BE10F /* MessageModels */; };
@@ -320,6 +321,7 @@
 				D9FA77C82CEBB32C003362D7 /* NotificationsManager in Frameworks */,
 				D9643C6E2CEBC53A00F6B9A7 /* UserNotifications.framework in Frameworks */,
 				D9FFC1F92C40F65F00A4766C /* AutoUpdates in Frameworks */,
+				D93551F42F508D0A007AFE9D /* AppDiscoveryService in Frameworks */,
 				D9FB33E82BECFD1F009C3419 /* ServiceManagement.framework in Frameworks */,
 				D92FBA2B2C6B6AB300D743DF /* ConfigurationManager in Frameworks */,
 				D94510952F104CD800E2EE5E /* Routes in Frameworks */,
@@ -640,6 +642,7 @@
 				D94510942F104CD800E2EE5E /* Routes */,
 				D9F59A3F2F1E76EF00CAE857 /* DeeplinkManager */,
 				D97095DC2F329042000966F7 /* PathManager */,
+				D93551F32F508D0A007AFE9D /* AppDiscoveryService */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -1441,6 +1444,10 @@
 		D93466CC2E57A1FE00BEF458 /* NymVPNLib */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NymVPNLib;
+		};
+		D93551F32F508D0A007AFE9D /* AppDiscoveryService */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppDiscoveryService;
 		};
 		D9391F082E461E16002BE10F /* MessagesManager */ = {
 			isa = XCSwiftPackageProductDependency;

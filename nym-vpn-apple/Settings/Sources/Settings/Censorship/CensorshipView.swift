@@ -29,6 +29,7 @@ public struct CensorshipView: View {
                         .frame(height: 24)
                     stealthApiSection()
                 }
+                .scrollIndicators(.never)
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
             .padding(.horizontal, 16)

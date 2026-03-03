@@ -52,6 +52,7 @@ import Theme
                 .padding(.horizontal, 16)
                 Spacer()
             }
+            .scrollIndicators(.never)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

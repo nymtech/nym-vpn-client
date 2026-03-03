@@ -61,6 +61,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             appModeDestination()
         case .daemonEnable:
             DaemonInstallView(isServing: $grpcManager.isServing, path: $flowState.path)
+        case .splitTunnel:
+            SplitTunnelView(path: $flowState.path)
 #endif
         case .privacyAndData:
             privacyAndDataDestination()

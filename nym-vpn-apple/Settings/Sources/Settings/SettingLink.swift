@@ -24,6 +24,7 @@ public enum SettingLink: Hashable, Identifiable {
     case proxy
     case appMode
     case daemonEnable
+    case splitTunnel
 #endif
 
     public var id: String {
