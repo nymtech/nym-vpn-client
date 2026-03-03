@@ -154,7 +154,7 @@ Check our [Contribution Guide](CONTRIBUTING.md).
 
 # ©️ Licensing and copyright information
 
-Nym Copyright 2026. Nym Technologies SA. Nym and NymVPN is made possible by [Adblock-rust](https://github.com/brave/adblock-rust/) and other [open source](https://opensource.org/osd) and [free software](https://www.gnu.org/philosophy/free-sw.en.html).
+- ©2018-2026 Nym Technologies SA (contact@nymtech.net). Nym Technologies SA. Nym and NymVPN is made possible by [Adblock-rust](https://github.com/brave/adblock-rust/) and other [open source](https://opensource.org/osd) and [free software](https://www.gnu.org/philosophy/free-sw.en.html).
 
 # 😍 Acknowledgements
 
