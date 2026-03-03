@@ -69,13 +69,16 @@ pub fn get_test_descriptions() -> Vec<TestDescription> {
         .sorted_by_key(|test| test.priority)
         .collect_vec();
 
+    // TODO: test app upgrade from a released version to this
     // Since `test_upgrade_app` is not registered with inventory, we need to add it manually
-    let test_upgrade_app = TestDescription {
-        priority: None,
-        name: "test_upgrade_app",
-        targets: &[],
-    };
-    [vec![test_upgrade_app], tests].concat()
+    // let test_upgrade_app = TestDescription {
+    //     priority: None,
+    //     name: "test_upgrade_app",
+    //     targets: &[],
+    // };
+    // [vec![test_upgrade_app], tests].concat()
+
+    tests
 }
 
 /// Return all tests with names matching the input argument. Filters out tests that are skipped for
