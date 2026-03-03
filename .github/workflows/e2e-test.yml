@@ -298,9 +298,13 @@ jobs:
             echo "No test report found"
 
       - name: Format test report
-        if: always() && hashFiles('/tmp/test-report.txt') != ''
+        if: always()
         run: |
-          /tmp/dist/test-manager format-test-reports /tmp/test-report.txt > /tmp/test-report.html
+          if [ -f /tmp/test-report.txt ]; then
+            /tmp/dist/test-manager format-test-reports /tmp/test-report.txt > /tmp/test-report.html
+          else
+            echo "No test report file to format"
+          fi
 
       - name: Upload test report
         if: always()
