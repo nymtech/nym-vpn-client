@@ -80,7 +80,7 @@ After installing Rust, install the following Rust targets and dependencies to en
 
 ### Windows
 
-1. Install Visual Studio 2022 Community
+1. Install **Visual Studio 2022 Community**
 
     ```pwsh
     winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.Llvm.Clang"
@@ -136,6 +136,12 @@ After installing Rust, install the following Rust targets and dependencies to en
     cargo install cargo-get
     ```
 
+1. Initialise git submodules from repository root:
+
+    ```sh
+    git submodule update --init
+    ```
+
 ## Code formatting
 
 We use some of nightly features of rustfmt to format the codebase. Please install the nightly rust with rustfmt:
@@ -168,7 +174,7 @@ make build-wireguard
 
 ### Windows
 
-Run the following command to build `winfw`, `libwg` and download `wintun`:
+Run the following command to build `winfw`, `libwg` and download `wintun`. Use `Developer PowerShell`:
 
 ```sh
 cd nym-vpn-core/
@@ -188,6 +194,9 @@ If you want to build for different architecture, pass one of the following param
 
 - `CPU_ARCH=AMD64` to build for x64
 - `CPU_ARCH=ARM64` to build for ARM64
+
+
+`wintun` requires additional flag `PWSH=1` which will use powershell 7 (may need to be [installed separately](https://learn.microsoft.com/en-us/powershell/scripting/install/install-powershell-on-windows?view=powershell-7.5#winget)) which includes all necessary extensions for working with zip files.
 
 ## Build VPN libraries and executables
 
