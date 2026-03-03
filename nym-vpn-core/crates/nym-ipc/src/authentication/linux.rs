@@ -195,7 +195,7 @@ async fn authenticate_with_prompt(
     }
 }
 
-pub(crate) fn incoming(
+pub(crate) fn incoming_uds(
     uds: Uds,
     shutdown_token: CancellationToken,
 ) -> impl Stream<Item = std::io::Result<StreamItem>> {

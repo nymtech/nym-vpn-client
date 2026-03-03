@@ -14,12 +14,15 @@ use tokio::sync::mpsc;
 use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::CancellationToken;
 
-use crate::xpc::{
-    common::{
-        ConnectionInterfaceObj, DAEMON_BUNDLE_IDENTIFIER, NSConnectionInterface, XpcConnection,
-        connection_interface,
+use crate::{
+    authentication::StreamItem,
+    xpc::{
+        common::{
+            ConnectionInterfaceObj, DAEMON_BUNDLE_IDENTIFIER, NSConnectionInterface, XpcConnection,
+            connection_interface,
+        },
+        local_spawner::LocalSpawner,
     },
-    local_spawner::LocalSpawner,
 };
 
 #[derive(Clone)]
@@ -137,7 +140,7 @@ impl XpcService {
 }
 
 impl Stream for XpcService {
-    type Item = std::io::Result<XpcConnection>;
+    type Item = std::io::Result<StreamItem>;
 
     fn poll_next(
         mut self: std::pin::Pin<&mut Self>,
@@ -145,6 +148,6 @@ impl Stream for XpcService {
     ) -> std::task::Poll<Option<Self::Item>> {
         Pin::new(&mut self.inner)
             .poll_next(cx)
-            .map(|conn| conn.map(Ok))
+            .map(|conn| conn.map(Into::into).map(Ok))
     }
 }

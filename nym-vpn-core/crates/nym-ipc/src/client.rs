@@ -24,13 +24,18 @@ async fn accepted<T: AsyncWrite + AsyncRead + Unpin>(mut conn: T) -> Result<Toki
     }
 }
 
-#[cfg(target_os = "macos")]
-pub async fn connect() -> Result<TokioIo<crate::xpc::common::XpcConnection>> {
+#[cfg(all(target_os = "macos", any(not(debug_assertions), feature = "xpc")))]
+pub async fn connect(
+    _socket_path: std::path::PathBuf,
+) -> Result<TokioIo<crate::xpc::common::XpcConnection>> {
     let conn = crate::xpc::client::connect().await?;
     accepted(conn).await
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(
+    target_os = "linux",
+    all(target_os = "macos", debug_assertions, not(feature = "xpc"))
+))]
 pub async fn connect(socket_path: std::path::PathBuf) -> Result<TokioIo<tokio::net::UnixStream>> {
     let conn = tokio::net::UnixStream::connect(socket_path).await?;
     accepted(conn).await

@@ -4,12 +4,14 @@
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(target_os = "linux")]
-pub(crate) use linux::{StreamItem, incoming, is_authenticated};
+pub(crate) use linux::{StreamItem, incoming_uds, is_authenticated};
 
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(all(target_os = "macos", any(not(debug_assertions), feature = "xpc")))]
+pub(crate) use macos::incoming_xpc;
 #[cfg(target_os = "macos")]
-pub(crate) use macos::{StreamItem, incoming, is_authenticated};
+pub(crate) use macos::{StreamItem, incoming_uds, is_authenticated};
 
 #[cfg(target_os = "windows")]
 mod windows;

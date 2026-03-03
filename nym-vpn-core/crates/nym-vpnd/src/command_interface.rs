@@ -1102,7 +1102,6 @@ pub async fn start_command_interface(
 
     // Wrap the unix socket or named pipe into a stream that can be used by tonic
     let incoming = nym_ipc::server::create_incoming(
-        #[cfg(target_os = "linux")]
         default_socket_path(),
         #[cfg(target_os = "windows")]
         NYM_CERTIFICATE_SERIAL_NUMBER.to_string(),
@@ -1161,7 +1160,6 @@ async fn remove_previous_socket_file(socket_path: &std::path::Path) {
     }
 }
 
-#[cfg(target_os = "linux")]
 fn default_socket_path() -> std::path::PathBuf {
     #[cfg(unix)]
     {

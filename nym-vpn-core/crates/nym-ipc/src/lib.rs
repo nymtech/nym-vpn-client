@@ -12,8 +12,8 @@ mod named_pipe;
 
 #[cfg(feature = "daemon")]
 mod authentication;
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 #[cfg(feature = "daemon")]
 mod uds;
-#[cfg(target_os = "macos")]
+#[cfg(all(target_os = "macos", any(not(debug_assertions), feature = "xpc")))]
 mod xpc;
