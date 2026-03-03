@@ -475,7 +475,7 @@ impl NymVpnService {
             .as_ref()
             .and_then(|config| config.statistics_api.clone());
 
-        let stats_api_client = statistics_api_url.and_then(|url| nym_statistics_api_client::StatisticsApiClient::new(url.clone(), parameters.user_agent.clone()).inspect_err(|e| tracing::error!("Failed to build Statistics API client. Statistics collection will be disabled : {e}")).ok());
+        let stats_api_client = statistics_api_url.clone().and_then(|url| nym_statistics_api_client::StatisticsApiClient::new(url.clone(), parameters.user_agent.clone()).inspect_err(|e| tracing::error!("Failed to build Statistics API client. Statistics collection will be disabled : {e}")).ok());
 
         // Statistics collection can technically fail, but if it's the case, we just disable it as it is not operation critical.
         let statistics_controller = StatisticsController::new(
@@ -510,9 +510,19 @@ impl NymVpnService {
             .nym_vpn_api_urls()
             .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
 
-        let gateway_config =
-            gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)
-                .map_err(Error::CreateGatewayClient)?;
+        let mut other_urls = vec![];
+        if let Some(url) = statistics_api_url {
+            other_urls.push(url.clone());
+        }
+
+        let gateway_config = gateway_directory::Config::new(
+            nyxd_url,
+            nym_api_urls.clone(),
+            nym_vpn_api_urls,
+            other_urls,
+            None,
+        )
+        .map_err(Error::CreateGatewayClient)?;
 
         let (network_tx, network_rx) = watch::channel(network_env.clone());
         let nym_config = NymConfig {

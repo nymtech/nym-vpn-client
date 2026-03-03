@@ -32,6 +32,7 @@ pub struct Config {
     nyxd_url: Url,
     nym_api_urls: Vec<ApiUrl>,
     nym_vpn_api_urls: Vec<ApiUrl>,
+    other_urls: Vec<Url>,
     min_gateway_performance: Option<GatewayMinPerformance>,
 }
 
@@ -40,6 +41,7 @@ impl Config {
         nyxd_url: Url,
         nym_api_urls: Vec<ApiUrl>,
         nym_vpn_api_urls: Vec<ApiUrl>,
+        other_urls: Vec<Url>,
         min_gateway_performance: Option<GatewayMinPerformance>,
     ) -> Result<Self> {
         if nym_api_urls.is_empty() {
@@ -58,6 +60,7 @@ impl Config {
             nyxd_url,
             nym_api_urls,
             nym_vpn_api_urls,
+            other_urls,
             min_gateway_performance,
         })
     }
@@ -110,14 +113,17 @@ impl fmt::Display for Config {
 
 #[derive(Debug, Clone)]
 pub struct ResolvedConfig {
+    pub nyxd_url: Url,
     pub nyxd_socket_addrs: Vec<SocketAddr>,
     pub nym_api_resolver_overrides: ResolverOverrides,
     pub nym_vpn_api_resolver_overrides: ResolverOverrides,
+    pub other_overrides: ResolverOverrides,
 }
 
 impl ResolvedConfig {
     pub async fn from_config(config: &Config) -> Result<Self> {
-        let nyxd_socket_addrs = url_to_socket_addr(config.nyxd_url(), Some((1, 1))).await?;
+        let nyxd_url = config.nyxd_url().clone();
+        let nyxd_socket_addrs = url_to_socket_addr(&nyxd_url, Some((1, 1))).await?;
 
         let nym_api_resolver_overrides =
             ResolverOverrides::from_api_urls(&config.nym_api_urls).await?;
@@ -125,9 +131,18 @@ impl ResolvedConfig {
         let nym_vpn_api_resolver_overrides =
             ResolverOverrides::from_api_urls(&config.nym_vpn_api_urls).await?;
 
+        let urls: Vec<nym_http_api_client::Url> = config
+            .other_urls
+            .iter()
+            .map(|url| url.clone().into())
+            .collect();
+        let other_overrides = ResolverOverrides::from_urls(&urls[..]).await?;
+
         Ok(ResolvedConfig {
+            nyxd_url,
             nyxd_socket_addrs,
             nym_api_resolver_overrides,
+            other_overrides,
             nym_vpn_api_resolver_overrides,
         })
     }
@@ -135,6 +150,20 @@ impl ResolvedConfig {
     pub fn has_resolver_overrides(&self) -> bool {
         !self.nym_api_resolver_overrides.is_empty()
             || !self.nym_vpn_api_resolver_overrides.is_empty()
+    }
+
+    pub fn addr_map(&self) -> HashMap<String, Vec<IpAddr>> {
+        let mut addr_map = self.nym_vpn_api_resolver_overrides.addr_map();
+        for (k, v) in self.nym_api_resolver_overrides.addr_map().into_iter() {
+            _ = addr_map.insert(k, v);
+        }
+        let nyxd_ips: Vec<IpAddr> = self.nyxd_socket_addrs.iter().map(|sa| sa.ip()).collect();
+
+        _ = self
+            .nyxd_url
+            .host_str()
+            .map(|nyxd_domain| addr_map.insert(nyxd_domain.to_string(), nyxd_ips));
+        addr_map
     }
 
     pub fn all_socket_addrs(&self) -> Vec<SocketAddr> {
@@ -597,6 +626,7 @@ mod test {
             nyxd_url: default_nyxd_url,
             nym_api_urls: default_api_urls,
             nym_vpn_api_urls: default_nym_vpn_api_urls,
+            other_urls: vec![],
             min_gateway_performance: None,
         }
     }

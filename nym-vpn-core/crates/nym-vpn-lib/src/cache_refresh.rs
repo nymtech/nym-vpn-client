@@ -60,6 +60,7 @@ pub async fn update_caches_for_network(
         nyxd_url,
         nym_api_urls.clone(),
         nym_vpn_api_urls.clone(),
+        vec![],
         None,
     ) {
         Ok(config) => config,

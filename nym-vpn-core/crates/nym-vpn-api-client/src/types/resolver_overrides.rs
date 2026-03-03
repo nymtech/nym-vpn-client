@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 use std::{
     collections::{HashMap, HashSet},
-    net::SocketAddr,
+    net::{IpAddr, SocketAddr},
 };
 
 use itertools::{Either, Itertools};
@@ -24,6 +24,8 @@ impl ResolverOverrides {
     /// Resolves all domains in parallel for faster startup and reconnection.
     pub async fn from_urls(urls: &[Url]) -> Result<Self, VpnApiClientError> {
         let mut join_set = JoinSet::new();
+
+        tracing::debug!("getting overrides for {urls:?}");
 
         let urls_to_resolve = urls
             .iter()
@@ -127,6 +129,15 @@ impl ResolverOverrides {
             .values()
             .flat_map(|addrs| addrs.iter().cloned())
             .collect()
+    }
+
+    pub fn addr_map(&self) -> HashMap<String, Vec<IpAddr>> {
+        let mut out = HashMap::new();
+        self.overrides.iter().for_each(|(d, v)| {
+            let addrs = v.iter().map(|sa| sa.ip()).collect();
+            out.insert(d.clone(), addrs);
+        });
+        out
     }
 }
 
