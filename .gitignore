@@ -13,6 +13,7 @@ bin/
 /.cargo
 /nym-vpn-core/.cargo
 nym-vpn-apple/MixnetLibrary/Sources/MixnetLibrary/RustFramework.xcframework
+.lldbinit
 
 # Wireguard-go artifacts
 wireguard/libwg/versioninfo_windows.syso

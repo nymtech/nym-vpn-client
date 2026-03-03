@@ -290,7 +290,7 @@
 	<string name="onboarding_title_3">Stop being tracked online</string>
 	<string name="onboarding_title_4">Anonymity from payment to web</string>
 	<string name="onboarding_description_base">The world’s most private VPN</string>
-	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
+	<string name="onboarding_description_1">The world’s most private VPN</string>
 	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
 	<string name="onboarding_description_3">Nym’s decentralized network makes "no-log"\n promises obsolete.</string>
 	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
