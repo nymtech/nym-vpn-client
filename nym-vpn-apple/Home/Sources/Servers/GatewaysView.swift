@@ -35,7 +35,7 @@ public struct GatewaysView: View {
                     foundGatewaysList()
                 }
                 .scrollDismissesKeyboard(.immediately)
-                .scrollIndicators(.hidden)
+                .scrollIndicators(.never)
                 .frame(maxWidth: MagicNumbers.maxWidth)
                 .ignoresSafeArea(.all)
                 .onReceive(viewModel.$shouldScroll.filter { $0 }) { _ in

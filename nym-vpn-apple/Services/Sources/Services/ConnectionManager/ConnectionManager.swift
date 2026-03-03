@@ -303,6 +303,7 @@ extension ConnectionManager {
         guard shouldReconnectMixnetTunningSettings(with: oldConfig)
                 || shouldEntryReconnect()
                 || shouldExitRecconnect()
+                || oldConfig.splitTunnelConfig != connectionStorage.connectionConfig.splitTunnelConfig
         else {
             return false
         }

@@ -178,6 +178,13 @@ private extension SettingsViewModel {
         path.append(SettingLink.mixnetTuning)
     }
 
+#if os(macOS)
+    func navigateToSplitTunneling() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.splitTunnel)
+    }
+#endif
+
     func navigateToCensorship() {
         impactGenerator.softImpact()
         path.append(SettingLink.censorship)
@@ -373,6 +380,16 @@ private extension SettingsViewModel {
             )
         )
 #if os(macOS)
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.splitTunnel".localizedString,
+                systemImageName: "arrow.trianglehead.branch",
+                action: { [weak self] in
+                    self?.navigateToSplitTunneling()
+                }
+            )
+        )
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,

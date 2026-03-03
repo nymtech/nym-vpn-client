@@ -17,6 +17,7 @@ public struct ConnectionConfig: Codable {
     public var netstack: Bool
     public var residentialExit: Bool
     public var mixnetTuningConfig: MixnetTuningConfig
+    public var splitTunnelConfig: SplitTunnelConfig
 
 #if os(iOS)
 
@@ -42,7 +43,8 @@ public struct ConnectionConfig: Codable {
         enableAdBlocking: Bool,
         netstack: Bool,
         residentialExit: Bool,
-        mixnetTuningConfig: MixnetTuningConfig
+        mixnetTuningConfig: MixnetTuningConfig,
+        splitTunnelConfig: SplitTunnelConfig
     ) {
         self.entry = entry
         self.exit = exit
@@ -56,6 +58,7 @@ public struct ConnectionConfig: Codable {
         self.netstack = netstack
         self.residentialExit = residentialExit
         self.mixnetTuningConfig = mixnetTuningConfig
+        self.splitTunnelConfig = splitTunnelConfig
     }
 
 #if os(iOS)
@@ -74,6 +77,7 @@ public struct ConnectionConfig: Codable {
         self.residentialExit = config.residentialExit
         self.mixnetTuningConfig = MixnetTuningConfig(from: config.mixnetTraffic)
         self.enableAdBlocking = config.enableAdBlocking
+        self.splitTunnelConfig = SplitTunnelConfig(from: config.splitTunnel)
     }
 #endif
 }
@@ -152,7 +156,8 @@ extension ConnectionConfig: Equatable {
         lhs.netstack == rhs.netstack &&
         lhs.enableLewes == rhs.enableLewes &&
         lhs.residentialExit == rhs.residentialExit &&
-        lhs.mixnetTuningConfig == rhs.mixnetTuningConfig
+        lhs.mixnetTuningConfig == rhs.mixnetTuningConfig &&
+        lhs.splitTunnelConfig == rhs.splitTunnelConfig
     }
 }
 

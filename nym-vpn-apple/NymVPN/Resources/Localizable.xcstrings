@@ -11653,6 +11653,17 @@
         }
       }
     },
+    "errorReason.needFullDiskPermissions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split tunneling: Please allow Full Disk Access in System Settings."
+          }
+        }
+      }
+    },
     "errorReason.noAccountStored" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34515,6 +34526,17 @@
         }
       }
     },
+    "settings.splitTunnel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split tunneling"
+          }
+        }
+      }
+    },
     "settings.support.resetVpnProfile" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34757,6 +34779,94 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Server monitoring"
+          }
+        }
+      }
+    },
+    "splitTunel.apps.exclude" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose apps to exclude from NymVPN tunnel."
+          }
+        }
+      }
+    },
+    "splitTunnel.apps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        }
+      }
+    },
+    "splitTunnel.apps.unprotected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluding an app will leave it unprotected."
+          }
+        }
+      }
+    },
+    "splitTunnel.exclude" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude"
+          }
+        }
+      }
+    },
+    "splitTunnel.fullDiskAccess.modal.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can enable it in System Settings > Privacy & Security > Full Disk Access."
+          }
+        }
+      }
+    },
+    "splitTunnel.fullDiskAccess.modal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This feature requires Full Disk Access"
+          }
+        }
+      }
+    },
+    "splitTunnel.openSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "splitTunnel.protect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protect"
           }
         }
       }

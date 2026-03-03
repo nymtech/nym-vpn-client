@@ -26,6 +26,7 @@ public struct SantasView: View {
                 }
                 Spacer()
             }
+            .scrollIndicators(.never)
         }
         .preferredColorScheme(AppSettings.shared.currentAppearance.colorScheme)
         .navigationBarBackButtonHidden(true)

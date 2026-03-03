@@ -1,5 +1,6 @@
 import SwiftUI
 import Logging
+import AppDiscoveryService
 import AppSettings
 import AutoUpdater
 import AutoUpdates
@@ -39,6 +40,7 @@ struct NymVPNDaemonApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self)
     private var appDelegate
 
+    @State private var appDiscoveryService = AppDiscoveryService()
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var configurationManager = ConfigurationManager.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
@@ -114,6 +116,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(impactGenerator)
             .environmentObject(nymLogger.logFileManager)
             .environment(deeplinkManager)
+            .environment(appDiscoveryService)
         }
         .onChange(of: appSettings.appMode) { _, newMode in
             appDelegate.configureActivationPolicy(with: newMode)

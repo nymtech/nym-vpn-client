@@ -33,6 +33,7 @@ public struct ServerDetailsView: View {
                     .frame(height: 24)
                 scrollViewContent()
             }
+            .scrollIndicators(.never)
             selectServerSection()
         }
         .navigationBarBackButtonHidden(true)

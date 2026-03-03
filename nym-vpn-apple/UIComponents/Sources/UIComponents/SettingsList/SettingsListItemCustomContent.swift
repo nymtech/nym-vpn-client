@@ -26,19 +26,14 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
     public var body: some View {
         VStack(alignment: .center, spacing: 0) {
             HStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    iconImage()
-                        .padding(.leading, 16)
-                    titleSubtitle()
-                        .padding(.horizontal, 16)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if case let .toggle(_, isDisabled) = viewModel.accessory, !isDisabled {
-                        isToggleOn.toggle()
-                    }
-                    viewModel.action()
+                if viewModel.accessory.isToggle {
+                    mainContent()
+                } else {
+                    mainContent()
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            viewModel.action()
+                        }
                 }
                 HStack(spacing: 0) {
                     optionalAccessoryImage()
@@ -91,6 +86,18 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
 }
 
 private extension SettingsListItemCustomContent {
+    @ViewBuilder
+    func mainContent() -> some View {
+        HStack(spacing: 0) {
+            iconImage()
+                .padding(.leading, 16)
+            titleSubtitle()
+                .padding(.horizontal, 16)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
     @ViewBuilder
     func optionalDivider() -> some View {
         if !viewModel.position.isLast {
