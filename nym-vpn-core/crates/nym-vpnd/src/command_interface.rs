@@ -1082,6 +1082,22 @@ impl NymVpnService for CommandInterface {
         #[cfg(not(target_os = "macos"))]
         Err(tonic::Status::internal("Unsupported platform"))
     }
+
+    async fn need_full_disk_permissions(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<bool>> {
+        #[cfg(target_os = "macos")]
+        {
+            let need_fda = self
+                .send_and_wait(VpnServiceCommand::NeedFullDiskPermissions, ())
+                .await?;
+            Ok(tonic::Response::new(need_fda))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
 }
 
 pub async fn start_command_interface(
