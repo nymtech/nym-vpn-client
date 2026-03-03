@@ -12,6 +12,7 @@ pub mod prost;
 pub mod service;
 pub mod socket_addr;
 pub mod socks5;
+pub mod split_tunnel_settings;
 pub mod tunnel_event;
 pub mod tunnel_state;
 pub mod vpn_api_client;

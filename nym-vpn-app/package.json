@@ -2,9 +2,8 @@
   "name": "nym-vpn-app",
   "version": "0.0.0",
   "type": "module",
-  "author": "Pierre Dommerc <dommerc.pierre@gmail.com>",
+  "author": "Nym Technologies SA <contact@nymtech.net>",
   "contributors": [
-    "Zane Schepke <zanecschepke@gmail.com>",
     "Nym team"
   ],
   "description": "NymVPN desktop client",
@@ -39,7 +38,7 @@
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-slider": "^1.2.2",
     "@radix-ui/react-toast": "^1.2.6",
-    "@tauri-apps/api": "=2.9.0",
+    "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-autostart": "^2.5.0",
     "@tauri-apps/plugin-clipboard-manager": "^2.3.0",
     "@tauri-apps/plugin-deep-link": "^2.4.7",

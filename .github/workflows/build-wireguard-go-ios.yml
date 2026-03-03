@@ -41,7 +41,7 @@ jobs:
         run: ./wireguard/build-wireguard-go.sh --ios
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: wireguard-go_ios_universal
           path: |
@@ -49,4 +49,4 @@ jobs:
             build/lib/aarch64-apple-ios-sim
             build/lib/x86_64-apple-ios
           if-no-files-found: error
-          retention-days: 10
+          retention-days: 1

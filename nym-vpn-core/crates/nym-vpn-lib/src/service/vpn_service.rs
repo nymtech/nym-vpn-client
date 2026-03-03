@@ -29,6 +29,8 @@ use nym_vpn_account_controller::{
     AvailableTicketbooks, NyxdClient,
 };
 use nym_vpn_api_client::api_urls_to_urls;
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState,
     DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
@@ -196,6 +198,14 @@ pub enum VpnServiceCommand {
         oneshot::Sender<RegistrationReport>,
         DiagnosticRegisterParams,
     ),
+    #[cfg(target_os = "macos")]
+    SetEnableSplitTunnel(oneshot::Sender<()>, bool),
+    #[cfg(target_os = "macos")]
+    AddSplitTunnelApp(oneshot::Sender<()>, SplitApp),
+    #[cfg(target_os = "macos")]
+    RemoveSplitTunnelApp(oneshot::Sender<()>, SplitApp),
+    #[cfg(target_os = "macos")]
+    ClearSplitTunnelApps(oneshot::Sender<()>, ()),
 }
 
 /// Type of service configuration storage used by the VPN service.
@@ -265,7 +275,7 @@ pub struct NymVpnService {
     tunnel_settings_update_timer: Pin<Box<Fuse<tokio::time::Sleep>>>,
 
     // Command channel for state machine
-    command_sender: mpsc::UnboundedSender<TunnelCommand>,
+    command_sender: Arc<mpsc::UnboundedSender<TunnelCommand>>,
 
     // Event channel for receiving events from state machine
     event_receiver: mpsc::UnboundedReceiver<TunnelEvent>,
@@ -483,8 +493,9 @@ impl NymVpnService {
         // Initialize lazy SOCKS5 service (disabled by default)
         let socks5_service = Socks5Service::new(tunnel_state.clone());
 
-        // These used to interact with the tunnel state machine
+        // Channels used for interacting with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
+        let command_sender = Arc::new(command_sender);
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let tunnel_settings = config_manager.generate_tunnel_settings();
@@ -545,6 +556,7 @@ impl NymVpnService {
         );
 
         let state_machine_handle = TunnelStateMachine::spawn(
+            Arc::downgrade(&command_sender),
             command_receiver,
             event_sender,
             nym_config,
@@ -1040,6 +1052,26 @@ impl NymVpnService {
             }
             VpnServiceCommand::RegisterDiagnostic(tx, params) => {
                 let _ = tx.send(Box::pin(self.handle_register_diagnostic(params)).await);
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::SetEnableSplitTunnel(tx, enabled) => {
+                self.handle_set_enable_split_tunnel(enabled).await;
+                let _ = tx.send(());
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::AddSplitTunnelApp(tx, app) => {
+                self.handle_add_split_tunnel_app(app).await;
+                let _ = tx.send(());
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::RemoveSplitTunnelApp(tx, app) => {
+                self.handle_remove_split_tunnel_app(app).await;
+                let _ = tx.send(());
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::ClearSplitTunnelApps(tx, ()) => {
+                self.handle_clear_split_tunnel_apps().await;
+                let _ = tx.send(());
             }
         }
     }
@@ -1919,5 +1951,29 @@ impl NymVpnService {
             Err(e) => tracing::error!("Error serializing report :{e}"),
         }
         report
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn handle_set_enable_split_tunnel(&mut self, enabled: bool) {
+        self.config_manager.set_enable_split_tunnel(enabled).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn handle_add_split_tunnel_app(&mut self, app: SplitApp) {
+        self.config_manager.add_split_tunnel_app(app).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn handle_remove_split_tunnel_app(&mut self, app: SplitApp) {
+        self.config_manager.remove_split_tunnel_app(app).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn handle_clear_split_tunnel_apps(&mut self) {
+        self.config_manager.clear_split_tunnel_apps().await;
+        self.update_tunnel_settings_with_throttle();
     }
 }

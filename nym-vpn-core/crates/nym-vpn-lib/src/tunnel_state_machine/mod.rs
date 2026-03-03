@@ -23,14 +23,20 @@ mod wintun;
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
-use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
-};
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::{
     adblocker,
     resolver::{self},
+};
+
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use std::sync::Arc;
+use std::{
+    collections::HashSet,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+    sync::Weak,
 };
 
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
@@ -44,13 +50,6 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::ResolverOverrides;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
-#[cfg(any(target_os = "android", target_os = "ios"))]
-use std::sync::Arc;
-use std::{
-    collections::HashSet,
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
-};
 use tokio::{
     sync::{mpsc, watch},
     task::JoinHandle,
@@ -66,8 +65,13 @@ use nym_gateway_directory::{
 };
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
-    ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint, TunnelEvent,
-    TunnelState, TunnelType,
+    ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
+    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+};
+
+use crate::{
+    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    mixnet::VpnTopologyServiceHandle,
 };
 
 use tunnel::SelectedGateways;
@@ -164,6 +168,9 @@ pub struct TunnelSettings {
 
     /// DNS configuration.
     pub dns: DnsOptions,
+
+    /// Split tunneling settings.
+    pub split_tunnel: SplitTunnelSettings,
 }
 
 impl TunnelSettings {
@@ -172,7 +179,7 @@ impl TunnelSettings {
     pub fn resolved_dns_config(&self) -> ResolvedDnsConfig {
         self.dns.to_dns_config().resolve(
             &self.dns_ips(),
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             53,
         )
     }
@@ -203,7 +210,7 @@ impl TunnelSettings {
     }
 
     pub fn diff(&self, other: &Self) -> Option<TunnelSettingsDiff> {
-        let mut diff = TunnelSettingsDiff::new();
+        let mut diff = TunnelSettingsDiff::default();
 
         if self.enable_ipv6 != other.enable_ipv6 {
             diff.add(TunnelSettingsDiffFields::EnableIpv6);
@@ -253,6 +260,9 @@ impl TunnelSettings {
         if self.dns != other.dns {
             diff.add(TunnelSettingsDiffFields::Dns);
         }
+        if self.split_tunnel != other.split_tunnel {
+            diff.add(TunnelSettingsDiffFields::SplitTunnel);
+        }
 
         if diff.is_empty() { None } else { Some(diff) }
     }
@@ -273,16 +283,34 @@ pub enum TunnelSettingsDiffFields {
     EntryPoint,
     ExitPoint,
     Dns,
+    SplitTunnel,
+}
+
+impl TunnelSettingsDiffFields {
+    /// Returns true when change of such setting requires reconnect
+    pub fn should_reconnect(&self, tunnel_type: TunnelType) -> bool {
+        match self {
+            Self::EnableIpv6
+            | Self::TunnelType
+            | Self::ResidentialExit
+            | Self::QUIC
+            | Self::EntryPoint
+            | Self::ExitPoint
+            | Self::GatewayPerformanceOptions
+            | Self::Dns => true,
+            Self::AllowLan | Self::EnableAdBlocking | Self::SplitTunnel => false,
+            Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
+                tunnel_type == TunnelType::Mixnet
+            }
+            Self::WireguardTunnelOptions => tunnel_type == TunnelType::Wireguard,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct TunnelSettingsDiff(HashSet<TunnelSettingsDiffFields>);
 
 impl TunnelSettingsDiff {
-    pub fn new() -> Self {
-        Self(HashSet::new())
-    }
-
     pub fn add(&mut self, field: TunnelSettingsDiffFields) {
         self.0.insert(field);
     }
@@ -295,24 +323,12 @@ impl TunnelSettingsDiff {
         self.0.contains(field)
     }
 
-    pub fn only_field_changed(&self, field: &TunnelSettingsDiffFields) -> bool {
-        self.0.len() == 1 && self.is_field_changed(field)
-    }
-
     pub fn allow_lan_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::AllowLan)
     }
 
-    pub fn only_allow_lan_changed(&self) -> bool {
-        self.only_field_changed(&TunnelSettingsDiffFields::AllowLan)
-    }
-
     pub fn enable_ad_blocking_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
-    }
-
-    pub fn only_enable_ad_blocking_changed(&self) -> bool {
-        self.only_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
     }
 
     pub fn entry_point_changed(&self) -> bool {
@@ -327,16 +343,19 @@ impl TunnelSettingsDiff {
         self.is_field_changed(&TunnelSettingsDiffFields::QUIC)
     }
 
-    pub fn only_mixnet_performance_options_changed(&self) -> bool {
-        self.only_field_changed(&TunnelSettingsDiffFields::MixnetPerformanceOptions)
+    pub fn split_tunnel_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::SplitTunnel)
     }
 
-    // Can we keep the tunnel connected, or do we need to disconnect and reconnect it?
-    pub fn should_not_reconnect(&self, tunnel_type: TunnelType) -> bool {
-        self.only_allow_lan_changed()
-            || self.only_enable_ad_blocking_changed()
-            || (self.only_mixnet_performance_options_changed()
-                && tunnel_type == TunnelType::Wireguard)
+    pub fn mixnet_performance_options_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::MixnetPerformanceOptions)
+    }
+
+    // Returns true if changed tunnel settings should lead to tunnel reconnect
+    pub fn should_reconnect(&self, tunnel_type: TunnelType) -> bool {
+        self.0
+            .iter()
+            .any(|change| change.should_reconnect(tunnel_type))
     }
 }
 
@@ -416,6 +435,9 @@ pub enum TunnelCommand {
 
     /// Set new tunnel settings.
     SetTunnelSettings(TunnelSettings),
+
+    /// Block all network access unless tunnel is disconnecting or disconnected
+    Block(ErrorStateReason),
 }
 
 impl From<PrivateTunnelState> for TunnelState {
@@ -503,7 +525,7 @@ enum PrivateActionAfterDisconnect {
 }
 
 /// Describes tunnel interfaces used to maintain the tunnel.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum TunnelInterface {
     One(TunnelMetadata),
     Two {
@@ -523,7 +545,7 @@ impl TunnelInterface {
 }
 
 /// Describes tunnel interface configuration.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(any(target_os = "ios", target_os = "android"), allow(unused))]
 pub struct TunnelMetadata {
     interface: String,
@@ -567,10 +589,12 @@ pub struct SharedState {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler: DnsHandlerHandle,
     connectivity_handle: ConnectivityHandle,
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     filtering_resolver: resolver::ResolverHandle,
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker: adblocker::AdBlockerTaskHandle,
+    #[cfg(target_os = "macos")]
+    split_tunnel: nym_split_tunnel::SplitTunnelHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
     tunnel_constants: TunnelConstants,
@@ -637,7 +661,7 @@ impl SharedState {
         }
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "ios", target_os = "android")))]
     async fn enable_ad_blocking(&self, enable: bool) {
         if enable {
             self.adblocker.enable().await;
@@ -655,6 +679,77 @@ impl SharedState {
         if let Err(err) = self.account_command_tx.set_resolver_overrides(None).await {
             nym_common::trace_err_chain!(err, "Failed to unset static API addresses");
         }
+    }
+
+    /// Set which applications matching the given paths should be excluded from the tunnel
+    ///
+    /// Return whether a split tunnel interface was added or removed
+    #[cfg(target_os = "macos")]
+    pub async fn set_exclude_paths(
+        &mut self,
+        paths: HashSet<PathBuf>,
+    ) -> Result<bool, nym_split_tunnel::SplitTunnelErrorCause> {
+        let had_interface = self.split_tunnel.interface().await.is_some();
+        tracing::info!("Updating ST exclude paths: {:?}", paths);
+
+        self.split_tunnel
+            .set_exclude_paths(paths)
+            .await
+            .inspect_err(|error| {
+                nym_common::trace_err_chain!(error, "failed to set split tunnel paths");
+            })
+            .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))?;
+
+        let has_interface = self.split_tunnel.interface().await.is_some();
+        if had_interface != has_interface {
+            tracing::info!(
+                "ST interface is {}",
+                if has_interface {
+                    "created"
+                } else {
+                    "destroyed"
+                }
+            );
+        }
+
+        Ok(had_interface != has_interface)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn enable_split_tunnel(
+        &mut self,
+        metadata: &TunnelMetadata,
+    ) -> Result<(), nym_split_tunnel::SplitTunnelErrorCause> {
+        use nym_split_tunnel::VpnInterface;
+
+        let v4_address = metadata
+            .ips
+            .iter()
+            .find(|ip| ip.is_ipv4())
+            .map(|addr| match addr {
+                IpAddr::V4(addr) => *addr,
+                _ => unreachable!("unexpected address family"),
+            });
+        let v6_address = metadata
+            .ips
+            .iter()
+            .find(|ip| ip.is_ipv6())
+            .map(|addr| match addr {
+                IpAddr::V6(addr) => *addr,
+                _ => unreachable!("unexpected address family"),
+            });
+        let vpn_interface = VpnInterface {
+            name: metadata.interface.clone(),
+            v4_address,
+            v6_address,
+        };
+        self.split_tunnel
+            .set_tunnel(vpn_interface)
+            .await
+            .inspect_err(|error| {
+                nym_common::trace_err_chain!(error, "failed to set VPN interface for split tunnel")
+            })
+            .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))
     }
 }
 
@@ -675,16 +770,23 @@ pub struct TunnelStateMachine {
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_shutdown_token: CancellationToken,
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(target_os = "macos")]
+    split_tunnel_shutdown_token: CancellationToken,
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     filtering_resolver_handle: JoinHandle<()>,
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker_handle: JoinHandle<()>,
+    #[cfg(target_os = "macos")]
+    split_tunnel_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
 impl TunnelStateMachine {
     #[allow(clippy::too_many_arguments)]
     pub async fn spawn(
+        #[cfg_attr(not(target_os = "macos"), allow(unused))] command_sender: Weak<
+            mpsc::UnboundedSender<TunnelCommand>,
+        >,
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,
@@ -707,13 +809,13 @@ impl TunnelStateMachine {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let dns_handler_shutdown_token = CancellationToken::new();
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let (filtering_resolver, filtering_resolver_handle) =
             resolver::LocalResolver::spawn(true, dns_handler_shutdown_token.child_token())
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let Some(data_path) = nym_config.data_path.as_ref() else {
             tracing::error!("Ad-blocking cannot be enabled without a data path configured");
             return Err(Error::StartAdBlockerTask(
@@ -721,7 +823,7 @@ impl TunnelStateMachine {
             ));
         };
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let (adblocker, adblocker_handle) = adblocker::AdBlockerTask::spawn(
             data_path,
             user_agent.to_string(),
@@ -730,14 +832,44 @@ impl TunnelStateMachine {
         .await
         .map_err(Error::StartAdBlockerTask)?;
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         if let Some(dns_filter) = adblocker.get_dns_filter().await {
-            // Note that once the Ad-blocker is set, it won't be reset, but innstead the AdBlocker
-            // filter-set will change internally in response to it being enabled/disabled.
+            // Note that once Ad-blocker is set as the DNS filter, it won't be reset, but
+            // instead the AdBlocker filter-set will change internally in response to it
+            // being enabled/disabled.
             filtering_resolver.set_dns_filter(dns_filter).await;
         } else {
             tracing::error!("Failed to get DNS Filter from Ad-blocker");
         }
+
+        #[cfg(target_os = "macos")]
+        let split_tunnel_shutdown_token = CancellationToken::new();
+
+        #[cfg(target_os = "macos")]
+        let (split_tunnel, split_tunnel_handle) = nym_split_tunnel::SplitTunnel::spawn(
+            route_handler.inner_handle(),
+            split_tunnel_shutdown_token.child_token(),
+            move |st_error_cause| {
+                tracing::info!("Split tunnel error: {st_error_cause:?}");
+
+                let Some(command_sender) = command_sender.upgrade() else {
+                    return;
+                };
+
+                let error_state_reason = match st_error_cause {
+                    nym_split_tunnel::SplitTunnelErrorCause::NeedFullDiskPermissions => {
+                        ErrorStateReason::NeedFullDiskPermissions
+                    }
+                    nym_split_tunnel::SplitTunnelErrorCause::Other => ErrorStateReason::SplitTunnel,
+                    nym_split_tunnel::SplitTunnelErrorCause::IsOffline => {
+                        tracing::warn!("ST should not report offline error!");
+                        ErrorStateReason::SplitTunnel
+                    }
+                };
+
+                let _ = command_sender.send(TunnelCommand::Block(error_state_reason));
+            },
+        );
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
@@ -756,6 +888,14 @@ impl TunnelStateMachine {
         })
         .map_err(Error::CreateFirewall)?;
 
+        #[cfg(target_os = "macos")]
+        if let Err(err) = split_tunnel
+            .set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths())
+            .await
+        {
+            nym_common::trace_err_chain!(err, "failed to set initial split tunnel paths");
+        }
+
         let mut shared_state = SharedState {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
@@ -764,10 +904,12 @@ impl TunnelStateMachine {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler,
             connectivity_handle,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             filtering_resolver,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             adblocker,
+            #[cfg(target_os = "macos")]
+            split_tunnel,
             nym_config,
             tunnel_settings,
             tunnel_constants,
@@ -805,9 +947,13 @@ impl TunnelStateMachine {
             dns_handler_task,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_shutdown_token,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(target_os = "macos")]
+            split_tunnel_shutdown_token,
+            #[cfg(target_os = "macos")]
+            split_tunnel_handle,
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             filtering_resolver_handle,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             adblocker_handle,
             shutdown_token,
         };
@@ -845,6 +991,14 @@ impl TunnelStateMachine {
 
         tracing::debug!("Tunnel state machine is exiting...");
 
+        #[cfg(target_os = "macos")]
+        {
+            self.split_tunnel_shutdown_token.cancel();
+            if let Err(e) = self.split_tunnel_handle.await {
+                tracing::error!("Failed to join on split tunnel task: {}", e)
+            }
+        }
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             self.dns_handler_shutdown_token.cancel();
@@ -853,10 +1007,7 @@ impl TunnelStateMachine {
             }
 
             self.shared_state.route_handler.stop().await;
-        }
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
-        {
             if let Err(e) = self.filtering_resolver_handle.await {
                 tracing::error!("Failed to join on filtering resolver task: {}", e)
             }
@@ -889,11 +1040,11 @@ pub enum Error {
     #[error("failed to resolve API hostnames")]
     ResolveApiHostnames(#[source] Box<nym_gateway_directory::Error>),
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     #[error("failed to start local dns resolver")]
     StartLocalDnsResolver(#[source] resolver::Error),
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     #[error("failed to start ad blocker task")]
     StartAdBlockerTask(#[source] adblocker::AdBlockerError),
 
@@ -990,9 +1141,9 @@ impl Error {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             Self::ResolveApiHostnames(_) => None?,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             Self::StartLocalDnsResolver(_) => None?,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             Self::StartAdBlockerTask(_) => None?,
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,

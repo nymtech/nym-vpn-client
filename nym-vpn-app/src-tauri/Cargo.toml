@@ -3,9 +3,7 @@ name = "nym-vpn-app"
 version = "1.26.0-beta"
 description = "NymVPN desktop client"
 authors = [
-    "Nym Technologies SA",
-    "Pierre <dommerc.pierre@gmail.com>",
-    "Zane <zanecschepke@gmail.com>",
+    "Nym Technologies SA <contact@nymtech.net>",
 ]
 license = "GPL-3.0-only"
 documentation = "https://nymtech.net"
@@ -70,7 +68,7 @@ tauri-plugin-notification = "2.3.0"
 tauri-plugin-dialog = "2.6.0"
 tauri-plugin-process = "2.3.0"
 tauri-plugin-clipboard-manager = "2.3.0"
-tauri-plugin-updater = "2.9.0"
+tauri-plugin-updater = "2.10.0"
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
 tauri-plugin-single-instance = { version = "2.3.4", features = ["deep-link"] }
 tauri-plugin-window-state = "2.4.0"

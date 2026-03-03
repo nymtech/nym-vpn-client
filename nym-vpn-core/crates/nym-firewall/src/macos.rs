@@ -53,6 +53,7 @@ pub struct Firewall {
     pf: pfctl::PfCtl,
     pf_was_enabled: Option<bool>,
     rule_logging: RuleLogging,
+    last_policy: Option<FirewallPolicy>,
 }
 
 impl Firewall {
@@ -76,6 +77,7 @@ impl Firewall {
             pf: pfctl::PfCtl::new()?,
             pf_was_enabled: None,
             rule_logging,
+            last_policy: None,
         })
     }
 
@@ -85,9 +87,15 @@ impl Firewall {
         self.add_anchor()?;
         self.set_rules(&policy)?;
 
-        if let Err(error) = self.flush_states(&policy) {
+        let last_policy = self.last_policy.as_ref();
+        let last_redirect_interface = last_policy.and_then(|p| p.redirect_interface());
+        let is_toggling_split_tunneling = policy.redirect_interface() != last_redirect_interface;
+
+        if let Err(error) = self.flush_states(&policy, is_toggling_split_tunneling) {
             tracing::error!("Failed to clear PF connection states: {error}");
         }
+
+        self.last_policy = Some(policy);
 
         Ok(())
     }
@@ -97,13 +105,18 @@ impl Firewall {
     /// PF retains approved connections forever, even after a responsible anchor or rule has been
     /// removed. Therefore, they should be flushed after every state transition to ensure approved
     /// states conform to our desired policy.
-    fn flush_states(&mut self, policy: &FirewallPolicy) -> Result<()> {
+    fn flush_states(
+        &mut self,
+        policy: &FirewallPolicy,
+        is_toggling_split_tunneling: bool,
+    ) -> Result<()> {
         self.pf
             .get_states()?
             .into_iter()
             .filter(|state| {
                 // If we can't parse a state for whatever reason, err on the safe side and keep it
-                Self::should_delete_state(policy, state).unwrap_or(false)
+                Self::should_delete_state(policy, state, is_toggling_split_tunneling)
+                    .unwrap_or(false)
             })
             .for_each(|state| {
                 if let Err(error) = self.pf.kill_state(&state) {
@@ -117,7 +130,11 @@ impl Firewall {
     /// Clearing the VPN server connection seems to interrupt ephemeral key exchange on some
     /// machines, so we kill any state except that one as well as within-tunnel connections that
     /// should still be allowed.
-    fn should_delete_state(policy: &FirewallPolicy, state: &pfctl::State) -> Result<bool> {
+    fn should_delete_state(
+        policy: &FirewallPolicy,
+        state: &pfctl::State,
+        is_toggling_split_tunneling: bool,
+    ) -> Result<bool> {
         let local_address = state.local_address()?;
         let remote_address = state.remote_address()?;
         let proto = state.proto()?;
@@ -179,17 +196,25 @@ impl Firewall {
             return Ok(true);
         };
 
+        // If split tunneling is being turned on/off, ALL in-tunnel states need to be flushed
+        // because the state will need to be routed through a different tun device.
         let should_delete: bool = match policy.tunnel() {
-            Some(TunnelInterface::One(tunnel)) if tunnel.ips.contains(&local_address.ip()) => {
+            Some(TunnelInterface::One(tunnel))
+                if !is_toggling_split_tunneling && tunnel.ips.contains(&local_address.ip()) =>
+            {
                 // Use allowed traffic rule for exit tunnel, if only one interface is available.
                 let allowed_tunnel_traffic = policy.allowed_exit_tunnel_traffic();
                 Self::should_delete_state_for_remote(remote_address, allowed_tunnel_traffic)
             }
-            Some(TunnelInterface::Two { entry, .. }) if entry.ips.contains(&local_address.ip()) => {
+            Some(TunnelInterface::Two { entry, .. })
+                if !is_toggling_split_tunneling && entry.ips.contains(&local_address.ip()) =>
+            {
                 let allowed_tunnel_traffic = policy.allowed_entry_tunnel_traffic();
                 Self::should_delete_state_for_remote(remote_address, allowed_tunnel_traffic)
             }
-            Some(TunnelInterface::Two { exit, .. }) if exit.ips.contains(&local_address.ip()) => {
+            Some(TunnelInterface::Two { exit, .. })
+                if !is_toggling_split_tunneling && exit.ips.contains(&local_address.ip()) =>
+            {
                 let allowed_tunnel_traffic = policy.allowed_exit_tunnel_traffic();
                 Self::should_delete_state_for_remote(remote_address, allowed_tunnel_traffic)
             }
@@ -210,16 +235,6 @@ impl Firewall {
         Ok(should_delete)
     }
 
-    pub fn reset_policy(&mut self) -> Result<()> {
-        // Implemented this way to not early return on an error.
-        // We always want all three methods to run, and then return
-        // the first error it encountered, if any.
-        self.remove_rules()
-            .and(self.remove_anchor())
-            .and(self.reset_loopback_filtering())
-            .and(self.restore_state())
-    }
-
     /// Returns `true` if the pf state should be cleared for the given remote address and allowed tunnel traffic policy.
     fn should_delete_state_for_remote(
         remote_address: SocketAddr,
@@ -235,6 +250,16 @@ impl Firewall {
                 endpoint1.address != remote_address && endpoint2.address != remote_address
             }
         }
+    }
+
+    pub fn reset_policy(&mut self) -> Result<()> {
+        // Implemented this way to not early return on an error.
+        // We always want all three methods to run, and then return
+        // the first error it encountered, if any.
+        self.remove_rules()
+            .and(self.remove_anchor())
+            .and(self.reset_loopback_filtering())
+            .and(self.restore_state())
     }
 
     fn set_rules(&mut self, policy: &FirewallPolicy) -> Result<()> {
@@ -260,10 +285,15 @@ impl Firewall {
         let mut anchor_change = pfctl::AnchorChange::new();
         anchor_change.set_scrub_rules(Self::get_scrub_rules()?);
         anchor_change.set_filter_rules(new_filter_rules);
-        anchor_change.set_redirect_rules(vec![]);
         if *NAT_WORKAROUND {
             anchor_change.set_nat_rules(self.get_nat_rules(policy)?);
+        } else {
+            // Make sure NAT ruleset is empty
+            anchor_change.set_nat_rules(vec![]);
         }
+        // Make sure redirect ruleset is empty
+        anchor_change.set_redirect_rules(vec![]);
+
         self.pf.set_rules(ANCHOR_NAME, anchor_change)?;
 
         Ok(())
@@ -354,13 +384,7 @@ impl Firewall {
         }
 
         // no nat on [tun interface]
-        let tunnel_interfaces = match tunnel {
-            TunnelInterface::One(tunnel) => vec![tunnel.interface.as_str()],
-            TunnelInterface::Two { entry, exit } => {
-                vec![entry.interface.as_str(), exit.interface.as_str()]
-            }
-        };
-        for tunnel_interface in tunnel_interfaces {
+        for tunnel_interface in tunnel.tunnel_interfaces() {
             let no_nat_on_tun = pfctl::NatRuleBuilder::default()
                 .action(pfctl::NatRuleAction::NoNat)
                 .interface(tunnel_interface)
@@ -369,11 +393,7 @@ impl Firewall {
         }
 
         // Masquerade other traffic via VPN utun
-        let exit_tunnel = match tunnel {
-            TunnelInterface::One(tunnel) => tunnel,
-            TunnelInterface::Two { exit, .. } => exit,
-        };
-        for ip in &exit_tunnel.ips {
+        for ip in &tunnel.exit_metadata().ips {
             // nat from {inet,inet6} any to any -> [tun ip]
             let nat_primary_to_tun = pfctl::NatRuleBuilder::default()
                 .action(pfctl::NatRuleAction::Nat {
@@ -433,10 +453,17 @@ impl Firewall {
                         Some(redirect_interface) => {
                             enable_forwarding();
 
-                            if !allowed_entry_tunnel_traffic.all() {
+                            if !allowed_exit_tunnel_traffic.all() {
                                 tracing::warn!(
                                     "Split tunneling does not respect the 'allowed tunnel traffic' setting"
                                 );
+                            }
+
+                            if let Some(entry_tunnel) = entry_tunnel {
+                                rules.extend(self.get_allow_tunnel_rules(
+                                    entry_tunnel.interface.as_str(),
+                                    allowed_entry_tunnel_traffic,
+                                )?);
                             }
                             rules.extend(self.get_split_tunnel_rules(
                                 exit_tunnel.interface.as_str(),
@@ -505,6 +532,12 @@ impl Firewall {
                 if let Some(redirect_interface) = redirect_interface {
                     enable_forwarding();
 
+                    if let Some(entry_tunnel) = entry_tunnel {
+                        rules.extend(self.get_allow_tunnel_rules(
+                            entry_tunnel.interface.as_str(),
+                            &AllowedTunnelTraffic::All,
+                        )?);
+                    }
                     rules.append(
                         &mut self
                             .get_split_tunnel_rules(&exit_tunnel.interface, redirect_interface)?,
@@ -671,6 +704,7 @@ impl Firewall {
         Ok(rules)
     }
 
+    /// Allow traffic to relay_endpoint on the correct ip/port/protocol, for the root-user only.
     fn get_allow_relay_rule(&self, relay_endpoint: &AllowedEndpoint) -> Result<pfctl::FilterRule> {
         let pfctl_proto = as_pfctl_proto(relay_endpoint.endpoint.protocol);
 
@@ -781,29 +815,29 @@ impl Firewall {
 
     fn get_allow_lan_rules(&self) -> Result<Vec<pfctl::FilterRule>> {
         let mut rules = vec![];
-        for net in &*ALLOWED_LAN_NETS {
+        for net in ALLOWED_LAN_NETS {
             let mut rule_builder = self.create_rule_builder(FilterRuleAction::Pass);
             rule_builder.quick(true);
             let allow_out = rule_builder
                 .direction(pfctl::Direction::Out)
                 .from(pfctl::Ip::Any)
                 .keep_state(pfctl::StatePolicy::Keep)
-                .to(pfctl::Ip::from(*net))
+                .to(pfctl::Ip::from(net))
                 .build()?;
             let allow_in = rule_builder
                 .direction(pfctl::Direction::In)
-                .from(pfctl::Ip::from(*net))
+                .from(pfctl::Ip::from(net))
                 .to(pfctl::Ip::Any)
                 .build()?;
             rules.push(allow_out);
             rules.push(allow_in);
         }
-        for multicast_net in &*ALLOWED_LAN_MULTICAST_NETS {
+        for multicast_net in ALLOWED_LAN_MULTICAST_NETS {
             let allow_multicast_out = self
                 .create_rule_builder(FilterRuleAction::Pass)
                 .quick(true)
                 .direction(pfctl::Direction::Out)
-                .to(pfctl::Ip::from(*multicast_net))
+                .to(pfctl::Ip::from(multicast_net))
                 .build()?;
             rules.push(allow_multicast_out);
         }
@@ -883,15 +917,15 @@ impl Firewall {
 
         // DHCPv6
         dhcp_rule_builder.af(pfctl::AddrFamily::Ipv6);
-        for dhcpv6_server in &*super::DHCPV6_SERVER_ADDRS {
+        for dhcpv6_server in super::DHCPV6_SERVER_ADDRS {
             let allow_outgoing_dhcp_v6 = dhcp_rule_builder
                 .direction(pfctl::Direction::Out)
                 .from(pfctl::Endpoint::new(
-                    IpNetwork::V6(*super::IPV6_LINK_LOCAL),
+                    IpNetwork::V6(super::IPV6_LINK_LOCAL),
                     pfctl::Port::from(super::DHCPV6_CLIENT_PORT),
                 ))
                 .to(pfctl::Endpoint::new(
-                    *dhcpv6_server,
+                    dhcpv6_server,
                     pfctl::Port::from(super::DHCPV6_SERVER_PORT),
                 ))
                 .build()?;
@@ -900,11 +934,11 @@ impl Firewall {
         let allow_incoming_dhcp_v6 = dhcp_rule_builder
             .direction(pfctl::Direction::In)
             .from(pfctl::Endpoint::new(
-                pfctl::Ip::from(IpNetwork::V6(*super::IPV6_LINK_LOCAL)),
+                pfctl::Ip::from(IpNetwork::V6(super::IPV6_LINK_LOCAL)),
                 pfctl::Port::from(super::DHCPV6_SERVER_PORT),
             ))
             .to(pfctl::Endpoint::new(
-                pfctl::Ip::from(IpNetwork::V6(*super::IPV6_LINK_LOCAL)),
+                pfctl::Ip::from(IpNetwork::V6(super::IPV6_LINK_LOCAL)),
                 pfctl::Port::from(super::DHCPV6_CLIENT_PORT),
             ))
             .build()?;
@@ -926,21 +960,21 @@ impl Firewall {
                 .clone()
                 .direction(pfctl::Direction::Out)
                 .icmp_type(pfctl::IcmpType::Icmp6(pfctl::Icmp6Type::RouterSol))
-                .to(*super::ROUTER_SOLICITATION_OUT_DST_ADDR)
+                .to(super::ROUTER_SOLICITATION_OUT_DST_ADDR)
                 .build()?,
             // Incoming router advertisement from `fe80::/10`
             ndp_rule_builder
                 .clone()
                 .direction(pfctl::Direction::In)
                 .icmp_type(pfctl::IcmpType::Icmp6(pfctl::Icmp6Type::RouterAdv))
-                .from(pfctl::Ip::from(IpNetwork::V6(*super::IPV6_LINK_LOCAL)))
+                .from(pfctl::Ip::from(IpNetwork::V6(super::IPV6_LINK_LOCAL)))
                 .build()?,
             // Incoming Redirect from `fe80::/10`
             ndp_rule_builder
                 .clone()
                 .direction(pfctl::Direction::In)
                 .icmp_type(pfctl::IcmpType::Icmp6(pfctl::Icmp6Type::Redir))
-                .from(pfctl::Ip::from(IpNetwork::V6(*super::IPV6_LINK_LOCAL)))
+                .from(pfctl::Ip::from(IpNetwork::V6(super::IPV6_LINK_LOCAL)))
                 .build()?,
             // Outgoing neighbor solicitation to `ff02::1:ff00:0/104` and `fe80::/10`
             ndp_rule_builder
@@ -948,28 +982,28 @@ impl Firewall {
                 .direction(pfctl::Direction::Out)
                 .icmp_type(pfctl::IcmpType::Icmp6(pfctl::Icmp6Type::NeighbrSol))
                 .to(pfctl::Ip::from(IpNetwork::V6(
-                    *super::SOLICITED_NODE_MULTICAST,
+                    super::SOLICITED_NODE_MULTICAST,
                 )))
                 .build()?,
             ndp_rule_builder
                 .clone()
                 .direction(pfctl::Direction::Out)
                 .icmp_type(pfctl::IcmpType::Icmp6(pfctl::Icmp6Type::NeighbrSol))
-                .to(pfctl::Ip::from(IpNetwork::V6(*super::IPV6_LINK_LOCAL)))
+                .to(pfctl::Ip::from(IpNetwork::V6(super::IPV6_LINK_LOCAL)))
                 .build()?,
             // Incoming neighbor solicitation from `fe80::/10`
             ndp_rule_builder
                 .clone()
                 .direction(pfctl::Direction::In)
                 .icmp_type(pfctl::IcmpType::Icmp6(pfctl::Icmp6Type::NeighbrSol))
-                .from(pfctl::Ip::from(IpNetwork::V6(*super::IPV6_LINK_LOCAL)))
+                .from(pfctl::Ip::from(IpNetwork::V6(super::IPV6_LINK_LOCAL)))
                 .build()?,
             // Outgoing neighbor advertisement to fe80::/10`
             ndp_rule_builder
                 .clone()
                 .direction(pfctl::Direction::Out)
                 .icmp_type(pfctl::IcmpType::Icmp6(pfctl::Icmp6Type::NeighbrAdv))
-                .to(pfctl::Ip::from(IpNetwork::V6(*super::IPV6_LINK_LOCAL)))
+                .to(pfctl::Ip::from(IpNetwork::V6(super::IPV6_LINK_LOCAL)))
                 .build()?,
             // Incoming neighbor advertisement from anywhere
             ndp_rule_builder
@@ -1009,9 +1043,9 @@ impl Firewall {
         // remove_anchor() does not deactivate active rules
         self.pf
             .flush_rules(ANCHOR_NAME, pfctl::RulesetKind::Filter)?;
-        if *NAT_WORKAROUND {
-            self.pf.flush_rules(ANCHOR_NAME, pfctl::RulesetKind::Nat)?;
-        }
+        self.pf.flush_rules(ANCHOR_NAME, pfctl::RulesetKind::Nat)?;
+        self.pf
+            .flush_rules(ANCHOR_NAME, pfctl::RulesetKind::Redirect)?;
         self.pf
             .flush_rules(ANCHOR_NAME, pfctl::RulesetKind::Scrub)?;
         Ok(())
@@ -1062,8 +1096,6 @@ impl Firewall {
         }
         self.pf
             .try_add_anchor(ANCHOR_NAME, pfctl::AnchorKind::Filter)?;
-        self.pf
-            .try_add_anchor(ANCHOR_NAME, pfctl::AnchorKind::Redirect)?;
         Ok(())
     }
 

@@ -12,4 +12,6 @@ pub mod network;
 pub mod network_stats;
 pub mod sentry;
 pub mod socks5;
+#[cfg(target_os = "macos")]
+pub mod split_tunnel;
 pub mod tunnel;
