@@ -6,7 +6,8 @@ use super::{Error, WAIT_FOR_TUNNEL_STATE_TIMEOUT, config_nym::TEST_CONFIG_NYM};
 use futures::StreamExt;
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerState, TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
-use std::time::Duration;
+use std::{net::SocketAddr, time::Duration};
+use test_rpc::NymServiceClient;
 
 #[derive(Debug, PartialEq)]
 pub enum ExpectedTunnelState {
@@ -231,6 +232,44 @@ pub async fn wait_for_account_state_fn(
             );
             log::error!("{err}");
             Err(Error::Daemon(err))
+        }
+    }
+}
+
+/// useful after tunnel connect/reconnect where the data plane may not be ready
+/// immediately after the tunnel state transitions to Connected.
+pub async fn resolve_hostname_with_retry(
+    rpc: &NymServiceClient,
+    hostname: &str,
+    timeout: Duration,
+) -> anyhow::Result<Vec<SocketAddr>> {
+    let hostname = hostname.to_owned();
+
+    let result = tokio::time::timeout(timeout, async {
+        loop {
+            match rpc.resolve_hostname(hostname.clone()).await {
+                Ok(addrs) if !addrs.is_empty() => break addrs,
+                Ok(_) => {
+                    log::debug!("Got empty result, retrying...");
+                }
+                Err(e) => {
+                    log::debug!("DNS resolution of {hostname} failed: {e}, retrying...");
+                }
+            }
+            tokio::time::sleep(Duration::from_millis(500)).await;
+        }
+    })
+    .await;
+
+    match result {
+        Ok(addrs) => Ok(addrs),
+        Err(_) => {
+            let err = format!(
+                "DNS resolution of {hostname} timed out after {}s",
+                timeout.as_secs(),
+            );
+            log::error!("{err}");
+            anyhow::bail!(err)
         }
     }
 }

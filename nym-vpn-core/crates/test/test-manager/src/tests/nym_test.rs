@@ -4,38 +4,14 @@
 
 use crate::tests::{
     TestContext,
-    config_nym::TEST_CONFIG_NYM,
-    helpers_nym::{self, wait_for_account_state},
+    helpers_nym::{self},
 };
-use anyhow::{Context, bail, ensure};
+use anyhow::{Context, ensure};
 use helpers_nym::ExpectedTunnelState;
 use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
-use std::time::Duration;
 use test_macro::test_function_nym;
 use test_rpc::NymServiceClient;
-
-/// Poll `is_account_stored()` until it returns `true`, or bail after `timeout`.
-pub async fn wait_for_account_stored(
-    nym_proxy_client: &mut NymProxyClient,
-    timeout: Duration,
-) -> anyhow::Result<()> {
-    tokio::time::timeout(timeout, async {
-        loop {
-            match nym_proxy_client.is_account_stored().await {
-                Ok(true) => {
-                    log::debug!("Account stored confirmed");
-                    return Ok(());
-                }
-                Ok(false) => {}
-                Err(e) => bail!("Failed to check if account was stored: {e}"),
-            }
-            tokio::time::sleep(Duration::from_millis(500)).await;
-        }
-    })
-    .await
-    .map_err(anyhow::Error::msg)?
-}
 
 #[test_function_nym]
 pub async fn test_account_and_tunnel_roundtrip(

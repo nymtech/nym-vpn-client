@@ -3,7 +3,7 @@
 
 use crate::tests::{
     TestContext,
-    helpers_nym::{ExpectedTunnelState, wait_for_tunnel_state},
+    helpers_nym::{ExpectedTunnelState, resolve_hostname_with_retry, wait_for_tunnel_state},
     nym_test::dc_and_ensure_logged_in,
 };
 use anyhow::{Context, bail, ensure};
@@ -504,15 +504,10 @@ pub async fn test_reconnect_tunnel(
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
 
     // verify connectivity
-    let addrs = rpc
-        .resolve_hostname("nym.com".to_string())
-        .await
-        .context("DNS resolution inside VM failed after reconnect")?;
+    // retry DNS because the data plane may not be ready
+    // immediately after the tunnel state transitions to Connected
+    let addrs = resolve_hostname_with_retry(&rpc, "nym.com", Duration::from_secs(30)).await?;
     log::info!("DNS resolution after reconnect (in VM): {:?}", addrs);
-    ensure!(
-        !addrs.is_empty(),
-        "Expected at least one resolved address for nym.com from inside VM"
-    );
 
     log::info!("Disconnecting...");
     nym_client.disconnect_tunnel().await?;
