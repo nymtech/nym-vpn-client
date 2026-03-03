@@ -404,6 +404,8 @@ pub async fn transport_conn(
         .ok_or(TransportError::config_err("No IPv4 endpoint provided"))?;
 
     let client_config = create_quic_config(options)?;
+
+    info!("XXX quic config built opening socket");
     let bind_addr = match transport_endpoint.is_ipv4() {
         true => (Ipv4Addr::UNSPECIFIED, 0).into(),
         false => (Ipv6Addr::UNSPECIFIED, 0).into(),
@@ -412,6 +414,7 @@ pub async fn transport_conn(
     #[cfg(any(target_os = "linux", target_os = "android"))]
     on_socket_open(socket.as_raw_fd());
 
+    info!("XXX quic socket open, setting up quic conn");
     let runtime =
         quinn::default_runtime().ok_or_else(|| TransportError::other("no async runtime found"))?;
     let mut endpoint = quinn::Endpoint::new_with_abstract_socket(
@@ -432,6 +435,7 @@ pub async fn transport_conn(
     endpoint
         .connect(transport_endpoint, host)?
         .await
+        .inspect(|_| info!("XXX quic conn established"))
         .map_err(TransportError::QuicProto)
 }
 
@@ -467,11 +471,24 @@ lazy_static::lazy_static! {
 ///
 /// All other properties are default.
 fn create_quic_config(options: &ClientOptions) -> Result<quinn::ClientConfig, TransportError> {
-    let alt_names = options.host.clone().map(|h| vec![h]);
-    let verifier =
-        IdentityBasedVerifier::new_with_alt_names(&options.id_pubkey, alt_names).unwrap();
+    let crypto_provider = rustls::crypto::CryptoProvider::get_default()
+        .unwrap_or(&Arc::new(rustls::crypto::ring::default_provider()))
+        .clone();
 
-    let crypto_provider = Arc::new(rustls::crypto::ring::default_provider());
+    info!("XXX crypto provider initialized");
+
+    let alt_names = options.host.clone().map(|h| vec![h]);
+    let verifier = IdentityBasedVerifier::builder(&options.id_pubkey)
+        .with_alt_names(alt_names)
+        .with_crypto_provider(crypto_provider.clone())
+        .build()
+        .map_err(|e| {
+            TransportError::Config(format!(
+                "failed to initialize quic cert verifier from options: {e}"
+            ))
+        })?;
+    info!("XXX identity verifier built");
+
     let mut client_crypto = rustls::ClientConfig::builder_with_provider(crypto_provider)
         .with_protocol_versions(rustls::DEFAULT_VERSIONS)
         .map_err(|e| TransportError::other(format!("rustls client config init failed: {e}")))?
@@ -479,10 +496,12 @@ fn create_quic_config(options: &ClientOptions) -> Result<quinn::ClientConfig, Tr
         .with_custom_certificate_verifier(Arc::new(verifier))
         .with_no_client_auth();
 
+    info!("XXX client config set up");
     client_crypto.alpn_protocols = ALPN_QUIC_HTTP.iter().map(|&x| x.into()).collect();
     let quic_client_config = QuicClientConfig::try_from(client_crypto)
         .map_err(|e| TransportError::config_err(format!("invalid tls crypto config: {e}")))?;
 
+    info!("XXX quic client_config created");
     let mut transport_cfg = TransportConfig::default();
     // Set keepalive_interval and max_idle_timeout to prevent sessions from closing during idle
     transport_cfg.keep_alive_interval(Some(QUIC_SESSION_KEEPALIVE_INTERVAL));
@@ -496,9 +515,11 @@ fn create_quic_config(options: &ClientOptions) -> Result<quinn::ClientConfig, Tr
     transport_cfg.max_concurrent_bidi_streams(0_u32.into());
     transport_cfg.max_concurrent_uni_streams(0_u32.into());
 
+    info!("XXX quic transport config created and initialized");
     let mut client_config = quinn::ClientConfig::new(Arc::new(quic_client_config));
     client_config.transport_config(Arc::new(transport_cfg));
 
+    info!("XXX QuicClientConfig created - done");
     Ok(client_config)
 }
 
