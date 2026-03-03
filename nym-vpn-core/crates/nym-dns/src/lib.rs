@@ -60,13 +60,13 @@ impl DnsConfig {
     pub fn resolve(
         &self,
         default_tun_config: &[IpAddr],
-        #[cfg(any(target_os = "macos", target_os = "windows"))] port: u16,
+        #[cfg(not(any(target_os = "android", target_os = "ios")))] port: u16,
     ) -> ResolvedDnsConfig {
         match &self.config {
             InnerDnsConfig::Default => ResolvedDnsConfig {
                 tunnel_config: default_tun_config.to_owned(),
                 non_tunnel_config: vec![],
-                #[cfg(any(target_os = "macos", target_os = "windows"))]
+                #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 port,
             },
             InnerDnsConfig::Override {
@@ -75,7 +75,7 @@ impl DnsConfig {
             } => ResolvedDnsConfig {
                 tunnel_config: tunnel_config.to_owned(),
                 non_tunnel_config: non_tunnel_config.to_owned(),
-                #[cfg(any(target_os = "macos", target_os = "windows"))]
+                #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 port,
             },
         }
@@ -107,7 +107,7 @@ pub struct ResolvedDnsConfig {
     /// on non-tunnel interface, only allow them in the firewall.
     non_tunnel_config: Vec<IpAddr>,
     /// Port to use
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     port: u16,
 }
 
@@ -119,7 +119,7 @@ impl fmt::Display for ResolvedDnsConfig {
         f.write_str(" Non-tunnel DNS: ")?;
         Self::fmt_addr_set(f, &self.non_tunnel_config)?;
 
-        #[cfg(target_os = "macos")]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         write!(f, " Port: {}", self.port)?;
 
         Ok(())

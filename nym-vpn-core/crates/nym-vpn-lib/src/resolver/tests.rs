@@ -14,6 +14,8 @@ use tokio_util::sync::CancellationToken;
 
 /// Test whether we can successfully bind the socket even if the address is already used in
 /// different scenarios.
+// Linux requires `SO_REUSEADDR` and `SO_REUSEPORT` to bind to the same address, which is not the case on macOS and Windows.
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 #[tokio::test]
 #[serial_test::serial]
 async fn test_bind() {
@@ -39,6 +41,28 @@ async fn test_bind() {
 
     // bind() succeeds if wildcard address is bound with SO_REUSEADDR etc is platform specific; we
     // just ensure we can start/stop cleanly.
+}
+
+#[cfg(target_os = "linux")]
+#[tokio::test]
+#[serial_test::serial]
+#[ignore] // Won't work unless we are root
+async fn test_random_loopback_bind() {
+    let shutdown_token = CancellationToken::new();
+    let (handle, join_handle) = LocalResolver::spawn(true, shutdown_token.child_token())
+        .await
+        .unwrap();
+
+    let ip = handle.listen_addr().ip();
+    assert!(ip.is_ipv4(), "expected IPv4 loopback resolver address");
+    assert_ne!(
+        ip,
+        std::net::IpAddr::V4(Ipv4Addr::LOCALHOST),
+        "expected random 127/8 address, not 127.0.0.1"
+    );
+
+    shutdown_token.cancel();
+    join_handle.await.unwrap();
 }
 
 #[tokio::test]

@@ -35,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
@@ -53,10 +52,9 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun WelcomeScreen(viewModel: WelcomeViewModel = hiltViewModel()) {
+fun WelcomeScreen() {
 	val navigator = LocalNavController.current
 	WelcomeScreen(
-		withFreeTrial = true,
 		onCreateAccountClick = {
 			navigator.goFromRoot(Route.CreateAccount)
 		},
@@ -70,9 +68,9 @@ fun WelcomeScreen(viewModel: WelcomeViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun WelcomeScreen(withFreeTrial: Boolean, onCreateAccountClick: () -> Unit, onLoginClick: () -> Unit, onCloseClick: () -> Unit) {
+fun WelcomeScreen(onCreateAccountClick: () -> Unit, onLoginClick: () -> Unit, onCloseClick: () -> Unit) {
 	val scope = rememberCoroutineScope()
-	val pages = getPages(withFreeTrial)
+	val pages = getPages()
 	val lastIndex = pages.lastIndex
 
 	val pagerState = rememberPagerState(
@@ -233,21 +231,13 @@ fun WelcomeScreen(withFreeTrial: Boolean, onCreateAccountClick: () -> Unit, onLo
 }
 
 @Composable
-private fun getPages(withFreeTrial: Boolean): List<OnboardingPage> {
+private fun getPages(): List<OnboardingPage> {
 	return listOf(
-		if (withFreeTrial) {
-			OnboardingPage(
-				title = stringResource(R.string.welcome_to_nym),
-				description = stringResource(R.string.onboarding_description_1),
-				image = R.drawable.img_onboarding_1,
-			)
-		} else {
-			OnboardingPage(
-				title = stringResource(R.string.welcome_to_nym),
-				description = stringResource(R.string.onboarding_description_base),
-				image = R.drawable.img_onboarding_base,
-			)
-		},
+		OnboardingPage(
+			title = stringResource(R.string.welcome_to_nym),
+			description = stringResource(R.string.onboarding_description_1),
+			image = R.drawable.img_onboarding_1,
+		),
 		OnboardingPage(
 			title = stringResource(R.string.onboarding_title_2),
 			description = stringResource(R.string.onboarding_description_2),
@@ -271,7 +261,6 @@ private fun getPages(withFreeTrial: Boolean): List<OnboardingPage> {
 internal fun PreviewWelcomeScreen() {
 	NymVPNTheme(Theme.default()) {
 		WelcomeScreen(
-			withFreeTrial = true,
 			onCreateAccountClick = {},
 			onLoginClick = {},
 			onCloseClick = {},

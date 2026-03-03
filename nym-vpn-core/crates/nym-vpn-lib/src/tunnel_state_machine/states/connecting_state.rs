@@ -878,7 +878,7 @@ impl ConnectingPolicyParameters {
         let dns_config = DnsConfig::from_addresses(&[], &self.dns_servers).resolve(
             // pass empty because we already override the config with non-tunnel addresses.
             &[],
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             53,
         );
 
