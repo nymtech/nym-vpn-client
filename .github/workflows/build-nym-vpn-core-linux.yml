@@ -23,12 +23,16 @@ jobs:
   build-linux:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-22.04-arm]
+        include:
+          - os: "ubuntu-22.04"
+            arch: "x86_64"
+          - os: "ubuntu-22.04-arm"
+            arch: "aarch64"
 
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-linux
     env:
-      UPLOAD_DIR_LINUX: linux_artifacts-${{ matrix.os }}
+      UPLOAD_DIR_LINUX: linux_artifacts-${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
@@ -53,6 +57,11 @@ jobs:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
       - name: Get workspace version
         id: workspace-version
         uses: nicolaiunrein/cargo-get@master
@@ -68,9 +77,9 @@ jobs:
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
-          name: wireguard_go-${{ matrix.os }}
+          name: wireguard_go-${{ matrix.arch }}
           path: build/lib
 
       - name: Build nym-vpn-core

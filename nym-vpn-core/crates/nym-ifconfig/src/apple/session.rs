@@ -634,7 +634,7 @@ mod tests {
         )
         .unwrap();
         assert!(
-            sess.addresses(&interface)
+            sess.addresses(interface)
                 .unwrap()
                 .iter()
                 .any(|addr| addr.address.ip() != ipv4_addr.ip())
@@ -644,7 +644,7 @@ mod tests {
             .unwrap();
         ifconfig(interface);
         assert!(
-            sess.addresses(&interface)
+            sess.addresses(interface)
                 .unwrap()
                 .iter()
                 .all(|addr| addr.address.ip() != ipv4_addr.ip())
@@ -702,11 +702,11 @@ mod tests {
         std::io::stderr().write_all(&output.stderr).unwrap();
     }
 
-    struct DropGuard<F: FnOnce() -> ()> {
+    struct DropGuard<F: FnOnce()> {
         on_drop: Option<F>,
     }
 
-    impl<F: FnOnce() -> ()> DropGuard<F> {
+    impl<F: FnOnce()> DropGuard<F> {
         fn new(on_drop: F) -> Self {
             Self {
                 on_drop: Some(on_drop),
@@ -714,7 +714,7 @@ mod tests {
         }
     }
 
-    impl<F: FnOnce() -> ()> Drop for DropGuard<F> {
+    impl<F: FnOnce()> Drop for DropGuard<F> {
         fn drop(&mut self) {
             if let Some(on_drop) = self.on_drop.take() {
                 on_drop();

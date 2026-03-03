@@ -52,4 +52,4 @@ jobs:
             ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.dll
             ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.lib
           if-no-files-found: error
-          retention-days: 10
+          retention-days: 1
