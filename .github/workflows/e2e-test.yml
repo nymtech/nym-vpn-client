@@ -71,7 +71,8 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: wireguard/libwg/go.mod
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION}}
+          cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Build wireguard-go
         run: ./wireguard/build-wireguard-go.sh
@@ -108,8 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SSH_KEY_PATH: /tmp/exoscale_key
-      SSH_OPTS:
-        "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o
+      SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o
         ConnectTimeout=10"
       VM_USER: ubuntu
       VM_DIST_DIR: /home/ubuntu/dist
