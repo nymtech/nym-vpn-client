@@ -131,11 +131,6 @@ private extension SettingsViewModel {
         path.append(SettingLink.appearance)
     }
 
-    func navigateToLogs() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.logs)
-    }
-
     func navigateToSupportAndFeedback() {
         impactGenerator.softImpact()
         path.append(SettingLink.support)
@@ -221,7 +216,7 @@ private extension SettingsViewModel {
                     feedbackSection(),
                     killswitchSection(),
                     appearanceSection(),
-                    logsSection(),
+                    privacyAndDataSection(),
                     legalSection(),
                     systemStatusSection()
                 ]
@@ -428,18 +423,8 @@ private extension SettingsViewModel {
         return AppSettingsSection(kind: .killSwitch, viewModels: viewModels)
     }
 
-    func logsSection() -> AppSettingsSection {
+    func privacyAndDataSection() -> AppSettingsSection {
         let viewModels = [
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "logs".localizedString,
-                imageName: "logs",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToLogs()
-                    }
-                }
-            ),
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.privacyAndData".localizedString,

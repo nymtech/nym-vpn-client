@@ -84,7 +84,7 @@ import PathManager
     }
 
     public var debugLevel: DebugLevel {
-        isTestFlight ? DebugLevel.debug : DebugLevel.info
+        isTestFlight || appSettings.isDebugLogsOn ? DebugLevel.debug : DebugLevel.info
     }
 
 #if os(iOS)

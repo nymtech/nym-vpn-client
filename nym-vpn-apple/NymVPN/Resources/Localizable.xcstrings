@@ -34107,7 +34107,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Data & privacy"
+            "value" : "Data, privacy & logs"
           }
         },
         "es" : {
@@ -34186,6 +34186,17 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "隐私和数据"
+          }
+        }
+      }
+    },
+    "settings.privacyAndData.enableDebugLogs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable debug logs"
           }
         }
       }
