@@ -21,21 +21,22 @@ jobs:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v6
 
+      - name: Cache libwg
+        uses: actions/cache@v5
+        id: cache
+        with:
+          path: build/lib
+          key: ${{ runner.os }}-go${{ vars.REQUIRED_GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+
       - name: Install Go
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v6
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
-      - name: Cache libwg
-        uses: actions/cache@v5
-        with:
-          path: build/lib
-          key: ${{ runner.os }}-go-${{ hashFiles('wireguard/libwg/go.sum) }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - name: Build wireguard
+        if: steps.cache.outputs.cache-hit != 'true'
         run: ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts

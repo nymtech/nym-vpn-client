@@ -1,5 +1,9 @@
 name: build-nym-vpn-app-windows
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-nym-vpn-app-windows.yml"
   workflow_dispatch:
     inputs:
       dev_mode:
@@ -86,9 +90,9 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  LIBS_PATH: '${{ github.workspace }}/lib'
+  LIBS_PATH: "${{ github.workspace }}/lib"
   UPLOAD_DIR_WINDOWS: windows_artifacts
-  TAURI_SRC: '${{ github.workspace }}/nym-vpn-app/src-tauri/'
+  TAURI_SRC: "${{ github.workspace }}/nym-vpn-app/src-tauri/"
 
 jobs:
   build-windows:
