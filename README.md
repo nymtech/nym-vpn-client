@@ -8,12 +8,12 @@ Open-source, cross-platform VPN client built with Rust that provides true privac
 # 🚀 What is NymVPN
 
 NymVPN is a privacy-focused, decentralized VPN application that goes beyond traditional VPNs by leveraging:
+
 - 🔀 [Mixnet](https://nym.com/mixnet) Technology: Anonymous 5-hop routing through Nym's decentralized network
 - ⚡ WireGuard + AmneziaWG: Fast, secure tunneling with built-in censorship resistance
 - 🛡️ Metadata Protection: Unlike traditional VPNs, protects both content AND traffic patterns (in mixnet mode)
 - 🔐 Zero-Knowledge Credentials: Private authentication using zero-knowledge [zk-nyms](https://nym.com/zk-nyms)
 - 🌍 No Single Point of Failure: Fully decentralized infrastructure
-
 
 <div align="left">
 <img src=".github/assets/app.png" width="800"/>
@@ -36,7 +36,6 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 
 </div>
 
-
 # ✨ Key Features
 
 🎯 Dual-Mode Privacy Architecture
@@ -51,12 +50,14 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 - Cross-platform: Android, iOS, Linux, macOS, Windows, CLI
 
 ⚙️ Power User Features
+
 - Split Tunneling: Choose per-app routing (mixnet vs WireGuard) (_coming soon_)
 - Custom Entry/Exit Selection: Choose your preferred node operators
 - Kill Switch: Automatic connection protection with data leak prevention
 - Multi-language Support: 10+ localizations with crowdsourced language support
 
 🛡️ Advanced Privacy and Security
+
 - Multi-hop by Default: No server views both your IP address and online activity
 - zk-nyms: Private zero-knowledge credential system to unlink payments data from online activity
 - No Centralized Logging: Cryptographically impossible to track users
@@ -64,10 +65,9 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 - Independent Security Audits: JP Aumasson (2021), Oak Security (2022), Cryspen (2023-2024), Cure53 (2024)
 
 🌐 Censorship Resistance Technologies
+
 - AmneziaWG Integration: Bypass barriers to information access with AmneziaWG (censorship-resistance WireGuard fork)
 - Adaptive Protocols: Pluggable transport, QUIC (_coming soon_)
-
-
 
 # 🏗️ Architecture
 
@@ -82,35 +82,37 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 └─────────────────┘    └──────────────┘    └─────────────────┘
 ```
 
-
 # 🌐 Use Cases
+
 For Privacy Advocates
+
 - Personal privacy: Protection from ISP/government surveillance
 - Journalist protection: Secure communication in hostile environments
 - Whistleblowing: Anonymous document sharing
 
 For Developers
+
 - Decentralized app integration: Privacy layer for dApps
 - Research projects: Privacy-preserving network protocols
 - Security auditing: Open-source cryptographic implementations
 
 For Organizations
+
 - Corporate security: Enhanced privacy for remote teams
 - Censorship circumvention: Access blocked content and services
 - Compliance: GDPR-friendly privacy infrastructure
-
 
 # 🔬 Research Foundation & Academic Partnerships
 
 Peer-Reviewed Research ([50+ Publications](https://nym.com/trust-center/papers-and-research))
 
 Academic Partnerships
+
 - [KU Leuven (COSIC Research Group)](https://www.esat.kuleuven.be/cosic/): Privacy, performance, and hardware optimization
 - [EPFL (SPRING Lab)](https://spring.epfl.ch): Network security and sophisticated attack analysis
 - [Cryspen](https://cryspen.com): Formal verification and post-quantum cryptography
 
 Advisory Board with multiple industry awards (Levchin Prize, BCS Lovelace Medal)
-
 
 # 📚 Documentation & Resources
 
@@ -129,11 +131,12 @@ Advisory Board with multiple industry awards (Levchin Prize, BCS Lovelace Medal)
 - 💡 [The Nym Network Whitepaper](https://nym.com/nym-whitepaper.pdf)
 - 📣 [Nym's blog](https://nym.com/en/blog).
 
-
 # 🤝 Contributing
+
 We welcome contributions from developers passionate about privacy, decentralization, and open-source software! This monorepo contains all of our source code for our NymVPN client apps (iOS / Android / Linux / macOS / Windows / CLI), separate from the Nym network [monorepo](https://github.com/nymtech/nym).
 
 Development Areas
+
 - Rust core development: Networking, cryptography, protocols
 - Mobile development: Kotlin (Android), SwiftUI (iOS)
 - Desktop applications: SwiftUI (macOS), Tauri (Linux, Windows)
@@ -142,22 +145,23 @@ Development Areas
 
 Check our [Contribution Guide](CONTRIBUTING.md).
 
-
 # 🏷️ Topics & Keywords
+
 - Privacy & Security: `privacy-tools` `privacy-enhancing tech` `security` `encryption` `zero-knowledge` `anonymity` `surveillance-resistance` `cryptography`
 - Networking: `vpn` `dvpn` `wireguard` `amneziawg` `mixnet` `decentralized-network` `censorship-resistance`
 - Development: `rust` `open-source` `kotlin` `swiftui`
 - Protocols: `sphinx` `onion-routing` `distributed-systems` `network-privacy`
 
+# ©️ Copyright
 
+- Nym Copyright 2026. Nym Technologies SA.
 
-
-# 📝 Acknowledgements
+# 😍 Acknowledgements
 
 - [Mullvad open source libraries](https://github.com/mullvad/mullvadvpn-app/) to handle setting up local routing and wrapping wireguard-go.
 - [AmneziaWG wg-go open source library](https://github.com/amnezia-vpn/amneziawg-go) to help prevent censorship of WireGuard.
 - [WireGuard](https://github.com/WireGuard)
-
+- [ablock-rust](https://github.com/brave/adblock-rust) to power our ad-blocking features.
 
 # ⛓️ Community
 
