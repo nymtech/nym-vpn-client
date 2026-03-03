@@ -73,7 +73,6 @@ impl IdentityBasedVerifierBuilder {
         roots.extend(TLS_SERVER_ROOTS.iter().cloned());
 
         // create a verifier so we can use default implementations
-
         let default_verifier = if let Some(crypto_provider) = self.crypto_provider {
             WebPkiServerVerifier::builder_with_provider(Arc::new(roots), crypto_provider).build()?
         } else {
@@ -87,17 +86,23 @@ impl IdentityBasedVerifierBuilder {
         })
     }
 
+    /// Appends alt names to the set accepted for this server certificate verifier.
+    /// Can be called multiple times as provided names are appended.
     pub fn with_alt_names(mut self, alt_names: Option<Vec<impl ToString>>) -> Self {
         let mut alt_names: Vec<String> = alt_names
             .unwrap_or_default()
             .iter()
             .map(ToString::to_string)
+            .filter(|x| !self.alt_names.contains(x))
             .collect();
 
         self.alt_names.append(&mut alt_names);
         self
     }
 
+    /// Allows a caller to set a custom rustls CryptoProvider. If none is given
+    /// the default construction is used which assumes that a default CryptoProvider
+    /// has been installed at the crate level.
     pub fn with_crypto_provider(
         mut self,
         crypto_provider: Arc<rustls::crypto::CryptoProvider>,
