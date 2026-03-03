@@ -302,6 +302,7 @@ jobs:
         run: |
           if [ -f /tmp/test-report.txt ]; then
             /tmp/dist/test-manager format-test-reports /tmp/test-report.txt > /tmp/test-report.html
+            cat /tmp/test-report.html >> "$GITHUB_STEP_SUMMARY"
           else
             echo "No test report file to format"
           fi
@@ -315,7 +316,8 @@ jobs:
             /tmp/test-report.txt
             /tmp/test-report.html
           if-no-files-found: warn
-          retention-days: 30
+          # repo maximum
+          retention-days: 20
 
       - name: Delay deprovision for debugging
         if: >-
