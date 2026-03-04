@@ -1,6 +1,7 @@
 import SwiftUI
 import AppSettings
 import Constants
+import ImpactGenerator
 #if os(macOS)
 import GRPCManager
 #endif
@@ -9,6 +10,7 @@ import UIComponents
 
 public struct PrivacyAndDataView: View {
     @EnvironmentObject private var appSettings: AppSettings
+    @EnvironmentObject private var impactGenerator: ImpactGenerator
 #if os(macOS)
     @EnvironmentObject private var grpcManager: GRPCManager
 #endif
@@ -22,6 +24,9 @@ public struct PrivacyAndDataView: View {
             Spacer()
                 .frame(height: 24)
             VStack(spacing: 0) {
+                logsSection()
+                Spacer()
+                    .frame(height: 24)
 #if os(macOS)
                 statisticsSection()
                 Spacer()
@@ -53,6 +58,36 @@ private extension PrivacyAndDataView {
         CustomNavBar(
             title: "settings.privacyAndData".localizedString,
             leftButton: CustomNavBarButton(type: .back, action: { navigateBack() })
+        )
+    }
+
+    @ViewBuilder
+    func logsSection() -> some View {
+#if os(iOS)
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .toggle(
+                    isOn: $appSettings.isDebugLogsOn
+                ),
+                title: "settings.privacyAndData.enableDebugLogs".localizedString,
+                systemImageName: "ladybug",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {}
+            )
+        )
+        Spacer()
+            .frame(height: 24)
+#endif
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "logs".localizedString,
+                imageName: "logs",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {
+                    navigateToLogs()
+                }
+            )
         )
     }
 
@@ -138,6 +173,11 @@ private extension PrivacyAndDataView {
 private extension PrivacyAndDataView {
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
+    }
+
+    func navigateToLogs() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.logs)
     }
 }
 
