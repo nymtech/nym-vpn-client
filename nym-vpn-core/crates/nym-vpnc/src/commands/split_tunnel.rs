@@ -49,6 +49,16 @@ impl Command {
                         "disabled"
                     }
                 );
+
+                #[cfg(target_os = "macos")]
+                {
+                    let needs_fda = rpc_client.need_full_disk_permissions().await?;
+                    println!(
+                        "Full disk access: {}",
+                        if needs_fda { "disallowed" } else { "allowed" }
+                    );
+                }
+
                 println!("Apps excluded from VPN tunnel:");
                 for app in config.split_tunnel.apps {
                     println!("- {}", app.path);
