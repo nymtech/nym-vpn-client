@@ -299,11 +299,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
 
         let subscription_kind = value
             .subscription_kind
-            .map(|kind| {
-                proto::NymVpnSubscriptionKind::try_from(kind)
-                    .map(NymVpnSubscriptionKind::from)
-                    .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.subscription_kind"))
-            })
+            .map(|kind| NymVpnSubscriptionKind::try_from(kind))
             .transpose()?;
 
         Ok(Self {
@@ -343,7 +339,7 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
 
         let subscription_kind = value
             .subscription_kind
-            .map(|kind| proto::NymVpnSubscriptionKind::from(kind) as i32);
+            .map(proto::NymVpnSubscriptionKind::from);
 
         Self {
             subscription_valid_until,
@@ -532,24 +528,53 @@ impl TryFrom<proto::GetAccountModeResponse> for Option<StoredAccountMode> {
     }
 }
 
-impl From<proto::NymVpnSubscriptionKind> for NymVpnSubscriptionKind {
-    fn from(value: proto::NymVpnSubscriptionKind) -> Self {
-        match value {
-            proto::NymVpnSubscriptionKind::OneMonth => NymVpnSubscriptionKind::OneMonth,
-            proto::NymVpnSubscriptionKind::OneYear => NymVpnSubscriptionKind::OneYear,
-            proto::NymVpnSubscriptionKind::TwoYears => NymVpnSubscriptionKind::TwoYears,
-            proto::NymVpnSubscriptionKind::Freepass => NymVpnSubscriptionKind::Freepass,
-        }
+impl TryFrom<proto::NymVpnSubscriptionKind> for NymVpnSubscriptionKind {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::NymVpnSubscriptionKind) -> Result<Self, Self::Error> {
+        let state = value
+            .kind
+            .ok_or(ConversionError::NoValueSet("NymVpnSubscriptionKind.kind"))?;
+        Ok(match state {
+            proto::nym_vpn_subscription_kind::Kind::OneMonth(
+                proto::nym_vpn_subscription_kind::OneMonth {},
+            ) => NymVpnSubscriptionKind::OneMonth,
+            proto::nym_vpn_subscription_kind::Kind::OneYear(
+                proto::nym_vpn_subscription_kind::OneYear {},
+            ) => NymVpnSubscriptionKind::OneYear,
+            proto::nym_vpn_subscription_kind::Kind::TwoYears(
+                proto::nym_vpn_subscription_kind::TwoYears {},
+            ) => NymVpnSubscriptionKind::TwoYears,
+            proto::nym_vpn_subscription_kind::Kind::FreePass(
+                proto::nym_vpn_subscription_kind::Freepass {},
+            ) => NymVpnSubscriptionKind::Freepass,
+            proto::nym_vpn_subscription_kind::Kind::Other(
+                proto::nym_vpn_subscription_kind::Other { other },
+            ) => NymVpnSubscriptionKind::Other(other),
+        })
     }
 }
 
 impl From<NymVpnSubscriptionKind> for proto::NymVpnSubscriptionKind {
     fn from(value: NymVpnSubscriptionKind) -> Self {
-        match value {
-            NymVpnSubscriptionKind::OneMonth => proto::NymVpnSubscriptionKind::OneMonth,
-            NymVpnSubscriptionKind::OneYear => proto::NymVpnSubscriptionKind::OneYear,
-            NymVpnSubscriptionKind::TwoYears => proto::NymVpnSubscriptionKind::TwoYears,
-            NymVpnSubscriptionKind::Freepass => proto::NymVpnSubscriptionKind::Freepass,
-        }
+        let kind: proto::nym_vpn_subscription_kind::Kind = match value {
+            NymVpnSubscriptionKind::OneMonth => proto::nym_vpn_subscription_kind::Kind::OneMonth(
+                proto::nym_vpn_subscription_kind::OneMonth {},
+            ),
+            NymVpnSubscriptionKind::OneYear => proto::nym_vpn_subscription_kind::Kind::OneYear(
+                proto::nym_vpn_subscription_kind::OneYear {},
+            ),
+            NymVpnSubscriptionKind::TwoYears => proto::nym_vpn_subscription_kind::Kind::TwoYears(
+                proto::nym_vpn_subscription_kind::TwoYears {},
+            ),
+            NymVpnSubscriptionKind::Freepass => proto::nym_vpn_subscription_kind::Kind::FreePass(
+                proto::nym_vpn_subscription_kind::Freepass {},
+            ),
+            NymVpnSubscriptionKind::Other(other) => proto::nym_vpn_subscription_kind::Kind::Other(
+                proto::nym_vpn_subscription_kind::Other { other },
+            ),
+        };
+
+        proto::NymVpnSubscriptionKind { kind: Some(kind) }
     }
 }

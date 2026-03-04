@@ -410,6 +410,8 @@ pub enum NymVpnSubscriptionKind {
     OneYear,
     TwoYears,
     Freepass,
+    #[serde(untagged)]
+    Other(String),
 }
 
 #[cfg(feature = "nym-type-conversions")]
@@ -427,6 +429,9 @@ impl From<nym_vpn_api_client::response::NymVpnSubscriptionKind> for NymVpnSubscr
             }
             nym_vpn_api_client::response::NymVpnSubscriptionKind::Freepass => {
                 NymVpnSubscriptionKind::Freepass
+            }
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::Other(value) => {
+                NymVpnSubscriptionKind::Other(value)
             }
         }
     }

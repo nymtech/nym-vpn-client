@@ -291,6 +291,8 @@ pub enum NymVpnSubscriptionKind {
     OneYear,
     TwoYears,
     Freepass,
+    #[serde(untagged)]
+    Other(String),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

@@ -870,11 +870,22 @@ enum VpnAccountStatus {
   DELETE_ME = 2;
 }
 
-enum NymVpnSubscriptionKind {
-    OneMonth = 0;
-    OneYear = 1;
-    TwoYears = 2;
-    Freepass = 3;
+message NymVpnSubscriptionKind {
+    message OneMonth {}
+    message OneYear {}
+    message TwoYears {}
+    message Freepass {}
+    message Other {
+      string other = 1;
+    }
+
+    oneof kind {
+      OneMonth one_month = 1;
+      OneYear one_year = 2;
+      TwoYears two_years = 3;
+      Freepass free_pass = 4;
+      Other other = 5;
+    }
 }
 
 message DeleteLogFileResponse {
