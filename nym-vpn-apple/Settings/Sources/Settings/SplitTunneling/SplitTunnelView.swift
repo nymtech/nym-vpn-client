@@ -13,6 +13,7 @@ import UIComponents
 public struct SplitTunnelView: View {
     private let alphabet = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ").map(String.init) + ["#"]
 
+    @Environment(\.appearsActive) private var appearsActive
     @Environment(AppDiscoveryService.self) private var appDiscoveryService
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var impactGenerator: ImpactGenerator
@@ -20,28 +21,19 @@ public struct SplitTunnelView: View {
     @EnvironmentObject private var externalLinkManager: ExternalLinkManager
     @Binding private var path: NavigationPath
     @State private var foundApps: [FoundApp]?
-    @State private var isFullDiskAccessModalDisplayed = true
+    @State private var isFullDiskAccessEnabled = false
+    @State private var isInfoModalDisplayed = false
 
     private var splitTunnelConfig: SplitTunnelConfig {
         connectionManager.connectionConfig.splitTunnelConfig
-    }
-
-    private var fullDiskAccessModalConfiguration: ActionDialogConfiguration {
-        ActionDialogConfiguration(
-            titleLocalizedString: "splitTunnel.fullDiskAccess.modal.title".localizedString,
-            subtitleLocalizedString: "splitTunnel.fullDiskAccess.modal.subtitle".localizedString,
-            yesLocalizedString: "splitTunnel.openSettings".localizedString) {
-                try? externalLinkManager.openExternalURL(
-                    urlString: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"
-                )
-            }
     }
 
     public var body: some View {
         VStack(spacing: 0) {
             CustomNavBar(
                 title: "settings.splitTunnel".localizedString,
-                leftButton: CustomNavBarButton(type: .back) { navigateBack() }
+                leftButton: CustomNavBarButton(type: .back) { navigateBack() },
+                rightButton: CustomNavBarButton(type: .info) { isInfoModalDisplayed.toggle() }
             )
 
             scrollContent
@@ -57,23 +49,23 @@ public struct SplitTunnelView: View {
                 .ignoresSafeArea()
         }
         .overlay {
-            needFullDiskAccessOverlay()
+            if isInfoModalDisplayed {
+                SplitTunnelInfoModal(isDisplayed: $isInfoModalDisplayed)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: isInfoModalDisplayed)
+            }
         }
         .task {
             foundApps = appDiscoveryService.enumerateApps()
+
             if let needFullDiskAccess = try? await grpcManager.needFullDiskAccess() {
-                isFullDiskAccessModalDisplayed = needFullDiskAccess
+                isFullDiskAccessEnabled = !needFullDiskAccess
             }
         }
-        .task(id: isFullDiskAccessModalDisplayed) {
-            guard isFullDiskAccessModalDisplayed else { return }
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(3))
-                guard !Task.isCancelled else { return }
-                if let needFullDiskAccess = try? await grpcManager.needFullDiskAccess(),
-                   !needFullDiskAccess {
-                    isFullDiskAccessModalDisplayed = false
-                    return
+        .onChange(of: appearsActive) { _, isActive in
+            Task {
+                if isActive, let needFullDiskAccess = try? await grpcManager.needFullDiskAccess() {
+                    isFullDiskAccessEnabled = !needFullDiskAccess
                 }
             }
         }
@@ -89,14 +81,18 @@ private extension SplitTunnelView {
         SettingsListItem(
             viewModel:
                 SettingsListItemViewModel(
-                    accessory: .toggle(isOn: Binding(
-                        get: { splitTunnelConfig.isEnabled },
-                        set: { newValue in
-                            var config = connectionManager.connectionConfig
-                            config.splitTunnelConfig.isEnabled = newValue
-                            connectionManager.connectionConfig = config
-                        }
-                    )),
+                    accessory: .toggle(
+                        isOn:
+                            Binding(
+                                get: { splitTunnelConfig.isEnabled },
+                                set: { newValue in
+                                    var config = connectionManager.connectionConfig
+                                    config.splitTunnelConfig.isEnabled = newValue
+                                    connectionManager.connectionConfig = config
+                                }
+                            ),
+                        isDisabled: isFullDiskAccessEnabled
+                    ),
                     title: "settings.splitTunnel".localizedString,
                     systemImageName: "arrow.trianglehead.branch",
                     position: SettingsListItemPosition(isFirst: true, isLast: true),
@@ -125,18 +121,20 @@ private extension SplitTunnelView {
 
     @ViewBuilder var scrollContent: some View {
         if let foundApps {
-            let sections = makeSections(from: foundApps)
+            let sections = splitTunnelConfig.isEnabled ? makeSections(from: foundApps) : []
 
             ScrollViewReader { proxy in
                 ScrollView {
                     scrollInnerContent(sections: sections)
                 }
                 .overlay(alignment: .bottomTrailing) {
-                    SectionIndexOverlay(
-                        alphabet: alphabet,
-                        sections: sections,
-                        scrollProxy: proxy
-                    )
+                    if splitTunnelConfig.isEnabled {
+                        SectionIndexOverlay(
+                            alphabet: alphabet,
+                            sections: sections,
+                            scrollProxy: proxy
+                        )
+                    }
                 }
             }
         } else {
@@ -150,18 +148,45 @@ private extension SplitTunnelView {
         VStack(spacing: 0) {
             Spacer()
                 .frame(height: 24)
+            if !isFullDiskAccessEnabled {
+                fullDiskAccessSection()
+                Spacer()
+                    .frame(height: 24)
+            }
             splitTunnelToggle
             Spacer()
                 .frame(height: 24)
-            changesText
-            Spacer()
-                .frame(height: 24)
-            appsText
-            Spacer()
-                .frame(height: 8)
-            sectionList(sections: sections)
-                .padding(.trailing, 16)
+            if splitTunnelConfig.isEnabled {
+                changesText
+                Spacer()
+                    .frame(height: 24)
+                appsText
+                Spacer()
+                    .frame(height: 8)
+                sectionList(sections: sections)
+                    .padding(.trailing, 16)
+            }
         }
+    }
+
+    func fullDiskAccessSection() -> some View {
+        HStack(spacing: 0) {
+            Text(fullDiskAccessAttributtedString())
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Medium.regular)
+            Spacer()
+        }
+    }
+
+    func fullDiskAccessAttributtedString() -> AttributedString {
+        let first = AttributedString("splitTunnel.fullDiskAccess".localizedString)
+        var second = AttributedString("splitTunnel.open".localizedString)
+        let third = AttributedString("splitTunnel.systemSettings".localizedString)
+        let forth = AttributedString("splitTunnel.enableSystemSettings".localizedString)
+        second.underlineStyle = .single
+        second.foregroundColor = NymColor.accent
+        second.link = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
+        return first + AttributedString("\n") + second + AttributedString(" ") + third + AttributedString(" ") + forth
     }
 
     func sectionList(sections: [AppSection]) -> some View {
@@ -283,21 +308,6 @@ private struct AppSection: Identifiable {
 }
 
 private extension SplitTunnelView {
-    @ViewBuilder
-    func needFullDiskAccessOverlay() -> some View {
-        if isFullDiskAccessModalDisplayed {
-            ActionDialogView(
-                viewModel: ActionDialogViewModel(
-                    isDisplayed: $isFullDiskAccessModalDisplayed,
-                    configuration: fullDiskAccessModalConfiguration,
-                    impactGenerator: .shared
-                )
-            )
-            .transition(.opacity)
-            .animation(.easeInOut, value: isFullDiskAccessModalDisplayed)
-        }
-    }
-
     func makeSections(from apps: [FoundApp]) -> [AppSection] {
         let groupedApps = Dictionary(grouping: apps) { app -> String in
             guard let first = app.name.first else { return "#" }

@@ -34816,6 +34816,17 @@
         }
       }
     },
+    "splitTunnel.enableSystemSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to enable it."
+          }
+        }
+      }
+    },
     "splitTunnel.exclude" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34823,6 +34834,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exclude"
+          }
+        }
+      }
+    },
+    "splitTunnel.fullDiskAccess" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This feature requires Full Disk Access."
           }
         }
       }
@@ -34838,24 +34860,13 @@
         }
       }
     },
-    "splitTunnel.fullDiskAccess.modal.title" : {
+    "splitTunnel.open" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This feature requires Full Disk Access"
-          }
-        }
-      }
-    },
-    "splitTunnel.openSettings" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Settings"
+            "value" : "Open"
           }
         }
       }
@@ -34867,6 +34878,105 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Protect"
+          }
+        }
+      }
+    },
+    "splitTunnel.systemSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Settings"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.direct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direct"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.direct.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excludes the selected apps from the VPN tunnel, allowing direct internet connection."
+          }
+        }
+      }
+    },
+    "splitTunnel.info.fullDiskAccess" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This feature requires Full Disc Access, that you can enable in system settings."
+          }
+        }
+      }
+    },
+    "splitTunnel.info.gotIt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it!"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split tunneling allows you to choose which apps use NymVPN."
+          }
+        }
+      }
+    },
+    "splitTunnel.info.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using split tunneling"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.viaNymVPN" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Via NymVPN"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.viaNymVPN.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended setting for all apps."
           }
         }
       }
