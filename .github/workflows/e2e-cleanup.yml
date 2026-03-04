@@ -1,0 +1,147 @@
+name: e2e-cleanup
+
+# Safety net: report orphaned Exoscale resources leaked by crashed/cancelled e2e-test runs.
+# Terraform state is local to the runner, so if the runner dies mid-job the
+# provisioned resources leak. This workflow scans for matching resources and
+# reports them to Zulip (instances older than a threshold; SGs with no matching VM).
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      max_age_hours:
+        description: "Report resources older than this many hours"
+        default: "8"
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  EXOSCALE_ZONE: ch-gva-2
+  # Name prefix used to match all test-harness resources.
+  # Instances are named <prefix><run_id>, security groups <prefix>sg-<run_id>.
+  FILTER_PATTERN: "test-harness-"
+  EXOSCALE_CLI_VERSION: "1.93.0"
+
+jobs:
+  scan:
+    name: Scan for orphaned test resources
+    runs-on: arc-linux-latest
+    steps:
+      - name: Install Exoscale CLI
+        run: |
+          curl -fsSL "https://github.com/exoscale/cli/releases/download/v${EXOSCALE_CLI_VERSION}/exoscale-cli_${EXOSCALE_CLI_VERSION}_linux_amd64.deb" \
+            -o /tmp/exo.deb
+          sudo dpkg -i /tmp/exo.deb
+
+      - name: Scan for orphaned resources
+        id: scan
+        env:
+          EXOSCALE_API_KEY: ${{ secrets.EXOSCALE_API_KEY }}
+          EXOSCALE_API_SECRET: ${{ secrets.EXOSCALE_API_SECRET }}
+          MAX_AGE_HOURS: ${{ inputs.max_age_hours || '8' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          ZONE="${EXOSCALE_ZONE}"
+          PATTERN="${FILTER_PATTERN}"
+          SG_PATTERN="${PATTERN}sg-"
+          CUTOFF_SECONDS=$((MAX_AGE_HOURS * 3600))
+          NOW=$(date +%s)
+
+          echo "Filter: instances starting with '${PATTERN}' older than ${MAX_AGE_HOURS}h; SGs with no matching VM"
+
+          # ── Instances ──────────────────────────────────────────────
+          # List returns limited fields; we need instance show for creation_date.
+          INSTANCE_IDS=$(exo compute instance list -z "$ZONE" -O json \
+            | jq -r --arg p "$PATTERN" '.[] | select(.name | startswith($p)) | .id')
+
+          STALE_INSTANCES="[]"
+          ALL_INSTANCE_NAMES="[]"
+
+          for ID in $INSTANCE_IDS; do
+            DETAIL=$(exo compute instance show "$ID" -z "$ZONE" -O json)
+            NAME=$(echo "$DETAIL" | jq -r '.name')
+            CREATED=$(echo "$DETAIL" | jq -r '.creation_date')
+            STATE=$(echo "$DETAIL" | jq -r '.state')
+            IP=$(echo "$DETAIL" | jq -r '.ip_address')
+
+            ALL_INSTANCE_NAMES=$(echo "$ALL_INSTANCE_NAMES" | jq --arg n "$NAME" '. + [$n]')
+
+            CREATED_TS=$(date -d "$CREATED" +%s 2>/dev/null || echo "0")
+            AGE_SECONDS=$((NOW - CREATED_TS))
+            AGE_HOURS=$((AGE_SECONDS / 3600))
+
+            if [ "$AGE_SECONDS" -gt "$CUTOFF_SECONDS" ]; then
+              echo "STALE: ${NAME} (age=${AGE_HOURS}h, state=${STATE})"
+              STALE_INSTANCES=$(echo "$STALE_INSTANCES" | jq \
+                --arg name "$NAME" --arg id "$ID" --arg state "$STATE" \
+                --arg ip "$IP" --arg created "$CREATED" --arg age "${AGE_HOURS}h" \
+                '. + [{name: $name, id: $id, state: $state, ip: $ip, created: $created, age: $age}]')
+            else
+              echo "OK: ${NAME} (age=${AGE_HOURS}h — within threshold)"
+            fi
+          done
+
+          INSTANCE_COUNT=$(echo "$STALE_INSTANCES" | jq 'length')
+
+          # ── Security Groups ────────────────────────────────────────
+          # SGs are orphaned when no matching VM exists (no age filter).
+          ORPHANED_SGS=$(exo compute security-group list -O json \
+            | jq --arg sgp "$SG_PATTERN" --arg p "$PATTERN" --argjson active "$ALL_INSTANCE_NAMES" \
+              '[.[] | select(.name | startswith($sgp))
+                    | select(("\($p)" + (.name | ltrimstr($sgp))) as $vm | ($active | index($vm)) | not)]')
+          SG_COUNT=$(echo "$ORPHANED_SGS" | jq 'length')
+
+          TOTAL=$((INSTANCE_COUNT + SG_COUNT))
+          echo "Found ${INSTANCE_COUNT} stale instance(s), ${SG_COUNT} orphaned SG(s)"
+
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "should_notify=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # ── Build markdown report ──────────────────────────────────
+          MSG="**:warning: Orphaned Exoscale resources detected**"
+          MSG+=$'\n\n'"Scan found **${TOTAL}** orphaned resource(s) in zone \`${ZONE}\`."
+
+          if [ "$INSTANCE_COUNT" -gt 0 ]; then
+            TABLE=$(echo "$STALE_INSTANCES" | jq -r '.[] | "| `\(.name)` | `\(.id)` | \(.age) | \(.state) | \(.ip) | \(.created) |"')
+            MSG+=$'\n\n'"### Instances older than ${MAX_AGE_HOURS}h (${INSTANCE_COUNT})"
+            MSG+=$'\n'"| Name | ID | Age | State | IP | Created |"
+            MSG+=$'\n'"| --- | --- | --- | --- | --- | --- |"
+            MSG+=$'\n'"${TABLE}"
+          fi
+
+          if [ "$SG_COUNT" -gt 0 ]; then
+            TABLE=$(echo "$ORPHANED_SGS" | jq -r '.[] | "| `\(.name)` | `\(.id)` |"')
+            MSG+=$'\n\n'"### Security Groups with no matching VM (${SG_COUNT})"
+            MSG+=$'\n'"| Name | ID |"
+            MSG+=$'\n'"| --- | --- |"
+            MSG+=$'\n'"${TABLE}"
+          fi
+
+          MSG+=$'\n\n'"These were **not** automatically deleted. Please clean up manually if needed."
+          MSG+=$'\n\n'"[Workflow run](${RUN_URL})"
+
+          {
+            echo "should_notify=true"
+            echo "content<<MSG_EOF"
+            echo "${MSG}"
+            echo "MSG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send Zulip notification
+        if: steps.scan.outputs.should_notify == 'true'
+        uses: zulip/github-actions-zulip/send-message@v1
+        with:
+          api-key: ${{ secrets.TEST_HARNESS_ZULIP_BOT_API_KEY }}
+          email: ${{ secrets.TEST_HARNESS_ZULIP_BOT_EMAIL }}
+          organization-url: ${{ secrets.ZULIP_ORG_URL }}
+          to: ${{ secrets.TEST_HARNESS_ZULIP_CHANNEL }}
+          type: "stream"
+          topic: ${{ secrets.TEST_HARNESS_ZULIP_TOPIC }}
+          content: ${{ steps.scan.outputs.content }}

@@ -24,10 +24,6 @@ on:
         options:
           - standard.medium
           - standard.large
-          # TODO once merged, consider running daily
-  # schedule:
-  # run periodically
-  # - cron: "0 3 * * *"
 
 permissions:
   contents: read
