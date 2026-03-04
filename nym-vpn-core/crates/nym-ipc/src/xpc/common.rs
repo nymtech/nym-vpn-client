@@ -1,7 +1,10 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::pin::Pin;
+use std::{
+    pin::Pin,
+    sync::{Arc, atomic::AtomicBool},
+};
 
 use objc2::{
     AnyThread, DefinedClass as _, define_class, extern_protocol, msg_send,
@@ -79,12 +82,13 @@ impl ConnectionInterfaceObj {
 }
 
 pub struct XpcConnection {
-    _own_interface: Retained<ConnectionInterfaceObj>,
+    own_interface: Option<Retained<ConnectionInterfaceObj>>,
     proxy: Option<Retained<ProtocolObject<dyn NSConnectionInterface + Send + Sync>>>,
     // if the connection is self contained (not depending on a listener service)
     // as is the case for client connections, a shutdown token is needed to keep
     // alive the XPC connection objects
     drop_guard: Option<DropGuard>,
+    xpc_conn_invalidated: Arc<AtomicBool>,
 
     data_stream_rx: UnboundedReceiverStream<Vec<u8>>,
     to_be_copied: Option<Vec<u8>>,
@@ -92,14 +96,16 @@ pub struct XpcConnection {
 
 impl XpcConnection {
     pub(crate) fn new(
-        _own_interface: Retained<ConnectionInterfaceObj>,
+        own_interface: Retained<ConnectionInterfaceObj>,
         proxy: Retained<ProtocolObject<dyn NSConnectionInterface + Send + Sync>>,
         data_stream_rx: UnboundedReceiverStream<Vec<u8>>,
+        xpc_conn_invalidated: Arc<AtomicBool>,
     ) -> Self {
         XpcConnection {
-            _own_interface,
+            own_interface: Some(own_interface),
             proxy: Some(proxy),
             drop_guard: None,
+            xpc_conn_invalidated,
             data_stream_rx,
             to_be_copied: None,
         }
@@ -125,6 +131,23 @@ impl XpcConnection {
             true
         }
     }
+
+    fn underlaying_conn_invalidated(&mut self) -> bool {
+        if self
+            .xpc_conn_invalidated
+            .load(std::sync::atomic::Ordering::SeqCst)
+        {
+            // consume the object interface, which drops the UnboundedSender
+            // so that the async reads of XpcConnection don't get left hanging
+            self.own_interface.take();
+            // consume the proxy object interface, since there's no point in
+            // making RPC calls on a non existing connection
+            self.proxy.take();
+            true
+        } else {
+            false
+        }
+    }
 }
 
 impl AsyncRead for XpcConnection {
@@ -133,6 +156,9 @@ impl AsyncRead for XpcConnection {
         cx: &mut std::task::Context<'_>,
         buf: &mut tokio::io::ReadBuf<'_>,
     ) -> std::task::Poll<std::io::Result<()>> {
+        // we check for invalidation, but we could still consume the buffered
+        // data, so don't take any action on possible invalidation
+        self.underlaying_conn_invalidated();
         if let Some(to_be_copied) = self.to_be_copied.take()
             && self.try_to_fill(to_be_copied, buf)
         {
@@ -152,10 +178,13 @@ impl AsyncRead for XpcConnection {
 
 impl AsyncWrite for XpcConnection {
     fn poll_write(
-        self: Pin<&mut Self>,
+        mut self: Pin<&mut Self>,
         _cx: &mut std::task::Context<'_>,
         buf: &[u8],
     ) -> std::task::Poll<std::io::Result<usize>> {
+        if self.underlaying_conn_invalidated() {
+            return std::task::Poll::Ready(Err(std::io::ErrorKind::ConnectionReset.into()));
+        }
         let Some(proxy) = self.proxy.as_ref() else {
             return std::task::Poll::Ready(Ok(0));
         };
@@ -164,9 +193,12 @@ impl AsyncWrite for XpcConnection {
     }
 
     fn poll_flush(
-        self: Pin<&mut Self>,
+        mut self: Pin<&mut Self>,
         _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<std::io::Result<()>> {
+        if self.underlaying_conn_invalidated() {
+            return std::task::Poll::Ready(Err(std::io::ErrorKind::ConnectionReset.into()));
+        }
         std::task::Poll::Ready(Ok(()))
     }
 
@@ -174,6 +206,9 @@ impl AsyncWrite for XpcConnection {
         mut self: Pin<&mut Self>,
         _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<std::io::Result<()>> {
+        if self.underlaying_conn_invalidated() {
+            return std::task::Poll::Ready(Err(std::io::ErrorKind::ConnectionReset.into()));
+        }
         self.proxy.take();
         std::task::Poll::Ready(Ok(()))
     }
@@ -205,7 +240,12 @@ mod tests {
                 ConnectionInterfaceObj::new(remote_tx),
             )
         };
-        let mut own_conn = XpcConnection::new(own_interface, remote_proxy, own_rx.into());
+        let mut own_conn = XpcConnection::new(
+            own_interface,
+            remote_proxy,
+            own_rx.into(),
+            Arc::new(AtomicBool::new(false)),
+        );
 
         let data = vec![42];
         own_conn.write_all(&data).await.unwrap();
@@ -222,7 +262,12 @@ mod tests {
                 ConnectionInterfaceObj::new(remote_tx),
             )
         };
-        let mut own_conn = XpcConnection::new(own_interface, remote_proxy, own_rx.into());
+        let mut own_conn = XpcConnection::new(
+            own_interface,
+            remote_proxy,
+            own_rx.into(),
+            Arc::new(AtomicBool::new(false)),
+        );
 
         let data = vec![1, 2, 3, 4, 5];
         own_tx.send(data.clone()).unwrap();

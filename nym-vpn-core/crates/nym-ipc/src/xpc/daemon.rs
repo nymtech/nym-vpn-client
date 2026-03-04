@@ -1,7 +1,10 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::pin::Pin;
+use std::{
+    pin::Pin,
+    sync::{Arc, atomic::AtomicBool},
+};
 
 use objc2::{
     AnyThread, DefinedClass as _, define_class, msg_send, rc::Retained, runtime::ProtocolObject,
@@ -55,6 +58,13 @@ define_class!(
             new_connection.setExportedInterface(Some(&self.ivars().connection_interface));
             new_connection.setRemoteObjectInterface(Some(&self.ivars().connection_interface));
 
+            let xpc_conn_invalidated = Arc::new(AtomicBool::new(false));
+            let xpc_conn_invalidated_cloned = xpc_conn_invalidated.clone();
+            let invalidation_handler = block2::RcBlock::new(move || {
+                xpc_conn_invalidated_cloned.store(true, std::sync::atomic::Ordering::SeqCst);
+            });
+            new_connection.setInvalidationHandler(Some(&invalidation_handler));
+
             let proxy_obj = new_connection.remoteObjectProxy();
             let proxy = unsafe {
                 Retained::cast_unchecked::<ProtocolObject<dyn NSConnectionInterface + Send + Sync>>(
@@ -62,7 +72,12 @@ define_class!(
                 )
             };
 
-            let xpc_conn = XpcConnection::new(exported_conn_int_obj, proxy, data_rx.into());
+            let xpc_conn = XpcConnection::new(
+                exported_conn_int_obj,
+                proxy,
+                data_rx.into(),
+                xpc_conn_invalidated,
+            );
             let forwarded = self.ivars().conn_sender.send(xpc_conn);
 
             new_connection.resume();

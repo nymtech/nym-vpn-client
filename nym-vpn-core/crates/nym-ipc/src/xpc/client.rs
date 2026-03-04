@@ -4,6 +4,7 @@
 use std::{
     fmt::Debug,
     io::{Error, Result},
+    sync::{Arc, atomic::AtomicBool},
 };
 
 use objc2::{AnyThread, rc::Retained, runtime::ProtocolObject};
@@ -52,6 +53,13 @@ async fn xpc_connect(
     conn_obj.setExportedInterface(Some(&interface));
     conn_obj.setRemoteObjectInterface(Some(&interface));
 
+    let xpc_conn_invalidated = Arc::new(AtomicBool::new(false));
+    let xpc_conn_invalidated_cloned = xpc_conn_invalidated.clone();
+    let invalidation_handler = block2::RcBlock::new(move || {
+        xpc_conn_invalidated_cloned.store(true, std::sync::atomic::Ordering::SeqCst);
+    });
+    conn_obj.setInvalidationHandler(Some(&invalidation_handler));
+
     let proxy_obj = conn_obj.remoteObjectProxy();
     let proxy = unsafe {
         Retained::cast_unchecked::<ProtocolObject<dyn NSConnectionInterface + Send + Sync>>(
@@ -61,7 +69,12 @@ async fn xpc_connect(
 
     conn_obj.resume();
 
-    let xpc_conn = XpcConnection::new(exported_conn_int_obj, proxy, data_rx.into());
+    let xpc_conn = XpcConnection::new(
+        exported_conn_int_obj,
+        proxy,
+        data_rx.into(),
+        xpc_conn_invalidated,
+    );
     // The receiver is waiting in XpcClient::connect
     conn_sender.send(xpc_conn).ok();
 

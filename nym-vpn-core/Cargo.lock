@@ -5434,6 +5434,7 @@ version = "1.26.0-beta"
 dependencies = [
  "async-stream",
  "async-trait",
+ "block2",
  "cc",
  "hyper-util",
  "nix 0.31.1",
