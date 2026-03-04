@@ -14,7 +14,7 @@ use tokio::{
     sync::mpsc::UnboundedSender,
 };
 use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
-use tokio_util::sync::CancellationToken;
+use tokio_util::sync::DropGuard;
 use tonic::transport::server::Connected;
 
 pub(crate) const DAEMON_BUNDLE_IDENTIFIER: &str = "net.nymtech.vpn.daemon";
@@ -84,7 +84,7 @@ pub struct XpcConnection {
     // if the connection is self contained (not depending on a listener service)
     // as is the case for client connections, a shutdown token is needed to keep
     // alive the XPC connection objects
-    shutdown_token: Option<CancellationToken>,
+    drop_guard: Option<DropGuard>,
 
     data_stream_rx: UnboundedReceiverStream<Vec<u8>>,
     to_be_copied: Option<Vec<u8>>,
@@ -99,14 +99,14 @@ impl XpcConnection {
         XpcConnection {
             _own_interface,
             proxy: Some(proxy),
-            shutdown_token: None,
+            drop_guard: None,
             data_stream_rx,
             to_be_copied: None,
         }
     }
 
-    pub(crate) fn with_shutdown_token(mut self, shutdown_token: CancellationToken) -> Self {
-        self.shutdown_token = Some(shutdown_token);
+    pub(crate) fn with_drop_guard(mut self, drop_guard: DropGuard) -> Self {
+        self.drop_guard = Some(drop_guard);
         self
     }
 

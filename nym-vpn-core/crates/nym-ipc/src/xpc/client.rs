@@ -83,6 +83,6 @@ pub async fn connect() -> Result<XpcConnection> {
     local_spawner.spawn(Task::Connect(conn_sender));
     conn_receiver
         .await
-        .map(|c| c.with_shutdown_token(shutdown_token))
+        .map(|c| c.with_drop_guard(shutdown_token.drop_guard()))
         .or(Err(Error::other("XPC connection setup failed")))
 }
