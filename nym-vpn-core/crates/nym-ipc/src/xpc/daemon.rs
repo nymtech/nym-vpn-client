@@ -15,7 +15,7 @@ use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    authentication::StreamItem,
+    authentication::Transport,
     xpc::{
         common::{
             ConnectionInterfaceObj, DAEMON_BUNDLE_IDENTIFIER, NSConnectionInterface, XpcConnection,
@@ -140,7 +140,7 @@ impl XpcService {
 }
 
 impl Stream for XpcService {
-    type Item = std::io::Result<StreamItem>;
+    type Item = std::io::Result<Transport>;
 
     fn poll_next(
         mut self: std::pin::Pin<&mut Self>,

@@ -14,7 +14,7 @@ use tokio::net::UnixListener;
 use tokio_stream::{Stream, wrappers::UnixListenerStream};
 use tokio_util::sync::CancellationToken;
 
-use crate::authentication::{self, StreamItem};
+use crate::authentication::{self, Transport};
 
 pub struct Uds {
     socket_path: PathBuf,
@@ -30,12 +30,12 @@ impl Drop for Uds {
 }
 
 impl Stream for Uds {
-    type Item = Result<StreamItem>;
+    type Item = Result<Transport>;
 
     fn poll_next(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-    ) -> Poll<Option<Result<StreamItem>>> {
+    ) -> Poll<Option<Result<Transport>>> {
         Pin::new(&mut self.inner).poll_next(cx)
     }
 }
@@ -43,7 +43,7 @@ impl Stream for Uds {
 pub fn incoming(
     socket_path: PathBuf,
     _shutdown_token: CancellationToken,
-) -> Result<impl Stream<Item = Result<StreamItem>>> {
+) -> Result<impl Stream<Item = Result<Transport>>> {
     let listener = UnixListener::bind(&socket_path)?;
     fs::set_permissions(&socket_path, PermissionsExt::from_mode(0o766))?;
     let uds = Uds {
