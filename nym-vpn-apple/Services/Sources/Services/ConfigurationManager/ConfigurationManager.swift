@@ -175,7 +175,6 @@ private extension ConfigurationManager {
             logger.error("Failed to initialize environment: \(currentEnvString). Error: \(error)")
         }
 #else
-        try await setDaemonEnvironmentVariables()
         try? await updateErrorReportingIfNeeded()
         try? await updateNetworkStatisticsIfNeeded()
 #endif
@@ -208,10 +207,6 @@ private extension ConfigurationManager {
     }
 
 #if os(macOS)
-    func setDaemonEnvironmentVariables() async throws {
-        try await grpcManager.switchEnvironment(to: currentEnv.rawValue)
-    }
-
     func updateErrorReportingIfNeeded() async throws {
         try await grpcManager.updateErrorReportingIfNeeded(with: appSettings.isErrorReportingOn)
     }
