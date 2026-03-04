@@ -15,7 +15,7 @@ use objc2_foundation::{
 };
 use tokio::sync::mpsc;
 use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
-use tokio_util::sync::CancellationToken;
+use tokio_util::sync::{CancellationToken, DropGuard};
 
 use crate::{
     authentication::Transport,
@@ -132,7 +132,7 @@ pub(crate) struct XpcService {
     inner: UnboundedReceiverStream<XpcConnection>,
     // needed to keep the XPC listener object alive for the lifetime of this
     // service
-    _shutdown_token: CancellationToken,
+    _drop_guard: DropGuard,
 }
 
 impl XpcService {
@@ -144,7 +144,7 @@ impl XpcService {
 
         Ok(XpcService {
             inner: UnboundedReceiverStream::new(conn_receiver),
-            _shutdown_token: shutdown_token,
+            _drop_guard: shutdown_token.drop_guard(),
         })
     }
 }
