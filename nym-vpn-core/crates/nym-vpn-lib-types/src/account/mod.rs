@@ -275,6 +275,7 @@ pub struct VpnAccountSummary {
     pub auth_methods: Vec<VpnAccountAuthMethod>,
     pub account_mode: Option<StoredAccountMode>,
     pub subscription_kind: Option<NymVpnSubscriptionKind>,
+    pub is_recurring: bool,
 }
 
 // Exported methods
@@ -359,6 +360,8 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             .map(TryInto::try_into)
             .collect::<Result<Vec<_>, _>>()?;
 
+        // let is_recurring = value.subscription.active.as_ref().map(|f| f.is_recurring).unwrap_or(false);
+
         Ok(Self {
             subscription_valid_until,
             traffic_used_gb: value.fair_usage.usedGB,
@@ -369,6 +372,12 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             auth_methods,
             account_mode: None,
             subscription_kind,
+            is_recurring: value
+                .subscription
+                .active
+                .as_ref()
+                .map(|f| f.is_recurring)
+                .unwrap_or(false),
         })
     }
 }

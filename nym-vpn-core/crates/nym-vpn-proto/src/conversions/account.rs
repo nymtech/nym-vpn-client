@@ -312,6 +312,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             auth_methods,
             account_mode,
             subscription_kind,
+            is_recurring: value.is_recurring,
         })
     }
 }
@@ -351,6 +352,7 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             auth_methods,
             account_mode,
             subscription_kind,
+            is_recurring: value.is_recurring,
         }
     }
 }

@@ -853,6 +853,7 @@ message VpnAccountSummary {
   repeated VpnAccountAuthMethod auth_methods = 7;
   optional StoredAccountMode account_mode = 8;
   optional NymVpnSubscriptionKind subscription_kind = 9;
+  bool is_recurring = 10;
 }
 
 message VpnAccountAuthMethod {
