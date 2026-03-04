@@ -14,9 +14,9 @@ pub enum Command {
         /// Mnemonic phrase
         #[arg(index = 1)]
         secret: String,
-        /// Account mode
-        #[clap(long, default_value_t = VpnAccount::Api)]
-        mode: VpnAccount,
+        /// Account location
+        #[clap(long, alias = "mode", default_value_t = AccountLocation::Api)]
+        location: AccountLocation,
     },
     /// Forget account
     Forget,
@@ -30,11 +30,18 @@ pub enum Command {
     },
     /// Get account balance
     Balance,
-    /// Attempt to obtain additional accounts for a 'decentralised' account
-    DecentralisedObtainTicketbooks {
+    /// Attempt to obtain additional accounts for a 'blockchain' account
+    #[clap(
+        name = "obtain-ticketbooks",
+        alias = "decentralised-obtain-ticketbooks"
+    )]
+    ObtainTicketbooks {
         /// Amount of ticketbooks (per type) to attempt to obtain
         #[arg(long, default_value_t = 1)]
         amount: u64,
+        /// Ticketbook source
+        #[arg(long, value_enum, default_value_t = TicketbookSource::Smartcontract)]
+        source: TicketbookSource,
     },
     /// Refresh account state
     #[clap(hide = true)]
@@ -85,11 +92,11 @@ impl Command {
                 println!("Account state: {account_state:?}");
                 Ok(())
             }
-            Command::Set { secret, mode } => {
-                let request = match mode {
-                    VpnAccount::Api => StoreAccountRequest::Vpn { mnemonic: secret },
-                    VpnAccount::Privy => StoreAccountRequest::Privy { mnemonic: secret },
-                    VpnAccount::Decentralised => {
+            Command::Set { secret, location } => {
+                let request = match location {
+                    AccountLocation::Api => StoreAccountRequest::Vpn { mnemonic: secret },
+                    AccountLocation::Privy => StoreAccountRequest::Privy { mnemonic: secret },
+                    AccountLocation::Blockchain => {
                         StoreAccountRequest::Decentralised { mnemonic: secret }
                     }
                 };
@@ -153,7 +160,10 @@ impl Command {
                 }
                 Ok(())
             }
-            Command::DecentralisedObtainTicketbooks { amount } => {
+            Command::ObtainTicketbooks {
+                amount,
+                source: _source,
+            } => {
                 println!(
                     "starting acquisition of {amount} ticketbooks (per type). this might take a while..."
                 );
@@ -212,18 +222,25 @@ impl Command {
 }
 
 #[derive(Debug, Clone, clap::ValueEnum)]
-pub enum VpnAccount {
+pub enum AccountLocation {
     Api,
     Privy,
-    Decentralised,
+    #[value(name = "blockchain", aliases = ["decentralised", "decentralized"])]
+    Blockchain,
 }
 
-impl std::fmt::Display for VpnAccount {
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum TicketbookSource {
+    #[value(name = "smartcontract")]
+    Smartcontract,
+}
+
+impl std::fmt::Display for AccountLocation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            VpnAccount::Api => write!(f, "api"),
-            VpnAccount::Privy => write!(f, "privy"),
-            VpnAccount::Decentralised => write!(f, "decentralised"),
+            AccountLocation::Api => write!(f, "api"),
+            AccountLocation::Privy => write!(f, "privy"),
+            AccountLocation::Blockchain => write!(f, "blockchain"),
         }
     }
 }
