@@ -28,6 +28,7 @@ pub fn mock_subscription_summary_with_device(
             valid_from_utc: "2025-07-21 13:46:26.572Z".to_string(),
             status: NymVpnSubscriptionStatus::Active,
             kind: NymVpnSubscriptionKind::Freepass,
+            is_recurring: false,
         })
     } else {
         None
