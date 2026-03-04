@@ -118,3 +118,10 @@ pub async fn delete_logs(vpnd: State<'_, VpndClient>) -> Result<(), BackendError
         })
         .map_err(|e| e.into())
 }
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn retry_authentication(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {
+    vpnd.retry_daemon_authentication().await;
+    Ok(())
+}
