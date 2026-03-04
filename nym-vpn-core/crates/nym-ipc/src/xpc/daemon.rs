@@ -72,12 +72,7 @@ define_class!(
                 )
             };
 
-            let xpc_conn = XpcConnection::new(
-                exported_conn_int_obj,
-                proxy,
-                data_rx.into(),
-                xpc_conn_invalidated,
-            );
+            let xpc_conn = XpcConnection::new(proxy, data_rx.into(), xpc_conn_invalidated);
             let forwarded = self.ivars().conn_sender.send(xpc_conn);
 
             new_connection.resume();

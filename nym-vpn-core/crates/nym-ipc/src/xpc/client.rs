@@ -69,12 +69,7 @@ async fn xpc_connect(
 
     conn_obj.resume();
 
-    let xpc_conn = XpcConnection::new(
-        exported_conn_int_obj,
-        proxy,
-        data_rx.into(),
-        xpc_conn_invalidated,
-    );
+    let xpc_conn = XpcConnection::new(proxy, data_rx.into(), xpc_conn_invalidated);
     // The receiver is waiting in XpcClient::connect
     conn_sender.send(xpc_conn).ok();
 

@@ -82,7 +82,6 @@ impl ConnectionInterfaceObj {
 }
 
 pub struct XpcConnection {
-    own_interface: Option<Retained<ConnectionInterfaceObj>>,
     proxy: Option<Retained<ProtocolObject<dyn NSConnectionInterface + Send + Sync>>>,
     // if the connection is self contained (not depending on a listener service)
     // as is the case for client connections, a shutdown token is needed to keep
@@ -96,13 +95,11 @@ pub struct XpcConnection {
 
 impl XpcConnection {
     pub(crate) fn new(
-        own_interface: Retained<ConnectionInterfaceObj>,
         proxy: Retained<ProtocolObject<dyn NSConnectionInterface + Send + Sync>>,
         data_stream_rx: UnboundedReceiverStream<Vec<u8>>,
         xpc_conn_invalidated: Arc<AtomicBool>,
     ) -> Self {
         XpcConnection {
-            own_interface: Some(own_interface),
             proxy: Some(proxy),
             drop_guard: None,
             xpc_conn_invalidated,
@@ -137,9 +134,6 @@ impl XpcConnection {
             .xpc_conn_invalidated
             .load(std::sync::atomic::Ordering::SeqCst)
         {
-            // consume the object interface, which drops the UnboundedSender
-            // so that the async reads of XpcConnection don't get left hanging
-            self.own_interface.take();
             // consume the proxy object interface, since there's no point in
             // making RPC calls on a non existing connection
             self.proxy.take();
@@ -233,7 +227,7 @@ mod tests {
     #[tokio::test]
     async fn write_to_conn() {
         let (own_tx, own_rx) = mpsc::unbounded_channel();
-        let own_interface = ConnectionInterfaceObj::new(own_tx.clone());
+        let _own_interface = ConnectionInterfaceObj::new(own_tx.clone());
         let (remote_tx, mut remote_rx) = mpsc::unbounded_channel();
         let remote_proxy = unsafe {
             Retained::cast_unchecked::<ProtocolObject<dyn NSConnectionInterface + Send + Sync>>(
@@ -241,7 +235,6 @@ mod tests {
             )
         };
         let mut own_conn = XpcConnection::new(
-            own_interface,
             remote_proxy,
             own_rx.into(),
             Arc::new(AtomicBool::new(false)),
@@ -255,7 +248,7 @@ mod tests {
     #[tokio::test]
     async fn read_from_conn() {
         let (own_tx, own_rx) = mpsc::unbounded_channel();
-        let own_interface = ConnectionInterfaceObj::new(own_tx.clone());
+        let _own_interface = ConnectionInterfaceObj::new(own_tx.clone());
         let (remote_tx, _remote_rx) = mpsc::unbounded_channel();
         let remote_proxy = unsafe {
             Retained::cast_unchecked::<ProtocolObject<dyn NSConnectionInterface + Send + Sync>>(
@@ -263,7 +256,6 @@ mod tests {
             )
         };
         let mut own_conn = XpcConnection::new(
-            own_interface,
             remote_proxy,
             own_rx.into(),
             Arc::new(AtomicBool::new(false)),
