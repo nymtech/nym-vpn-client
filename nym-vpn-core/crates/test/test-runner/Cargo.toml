@@ -12,7 +12,6 @@ workspace = true
 
 [dependencies]
 bytes = { workspace = true }
-chrono = { workspace = true, features = ["serde"] }
 dirs = { workspace = true }
 futures = { workspace = true }
 libc = { workspace = true }

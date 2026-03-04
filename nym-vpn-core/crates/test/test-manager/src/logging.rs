@@ -23,7 +23,7 @@ struct LoggerInner {
 
 struct StoredRecord {
     level: log::Level,
-    time: chrono::DateTime<chrono::Utc>,
+    time: time::OffsetDateTime,
     mod_path: String,
     text: String,
 }
@@ -76,7 +76,8 @@ impl Logger {
                 "[{} {} {}] {}",
                 stored_record
                     .time
-                    .to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+                    .format(&time::format_description::well_known::Rfc3339)
+                    .unwrap_or_default(),
                 stored_record.level,
                 stored_record.mod_path,
                 stored_record.text
@@ -108,7 +109,7 @@ impl log::Log for Logger {
             let mod_path = record.module_path().unwrap_or("");
             inner.stored_records.push(StoredRecord {
                 level: record.level(),
-                time: chrono::Utc::now(),
+                time: time::OffsetDateTime::now_utc(),
                 mod_path: mod_path.to_owned(),
                 text: record.args().to_string(),
             });
@@ -204,7 +205,7 @@ macro_rules! println_with_time {
     ($fmt:tt$(, $($args:tt)*)?) => {
         println!(
             concat!("[{}] ", $fmt),
-            chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+            time::OffsetDateTime::now_utc().format(&time::format_description::well_known::Rfc3339).unwrap_or_default(),
             $($($args)*)?
         )
     };

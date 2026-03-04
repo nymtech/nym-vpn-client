@@ -100,8 +100,3 @@ jobs:
         run: |
           cargo build --workspace --locked
           cargo test --workspace --locked --exclude nym-ifconfig
-
-      - name: Build test harness crates
-        working-directory: nym-vpn-core
-        run: |
-          cargo build -p test-manager -p test-runner -p test-rpc
