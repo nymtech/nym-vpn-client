@@ -54,7 +54,7 @@ mod user_agent;
 pub use account::RegisterAccountRequest;
 pub use account::{
     AccountCommandError, RegisterAccountResponse, StoredAccountMode, VpnAccountAuthMethod,
-    VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
+    VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse, NymVpnSubscriptionKind,
     controller_error::{AccountControllerError, AccountControllerErrorStateReason},
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,

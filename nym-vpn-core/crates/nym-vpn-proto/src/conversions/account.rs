@@ -4,7 +4,7 @@
 use nym_vpn_lib_types::{
     AccountCommandError, AvailableTickets, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
     StoredAccountMode, VpnAccountAuthMethod, VpnAccountStatus, VpnAccountSummary, VpnApiError,
-    VpnApiErrorResponse,
+    VpnApiErrorResponse, NymVpnSubscriptionKind,
 };
 
 use crate::{
@@ -297,6 +297,15 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             .map(TryInto::try_into)
             .collect::<Result<_, ConversionError>>()?;
 
+        let subscription_kind = value
+            .subscription_kind
+            .map(|kind| {
+                proto::NymVpnSubscriptionKind::try_from(kind)
+                .map(NymVpnSubscriptionKind::from)
+                .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.subscription_kind"))
+            })
+            .transpose()?;
+
         Ok(Self {
             subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
@@ -306,6 +315,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             canonical_account_addr: value.canonical_account_addr,
             auth_methods,
             account_mode,
+            subscription_kind,
         })
     }
 }
@@ -331,6 +341,11 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             .account_mode
             .map(|mode| proto::StoredAccountMode::from(mode) as i32);
 
+
+        let subscription_kind = value
+            .subscription_kind
+            .map(|kind| proto::NymVpnSubscriptionKind::from(kind) as i32);
+
         Self {
             subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
@@ -340,6 +355,7 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             canonical_account_addr: value.canonical_account_addr,
             auth_methods,
             account_mode,
+            subscription_kind,
         }
     }
 }
@@ -513,6 +529,28 @@ impl TryFrom<proto::GetAccountModeResponse> for Option<StoredAccountMode> {
                 Ok(Some(mode.into()))
             }
             None => Ok(None),
+        }
+    }
+}
+
+impl From<proto::NymVpnSubscriptionKind> for NymVpnSubscriptionKind {
+    fn from(value: proto::NymVpnSubscriptionKind) -> Self {
+        match value {
+            proto::NymVpnSubscriptionKind::OneMonth => NymVpnSubscriptionKind::OneMonth,
+            proto::NymVpnSubscriptionKind::OneYear => NymVpnSubscriptionKind::OneYear,
+            proto::NymVpnSubscriptionKind::TwoYears => NymVpnSubscriptionKind::TwoYears,
+            proto::NymVpnSubscriptionKind::Freepass => NymVpnSubscriptionKind::Freepass,
+        }
+    }
+}
+
+impl From<NymVpnSubscriptionKind> for proto::NymVpnSubscriptionKind {
+    fn from (value: NymVpnSubscriptionKind) -> Self {
+        match value {
+            NymVpnSubscriptionKind::OneMonth => proto::NymVpnSubscriptionKind::OneMonth,
+            NymVpnSubscriptionKind::OneYear => proto::NymVpnSubscriptionKind::OneYear,
+            NymVpnSubscriptionKind::TwoYears => proto::NymVpnSubscriptionKind::TwoYears,
+            NymVpnSubscriptionKind::Freepass => proto::NymVpnSubscriptionKind::Freepass,
         }
     }
 }
