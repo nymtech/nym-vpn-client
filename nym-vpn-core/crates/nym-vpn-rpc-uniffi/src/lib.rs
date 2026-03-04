@@ -404,7 +404,7 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn need_full_disk_permissions(&self) -> Result<(bool)> {
+    pub async fn need_full_disk_permissions(&self) -> Result<bool> {
         let value = self.inner.clone().need_full_disk_permissions().await?;
         Ok(value)
     }
