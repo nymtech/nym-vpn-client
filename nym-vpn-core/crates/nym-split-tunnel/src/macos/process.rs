@@ -26,7 +26,7 @@ use nym_platform_metadata::AppleVersion;
 use serde::{Deserialize, de::Error as _};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
-    sync::oneshot,
+    sync::{OnceCell, oneshot},
 };
 
 use crate::SplitTunnelErrorCause;
@@ -107,7 +107,12 @@ impl ProcessMonitor {
 /// Return whether the process has full-disk access
 /// If it cannot be determined that access is available, it is assumed to be available
 pub async fn has_full_disk_access() -> bool {
-    has_full_disk_access_inner().await.unwrap_or(true)
+    // TCC status persists throughout the process lifetime and does not change until restart.
+    static HAS_TCC_APPROVAL: OnceCell<bool> = OnceCell::const_new();
+    *HAS_TCC_APPROVAL
+        .get_or_try_init(has_full_disk_access_inner)
+        .await
+        .unwrap_or(&true)
 }
 
 async fn has_full_disk_access_inner() -> Result<bool, Error> {
