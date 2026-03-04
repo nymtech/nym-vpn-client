@@ -299,7 +299,8 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
 
         let subscription_kind = value
             .subscription_kind
-            .map(|kind| NymVpnSubscriptionKind::try_from(kind))
+            // .map(|kind| NymVpnSubscriptionKind::try_from(kind))
+            .map(NymVpnSubscriptionKind::try_from)
             .transpose()?;
 
         Ok(Self {
