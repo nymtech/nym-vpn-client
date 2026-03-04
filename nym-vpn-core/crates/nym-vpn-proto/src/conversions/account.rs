@@ -3,8 +3,8 @@
 
 use nym_vpn_lib_types::{
     AccountCommandError, AvailableTickets, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    StoredAccountMode, VpnAccountAuthMethod, VpnAccountStatus, VpnAccountSummary, VpnApiError,
-    VpnApiErrorResponse, NymVpnSubscriptionKind,
+    NymVpnSubscriptionKind, StoredAccountMode, VpnAccountAuthMethod, VpnAccountStatus,
+    VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
 };
 
 use crate::{
@@ -301,8 +301,8 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             .subscription_kind
             .map(|kind| {
                 proto::NymVpnSubscriptionKind::try_from(kind)
-                .map(NymVpnSubscriptionKind::from)
-                .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.subscription_kind"))
+                    .map(NymVpnSubscriptionKind::from)
+                    .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.subscription_kind"))
             })
             .transpose()?;
 
@@ -340,7 +340,6 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
         let account_mode = value
             .account_mode
             .map(|mode| proto::StoredAccountMode::from(mode) as i32);
-
 
         let subscription_kind = value
             .subscription_kind
@@ -545,7 +544,7 @@ impl From<proto::NymVpnSubscriptionKind> for NymVpnSubscriptionKind {
 }
 
 impl From<NymVpnSubscriptionKind> for proto::NymVpnSubscriptionKind {
-    fn from (value: NymVpnSubscriptionKind) -> Self {
+    fn from(value: NymVpnSubscriptionKind) -> Self {
         match value {
             NymVpnSubscriptionKind::OneMonth => proto::NymVpnSubscriptionKind::OneMonth,
             NymVpnSubscriptionKind::OneYear => proto::NymVpnSubscriptionKind::OneYear,

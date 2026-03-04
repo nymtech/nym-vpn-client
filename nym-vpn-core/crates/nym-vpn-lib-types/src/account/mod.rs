@@ -332,9 +332,12 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
                     subscription_valid_unti_str.unwrap()
                 ))
             })?;
-        // let subscription_kind = value.subscription.active.as_ref().map(|a| a.kind.clone());
-        // let subscription_kind = value.subscription.active.as_ref().cloned().map(TryInto::try_into);
-        let subscription_kind = value.subscription.active.as_ref().map(|a| a.kind.clone().into());
+
+        let subscription_kind = value
+            .subscription
+            .active
+            .as_ref()
+            .map(|a| a.kind.clone().into());
 
         let traffic_reset_time_str = value.fair_usage.resetsOnUtc.clone();
         let traffic_reset_time = traffic_reset_time_str
@@ -413,10 +416,18 @@ pub enum NymVpnSubscriptionKind {
 impl From<nym_vpn_api_client::response::NymVpnSubscriptionKind> for NymVpnSubscriptionKind {
     fn from(value: nym_vpn_api_client::response::NymVpnSubscriptionKind) -> Self {
         match value {
-            nym_vpn_api_client::response::NymVpnSubscriptionKind::OneMonth => NymVpnSubscriptionKind::OneMonth,
-            nym_vpn_api_client::response::NymVpnSubscriptionKind::OneYear => NymVpnSubscriptionKind::OneYear,
-            nym_vpn_api_client::response::NymVpnSubscriptionKind::TwoYears => NymVpnSubscriptionKind::TwoYears,
-            nym_vpn_api_client::response::NymVpnSubscriptionKind::Freepass => NymVpnSubscriptionKind::Freepass,
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::OneMonth => {
+                NymVpnSubscriptionKind::OneMonth
+            }
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::OneYear => {
+                NymVpnSubscriptionKind::OneYear
+            }
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::TwoYears => {
+                NymVpnSubscriptionKind::TwoYears
+            }
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::Freepass => {
+                NymVpnSubscriptionKind::Freepass
+            }
         }
     }
 }
