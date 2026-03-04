@@ -263,8 +263,6 @@ mod service {
 
         async fn reboot() -> Result<(), Error>;
 
-        async fn make_device_json_old() -> Result<(), Error>;
-
         /// Spawn a child process and return the PID.
         async fn spawn(opts: SpawnOpts) -> Result<u32, Error>;
 

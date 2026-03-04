@@ -53,5 +53,5 @@ nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-tun = "0.5.1"
+tun = { workspace = true }
 nix = { workspace = true, features = ["signal", "process"] }

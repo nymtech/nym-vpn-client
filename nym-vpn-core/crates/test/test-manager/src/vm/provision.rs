@@ -132,12 +132,6 @@ fn blocking_ssh(
     ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
         .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
 
-    // Transfer connection-checker
-    let source = local_runner_dir.join("connection-checker");
-    log::debug!("Source: {}", source.display());
-    ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
-        .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
-
     // Transfer nym-vpnd
     let source = local_runner_dir.join("nym-vpnd");
     log::debug!("Source: {}", source.display());

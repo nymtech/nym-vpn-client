@@ -4,6 +4,8 @@
 
 use serde::{Deserialize, Serialize};
 
+// VERY IMPORTANT: this socket path is defined in nym-vpnd, and the value here
+// always needs to be the same value as in that crate
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 pub const NYMVPN_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
 

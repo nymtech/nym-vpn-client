@@ -102,10 +102,10 @@ jobs:
         run: cargo build --release -p nym-vpnc -p nym-vpnd
         working-directory: nym-vpn-core
 
-      - name: Build test-manager, test-runner, connection-checker
+      - name: Build test-manager, test-runner
         run: |
           cargo build --release \
-            -p test-manager -p test-runner -p connection-checker
+            -p test-manager -p test-runner
         working-directory: ${{ env.TEST_CRATE_DIR }}
 
       - name: Save cargo registry cache
@@ -142,7 +142,6 @@ jobs:
           cp nym-vpn-core/target/release/nym-vpnd /tmp/dist/
           cp nym-vpn-core/target/release/test-manager /tmp/dist/
           cp nym-vpn-core/target/release/test-runner /tmp/dist/
-          cp nym-vpn-core/target/release/connection-checker /tmp/dist/
 
       - name: Upload binaries
         uses: actions/upload-artifact@v6

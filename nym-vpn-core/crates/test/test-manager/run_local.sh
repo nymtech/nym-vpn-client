@@ -32,7 +32,7 @@ SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o Connect
 
 VM_IP=""
 
-REQUIRED_BINARIES=(nym-vpnc nym-vpnd test-manager test-runner connection-checker)
+REQUIRED_BINARIES=(nym-vpnc nym-vpnd test-manager test-runner)
 
 
 function validate_env() {
@@ -116,16 +116,15 @@ function build_all_in_container() {
             cargo build --release -p nym-vpnc -p nym-vpnd
 
             # test-manager (runs on exoscale ubuntu host),
-            # test-runner + connection-checker (run inside debian guest VM)
+            # test-runner (runs inside debian guest VM)
             cd /build/nym-vpn-core/crates/test
-            cargo build --release -p test-manager -p test-runner -p connection-checker
+            cargo build --release -p test-manager -p test-runner
 
             # collect all binaries
             cp /cargo-target/release/nym-vpnc          /dist/
             cp /cargo-target/release/nym-vpnd          /dist/
             cp /cargo-target/release/test-manager       /dist/
             cp /cargo-target/release/test-runner        /dist/
-            cp /cargo-target/release/connection-checker /dist/
         "
 
     echo -e "${GREEN}All binaries built in ${DIST_DIR}${NC}"

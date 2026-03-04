@@ -435,12 +435,6 @@ impl NymServiceClient {
         Ok(())
     }
 
-    pub async fn make_device_json_old(&self) -> Result<(), Error> {
-        self.client
-            .make_device_json_old(tarpc::context::current())
-            .await?
-    }
-
     pub async fn spawn(&self, opts: SpawnOpts) -> Result<u32, Error> {
         self.client.spawn(tarpc::context::current(), opts).await?
     }

@@ -443,10 +443,6 @@ impl Service for NymTestServer {
         sys::reboot()
     }
 
-    async fn make_device_json_old(self, _: context::Context) -> Result<(), test_rpc::Error> {
-        app_nymvpn::make_device_json_old().await
-    }
-
     async fn spawn(self, _: context::Context, opts: SpawnOpts) -> Result<u32, test_rpc::Error> {
         let mut cmd = Command::new(&opts.path);
         cmd.args(&opts.args);

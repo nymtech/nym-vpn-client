@@ -167,12 +167,11 @@ function build_all_in_container() {
             cargo build --package nym-vpnc --package nym-vpnd --release && \
             cd /build/nym-vpn-core/crates/test && \
             CARGO_TARGET_DIR=/build/nym-vpn-core/crates/test/target \
-            cargo build --package test-runner --package connection-checker \
+            cargo build --package test-runner \
                 --release --target x86_64-unknown-linux-gnu && \
             cp /build/nym-vpn-core/target/release/nym-vpnc /packages/ && \
             cp /build/nym-vpn-core/target/release/nym-vpnd /packages/ && \
-            cp /build/nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner /packages/ && \
-            cp /build/nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/connection-checker /packages/
+            cp /build/nym-vpn-core/crates/test/target/x86_64-unknown-linux-gnu/release/test-runner /packages/
         "
     echo -e "======== ${GREEN} All binaries built and copied to ${PACKAGE_DIR}${NC} ========"
 }

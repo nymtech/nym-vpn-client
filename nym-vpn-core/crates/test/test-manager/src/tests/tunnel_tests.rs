@@ -179,7 +179,7 @@ pub async fn test_wireguard_connect_disconnect(
 
     // Connect
     log::info!("Connecting WireGuard tunnel...");
-    nym_client.connect_tunnel_friendly().await?;
+    nym_client.connect_tunnel().await?;
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
 
     // Verify tunnel type
@@ -219,7 +219,7 @@ pub async fn test_mixnet_connect_disconnect(
 
     // Connect with longer timeout for mixnet
     log::info!("Connecting Mixnet tunnel (this may take longer)...");
-    nym_client.connect_tunnel_friendly().await?;
+    nym_client.connect_tunnel().await?;
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
 
     // Verify tunnel type
@@ -263,7 +263,7 @@ pub async fn test_dns_leak(
     // connect
     nym_client.set_enable_two_hop(true).await?;
     log::info!("Connecting tunnel for DNS leak test...");
-    nym_client.connect_tunnel_friendly().await?;
+    nym_client.connect_tunnel().await?;
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
 
     // check resolv.conf after connecting
@@ -440,7 +440,7 @@ pub async fn test_country_exit_node(
         .context("set_exit_point failed")?;
 
     log::info!("Connecting with exit country {}...", TARGET_COUNTRY);
-    nym_client.connect_tunnel_friendly().await?;
+    nym_client.connect_tunnel().await?;
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
 
     // verify DNS works inside VM before making HTTP request
@@ -493,7 +493,7 @@ pub async fn test_reconnect_tunnel(
     // connect with wg
     nym_client.set_enable_two_hop(true).await?;
     log::info!("Connecting initial tunnel...");
-    nym_client.connect_tunnel_friendly().await?;
+    nym_client.connect_tunnel().await?;
     wait_for_tunnel_state(&mut nym_client, ExpectedTunnelState::Connected).await?;
 
     log::info!("Reconnecting tunnel...");

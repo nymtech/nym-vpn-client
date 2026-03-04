@@ -35,7 +35,7 @@ pub async fn test_account_and_tunnel_roundtrip(
 
     // Connect tunnel
     log::info!("Connecting tunnel...");
-    nym_proxy_client.connect_tunnel_friendly().await?;
+    nym_proxy_client.connect_tunnel().await?;
     helpers_nym::wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Connected)
         .await?;
 

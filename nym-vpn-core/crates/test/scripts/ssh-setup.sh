@@ -19,7 +19,7 @@ echo "Copying test-runner to $RUNNER_DIR"
 mkdir -p "$RUNNER_DIR"
 
 # Copy required files
-for file in test-runner connection-checker; do
+for file in test-runner; do
     echo "Moving $SCRIPT_DIR/$file to $RUNNER_DIR"
     cp -f "$SCRIPT_DIR/$file" "$RUNNER_DIR"
 done
@@ -34,7 +34,6 @@ done
 
 # Unprivileged users need execute rights for some executables
 chmod 775 "${RUNNER_DIR}/test-runner"
-chmod 775 "${RUNNER_DIR}/connection-checker"
 chmod 775 "${RUNNER_DIR}/nym-vpnd"
 chmod 775 "${RUNNER_DIR}/nym-vpnc"
 

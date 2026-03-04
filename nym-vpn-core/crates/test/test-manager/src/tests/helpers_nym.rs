@@ -58,10 +58,10 @@ pub async fn login_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Result
 
 async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
     loop {
-        match nym_client
-            .store_account_friendly(&TEST_CONFIG_NYM.mnemonic)
-            .await
-        {
+        let request = nym_vpn_lib_types::StoreAccountRequest::Vpn {
+            mnemonic: TEST_CONFIG_NYM.mnemonic.to_string(),
+        };
+        match nym_client.store_account(request).await {
             Ok(response) => match response.error {
                 None | Some(AccountCommandError::ExistingAccount) => break,
                 Some(err) => anyhow::bail!("store_account error: {err}"),

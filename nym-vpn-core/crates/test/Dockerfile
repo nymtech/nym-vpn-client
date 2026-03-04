@@ -26,7 +26,7 @@ RUN curl -fsSL https://go.dev/dl/go1.24.4.linux-amd64.tar.gz \
     | tar -C /usr/local -xz
 ENV PATH="/usr/local/go/bin:${PATH}"
 
-# static libpcap (needed by test-runner / connection-checker)
+# static libpcap (needed by test-runner)
 RUN git clone https://github.com/the-tcpdump-group/libpcap.git /tmp/libpcap \
     && cd /tmp/libpcap \
     && ./autogen.sh \

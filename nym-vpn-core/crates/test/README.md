@@ -30,7 +30,6 @@ Both CI and local runs use a **VM-inside-a-VM** layout:
 │  │ │ │  QEMU Guest VM  (Debian 12)             │  │  │
 │  │ │ │                                         │  │  │
 │  │ │ │  runs test-runner, nym-vpnd, nym-vpnc   │  │  │
-│  │ │ │  + connection-checker                   │  │  │
 │  │ │ │                                         │  │  │
 │  │ │ │                                         │  │  │
 │  │ └─── (serial port) <-> test-manager         │  │  │
@@ -54,7 +53,6 @@ QEMU locally (efficiently).
 | **test-runner**        | Guest VM        | Exposes RPCs for the test-manager to control the VPN daemon, network, filesystem, and processes.       |
 | **test-rpc**           | Shared library  | RPC interface (`#[tarpc::service]`), serial transport, and common types.                               |
 | **test_macro**         | Compile-time    | Proc macro providing `#[test_function_nym]` for test registration.                                     |
-| **connection-checker** | Guest VM        | Standalone CLI for testing VPN connectivity and leak detection.                                        |
 
 ### Communication model
 
@@ -73,7 +71,7 @@ frame-based multiplexing (`test-rpc/src/transport.rs`):
 The GitHub Actions workflow has two jobs:
 
 1. **`build`**: On an Ubuntu runner: installs toolchains, builds `nym-vpnc`,
-   `nym-vpnd`, `test-manager`, `test-runner`, and `connection-checker`, then
+   `nym-vpnd`, `test-manager`, and `test-runner`, then
    uploads them as an artifact.
 2. **`e2e-test`**: On a second runner:
    - Provisions an Exoscale VM via Terraform (`ci/exoscale.tf`)
