@@ -275,7 +275,7 @@ pub struct NymVpnSubscription {
     pub status: NymVpnSubscriptionStatus,
     pub kind: NymVpnSubscriptionKind,
     #[serde(default)]
-    pub is_recurring: bool,
+    pub isRecurring: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
