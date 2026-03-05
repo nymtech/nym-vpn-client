@@ -25,6 +25,7 @@ import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
 import { StateDispatch, TAccountMode, TAccountSummary } from '../../../types';
 import { getAccountColor, getAccountDescription } from './utils';
+import { AccountStatus } from './account-status';
 
 const IdsTimeToLive = 120; // sec
 
@@ -50,6 +51,7 @@ function Account() {
 
   const [isAccountLinking, setIsAccountLinking] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [accountId, setAccountId] = useState<string | null>(null);
 
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
@@ -89,8 +91,24 @@ function Account() {
     }
   };
 
+  const getAccountId = async () => {
+    const accountId = await CCache.get<string>('cache-account-id');
+    if (accountId) {
+      setAccountId(accountId);
+      return;
+    }
+    try {
+      const accountId = await invoke<string>('get_canonical_account_id');
+      setAccountId(accountId);
+      CCache.set('cache-account-id', accountId, IdsTimeToLive);
+    } catch {
+      setAccountId(null);
+    }
+  };
+
   useEffect(() => {
     getDeviceId();
+    getAccountId();
   }, []);
 
   // When logged out, navigate to settings
@@ -159,6 +177,8 @@ function Account() {
         </Button>
       )}
 
+      <AccountStatus />
+
       <SettingsGroup
         settings={[
           {
@@ -192,8 +212,8 @@ function Account() {
       {backendFlags.privy && (
         <p className="text-sm text-iron dark:text-bombay">
           {accountSummary?.['is-linked']
-            ? t('account.account-not-linked')
-            : t('account.account-linked')}
+            ? t('account.account-linked')
+            : t('account.account-not-linked')}
         </p>
       )}
 
@@ -209,9 +229,9 @@ function Account() {
         <CardNewBody className="pb-5">
           <CardNewCopyableRow
             // Displaying canonical account address, as this is NYM's default account address
-            value={accountSummary?.['canonical-account-addr'] ?? ''}
-            label={accountSummary?.['canonical-account-addr'] ?? ''}
-            loading={!accountSummary?.['canonical-account-addr']}
+            value={accountId ?? ''}
+            label={accountId ?? ''}
+            loading={!accountId}
           />
         </CardNewBody>
       </CardNew>

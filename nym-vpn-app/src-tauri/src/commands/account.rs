@@ -113,6 +113,20 @@ pub async fn get_account_id(vpnd: State<'_, VpndClient>) -> Result<Option<String
 
 #[instrument(skip_all)]
 #[tauri::command]
+pub async fn get_canonical_account_id(vpnd: State<'_, VpndClient>) -> Result<Option<String>, BackendError> {
+    vpnd.canonical_account_id()
+        .await
+        .map_err(|e| {
+            warn!("failed to get canonical account id: {e}");
+            e.into()
+        })
+        .inspect(|id| {
+            info!("canonical account id: {:?}", id);
+        })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
 pub async fn get_device_id(vpnd: State<'_, VpndClient>) -> Result<Option<String>, BackendError> {
     vpnd.device_id()
         .await
