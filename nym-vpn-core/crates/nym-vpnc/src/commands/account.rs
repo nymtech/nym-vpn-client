@@ -39,7 +39,7 @@ pub enum Command {
         /// Amount of ticketbooks (per type) to attempt to obtain
         #[arg(long, default_value_t = 1)]
         amount: u64,
-        /// Ticketbook source
+        /// Ticketbook source (parsed for future compatibility?, currently ignored)
         #[arg(long, value_enum, default_value_t = TicketbookSource::Smartcontract)]
         source: TicketbookSource,
     },
@@ -162,8 +162,10 @@ impl Command {
             }
             Command::ObtainTicketbooks {
                 amount,
-                source: _source,
+                source,
             } => {
+                // Note: source is currently ignored; backend always uses smartcontract blockchain for tickets.
+                tracing::debug!("Obtaining {amount} ticketbooks via source: {source}");
                 println!(
                     "starting acquisition of {amount} ticketbooks (per type). this might take a while..."
                 );
@@ -233,6 +235,14 @@ pub enum AccountLocation {
 pub enum TicketbookSource {
     #[value(name = "smartcontract")]
     Smartcontract,
+}
+
+impl std::fmt::Display for TicketbookSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TicketbookSource::Smartcontract => write!(f, "smartcontract"),
+        }
+    }
 }
 
 impl std::fmt::Display for AccountLocation {
