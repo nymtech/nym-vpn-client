@@ -33,5 +33,24 @@ nym-firewall-config.workspace = true
 nym-common.workspace = true
 nym-ifconfig.workspace = true
 
+# Windows-specific dependencies
+[target.'cfg(target_os = "windows")'.dependencies]
+bitflags.workspace = true
+memoffset.workspace = true
+nym-windows.workspace = true
+windows-service.workspace = true
+windows = { workspace = true, features = [
+    "Win32_Foundation",
+] }
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Globalization",
+    "Win32_NetworkManagement_IpHelper",
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_Ioctl",
+    "Win32_System_IO",
+    "Win32_System_ProcessStatus",
+] }
+
 [lints]
 workspace = true

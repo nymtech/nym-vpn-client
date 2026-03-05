@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="leaktest.cpp" />
+    <ClCompile Include="util.cpp" />
+    <ClCompile Include="sockutil.cpp" />
+    <ClCompile Include="settings.cpp" />
+    <ClCompile Include="runtimesettings.cpp" />
+    <ClCompile Include="split-tunnel\st2.cpp">
+      <Filter>split tunnel tests</Filter>
+    </ClCompile>
+    <ClCompile Include="split-tunnel\st3.cpp">
+      <Filter>split tunnel tests</Filter>
+    </ClCompile>
+    <ClCompile Include="split-tunnel\st4.cpp">
+      <Filter>split tunnel tests</Filter>
+    </ClCompile>
+    <ClCompile Include="split-tunnel\st5.cpp">
+      <Filter>split tunnel tests</Filter>
+    </ClCompile>
+    <ClCompile Include="general\gen1.cpp">
+      <Filter>general tests</Filter>
+    </ClCompile>
+    <ClCompile Include="split-tunnel\st6.cpp">
+      <Filter>split tunnel tests</Filter>
+    </ClCompile>
+    <ClCompile Include="split-tunnel\st1.cpp">
+      <Filter>split tunnel tests</Filter>
+    </ClCompile>
+    <ClCompile Include="split-tunnel\st7.cpp">
+      <Filter>split tunnel tests</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="util.h" />
+    <ClInclude Include="sockutil.h" />
+    <ClInclude Include="leaktest.h" />
+    <ClInclude Include="settings.h" />
+    <ClInclude Include="runtimesettings.h" />
+    <ClInclude Include="split-tunnel\st2.h">
+      <Filter>split tunnel tests</Filter>
+    </ClInclude>
+    <ClInclude Include="split-tunnel\st3.h">
+      <Filter>split tunnel tests</Filter>
+    </ClInclude>
+    <ClInclude Include="split-tunnel\st4.h">
+      <Filter>split tunnel tests</Filter>
+    </ClInclude>
+    <ClInclude Include="split-tunnel\st5.h">
+      <Filter>split tunnel tests</Filter>
+    </ClInclude>
+    <ClInclude Include="general\gen1.h">
+      <Filter>general tests</Filter>
+    </ClInclude>
+    <ClInclude Include="split-tunnel\st6.h">
+      <Filter>split tunnel tests</Filter>
+    </ClInclude>
+    <ClInclude Include="split-tunnel\st1.h">
+      <Filter>split tunnel tests</Filter>
+    </ClInclude>
+    <ClInclude Include="split-tunnel\st7.h">
+      <Filter>split tunnel tests</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="split tunnel tests">
+      <UniqueIdentifier>{1ae3276d-1f09-4667-9667-d288e6616621}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="general tests">
+      <UniqueIdentifier>{555fc441-3ac0-436e-b43b-dcd95dae0ffd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
