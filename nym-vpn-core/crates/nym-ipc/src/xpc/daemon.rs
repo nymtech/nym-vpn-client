@@ -18,7 +18,7 @@ use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
 use crate::{
-    authentication::Transport,
+    authentication::{self, Transport},
     xpc::{
         common::{
             ConnectionInterfaceObj, DAEMON_BUNDLE_IDENTIFIER, NSConnectionInterface, XpcConnection,
@@ -160,4 +160,11 @@ impl Stream for XpcService {
             .poll_next(cx)
             .map(|conn| conn.map(Into::into).map(Ok))
     }
+}
+
+pub fn incoming(
+    shutdown_token: CancellationToken,
+) -> std::io::Result<impl Stream<Item = std::io::Result<Transport>>> {
+    let xpc_service = XpcService::spawn(shutdown_token)?;
+    Ok(authentication::incoming(xpc_service))
 }
