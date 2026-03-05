@@ -160,12 +160,8 @@ impl Command {
                 }
                 Ok(())
             }
-            Command::ObtainTicketbooks {
-                amount,
-                source,
-            } => {
+            Command::ObtainTicketbooks { amount, source: _ } => {
                 // Note: source is currently ignored; backend always uses smartcontract blockchain for tickets.
-                tracing::debug!("Obtaining {amount} ticketbooks via source: {source}");
                 println!(
                     "starting acquisition of {amount} ticketbooks (per type). this might take a while..."
                 );
