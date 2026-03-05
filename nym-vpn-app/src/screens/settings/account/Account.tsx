@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
@@ -23,9 +23,15 @@ import {
 } from '../../../contexts';
 import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
-import { StateDispatch, TAccountMode, TAccountSummary } from '../../../types';
+import {
+  AccountState,
+  StateDispatch,
+  TAccountMode,
+  TAccountSummary,
+} from '../../../types';
 import { getAccountColor, getAccountDescription } from './utils';
 import { AccountStatus } from './account-status';
+import { AccountDescription } from './AccountSettingRow';
 
 const IdsTimeToLive = 120; // sec
 
@@ -166,6 +172,15 @@ function Account() {
       openUrl(accountLinks.signIn);
     }
   };
+
+  // const accountDescription = useMemo(() => {
+  //   let desc = getAccountDescription(t, accountSyncing, accountState);
+  //   if (desc === null) {
+  //   }
+
+  //   return desc;
+  // }, [accountSyncing, accountState, t]);
+
   return (
     <PageAnim className="h-full flex flex-col mt-2 pb-2 gap-6 select-none">
       {needAPlan && (
@@ -183,13 +198,15 @@ function Account() {
         settings={[
           {
             title: t('account.manage-subscriptoin'),
-            desc: (
-              <span
-                className={clsx(getAccountColor(accountSyncing, accountState))}
-              >
-                {getAccountDescription(t, accountSyncing, accountState)}
-              </span>
-            ),
+            desc: <AccountDescription />,
+            // desc: (
+            //   <span
+            //     className={clsx(getAccountColor(accountSyncing, accountState))}
+            //   >
+            //     {/* {getAccountDescription(t, accountSyncing, accountState)} */}
+            //     {/* {accountDescription} */}
+            //   </span>
+            // ),
             leadingIcon: 'event_repeat',
             trailingIcon: 'open_in_new',
             onClick: handleManageSubscription,
