@@ -9,6 +9,8 @@ pub(crate) use linux::{Transport, incoming, is_authenticated};
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "macos")]
+pub use macos::SigningRequirements;
+#[cfg(target_os = "macos")]
 pub(crate) use macos::{Transport, incoming, is_authenticated};
 
 #[cfg(target_os = "windows")]
@@ -34,10 +36,10 @@ pub(crate) async fn deny(stream: impl AsyncWrite + Unpin) {
     AuthenticaticationResult::Denied.send(stream).await;
 }
 
+#[derive(Clone)]
 pub struct AuthenticationLayer<T> {
     listener: T,
-    #[cfg(target_os = "windows")]
-    nym_certificate_serial_number: String,
+    auth_material: Option<AuthenticationMaterial>,
     #[cfg(target_os = "linux")]
     shutdown_token: tokio_util::sync::CancellationToken,
 }
@@ -45,48 +47,62 @@ pub struct AuthenticationLayer<T> {
 impl<T> AuthenticationLayer<T> {
     fn new(
         listener: T,
-        #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
+        auth_material: Option<AuthenticationMaterial>,
         #[cfg(target_os = "linux")] shutdown_token: tokio_util::sync::CancellationToken,
     ) -> Self {
         Self {
             listener,
-            #[cfg(target_os = "windows")]
-            nym_certificate_serial_number,
+            auth_material,
             #[cfg(target_os = "linux")]
             shutdown_token,
         }
     }
 }
 
-fn skip_authentication_checks() -> bool {
-    // Let debug builds skip authorization process
-    // TODO: Disable feature gating once front-end prevents spamming
-    cfg!(debug_assertions) || cfg!(not(feature = "authentication"))
+#[derive(Clone)]
+#[allow(unused)]
+pub struct AuthenticationMaterial {
+    #[cfg(target_os = "windows")]
+    pub(crate) nym_certificate_serial_number: String,
+    #[cfg(target_os = "macos")]
+    pub(crate) signing_requirements: SigningRequirements,
+    #[cfg(unix)]
+    pub(crate) shutdown_token: tokio_util::sync::CancellationToken,
+}
+
+impl AuthenticationMaterial {
+    pub fn new(
+        #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
+        #[cfg(target_os = "macos")] signing_requirements: SigningRequirements,
+        #[cfg(unix)] shutdown_token: tokio_util::sync::CancellationToken,
+    ) -> Self {
+        Self {
+            #[cfg(target_os = "windows")]
+            nym_certificate_serial_number,
+            #[cfg(target_os = "macos")]
+            signing_requirements,
+            #[cfg(unix)]
+            shutdown_token,
+        }
+    }
 }
 
 async fn authorized_stream(
     stream: &mut Transport,
-    #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
-    #[cfg(target_os = "linux")] shutdown_token: tokio_util::sync::CancellationToken,
+    auth_material: Option<AuthenticationMaterial>,
 ) -> bool {
     if !AuthenticaticationQuery::recv(&mut *stream).await.status() {
         tracing::warn!("Query not recognized");
     }
-    if skip_authentication_checks() {
+    let Some(auth_material) = auth_material else {
+        tracing::debug!("Skipping authentication checks");
         authorize(stream).await;
         return true;
-    }
-    match is_authenticated(
-        stream,
-        #[cfg(target_os = "windows")]
-        nym_certificate_serial_number,
-        #[cfg(target_os = "linux")]
-        shutdown_token,
-    )
-    .await
-    {
+    };
+    match is_authenticated(stream, auth_material).await {
         Ok(()) => {
             authorize(stream).await;
+            tracing::debug!("Client connection got authorized");
             true
         }
         Err(err) => {
@@ -118,22 +134,11 @@ impl<T: Unpin + Stream<Item = Result<Transport>>> AuthenticationLayer<T> {
                     break;
                 };
                 let mut stream = stream?;
-                if authorized_stream(&mut stream, #[cfg(target_os = "windows")] self.nym_certificate_serial_number.clone(), #[cfg(target_os = "linux")] self.shutdown_token.clone()).await {
+                if authorized_stream(&mut stream, self.auth_material.clone()).await {
                     yield stream;
                 }
 
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    // Debug builds (like tests or dev runs) are automatically authorized
-    async fn debug_build_authorized() {
-        assert!(skip_authentication_checks());
     }
 }

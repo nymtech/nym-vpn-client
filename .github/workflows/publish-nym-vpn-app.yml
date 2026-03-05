@@ -6,10 +6,11 @@ on:
     inputs:
       release_type:
         type: choice
-        description: 'Release type, "stable" for public releases (signed Windows only), "nightly" for nightly build, "dev" for any other releases'
+        description: 'Release type, "stable" for public releases (signed Windows only), "rc" for release candidates (signed Windows only), "nightly" for nightly build, "dev" for any other releases'
         options:
           - dev
           - nightly
+          - rc
           - stable
         default: dev
         required: true
@@ -49,7 +50,7 @@ jobs:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
       core_release_tag: ${{ inputs.core_release_tag }}
       core_artifact_url: ${{ inputs.core_artifact_url }}
-      sign: ${{ inputs.release_type == 'stable' }}
+      sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
     secrets: inherit
@@ -174,8 +175,8 @@ jobs:
           EMOJI: ":ship:"
         run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux and Windows desktop app'" >> $GITHUB_ENV
 
-      - name: Set release notes header (dev)
-        if: ${{ env.RELEASE_TYPE == 'dev' }}
+      - name: Set release notes header (dev + rc)
+        if: ${{ env.RELEASE_TYPE == 'dev' || env.RELEASE_TYPE == 'rc' }}
         env:
           EMOJI: ":hammer_and_wrench:"
         run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux and Windows desktop app, **dev** build'" >> $GITHUB_ENV

@@ -12,6 +12,11 @@ mod named_pipe;
 
 #[cfg(feature = "daemon")]
 mod authentication;
+#[cfg(feature = "daemon")]
+pub use authentication::AuthenticationMaterial;
+#[cfg(all(target_os = "macos", feature = "daemon"))]
+pub use authentication::SigningRequirements;
+
 #[cfg(any(
     target_os = "linux",
     all(target_os = "macos", debug_assertions, not(feature = "xpc"))

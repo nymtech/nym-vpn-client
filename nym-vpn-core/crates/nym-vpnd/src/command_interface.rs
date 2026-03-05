@@ -4,6 +4,7 @@
 use std::net::IpAddr;
 
 use futures::{StreamExt, stream::BoxStream};
+use nym_ipc::AuthenticationMaterial;
 use tokio::{
     sync::{
         broadcast,
@@ -38,7 +39,9 @@ const NYM_CERTIFICATE_SERIAL_NUMBER: &str = "4ec9356d8c87f9cf3ccf60e7bdad022f";
 // The MacOS signing requirement signifying that the binary was signed by apple
 // certificate with Nym's identifiers
 #[cfg(target_os = "macos")]
-const SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate leaf[subject.OU] = "VW5DZLFHM5" and identifier "net.nymtech.vpn""#;
+const CLIENT_SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate leaf[subject.OU] = "VW5DZLFHM5" and identifier "net.nymtech.vpn""#;
+#[cfg(target_os = "macos")]
+const DAEMON_SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate leaf[subject.OU] = "VW5DZLFHM5" and identifier "nym-vpnd""#;
 
 pub struct CommandInterface {
     // Send commands to the VPN service
@@ -1115,12 +1118,17 @@ pub async fn start_command_interface(
     // Wrap the unix socket or named pipe into a stream that can be used by tonic
     let incoming = nym_ipc::server::create_incoming(
         default_socket_path(),
-        #[cfg(target_os = "windows")]
-        NYM_CERTIFICATE_SERIAL_NUMBER.to_string(),
-        #[cfg(target_os = "macos")]
-        SIGNING_REQUIREMENT.to_string(),
-        #[cfg(unix)]
-        shutdown_token.child_token(),
+        AuthenticationMaterial::new(
+            #[cfg(target_os = "windows")]
+            NYM_CERTIFICATE_SERIAL_NUMBER.to_string(),
+            #[cfg(target_os = "macos")]
+            nym_ipc::SigningRequirements {
+                daemon_req: DAEMON_SIGNING_REQUIREMENT.to_string(),
+                client_req: CLIENT_SIGNING_REQUIREMENT.to_string(),
+            },
+            #[cfg(unix)]
+            shutdown_token.child_token(),
+        ),
     )
     .await?;
 

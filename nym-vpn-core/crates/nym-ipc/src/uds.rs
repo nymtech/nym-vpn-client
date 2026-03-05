@@ -12,9 +12,11 @@ use std::{
 
 use tokio::net::UnixListener;
 use tokio_stream::{Stream, wrappers::UnixListenerStream};
-use tokio_util::sync::CancellationToken;
 
-use crate::authentication::{self, Transport};
+use crate::{
+    AuthenticationMaterial,
+    authentication::{self, Transport},
+};
 
 pub struct Uds {
     socket_path: PathBuf,
@@ -58,7 +60,7 @@ impl Stream for Uds {
 
 pub async fn incoming(
     socket_path: PathBuf,
-    _shutdown_token: CancellationToken,
+    auth_material: AuthenticationMaterial,
 ) -> Result<impl Stream<Item = Result<Transport>>> {
     // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
     remove_previous_socket_file(&socket_path).await;
@@ -71,9 +73,5 @@ pub async fn incoming(
         inner: UnixListenerStream::new(listener),
     };
 
-    Ok(authentication::incoming(
-        uds,
-        #[cfg(target_os = "linux")]
-        _shutdown_token,
-    ))
+    Ok(authentication::incoming(uds, auth_material))
 }

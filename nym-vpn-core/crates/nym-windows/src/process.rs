@@ -190,13 +190,13 @@ impl Iterator for ProcessSnapshotEntries<'_> {
     }
 }
 
-/// Information about a client process connected to the named pipe server.
-pub struct ClientProcess {
+/// A certificate process verifier based on the process id.
+pub struct ProcessCertVerifier {
     /// Process ID
     pub pid: u32,
 }
 
-impl TryFrom<&NamedPipeServer> for ClientProcess {
+impl TryFrom<&NamedPipeServer> for ProcessCertVerifier {
     type Error = Error;
 
     fn try_from(named_pipe_server: &NamedPipeServer) -> Result<Self, Self::Error> {
@@ -209,10 +209,10 @@ impl TryFrom<&NamedPipeServer> for ClientProcess {
     }
 }
 
-impl ClientProcess {
+impl ProcessCertVerifier {
     pub fn verify_certificate_signature(
         &self,
-        nym_certificate_serial_number: String,
+        nym_certificate_serial_number: &str,
     ) -> Result<(), Error> {
         let verifier = CodeSignVerifier::for_pid(self.pid).map_err(Error::PidVerifier)?;
         let context = verifier.verify().map_err(Error::Verification)?;
@@ -246,8 +246,8 @@ mod tests {
             .open(&pipe_name)
             .unwrap();
 
-        let client_process = ClientProcess::try_from(&server).unwrap();
-        let result = client_process.verify_certificate_signature("dummy".to_string());
+        let client_process = ProcessCertVerifier::try_from(&server).unwrap();
+        let result = client_process.verify_certificate_signature("dummy");
 
         // needed for some reason on windows, otherwise the test blocks
         drop(server);

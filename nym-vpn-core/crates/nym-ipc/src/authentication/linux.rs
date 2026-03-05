@@ -13,6 +13,7 @@ use zbus_polkit::policykit1::{
 };
 
 use crate::{
+    AuthenticationMaterial,
     authentication::{AuthenticationLayer, error::AuthenticationError},
     uds::Uds,
 };
@@ -176,9 +177,9 @@ async fn wait_for_authorization(
 // indefinitely and starve the consumer.
 pub(crate) async fn is_authenticated(
     stream: &mut Transport,
-    shutdown_token: CancellationToken,
+    auth_material: AuthenticationMaterial,
 ) -> Result<(), AuthenticationError> {
-    authenticate_with_prompt(stream, PolkitPrompter::new(shutdown_token)).await
+    authenticate_with_prompt(stream, PolkitPrompter::new(auth_material.shutdown_token)).await
 }
 
 async fn authenticate_with_prompt(
@@ -195,11 +196,21 @@ async fn authenticate_with_prompt(
     }
 }
 
+fn skip_authentication_checks() -> bool {
+    cfg!(debug_assertions)
+}
+
 pub(crate) fn incoming(
     uds: Uds,
-    shutdown_token: CancellationToken,
+    auth_material: AuthenticationMaterial,
 ) -> impl Stream<Item = std::io::Result<Transport>> {
-    let auth_layer = AuthenticationLayer::new(uds, shutdown_token);
+    let shutdown_token = auth_material.shutdown_token.clone();
+    let auth_material = if skip_authentication_checks() {
+        None
+    } else {
+        Some(auth_material)
+    };
+    let auth_layer = AuthenticationLayer::new(uds, auth_material, shutdown_token);
     auth_layer.stream()
 }
 
@@ -399,5 +410,11 @@ mod tests {
         .await
         .unwrap_err();
         assert!(matches!(err, AuthenticationError::AuthorizationDenied));
+    }
+
+    #[test]
+    // Test builds are debug and are authorized
+    fn unsigned_build_authorized() {
+        assert!(skip_authentication_checks());
     }
 }
