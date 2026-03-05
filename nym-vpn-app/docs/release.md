@@ -14,8 +14,8 @@ desktop app for Linux and Windows platforms
 Release tags must follow the following patterns depending on the release type:
 
 - **stable** `nym-vpn-app-v1.2.3`
-- dev: `nym-vpn-app-v1.2.3-dev`, `nym-vpn-app-v1.2.3-rc` for RC or
-  `nym-vpn-app-v1.2.3-beta` for beta builds
+- rc `nym-vpn-app-v1.2.3-rc` for RC
+- dev: `nym-vpn-app-v1.2.3-dev` or `nym-vpn-app-v1.2.3-beta` for beta builds
 - nightly `nym-vpn-app-nightly`
 
 ### Bump versions
@@ -66,7 +66,8 @@ and click on the _Run workflow_ button
 
 3. select the release type
    - **stable** for a stable public release
-   - **dev** for a development release, like RC, beta etc
+   - **rc** for a release candidate (RC)
+   - **dev** for a development release, like beta etc
    - **nightly** for a nightly build (not really used)
 
 4. if **not** a stable release, you may want to label it as _Pre-release_
