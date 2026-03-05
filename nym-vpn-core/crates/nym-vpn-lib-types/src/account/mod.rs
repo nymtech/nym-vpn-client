@@ -301,7 +301,7 @@ impl VpnAccountSummary {
         let has_social_or_passphrase = self
             .auth_methods
             .iter()
-            .any(|method| method.label == "Social login" || method.label == "PassPhrase");
+            .any(|method| method.label == "Social login" || method.label == "Passphrase");
 
         let is_privy_mode = self.account_mode == Some(StoredAccountMode::Privy);
 
