@@ -360,8 +360,6 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             .map(TryInto::try_into)
             .collect::<Result<Vec<_>, _>>()?;
 
-        // let is_recurring = value.subscription.active.as_ref().map(|f| f.is_recurring).unwrap_or(false);
-
         Ok(Self {
             subscription_valid_until,
             traffic_used_gb: value.fair_usage.usedGB,
@@ -376,7 +374,7 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
                 .subscription
                 .active
                 .as_ref()
-                .map(|f| f.is_recurring)
+                .map(|s| s.is_recurring)
                 .unwrap_or(false),
         })
     }
