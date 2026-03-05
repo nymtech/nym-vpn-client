@@ -269,7 +269,7 @@
 	<string name="onboarding_title_3">阻止线上追踪</string>
 	<string name="onboarding_title_4">从线上付款到网络浏览，享受全程的匿名保护</string>
 	<string name="onboarding_description_base">世界上最私密的VPN</string>
-	<string name="onboarding_description_1">世界上最私密的VPN\n免费尝试7天：\n包含完整功能，没有广告。</string>
+	<string name="onboarding_description_1">世界上最私密的VPN</string>
 	<string name="onboarding_description_2">快速模式: 使用dVPN技术，享受最高超过250Mbps的网速。\n匿名模式: 基于五跳的噪音生成混合网络(Noise Generating Mixnet)。</string>
 	<string name="onboarding_description_3">Nym去中心化的网络使得所谓“无日志”\n的承诺已经过时。</string>
 	<string name="onboarding_description_4">使用银行卡、加密货币或现金支付 — 无需电子邮件。零知识证明使您的付款信息无法关联到您的在线活动。</string>

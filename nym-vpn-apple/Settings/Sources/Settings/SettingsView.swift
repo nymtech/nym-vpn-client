@@ -25,20 +25,22 @@ private extension SettingsView {
         VStack(spacing: 0) {
             navbar()
             ScrollView {
-                credentialOrAddCredentialView()
+                VStack(spacing: 0) {
+                    credentialOrAddCredentialView()
 
-                Spacer()
-                    .frame(height: 24)
-                settingsList()
-                Spacer()
-                    .frame(height: 24)
-                appVersionText()
-                    .onTapGesture(count: 3) {
-                        viewModel.navigateToSantasMenu()
-                    }
+                    Spacer()
+                        .frame(height: 24)
+                    settingsList()
+                    Spacer()
+                        .frame(height: 24)
+                    appVersionText()
+                        .onTapGesture(count: 3) {
+                            viewModel.navigateToSantasMenu()
+                        }
+                }
+                .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
-            .scrollIndicators(.hidden)
+            .scrollIndicators(.never)
             .frame(maxWidth: MagicNumbers.maxWidth)
         }
         .navigationBarBackButtonHidden(true)

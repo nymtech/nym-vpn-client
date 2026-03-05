@@ -1348,5 +1348,16 @@ jobs:
         if: always()
         run: |
           set -euo pipefail
+
           echo "🧹 Cleaning up Codemagic keychain..."
           keychain delete
+
+          echo "🧹 Removing downloaded certificates..."
+          if [ -d ~/Library/MobileDevice/Certificates ]; then
+            rm -rf ~/Library/MobileDevice/Certificates/*
+          fi
+
+          echo "🧹 Removing downloaded provisioning profiles..."
+          if [ -d ~/Library/MobileDevice/Provisioning\ Profiles ]; then
+            rm -rf ~/Library/MobileDevice/Provisioning\ Profiles/*
+          fi

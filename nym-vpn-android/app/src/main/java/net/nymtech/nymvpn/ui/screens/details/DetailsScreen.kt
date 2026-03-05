@@ -115,7 +115,6 @@ fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Uni
 			DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
 			DetailsSectionPrivacy(
 				asnKind = detailsUiState.asnKind,
-				isQuicFeatureFlagEnabled = detailsUiState.isQuicFeatureFlagEnabled,
 				isQuicSupportedByGateway = detailsUiState.isQuickSupportedByGateway,
 				onEnableQuicProtocolClick = onEnableQuicProtocolClick,
 			)
@@ -174,7 +173,6 @@ internal fun PreviewPrivacyScreen() {
 			buildVersion = "1.2.4",
 			exitIpv4 = "12.34.152.125",
 			exitIpv6 = "12:ff:14::155",
-			isQuicFeatureFlagEnabled = true,
 			isQuickSupportedByGateway = true,
 		)
 		DetailsScreen(detailsUiState = detailsUiState, onSelectServerClick = {}, onEnableQuicProtocolClick = {})

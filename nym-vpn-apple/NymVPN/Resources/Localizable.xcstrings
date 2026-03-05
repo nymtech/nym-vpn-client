@@ -11653,6 +11653,17 @@
         }
       }
     },
+    "errorReason.needFullDiskPermissions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split tunneling: Please allow Full Disk Access in System Settings."
+          }
+        }
+      }
+    },
     "errorReason.noAccountStored" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34107,7 +34118,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Data & privacy"
+            "value" : "Data, privacy & logs"
           }
         },
         "es" : {
@@ -34186,6 +34197,17 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "隐私和数据"
+          }
+        }
+      }
+    },
+    "settings.privacyAndData.enableDebugLogs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable debug logs"
           }
         }
       }
@@ -34515,6 +34537,17 @@
         }
       }
     },
+    "settings.splitTunnel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split tunneling"
+          }
+        }
+      }
+    },
     "settings.support.resetVpnProfile" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34757,6 +34790,204 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Server monitoring"
+          }
+        }
+      }
+    },
+    "splitTunel.apps.exclude" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose apps to exclude from NymVPN tunnel."
+          }
+        }
+      }
+    },
+    "splitTunnel.apps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        }
+      }
+    },
+    "splitTunnel.apps.unprotected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluding an app will leave it unprotected."
+          }
+        }
+      }
+    },
+    "splitTunnel.enableSystemSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to enable it."
+          }
+        }
+      }
+    },
+    "splitTunnel.exclude" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude"
+          }
+        }
+      }
+    },
+    "splitTunnel.fullDiskAccess" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This feature requires Full Disk Access."
+          }
+        }
+      }
+    },
+    "splitTunnel.fullDiskAccess.modal.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can enable it in System Settings > Privacy & Security > Full Disk Access."
+          }
+        }
+      }
+    },
+    "splitTunnel.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        }
+      }
+    },
+    "splitTunnel.protect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protect"
+          }
+        }
+      }
+    },
+    "splitTunnel.systemSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Settings"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.direct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direct"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.direct.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excludes the selected apps from the VPN tunnel, allowing direct internet connection."
+          }
+        }
+      }
+    },
+    "splitTunnel.info.fullDiskAccess" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This feature requires Full Disc Access, that you can enable in system settings."
+          }
+        }
+      }
+    },
+    "splitTunnel.info.gotIt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it!"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split tunneling allows you to choose which apps use NymVPN."
+          }
+        }
+      }
+    },
+    "splitTunnel.info.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using split tunneling"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.viaNymVPN" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Via NymVPN"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.viaNymVPN.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended setting for all apps."
           }
         }
       }

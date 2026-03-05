@@ -109,6 +109,9 @@ import CountriesManagerTypes
     @AppStorage(AppSettingKey.customDns.rawValue)
     public var customDns: [String] = []
 
+    @AppStorage(AppSettingKey.isDebugLogsOn.rawValue, store: UserDefaults(suiteName: Constants.groupID.rawValue))
+    public var isDebugLogsOn = false
+
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher: Bool
     @Published public var isCredentialImportedPublisher: Bool
@@ -195,6 +198,7 @@ public enum AppSettingKey: String {
     case isLewesEnabled
     case isMixnetTuningEnabled
     case isAdBlockerEnabled
+    case isDebugLogsOn
 }
 
 extension Array: @retroactive RawRepresentable where Element: Codable {

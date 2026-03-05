@@ -1,6 +1,7 @@
 import NetworkExtension
 import Logging
 import ConfigurationManager
+import Constants
 import NymLogger
 import ErrorHandler
 import NymVPNLib
@@ -77,7 +78,11 @@ extension PacketTunnelProvider {
         let logDir = LogFileManager.logsDirectory()?.path()
         // Extracted from ConfigurationManager.shared.debugLevel
         let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
-        let logLevel: LogLevel = isTestFlight ? .debug : .info
+        let isDebugLogsOn = UserDefaults(
+            suiteName: Constants.groupID.rawValue
+        )?.bool(forKey: "isDebugLogsOn") ?? false
+
+        let logLevel: LogLevel = (isTestFlight || isDebugLogsOn) ? .debug : .info
         initLogger(logDir: logDir, logLevel: logLevel, sentryMonitoring: true)
     }
 }

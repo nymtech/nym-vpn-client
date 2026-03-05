@@ -2,6 +2,7 @@ pub mod account;
 pub mod cli;
 pub mod daemon;
 pub mod db;
+pub mod diagnostic;
 pub mod fs;
 pub mod gateway;
 pub mod log;

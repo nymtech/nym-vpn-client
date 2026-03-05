@@ -4,18 +4,18 @@
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(target_os = "linux")]
-pub(crate) use linux::{StreamItem, incoming, is_authenticated};
+pub(crate) use linux::{Transport, incoming, is_authenticated};
 
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "macos")]
-pub(crate) use macos::{StreamItem, incoming, is_authenticated};
+pub(crate) use macos::{Transport, incoming, is_authenticated};
 
 #[cfg(target_os = "windows")]
 mod windows;
 use tokio::io::AsyncWrite;
 #[cfg(target_os = "windows")]
-pub(crate) use windows::{StreamItem, incoming, is_authenticated};
+pub(crate) use windows::{Transport, incoming, is_authenticated};
 
 pub(crate) mod error;
 
@@ -24,7 +24,7 @@ use tokio_stream::{Stream, StreamExt};
 
 use std::io::Result;
 
-use crate::auth_result::AuthenticaticationResult;
+use crate::auth_result::{AuthenticaticationQuery, AuthenticaticationResult};
 
 pub(crate) async fn authorize(stream: impl AsyncWrite + Unpin) {
     AuthenticaticationResult::Accepted.send(stream).await;
@@ -65,10 +65,13 @@ fn skip_authentication_checks() -> bool {
 }
 
 async fn authorized_stream(
-    stream: &mut StreamItem,
+    stream: &mut Transport,
     #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
     #[cfg(target_os = "linux")] shutdown_token: tokio_util::sync::CancellationToken,
 ) -> bool {
+    if !AuthenticaticationQuery::recv(&mut *stream).await.status() {
+        tracing::warn!("Query not recognized");
+    }
     if skip_authentication_checks() {
         authorize(stream).await;
         return true;
@@ -94,8 +97,8 @@ async fn authorized_stream(
     }
 }
 
-impl<T: Unpin + Stream<Item = Result<StreamItem>>> AuthenticationLayer<T> {
-    fn stream(mut self) -> impl Stream<Item = Result<StreamItem>> {
+impl<T: Unpin + Stream<Item = Result<Transport>>> AuthenticationLayer<T> {
+    fn stream(mut self) -> impl Stream<Item = Result<Transport>> {
         try_stream! {
             loop {
                 #[cfg(not(target_os = "linux"))]

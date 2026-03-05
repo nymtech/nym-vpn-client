@@ -189,5 +189,6 @@ private extension LogsView {
                     .padding(8)
             }
         }
+        .scrollIndicators(.never)
     }
 }

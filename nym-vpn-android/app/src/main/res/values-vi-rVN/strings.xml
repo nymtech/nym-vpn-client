@@ -269,7 +269,7 @@
 	<string name="onboarding_title_3">Đừng để bị theo dõi trực tuyến</string>
 	<string name="onboarding_title_4">Ẩn danh từ khâu thanh toán đến trang web</string>
 	<string name="onboarding_description_base">VPN riêng tư nhất thế giới</string>
-	<string name="onboarding_description_1">VPN riêng tư nhất thế giới\nDùng thử miễn phí 7 ngày:\nBao gồm đầy đủ tính năng, không quảng cáo.</string>
+	<string name="onboarding_description_1">VPN riêng tư nhất thế giới</string>
 	<string name="onboarding_description_2">Chế độ nhanh: Hơn 250 Mbps với dVPN.\nChế độ ẩn danh: Mixnet Tạo Nhiễu 5 bước nhảy.</string>
 	<string name="onboarding_description_3">Mạng lưới phi tập trung của Nym khiến lời hứa \"không lưu nhật ký\"\n trở nên lỗi thời.</string>
 	<string name="onboarding_description_4">Thanh toán bằng thẻ, tiền điện tử hoặc tiền mặt—không cần email. Zero-knowledge proof khiến khoản thanh toán của bạn không bị liên kết với các hoạt động trực tuyến.</string>

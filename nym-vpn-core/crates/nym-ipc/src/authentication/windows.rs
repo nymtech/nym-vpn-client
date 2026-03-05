@@ -7,7 +7,7 @@ use crate::{
     named_pipe::Connector,
 };
 
-pub(crate) type StreamItem = Connector<tokio::net::windows::named_pipe::NamedPipeServer>;
+pub(crate) type Transport = Connector<tokio::net::windows::named_pipe::NamedPipeServer>;
 
 fn verify(
     stream: &Connector<NamedPipeServer>,
@@ -20,7 +20,7 @@ fn verify(
 
 // Check the stream is from a binary signed by Nym
 pub(crate) async fn is_authenticated(
-    stream: &mut Connector<NamedPipeServer>,
+    stream: &mut Transport,
     nym_certificate_serial_number: String,
 ) -> Result<(), AuthenticationError> {
     if let Err(err) = verify(stream, nym_certificate_serial_number) {
@@ -34,7 +34,7 @@ pub(crate) async fn is_authenticated(
 pub(crate) fn incoming(
     named_pipe: crate::named_pipe::NamedPipeListener,
     nym_certificate_serial_number: String,
-) -> std::io::Result<impl Stream<Item = std::io::Result<StreamItem>>> {
+) -> std::io::Result<impl Stream<Item = std::io::Result<Transport>>> {
     let listener = Box::pin(named_pipe.incoming()?);
     let auth_layer = AuthenticationLayer::new(listener, nym_certificate_serial_number);
     Ok(auth_layer.stream())

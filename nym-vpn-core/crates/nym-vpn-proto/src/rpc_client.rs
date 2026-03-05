@@ -28,10 +28,9 @@ pub struct RpcClient(ServiceClient);
 
 impl RpcClient {
     pub async fn new() -> Result<RpcClient> {
-        let socket_path = get_rpc_socket_path();
         Endpoint::from_static("unix://placeholder")
             .connect_with_connector(service_fn(move |_: Uri| {
-                nym_ipc::client::connect(socket_path.clone())
+                nym_ipc::client::connect(get_rpc_socket_path())
             }))
             .await
             .map(ServiceClient::new)
@@ -48,6 +47,29 @@ impl RpcClient {
                     err.into()
                 }
             })
+    }
+
+    pub async fn new_over_serial<C>(
+        connector: C,
+        timeout: Option<std::time::Duration>,
+    ) -> Result<RpcClient>
+    where
+        C: tower::Service<Uri> + Send + 'static,
+        C::Response: hyper::rt::Read + hyper::rt::Write + Send + Unpin,
+        C::Future: Send,
+        C::Error: std::error::Error + Send + Sync + 'static,
+    {
+        let mut endpoint = Endpoint::from_static("serial://placeholder");
+        if let Some(timeout) = timeout {
+            endpoint = endpoint.timeout(timeout);
+        }
+
+        endpoint
+            .connect_with_connector(connector)
+            .await
+            .map(ServiceClient::new)
+            .map(RpcClient)
+            .map_err(Error::Transport)
     }
 
     pub async fn get_info(&mut self) -> Result<VpnServiceInfo> {

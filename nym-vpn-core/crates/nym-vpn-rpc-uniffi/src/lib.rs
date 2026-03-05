@@ -403,6 +403,11 @@ impl RpcClient {
         self.inner.clone().clear_split_tunnel_apps().await?;
         Ok(())
     }
+
+    pub async fn need_full_disk_permissions(&self) -> Result<bool> {
+        let value = self.inner.clone().need_full_disk_permissions().await?;
+        Ok(value)
+    }
 }
 
 #[derive(Debug)]

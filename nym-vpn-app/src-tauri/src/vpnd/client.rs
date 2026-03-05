@@ -40,8 +40,15 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
+enum ConnectionState {
+    Connected(RpcClient),
+    Trying,
+    AuthenticationDenied,
+}
+
+#[derive(Debug, Clone)]
 pub struct VpndClient {
-    rpc_client: Arc<Mutex<Option<RpcClient>>>,
+    rpc_client: Arc<Mutex<ConnectionState>>,
     connect_fail_logged: Arc<Mutex<bool>>,
     pkg_info: PackageInfo,
     user_agent: UserAgent,
@@ -51,7 +58,7 @@ impl VpndClient {
     #[instrument(skip_all)]
     pub fn new(pkg: &PackageInfo) -> Self {
         VpndClient {
-            rpc_client: Arc::new(Mutex::new(None)),
+            rpc_client: Arc::new(Mutex::new(ConnectionState::Trying)),
             connect_fail_logged: Arc::new(Mutex::new(false)),
             pkg_info: pkg.clone(),
             user_agent: VpndClient::user_agent(pkg, None),
@@ -84,10 +91,14 @@ impl VpndClient {
     /// Get the rpc client
     #[instrument(skip_all)]
     pub async fn vpnd(&self) -> Result<RpcClient, VpndError> {
-        // fast path: already created
         let mut guard = self.rpc_client.lock().await;
-        if let Some(client) = &*guard {
-            return Ok(client.clone());
+        match &*guard {
+            // fast path: already created
+            ConnectionState::Connected(rpc_client) => return Ok(rpc_client.clone()),
+            // tried before, but authentication didn't succeed
+            ConnectionState::AuthenticationDenied => return Err(VpndError::AuthenticationRequired),
+            // got signal to try again
+            ConnectionState::Trying => {}
         }
 
         // slow path: create new client
@@ -98,6 +109,7 @@ impl VpndClient {
             }
             Err(nym_vpn_proto::rpc_client::Error::AuthenticationRequired) => {
                 self.log_connect_failed("need to authenticate").await;
+                *guard = ConnectionState::AuthenticationDenied;
                 return Err(VpndError::AuthenticationRequired);
             }
             Err(e) => {
@@ -109,13 +121,18 @@ impl VpndClient {
 
         debug!("connected to the daemon");
 
-        *guard = Some(client.clone());
+        *guard = ConnectionState::Connected(client.clone());
         Ok(client)
+    }
+
+    pub async fn retry_daemon_authentication(&self) {
+        let mut guard = self.rpc_client.lock().await;
+        *guard = ConnectionState::Trying;
     }
 
     async fn drop_rpc_client(&self) {
         let mut guard = self.rpc_client.lock().await;
-        *guard = None;
+        *guard = ConnectionState::Trying;
         debug!("dropped daemon connection");
     }
 
@@ -935,5 +952,22 @@ impl VpndClient {
             .await?;
 
         Ok(summary.map(Into::into))
+    }
+
+    /// Run network diagnostics
+    #[instrument(skip_all)]
+    pub async fn run_diagnostic(
+        &self,
+        params: lib::DiagnosticRunParams,
+    ) -> Result<lib::DiagnosticReport, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let report = vpnd
+            .run_diagnostic(params)
+            .or_else(async |e| self.handle_rpc_error("run_diagnostic", e).await)
+            .await?;
+
+        debug!("diagnostic report: {report:?}");
+        Ok(report)
     }
 }

@@ -21,6 +21,7 @@ public struct LicenseView: View {
                     .font(.body)
                     .padding()
             }
+            .scrollIndicators(.never)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
