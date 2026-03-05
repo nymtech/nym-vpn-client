@@ -21,6 +21,7 @@ pub fn install_service() -> Result<()> {
     let launch_daemon_config = LaunchDaemonConfig {
         label: DAEMON_BUNDLE_IDENTIFIER.to_owned(),
         program_arguments: vec![binary_path, "-v".to_owned(), "run-as-service".to_owned()],
+        mach_services: HashMap::from([(DAEMON_BUNDLE_IDENTIFIER.to_owned(), true)]),
         environment_variables: Default::default(),
         user_name: "root".to_owned(),
         run_at_load: true,
@@ -89,6 +90,7 @@ fn launchctl(action: LaunchctlAction) -> std::io::Result<Child> {
 struct LaunchDaemonConfig {
     label: String,
     program_arguments: Vec<String>,
+    mach_services: HashMap<String, bool>,
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     environment_variables: HashMap<String, String>,
     user_name: String,

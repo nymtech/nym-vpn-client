@@ -27,6 +27,14 @@ nix = { workspace = true, optional = true }
 zbus = { workspace = true, optional = true }
 zbus_polkit = { workspace = true, optional = true }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+block2 = { workspace = true }
+objc2 = { workspace = true }
+objc2-foundation = { workspace = true, features = [
+    "NSString",
+    "NSXPCConnection",
+] }
+
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = ["Win32_Foundation"] }
@@ -35,6 +43,20 @@ nym-windows = { workspace = true, optional = true }
 [dev-dependencies]
 strum.workspace = true
 
+[build-dependencies]
+cc = { workspace = true }
+
 [features]
 authentication = []
-daemon = ["async-stream", "async-trait", "nix", "nym-windows", "thiserror", "tokio-util", "tonic", "zbus", "zbus_polkit"]
+xpc = []
+daemon = [
+    "async-stream",
+    "async-trait",
+    "nix",
+    "nym-windows",
+    "thiserror",
+    "tokio-util",
+    "tonic",
+    "zbus",
+    "zbus_polkit",
+]
