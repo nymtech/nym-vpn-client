@@ -2,9 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 import { clsx } from 'clsx';
 import { Button } from '@headlessui/react';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { CardNewFooter, MsIcon } from '../../../../ui';
 import { TAccountSummary } from '../../../../types';
 import { getAccountStatus } from '../utils';
+import { NymVpnAccountLoginUrl } from '../../../../constants';
 
 export function RenewButton({
   accountSummary,
@@ -18,8 +20,10 @@ export function RenewButton({
     [accountSummary],
   );
 
-  const handleRenew = () => {
+  const handleRenew = async () => {
     console.log('Renew now to stay protected');
+    // temporary redirect to login page
+    await openUrl(NymVpnAccountLoginUrl);
     // TODO: Implement renew logic
   };
 
