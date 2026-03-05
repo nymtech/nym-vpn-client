@@ -28,6 +28,8 @@ use crate::{
     },
 };
 
+const SIGNING_REQUIREMENT: &str = "anchor apple generic and certificate leaf[subject.OU] = \"VW5DZLFHM5\" and identifier \"net.nymtech.vpn\"";
+
 #[derive(Clone)]
 struct ListenerDelegateIvars {
     connection_interface: Retained<NSXPCInterface>,
@@ -74,6 +76,10 @@ define_class!(
 
             let xpc_conn = XpcConnection::new(proxy, data_rx.into(), xpc_conn_invalidated);
             let forwarded = self.ivars().conn_sender.send(xpc_conn);
+
+            if cfg!(feature = "authentication") {
+                new_connection.setCodeSigningRequirement(&NSString::from_str(SIGNING_REQUIREMENT));
+            }
 
             new_connection.resume();
 
