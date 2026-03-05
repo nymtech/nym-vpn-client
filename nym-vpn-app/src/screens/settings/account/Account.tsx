@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
-import clsx from 'clsx';
 import {
   Button,
   CardNew,
@@ -23,15 +22,9 @@ import {
 } from '../../../contexts';
 import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
-import {
-  AccountState,
-  StateDispatch,
-  TAccountMode,
-  TAccountSummary,
-} from '../../../types';
-import { getAccountColor, getAccountDescription } from './utils';
+import { StateDispatch, TAccountMode, TAccountSummary } from '../../../types';
 import { AccountStatus } from './account-status';
-import { AccountDescription } from './AccountSettingRow';
+import { AccountDescription } from './AccountDescription';
 
 const IdsTimeToLive = 120; // sec
 
@@ -50,10 +43,7 @@ function Account() {
     backendFlags,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
-  const needAPlan =
-    account &&
-    (accountState === 'no-subscription' ||
-      accountState === 'bandwidth-exceeded');
+  const needAPlan = account && accountState === 'no-subscription';
 
   const [isAccountLinking, setIsAccountLinking] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
@@ -77,6 +67,7 @@ function Account() {
     }
   };
 
+  // get fresh account data
   useEffect(() => {
     refreshAccount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,14 +164,6 @@ function Account() {
     }
   };
 
-  // const accountDescription = useMemo(() => {
-  //   let desc = getAccountDescription(t, accountSyncing, accountState);
-  //   if (desc === null) {
-  //   }
-
-  //   return desc;
-  // }, [accountSyncing, accountState, t]);
-
   return (
     <PageAnim className="h-full flex flex-col mt-2 pb-2 gap-6 select-none">
       {needAPlan && (
@@ -199,14 +182,6 @@ function Account() {
           {
             title: t('account.manage-subscriptoin'),
             desc: <AccountDescription />,
-            // desc: (
-            //   <span
-            //     className={clsx(getAccountColor(accountSyncing, accountState))}
-            //   >
-            //     {/* {getAccountDescription(t, accountSyncing, accountState)} */}
-            //     {/* {accountDescription} */}
-            //   </span>
-            // ),
             leadingIcon: 'event_repeat',
             trailingIcon: 'open_in_new',
             onClick: handleManageSubscription,

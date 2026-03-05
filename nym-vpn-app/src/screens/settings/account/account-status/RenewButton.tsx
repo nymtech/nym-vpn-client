@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import dayjs from 'dayjs';
 import { useMemo } from 'react';
 import { clsx } from 'clsx';
 import { Button } from '@headlessui/react';
 import { CardNewFooter, MsIcon } from '../../../../ui';
 import { TAccountSummary } from '../../../../types';
+import { getAccountStatus } from '../utils';
 
 export function RenewButton({
   accountSummary,
@@ -13,25 +13,10 @@ export function RenewButton({
 }) {
   const { t } = useTranslation('account');
 
-  const status = useMemo(() => {
-    const diff = dayjs
-      .unix(Number(accountSummary['subscription-valid-until']))
-      .diff(dayjs(), 'day');
-
-    if (
-      accountSummary['subscription-kind'] === 'freepass' ||
-      accountSummary['subscription-kind'] === 'one-month'
-    ) {
-      if (diff < 3) return 'yellow'; // 2 days left
-      if (diff < 8) return 'green'; // 7 days left
-      return 'ok';
-    }
-
-    // 1 & 2 years subscriptions
-    if (diff < 31) return 'yellow'; // 30 days left
-    if (diff < 61) return 'green'; // 60 days left
-    return 'ok';
-  }, [accountSummary]);
+  const status = useMemo(
+    () => getAccountStatus(accountSummary),
+    [accountSummary],
+  );
 
   const handleRenew = () => {
     console.log('Renew now to stay protected');
@@ -39,15 +24,15 @@ export function RenewButton({
   };
 
   const getStatusColor = () => {
-    if (status === 'green') {
+    if (status === 'green' || status === 'yellow') {
       return 'bg-malachite-moss/10 hover:bg-malachite-moss/20 dark:bg-malachite/10 dark:hover:bg-malachite/20 text-malachite-moss dark:text-malachite';
     }
-    if (status === 'yellow') {
+    if (status === 'amber') {
       return 'bg-cheddar/10 hover:bg-cheddar/20 dark:bg-king-nacho/10 dark:hover:bg-king-nacho/20 text-cheddar dark:text-king-nacho';
     }
   };
 
-  if (status === 'ok') {
+  if (status === 'green') {
     return null;
   }
 
