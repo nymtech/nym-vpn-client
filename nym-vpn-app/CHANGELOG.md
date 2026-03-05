@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Ad blocker
 - Dynamic tray icon and menu reflecting current tunnel configuration
+- See bandwidth usage and subscription expiry/renewal date
 
 ### Fixed
 
