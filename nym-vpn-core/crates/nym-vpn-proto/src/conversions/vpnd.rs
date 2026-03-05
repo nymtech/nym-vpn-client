@@ -90,7 +90,6 @@ impl From<proto::AsExit> for nym_vpn_lib_types::Exit {
             can_route_ip_external_v4: exit.can_route_ip_external_v4,
             can_route_ip_v6: exit.can_route_ip_v6,
             can_route_ip_external_v6: exit.can_route_ip_external_v6,
-            socks5: None, // SOCKS5 data comes from API, not from proto
         }
     }
 }
@@ -111,11 +110,16 @@ impl From<nym_vpn_lib_types::ProbeOutcome> for proto::ProbeOutcome {
     fn from(outcome: nym_vpn_lib_types::ProbeOutcome) -> Self {
         let as_entry = Some(proto::AsEntry::from(outcome.as_entry));
         let as_exit = outcome.as_exit.map(proto::AsExit::from);
+        // TODO why is wg None and do we need to initialize those/
         let wg = None;
+        let socks5 = None;
+        let lp = None;
         proto::ProbeOutcome {
             as_entry,
             as_exit,
             wg,
+            socks5,
+            lp,
         }
     }
 }

@@ -554,6 +554,7 @@ pub struct ProbeOutcome {
     pub as_exit: Option<Exit>,
     pub wg: Option<WgProbeResults>,
     pub socks5: Option<Socks5>,
+    pub lp: Option<Lp>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -561,6 +562,14 @@ pub struct Socks5 {
     pub can_proxy_https: bool,
     pub score: Option<ScoreValue>,
     pub errors: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Lp {
+    pub can_connect: bool,
+    pub can_handshake: bool,
+    pub can_register: bool,
+    pub error: Option<String>,
 }
 
 impl ProbeOutcome {

@@ -248,11 +248,11 @@ impl Gateway {
         self.last_probe
             .as_ref()
             .and_then(|probe| {
-                probe.outcome.as_exit.as_ref().and_then(|exit| {
-                    exit.socks5
-                        .as_ref()
-                        .and_then(|socks5| socks5.score.as_ref())
-                })
+                probe
+                    .outcome
+                    .socks5
+                    .as_ref()
+                    .and_then(|socks5| socks5.score.as_ref())
             })
             .is_some_and(|score| *score >= min_socks5_score)
     }
@@ -399,6 +399,8 @@ pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
     pub wg: Option<WgProbeResults>,
+    pub socks5: Option<Socks5>,
+    pub lp: Option<Lp>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -406,6 +408,14 @@ pub struct Socks5 {
     pub can_proxy_https: bool,
     pub score: Option<ScoreValue>,
     pub errors: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Lp {
+    pub can_connect: bool,
+    pub can_handshake: bool,
+    pub can_register: bool,
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -421,7 +431,6 @@ pub struct Exit {
     pub can_route_ip_external_v4: bool,
     pub can_route_ip_v6: bool,
     pub can_route_ip_external_v6: bool,
-    pub socks5: Option<Socks5>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -514,16 +523,29 @@ impl From<nym_vpn_api_client::response::ProbeOutcome> for ProbeOutcome {
             as_entry: Entry::from(outcome.as_entry),
             as_exit,
             wg: outcome.wg.map(WgProbeResults::from),
+            socks5: outcome.socks5.map(From::from),
+            lp: outcome.lp.map(From::from),
         }
     }
 }
 
 impl From<nym_vpn_api_client::response::Socks5> for Socks5 {
     fn from(exit: nym_vpn_api_client::response::Socks5) -> Self {
-        Socks5 {
+        Self {
             can_proxy_https: exit.can_proxy_https,
             score: exit.score.map(ScoreValue::from),
             errors: exit.errors,
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::response::Lp> for Lp {
+    fn from(lp: nym_vpn_api_client::response::Lp) -> Self {
+        Self {
+            can_connect: lp.can_connect,
+            can_handshake: lp.can_handshake,
+            can_register: lp.can_register,
+            error: lp.error,
         }
     }
 }
@@ -545,7 +567,6 @@ impl From<nym_vpn_api_client::response::Exit> for Exit {
             can_route_ip_external_v4: exit.can_route_ip_external_v4,
             can_route_ip_v6: exit.can_route_ip_v6,
             can_route_ip_external_v6: exit.can_route_ip_external_v6,
-            socks5: exit.socks5.map(Socks5::from),
         }
     }
 }
@@ -621,10 +642,9 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
                 }
             };
 
-        if let Some(probe) = last_probe.as_mut()
-            && let Some(exit) = probe.outcome.as_exit.as_mut()
-        {
-            exit.socks5 = socks5_score_from_mixnet(exit.socks5.clone(), performance.as_ref());
+        if let Some(probe) = last_probe.as_mut() {
+            probe.outcome.socks5 =
+                socks5_score_from_mixnet(probe.outcome.socks5.clone(), performance.as_ref());
         }
 
         Ok(Gateway {

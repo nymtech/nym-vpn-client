@@ -369,9 +369,6 @@ fn test_socks5_score_from_mixnet_score() {
                 .as_ref()
                 .unwrap()
                 .outcome
-                .as_exit
-                .as_ref()
-                .unwrap()
                 .socks5
                 .as_ref()
                 .unwrap()
@@ -555,6 +552,7 @@ fn create_response_nym_gateway(
                 }),
                 wg: None,
                 socks5: None,
+                lp: None,
             },
         }),
         ip_addresses: vec![],

@@ -1408,8 +1408,7 @@ impl NymVpnService {
                                 let supports_socks5 = gateway_full
                                     .last_probe
                                     .as_ref()
-                                    .and_then(|probe| probe.outcome.as_exit.as_ref())
-                                    .and_then(|exit| exit.socks5.as_ref())
+                                    .and_then(|probe| probe.outcome.socks5.as_ref())
                                     .map(|socks5| {
                                         // Use VPN API's SOCKS5 data - check if it has a valid score
                                         // (score being Some indicates it was probed and works)

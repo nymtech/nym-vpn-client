@@ -311,10 +311,28 @@ message WgProbeResult {
   float ping_ips_performance = 5;
 }
 
+message Socks5ProbeResult {
+  bool can_proxy_https = 1;
+  optional Score score = 2;
+  optional ErrorList errors = 3;
+}
+
+message ErrorList {
+  repeated string error = 1;
+}
+message LpProbeResult {
+  bool can_connect = 1;
+  bool can_handshake = 2;
+  bool can_register = 3;
+  optional string error = 4;
+}
+
 message ProbeOutcome {
   AsEntry as_entry = 1;
   AsExit as_exit = 2;
   WgProbeResult wg = 3;
+  Socks5ProbeResult socks5 = 4;
+  LpProbeResult lp = 5;
 }
 
 message Probe {

@@ -771,7 +771,6 @@ pub struct Exit {
     pub can_route_ip_external_v4: bool,
     pub can_route_ip_v6: bool,
     pub can_route_ip_external_v6: bool,
-    pub socks5: Option<Socks5>,
 }
 
 #[derive(Debug, Clone)]
@@ -919,7 +918,6 @@ impl From<nym_gateway_directory::Exit> for Exit {
             can_route_ip_external_v4: exit.can_route_ip_external_v4,
             can_route_ip_v6: exit.can_route_ip_v6,
             can_route_ip_external_v6: exit.can_route_ip_external_v6,
-            socks5: exit.socks5.map(Socks5::from),
         }
     }
 }
