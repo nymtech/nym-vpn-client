@@ -374,7 +374,7 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
                 .subscription
                 .active
                 .as_ref()
-                .map(|s| s.isRecurring)
+                .map(|s| s.is_recurring)
                 .unwrap_or(false),
         })
     }
