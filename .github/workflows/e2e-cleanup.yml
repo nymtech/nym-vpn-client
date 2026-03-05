@@ -7,7 +7,7 @@ name: e2e-cleanup
 
 on:
   schedule:
-    - cron: "0 9 * * *"
+    - cron: "0 12 * * *"
   workflow_dispatch:
     inputs:
       max_age_hours:
