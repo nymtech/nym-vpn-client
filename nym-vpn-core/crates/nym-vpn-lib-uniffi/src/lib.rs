@@ -304,8 +304,10 @@ impl VPNConfig {
 
 #[cfg(target_os = "android")]
 pub mod android_init {
-    use jni::JNIEnv;
-    use jni::objects::{JClass, JObject};
+    use jni::{
+        JNIEnv,
+        objects::{JClass, JObject},
+    };
 
     #[unsafe(no_mangle)]
     #[allow(non_snake_case)]

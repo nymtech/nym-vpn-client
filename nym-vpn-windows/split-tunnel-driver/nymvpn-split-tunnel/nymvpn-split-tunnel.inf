@@ -1,0 +1,66 @@
+;
+; nymvpn-split-tunnel.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=WFPCALLOUTS
+ClassGuid={57465043-616C-6C6F-7574-5F636C617373}
+Provider=%ManufacturerName%
+CatalogFile=nymvpn-split-tunnel.cat
+PnpLockdown=1
+DriverVer=
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+; ================= Class section =====================
+
+[ClassInstall32]
+AddReg=SplitTunnelClassReg
+
+[SplitTunnelClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+nymvpn-split-tunnel.sys  = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$.10.0
+
+[Standard.NT$ARCH$.10.0]
+%nymvpn-split-tunnel.DeviceDesc%=nymvpn-split-tunnel_Device, Root\nymvpn-split-tunnel
+
+[nymvpn-split-tunnel_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+nymvpn-split-tunnel.sys
+
+;-------------- Service installation
+[nymvpn-split-tunnel_Device.NT.Services]
+AddService = nymvpn-split-tunnel,%SPSVCINST_ASSOCSERVICE%, nymvpn-split-tunnel_Service_Inst
+
+; -------------- nymvpn-split-tunnel driver install sections
+[nymvpn-split-tunnel_Service_Inst]
+DisplayName    = %nymvpn-split-tunnel.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\nymvpn-split-tunnel.sys
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="Mullvad AB"
+ClassName="Nym VPN Split Tunnel"
+DiskName = "Nym VPN Split Tunnel Installation Disk"
+nymvpn-split-tunnel.DeviceDesc = "Nym VPN Split Tunnel Device"
+nymvpn-split-tunnel.SVCDESC = "Nym VPN Split Tunnel Service"

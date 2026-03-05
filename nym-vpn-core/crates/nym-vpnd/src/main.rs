@@ -19,10 +19,16 @@ use nym_platform_metadata::new_user_agent;
 use nym_vpn_lib::{
     UserAgent,
     config::GlobalConfig,
+    install_split_tunnel_driver_service,
     logging::LogFileRemoverHandle,
     service::{NymVpnService, NymVpnServiceParameters, ServiceConfigStorageType},
+    uninstall_split_tunnel_driver_service,
 };
 use nym_vpn_lib_types::LogPath;
+use windows_service::{
+    SERVICE_NAME,
+    installation::{install_service, start_service, uninstall_service},
+};
 
 use crate::cli::{CliArgs, Command};
 
@@ -33,22 +39,24 @@ async fn main() -> anyhow::Result<()> {
     match args.command.unwrap_or_default() {
         #[cfg(windows)]
         Command::InstallService => {
-            println!(
-                "Installing {} as a service...",
-                windows_service::SERVICE_NAME
-            );
-            windows_service::installation::install_service()
+            install_service().context("Failed to install Windows service")?;
+            install_split_tunnel_driver_service()
+                .context("Failed to install split tunnel driver service")?;
+            Ok(())
         }
         #[cfg(windows)]
         Command::UninstallService => {
-            println!("Uninstalling {} service...", windows_service::SERVICE_NAME);
-            windows_service::installation::uninstall_service().await?;
+            uninstall_split_tunnel_driver_service()
+                .context("Failed to uninstall split tunnel driver service")?;
+            uninstall_service()
+                .await
+                .context("Failed to uninstall Windows service")?;
             Ok(())
         }
         #[cfg(windows)]
         Command::StartService => {
-            println!("Starting {} service...", windows_service::SERVICE_NAME);
-            windows_service::installation::start_service()?;
+            println!("Starting {SERVICE_NAME} service...");
+            start_service().context("Failed to start Windows service")?;
             Ok(())
         }
         Command::RunAsService | Command::RunStandalone => run_vpn_service(args).await,

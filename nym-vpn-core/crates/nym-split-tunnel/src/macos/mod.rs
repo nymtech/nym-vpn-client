@@ -172,7 +172,7 @@ impl SplitTunnel {
         route_manager: RouteManagerHandle,
         shutdown_token: CancellationToken,
         error_handler: F,
-    ) -> (SplitTunnelHandle, JoinHandle<()>)
+    ) -> Result<(SplitTunnelHandle, JoinHandle<()>), Error>
     where
         F: Fn(SplitTunnelErrorCause) + Send + 'static,
     {
@@ -186,7 +186,7 @@ impl SplitTunnel {
 
         let join_handle = tokio::spawn(split_tunnel.run());
 
-        (SplitTunnelHandle { tx }, join_handle)
+        Ok((SplitTunnelHandle { tx }, join_handle))
     }
 
     async fn run(mut self) {

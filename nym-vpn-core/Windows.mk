@@ -1,4 +1,7 @@
-# Makefile used for building Windows dependencies used by nym-vpnd
+# Makefile used for building Windows dependencies used by nym-vpnd.
+#
+# You must run this from a Visual Studio Developer Command Prompt or PowerShell to ensure that the appropriate build
+# tools are in your PATH.
 #
 # Supported variables:
 #
@@ -18,6 +21,10 @@ else
     SHELL := $(windir)/System32/WindowsPowerShell/v1.0/powershell.exe
 endif
 
+ifndef VSCMD_VER
+$(error This Makefile must be run from a Visual Studio Developer PowerShell or Developer Command Prompt)
+endif
+
 WIUNTUN_URL := https://www.wintun.net/builds/wintun-0.14.1.zip
 WINTUN_BIN_DIR := $(TMP)/wintun/bin
 WINTUN_DLL_NAME := wintun.dll
@@ -27,17 +34,6 @@ MSYS2_LOCATION ?= C:/msys64
 MSYS2_SHELL := $(MSYS2_LOCATION)/msys2_shell.cmd
 
 GO_PATH := $(ProgramW6432)/Go/bin
-MSVS_DIR := $(ProgramW6432)/Microsoft Visual Studio/2022/Community
-MSVC_PATH := $(MSVS_DIR)/VC/Tools/MSVC
-MSVC_MSBUILD_PATH := $(MSVS_DIR)/MSBuild/Current/Bin
-
-MSVS_ENTERPRISE_DIR := $(ProgramW6432)/Microsoft Visual Studio/2022/Enterprise
-MSVC_ENTERPRISE_PATH := $(MSVS_ENTERPRISE_DIR)/VC/Tools/MSVC
-MSVC_ENTERPRISE_MSBUILD_PATH := $(MSVS_ENTERPRISE_DIR)/MSBuild/Current/Bin
-
-BUILDTOOLS_DIR := ${ProgramFiles(x86)}/Microsoft Visual Studio/2022/BuildTools
-BUILDTOOLS_MSVC_PATH := $(BUILDTOOLS_DIR)/VC/Tools/MSVC
-BUILDTOOLS_MSBUILD_PATH := $(BUILDTOOLS_DIR)/MSBuild/Current/Bin
 
 # Make on Windows is a 32-bit application
 # Use PROCESSOR_ARCHITEW6432 to get the native CPU architecture
@@ -80,16 +76,21 @@ WINFW_BUILD_DIR := $(CURDIR)/../nym-vpn-windows/winfw/bin/$(WINFW_PLATFORM)-$(WI
 WINFW_DLL := winfw.dll
 WINFW_LIB := winfw.lib
 
+ST_DRIVER_DIST_DIR := $(CURDIR)/../nym-vpn-windows/split-tunnel-driver/bin/$(WINFW_PLATFORM)-$(WINFW_PROFILE)
+ST_DRIVER_SYS := nymvpn-split-tunnel.sys
+ST_DRIVER_INF := nymvpn-split-tunnel.inf
+ST_DRIVER_CER := nymvpn-split-tunnel.cer
+ST_DRIVER_PDB := nymvpn-split-tunnel.pdb
+
 # Ensure that msys2 inherits PATH from environment
 export MSYS2_PATH_TYPE = inherit
 
-.PHONY: wintun libwg winfw create_target_dir create_version_header
+.PHONY: wintun libwg st-driver winfw create_target_dir create_version_header
 
-default: wintun libwg winfw
+default: wintun libwg st-driver winfw
 
 # Build libwg and copy it to build/lib
 libwg: create_target_dir create_version_header
-	$(call setup_env_path) ; #\
 	if ("$(CPU_ARCH_LOWER)" -eq "arm64") { #\
 		$$wg_arm64_flag = "--arm64" ; #\
 		$$msystem = "clangarm64" ; #\
@@ -98,20 +99,19 @@ libwg: create_target_dir create_version_header
 		$$msystem = "mingw64" ; #\
 	} #\
 	$(MSYS2_SHELL) -defterm -no-start -$$msystem -where "$(CURDIR)/../wireguard" -shell bash -c "./build-wireguard-go.sh $$wg_arm64_flag"
-	Copy-Item "$(LIBWG_BUILD_DIR)/$(LIBWG_DLL)" -Destination "$(TARGET_DIR)/$(LIBWG_DLL)" -Force -Verbose
+	Copy-Item "$(LIBWG_BUILD_DIR)/$(LIBWG_DLL)" -Destination "$(TARGET_DIR)/$(LIBWG_DLL)" -Force
 
 winfw: create_target_dir create_version_header
 # Setup environment and build winfw
-	$(call setup_env_path) ; #\
 	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/winfw/winfw.sln" /p:Configuration=$(WINFW_PROFILE) /p:Platform=$(WINFW_PLATFORM)
 
 # Copy winfw dll and lib to distribution directory where nym-vpn-core looks for import lib
-	New-Item -ItemType Directory -Force -Path "$(WINFW_DIST_DIR)" -Verbose
-	Copy-Item "$(WINFW_BUILD_DIR)/$(WINFW_DLL)" -Destination "$(WINFW_DIST_DIR)/$(WINFW_DLL)" -Force -Verbose
-	Copy-Item "$(WINFW_BUILD_DIR)/$(WINFW_LIB)" -Destination "$(WINFW_DIST_DIR)/$(WINFW_LIB)" -Force -Verbose
+	New-Item -ItemType Directory -Force -Path "$(WINFW_DIST_DIR)"
+	Copy-Item "$(WINFW_BUILD_DIR)/$(WINFW_DLL)" -Destination "$(WINFW_DIST_DIR)/$(WINFW_DLL)" -Force
+	Copy-Item "$(WINFW_BUILD_DIR)/$(WINFW_LIB)" -Destination "$(WINFW_DIST_DIR)/$(WINFW_LIB)" -Force
 
 # Copy winfw dll to target directory
-	Copy-Item "$(WINFW_DIST_DIR)/$(WINFW_DLL)" -Destination "$(TARGET_DIR)/$(WINFW_DLL)" -Force -Verbose
+	Copy-Item "$(WINFW_DIST_DIR)/$(WINFW_DLL)" -Destination "$(TARGET_DIR)/$(WINFW_DLL)" -Force
 
 wintun: create_target_dir
 # Download and extract wintun
@@ -130,7 +130,19 @@ wintun: create_target_dir
 	}
 
 # Copy wintun dll to target directory
-	Copy-Item -Path "$(WINTUN_BIN_DIR)/$(CPU_ARCH_LOWER)/$(WINTUN_DLL_NAME)" -Destination "$(TARGET_DIR)/$(WINTUN_DLL_NAME)" -Force -Verbose
+	Copy-Item -Path "$(WINTUN_BIN_DIR)/$(CPU_ARCH_LOWER)/$(WINTUN_DLL_NAME)" -Destination "$(TARGET_DIR)/$(WINTUN_DLL_NAME)" -Force
+
+st-driver: create_target_dir
+# Setup environment and build split tunnel driver
+	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/split-tunnel-driver/nymvpn-split-tunnel/nymvpn-split-tunnel.sln" /p:Configuration=$(WINFW_PROFILE) /p:Platform=$(WINFW_PLATFORM)
+
+# Copy driver files target directory
+	Copy-Item "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_SYS)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_SYS)" -Force
+	Copy-Item "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_INF)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_INF)" -Force
+	Copy-Item "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_CER)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_CER)" -Force
+	if (Test-Path "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_PDB)") { #\
+    	Copy-Item "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_PDB)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
+	}
 
 create_target_dir:
 	if (-not (Test-Path "$(TARGET_DIR)")) { #\
@@ -155,28 +167,3 @@ create_version_header:
 	#\
 	$$VersionHeader | Out-String | Out-File -Encoding utf8 -FilePath "$(LIBWG_VERSION_HEADER_PATH)" ; #\
 	$$VersionHeader | Out-String | Out-File -Encoding utf8 -FilePath "$(WINFW_VERSION_HEADER_PATH)"
-
-# Add Go, MSBuild and MSVC to PATH
-# Both Visual Studio and build tools come with the same set of tools
-# Check if one or the other exist and add relevant directories to Path
-define setup_env_path
-	$$env:Path += ";$(GO_PATH)" ; #\\
-	if (Test-Path "$(MSVS_DIR)") { #\\
-		$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName -Last 1 ; #\\
-		$$env:Path += ";$(MSVC_MSBUILD_PATH)" ; #\\
-		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
-		Write-Output "Add Community Visual Studio to Path"; #\\
-	} elseif (Test-Path "$(MSVS_ENTERPRISE_DIR)") { #\\
-		$$msvc_path = Get-ChildItem -Path "$(MSVC_ENTERPRISE_PATH)" -Directory | Select-Object -ExpandProperty FullName -Last 1 ; #\\
-		$$env:Path += ";$(MSVC_ENTERPRISE_MSBUILD_PATH)" ; #\\
-		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
-		Write-Output "Add Enterprise Visual Studio to Path"; #\\
-	} elseif (Test-Path "$(BUILDTOOLS_DIR)") { #\\
-		$$msvc_path = Get-ChildItem -Path "$(BUILDTOOLS_MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName -Last 1 ; #\\
-		$$env:Path += ";$(BUILDTOOLS_MSBUILD_PATH)" ; #\\
-		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
-		Write-Output "Add MS Build Tools to Path"; #\\
-	} else { #\\
-		Write-Output "Neither Visual Studio nor Build Tools can be located, skipping PATH setup" ; #\\
-	}
-endef

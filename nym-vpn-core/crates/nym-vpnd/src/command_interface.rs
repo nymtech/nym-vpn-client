@@ -16,7 +16,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tonic::{Request, Response, Status, transport::Server};
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
@@ -1051,7 +1051,7 @@ impl NymVpnService for CommandInterface {
         &self,
         _request: tonic::Request<bool>,
     ) -> Result<tonic::Response<()>> {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         {
             self.send_and_wait(
                 VpnServiceCommand::SetEnableSplitTunnel,
@@ -1061,7 +1061,7 @@ impl NymVpnService for CommandInterface {
             Ok(tonic::Response::new(()))
         }
 
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
         Err(tonic::Status::internal("Unsupported platform"))
     }
 
@@ -1069,7 +1069,7 @@ impl NymVpnService for CommandInterface {
         &self,
         _request: tonic::Request<proto::SplitApp>,
     ) -> Result<tonic::Response<()>> {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         {
             let app = SplitApp::from(_request.into_inner());
             self.send_and_wait(VpnServiceCommand::AddSplitTunnelApp, app)
@@ -1077,7 +1077,7 @@ impl NymVpnService for CommandInterface {
             Ok(tonic::Response::new(()))
         }
 
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
         Err(tonic::Status::internal("Unsupported platform"))
     }
 
@@ -1085,7 +1085,7 @@ impl NymVpnService for CommandInterface {
         &self,
         _request: tonic::Request<proto::SplitApp>,
     ) -> Result<tonic::Response<()>> {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         {
             let app = SplitApp::from(_request.into_inner());
             self.send_and_wait(VpnServiceCommand::RemoveSplitTunnelApp, app)
@@ -1093,7 +1093,7 @@ impl NymVpnService for CommandInterface {
             Ok(tonic::Response::new(()))
         }
 
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
         Err(tonic::Status::internal("Unsupported platform"))
     }
 
@@ -1101,14 +1101,14 @@ impl NymVpnService for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<()>> {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         {
             self.send_and_wait(VpnServiceCommand::ClearSplitTunnelApps, ())
                 .await?;
             Ok(tonic::Response::new(()))
         }
 
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
         Err(tonic::Status::internal("Unsupported platform"))
     }
 

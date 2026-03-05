@@ -2,12 +2,32 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::{Ipv4Addr, Ipv6Addr};
+
 #[cfg(target_os = "macos")]
 #[path = "macos/mod.rs"]
 mod imp;
 
-#[cfg(target_os = "macos")]
+#[cfg(target_os = "windows")]
+#[path = "windows/mod.rs"]
+mod imp;
+
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 pub use imp::*;
+
+#[cfg(target_os = "windows")]
+pub use imp::{install_driver_service, uninstall_driver_service};
+
+/// VPN tunnel interface configuration used by split tunneling.
+#[derive(Debug, Clone)]
+pub struct VpnInterface {
+    /// VPN tunnel interface name
+    pub name: String,
+    /// VPN tunnel IPv4 address
+    pub v4_address: Option<Ipv4Addr>,
+    /// VPN tunnel IPv6 address
+    pub v6_address: Option<Ipv6Addr>,
+}
 
 /// Type describing what caused split tunneling to fail.
 #[derive(Debug, Copy, Clone)]
