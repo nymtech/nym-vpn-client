@@ -74,7 +74,7 @@ data class AppUiState(
 	}
 
 	val exitPointGateway = when (val exit = effectiveExitPoint) {
-		is EntryPoint.Country, is EntryPoint.Region -> {
+		is ExitPoint.Country, is ExitPoint.Region -> {
 			if (managerState.tunnelState == Tunnel.State.Up || managerState.tunnelState == Tunnel.State.EstablishingConnection) {
 				managerState.connectionData?.let { data ->
 					exitGateways().firstOrNull { it.identity == data.exitGateway.id }
@@ -83,8 +83,7 @@ data class AppUiState(
 				null
 			}
 		}
-		is EntryPoint.Gateway -> exitGateways().firstOrNull { it.identity == exit.identity }
-		is ExitPoint.Address -> null
+		is ExitPoint.Gateway -> exitGateways().firstOrNull { it.identity == exit.identity }
 		else -> null
 	}
 
