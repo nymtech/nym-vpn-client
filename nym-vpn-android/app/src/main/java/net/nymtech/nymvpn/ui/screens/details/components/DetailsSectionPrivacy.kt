@@ -31,7 +31,7 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import nym_vpn_lib_types.AsnKind
 
 @Composable
-fun DetailsSectionPrivacy(asnKind: AsnKind?, isQuicFeatureFlagEnabled: Boolean, isQuicSupportedByGateway: Boolean, onEnableQuicProtocolClick: () -> Unit) {
+fun DetailsSectionPrivacy(asnKind: AsnKind?, isQuicSupportedByGateway: Boolean, onEnableQuicProtocolClick: () -> Unit) {
 	val items = buildList<Pair<String, @Composable () -> Unit>> {
 		add(
 			stringResource(R.string.details_advanced_privacy) to {
@@ -85,43 +85,41 @@ fun DetailsSectionPrivacy(asnKind: AsnKind?, isQuicFeatureFlagEnabled: Boolean, 
 			)
 		}
 
-		if (isQuicFeatureFlagEnabled) {
-			add(
-				stringResource(R.string.details_anti_censorship) to {
-					val (icon, size) = if (isQuicSupportedByGateway) ImageVector.vectorResource(R.drawable.quic_label) to 20.dp else Icons.Filled.Circle to 12.dp
-					val iconTint = if (isQuicSupportedByGateway) Color.Unspecified else CustomColors.warning
-					val text = stringResource(
-						if (isQuicSupportedByGateway) {
-							R.string.details_quic_protocol
-						} else {
-							R.string.details_standard_protocol
-						},
-					)
+		add(
+			stringResource(R.string.details_anti_censorship) to {
+				val (icon, size) = if (isQuicSupportedByGateway) ImageVector.vectorResource(R.drawable.quic_label) to 20.dp else Icons.Filled.Circle to 12.dp
+				val iconTint = if (isQuicSupportedByGateway) Color.Unspecified else CustomColors.warning
+				val text = stringResource(
+					if (isQuicSupportedByGateway) {
+						R.string.details_quic_protocol
+					} else {
+						R.string.details_standard_protocol
+					},
+				)
 
-					Row(verticalAlignment = Alignment.CenterVertically) {
-						Icon(
-							painter = rememberVectorPainter(icon),
-							contentDescription = null,
-							tint = iconTint,
-							modifier = Modifier.size(size),
-						)
-						Spacer(modifier = Modifier.width(6.dp))
-						Text(
-							text = text,
-							style = Typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onBackground,
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						)
-					}
-				},
-			)
-		}
+				Row(verticalAlignment = Alignment.CenterVertically) {
+					Icon(
+						painter = rememberVectorPainter(icon),
+						contentDescription = null,
+						tint = iconTint,
+						modifier = Modifier.size(size),
+					)
+					Spacer(modifier = Modifier.width(6.dp))
+					Text(
+						text = text,
+						style = Typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onBackground,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					)
+				}
+			},
+		)
 	}
 
 	InfoSection(
 		items = items,
 		bottomContent = {
-			if (isQuicFeatureFlagEnabled && isQuicSupportedByGateway) {
+			if (isQuicSupportedByGateway) {
 				val annotatedText = buildAnnotatedString {
 					pushStringAnnotation(tag = "QUIC", annotation = "quic_action")
 					withStyle(

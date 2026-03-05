@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.ui.screens.hop
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -11,9 +10,6 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
-import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
-import net.nymtech.nymvpn.manager.backend.BackendManager
-import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.nymvpn.util.extensions.scoreSorted
@@ -34,10 +30,7 @@ class HopViewModel @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val vpnConfigRepository: VpnConfigRepository,
 	private val gatewayCacheService: GatewayCacheService,
-	private val backendManager: BackendManager,
 	private val gatewayRepository: GatewayRepository,
-	private val environmentManager: EnvironmentManager,
-	@ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
 
 	companion object {
@@ -72,14 +65,10 @@ class HopViewModel @Inject constructor(
 	}
 
 	private suspend fun updateQuicState() {
-		val isQuicFeatureFlagEnabled = environmentManager.isQuicEnabled()
 		val isQuicToggleEnabled = settingsRepository.getQUICEnabled()
 		val isFastVpn = vpnConfigRepository.getConfig().mode == Tunnel.Mode.TWO_HOP_MIXNET
 
-		isQuicOnlyGatewaysFilterRequired =
-			isQuicFeatureFlagEnabled && isQuicToggleEnabled && isFastVpn && !isExitScreen
-
-		_uiState.update { it.copy(isQuicFeatureFlagEnabled = isQuicFeatureFlagEnabled) }
+		isQuicOnlyGatewaysFilterRequired = isQuicToggleEnabled && isFastVpn && !isExitScreen
 	}
 
 	fun initializeGateways(initialGateways: List<NymGateway>, isExitScreen: Boolean = false) {

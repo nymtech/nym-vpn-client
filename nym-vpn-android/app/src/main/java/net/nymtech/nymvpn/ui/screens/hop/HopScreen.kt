@@ -147,9 +147,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 		}
 	}
 
-	val canShowQuicLabel = remember(uiState.isQuicFeatureFlagEnabled) {
-		uiState.isQuicFeatureFlagEnabled &&
-			gatewayLocation == GatewayLocation.ENTRY &&
+	val canShowQuicLabel = remember {
+		gatewayLocation == GatewayLocation.ENTRY &&
 			appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
 			appUiState.settings.quicEnabled
 	}
