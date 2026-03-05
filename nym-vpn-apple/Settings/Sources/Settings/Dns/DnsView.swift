@@ -85,6 +85,7 @@ private extension DnsView {
                 learnMoreLink()
             }
         }
+        .scrollIndicators(.never)
         .frame(maxWidth: MagicNumbers.maxWidth)
         .padding(.horizontal, 16)
         .onTapGesture {

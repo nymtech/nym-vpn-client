@@ -3,25 +3,27 @@ name: e2e-test
 on:
   workflow_dispatch:
     inputs:
-      test_filter:
-        # No `default:` here — the inline fallback `inputs.test_filter || 'basic_functionality'`
-        # in the run-tests step handles both manual runs (empty field) and scheduled runs
-        # (no inputs at all). A `default:` would only cover workflow_dispatch, creating a
-        # second source of truth that can silently diverge.
+      test_filters:
         description:
-          "Test filter (passed to test-manager). If not provided, default is set
-          below in TEST_FILTERS"
+          "Only execute these (space-separated) tests. Can be used in
+          conjunction with skip_tests"
         required: false
+      skip_tests:
+        description:
+          "Space-separated list of tests to skip. Can be used in conjunction
+          with test_filters"
+        required: false
+      delay_deprovision_on_failure:
+        description:
+          "Delay teardown by 1 hour on failure so you can SSH in to debug"
+        type: boolean
+        default: false
       instance_type:
         description: "Exoscale compute instance type"
         type: choice
         options:
-          - standard.large
           - standard.medium
-          # TODO once merged, consider running daily
-  # schedule:
-  # run periodically
-  # - cron: "0 3 * * *"
+          - standard.large
 
 permissions:
   contents: read
@@ -33,40 +35,49 @@ env:
 jobs:
   build:
     name: Build test binaries
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
 
-      - name: Read MSRV from workspace Cargo.toml
-        id: msrv
-        run: |
-          version=$(grep '^rust-version' nym-vpn-core/Cargo.toml | sed 's/.*"\(.*\)"/\1/')
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ steps.msrv.outputs.version }}
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
 
       - name: Install system dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y \
             gcc make pkg-config \
             libdbus-1-dev libmnl-dev libnftnl-dev \
-            protobuf-compiler libssl-dev libpcap-dev
+            libssl-dev libpcap-dev
 
-      - name: Cache Cargo registry and build artifacts
-        uses: actions/cache@v5
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore cargo registry cache
+        uses: actions/cache/restore@v5
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            nym-vpn-core/target
-            ${{ env.TEST_CRATE_DIR }}/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-cargo-${{ vars.REQUIRED_RUSTC_VERSION }}-
+
+      - name: Restore cargo build cache
+        uses: actions/cache/restore@v5
+        with:
+          path: nym-vpn-core/target/
+          key: ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
+            ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-
 
       - name: Install Go
         uses: actions/setup-go@v6
@@ -81,20 +92,46 @@ jobs:
         run: cargo build --release -p nym-vpnc -p nym-vpnd
         working-directory: nym-vpn-core
 
-      - name: Build test-manager, test-runner, connection-checker
+      - name: Build test-manager, test-runner
         run: |
           cargo build --release \
-            -p test-manager -p test-runner -p connection-checker
+            -p test-manager -p test-runner
         working-directory: ${{ env.TEST_CRATE_DIR }}
+
+      - name: Save cargo registry cache
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+
+      - name: Save cargo build cache
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: nym-vpn-core/target/
+          key: ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+
+      - name: Save Go modules cache
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
       - name: Collect binaries
         run: |
           mkdir -p /tmp/dist
           cp nym-vpn-core/target/release/nym-vpnc /tmp/dist/
           cp nym-vpn-core/target/release/nym-vpnd /tmp/dist/
-          cp ${{ env.TEST_CRATE_DIR }}/target/release/test-manager /tmp/dist/
-          cp ${{ env.TEST_CRATE_DIR }}/target/release/test-runner /tmp/dist/
-          cp ${{ env.TEST_CRATE_DIR }}/target/release/connection-checker /tmp/dist/
+          cp nym-vpn-core/target/release/test-manager /tmp/dist/
+          cp nym-vpn-core/target/release/test-runner /tmp/dist/
 
       - name: Upload binaries
         uses: actions/upload-artifact@v7
@@ -106,11 +143,12 @@ jobs:
   e2e-test:
     name: Run E2E tests
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: arc-linux-latest
     env:
       SSH_KEY_PATH: /tmp/exoscale_key
-      SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o
-        ConnectTimeout=10"
+      SSH_OPTS:
+        "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o
+        ConnectTimeout=10 -o ServerAliveInterval=30 -o ServerAliveCountMax=3"
       VM_USER: ubuntu
       VM_DIST_DIR: /home/ubuntu/dist
       TF_DIR: nym-vpn-core/crates/test/ci
@@ -118,7 +156,7 @@ jobs:
       - name: Resolve instance type
         id: instance-type
         run: |
-          TYPE="${{ inputs.instance_type || vars.EXOSCALE_TEST_HARNESS_COMPUTE_INSTANCE_TYPE }}"
+          TYPE="${{ inputs.instance_type || secrets.EXOSCALE_TEST_HARNESS_COMPUTE_INSTANCE_TYPE }}"
           if [ -z "$TYPE" ]; then
             echo "ERROR: No instance type specified. Set the workflow input or the EXOSCALE_TEST_HARNESS_COMPUTE_INSTANCE_TYPE repository variable."
             exit 1
@@ -157,8 +195,8 @@ jobs:
         env:
           TF_VAR_exoscale_api_key: ${{ secrets.EXOSCALE_API_KEY }}
           TF_VAR_exoscale_api_secret: ${{ secrets.EXOSCALE_API_SECRET }}
-          TF_VAR_data_volume_id: ${{ vars.EXOSCALE_DATA_VOLUME_ID }}
-          TF_VAR_template_id: ${{ vars.EXOSCALE_TEMPLATE_ID }}
+          TF_VAR_data_volume_id: ${{ secrets.EXOSCALE_DATA_VOLUME_ID }}
+          TF_VAR_template_id: ${{ secrets.EXOSCALE_TEMPLATE_ID }}
           TF_VAR_instance_type: ${{ steps.instance-type.outputs.value }}
           TF_VAR_run_id: ${{ github.run_id }}
         run: terraform apply -auto-approve
@@ -202,12 +240,13 @@ jobs:
       - name: Configure test VM
         env:
           VM_IP: ${{ steps.vm-ip.outputs.ip }}
+          TEST_HARNESS_MNEMONIC: ${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}
         run: |
           ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
             ${{ env.VM_USER }}@${VM_IP} \
             "NYM_TEST_QCOW_IMAGE=/mnt/data/fresh_debian12_cli.qcow2 \
              NYM_TEST_VM_CONFIG=debian12_cli \
-             MAINNET_MNEMONIC='${{ secrets.MAINNET_MNEMONIC }}' \
+             TEST_HARNESS_MNEMONIC='${TEST_HARNESS_MNEMONIC}' \
              TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
              bash ${{ env.VM_DIST_DIR }}/test.sh configure"
 
@@ -215,15 +254,23 @@ jobs:
         timeout-minutes: 45
         env:
           VM_IP: ${{ steps.vm-ip.outputs.ip }}
+          TEST_HARNESS_MNEMONIC: ${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}
+          TEST_FILTERS: ${{ inputs.test_filters }}
+          SKIP_TESTS: ${{ inputs.skip_tests }}
+        # escaping metacharacters so they become literal - to avoid shell injection in GH job input fields
         run: |
+          SAFE_FILTERS=$(printf '%q' "$TEST_FILTERS")
+          SAFE_SKIP=$(printf '%q' "$SKIP_TESTS")
+
           ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
             ${{ env.VM_USER }}@${VM_IP} \
             "NYM_TEST_QCOW_IMAGE=/mnt/data/fresh_debian12_cli.qcow2 \
              NYM_TEST_VM_CONFIG=debian12_cli \
-             MAINNET_MNEMONIC='${{ secrets.MAINNET_MNEMONIC }}' \
+             TEST_HARNESS_MNEMONIC='${TEST_HARNESS_MNEMONIC}' \
              TEST_DIST_DIR=${{ env.VM_DIST_DIR }} \
-             TEST_REPORT=/tmp/test-report.json \
-             TEST_FILTERS='${{ inputs.test_filter || 'basic_functionality' }}' \
+             TEST_REPORT=/tmp/test-report.txt \
+             TEST_FILTERS=${SAFE_FILTERS} \
+             SKIP_TESTS=${SAFE_SKIP} \
              bash ${{ env.VM_DIST_DIR }}/test.sh run-tests"
 
       - name: Retrieve test report
@@ -232,17 +279,42 @@ jobs:
           VM_IP: ${{ steps.vm-ip.outputs.ip }}
         run: |
           scp ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
-            ${{ env.VM_USER }}@${VM_IP}:/tmp/test-report.json /tmp/test-report.json 2>/dev/null || \
+            ${{ env.VM_USER }}@${VM_IP}:/tmp/test-report.txt /tmp/test-report.txt 2>/dev/null || \
             echo "No test report found"
+
+      - name: Format test report
+        if: always()
+        run: |
+          if [ -f /tmp/test-report.txt ]; then
+            /tmp/dist/test-manager format-test-reports /tmp/test-report.txt > /tmp/test-report.html
+            cat /tmp/test-report.html >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No test report file to format"
+          fi
 
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-report
-          path: /tmp/test-report.json
+          path: |
+            /tmp/test-report.txt
+            /tmp/test-report.html
           if-no-files-found: warn
-          retention-days: 30
+          # repo maximum
+          retention-days: 20
+
+      - name: Delay deprovision for debugging
+        if: >-
+          always() && inputs.delay_deprovision_on_failure == true &&
+          steps.vm-ip.outputs.ip && job.status == 'failure'
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+        run: |
+          echo "Tests failed, keeping the VM around for 1 hour for debugging..."
+          echo "You can SSH into the VM at ${{ env.VM_USER }}@${VM_IP}"
+          echo "If you want to trigger VM deprovision earlier, cancel this workflow"
+          sleep 3600
 
       - name: Terraform destroy
         if: always()
@@ -250,8 +322,8 @@ jobs:
         env:
           TF_VAR_exoscale_api_key: ${{ secrets.EXOSCALE_API_KEY }}
           TF_VAR_exoscale_api_secret: ${{ secrets.EXOSCALE_API_SECRET }}
-          TF_VAR_data_volume_id: ${{ vars.EXOSCALE_DATA_VOLUME_ID }}
-          TF_VAR_template_id: ${{ vars.EXOSCALE_TEMPLATE_ID }}
+          TF_VAR_data_volume_id: ${{ secrets.EXOSCALE_DATA_VOLUME_ID }}
+          TF_VAR_template_id: ${{ secrets.EXOSCALE_TEMPLATE_ID }}
           TF_VAR_instance_type: ${{ steps.instance-type.outputs.value }}
           TF_VAR_run_id: ${{ github.run_id }}
         run: terraform destroy -auto-approve

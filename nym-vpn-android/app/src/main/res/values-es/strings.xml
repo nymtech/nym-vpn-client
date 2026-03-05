@@ -271,7 +271,7 @@
 	<string name="onboarding_title_3">Dejar de ser rastreado en línea</string>
 	<string name="onboarding_title_4">Anonimato de pago a web</string>
 	<string name="onboarding_description_base">La VPN más privada del mundo</string>
-	<string name="onboarding_description_1">La VPN más privada del mundo\nPruébela gratis durante 7 días:\nTodas las funciones incluidas, sin anuncios.</string>
+	<string name="onboarding_description_1">La VPN más privada del mundo</string>
 	<string name="onboarding_description_2">Rápido: +250 Mbps con dVPN.\nAnónimo: ruido de 5 saltos que genera Mixnet.</string>
 	<string name="onboarding_description_3">La red descentralizada de Nym hace que \"no-log\"\n sea obsoleta.</string>
 	<string name="onboarding_description_4">Paga con tarjeta, cripto o efectivo, sin necesidad de correo electrónico. Las pruebas de conocimiento cero hacen que tus pagos sean invinculables a tus actividades en línea.</string>

@@ -131,11 +131,6 @@ private extension SettingsViewModel {
         path.append(SettingLink.appearance)
     }
 
-    func navigateToLogs() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.logs)
-    }
-
     func navigateToSupportAndFeedback() {
         impactGenerator.softImpact()
         path.append(SettingLink.support)
@@ -177,6 +172,13 @@ private extension SettingsViewModel {
         impactGenerator.softImpact()
         path.append(SettingLink.mixnetTuning)
     }
+
+#if os(macOS)
+    func navigateToSplitTunneling() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.splitTunnel)
+    }
+#endif
 
     func navigateToCensorship() {
         impactGenerator.softImpact()
@@ -221,7 +223,7 @@ private extension SettingsViewModel {
                     feedbackSection(),
                     killswitchSection(),
                     appearanceSection(),
-                    logsSection(),
+                    privacyAndDataSection(),
                     legalSection(),
                     systemStatusSection()
                 ]
@@ -376,6 +378,16 @@ private extension SettingsViewModel {
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
+                title: "settings.splitTunnel".localizedString,
+                systemImageName: "arrow.trianglehead.branch",
+                action: { [weak self] in
+                    self?.navigateToSplitTunneling()
+                }
+            )
+        )
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
                 title: "settings.proxy.title".localizedString,
                 subtitle: "settings.proxy.subtitle".localizedString,
                 imageName: "proxy",
@@ -428,18 +440,8 @@ private extension SettingsViewModel {
         return AppSettingsSection(kind: .killSwitch, viewModels: viewModels)
     }
 
-    func logsSection() -> AppSettingsSection {
+    func privacyAndDataSection() -> AppSettingsSection {
         let viewModels = [
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "logs".localizedString,
-                imageName: "logs",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToLogs()
-                    }
-                }
-            ),
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.privacyAndData".localizedString,

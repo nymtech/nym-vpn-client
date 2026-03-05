@@ -17,7 +17,7 @@ use crate::{
     uds::Uds,
 };
 
-pub(crate) type StreamItem = tokio::net::UnixStream;
+pub(crate) type Transport = tokio::net::UnixStream;
 
 const ACTION_ID: &str = "com.nymvpn.vpnd.unix-access";
 const CANCELLATION_ID: &str = "com.nymvpn.vpnd.cancel";
@@ -175,7 +175,7 @@ async fn wait_for_authorization(
 // This function depends on user interaction, so it must ensure it doesn't await
 // indefinitely and starve the consumer.
 pub(crate) async fn is_authenticated(
-    stream: &mut UnixStream,
+    stream: &mut Transport,
     shutdown_token: CancellationToken,
 ) -> Result<(), AuthenticationError> {
     authenticate_with_prompt(stream, PolkitPrompter::new(shutdown_token)).await
@@ -198,7 +198,7 @@ async fn authenticate_with_prompt(
 pub(crate) fn incoming(
     uds: Uds,
     shutdown_token: CancellationToken,
-) -> impl Stream<Item = std::io::Result<StreamItem>> {
+) -> impl Stream<Item = std::io::Result<Transport>> {
     let auth_layer = AuthenticationLayer::new(uds, shutdown_token);
     auth_layer.stream()
 }

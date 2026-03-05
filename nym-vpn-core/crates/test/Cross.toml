@@ -1,0 +1,12 @@
+[build]
+pre-build = [
+  "dpkg --add-architecture $CROSS_DEB_ARCH",
+  "apt-get update && apt-get install --assume-yes libssl-dev:$CROSS_DEB_ARCH",
+  "apt-get install -y libssl-dev libgit2-dev libdbus-1-dev libmnl-dev libnftnl-dev curl unzip",
+  "curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v25.3/protoc-25.3-linux-x86_64.zip -o /tmp/protoc.zip && unzip -o /tmp/protoc.zip -d /usr/local 'bin/protoc' 'include/*' && chmod +x /usr/local/bin/protoc"
+]
+
+[build.env]
+passthrough = [
+  "RUSTFLAGS",
+]

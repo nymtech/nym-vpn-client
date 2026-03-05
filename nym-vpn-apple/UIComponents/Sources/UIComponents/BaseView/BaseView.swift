@@ -19,7 +19,7 @@ public struct BaseView<Content: View>: View {
                 content
             }
             .padding(.horizontal, 16)
-            .scrollIndicators(.hidden)
+            .scrollIndicators(.never)
             .frame(maxWidth: MagicNumbers.maxWidth)
         }
         .navigationBarBackButtonHidden(true)

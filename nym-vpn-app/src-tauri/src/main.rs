@@ -318,6 +318,7 @@ async fn main() -> Result<()> {
             cmd_daemon::network_compat,
             cmd_daemon::vpnd_log_dir,
             cmd_daemon::delete_logs,
+            cmd_daemon::retry_authentication,
             cmd_fs::log_dir,
             cmd_fs::delete_app_logs,
             cmd_fs::zip_logs,

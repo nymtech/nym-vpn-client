@@ -271,7 +271,7 @@
 	<string name="onboarding_title_3">Parar de ser monitorado online</string>
 	<string name="onboarding_title_4">Anonimato de pagamento para web</string>
 	<string name="onboarding_description_base">A VPN mais privada do mundo</string>
-	<string name="onboarding_description_1">A VPN mais privada do mundo\nExperimente gratuitamente por 7 dias\nTodos os recursos inclusos, sem anúncios.</string>
+	<string name="onboarding_description_1">A VPN mais privada do mundo</string>
 	<string name="onboarding_description_2">Rápido: mais de 250 Mbps com dVPN.\nanônimo: 5 saltos de ruído gerando Mixnet.</string>
 	<string name="onboarding_description_3">A rede descentralizada do Nilo torna \"no-log\"\n promete obsoleto.</string>
 	<string name="onboarding_description_4">Pague com cartão, cripto ou dinheiro sem necessidade de e-mail. As provas de conhecimento zero tornam seus pagamentos não vinculáveis às suas atividades on-line.</string>

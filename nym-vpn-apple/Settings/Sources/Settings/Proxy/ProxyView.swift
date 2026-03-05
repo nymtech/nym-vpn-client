@@ -21,6 +21,7 @@ public struct ProxyView: View {
                     proxyStatusSection()
                     proxySettingsList()
                 }
+                .scrollIndicators(.never)
             }
             .padding(.horizontal, 16)
             Spacer()
@@ -337,8 +338,10 @@ private extension ProxyView {
                             .textStyle(.Body.Medium.regular)
                             .foregroundStyle(NymColor.gray1)
                         Spacer()
-                        GenericImage(imageName: viewModel.isHttpRpcCopiedFullyQualified ? "checkmarkSeeThrough" : "copy")
-                            .frame(width: 24, height: 24)
+                        GenericImage(
+                            imageName: viewModel.isHttpRpcCopiedFullyQualified ? "checkmarkSeeThrough" : "copy"
+                        )
+                        .frame(width: 24, height: 24)
                     }
                 }
                 .padding(.bottom, 16)

@@ -57,6 +57,6 @@ private extension AcknowledgmentsView {
             Spacer()
                 .frame(height: 24)
         }
-        .scrollIndicators(.hidden)
+        .scrollIndicators(.never)
     }
 }

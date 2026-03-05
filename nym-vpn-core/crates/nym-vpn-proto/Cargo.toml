@@ -12,6 +12,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+hyper = { workspace = true }
 prost-types.workspace = true
 prost.workspace = true
 serde_json = { workspace = true, optional = true }

@@ -1,0 +1,38 @@
+[package]
+name = "test-runner"
+description = "Runs inside the VM where the Nym VPN app is being tested"
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+bytes = { workspace = true }
+dirs = { workspace = true }
+futures = { workspace = true }
+libc = { workspace = true }
+log = { workspace = true }
+rand = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+socket2 = { workspace = true, features = ["all"] }
+surge-ping = { workspace = true }
+tarpc = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["process", "fs", "net", "rt-multi-thread", "macros"] }
+tokio-serde = { workspace = true }
+tokio-serial = { workspace = true }
+tokio-util = { workspace = true, features = ["codec"]}
+
+test-rpc = { workspace = true }
+nym-ipc = { workspace = true }
+
+[target.'cfg(unix)'.dependencies]
+nix = { workspace = true, features = ["user", "net"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rs-release = {workspace = true}

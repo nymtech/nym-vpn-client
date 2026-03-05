@@ -34,7 +34,7 @@ cp -R "${LIB_SRC}" "${LIB_DEST}"
 echo "[BuildCore] Copied NymVPNLib → ${LIB_DEST}"
 
 # 3) Build macOS (produces upload/mac/nym-vpnd if macOS.mk has vpnd targets)
-make -f macOS.mk
+make -f macOS.mk libwg nym-setup nym-vpnd rpc-swift-package
 
 # 4) Copy NymVPNRpc (from nym-vpn-rpc-uniffi) → apple repo root
 RPC_SRC="${CORE_ROOT}/crates/nym-vpn-rpc-uniffi/NymVPNRpc"

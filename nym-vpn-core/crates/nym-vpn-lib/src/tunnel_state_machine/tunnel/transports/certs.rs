@@ -50,17 +50,21 @@ fn parse_certificate(
 }
 
 #[derive(Debug)]
-pub struct IdentityBasedVerifier {
+pub struct IdentityBasedVerifierBuilder {
     alt_names: Vec<String>,
-    server_identity_pubkey: [u8; ed25519_dalek::PUBLIC_KEY_LENGTH],
-    default_verifier: Arc<WebPkiServerVerifier>,
+    identity_pubkey: VerifyingKey,
+    crypto_provider: Option<Arc<rustls::crypto::CryptoProvider>>,
 }
 
-impl IdentityBasedVerifier {
-    pub fn new(identity_key: &VerifyingKey) -> Result<Self, VerifierBuilderError> {
-        let pubkey_as_name = bs58::encode(identity_key.as_bytes()).into_string();
+impl IdentityBasedVerifierBuilder {
+    pub fn build(self) -> Result<IdentityBasedVerifier, VerifierBuilderError> {
+        let pubkey_as_name = bs58::encode(self.identity_pubkey.as_bytes()).into_string();
         trace!("building identity key based verified with key: {pubkey_as_name}");
-        let alt_names = vec![pubkey_as_name];
+        // ensure that the alt names contains the public key as a string
+        let mut alt_names = self.alt_names;
+        if !alt_names.contains(&pubkey_as_name) {
+            alt_names.push(pubkey_as_name);
+        }
 
         // create an empty trust store
         let mut roots = RootCertStore::empty();
@@ -69,33 +73,59 @@ impl IdentityBasedVerifier {
         roots.extend(TLS_SERVER_ROOTS.iter().cloned());
 
         // create a verifier so we can use default implementations
-        let default_verifier = WebPkiServerVerifier::builder(Arc::new(roots)).build()?;
+        let default_verifier = if let Some(crypto_provider) = self.crypto_provider {
+            WebPkiServerVerifier::builder_with_provider(Arc::new(roots), crypto_provider).build()?
+        } else {
+            WebPkiServerVerifier::builder(Arc::new(roots)).build()?
+        };
 
         Ok(IdentityBasedVerifier {
             alt_names,
-            server_identity_pubkey: identity_key.to_bytes(),
+            server_identity_pubkey: self.identity_pubkey.to_bytes(),
             default_verifier,
         })
     }
 
-    pub fn new_with_alt_names(
-        identity_key: &VerifyingKey,
-        alt_names: Option<Vec<impl ToString>>,
-    ) -> Result<Self, VerifierBuilderError> {
+    /// Appends alt names to the set accepted for this server certificate verifier.
+    /// Can be called multiple times as provided names are appended.
+    pub fn with_alt_names(mut self, alt_names: Option<Vec<impl ToString>>) -> Self {
         let mut alt_names: Vec<String> = alt_names
             .unwrap_or_default()
             .iter()
             .map(ToString::to_string)
+            .filter(|x| !self.alt_names.contains(x))
             .collect();
-        let pubkey_as_name = bs58::encode(identity_key.as_bytes()).into_string();
-        if !alt_names.contains(&pubkey_as_name) {
-            alt_names.push(pubkey_as_name);
+
+        self.alt_names.append(&mut alt_names);
+        self
+    }
+
+    /// Allows a caller to set a custom rustls CryptoProvider. If none is given
+    /// the default construction is used which assumes that a default CryptoProvider
+    /// has been installed at the crate level.
+    pub fn with_crypto_provider(
+        mut self,
+        crypto_provider: Arc<rustls::crypto::CryptoProvider>,
+    ) -> Self {
+        self.crypto_provider = Some(crypto_provider);
+        self
+    }
+}
+
+#[derive(Debug)]
+pub struct IdentityBasedVerifier {
+    alt_names: Vec<String>,
+    server_identity_pubkey: [u8; ed25519_dalek::PUBLIC_KEY_LENGTH],
+    default_verifier: Arc<WebPkiServerVerifier>,
+}
+
+impl IdentityBasedVerifier {
+    pub fn builder(identity_key: &VerifyingKey) -> IdentityBasedVerifierBuilder {
+        IdentityBasedVerifierBuilder {
+            alt_names: vec![],
+            identity_pubkey: *identity_key,
+            crypto_provider: None,
         }
-
-        let mut verifier = Self::new(identity_key)?;
-        verifier.alt_names = alt_names;
-
-        Ok(verifier)
     }
 }
 

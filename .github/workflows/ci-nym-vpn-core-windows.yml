@@ -60,7 +60,8 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+          key:
+            ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
@@ -68,7 +69,10 @@ jobs:
         uses: actions/cache@v5
         with:
           path: nym-vpn-core/target/
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          key:
+            ${{ runner.os }}-cargo-build-${{
+            hashFiles('nym-vpn-core/Cargo.lock') }}-${{
+            hashFiles('nym-vpn-core/**/*.rs') }}
           restore-keys: |
             ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
             ${{ runner.os }}-cargo-build-

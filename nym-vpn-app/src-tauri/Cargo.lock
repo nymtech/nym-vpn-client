@@ -3487,7 +3487,10 @@ dependencies = [
 name = "nym-ipc"
 version = "1.26.0-beta"
 dependencies = [
+ "cc",
  "hyper-util",
+ "objc2",
+ "objc2-foundation",
  "tokio",
  "tokio-stream",
  "tracing",
