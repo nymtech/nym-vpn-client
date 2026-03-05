@@ -18,8 +18,6 @@ const statusColors = {
 export function AccountDescription() {
   const { t } = useTranslation('settings');
   const { accountSyncing, accountState, accountSummary } = useMainState();
-  console.log('[AccountDescription] accountSummary', accountSummary);
-  console.log('[AccountDescription] accountState', accountState);
 
   const accountStateDescription = getAccountStateDescription(
     t,

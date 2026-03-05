@@ -18,7 +18,6 @@ export function CardNewHeader({
   return (
     <div
       className={clsx(
-        // 'w-full flex flex-row items-start justify-start px-5 pt-5',
         'w-full flex flex-row items-start justify-start p-5',
         className,
       )}
@@ -193,7 +192,6 @@ export function CardNew({ children, disabled, className }: CardNewProps) {
   return (
     <div
       className={clsx([
-        // 'flex flex-col justify-center items-center gap-4 select-none',
         'flex flex-col justify-center items-center select-none',
         'bg-white dark:bg-charcoal rounded-lg min-h-16',
         'transition cursor-default',

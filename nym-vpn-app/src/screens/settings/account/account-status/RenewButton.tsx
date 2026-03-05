@@ -21,7 +21,6 @@ export function RenewButton({
   );
 
   const handleRenew = async () => {
-    console.log('Renew now to stay protected');
     // temporary redirect to login page
     await openUrl(NymVpnAccountLoginUrl);
     // TODO: Implement renew logic

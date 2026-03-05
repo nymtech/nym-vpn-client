@@ -934,8 +934,6 @@ impl VpndClient {
             .or_else(async |e| self.handle_rpc_error("get_account_summary", e).await)
             .await?;
 
-        info!("account summary: {summary:?}");
-
         Ok(summary.map(Into::into))
     }
 }
