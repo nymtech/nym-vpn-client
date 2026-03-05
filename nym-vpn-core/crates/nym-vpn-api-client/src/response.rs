@@ -274,6 +274,7 @@ pub struct NymVpnSubscription {
     pub valid_from_utc: String,
     pub status: NymVpnSubscriptionStatus,
     pub kind: NymVpnSubscriptionKind,
+    #[serde(default)]
     pub is_recurring: bool,
 }
 
