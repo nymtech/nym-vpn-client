@@ -50,6 +50,29 @@ impl RpcClient {
             })
     }
 
+    pub async fn new_over_serial<C>(
+        connector: C,
+        timeout: Option<std::time::Duration>,
+    ) -> Result<RpcClient>
+    where
+        C: tower::Service<Uri> + Send + 'static,
+        C::Response: hyper::rt::Read + hyper::rt::Write + Send + Unpin,
+        C::Future: Send,
+        C::Error: std::error::Error + Send + Sync + 'static,
+    {
+        let mut endpoint = Endpoint::from_static("serial://placeholder");
+        if let Some(timeout) = timeout {
+            endpoint = endpoint.timeout(timeout);
+        }
+
+        endpoint
+            .connect_with_connector(connector)
+            .await
+            .map(ServiceClient::new)
+            .map(RpcClient)
+            .map_err(Error::Transport)
+    }
+
     pub async fn get_info(&mut self) -> Result<VpnServiceInfo> {
         let response = self.0.info(()).await.map_err(Error::Rpc)?.into_inner();
 
