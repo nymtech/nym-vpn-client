@@ -21,6 +21,7 @@ use anyhow::{Result, anyhow};
 use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
+use commands::diagnostic as cmd_diag;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
@@ -331,6 +332,8 @@ async fn main() -> Result<()> {
             cmd_socks5::enable_socks5,
             cmd_socks5::disable_socks5,
             cmd_socks5::get_socks5_status,
+            cmd_diag::run_diagnostic,
+            cmd_diag::share_diagnostic,
             #[cfg(windows)]
             cmd_updater::fetch_update,
             #[cfg(windows)]
