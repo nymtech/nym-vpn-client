@@ -6391,11 +6391,13 @@ dependencies = [
 name = "nym-split-tunnel"
 version = "1.27.0-beta"
 dependencies = [
+ "bitflags 2.11.0",
  "either",
  "futures-util",
  "insta",
  "ipnetwork",
  "libc",
+ "memoffset",
  "nix 0.31.2",
  "nym-common",
  "nym-firewall-config",
@@ -6403,6 +6405,7 @@ dependencies = [
  "nym-macos",
  "nym-platform-metadata",
  "nym-routing",
+ "nym-windows",
  "pcap",
  "pnet_packet 0.35.0",
  "serde",
@@ -6412,6 +6415,9 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tun",
+ "windows 0.62.2",
+ "windows-service",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -7059,6 +7065,7 @@ dependencies = [
  "tracing",
  "verifysign",
  "windows 0.62.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

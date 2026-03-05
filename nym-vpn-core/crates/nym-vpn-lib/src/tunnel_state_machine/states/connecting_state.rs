@@ -413,18 +413,19 @@ impl ConnectingState {
 
     async fn handle_interface_up(
         mut self: Box<Self>,
-        _tunnel_interface: TunnelInterface,
+        tunnel_interface: TunnelInterface,
         connection_data: Box<EstablishConnectionData>,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
         self.connection_data = Some(*connection_data);
 
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         if let Err(st_error_cause) = shared_state
-            .enable_split_tunnel(_tunnel_interface.exit_tunnel_metadata())
+            .enable_split_tunnel(tunnel_interface.exit_tunnel_metadata())
             .await
         {
             let after_disconnect = match st_error_cause {
+                #[cfg(target_os = "macos")]
                 nym_split_tunnel::SplitTunnelErrorCause::NeedFullDiskPermissions => {
                     PrivateActionAfterDisconnect::Error(ErrorStateReason::NeedFullDiskPermissions)
                 }
@@ -442,9 +443,12 @@ impl ConnectingState {
             return self.disconnect(after_disconnect, shared_state).await;
         }
 
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        let _ = tunnel_interface; // Avoid "unused" warning
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
-            self.firewall_policy_params.tunnel_interface = Some(_tunnel_interface);
+            self.firewall_policy_params.tunnel_interface = Some(tunnel_interface);
 
             if let Err(err) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params)
             {
@@ -667,17 +671,21 @@ impl TunnelStateHandler for ConnectingState {
                             new_firewall_policy.allow_lan = shared_state.tunnel_settings.allow_lan;
                         }
 
-                        #[cfg(target_os = "macos")]
+                        #[cfg(any(target_os = "macos", target_os = "windows"))]
                         {
                             if diff.split_tunnel_changed() {
                                 match shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths()).await {
                                     Ok(interface_changed) => {
                                         if interface_changed {
-                                            new_firewall_policy.redirect_interface = shared_state.split_tunnel.interface().await;
+                                            #[cfg(target_os = "macos")]
+                                            {
+                                                new_firewall_policy.redirect_interface = shared_state.split_tunnel.interface().await;
+                                            }
                                         }
                                     }
                                     Err(st_error_cause) => {
                                         let after_disconnect = match st_error_cause {
+                                            #[cfg(target_os = "macos")]
                                             nym_split_tunnel::SplitTunnelErrorCause::NeedFullDiskPermissions => {
                                                 PrivateActionAfterDisconnect::Error(ErrorStateReason::NeedFullDiskPermissions)
                                             }

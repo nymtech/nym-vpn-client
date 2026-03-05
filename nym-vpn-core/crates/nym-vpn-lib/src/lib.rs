@@ -21,6 +21,11 @@ pub mod tunnel_provider;
 pub mod tunnel_state_machine;
 mod wg_config;
 
+#[cfg(target_os = "windows")]
+pub use nym_split_tunnel::install_driver_service as install_split_tunnel_driver_service;
+#[cfg(target_os = "windows")]
+pub use nym_split_tunnel::uninstall_driver_service as uninstall_split_tunnel_driver_service;
+
 use std::{net::IpAddr, sync::LazyLock};
 
 use hickory_resolver::config::NameServerConfigGroup;
