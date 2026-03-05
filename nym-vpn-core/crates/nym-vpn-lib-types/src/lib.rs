@@ -74,7 +74,7 @@ pub use diagnostic::{
 };
 pub use gateway::{
     Asn, AsnKind, BridgeInformation, BridgeParameters, Country, Entry, EntryPoint, Exit, ExitPoint,
-    Gateway, GatewayFilter, GatewayType, Location, LookupGatewayFilters, NodeIdentity,
+    Gateway, GatewayFilter, GatewayType, Location, LookupGatewayFilters, Lp, NodeIdentity,
     ParseRecipientError, Performance, Probe, ProbeOutcome, QuicClientOptions, Recipient, Score,
     Socks5,
 };
