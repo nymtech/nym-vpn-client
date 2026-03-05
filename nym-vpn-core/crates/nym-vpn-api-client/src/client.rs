@@ -17,10 +17,10 @@ use crate::{
     error::{Result, VpnApiClientError},
     fronted_http_client,
     request::{
-        ApplyFreepassRequestBody, CreateAndroidAccountRequestBody, CreateAppleAccountRequestBody,
-        CreateSubscriptionKind, CreateSubscriptionRequestBody, LinkAccountRequestBody,
-        RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
-        UpdateDeviceRequestStatus,
+        AccountKind, ApplyFreepassRequestBody, CreateAndroidAccountRequestBody,
+        CreateAppleAccountRequestBody, CreateSubscriptionKind, CreateSubscriptionRequestBody,
+        LinkAccountRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody,
+        UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
@@ -601,6 +601,11 @@ impl VpnApiClient {
         platform: Platform,
     ) -> Result<NymVpnRegisterAccountResponse> {
         let account_addr = account.id().to_string();
+        let kind = if account.mode().is_privy() {
+            AccountKind::PrivySecp256k1
+        } else {
+            AccountKind::UserGeneratedSecp256k1
+        };
         let pub_key = account.pub_key().to_string();
         let signature_base64 = account.signature_base64().to_string();
         match platform {
@@ -609,6 +614,7 @@ impl VpnApiClient {
                     account_addr,
                     pub_key,
                     signature_base64,
+                    kind,
                 })
                 .await
             }
@@ -618,6 +624,7 @@ impl VpnApiClient {
                     pub_key,
                     signature_base64,
                     purchase_token,
+                    kind,
                 })
                 .await
             }
