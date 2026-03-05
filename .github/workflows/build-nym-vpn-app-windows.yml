@@ -269,22 +269,23 @@ jobs:
         working-directory: nym-vpn-app/src-tauri
         if: ${{ inputs.sign }}
         shell: bash
+        env:
+          SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
+          SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
+          SSL_COM_CREDENTIAL_ID: ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}
+          SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
         run: |
           yq eval --inplace '.bundle.windows +=
           {
             "signCommand": {
               "cmd": "C:\Program Files\Git\bin\bash.EXE",
               "args": [
-                "/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/CodeSignTool.sh",
-                "sign",
-                "-username ${{ secrets.SSL_COM_USERNAME }}",
-                "-password ${{ secrets.SSL_COM_PASSWORD }}",
-                "-credential_id ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}",
-                "-totp_secret ${{ secrets.SSL_COM_TOTP_SECRET }}",
-                "-program_name NymVPN",
-                "-input_file_path",
+                "/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/scripts/sign.sh",
                 "%1",
-                "-override"
+                "$SSL_COM_USERNAME",
+                "$SSL_COM_PASSWORD",
+                "$SSL_COM_CREDENTIAL_ID",
+                "$SSL_COM_TOTP_SECRET"
               ]
             }
           }' tauri.conf.json

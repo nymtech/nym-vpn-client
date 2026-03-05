@@ -1,4 +1,4 @@
-use nym_windows::process::ClientProcess;
+use nym_windows::process::ProcessCertVerifier;
 use tokio::net::windows::named_pipe::NamedPipeServer;
 use tokio_stream::Stream;
 
@@ -13,7 +13,7 @@ fn verify(
     stream: &Connector<NamedPipeServer>,
     nym_certificate_serial_number: String,
 ) -> Result<(), nym_windows::process::Error> {
-    let client_process = ClientProcess::try_from(&stream.0)?;
+    let client_process = ProcessCertVerifier::try_from(&stream.0)?;
     client_process.verify_certificate_signature(nym_certificate_serial_number)?;
     Ok(())
 }
