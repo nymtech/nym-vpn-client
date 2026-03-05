@@ -58,10 +58,34 @@ impl<T> AuthenticationLayer<T> {
     }
 }
 
-fn skip_authentication_checks() -> bool {
-    // Let debug builds skip authorization process
-    // TODO: Disable feature gating once front-end prevents spamming
-    cfg!(debug_assertions) || cfg!(not(feature = "authentication"))
+fn skip_authentication_checks(
+    #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
+) -> bool {
+    #[cfg(target_os = "windows")]
+    {
+        let proc = nym_windows::process::ProcessCertVerifier {
+            pid: std::process::id(),
+        };
+        // if windows daemon process was signed, we expect the clients to be too
+        if let Err(err) = proc.verify_certificate_signature(nym_certificate_serial_number) {
+            tracing::debug!(
+                "Own certificate signature verification failed: {err:?}, skipping client verification"
+            );
+            true
+        } else {
+            tracing::debug!(
+                "Own binary with PID {} is signed, verifying client",
+                proc.pid
+            );
+            false
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        // Let debug builds skip authorization process
+        // TODO: Disable feature gating once front-end prevents spamming
+        cfg!(debug_assertions) || cfg!(not(feature = "authentication"))
+    }
 }
 
 async fn authorized_stream(
@@ -72,7 +96,11 @@ async fn authorized_stream(
     if !AuthenticaticationQuery::recv(&mut *stream).await.status() {
         tracing::warn!("Query not recognized");
     }
-    if skip_authentication_checks() {
+    if skip_authentication_checks(
+        #[cfg(target_os = "windows")]
+        nym_certificate_serial_number.clone(),
+    ) {
+        tracing::debug!("Skipping authentication checks");
         authorize(stream).await;
         return true;
     }
@@ -87,6 +115,7 @@ async fn authorized_stream(
     {
         Ok(()) => {
             authorize(stream).await;
+            tracing::debug!("Client connection got authorized");
             true
         }
         Err(err) => {
@@ -131,9 +160,19 @@ impl<T: Unpin + Stream<Item = Result<Transport>>> AuthenticationLayer<T> {
 mod tests {
     use super::*;
 
-    #[tokio::test]
+    #[test]
     // Debug builds (like tests or dev runs) are automatically authorized
-    async fn debug_build_authorized() {
+    #[cfg(not(target_os = "windows"))]
+    fn debug_build_authorized() {
         assert!(skip_authentication_checks());
+    }
+
+    #[test]
+    // Test builds are not signed and are authorized
+    #[cfg(target_os = "windows")]
+    fn unsigned_build_authorized() {
+        assert!(skip_authentication_checks(String::from(
+            "4ec9356d8c87f9cf3ccf60e7bdad022f"
+        )));
     }
 }
