@@ -15,6 +15,7 @@ export function AccountDescription() {
   const { t } = useTranslation('settings');
   const { accountSyncing, accountState, accountSummary } = useMainState();
   console.log('[AccountDescription] accountSummary', accountSummary);
+  console.log('[AccountDescription] accountState', accountState);
 
   const desc = getAccountDescription(t, accountSyncing, accountState);
 
@@ -65,7 +66,9 @@ export function AccountDescription() {
     <>
       <p className={getStatusColor()}>
         {t('account.planValidUntil', {
-          date: dayjs.unix(Number(1772712750562)).format('MMMM D, YYYY'),
+          date: dayjs
+            .unix(Number(accountSummary?.['subscription-valid-until']))
+            .format('MMMM D, YYYY'),
         })}
       </p>
       {accountSummary?.['is-recurring'] && (
@@ -73,7 +76,6 @@ export function AccountDescription() {
           *{t('account.auto-renews')}
         </p>
       )}
-      {/* <p className="text-iron dark:text-bombay">*{t('account.auto-renews')}</p> */}
     </>
   );
 }

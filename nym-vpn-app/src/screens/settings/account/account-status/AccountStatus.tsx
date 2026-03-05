@@ -1,4 +1,5 @@
 import { Trans, useTranslation } from 'react-i18next';
+import { useMemo } from 'react';
 import { CardNew, CardNewHeader, Link, MsIcon } from '../../../../ui';
 import { useMainState } from '../../../../contexts';
 import { ContactSupportUrl } from '../../../../constants';
@@ -9,6 +10,13 @@ export function AccountStatus() {
   const { t } = useTranslation('account');
 
   const { accountState, accountSummary } = useMainState();
+
+  const needsSubscription = useMemo(
+    () =>
+      accountState === 'no-subscription' ||
+      accountState === 'status-not-active',
+    [accountState],
+  );
 
   if (!accountState || accountState === 'error') {
     return null;
@@ -25,13 +33,13 @@ export function AccountStatus() {
             </p>
           </div>
         </CardNewHeader>
-        {accountState === 'no-subscription' || !accountSummary ? (
+        {needsSubscription || !accountSummary ? (
           <NoActivePlan />
         ) : (
           <ActivePlan accountSummary={accountSummary} />
         )}
       </CardNew>
-      {accountState !== 'no-subscription' && !!accountSummary && (
+      {!needsSubscription && !!accountSummary && (
         <p className="text-sm text-iron dark:text-bombay">
           <Trans
             i18nKey="account-status.contact-support"

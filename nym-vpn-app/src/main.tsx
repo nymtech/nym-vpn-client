@@ -4,6 +4,7 @@ import { invoke, isTauri } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
 import duration from 'dayjs/plugin/duration';
 import App from './App';
 import { mockTauriIPC } from './dev/setup';
@@ -15,14 +16,19 @@ import { getTheme } from './util';
 import { DefaultNode } from './constants';
 
 // needed locales to load for dayjs
+import 'dayjs/locale/ar';
+import 'dayjs/locale/fa';
+import 'dayjs/locale/bn';
+import 'dayjs/locale/de';
+import 'dayjs/locale/en';
 import 'dayjs/locale/es';
 import 'dayjs/locale/fr';
 import 'dayjs/locale/hi';
-import 'dayjs/locale/it';
 import 'dayjs/locale/pt';
 import 'dayjs/locale/ru';
 import 'dayjs/locale/tr';
 import 'dayjs/locale/uk';
+import 'dayjs/locale/vi';
 import 'dayjs/locale/zh';
 
 console.log('env', window._APP);
@@ -72,6 +78,7 @@ if (import.meta.env.MODE === 'dev-browser') {
 
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
+dayjs.extend(localizedFormat);
 
 (async () => {
   if (isTauri()) {
