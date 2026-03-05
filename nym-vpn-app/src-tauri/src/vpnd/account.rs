@@ -118,7 +118,9 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
         let is_subscription_active = summary.is_subscription_active();
 
         AccountSummary {
-            subscription_valid_until: summary.subscription_valid_until.map(|dt| dt.unix_timestamp()),
+            subscription_valid_until: summary
+                .subscription_valid_until
+                .map(|dt| dt.unix_timestamp()),
             traffic_used_gb: summary.traffic_used_gb,
             traffic_limit_gb: summary.traffic_limit_gb,
             traffic_reset_time: summary.traffic_reset_time.map(|dt| dt.unix_timestamp()),

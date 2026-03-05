@@ -113,7 +113,9 @@ pub async fn get_account_id(vpnd: State<'_, VpndClient>) -> Result<Option<String
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_canonical_account_id(vpnd: State<'_, VpndClient>) -> Result<Option<String>, BackendError> {
+pub async fn get_canonical_account_id(
+    vpnd: State<'_, VpndClient>,
+) -> Result<Option<String>, BackendError> {
     vpnd.canonical_account_id()
         .await
         .map_err(|e| {

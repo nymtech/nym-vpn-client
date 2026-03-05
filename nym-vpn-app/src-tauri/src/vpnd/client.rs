@@ -529,7 +529,10 @@ impl VpndClient {
 
         let id = vpnd
             .get_canonical_account_identity()
-            .or_else(async |e| self.handle_rpc_error("get_canonical_account_identity", e).await)
+            .or_else(async |e| {
+                self.handle_rpc_error("get_canonical_account_identity", e)
+                    .await
+            })
             .await?;
 
         debug!("canonical account id: {id:?}");
