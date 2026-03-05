@@ -131,9 +131,14 @@ impl TryFrom<proto::ProbeOutcome> for nym_vpn_lib_types::ProbeOutcome {
         let as_entry = outcome
             .as_entry
             .map(nym_vpn_lib_types::Entry::from)
-            .ok_or(ConversionError::generic("missing as entry"))?;
+            .ok_or(ConversionError::generic("missing as_entry"))?;
         let as_exit = outcome.as_exit.map(nym_vpn_lib_types::Exit::from);
-        Ok(Self { as_entry, as_exit })
+        Ok(Self {
+            as_entry,
+            as_exit,
+            socks5: None, // socks5 data comes from vpn-api, not from proto
+            lp: None,     // LP data comes from vpn-api, not from proto
+        })
     }
 }
 

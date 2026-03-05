@@ -722,6 +722,8 @@ impl From<nym_gateway_directory::ScoreValue> for Score {
 pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
+    pub socks5: Option<Socks5>,
+    pub lp: Option<Lp>,
 }
 
 #[derive(Debug, Clone)]
@@ -753,6 +755,23 @@ pub struct Socks5 {
     pub can_proxy_https: bool,
     pub score: Option<Score>,
     pub errors: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct Lp {
+    pub can_connect: bool,
+    pub can_handshake: bool,
+    pub can_register: bool,
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -910,6 +929,18 @@ impl From<nym_gateway_directory::Socks5> for Socks5 {
 }
 
 #[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::Lp> for Lp {
+    fn from(lp: nym_gateway_directory::Lp) -> Self {
+        Self {
+            can_connect: lp.can_connect,
+            can_handshake: lp.can_handshake,
+            can_register: lp.can_register,
+            error: lp.error,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Exit> for Exit {
     fn from(exit: nym_gateway_directory::Exit) -> Self {
         Self {
@@ -928,6 +959,8 @@ impl From<nym_gateway_directory::ProbeOutcome> for ProbeOutcome {
         Self {
             as_entry: Entry::from(outcome.as_entry),
             as_exit: outcome.as_exit.map(Exit::from),
+            socks5: outcome.socks5.map(Socks5::from),
+            lp: outcome.lp.map(Lp::from),
         }
     }
 }
