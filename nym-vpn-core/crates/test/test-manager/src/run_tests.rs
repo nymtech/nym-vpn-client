@@ -167,11 +167,33 @@ pub async fn run(
 
     let result = test_handler.gather_results();
 
+    // runs unconditionally after all tests, outside the test loop, so it isn't
+    // affected by test filtering or priority sorting.
+    // Fixes "device leak": if we don't do this, devices registered on the
+    // account pile up and we end up with MaxDevicesReached
+    deregister_account(&rpc_provider).await;
+
     // wait for cleanup
     drop(rpc_provider);
     let _ = tokio::time::timeout(Duration::from_secs(5), completion_handle).await;
 
     Ok(result)
+}
+
+async fn deregister_account(rpc_provider: &RpcClientProvider) {
+    log::info!("Cleaning up: forget_account to deregister device...");
+    match rpc_provider.new_client_nym().await {
+        Ok(mut nym_client) => {
+            if let Err(e) = nym_client.forget_account().await {
+                log::warn!("Failed to forget account during cleanup: {e}");
+            } else {
+                log::info!("Device deregistered successfully");
+            }
+        }
+        Err(e) => {
+            log::warn!("Failed to create RPC client for cleanup: {e}");
+        }
+    }
 }
 
 async fn register_test_result(

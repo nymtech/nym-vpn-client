@@ -1,6 +1,9 @@
 name: e2e-test
 
 on:
+  schedule:
+    # Every weekday (Mon–Fri) at 02:00 UTC
+    - cron: "0 2 * * 1-5"
   workflow_dispatch:
     inputs:
       test_filters:
@@ -31,6 +34,7 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   TEST_CRATE_DIR: nym-vpn-core/crates/test
+  DEFAULT_INSTANCE_TYPE: standard.medium
 
 jobs:
   build:
@@ -166,11 +170,7 @@ jobs:
       - name: Resolve instance type
         id: instance-type
         run: |
-          TYPE="${{ inputs.instance_type || secrets.EXOSCALE_TEST_HARNESS_COMPUTE_INSTANCE_TYPE }}"
-          if [ -z "$TYPE" ]; then
-            echo "ERROR: No instance type specified. Set the workflow input or the EXOSCALE_TEST_HARNESS_COMPUTE_INSTANCE_TYPE repository variable."
-            exit 1
-          fi
+          TYPE="${{ inputs.instance_type || env.DEFAULT_INSTANCE_TYPE }}"
           echo "value=$TYPE" >> "$GITHUB_OUTPUT"
 
       - name: Checkout repo
