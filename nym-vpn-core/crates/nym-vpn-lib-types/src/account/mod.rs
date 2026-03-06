@@ -274,6 +274,8 @@ pub struct VpnAccountSummary {
     pub canonical_account_addr: Option<String>,
     pub auth_methods: Vec<VpnAccountAuthMethod>,
     pub account_mode: Option<StoredAccountMode>,
+    pub subscription_kind: Option<NymVpnSubscriptionKind>,
+    pub is_recurring: bool,
 }
 
 // Exported methods
@@ -332,6 +334,12 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
                 ))
             })?;
 
+        let subscription_kind = value
+            .subscription
+            .active
+            .as_ref()
+            .map(|a| a.kind.clone().into());
+
         let traffic_reset_time_str = value.fair_usage.resetsOnUtc.clone();
         let traffic_reset_time = traffic_reset_time_str
             .as_ref()
@@ -361,6 +369,13 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             canonical_account_addr: value.account.canonical_account_addr.clone(),
             auth_methods,
             account_mode: None,
+            subscription_kind,
+            is_recurring: value
+                .subscription
+                .active
+                .as_ref()
+                .map(|s| s.is_recurring)
+                .unwrap_or(false),
         })
     }
 }
@@ -385,6 +400,48 @@ pub struct VpnAccountAuthMethod {
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601"))]
     pub created: OffsetDateTime,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum NymVpnSubscriptionKind {
+    OneMonth,
+    OneYear,
+    TwoYears,
+    Freepass,
+    #[serde(untagged)]
+    Other(String),
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_api_client::response::NymVpnSubscriptionKind> for NymVpnSubscriptionKind {
+    fn from(value: nym_vpn_api_client::response::NymVpnSubscriptionKind) -> Self {
+        match value {
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::OneMonth => {
+                NymVpnSubscriptionKind::OneMonth
+            }
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::OneYear => {
+                NymVpnSubscriptionKind::OneYear
+            }
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::TwoYears => {
+                NymVpnSubscriptionKind::TwoYears
+            }
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::Freepass => {
+                NymVpnSubscriptionKind::Freepass
+            }
+            nym_vpn_api_client::response::NymVpnSubscriptionKind::Other(value) => {
+                NymVpnSubscriptionKind::Other(value)
+            }
+        }
+    }
 }
 
 #[cfg(feature = "nym-type-conversions")]

@@ -852,6 +852,8 @@ message VpnAccountSummary {
   optional string canonical_account_addr = 6;
   repeated VpnAccountAuthMethod auth_methods = 7;
   optional StoredAccountMode account_mode = 8;
+  optional NymVpnSubscriptionKind subscription_kind = 9;
+  bool is_recurring = 10;
 }
 
 message VpnAccountAuthMethod {
@@ -867,6 +869,24 @@ enum VpnAccountStatus {
   ACTIVE = 0;
   INACTIVE = 1;
   DELETE_ME = 2;
+}
+
+message NymVpnSubscriptionKind {
+    message OneMonth {}
+    message OneYear {}
+    message TwoYears {}
+    message Freepass {}
+    message Other {
+      string other = 1;
+    }
+
+    oneof kind {
+      OneMonth one_month = 1;
+      OneYear one_year = 2;
+      TwoYears two_years = 3;
+      Freepass free_pass = 4;
+      Other other = 5;
+    }
 }
 
 message DeleteLogFileResponse {
