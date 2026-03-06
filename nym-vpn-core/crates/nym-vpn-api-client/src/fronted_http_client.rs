@@ -24,7 +24,7 @@ pub fn fronted_http_client_builder(
     urls: Vec<Url>,
     user_agent: Option<UserAgent>,
     timeout: Option<Duration>,
-    resolver_overrides: Option<&ResolverOverrides>,
+    _resolver_overrides: Option<&ResolverOverrides>,
 ) -> Result<ClientBuilder, VpnApiClientError> {
     let has_front = urls.iter().any(|url| url.has_front());
 
@@ -42,29 +42,6 @@ pub fn fronted_http_client_builder(
 
     if has_front {
         builder = builder.with_fronting(Some(FrontPolicy::OnRetry));
-    }
-
-    // Add resolver overrides
-    if let Some(resolver_overrides) = resolver_overrides.as_ref()
-        && !resolver_overrides.is_empty()
-    {
-        let mut reqwest_client_builder = reqwest::ClientBuilder::default();
-
-        for domain in resolver_overrides.domains() {
-            if let Some(addrs) = resolver_overrides.addresses(&domain) {
-                tracing::info!(
-                    "Enabling Resolver override for {domain}: {}",
-                    addrs
-                        .iter()
-                        .map(|addr| addr.to_string())
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                );
-                reqwest_client_builder = reqwest_client_builder.resolve_to_addrs(&domain, &addrs);
-            }
-        }
-
-        builder = builder.with_reqwest_builder(reqwest_client_builder);
     }
 
     Ok(builder)

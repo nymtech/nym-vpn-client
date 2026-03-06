@@ -11,6 +11,7 @@ use crate::tunnel_state_machine::{
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
+use nym_http_api_client::HickoryDnsResolver;
 
 pub struct DisconnectedState;
 
@@ -36,6 +37,10 @@ impl DisconnectedState {
         // Reset resolver overrides and allow all networking since firewall is no longer active
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.reset_resolver_overrides().await;
+
+        // Clear addresses from the pre-resolve table in the (shared) DNS resolver.
+        HickoryDnsResolver::shared().clear_preresolve();
+
         shared_state.allow_networking().await;
 
         (Box::new(Self), PrivateTunnelState::Disconnected)
