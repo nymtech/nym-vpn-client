@@ -24,24 +24,18 @@ data class Artifact(
 	val unknownLicenses: List<UnknownLicenses>? = null,
 ) {
 	companion object {
-		fun fromJsonList(text: String): Result<List<Artifact>> {
-			return kotlin.runCatching {
-				Json.decodeFromString<List<Artifact>>(text)
-					.distinctBy { artifact -> artifact.name }
-			}
+		fun fromJsonList(text: String): Result<List<Artifact>> = kotlin.runCatching {
+			Json.decodeFromString<List<Artifact>>(text)
+				.distinctBy { artifact -> artifact.name }
 		}
 
-		fun from(license: License): Artifact {
-			return Artifact(
-				version = license.version,
-				name = "${license.name} (Rust)",
-				unknownLicenses = license.license?.let { listOf(UnknownLicenses(it, "")) },
-				scm = license.repository?.let { Scm(it) },
-			)
-		}
+		fun from(license: License): Artifact = Artifact(
+			version = license.version,
+			name = "${license.name} (Rust)",
+			unknownLicenses = license.license?.let { listOf(UnknownLicenses(it, "")) },
+			scm = license.repository?.let { Scm(it) },
+		)
 
-		fun from(licenses: List<License>): List<Artifact> {
-			return licenses.map { from(it) }
-		}
+		fun from(licenses: List<License>): List<Artifact> = licenses.map { from(it) }
 	}
 }

@@ -36,38 +36,32 @@ data class NymGateway(
 	val bridgeInformation: BridgeInformation?,
 ) {
 	companion object {
-		fun from(gateway: Gateway): NymGateway {
-			return NymGateway(
-				identity = gateway.identityKey,
-				name = gateway.name,
-				description = gateway.description,
-				twoLetterCountryISO = gateway.location?.twoLetterIsoCountryCode?.lowercase(),
-				mixnetScore = gateway.performance?.mixnetScore,
-				wgScore = gateway.performance?.score,
-				wgLoad = gateway.performance?.load,
-				lastUpdated = gateway.performance?.lastUpdatedUtc,
-				wgUptime = gateway.performance?.uptimePercentageLast24Hours,
-				city = gateway.location?.city,
-				region = gateway.location?.region,
-				asn = gateway.location?.asn?.asn,
-				asnName = gateway.location?.asn?.name,
-				asnKind = gateway.location?.asn?.kind,
-				buildVersion = gateway.buildVersion,
-				exitIpv4s = gateway.exitIpv4s,
-				exitIpv6s = gateway.exitIpv6s,
-				bridgeInformation = gateway.bridgeParams?.toBridgeInformation(),
-			)
-		}
+		fun from(gateway: Gateway): NymGateway = NymGateway(
+			identity = gateway.identityKey,
+			name = gateway.name,
+			description = gateway.description,
+			twoLetterCountryISO = gateway.location?.twoLetterIsoCountryCode?.lowercase(),
+			mixnetScore = gateway.performance?.mixnetScore,
+			wgScore = gateway.performance?.score,
+			wgLoad = gateway.performance?.load,
+			lastUpdated = gateway.performance?.lastUpdatedUtc,
+			wgUptime = gateway.performance?.uptimePercentageLast24Hours,
+			city = gateway.location?.city,
+			region = gateway.location?.region,
+			asn = gateway.location?.asn?.asn,
+			asnName = gateway.location?.asn?.name,
+			asnKind = gateway.location?.asn?.kind,
+			buildVersion = gateway.buildVersion,
+			exitIpv4s = gateway.exitIpv4s,
+			exitIpv6s = gateway.exitIpv6s,
+			bridgeInformation = gateway.bridgeParams?.toBridgeInformation(),
+		)
 
-		fun from(string: String?): NymGateway? {
-			return string?.let { Json.decodeFromString<NymGateway>(string) }
-		}
+		fun from(string: String?): NymGateway? = string?.let { Json.decodeFromString<NymGateway>(string) }
 
-		fun fromCollectionString(string: String?): List<NymGateway> {
-			return string?.let {
-				Json.decodeFromString<List<NymGateway>>(it)
-			} ?: emptyList()
-		}
+		fun fromCollectionString(string: String?): List<NymGateway> = string?.let {
+			Json.decodeFromString<List<NymGateway>>(it)
+		} ?: emptyList()
 
 		private fun SdkBridgeInformation.toBridgeInformation() = BridgeInformation(
 			transports = transports.map {
@@ -80,15 +74,11 @@ data class NymGateway(
 		}
 	}
 
-	override fun toString(): String {
-		return Json.encodeToString(serializer(), this)
-	}
+	override fun toString(): String = Json.encodeToString(serializer(), this)
 }
 
 @Serializable
-data class BridgeInformation(
-	val transports: List<BridgeParameter>,
-)
+data class BridgeInformation(val transports: List<BridgeParameter>)
 
 @Serializable
 sealed class BridgeParameter {

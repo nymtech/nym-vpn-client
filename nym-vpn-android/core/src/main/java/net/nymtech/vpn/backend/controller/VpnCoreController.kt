@@ -192,42 +192,38 @@ class VpnCoreController(
 		}
 	}
 
-	suspend fun disconnectLocked(): ConnectResult {
-		return runCatching {
-			if (initialized.isCompleted) {
-				requireCoreSender { it.disconnectTunnel() }
-			}
-
-			tun.closeInterfaceSafely()
-			publishState(Tunnel.State.Down)
-
-			foreground.stopForegroundSafely()
-			foreground.cancelForegroundNotificationSafely()
-
-			ConnectResult.Ok
-		}.getOrElse { t ->
-			Timber.tag(TAG).e(t, "DisconnectFailed")
-			ConnectResult.Failed("Disconnect failed", t::class.java.name)
+	suspend fun disconnectLocked(): ConnectResult = runCatching {
+		if (initialized.isCompleted) {
+			requireCoreSender { it.disconnectTunnel() }
 		}
+
+		tun.closeInterfaceSafely()
+		publishState(Tunnel.State.Down)
+
+		foreground.stopForegroundSafely()
+		foreground.cancelForegroundNotificationSafely()
+
+		ConnectResult.Ok
+	}.getOrElse { t ->
+		Timber.tag(TAG).e(t, "DisconnectFailed")
+		ConnectResult.Failed("Disconnect failed", t::class.java.name)
 	}
 
-	suspend fun reconnectLocked(): ConnectResult {
-		return runCatching {
-			applyCanonicalConfigToRustIfReady(force = false, canonical = null)
+	suspend fun reconnectLocked(): ConnectResult = runCatching {
+		applyCanonicalConfigToRustIfReady(force = false, canonical = null)
 
-			val wasReconnected = requireCoreSender { it.reconnectTunnel() }
+		val wasReconnected = requireCoreSender { it.reconnectTunnel() }
 
-			if (wasReconnected) {
-				Timber.tag(TAG).i("Reconnect: reconnectTunnel() triggered successfully")
-			} else {
-				Timber.tag(TAG).i("Reconnect: tunnel was down, ignoring restart request")
-			}
-
-			ConnectResult.Ok
-		}.getOrElse { t ->
-			Timber.tag(TAG).e(t, "ReconnectFailed")
-			ConnectResult.Failed("Reconnect failed", t::class.java.name)
+		if (wasReconnected) {
+			Timber.tag(TAG).i("Reconnect: reconnectTunnel() triggered successfully")
+		} else {
+			Timber.tag(TAG).i("Reconnect: tunnel was down, ignoring restart request")
 		}
+
+		ConnectResult.Ok
+	}.getOrElse { t ->
+		Timber.tag(TAG).e(t, "ReconnectFailed")
+		ConnectResult.Failed("Reconnect failed", t::class.java.name)
 	}
 
 	suspend fun disconnectBestEffort(reason: String) {

@@ -121,49 +121,43 @@ object DeviceAuthHelper {
 		OTHER,
 	}
 
-	private fun allowedAuthenticatorsForPrompt(): Int {
-		return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-			BiometricManager.Authenticators.BIOMETRIC_STRONG or
-				BiometricManager.Authenticators.DEVICE_CREDENTIAL
-		} else {
-			BiometricManager.Authenticators.BIOMETRIC_STRONG
-		}
+	private fun allowedAuthenticatorsForPrompt(): Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+		BiometricManager.Authenticators.BIOMETRIC_STRONG or
+			BiometricManager.Authenticators.DEVICE_CREDENTIAL
+	} else {
+		BiometricManager.Authenticators.BIOMETRIC_STRONG
 	}
 
-	private fun allowedAuthenticatorsForCheck(): Int {
-		return allowedAuthenticatorsForPrompt()
-	}
+	private fun allowedAuthenticatorsForCheck(): Int = allowedAuthenticatorsForPrompt()
 
 	@Suppress("DEPRECATION")
-	fun buildPromptInfo(context: Context, title: String, subtitle: String): BiometricPrompt.PromptInfo {
-		return when {
-			Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
-				BiometricPrompt.PromptInfo.Builder()
-					.setTitle(title)
-					.setSubtitle(subtitle)
-					.setAllowedAuthenticators(
-						BiometricManager.Authenticators.BIOMETRIC_STRONG or
-							BiometricManager.Authenticators.DEVICE_CREDENTIAL,
-					)
-					.build()
-			}
+	fun buildPromptInfo(context: Context, title: String, subtitle: String): BiometricPrompt.PromptInfo = when {
+		Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+			BiometricPrompt.PromptInfo.Builder()
+				.setTitle(title)
+				.setSubtitle(subtitle)
+				.setAllowedAuthenticators(
+					BiometricManager.Authenticators.BIOMETRIC_STRONG or
+						BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+				)
+				.build()
+		}
 
-			Build.VERSION.SDK_INT == Build.VERSION_CODES.Q -> {
-				BiometricPrompt.PromptInfo.Builder()
-					.setTitle(title)
-					.setSubtitle(subtitle)
-					.setDeviceCredentialAllowed(true)
-					.build()
-			}
+		Build.VERSION.SDK_INT == Build.VERSION_CODES.Q -> {
+			BiometricPrompt.PromptInfo.Builder()
+				.setTitle(title)
+				.setSubtitle(subtitle)
+				.setDeviceCredentialAllowed(true)
+				.build()
+		}
 
-			else -> {
-				BiometricPrompt.PromptInfo.Builder()
-					.setTitle(title)
-					.setSubtitle(subtitle)
-					.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-					.setNegativeButtonText(context.getString(android.R.string.cancel))
-					.build()
-			}
+		else -> {
+			BiometricPrompt.PromptInfo.Builder()
+				.setTitle(title)
+				.setSubtitle(subtitle)
+				.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+				.setNegativeButtonText(context.getString(android.R.string.cancel))
+				.build()
 		}
 	}
 }

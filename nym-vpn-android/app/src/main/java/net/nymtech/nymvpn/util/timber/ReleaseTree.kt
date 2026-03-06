@@ -4,9 +4,7 @@ import timber.log.Timber
 
 class ReleaseTree(private val minPriority: Int) : Timber.DebugTree() {
 
-	override fun isLoggable(tag: String?, priority: Int): Boolean {
-		return priority >= minPriority
-	}
+	override fun isLoggable(tag: String?, priority: Int): Boolean = priority >= minPriority
 
 	override fun d(t: Throwable?) {
 		return

@@ -15,9 +15,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class AccountInfoViewModel @Inject constructor(
-	private val backendManager: BackendManager,
-) : ViewModel() {
+class AccountInfoViewModel @Inject constructor(private val backendManager: BackendManager) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-account-vm"

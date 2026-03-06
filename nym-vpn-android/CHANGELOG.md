@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.0.0]
 
 ### Added
+
+### Changed
+- AGP version update (https://github.com/nymtech/nym-vpn-client/pull/4586)
+- Clean up QUIC feature flag usage (https://github.com/nymtech/nym-vpn-client/pull/4805)
+- Welcome screen images update (https://github.com/nymtech/nym-vpn-client/pull/4814)
+
+### Fixed
+- Fix issue with the Details button for exit server (https://github.com/nymtech/nym-vpn-client/pull/4805)
+
+## [3.0.0]
+
+### Added
 - Add subscription checks after login (https://github.com/nymtech/nym-vpn-client/pull/4683)
 - Expose account summary for handling Account state (https://github.com/nymtech/nym-vpn-client/pull/4683)
 - Add Social linking check for Account Screen (https://github.com/nymtech/nym-vpn-client/pull/4714)

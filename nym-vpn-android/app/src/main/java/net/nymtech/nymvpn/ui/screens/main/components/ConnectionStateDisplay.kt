@@ -17,12 +17,10 @@ import nym_vpn_lib_types.ErrorStateReason
 fun ConnectionStateDisplay(connectionState: ConnectionState, theme: Theme) {
 	val isDarkMode = isSystemInDarkTheme()
 
-	fun determinePillColor(lightColor: Color, darkColor: Color): Color {
-		return when (theme) {
-			Theme.AUTOMATIC, Theme.DYNAMIC -> if (isDarkMode) darkColor else lightColor
-			Theme.DARK_MODE -> darkColor
-			Theme.LIGHT_MODE -> lightColor
-		}
+	fun determinePillColor(lightColor: Color, darkColor: Color): Color = when (theme) {
+		Theme.AUTOMATIC, Theme.DYNAMIC -> if (isDarkMode) darkColor else lightColor
+		Theme.DARK_MODE -> darkColor
+		Theme.LIGHT_MODE -> lightColor
 	}
 
 	when (connectionState) {

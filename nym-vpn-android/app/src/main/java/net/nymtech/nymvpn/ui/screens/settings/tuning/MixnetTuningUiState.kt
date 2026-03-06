@@ -30,15 +30,13 @@ data class MixnetTuningUiState(
 		)
 	}
 
-	fun toConfig(original: MixnetTrafficConfig): MixnetTrafficConfig {
-		return original.copy(
-			disableBackgroundCoverTraffic = !trafficEnabled,
-			disablePoissonRate = !trafficEnabled,
-			averagePacketDelay = averagePacketDelay.toUInt(),
-			messageSendingAverageDelay = if (trafficEnabled) currentTrafficValue.toUInt() else original.messageSendingAverageDelay,
-			poissonParameterForLoopCoverStream = if (!trafficEnabled) currentTrafficValue.toUInt() else original.poissonParameterForLoopCoverStream,
-		)
-	}
+	fun toConfig(original: MixnetTrafficConfig): MixnetTrafficConfig = original.copy(
+		disableBackgroundCoverTraffic = !trafficEnabled,
+		disablePoissonRate = !trafficEnabled,
+		averagePacketDelay = averagePacketDelay.toUInt(),
+		messageSendingAverageDelay = if (trafficEnabled) currentTrafficValue.toUInt() else original.messageSendingAverageDelay,
+		poissonParameterForLoopCoverStream = if (!trafficEnabled) currentTrafficValue.toUInt() else original.poissonParameterForLoopCoverStream,
+	)
 
 	fun checkState(savedConfig: MixnetTrafficConfig): MixnetTuningUiState {
 		val currentConfig = toConfig(savedConfig)

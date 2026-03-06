@@ -27,9 +27,7 @@ import nym_vpn_lib_types.ExitPoint
  * Builds and updates the VPN foreground notification.
  */
 @SuppressLint("MissingPermission")
-internal class VpnNotificationManager private constructor(
-	private val context: Context,
-) {
+internal class VpnNotificationManager private constructor(private val context: Context) {
 
 	companion object : SingletonHolder<VpnNotificationManager, Context>(::VpnNotificationManager) {
 		const val VPN_CHANNEL_ID = "VpnForegroundChannel"

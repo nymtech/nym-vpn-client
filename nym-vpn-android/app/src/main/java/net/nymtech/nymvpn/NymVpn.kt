@@ -49,14 +49,12 @@ class NymVpn : Application() {
 		lateinit var instance: NymVpn
 			private set
 
-		fun getCPUArchitecture(): String {
-			return when (Build.SUPPORTED_ABIS.firstOrNull()) {
-				"arm64-v8a" -> "ARM64"
-				"armeabi-v7a" -> "ARM32"
-				"x86_64" -> "x86_64"
-				"x86" -> "x86"
-				else -> "Unknown"
-			}
+		fun getCPUArchitecture(): String = when (Build.SUPPORTED_ABIS.firstOrNull()) {
+			"arm64-v8a" -> "ARM64"
+			"armeabi-v7a" -> "ARM32"
+			"x86_64" -> "x86_64"
+			"x86" -> "x86"
+			else -> "Unknown"
 		}
 	}
 

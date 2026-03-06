@@ -1,13 +1,66 @@
+import com.android.build.api.variant.BuildConfigField
+import com.android.build.api.variant.ResValue
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
 	alias(libs.plugins.compose.compiler)
 	alias(libs.plugins.androidApplication)
-	alias(libs.plugins.jetbrainsKotlinAndroid)
 	alias(libs.plugins.hilt.android)
 	alias(libs.plugins.ksp)
 	alias(libs.plugins.licensee)
 	alias(libs.plugins.kotlinxSerialization)
 	alias(libs.plugins.gross)
-	alias(libs.plugins.grgit)
+}
+
+val currentCommitHash: Provider<String> = providers.exec {
+	commandLine("git", "rev-parse", "HEAD")
+	isIgnoreExitValue = true
+}.standardOutput.asText.map { it.trim().ifEmpty { "unknown" } }.orElse("unknown")
+
+val currentAbbreviatedHash: Provider<String> = providers.exec {
+	commandLine("git", "rev-parse", "--short", "HEAD")
+	isIgnoreExitValue = true
+}.standardOutput.asText.map { it.trim().ifEmpty { "unknown" } }.orElse("unknown")
+
+val languagesArray: Provider<String> = providers.provider {
+	languageList().joinToString(separator = ", ") { "\"$it\"" }
+}
+
+val versionNameProvider: Provider<String> = providers.provider {
+	val taskName = getBuildTaskName().lowercase()
+	if (taskName.contains(Constants.NIGHTLY) || taskName.contains(Constants.PRERELEASE)) {
+		val hash = currentAbbreviatedHash.getOrElse("unknown")
+		"${Constants.VERSION_NAME}-$hash"
+	} else {
+		Constants.VERSION_NAME
+	}
+}
+
+base {
+	archivesName.set(versionNameProvider.map { v: String -> "${Constants.APP_NAME}-$v" })
+}
+
+kotlin {
+	jvmToolchain(21)
+	sourceSets {
+		all {
+			languageSettings.optIn("kotlin.RequiresOptIn")
+			languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+		}
+	}
+	compilerOptions {
+		jvmTarget.set(JvmTarget.fromTarget(Constants.JVM_TARGET))
+	}
+}
+
+licensee {
+	Constants.allowedLicenses.forEach { allow(it) }
+	allowUrl(Constants.ANDROID_TERMS_URL)
+	allowUrl(Constants.XZING_LICENSE_URL)
+}
+
+gross {
+	enableAndroidAssetGeneration.set(true)
 }
 
 android {
@@ -16,13 +69,11 @@ android {
 
 	androidResources {
 		generateLocaleConfig = true
+		localeFilters += languageList()
 	}
 
-	// reproducibility
 	dependenciesInfo {
-		// Disables dependency metadata when building APKs.
 		includeInApk = false
-		// Disables dependency metadata when building Android App Bundles.
 		includeInBundle = false
 	}
 
@@ -31,23 +82,23 @@ android {
 		minSdk = Constants.MIN_SDK
 		targetSdk = Constants.TARGET_SDK
 		versionCode = Constants.VERSION_CODE
-		versionName = determineVersionName()
-
-		// keep all language resources
-		resourceConfigurations.addAll(languageList())
+		versionName = versionNameProvider.get()
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
 			useSupportLibrary = true
 		}
 
-		// for in-app language selector
-		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
-
-		// for useragent core lib property
-		buildConfigField("String", "COMMIT_HASH", "\"${grgitService.service.get().grgit.head().id}\"")
+		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languagesArray.getOrElse("")} }")
+		buildConfigField("String", "COMMIT_HASH", "\"${currentCommitHash.getOrElse("unknown")}\"")
 		buildConfigField("Boolean", "IS_PRERELEASE", "false")
 		proguardFile("fdroid-rules.pro")
+
+		if (isBundleBuild()) {
+			ndk {
+				abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+			}
+		}
 	}
 
 	signingConfigs {
@@ -60,28 +111,10 @@ android {
 	}
 
 	buildTypes {
-		applicationVariants.all {
-			val variant = this
-			variant.outputs
-				.map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
-				.forEach { output ->
-					val fullName =
-						Constants.APP_NAME +
-							"-${variant.flavorName}" +
-							"-${variant.buildType.name}" +
-							"-${variant.versionName}"
-					buildConfigField("String", "APP_NAME", "\"${fullName}\"")
-					variant.resValue("string", "fullVersionName", fullName)
-					val outputFileName =
-						"$fullName.apk"
-					output.outputFileName = outputFileName
-				}
-		}
 		release {
 			isDebuggable = false
 			isMinifyEnabled = true
 			isShrinkResources = true
-			// reproducibility
 			vcsInfo.include = false
 			proguardFiles(
 				getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -96,7 +129,7 @@ android {
 			isDebuggable = true
 			applicationIdSuffix = ".debug"
 			versionNameSuffix = "-debug"
-			resValue("string", "app_name", "NymVPN - Debug")
+			resValue("string", "app_name", "${Constants.APP_NAME} - Debug")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.debug\"")
 		}
 
@@ -104,20 +137,20 @@ android {
 			initWith(buildTypes.getByName(Constants.RELEASE))
 			applicationIdSuffix = ".prerelease"
 			versionNameSuffix = "-pre"
-			resValue("string", "app_name", "NymVPN - Pre")
+			resValue("string", "app_name", "${Constants.APP_NAME} - Pre")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.pre\"")
 			buildConfigField("Boolean", "IS_PRERELEASE", "true")
-			// signingConfig = signingConfigs.getByName("debug")
 		}
 
 		create(Constants.NIGHTLY) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
 			applicationIdSuffix = ".nightly"
 			versionNameSuffix = "-nightly"
-			resValue("string", "app_name", "NymVPN - Nightly")
+			resValue("string", "app_name", "${Constants.APP_NAME} - Nightly")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.nightly\"")
 		}
 	}
+
 	flavorDimensions.add(Constants.TYPE)
 	productFlavors {
 		create(Constants.FDROID) {
@@ -130,37 +163,17 @@ android {
 			buildConfigField("String", Constants.FLAVOR, "\"${Constants.GENERAL}\"")
 		}
 	}
+
 	compileOptions {
 		isCoreLibraryDesugaringEnabled = true
 		sourceCompatibility = Constants.JAVA_VERSION
 		targetCompatibility = Constants.JAVA_VERSION
 	}
 
-	kotlinOptions {
-		jvmTarget = Constants.JVM_TARGET
-	}
-
-	kotlin {
-		sourceSets {
-			all {
-				languageSettings.optIn("kotlin.RequiresOptIn")
-				languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
-			}
-		}
-	}
-
-	licensee {
-		Constants.allowedLicenses.forEach { allow(it) }
-		allowUrl(Constants.ANDROID_TERMS_URL)
-		allowUrl(Constants.XZING_LICENSE_URL)
-	}
-
-	// for git hash
-	gross { enableAndroidAssetGeneration.set(true) }
-
 	buildFeatures {
 		compose = true
 		buildConfig = true
+		resValues = true
 	}
 
 	packaging {
@@ -169,17 +182,21 @@ android {
 		}
 		jniLibs.keepDebugSymbols.add("**/*.so")
 	}
+}
 
-	/* TODO add support for more ABIs in the future
-	There were issues getting our native deps to build for other android architectures, so we focused on arm64-v8a
-	 */
-	if (isBundleBuild()) {
-		defaultConfig.ndk.abiFilters("arm64-v8a")
+androidComponents {
+	onVariants { variant ->
+		val flavor = variant.flavorName ?: ""
+		val type = variant.buildType ?: ""
+		val version = variant.outputs.first().versionName.getOrElse("")
+		val fullName = "${Constants.APP_NAME}-$flavor-$type-$version"
+
+		variant.buildConfigFields?.put("APP_NAME", BuildConfigField("String", "\"$fullName\"", "App Name"))
+		variant.resValues.put(variant.makeResValueKey("string", "fullVersionName"), ResValue(fullName))
 	}
 }
 
 dependencies {
-
 	implementation(project(":core"))
 	implementation(project(":connectivity"))
 	implementation(project(":logcatter"))
@@ -249,14 +266,4 @@ dependencies {
 	implementation(libs.credentials)
 }
 
-fun determineVersionName(): String {
-	return with(getBuildTaskName().lowercase()) {
-		when {
-			contains(Constants.NIGHTLY) || contains(Constants.PRERELEASE) ->
-				Constants.VERSION_NAME +
-					"-${grgitService.service.get().grgit.head().abbreviatedId}"
-
-			else -> Constants.VERSION_NAME
-		}
-	}
-}
+fun determineVersionName(): String = versionNameProvider.get()

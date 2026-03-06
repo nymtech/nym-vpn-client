@@ -12,9 +12,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import nym_vpn_lib_types.MixnetTrafficConfig
 import timber.log.Timber
 
-class DataStoreSettingsRepository(
-	private val dataStoreManager: DataStoreManager,
-) : SettingsRepository {
+class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager) : SettingsRepository {
 
 	private val theme = stringPreferencesKey("THEME")
 	private val autoStart = booleanPreferencesKey("AUTO_START")
@@ -37,32 +35,26 @@ class DataStoreSettingsRepository(
 	private val mixnetMsgSendingDelay = intPreferencesKey("MIXNET_MSG_SENDING_DELAY")
 	private val mixnetDisablePoisson = booleanPreferencesKey("MIXNET_DISABLE_POISSON")
 
-	override suspend fun getTheme(): Theme {
-		return dataStoreManager.getFromStore(theme)?.let {
-			try {
-				Theme.valueOf(it)
-			} catch (e: IllegalArgumentException) {
-				Timber.e(e)
-				Theme.default()
-			}
-		} ?: Theme.default()
-	}
+	override suspend fun getTheme(): Theme = dataStoreManager.getFromStore(theme)?.let {
+		try {
+			Theme.valueOf(it)
+		} catch (e: IllegalArgumentException) {
+			Timber.e(e)
+			Theme.default()
+		}
+	} ?: Theme.default()
 
 	override suspend fun setTheme(theme: Theme) {
 		dataStoreManager.saveToDataStore(this.theme, theme.name)
 	}
 
-	override suspend fun isAutoStartEnabled(): Boolean {
-		return dataStoreManager.getFromStore(autoStart) ?: Settings.AUTO_START_DEFAULT
-	}
+	override suspend fun isAutoStartEnabled(): Boolean = dataStoreManager.getFromStore(autoStart) ?: Settings.AUTO_START_DEFAULT
 
 	override suspend fun setAutoStart(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(autoStart, enabled)
 	}
 
-	override suspend fun isApplicationShortcutsEnabled(): Boolean {
-		return dataStoreManager.getFromStore(applicationShortcuts) ?: Settings.SHORTCUTS_DEFAULT
-	}
+	override suspend fun isApplicationShortcutsEnabled(): Boolean = dataStoreManager.getFromStore(applicationShortcuts) ?: Settings.SHORTCUTS_DEFAULT
 
 	override suspend fun setApplicationShortcuts(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(applicationShortcuts, enabled)
@@ -77,13 +69,9 @@ class DataStoreSettingsRepository(
 		dataStoreManager.saveToDataStore(credentialMode, enabled)
 	}
 
-	override suspend fun isCredentialMode(): Boolean? {
-		return dataStoreManager.getFromStore(credentialMode)
-	}
+	override suspend fun isCredentialMode(): Boolean? = dataStoreManager.getFromStore(credentialMode)
 
-	override suspend fun getLocale(): String? {
-		return dataStoreManager.getFromStore(locale)
-	}
+	override suspend fun getLocale(): String? = dataStoreManager.getFromStore(locale)
 
 	override suspend fun setLocale(locale: String) {
 		dataStoreManager.saveToDataStore(this.locale, locale)
@@ -93,21 +81,15 @@ class DataStoreSettingsRepository(
 		dataStoreManager.saveToDataStore(batteryDialogSkip, skip)
 	}
 
-	override suspend fun isBatteryDialogSkipped(): Boolean {
-		return dataStoreManager.getFromStore(batteryDialogSkip) ?: Settings.FLAG_BATTERY_DIALOG_SKIP
-	}
+	override suspend fun isBatteryDialogSkipped(): Boolean = dataStoreManager.getFromStore(batteryDialogSkip) ?: Settings.FLAG_BATTERY_DIALOG_SKIP
 
-	override suspend fun getStatisticsEnabled(): Boolean {
-		return dataStoreManager.getFromStore(statsEnabled) ?: Settings.DEFAULT_STATS_ENABLED
-	}
+	override suspend fun getStatisticsEnabled(): Boolean = dataStoreManager.getFromStore(statsEnabled) ?: Settings.DEFAULT_STATS_ENABLED
 
 	override suspend fun setStatisticsEnabled(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(statsEnabled, enabled)
 	}
 
-	override suspend fun isStatsDialogSkipped(): Boolean {
-		return dataStoreManager.getFromStore(statsDialogSkip) ?: Settings.FLAG_STATS_DIALOG_SKIP
-	}
+	override suspend fun isStatsDialogSkipped(): Boolean = dataStoreManager.getFromStore(statsDialogSkip) ?: Settings.FLAG_STATS_DIALOG_SKIP
 
 	override suspend fun setStatsDialogSkipped(skip: Boolean) {
 		dataStoreManager.saveToDataStore(statsDialogSkip, skip)
@@ -117,38 +99,28 @@ class DataStoreSettingsRepository(
 		dataStoreManager.saveToDataStore(technicalOptScreenCompleted, true)
 	}
 
-	override suspend fun isTechnicalOptScreenCompleted(): Boolean {
-		return dataStoreManager.getFromStore(technicalOptScreenCompleted) ?: Settings.FLAG_TECHNICAL_OPT_COMPLETED
-	}
+	override suspend fun isTechnicalOptScreenCompleted(): Boolean = dataStoreManager.getFromStore(technicalOptScreenCompleted) ?: Settings.FLAG_TECHNICAL_OPT_COMPLETED
 
-	override suspend fun getQUICEnabled(): Boolean {
-		return dataStoreManager.getFromStore(quicEnabled) ?: Settings.DEFAULT_QUIC_ENABLED
-	}
+	override suspend fun getQUICEnabled(): Boolean = dataStoreManager.getFromStore(quicEnabled) ?: Settings.DEFAULT_QUIC_ENABLED
 
 	override suspend fun setQUICEnabled(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(quicEnabled, enabled)
 	}
 
-	override suspend fun getIsStreamServerBannerDisplayed(): Boolean {
-		return dataStoreManager.getFromStore(isStreamingServerBannerDisplayed) ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED
-	}
+	override suspend fun getIsStreamServerBannerDisplayed(): Boolean = dataStoreManager.getFromStore(isStreamingServerBannerDisplayed) ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED
 
 	override suspend fun setIsStreamServerBannerDisplayed(displayed: Boolean) {
 		dataStoreManager.saveToDataStore(isStreamingServerBannerDisplayed, displayed)
 	}
 
-	override suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean {
-		return dataStoreManager.getFromStore(isPerAppSecurityBannerDisplayed)
-			?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED
-	}
+	override suspend fun getIsPerAppSecurityBannerDisplayed(): Boolean = dataStoreManager.getFromStore(isPerAppSecurityBannerDisplayed)
+		?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED
 
 	override suspend fun setIsPerAppSecurityBannerDisplayed(displayed: Boolean) {
 		dataStoreManager.saveToDataStore(isPerAppSecurityBannerDisplayed, displayed)
 	}
 
-	override suspend fun getLogsEnabled(): Boolean {
-		return dataStoreManager.getFromStore(logsEnabled) ?: Settings.DEFAULT_LOGS_ENABLED
-	}
+	override suspend fun getLogsEnabled(): Boolean = dataStoreManager.getFromStore(logsEnabled) ?: Settings.DEFAULT_LOGS_ENABLED
 
 	override suspend fun setLogsEnabled(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(logsEnabled, enabled)

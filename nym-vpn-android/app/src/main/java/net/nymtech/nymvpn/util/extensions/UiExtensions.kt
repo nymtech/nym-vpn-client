@@ -98,11 +98,9 @@ fun NavController.navigateAndClearWelcome(route: Route) {
 }
 
 @SuppressLint("RestrictedApi")
-fun <T : Route> NavBackStackEntry?.isCurrentRoute(cls: KClass<T>): Boolean {
-	return this?.destination?.hierarchy?.any {
-		it.hasRoute(route = cls)
-	} == true
-}
+fun <T : Route> NavBackStackEntry?.isCurrentRoute(cls: KClass<T>): Boolean = this?.destination?.hierarchy?.any {
+	it.hasRoute(route = cls)
+} == true
 
 fun NavController.goFromRoot(route: Route) {
 	if (currentBackStackEntry?.isCurrentRoute(route::class) == true) return
@@ -132,73 +130,61 @@ fun NavController.safePopBackStack() {
 }
 
 @Suppress("CyclomaticComplexMethod")
-fun ErrorStateReason.toUserMessage(context: Context): String {
-	return when (this) {
-		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.error_same_entry_exit)
+fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
+	ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.error_same_entry_exit)
 
-		ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.error_invalid_entry_gateway_country)
-		ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.error_invalid_exit_gateway_country)
+	ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.error_invalid_entry_gateway_country)
+	ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.error_invalid_exit_gateway_country)
 
-		ErrorStateReason.BandwidthExceeded -> context.getString(R.string.bandwidth_error)
-		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_error)
-		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.device_time_out_of_sync)
-		ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.error_ipv6_unavailable)
-		ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_device_logged_out)
-		ErrorStateReason.InactiveAccount -> context.getString(R.string.error_inactive_account)
+	ErrorStateReason.BandwidthExceeded -> context.getString(R.string.bandwidth_error)
+	ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_error)
+	ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.device_time_out_of_sync)
+	ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.error_ipv6_unavailable)
+	ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_device_logged_out)
+	ErrorStateReason.InactiveAccount -> context.getString(R.string.error_inactive_account)
 
-		ErrorStateReason.SetDns -> context.getString(R.string.error_set_dns)
-		ErrorStateReason.SetFirewallPolicy -> context.getString(R.string.error_set_firewall_policy)
-		ErrorStateReason.SetRouting -> context.getString(R.string.error_set_routing)
-		ErrorStateReason.TunDevice -> context.getString(R.string.error_tun_device)
-		ErrorStateReason.TunnelProvider -> context.getString(R.string.error_tunnel_provider)
+	ErrorStateReason.SetDns -> context.getString(R.string.error_set_dns)
+	ErrorStateReason.SetFirewallPolicy -> context.getString(R.string.error_set_firewall_policy)
+	ErrorStateReason.SetRouting -> context.getString(R.string.error_set_routing)
+	ErrorStateReason.TunDevice -> context.getString(R.string.error_tun_device)
+	ErrorStateReason.TunnelProvider -> context.getString(R.string.error_tunnel_provider)
 
-		ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_active_plan)
+	ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_active_plan)
 
-		ErrorStateReason.CredentialWastedOnEntryGateway -> context.getString(R.string.error_bandwidth_entry)
-		ErrorStateReason.CredentialWastedOnExitGateway -> context.getString(R.string.error_bandwidth_exit)
+	ErrorStateReason.CredentialWastedOnEntryGateway -> context.getString(R.string.error_bandwidth_entry)
+	ErrorStateReason.CredentialWastedOnExitGateway -> context.getString(R.string.error_bandwidth_exit)
 
-		ErrorStateReason.PerformantEntryGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_entry)
-		ErrorStateReason.PerformantExitGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_exit)
+	ErrorStateReason.PerformantEntryGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_entry)
+	ErrorStateReason.PerformantExitGatewayUnavailable -> context.getString(R.string.error_gateway_unavailable_exit)
 
-		ErrorStateReason.InvalidEntryGatewayIdentity -> context.getString(R.string.error_invalid_entry_gateway_identity)
-		ErrorStateReason.InvalidExitGatewayIdentity -> context.getString(R.string.error_invalid_exit_gateway_identity)
+	ErrorStateReason.InvalidEntryGatewayIdentity -> context.getString(R.string.error_invalid_entry_gateway_identity)
+	ErrorStateReason.InvalidExitGatewayIdentity -> context.getString(R.string.error_invalid_exit_gateway_identity)
 
-		// unused on Android
-		ErrorStateReason.NeedFullDiskPermissions -> ""
-		ErrorStateReason.SplitTunnel -> ""
+	// unused on Android
+	ErrorStateReason.NeedFullDiskPermissions -> ""
+	ErrorStateReason.SplitTunnel -> ""
 
-		is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error, this.v1)
+	is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error, this.v1)
+}
+
+fun VpnException.toUserMessage(context: Context): String = when (this) {
+	is VpnException.NetworkConnectionException -> context.getString(R.string.network_error)
+	is VpnException.VpnApiTimeout -> context.getString(R.string.network_error)
+	else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
+}
+
+fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> = this.sortedBy {
+	when (mode) {
+		Tunnel.Mode.FIVE_HOP_MIXNET -> it.mixnetScore ?: Score.OFFLINE
+		Tunnel.Mode.TWO_HOP_MIXNET -> it.wgScore ?: Score.OFFLINE
 	}
 }
 
-fun VpnException.toUserMessage(context: Context): String {
-	return when (this) {
-		is VpnException.NetworkConnectionException -> context.getString(R.string.network_error)
-		is VpnException.VpnApiTimeout -> context.getString(R.string.network_error)
-		else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
-	}
-}
+fun toDisplayCountry(twoLetterIsoCountryCode: String): String = Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
 
-fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> {
-	return this.sortedBy {
-		when (mode) {
-			Tunnel.Mode.FIVE_HOP_MIXNET -> it.mixnetScore ?: Score.OFFLINE
-			Tunnel.Mode.TWO_HOP_MIXNET -> it.wgScore ?: Score.OFFLINE
-		}
-	}
-}
+fun EntryPoint.Country.toDisplayCountry(): String = toDisplayCountry(twoLetterIsoCountryCode)
 
-fun toDisplayCountry(twoLetterIsoCountryCode: String): String {
-	return Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
-}
-
-fun EntryPoint.Country.toDisplayCountry(): String {
-	return toDisplayCountry(twoLetterIsoCountryCode)
-}
-
-fun ExitPoint.Country.toDisplayCountry(): String {
-	return toDisplayCountry(twoLetterIsoCountryCode)
-}
+fun ExitPoint.Country.toDisplayCountry(): String = toDisplayCountry(twoLetterIsoCountryCode)
 
 internal fun NymGateway.isQuicSupported(): Boolean = run {
 	return bridgeInformation?.transports?.find {
@@ -218,54 +204,44 @@ fun NymGateway.getScoreIcon(gatewayType: GatewayType): Pair<ImageVector, String>
 }
 
 @Composable
-fun getScoreIcon(score: Score): Pair<ImageVector, String> {
-	return when (score) {
-		Score.HIGH -> Pair(ImageVector.vectorResource(R.drawable.bars_3), stringResource(R.string.bars_3))
-		Score.MEDIUM -> Pair(ImageVector.vectorResource(R.drawable.bars_2), stringResource(R.string.bars_2))
-		Score.LOW -> Pair(ImageVector.vectorResource(R.drawable.bar_1), stringResource(R.string.bars_1))
-		Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.bar_0), stringResource(R.string.unknown))
-	}
+fun getScoreIcon(score: Score): Pair<ImageVector, String> = when (score) {
+	Score.HIGH -> Pair(ImageVector.vectorResource(R.drawable.bars_3), stringResource(R.string.bars_3))
+	Score.MEDIUM -> Pair(ImageVector.vectorResource(R.drawable.bars_2), stringResource(R.string.bars_2))
+	Score.LOW -> Pair(ImageVector.vectorResource(R.drawable.bar_1), stringResource(R.string.bars_1))
+	Score.OFFLINE -> Pair(ImageVector.vectorResource(R.drawable.bar_0), stringResource(R.string.unknown))
 }
 
 @Composable
-fun Score.colorLoad(): Color {
-	return when (this) {
-		Score.HIGH -> Color.Red
-		Score.MEDIUM -> CustomColors.warning
-		Score.LOW -> Color.Green
-		Score.OFFLINE -> Color.Gray
-	}
+fun Score.colorLoad(): Color = when (this) {
+	Score.HIGH -> Color.Red
+	Score.MEDIUM -> CustomColors.warning
+	Score.LOW -> Color.Green
+	Score.OFFLINE -> Color.Gray
 }
 
 @Composable
-fun Score.colorPerformance(): Color {
-	return when (this) {
-		Score.HIGH -> Color.Green
-		Score.MEDIUM -> CustomColors.warning
-		Score.LOW -> Color.Red
-		Score.OFFLINE -> Color.Gray
-	}
+fun Score.colorPerformance(): Color = when (this) {
+	Score.HIGH -> Color.Green
+	Score.MEDIUM -> CustomColors.warning
+	Score.LOW -> Color.Red
+	Score.OFFLINE -> Color.Gray
 }
 
 @Composable
-fun Score.displayText(): String {
-	return when (this) {
-		Score.HIGH -> stringResource(R.string.score_text_high)
-		Score.MEDIUM -> stringResource(R.string.score_text_medium)
-		Score.LOW -> stringResource(R.string.score_text_low)
-		Score.OFFLINE -> stringResource(R.string.score_text_offline)
-	}
+fun Score.displayText(): String = when (this) {
+	Score.HIGH -> stringResource(R.string.score_text_high)
+	Score.MEDIUM -> stringResource(R.string.score_text_medium)
+	Score.LOW -> stringResource(R.string.score_text_low)
+	Score.OFFLINE -> stringResource(R.string.score_text_offline)
 }
 
-fun relativeTimeSpan(utcString: String?): String {
-	return try {
-		utcString?.let {
-			val instant = Instant.parse(it)
-			DateUtils.getRelativeTimeSpanString(instant.toEpochMilli()).toString()
-		} ?: "--"
-	} catch (_: Exception) {
-		"--"
-	}
+fun relativeTimeSpan(utcString: String?): String = try {
+	utcString?.let {
+		val instant = Instant.parse(it)
+		DateUtils.getRelativeTimeSpanString(instant.toEpochMilli()).toString()
+	} ?: "--"
+} catch (_: Exception) {
+	"--"
 }
 
 fun isValidIPv4(s: String): Boolean {

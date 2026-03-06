@@ -7,8 +7,10 @@ object Constants {
     const val COMPILE_SDK = 36
     const val MIN_SDK = 24
 
-	const val JVM_TARGET = "17"
-	val JAVA_VERSION = JavaVersion.VERSION_17
+	const val JVM_TARGET = "21"
+	val JAVA_VERSION = JavaVersion.VERSION_21
+
+	const val NDK_VERSION = "28.2.13676358"
 
 	const val APP_NAME = "nymvpn"
 	const val NAMESPACE = "net.nymtech"

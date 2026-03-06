@@ -14,10 +14,7 @@ import nym_vpn_lib_types.ErrorStateReason
 sealed interface VpnServiceEvent {
 	data class StateChanged(val state: Tunnel.State) : VpnServiceEvent
 
-	data class EstablishConnection(
-		val state: EstablishConnectionState,
-		val data: EstablishConnectionData?,
-	) : VpnServiceEvent
+	data class EstablishConnection(val state: EstablishConnectionState, val data: EstablishConnectionData?) : VpnServiceEvent
 
 	data class Connected(val data: ConnectionData?) : VpnServiceEvent
 

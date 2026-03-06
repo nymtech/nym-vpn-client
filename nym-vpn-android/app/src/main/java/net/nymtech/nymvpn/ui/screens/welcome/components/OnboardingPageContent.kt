@@ -53,8 +53,4 @@ fun OnboardingPageContent(title: String, @DrawableRes image: Int, description: S
 	}
 }
 
-data class OnboardingPage(
-	@DrawableRes val image: Int,
-	val title: String,
-	val description: String,
-)
+data class OnboardingPage(@DrawableRes val image: Int, val title: String, val description: String)

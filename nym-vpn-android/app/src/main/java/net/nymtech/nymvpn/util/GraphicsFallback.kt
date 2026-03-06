@@ -7,13 +7,7 @@ object GraphicsFallback {
 
 	private fun String.norm() = trim().lowercase()
 
-	private data class AffectedDevice(
-		val manufacturer: String? = null,
-		val brand: String? = null,
-		val model: String? = null,
-		val product: String? = null,
-		val sdk: Int? = null,
-	)
+	private data class AffectedDevice(val manufacturer: String? = null, val brand: String? = null, val model: String? = null, val product: String? = null, val sdk: Int? = null)
 
 	private val affectedDevices = listOf(
 		// Nokia G22
@@ -35,9 +29,7 @@ object GraphicsFallback {
 		return manOk && brandOk && modelOk && prodOk && sdkOk
 	}
 
-	private fun isAffectedDevice(): Boolean {
-		return affectedDevices.any { matchesDevice(it) }
-	}
+	private fun isAffectedDevice(): Boolean = affectedDevices.any { matchesDevice(it) }
 
 	fun applyIfNeeded() {
 		if (isAffectedDevice()) {

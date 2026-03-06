@@ -316,8 +316,5 @@ class SplitTunnelingViewModel @Inject constructor(
 		}
 	}
 
-	data class SplitTunnelingBackendUiState(
-		val tunnelState: Tunnel.State = Tunnel.State.Down,
-		val isRestarting: Boolean = false,
-	)
+	data class SplitTunnelingBackendUiState(val tunnelState: Tunnel.State = Tunnel.State.Down, val isRestarting: Boolean = false)
 }

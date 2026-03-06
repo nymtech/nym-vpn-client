@@ -6,12 +6,7 @@ import nym_vpn_lib_types.GatewayLightInfo
 import nym_vpn_lib_types.OffsetDateTime
 import nym_vpn_lib_types.TunnelConnectionData
 
-data class ConnectionInfo(
-	var entryGateway: GatewayLightInfo,
-	var exitGateway: GatewayLightInfo,
-	var connectedAt: OffsetDateTime?,
-	var tunnel: TunnelConnectionData?,
-)
+data class ConnectionInfo(var entryGateway: GatewayLightInfo, var exitGateway: GatewayLightInfo, var connectedAt: OffsetDateTime?, var tunnel: TunnelConnectionData?)
 
 fun EstablishConnectionData.toInfo(): ConnectionInfo = ConnectionInfo(this.entryGateway, this.exitGateway, null, this.tunnel)
 

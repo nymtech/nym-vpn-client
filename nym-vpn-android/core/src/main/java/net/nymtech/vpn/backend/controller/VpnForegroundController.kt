@@ -14,9 +14,7 @@ import timber.log.Timber
 /**
  * Foreground & notification management.
  */
-class VpnForegroundController(
-	private val service: VpnService,
-) {
+class VpnForegroundController(private val service: VpnService) {
 	companion object {
 		private const val TAG = "core-vpn"
 	}

@@ -12,19 +12,11 @@ import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-class LogFileManager(
-	private val logDir: String,
-	private val maxFileSize: Long,
-	private val maxFolderSize: Long,
-) {
+class LogFileManager(private val logDir: String, private val maxFileSize: Long, private val maxFolderSize: Long) {
 	private val ioDispatcher = Dispatchers.IO
 	private val mutex = Mutex()
 
-	private data class WriterState(
-		var currentFile: File? = null,
-		var outputStream: BufferedOutputStream? = null,
-		var bytesWritten: Long = 0L,
-	)
+	private data class WriterState(var currentFile: File? = null, var outputStream: BufferedOutputStream? = null, var bytesWritten: Long = 0L)
 
 	private val writers: MutableMap<LogType, WriterState> = mutableMapOf(
 		LogType.APP to WriterState(),

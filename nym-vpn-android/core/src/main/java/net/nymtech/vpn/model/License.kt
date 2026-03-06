@@ -16,13 +16,11 @@ data class License(
 	val description: String?,
 ) {
 	companion object {
-		fun fromJsonList(text: String): Result<List<License>> {
-			return kotlin.runCatching {
-				Json.decodeFromString<List<License>>(text)
-					.distinctBy { it.name }
-			}.onFailure {
-				Timber.e(it)
-			}
+		fun fromJsonList(text: String): Result<List<License>> = kotlin.runCatching {
+			Json.decodeFromString<List<License>>(text)
+				.distinctBy { it.name }
+		}.onFailure {
+			Timber.e(it)
 		}
 	}
 }

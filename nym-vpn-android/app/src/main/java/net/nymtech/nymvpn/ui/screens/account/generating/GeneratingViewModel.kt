@@ -19,10 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class GeneratingViewModel
 @Inject
-constructor(
-	private val backendManager: BackendManager,
-	savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+constructor(private val backendManager: BackendManager, savedStateHandle: SavedStateHandle) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-generate-account-vm"

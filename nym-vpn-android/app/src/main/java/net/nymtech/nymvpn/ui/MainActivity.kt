@@ -239,8 +239,15 @@ class MainActivity : AppCompatActivity() {
 								}
 
 								composable<Route.Permission> {
-									val args = it.toRoute<Route.Permission>()
-									runCatching { PermissionScreen(args.permission) }
+									val args = runCatching { it.toRoute<Route.Permission>() }.getOrNull()
+									if (args != null) {
+										PermissionScreen(args.permission)
+									} else {
+										LaunchedEffect(Unit) {
+											Timber.e("Failed to parse Route.Permission arguments")
+											navController.popBackStack()
+										}
+									}
 								}
 
 								composable<Route.Settings>(
@@ -311,13 +318,27 @@ class MainActivity : AppCompatActivity() {
 								}
 
 								composable<Route.ServerDetails> {
-									val args = it.toRoute<Route.ServerDetails>()
-									runCatching { DetailsScreen(appState, args.id, args.location) }
+									val args = runCatching { it.toRoute<Route.ServerDetails>() }.getOrNull()
+									if (args != null) {
+										DetailsScreen(appState, args.id, args.location)
+									} else {
+										LaunchedEffect(Unit) {
+											Timber.e("Failed to parse Route.ServerDetails arguments")
+											navController.popBackStack()
+										}
+									}
 								}
 
 								composable<Route.Payment> {
-									val args = it.toRoute<Route.Payment>()
-									runCatching { PaymentScreen(appState, args.productId) }
+									val args = runCatching { it.toRoute<Route.Payment>() }.getOrNull()
+									if (args != null) {
+										PaymentScreen(appState, args.productId)
+									} else {
+										LaunchedEffect(Unit) {
+											Timber.e("Failed to parse Route.Payment arguments")
+											navController.popBackStack()
+										}
+									}
 								}
 
 								composable<Route.Passphrase> {

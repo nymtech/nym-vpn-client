@@ -231,13 +231,9 @@ constructor(
 		}
 	}
 
-	suspend fun isPrivyEnabled(): Boolean {
-		return backendManager.getFeatureFlags()?.isPrivyEnabled() ?: false
-	}
+	suspend fun isPrivyEnabled(): Boolean = backendManager.getFeatureFlags()?.isPrivyEnabled() ?: false
 
-	suspend fun isUserLoggedIn(): Boolean {
-		return backendManager.isMnemonicStored()
-	}
+	suspend fun isUserLoggedIn(): Boolean = backendManager.isMnemonicStored()
 
 	suspend fun handleDeepLinkAuth(url: String): Route = withContext(Dispatchers.IO) {
 		if (!isPrivyEnabled()) {

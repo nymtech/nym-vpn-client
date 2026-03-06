@@ -68,11 +68,14 @@ fun CountryItem(
 	var expanded by rememberSaveable(key = "expanded_${countryItem.locale.country}") {
 		mutableStateOf(
 			countryItem.gateways.any {
-				it.identity == selectedKey || it.region.equals(selectedKey, true) || (
-					countryCode == "us" && query.takeIf { q -> q.isNotBlank() }?.let { q ->
-						it.region?.contains(q, true)
-					} ?: false
-					)
+				it.identity == selectedKey ||
+					it.region.equals(selectedKey, true) ||
+					(
+						countryCode == "us" &&
+							query.takeIf { q -> q.isNotBlank() }?.let { q ->
+								it.region?.contains(q, true)
+							} ?: false
+						)
 			},
 		)
 	}

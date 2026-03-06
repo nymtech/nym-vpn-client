@@ -8,5 +8,8 @@ import net.nymtech.nymvpn.R
 
 @Composable
 fun MainTitle() {
-	return Icon(ImageVector.vectorResource(R.drawable.app_label), "app_label")
+	Icon(
+		imageVector = ImageVector.vectorResource(R.drawable.app_label),
+		contentDescription = "app_label",
+	)
 }
