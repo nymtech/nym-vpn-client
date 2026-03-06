@@ -111,42 +111,48 @@ dependencies {
 	implementation(libs.androidx.datastore.preferences)
 }
 
-// 1. Define chained providers at the script level (Configuration time)
-val ndkPathProvider: Provider<String> = providers.environmentVariable("ANDROID_NDK_HOME")
-	.orElse(providers.gradleProperty("android.ndkDirectory"))
-	.orElse(androidComponents.sdkComponents.ndkDirectory.map { it.asFile.absolutePath })
+// 1. Cache-safe providers (No AGP strict NDK validation)
+val envNdkProvider = providers.environmentVariable("ANDROID_NDK_HOME")
+val propNdkProvider = providers.gradleProperty("android.ndkDirectory")
+val sdkDirProvider = androidComponents.sdkComponents.sdkDirectory
 
-val releaseBuildProvider: Provider<Boolean> = providers.gradleProperty("releaseBuild")
+val releaseBuildProvider = providers.gradleProperty("releaseBuild")
 	.map { it == "true" }
 	.orElse(false)
 
-val skipBuildProvider: Provider<Boolean> = providers.gradleProperty(Constants.BUILD_LIB_TASK)
+val skipBuildProvider = providers.gradleProperty(Constants.BUILD_LIB_TASK)
 	.map { it == "false" }
 	.orElse(false)
 
 tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
-	// 2. Assign to local variables to prevent capturing the `Build_gradle` script instance inside lambdas
-	val localNdkPathProvider = ndkPathProvider
-	val localReleaseBuildProvider = releaseBuildProvider
-	val localSkipBuildProvider = skipBuildProvider
+	val localEnvNdk = envNdkProvider
+	val localPropNdk = propNdkProvider
+	val localSdkDir = sdkDirProvider
+	val localReleaseBuild = releaseBuildProvider
+	val localSkipBuild = skipBuildProvider
 	val coreDirPath = layout.projectDirectory.dir("../../nym-vpn-core").asFile.absolutePath
 
-	onlyIf { !localSkipBuildProvider.get() }
+	onlyIf { !localSkipBuild.get() }
 
 	commandLine("make", "-C", coreDirPath, "-f", "Android.mk")
 
 	doFirst {
-		val ndkPath = localNdkPathProvider.orNull
-			?: throw Exception("NDK is not installed. Pass -Pandroid.ndkDirectory or set ANDROID_NDK_HOME.")
+		// 2. Restore your old logic: Environment Var -> Gradle Property -> SDK Directory fallback
+		val ndkHome = localEnvNdk.orNull?.let { File(it) }
+			?: localPropNdk.orNull?.let { File(it) }
+			?: localSdkDir.get().asFile.resolve("ndk").listFiles()?.sortedArray()?.lastOrNull()
 
-		val ndkHome = File(ndkPath)
-		val ndkToolchain = ndkHome.resolve("toolchains/llvm/prebuilt").listFilesOrdered().lastOrNull()?.resolve("bin")
-
-		if (ndkToolchain == null || !ndkToolchain.exists()) {
-			throw Exception("Cannot determine NDK toolchain bin directory in: ${ndkHome.absolutePath}")
+		if (ndkHome == null || !ndkHome.exists()) {
+			throw Exception("Cannot determine Android NDK home. Set ANDROID_NDK_HOME or pass -Pandroid.ndkDirectory")
 		}
 
-		environment("RELEASE", localReleaseBuildProvider.get().toString())
+		val ndkToolchain = ndkHome.resolve("toolchains/llvm/prebuilt").listFiles()?.sortedArray()?.lastOrNull()?.resolve("bin")
+
+		if (ndkToolchain == null || !ndkToolchain.exists()) {
+			throw Exception("Cannot determine NDK toolchain directory in: ${ndkHome.absolutePath}")
+		}
+
+		environment("RELEASE", localReleaseBuild.get().toString())
 		environment("ANDROID_NDK_HOME", ndkHome.absolutePath)
 		environment("NDK_TOOLCHAIN_DIR", ndkToolchain.absolutePath)
 	}
