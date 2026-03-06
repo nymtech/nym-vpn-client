@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+- AGP version update (https://github.com/nymtech/nym-vpn-client/pull/4586)
+- Clean up QUIC feature flag usage (https://github.com/nymtech/nym-vpn-client/pull/4805)
+- Welcome screen images update (https://github.com/nymtech/nym-vpn-client/pull/4814)
+
+### Fixed
+- Fix issue with the Details button for exit server (https://github.com/nymtech/nym-vpn-client/pull/4805)
+
 ## [3.0.0]
 
 ### Added
