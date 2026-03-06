@@ -111,33 +111,34 @@ dependencies {
 	implementation(libs.androidx.datastore.preferences)
 }
 
+// this task builds the native core from source and moves the files to the jniLibs dir
 tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
-	// 1. Use providers for Configuration Cache safety
-	val skipBuild = providers.gradleProperty(Constants.BUILD_LIB_TASK).orNull == "false"
-
-	// 2. Read release status from a passed property instead of startParameter
-	val isReleaseBuild = providers.gradleProperty("releaseBuild").orNull == "true"
-
-	// 3. Use layout API for path resolution
-	val coreDirPath = "${layout.projectDirectory.asFile.path}/../../nym-vpn-core"
-	val ndkDirProvider = androidComponents.sdkComponents.ndkDirectory
+	// Gradle 9 safe properties
+	val skipBuild = providers.gradleProperty(Constants.BUILD_LIB_TASK).getOrElse("false") == "false"
+	val isReleaseBuild = providers.gradleProperty("releaseBuild").getOrElse("false") == "true"
+	val coreDirPath = layout.projectDirectory.dir("../../nym-vpn-core").asFile.absolutePath
 
 	onlyIf { !skipBuild }
 
 	commandLine("make", "-C", coreDirPath, "-f", "Android.mk")
 
 	doFirst {
-		val ndkHome = System.getenv("ANDROID_NDK_HOME")?.let { File(it) } ?: ndkDirProvider.orNull?.asFile
-		if (ndkHome == null || !ndkHome.exists()) {
-			throw Exception("NDK is not installed. Please install NDK version ${Constants.NDK_VERSION} via Android Studio SDK Manager.")
+		val ndkPath = providers.environmentVariable("ANDROID_NDK_HOME").orNull
+			?: providers.gradleProperty("android.ndkDirectory").orNull
+			?: androidComponents.sdkComponents.ndkDirectory.orNull?.asFile?.absolutePath
+
+		if (ndkPath == null) {
+			throw Exception("NDK is not installed. Pass -Pandroid.ndkDirectory or set ANDROID_NDK_HOME.")
 		}
 
+		val ndkHome = File(ndkPath)
 		val ndkToolchain = ndkHome.resolve("toolchains/llvm/prebuilt").listFilesOrdered().lastOrNull()?.resolve("bin")
-		if (ndkToolchain == null) {
-			throw Exception("Cannot determine NDK toolchain directory in: ${ndkHome.absolutePath}")
+
+		if (ndkToolchain == null || !ndkToolchain.exists()) {
+			throw Exception("Cannot determine NDK toolchain bin directory in: ${ndkHome.absolutePath}")
 		}
 
-		environment("RELEASE", isReleaseBuild)
+		environment("RELEASE", isReleaseBuild.toString())
 		environment("ANDROID_NDK_HOME", ndkHome.absolutePath)
 		environment("NDK_TOOLCHAIN_DIR", ndkToolchain.absolutePath)
 	}

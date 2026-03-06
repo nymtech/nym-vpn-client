@@ -21,6 +21,14 @@ val currentCommitHash: Provider<String> = providers.provider {
 	}
 }
 
+val currentAbbreviatedHash: Provider<String> = providers.provider {
+	try {
+		grgitService.service.get().grgit.head().abbreviatedId
+	} catch (e: Exception) {
+		"unknown"
+	}
+}
+
 val languagesArray: Provider<String> = providers.provider {
 	languageList().joinToString(separator = ", ") { "\"$it\"" }
 }
@@ -28,11 +36,7 @@ val languagesArray: Provider<String> = providers.provider {
 val versionNameProvider: Provider<String> = providers.provider {
 	val taskName = getBuildTaskName().lowercase()
 	if (taskName.contains(Constants.NIGHTLY) || taskName.contains(Constants.PRERELEASE)) {
-		val hash = try {
-			grgitService.service.get().grgit.head().abbreviatedId
-		} catch (e: Exception) {
-			"unknown"
-		}
+		val hash = currentAbbreviatedHash.getOrElse("unknown")
 		"${Constants.VERSION_NAME}-$hash"
 	} else {
 		Constants.VERSION_NAME
@@ -40,7 +44,7 @@ val versionNameProvider: Provider<String> = providers.provider {
 }
 
 base {
-	archivesName.set(versionNameProvider.map { "${Constants.APP_NAME}-$it" })
+	archivesName.set(versionNameProvider.map { v: String -> "${Constants.APP_NAME}-$v" })
 }
 
 kotlin {
@@ -92,8 +96,8 @@ android {
 			useSupportLibrary = true
 		}
 
-		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languagesArray.get()} }")
-		buildConfigField("String", "COMMIT_HASH", "\"${currentCommitHash.get()}\"")
+		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languagesArray.getOrElse("")} }")
+		buildConfigField("String", "COMMIT_HASH", "\"${currentCommitHash.getOrElse("unknown")}\"")
 		buildConfigField("Boolean", "IS_PRERELEASE", "false")
 		proguardFile("fdroid-rules.pro")
 
