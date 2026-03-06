@@ -111,25 +111,33 @@ dependencies {
 	implementation(libs.androidx.datastore.preferences)
 }
 
-// this task builds the native core from source and moves the files to the jniLibs dir
+// 1. Define chained providers at the script level (Configuration time)
+val ndkPathProvider: Provider<String> = providers.environmentVariable("ANDROID_NDK_HOME")
+	.orElse(providers.gradleProperty("android.ndkDirectory"))
+	.orElse(androidComponents.sdkComponents.ndkDirectory.map { it.asFile.absolutePath })
+
+val releaseBuildProvider: Provider<Boolean> = providers.gradleProperty("releaseBuild")
+	.map { it == "true" }
+	.orElse(false)
+
+val skipBuildProvider: Provider<Boolean> = providers.gradleProperty(Constants.BUILD_LIB_TASK)
+	.map { it == "false" }
+	.orElse(false)
+
 tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
-	// Gradle 9 safe properties
-	val skipBuild = providers.gradleProperty(Constants.BUILD_LIB_TASK).getOrElse("false") == "false"
-	val isReleaseBuild = providers.gradleProperty("releaseBuild").getOrElse("false") == "true"
+	// 2. Assign to local variables to prevent capturing the `Build_gradle` script instance inside lambdas
+	val localNdkPathProvider = ndkPathProvider
+	val localReleaseBuildProvider = releaseBuildProvider
+	val localSkipBuildProvider = skipBuildProvider
 	val coreDirPath = layout.projectDirectory.dir("../../nym-vpn-core").asFile.absolutePath
 
-	onlyIf { !skipBuild }
+	onlyIf { !localSkipBuildProvider.get() }
 
 	commandLine("make", "-C", coreDirPath, "-f", "Android.mk")
 
 	doFirst {
-		val ndkPath = providers.environmentVariable("ANDROID_NDK_HOME").orNull
-			?: providers.gradleProperty("android.ndkDirectory").orNull
-			?: androidComponents.sdkComponents.ndkDirectory.orNull?.asFile?.absolutePath
-
-		if (ndkPath == null) {
-			throw Exception("NDK is not installed. Pass -Pandroid.ndkDirectory or set ANDROID_NDK_HOME.")
-		}
+		val ndkPath = localNdkPathProvider.orNull
+			?: throw Exception("NDK is not installed. Pass -Pandroid.ndkDirectory or set ANDROID_NDK_HOME.")
 
 		val ndkHome = File(ndkPath)
 		val ndkToolchain = ndkHome.resolve("toolchains/llvm/prebuilt").listFilesOrdered().lastOrNull()?.resolve("bin")
@@ -138,7 +146,7 @@ tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
 			throw Exception("Cannot determine NDK toolchain bin directory in: ${ndkHome.absolutePath}")
 		}
 
-		environment("RELEASE", isReleaseBuild.toString())
+		environment("RELEASE", localReleaseBuildProvider.get().toString())
 		environment("ANDROID_NDK_HOME", ndkHome.absolutePath)
 		environment("NDK_TOOLCHAIN_DIR", ndkToolchain.absolutePath)
 	}

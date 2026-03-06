@@ -10,24 +10,17 @@ plugins {
 	alias(libs.plugins.licensee)
 	alias(libs.plugins.kotlinxSerialization)
 	alias(libs.plugins.gross)
-	alias(libs.plugins.grgit)
 }
 
-val currentCommitHash: Provider<String> = providers.provider {
-	try {
-		grgitService.service.get().grgit.head().id
-	} catch (e: Exception) {
-		"unknown"
-	}
-}
+val currentCommitHash: Provider<String> = providers.exec {
+	commandLine("git", "rev-parse", "HEAD")
+	isIgnoreExitValue = true
+}.standardOutput.asText.map { it.trim().ifEmpty { "unknown" } }.orElse("unknown")
 
-val currentAbbreviatedHash: Provider<String> = providers.provider {
-	try {
-		grgitService.service.get().grgit.head().abbreviatedId
-	} catch (e: Exception) {
-		"unknown"
-	}
-}
+val currentAbbreviatedHash: Provider<String> = providers.exec {
+	commandLine("git", "rev-parse", "--short", "HEAD")
+	isIgnoreExitValue = true
+}.standardOutput.asText.map { it.trim().ifEmpty { "unknown" } }.orElse("unknown")
 
 val languagesArray: Provider<String> = providers.provider {
 	languageList().joinToString(separator = ", ") { "\"$it\"" }
