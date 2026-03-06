@@ -539,6 +539,23 @@ impl VpndClient {
         Ok(id)
     }
 
+    // Get canonical account id
+    #[instrument(skip_all)]
+    pub async fn canonical_account_id(&self) -> Result<Option<String>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let id = vpnd
+            .get_canonical_account_identity()
+            .or_else(async |e| {
+                self.handle_rpc_error("get_canonical_account_identity", e)
+                    .await
+            })
+            .await?;
+
+        debug!("canonical account id: {id:?}");
+        Ok(id)
+    }
+
     /// Get account mode
     #[instrument(skip_all)]
     pub async fn account_mode(&self) -> Result<Option<StoredAccountMode>, VpndError> {

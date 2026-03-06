@@ -1,7 +1,8 @@
 import { TFunction } from 'i18next';
-import { AccountState } from '../../../types';
+import dayjs from 'dayjs';
+import { AccountState, TAccountSummary } from '../../../types';
 
-export const getAccountColor = (
+export const getAccountDescriptionColor = (
   accountSyncing: boolean,
   state?: AccountState | null,
 ) => {
@@ -22,7 +23,7 @@ export const getAccountColor = (
   return 'text-iron dark:text-bombay';
 };
 
-export const getAccountDescription = (
+export const getAccountStateDescription = (
   t: TFunction<'settings', undefined>,
   accountSyncing: boolean,
   state?: AccountState | null,
@@ -50,4 +51,28 @@ export const getAccountDescription = (
     default:
       return null;
   }
+};
+
+export const getAccountStatus = (accountSummary?: TAccountSummary | null) => {
+  if (!accountSummary || accountSummary?.['is-recurring']) {
+    return 'green';
+  }
+
+  const diff = dayjs
+    .unix(Number(accountSummary?.['subscription-valid-until']))
+    .diff(dayjs(), 'day');
+
+  if (
+    accountSummary?.['subscription-kind'] === 'freepass' ||
+    accountSummary?.['subscription-kind'] === 'one-month'
+  ) {
+    if (diff < 3) return 'amber'; // 2 days left
+    if (diff < 8) return 'yellow'; // 7 days left
+    return 'green';
+  }
+
+  // 1 & 2 years subscriptions
+  if (diff < 31) return 'amber'; // 30 days left
+  if (diff < 61) return 'yellow'; // 60 days left
+  return 'green';
 };

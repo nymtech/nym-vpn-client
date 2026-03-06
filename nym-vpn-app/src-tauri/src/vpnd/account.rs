@@ -97,16 +97,18 @@ impl From<lib::StoredAccountMode> for StoredAccountMode {
 #[ts(export, export_to = "tauri.ts", rename = "TAccountSummary")]
 #[serde(rename_all = "kebab-case")]
 pub struct AccountSummary {
-    pub subscription_valid_until: Option<String>,
+    pub subscription_valid_until: Option<i64>,
     pub traffic_used_gb: u64,
     pub traffic_limit_gb: u64,
-    pub traffic_reset_time: Option<String>,
+    pub traffic_reset_time: Option<i64>,
     pub account_addr: String,
     pub canonical_account_addr: Option<String>,
     pub auth_methods: Vec<AuthMethod>,
     pub is_linked: bool,
     pub fair_usage_left: bool,
     pub is_subscription_active: bool,
+    pub subscription_kind: Option<VpnSubscriptionKind>,
+    pub is_recurring: bool,
 }
 
 impl From<lib::VpnAccountSummary> for AccountSummary {
@@ -114,11 +116,14 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
         let is_linked = summary.is_linked();
         let fair_usage_left = summary.fair_usage_left();
         let is_subscription_active = summary.is_subscription_active();
+
         AccountSummary {
-            subscription_valid_until: summary.subscription_valid_until.map(|dt| dt.to_string()),
+            subscription_valid_until: summary
+                .subscription_valid_until
+                .map(|dt| dt.unix_timestamp()),
             traffic_used_gb: summary.traffic_used_gb,
             traffic_limit_gb: summary.traffic_limit_gb,
-            traffic_reset_time: summary.traffic_reset_time.map(|dt| dt.to_string()),
+            traffic_reset_time: summary.traffic_reset_time.map(|dt| dt.unix_timestamp()),
             account_addr: summary.account_addr,
             canonical_account_addr: summary.canonical_account_addr,
             auth_methods: summary
@@ -129,6 +134,8 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
             is_linked,
             fair_usage_left,
             is_subscription_active,
+            subscription_kind: summary.subscription_kind.map(VpnSubscriptionKind::from),
+            is_recurring: summary.is_recurring,
         }
     }
 }
@@ -171,6 +178,29 @@ impl From<lib::VpnAccountStatus> for VpnAccountStatus {
             lib::VpnAccountStatus::Active => VpnAccountStatus::Active,
             lib::VpnAccountStatus::Inactive => VpnAccountStatus::Inactive,
             lib::VpnAccountStatus::DeleteMe => VpnAccountStatus::DeleteMe,
+        }
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TVpnSubscriptionKind")]
+#[serde(rename_all = "kebab-case")]
+pub enum VpnSubscriptionKind {
+    OneMonth,
+    OneYear,
+    TwoYears,
+    Freepass,
+    Other(String),
+}
+
+impl From<lib::NymVpnSubscriptionKind> for VpnSubscriptionKind {
+    fn from(kind: lib::NymVpnSubscriptionKind) -> Self {
+        match kind {
+            lib::NymVpnSubscriptionKind::OneMonth => VpnSubscriptionKind::OneMonth,
+            lib::NymVpnSubscriptionKind::OneYear => VpnSubscriptionKind::OneYear,
+            lib::NymVpnSubscriptionKind::TwoYears => VpnSubscriptionKind::TwoYears,
+            lib::NymVpnSubscriptionKind::Freepass => VpnSubscriptionKind::Freepass,
+            lib::NymVpnSubscriptionKind::Other(value) => VpnSubscriptionKind::Other(value),
         }
     }
 }

@@ -7,5 +7,14 @@
       "cancel-anytime": "Cancel anytime"
     },
     "button": "Choose plan"
+  },
+  "account-status": {
+    "title": "Account status",
+    "no-plan": "No active plan",
+    "bandwidth-remaining": "Bandwidth remaining",
+    "limit": "Limit",
+    "resets-on": "Resets on",
+    "renew-now": "Renew now to stay protected",
+    "contact-support": "⚡️ <1>Contact our support</1> team for extra bandwidth."
   }
 }

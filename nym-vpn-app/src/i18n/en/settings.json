@@ -274,6 +274,8 @@
     }
   },
   "account": {
+    "planValidUntil": "Plan valid until {{date}}",
+    "auto-renews": "Auto-renews",
     "manage-subscriptoin": "Manage your subscription",
     "account-link-social-description": "Link a social account for effortless login.",
     "account-on-nym": "Account on nym.com",

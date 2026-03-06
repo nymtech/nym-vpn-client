@@ -5,13 +5,11 @@ import { useMainState } from '../../../contexts';
 import { useClipboard } from '../../../hooks';
 import { routes } from '../../../router';
 import { ButtonText } from '../../../ui';
-import AccountData from './AccountData';
 
 const devMode = window._APP.devMode;
 
 function InfoData() {
-  const { version, daemonStatus, daemonVersion, networkEnv, account } =
-    useMainState();
+  const { version, daemonStatus, daemonVersion, networkEnv } = useMainState();
   const { copy } = useClipboard();
 
   const navigate = useNavigate();
@@ -54,7 +52,6 @@ function InfoData() {
           </ButtonText>
         </div>
       )}
-      {account && <AccountData />}
     </>
   );
 

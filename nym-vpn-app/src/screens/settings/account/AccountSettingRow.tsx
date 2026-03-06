@@ -2,13 +2,12 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect } from 'react';
-import clsx from 'clsx';
-import { StateDispatch } from '../../../types';
+import { StateDispatch, TAccountSummary } from '../../../types';
 import { useMainDispatch, useMainState } from '../../../contexts';
 import { Button, MsIcon } from '../../../ui';
 import { routes } from '../../../router';
 import SettingsGroup from '../SettingsGroup';
-import { getAccountColor, getAccountDescription } from './utils';
+import { AccountDescription } from './AccountDescription';
 
 function AccountSettingRow() {
   const { daemonStatus, account, accountState, accountSyncing } =
@@ -17,10 +16,19 @@ function AccountSettingRow() {
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
-  const needAPlan =
-    account &&
-    (accountState === 'no-subscription' ||
-      accountState === 'bandwidth-exceeded');
+  const needAPlan = account && accountState === 'no-subscription';
+
+  // get fresh account summary
+  useEffect(() => {
+    if (accountSyncing) return;
+    invoke<TAccountSummary>('get_account_summary')
+      .then((summary) => {
+        dispatch({ type: 'set-account-summary', summary });
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to get account summary', err);
+      });
+  }, [accountSyncing, dispatch]);
 
   useEffect(() => {
     const checkAccount = async () => {
@@ -60,13 +68,7 @@ function AccountSettingRow() {
         settings={[
           {
             title: 'Account',
-            desc: (
-              <span
-                className={clsx(getAccountColor(accountSyncing, accountState))}
-              >
-                {getAccountDescription(t, accountSyncing, accountState)}
-              </span>
-            ),
+            desc: <AccountDescription />,
             leadingIcon: 'account_circle',
             onClick: () => navigate(routes.accountSettings),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,

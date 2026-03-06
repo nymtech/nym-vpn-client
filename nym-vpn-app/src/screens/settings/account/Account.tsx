@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
-import clsx from 'clsx';
 import {
   Button,
   CardNew,
@@ -23,8 +22,9 @@ import {
 } from '../../../contexts';
 import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
-import { StateDispatch, TAccountMode, TAccountSummary } from '../../../types';
-import { getAccountColor, getAccountDescription } from './utils';
+import { StateDispatch, TAccountSummary } from '../../../types';
+import { AccountStatus } from './account-status';
+import { AccountDescription } from './AccountDescription';
 
 const IdsTimeToLive = 120; // sec
 
@@ -43,36 +43,30 @@ function Account() {
     backendFlags,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
-  const needAPlan =
-    account &&
-    (accountState === 'no-subscription' ||
-      accountState === 'bandwidth-exceeded');
+  const needAPlan = account && accountState === 'no-subscription';
 
   const [isAccountLinking, setIsAccountLinking] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [accountId, setAccountId] = useState<string | null>(null);
 
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
 
-  const refreshAccount = async () => {
+  const refreshAccount = useCallback(async () => {
     try {
       const summary = await invoke<TAccountSummary>('get_account_summary');
       dispatch({ type: 'set-account-summary', summary });
     } catch (err) {
       console.error('Failed to get account summary', err);
     }
-    try {
-      const mode = await invoke<TAccountMode>('get_account_mode');
-      dispatch({ type: 'set-account-mode', mode });
-    } catch (err) {
-      console.error('Failed to get account mode', err);
-    }
-  };
+  }, [dispatch]);
 
+  // get fresh account data
   useEffect(() => {
+    if (accountSyncing) return;
+
     refreshAccount();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [accountSyncing, refreshAccount]);
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -89,8 +83,24 @@ function Account() {
     }
   };
 
+  const getAccountId = async () => {
+    const accountId = await CCache.get<string>('cache-account-id');
+    if (accountId) {
+      setAccountId(accountId);
+      return;
+    }
+    try {
+      const accountId = await invoke<string>('get_canonical_account_id');
+      setAccountId(accountId);
+      CCache.set('cache-account-id', accountId, IdsTimeToLive);
+    } catch {
+      setAccountId(null);
+    }
+  };
+
   useEffect(() => {
     getDeviceId();
+    getAccountId();
   }, []);
 
   // When logged out, navigate to settings
@@ -148,6 +158,7 @@ function Account() {
       openUrl(accountLinks.signIn);
     }
   };
+
   return (
     <PageAnim className="h-full flex flex-col mt-2 pb-2 gap-6 select-none">
       {needAPlan && (
@@ -159,17 +170,13 @@ function Account() {
         </Button>
       )}
 
+      <AccountStatus />
+
       <SettingsGroup
         settings={[
           {
             title: t('account.manage-subscriptoin'),
-            desc: (
-              <span
-                className={clsx(getAccountColor(accountSyncing, accountState))}
-              >
-                {getAccountDescription(t, accountSyncing, accountState)}
-              </span>
-            ),
+            desc: <AccountDescription />,
             leadingIcon: 'event_repeat',
             trailingIcon: 'open_in_new',
             onClick: handleManageSubscription,
@@ -192,8 +199,8 @@ function Account() {
       {backendFlags.privy && (
         <p className="text-sm text-iron dark:text-bombay">
           {accountSummary?.['is-linked']
-            ? t('account.account-not-linked')
-            : t('account.account-linked')}
+            ? t('account.account-linked')
+            : t('account.account-not-linked')}
         </p>
       )}
 
@@ -209,9 +216,9 @@ function Account() {
         <CardNewBody className="pb-5">
           <CardNewCopyableRow
             // Displaying canonical account address, as this is NYM's default account address
-            value={accountSummary?.['canonical-account-addr'] ?? ''}
-            label={accountSummary?.['canonical-account-addr'] ?? ''}
-            loading={!accountSummary?.['canonical-account-addr']}
+            value={accountId ?? ''}
+            label={accountId ?? ''}
+            loading={!accountId}
           />
         </CardNewBody>
       </CardNew>

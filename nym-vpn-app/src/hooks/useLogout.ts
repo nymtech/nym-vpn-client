@@ -21,6 +21,7 @@ function useLogout() {
       console.info('logging out');
       await invoke('forget_account');
       dispatch({ type: 'set-account', stored: false });
+      dispatch({ type: 'set-account-summary', summary: null });
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
