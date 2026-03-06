@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.CustomColors
@@ -31,123 +32,102 @@ import net.nymtech.nymvpn.ui.theme.Typography
 import nym_vpn_lib_types.AsnKind
 
 @Composable
-fun DetailsSectionPrivacy(asnKind: AsnKind?, isQuicFeatureFlagEnabled: Boolean, isQuicSupportedByGateway: Boolean, onEnableQuicProtocolClick: () -> Unit) {
+fun DetailsSectionPrivacy(asnKind: AsnKind?, isQuicSupportedByGateway: Boolean, onEnableQuicProtocolClick: () -> Unit) {
 	val items = buildList<Pair<String, @Composable () -> Unit>> {
-		add(
-			stringResource(R.string.details_advanced_privacy) to {
-				Row(verticalAlignment = Alignment.CenterVertically) {
-					Icon(
-						painter = rememberVectorPainter(ImageVector.vectorResource(R.drawable.visibility_off)),
-						contentDescription = null,
-						tint = Color.Green,
-						modifier = Modifier.size(20.dp),
-					)
-					Spacer(modifier = Modifier.width(6.dp))
-					Text(
-						text = stringResource(R.string.details_with_mixnet),
-						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onBackground,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				}
-			},
-		)
+		add(stringResource(R.string.details_advanced_privacy) to { MixnetItem() })
 
 		asnKind?.let { kind ->
-			add(
-				stringResource(R.string.details_streaming_content) to {
-					val isResidential = kind == AsnKind.RESIDENTIAL
-					val (icon, size) = if (isResidential) ImageVector.vectorResource(R.drawable.smart_display) to 20.dp else Icons.Filled.Circle to 12.dp
-					val iconTint = if (isResidential) Color.Unspecified else CustomColors.warning
-					val text = stringResource(
-						if (isResidential) {
-							R.string.details_residental_ip
-						} else {
-							R.string.details_datacenter_ip
-						},
-					)
-					Row(verticalAlignment = Alignment.CenterVertically) {
-						Icon(
-							painter = rememberVectorPainter(icon),
-							contentDescription = null,
-							tint = iconTint,
-							modifier = Modifier.size(size),
-						)
-						Spacer(modifier = Modifier.width(6.dp))
-						Text(
-							text = text,
-							style = Typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onBackground,
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						)
-					}
-				},
-			)
+			add(stringResource(R.string.details_streaming_content) to { AsnKindItem(kind) })
 		}
 
-		if (isQuicFeatureFlagEnabled) {
-			add(
-				stringResource(R.string.details_anti_censorship) to {
-					val (icon, size) = if (isQuicSupportedByGateway) ImageVector.vectorResource(R.drawable.quic_label) to 20.dp else Icons.Filled.Circle to 12.dp
-					val iconTint = if (isQuicSupportedByGateway) Color.Unspecified else CustomColors.warning
-					val text = stringResource(
-						if (isQuicSupportedByGateway) {
-							R.string.details_quic_protocol
-						} else {
-							R.string.details_standard_protocol
-						},
-					)
-
-					Row(verticalAlignment = Alignment.CenterVertically) {
-						Icon(
-							painter = rememberVectorPainter(icon),
-							contentDescription = null,
-							tint = iconTint,
-							modifier = Modifier.size(size),
-						)
-						Spacer(modifier = Modifier.width(6.dp))
-						Text(
-							text = text,
-							style = Typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onBackground,
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						)
-					}
-				},
-			)
-		}
+		add(stringResource(R.string.details_anti_censorship) to { QuicProtocolItem(isQuicSupportedByGateway) })
 	}
 
 	InfoSection(
 		items = items,
 		bottomContent = {
-			if (isQuicFeatureFlagEnabled && isQuicSupportedByGateway) {
-				val annotatedText = buildAnnotatedString {
-					pushStringAnnotation(tag = "QUIC", annotation = "quic_action")
-					withStyle(
-						style = SpanStyle(
-							color = MaterialTheme.colorScheme.onBackground,
-							textDecoration = TextDecoration.Underline,
-						),
-					) {
-						append(stringResource(R.string.details_enable_quic_start))
-					}
-					pop()
-					append(" ")
-					append(stringResource(R.string.details_enable_quic_end))
-				}
-
-				Text(
-					text = annotatedText,
-					style = Typography.labelSmall.copy(
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					),
-					modifier = Modifier.clickable {
-						onEnableQuicProtocolClick()
-					},
-				)
+			if (isQuicSupportedByGateway) {
+				QuicBottomContent(onEnableQuicProtocolClick)
 			}
+		},
+	)
+}
+
+@Composable
+private fun DetailsRow(icon: ImageVector, iconTint: Color, iconSize: Dp, textResId: Int) {
+	Row(verticalAlignment = Alignment.CenterVertically) {
+		Icon(
+			painter = rememberVectorPainter(icon),
+			contentDescription = null,
+			tint = iconTint,
+			modifier = Modifier.size(iconSize),
+		)
+		Spacer(modifier = Modifier.width(6.dp))
+		Text(
+			text = stringResource(textResId),
+			style = Typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onBackground,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		)
+	}
+}
+
+@Composable
+private fun MixnetItem() {
+	DetailsRow(
+		icon = ImageVector.vectorResource(R.drawable.visibility_off),
+		iconTint = Color.Green,
+		iconSize = 20.dp,
+		textResId = R.string.details_with_mixnet,
+	)
+}
+
+@Composable
+private fun AsnKindItem(kind: AsnKind) {
+	val isResidential = kind == AsnKind.RESIDENTIAL
+	DetailsRow(
+		icon = if (isResidential) ImageVector.vectorResource(R.drawable.smart_display) else Icons.Filled.Circle,
+		iconTint = if (isResidential) Color.Unspecified else CustomColors.warning,
+		iconSize = if (isResidential) 20.dp else 12.dp,
+		textResId = if (isResidential) R.string.details_residental_ip else R.string.details_datacenter_ip,
+	)
+}
+
+@Composable
+private fun QuicProtocolItem(isQuicSupported: Boolean) {
+	DetailsRow(
+		icon = if (isQuicSupported) ImageVector.vectorResource(R.drawable.quic_label) else Icons.Filled.Circle,
+		iconTint = if (isQuicSupported) Color.Unspecified else CustomColors.warning,
+		iconSize = if (isQuicSupported) 20.dp else 12.dp,
+		textResId = if (isQuicSupported) R.string.details_quic_protocol else R.string.details_standard_protocol,
+	)
+}
+
+@Composable
+private fun QuicBottomContent(onEnableQuicProtocolClick: () -> Unit) {
+	val annotatedText = buildAnnotatedString {
+		pushStringAnnotation(tag = "QUIC", annotation = "quic_action")
+		withStyle(
+			style = SpanStyle(
+				color = MaterialTheme.colorScheme.onBackground,
+				textDecoration = TextDecoration.Underline,
+			),
+		) {
+			append(stringResource(R.string.details_enable_quic_start))
+		}
+		pop()
+		append(" ")
+		append(stringResource(R.string.details_enable_quic_end))
+	}
+
+	Text(
+		text = annotatedText,
+		style = Typography.labelSmall.copy(
+			color = MaterialTheme.colorScheme.outline,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		),
+		modifier = Modifier.clickable {
+			onEnableQuicProtocolClick()
 		},
 	)
 }

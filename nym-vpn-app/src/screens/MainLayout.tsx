@@ -66,6 +66,7 @@ function MainLayout({
           className={clsx([
             'grow',
             location.pathname === routes.nodeDetails && 'h-full',
+            location.pathname === routes.diagnostic && 'h-full',
           ])}
         >
           <EventNotification>

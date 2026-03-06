@@ -271,7 +271,7 @@
 	<string name="onboarding_title_3">إيقاف التتبع عبر الإنترنت</string>
 	<string name="onboarding_title_4">إخفاء الهوية من الدفع إلى الويب</string>
 	<string name="onboarding_description_base">شبكة VPN الأكثر خصوصية في العالم</string>
-	<string name="onboarding_description_1">شبكة VPN الأكثر خصوصية على مستوى العالم\nجرب مجانا لمدة 7 أيام:\nجميع الميزات، بدون إعلانات.</string>
+	<string name="onboarding_description_1">شبكة VPN الأكثر خصوصية في العالم</string>
 	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
 	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
 	<string name="onboarding_description_4">الدفع بالبطاقة أو التشفير أو النقود - ليس هناك بريد إلكتروني مطلوب. أدلة المعرفة الصفرية تجعل مدفوعاتك غير مرتبطة بأنشطتك عبر الإنترنت.</string>

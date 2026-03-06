@@ -12,7 +12,8 @@ pub type Transport = XpcConnection;
 #[cfg(all(debug_assertions, not(feature = "xpc")))]
 pub type Transport = tokio::net::UnixStream;
 
-// Not implemented yet, implicit is to consider it authenticated
+// Authentication happens in XPC layer, so if stream got through it means it's
+// authenticated
 pub(crate) async fn is_authenticated(_stream: &mut Transport) -> Result<(), AuthenticationError> {
     Ok(())
 }

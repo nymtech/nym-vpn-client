@@ -936,4 +936,21 @@ impl VpndClient {
 
         Ok(summary.map(Into::into))
     }
+
+    /// Run network diagnostics
+    #[instrument(skip_all)]
+    pub async fn run_diagnostic(
+        &self,
+        params: lib::DiagnosticRunParams,
+    ) -> Result<lib::DiagnosticReport, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let report = vpnd
+            .run_diagnostic(params)
+            .or_else(async |e| self.handle_rpc_error("run_diagnostic", e).await)
+            .await?;
+
+        debug!("diagnostic report: {report:?}");
+        Ok(report)
+    }
 }

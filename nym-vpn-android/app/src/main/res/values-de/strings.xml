@@ -271,7 +271,7 @@
 	<string name="onboarding_title_3">Nicht mehr online getrackt werden</string>
 	<string name="onboarding_title_4">Anonymität von der Zahlung bis zum Web</string>
 	<string name="onboarding_description_base">Das privateste VPN der Welt</string>
-	<string name="onboarding_description_1">Das privateste VPN der Welt\n7 Tage lang kostenlos testen:\nAlle Funktionen inklusive, keine Werbung.</string>
+	<string name="onboarding_description_1">Das privateste VPN der Welt</string>
 	<string name="onboarding_description_2">Schnell: 250+ Mbit/s mit dVPN.\nAnonym: 5-Hop-Rauschgenerierendes Mixnet.</string>
 	<string name="onboarding_description_3">Das dezentrale Netzwerk von Nym macht „No-Log“-\n Versprechen überflüssig.</string>
 	<string name="onboarding_description_4">Bezahle mit Karte, Kryptowährung oder Bargeld - keine E-Mail-Adresse nötig. Zero-Knowledge-Proofs sorgen dafür, dass deine Zahlungen nicht mit deinen Online-Aktivitäten in Verbindung gebracht werden können.</string>

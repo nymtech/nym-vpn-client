@@ -1,12 +1,21 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
+import { useNavigate } from 'react-router';
+import {
+  CardSwitch,
+  Link,
+  MsIcon,
+  PageAnim,
+  SettingsMenuCardBig,
+} from '../../../ui';
 import { useMainDispatch, useMainState } from '../../../contexts';
 import { StateDispatch } from '../../../types';
 import {
   AnonNetworkStatsUrl,
   SentryPrivacyPolicyUrl,
 } from '../../../constants';
+import SettingsGroup from '../SettingsGroup';
+import { routes } from '../../../router';
 
 function DataAndPrivacy() {
   const { monitoring, networkStats } = useMainState();
@@ -14,6 +23,7 @@ function DataAndPrivacy() {
   const dispatch = useMainDispatch() as StateDispatch;
 
   const { t } = useTranslation('settings');
+  const navigate = useNavigate();
 
   const onNetStatsChange = async () => {
     const isChecked = !networkStats;
@@ -41,6 +51,27 @@ function DataAndPrivacy() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
+      <SettingsGroup
+        settings={[
+          {
+            title: t('logs.title'),
+            leadingIcon: 'sort',
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            onClick: () => navigate(routes.logs),
+          },
+        ]}
+      />
+      <SettingsGroup
+        settings={[
+          {
+            title: t('diagnostic.title'),
+            leadingIcon: 'monitor_heart',
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            onClick: () => navigate(routes.diagnostic),
+          },
+        ]}
+      />
+
       <SettingsMenuCardBig
         header={
           <CardSwitch
