@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -86,7 +87,7 @@ fun SubscriptionSection(subscriptionState: SubscriptionUiState?, bandwidthState:
 }
 
 @Composable
-private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: BandwidthUiState, onRenewClick: () -> Unit) {
+private fun BaseAccountStatusCard(content: @Composable ColumnScope.() -> Unit) {
 	Card(
 		modifier = Modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(8.dp),
@@ -104,96 +105,102 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 					style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onSurface),
 				)
 			}
+			content()
+		}
+	}
+}
 
-			Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-				Row(
-					modifier = Modifier.fillMaxWidth(),
-					horizontalArrangement = Arrangement.SpaceBetween,
-				) {
-					Text(
-						text = stringResource(R.string.account_info_bandwidth_title),
-						style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.primary),
-					)
-					Text(
-						text = stringResource(R.string.account_info_limit_text),
-						style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.outline),
-					)
-				}
-
-				Spacer(Modifier.height(8.dp))
-
-				val remainingGb = maxOf(0f, bandwidth.totalGb - bandwidth.consumedGb)
-				val progress = if (bandwidth.totalGb > 0) remainingGb / bandwidth.totalGb else 0f
-
-				LinearProgressIndicator(
-					progress = { progress },
-					modifier = Modifier
-						.fillMaxWidth()
-						.height(6.dp),
-					color = MaterialTheme.colorScheme.primary,
-					trackColor = MaterialTheme.colorScheme.background,
-					strokeCap = StrokeCap.Round,
+@Composable
+private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: BandwidthUiState, onRenewClick: () -> Unit) {
+	BaseAccountStatusCard {
+		Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				horizontalArrangement = Arrangement.SpaceBetween,
+			) {
+				Text(
+					text = stringResource(R.string.account_info_bandwidth_title),
+					style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.primary),
 				)
-
-				Spacer(Modifier.height(8.dp))
-
-				Row(
-					modifier = Modifier.fillMaxWidth(),
-					horizontalArrangement = Arrangement.SpaceBetween,
-				) {
-					val format = java.text.NumberFormat.getNumberInstance(java.util.Locale.US)
-					Text(
-						text = "${format.format(remainingGb.toInt())} GB",
-						style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.primary),
-					)
-					Text(
-						text = "${format.format(bandwidth.totalGb.toInt())} GB",
-						style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-					)
-				}
+				Text(
+					text = stringResource(R.string.account_info_limit_text),
+					style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.outline),
+				)
 			}
 
-			Spacer(Modifier.height(24.dp))
-			HorizontalDivider(color = MaterialTheme.colorScheme.background)
+			Spacer(Modifier.height(8.dp))
+
+			val remainingGb = maxOf(0f, bandwidth.totalGb - bandwidth.consumedGb)
+			val progress = if (bandwidth.totalGb > 0) remainingGb / bandwidth.totalGb else 0f
+
+			LinearProgressIndicator(
+				progress = { progress },
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(6.dp),
+				color = MaterialTheme.colorScheme.primary,
+				trackColor = MaterialTheme.colorScheme.background,
+				strokeCap = StrokeCap.Round,
+			)
+
+			Spacer(Modifier.height(8.dp))
+
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				horizontalArrangement = Arrangement.SpaceBetween,
+			) {
+				val format = java.text.NumberFormat.getNumberInstance(java.util.Locale.US)
+				Text(
+					text = "${format.format(remainingGb.toInt())} GB",
+					style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.primary),
+				)
+				Text(
+					text = "${format.format(bandwidth.totalGb.toInt())} GB",
+					style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+				)
+			}
+		}
+
+		Spacer(Modifier.height(24.dp))
+		HorizontalDivider(color = MaterialTheme.colorScheme.background)
+
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(16.dp),
+			horizontalArrangement = Arrangement.SpaceBetween,
+		) {
+			Text(
+				text = stringResource(R.string.account_info_reset_text),
+				style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.outline),
+			)
+			Text(
+				text = bandwidth.resetDate,
+				style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+			)
+		}
+
+		if (subscription.expiryState == ExpiryState.WARNING_YELLOW || subscription.expiryState == ExpiryState.WARNING_AMBER) {
+			val isAmber = subscription.expiryState == ExpiryState.WARNING_AMBER
+			val contentColor = if (isAmber) CustomColors.warning else MaterialTheme.colorScheme.primary
+			val bgColor = if (isAmber) CustomColors.warning.copy(alpha = 0.1f) else CustomColors.statusGreen
 
 			Row(
 				modifier = Modifier
 					.fillMaxWidth()
-					.padding(16.dp),
-				horizontalArrangement = Arrangement.SpaceBetween,
+					.background(bgColor)
+					.clickable { onRenewClick() }
+					.padding(horizontal = 16.dp, vertical = 20.dp),
+				verticalAlignment = Alignment.CenterVertically,
 			) {
+				Icon(Icons.Outlined.Bolt, contentDescription = null, tint = contentColor)
+				Spacer(Modifier.width(12.dp))
 				Text(
-					text = stringResource(R.string.account_info_reset_text),
-					style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.outline),
+					text = stringResource(R.string.account_info_renew_text),
+					style = MaterialTheme.typography.bodyMedium.copy(color = contentColor),
+					modifier = Modifier.weight(1f),
 				)
-				Text(
-					text = bandwidth.resetDate,
-					style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-				)
-			}
-
-			if (subscription.expiryState == ExpiryState.WARNING_YELLOW || subscription.expiryState == ExpiryState.WARNING_AMBER) {
-				val isAmber = subscription.expiryState == ExpiryState.WARNING_AMBER
-				val contentColor = if (isAmber) CustomColors.warning else MaterialTheme.colorScheme.primary
-				val bgColor = if (isAmber) CustomColors.warning.copy(alpha = 0.1f) else CustomColors.statusGreen
-
-				Row(
-					modifier = Modifier
-						.fillMaxWidth()
-						.background(bgColor)
-						.clickable { onRenewClick() }
-						.padding(horizontal = 16.dp, vertical = 20.dp),
-					verticalAlignment = Alignment.CenterVertically,
-				) {
-					Icon(Icons.Outlined.Bolt, contentDescription = null, tint = contentColor)
-					Spacer(Modifier.width(12.dp))
-					Text(
-						text = stringResource(R.string.account_info_renew_text),
-						style = MaterialTheme.typography.bodyMedium.copy(color = contentColor),
-						modifier = Modifier.weight(1f),
-					)
-					Icon(Icons.AutoMirrored.Outlined.Launch, contentDescription = null, tint = contentColor)
-				}
+				Icon(Icons.AutoMirrored.Outlined.Launch, contentDescription = null, tint = contentColor)
 			}
 		}
 	}
@@ -201,51 +208,33 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 
 @Composable
 private fun ExpiredCard() {
-	Card(
-		modifier = Modifier.fillMaxWidth(),
-		shape = RoundedCornerShape(8.dp),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-	) {
-		Column(modifier = Modifier.fillMaxWidth()) {
-			Row(
-				modifier = Modifier.padding(16.dp),
-				verticalAlignment = Alignment.CenterVertically,
-			) {
-				Icon(Icons.Outlined.Speed, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
-				Spacer(Modifier.width(12.dp))
-				Text(
-					text = stringResource(R.string.account_info_status_title),
-					style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-				)
-			}
+	BaseAccountStatusCard {
+		HorizontalDivider(color = MaterialTheme.colorScheme.background)
 
-			HorizontalDivider(color = MaterialTheme.colorScheme.background)
-
-			Column(
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(vertical = 40.dp),
+			horizontalAlignment = Alignment.CenterHorizontally,
+		) {
+			Box(
 				modifier = Modifier
-					.fillMaxWidth()
-					.padding(vertical = 40.dp),
-				horizontalAlignment = Alignment.CenterHorizontally,
+					.size(64.dp)
+					.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+				contentAlignment = Alignment.Center,
 			) {
-				Box(
-					modifier = Modifier
-						.size(64.dp)
-						.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
-					contentAlignment = Alignment.Center,
-				) {
-					Icon(
-						imageVector = Icons.Outlined.GppBad,
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.outline,
-						modifier = Modifier.size(32.dp),
-					)
-				}
-				Spacer(Modifier.height(16.dp))
-				Text(
-					text = stringResource(R.string.account_info_no_plan),
-					style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+				Icon(
+					imageVector = Icons.Outlined.GppBad,
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.outline,
+					modifier = Modifier.size(32.dp),
 				)
 			}
+			Spacer(Modifier.height(16.dp))
+			Text(
+				text = stringResource(R.string.account_info_no_plan),
+				style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+			)
 		}
 	}
 }
@@ -281,7 +270,7 @@ private fun ContactSupportText(onClick: () -> Unit) {
 
 data class BandwidthUiState(val consumedGb: Float, val totalGb: Float, val percentage: Float, val resetDate: String)
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, name = "1 - Normal State")
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewAccountStatusNormal() {
 	NymVPNTheme(Theme.default()) {
@@ -298,87 +287,6 @@ private fun PreviewAccountStatusNormal() {
 						totalGb = 2000f,
 						percentage = 0.4f,
 						resetDate = "2026.03.18",
-					),
-					onSelectPlanClick = {},
-					onRenewClick = {},
-					onContactSupportClick = {},
-				)
-			}
-		}
-	}
-}
-
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, name = "2 - Yellow Warning State")
-@Composable
-private fun PreviewAccountStatusYellow() {
-	NymVPNTheme(Theme.default()) {
-		Scaffold { padding ->
-			Box(modifier = Modifier.padding(padding).padding(16.dp)) {
-				SubscriptionSection(
-					subscriptionState = SubscriptionUiState(
-						isRecurring = false,
-						validUntilDate = "June 12, 2026",
-						expiryState = ExpiryState.WARNING_YELLOW,
-					),
-					bandwidthState = BandwidthUiState(
-						consumedGb = 800f,
-						totalGb = 2000f,
-						percentage = 0.4f,
-						resetDate = "2026.03.18",
-					),
-					onSelectPlanClick = {},
-					onRenewClick = {},
-					onContactSupportClick = {},
-				)
-			}
-		}
-	}
-}
-
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, name = "3 - Amber Warning State")
-@Composable
-private fun PreviewAccountStatusAmber() {
-	NymVPNTheme(Theme.default()) {
-		Scaffold { padding ->
-			Box(modifier = Modifier.padding(padding).padding(16.dp)) {
-				SubscriptionSection(
-					subscriptionState = SubscriptionUiState(
-						isRecurring = false,
-						validUntilDate = "June 12, 2026",
-						expiryState = ExpiryState.WARNING_AMBER,
-					),
-					bandwidthState = BandwidthUiState(
-						consumedGb = 800f,
-						totalGb = 2000f,
-						percentage = 0.4f,
-						resetDate = "2026.03.18",
-					),
-					onSelectPlanClick = {},
-					onRenewClick = {},
-					onContactSupportClick = {},
-				)
-			}
-		}
-	}
-}
-
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, name = "4 - Expired / No Plan State")
-@Composable
-private fun PreviewAccountStatusExpired() {
-	NymVPNTheme(Theme.default()) {
-		Scaffold { padding ->
-			Box(modifier = Modifier.padding(padding).padding(16.dp)) {
-				SubscriptionSection(
-					subscriptionState = SubscriptionUiState(
-						isRecurring = false,
-						validUntilDate = "Unknown",
-						expiryState = ExpiryState.EXPIRED,
-					),
-					bandwidthState = BandwidthUiState(
-						consumedGb = 0f,
-						totalGb = 0f,
-						percentage = 0f,
-						resetDate = "Unknown",
 					),
 					onSelectPlanClick = {},
 					onRenewClick = {},

@@ -50,6 +50,12 @@ fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?
 					},
 					description = {
 						SubscriptionStatusText(subscription = subscription)
+						if (subscription != null && subscription.isRecurring && subscription.expiryState != ExpiryState.EXPIRED) {
+							Text(
+								text = stringResource(R.string.account_info_auto_renew_text),
+								style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+							)
+						}
 					},
 					onClick = onAccountClick,
 				),
