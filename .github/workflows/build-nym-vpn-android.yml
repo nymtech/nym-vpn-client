@@ -174,49 +174,49 @@ jobs:
 
       - name: Build Fdroid Release Apk
         if: ${{ inputs.build_type == 'release' && inputs.build_format == 'apk' }}
-        run: ./gradlew :app:assembleFdroidRelease --info
+        run: ./gradlew :app:assembleFdroidRelease --info -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Fdroid Release Bundle
         if: ${{ inputs.build_type == 'release' && inputs.build_format == 'aab' }}
-        run: ./gradlew :app:bundleFdroidRelease --info
+        run: ./gradlew :app:bundleFdroidRelease --info -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Fdroid Prerelease Apk
         if: ${{ inputs.build_type == 'prerelease' && inputs.build_format == 'apk' }}
-        run: ./gradlew :app:assembleFdroidPrerelease --info
+        run: ./gradlew :app:assembleFdroidPrerelease --info -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Fdroid Prerelease Bundle
         if: ${{ inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
-        run: ./gradlew :app:bundleFdroidPrerelease --info
+        run: ./gradlew :app:bundleFdroidPrerelease --info -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Fdroid Nightly Apk
         if: ${{ inputs.build_type == 'nightly' && inputs.build_format == 'apk' }}
-        run: ./gradlew :app:assembleFdroidNightly --info
+        run: ./gradlew :app:assembleFdroidNightly --info -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Fdroid Nightly Bundle
         if: ${{ inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
-        run: ./gradlew :app:bundleFdroidNightly --info
+        run: ./gradlew :app:bundleFdroidNightly --info -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Debug Apk
         if: ${{ inputs.build_type == 'debug' && inputs.build_format == 'apk' }}
-        run: ./gradlew :app:assembleFdroidDebug --stacktrace
+        run: ./gradlew :app:assembleFdroidDebug --stacktrace -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Debug Bundle
         if: ${{ inputs.build_type == 'debug' && inputs.build_format == 'aab' }}
-        run: ./gradlew :app:bundleFdroidDebug --stacktrace
+        run: ./gradlew :app:bundleFdroidDebug --stacktrace -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 

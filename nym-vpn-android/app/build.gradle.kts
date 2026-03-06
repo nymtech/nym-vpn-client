@@ -13,11 +13,34 @@ plugins {
 	alias(libs.plugins.grgit)
 }
 
-val languagesArray = languageList().joinToString(separator = ", ") { "\"$it\"" }
-val currentCommitHash: String = grgitService.service.get().grgit.head()?.id ?: "unknown"
+val currentCommitHash: Provider<String> = providers.provider {
+	try {
+		grgitService.service.get().grgit.head().id
+	} catch (e: Exception) {
+		"unknown"
+	}
+}
+
+val languagesArray: Provider<String> = providers.provider {
+	languageList().joinToString(separator = ", ") { "\"$it\"" }
+}
+
+val versionNameProvider: Provider<String> = providers.provider {
+	val taskName = getBuildTaskName().lowercase()
+	if (taskName.contains(Constants.NIGHTLY) || taskName.contains(Constants.PRERELEASE)) {
+		val hash = try {
+			grgitService.service.get().grgit.head().abbreviatedId
+		} catch (e: Exception) {
+			"unknown"
+		}
+		"${Constants.VERSION_NAME}-$hash"
+	} else {
+		Constants.VERSION_NAME
+	}
+}
 
 base {
-	archivesName.set("${Constants.APP_NAME}-${determineVersionName()}")
+	archivesName.set(versionNameProvider.map { "${Constants.APP_NAME}-$it" })
 }
 
 kotlin {
@@ -62,15 +85,15 @@ android {
 		minSdk = Constants.MIN_SDK
 		targetSdk = Constants.TARGET_SDK
 		versionCode = Constants.VERSION_CODE
-		versionName = determineVersionName()
+		versionName = versionNameProvider.get()
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
 			useSupportLibrary = true
 		}
 
-		buildConfigField("String[]", "LANGUAGES", "new String[]{ $languagesArray }")
-		buildConfigField("String", "COMMIT_HASH", "\"$currentCommitHash\"")
+		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languagesArray.get()} }")
+		buildConfigField("String", "COMMIT_HASH", "\"${currentCommitHash.get()}\"")
 		buildConfigField("Boolean", "IS_PRERELEASE", "false")
 		proguardFile("fdroid-rules.pro")
 
@@ -109,7 +132,7 @@ android {
 			isDebuggable = true
 			applicationIdSuffix = ".debug"
 			versionNameSuffix = "-debug"
-			resValue("string", "app_name", "NymVPN - Debug")
+			resValue("string", "app_name", "${Constants.APP_NAME} - Debug")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.debug\"")
 		}
 
@@ -117,7 +140,7 @@ android {
 			initWith(buildTypes.getByName(Constants.RELEASE))
 			applicationIdSuffix = ".prerelease"
 			versionNameSuffix = "-pre"
-			resValue("string", "app_name", "NymVPN - Pre")
+			resValue("string", "app_name", "${Constants.APP_NAME} - Pre")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.pre\"")
 			buildConfigField("Boolean", "IS_PRERELEASE", "true")
 		}
@@ -126,7 +149,7 @@ android {
 			initWith(buildTypes.getByName(Constants.RELEASE))
 			applicationIdSuffix = ".nightly"
 			versionNameSuffix = "-nightly"
-			resValue("string", "app_name", "NymVPN - Nightly")
+			resValue("string", "app_name", "${Constants.APP_NAME} - Nightly")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.nightly\"")
 		}
 	}
@@ -246,12 +269,4 @@ dependencies {
 	implementation(libs.credentials)
 }
 
-fun determineVersionName(): String = with(getBuildTaskName().lowercase()) {
-	when {
-		contains(Constants.NIGHTLY) || contains(Constants.PRERELEASE) ->
-			Constants.VERSION_NAME +
-				"-${grgitService.service.get().grgit.head().abbreviatedId}"
-
-		else -> Constants.VERSION_NAME
-	}
-}
+fun determineVersionName(): String = versionNameProvider.get()
