@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
@@ -22,7 +22,7 @@ import {
 } from '../../../contexts';
 import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
-import { StateDispatch, TAccountMode, TAccountSummary } from '../../../types';
+import { StateDispatch, TAccountSummary } from '../../../types';
 import { AccountStatus } from './account-status';
 import { AccountDescription } from './AccountDescription';
 
@@ -52,26 +52,21 @@ function Account() {
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
 
-  const refreshAccount = async () => {
+  const refreshAccount = useCallback(async () => {
     try {
       const summary = await invoke<TAccountSummary>('get_account_summary');
       dispatch({ type: 'set-account-summary', summary });
     } catch (err) {
       console.error('Failed to get account summary', err);
     }
-    try {
-      const mode = await invoke<TAccountMode>('get_account_mode');
-      dispatch({ type: 'set-account-mode', mode });
-    } catch (err) {
-      console.error('Failed to get account mode', err);
-    }
-  };
+  }, [dispatch]);
 
   // get fresh account data
   useEffect(() => {
+    if (accountSyncing) return;
+
     refreshAccount();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [accountSyncing, refreshAccount]);
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
