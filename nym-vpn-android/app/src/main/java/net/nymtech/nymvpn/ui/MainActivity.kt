@@ -255,7 +255,7 @@ class MainActivity : AppCompatActivity() {
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Settings>()
-									SettingsScreen(appViewModel, appState, args.showVpnSettings)
+									SettingsScreen(appState, args.showVpnSettings)
 								}
 
 								composable<Route.EntryLocation> {

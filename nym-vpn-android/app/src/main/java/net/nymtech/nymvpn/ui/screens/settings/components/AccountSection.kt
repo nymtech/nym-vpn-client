@@ -21,7 +21,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun AccountSection(isMnemonicStored: Boolean, onAccountClick: () -> Unit, onPassphraseClick: () -> Unit) {
+fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?, onAccountClick: () -> Unit, onPassphraseClick: () -> Unit) {
 	if (isMnemonicStored) {
 		SettingsGroup(
 			items = listOf(
@@ -47,6 +47,15 @@ fun AccountSection(isMnemonicStored: Boolean, onAccountClick: () -> Unit, onPass
 							stringResource(R.string.account),
 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 						)
+					},
+					description = {
+						SubscriptionStatusText(subscription = subscription)
+						if (subscription != null && subscription.isRecurring && subscription.expiryState != ExpiryState.EXPIRED) {
+							Text(
+								text = stringResource(R.string.account_info_auto_renew_text),
+								style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+							)
+						}
 					},
 					onClick = onAccountClick,
 				),
@@ -84,6 +93,6 @@ fun AccountSection(isMnemonicStored: Boolean, onAccountClick: () -> Unit, onPass
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewAccountSection() {
 	NymVPNTheme(Theme.default()) {
-		AccountSection(true, {}, {})
+		AccountSection(true, null, {}, {})
 	}
 }

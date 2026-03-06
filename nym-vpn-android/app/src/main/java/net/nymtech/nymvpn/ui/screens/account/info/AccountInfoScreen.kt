@@ -40,10 +40,16 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountActionCard
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountInfoCard
+import net.nymtech.nymvpn.ui.screens.account.info.components.BandwidthUiState
+import net.nymtech.nymvpn.ui.screens.account.info.components.SubscriptionSection
+import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutSection
+import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionStatusText
+import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
@@ -57,6 +63,7 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
+	val supportURL = stringResource(R.string.contact_url)
 
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -86,6 +93,8 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		deviceId = uiState.deviceId,
 		showLinkAccount = uiState.showLinkAccount,
 		isMnemonicStored = uiState.isMnemonicStored,
+		subscriptionState = uiState.subscription,
+		bandwidthState = uiState.bandwidth,
 		onManageClick = {
 			uiState.manageUrl?.let {
 				Timber.d("Manage url: $it")
@@ -117,6 +126,12 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		onLogoutClick = {
 			showLogoutDialog = true
 		},
+		onSelectPlanClick = {
+			navController.goFromRoot(Route.SelectPlan)
+		},
+		onContactSupportClick = {
+			context.openWebUrl(supportURL)
+		},
 	)
 }
 
@@ -132,6 +147,10 @@ fun AccountInfoScreenContent(
 	onAccountIdClick: () -> Unit,
 	onDeviceIdClick: () -> Unit,
 	onLogoutClick: () -> Unit,
+	onSelectPlanClick: () -> Unit,
+	onContactSupportClick: () -> Unit,
+	subscriptionState: SubscriptionUiState?,
+	bandwidthState: BandwidthUiState?,
 ) {
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -140,9 +159,21 @@ fun AccountInfoScreenContent(
 			.verticalScroll(rememberScrollState())
 			.padding(horizontal = 16.dp.scaledWidth(), vertical = 24.dp),
 	) {
+		SubscriptionSection(
+			subscriptionState = subscriptionState,
+			bandwidthState = bandwidthState,
+			onSelectPlanClick = onSelectPlanClick,
+			onRenewClick = onManageClick,
+			onContactSupportClick = onContactSupportClick,
+		)
+
+		Spacer(Modifier.height(24.dp))
+
 		AccountActionCard(
 			title = stringResource(R.string.account_info_manage_button),
-			subtitle = null,
+			subtitle = {
+				SubscriptionStatusText(subscription = subscriptionState)
+			},
 			icon = Icons.Outlined.Person,
 			onClick = onManageClick,
 		)
@@ -150,10 +181,20 @@ fun AccountInfoScreenContent(
 		Spacer(Modifier.height(8.dp))
 		AccountActionCard(
 			title = stringResource(R.string.account_info_account_button),
-			subtitle = if (showLinkAccount && isPrivyEnabled) stringResource(R.string.account_info_link_description) else null,
+			subtitle = if (showLinkAccount && isPrivyEnabled) {
+				{
+					Text(
+						text = stringResource(R.string.account_info_link_description),
+						style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+					)
+				}
+			} else {
+				null
+			},
 			icon = Icons.Outlined.Person,
 			onClick = onLinkAccountClick,
 		)
+
 		if (isPrivyEnabled) {
 			Text(
 				text = stringResource(if (showLinkAccount) R.string.account_info_link_warning else R.string.account_info_linked_info),
@@ -207,6 +248,19 @@ internal fun PreviewAccountInfoScreen() {
 			onAccountIdClick = {},
 			onDeviceIdClick = {},
 			onLogoutClick = {},
+			onSelectPlanClick = {},
+			onContactSupportClick = {},
+			subscriptionState = SubscriptionUiState(
+				isRecurring = false,
+				validUntilDate = "December 24, 2026",
+				expiryState = ExpiryState.NORMAL,
+			),
+			bandwidthState = BandwidthUiState(
+				consumedGb = 800f,
+				totalGb = 2000f,
+				percentage = 0.4f,
+				resetDate = "2026.03.18",
+			),
 		)
 	}
 }
