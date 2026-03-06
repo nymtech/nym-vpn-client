@@ -1,8 +1,8 @@
 package net.nymtech.nymvpn.ui.screens.welcome
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,7 +33,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
@@ -69,8 +69,9 @@ fun WelcomeScreen() {
 
 @Composable
 fun WelcomeScreen(onCreateAccountClick: () -> Unit, onLoginClick: () -> Unit, onCloseClick: () -> Unit) {
+	val isDarkMode = isSystemInDarkTheme()
 	val scope = rememberCoroutineScope()
-	val pages = getPages()
+	val pages = getPages(isDarkMode)
 	val lastIndex = pages.lastIndex
 
 	val pagerState = rememberPagerState(
@@ -231,7 +232,7 @@ fun WelcomeScreen(onCreateAccountClick: () -> Unit, onLoginClick: () -> Unit, on
 }
 
 @Composable
-private fun getPages(): List<OnboardingPage> = listOf(
+private fun getPages(isDarkMode: Boolean): List<OnboardingPage> = listOf(
 	OnboardingPage(
 		title = stringResource(R.string.welcome_to_nym),
 		description = stringResource(R.string.onboarding_description_1),
@@ -250,12 +251,12 @@ private fun getPages(): List<OnboardingPage> = listOf(
 	OnboardingPage(
 		title = stringResource(R.string.onboarding_title_4),
 		description = stringResource(R.string.onboarding_description_4),
-		image = R.drawable.img_onboarding_4,
+		image = if (isDarkMode) R.drawable.img_onboarding_4_dark else R.drawable.img_onboarding_4_light,
 	),
 )
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
+@PreviewLightDark
 internal fun PreviewWelcomeScreen() {
 	NymVPNTheme(Theme.default()) {
 		WelcomeScreen(
