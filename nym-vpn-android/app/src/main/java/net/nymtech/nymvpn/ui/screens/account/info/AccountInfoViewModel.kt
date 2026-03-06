@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.util.extensions.toBandwidthUiState
+import net.nymtech.nymvpn.util.extensions.toSubscriptionUiState
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.StoredAccountMode
 import timber.log.Timber
@@ -34,6 +36,9 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 
 			val accountSummary = backendManager.getAccountSummary()
 			Timber.d("accountSummary $accountSummary")
+
+			val subState = accountSummary?.toSubscriptionUiState()
+			val bwState = accountSummary?.toBandwidthUiState()
 
 			val isStored = backendManager.isMnemonicStored()
 			val deviceId = backendManager.getDeviceId() ?: ""
@@ -72,6 +77,8 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 					accountLinkUrl = linkUrl,
 					manageUrl = manageUrl,
 					isPrivyEnabled = isPrivyEnabled,
+					subscription = subState,
+					bandwidth = bwState,
 				)
 			}
 		}

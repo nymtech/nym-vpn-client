@@ -15,6 +15,7 @@ import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
+import net.nymtech.nymvpn.util.extensions.toSubscriptionUiState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import timber.log.Timber
@@ -42,7 +43,15 @@ class SettingsViewModel @Inject constructor(
 			val daemonVersion = backendManager.getDaemonVersion()
 			val isMixnetTuningEnabled = environmentManager.isMixnetTuningEnabled()
 			_uiState.update { it.copy(daemonVersion = daemonVersion, isMixnetTuningEnabled = isMixnetTuningEnabled) }
+
+			loadAccountSummary()
 		}
+	}
+
+	private suspend fun loadAccountSummary() {
+		val accountSummary = backendManager.getAccountSummary()
+		val subState = accountSummary?.toSubscriptionUiState()
+		_uiState.update { it.copy(subscription = subState) }
 	}
 
 	fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {

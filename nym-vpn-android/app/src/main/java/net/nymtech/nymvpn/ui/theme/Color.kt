@@ -73,6 +73,7 @@ object CustomColors {
 	val iconBackground = Color(0x2611C55F)
 	val buttonRedTransparent = Color(0x1AED5060)
 	val buttonRedTransparentBorder = Color(0xFFED5060)
+	val warningAmber = Color(0xFFFB6E4E)
 }
 
 @Immutable

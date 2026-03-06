@@ -32,7 +32,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun AccountActionCard(title: String, subtitle: String?, icon: ImageVector, onClick: () -> Unit) {
+fun AccountActionCard(title: String, subtitle: @Composable (() -> Unit)? = null, icon: ImageVector, onClick: () -> Unit) {
 	val interactionSource = remember { MutableInteractionSource() }
 
 	Card(
@@ -82,12 +82,7 @@ fun AccountActionCard(title: String, subtitle: String?, icon: ImageVector, onCli
 							text = title,
 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 						)
-						if (subtitle != null) {
-							Text(
-								text = subtitle,
-								style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-							)
-						}
+						subtitle?.invoke()
 					}
 				}
 				Box(
