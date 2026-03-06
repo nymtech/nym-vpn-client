@@ -15,10 +15,7 @@ import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
-class SelectPlanViewModel @Inject constructor(
-	private val backendManager: BackendManager,
-	private val billingManager: BillingManager,
-) : ViewModel() {
+class SelectPlanViewModel @Inject constructor(private val backendManager: BackendManager, private val billingManager: BillingManager) : ViewModel() {
 
 	private val _subscriptions = MutableStateFlow<List<ProductData>>(emptyList())
 	val subscriptions: StateFlow<List<ProductData>> = _subscriptions
@@ -37,9 +34,7 @@ class SelectPlanViewModel @Inject constructor(
 		}
 	}
 
-	fun isBillingAvailable(): Boolean {
-		return billingManager.isReady() && billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID
-	}
+	fun isBillingAvailable(): Boolean = billingManager.isReady() && billingManager.isAvailable() && BuildConfig.APPLICATION_ID == Constants.APP_ID
 
 	fun fetchSubscriptions() {
 		billingManager.fetchSubscriptions()

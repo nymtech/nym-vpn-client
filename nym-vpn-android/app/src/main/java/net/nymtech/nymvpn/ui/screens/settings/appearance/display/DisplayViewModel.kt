@@ -11,9 +11,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DisplayViewModel
 @Inject
-constructor(
-	private val settingsRepository: SettingsRepository,
-) : ViewModel() {
+constructor(private val settingsRepository: SettingsRepository) : ViewModel() {
 
 	fun onThemeChange(theme: Theme) = viewModelScope.launch {
 		settingsRepository.setTheme(theme)

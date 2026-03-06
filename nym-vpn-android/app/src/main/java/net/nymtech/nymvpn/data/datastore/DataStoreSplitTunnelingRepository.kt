@@ -18,13 +18,11 @@ class DataStoreSplitTunnelingRepository @Inject constructor(private val dataStor
 		dataStoreManager.saveToDataStore(APP_INFO, appInfoString)
 	}
 
-	override suspend fun getAppInfoList(): List<AppInfo> {
-		return try {
-			val appInfoString = dataStoreManager.getFromStore(APP_INFO)
-			appInfoString?.let { Json.decodeFromString<List<AppInfo>>(appInfoString) } ?: emptyList()
-		} catch (e: Exception) {
-			Timber.e("Error getting app info: ${e.message}")
-			emptyList()
-		}
+	override suspend fun getAppInfoList(): List<AppInfo> = try {
+		val appInfoString = dataStoreManager.getFromStore(APP_INFO)
+		appInfoString?.let { Json.decodeFromString<List<AppInfo>>(appInfoString) } ?: emptyList()
+	} catch (e: Exception) {
+		Timber.e("Error getting app info: ${e.message}")
+		emptyList()
 	}
 }

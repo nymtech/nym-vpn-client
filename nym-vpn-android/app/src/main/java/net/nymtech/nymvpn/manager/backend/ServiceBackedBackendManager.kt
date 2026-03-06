@@ -182,29 +182,23 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun getGateways(gatewayType: GatewayType) = serviceConnectionManager.withApi { it.getGateways(gatewayType) }
 
-	override suspend fun getMnemonic(): List<String> {
-		return serviceConnectionManager.withApi { it.getStoredMnemonic().split(" ") }
-	}
+	override suspend fun getMnemonic(): List<String> = serviceConnectionManager.withApi { it.getStoredMnemonic().split(" ") }
 	override suspend fun createAccount() {
 		serviceConnectionManager.withApi { it.createAccount() }
 		refreshIdentityState()
 	}
-	override suspend fun registerAccount(purchaseToken: String): String {
-		return serviceConnectionManager.withApi { it.registerAccount(purchaseToken) }
-	}
+	override suspend fun registerAccount(purchaseToken: String): String = serviceConnectionManager.withApi { it.registerAccount(purchaseToken) }
 	override suspend fun refreshAccount() {
 		serviceConnectionManager.withApi { it.refreshAccount() }
 	}
 
 	override suspend fun getDaemonVersion(): String = serviceConnectionManager.withApi { it.getNetworkVersions()?.core ?: "" }
 
-	override suspend fun getFeatureFlags(): FeatureFlags? {
-		return runCatching {
-			serviceConnectionManager.withApi { it.getFeatureFlags() }
-		}.getOrElse {
-			Timber.e(it, "GetFeatureFlagsFailed")
-			null
-		}
+	override suspend fun getFeatureFlags(): FeatureFlags? = runCatching {
+		serviceConnectionManager.withApi { it.getFeatureFlags() }
+	}.getOrElse {
+		Timber.e(it, "GetFeatureFlagsFailed")
+		null
 	}
 
 	override suspend fun getDeeplink(kind: DeeplinkKind): String? {
@@ -226,13 +220,9 @@ class ServiceBackedBackendManager @Inject constructor(
 		refreshIdentityState()
 	}
 
-	override suspend fun getAccountMode(): StoredAccountMode? {
-		return serviceConnectionManager.withApi { it.getAccountMode() }
-	}
+	override suspend fun getAccountMode(): StoredAccountMode? = serviceConnectionManager.withApi { it.getAccountMode() }
 
-	override suspend fun getAccountSummary(): VpnAccountSummary? {
-		return serviceConnectionManager.withApi { it.getAccountSummary() }
-	}
+	override suspend fun getAccountSummary(): VpnAccountSummary? = serviceConnectionManager.withApi { it.getAccountSummary() }
 
 	private fun notifyVpnPermissionRequired() {
 		val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground.value

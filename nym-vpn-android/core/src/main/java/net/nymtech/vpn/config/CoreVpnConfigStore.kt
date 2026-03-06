@@ -49,9 +49,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		prefs.toCoreConfig()
 	}
 
-	suspend fun get(): CoreVpnConfig {
-		throw UnsupportedOperationException("Use CoreVpnConfigRepository.get() instead")
-	}
+	suspend fun get(): CoreVpnConfig = throw UnsupportedOperationException("Use CoreVpnConfigRepository.get() instead")
 
 	suspend fun update(transform: (CoreVpnConfig) -> CoreVpnConfig) {
 		context.dataStore.edit { prefs ->

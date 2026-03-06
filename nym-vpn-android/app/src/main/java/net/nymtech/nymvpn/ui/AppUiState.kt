@@ -139,18 +139,14 @@ data class AppUiState(
 		else -> null
 	}
 
-	private fun entryGateways(): List<NymGateway> {
-		return when (vpnConfig.mode) {
-			Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.entryGateways
-			Tunnel.Mode.TWO_HOP_MIXNET -> gateways.wgGateways
-		}
+	private fun entryGateways(): List<NymGateway> = when (vpnConfig.mode) {
+		Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.entryGateways
+		Tunnel.Mode.TWO_HOP_MIXNET -> gateways.wgGateways
 	}
 
-	private fun exitGateways(): List<NymGateway> {
-		return when (vpnConfig.mode) {
-			Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.exitGateways
-			Tunnel.Mode.TWO_HOP_MIXNET -> gateways.wgGateways
-		}
+	private fun exitGateways(): List<NymGateway> = when (vpnConfig.mode) {
+		Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.exitGateways
+		Tunnel.Mode.TWO_HOP_MIXNET -> gateways.wgGateways
 	}
 }
 
@@ -164,10 +160,6 @@ private fun NymGateway.serverLocationOnGatewaySelection(twoLetterIsoCountryCode:
 	return listOfNotNull(this.city, region, toDisplayCountry(twoLetterIsoCountryCode)).joinToString(", ")
 }
 
-private fun NymGateway.serverLocationOnRegionSelection(): String? {
-	return this.city.orEmpty() + " (${this.name})"
-}
+private fun NymGateway.serverLocationOnRegionSelection(): String? = this.city.orEmpty() + " (${this.name})"
 
-private fun NymGateway.entryPointNameForRegion(): String {
-	return listOfNotNull(toDisplayCountry(this.twoLetterCountryISO.orEmpty()), region).joinToString(", ")
-}
+private fun NymGateway.entryPointNameForRegion(): String = listOfNotNull(toDisplayCountry(this.twoLetterCountryISO.orEmpty()), region).joinToString(", ")

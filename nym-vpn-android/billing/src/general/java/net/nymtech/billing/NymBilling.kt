@@ -31,11 +31,7 @@ import net.nymtech.billing.model.ProductId
 import timber.log.Timber
 import kotlin.coroutines.resume
 
-class NymBilling(
-	context: Context,
-	private val applicationScope: CoroutineScope,
-	private val ioDispatcher: CoroutineDispatcher,
-) : Billing {
+class NymBilling(context: Context, private val applicationScope: CoroutineScope, private val ioDispatcher: CoroutineDispatcher) : Billing {
 
 	companion object {
 		private const val TAG = "billing"

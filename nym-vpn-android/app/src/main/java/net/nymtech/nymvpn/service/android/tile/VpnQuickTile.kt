@@ -23,7 +23,9 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class VpnQuickTile : TileService(), LifecycleOwner {
+class VpnQuickTile :
+	TileService(),
+	LifecycleOwner {
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository

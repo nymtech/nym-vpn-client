@@ -12,10 +12,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 
-class DataStoreManager(
-	private val context: Context,
-	private val ioDispatcher: CoroutineDispatcher,
-) {
+class DataStoreManager(private val context: Context, private val ioDispatcher: CoroutineDispatcher) {
 
 	// preferences
 	private val preferencesKey = "preferences"
@@ -44,14 +41,12 @@ class DataStoreManager(
 		}
 	}
 
-	suspend fun <T> getFromStore(key: Preferences.Key<T>): T? {
-		return withContext(ioDispatcher) {
-			try {
-				context.dataStore.data.map { it[key] }.first()
-			} catch (e: IOException) {
-				Timber.e(e)
-				null
-			}
+	suspend fun <T> getFromStore(key: Preferences.Key<T>): T? = withContext(ioDispatcher) {
+		try {
+			context.dataStore.data.map { it[key] }.first()
+		} catch (e: IOException) {
+			Timber.e(e)
+			null
 		}
 	}
 

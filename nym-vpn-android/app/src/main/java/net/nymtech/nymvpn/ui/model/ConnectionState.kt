@@ -27,31 +27,29 @@ sealed interface ConnectionState {
 	data class StartFailure(val exception: VpnException) : ConnectionState
 
 	companion object {
-		fun from(tunnelState: Tunnel.State, establishConnectionState: EstablishConnectionState?): ConnectionState {
-			return when (tunnelState) {
-				Tunnel.State.Down -> Disconnected
-				Tunnel.State.Up -> Connected
-				Tunnel.State.Disconnecting -> Disconnecting
-				Tunnel.State.Offline -> WaitingForConnection
+		fun from(tunnelState: Tunnel.State, establishConnectionState: EstablishConnectionState?): ConnectionState = when (tunnelState) {
+			Tunnel.State.Down -> Disconnected
+			Tunnel.State.Up -> Connected
+			Tunnel.State.Disconnecting -> Disconnecting
+			Tunnel.State.Offline -> WaitingForConnection
 
-				is Tunnel.State.Error -> Error(tunnelState.reason)
+			is Tunnel.State.Error -> Error(tunnelState.reason)
 
-				Tunnel.State.InitializingClient -> Connecting(
-					StringResource(R.string.init_client),
-				)
+			Tunnel.State.InitializingClient -> Connecting(
+				StringResource(R.string.init_client),
+			)
 
-				Tunnel.State.EstablishingConnection -> {
-					val messageRes = when (establishConnectionState) {
-						EstablishConnectionState.RESOLVING_API_ADDRESSES -> R.string.connection_state_resolving_addresses
-						EstablishConnectionState.AWAITING_ACCOUNT_READINESS -> R.string.connection_state_awaiting_readiness
-						EstablishConnectionState.REFRESHING_GATEWAYS -> R.string.connection_state_refreshing_gateways
-						EstablishConnectionState.SELECTING_GATEWAYS -> R.string.connection_state_selecting_gateways
-						EstablishConnectionState.REGISTERING_WITH_GATEWAYS -> R.string.connection_state_connecting_mixnet_client
-						EstablishConnectionState.CONNECTING_TUNNEL -> R.string.connection_state_connecting_tunnel
-						null -> R.string.establishing_connection
-					}
-					Connecting(StringResource(messageRes))
+			Tunnel.State.EstablishingConnection -> {
+				val messageRes = when (establishConnectionState) {
+					EstablishConnectionState.RESOLVING_API_ADDRESSES -> R.string.connection_state_resolving_addresses
+					EstablishConnectionState.AWAITING_ACCOUNT_READINESS -> R.string.connection_state_awaiting_readiness
+					EstablishConnectionState.REFRESHING_GATEWAYS -> R.string.connection_state_refreshing_gateways
+					EstablishConnectionState.SELECTING_GATEWAYS -> R.string.connection_state_selecting_gateways
+					EstablishConnectionState.REGISTERING_WITH_GATEWAYS -> R.string.connection_state_connecting_mixnet_client
+					EstablishConnectionState.CONNECTING_TUNNEL -> R.string.connection_state_connecting_tunnel
+					null -> R.string.establishing_connection
 				}
+				Connecting(StringResource(messageRes))
 			}
 		}
 	}

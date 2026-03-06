@@ -30,10 +30,7 @@ import javax.inject.Singleton
  * No VpnApiService proxy anymore.
  */
 @Singleton
-class VpnServiceConnectionManager @Inject constructor(
-	@ApplicationContext private val context: Context,
-	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) {
+class VpnServiceConnectionManager @Inject constructor(@ApplicationContext private val context: Context, @IoDispatcher private val ioDispatcher: CoroutineDispatcher) {
 
 	companion object {
 		private const val TAG = "vpn-service-conn"

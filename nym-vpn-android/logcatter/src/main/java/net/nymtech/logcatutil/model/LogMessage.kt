@@ -6,15 +6,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-data class LogMessage(
-	val time: String,
-	val epochMillis: Long,
-	val pid: String,
-	val tid: String,
-	val level: LogLevel,
-	val tag: String,
-	val message: String,
-) {
+data class LogMessage(val time: String, val epochMillis: Long, val pid: String, val tid: String, val level: LogLevel, val tag: String, val message: String) {
 	override fun toString(): String = "$time $pid $tid $level $tag message= $message"
 
 	companion object {
@@ -66,23 +58,21 @@ data class LogMessage(
 			)
 		}
 
-		private fun parseThreadTimeParts(value: String): Pair<String, Long> {
-			return runCatching {
-				val zone = ZoneId.systemDefault()
-				val now = LocalDate.now(zone)
-				val parsedLocal = LocalDateTime.parse(value, threadTimeFormatter)
-					.withYear(now.year)
+		private fun parseThreadTimeParts(value: String): Pair<String, Long> = runCatching {
+			val zone = ZoneId.systemDefault()
+			val now = LocalDate.now(zone)
+			val parsedLocal = LocalDateTime.parse(value, threadTimeFormatter)
+				.withYear(now.year)
 
-				val epoch = parsedLocal
-					.atZone(zone)
-					.toInstant()
-					.toEpochMilli()
+			val epoch = parsedLocal
+				.atZone(zone)
+				.toInstant()
+				.toEpochMilli()
 
-				parsedLocal.toString() to epoch
-			}.getOrElse {
-				val now = Instant.now()
-				value to now.toEpochMilli()
-			}
+			parsedLocal.toString() to epoch
+		}.getOrElse {
+			val now = Instant.now()
+			value to now.toEpochMilli()
 		}
 
 		fun system(message: String): LogMessage {

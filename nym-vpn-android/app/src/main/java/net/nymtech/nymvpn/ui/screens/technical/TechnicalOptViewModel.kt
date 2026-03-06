@@ -12,10 +12,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TechnicalOptViewModel
 @Inject
-constructor(
-	private val vpnConfigRepository: VpnConfigRepository,
-	private val settingsRepository: SettingsRepository,
-) : ViewModel() {
+constructor(private val vpnConfigRepository: VpnConfigRepository, private val settingsRepository: SettingsRepository) : ViewModel() {
 
 	fun onNetworkStatsEnabled(enabled: Boolean) = viewModelScope.launch {
 		settingsRepository.setStatisticsEnabled(enabled)

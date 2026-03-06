@@ -126,7 +126,5 @@ class SmokeTest {
 		error("Object with selector [$selector] not found")
 	}
 
-	private fun <R> UiDevice.wait(condition: SearchCondition<R>, timeout: Duration): R {
-		return wait(condition, timeout.inWholeMilliseconds)
-	}
+	private fun <R> UiDevice.wait(condition: SearchCondition<R>, timeout: Duration): R = wait(condition, timeout.inWholeMilliseconds)
 }

@@ -3,21 +3,14 @@ package net.nymtech.billing.model
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.ProductDetails.RecurrenceMode.INFINITE_RECURRING
 
-data class NymProductData(
-	override val id: String,
-	override val name: String,
-	override val price: String,
-	override val freeTrialDays: Int?,
-) : ProductData {
+data class NymProductData(override val id: String, override val name: String, override val price: String, override val freeTrialDays: Int?) : ProductData {
 	companion object {
-		fun from(product: ProductDetails): NymProductData {
-			return NymProductData(
-				id = product.productId,
-				name = product.name,
-				price = product.findDisplayPrice() ?: "",
-				freeTrialDays = product.getFreeTrialDays(),
-			)
-		}
+		fun from(product: ProductDetails): NymProductData = NymProductData(
+			id = product.productId,
+			name = product.name,
+			price = product.findDisplayPrice() ?: "",
+			freeTrialDays = product.getFreeTrialDays(),
+		)
 
 		private fun ProductDetails.getFreeTrialDays(): Int? {
 			val offers = subscriptionOfferDetails ?: return null

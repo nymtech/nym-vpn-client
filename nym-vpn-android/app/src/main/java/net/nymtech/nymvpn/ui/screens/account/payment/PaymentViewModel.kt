@@ -30,11 +30,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PaymentViewModel
 @Inject
-constructor(
-	private val billingManager: BillingManager,
-	private val backendManager: BackendManager,
-	private val settingsRepository: SettingsRepository,
-) : ViewModel() {
+constructor(private val billingManager: BillingManager, private val backendManager: BackendManager, private val settingsRepository: SettingsRepository) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-payment-vm"

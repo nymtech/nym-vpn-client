@@ -1,6 +1,5 @@
 plugins {
 	alias(libs.plugins.android.library)
-	alias(libs.plugins.jetbrainsKotlinAndroid)
 }
 
 android {
@@ -30,20 +29,22 @@ android {
 		create(Constants.NIGHTLY) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
 		}
-		flavorDimensions.add(Constants.TYPE)
 	}
+	flavorDimensions += Constants.TYPE
 
 	compileOptions {
 		sourceCompatibility = Constants.JAVA_VERSION
 		targetCompatibility = Constants.JAVA_VERSION
 	}
-	kotlinOptions {
-		jvmTarget = Constants.JVM_TARGET
+}
+
+kotlin {
+	compilerOptions {
+		jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(Constants.JVM_TARGET))
 	}
 }
 
 dependencies {
-
 	implementation(libs.androidx.core.ktx)
 	implementation(libs.material)
 	testImplementation(libs.junit)

@@ -16,9 +16,7 @@ import javax.inject.Inject
 import kotlin.math.roundToInt
 
 @HiltViewModel
-class MixnetTuningViewModel @Inject constructor(
-	private val settingsRepository: SettingsRepository,
-) : ViewModel() {
+class MixnetTuningViewModel @Inject constructor(private val settingsRepository: SettingsRepository) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(MixnetTuningUiState())
 	val uiState: StateFlow<MixnetTuningUiState> = _uiState.asStateFlow()

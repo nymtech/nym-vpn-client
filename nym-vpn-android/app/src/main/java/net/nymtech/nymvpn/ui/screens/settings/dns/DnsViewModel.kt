@@ -18,10 +18,7 @@ import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import javax.inject.Inject
 
 @HiltViewModel
-class DnsViewModel @Inject constructor(
-	private val backendManager: BackendManager,
-	private val vpnConfigRepository: VpnConfigRepository,
-) : ViewModel() {
+class DnsViewModel @Inject constructor(private val backendManager: BackendManager, private val vpnConfigRepository: VpnConfigRepository) : ViewModel() {
 
 	private val _defaultDns = MutableStateFlow<List<String>>(emptyList())
 	val defaultDns: StateFlow<List<String>> = _defaultDns
@@ -75,10 +72,7 @@ class DnsViewModel @Inject constructor(
 		}
 	}
 
-	data class DnsBackendUiState(
-		val tunnelState: Tunnel.State = Tunnel.State.Down,
-		val isRestarting: Boolean = false,
-	)
+	data class DnsBackendUiState(val tunnelState: Tunnel.State = Tunnel.State.Down, val isRestarting: Boolean = false)
 
 	companion object {
 		val DEFAULT_DNS_SERVERS = listOf(

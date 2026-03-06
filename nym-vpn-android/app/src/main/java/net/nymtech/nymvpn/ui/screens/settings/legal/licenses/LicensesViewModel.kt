@@ -13,12 +13,10 @@ import javax.inject.Inject
 @HiltViewModel
 class LicensesViewModel
 @Inject
-constructor(
-	private val fileUtils: FileUtils,
-) : ViewModel() {
-	private val _licences = mutableStateListOf<Artifact>()
+constructor(private val fileUtils: FileUtils) : ViewModel() {
+	private val _licenses = mutableStateListOf<Artifact>()
 	val licenses: List<Artifact>
-		get() = _licences
+		get() = _licenses
 
 	fun loadLicensesFromAssets() = viewModelScope.launch {
 		val kotlinLicenseJson = fileUtils.readTextFromAssetsFile(Constants.KOTLIN_LICENSES_ASSET_FILE_NAME)
@@ -29,7 +27,8 @@ constructor(
 		val rustLicenses = rustLicenseJson.getOrNull()?.let {
 			License.fromJsonList(it).getOrNull() ?: emptyList()
 		} ?: emptyList()
-		_licences.addAll(
+
+		_licenses.addAll(
 			Artifact.from(rustLicenses) + artifacts,
 		)
 	}

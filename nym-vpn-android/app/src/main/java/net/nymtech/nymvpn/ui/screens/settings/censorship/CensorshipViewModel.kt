@@ -16,11 +16,8 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class CensorshipViewModel @Inject constructor(
-	private val backendManager: BackendManager,
-	private val vpnConfigRepository: VpnConfigRepository,
-	private val settingsRepository: SettingsRepository,
-) : ViewModel() {
+class CensorshipViewModel @Inject constructor(private val backendManager: BackendManager, private val vpnConfigRepository: VpnConfigRepository, private val settingsRepository: SettingsRepository) :
+	ViewModel() {
 
 	private val _events = MutableSharedFlow<UiEvent>(
 		extraBufferCapacity = 1,

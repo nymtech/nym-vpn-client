@@ -1,6 +1,5 @@
 plugins {
 	alias(libs.plugins.android.library)
-	alias(libs.plugins.jetbrainsKotlinAndroid)
 }
 
 android {
@@ -47,7 +46,12 @@ android {
 		sourceCompatibility = Constants.JAVA_VERSION
 		targetCompatibility = Constants.JAVA_VERSION
 	}
-	kotlinOptions { jvmTarget = Constants.JVM_TARGET }
+}
+
+kotlin {
+	compilerOptions {
+		jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(Constants.JVM_TARGET))
+	}
 }
 
 dependencies {

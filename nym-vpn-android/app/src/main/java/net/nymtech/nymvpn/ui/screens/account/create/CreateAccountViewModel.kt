@@ -20,10 +20,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class CreateAccountViewModel @Inject constructor(
-	private val billingManager: BillingManager,
-	private val backendManager: BackendManager,
-) : ViewModel() {
+class CreateAccountViewModel @Inject constructor(private val billingManager: BillingManager, private val backendManager: BackendManager) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-create-account"

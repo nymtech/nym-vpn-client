@@ -5,10 +5,7 @@ import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingMode
 
 sealed class Route {
 	@Serializable
-	data class Main(
-		val autoStart: Boolean = false,
-		val configChange: Boolean = false,
-	) : Route()
+	data class Main(val autoStart: Boolean = false, val configChange: Boolean = false) : Route()
 
 	@Serializable
 	data object Splash : Route()
@@ -86,10 +83,7 @@ sealed class Route {
 	data object Account : Route()
 
 	@Serializable
-	data class ServerDetails(
-		val id: String,
-		val location: String,
-	) : Route()
+	data class ServerDetails(val id: String, val location: String) : Route()
 
 	@Serializable
 	data object SplitTunneling : Route()

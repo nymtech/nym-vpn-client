@@ -18,12 +18,7 @@ data class SplitTunnelingUiState(
 )
 
 @Serializable
-data class AppInfo(
-	val name: String,
-	val packageName: String,
-	val icon: Int,
-	val passThroughVpn: Boolean = true,
-)
+data class AppInfo(val name: String, val packageName: String, val icon: Int, val passThroughVpn: Boolean = true)
 
 enum class AppFilter {
 	None,

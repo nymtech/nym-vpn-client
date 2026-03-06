@@ -65,10 +65,7 @@ fun LegalOptions() {
 	)
 }
 
-data class LegalItem(
-	@StringRes val titleRes: Int,
-	val action: LegalAction,
-)
+data class LegalItem(@StringRes val titleRes: Int, val action: LegalAction)
 
 sealed class LegalAction {
 	data class WebUrl(@StringRes val urlRes: Int) : LegalAction()

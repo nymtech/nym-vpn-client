@@ -75,10 +75,7 @@ fun SnackbarControllerProvider(content: @Composable (snackbarHost: SnackbarHostS
 }
 
 @Immutable
-class SnackbarController(
-	private val host: SnackbarHostState,
-	private val scope: CoroutineScope,
-) {
+class SnackbarController(private val host: SnackbarHostState, private val scope: CoroutineScope) {
 	companion object {
 		val current
 			@Composable
@@ -134,23 +131,12 @@ class SnackbarController(
 }
 
 sealed class SnackbarChannelMessage {
-	data class Default(
-		val message: StringValue,
-		val action: SnackbarAction?,
-		val duration: SnackbarDuration = SnackbarDuration.Short,
-	) : SnackbarChannelMessage()
+	data class Default(val message: StringValue, val action: SnackbarAction?, val duration: SnackbarDuration = SnackbarDuration.Short) : SnackbarChannelMessage()
 
-	data class Custom(
-		val content: CustomSnackbarContent,
-	) : SnackbarChannelMessage()
+	data class Custom(val content: CustomSnackbarContent) : SnackbarChannelMessage()
 }
 
-data class CustomSnackbarContent(
-	val message: String,
-	val action: SnackbarAction? = null,
-	val iconAction: IconAction? = null,
-	val duration: SnackbarDuration = SnackbarDuration.Short,
-)
+data class CustomSnackbarContent(val message: String, val action: SnackbarAction? = null, val iconAction: IconAction? = null, val duration: SnackbarDuration = SnackbarDuration.Short)
 
 data class SnackbarAction(val title: String, val onActionPress: () -> Unit)
 data class IconAction(val icon: ImageVector, val onActionPress: () -> Unit)

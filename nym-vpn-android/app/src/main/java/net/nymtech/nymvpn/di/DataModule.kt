@@ -27,27 +27,19 @@ import javax.inject.Singleton
 class DataModule {
 	@Singleton
 	@Provides
-	fun providePreferencesDataStore(@ApplicationContext context: Context, @IoDispatcher dispatcher: CoroutineDispatcher): DataStoreManager {
-		return DataStoreManager(context, dispatcher)
-	}
+	fun providePreferencesDataStore(@ApplicationContext context: Context, @IoDispatcher dispatcher: CoroutineDispatcher): DataStoreManager = DataStoreManager(context, dispatcher)
 
 	@Singleton
 	@Provides
-	fun provideSettingsRepository(dataStoreManager: DataStoreManager): SettingsRepository {
-		return DataStoreSettingsRepository(dataStoreManager)
-	}
+	fun provideSettingsRepository(dataStoreManager: DataStoreManager): SettingsRepository = DataStoreSettingsRepository(dataStoreManager)
 
 	@Singleton
 	@Provides
-	fun provideGatewayRepository(dataStoreManager: DataStoreManager): GatewayRepository {
-		return DataStoreGatewayRepository(dataStoreManager)
-	}
+	fun provideGatewayRepository(dataStoreManager: DataStoreManager): GatewayRepository = DataStoreGatewayRepository(dataStoreManager)
 
 	@Singleton
 	@Provides
-	fun provideSplitTunnelingRepository(dataStoreManager: DataStoreManager): SplitTunnelingRepository {
-		return DataStoreSplitTunnelingRepository(dataStoreManager)
-	}
+	fun provideSplitTunnelingRepository(dataStoreManager: DataStoreManager): SplitTunnelingRepository = DataStoreSplitTunnelingRepository(dataStoreManager)
 
 	@Singleton
 	@Provides
@@ -55,11 +47,9 @@ class DataModule {
 		serviceConnectionManager: VpnServiceConnectionManager,
 		@ApplicationScope appScope: CoroutineScope,
 		@IoDispatcher ioDispatcher: CoroutineDispatcher,
-	): VpnConfigRepository {
-		return BackedVpnConfigRepository(
-			serviceConnectionManager = serviceConnectionManager,
-			appScope = appScope,
-			ioDispatcher = ioDispatcher,
-		)
-	}
+	): VpnConfigRepository = BackedVpnConfigRepository(
+		serviceConnectionManager = serviceConnectionManager,
+		appScope = appScope,
+		ioDispatcher = ioDispatcher,
+	)
 }

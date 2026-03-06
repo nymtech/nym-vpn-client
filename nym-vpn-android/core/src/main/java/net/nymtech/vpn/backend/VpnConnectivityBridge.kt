@@ -10,10 +10,7 @@ import nym_vpn_lib.ConnectivityObserver
 /**
  * Bridges OS connectivity to Rust observers.
  */
-internal class VpnConnectivityBridge(
-	private val service: VpnService,
-	private val scope: CoroutineScope,
-) {
+internal class VpnConnectivityBridge(private val service: VpnService, private val scope: CoroutineScope) {
 	private val observers: MutableList<ConnectivityObserver> = mutableListOf()
 
 	@Volatile private var networkStatus: NetworkStatus = NetworkStatus.Unknown
