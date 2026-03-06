@@ -32,6 +32,7 @@ use crate::{
 struct ListenerDelegateIvars {
     connection_interface: Retained<NSXPCInterface>,
     conn_sender: mpsc::UnboundedSender<XpcConnection>,
+    signing_requirement: String,
 }
 
 define_class!(
@@ -75,6 +76,12 @@ define_class!(
             let xpc_conn = XpcConnection::new(proxy, data_rx.into(), xpc_conn_invalidated);
             let forwarded = self.ivars().conn_sender.send(xpc_conn);
 
+            if cfg!(feature = "authentication") {
+                new_connection.setCodeSigningRequirement(&NSString::from_str(
+                    &self.ivars().signing_requirement,
+                ));
+            }
+
             new_connection.resume();
 
             if let Err(err) = forwarded {
@@ -91,27 +98,33 @@ impl ListenerDelegate {
     fn new(
         connection_interface: Retained<NSXPCInterface>,
         conn_sender: mpsc::UnboundedSender<XpcConnection>,
+        signing_requirement: String,
     ) -> Retained<Self> {
         let this = Self::alloc().set_ivars(ListenerDelegateIvars {
             connection_interface,
             conn_sender,
+            signing_requirement,
         });
         unsafe { msg_send![super(this), init] }
     }
 }
 
 enum Task {
-    CreateListener(mpsc::UnboundedSender<XpcConnection>),
+    CreateListener {
+        conn_sender: mpsc::UnboundedSender<XpcConnection>,
+        signing_requirement: String,
+    },
 }
 
 async fn create_listener(
     conn_sender: mpsc::UnboundedSender<XpcConnection>,
+    signing_requirement: String,
     shutdown_token: CancellationToken,
 ) {
     let service_name = NSString::from_str(DAEMON_BUNDLE_IDENTIFIER);
     let listener = NSXPCListener::initWithMachServiceName(NSXPCListener::alloc(), &service_name);
     let interface = connection_interface();
-    let listener_delegate = ListenerDelegate::new(interface, conn_sender);
+    let listener_delegate = ListenerDelegate::new(interface, conn_sender, signing_requirement);
     let protocol_obj = ProtocolObject::from_retained(listener_delegate);
     listener.setDelegate(Some(&protocol_obj));
     listener.resume();
@@ -124,7 +137,10 @@ async fn create_listener(
 
 async fn run_task(task: Task, shutdown_token: CancellationToken) {
     match task {
-        Task::CreateListener(conn_sender) => create_listener(conn_sender, shutdown_token).await,
+        Task::CreateListener {
+            conn_sender,
+            signing_requirement,
+        } => create_listener(conn_sender, signing_requirement, shutdown_token).await,
     }
 }
 
@@ -136,11 +152,17 @@ pub(crate) struct XpcService {
 }
 
 impl XpcService {
-    pub(crate) fn spawn(shutdown_token: CancellationToken) -> std::io::Result<Self> {
+    pub(crate) fn spawn(
+        signing_requirement: String,
+        shutdown_token: CancellationToken,
+    ) -> std::io::Result<Self> {
         let local_spawner = LocalSpawner::new(run_task, shutdown_token.child_token())?;
 
         let (conn_sender, conn_receiver) = mpsc::unbounded_channel();
-        local_spawner.spawn(Task::CreateListener(conn_sender));
+        local_spawner.spawn(Task::CreateListener {
+            conn_sender,
+            signing_requirement,
+        });
 
         Ok(XpcService {
             inner: UnboundedReceiverStream::new(conn_receiver),
@@ -158,13 +180,14 @@ impl Stream for XpcService {
     ) -> std::task::Poll<Option<Self::Item>> {
         Pin::new(&mut self.inner)
             .poll_next(cx)
-            .map(|conn| conn.map(Into::into).map(Ok))
+            .map(|conn| conn.map(Ok))
     }
 }
 
 pub fn incoming(
+    signing_requirement: String,
     shutdown_token: CancellationToken,
 ) -> std::io::Result<impl Stream<Item = std::io::Result<Transport>>> {
-    let xpc_service = XpcService::spawn(shutdown_token)?;
+    let xpc_service = XpcService::spawn(signing_requirement, shutdown_token)?;
     Ok(authentication::incoming(xpc_service))
 }
