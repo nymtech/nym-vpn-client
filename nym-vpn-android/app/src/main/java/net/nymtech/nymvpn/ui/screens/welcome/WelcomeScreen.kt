@@ -231,30 +231,28 @@ fun WelcomeScreen(onCreateAccountClick: () -> Unit, onLoginClick: () -> Unit, on
 }
 
 @Composable
-private fun getPages(): List<OnboardingPage> {
-	return listOf(
-		OnboardingPage(
-			title = stringResource(R.string.welcome_to_nym),
-			description = stringResource(R.string.onboarding_description_1),
-			image = R.drawable.img_onboarding_1,
-		),
-		OnboardingPage(
-			title = stringResource(R.string.onboarding_title_2),
-			description = stringResource(R.string.onboarding_description_2),
-			image = R.drawable.img_onboarding_2,
-		),
-		OnboardingPage(
-			title = stringResource(R.string.onboarding_title_3),
-			description = stringResource(R.string.onboarding_description_3),
-			image = R.drawable.img_onboarding_3,
-		),
-		OnboardingPage(
-			title = stringResource(R.string.onboarding_title_4),
-			description = stringResource(R.string.onboarding_description_4),
-			image = R.drawable.img_onboarding_4,
-		),
-	)
-}
+private fun getPages(): List<OnboardingPage> = listOf(
+	OnboardingPage(
+		title = stringResource(R.string.welcome_to_nym),
+		description = stringResource(R.string.onboarding_description_1),
+		image = R.drawable.img_onboarding_1,
+	),
+	OnboardingPage(
+		title = stringResource(R.string.onboarding_title_2),
+		description = stringResource(R.string.onboarding_description_2),
+		image = R.drawable.img_onboarding_2,
+	),
+	OnboardingPage(
+		title = stringResource(R.string.onboarding_title_3),
+		description = stringResource(R.string.onboarding_description_3),
+		image = R.drawable.img_onboarding_3,
+	),
+	OnboardingPage(
+		title = stringResource(R.string.onboarding_title_4),
+		description = stringResource(R.string.onboarding_description_4),
+		image = R.drawable.img_onboarding_4,
+	),
+)
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable

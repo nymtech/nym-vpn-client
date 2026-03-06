@@ -13,9 +13,7 @@ import nym_vpn_lib_types.UserAgent
 import javax.inject.Inject
 
 @Singleton
-class AppConfigProvider @Inject constructor(
-	@ApplicationContext private val context: Context,
-) : CoreAppConfigProvider {
+class AppConfigProvider @Inject constructor(@ApplicationContext private val context: Context) : CoreAppConfigProvider {
 
 	override fun getUserAgent(): UserAgent {
 		val platform = if (isAndroidTV()) "AndroidTV" else "Android"
@@ -27,7 +25,5 @@ class AppConfigProvider @Inject constructor(
 		)
 	}
 
-	private fun isAndroidTV(): Boolean {
-		return context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
-	}
+	private fun isAndroidTV(): Boolean = context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
 }

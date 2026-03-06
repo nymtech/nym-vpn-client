@@ -27,11 +27,8 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(
-	private val settingsRepository: SettingsRepository,
-	private val backendManager: BackendManager,
-	private val environmentManager: EnvironmentManager,
-) : ViewModel() {
+class LoginViewModel @Inject constructor(private val settingsRepository: SettingsRepository, private val backendManager: BackendManager, private val environmentManager: EnvironmentManager) :
+	ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-login-vm"
@@ -129,20 +126,18 @@ class LoginViewModel @Inject constructor(
 		}
 	}
 
-	private suspend fun waitForAccountReady(): AccountControllerState? {
-		return withTimeoutOrNull(ACCOUNT_READY_TIMEOUT_MS) {
-			backendManager.stateFlow
-				.map {
-					it.accountState
-				}
-				.filter { state ->
-					state is AccountControllerState.ReadyToConnect ||
-						state is AccountControllerState.Decentralised ||
-						state is AccountControllerState.UpgradeMode ||
-						state is AccountControllerState.Error
-				}
-				.first()
-		}
+	private suspend fun waitForAccountReady(): AccountControllerState? = withTimeoutOrNull(ACCOUNT_READY_TIMEOUT_MS) {
+		backendManager.stateFlow
+			.map {
+				it.accountState
+			}
+			.filter { state ->
+				state is AccountControllerState.ReadyToConnect ||
+					state is AccountControllerState.Decentralised ||
+					state is AccountControllerState.UpgradeMode ||
+					state is AccountControllerState.Error
+			}
+			.first()
 	}
 
 	fun dismissMaxDevicesModal() {

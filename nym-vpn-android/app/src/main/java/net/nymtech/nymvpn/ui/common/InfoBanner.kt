@@ -77,20 +77,10 @@ internal fun InfoBanner(showBanner: Boolean, config: BannerConfig, modifier: Mod
 }
 
 @Immutable
-data class BannerConfig(
-	val message: String,
-	val action: BannerAction?,
-	val icon: BannerIcon?,
-)
+data class BannerConfig(val message: String, val action: BannerAction?, val icon: BannerIcon?)
 
 @Immutable
-data class BannerAction(
-	val title: String,
-	val onClicked: () -> Unit,
-)
+data class BannerAction(val title: String, val onClicked: () -> Unit)
 
 @Immutable
-data class BannerIcon(
-	val icon: ImageVector,
-	val onClicked: () -> Unit,
-)
+data class BannerIcon(val icon: ImageVector, val onClicked: () -> Unit)

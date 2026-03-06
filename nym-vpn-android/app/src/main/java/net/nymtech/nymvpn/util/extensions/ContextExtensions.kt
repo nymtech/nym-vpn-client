@@ -29,14 +29,12 @@ val Context.actionBarSize
 	get() = theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
 		.let { attrs -> attrs.getDimension(0, 0F).toInt().also { attrs.recycle() } }
 
-fun Context.openWebUrl(url: String): Result<Unit> {
-	return kotlin.runCatching {
-		val webpage: Uri = Uri.parse(url)
-		Intent(Intent.ACTION_VIEW, webpage).apply {
-			addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-		}.also {
-			startActivity(it)
-		}
+fun Context.openWebUrl(url: String): Result<Unit> = kotlin.runCatching {
+	val webpage: Uri = Uri.parse(url)
+	Intent(Intent.ACTION_VIEW, webpage).apply {
+		addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+	}.also {
+		startActivity(it)
 	}
 }
 
@@ -48,13 +46,11 @@ fun Context.showToast(resId: Int) {
 	).show()
 }
 
-fun Context.launchVpnSettings(): Result<Unit> {
-	return kotlin.runCatching {
-		val intent = Intent(Constants.VPN_SETTINGS_PACKAGE).apply {
-			setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-		}
-		startActivity(intent)
+fun Context.launchVpnSettings(): Result<Unit> = kotlin.runCatching {
+	val intent = Intent(Constants.VPN_SETTINGS_PACKAGE).apply {
+		setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 	}
+	startActivity(intent)
 }
 
 @SuppressLint("DiscouragedApi")
@@ -156,9 +152,7 @@ fun Context.launchAppSettings() {
 	}
 }
 
-fun Context.isAndroidTV(): Boolean {
-	return packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
-}
+fun Context.isAndroidTV(): Boolean = packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
 
 suspend fun savePasswordToManager(context: Context, password: String) {
 	val credentialManager = CredentialManager.create(context)

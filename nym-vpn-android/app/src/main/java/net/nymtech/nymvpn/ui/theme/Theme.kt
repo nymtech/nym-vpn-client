@@ -26,9 +26,7 @@ enum class Theme {
 	;
 
 	companion object {
-		fun default(): Theme {
-			return AUTOMATIC
-		}
+		fun default(): Theme = AUTOMATIC
 	}
 }
 

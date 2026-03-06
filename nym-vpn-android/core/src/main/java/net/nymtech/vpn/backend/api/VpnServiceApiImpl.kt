@@ -27,10 +27,7 @@ import timber.log.Timber
 /**
  * API implementation. Delegates to VpnCoreController.
  */
-internal class VpnServiceApiImpl(
-	private val core: VpnCoreController,
-	override val events: Flow<VpnServiceEvent>,
-) : VpnServiceApi {
+internal class VpnServiceApiImpl(private val core: VpnCoreController, override val events: Flow<VpnServiceEvent>) : VpnServiceApi {
 
 	companion object {
 		private const val TAG = "core-vpn"
@@ -62,9 +59,7 @@ internal class VpnServiceApiImpl(
 		core.requireCoreSender { it.forgetAccount() }
 	}
 
-	override suspend fun getStoredMnemonic(): String {
-		return core.requireCoreSender { it.getStoredMnemonic() }
-	}
+	override suspend fun getStoredMnemonic(): String = core.requireCoreSender { it.getStoredMnemonic() }
 
 	override suspend fun createAccount() {
 		Timber.tag(TAG).d("createAccount requested")

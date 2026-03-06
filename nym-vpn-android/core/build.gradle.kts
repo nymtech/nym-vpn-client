@@ -1,8 +1,5 @@
-import org.gradle.kotlin.dsl.support.listFilesOrdered
-
 plugins {
 	alias(libs.plugins.android.library)
-	alias(libs.plugins.jetbrainsKotlinAndroid)
 	alias(libs.plugins.kotlinxSerialization)
 	id("kotlin-parcelize")
 	alias(libs.plugins.ksp)
@@ -10,17 +7,13 @@ plugins {
 }
 
 android {
+	namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"
+	compileSdk = Constants.COMPILE_SDK
+	ndkVersion = Constants.NDK_VERSION
 
 	lint {
 		disable.add("UnsafeOptInUsageError")
 	}
-
-	android {
-		ndkVersion = "28.2.13676358"
-	}
-
-	namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"
-	compileSdk = Constants.COMPILE_SDK
 
 	defaultConfig {
 		minSdk = Constants.MIN_SDK
@@ -48,15 +41,15 @@ android {
 		create(Constants.NIGHTLY) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
 		}
+	}
 
-		flavorDimensions.add(Constants.TYPE)
-		productFlavors {
-			create(Constants.FDROID) {
-				dimension = Constants.TYPE
-			}
-			create(Constants.GENERAL) {
-				dimension = Constants.TYPE
-			}
+	flavorDimensions += Constants.TYPE
+	productFlavors {
+		create(Constants.FDROID) {
+			dimension = Constants.TYPE
+		}
+		create(Constants.GENERAL) {
+			dimension = Constants.TYPE
 		}
 	}
 
@@ -69,22 +62,20 @@ android {
 		sourceCompatibility = Constants.JAVA_VERSION
 		targetCompatibility = Constants.JAVA_VERSION
 	}
-	kotlinOptions {
-		jvmTarget = Constants.JVM_TARGET
-		// R8 kotlinx.serialization
-		freeCompilerArgs =
-			listOf(
-				"-Xstring-concat=inline",
-			)
-	}
+
 	buildFeatures {
 		buildConfig = true
 	}
 }
 
+kotlin {
+	compilerOptions {
+		jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(Constants.JVM_TARGET))
+		freeCompilerArgs.addAll("-Xstring-concat=inline")
+	}
+}
+
 dependencies {
-	// for allowsIps calculator (future)
-	// for monitoring network offline status
 	implementation(project(":connectivity"))
 	implementation(libs.androidx.lifecycle.service)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
@@ -118,34 +109,51 @@ dependencies {
 	implementation(libs.androidx.datastore.preferences)
 }
 
-// this task builds the native core from source and moves the files to the jniLibs dir
+// 1. Cache-safe providers (No AGP strict NDK validation)
+val envNdkProvider = providers.environmentVariable("ANDROID_NDK_HOME")
+val propNdkProvider = providers.gradleProperty("android.ndkDirectory")
+val sdkDirProvider = androidComponents.sdkComponents.sdkDirectory
+
+val releaseBuildProvider = providers.gradleProperty("releaseBuild")
+	.map { it == "true" }
+	.orElse(false)
+
+val skipBuildProvider = providers.gradleProperty(Constants.BUILD_LIB_TASK)
+	.map { it == "false" }
+	.orElse(false)
+
 tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
-	if (project.hasProperty(Constants.BUILD_LIB_TASK) &&
-		project.property(Constants.BUILD_LIB_TASK) == "false"
-	) {
-		commandLine("echo", "Skipping library build")
-		return@register
+	val localEnvNdk = envNdkProvider
+	val localPropNdk = propNdkProvider
+	val localSdkDir = sdkDirProvider
+	val localReleaseBuild = releaseBuildProvider
+	val localSkipBuild = skipBuildProvider
+	val coreDirPath = layout.projectDirectory.dir("../../nym-vpn-core").asFile.absolutePath
+
+	onlyIf { !localSkipBuild.get() }
+
+	commandLine("make", "-C", coreDirPath, "-f", "Android.mk")
+
+	doFirst {
+		// 2. Restore your old logic: Environment Var -> Gradle Property -> SDK Directory fallback
+		val ndkHome = localEnvNdk.orNull?.let { File(it) }
+			?: localPropNdk.orNull?.let { File(it) }
+			?: localSdkDir.get().asFile.resolve("ndk").listFiles()?.sortedArray()?.lastOrNull()
+
+		if (ndkHome == null || !ndkHome.exists()) {
+			throw Exception("Cannot determine Android NDK home. Set ANDROID_NDK_HOME or pass -Pandroid.ndkDirectory")
+		}
+
+		val ndkToolchain = ndkHome.resolve("toolchains/llvm/prebuilt").listFiles()?.sortedArray()?.lastOrNull()?.resolve("bin")
+
+		if (ndkToolchain == null || !ndkToolchain.exists()) {
+			throw Exception("Cannot determine NDK toolchain directory in: ${ndkHome.absolutePath}")
+		}
+
+		environment("RELEASE", localReleaseBuild.get().toString())
+		environment("ANDROID_NDK_HOME", ndkHome.absolutePath)
+		environment("NDK_TOOLCHAIN_DIR", ndkToolchain.absolutePath)
 	}
-
-	// prefer system for reproducible builds
-	var ndkHome = System.getenv("ANDROID_NDK_HOME")?.let { File(it) } ?: android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()
-	if (ndkHome == null) {
-		throw Exception("Cannot determine Android NDK home")
-	}
-
-	var ndkToolchain = ndkHome.resolve("toolchains/llvm/prebuilt").listFilesOrdered().lastOrNull()?.resolve("bin")
-	if (ndkToolchain == null) {
-		throw Exception("Cannot determine NDK toolchain directory")
-	}
-
-	// todo: how to do this properly with gradle?
-	val isReleaseBuild = project.gradle.startParameter.taskNames.any { it.lowercase().contains("release") }
-
-	val coreDir = "${projectDir.path}/../../nym-vpn-core"
-	commandLine("make", "-C", coreDir, "-f", "Android.mk")
-		.environment("RELEASE", isReleaseBuild)
-		.environment("ANDROID_NDK_HOME", ndkHome)
-		.environment("NDK_TOOLCHAIN_DIR", ndkToolchain)
 }
 
 tasks.named("preBuild") {

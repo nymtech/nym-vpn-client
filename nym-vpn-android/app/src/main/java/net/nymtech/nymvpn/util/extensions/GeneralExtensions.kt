@@ -15,30 +15,22 @@ fun Long.convertSecondsToTimeString(): String {
 	}
 }
 
-fun String.capitalize(locale: Locale): String {
-	return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
-}
+fun String.capitalize(locale: Locale): String = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
 
 fun Long.toMB(): String {
 	val mb = this / 1024.0 * 1024.0
 	return "%.2f".format(round(mb * 100) / 100)
 }
 
-fun String.truncateWithEllipsis(length: Int): String {
-	return if (this.length <= length) this else "${take(length)}..."
-}
+fun String.truncateWithEllipsis(length: Int): String = if (this.length <= length) this else "${take(length)}..."
 
-fun NymGateway.toLocale(): Locale? {
-	return twoLetterCountryISO?.let { Locale(it, it) }
-}
+fun NymGateway.toLocale(): Locale? = twoLetterCountryISO?.let { Locale(it, it) }
 
 private const val ALWAYS_ON_VPN_APP = "always_on_vpn_app"
 
-fun isVpnAlwaysOn(context: Context): Boolean {
-	return try {
-		val alwaysOn = Settings.Secure.getString(context.contentResolver, ALWAYS_ON_VPN_APP)
-		alwaysOn == context.packageName
-	} catch (ex: SecurityException) {
-		false
-	}
+fun isVpnAlwaysOn(context: Context): Boolean = try {
+	val alwaysOn = Settings.Secure.getString(context.contentResolver, ALWAYS_ON_VPN_APP)
+	alwaysOn == context.packageName
+} catch (ex: SecurityException) {
+	false
 }

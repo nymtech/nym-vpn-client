@@ -8,13 +8,9 @@ class CoreVpnConfigRepository(context: Context) {
 
 	private val store = CoreVpnConfigStore(context)
 
-	suspend fun get(): CoreVpnConfig {
-		return store.configFlow.first()
-	}
+	suspend fun get(): CoreVpnConfig = store.configFlow.first()
 
-	suspend fun applyUpdate(update: CoreVpnConfigUpdate): CoreVpnConfig {
-		return applyUpdates(listOf(update))
-	}
+	suspend fun applyUpdate(update: CoreVpnConfigUpdate): CoreVpnConfig = applyUpdates(listOf(update))
 
 	suspend fun applyUpdates(updates: List<CoreVpnConfigUpdate>): CoreVpnConfig {
 		if (updates.isEmpty()) return get()

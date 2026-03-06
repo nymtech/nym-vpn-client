@@ -8,8 +8,7 @@ import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.vpn.model.NymGateway
 import timber.log.Timber
 
-class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager) :
-	GatewayRepository {
+class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager) : GatewayRepository {
 	companion object {
 		val ENTRY_GATEWAYS = stringPreferencesKey("ENTRY_GATEWAYS")
 		val EXIT_GATEWAYS = stringPreferencesKey("EXIT_GATEWAYS")

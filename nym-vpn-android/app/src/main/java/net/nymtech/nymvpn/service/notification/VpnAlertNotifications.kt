@@ -16,9 +16,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.MainActivity
 import javax.inject.Inject
 
-class VpnAlertNotifications @Inject constructor(
-	@ApplicationContext private val context: Context,
-) : NotificationService {
+class VpnAlertNotifications @Inject constructor(@ApplicationContext private val context: Context) : NotificationService {
 
 	override val channelName: String = context.getString(R.string.vpn_alerts_channel_id)
 	override val channelDescription: String = context.getString(R.string.vpn_alerts_channel_description)

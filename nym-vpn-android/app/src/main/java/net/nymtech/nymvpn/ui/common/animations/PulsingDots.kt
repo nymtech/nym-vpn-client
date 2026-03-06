@@ -60,9 +60,7 @@ fun PulsingDotsWave(modifier: Modifier = Modifier, dotCount: Int = 4, dotSize: D
 	}
 }
 
-private fun lerp(start: Float, stop: Float, fraction: Float): Float {
-	return start + (stop - start) * fraction
-}
+private fun lerp(start: Float, stop: Float, fraction: Float): Float = start + (stop - start) * fraction
 
 @Preview(showBackground = true)
 @Composable

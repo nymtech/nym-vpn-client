@@ -21,12 +21,9 @@ import net.nymtech.logcatutil.model.LogType
 import timber.log.Timber
 import java.io.File
 
-class LogcatManager(
-	pid: Int,
-	logDir: String,
-	maxFileSize: Long,
-	maxFolderSize: Long,
-) : LogReader, DefaultLifecycleObserver {
+class LogcatManager(pid: Int, logDir: String, maxFileSize: Long, maxFolderSize: Long) :
+	LogReader,
+	DefaultLifecycleObserver {
 
 	companion object {
 		private const val TAG = "logcat-manager"

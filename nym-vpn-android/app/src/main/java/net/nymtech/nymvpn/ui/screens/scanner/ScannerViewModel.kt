@@ -14,9 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ScannerViewModel @Inject
-constructor(
-	private val backendManager: BackendManager,
-) : ViewModel() {
+constructor(private val backendManager: BackendManager) : ViewModel() {
 
 	private val _success = MutableSharedFlow<Boolean>()
 	val success = _success.asSharedFlow()

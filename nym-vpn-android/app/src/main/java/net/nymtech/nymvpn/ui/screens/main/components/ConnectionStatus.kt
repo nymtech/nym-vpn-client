@@ -47,7 +47,11 @@ fun ConnectionStatus(connectionState: ConnectionState, vpnMode: Tunnel.Mode, con
 		val asset = when (theme) {
 			Theme.AUTOMATIC, Theme.DYNAMIC -> if (isDarkMode) {
 				if (vpnMode.isTwoHop()) R.raw.noise_2hop_dark else R.raw.noise_5hop_dark
-			} else if (vpnMode.isTwoHop()) R.raw.noise_2hop_light else R.raw.noise_5hop_light
+			} else if (vpnMode.isTwoHop()) {
+				R.raw.noise_2hop_light
+			} else {
+				R.raw.noise_5hop_light
+			}
 
 			Theme.DARK_MODE -> if (vpnMode.isTwoHop()) R.raw.noise_2hop_dark else R.raw.noise_5hop_dark
 			Theme.LIGHT_MODE -> if (vpnMode.isTwoHop()) R.raw.noise_2hop_light else R.raw.noise_5hop_light

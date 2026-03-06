@@ -5,28 +5,18 @@ import nym_vpn_lib_types.FeatureFlags
 import timber.log.Timber
 import javax.inject.Inject
 
-class NymEnvironmentManager @Inject constructor(
-	private val backendManager: BackendManager,
-) : EnvironmentManager {
+class NymEnvironmentManager @Inject constructor(private val backendManager: BackendManager) : EnvironmentManager {
 
-	override suspend fun isPrivyEnabled(): Boolean {
-		return getFeatureFlags()?.isPrivyEnabled() ?: false
-	}
+	override suspend fun isPrivyEnabled(): Boolean = getFeatureFlags()?.isPrivyEnabled() ?: false
 
-	override suspend fun isMixnetTuningEnabled(): Boolean {
-		return getFeatureFlags()?.isMixnetTuningEnabled() ?: false
-	}
+	override suspend fun isMixnetTuningEnabled(): Boolean = getFeatureFlags()?.isMixnetTuningEnabled() ?: false
 
-	override suspend fun isDomainFrontingEnabled(): Boolean {
-		return getFeatureFlags()?.isDomainFrontingEnabled() ?: false
-	}
+	override suspend fun isDomainFrontingEnabled(): Boolean = getFeatureFlags()?.isDomainFrontingEnabled() ?: false
 
-	private suspend fun getFeatureFlags(): FeatureFlags? {
-		return try {
-			backendManager.getFeatureFlags()
-		} catch (e: Exception) {
-			Timber.e(e, "EnvironmentManagerGetFeatureFlagsFailed")
-			null
-		}
+	private suspend fun getFeatureFlags(): FeatureFlags? = try {
+		backendManager.getFeatureFlags()
+	} catch (e: Exception) {
+		Timber.e(e, "EnvironmentManagerGetFeatureFlagsFailed")
+		null
 	}
 }

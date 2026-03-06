@@ -21,10 +21,7 @@ import timber.log.Timber
 /**
  * Reduces VpnServiceEvent into TunnelManagerState.
  */
-class VpnEventReducer(
-	private val context: Context,
-	private val state: MutableStateFlow<TunnelManagerState>,
-) {
+class VpnEventReducer(private val context: Context, private val state: MutableStateFlow<TunnelManagerState>) {
 	fun observe(scope: CoroutineScope, dispatcher: CoroutineDispatcher, apiFlow: StateFlow<VpnServiceApi?>) {
 		scope.launch(dispatcher) {
 			apiFlow

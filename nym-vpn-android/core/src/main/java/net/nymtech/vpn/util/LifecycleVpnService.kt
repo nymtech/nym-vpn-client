@@ -12,7 +12,9 @@ import androidx.lifecycle.ServiceLifecycleDispatcher
  * A VpnService that is also a [LifecycleOwner]. See source:
  * https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:lifecycle/lifecycle-service/src/main/java/androidx/lifecycle/LifecycleService.kt?q=file:androidx%2Flifecycle%2FLifecycleService.kt%20class:androidx.lifecycle.LifecycleService
  */
-open class LifecycleVpnService : VpnService(), LifecycleOwner {
+open class LifecycleVpnService :
+	VpnService(),
+	LifecycleOwner {
 
 	private val dispatcher = ServiceLifecycleDispatcher(this)
 
@@ -41,9 +43,7 @@ open class LifecycleVpnService : VpnService(), LifecycleOwner {
 	// it results in dispatcher.onServicePreSuperOnStart() call, because
 	// super.onStartCommand calls onStart().
 	@CallSuper
-	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-		return super.onStartCommand(intent, flags, startId)
-	}
+	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = super.onStartCommand(intent, flags, startId)
 
 	@CallSuper
 	override fun onDestroy() {

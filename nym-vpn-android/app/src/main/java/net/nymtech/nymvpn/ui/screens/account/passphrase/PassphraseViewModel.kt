@@ -10,9 +10,7 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import javax.inject.Inject
 
 @HiltViewModel
-class PassphraseViewModel @Inject constructor(
-	private val backendManager: BackendManager,
-) : ViewModel() {
+class PassphraseViewModel @Inject constructor(private val backendManager: BackendManager) : ViewModel() {
 
 	private val _passphrase = MutableStateFlow<List<String>>(emptyList())
 	val passphrase: StateFlow<List<String>> = _passphrase

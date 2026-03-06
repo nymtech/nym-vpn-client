@@ -16,9 +16,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class DetailsViewModel @Inject constructor(
-	private val vpnConfigRepository: VpnConfigRepository,
-) : ViewModel() {
+class DetailsViewModel @Inject constructor(private val vpnConfigRepository: VpnConfigRepository) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-details-vm"

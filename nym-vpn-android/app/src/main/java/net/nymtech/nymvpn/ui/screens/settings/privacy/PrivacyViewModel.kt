@@ -10,10 +10,7 @@ import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import javax.inject.Inject
 
 @HiltViewModel
-class PrivacyViewModel @Inject constructor(
-	private val vpnConfigRepository: VpnConfigRepository,
-	private val settingsRepository: SettingsRepository,
-) : ViewModel() {
+class PrivacyViewModel @Inject constructor(private val vpnConfigRepository: VpnConfigRepository, private val settingsRepository: SettingsRepository) : ViewModel() {
 
 	fun onNetworkStatsEnabled(enabled: Boolean) = viewModelScope.launch {
 		settingsRepository.setStatisticsEnabled(enabled)

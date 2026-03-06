@@ -38,37 +38,25 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideCountryCacheService(backendManager: BackendManager, gatewayRepository: GatewayRepository): GatewayCacheService {
-		return GatewayDataStoreCacheService(gatewayRepository, backendManager)
-	}
+	fun provideCountryCacheService(backendManager: BackendManager, gatewayRepository: GatewayRepository): GatewayCacheService = GatewayDataStoreCacheService(gatewayRepository, backendManager)
 
 	@Singleton
 	@Provides
-	fun provideLogcatHelper(@ApplicationContext context: Context): LogReader {
-		return LogcatReader.init(storageDir = context.filesDir.absolutePath)
-	}
+	fun provideLogcatHelper(@ApplicationContext context: Context): LogReader = LogcatReader.init(storageDir = context.filesDir.absolutePath)
 
 	@Singleton
 	@Provides
-	fun provideFileUtils(@ApplicationContext context: Context, @IoDispatcher dispatcher: CoroutineDispatcher): FileUtils {
-		return FileUtils(context, dispatcher)
-	}
+	fun provideFileUtils(@ApplicationContext context: Context, @IoDispatcher dispatcher: CoroutineDispatcher): FileUtils = FileUtils(context, dispatcher)
 
 	@Singleton
 	@Provides
-	fun provideNotificationService(@ApplicationContext context: Context): NotificationService {
-		return VpnAlertNotifications(context)
-	}
+	fun provideNotificationService(@ApplicationContext context: Context): NotificationService = VpnAlertNotifications(context)
 
 	@Singleton
 	@Provides
-	fun provideShortcutManager(@ApplicationContext context: Context): ShortcutManager {
-		return DynamicShortcutManager(context)
-	}
+	fun provideShortcutManager(@ApplicationContext context: Context): ShortcutManager = DynamicShortcutManager(context)
 
 	@Singleton
 	@Provides
-	fun networkConnectivityService(@ApplicationContext context: Context): NetworkService {
-		return NetworkConnectivityService(context)
-	}
+	fun networkConnectivityService(@ApplicationContext context: Context): NetworkService = NetworkConnectivityService(context)
 }

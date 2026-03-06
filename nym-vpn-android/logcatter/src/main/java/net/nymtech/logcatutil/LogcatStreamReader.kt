@@ -13,10 +13,7 @@ import java.io.IOException
 import java.io.InputStreamReader
 import kotlin.math.abs
 
-class LogcatStreamReader(
-	private val pid: Int,
-	private val fileManager: LogFileManager,
-) {
+class LogcatStreamReader(private val pid: Int, private val fileManager: LogFileManager) {
 	companion object {
 		private const val TAG = "logcat-reader"
 		private const val MERGE_WINDOW_MS = 250L
@@ -51,9 +48,12 @@ class LogcatStreamReader(
 		return msg.startsWith("at ") ||
 			msg.startsWith("Caused by:") ||
 			msg.startsWith("Suppressed:") ||
-			msg.startsWith("{") || msg.startsWith("}") ||
-			msg.startsWith("[") || msg.startsWith("]") ||
-			msg.startsWith(")") || msg.startsWith("(")
+			msg.startsWith("{") ||
+			msg.startsWith("}") ||
+			msg.startsWith("[") ||
+			msg.startsWith("]") ||
+			msg.startsWith(")") ||
+			msg.startsWith("(")
 	}
 
 	private fun shouldMerge(pending: LogMessage, next: LogMessage): Boolean {

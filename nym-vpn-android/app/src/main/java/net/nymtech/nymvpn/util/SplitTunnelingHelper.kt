@@ -47,53 +47,51 @@ class SplitTunnelingHelper @Inject constructor() {
 			!packageBlocklist.contains(appInfo.packageName)
 	}
 
-	suspend fun getInstalledApp(packageManager: PackageManager, splitTunnelingRepository: SplitTunnelingRepository): Pair<List<AppInfo>, List<AppInfo>> {
-		return runCatching {
-			val savedAppsInfo = splitTunnelingRepository.getAppInfoList().associateBy { it.packageName }
+	suspend fun getInstalledApp(packageManager: PackageManager, splitTunnelingRepository: SplitTunnelingRepository): Pair<List<AppInfo>, List<AppInfo>> = runCatching {
+		val savedAppsInfo = splitTunnelingRepository.getAppInfoList().associateBy { it.packageName }
 
-			val normalApps = mutableListOf<AppInfo>()
-			val systemApps = mutableListOf<AppInfo>()
+		val normalApps = mutableListOf<AppInfo>()
+		val systemApps = mutableListOf<AppInfo>()
 
-			val installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-				.filter { applicationFilterPredicate(it, packageManager) }
-				.distinctBy { it.packageName }
+		val installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+			.filter { applicationFilterPredicate(it, packageManager) }
+			.distinctBy { it.packageName }
 
-			for (appInfo in installedApps) {
-				val app = AppInfo(
-					name = appInfo.loadLabel(packageManager).toString(),
-					packageName = appInfo.packageName,
-					icon = appInfo.icon,
-					passThroughVpn = savedAppsInfo[appInfo.packageName]?.passThroughVpn ?: true,
-				)
-
-				val isSystem =
-					(appInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0) ||
-						(appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP != 0)
-
-				if (isSystem) {
-					if (packageManager.isLaunchable(appInfo.packageName)) systemApps.add(app)
-				} else {
-					normalApps.add(app)
-				}
-			}
-
-			splitTunnelingRepository.saveAppInfoList(systemApps + normalApps)
-
-			val sortedSystemApps = systemApps.sortedBy { it.name }
-			val sortedNormalApps = normalApps.sortedBy { it.name }
-
-			Timber.tag(TAG).d(
-				"InstalledAppsLoaded total=%d system=%d normal=%d",
-				sortedSystemApps.size + sortedNormalApps.size,
-				sortedSystemApps.size,
-				sortedNormalApps.size,
+		for (appInfo in installedApps) {
+			val app = AppInfo(
+				name = appInfo.loadLabel(packageManager).toString(),
+				packageName = appInfo.packageName,
+				icon = appInfo.icon,
+				passThroughVpn = savedAppsInfo[appInfo.packageName]?.passThroughVpn ?: true,
 			)
 
-			sortedSystemApps to sortedNormalApps
-		}.onFailure { t ->
-			Timber.tag(TAG).e(t, "InstalledAppsLoadFailed")
-		}.getOrElse { emptyList<AppInfo>() to emptyList() }
-	}
+			val isSystem =
+				(appInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0) ||
+					(appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP != 0)
+
+			if (isSystem) {
+				if (packageManager.isLaunchable(appInfo.packageName)) systemApps.add(app)
+			} else {
+				normalApps.add(app)
+			}
+		}
+
+		splitTunnelingRepository.saveAppInfoList(systemApps + normalApps)
+
+		val sortedSystemApps = systemApps.sortedBy { it.name }
+		val sortedNormalApps = normalApps.sortedBy { it.name }
+
+		Timber.tag(TAG).d(
+			"InstalledAppsLoaded total=%d system=%d normal=%d",
+			sortedSystemApps.size + sortedNormalApps.size,
+			sortedSystemApps.size,
+			sortedNormalApps.size,
+		)
+
+		sortedSystemApps to sortedNormalApps
+	}.onFailure { t ->
+		Timber.tag(TAG).e(t, "InstalledAppsLoadFailed")
+	}.getOrElse { emptyList<AppInfo>() to emptyList() }
 
 	fun filterApps(query: String, systemApps: List<AppInfo>, normalApps: List<AppInfo>): Pair<List<AppInfo>, List<AppInfo>> {
 		val q = query.trim()
@@ -109,19 +107,13 @@ class SplitTunnelingHelper @Inject constructor() {
 		return filteredSystemApps to filteredNormalApps
 	}
 
-	private fun PackageManager.hasInternetPermission(packageName: String): Boolean {
-		return PackageManager.PERMISSION_GRANTED ==
-			checkPermission(Manifest.permission.INTERNET, packageName)
-	}
+	private fun PackageManager.hasInternetPermission(packageName: String): Boolean = PackageManager.PERMISSION_GRANTED ==
+		checkPermission(Manifest.permission.INTERNET, packageName)
 
-	private fun PackageManager.isLaunchable(packageName: String): Boolean {
-		return getLaunchIntentForPackage(packageName) != null ||
-			getLeanbackLaunchIntentForPackage(packageName) != null
-	}
+	private fun PackageManager.isLaunchable(packageName: String): Boolean = getLaunchIntentForPackage(packageName) != null ||
+		getLeanbackLaunchIntentForPackage(packageName) != null
 
-	private fun isSelfApplication(packageName: String): Boolean {
-		return packageName == BuildConfig.APPLICATION_ID
-	}
+	private fun isSelfApplication(packageName: String): Boolean = packageName == BuildConfig.APPLICATION_ID
 }
 
 fun List<AppInfo>.updatePassThroughValue(packageName: String) = map { appInfo ->

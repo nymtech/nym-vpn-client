@@ -9,9 +9,7 @@ import timber.log.Timber
 /**
  * Owns Android TUN creation only.
  */
-class VpnTunController(
-	private val service: VpnService,
-) {
+class VpnTunController(private val service: VpnService) {
 	companion object {
 		private const val TAG = "core-vpn"
 	}
