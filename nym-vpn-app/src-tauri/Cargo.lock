@@ -2606,7 +2606,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -3487,15 +3487,12 @@ dependencies = [
 name = "nym-ipc"
 version = "1.26.0-beta"
 dependencies = [
- "block2",
  "cc",
  "hyper-util",
  "objc2",
  "objc2-foundation",
  "tokio",
  "tokio-stream",
- "tokio-util",
- "tonic",
  "tracing",
  "windows 0.62.2",
 ]
@@ -3582,7 +3579,7 @@ dependencies = [
  "serde",
  "si-scale",
  "strum",
- "strum_macros 0.28.0",
+ "strum_macros",
  "thiserror 2.0.18",
  "time",
  "uniffi",
@@ -3593,7 +3590,6 @@ dependencies = [
 name = "nym-vpn-proto"
 version = "1.26.0-beta"
 dependencies = [
- "hyper",
  "nym-ipc",
  "nym-vpn-lib-types",
  "prost",
@@ -5842,7 +5838,7 @@ version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af23d6f6c1a224baef9d3f61e287d2761385a5b88fdab4eb4c6f11aeb54c4bcf"
 dependencies = [
- "strum_macros 0.27.2",
+ "strum_macros",
 ]
 
 [[package]]
@@ -5850,18 +5846,6 @@ name = "strum_macros"
 version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7695ce3845ea4b33927c055a39dc438a45b059f7c1b3d91d38d10355fb8cbca7"
-dependencies = [
- "heck 0.5.0",
- "proc-macro2",
- "quote",
- "syn 2.0.114",
-]
-
-[[package]]
-name = "strum_macros"
-version = "0.28.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab85eea0270ee17587ed4156089e10b9e6880ee688791d45a905f5b1ca36f664"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
