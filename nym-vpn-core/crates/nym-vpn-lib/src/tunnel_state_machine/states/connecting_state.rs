@@ -31,8 +31,6 @@ use crate::tunnel_state_machine::{
     },
 };
 
-use nym_http_api_client::HickoryDnsResolver;
-
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::DnsConfig;
@@ -42,6 +40,8 @@ use nym_firewall::{
     TransportProtocol,
 };
 use nym_gateway_directory::ResolvedConfig;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_http_api_client::HickoryDnsResolver;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayLightInfo};

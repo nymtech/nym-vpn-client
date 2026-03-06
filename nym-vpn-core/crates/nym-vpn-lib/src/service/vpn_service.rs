@@ -475,7 +475,13 @@ impl NymVpnService {
             .as_ref()
             .and_then(|config| config.statistics_api.clone());
 
-        let stats_api_client = statistics_api_url.clone().and_then(|url| nym_statistics_api_client::StatisticsApiClient::new(url.clone(), parameters.user_agent.clone()).inspect_err(|e| tracing::error!("Failed to build Statistics API client. Statistics collection will be disabled : {e}")).ok());
+        let stats_api_client = statistics_api_url
+            .clone()
+            .and_then(|url|
+                nym_statistics_api_client::StatisticsApiClient::new(url, parameters.user_agent.clone())
+                    .inspect_err(|e| tracing::error!("Failed to build Statistics API client. Statistics collection will be disabled : {e}"))
+                    .ok()
+            );
 
         // Statistics collection can technically fail, but if it's the case, we just disable it as it is not operation critical.
         let statistics_controller = StatisticsController::new(

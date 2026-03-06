@@ -38,6 +38,7 @@ impl NymGatewayCache {
             network_env.nyxd_url(),
             nym_api_urls,
             nym_vpn_api_urls,
+            vec![],
             None,
         )
         .map_err(|e| VpnError::InternalError {
