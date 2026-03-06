@@ -6,11 +6,11 @@ import NymVPNRpc
 
 public struct MixnetTuningConfig: Codable, Equatable {
     // 'background cover traffic' slider
-    public var backgroundTraffic: BackgroundTraffic
+    public var backgroundTraffic: BackgroundCoverTrafficRate
     // Mixing delay
-    public var averagePacketDelay = 25
+    public var averagePacketDelay = 15
     // 0.7, 1, 2 Mpbs
-    public var continuousTraffic: ContinuousTraffic
+    public var continuousTraffic: ContinuousTrafficSendingRate
 
     // Continous traffic toggle
     public var disablePoissonRate: Bool
@@ -25,10 +25,10 @@ public struct MixnetTuningConfig: Codable, Equatable {
     ///   - messageSendingAverageDelay: 0.7, 1, 2 Mpbs
     ///   - dissablePoissonRate: Continous traffic toggle
     public init(
-        backgroundTraffic: BackgroundTraffic,
-        continuousTraffic: ContinuousTraffic,
+        backgroundTraffic: BackgroundCoverTrafficRate,
+        continuousTraffic: ContinuousTrafficSendingRate,
         dissablePoissonRate: Bool,
-        averagePacketDelay: Int = 25
+        averagePacketDelay: Int = 15
     ) {
         self.backgroundTraffic = backgroundTraffic
         self.averagePacketDelay = averagePacketDelay
@@ -37,17 +37,17 @@ public struct MixnetTuningConfig: Codable, Equatable {
     }
 
     public init(from config: MixnetTrafficConfig) {
-        self.backgroundTraffic = BackgroundTraffic(actualValue: config.poissonParameterForLoopCoverStream)
-        self.averagePacketDelay = Int(config.averagePacketDelay ?? 25)
-        self.continuousTraffic = ContinuousTraffic(actualValue: config.messageSendingAverageDelay)
+        self.backgroundTraffic = BackgroundCoverTrafficRate(fromValue: config.poissonParameterForLoopCoverStream)
+        self.averagePacketDelay = Int(config.averagePacketDelay ?? 15)
+        self.continuousTraffic = ContinuousTrafficSendingRate(fromValue: config.messageSendingAverageDelay)
         self.disablePoissonRate = config.disablePoissonRate
     }
 
     public func mixnetTrafficConfig() -> MixnetTrafficConfig {
         MixnetTrafficConfig(
-            poissonParameterForLoopCoverStream: UInt32(backgroundTraffic.actualValue),
+            poissonParameterForLoopCoverStream: backgroundTraffic.value(),
             averagePacketDelay: UInt32(averagePacketDelay),
-            messageSendingAverageDelay: UInt32(continuousTraffic.actualValue),
+            messageSendingAverageDelay: continuousTraffic.value(),
             disablePoissonRate: disablePoissonRate,
             disableBackgroundCoverTraffic: false,
             minMixnodePerformance: nil,

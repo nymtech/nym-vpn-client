@@ -1,6 +1,7 @@
 import SwiftUI
 import AppSettings
 import Constants
+import ImpactGenerator
 import ExternalLinkManager
 #if os(iOS)
 import PurchasesManager
@@ -13,6 +14,7 @@ import Theme
 public struct OnboardingView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var externalLinkManager: ExternalLinkManager
+    @EnvironmentObject private var impactGenerator: ImpactGenerator
 #if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
 #endif
@@ -148,15 +150,17 @@ private extension OnboardingView {
 
 private extension OnboardingView {
     func navigateToCreateAccount() {
+        impactGenerator.softImpact()
         appSettings.onboardingDidDisplay = true
         path = NavigationPath([HomeLink.settings])
-        path.append(SettingLink.createAccountWelcome(navigationSource: .onboarding))
+        path.append(SettingLink.accountWelcome(type: .createAccount, navigationSource: .onboarding))
     }
 
     func navigateTologin() {
+        impactGenerator.softImpact()
         appSettings.onboardingDidDisplay = true
         path = NavigationPath([HomeLink.settings])
-        path.append(SettingLink.addCredentials(navigationSource: .onboarding))
+        path.append(SettingLink.accountWelcome(type: .login, navigationSource: .onboarding))
     }
 }
 

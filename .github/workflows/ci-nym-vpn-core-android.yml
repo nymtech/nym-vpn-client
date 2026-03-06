@@ -19,7 +19,6 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-android.yml
 
   build:
-    if: github.actor != 'dependabot[bot]'
     runs-on: arc-linux-latest
     needs: build-wireguard-go-android
 
@@ -83,7 +82,7 @@ jobs:
             ${{ runner.os }}-cargo-build-
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: wireguard-go_aarch64-linux-android
           path: build/lib/aarch64-linux-android

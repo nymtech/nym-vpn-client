@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">اتاق NymVPN</string>
+	<string name="channel_description">کانال مربوط به اعلانات وی‌پی‌ان.</string>
+	<string name="disconnect">قطع اتصال</string>
+	<string name="state_connected">متصل</string>
+	<string name="state_error">خطا</string>
+	<string name="state_disconnected">اتصال قطع شده</string>
+	<string name="state_initializing">درحال راه‌اندازی کلاینت…</string>
+	<string name="state_establishing">در حال برقراری اتصال…</string>
+	<string name="notification_entry">ورودی: %1$s</string>
+	<string name="notification_exit">خروجی: %1$s</string>
+	<string name="error_reason_set_firewall_policy">اعمال سیاست فایروال ناموفق بود.</string>
+	<string name="error_reason_set_routing">پیکربندی مسیریابی شبکه ناموفق بود.</string>
+	<string name="error_reason_set_dns">پیکربندی تنظیمات DNS ناموفق بود.</string>
+	<string name="error_reason_tun_device">راه‌اندازی رابط تونل VPN ناموفق بود.</string>
+	<string name="error_reason_tunnel_provider">پیکربندی بسته تونل ارائه دهنده با خطا مواجه شد.</string>
+	<string name="error_reason_ipv6_unavailable">IPv6 در این سیستم غیرفعال است.</string>
+	<string name="error_reason_same_entry_and_exit_gateway">گیت‌وی ورودی و خروجی نمی‌توانند یکسان باشند.</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">هیچ گیت‌وی ورودیِ مناسبی یافت نشد.</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">هیچ گیت‌وی خروجیِ مناسبی یافت نشد.</string>
+	<string name="error_reason_invalid_entry_gateway_identity">شناسه گیت‌وی ورودی نامعتبر است.</string>
+	<string name="error_reason_invalid_exit_gateway_identity">شناسه گیت‌وی خروجی نامعتبر است.</string>
+	<string name="error_reason_invalid_entry_gateway_country">کشور انتخاب‌شده برای ورودی نامعتبر است.</string>
+	<string name="error_reason_invalid_exit_gateway_country">کشور انتخاب‌شده برای خروجی نامعتبر است.</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">گیت‌وی ورودی پاسخ‌گو نیست.</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">گیت‌وی خروجی پاسخ‌گو نیست.</string>
+	<string name="error_reason_bandwidth_exceeded">از سقف مجاز پهنای باند عبور کرده‌اید.</string>
+	<string name="error_reason_inactive_account">حساب شما غیرفعال است.</string>
+	<string name="error_reason_inactive_subscription">اشتراک شما غیرفعال است.</string>
+	<string name="error_reason_max_devices_reached">حداکثر تعداد دستگاه‌ها استفاده شده است.</string>
+	<string name="error_reason_device_time_out_of_sync">زمان دستگاه همگام نیست.</string>
+	<string name="error_reason_device_logged_out">دستگاه از حساب کاربری خارج شده است.</string>
+	<string name="error_reason_internal">خطای داخلی: %1$s</string>
+</resources>

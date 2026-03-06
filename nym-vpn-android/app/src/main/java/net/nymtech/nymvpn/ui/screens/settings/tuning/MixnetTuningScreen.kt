@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.tuning
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -55,16 +57,33 @@ import java.util.Locale
 @Composable
 fun MixnetTuningScreen(appUiState: AppUiState, viewModel: MixnetTuningViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsState()
+	val context = LocalContext.current
+
+	LaunchedEffect(uiState.validationError) {
+		uiState.validationError?.let { error ->
+			Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+			viewModel.clearError()
+		}
+	}
 
 	val internetSpeedString = stringResource(R.string.mixnet_tuning_internet_speed)
 
-	val (speedStr, latencyStr) = remember(uiState.currentTrafficValue, uiState.averagePacketDelay, uiState.trafficEnabled) {
-		calculatePerformanceMetrics(
-			trafficValueMs = uiState.currentTrafficValue,
-			delayValueMs = uiState.averagePacketDelay,
-			trafficEnabled = uiState.trafficEnabled,
-			internetSpeedLabel = internetSpeedString,
-		)
+	val speedStr = remember(uiState.trafficEnabled, uiState.calculatedSpeedMbps) {
+		if (!uiState.trafficEnabled) {
+			internetSpeedString
+		} else {
+			if (uiState.calculatedSpeedMbps < 0.1f && uiState.calculatedSpeedMbps > 0f) {
+				"< 0.1 Mbps"
+			} else {
+				String.format(Locale.US, "Up to %.1f Mbps", uiState.calculatedSpeedMbps)
+			}
+		}
+	}
+
+	val latencyStr = remember(uiState.calculatedLatencyMs) {
+		// Rounding ((val + 9) / 10) * 10
+		val roundedLatency = ((uiState.calculatedLatencyMs + 9) / 10).toInt() * 10
+		"At least $roundedLatency ms"
 	}
 
 	MixnetTuningScreen(
@@ -106,6 +125,7 @@ fun MixnetTuningScreen(
 	val scrollState = rememberScrollState()
 	val interactionSource = remember { MutableInteractionSource() }
 	val context = LocalContext.current
+	val url = stringResource(R.string.mixnet_tuning_link)
 
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -144,7 +164,7 @@ fun MixnetTuningScreen(
 		Row(
 			verticalAlignment = Alignment.CenterVertically,
 			modifier = Modifier.clickable(interactionSource = interactionSource, indication = null) {
-				context.openWebUrl(context.getString(R.string.mixnet_tuning_link))
+				context.openWebUrl(url)
 			},
 		) {
 			Text(
@@ -192,34 +212,6 @@ fun MixnetTuningScreen(
 			)
 		}
 	}
-}
-
-private fun calculatePerformanceMetrics(trafficValueMs: Float, delayValueMs: Float, trafficEnabled: Boolean, internetSpeedLabel: String): Pair<String, String> {
-	val speedStr = if (!trafficEnabled) {
-		internetSpeedLabel
-	} else {
-		val mbps = if (trafficValueMs > 0) {
-			20f / trafficValueMs
-		} else {
-			0f
-		}
-
-		if (mbps < 0.1f && mbps > 0f) {
-			"< 0.1 Mbps"
-		} else {
-			String.format(Locale.US, "Up to %.1f Mbps", mbps)
-		}
-	}
-
-	val baseLatencyOneWay = 300
-	val variableLatencyOneWay = (3 * delayValueMs).toInt()
-
-	val rttLatency = 2 * (baseLatencyOneWay + variableLatencyOneWay)
-	val roundedLatency = ((rttLatency + 9) / 10) * 10
-
-	val latencyStr = "At least $roundedLatency ms"
-
-	return speedStr to latencyStr
 }
 
 @Composable

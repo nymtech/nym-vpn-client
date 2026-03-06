@@ -12,6 +12,8 @@ export type Asn = { asn: string; name: string; type: AsnType };
 
 export type AsnType = 'other' | 'residential';
 
+export type BackgroundCoverTrafficRate = { value: number; multiplier: string };
+
 export type BridgeAddress = { listenAddr: string; remoteAddr: string };
 
 export type Cli = {
@@ -53,6 +55,11 @@ export type ConnectingState = {
   retryAttempt: number;
   entryGwId: string | null;
   exitGwId: string | null;
+};
+
+export type ContinuousTrafficSendingRate = {
+  value: number;
+  throughput: string;
 };
 
 export type Country = { name: string; code: string };
@@ -167,6 +174,12 @@ export type Location = {
   region: string;
 };
 
+export type MixingDelay = {
+  minValue: number;
+  maxValue: number;
+  defaultValue: number;
+};
+
 export type MixnetData = {
   nymAddress: Address;
   exitIpr: Address;
@@ -198,6 +211,15 @@ export type MixnetTrafficConfig = {
   disableBackgroundCoverTraffic: boolean;
   minMixnodePerformance: number | null;
   minGatewayMixnetPerformance: number | null;
+};
+
+export type MixnetTrafficDefaults = {
+  mixingDelay: MixingDelay;
+  disablePoissonRate: boolean;
+  defaultBackgroundTraffic: BackgroundCoverTrafficRate;
+  defaultContinuousTraffic: ContinuousTrafficSendingRate;
+  allBackgroundTraffic: Array<BackgroundCoverTrafficRate>;
+  allContinuousTraffic: Array<ContinuousTrafficSendingRate>;
 };
 
 export type NetworkCompat = { core: boolean | null; tauri: boolean | null };
@@ -283,6 +305,33 @@ export type TAccountState =
   | 'requesting-zk-nyms'
   | { error: TBackendError };
 
+export type TAccountSummary = {
+  'subscription-valid-until': string | null;
+  'traffic-used-gb': bigint;
+  'traffic-limit-gb': bigint;
+  'traffic-reset-time': string | null;
+  'account-addr': string;
+  'canonical-account-addr': string | null;
+  'auth-methods': Array<TAuthMethod>;
+  'is-linked': boolean;
+  'fair-usage-left': boolean;
+  'is-subscription-active': boolean;
+};
+
+export type TApiTimeSkew = {
+  localTime: string;
+  estimatedRemoteTime: string;
+  acceptablySynced: boolean;
+};
+
+export type TAuthMethod = {
+  id: string;
+  pubkey: string;
+  kind: string;
+  label: string;
+  status: TVpnAccountStatus;
+};
+
 /**
  * Generic error type made to be passed to the frontend and
  * displayed in the UI as localized error message
@@ -303,6 +352,60 @@ export type TBackendError = {
   data: { [key in string]?: string } | null;
 };
 
+export type TCompleteDnsReport = {
+  system: TDiagnosticResult<Array<TDnsResolution>>;
+  byNameserver: Array<TDnsResolution>;
+};
+
+export type TDiagnosticGateway = {
+  identityKey: string;
+  name: string;
+  description: string | null;
+};
+
+export type TDiagnosticHealthResponse = {
+  status: string;
+  timestampUtc: string;
+};
+
+export type TDiagnosticReport = {
+  dns: TCompleteDnsReport | null;
+  http: TDiagnosticResult<THttpReport> | null;
+  gateway: TGatewayReport | null;
+};
+
+export type TDiagnosticResult<T> = {
+  ok: boolean;
+  value: T | null;
+  error: string | null;
+};
+
+export type TDiagnosticRunParams = {
+  gateway: string | null;
+  skipDns: boolean;
+  skipHttp: boolean;
+};
+
+export type TDnsResolution = {
+  nameservers: string;
+  hostname: string;
+  resolution: TDiagnosticResult<Array<string>>;
+  resolutionDurationMs: bigint;
+};
+
+export type TGatewayReport = {
+  gateway: TDiagnosticResult<TDiagnosticGateway | null>;
+  tcp: TDiagnosticResult<null> | null;
+  websocket: TDiagnosticResult<null> | null;
+  websocketRequest: TDiagnosticResult<string> | null;
+};
+
+export type THttpReport = {
+  remoteTime: TDiagnosticResult<TApiTimeSkew>;
+  healthResponse: TDiagnosticResult<TDiagnosticHealthResponse>;
+  nbNymnodes: TDiagnosticResult<number>;
+};
+
 export type TTunnelState =
   | 'disconnected'
   | { connected: Tunnel }
@@ -310,6 +413,8 @@ export type TTunnelState =
   | { disconnecting: TunnelAction | null }
   | { error: TunnelError }
   | { offline: { reconnect: boolean } };
+
+export type TVpnAccountStatus = 'active' | 'inactive' | 'delete-me';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -346,7 +451,9 @@ export type TunnelError =
   | 'tunnel-provider'
   | 'inactive-account'
   | 'credential-wasted-on-entry-gateway'
-  | 'credential-wasted-on-exit-gateway';
+  | 'credential-wasted-on-exit-gateway'
+  | 'need-full-disk-permissions'
+  | 'split-tunnel';
 
 export type TunnelStateEvent = {
   state: TTunnelState;
@@ -370,6 +477,7 @@ export type VpndConfig = {
   customDns: Array<string> | null;
   enableCustomDns: boolean;
   allowLan: boolean;
+  enableAdBlocking: boolean;
   disableIpv6: boolean;
   vpnMode: VpnMode;
   bridges: boolean;
@@ -378,6 +486,7 @@ export type VpndConfig = {
   residentialExit: boolean;
   enableLewesProtocol: boolean;
   mixnetTraffic: MixnetTrafficConfig;
+  mixnetTrafficDefaults: MixnetTrafficDefaults;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

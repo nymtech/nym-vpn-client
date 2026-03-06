@@ -47,7 +47,7 @@ import PathManager
         }
     }
 #if os(iOS)
-    public var networkEnv: NymEnvironment = try! .newWithMainnetFallback()
+    public var networkEnv: NymEnvironment? = try? .newWithMainnetFallback()
 #endif
 
     let isRunningOnCI: Bool = {
@@ -84,7 +84,7 @@ import PathManager
     }
 
     public var debugLevel: DebugLevel {
-        isTestFlight ? DebugLevel.debug : DebugLevel.info
+        isTestFlight || appSettings.isDebugLogsOn ? DebugLevel.debug : DebugLevel.info
     }
 
 #if os(iOS)
@@ -110,8 +110,7 @@ import PathManager
     }
 
     public func updateEnv(to env: Env) {
-        Task.detached(priority: .low) { [weak self] in
-            guard let self else { return }
+        Task {
             guard self.isTestFlight || Device.isMacOS else { return }
             do {
                 await MainActor.run {
@@ -136,12 +135,12 @@ import PathManager
 #if os(iOS)
                 let accountId = try? await NymVpnAccountStorage(
                     dataDir: PathManager.dataFolderURL().path(),
-                    environment: networkEnv
+                    environment: networkEnv ?? .newWithMainnetFallback()
                 ).getAccountIdentity()
-                let links = try await networkEnv.accountLinks(
-                    locale: locale,
-                    accountId: accountId
-                )
+                guard let links = try await networkEnv?.accountLinks(locale: locale, accountId: accountId)
+                else {
+                    return
+                }
                 await MainActor.run {
                     self.accountLinks = AccountLinks(account: links.account, signIn: links.signIn, signUp: links.signUp)
                 }
@@ -176,7 +175,6 @@ private extension ConfigurationManager {
             logger.error("Failed to initialize environment: \(currentEnvString). Error: \(error)")
         }
 #else
-        try await setDaemonEnvironmentVariables()
         try? await updateErrorReportingIfNeeded()
         try? await updateNetworkStatisticsIfNeeded()
 #endif
@@ -190,7 +188,7 @@ private extension ConfigurationManager {
             guard let self else { return }
             do {
 #if os(iOS)
-                let versions = await networkEnv.networkCompatibility()
+                let versions = await networkEnv?.networkCompatibility()
                 await MainActor.run {
                     self.lastCompatibleAppVersion = versions?.ios
                     self.lastCompatibleCoreVersion = versions?.core
@@ -209,10 +207,6 @@ private extension ConfigurationManager {
     }
 
 #if os(macOS)
-    func setDaemonEnvironmentVariables() async throws {
-        try await grpcManager.switchEnvironment(to: currentEnv.rawValue)
-    }
-
     func updateErrorReportingIfNeeded() async throws {
         try await grpcManager.updateErrorReportingIfNeeded(with: appSettings.isErrorReportingOn)
     }

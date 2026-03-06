@@ -1,7 +1,8 @@
 import { memo } from 'react';
 import { dequal } from 'dequal';
 import { Accordion } from '@base-ui-components/react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
+import clsx from 'clsx';
 import {
   Focused,
   SelectedKind,
@@ -14,6 +15,8 @@ import {
   useNodeListState,
 } from '../../../contexts';
 import { NodeHop, VpnMode } from '../../../types';
+import { Link } from '../../../ui';
+import { ContactSupportUrl, DocsUrl } from '../../../constants';
 import { NodeItem } from './NodeItem';
 import GatewayItem from './GatewayItem';
 import { PanelContent } from './NodeListPanelContent';
@@ -64,6 +67,26 @@ const NodeList = memo(function NodeList({
     setExpanded(hop, value);
   };
 
+  if (nodes.length === 0 && gateways.length === 0) {
+    return (
+      <div className="px-6 space-y-4">
+        <p className=" text-baltic-sea dark:text-white truncate">
+          {t('no-results-found.title')}
+        </p>
+        <p className="text-iron dark:text-bombay whitespace-pre-line">
+          <Trans
+            i18nKey="no-results-found.description"
+            ns="node-location"
+            components={{
+              1: <Link url={ContactSupportUrl} color="primary" />,
+              2: <Link url={DocsUrl} color="primary" />,
+            }}
+          />
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="mr-0">
       <Accordion.Root
@@ -94,7 +117,11 @@ const NodeList = memo(function NodeList({
       </Accordion.Root>
       {gateways.length > 0 && (
         <div className="mt-2" data-testid="standalone-gateways-container">
-          <h3 className="text-iron dark:text-bombay px-4 py-6 truncate">
+          <h3
+            className={clsx('text-iron dark:text-bombay px-4 truncate', {
+              'py-6': nodes.length > 0,
+            })}
+          >
             {t('search-other-nodes')}
           </h3>
           {gateways.map((gateway) => (

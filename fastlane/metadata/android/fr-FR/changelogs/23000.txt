@@ -1,0 +1,8 @@
+Ce qui change :
+- Ajout du statut QUIC et des détails du serveur
+- Nouvelle icône de streaming et mise à jour des info-bulles à l'Accueil/Sortie
+- Nouveau flux de création de mots de passe et de mots de passe
+- Les écrans d'entrée/sortie affichent maintenant les noms des villes au lieu des identifiants de serveur
+- Amélioration des détails de la passerelle avec des temps de mise à jour relatifs
+- Correction de l'affichage de la disponibilité du serveur
+- Diverses améliorations et corrections de l'interface utilisateur

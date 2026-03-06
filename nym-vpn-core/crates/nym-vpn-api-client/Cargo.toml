@@ -12,6 +12,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+async-trait.workspace = true
 backon.workspace = true
 base64-url.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
@@ -28,6 +29,7 @@ nym-http-api-client.workspace = true
 nym-network-defaults = { workspace = true, optional = true }
 nym-validator-client.workspace = true
 nym-vpn-store.workspace = true
+reqwest.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 sha2.workspace = true
@@ -35,7 +37,7 @@ sha256.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["full"] }
+tokio.workspace = true
 time = { workspace = true, features = [
     "serde-human-readable",
     "serde-well-known",
@@ -46,6 +48,7 @@ zeroize.workspace = true
 
 [dev-dependencies]
 bip39 = { workspace = true, features = ["zeroize"] }
+tracing-test.workspace = true
 
 [features]
 default = ["network-defaults"]

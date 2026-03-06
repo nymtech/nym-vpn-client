@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf};
+use std::net::IpAddr;
 
 use futures::{StreamExt, stream::BoxStream};
 use tokio::{
@@ -15,6 +15,8 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tonic::{Request, Response, Status, transport::Server};
 
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     EnableSocks5Request, EntryPoint, ExitPoint, GetDeeplinkParams, ListGatewaysOptions,
     LookupGatewayFilters, TargetState, TunnelEvent,
@@ -28,6 +30,11 @@ use nym_vpn_proto::proto::{
 use nym_vpn_lib::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
+
+#[cfg(windows)]
+// The Nym serial number of the SSL certificate we use to sign release builds
+// in CI.
+const NYM_CERTIFICATE_SERIAL_NUMBER: &str = "4ec9356d8c87f9cf3ccf60e7bdad022f";
 
 pub struct CommandInterface {
     // Send commands to the VPN service
@@ -171,6 +178,22 @@ impl NymVpnService for CommandInterface {
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to set lewes-protocol config: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_enable_ad_blocking(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_ad_blocking = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetEnableAdBlocking, enable_ad_blocking)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set ad-blocking config: {e}"))
             })?;
 
         Ok(tonic::Response::new(()))
@@ -994,6 +1017,87 @@ impl NymVpnService for CommandInterface {
 
         Ok(tonic::Response::new(proto_report))
     }
+
+    async fn set_enable_split_tunnel(
+        &self,
+        _request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            self.send_and_wait(
+                VpnServiceCommand::SetEnableSplitTunnel,
+                _request.into_inner(),
+            )
+            .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn add_split_tunnel_app(
+        &self,
+        _request: tonic::Request<proto::SplitApp>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            let app = SplitApp::from(_request.into_inner());
+            self.send_and_wait(VpnServiceCommand::AddSplitTunnelApp, app)
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn remove_split_tunnel_app(
+        &self,
+        _request: tonic::Request<proto::SplitApp>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            let app = SplitApp::from(_request.into_inner());
+            self.send_and_wait(VpnServiceCommand::RemoveSplitTunnelApp, app)
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn clear_split_tunnel_apps(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "macos")]
+        {
+            self.send_and_wait(VpnServiceCommand::ClearSplitTunnelApps, ())
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn need_full_disk_permissions(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<bool>> {
+        #[cfg(target_os = "macos")]
+        {
+            let need_fda = self
+                .send_and_wait(VpnServiceCommand::NeedFullDiskPermissions, ())
+                .await?;
+            Ok(tonic::Response::new(need_fda))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
 }
 
 pub async fn start_command_interface(
@@ -1002,26 +1106,33 @@ pub async fn start_command_interface(
 ) -> std::io::Result<(JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>)> {
     tracing::debug!("Starting command interface");
 
-    let socket_path = default_socket_path();
     let (vpn_command_tx, vpn_command_rx) = mpsc::unbounded_channel();
 
-    // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
-    #[cfg(unix)]
-    remove_previous_socket_file(&socket_path).await;
-    tracing::info!("Starting socket listener on: {}", socket_path.display());
+    #[cfg(target_os = "linux")]
+    {
+        let socket_path = default_socket_path();
+        // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
+        remove_previous_socket_file(&socket_path).await;
+        tracing::info!("Starting socket listener on: {}", socket_path.display());
+    }
 
     // Wrap the unix socket or named pipe into a stream that can be used by tonic
-    let incoming =
-        nym_ipc::server::create_incoming(socket_path.clone(), shutdown_token.child_token())?;
+    let incoming = nym_ipc::server::create_incoming(
+        default_socket_path(),
+        #[cfg(target_os = "windows")]
+        NYM_CERTIFICATE_SERIAL_NUMBER.to_string(),
+        #[cfg(unix)]
+        shutdown_token.child_token(),
+    )?;
 
     let server_handle = tokio::spawn(async move {
         let socket_listener_handle = tokio::spawn(async move {
             let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx);
 
             let server = Server::builder().add_service(NymVpnServiceServer::new(command_interface));
-            #[cfg(unix)]
+            #[cfg(target_os = "linux")]
             let ret = server.serve_with_incoming(incoming).await;
-            #[cfg(windows)]
+            #[cfg(not(target_os = "linux"))]
             let ret = server
                 .serve_with_incoming_shutdown(
                     incoming,
@@ -1048,7 +1159,7 @@ pub async fn start_command_interface(
     Ok((server_handle, vpn_command_rx))
 }
 
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
 async fn remove_previous_socket_file(socket_path: &std::path::Path) {
     match tokio::fs::remove_file(socket_path).await {
         Ok(_) => tracing::info!(
@@ -1065,14 +1176,14 @@ async fn remove_previous_socket_file(socket_path: &std::path::Path) {
     }
 }
 
-fn default_socket_path() -> PathBuf {
+fn default_socket_path() -> std::path::PathBuf {
     #[cfg(unix)]
     {
-        PathBuf::from("/var/run/nym-vpn.sock")
+        std::path::PathBuf::from("/var/run/nym-vpn.sock")
     }
 
     #[cfg(windows)]
     {
-        PathBuf::from(r"\\.\pipe\nym-vpn")
+        std::path::PathBuf::from(r"\\.\pipe\nym-vpn")
     }
 }

@@ -13,6 +13,7 @@ import {
   NodeListStateProvider,
   Socks5Provider,
   TopBarProvider,
+  TrayProvider,
 } from './contexts';
 import { useLang } from './hooks';
 import { LngTag } from './i18n';
@@ -71,19 +72,21 @@ function App({ init }: { init: InitState }) {
         <Toast.Provider>
           <MainStateProvider init={init}>
             <GatewaysProvider>
-              <NodeListStateProvider>
-                <Socks5Provider>
-                  <ThemeSetter>
-                    <DialogProvider>
-                      <TopBarProvider>
-                        <Suspense fallback={<RouteLoading />}>
-                          <RouterProvider router={router} />
-                        </Suspense>
-                      </TopBarProvider>
-                    </DialogProvider>
-                  </ThemeSetter>
-                </Socks5Provider>
-              </NodeListStateProvider>
+              <TrayProvider>
+                <NodeListStateProvider>
+                  <Socks5Provider>
+                    <ThemeSetter>
+                      <DialogProvider>
+                        <TopBarProvider>
+                          <Suspense fallback={<RouteLoading />}>
+                            <RouterProvider router={router} />
+                          </Suspense>
+                        </TopBarProvider>
+                      </DialogProvider>
+                    </ThemeSetter>
+                  </Socks5Provider>
+                </NodeListStateProvider>
+              </TrayProvider>
             </GatewaysProvider>
           </MainStateProvider>
         </Toast.Provider>

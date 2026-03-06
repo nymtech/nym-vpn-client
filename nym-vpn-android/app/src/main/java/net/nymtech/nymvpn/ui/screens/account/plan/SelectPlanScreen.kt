@@ -7,7 +7,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -39,12 +37,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
@@ -62,13 +57,15 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun SelectPlanScreen(appUiState: AppUiState, viewModel: SelectPlanViewModel = hiltViewModel()) {
+fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val products by viewModel.subscriptions.collectAsState()
+	val signUpLink by viewModel.signUpLink.collectAsState()
 	var showSheet by remember { mutableStateOf(false) }
 	val navController = LocalNavController.current
 
@@ -80,9 +77,8 @@ fun SelectPlanScreen(appUiState: AppUiState, viewModel: SelectPlanViewModel = hi
 				viewModel.fetchSubscriptions()
 				showSheet = true
 			} else {
-				appUiState.managerState.accountLinks?.signUp?.let {
-					context.openWebUrl(it)
-				}
+				signUpLink?.let { context.openWebUrl(it) }
+				navController.replaceCurrentWith(Route.Login)
 			}
 		},
 		onDismissSheet = { showSheet = false },
@@ -122,16 +118,15 @@ fun SelectPlanScreen(
 	onSelectPlanButtonClick: () -> Unit,
 	onDismissSheet: () -> Unit,
 	onSelectSubscription: (ProductData) -> Unit,
-	padding: PaddingValues = WindowInsets.systemBars.asPaddingValues(),
 ) {
+	val padding = WindowInsets.systemBars.asPaddingValues()
 	Column(
-		horizontalAlignment = Alignment.CenterHorizontally,
 		modifier = Modifier
 			.fillMaxSize()
-			.imePadding()
 			.background(MaterialTheme.colorScheme.background)
-			.padding(horizontal = 24.dp.scaledWidth())
-			.padding(WindowInsets.systemBars.asPaddingValues()),
+			.padding(horizontal = 16.dp.scaledWidth())
+			.padding(bottom = padding.calculateBottomPadding()),
+		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
 		FilledProgressBar4(
 			modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
@@ -172,21 +167,21 @@ fun SelectPlanScreen(
 				verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically),
 				modifier = Modifier.padding(horizontal = 52.dp).fillMaxWidth(),
 			) {
-				Row {
-					Icon(
-						imageVector = ImageVector.vectorResource(R.drawable.ic_gift),
-						contentDescription = null,
-						tint = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.size(16.dp),
-					)
-					Spacer(Modifier.width(8.dp))
-					Text(
-						text = stringResource(R.string.select_plan_line_0),
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				}
+// 				Row {
+// 					Icon(
+// 						imageVector = ImageVector.vectorResource(R.drawable.ic_gift),
+// 						contentDescription = null,
+// 						tint = MaterialTheme.colorScheme.primary,
+// 						modifier = Modifier.size(16.dp),
+// 					)
+// 					Spacer(Modifier.width(8.dp))
+// 					Text(
+// 						text = stringResource(R.string.select_plan_line_0),
+// 						style = MaterialTheme.typography.bodyMedium,
+// 						color = MaterialTheme.colorScheme.outline,
+// 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+// 					)
+// 				}
 				Row {
 					Icon(
 						painter = rememberVectorPainter(Icons.Filled.VerifiedUser),

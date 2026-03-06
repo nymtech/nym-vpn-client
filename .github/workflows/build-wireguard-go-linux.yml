@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
   workflow_call:
     inputs:
-      artifact_name:
+      artifact_suffix:
         required: false
         type: string
 
@@ -16,9 +16,17 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-libwg:
+    strategy:
+      matrix:
+        include:
+          - os: "ubuntu-22.04"
+            arch: "x86_64"
+          - os: "ubuntu-22.04-arm"
+            arch: "aarch64"
+
     if: github.actor != 'dependabot[bot]'
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Install system dependencies
@@ -34,22 +42,21 @@ jobs:
           cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Build wireguard
-        run: |
-          ./wireguard/build-wireguard-go.sh
+        run: ./wireguard/build-wireguard-go.sh
 
       - name: Set artifact name
         id: set_artifact_name
         run: |
-          if [ -z "${{ inputs.artifact_name }}" ]; then
-            echo "artifact_name=wireguard-go_ubuntu-24.04_x86_64" >> $GITHUB_OUTPUT
+          if [ -z "${{ inputs.artifact_suffix }}" ]; then
+            echo "artifact_name=wireguard_go-${{ matrix.arch }}" >> $GITHUB_OUTPUT
           else
-            echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
+            echo "artifact_name=wireguard_go_${{ inputs.artifact_suffix }}-${{ matrix.arch }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.set_artifact_name.outputs.artifact_name }}
-          path: build/lib/x86_64-unknown-linux-gnu
+          path: build/lib
           if-no-files-found: error
-          retention-days: 10
+          retention-days: 1

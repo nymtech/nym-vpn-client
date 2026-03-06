@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">NymVPN Kanalı</string>
+	<string name="channel_description">VPN ile ilgili bildirimler için bir iletişim kanalı.</string>
+	<string name="disconnect">Bağlantıyı kes</string>
+	<string name="state_connected">Bağlandı</string>
+	<string name="state_error">Hata</string>
+	<string name="state_disconnected">Bağlantı kesildi</string>
+	<string name="state_initializing">İstemci başlatılıyor…</string>
+	<string name="state_establishing">Bağlantı kuruluyor...</string>
+	<string name="notification_entry">Giriş: %1$s</string>
+	<string name="notification_exit">Çıkış: %1$s</string>
+	<string name="error_reason_set_firewall_policy">Güvenlik duvarı politikası uygulanamadı.</string>
+	<string name="error_reason_set_routing">Ağ yönlendirmesi yapılandırılamadı.</string>
+	<string name="error_reason_set_dns">DNS ayarları yapılandırılamadı.</string>
+	<string name="error_reason_tun_device">VPN tünel arayüzü başlatılamadı.</string>
+	<string name="error_reason_tunnel_provider">Paket tünel sağlayıcısı yapılandırılamadı.</string>
+	<string name="error_reason_ipv6_unavailable">Bu sistemde IPv6 devre dışı bırakıldı.</string>
+	<string name="error_reason_same_entry_and_exit_gateway">Giriş ve çıkış sunucuları aynı olamaz.</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">Uygun giriş sunucusu bulunamadı.</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">Uygun çıkış sunucusu bulunamadı.</string>
+	<string name="error_reason_invalid_entry_gateway_identity">Geçersiz giriş sunucusu kimliği.</string>
+	<string name="error_reason_invalid_exit_gateway_identity">Geçersiz çıkış sunucusu kimliği.</string>
+	<string name="error_reason_invalid_entry_gateway_country">Seçilen giriş ülkesi geçersiz.</string>
+	<string name="error_reason_invalid_exit_gateway_country">Seçilen çıkış ülkesi geçersiz.</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">Giriş sunucusu yanıt vermiyor.</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">Çıkış sunucusu yanıt vermiyor.</string>
+	<string name="error_reason_bandwidth_exceeded">Bant genişliği limiti aşıldı.</string>
+	<string name="error_reason_inactive_account">Hesabınız aktif değil.</string>
+	<string name="error_reason_inactive_subscription">Aboneliğiniz aktif değil.</string>
+	<string name="error_reason_max_devices_reached">Maksimum cihaz sayısına ulaşıldı.</string>
+	<string name="error_reason_device_time_out_of_sync">Cihaz saati senkronize değil.</string>
+	<string name="error_reason_device_logged_out">Cihazdan çıkış yapıldı.</string>
+	<string name="error_reason_internal">Dahili hata: %1$s</string>
+</resources>

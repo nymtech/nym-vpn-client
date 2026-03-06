@@ -1,11 +1,13 @@
 import SwiftUI
 import AppSettings
+import CredentialsManager
 import Device
 import ConfigurationManager
 import UIComponents
 import Theme
 
 public struct SettingsView: View {
+    @EnvironmentObject private var credentialsManager: CredentialsManager
     @StateObject private var viewModel: SettingsViewModel
 
     public init(viewModel: SettingsViewModel) {
@@ -23,40 +25,35 @@ private extension SettingsView {
         VStack(spacing: 0) {
             navbar()
             ScrollView {
-                credentialOrAddCredentialView()
+                VStack(spacing: 0) {
+                    credentialOrAddCredentialView()
 
-                Spacer()
-                    .frame(height: 24)
-                settingsList()
-                Spacer()
-                    .frame(height: 24)
-                appVersionText()
-                    .onTapGesture(count: 3) {
-                        viewModel.navigateToSantasMenu()
-                    }
+                    Spacer()
+                        .frame(height: 24)
+                    settingsList()
+                    Spacer()
+                        .frame(height: 24)
+                    appVersionText()
+                        .onTapGesture(count: 3) {
+                            viewModel.navigateToSantasMenu()
+                        }
+                }
+                .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
-            .scrollIndicators(.hidden)
+            .scrollIndicators(.never)
             .frame(maxWidth: MagicNumbers.maxWidth)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
-        .overlay {
-            if viewModel.isLogoutConfirmationDisplayed {
-                ActionDialogView(
-                    viewModel: ActionDialogViewModel(
-                        isDisplayed: $viewModel.isLogoutConfirmationDisplayed,
-                        configuration: viewModel.logoutDialogConfiguration,
-                        impactGenerator: .shared,
-                        isLoading: $viewModel.isLogoutLoading
-                    )
-                )
-            }
-        }
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .onAppear {
+            Task {
+                await credentialsManager.updateAccountSummary()
+            }
         }
     }
 

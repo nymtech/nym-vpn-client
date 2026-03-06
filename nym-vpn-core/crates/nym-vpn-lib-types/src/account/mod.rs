@@ -269,37 +269,185 @@ pub struct VpnAccountSummary {
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
     pub traffic_reset_time: Option<OffsetDateTime>,
+
+    pub account_addr: String,
+    pub canonical_account_addr: Option<String>,
+    pub auth_methods: Vec<VpnAccountAuthMethod>,
+    pub account_mode: Option<StoredAccountMode>,
 }
 
+// Exported methods
+#[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
+#[allow(unused)]
 impl VpnAccountSummary {
-    pub fn new(
-        subscription_expiry_time: Option<String>,
-        traffic_used_gb: u64,
-        traffic_limit_gb: u64,
-        traffic_reset_time: Option<String>,
-    ) -> Result<Self, time::Error> {
-        let subscription_valid_until = subscription_expiry_time
-            .map(|time| {
-                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
-            })
-            .transpose()?;
-
-        let traffic_reset_time = traffic_reset_time
-            .map(|time| {
-                OffsetDateTime::parse(&time, &time::format_description::well_known::Rfc3339)
-            })
-            .transpose()?;
-
-        Ok(Self {
-            subscription_valid_until,
-            traffic_used_gb,
-            traffic_limit_gb,
-            traffic_reset_time,
-        })
+    /// Returns true if subscription is active
+    pub fn is_subscription_active(&self) -> bool {
+        self.subscription_valid_until
+            .map(|time| time > OffsetDateTime::now_utc())
+            .unwrap_or(false)
     }
 
     pub fn fair_usage_left(&self) -> bool {
         self.traffic_used_gb != self.traffic_limit_gb
+    }
+
+    pub fn is_linked(&self) -> bool {
+        let canonical_differs = self
+            .canonical_account_addr
+            .as_ref()
+            .map(|canonical| canonical != &self.account_addr)
+            .unwrap_or(false);
+
+        let has_social_or_passphrase = self
+            .auth_methods
+            .iter()
+            .any(|method| method.label == "Social login" || method.label == "Passphrase");
+
+        let is_privy_mode = self.account_mode == Some(StoredAccountMode::Privy);
+
+        canonical_differs || has_social_or_passphrase || is_privy_mode
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for VpnAccountSummary {
+    type Error = nym_vpn_api_client::error::VpnApiClientError;
+
+    fn try_from(
+        value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
+    ) -> Result<Self, Self::Error> {
+        let subscription_valid_unti_str = value
+            .subscription
+            .active
+            .as_ref()
+            .map(|a| a.valid_until_utc.clone());
+        let subscription_valid_until = subscription_valid_unti_str
+            .as_ref()
+            .map(|time| OffsetDateTime::parse(time, &time::format_description::well_known::Rfc3339))
+            .transpose()
+            .map_err(|_| {
+                nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
+                    "invalid subscription valid_until_utc time format: {}",
+                    subscription_valid_unti_str.unwrap()
+                ))
+            })?;
+
+        let traffic_reset_time_str = value.fair_usage.resetsOnUtc.clone();
+        let traffic_reset_time = traffic_reset_time_str
+            .as_ref()
+            .map(|time| OffsetDateTime::parse(time, &time::format_description::well_known::Rfc3339))
+            .transpose()
+            .map_err(|_| {
+                nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
+                    "invalid fair_usage reset_time_utc time format: {}",
+                    traffic_reset_time_str.unwrap()
+                ))
+            })?;
+
+        let auth_methods = value
+            .account
+            .auth_methods
+            .iter()
+            .cloned()
+            .map(TryInto::try_into)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Self {
+            subscription_valid_until,
+            traffic_used_gb: value.fair_usage.usedGB,
+            traffic_limit_gb: value.fair_usage.limitGB,
+            traffic_reset_time,
+            account_addr: value.account.account_addr.clone(),
+            canonical_account_addr: value.account.canonical_account_addr.clone(),
+            auth_methods,
+            account_mode: None,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct VpnAccountAuthMethod {
+    pub id: String,
+    pub pubkey: String,
+    pub kind: String,
+    pub label: String,
+    pub status: VpnAccountStatus,
+
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601"))]
+    pub created: OffsetDateTime,
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl TryFrom<nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse>
+    for VpnAccountAuthMethod
+{
+    type Error = nym_vpn_api_client::error::VpnApiClientError;
+
+    fn try_from(
+        value: nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse,
+    ) -> Result<Self, Self::Error> {
+        let created = OffsetDateTime::parse(
+            &value.created,
+            &time::format_description::well_known::Rfc3339,
+        )
+        .map_err(|_| {
+            nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
+                "invalid auth_method.created time format: {}",
+                value.created
+            ))
+        })?;
+
+        Ok(Self {
+            id: value.id,
+            pubkey: value.pubkey,
+            kind: value.kind,
+            label: value.label,
+            status: value.status.into(),
+            created,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum VpnAccountStatus {
+    Active,
+    Inactive,
+    DeleteMe,
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_api_client::response::NymVpnAccountStatusResponse> for VpnAccountStatus {
+    fn from(value: nym_vpn_api_client::response::NymVpnAccountStatusResponse) -> Self {
+        match value {
+            nym_vpn_api_client::response::NymVpnAccountStatusResponse::Active => {
+                VpnAccountStatus::Active
+            }
+            nym_vpn_api_client::response::NymVpnAccountStatusResponse::Inactive => {
+                VpnAccountStatus::Inactive
+            }
+            nym_vpn_api_client::response::NymVpnAccountStatusResponse::DeleteMe => {
+                VpnAccountStatus::DeleteMe
+            }
+        }
     }
 }
 

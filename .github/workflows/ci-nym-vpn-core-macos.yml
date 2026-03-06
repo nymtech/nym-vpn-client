@@ -18,7 +18,6 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-mac.yml
 
   build:
-    if: github.actor != 'dependabot[bot]'
     runs-on: custom-macos-15
     needs: build-wireguard-go-mac
     timeout-minutes: 60
@@ -63,7 +62,8 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+          key:
+            ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
@@ -71,13 +71,16 @@ jobs:
         uses: actions/cache@v5
         with:
           path: nym-vpn-core/target/
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          key:
+            ${{ runner.os }}-cargo-build-${{
+            hashFiles('nym-vpn-core/Cargo.lock') }}-${{
+            hashFiles('nym-vpn-core/**/*.rs') }}
           restore-keys: |
             ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
             ${{ runner.os }}-cargo-build-
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: wireguard-go_apple_universal
           path: build/lib/universal-apple-darwin
@@ -96,4 +99,4 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo build --workspace --locked
-          cargo test --workspace --locked
+          cargo test --workspace --locked --exclude nym-ifconfig

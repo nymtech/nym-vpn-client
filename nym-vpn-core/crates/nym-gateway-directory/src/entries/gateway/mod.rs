@@ -7,7 +7,7 @@ mod tests;
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
-use nym_validator_client::models::{KeyRotationId, NymNodeDescription};
+use nym_validator_client::models::{KeyRotationId, NymNodeDescriptionV1};
 use nym_vpn_api_client::{
     response::{BridgeInformation, BridgeParameters},
     types::Percent,
@@ -68,7 +68,7 @@ pub struct Gateway {
 
 impl Gateway {
     pub fn try_from_node_description(
-        node_description: NymNodeDescription,
+        node_description: NymNodeDescriptionV1,
         current_key_rotation: KeyRotationId,
     ) -> Result<Self> {
         let identity = node_description.description.host_information.keys.ed25519;
@@ -947,11 +947,11 @@ impl GatewayList {
             }),
             ExitPoint::Country {
                 two_letter_iso_country_code,
-            } => Err(Error::NoMatchingEntryGatewayForLocation {
+            } => Err(Error::NoMatchingExitGatewayForLocation {
                 requested_location: two_letter_iso_country_code.clone(),
                 available_countries: self.all_iso_codes(),
             }),
-            ExitPoint::Region { region } => Err(Error::NoMatchingEntryGatewayForLocation {
+            ExitPoint::Region { region } => Err(Error::NoMatchingExitGatewayForLocation {
                 requested_location: region.clone(),
                 available_countries: self.all_iso_codes(),
             }),

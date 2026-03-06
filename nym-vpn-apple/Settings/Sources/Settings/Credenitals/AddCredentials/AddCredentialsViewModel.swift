@@ -115,7 +115,7 @@ extension AddCredentialsViewModel {
         switch navigationSource {
         case .onboarding:
             path = .init([HomeLink.onboarding])
-        case .createAccountWelcome:
+        case .accountWelcome:
             if !path.isEmpty { path.removeLast() }
         case .settings:
             if !path.isEmpty { path.removeLast() }
@@ -124,7 +124,7 @@ extension AddCredentialsViewModel {
 
     func navigateToCreateAccount() {
         path = NavigationPath([HomeLink.settings])
-        path.append(SettingLink.createAccountWelcome(navigationSource: .addCredential))
+        path.append(SettingLink.accountWelcome(type: .createAccount, navigationSource: .addCredential))
     }
 
     func navigateHomeOrTechnicalOptIn() {

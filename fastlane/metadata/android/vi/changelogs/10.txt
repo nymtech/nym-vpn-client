@@ -1,0 +1,4 @@
+Có gì mới:
+- Thêm tính năng VPN luôn bật
+- Thêm hỗ trợ ô cài đặt nhanh
+- Sửa lỗi tự động kết nối khi khởi động

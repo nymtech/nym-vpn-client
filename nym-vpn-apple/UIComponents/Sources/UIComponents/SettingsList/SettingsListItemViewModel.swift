@@ -2,13 +2,40 @@ import Foundation
 import SwiftUI
 import Theme
 
-public final class SettingsListItemViewModel: Hashable {
+public final class SettingsListItemViewModel: ObservableObject, Hashable {
     public enum Accessory: Hashable {
         case arrow
-        case toggle(viewModel: ToggleViewModel)
+        case toggle(isOn: Binding<Bool>, isDisabled: Bool = false)
         case externalLink
         case copy
         case empty
+
+        public func hash(into hasher: inout Hasher) {
+            switch self {
+            case .arrow:
+                hasher.combine(0)
+            case let .toggle(_, isDisabled):
+                hasher.combine(1)
+                hasher.combine(isDisabled)
+            case .externalLink:
+                hasher.combine(2)
+            case .copy:
+                hasher.combine(3)
+            case .empty:
+                hasher.combine(4)
+            }
+        }
+
+        public static func == (lhs: Accessory, rhs: Accessory) -> Bool {
+            switch (lhs, rhs) {
+            case (.arrow, .arrow), (.externalLink, .externalLink), (.copy, .copy), (.empty, .empty):
+                true
+            case let (.toggle(_, lhsDisabled), .toggle(_, rhsDisabled)):
+                lhsDisabled == rhsDisabled
+            default:
+                false
+            }
+        }
 
         var imageName: String? {
             switch self {
@@ -34,6 +61,11 @@ public final class SettingsListItemViewModel: Hashable {
             }
         }
 
+        public var isToggle: Bool {
+            guard case .toggle = self else { return false }
+            return true
+        }
+
         var accessibilityHint: String {
             switch self {
             case .toggle:
@@ -49,10 +81,15 @@ public final class SettingsListItemViewModel: Hashable {
 
         var accessibilityValue: String {
             switch self {
-            case let .toggle(viewModel: viewModel):
-                viewModel.accessibilityValue()
+            case let .toggle(isOn, isDisabled):
+                let value = isOn.wrappedValue ? "general.on".localizedString : "general.off".localizedString
+                if isDisabled {
+                    return "\(value) \("accessibility.dimmed".localizedString)"
+                } else {
+                    return value
+                }
             case .arrow, .externalLink, .copy, .empty:
-                ""
+                return ""
             }
         }
     }
@@ -82,7 +119,6 @@ public final class SettingsListItemViewModel: Hashable {
 
     let title: String
     let titleTextStyle: NymTextStyle
-    let subtitle: AttributedString?
     let multilineText: AttributedString?
     let imageName: String?
     let systemImageName: String?
@@ -91,6 +127,7 @@ public final class SettingsListItemViewModel: Hashable {
     let accessory: Accessory
     let action: (() -> Void)
 
+    @Published public var subtitle: AttributedString?
     var position: SettingsListItemPosition
 
     public init(

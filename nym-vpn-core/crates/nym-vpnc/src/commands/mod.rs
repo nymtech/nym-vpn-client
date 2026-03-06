@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod account;
+pub mod ad_block;
 pub mod device;
 pub mod diagnostic;
 pub mod dns;
@@ -11,4 +12,6 @@ pub mod network;
 pub mod network_stats;
 pub mod sentry;
 pub mod socks5;
+#[cfg(target_os = "macos")]
+pub mod split_tunnel;
 pub mod tunnel;

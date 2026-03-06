@@ -62,11 +62,13 @@ jobs:
 
   build-nym-vpn-android-aab:
     if: ${{ github.event.inputs.publish-accrescent == 'true' }}
+    needs: [build-nym-vpn-android-apk]
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
       build_type: release
       build_format: aab
+      skip_crowdin: true
 
   publish-github:
     if: ${{ inputs.release_type != 'none' }}
@@ -126,7 +128,7 @@ jobs:
         run: mkdir ${{ github.workspace }}/temp
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
@@ -230,17 +232,17 @@ jobs:
     needs:
       - build-nym-vpn-android-aab
     steps:
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
-          java-version: "17"
+          java-version: "21"
           distribution: "temurin"
 
       - name: Make download dir
         run: mkdir ${{ github.workspace }}/temp
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
@@ -271,15 +273,15 @@ jobs:
             --key-pass 'pass:${{ env.SIGNING_KEY_PASSWORD }}'
 
       - name: Upload APKS artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: app-apks
           path: app-fdroid-release.apks
           if-no-files-found: error
 
   publish-play:
-    if: ${{ inputs.track != 'none' && inputs.track != '' }}
-    # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
+    needs: [build-nym-vpn-android-apk]
+    if: ${{ always() && inputs.track != 'none' && inputs.track != '' && (needs.build-nym-vpn-android-apk.result == 'success' || needs.build-nym-vpn-android-apk.result == 'skipped') }}
     runs-on: arc-linux-latest
     defaults:
       run:
@@ -302,11 +304,11 @@ jobs:
           ruby-version: "3.3"
           bundler-cache: true
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: "17"
+          java-version: "21"
           cache: gradle
 
       - name: Install deps
@@ -370,26 +372,6 @@ jobs:
           version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
-      # === CROWDIN DOWNLOAD START ===
-      - name: Install Crowdin CLI
-        run: npm install -g @crowdin/cli
-
-      - name: Download translations
-        env:
-          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
-          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-        run: |
-          export PATH="$PATH:$(npm config get prefix)/bin"
-
-          # Change to workspace root to access crowdin-configs
-          cd ${{ github.workspace }}
-
-          echo "⬇️ Downloading translations..."
-          crowdin download translations \
-            --config crowdin-configs/android.yml \
-            --project-id "$CROWDIN_PROJECT_ID" \
-            --token "$CROWDIN_PERSONAL_TOKEN"
-      # === CROWDIN DOWNLOAD END ===
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}
         run: |

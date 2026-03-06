@@ -186,6 +186,9 @@
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
 	<string name="streaming_server_banner_action">Check new\nexit servers</string>
+	<!-- Status pill -->
+	<string name="pill_error">Error</string>
+	<string name="pill_subscription_expired">Subscription expired</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Cannot connect with the same entry and exit server. Change either the entry or exit server and reconnect.</string>
 	<string name="unexpected_error">An unexpected error occurred:</string>
@@ -287,7 +290,7 @@
 	<string name="onboarding_title_3">Stop being tracked online</string>
 	<string name="onboarding_title_4">Anonymity from payment to web</string>
 	<string name="onboarding_description_base">The world’s most private VPN</string>
-	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
+	<string name="onboarding_description_1">The world’s most private VPN</string>
 	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
 	<string name="onboarding_description_3">Nym’s decentralized network makes "no-log"\n promises obsolete.</string>
 	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
@@ -375,6 +378,8 @@
 	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
 	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
 	<string name="account_generating_error">Failed to register account. Please, try again later</string>
+	<string name="account_generating_deeplink_title">Logging in...</string>
+	<string name="account_generating_deeplink_description">Please wait while we verify your account</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processing your payment securely…</string>
 	<string name="account_payment_verifying">We\'re verifying your subscription—no personal details are ever tied to your identity</string>

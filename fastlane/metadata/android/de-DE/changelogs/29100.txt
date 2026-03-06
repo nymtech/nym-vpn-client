@@ -1,0 +1,7 @@
+Was ist Neu:
+- Kontoeinrichtung: Unterstützung für die In-App-Kontoerstellung und Registrierung.
+- Privy-Integration: Verbinde deine Konten ganz einfach mit der neuen Privy-Unterstützung.
+- Mixnet Tuning: Neue Benutzeroberfläche zur Feinabstimmung deiner Datenschutz- und Verbindungseinstellungen.
+- Stabilitätsverbesserungen: Behebung von Always-On VPN-Problemen nach Systemneustarts und Behebung von App-Abstürzen.
+- Bessere Konnektivität: Verbesserte VPN-Architektur für zuverlässigere, dynamische Wiederverbindungen und aktualisierte Kontoinformationsoberfläche.
+- Aktualisierter Übersetzungsworkflow.

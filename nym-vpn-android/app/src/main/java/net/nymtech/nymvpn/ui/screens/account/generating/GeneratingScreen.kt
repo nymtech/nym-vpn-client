@@ -3,25 +3,11 @@ package net.nymtech.nymvpn.ui.screens.account.generating
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -38,10 +24,7 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.animations.PulsingDotsWave
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
-import net.nymtech.nymvpn.ui.theme.CustomColors
-import net.nymtech.nymvpn.ui.theme.NymVPNTheme
-import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
+import net.nymtech.nymvpn.ui.theme.*
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 
@@ -49,112 +32,119 @@ import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 	val success by viewModel.success.collectAsStateWithLifecycle(null)
 	val navController = LocalNavController.current
+	val mode = viewModel.mode
 
-	LaunchedEffect(success) {
-		if (success == false) {
-			SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
-			navController.replaceCurrentWith(Route.CreateAccount)
+	if (mode == GeneratingMode.CreateAccount) {
+		LaunchedEffect(success) {
+			if (success == false) {
+				SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
+				navController.replaceCurrentWith(Route.CreateAccount)
+			}
 		}
 	}
 
-	GeneratingScreen {
-		if (success == true) {
-			navController.replaceCurrentWith(Route.SelectPlan)
-		}
-	}
+	GeneratingContent(
+		mode = mode,
+		onAnimationEnd = {
+			if (mode == GeneratingMode.CreateAccount && success == true) {
+				navController.replaceCurrentWith(Route.SelectPlan)
+			}
+		},
+	)
 }
 
 @Composable
-fun GeneratingScreen(onAnimationEnd: () -> Unit) {
+fun GeneratingContent(mode: GeneratingMode, onAnimationEnd: () -> Unit) {
 	var step by remember { mutableIntStateOf(0) }
+	val isDeepLink = mode == GeneratingMode.DeepLinkLogin
 
-	LaunchedEffect(Unit) {
-		delay(3000)
-		step = 1
-		delay(3000)
-		step = 2
-		delay(3000)
-		onAnimationEnd()
+	val creationSteps = remember {
+		listOf(
+			R.string.account_generating_title_1 to R.string.account_generating_description_1,
+			R.string.account_generating_title_2 to R.string.account_generating_description_2,
+			R.string.account_generating_title_3 to R.string.account_generating_description_3,
+		)
 	}
 
+	LaunchedEffect(isDeepLink) {
+		if (!isDeepLink) {
+			repeat(2) {
+				delay(3000)
+				step++
+			}
+			delay(3000)
+			onAnimationEnd()
+		}
+	}
+
+	val resPair = if (isDeepLink) {
+		R.string.account_generating_deeplink_title to R.string.account_generating_deeplink_description
+	} else {
+		creationSteps[step.coerceIn(0, 2)]
+	}
+
+	GeneratingBaseLayout(
+		title = stringResource(resPair.first),
+		description = stringResource(resPair.second),
+		topContent = if (!isDeepLink) {
+			{ StepProgressBar(step) }
+		} else {
+			null
+		},
+	)
+}
+
+@Composable
+private fun GeneratingBaseLayout(title: String, description: String, topContent: @Composable (() -> Unit)?) {
+	val font = FontFamily(Font(R.font.lab_grotesque_regular))
 	Column(
-		modifier = Modifier
-			.fillMaxSize()
-			.background(MaterialTheme.colorScheme.background),
+		modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
-		Row(
-			modifier = Modifier
-				.padding(horizontal = 16.dp)
-				.fillMaxWidth()
-				.height(4.dp),
-			horizontalArrangement = Arrangement.spacedBy(4.dp),
-		) {
-			repeat(4) { index ->
-				val isFilled =
-					index < 3 && step >= index
-
-				Box(
-					modifier = Modifier
-						.weight(1f)
-						.fillMaxHeight()
-						.background(
-							if (isFilled) {
-								MaterialTheme.colorScheme.primary
-							} else {
-								MaterialTheme.colorScheme.surfaceContainer
-							},
-							shape = RoundedCornerShape(4.dp),
-						),
-				)
-			}
-		}
-
+		topContent?.invoke()
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
 			modifier = Modifier.padding(top = 200.dp),
 		) {
 			Box(
-				modifier = Modifier
-					.size(56.dp)
-					.background(
-						color = CustomColors.iconBackground,
-						shape = RoundedCornerShape(size = 8.dp),
-					)
-					.border(
-						width = 1.dp,
-						color = CustomColors.iconBorder,
-						shape = RoundedCornerShape(size = 8.dp),
-					),
+				modifier = Modifier.size(56.dp)
+					.background(CustomColors.iconBackground, RoundedCornerShape(8.dp))
+					.border(1.dp, CustomColors.iconBorder, RoundedCornerShape(8.dp)),
+				contentAlignment = Alignment.Center,
 			) {
-				PulsingDotsWave(
-					modifier = Modifier
-						.align(Alignment.Center)
-						.padding(8.dp),
+				PulsingDotsWave(modifier = Modifier.padding(8.dp))
+			}
+			listOf(
+				title to (Typography.titleMedium to 24.dp),
+				description to (Typography.bodyMedium to 8.dp),
+			).forEach { (text, stylePair) ->
+				Text(
+					text = text,
+					style = stylePair.first,
+					color = if (stylePair.first == Typography.titleMedium) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outline,
+					textAlign = TextAlign.Center,
+					fontFamily = font,
+					modifier = Modifier.padding(top = stylePair.second, start = 32.dp, end = 32.dp),
 				)
 			}
+		}
+	}
+}
 
-			val (titleRes, textRes) = when (step) {
-				0 -> R.string.account_generating_title_1 to R.string.account_generating_description_1
-				1 -> R.string.account_generating_title_2 to R.string.account_generating_description_2
-				else -> R.string.account_generating_title_3 to R.string.account_generating_description_3
-			}
-
-			Text(
-				text = stringResource(titleRes),
-				style = Typography.titleMedium,
-				color = MaterialTheme.colorScheme.onBackground,
-				modifier = Modifier.padding(top = 16.dp),
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			)
-
-			Text(
-				text = stringResource(textRes),
-				style = Typography.bodyMedium,
-				textAlign = TextAlign.Center,
-				modifier = Modifier.padding(top = 16.dp),
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+@Composable
+private fun StepProgressBar(step: Int) {
+	Row(
+		modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(4.dp),
+		horizontalArrangement = Arrangement.spacedBy(4.dp),
+	) {
+		repeat(4) { i ->
+			val active = i < 3 && step >= i
+			Box(
+				modifier = Modifier.weight(1f).fillMaxHeight()
+					.background(
+						if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
+						RoundedCornerShape(4.dp),
+					),
 			)
 		}
 	}
@@ -162,8 +152,10 @@ fun GeneratingScreen(onAnimationEnd: () -> Unit) {
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
-private fun PreviewGeneratingScreen() {
+private fun PreviewGeneratingScreens() {
 	NymVPNTheme(Theme.default()) {
-		GeneratingScreen({})
+		Column { GeneratingContent(GeneratingMode.CreateAccount) {} }
 	}
 }
+
+enum class GeneratingMode { CreateAccount, DeepLinkLogin }

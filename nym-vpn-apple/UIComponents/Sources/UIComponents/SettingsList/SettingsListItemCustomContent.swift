@@ -5,25 +5,36 @@ import Theme
 public struct SettingsListItemCustomContent<CustomContent: View>: View {
     private let viewModel: SettingsListItemViewModel
     private let customContent: (() -> CustomContent)?
+    private let combineAccessibilityChildren: Bool
 
     @State private var isHovered = false
+    @State private var isToggleOn = false
 
     public init(
         viewModel: SettingsListItemViewModel,
-        customContent: (() -> CustomContent)? = nil
+        customContent: (() -> CustomContent)? = nil,
+        combineAccessibilityChildren: Bool = true
     ) {
         self.viewModel = viewModel
         self.customContent = customContent
+        self.combineAccessibilityChildren = combineAccessibilityChildren
+        if case let .toggle(isOn, _) = viewModel.accessory {
+            _isToggleOn = State(initialValue: isOn.wrappedValue)
+        }
     }
 
     public var body: some View {
         VStack(alignment: .center, spacing: 0) {
             HStack(spacing: 0) {
-                iconImage()
-                    .padding(.leading, 16)
-                titleSubtitle()
-                    .padding(.horizontal, 16)
-                Spacer()
+                if viewModel.accessory.isToggle {
+                    mainContent()
+                } else {
+                    mainContent()
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            viewModel.action()
+                        }
+                }
                 HStack(spacing: 0) {
                     optionalAccessoryImage()
                     optionalToggleView()
@@ -51,6 +62,7 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
                 topTrailingRadius: viewModel.topRadius
             )
             .stroke(viewModel.type.strokeColor, lineWidth: 1)
+            .allowsHitTesting(false)
         }
         .clipShape(
             UnevenRoundedRectangle(
@@ -60,22 +72,32 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
                 topTrailingRadius: viewModel.topRadius
             )
         )
-        .onTapGesture {
-            viewModel.action()
-        }
         .onHover { newValue in
             guard !viewModel.isHoveredHighlightDisabled else { return }
             isHovered = newValue
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle ?? "")")
-        .accessibilityValue(viewModel.accessory.accessibilityValue)
-        .accessibilityHint(viewModel.accessory.accessibilityHint)
-        .accessibilityAddTraits([.isButton])
+        .onChange(of: isToggleOn) { _, newValue in
+            if case let .toggle(isOn, _) = viewModel.accessory {
+                isOn.wrappedValue = newValue
+            }
+        }
+        .settingsListAccessibility(viewModel, combineChildren: combineAccessibilityChildren)
     }
 }
 
 private extension SettingsListItemCustomContent {
+    @ViewBuilder
+    func mainContent() -> some View {
+        HStack(spacing: 0) {
+            iconImage()
+                .padding(.leading, 16)
+            titleSubtitle()
+                .padding(.horizontal, 16)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
     @ViewBuilder
     func optionalDivider() -> some View {
         if !viewModel.position.isLast {
@@ -127,9 +149,15 @@ private extension SettingsListItemCustomContent {
 
     @ViewBuilder
     func optionalToggleView() -> some View {
-        if case let .toggle(viewModel: viewModel) = viewModel.accessory {
-            ToggleView(viewModel: viewModel)
+        if case let .toggle(_, isDisabled) = viewModel.accessory {
+            Toggle("", isOn: $isToggleOn)
+                .toggleStyle(.switch)
+                .tint(NymColor.accent)
+                .labelsHidden()
+                .disabled(isDisabled)
                 .padding(.trailing, 16)
+                .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle ?? "")")
+                .accessibilityHint(viewModel.accessory.accessibilityHint)
         }
     }
 
@@ -153,6 +181,21 @@ private extension SettingsListItemCustomContent {
     func optionalCustomContent() -> some View {
         if let customContent {
             customContent()
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func settingsListAccessibility(_ viewModel: SettingsListItemViewModel, combineChildren: Bool) -> some View {
+        if combineChildren {
+            accessibilityElement(children: .combine)
+                .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle ?? "")")
+                .accessibilityValue(viewModel.accessory.accessibilityValue)
+                .accessibilityHint(viewModel.accessory.accessibilityHint)
+                .accessibilityAddTraits([.isButton])
+        } else {
+            accessibilityElement(children: .contain)
         }
     }
 }

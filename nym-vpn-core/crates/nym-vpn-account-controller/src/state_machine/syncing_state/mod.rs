@@ -129,20 +129,13 @@ impl SyncingState {
             Ok(summary) => {
                 tracing::debug!("{summary:#?}");
 
-                let vpn_account_summary = VpnAccountSummary::new(
-                    summary
-                        .account_summary
-                        .subscription
-                        .active
-                        .as_ref()
-                        .map(|a| a.valid_until_utc.clone()),
-                    summary.account_summary.fair_usage.usedGB,
-                    summary.account_summary.fair_usage.limitGB,
-                    summary.account_summary.fair_usage.resetsOnUtc.clone(),
-                )
-                .map_err(|e| SyncError::ApiResponseError {
-                    details: format!("Failed to create account summary from API response: {e}"),
-                })?;
+                let mut vpn_account_summary = VpnAccountSummary::try_from(&summary.account_summary)
+                    .map_err(|e| SyncError::ApiResponseError {
+                        details: format!("Failed to create account summary from API response: {e}"),
+                    })?;
+                vpn_account_summary.account_mode = Some(
+                    nym_vpn_store::types::StoredAccountMode::from(vpn_api_account.mode()).into(),
+                );
 
                 // Checking that the account is active
                 if !summary.account_active() {

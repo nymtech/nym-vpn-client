@@ -53,8 +53,8 @@ mod user_agent;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use account::RegisterAccountRequest;
 pub use account::{
-    AccountCommandError, RegisterAccountResponse, StoredAccountMode, VpnAccountSummary,
-    VpnApiError, VpnApiErrorResponse,
+    AccountCommandError, RegisterAccountResponse, StoredAccountMode, VpnAccountAuthMethod,
+    VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
     controller_error::{AccountControllerError, AccountControllerErrorStateReason},
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
@@ -91,8 +91,9 @@ pub use rpc_requests::{
     ListGatewaysOptions, StoreAccountRequest,
 };
 pub use service::{
-    MixnetTrafficConfig, MixnetTrafficConfigValidationError, TargetState, VpnServiceConfig,
-    VpnServiceInfo,
+    BackgroundCoverTrafficRate, ContinuousTrafficSendingRate, MixingDelay, MixnetTrafficConfig,
+    MixnetTrafficConfigValidationError, MixnetTrafficDefaults, SplitApp, SplitTunnelSettings,
+    TargetState, VpnServiceConfig, VpnServiceInfo,
 };
 pub use socks5::{EnableSocks5Request, HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 pub use tunnel_event::{

@@ -28,38 +28,11 @@ import UIComponents
 #if os(macOS)
     @Binding private var isServing: Bool
 #endif
-    @Published var isLogoutConfirmationDisplayed = false
-    @Published var isLogoutLoading = false
     @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
 
     var isValidCredentialImported: Bool {
         credentialsManager.isValidCredentialImported
-    }
-
-    var logoutDialogConfiguration: ActionDialogConfiguration {
-        ActionDialogConfiguration(
-            systemIconImageName: "rectangle.portrait.and.arrow.right",
-            titleLocalizedString: "settings.logoutTitle".localizedString,
-            subtitleLocalizedString: "settings.logoutSubtitle".localizedString,
-            yesLocalizedString: "settings.logout".localizedString,
-            noLocalizedString: "cancel".localizedString,
-            isYesDestructive: true,
-            yesAction: { [weak self] in
-                self?.isLogoutLoading = true
-                Task {
-                    await self?.logout()
-                    try? await Task.sleep(for: .seconds(1))
-                    Task { @MainActor in
-                        self?.isLogoutConfirmationDisplayed = false
-                        self?.isLogoutLoading = false
-                    }
-                }
-            },
-            loadingText: "settings.loggingOut".localizedString,
-            shouldCloseAfterYesAction: false,
-            verticalButtonsLayout: true
-        )
     }
 
     var versionTitle: String {
@@ -158,11 +131,6 @@ private extension SettingsViewModel {
         path.append(SettingLink.appearance)
     }
 
-    func navigateToLogs() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.logs)
-    }
-
     func navigateToSupportAndFeedback() {
         impactGenerator.softImpact()
         path.append(SettingLink.support)
@@ -204,6 +172,13 @@ private extension SettingsViewModel {
         impactGenerator.softImpact()
         path.append(SettingLink.mixnetTuning)
     }
+
+#if os(macOS)
+    func navigateToSplitTunneling() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.splitTunnel)
+    }
+#endif
 
     func navigateToCensorship() {
         impactGenerator.softImpact()
@@ -248,26 +223,15 @@ private extension SettingsViewModel {
                     feedbackSection(),
                     killswitchSection(),
                     appearanceSection(),
-                    logsSection(),
+                    privacyAndDataSection(),
                     legalSection(),
                     systemStatusSection()
                 ]
             )
-            if appSettings.isCredentialImported {
-                newSections.append(logoutSection())
-            }
             await MainActor.run {
                 sections = newSections
             }
         }
-    }
-}
-
-// MARK: - Actions -
-private extension SettingsViewModel {
-    func logout() async {
-        await connectionManager.disconnectBeforeLogout()
-        try? await credentialsManager.removeCredential()
     }
 }
 
@@ -353,14 +317,40 @@ private extension SettingsViewModel {
             )
         )
 #if os(macOS)
+        let adBlockSubtitle = appSettings.isAdBlockerEnabled
+        ? "settings.adblock.subtitle.on".localizedString
+        : "settings.adblock.subtitle.off".localizedString
+
+        let adBlockViewModel = SettingsListItemViewModel(
+            accessory: .toggle(
+                isOn: Binding(
+                    get: { [weak appSettings] in appSettings?.isAdBlockerEnabled ?? false },
+                    set: { [weak appSettings] in appSettings?.isAdBlockerEnabled = $0 }
+                )
+            ),
+            title: "settings.adblock.title".localizedString,
+            subtitle: adBlockSubtitle,
+            systemImageName: "exclamationmark.shield",
+            action: {}
+        )
+        appSettings.$isAdBlockerEnabledPublisher
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { isOn in
+                adBlockViewModel.subtitle = AttributedString(
+                    isOn
+                        ? "settings.adblock.subtitle.on".localizedString
+                        : "settings.adblock.subtitle.off".localizedString
+                )
+            }
+            .store(in: &cancellables)
+        viewModels.append(adBlockViewModel)
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: appSettings.$isIPv6TrafficEnabled,
-                        action: { [weak self] isOn in
-                            self?.appSettings.isIPv6TrafficEnabled = isOn
-                        }
+                    isOn: Binding(
+                        get: { [weak appSettings] in appSettings?.isIPv6TrafficEnabled ?? true },
+                        set: { [weak appSettings] in appSettings?.isIPv6TrafficEnabled = $0 }
                     )
                 ),
                 title: "settings.ipv6.title".localizedString,
@@ -373,11 +363,9 @@ private extension SettingsViewModel {
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: appSettings.$isLanBypassEnabled,
-                        action: { [weak self] isOn in
-                            self?.appSettings.isLanBypassEnabled = isOn
-                        }
+                    isOn: Binding(
+                        get: { [weak appSettings] in appSettings?.isLanBypassEnabled ?? false },
+                        set: { [weak appSettings] in appSettings?.isLanBypassEnabled = $0 }
                     )
                 ),
                 title: "settings.lanBypass.title".localizedString,
@@ -387,6 +375,16 @@ private extension SettingsViewModel {
             )
         )
 #if os(macOS)
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.splitTunnel".localizedString,
+                systemImageName: "arrow.trianglehead.branch",
+                action: { [weak self] in
+                    self?.navigateToSplitTunneling()
+                }
+            )
+        )
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
@@ -442,18 +440,8 @@ private extension SettingsViewModel {
         return AppSettingsSection(kind: .killSwitch, viewModels: viewModels)
     }
 
-    func logsSection() -> AppSettingsSection {
+    func privacyAndDataSection() -> AppSettingsSection {
         let viewModels = [
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "logs".localizedString,
-                imageName: "logs",
-                action: { [weak self] in
-                    Task { @MainActor in
-                        self?.navigateToLogs()
-                    }
-                }
-            ),
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.privacyAndData".localizedString,
@@ -494,20 +482,6 @@ private extension SettingsViewModel {
             )
         ]
         return AppSettingsSection(kind: .systemStatus, viewModels: viewModels)
-    }
-
-    func logoutSection() -> AppSettingsSection {
-        let viewModels = [
-            SettingsListItemViewModel(
-                accessory: .empty,
-                title: "settings.logout".localizedString,
-                type: .destructive,
-                action: { [weak self] in
-                    self?.isLogoutConfirmationDisplayed = true
-                }
-            )
-        ]
-        return AppSettingsSection(kind: .logout, viewModels: viewModels)
     }
 }
 

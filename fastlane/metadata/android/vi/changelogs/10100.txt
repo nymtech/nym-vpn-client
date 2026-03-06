@@ -1,0 +1,4 @@
+Có gì mới:
+- Cải thiện giao diện người dùng
+- Thêm chức năng thu gọn thông tin đăng nhập
+- Sửa tạm thời lỗi kết nối

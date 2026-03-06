@@ -9,6 +9,7 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
+        .library(name: "AppDiscoveryService", targets: ["AppDiscoveryService"]),
         .library(name: "AutoUpdater", targets: ["AutoUpdater"]),
         .library(name: "GRPCManager", targets: ["GRPCManager"]),
         .library(name: "Shell", targets: ["Shell"])
@@ -19,6 +20,10 @@ let package = Package(
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4")
     ],
     targets: [
+        .target(
+            name: "AppDiscoveryService",
+            path: "Sources/AppDiscoveryService"
+        ),
         .target(
             name: "AutoUpdater",
             dependencies: [

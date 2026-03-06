@@ -1,0 +1,5 @@
+Yenilikler:
+- Hızlı ayarlar menüsüne node detayları ve yeni Hesap ekranı eklendi
+- Android’e iki modlu bölünmüş tünelleme özelliği getirildi
+- Ayarlar, Gizlilik, Sansür ve navigasyon arayüzleri yenilendi
+- Bağlantı kararlılığı artırıldı ve hata yönetimi geliştirildi

@@ -6,12 +6,15 @@ mod entry_exit;
 mod legacy;
 mod mixnet_traffic;
 mod network_stats;
+mod split_tunnel_settings;
 mod v1;
 mod v2;
 mod v3;
 mod v4;
 mod v5;
 mod v6;
+mod v7;
+mod v8;
 
 #[cfg(test)]
 mod tests;
@@ -32,6 +35,7 @@ use crate::service::config::{
     entry_exit::v2::{EntryPoint, ExitPoint},
     mixnet_traffic::v5::MixnetTrafficConfig,
     network_stats::v1::NetworkStatisticsConfig,
+    split_tunnel_settings::v8::SplitTunnelSettings,
 };
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -92,12 +96,14 @@ enum VpnServiceConfigVersion {
     V4,
     V5,
     V6,
+    V7,
+    V8,
 }
 
 impl VpnServiceConfigVersion {
     /// Returns the latest version of the config file.
     pub fn latest() -> Self {
-        VpnServiceConfigVersion::V6
+        VpnServiceConfigVersion::V8
     }
 }
 
@@ -110,6 +116,8 @@ impl fmt::Display for VpnServiceConfigVersion {
             VpnServiceConfigVersion::V4 => "v4",
             VpnServiceConfigVersion::V5 => "v5",
             VpnServiceConfigVersion::V6 => "v6",
+            VpnServiceConfigVersion::V7 => "v7",
+            VpnServiceConfigVersion::V8 => "v8",
         })
     }
 }
@@ -124,6 +132,8 @@ enum VpnServiceConfigExt {
     V4(v4::VpnServiceConfig),
     V5(v5::VpnServiceConfig),
     V6(v6::VpnServiceConfig),
+    V7(v7::VpnServiceConfig),
+    V8(v8::VpnServiceConfig),
 }
 
 impl VpnServiceConfigExt {
@@ -135,6 +145,8 @@ impl VpnServiceConfigExt {
             VpnServiceConfigExt::V4(_) => VpnServiceConfigVersion::V4,
             VpnServiceConfigExt::V5(_) => VpnServiceConfigVersion::V5,
             VpnServiceConfigExt::V6(_) => VpnServiceConfigVersion::V6,
+            VpnServiceConfigExt::V7(_) => VpnServiceConfigVersion::V7,
+            VpnServiceConfigExt::V8(_) => VpnServiceConfigVersion::V8,
         }
     }
 }
@@ -150,6 +162,8 @@ impl TryFrom<VpnServiceConfigExt> for nym_vpn_lib_types::VpnServiceConfig {
             VpnServiceConfigExt::V4(v4) => nym_vpn_lib_types::VpnServiceConfig::try_from(v4),
             VpnServiceConfigExt::V5(v5) => nym_vpn_lib_types::VpnServiceConfig::try_from(v5),
             VpnServiceConfigExt::V6(v6) => nym_vpn_lib_types::VpnServiceConfig::try_from(v6),
+            VpnServiceConfigExt::V7(v7) => nym_vpn_lib_types::VpnServiceConfig::try_from(v7),
+            VpnServiceConfigExt::V8(v8) => nym_vpn_lib_types::VpnServiceConfig::try_from(v8),
         }
     }
 }
@@ -172,7 +186,9 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let network_stats = NetworkStatisticsConfig::from(&value.network_stats);
 
-        let v6 = v6::VpnServiceConfig {
+        let split_tunnel = SplitTunnelSettings::from(&value.split_tunnel);
+
+        let v8 = v8::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -180,6 +196,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             enable_two_hop: value.enable_two_hop,
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
+            enable_ad_blocking: value.enable_ad_blocking,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
@@ -187,9 +204,10 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             custom_dns,
             mixnet_traffic,
             network_stats,
+            split_tunnel,
         };
 
-        Ok(VpnServiceConfigExt::V6(v6))
+        Ok(VpnServiceConfigExt::V8(v8))
     }
 }
 

@@ -1,5 +1,6 @@
 import NymVPNRpc
 import Constants
+import ConnectionTypes
 import ErrorReason
 
 extension GRPCManager {
@@ -21,6 +22,23 @@ extension GRPCManager {
         }.value
     }
 
+    public func accountSummary() async throws -> AccountSummary? {
+        try await Task.detached { [weak self] in
+            guard let summary = try await self?.rpcClient?.getAccountSummary() else { return nil }
+            return AccountSummary(
+                validUntilTimeInterval: summary.subscriptionValidUntil,
+                trafficUsedGb: summary.trafficUsedGb,
+                trafficLimitGb: summary.trafficLimitGb,
+                trafficResetTimeInterval: summary.trafficResetTime,
+                accountAddress: summary.accountAddr,
+                cannonicalAccountAddress: summary.canonicalAccountAddr,
+                accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
+                isLinked: summary.isLinked(),
+                isActive: summary.isSubscriptionActive()
+            )
+        }.value
+    }
+
     public func accountLinks(for locale: String) async throws -> (account: String?, signIn: String?, signUp: String?) {
         try await Task.detached { [weak self] in
             guard let links = try await self?.rpcClient?.getAccountLinks(locale: locale) else { return ("", "", "")}
@@ -39,13 +57,6 @@ extension GRPCManager {
                         name: name
                     )
             )
-        }.value
-    }
-
-    public func isLinkAccountAvailable() async throws -> Bool {
-        try await Task.detached { [weak self] in
-            let result = try await self?.rpcClient?.getAccountMode()
-            return result == .api
         }.value
     }
 

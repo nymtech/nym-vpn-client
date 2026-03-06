@@ -13,11 +13,10 @@ import GRPCManager
 #endif
 
 @MainActor public final class ConnectionManager: ObservableObject {
-    private let connectionStorage: ConnectionStorage
-
     private var timerCancellable: AnyCancellable?
 
     let appSettings: AppSettings
+    let connectionStorage: ConnectionStorage
     let credentialsManager: CredentialsManager
     let tunnelsManager: TunnelsManager
 #if os(macOS)
@@ -54,11 +53,6 @@ import GRPCManager
 #endif
 
     @Published public var connectionConfig: ConnectionConfig
-//    {
-//        didSet {
-//            connectionStorage.connectionConfig = connectionConfig
-//        }
-//    }
     @Published public var connectedDate: Date?
     @Published public var connectionRetryAttempt: Int?
     @Published public var afterDisconnectAction: AfterDisconnectAction?
@@ -74,8 +68,6 @@ import GRPCManager
             case .wireguard:
                 connectionConfig.enableTwoHop = true
             }
-            appSettings.connectionType = connectionType.rawValue
-            updateConnectionConfig()
         }
     }
     public var entryGatewayType: NodeType { connectionType == .wireguard ? .vpn : .entry }
@@ -98,8 +90,6 @@ import GRPCManager
         didSet {
             Task { @MainActor in
                 connectionConfig.entry = entryGateway
-                connectionStorage.entryGateway = entryGateway
-                updateConnectionConfig()
             }
         }
     }
@@ -107,8 +97,6 @@ import GRPCManager
         didSet {
             Task { @MainActor in
                 connectionConfig.exit = exitRouter
-                connectionStorage.exitRouter = exitRouter
-                updateConnectionConfig()
             }
         }
     }
@@ -156,11 +144,19 @@ import GRPCManager
     /// Disconnects tunnel if connected.
     /// iOS removes tunnel profile.
     public func disconnectBeforeLogout() async {
+        await disconnectAndWaitForDisconnected()
+#if os(iOS)
+        resetVpnProfile()
+#endif
+    }
+
+    /// Disconnect and wait for disconnected status
+    public func disconnectAndWaitForDisconnected() async {
         guard currentTunnelStatus != .disconnected else { return }
 #if os(iOS)
         try? await disconnectActiveTunnel()
         await waitForTunnelStatus(with: .disconnected)
-        resetVpnProfile()
+
 #elseif os(macOS)
         try? await grpcManager.disconnect()
         await waitForTunnelStatus(with: .disconnected)
@@ -210,7 +206,7 @@ extension ConnectionManager {
         }
     }
 }
-// MARK: - Countries -
+// MARK: - Setup -
 
 private extension ConnectionManager {
     func setupAppSettingsObservers() {
@@ -225,8 +221,9 @@ private extension ConnectionManager {
             .removeDuplicates()
             .filter { $0 }
             .sink { [weak self] shouldReconnect in
+                // Used in censorship view, dns
                 guard shouldReconnect else { return }
-                self?.updateConnectionConfig()
+                self?.updateConnectionConfig(forceReconnect: shouldReconnect)
                 self?.appSettings.shouldReconnect = false
             }
             .store(in: &cancellables)
@@ -235,7 +232,6 @@ private extension ConnectionManager {
             .removeDuplicates()
             .sink { [weak self] newValue in
                 self?.connectionConfig.disableIpv6 = !newValue
-                self?.updateConnectionConfig()
             }
             .store(in: &cancellables)
 
@@ -243,7 +239,13 @@ private extension ConnectionManager {
             .removeDuplicates()
             .sink { [weak self] newValue in
                 self?.connectionConfig.allowLan = newValue
-                self?.updateConnectionConfig()
+            }
+            .store(in: &cancellables)
+
+        appSettings.$isAdBlockerEnabledPublisher
+            .removeDuplicates()
+            .sink { [weak self] newValue in
+                self?.connectionConfig.enableAdBlocking = newValue
             }
             .store(in: &cancellables)
     }
@@ -288,5 +290,54 @@ private extension ConnectionManager {
     func updateConnectionHops() {
         entryGateway = connectionStorage.entryGateway
         exitRouter = connectionStorage.exitRouter
+    }
+}
+
+// MARK: - Helpers -
+
+extension ConnectionManager {
+    func isReconnectNeeded(with oldConfig: ConnectionConfig?) -> Bool {
+        guard let oldConfig else { return true }
+        guard oldConfig != connectionStorage.connectionConfig else { return false }
+
+        guard shouldReconnectMixnetTunningSettings(with: oldConfig)
+                || shouldEntryReconnect()
+                || shouldExitRecconnect()
+                || oldConfig.splitTunnelConfig != connectionStorage.connectionConfig.splitTunnelConfig
+        else {
+            return false
+        }
+        return true
+    }
+
+    func shouldReconnectMixnetTunningSettings(with oldConfig: ConnectionConfig) -> Bool {
+        let newConfig = connectionStorage.connectionConfig
+
+        if oldConfig.enableTwoHop != newConfig.enableTwoHop {
+            return true
+        }
+
+        if newConfig.enableTwoHop == true,
+           oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig {
+            return false
+        }
+
+        return oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig
+    }
+
+    func shouldEntryReconnect() -> Bool {
+        guard connectionStorage.connectionConfig.entry.gatewayId == connectionInfoData?.entryGatewayId
+        else {
+            return true
+        }
+        return false
+    }
+
+    func shouldExitRecconnect() -> Bool {
+        guard connectionStorage.connectionConfig.exit.gatewayId == connectionInfoData?.exitGatewayId
+        else {
+            return true
+        }
+        return false
     }
 }

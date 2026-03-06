@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#![allow(unused_assignments)]
+
 use bincode::Options;
 use nym_credentials_interface::RequestInfo;
 use serde::{Deserialize, Serialize};

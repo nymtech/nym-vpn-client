@@ -1,0 +1,9 @@
+Novidades
+- Novo fluxo de integração para usuários pela primeira vez
+- Tela de opt-in técnica exibida após o login ou compra
+- Suporte de localidade para cópia alta/baixa na tela de detalhes
+Mudanças
+- Migração para autenticação com base em frases secretas
+- Substituído "gateway" por "servidor" em todo o aplicativo
+- Maior confiabilidade da conexão (reconexão de conexão, bypass LAN, túnel dividido, DNS personalizado)
+- lógica mais consistente de manipulação de censura

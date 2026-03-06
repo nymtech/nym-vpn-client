@@ -6444,17 +6444,6 @@
         }
       }
     },
-    "createAccount.instantAndAnonymous" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instant & anonymous (recommended)"
-          }
-        }
-      }
-    },
     "createAccount.introOffer" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6567,6 +6556,50 @@
         }
       }
     },
+    "createAccount.Login.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in with your 24-word passphrase."
+          }
+        }
+      }
+    },
+    "createAccount.loginAnonymously" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in anonymously"
+          }
+        }
+      }
+    },
+    "createAccount.loginWithSocialAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in with social account"
+          }
+        }
+      }
+    },
+    "createAccount.maximumPrivacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maximum privacy"
+          }
+        }
+      }
+    },
     "createAccount.noPassphraseNoAccess" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6664,6 +6697,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我理解：没有密码，没有访问权限。"
+          }
+        }
+      }
+    },
+    "createAccount.quickSetup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick setup"
           }
         }
       }
@@ -6775,7 +6819,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "One tap to checkout. Anonymous account generated on your device. No password, no personal info."
+            "value" : "Create an anonymous account on nym.com. You'll receive a 24-word passphrase. Save it to log back into the app."
+          }
+        }
+      }
+    },
+    "createAccount.singleTap.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No personal info required."
           }
         }
       }
@@ -6892,24 +6947,13 @@
         }
       }
     },
-    "createAccount.useExistingLogin" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use existing login"
-          }
-        }
-      }
-    },
     "createAccount.useExistingLogin.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Privately sign in with email, Google or crypto wallet, through our partner Privy"
+            "value" : "Use existing account like Google or crypto wallet through our login partner Privy."
           }
         }
       }
@@ -11605,6 +11649,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "超过账户限制。请在连接之前从您的账户中删除设备。"
+          }
+        }
+      }
+    },
+    "errorReason.needFullDiskPermissions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split tunneling: Please allow Full Disk Access in System Settings."
           }
         }
       }
@@ -31366,6 +31421,17 @@
         }
       }
     },
+    "settings.account.nymAccount.linked.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This account is linked with a social login method via Privy."
+          }
+        }
+      }
+    },
     "settings.account.nymAccount.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31474,6 +31540,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "账号ID"
+          }
+        }
+      }
+    },
+    "settings.adblock.subtitle.off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ads and trackers allowed"
+          }
+        }
+      }
+    },
+    "settings.adblock.subtitle.on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocking ads and tracker"
+          }
+        }
+      }
+    },
+    "settings.adblock.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block ads"
           }
         }
       }
@@ -34019,7 +34118,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Data & privacy"
+            "value" : "Data, privacy & logs"
           }
         },
         "es" : {
@@ -34098,6 +34197,17 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "隐私和数据"
+          }
+        }
+      }
+    },
+    "settings.privacyAndData.enableDebugLogs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable debug logs"
           }
         }
       }
@@ -34427,6 +34537,17 @@
         }
       }
     },
+    "settings.splitTunnel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split tunneling"
+          }
+        }
+      }
+    },
     "settings.support.resetVpnProfile" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34669,6 +34790,204 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Server monitoring"
+          }
+        }
+      }
+    },
+    "splitTunel.apps.exclude" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose apps to exclude from NymVPN tunnel."
+          }
+        }
+      }
+    },
+    "splitTunnel.apps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps"
+          }
+        }
+      }
+    },
+    "splitTunnel.apps.unprotected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluding an app will leave it unprotected."
+          }
+        }
+      }
+    },
+    "splitTunnel.enableSystemSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to enable it."
+          }
+        }
+      }
+    },
+    "splitTunnel.exclude" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude"
+          }
+        }
+      }
+    },
+    "splitTunnel.fullDiskAccess" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This feature requires Full Disk Access."
+          }
+        }
+      }
+    },
+    "splitTunnel.fullDiskAccess.modal.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can enable it in System Settings > Privacy & Security > Full Disk Access."
+          }
+        }
+      }
+    },
+    "splitTunnel.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        }
+      }
+    },
+    "splitTunnel.protect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protect"
+          }
+        }
+      }
+    },
+    "splitTunnel.systemSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Settings"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.direct" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Direct"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.direct.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excludes the selected apps from the VPN tunnel, allowing direct internet connection."
+          }
+        }
+      }
+    },
+    "splitTunnel.info.fullDiskAccess" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This feature requires Full Disc Access, that you can enable in system settings."
+          }
+        }
+      }
+    },
+    "splitTunnel.info.gotIt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it!"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split tunneling allows you to choose which apps use NymVPN."
+          }
+        }
+      }
+    },
+    "splitTunnel.info.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using split tunneling"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.viaNymVPN" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Via NymVPN"
+          }
+        }
+      }
+    },
+    "splitTunnel.info.viaNymVPN.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended setting for all apps."
           }
         }
       }

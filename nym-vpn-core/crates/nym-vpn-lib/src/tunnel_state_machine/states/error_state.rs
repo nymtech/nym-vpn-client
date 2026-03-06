@@ -24,10 +24,10 @@ use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::FirewallPolicy;
 
+#[cfg(target_os = "macos")]
+use crate::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::{OSTunProvider, TunnelSettings};
-#[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -129,7 +129,7 @@ impl ErrorState {
         );
         shared_state
             .dns_handler
-            .set("lo".to_owned(), system_dns)
+            .set("lo", system_dns)
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "Failed to configure system to use filtering resolver");
@@ -199,11 +199,17 @@ impl TunnelStateHandler for ErrorState {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
+                        shared_state.tunnel_settings = tunnel_settings;
+
+                        #[cfg(target_os = "macos")]
+                        if diff.split_tunnel_changed() {
+                            let _ = shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths()).await;
+                        }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
                             if diff.allow_lan_changed() {
-                                self.firewall_policy_params.allow_lan = tunnel_settings.allow_lan;
+                                self.firewall_policy_params.allow_lan = shared_state.tunnel_settings.allow_lan;
 
                                 if let Err(e) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
                                     trace_err_chain!(e, "failed to set firewall policy");
@@ -214,8 +220,10 @@ impl TunnelStateHandler for ErrorState {
                         #[cfg(any(target_os = "android", target_os = "ios"))]
                         let _ = diff;
 
-                        shared_state.tunnel_settings = tunnel_settings;
                         NextTunnelState::SameState(self)
+                    }
+                    TunnelCommand::Block(reason) => {
+                        NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)
                     }
                 }
             }

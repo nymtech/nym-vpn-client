@@ -22,6 +22,7 @@ struct SupportView: View {
                     }
                     .padding(.horizontal, 16)
                 }
+                .scrollIndicators(.never)
             }
             Spacer()
         }

@@ -2,8 +2,8 @@ use tauri::State;
 use tracing::{error, info, instrument, warn};
 
 use crate::state::SharedAppState;
-use crate::vpnd::account::AccountState;
 use crate::vpnd::account::StoredAccountMode;
+use crate::vpnd::account::{AccountState, AccountSummary};
 use crate::vpnd::account_links::AccountLinks;
 use crate::vpnd::tunnel::TunnelState;
 use crate::{error::BackendError, vpnd::client::VpndClient};
@@ -163,6 +163,17 @@ pub async fn get_account_mode(
 ) -> Result<Option<StoredAccountMode>, BackendError> {
     vpnd.account_mode().await.map_err(|e| {
         warn!("failed to get account mode: {e}");
+        e.into()
+    })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_account_summary(
+    vpnd: State<'_, VpndClient>,
+) -> Result<Option<AccountSummary>, BackendError> {
+    vpnd.get_account_summary().await.map_err(|e| {
+        error!("failed to get account summary: {e}");
         e.into()
     })
 }

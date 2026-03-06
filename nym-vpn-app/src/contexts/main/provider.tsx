@@ -26,12 +26,14 @@ function MainStateProvider({ children, init }: Props) {
     entryNode: init.entryNode,
     exitNode: init.exitNode,
     quic: init.quic,
+    enableAdBlocking: init.enableAdBlocking,
     ipv6Support: !init.noIpv6,
     allowLan: init.allowLan,
     customDnsEnabled: init.customDnsEnabled,
     customDns: init.customDns,
     enableLewesProtocol: init.enableLewesProtocol,
     mixnetTrafficConfig: init.mixnetTrafficConfig,
+    mixnetTrafficDefaults: init.mixnetTrafficDefaults,
   });
 
   const { push } = useInAppNotify();

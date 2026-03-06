@@ -1,0 +1,2 @@
+Quais as novidades:
+- Correção de erro nos logs

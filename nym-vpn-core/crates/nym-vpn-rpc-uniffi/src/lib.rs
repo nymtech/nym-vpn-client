@@ -11,12 +11,14 @@ use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
     GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig,
     NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage,
     Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
-    TunnelEvent, TunnelState, VpnServiceConfig, VpnServiceInfo,
+    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
@@ -70,6 +72,14 @@ impl RpcClient {
         self.inner
             .clone()
             .set_enable_lewes_protocol(enable_lewes_protocol)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn set_enable_ad_blocking(&self, enable_ad_blocking: bool) -> Result<()> {
+        self.inner
+            .clone()
+            .set_enable_ad_blocking(enable_ad_blocking)
             .await?;
         Ok(())
     }
@@ -256,6 +266,11 @@ impl RpcClient {
         Ok(usage)
     }
 
+    pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>> {
+        let summary = self.inner.clone().get_account_summary().await?;
+        Ok(summary)
+    }
+
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String> {
         Ok(self.inner.clone().get_deeplink(params).await?)
     }
@@ -363,6 +378,35 @@ impl RpcClient {
     pub async fn get_privy_derivation_message(&self) -> Result<PrivyDerivationMessage> {
         let message = self.inner.clone().get_privy_derivation_message().await?;
         Ok(message)
+    }
+}
+
+#[cfg(target_os = "macos")]
+#[uniffi::export(async_runtime = "tokio")]
+impl RpcClient {
+    pub async fn set_enable_split_tunnel(&self, enable: bool) -> Result<()> {
+        self.inner.clone().set_enable_split_tunnel(enable).await?;
+        Ok(())
+    }
+
+    pub async fn add_split_tunnel_app(&self, app: SplitApp) -> Result<()> {
+        self.inner.clone().add_split_tunnel_app(app).await?;
+        Ok(())
+    }
+
+    pub async fn remove_split_tunnel_app(&self, app: SplitApp) -> Result<()> {
+        self.inner.clone().remove_split_tunnel_app(app).await?;
+        Ok(())
+    }
+
+    pub async fn clear_split_tunnel_apps(&self) -> Result<()> {
+        self.inner.clone().clear_split_tunnel_apps().await?;
+        Ok(())
+    }
+
+    pub async fn need_full_disk_permissions(&self) -> Result<bool> {
+        let value = self.inner.clone().need_full_disk_permissions().await?;
+        Ok(value)
     }
 }
 

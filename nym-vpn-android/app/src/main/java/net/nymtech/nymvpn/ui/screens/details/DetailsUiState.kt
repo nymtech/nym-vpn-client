@@ -24,7 +24,6 @@ data class DetailsUiState(
 	val buildVersion: String? = null,
 	val exitIpv4: String? = null,
 	val exitIpv6: String? = null,
-	val isQuicFeatureFlagEnabled: Boolean = false,
 	val isQuickSupportedByGateway: Boolean = false,
 ) {
 	companion object {

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">Kênh NymVPN</string>
+	<string name="channel_description">Kênh thông báo liên quan đến VPN.</string>
+	<string name="disconnect">Ngắt kết nối</string>
+	<string name="state_connected">Đã kết nối</string>
+	<string name="state_error">Lỗi</string>
+	<string name="state_disconnected">Đã ngắt kết nối</string>
+	<string name="state_initializing">Đang khởi tạo máy khách…</string>
+	<string name="state_establishing">Đang thiết lập kết nối…</string>
+	<string name="notification_entry">Vào: %1$s</string>
+	<string name="notification_exit">Thoát: %1$s</string>
+	<string name="error_reason_set_firewall_policy">Không thể áp dụng chính sách tường lửa.</string>
+	<string name="error_reason_set_routing">Không cấu hình được định truyến mạng.</string>
+	<string name="error_reason_set_dns">Không thể cấu hình cài đặt DNS.</string>
+	<string name="error_reason_tun_device">Không thể khởi tạo giao diện VPN tunnel.</string>
+	<string name="error_reason_tunnel_provider">Không thể cấu hình nhà cung cấp tunnel gói dữ liệu.</string>
+	<string name="error_reason_ipv6_unavailable">IPv6 đã bị vô hiệu hóa trên hệ thống này.</string>
+	<string name="error_reason_same_entry_and_exit_gateway">Cổng vào và cổng thoát không thể trùng nhau.</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">Không tìm thấy Cổng Vào phù hợp.</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">Không tìm thấy Cổng Thoát phù hợp.</string>
+	<string name="error_reason_invalid_entry_gateway_identity">Thông tin Cổng Vào không hợp lệ.</string>
+	<string name="error_reason_invalid_exit_gateway_identity">Thông tin Cổng Thoát không hợp lệ.</string>
+	<string name="error_reason_invalid_entry_gateway_country">Quốc gia cổng Vào đã chọn không hợp lệ.</string>
+	<string name="error_reason_invalid_exit_gateway_country">Quốc gia cổng Thoát đã chọn không hợp lệ.</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">Cổng Vào không phản hồi.</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">Cổng Thoát không phản hồi.</string>
+	<string name="error_reason_bandwidth_exceeded">Đã vượt quá giới hạn băng thông.</string>
+	<string name="error_reason_inactive_account">Tài khoản không hoạt động.</string>
+	<string name="error_reason_inactive_subscription">Gói đăng ký của bạn đã bị hủy kích hoạt.</string>
+	<string name="error_reason_max_devices_reached">Đã đạt số lượng thiết bị tối đa.</string>
+	<string name="error_reason_device_time_out_of_sync">Thời gian thiết bị không đồng bộ.</string>
+	<string name="error_reason_device_logged_out">Thiết bị đã đăng xuất.</string>
+	<string name="error_reason_internal">Lỗi nội bộ: %1$s</string>
+</resources>

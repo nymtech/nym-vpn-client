@@ -1,0 +1,3 @@
+Novedades:
+- Corregido problema de caché de país
+- Mejoras de rendimiento de la aplicación

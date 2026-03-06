@@ -361,7 +361,9 @@ private extension GatewayManager {
             guard let self else { return }
             self.gatewayStore.lastFetchDate = nil
             Task {
-                try? await Task.sleep(for: .seconds(3))
+#if os(iOS)
+                await self.worker.reset()
+#endif
                 await self.fetchGateways()
             }
         }

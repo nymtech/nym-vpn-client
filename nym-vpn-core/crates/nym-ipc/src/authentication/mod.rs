@@ -4,57 +4,122 @@
 #[cfg(target_os = "linux")]
 mod linux;
 #[cfg(target_os = "linux")]
-pub(crate) use linux::is_authenticated;
+pub(crate) use linux::{Transport, incoming, is_authenticated};
 
 #[cfg(target_os = "macos")]
 mod macos;
 #[cfg(target_os = "macos")]
-pub(crate) use macos::is_authenticated;
-use tokio_util::sync::CancellationToken;
+pub(crate) use macos::{Transport, incoming, is_authenticated};
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[cfg(target_os = "windows")]
+mod windows;
+use tokio::io::AsyncWrite;
+#[cfg(target_os = "windows")]
+pub(crate) use windows::{Transport, incoming, is_authenticated};
+
 pub(crate) mod error;
+
+use async_stream::try_stream;
+use tokio_stream::{Stream, StreamExt};
 
 use std::io::Result;
 
-use async_stream::try_stream;
-use tokio::net::UnixStream;
-use tokio_stream::{Stream, StreamExt};
+use crate::auth_result::{AuthenticaticationQuery, AuthenticaticationResult};
 
-use crate::uds::Uds;
-
-pub struct AuthenticationLayer {
-    uds: Uds,
-    shutdown_token: CancellationToken,
+pub(crate) async fn authorize(stream: impl AsyncWrite + Unpin) {
+    AuthenticaticationResult::Accepted.send(stream).await;
 }
 
-impl AuthenticationLayer {
-    fn new(uds: Uds, shutdown_token: CancellationToken) -> Self {
+pub(crate) async fn deny(stream: impl AsyncWrite + Unpin) {
+    AuthenticaticationResult::Denied.send(stream).await;
+}
+
+pub struct AuthenticationLayer<T> {
+    listener: T,
+    #[cfg(target_os = "windows")]
+    nym_certificate_serial_number: String,
+    #[cfg(target_os = "linux")]
+    shutdown_token: tokio_util::sync::CancellationToken,
+}
+
+impl<T> AuthenticationLayer<T> {
+    fn new(
+        listener: T,
+        #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
+        #[cfg(target_os = "linux")] shutdown_token: tokio_util::sync::CancellationToken,
+    ) -> Self {
         Self {
-            uds,
+            listener,
+            #[cfg(target_os = "windows")]
+            nym_certificate_serial_number,
+            #[cfg(target_os = "linux")]
             shutdown_token,
         }
     }
 }
 
-impl AuthenticationLayer {
-    fn stream(mut self) -> impl Stream<Item = Result<UnixStream>> {
+fn skip_authentication_checks() -> bool {
+    // Let debug builds skip authorization process
+    // TODO: Disable feature gating once front-end prevents spamming
+    cfg!(debug_assertions) || cfg!(not(feature = "authentication"))
+}
+
+async fn authorized_stream(
+    stream: &mut Transport,
+    #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
+    #[cfg(target_os = "linux")] shutdown_token: tokio_util::sync::CancellationToken,
+) -> bool {
+    if !AuthenticaticationQuery::recv(&mut *stream).await.status() {
+        tracing::warn!("Query not recognized");
+    }
+    if skip_authentication_checks() {
+        authorize(stream).await;
+        return true;
+    }
+    match is_authenticated(
+        stream,
+        #[cfg(target_os = "windows")]
+        nym_certificate_serial_number,
+        #[cfg(target_os = "linux")]
+        shutdown_token,
+    )
+    .await
+    {
+        Ok(()) => {
+            authorize(stream).await;
+            true
+        }
+        Err(err) => {
+            deny(stream).await;
+            tracing::debug!("Connection did not get authenticated: {err:?}");
+            false
+        }
+    }
+}
+
+impl<T: Unpin + Stream<Item = Result<Transport>>> AuthenticationLayer<T> {
+    fn stream(mut self) -> impl Stream<Item = Result<Transport>> {
         try_stream! {
             loop {
+                #[cfg(not(target_os = "linux"))]
+                let shutdown_signal = std::future::pending::<()>();
+                #[cfg(target_os = "linux")]
+                let shutdown_signal = self.shutdown_token.cancelled();
+
                 let next_stream = tokio::select! {
-                    _ = self.shutdown_token.cancelled() => {
+                    _ = shutdown_signal => {
                         break;
                     }
-                    stream = self.uds.next() => {
+                    stream = self.listener.next() => {
                         stream
                     }
                 };
                 let Some(stream) = next_stream else {
                     break;
                 };
-                match is_authenticated(stream?, self.shutdown_token.clone()).await{
-                    Ok(stream) => yield stream,
-                    Err(err) => tracing::debug!("Connection did not get authenticated: {err:?}"),
+                let mut stream = stream?;
+                if authorized_stream(&mut stream, #[cfg(target_os = "windows")] self.nym_certificate_serial_number.clone(), #[cfg(target_os = "linux")] self.shutdown_token.clone()).await {
+                    yield stream;
                 }
 
             }
@@ -62,10 +127,13 @@ impl AuthenticationLayer {
     }
 }
 
-pub fn incoming(
-    uds: Uds,
-    shutdown_token: CancellationToken,
-) -> impl Stream<Item = Result<UnixStream>> {
-    let auth_layer = AuthenticationLayer::new(uds, shutdown_token);
-    auth_layer.stream()
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    // Debug builds (like tests or dev runs) are automatically authorized
+    async fn debug_build_authorized() {
+        assert!(skip_authentication_checks());
+    }
 }

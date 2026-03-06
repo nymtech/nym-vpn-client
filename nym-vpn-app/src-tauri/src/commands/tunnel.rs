@@ -5,7 +5,7 @@ use crate::{
     state::{SharedAppState, app::VpnMode},
     vpnd::{
         client::{Node, VpndClient, VpndError},
-        config::{MixnetTrafficConfig, VpndConfig},
+        config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
         tunnel::{ConnectingState, TunnelState},
     },
 };
@@ -58,6 +58,7 @@ pub async fn connect(
         info!("QUIC mode: {}", config.bridges);
         info!("allow LAN: {}", config.allow_lan);
         info!("no IPv6: {}", config.disable_ipv6);
+        info!("mixnet traffic config: {:?}", config.mixnet_traffic);
     } else {
         warn!("no vpnd config available");
     }
@@ -157,6 +158,13 @@ pub async fn set_allow_lan(vpnd: State<'_, VpndClient>, enabled: bool) -> Result
 
 #[instrument(skip(vpnd))]
 #[tauri::command]
+pub async fn set_ad_block(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
+    vpnd.set_ad_block(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
 pub async fn get_default_dns(vpnd: State<'_, VpndClient>) -> Result<Vec<IpAddr>, BackendError> {
     let dns = vpnd.get_default_dns().await?;
     Ok(dns)
@@ -216,4 +224,10 @@ pub async fn set_mixnet_traffic_config(
 pub async fn calculate_traffic_latency(config: MixnetTrafficConfig) -> Result<f64, BackendError> {
     let lib_config: nym_vpn_lib_types::MixnetTrafficConfig = config.into();
     Ok(lib_config.calculate_traffic_latency())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_mixnet_traffic_defaults() -> Result<MixnetTrafficDefaults, BackendError> {
+    Ok(MixnetTrafficDefaults::get())
 }

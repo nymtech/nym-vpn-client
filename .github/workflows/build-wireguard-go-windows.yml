@@ -13,7 +13,7 @@ env:
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
-  build:
+  build-libwg:
     if: github.actor != 'dependabot[bot]'
     runs-on: "custom-windows-11"
 
@@ -52,7 +52,7 @@ jobs:
         run: make -f Windows.mk libwg CPU_ARCH=AMD64
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib/x86_64-pc-windows-msvc

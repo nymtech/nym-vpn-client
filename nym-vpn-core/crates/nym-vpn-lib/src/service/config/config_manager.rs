@@ -10,6 +10,8 @@ use std::{
 use nym_common::trace_err_chain;
 use nym_registration_client::MixnetClientConfig;
 use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::SplitApp;
 use tokio::{fs, sync::broadcast};
 
 use crate::{
@@ -134,13 +136,6 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
-        if self.config.enable_lewes_protocol != enable_lewes_protocol {
-            self.config.enable_lewes_protocol = enable_lewes_protocol;
-            self.save_config_and_send_event().await;
-        }
-    }
-
     pub async fn set_netstack(&mut self, netstack: bool) {
         if self.config.netstack != netstack {
             self.config.netstack = netstack;
@@ -158,6 +153,20 @@ impl VpnServiceConfigManager {
     pub async fn set_enable_bridges(&mut self, enable_bridges: bool) {
         if self.config.enable_bridges != enable_bridges {
             self.config.enable_bridges = enable_bridges;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
+        if self.config.enable_lewes_protocol != enable_lewes_protocol {
+            self.config.enable_lewes_protocol = enable_lewes_protocol;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) {
+        if self.config.enable_ad_blocking != enable_ad_blocking {
+            self.config.enable_ad_blocking = enable_ad_blocking;
             self.save_config_and_send_event().await;
         }
     }
@@ -231,6 +240,32 @@ impl VpnServiceConfigManager {
             self.config.network_stats.enabled = enabled;
             self.save_config_and_send_event().await;
         }
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn set_enable_split_tunnel(&mut self, enabled: bool) {
+        if self.config.split_tunnel.enabled != enabled {
+            self.config.split_tunnel.enabled = enabled;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn add_split_tunnel_app(&mut self, app: SplitApp) {
+        self.config.split_tunnel.add_app(app);
+        self.save_config_and_send_event().await;
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn remove_split_tunnel_app(&mut self, app: SplitApp) {
+        self.config.split_tunnel.remove_app(app);
+        self.save_config_and_send_event().await;
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn clear_split_tunnel_apps(&mut self) {
+        self.config.split_tunnel.clear_apps();
+        self.save_config_and_send_event().await;
     }
 
     async fn save_config_and_send_event(&self) {
@@ -393,6 +428,7 @@ impl VpnServiceConfigManager {
         TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,
             allow_lan: self.config.allow_lan,
+            enable_ad_blocking: self.config.enable_ad_blocking,
             residential_exit: self.config.residential_exit,
             tunnel_type,
             mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },
@@ -412,6 +448,7 @@ impl VpnServiceConfigManager {
             entry_point: Box::new(self.config.entry_point.clone()),
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
+            split_tunnel: self.config.split_tunnel.clone(),
         }
     }
 }

@@ -32,8 +32,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             legalDestination()
         case let .addCredentials(navigationSource: navigationSource):
             addCredentialsDestination(navigationSource: navigationSource)
-        case let .createAccountWelcome(navigationSource: navigationSource):
-            createAccountWelcomeDestination(navigationSource: navigationSource)
+        case let .accountWelcome(type: type, navigationSource: navigationSource):
+            accountWelcomeDestination(type: type, navigationSource: navigationSource)
         case let .generatePassphrase(displayPurchaseView: displayPurchaseView):
             GeneratePassphraseView(path: $flowState.path, displayPurchaseView: displayPurchaseView)
         case .processingAccount:
@@ -61,6 +61,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             appModeDestination()
         case .daemonEnable:
             DaemonInstallView(isServing: $grpcManager.isServing, path: $flowState.path)
+        case .splitTunnel:
+            SplitTunnelView(path: $flowState.path)
 #endif
         case .privacyAndData:
             privacyAndDataDestination()
@@ -144,8 +146,11 @@ private extension SettingsFlowCoordinator {
     }
 
     @ViewBuilder
-    func createAccountWelcomeDestination(navigationSource: CreateAccountNavigationSource) -> some View {
-        CreateAccountWelcomeView(path: $flowState.path, navigationSource: navigationSource)
+    func accountWelcomeDestination(
+        type: AccountWelcomeType,
+        navigationSource: AccountWelcomeNavigationSource
+    ) -> some View {
+        AccountWelcomeView(path: $flowState.path, type: type, navigationSource: navigationSource)
     }
 
     @ViewBuilder

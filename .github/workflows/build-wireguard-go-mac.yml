@@ -13,7 +13,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-libwg:
     if: github.actor != 'dependabot[bot]'
     runs-on: custom-macos-15
     timeout-minutes: 5
@@ -42,9 +42,9 @@ jobs:
         run: ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: wireguard-go_apple_universal
           path: build/lib/universal-apple-darwin
           if-no-files-found: error
-          retention-days: 10
+          retention-days: 1

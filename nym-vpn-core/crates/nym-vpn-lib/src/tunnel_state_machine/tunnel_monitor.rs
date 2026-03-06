@@ -3,9 +3,6 @@
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{Ipv4Addr, Ipv6Addr};
-
-use std::ops::Deref;
-
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
 use std::os::fd::BorrowedFd;
 #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -14,12 +11,14 @@ use std::os::fd::{AsRawFd, IntoRawFd};
 use std::os::fd::{FromRawFd, OwnedFd};
 use std::{
     net::{IpAddr, SocketAddr},
+    ops::Deref,
+    pin::pin,
     time::Duration,
 };
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-use futures::{FutureExt, future::Fuse, pin_mut};
+use futures::{FutureExt, future::Fuse};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
@@ -44,7 +43,7 @@ use nym_registration_client::{
     MixnetRegistrationResult, RegistrationClientBuilder, RegistrationClientBuilderConfig,
     RegistrationMode, RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
 };
-use nym_registration_common::NymNode;
+use nym_registration_common::NymNodeInformation;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_lib_types::{
     AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
@@ -489,7 +488,7 @@ impl TunnelMonitor {
             .map_err(Box::new)?;
 
         let entry_node = RegistrationNymNode {
-            node: NymNode {
+            node: NymNodeInformation {
                 identity: selected_gateways.entry_gateway().identity,
                 ipr_address: selected_gateways
                     .entry_gateway()
@@ -501,13 +500,13 @@ impl TunnelMonitor {
                     .map(Into::into),
                 ip_address: entry_ip,
                 version: selected_gateways.entry_gateway().version.clone().into(),
-                lp_address: None,
+                lp_data: None,
             },
             keys: selected_gateways.entry_keypair().clone(),
         };
 
         let exit_node = RegistrationNymNode {
-            node: NymNode {
+            node: NymNodeInformation {
                 identity: selected_gateways.exit_gateway().identity,
                 ipr_address: selected_gateways.exit_gateway().ipr_address.map(Into::into),
                 authenticator_address: selected_gateways
@@ -516,7 +515,7 @@ impl TunnelMonitor {
                     .map(Into::into),
                 ip_address: exit_ip,
                 version: selected_gateways.exit_gateway().version.clone().into(),
-                lp_address: None,
+                lp_data: None,
             },
             keys: selected_gateways.exit_keypair().clone(),
         };
@@ -580,8 +579,8 @@ impl TunnelMonitor {
             RegistrationResult::Wireguard(result) => {
                 TunnelConnectionData::Wireguard(WireguardConnectionData {
                     entry_bridge_addr: None, // not known yet
-                    entry: WireguardNode::from(result.entry_gateway_data.clone()),
-                    exit: WireguardNode::from(result.exit_gateway_data.clone()),
+                    entry: WireguardNode::from(result.entry_gateway_data),
+                    exit: WireguardNode::from(result.exit_gateway_data),
                 })
             }
             RegistrationResult::Lp(_) => {
@@ -741,7 +740,7 @@ impl TunnelMonitor {
         let mixnet_monitoring_token = mixnet_client_token
             .map(|token| token.cancelled_owned().fuse())
             .unwrap_or(Fuse::terminated());
-        pin_mut!(mixnet_monitoring_token);
+        let mut mixnet_monitoring_token = pin!(mixnet_monitoring_token);
 
         let (tunnel_connection_monitor_tx, mut tunnel_connection_monitor_rx) =
             mpsc::unbounded_channel();
@@ -1062,8 +1061,8 @@ impl TunnelMonitor {
             selected_gateways,
             entry_gateway_client,
             exit_gateway_client,
-            entry_gateway_data.clone(),
-            exit_gateway_data.clone(),
+            entry_gateway_data,
+            exit_gateway_data,
             entry_signal_rx,
             exit_signal_rx,
             gw_update_version,
@@ -1198,8 +1197,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
+            entry: WireguardNode::from(conn_data.entry),
+            exit: WireguardNode::from(conn_data.exit),
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
@@ -1273,8 +1272,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
+            entry: WireguardNode::from(conn_data.entry),
+            exit: WireguardNode::from(conn_data.exit),
         });
 
         #[cfg(not(target_os = "linux"))]
@@ -1425,8 +1424,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
+            entry: WireguardNode::from(conn_data.entry),
+            exit: WireguardNode::from(conn_data.exit),
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
@@ -1507,8 +1506,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
+            entry: WireguardNode::from(conn_data.entry),
+            exit: WireguardNode::from(conn_data.exit),
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
@@ -1658,8 +1657,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry.clone()),
-            exit: WireguardNode::from(conn_data.exit.clone()),
+            entry: WireguardNode::from(conn_data.entry),
+            exit: WireguardNode::from(conn_data.exit),
         });
 
         let dns_servers = self

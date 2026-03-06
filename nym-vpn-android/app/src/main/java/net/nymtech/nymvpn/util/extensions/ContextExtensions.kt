@@ -14,12 +14,11 @@ import android.widget.Toast
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.core.net.toUri
-import net.nymtech.nymvpn.BuildConfig
-import net.nymtech.nymvpn.NymVpn
+import androidx.credentials.CreatePasswordRequest
+import androidx.credentials.CredentialManager
 import net.nymtech.nymvpn.NymVpn.Companion.instance
 import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
-import nym_vpn_lib_types.UserAgent
 import timber.log.Timber
 
 private const val BASELINE_HEIGHT = 2201
@@ -161,12 +160,12 @@ fun Context.isAndroidTV(): Boolean {
 	return packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
 }
 
-fun Context.toUserAgent(): UserAgent {
-	val platform = if (isAndroidTV()) "AndroidTV" else "Android"
-	return UserAgent(
-		Constants.APP_PROJECT_NAME,
-		BuildConfig.VERSION_NAME,
-		"$platform; ${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
-		BuildConfig.COMMIT_HASH,
-	)
+suspend fun savePasswordToManager(context: Context, password: String) {
+	val credentialManager = CredentialManager.create(context)
+	val passwordCredential = CreatePasswordRequest(id = "nym-passphrase", password = password)
+	try {
+		credentialManager.createCredential(request = passwordCredential, context = context)
+	} catch (e: Exception) {
+		Timber.d(e)
+	}
 }

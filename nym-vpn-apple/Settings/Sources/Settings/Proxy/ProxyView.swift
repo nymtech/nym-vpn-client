@@ -21,6 +21,7 @@ public struct ProxyView: View {
                     proxyStatusSection()
                     proxySettingsList()
                 }
+                .scrollIndicators(.never)
             }
             .padding(.horizontal, 16)
             Spacer()
@@ -63,15 +64,25 @@ private extension ProxyView {
     }
 
     func proxyStatusSection() -> some View {
-        SettingsListItemCustomContent(
+        let proxyBinding = Binding<Bool>(
+            get: { viewModel.proxyIsOn },
+            set: { newValue in
+                if viewModel.connectionManager.currentTunnelStatus == .connected {
+                    viewModel.proxyIsOn = newValue
+                    Task { await viewModel.toggleProxy() }
+                } else if !viewModel.proxyStatusLoading {
+                    Task { await viewModel.toggleProxy() }
+                }
+            }
+        )
+        let isDisabled = viewModel.connectionManager.currentTunnelStatus != .connected
+        && viewModel.proxyStatusLoading
+
+        return SettingsListItemCustomContent(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: $viewModel.proxyIsOn,
-                        isDisabled: viewModel.connectionManager.currentTunnelStatus != .connected,
-                        isInteractiveWhenDisabled: !viewModel.proxyStatusLoading,
-                        action: { _ in Task { await viewModel.toggleProxy() } }
-                    )
+                    isOn: proxyBinding,
+                    isDisabled: isDisabled
                 ),
                 title: "proxy.status.title".localizedString,
                 position: .init(isFirst: true, isLast: true),
@@ -327,8 +338,10 @@ private extension ProxyView {
                             .textStyle(.Body.Medium.regular)
                             .foregroundStyle(NymColor.gray1)
                         Spacer()
-                        GenericImage(imageName: viewModel.isHttpRpcCopiedFullyQualified ? "checkmarkSeeThrough" : "copy")
-                            .frame(width: 24, height: 24)
+                        GenericImage(
+                            imageName: viewModel.isHttpRpcCopiedFullyQualified ? "checkmarkSeeThrough" : "copy"
+                        )
+                        .frame(width: 24, height: 24)
                     }
                 }
                 .padding(.bottom, 16)

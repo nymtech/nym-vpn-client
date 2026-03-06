@@ -3,7 +3,8 @@
 
 use nym_vpn_lib_types::{
     AccountCommandError, AvailableTickets, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    StoredAccountMode, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
+    StoredAccountMode, VpnAccountAuthMethod, VpnAccountStatus, VpnAccountSummary, VpnApiError,
+    VpnApiErrorResponse,
 };
 
 use crate::{
@@ -271,6 +272,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
                 })
             })
             .transpose()?;
+
         let traffic_reset_time = value
             .traffic_reset_time
             .map(|ts| {
@@ -279,11 +281,31 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
                 })
             })
             .transpose()?;
+
+        let account_mode = value
+            .account_mode
+            .map(|mode| {
+                proto::StoredAccountMode::try_from(mode)
+                    .map(StoredAccountMode::from)
+                    .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.account_mode"))
+            })
+            .transpose()?;
+
+        let auth_methods = value
+            .auth_methods
+            .into_iter()
+            .map(TryInto::try_into)
+            .collect::<Result<_, ConversionError>>()?;
+
         Ok(Self {
             subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
             traffic_limit_gb: value.traffic_limit_gb,
             traffic_reset_time,
+            account_addr: value.account_addr,
+            canonical_account_addr: value.canonical_account_addr,
+            auth_methods,
+            account_mode,
         })
     }
 }
@@ -293,14 +315,92 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
         let subscription_valid_until = value
             .subscription_valid_until
             .map(offset_datetime_into_proto_timestamp);
+
         let traffic_reset_time = value
             .traffic_reset_time
             .map(offset_datetime_into_proto_timestamp);
+
+        let auth_methods = value
+            .auth_methods
+            .into_iter()
+            .map(TryInto::try_into)
+            .collect::<Result<_, ConversionError>>()
+            .unwrap_or_default();
+
+        let account_mode = value
+            .account_mode
+            .map(|mode| proto::StoredAccountMode::from(mode) as i32);
+
         Self {
             subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
             traffic_limit_gb: value.traffic_limit_gb,
             traffic_reset_time,
+            account_addr: value.account_addr,
+            canonical_account_addr: value.canonical_account_addr,
+            auth_methods,
+            account_mode,
+        }
+    }
+}
+
+impl TryFrom<proto::VpnAccountAuthMethod> for VpnAccountAuthMethod {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::VpnAccountAuthMethod) -> Result<Self, Self::Error> {
+        let status: VpnAccountStatus = proto::VpnAccountStatus::try_from(value.status)
+            .map_err(|_| ConversionError::NoValueSet("VpnAccountAuthMethod.status"))?
+            .into();
+
+        let Some(created) = value.created else {
+            return Err(ConversionError::NoValueSet("VpnAccountAuthMethod.created"));
+        };
+        let created = prost_timestamp_into_offset_datetime(created)
+            .map_err(|e| ConversionError::ConvertTime("VpnAccountAuthMethod.created", e))?;
+
+        Ok(Self {
+            id: value.id,
+            pubkey: value.pubkey,
+            kind: value.kind,
+            label: value.label,
+            status,
+            created,
+        })
+    }
+}
+
+impl TryFrom<VpnAccountAuthMethod> for proto::VpnAccountAuthMethod {
+    type Error = ConversionError;
+
+    fn try_from(value: VpnAccountAuthMethod) -> Result<Self, Self::Error> {
+        let status: proto::VpnAccountStatus = value.status.into();
+        Ok(Self {
+            id: value.id,
+            pubkey: value.pubkey,
+            kind: value.kind,
+            label: value.label,
+            status: status as i32,
+            created: Some(offset_datetime_into_proto_timestamp(value.created)), // Should not be optional!
+        })
+    }
+}
+
+impl From<proto::VpnAccountStatus> for VpnAccountStatus {
+    fn from(value: proto::VpnAccountStatus) -> Self {
+        match value {
+            proto::VpnAccountStatus::Active => VpnAccountStatus::Active,
+            proto::VpnAccountStatus::Inactive => VpnAccountStatus::Inactive,
+            proto::VpnAccountStatus::DeleteMe => VpnAccountStatus::DeleteMe,
+        }
+    }
+}
+
+impl From<VpnAccountStatus> for proto::VpnAccountStatus {
+    fn from(value: VpnAccountStatus) -> Self {
+        match value {
+            VpnAccountStatus::Active => proto::VpnAccountStatus::Active,
+            VpnAccountStatus::Inactive => proto::VpnAccountStatus::Inactive,
+            VpnAccountStatus::DeleteMe => proto::VpnAccountStatus::DeleteMe,
         }
     }
 }

@@ -1,7 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "macos")]
+use std::{collections::HashSet, path::PathBuf};
 use std::{fmt, net::IpAddr, ops::RangeInclusive};
+
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 const LOOP_COVER_DELAY_RANGE: RangeInclusive<u32> = 0..=200;
 const AVG_PACKET_DELAY_RANGE: RangeInclusive<u32> = 0..=200;
@@ -34,6 +39,7 @@ pub struct VpnServiceConfig {
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
+    pub enable_ad_blocking: bool,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -41,6 +47,7 @@ pub struct VpnServiceConfig {
     pub custom_dns: Vec<IpAddr>,
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
+    pub split_tunnel: SplitTunnelSettings,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -52,13 +59,15 @@ impl fmt::Display for VpnServiceConfig {
         )?;
         writeln!(
             f,
-            "allow_lan: {}, disable_ipv6: {}, enable_two_hop: {}, enable_lewes_protocol: {}, netstack: {}",
-            self.allow_lan,
-            self.disable_ipv6,
-            self.enable_two_hop,
-            self.enable_lewes_protocol,
-            self.netstack
+            "allow_lan: {}, disable_ipv6: {}, enable_two_hop: {},",
+            self.allow_lan, self.disable_ipv6, self.enable_two_hop,
         )?;
+        writeln!(
+            f,
+            "enable_lewes_protocol: {}, enable_ad_blocking: {}, netstack: {}",
+            self.enable_lewes_protocol, self.enable_ad_blocking, self.netstack
+        )?;
+
         writeln!(
             f,
             "min_gateway_vpn_performance: {:?}",
@@ -77,6 +86,7 @@ impl fmt::Display for VpnServiceConfig {
         )?;
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
+        writeln!(f, "split tunnel settings: {}", self.split_tunnel)?;
 
         Ok(())
     }
@@ -96,6 +106,7 @@ impl Default for VpnServiceConfig {
             enable_two_hop: true,
             enable_bridges: false,
             enable_lewes_protocol: false,
+            enable_ad_blocking: false,
             netstack: false,
             min_gateway_vpn_performance: None,
             residential_exit: false,
@@ -103,6 +114,7 @@ impl Default for VpnServiceConfig {
             custom_dns: vec![],
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
+            split_tunnel: SplitTunnelSettings::default(),
         }
     }
 }
@@ -236,6 +248,247 @@ impl MixnetTrafficConfig {
         let latency = 2.0 * (NUM_HOPS * BASE_HOP_DELAY_MS + NUM_MIX_NODES * mixing_delay);
 
         (latency / 10.0).round() * 10.0
+    }
+}
+
+/// Type providing default values and constraints for mixnet traffic configuration.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Object))]
+pub struct MixnetTrafficDefaults;
+
+#[allow(unused)]
+#[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
+impl MixnetTrafficDefaults {
+    #[cfg(feature = "uniffi-bindings")]
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub fn default_mixing_delay(&self) -> MixingDelay {
+        MixingDelay::default()
+    }
+
+    pub fn default_disable_poission_rate(&self) -> bool {
+        false
+    }
+
+    pub fn default_background_traffic(&self) -> BackgroundCoverTrafficRate {
+        BackgroundCoverTrafficRate::default()
+    }
+
+    pub fn default_continuous_traffic(&self) -> ContinuousTrafficSendingRate {
+        ContinuousTrafficSendingRate::default()
+    }
+
+    pub fn all_background_traffic(&self) -> Vec<BackgroundCoverTrafficRate> {
+        BackgroundCoverTrafficRate::iter().collect()
+    }
+
+    pub fn all_continuous_traffic(&self) -> Vec<ContinuousTrafficSendingRate> {
+        ContinuousTrafficSendingRate::iter().collect()
+    }
+}
+
+// Maps to average_packet_delay
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct MixingDelay {
+    pub min_value: u32,
+    pub max_value: u32,
+    pub default_value: u32,
+}
+
+impl Default for MixingDelay {
+    fn default() -> Self {
+        Self {
+            min_value: *AVG_PACKET_DELAY_RANGE.start(),
+            max_value: *AVG_PACKET_DELAY_RANGE.end(),
+            default_value: 15, // DEFAULT_AVERAGE_PACKET_DELAY
+        }
+    }
+}
+
+// Maps to poisson_parameter_for_loop_cover_stream
+#[derive(Clone, Debug, Default, Eq, PartialEq, EnumIter)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum BackgroundCoverTrafficRate {
+    #[default]
+    Ms200, // DEFAULT_LOOP_COVER_STREAM_AVERAGE_DELAY
+    Ms40,
+    Ms20,
+    Ms10,
+}
+
+#[allow(unused)]
+#[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
+impl BackgroundCoverTrafficRate {
+    pub fn value(&self) -> u32 {
+        match self {
+            Self::Ms10 => 10,
+            Self::Ms20 => 20,
+            Self::Ms40 => 40,
+            Self::Ms200 => 200,
+        }
+    }
+
+    pub fn multiplier(&self) -> String {
+        match self {
+            Self::Ms200 => "Base",
+            Self::Ms40 => "5x",
+            Self::Ms20 => "10x",
+            Self::Ms10 => "20x",
+        }
+        .to_owned()
+    }
+}
+
+// Maps to message_sending_average_delay
+#[derive(Clone, Debug, Default, Eq, PartialEq, EnumIter)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum ContinuousTrafficSendingRate {
+    Ms30,
+    #[default]
+    Ms20,
+    Ms10,
+}
+
+#[allow(unused)]
+#[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
+impl ContinuousTrafficSendingRate {
+    pub fn value(&self) -> u32 {
+        match self {
+            Self::Ms10 => 10,
+            Self::Ms20 => 20,
+            Self::Ms30 => 30,
+        }
+    }
+
+    pub fn throughput(&self) -> String {
+        match self {
+            Self::Ms10 => "2 Mpbs",
+            Self::Ms20 => "1 Mpbs",
+            Self::Ms30 => "0.7 Mpbs",
+        }
+        .to_owned()
+    }
+}
+
+/// Single application participating in split tunneling.
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct SplitApp {
+    /// Path to executable
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    pub path: String,
+}
+
+impl SplitApp {
+    pub fn new(path: String) -> Self {
+        Self { path }
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl SplitApp {
+    pub fn path_buf(&self) -> PathBuf {
+        PathBuf::from(&self.path)
+    }
+}
+
+impl fmt::Display for SplitApp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.path)
+    }
+}
+
+#[derive(Debug, Default, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct SplitTunnelSettings {
+    /// Whether split tunneling is enabled.
+    pub enabled: bool,
+
+    /// Applications participating in split tunneling.
+    pub apps: Vec<SplitApp>,
+}
+
+impl SplitTunnelSettings {
+    pub fn add_app(&mut self, app: SplitApp) {
+        if !self.apps.iter().any(|v| v.path == app.path) {
+            self.apps.push(app);
+        }
+    }
+
+    pub fn remove_app(&mut self, app: SplitApp) {
+        self.apps.retain(|v| v.path != app.path);
+    }
+
+    pub fn clear_apps(&mut self) {
+        self.apps.clear();
+    }
+
+    /// Returns the effective list of applications participating in split tunneling when split tunneling is enabled.
+    /// Otherwise, returns an empty slice.
+    pub fn effective_apps(&self) -> &[SplitApp] {
+        if self.enabled { &self.apps } else { &[] }
+    }
+
+    /// Returns effective list of application paths participating in split tunneling when split tunneling is enabled.
+    /// Otherwise, returns an empty set.
+    #[cfg(target_os = "macos")]
+    pub fn effective_app_paths(&self) -> HashSet<PathBuf> {
+        HashSet::from_iter(self.effective_apps().iter().map(|v| v.path_buf()))
+    }
+}
+
+impl fmt::Display for SplitTunnelSettings {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "enabled: {}", self.enabled)?;
+        writeln!(f, "apps:")?;
+        for app in self.apps.iter() {
+            writeln!(f, "- {app}")?;
+        }
+        Ok(())
     }
 }
 

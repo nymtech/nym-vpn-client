@@ -56,7 +56,7 @@ fun LanguageScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 	val context = LocalContext.current
 
 	val locales = LocaleUtil.supportedLocales.map {
-		val tag = it.replace("_", "-")
+		val tag = it.replace("r", "").replace("_", "-")
 		Locale.forLanguageTag(tag)
 	}
 

@@ -19,7 +19,6 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build:
-    if: github.actor != 'dependabot[bot]'
     runs-on: custom-windows-11
     needs: build-wireguard-go-windows
 
@@ -67,7 +66,8 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+          key:
+            ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
@@ -75,7 +75,10 @@ jobs:
         uses: actions/cache@v5
         with:
           path: nym-vpn-core/target/
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          key:
+            ${{ runner.os }}-cargo-build-${{
+            hashFiles('nym-vpn-core/Cargo.lock') }}-${{
+            hashFiles('nym-vpn-core/**/*.rs') }}
           restore-keys: |
             ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
             ${{ runner.os }}-cargo-build-
@@ -91,7 +94,7 @@ jobs:
           crate: cargo-get
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib/x86_64-pc-windows-msvc

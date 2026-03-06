@@ -36,6 +36,8 @@ serde = ["dep:serde"]
 [dependencies]
 bip39 = { workspace = true, optional = true }
 si-scale = { workspace = true, features = ["lossy-conversions"] }
+strum.workspace = true
+strum_macros.workspace = true
 time = { workspace = true, features = ["serde", "parsing", "formatting"] }
 serde = { workspace = true, features = ["derive", "rc"], optional = true }
 thiserror.workspace = true

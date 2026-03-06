@@ -88,9 +88,10 @@ private extension MessagesManager {
             do {
                 let newMessages: [NymNetworkMessage]
 #if os(iOS)
-                newMessages = configurationManager.networkEnv.systemMessages().map {
-                    NymNetworkMessage(name: $0.name, message: $0.message, properties: $0.properties)
-                }
+                newMessages = configurationManager.networkEnv?
+                    .systemMessages()
+                    .compactMap { NymNetworkMessage(name: $0.name, message: $0.message, properties: $0.properties) }
+                ?? []
 #elseif os(macOS)
                 newMessages = try await grpcManager.fetchSystemMessages()
 #endif

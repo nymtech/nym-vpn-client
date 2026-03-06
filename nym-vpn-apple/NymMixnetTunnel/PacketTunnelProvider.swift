@@ -1,6 +1,7 @@
 import NetworkExtension
 import Logging
 import ConfigurationManager
+import Constants
 import NymLogger
 import ErrorHandler
 import NymVPNLib
@@ -48,6 +49,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         try await setup(vpnConfig: vpnConfig)
 
         _ = try await commandSender?.connectTunnel()
+        try await tunnelActor.waitUntilStarted()
     }
 
     override func stopTunnel(with reason: NEProviderStopReason) async {
@@ -66,7 +68,7 @@ extension PacketTunnelProvider {
 
         vpnService = try await NymVpnService.newService(
             config: vpnConfig,
-            environment: ConfigurationManager.shared.networkEnv,
+            environment: ConfigurationManager.shared.networkEnv ?? .newWithMainnetFallback(),
             eventListener: self
         )
         commandSender = vpnService?.getCommandSender()
@@ -76,7 +78,11 @@ extension PacketTunnelProvider {
         let logDir = LogFileManager.logsDirectory()?.path()
         // Extracted from ConfigurationManager.shared.debugLevel
         let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
-        let logLevel: LogLevel = isTestFlight ? .debug : .info
+        let isDebugLogsOn = UserDefaults(
+            suiteName: Constants.groupID.rawValue
+        )?.bool(forKey: "isDebugLogsOn") ?? false
+
+        let logLevel: LogLevel = (isTestFlight || isDebugLogsOn) ? .debug : .info
         initLogger(logDir: logDir, logLevel: logLevel, sentryMonitoring: true)
     }
 }

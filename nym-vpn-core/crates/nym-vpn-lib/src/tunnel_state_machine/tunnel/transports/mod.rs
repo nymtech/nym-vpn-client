@@ -13,6 +13,7 @@ use std::{
 use base64::prelude::*;
 use bytes::{Buf, BytesMut};
 use futures::{Sink, SinkExt, Stream, StreamExt};
+use quinn::{IdleTimeout, TransportConfig, congestion};
 use tokio::{
     io::{AsyncRead, AsyncWrite},
     net::UdpSocket,
@@ -402,20 +403,8 @@ pub async fn transport_conn(
         .get_ipv4()
         .ok_or(TransportError::config_err("No IPv4 endpoint provided"))?;
 
-    let alt_names = options.host.clone().map(|h| vec![h]);
-    let verifier =
-        IdentityBasedVerifier::new_with_alt_names(&options.id_pubkey, alt_names).unwrap();
+    let client_config = create_quic_config(options)?;
 
-    let mut client_crypto = rustls::ClientConfig::builder()
-        .dangerous()
-        .with_custom_certificate_verifier(Arc::new(verifier))
-        .with_no_client_auth();
-
-    client_crypto.alpn_protocols = ALPN_QUIC_HTTP.iter().map(|&x| x.into()).collect();
-    let quic_client_config = QuicClientConfig::try_from(client_crypto)
-        .map_err(|e| TransportError::config_err(format!("invalid tls crypto config: {e}")))?;
-
-    let client_config = quinn::ClientConfig::new(Arc::new(quic_client_config));
     let bind_addr = match transport_endpoint.is_ipv4() {
         true => (Ipv4Addr::UNSPECIFIED, 0).into(),
         false => (Ipv6Addr::UNSPECIFIED, 0).into(),
@@ -445,6 +434,83 @@ pub async fn transport_conn(
         .connect(transport_endpoint, host)?
         .await
         .map_err(TransportError::QuicProto)
+}
+
+/// Session Keepalive interval to prevent sessions from closing due to lull in user traffic.
+///
+/// ```txt
+/// Keep-alive packets prevent an inactive but otherwise healthy connection from timing out.
+///
+/// ... Only one side of any given connection needs keep-alive enabled for the connection to
+/// be preserved. Must be set lower than the idle_timeout of both peers to be effective.
+/// ```
+/// Default idle timeout is 30s. Our clients set to 60s  using [`QUIC_SESSION_IDLE_TIMEOUT`] to be
+/// safe.
+const QUIC_SESSION_KEEPALIVE_INTERVAL: Duration = Duration::from_secs(20);
+
+lazy_static::lazy_static! {
+    /// Session Idle Timeout Interval -- if nothing is sent within this interval then the session
+    /// will proceed with a healthy close. This is intentionally set higher than the
+    /// [`QUIC_SESSION_KEEPALIVE_INTERVAL`] as we do not want a low period in traffic to result
+    /// in a tunnel closing.
+    static ref QUIC_SESSION_IDLE_TIMEOUT: IdleTimeout = IdleTimeout::from(quinn::VarInt::from_u32(60_000));
+}
+
+/// Create a client configuration for the quinn Quic client.
+///
+/// This sets the following properties to prepare the connection:
+/// - adds hostname(s) from options to TLS alt names (if any)
+/// - sets the TLS server cert verifier to our custom handler based on the pre-shared bridge pubkey
+/// - sets TLS ALPN protocol header to HTTP
+/// - sets keepalive_interval and max_idle_timeout to prevent sessions from closing during idle
+/// - sets congestion controller to more fault tolerant BBR algorithm
+/// - prevent server opening streams to client by setting uni and bidi streams to 0
+///
+/// All other properties are default.
+fn create_quic_config(options: &ClientOptions) -> Result<quinn::ClientConfig, TransportError> {
+    let crypto_provider = rustls::crypto::CryptoProvider::get_default()
+        .unwrap_or(&Arc::new(rustls::crypto::ring::default_provider()))
+        .clone();
+
+    let alt_names = options.host.clone().map(|h| vec![h]);
+    let verifier = IdentityBasedVerifier::builder(&options.id_pubkey)
+        .with_alt_names(alt_names)
+        .with_crypto_provider(crypto_provider.clone())
+        .build()
+        .map_err(|e| {
+            TransportError::Config(format!(
+                "failed to initialize quic cert verifier from options: {e}"
+            ))
+        })?;
+
+    let mut client_crypto = rustls::ClientConfig::builder_with_provider(crypto_provider)
+        .with_protocol_versions(rustls::DEFAULT_VERSIONS)
+        .map_err(|e| TransportError::other(format!("rustls client config init failed: {e}")))?
+        .dangerous()
+        .with_custom_certificate_verifier(Arc::new(verifier))
+        .with_no_client_auth();
+
+    client_crypto.alpn_protocols = ALPN_QUIC_HTTP.iter().map(|&x| x.into()).collect();
+    let quic_client_config = QuicClientConfig::try_from(client_crypto)
+        .map_err(|e| TransportError::config_err(format!("invalid tls crypto config: {e}")))?;
+
+    let mut transport_cfg = TransportConfig::default();
+    // Set keepalive_interval and max_idle_timeout to prevent sessions from closing during idle
+    transport_cfg.keep_alive_interval(Some(QUIC_SESSION_KEEPALIVE_INTERVAL));
+    transport_cfg.max_idle_timeout(Some(*QUIC_SESSION_IDLE_TIMEOUT));
+
+    // set congestion control to more fault tolerant BBR
+    transport_cfg.congestion_controller_factory(Arc::new(congestion::BbrConfig::default()));
+
+    // Prevent server opening streams to client by setting uni and bidi streams to 0 (we just have
+    // no reason to allow this for now).
+    transport_cfg.max_concurrent_bidi_streams(0_u32.into());
+    transport_cfg.max_concurrent_uni_streams(0_u32.into());
+
+    let mut client_config = quinn::ClientConfig::new(Arc::new(quic_client_config));
+    client_config.transport_config(Arc::new(transport_cfg));
+
+    Ok(client_config)
 }
 
 fn make_socket(addr: Option<SocketAddr>) -> io::Result<std::net::UdpSocket> {

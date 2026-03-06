@@ -26,6 +26,7 @@ public struct SantasView: View {
                 }
                 Spacer()
             }
+            .scrollIndicators(.never)
         }
         .preferredColorScheme(AppSettings.shared.currentAppearance.colorScheme)
         .navigationBarBackButtonHidden(true)
@@ -87,10 +88,18 @@ private extension SantasView {
         }
     }
 
+    @ViewBuilder
     func togglesSection() -> some View {
-        Toggle(isOn: $appSettings.isLewesEnabled) {
-            Text("Lewes enabled")
-        }
+        VStack {
+            Toggle(isOn: $appSettings.isLewesEnabled) {
+                Text("Lewes enabled")
+            }
+            .tint(NymColor.accent)
+            Toggle(isOn: $appSettings.isMixnetTuningEnabled) {
+                Text("Mixnet tuning")
+            }
+            .tint(NymColor.accent)
+        }.padding()
     }
 }
 

@@ -6,6 +6,7 @@ use std::time::Duration;
 use crate::cli::{Commands, db_command};
 use crate::fs::path::APP_CONFIG_DIR;
 use crate::startup_error::{ErrorKey, StartupError};
+use crate::tray::TrayManager;
 #[cfg(windows)]
 use crate::updater::PendingUpdate;
 use crate::window::AppWindow;
@@ -20,12 +21,14 @@ use anyhow::{Result, anyhow};
 use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
+use commands::diagnostic as cmd_diag;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
 use commands::sentry as cmd_sentry;
 use commands::socks5 as cmd_socks5;
 use commands::sys as cmd_sys;
+use commands::tray as cmd_tray;
 #[cfg(windows)]
 use commands::updater as cmd_updater;
 use commands::window as cmd_window;
@@ -233,7 +236,8 @@ async fn main() -> Result<()> {
             app.manage(Mutex::new(fs_config));
             app.manage(vpnd.clone());
 
-            tray::setup(app.handle())?;
+            let tray_manager = TrayManager::new(app.handle())?;
+            app.manage(tray_manager);
 
             let handle = app.handle().clone();
             let mut c_vpnd = vpnd.clone();
@@ -264,6 +268,12 @@ async fn main() -> Result<()> {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            cmd_tray::update_tray_mode,
+            cmd_tray::update_tray_show_hide,
+            cmd_tray::update_tray_quit,
+            cmd_tray::update_tray_state,
+            cmd_tray::update_tray_entry,
+            cmd_tray::update_tray_exit,
             tunnel::get_vpn_config,
             tunnel::set_vpn_mode,
             tunnel::get_tunnel_state,
@@ -276,10 +286,12 @@ async fn main() -> Result<()> {
             tunnel::set_custom_dns_enabled,
             tunnel::set_no_ipv6,
             tunnel::set_allow_lan,
+            tunnel::set_ad_block,
             tunnel::get_privy_derivation_message,
             tunnel::set_enable_lewes_protocol,
             tunnel::set_mixnet_traffic_config,
             tunnel::calculate_traffic_latency,
+            tunnel::get_mixnet_traffic_defaults,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_del,
@@ -299,6 +311,7 @@ async fn main() -> Result<()> {
             account::account_links,
             account::get_deep_link,
             account::store_deeplink_account,
+            account::get_account_summary,
             cmd_daemon::daemon_status,
             cmd_daemon::set_network,
             cmd_daemon::system_messages,
@@ -306,6 +319,7 @@ async fn main() -> Result<()> {
             cmd_daemon::network_compat,
             cmd_daemon::vpnd_log_dir,
             cmd_daemon::delete_logs,
+            cmd_daemon::retry_authentication,
             cmd_fs::log_dir,
             cmd_fs::delete_app_logs,
             cmd_fs::zip_logs,
@@ -318,6 +332,8 @@ async fn main() -> Result<()> {
             cmd_socks5::enable_socks5,
             cmd_socks5::disable_socks5,
             cmd_socks5::get_socks5_status,
+            cmd_diag::run_diagnostic,
+            cmd_diag::share_diagnostic,
             #[cfg(windows)]
             cmd_updater::fetch_update,
             #[cfg(windows)]

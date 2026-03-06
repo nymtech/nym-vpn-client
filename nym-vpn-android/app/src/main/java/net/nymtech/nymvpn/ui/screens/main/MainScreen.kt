@@ -41,7 +41,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
@@ -57,8 +56,6 @@ import net.nymtech.nymvpn.ui.common.snackbar.IconAction
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarAction
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.model.StateMessage.Error
-import net.nymtech.nymvpn.ui.model.StateMessage.StartError
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionButton
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
@@ -77,6 +74,7 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
@@ -85,8 +83,7 @@ import nym_vpn_lib_types.ExitPoint
 fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState = remember(appUiState.managerState, appUiState.networkStatus) {
 		with(appUiState) {
-			val connectionState = when {
-				// Prevent "Connect" button during restart; offline takes precedence
+			val baseState = when {
 				managerState.isRestarting && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
 				managerState.isRestarting && managerState.tunnelState == Tunnel.State.Down -> ConnectionState.Disconnecting
 				managerState.isRestarting && managerState.tunnelState == Tunnel.State.InitializingClient ->
@@ -99,7 +96,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						managerState.tunnelState,
 						managerState.establishConnectionState,
 					)
-				managerState.tunnelState != Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
+				managerState.tunnelState !is Tunnel.State.Down && managerState.tunnelState !is Tunnel.State.Error && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
 				managerState.tunnelState == Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
 				else ->
 					ConnectionState.from(
@@ -107,15 +104,27 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 						managerState.establishConnectionState,
 					)
 			}
-			val stateMessage = when (val event = managerState.backendUiEvent) {
-				is BackendUiEvent.BandwidthAlert, null -> connectionState.stateMessage
-				is BackendUiEvent.Failure -> Error(event.reason)
-				is BackendUiEvent.StartFailure -> StartError(event.exception)
+
+			val finalState = when (val event = managerState.backendUiEvent) {
+				is BackendUiEvent.BandwidthAlert, null -> baseState
+				is BackendUiEvent.Failure -> {
+					val isSubError = event.reason is nym_vpn_lib_types.ErrorStateReason.InactiveSubscription ||
+						event.reason is nym_vpn_lib_types.ErrorStateReason.InactiveAccount
+					val isAccountReady = managerState.accountState is AccountControllerState.ReadyToConnect ||
+						managerState.accountState is AccountControllerState.Decentralised ||
+						managerState.accountState is AccountControllerState.UpgradeMode
+					if (isSubError && isAccountReady) {
+						baseState
+					} else {
+						ConnectionState.Error(event.reason)
+					}
+				}
+				is BackendUiEvent.StartFailure -> ConnectionState.StartFailure(event.exception)
 			}
+
 			MainUiState(
 				connectionTime = managerState.connectionData?.connectedAt,
-				connectionState = connectionState,
-				stateMessage = stateMessage,
+				connectionState = finalState,
 			)
 		}
 	}
@@ -129,7 +138,6 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	val connectionSeconds by viewModel.connectionSeconds.collectAsState()
-	val isQuicFeatureFlagEnabled by viewModel.isQuicFeatureFlagEnabled.collectAsStateWithLifecycle()
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
@@ -251,11 +259,6 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	}
 
 	LaunchedEffect(Unit) {
-// 		if (!appUiState.settings.isPerAppSecurityBannerDisplayed) {
-// 			showPerAppSecurityBanner = true
-// 		} else if (!appUiState.settings.isStreamingServerBannerDisplayed) {
-// 			showBanner = true
-// 		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 			requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
 		}
@@ -284,7 +287,6 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 			ConnectionStatus(
 				connectionState = uiState.connectionState,
 				vpnMode = appUiState.vpnConfig.mode,
-				stateMessage = uiState.stateMessage,
 				connectionTime = connectionTime,
 				theme = appUiState.settings.theme ?: Theme.AUTOMATIC,
 				isAppInForeground = isAppInForeground,
@@ -311,8 +313,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 				) {
 					GroupLabel(title = stringResource(R.string.connect_to))
 					val shouldShowQuic = run {
-						isQuicFeatureFlagEnabled &&
-							appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
+						appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
 							appUiState.settings.quicEnabled &&
 							appUiState.entryPointGateway?.isQuicSupported() ?: false
 					}
@@ -349,7 +350,6 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 				}
 				ConnectionButton(
 					connectionState = uiState.connectionState,
-					stateMessage = uiState.stateMessage,
 					isMnemonicStored = appUiState.managerState.isMnemonicStored,
 					onConnect = { onConnectPressed() },
 					onDisconnect = { onDisconnectPressed() },

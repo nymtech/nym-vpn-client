@@ -4,15 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.R
@@ -20,12 +23,15 @@ import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.backend.hasValidSubscription
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
 import javax.inject.Inject
@@ -44,6 +50,7 @@ constructor(
 
 	companion object {
 		private const val TAG = "app-vm"
+		private const val AUTH_TIMEOUT_MS = 20_000L
 	}
 
 	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
@@ -82,7 +89,7 @@ constructor(
 		_configurationChange.value = false
 	}
 
-	fun logout(onComplete: (() -> Unit)? = null) = viewModelScope.launch {
+	fun logout(onComplete: (() -> Unit)? = null) = viewModelScope.launch(Dispatchers.IO) {
 		Timber.tag(TAG).i("LogoutRequested")
 		runCatching {
 			if (backendManager.getState() != Tunnel.State.Down) {
@@ -93,13 +100,18 @@ constructor(
 			Timber.tag(TAG).i("LogoutSuccess")
 		}.onFailure {
 			Timber.tag(TAG).e(it, "LogoutFailed")
+			withContext(Dispatchers.Main) {
+				onComplete?.invoke()
+			}
 		}
 	}
 
 	private suspend fun performLogout(onComplete: (() -> Unit)? = null) {
 		backendManager.removeMnemonic()
 		backendManager.refreshAccount()
-		onComplete?.invoke()
+		withContext(Dispatchers.Main) {
+			onComplete?.invoke()
+		}
 	}
 
 	fun onLocaleChange(localeTag: String) = viewModelScope.launch {
@@ -114,7 +126,7 @@ constructor(
 		val tunnelState = backendManager.getState()
 		if (tunnelState == Tunnel.State.Down) {
 			Timber.tag(TAG).i("EnvironmentChangeApplied env=%s", environment)
-			settingsRepository.setEnvironment(environment)
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetNetwork(environment))
 			SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 		} else {
 			Timber.tag(TAG).w("EnvironmentChangeRejected reason=tunnel_not_down state=%s", tunnelState)
@@ -223,18 +235,57 @@ constructor(
 		return backendManager.getFeatureFlags()?.isPrivyEnabled() ?: false
 	}
 
-	fun handleDeepLinkAuth(url: String) {
-		viewModelScope.launch {
-			if (!isPrivyEnabled()) {
-				Timber.tag(TAG).w("DeepLink ignored: Privy feature is disabled")
-				return@launch
+	suspend fun isUserLoggedIn(): Boolean {
+		return backendManager.isMnemonicStored()
+	}
+
+	suspend fun handleDeepLinkAuth(url: String): Route = withContext(Dispatchers.IO) {
+		if (!isPrivyEnabled()) {
+			Timber.tag(TAG).w("DeepLink ignored: Privy feature is disabled")
+			return@withContext Route.Main(autoStart = false)
+		}
+
+		try {
+			Timber.tag(TAG).i("DeepLinkAuth started.")
+			backendManager.storeDeeplinkAccount(url)
+
+			runCatching { backendManager.refreshAccount() }
+
+			val accountState = withTimeoutOrNull(AUTH_TIMEOUT_MS) {
+				backendManager.stateFlow
+					.map { it.accountState }
+					.filter { state ->
+						state is AccountControllerState.ReadyToConnect ||
+							state is AccountControllerState.Decentralised ||
+							state is AccountControllerState.UpgradeMode ||
+							state is AccountControllerState.Error
+					}
+					.first()
 			}
 
-			try {
-				backendManager.storeDeeplinkAccount(url)
-			} catch (e: Exception) {
-				Timber.tag(TAG).e(e, "FailedStoreDeeplink")
+			when (accountState) {
+				is AccountControllerState.ReadyToConnect,
+				is AccountControllerState.Decentralised,
+				is AccountControllerState.UpgradeMode,
+				-> {
+					if (backendManager.hasValidSubscription(TAG)) {
+						Route.Main()
+					} else {
+						Route.SelectPlan
+					}
+				}
+
+				is AccountControllerState.Error -> {
+					Route.SelectPlan
+				}
+
+				else -> {
+					Route.Main(autoStart = false)
+				}
 			}
+		} catch (e: Exception) {
+			Timber.tag(TAG).e(e, "FailedStoreDeeplink or processing error")
+			Route.Main(autoStart = false)
 		}
 	}
 }

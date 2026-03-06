@@ -15,16 +15,25 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  UPLOAD_DIR_LINUX: linux_artifacts
 
 jobs:
   build-wireguard-go-linux:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
 
   build-linux:
+    strategy:
+      matrix:
+        include:
+          - os: "ubuntu-22.04"
+            arch: "x86_64"
+          - os: "ubuntu-22.04-arm"
+            arch: "aarch64"
+
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-linux
-    runs-on: ubuntu-22.04
+    env:
+      UPLOAD_DIR_LINUX: linux_artifacts-${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
@@ -48,6 +57,11 @@ jobs:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
       - name: Get workspace version
         id: workspace-version
         uses: nicolaiunrein/cargo-get@master
@@ -63,10 +77,10 @@ jobs:
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
-          name: wireguard-go_ubuntu-24.04_x86_64
-          path: build/lib/x86_64-unknown-linux-gnu
+          name: wireguard_go-${{ matrix.arch }}
+          path: build/lib
 
       - name: Build nym-vpn-core
         working-directory: nym-vpn-core
@@ -91,7 +105,7 @@ jobs:
           cp -vpr ${{ env.SRC_BINARY }}/nym-diagnostic ${{ env.UPLOAD_DIR_LINUX }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.UPLOAD_DIR_LINUX }}
           path: ${{ env.UPLOAD_DIR_LINUX }}

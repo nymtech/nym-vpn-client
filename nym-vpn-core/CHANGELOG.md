@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- [Windows] Authentication layer for windows, still feature gated (https://github.com/nymtech/nym-vpn-client/pull/4618)
+- [macOS] Add support for per-app split-tunneling (https://github.com/nymtech/nym-vpn-client/pull/4694)
+- [macOS] XPC as transport layer between clients and daemon (https://github.com/nymtech/nym-vpn-client/pull/4695)
+
+### Fixed
+
+- Detect time travel and sleep when obtaining remote time (https://github.com/nymtech/nym-vpn-client/pull/4604)
+
+### Removed
+
+### Changed
+
+- Changed VPN API HTTP timeout from 60s to 30s. (https://github.com/nymtech/nym-vpn-client/pull/4604)
+
+## [1.24.0] - 2026-02-12
+
+### Added
 
 - Added privy UI feature flag (https://github.com/nymtech/nym-vpn-client/pull/4223)
 - Added TraceID and SpanID for the account controller commands (https://github.com/nymtech/nym-vpn-client/pull/4426)

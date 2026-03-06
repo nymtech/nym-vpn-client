@@ -47,7 +47,7 @@ impl From<TunnelEvent> for proto::TunnelEvent {
             }
             TunnelEvent::ConfigChanged(new_config) => {
                 proto::tunnel_event::Event::ConfigChangedEvent(proto::ConfigChangedEvent {
-                    new_config: Some((*new_config).into()),
+                    new_config: Some(proto::VpnServiceConfig::from(*new_config)),
                 })
             }
             TunnelEvent::AccountState(account_state) => proto::tunnel_event::Event::AccountState(

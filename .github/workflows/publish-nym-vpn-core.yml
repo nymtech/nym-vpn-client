@@ -15,8 +15,10 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  UPLOAD_DIR_LINUX: linux_artifacts
-  UPLOAD_DIR_DEB: deb_artifacts
+  UPLOAD_DIR_LINUX_X86_64: linux_artifacts-x86_64
+  UPLOAD_DIR_LINUX_AARCH64: linux_artifacts-aarch64
+  UPLOAD_DIR_DEB_X86_64: deb_artifacts-x86_64
+  UPLOAD_DIR_DEB_AARCH64: deb_artifacts-aarch64
   UPLOAD_DIR_ANDROID: android_artifacts
   UPLOAD_DIR_WINDOWS: windows_artifacts
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -63,7 +65,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
 
-      # Adding envsubst, gh cli
       - name: Install system dependencies
         run: |
           sudo apt update && sudo apt install -y gettext-base gh zip
@@ -95,7 +96,7 @@ jobs:
           subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
 
       - name: Determine if we should publish
         id: determine-ok-to-publish
@@ -128,41 +129,61 @@ jobs:
         env:
           BASENAME: nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}
         run: |
-          ARCHIVE_LINUX=${BASENAME}_linux_x86_64
+          ARCHIVE_LINUX_X86_64=${BASENAME}_linux_x86_64
+          ARCHIVE_LINUX_AARCH64=${BASENAME}_linux_aarch64
           ARCHIVE_ANDROID=${BASENAME}_android_aarch64
           ARCHIVE_WINDOWS=${BASENAME}_windows_x86_64
-          echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
+          echo "ARCHIVE_LINUX_X86_64=${ARCHIVE_LINUX_X86_64}" >> $GITHUB_ENV
+          echo "ARCHIVE_LINUX_AARCH64=${ARCHIVE_LINUX_AARCH64}" >> $GITHUB_ENV
           echo "ARCHIVE_ANDROID=${ARCHIVE_ANDROID}" >> $GITHUB_ENV
           echo "ARCHIVE_WINDOWS=${ARCHIVE_WINDOWS}" >> $GITHUB_ENV
 
-          mv -v ${{ env.UPLOAD_DIR_LINUX }}   ${ARCHIVE_LINUX} || true
-          mv -v ${{ env.UPLOAD_DIR_ANDROID }} ${ARCHIVE_ANDROID} || true
-          mv -v ${{ env.UPLOAD_DIR_WINDOWS }} ${ARCHIVE_WINDOWS} || true
+          mv -v ${{ env.UPLOAD_DIR_LINUX_X86_64 }} ${ARCHIVE_LINUX_X86_64}
+          mv -v ${{ env.UPLOAD_DIR_LINUX_AARCH64 }} ${ARCHIVE_LINUX_AARCH64}
+          mv -v ${{ env.UPLOAD_DIR_ANDROID }} ${ARCHIVE_ANDROID}
+          mv -v ${{ env.UPLOAD_DIR_WINDOWS }} ${ARCHIVE_WINDOWS}
 
-          test -d ${ARCHIVE_LINUX} &&   tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX}
+          test -d ${ARCHIVE_LINUX_X86_64} && tar cvzf ${ARCHIVE_LINUX_X86_64}.tar.gz ${ARCHIVE_LINUX_X86_64}
+          test -d ${ARCHIVE_LINUX_AARCH64} && tar cvzf ${ARCHIVE_LINUX_AARCH64}.tar.gz ${ARCHIVE_LINUX_AARCH64}
           test -d ${ARCHIVE_ANDROID} && tar cvzf ${ARCHIVE_ANDROID}.tar.gz ${ARCHIVE_ANDROID}
           test -d ${ARCHIVE_WINDOWS} && zip -r ${ARCHIVE_WINDOWS}.zip ${ARCHIVE_WINDOWS}
 
-          test -f ${ARCHIVE_LINUX}.tar.gz &&    sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum"
-          test -f ${ARCHIVE_ANDROID}.tar.gz &&  sha256sum ${ARCHIVE_ANDROID}.tar.gz > "${ARCHIVE_ANDROID}.tar.gz.sha256sum"
-          test -f ${ARCHIVE_WINDOWS}.zip &&     sha256sum ${ARCHIVE_WINDOWS}.zip > "${ARCHIVE_WINDOWS}.zip.sha256sum"
+          test -f ${ARCHIVE_LINUX_X86_64}.tar.gz && sha256sum ${ARCHIVE_LINUX_X86_64}.tar.gz > "${ARCHIVE_LINUX_X86_64}.tar.gz.sha256sum"
+          test -f ${ARCHIVE_LINUX_AARCH64}.tar.gz && sha256sum ${ARCHIVE_LINUX_AARCH64}.tar.gz > "${ARCHIVE_LINUX_AARCH64}.tar.gz.sha256sum"
+          test -f ${ARCHIVE_ANDROID}.tar.gz && sha256sum ${ARCHIVE_ANDROID}.tar.gz > "${ARCHIVE_ANDROID}.tar.gz.sha256sum"
+          test -f ${ARCHIVE_WINDOWS}.zip && sha256sum ${ARCHIVE_WINDOWS}.zip > "${ARCHIVE_WINDOWS}.zip.sha256sum"
 
-          if [[ -d ${{ env.UPLOAD_DIR_DEB }} ]]; then
-            pushd ${{ env.UPLOAD_DIR_DEB }}
-            for deb in nym-vpn*_amd64.deb; do
-              sha256sum ${deb} > ${deb}.sha256sum || true
+          if [[ -d ${{ env.UPLOAD_DIR_DEB_X86_64 }} ]]; then
+            pushd ${{ env.UPLOAD_DIR_DEB_X86_64 }}
+            for deb in *.deb; do
+              sha256sum ${deb} > ${deb}.sha256sum
+            done
+            popd
+          fi
+          if [[ -d ${{ env.UPLOAD_DIR_DEB_AARCH64 }} ]]; then
+            pushd ${{ env.UPLOAD_DIR_DEB_AARCH64 }}
+            for deb in *.deb; do
+              sha256sum ${deb} > ${deb}.sha256sum
             done
             popd
           fi
 
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat ${ARCHIVE_LINUX}.tar.gz.sha256sum >> $GITHUB_ENV || true
-          cat ${ARCHIVE_ANDROID}.tar.gz.sha256sum >> $GITHUB_ENV || true
-          cat ${ARCHIVE_WINDOWS}.zip.sha256sum >> $GITHUB_ENV || true
-          if [[ -d ${{ env.UPLOAD_DIR_DEB }} ]]; then
-            pushd ${{ env.UPLOAD_DIR_DEB }}
-            for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
-              cat ${deb_sha256} >> $GITHUB_ENV || true
+          cat ${ARCHIVE_LINUX_X86_64}.tar.gz.sha256sum >> $GITHUB_ENV
+          cat ${ARCHIVE_LINUX_AARCH64}.tar.gz.sha256sum >> $GITHUB_ENV
+          cat ${ARCHIVE_ANDROID}.tar.gz.sha256sum >> $GITHUB_ENV
+          cat ${ARCHIVE_WINDOWS}.zip.sha256sum >> $GITHUB_ENV
+
+          if [[ -d ${{ env.UPLOAD_DIR_DEB_X86_64 }} ]]; then
+            pushd ${{ env.UPLOAD_DIR_DEB_X86_64 }}
+            for deb_sha256 in *.sha256sum; do
+              cat ${deb_sha256} >> $GITHUB_ENV
+            done
+          fi
+          if [[ -d ${{ env.UPLOAD_DIR_DEB_AARCH64 }} ]]; then
+            pushd ${{ env.UPLOAD_DIR_DEB_AARCH64 }}
+            for deb_sha256 in *.sha256sum; do
+              cat ${deb_sha256} >> $GITHUB_ENV
             done
           fi
           echo 'EOF' >> $GITHUB_ENV
@@ -188,10 +209,12 @@ jobs:
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --title "$SUBJECT" \
             --target $GITHUB_SHA \
-            ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum \
+            ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum \
+            ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum \
-            ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
+            ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} \
+            ${{ env.UPLOAD_DIR_DEB_AARCH64 }}/*.{deb,sha256sum}
 
       # Upload to CI server
 
@@ -210,14 +233,16 @@ jobs:
       - name: Prepare build output artifacts
         shell: bash
         run: |
-          cp -v ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.OUTPUT_DIR }} || true
-          cp -v ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }} || true
-          cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.OUTPUT_DIR }} || true
-          cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }} || true
-          cp -v ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.OUTPUT_DIR }} || true
-          cp -v ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum ${{ env.OUTPUT_DIR }} || true
-          cp -v ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb ${{ env.OUTPUT_DIR }} || true
-          cp -v ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum ${{ env.OUTPUT_DIR }} || true
+          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.UPLOAD_DIR_DEB_AARCH64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
 
       - name: Upload to www
         uses: easingthemes/ssh-deploy@main

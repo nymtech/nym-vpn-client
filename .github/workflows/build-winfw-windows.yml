@@ -45,11 +45,11 @@ jobs:
         run: make -f Windows.mk winfw CPU_ARCH=AMD64 RELEASE=1
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: winfw
           path: |
             ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.dll
             ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.lib
           if-no-files-found: error
-          retention-days: 10
+          retention-days: 1

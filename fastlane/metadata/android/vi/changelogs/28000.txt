@@ -1,0 +1,8 @@
+Có gì mới
+- Thêm các tùy chọn ghi nhật ký: Bật/tắt Nhật ký và Chế độ gỡ lỗi chi tiết
+- Thêm kiểm tra xác thực cho các thao tác phím tắt
+- Cập nhật định dạng xuất nhật ký (thư mục có cấu trúc và nhật ký được nhóm)
+- Cải thiện khả năng xử lý thao tác trên Thanh điều hướng
+- Giảm bớt thông tin nhật ký nhiễu
+- Sửa lỗi xử lý Tự động khởi động
+- Cải tiến và sửa lỗi giao diện người dùng nhỏ

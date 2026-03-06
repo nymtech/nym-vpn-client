@@ -8,14 +8,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.backend.hasValidSubscription
 import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import timber.log.Timber
 import javax.inject.Inject
@@ -29,6 +35,7 @@ class LoginViewModel @Inject constructor(
 
 	companion object {
 		private const val TAG = "ui-login-vm"
+		private const val ACCOUNT_READY_TIMEOUT_MS = 20_000L
 	}
 
 	private val _uiState = MutableStateFlow(LoginUiState())
@@ -58,8 +65,7 @@ class LoginViewModel @Inject constructor(
 
 	fun onSubmitMnemonic() = viewModelScope.launch {
 		val phrase = uiState.value.mnemonic.trim()
-		if (phrase.isEmpty()) return@launch
-		if (uiState.value.isLoading) return@launch
+		if (phrase.isEmpty() || uiState.value.isLoading) return@launch
 
 		Timber.tag(TAG).i("MnemonicImportRequested")
 		_uiState.update { it.copy(isLoading = true, mnemonicError = null) }
@@ -67,13 +73,45 @@ class LoginViewModel @Inject constructor(
 		runCatching {
 			backendManager.storeMnemonic(phrase)
 
+			_events.tryEmit(
+				LoginEvent.Processing,
+			)
 			Timber.tag(TAG).i("MnemonicImportSuccess")
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 
 			backendManager.refreshAccount()
 
+			val accountState = waitForAccountReady()
+			Timber.tag(TAG).i("AccountStateAfterLogin state=%s", accountState)
+			var error: String? = null
+
+			val hasValidSubscription = when (accountState) {
+				is AccountControllerState.ReadyToConnect,
+				is AccountControllerState.Decentralised,
+				is AccountControllerState.UpgradeMode,
+				-> backendManager.hasValidSubscription(TAG)
+
+				is AccountControllerState.Error -> {
+					Timber.tag(TAG).w("AccountStateError reason=%s", accountState.v1)
+					error = accountState.v1.toString()
+					false
+				}
+
+				else -> {
+					Timber.tag(TAG).w("AccountReadyTimeout, proceeding with subscription check")
+					backendManager.hasValidSubscription(TAG)
+				}
+			}
+
 			val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
-			_events.tryEmit(LoginEvent.NavigateAfterLogin(showTechnicalOpt = shouldShowTechnical))
+
+			_events.tryEmit(
+				LoginEvent.NavigateAfterLogin(
+					showTechnicalOpt = shouldShowTechnical,
+					hasValidSubscription = hasValidSubscription,
+					error = error,
+				),
+			)
 
 			_uiState.update { it.copy(isLoading = false, showMaxDevicesModal = false) }
 		}.onFailure { t ->
@@ -91,11 +129,23 @@ class LoginViewModel @Inject constructor(
 		}
 	}
 
+	private suspend fun waitForAccountReady(): AccountControllerState? {
+		return withTimeoutOrNull(ACCOUNT_READY_TIMEOUT_MS) {
+			backendManager.stateFlow
+				.map {
+					it.accountState
+				}
+				.filter { state ->
+					state is AccountControllerState.ReadyToConnect ||
+						state is AccountControllerState.Decentralised ||
+						state is AccountControllerState.UpgradeMode ||
+						state is AccountControllerState.Error
+				}
+				.first()
+		}
+	}
+
 	fun dismissMaxDevicesModal() {
 		_uiState.update { it.copy(showMaxDevicesModal = false) }
 	}
-}
-
-sealed interface LoginEvent {
-	data class NavigateAfterLogin(val showTechnicalOpt: Boolean) : LoginEvent
 }

@@ -1,0 +1,20 @@
+{
+  "state": {
+    "state": "State",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connecting": "Connecting",
+    "disconnecting": "Disconnecting",
+    "error": "Error"
+  },
+  "mode": {
+    "mode": "Mode",
+    "anonymous-mixnet": "Anonymous(mixnet)",
+    "fast-wireguard": "Fast(WireGuard)"
+  },
+  "entry": "Entry",
+  "exit": "Exit",
+  "random": "Random",
+  "show-hide": "Show/Hide",
+  "quit": "Quit (disconnect)"
+}

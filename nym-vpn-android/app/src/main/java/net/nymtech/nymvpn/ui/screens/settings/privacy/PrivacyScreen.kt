@@ -24,7 +24,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun PrivacyScreen(appUiState: AppUiState, viewModel: PrivacyViewModel = hiltViewModel()) {
 	PrivacyScreen(
 		appUiState.settings.statsEnabled,
-		appUiState.settings.sentryEnabled,
+		appUiState.vpnConfig.sentry,
 		onNetworkStatsEnable = {
 			viewModel.onNetworkStatsEnabled(it)
 		},

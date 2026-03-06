@@ -1,18 +1,22 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{io::Result, path::PathBuf};
+use std::io::Result;
 
 use hyper_util::rt::TokioIo;
+use tokio::io::{AsyncRead, AsyncWrite};
+
+use crate::auth_result::{AuthenticaticationQuery, AuthenticaticationResult};
 
 /// Connect timeout used when the pipe reports that it's busy.
 #[cfg(windows)]
 const PIPE_AVAILABILITY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 
-#[cfg(target_os = "linux")]
-pub async fn connect(socket_path: PathBuf) -> Result<TokioIo<tokio::net::UnixStream>> {
-    let mut conn = tokio::net::UnixStream::connect(socket_path).await?;
-    let auth_res = crate::auth_result::AuthenticaticationResult::recv(&mut conn).await;
+async fn accepted<T: AsyncWrite + AsyncRead + Unpin>(mut conn: T) -> Result<TokioIo<T>> {
+    // XPC requires the client to be the first to send queries before the
+    // connection is initiated, so best to do it on all platforms
+    AuthenticaticationQuery::query(&mut conn).await;
+    let auth_res = AuthenticaticationResult::recv(&mut conn).await;
     if auth_res.accepted() {
         Ok(TokioIo::new(conn))
     } else {
@@ -20,20 +24,30 @@ pub async fn connect(socket_path: PathBuf) -> Result<TokioIo<tokio::net::UnixStr
     }
 }
 
-#[cfg(target_os = "macos")]
-pub async fn connect(socket_path: PathBuf) -> Result<TokioIo<tokio::net::UnixStream>> {
-    Ok(TokioIo::new(
-        tokio::net::UnixStream::connect(socket_path).await?,
-    ))
+#[cfg(all(target_os = "macos", any(not(debug_assertions), feature = "xpc")))]
+pub async fn connect(
+    _socket_path: std::path::PathBuf,
+) -> Result<TokioIo<crate::xpc::common::XpcConnection>> {
+    let conn = crate::xpc::client::connect().await?;
+    accepted(conn).await
 }
 
-#[cfg(windows)]
+#[cfg(any(
+    target_os = "linux",
+    all(target_os = "macos", debug_assertions, not(feature = "xpc"))
+))]
+pub async fn connect(socket_path: std::path::PathBuf) -> Result<TokioIo<tokio::net::UnixStream>> {
+    let conn = tokio::net::UnixStream::connect(socket_path).await?;
+    accepted(conn).await
+}
+
+#[cfg(target_os = "windows")]
 pub async fn connect(
-    socket_path: PathBuf,
+    socket_path: std::path::PathBuf,
 ) -> Result<TokioIo<tokio::net::windows::named_pipe::NamedPipeClient>> {
     let attempt_start = tokio::time::Instant::now();
     let pipe_name = socket_path.into_os_string();
-    loop {
+    let conn = loop {
         match tokio::net::windows::named_pipe::ClientOptions::new()
             .read(true)
             .write(true)
@@ -50,7 +64,9 @@ pub async fn connect(
                     return Err(e);
                 }
             }
-            result => return result.map(TokioIo::new),
+            result => break result?,
         }
-    }
+    };
+
+    accepted(conn).await
 }

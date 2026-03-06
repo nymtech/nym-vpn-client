@@ -1,8 +1,11 @@
 package net.nymtech.vpn.util.extensions
 
+import android.content.Context
+import net.nymtech.vpn.R
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.util.Base58
 import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.TunnelState
@@ -12,9 +15,9 @@ fun TunnelEvent.NewState.asTunnelState(): Tunnel.State {
 	return when (this.v1) {
 		is TunnelState.Connected -> Tunnel.State.Up
 		is TunnelState.Connecting -> Tunnel.State.EstablishingConnection
-		TunnelState.Disconnected -> Tunnel.State.Down
+		is TunnelState.Disconnected -> Tunnel.State.Down
 		is TunnelState.Disconnecting -> Tunnel.State.Disconnecting
-		is TunnelState.Error -> Tunnel.State.Down
+		is TunnelState.Error -> Tunnel.State.Error(this.v1.v1)
 		is TunnelState.Offline -> Tunnel.State.Offline
 	}
 }
@@ -59,4 +62,35 @@ fun String.asExitPoint(): ExitPoint {
 
 fun toDisplayCountry(twoLetterIsoCountryCode: String): String {
 	return Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry
+}
+
+fun ErrorStateReason.toHumanReadableString(context: Context): String {
+	return when (this) {
+		ErrorStateReason.SetFirewallPolicy -> context.getString(R.string.error_reason_set_firewall_policy)
+		ErrorStateReason.SetRouting -> context.getString(R.string.error_reason_set_routing)
+		ErrorStateReason.SetDns -> context.getString(R.string.error_reason_set_dns)
+		ErrorStateReason.TunDevice -> context.getString(R.string.error_reason_tun_device)
+		ErrorStateReason.TunnelProvider -> context.getString(R.string.error_reason_tunnel_provider)
+		ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.error_reason_ipv6_unavailable)
+		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.error_reason_same_entry_and_exit_gateway)
+		ErrorStateReason.PerformantEntryGatewayUnavailable -> context.getString(R.string.error_reason_performant_entry_gateway_unavailable)
+		ErrorStateReason.PerformantExitGatewayUnavailable -> context.getString(R.string.error_reason_performant_exit_gateway_unavailable)
+		ErrorStateReason.InvalidEntryGatewayIdentity -> context.getString(R.string.error_reason_invalid_entry_gateway_identity)
+		ErrorStateReason.InvalidExitGatewayIdentity -> context.getString(R.string.error_reason_invalid_exit_gateway_identity)
+		ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.error_reason_invalid_entry_gateway_country)
+		ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.error_reason_invalid_exit_gateway_country)
+		ErrorStateReason.CredentialWastedOnEntryGateway -> context.getString(R.string.error_reason_credential_wasted_on_entry_gateway)
+		ErrorStateReason.CredentialWastedOnExitGateway -> context.getString(R.string.error_reason_credential_wasted_on_exit_gateway)
+		ErrorStateReason.BandwidthExceeded -> context.getString(R.string.error_reason_bandwidth_exceeded)
+		ErrorStateReason.InactiveAccount -> context.getString(R.string.error_reason_inactive_account)
+		ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_reason_inactive_subscription)
+		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.error_reason_max_devices_reached)
+		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.error_reason_device_time_out_of_sync)
+		ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_reason_device_logged_out)
+
+		// unused on Android
+		ErrorStateReason.NeedFullDiskPermissions, ErrorStateReason.SplitTunnel -> ""
+
+		is ErrorStateReason.Internal -> context.getString(R.string.error_reason_internal, this.v1)
+	}
 }

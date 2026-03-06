@@ -30,6 +30,9 @@ class CoreVpnConfigRepository(context: Context) {
 					is CoreVpnConfigUpdate.SetCustomDnsEnabled -> acc.copy(customDnsEnabled = update.value)
 					is CoreVpnConfigUpdate.SetCustomDns -> acc.copy(customDns = update.value)
 					is CoreVpnConfigUpdate.SetRestrictedApps -> acc.copy(restrictedApps = update.value)
+					is CoreVpnConfigUpdate.SetNetwork -> acc.copy(network = update.value)
+					is CoreVpnConfigUpdate.SetDebugLog -> acc.copy(debugLog = update.value)
+					is CoreVpnConfigUpdate.SetSentry -> acc.copy(sentry = update.value)
 				}
 			}
 		}

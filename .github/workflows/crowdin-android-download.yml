@@ -1,0 +1,36 @@
+name: crowdin-android-download
+
+on:
+  workflow_dispatch:
+
+jobs:
+  crowdin-download:
+    runs-on: arc-linux-latest-dind
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: crowdin action
+        uses: crowdin/github-action@v2
+        with:
+          upload_sources: false
+          upload_translations: false
+          download_translations: true
+          config: "crowdin-configs/android.yml"
+          command_args: "-l ar -l bn -l de -l es-ES -l fa -l fr -l hi -l pt-BR -l ru -l tr -l uk -l vi -l zh-CN"
+          localization_branch_name: "l10n_crowdin_android_${{ github.ref_name }}"
+          create_pull_request: true
+          pull_request_title: "Localization: Update Android Translations (${{ github.ref_name }})"
+          pull_request_body: "Manual PR to sync translations from Crowdin to the `${{ github.ref_name }}` branch."
+          pull_request_base_branch_name: "${{ github.ref_name }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

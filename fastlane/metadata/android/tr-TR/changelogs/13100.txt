@@ -1,0 +1,2 @@
+Yenilikler:
+- Bağlantı güvenilirliği iyileştirildi

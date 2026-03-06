@@ -4,6 +4,7 @@ import SwiftUI
 import Foundation
 import AppSettings
 import AppVersionProvider
+import ConnectionTypes
 import ConfigurationManager
 import Constants
 import ErrorReason
@@ -33,6 +34,7 @@ import PathManager
     public var deviceIdentifier: String?
     @Published public var accountIdentifier: String?
     @Published public var didReceiveAccountLinkCallback = false
+    @Published public var accountSummary: AccountSummary?
 
     public var isValidCredentialImported: Bool {
         appSettings.isCredentialImported
@@ -58,7 +60,7 @@ import PathManager
 #if os(iOS)
                 try await NymVpnAccountStorage(
                     dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv
+                    environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
                 ).login(request: .vpn(mnemonic: credential))
 #elseif os(macOS)
                 try await grpcManager.storeAccount(with: .vpn(mnemonic: credential))
@@ -83,7 +85,7 @@ import PathManager
         try await Task {
             try await NymVpnAccountStorage(
                 dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv
+                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
             ).createAccount()
             Task { @MainActor in
                 checkCredentialImport()
@@ -97,7 +99,7 @@ import PathManager
         try await Task {
             try await NymVpnAccountStorage(
                 dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv
+                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
             ).getStoredMnemonic()
         }.value
 #elseif os(macOS)
@@ -108,18 +110,16 @@ import PathManager
 
     public func registerAccount() async throws {
 #if os(iOS)
-        try await Task {
-            do {
-                let result = try await NymVpnAccountStorage(
-                    dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv
-                ).registerAccount()
-                Task { @MainActor in
-                    appSettings.accountToken = result.accountToken
-                    checkCredentialImport()
-                }
+        do {
+            let result = try await NymVpnAccountStorage(
+                dataDir: PathManager.dataFolderURL().path(),
+                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+            ).registerAccount()
+            Task { @MainActor in
+                appSettings.accountToken = result.accountToken
+                checkCredentialImport()
             }
-        }.value
+        }
 #endif
     }
 
@@ -129,7 +129,7 @@ import PathManager
 #if os(iOS)
                 try await NymVpnAccountStorage(
                     dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv
+                    environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
                 ).forgetAccount()
 #elseif os(macOS)
                 try await grpcManager.forgetAccount()
@@ -141,20 +141,9 @@ import PathManager
             }
             Task { @MainActor in
                 appSettings.accountToken = nil
+                accountSummary = nil
             }
         }.value
-    }
-
-    public func isAccountLinkAvailable() async throws -> Bool {
-#if os(iOS)
-        let result = try await NymVpnAccountStorage(
-            dataDir: PathManager.dataFolderURL().path(),
-            environment: configurationManager.networkEnv
-        ).getAccountMode()
-        return result == .api
-#elseif os(macOS)
-        return try await grpcManager.isLinkAccountAvailable()
-#endif
     }
 
     public func privyLogin(isLink: Bool = false) async throws -> String? {
@@ -162,7 +151,9 @@ import PathManager
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
         let name = "default"
 #if os(iOS)
-        deeplinks = NymDeeplinks(networkEnv: configurationManager.networkEnv)
+        guard let networkEnv = configurationManager.networkEnv else { return nil }
+
+        deeplinks = NymDeeplinks(networkEnv: networkEnv)
         return try await deeplinks?.getDeeplink(
             params: .init(
                 client: .mobile,
@@ -178,18 +169,57 @@ import PathManager
 
     public func privyLoginStore(callbackURLString: String) async throws {
 #if os(iOS)
-        guard let deeplinks else { return }
+        guard let deeplinks, let networkEnv = configurationManager.networkEnv else { return }
         let mnemonic = try await deeplinks.deriveMnemonic(deeplinkCallbackUrl: callbackURLString)
         try await NymVpnAccountStorage(
             dataDir: PathManager.dataFolderURL().path(),
-            environment: configurationManager.networkEnv
+            environment: networkEnv
         ).loginWithDeeplinkMnemonic(deeplinkMnemonic: mnemonic)
         self.deeplinks = nil
         checkCredentialImport()
 #elseif os(macOS)
         try await grpcManager.storePrivyAccount(with: callbackURLString)
         checkCredentialImport()
+#endif
         didReceiveAccountLinkCallback = true
+    }
+
+    /// Fetches account summary from API if current accountSummary.validUntilDate does not exist or is in past,
+    /// stores value and returns true if validUntilDate is in the future
+    /// - Returns: Bool
+    public func isAccountValid() async -> Bool {
+        if isAccountSubscriptionDateValid() {
+            return true
+        } else {
+            await updateAccountSummary()
+            return isAccountSubscriptionDateValid()
+        }
+    }
+
+    public func updateAccountSummary() async {
+#if os(iOS)
+        guard let summary = try? await NymVpnAccountStorage(
+            dataDir: PathManager.dataFolderURL().path(),
+            environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+        ).getAccountSummary()
+        else {
+            return
+        }
+
+        accountSummary = AccountSummary(
+            validUntilTimeInterval: summary.subscriptionValidUntil,
+            trafficUsedGb: summary.trafficUsedGb,
+            trafficLimitGb: summary.trafficLimitGb,
+            trafficResetTimeInterval: summary.trafficResetTime,
+            accountAddress: summary.accountAddr,
+            cannonicalAccountAddress: summary.canonicalAccountAddr,
+            accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
+            isLinked: summary.isLinked(),
+            isActive: summary.isSubscriptionActive()
+        )
+
+#elseif os(macOS)
+        accountSummary = try? await grpcManager.accountSummary()
 #endif
     }
 }
@@ -220,14 +250,26 @@ private extension CredentialsManager {
 }
 
 private extension CredentialsManager {
+    /// Checks if accountSummary.validUntilDate is in the future
+    /// - Returns: Bool
+    func isAccountSubscriptionDateValid() -> Bool {
+        guard let validUntilDate = accountSummary?.validUntilDate,
+              validUntilDate > Date()
+        else {
+            return false
+        }
+        return true
+    }
+
     func checkCredentialImport() {
         Task {
             do {
                 let isImported: Bool
 #if os(iOS)
+                guard let networkEnv = configurationManager.networkEnv else { return }
                 isImported = try await NymVpnAccountStorage(
                     dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv
+                    environment: networkEnv
                 ).isAccountMnemonicStored()
 #elseif os(macOS)
                 isImported = try await grpcManager.isAccountStored()
@@ -237,8 +279,9 @@ private extension CredentialsManager {
                 logger.error("Failed to check credential import: \(error.localizedDescription)")
                 updateIsCredentialImported(with: false)
             }
-            updateDeviceIdentifier()
-            updateAccountIdentifier()
+            await updateDeviceIdentifier()
+            await updateAccountIdentifier()
+            await updateAccountSummary()
         }
     }
 
@@ -251,33 +294,30 @@ private extension CredentialsManager {
 }
 
 private extension CredentialsManager {
-    func updateDeviceIdentifier() {
-        Task {
+    func updateDeviceIdentifier() async {
 #if os(iOS)
-            deviceIdentifier = try? await NymVpnAccountStorage(
-                dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv
-            ).getDeviceIdentity()
+        guard let networkEnv = configurationManager.networkEnv else { return }
+        deviceIdentifier = try? await NymVpnAccountStorage(
+            dataDir: PathManager.dataFolderURL().path(),
+            environment: networkEnv
+        ).getDeviceIdentity()
 #elseif os(macOS)
-            deviceIdentifier = try? await grpcManager.deviceIdentifier()
+        deviceIdentifier = try? await grpcManager.deviceIdentifier()
 #endif
-        }
     }
 
-    func updateAccountIdentifier() {
-        Task {
-            let newAccIdentifier: String?
+    func updateAccountIdentifier() async {
+        let newAccIdentifier: String?
 #if os(iOS)
-            newAccIdentifier = try? await NymVpnAccountStorage(
-                dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv
-            ).getAccountIdentity()
+        newAccIdentifier = try? await NymVpnAccountStorage(
+            dataDir: PathManager.dataFolderURL().path(),
+            environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+        ).getAccountIdentity()
 #elseif os(macOS)
-            newAccIdentifier = try? await grpcManager.accountIdentifier()
+        newAccIdentifier = try? await grpcManager.accountIdentifier()
 #endif
-            Task { @MainActor in
-                accountIdentifier = newAccIdentifier
-            }
+        Task { @MainActor in
+            accountIdentifier = newAccIdentifier
         }
     }
 }

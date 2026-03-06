@@ -1,6 +1,7 @@
 import SwiftUI
 import AppSettings
 import Constants
+import ImpactGenerator
 #if os(macOS)
 import GRPCManager
 #endif
@@ -9,6 +10,7 @@ import UIComponents
 
 public struct PrivacyAndDataView: View {
     @EnvironmentObject private var appSettings: AppSettings
+    @EnvironmentObject private var impactGenerator: ImpactGenerator
 #if os(macOS)
     @EnvironmentObject private var grpcManager: GRPCManager
 #endif
@@ -22,6 +24,9 @@ public struct PrivacyAndDataView: View {
             Spacer()
                 .frame(height: 24)
             VStack(spacing: 0) {
+                logsSection()
+                Spacer()
+                    .frame(height: 24)
 #if os(macOS)
                 statisticsSection()
                 Spacer()
@@ -56,19 +61,41 @@ private extension PrivacyAndDataView {
         )
     }
 
+    @ViewBuilder
+    func logsSection() -> some View {
+#if os(iOS)
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .toggle(
+                    isOn: $appSettings.isDebugLogsOn
+                ),
+                title: "settings.privacyAndData.enableDebugLogs".localizedString,
+                systemImageName: "ladybug",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {}
+            )
+        )
+        Spacer()
+            .frame(height: 24)
+#endif
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "logs".localizedString,
+                imageName: "logs",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {
+                    navigateToLogs()
+                }
+            )
+        )
+    }
+
     func statisticsSection() -> some View {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: $appSettings.isStatisticsEnabled,
-                        action: { isOn in
-                            appSettings.isStatisticsEnabled = isOn
-#if os(macOS)
-                            enableMacOSNetworkStatsIfNeeded(with: isOn)
-#endif
-                        }
-                    )
+                    isOn: $appSettings.isStatisticsEnabled
                 ),
                 title: "privacyData.anonymousStats".localizedString,
                 multilineText: privacyMultilineText(),
@@ -76,6 +103,11 @@ private extension PrivacyAndDataView {
                 action: {}
             )
         )
+#if os(macOS)
+        .onChange(of: appSettings.isStatisticsEnabled) {
+            enableMacOSNetworkStatsIfNeeded(with: appSettings.isStatisticsEnabled)
+        }
+#endif
     }
 
     func privacyMultilineText() -> AttributedString? {
@@ -103,15 +135,7 @@ private extension PrivacyAndDataView {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: $appSettings.isErrorReportingOn,
-                        action: { isOn in
-                            appSettings.isErrorReportingOn = isOn
-#if os(macOS)
-                            enableMacOSErrorReportingIfNeeded(with: isOn)
-#endif
-                        }
-                    )
+                    isOn: $appSettings.isErrorReportingOn
                 ),
                 title: "privacyData.errorCrashReports".localizedString,
                 multilineText: errorReportingMultilineText(),
@@ -119,6 +143,11 @@ private extension PrivacyAndDataView {
                 action: {}
             )
         )
+#if os(macOS)
+        .onChange(of: appSettings.isErrorReportingOn) {
+            enableMacOSErrorReportingIfNeeded(with: appSettings.isErrorReportingOn)
+        }
+#endif
     }
 
     func errorReportingMultilineText() -> AttributedString? {
@@ -144,6 +173,11 @@ private extension PrivacyAndDataView {
 private extension PrivacyAndDataView {
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
+    }
+
+    func navigateToLogs() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.logs)
     }
 }
 

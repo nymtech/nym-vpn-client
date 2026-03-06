@@ -3,13 +3,26 @@
     "title": "Auto-connect",
     "desc": "Auto connect at app startup"
   },
+  "ad-block": {
+    "title": "Block ads",
+    "desc": "Blocking ads and tracker",
+    "errors": {
+      "failed": "Failed to enable ad blocking"
+    }
+  },
   "ipv6-support": {
     "title": "Support IPv6",
-    "desc": "Allow IPv6 connections"
+    "desc": "Allow IPv6 connections",
+    "errors": {
+      "failed": "Failed to enable IPv6 support"
+    }
   },
   "allow-lan": {
     "title": "Bypass LAN",
-    "desc": "Allow direct local network access"
+    "desc": "Allow direct local network access",
+    "errors": {
+      "failed": "Failed to enable LAN bypass"
+    }
   },
   "notifications": {
     "title": "Desktop notifications"
@@ -105,7 +118,7 @@
       "title": "Expected performance based on current settings",
       "speed": {
         "title": "Speed",
-        "value": "Up to {{value}} Mbps"
+        "value": "Up to {{value}}"
       },
       "privacy": {
         "title": "Latency",
@@ -120,16 +133,13 @@
         "use-less-battery-and-data": "Use less battery & data",
         "max-anonymity": "Max. anonymity",
         "low": {
-          "label": "Low",
-          "speed": "{{value}} Mbps"
+          "label": "Low"
         },
         "balanced": {
-          "label": "Balanced",
-          "speed": "{{value}} Mbps"
+          "label": "Balanced"
         },
         "high": {
-          "label": "High",
-          "speed": "{{value}} Mbps"
+          "label": "High"
         }
       },
       "background-cover-traffic": {
@@ -142,13 +152,13 @@
           "label": "Base"
         },
         "balanced": {
-          "label": "Balanced"
+          "label": "Balanced\n5x"
         },
         "medium": {
-          "label": "Medium"
+          "label": "Medium\n10x"
         },
         "high": {
-          "label": "High"
+          "label": "High\n20x"
         }
       }
     },
@@ -249,6 +259,7 @@
     "snackbar-disabled": "Proxy successfully disabled"
   },
   "privacy": {
+    "title": "Data, privacy & logs",
     "error-monitoring": {
       "label": "Error & crash reports",
       "sublabel": "Changes will apply after app and daemon restart.",
@@ -284,5 +295,11 @@
     "status-inactive": "Account is inactive",
     "requesting-zknyms": "Requesting ZkNyms",
     "error": "Internal error"
+  },
+  "diagnostic": {
+    "title": "Diagnostic tool",
+    "run": "Run Diagnostic",
+    "share": "Share report",
+    "report-title": "Diagnostic report"
   }
 }

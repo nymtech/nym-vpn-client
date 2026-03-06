@@ -1,0 +1,8 @@
+Có gì mới:
+- Thêm trạng thái QUIC và chi tiết máy chủ
+- Biểu tượng phát trực tuyến mới và chú giải công cụ được cập nhật trên Trang chủ/Thoát
+- Màn hình cụm từ mật khẩu và luồng tạo tài khoản mới
+- Màn hình Vào/Thoát hiện hiển thị tên thành phố thay vì ID máy chủ
+- Cải thiện chi tiết cổng kết nối với thời gian cập nhật tương đối
+- Sửa lỗi hiển thị thời gian hoạt động của máy chủ
+- Nhiều cải tiến và sửa lỗi giao diện người dùng

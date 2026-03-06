@@ -9,7 +9,6 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.data.domain.Settings.Companion.MIXNET_CONFIG_DEFAULT
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.MixnetTrafficConfig
 import timber.log.Timber
 
@@ -20,12 +19,10 @@ class DataStoreSettingsRepository(
 	private val theme = stringPreferencesKey("THEME")
 	private val autoStart = booleanPreferencesKey("AUTO_START")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
-	private val environment = stringPreferencesKey("ENVIRONMENT")
 	private val manualGatewayOverride = booleanPreferencesKey("MANUAL_GATEWAYS")
 	private val credentialMode = booleanPreferencesKey("CREDENTIAL_MODE")
 	private val locale = stringPreferencesKey("LOCALE")
 	private val batteryDialogSkip = booleanPreferencesKey("BATTERY_DIALOG_SKIP")
-	private val sentryEnabled = booleanPreferencesKey("SENTRY_ENABLED")
 	private val statsEnabled = booleanPreferencesKey("STATISTICS_ENABLED")
 	private val statsDialogSkip = booleanPreferencesKey("STATISTICS_DIALOG_SKIP")
 	private val technicalOptScreenCompleted = booleanPreferencesKey("TECHNICAL_OPT_SCREEN_COMPLETE")
@@ -33,7 +30,6 @@ class DataStoreSettingsRepository(
 	private val isStreamingServerBannerDisplayed = booleanPreferencesKey("STREAMING_SERVER_DISPLAYED")
 	private val isPerAppSecurityBannerDisplayed = booleanPreferencesKey("DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED")
 	private val logsEnabled = booleanPreferencesKey("LOGS_ENABLED")
-	private val logsDebugEnabled = booleanPreferencesKey("LOGS_DEBUG_ENABLED")
 
 	// Keys for Mixnet Configuration
 	private val mixnetPoissonRate = intPreferencesKey("MIXNET_POISSON_RATE")
@@ -72,16 +68,6 @@ class DataStoreSettingsRepository(
 		dataStoreManager.saveToDataStore(applicationShortcuts, enabled)
 	}
 
-	override suspend fun getEnvironment(): Tunnel.Environment {
-		return dataStoreManager.getFromStore(environment)?.let {
-			runCatching { Tunnel.Environment.valueOf(it) }.getOrElse { Settings.DEFAULT_ENVIRONMENT }
-		} ?: Settings.DEFAULT_ENVIRONMENT
-	}
-
-	override suspend fun setEnvironment(environment: Tunnel.Environment) {
-		dataStoreManager.saveToDataStore(this.environment, environment.name)
-	}
-
 	override suspend fun setManualGatewayOverride(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(manualGatewayOverride, enabled)
 	}
@@ -109,14 +95,6 @@ class DataStoreSettingsRepository(
 
 	override suspend fun isBatteryDialogSkipped(): Boolean {
 		return dataStoreManager.getFromStore(batteryDialogSkip) ?: Settings.FLAG_BATTERY_DIALOG_SKIP
-	}
-
-	override suspend fun getSentryMonitoringEnabled(): Boolean {
-		return dataStoreManager.getFromStore(sentryEnabled) ?: Settings.DEFAULT_SENTRY_ENABLED
-	}
-
-	override suspend fun setSentryMonitoring(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(sentryEnabled, enabled)
 	}
 
 	override suspend fun getStatisticsEnabled(): Boolean {
@@ -176,14 +154,6 @@ class DataStoreSettingsRepository(
 		dataStoreManager.saveToDataStore(logsEnabled, enabled)
 	}
 
-	override suspend fun getLogsDebugEnabled(): Boolean {
-		return dataStoreManager.getFromStore(logsDebugEnabled) ?: Settings.DEFAULT_LOGS_DEBUG_ENABLED
-	}
-
-	override suspend fun setLogsDebugEnabled(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(logsDebugEnabled, enabled)
-	}
-
 	override suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig {
 		val poisson = dataStoreManager.getFromStore(mixnetPoissonRate)
 		val avgDelay = dataStoreManager.getFromStore(mixnetAvgPacketDelay)
@@ -230,11 +200,9 @@ class DataStoreSettingsRepository(
 						theme = pref[theme]?.let { Theme.valueOf(it) } ?: Theme.default(),
 						autoStartEnabled = pref[autoStart] ?: Settings.AUTO_START_DEFAULT,
 						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
-						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT,
 						isCredentialMode = pref[credentialMode],
 						locale = pref[locale],
 						batteryDialogSkip = pref[batteryDialogSkip] ?: Settings.FLAG_BATTERY_DIALOG_SKIP,
-						sentryEnabled = pref[sentryEnabled] ?: Settings.DEFAULT_SENTRY_ENABLED,
 						statsEnabled = pref[statsEnabled] ?: Settings.DEFAULT_STATS_ENABLED,
 						statsDialogSkip = pref[statsDialogSkip] ?: Settings.FLAG_STATS_DIALOG_SKIP,
 						technicalOptCompleted = pref[technicalOptScreenCompleted] ?: Settings.FLAG_TECHNICAL_OPT_COMPLETED,
@@ -242,7 +210,6 @@ class DataStoreSettingsRepository(
 						isStreamingServerBannerDisplayed = pref[isStreamingServerBannerDisplayed] ?: Settings.DEFAULT_STREAMING_SERVER_BANNER_DISPLAYED,
 						isPerAppSecurityBannerDisplayed = pref[isPerAppSecurityBannerDisplayed] ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 						logsEnabled = pref[logsEnabled] ?: Settings.DEFAULT_LOGS_ENABLED,
-						logsDebugEnabled = pref[logsDebugEnabled] ?: Settings.DEFAULT_LOGS_DEBUG_ENABLED,
 						mixnetTrafficConfig = mixnetConfig,
 					)
 				} catch (e: IllegalArgumentException) {

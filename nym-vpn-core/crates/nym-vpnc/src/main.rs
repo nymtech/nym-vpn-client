@@ -80,6 +80,12 @@ pub enum Command {
         subcommand: commands::lan::Command,
     },
 
+    /// Ad blocking
+    AdBlock {
+        #[command(subcommand)]
+        subcommand: commands::ad_block::Command,
+    },
+
     /// DNS
     Dns {
         #[command(subcommand)]
@@ -130,6 +136,13 @@ pub enum Command {
         #[command(subcommand)]
         subcommand: nym_diagnostic::cli::Command,
     },
+
+    /// Split tunneling
+    #[cfg(target_os = "macos")]
+    SplitTunnel {
+        #[command(subcommand)]
+        subcommand: commands::split_tunnel::Command,
+    },
 }
 
 impl Command {
@@ -144,6 +157,7 @@ impl Command {
             Command::Gateway(args) => args.execute(rpc_client).await,
             Command::Tunnel { subcommand } => subcommand.execute(rpc_client).await,
             Command::Lan { subcommand } => subcommand.execute(rpc_client).await,
+            Command::AdBlock { subcommand } => subcommand.execute(rpc_client).await,
             Command::Dns { subcommand } => subcommand.execute(rpc_client).await,
             Command::Network { subcommand } => subcommand.execute(rpc_client).await,
             Command::Account { subcommand } => subcommand.execute(rpc_client).await,
@@ -154,6 +168,8 @@ impl Command {
             Command::Diagnostic { subcommand } => {
                 commands::diagnostic::execute(subcommand, rpc_client).await
             }
+            #[cfg(target_os = "macos")]
+            Command::SplitTunnel { subcommand } => subcommand.execute(rpc_client).await,
         }
     }
 

@@ -3,6 +3,8 @@
 
 pub mod storage;
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+mod adblocker;
 mod bandwidth_controller;
 pub mod cache_refresh;
 pub mod config;
@@ -10,6 +12,8 @@ mod error;
 pub mod logging;
 mod mixnet;
 pub mod privy;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+mod resolver;
 pub mod sentry;
 pub mod service;
 #[cfg(any(target_os = "ios", target_os = "android"))]

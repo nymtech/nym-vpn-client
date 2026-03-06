@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">NymVPN चैनल</string>
+	<string name="channel_description">VPN से संबंधित सूचनाओं के लिए चैनल।</string>
+	<string name="disconnect">डिस्कनेक्ट करें</string>
+	<string name="state_connected">कनेक्शन सफल हुआ</string>
+	<string name="state_error">त्रुटि</string>
+	<string name="state_disconnected">डिस्कनेक्टेड</string>
+	<string name="state_initializing">क्लाइंट प्रारंभ हो रहा है…</string>
+	<string name="state_establishing">कनेक्शन स्थापित किया जा रहा है…</string>
+	<string name="notification_entry">प्रवेश: %1$s</string>
+	<string name="notification_exit">बाहर निकलें: %1$s</string>
+	<string name="error_reason_set_firewall_policy">फ़ायरवॉल नीति लागू नहीं हो सकी।</string>
+	<string name="error_reason_set_routing">नेटवर्क रूटिंग कॉन्फ़िगर नहीं हो सकी।</string>
+	<string name="error_reason_set_dns">DNS सेटिंग्स को कॉन्फ़िगर नहीं हो सकी।</string>
+	<string name="error_reason_tun_device">VPN टनल इंटरफेस आरंभ नहीं हो सकी।</string>
+	<string name="error_reason_tunnel_provider">पैकेट टनल प्रदाता को कॉन्फ़िगर करने में विफल।</string>
+	<string name="error_reason_ipv6_unavailable">इस सिस्टम पर IPv6 डिसेबल है।</string>
+	<string name="error_reason_same_entry_and_exit_gateway">एंट्री और एग्ज़िट द्वार एक जैसे नहीं हो सकते।</string>
+	<string name="error_reason_performant_entry_gateway_unavailable">कोई उपयुक्त एंट्री द्वार नहीं मिला।</string>
+	<string name="error_reason_performant_exit_gateway_unavailable">कोई उपयुक्त एग्ज़िट द्वार नहीं मिला।</string>
+	<string name="error_reason_invalid_entry_gateway_identity">अमान्य एंट्री द्वार पहचान।</string>
+	<string name="error_reason_invalid_exit_gateway_identity">अमान्य एग्ज़िट द्वार पहचान।</string>
+	<string name="error_reason_invalid_entry_gateway_country">चयनित एंट्री देश अमान्य है।</string>
+	<string name="error_reason_invalid_exit_gateway_country">चयनित एग्ज़िट देश अमान्य है।</string>
+	<string name="error_reason_credential_wasted_on_entry_gateway">एंट्री गेटवे प्रतिक्रिया नहीं दे रहा है।</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">एग्ज़िट गेटवे प्रतिक्रिया नहीं दे रहा है।</string>
+	<string name="error_reason_bandwidth_exceeded">बैंडविड्थ सीमा पार हो गई है।</string>
+	<string name="error_reason_inactive_account">आपका अकाउंट निष्क्रिय है।</string>
+	<string name="error_reason_inactive_subscription">आपकी सब्स्क्रिप्शन निष्क्रिय है।</string>
+	<string name="error_reason_max_devices_reached">अधिकतम डिवाइस सीमा पूरी हो गई है।</string>
+	<string name="error_reason_device_time_out_of_sync">डिवाइस का समय सिंक में नहीं है।</string>
+	<string name="error_reason_device_logged_out">डिवाइस लॉग आउट हो गया है।</string>
+	<string name="error_reason_internal">आंतरिक एरर: %1$s</string>
+</resources>

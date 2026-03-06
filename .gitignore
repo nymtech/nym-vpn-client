@@ -13,6 +13,7 @@ bin/
 /.cargo
 /nym-vpn-core/.cargo
 nym-vpn-apple/MixnetLibrary/Sources/MixnetLibrary/RustFramework.xcframework
+.lldbinit
 
 # Wireguard-go artifacts
 wireguard/libwg/versioninfo_windows.syso
@@ -39,10 +40,6 @@ nym-vpn-core/upload/mac
 
 # GitHub Copilot
 .github/copilot-instructions.md
-
-# Fastlane metadata (Crowdin)
-fastlane/metadata/android/*/
-!fastlane/metadata/android/en-US/
 
 # Fastlane reports
 fastlane/report.xml

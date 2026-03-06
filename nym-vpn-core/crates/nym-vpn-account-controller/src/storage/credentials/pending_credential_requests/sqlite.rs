@@ -5,7 +5,7 @@ use time::{Date, OffsetDateTime};
 
 use super::models::PendingCredentialRequestStored;
 
-use sqlx_pool_guard::SqlitePoolGuard;
+use nym_sqlx_pool_guard::SqlitePoolGuard;
 
 #[derive(Clone)]
 pub struct SqliteZkNymRequestsStorageManager {

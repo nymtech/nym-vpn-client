@@ -1,10 +1,7 @@
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { CardNew, CardNewBody, CardNewHeader, Slider } from '../../../ui';
-import {
-  DEFAULT_MIXNET_TRAFFIC_CONFIG,
-  useMixnetTrafficConfig,
-} from './context';
+import { useMixnetTrafficConfig } from './context';
 
 const MIXING_DELAY_LEVELS: { label: 'low' | 'high'; speed: string }[] = [
   { label: 'low', speed: '0ms' },
@@ -15,10 +12,11 @@ function MixingDelaySlider({
   value,
   setValue,
 }: {
-  value: number | null;
+  value: number;
   setValue: (value: number) => void;
 }) {
   const { t } = useTranslation('settings');
+  const { mixingDelay } = useMixnetTrafficConfig();
 
   return (
     <div className="w-full mt-5 space-y-5">
@@ -29,13 +27,13 @@ function MixingDelaySlider({
 
       <Slider
         className="px-2"
-        value={value ?? DEFAULT_MIXNET_TRAFFIC_CONFIG.averagePacketDelay!}
-        defaultValue={DEFAULT_MIXNET_TRAFFIC_CONFIG.averagePacketDelay!}
+        value={value}
         onChange={setValue}
-        min={0}
-        max={200}
+        min={mixingDelay.minValue}
+        max={mixingDelay.maxValue}
         step={1}
         valueIndicator
+        ariaLabel={t('mixnet-tuning.mixing-delay.title')}
         labels={MIXING_DELAY_LEVELS.map((item, index) => (
           <div
             key={item.label}
@@ -59,15 +57,10 @@ function MixingDelaySlider({
 
 export function MixingDelayCard() {
   const { t } = useTranslation('settings');
-  const { state, dispatch } = useMixnetTrafficConfig();
+  const { state, updateField } = useMixnetTrafficConfig();
 
   const value = state.averagePacketDelay;
-  const setValue = (value: number) =>
-    dispatch({
-      type: 'update-field',
-      field: 'averagePacketDelay',
-      value,
-    });
+  const setValue = (value: number) => updateField('averagePacketDelay', value);
 
   const description =
     value === 0

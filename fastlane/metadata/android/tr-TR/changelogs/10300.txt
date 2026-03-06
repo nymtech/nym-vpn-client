@@ -1,0 +1,5 @@
+Yenilikler:
+- Giriş bilgisinin sona erme süresi
+- Giriş bilgisi için QR kod tarama
+- Kill switch bağlantısı
+- Kullanıcı arayüzü iyileştirmeleri

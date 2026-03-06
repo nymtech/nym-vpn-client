@@ -1,0 +1,4 @@
+Quais as novidades:
+- Adicionar integração da biblioteca vpn
+- Tela de abertura
+- Lista de países

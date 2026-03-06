@@ -4,7 +4,7 @@ import Foundation
 import NymVPNRpc
 #endif
 
-public final class ConnectionConfig: Codable {
+public struct ConnectionConfig: Codable {
     public var entry: EntryGateway
     public var exit: ExitRouter
     public var dns: [String]?
@@ -13,10 +13,11 @@ public final class ConnectionConfig: Codable {
     public var enableTwoHop: Bool
     public var enableBridges: Bool
     public var enableLewes: Bool
+    public var enableAdBlocking: Bool
     public var netstack: Bool
-    public var minGatewayVpnPerformance: UInt8?
     public var residentialExit: Bool
     public var mixnetTuningConfig: MixnetTuningConfig
+    public var splitTunnelConfig: SplitTunnelConfig
 
 #if os(iOS)
 
@@ -33,16 +34,17 @@ public final class ConnectionConfig: Codable {
     public init(
         entry: EntryGateway,
         exit: ExitRouter,
-        dns: [String]? = nil,
+        dns: [String]?,
         allowLan: Bool,
         disableIpv6: Bool,
         enableTwoHop: Bool,
         enableBridges: Bool,
         enableLewes: Bool,
+        enableAdBlocking: Bool,
         netstack: Bool,
-        minGatewayVpnPerformance: UInt8? = nil,
         residentialExit: Bool,
-        mixnetTuningConfig: MixnetTuningConfig
+        mixnetTuningConfig: MixnetTuningConfig,
+        splitTunnelConfig: SplitTunnelConfig
     ) {
         self.entry = entry
         self.exit = exit
@@ -52,10 +54,11 @@ public final class ConnectionConfig: Codable {
         self.enableTwoHop = enableTwoHop
         self.enableBridges = enableBridges
         self.enableLewes = enableLewes
+        self.enableAdBlocking = enableAdBlocking
         self.netstack = netstack
-        self.minGatewayVpnPerformance = minGatewayVpnPerformance
         self.residentialExit = residentialExit
         self.mixnetTuningConfig = mixnetTuningConfig
+        self.splitTunnelConfig = splitTunnelConfig
     }
 
 #if os(iOS)
@@ -71,9 +74,10 @@ public final class ConnectionConfig: Codable {
         self.enableBridges = config.enableBridges
         self.enableLewes = config.enableLewesProtocol
         self.netstack = config.netstack
-        self.minGatewayVpnPerformance = config.minGatewayVpnPerformance
         self.residentialExit = config.residentialExit
         self.mixnetTuningConfig = MixnetTuningConfig(from: config.mixnetTraffic)
+        self.enableAdBlocking = config.enableAdBlocking
+        self.splitTunnelConfig = SplitTunnelConfig(from: config.splitTunnel)
     }
 #endif
 }
@@ -150,8 +154,10 @@ extension ConnectionConfig: Equatable {
         lhs.enableTwoHop == rhs.enableTwoHop &&
         lhs.enableBridges == rhs.enableBridges &&
         lhs.netstack == rhs.netstack &&
-        lhs.minGatewayVpnPerformance == rhs.minGatewayVpnPerformance &&
-        lhs.residentialExit == rhs.residentialExit
+        lhs.enableLewes == rhs.enableLewes &&
+        lhs.residentialExit == rhs.residentialExit &&
+        lhs.mixnetTuningConfig == rhs.mixnetTuningConfig &&
+        lhs.splitTunnelConfig == rhs.splitTunnelConfig
     }
 }
 

@@ -12,11 +12,20 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+adblock.workspace = true
 anyhow.workspace = true
+async-compression = { workspace = true, features = ["tokio", "gzip"] }
 async-trait.workspace = true
+base64.workspace = true
 bincode.workspace = true
-bip39.workspace = true
+bs58.workspace = true
 bytes.workspace = true
+ed25519-dalek = { workspace = true, features = [
+    "pkcs8",
+    "alloc",
+    "pem",
+    "rand_core",
+] }
 futures.workspace = true
 hex.workspace = true
 hickory-resolver = { workspace = true, features = [
@@ -30,10 +39,51 @@ http-body-util = { workspace = true }
 ipnetwork.workspace = true
 itertools.workspace = true
 log-panics.workspace = true
+lazy_static.workspace = true
+nym-bandwidth-controller.workspace = true
+nym-bin-common.workspace = true
+nym-client-core.workspace = true
+nym-config.workspace = true
+nym-credentials-interface.workspace = true
+nym-crypto.workspace = true
+nym-http-api-client.workspace = true
+nym-ip-packet-requests.workspace = true
+nym-sdk.workspace = true
+nym-validator-client.workspace = true
+nym-wireguard-types.workspace = true
+nym-apple-network.workspace = true
+nym-authenticator-client.workspace = true
+nym-common.workspace = true
+nym-diagnostic.workspace = true
+nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
+nym-connection-monitor.workspace = true
+nym-gateway-directory.workspace = true
+nym-ip-packet-client.workspace = true
+nym-macos.workspace = true
+nym-offline-monitor.workspace = true
+nym-registration-client.workspace = true
+nym-registration-common.workspace = true
+nym-split-tunnel.workspace = true
+nym-statistics.workspace = true
+nym-statistics-api-client.workspace = true
+nym-vpn-api-client.workspace = true
+nym-vpn-account-controller.workspace = true
+nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
+nym-vpn-network-config.workspace = true
+nym-vpn-store.workspace = true
+nym-wg-go = { workspace = true, features = ["amnezia"] }
+nym-wg-metadata-client.workspace = true
 opentelemetry.workspace = true
 opentelemetry_sdk.workspace = true
+quinn.workspace = true
+quinn-proto.workspace = true
 rand.workspace = true
-reqwest = { workspace = true, features = ["socks", "rustls-tls"] }
+reqwest = { workspace = true, features = ["socks", "rustls"] }
+rustls = { workspace = true, default-features = false, features = [
+    "std",
+    "ring",
+    "logging",
+] }
 serial_test.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -47,6 +97,7 @@ sentry = { workspace = true, features = [
     "tracing",
     "logs",
 ] }
+sha2.workspace = true
 strum.workspace = true
 toml.workspace = true
 thiserror.workspace = true
@@ -68,62 +119,12 @@ tracing-subscriber = { workspace = true, features = [
 tracing.workspace = true
 tracing-opentelemetry.workspace = true
 tun = { workspace = true, features = ["async"] }
-typed-builder.workspace = true
 url.workspace = true
 urlencoding.workspace = true
-
-nym-bandwidth-controller.workspace = true
-nym-bin-common.workspace = true
-nym-client-core.workspace = true
-nym-config.workspace = true
-nym-credentials-interface.workspace = true
-nym-crypto.workspace = true
-nym-http-api-client.workspace = true
-nym-ip-packet-requests.workspace = true
-nym-sdk.workspace = true
-nym-validator-client.workspace = true
-nym-wireguard-types.workspace = true
-
-nym-apple-network.workspace = true
-nym-authenticator-client.workspace = true
-nym-common.workspace = true
-nym-diagnostic.workspace = true
-nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
-nym-connection-monitor.workspace = true
-nym-gateway-directory.workspace = true
-nym-ip-packet-client.workspace = true
-nym-macos.workspace = true
-nym-offline-monitor.workspace = true
-nym-registration-client.workspace = true
-nym-registration-common.workspace = true
-nym-statistics.workspace = true
-nym-statistics-api-client.workspace = true
-nym-vpn-api-client.workspace = true
-nym-vpn-account-controller.workspace = true
-nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
-nym-vpn-network-config.workspace = true
-nym-vpn-store.workspace = true
-nym-wg-go = { workspace = true, features = ["amnezia"] }
-nym-wg-metadata-client.workspace = true
-
-ed25519-dalek = { workspace = true, features = [
-    "pkcs8",
-    "alloc",
-    "pem",
-    "rand_core",
-] }
-quinn.workspace = true
-rustls = { workspace = true, default-features = false, features = [
-    "std",
-    "ring",
-    "logging",
-] }
-quinn-proto.workspace = true
 webpki-roots.workspace = true
 x509-parser = { workspace = true, features = ["verify"] }
-bs58.workspace = true
-base64.workspace = true
 
+# UNIX-specific dependencies
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = [
     "socket",
@@ -133,36 +134,44 @@ nix = { workspace = true, features = [
     "ioctl",
 ] }
 
+# Windows-specific dependencies
 [target.'cfg(windows)'.dependencies]
-windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
-winreg.workspace = true
 nym-windows.workspace = true
 nym-routing.workspace = true
 nym-dns.workspace = true
 nym-firewall.workspace = true
 nym-firewall-config.workspace = true
+socket2.workspace = true
+windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
+winreg.workspace = true
 
-[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+# Desktop-specific dependencies
+[target.'cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))'.dependencies]
 hickory-server = { workspace = true, features = ["resolver"] }
 nym-routing.workspace = true
 nym-dns.workspace = true
 nym-firewall.workspace = true
 nym-firewall-config.workspace = true
 
-[target.'cfg(target_os = "android")'.dependencies]
-tracing-android.workspace = true
-rand.workspace = true
-
+# Apple-specific dependencies
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 tracing-oslog.workspace = true
 
+# Android-specific dependencies
+[target.'cfg(target_os = "android")'.dependencies]
+rand.workspace = true
+tracing-android.workspace = true
+
+# iOS-specific dependencies
 [target.'cfg(target_os = "ios")'.dependencies]
 debounced.workspace = true
 dispatch2.workspace = true
 
 [dev-dependencies]
-tempfile.workspace = true
 pretty_assertions.workspace = true
+socket2.workspace = true
+tempfile.workspace = true
+tracing-test.workspace = true
 
 [build-dependencies]
 vergen-gitcl = { workspace = true, default-features = false, features = [

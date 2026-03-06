@@ -69,5 +69,3 @@ lint/tmp/
 .DS_Store
 *.so
 !libjnidispatch.so
-
-**/res/values-*/strings.xml

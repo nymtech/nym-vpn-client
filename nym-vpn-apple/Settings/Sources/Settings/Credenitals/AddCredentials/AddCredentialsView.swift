@@ -83,7 +83,7 @@ private extension AddCredentialsView {
             .frame(maxWidth: .infinity)
             .frame(minHeight: geometry.size.height, alignment: .top)
         }
-        .scrollIndicators(.hidden)
+        .scrollIndicators(.never)
         .scrollDismissesKeyboard(.interactively)
         .onTapGesture { isFocused = false }
     }

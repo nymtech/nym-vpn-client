@@ -1,6 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::{error::Error as _, net::IpAddr, path::PathBuf};
+
+use tokio_stream::{Stream, StreamExt};
+use tonic::transport::{Endpoint, Uri};
+use tower::service_fn;
+
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
     DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway, GetDeeplinkParams,
@@ -10,10 +18,6 @@ use nym_vpn_lib_types::{
     StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
 };
-use std::{error::Error as _, net::IpAddr, path::PathBuf};
-use tokio_stream::{Stream, StreamExt};
-use tonic::transport::{Endpoint, Uri};
-use tower::service_fn;
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
 
@@ -24,10 +28,9 @@ pub struct RpcClient(ServiceClient);
 
 impl RpcClient {
     pub async fn new() -> Result<RpcClient> {
-        let socket_path = get_rpc_socket_path();
         Endpoint::from_static("unix://placeholder")
             .connect_with_connector(service_fn(move |_: Uri| {
-                nym_ipc::client::connect(socket_path.clone())
+                nym_ipc::client::connect(get_rpc_socket_path())
             }))
             .await
             .map(ServiceClient::new)
@@ -35,14 +38,38 @@ impl RpcClient {
             .map_err(|err| {
                 if let Some(std::io::ErrorKind::PermissionDenied) = err
                     .source()
-                    .and_then(|source| source.downcast_ref::<std::io::Error>())
-                    .map(|s| s.kind())
+                    .and_then(|err| err.source())
+                    .and_then(|err| err.downcast_ref::<std::io::Error>())
+                    .map(|err| err.kind())
                 {
                     Error::AuthenticationRequired
                 } else {
                     err.into()
                 }
             })
+    }
+
+    pub async fn new_over_serial<C>(
+        connector: C,
+        timeout: Option<std::time::Duration>,
+    ) -> Result<RpcClient>
+    where
+        C: tower::Service<Uri> + Send + 'static,
+        C::Response: hyper::rt::Read + hyper::rt::Write + Send + Unpin,
+        C::Future: Send,
+        C::Error: std::error::Error + Send + Sync + 'static,
+    {
+        let mut endpoint = Endpoint::from_static("serial://placeholder");
+        if let Some(timeout) = timeout {
+            endpoint = endpoint.timeout(timeout);
+        }
+
+        endpoint
+            .connect_with_connector(connector)
+            .await
+            .map(ServiceClient::new)
+            .map(RpcClient)
+            .map_err(Error::Transport)
     }
 
     pub async fn get_info(&mut self) -> Result<VpnServiceInfo> {
@@ -111,6 +138,15 @@ impl RpcClient {
     pub async fn set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) -> Result<()> {
         self.0
             .set_enable_lewes_protocol(enable_lewes_protocol)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) -> Result<()> {
+        self.0
+            .set_enable_ad_blocking(enable_ad_blocking)
             .await
             .map_err(Error::Rpc)?
             .into_inner();
@@ -763,6 +799,51 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
         RegistrationReport::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn set_enable_split_tunnel(&mut self, enable: bool) -> Result<()> {
+        self.0
+            .set_enable_split_tunnel(enable)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn add_split_tunnel_app(&mut self, app: SplitApp) -> Result<()> {
+        self.0
+            .add_split_tunnel_app(proto::SplitApp::from(app))
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn remove_split_tunnel_app(&mut self, app: SplitApp) -> Result<()> {
+        self.0
+            .remove_split_tunnel_app(proto::SplitApp::from(app))
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn clear_split_tunnel_apps(&mut self) -> Result<()> {
+        self.0
+            .clear_split_tunnel_apps(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn need_full_disk_permissions(&mut self) -> Result<bool> {
+        self.0
+            .need_full_disk_permissions(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
     }
 }
 

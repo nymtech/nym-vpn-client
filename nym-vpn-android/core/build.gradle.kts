@@ -5,6 +5,8 @@ plugins {
 	alias(libs.plugins.jetbrainsKotlinAndroid)
 	alias(libs.plugins.kotlinxSerialization)
 	id("kotlin-parcelize")
+	alias(libs.plugins.ksp)
+	alias(libs.plugins.hilt.android)
 }
 
 android {
@@ -95,6 +97,9 @@ dependencies {
 	implementation(libs.timber)
 	implementation(libs.relinker)
 	implementation(libs.semver4j)
+
+	implementation(libs.hilt.android)
+	ksp(libs.hilt.android.compiler)
 
 	implementation(libs.jna) {
 		artifact {

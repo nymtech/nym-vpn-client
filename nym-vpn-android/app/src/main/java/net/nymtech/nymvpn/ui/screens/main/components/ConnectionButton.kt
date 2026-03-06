@@ -19,7 +19,6 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
@@ -34,7 +33,6 @@ import nym_vpn_lib_types.ErrorStateReason
 fun ConnectionButton(
 	connectionState: ConnectionState,
 	accountState: AccountControllerState,
-	stateMessage: StateMessage,
 	isMnemonicStored: Boolean,
 	onConnect: () -> Unit,
 	onDisconnect: () -> Unit,
@@ -49,11 +47,36 @@ fun ConnectionButton(
 
 	Box(modifier = modifier.padding(horizontal = 24.dp.scaledWidth())) {
 		when (connectionState) {
-			ConnectionState.Disconnected, ConnectionState.Offline -> {
-				if (stateMessage is StateMessage.Error &&
-					(stateMessage.reason is ErrorStateReason.InactiveSubscription || stateMessage.reason is ErrorStateReason.InactiveAccount) &&
-					accountState != AccountControllerState.Syncing
-				) {
+			ConnectionState.Disconnected,
+			ConnectionState.Offline,
+			ConnectionState.WaitingForConnection,
+			-> {
+				MainStyledButton(
+					testTag = Constants.CONNECT_TEST_TAG,
+					onClick = {
+						scope.launch {
+							if (!isMnemonicStored) return@launch navController.goFromRoot(Route.Welcome)
+							if (connectionState is ConnectionState.Offline) return@launch snackbar.showMessage(context.getString(R.string.no_internet))
+							onConnect()
+						}
+					},
+					content = {
+						Text(
+							stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started),
+							style = CustomTypography.buttonMain,
+						)
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(56.dp.scaledHeight()),
+				)
+			}
+
+			is ConnectionState.Error -> {
+				val isSubscriptionError = connectionState.reason is ErrorStateReason.InactiveSubscription ||
+					connectionState.reason is ErrorStateReason.InactiveAccount
+
+				if (isSubscriptionError && accountState != AccountControllerState.Syncing) {
 					if (isVpnAlwaysOn(context)) {
 						MainStyledButton(
 							onClick = onStopKillSwitch,
@@ -74,7 +97,7 @@ fun ConnectionButton(
 							onClick = onGetStart,
 							content = {
 								Text(
-									stringResource(R.string.main_button_select_plan),
+									stringResource(R.string.get_started),
 									style = CustomTypography.buttonMain,
 								)
 							},
@@ -85,17 +108,15 @@ fun ConnectionButton(
 					}
 				} else {
 					MainStyledButton(
-						testTag = Constants.CONNECT_TEST_TAG,
 						onClick = {
 							scope.launch {
 								if (!isMnemonicStored) return@launch navController.goFromRoot(Route.Welcome)
-								if (connectionState is ConnectionState.Offline) return@launch snackbar.showMessage(context.getString(R.string.no_internet))
 								onConnect()
 							}
 						},
 						content = {
 							Text(
-								stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started),
+								stringResource(R.string.connect),
 								style = CustomTypography.buttonMain,
 							)
 						},
@@ -106,20 +127,34 @@ fun ConnectionButton(
 				}
 			}
 
-			ConnectionState.Disconnecting, is ConnectionState.Connecting, ConnectionState.WaitingForConnection -> MainStyledButton(
-				onClick = onDisconnect,
-				content = {
-					Text(
-						stringResource(R.string.stop),
-						style = CustomTypography.buttonMain,
-						color = MaterialTheme.colorScheme.background,
-					)
-				},
-				color = CustomColors.disconnect,
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(56.dp.scaledHeight()),
-			)
+			ConnectionState.Disconnecting,
+			is ConnectionState.Connecting,
+			-> {
+				MainStyledButton(
+					onClick = onDisconnect,
+					content = {
+						Text(
+							stringResource(R.string.stop),
+							style = CustomTypography.buttonMain,
+							color = MaterialTheme.colorScheme.background,
+						)
+					},
+					color = CustomColors.disconnect,
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(56.dp.scaledHeight()),
+				)
+			}
+
+			is ConnectionState.StartFailure -> {
+				MainStyledButton(
+					onClick = { onConnect() },
+					content = {
+						Text(stringResource(R.string.connect), style = CustomTypography.buttonMain)
+					},
+					modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
+				)
+			}
 
 			ConnectionState.Connected -> MainStyledButton(
 				testTag = Constants.DISCONNECT_TEST_TAG,

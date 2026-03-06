@@ -6,10 +6,12 @@ import {
   ConnectingState,
   FeatureFlags,
   MixnetTrafficConfig,
+  MixnetTrafficDefaults,
   NetworkCompat,
   NetworkEnv,
   SelectedNode,
   TAccountMode,
+  TAccountSummary,
   ThemeMode,
   Tunnel,
   TunnelError,
@@ -39,10 +41,12 @@ export type InitState = {
   quic: boolean;
   noIpv6: boolean;
   allowLan: boolean;
+  enableAdBlocking: boolean;
   customDnsEnabled: boolean;
   customDns: string[];
   enableLewesProtocol: boolean;
   mixnetTrafficConfig: MixnetTrafficConfig;
+  mixnetTrafficDefaults: MixnetTrafficDefaults;
 };
 
 export type AppState = {
@@ -54,6 +58,7 @@ export type AppState = {
   tunnelError?: TunnelError | null;
   accountState?: AccountState | null;
   accountMode?: TAccountMode | null;
+  accountSummary?: TAccountSummary | null;
   accountError?: AppError | null;
   accountSyncing: boolean;
   daemonStatus: DaemonStatus;
@@ -88,6 +93,7 @@ export type AppState = {
   networkCompat?: NetworkCompat | null;
   ipv6Support: boolean;
   allowLan: boolean;
+  enableAdBlocking: boolean;
   networkStats: boolean;
   // whether the user has completed once the welcome screen
   welcomeChecked: boolean;
@@ -100,4 +106,5 @@ export type AppState = {
   defaultDns: string[];
   enableLewesProtocol: boolean;
   mixnetTrafficConfig: MixnetTrafficConfig;
+  mixnetTrafficDefaults: MixnetTrafficDefaults;
 };
