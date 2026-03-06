@@ -50,7 +50,7 @@ export function SystemAuthentication() {
         >
           {t('modal.title')}
         </DialogTitle>
-        <div className="p-3 flex flex-row items-center gap-2 border border-cheddar dark:border-king-nacho rounded-lg text-cheddar dark:text-king-nacho bg-cheddar/10 dark:bg-king-nacho/10">
+        <div className="p-3 flex flex-row items-center gap-3 border border-cheddar dark:border-king-nacho rounded-lg text-cheddar dark:text-king-nacho bg-cheddar/10 dark:bg-king-nacho/10">
           <MsIcon icon="report" />
           <p>{t('modal.description')}</p>
         </div>
