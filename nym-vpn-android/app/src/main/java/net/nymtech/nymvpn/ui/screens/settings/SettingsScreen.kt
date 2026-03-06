@@ -26,17 +26,18 @@ import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.settings.components.AccountSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppVersionSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppearanceSection
+import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.ui.screens.settings.components.LegalSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LoginSection
 import net.nymtech.nymvpn.ui.screens.settings.components.LogsSection
 import net.nymtech.nymvpn.ui.screens.settings.components.QuitSection
+import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.ui.screens.settings.components.SupportSection
 import net.nymtech.nymvpn.ui.screens.settings.components.VpnSettingsSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -49,7 +50,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import kotlin.Boolean
 
 @Composable
-fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSettings: Boolean = false, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(appUiState: AppUiState, showVpnSettings: Boolean = false, viewModel: SettingsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val navController = LocalNavController.current
 
@@ -85,6 +86,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, showVpnSe
 			appVersion = BuildConfig.VERSION_NAME,
 			daemonVersion = uiState.daemonVersion,
 			isMixnetTuningEnabled = uiState.isMixnetTuningEnabled,
+			subscription = uiState.subscription,
 		),
 		SettingsActions(
 			onGetStartedClick = {
@@ -187,6 +189,7 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 				isMnemonicStored = values.isMnemonicStored,
 				onPassphraseClick = actions.onPassphraseClick,
 				onAccountClick = actions.onAccountClick,
+				subscription = values.subscription,
 			)
 			SupportSection(actions.onSupportClick)
 			VpnSettingsSection(values, actions)
@@ -205,6 +208,16 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewSettingsScreen() {
 	NymVPNTheme(Theme.default()) {
-		SettingsScreen(SettingsValues(isMnemonicStored = true), SettingsActions())
+		SettingsScreen(
+			SettingsValues(
+				isMnemonicStored = true,
+				subscription = SubscriptionUiState(
+					isRecurring = false,
+					validUntilDate = "December 24, 2026",
+					expiryState = ExpiryState.NORMAL,
+				),
+			),
+			SettingsActions(),
+		)
 	}
 }

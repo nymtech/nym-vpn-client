@@ -87,7 +87,7 @@ export type StateAction =
   | { type: 'set-default-dns'; dns: string[] }
   | { type: 'set-enable-lewes-protocol'; enabled: boolean }
   | { type: 'set-mixnet-traffic-config'; config: MixnetTrafficConfig }
-  | { type: 'set-account-summary'; summary: TAccountSummary };
+  | { type: 'set-account-summary'; summary: TAccountSummary | null };
 
 export const initialState: AppState = {
   initialized: false,

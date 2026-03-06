@@ -307,16 +307,18 @@ export type TAccountState =
   | { error: TBackendError };
 
 export type TAccountSummary = {
-  'subscription-valid-until': string | null;
+  'subscription-valid-until': bigint | null;
   'traffic-used-gb': bigint;
   'traffic-limit-gb': bigint;
-  'traffic-reset-time': string | null;
+  'traffic-reset-time': bigint | null;
   'account-addr': string;
   'canonical-account-addr': string | null;
   'auth-methods': Array<TAuthMethod>;
   'is-linked': boolean;
   'fair-usage-left': boolean;
   'is-subscription-active': boolean;
+  'subscription-kind': TVpnSubscriptionKind | null;
+  'is-recurring': boolean;
 };
 
 export type TApiTimeSkew = {
@@ -416,6 +418,13 @@ export type TTunnelState =
   | { offline: { reconnect: boolean } };
 
 export type TVpnAccountStatus = 'active' | 'inactive' | 'delete-me';
+
+export type TVpnSubscriptionKind =
+  | 'one-month'
+  | 'one-year'
+  | 'two-years'
+  | 'freepass'
+  | { other: string };
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 

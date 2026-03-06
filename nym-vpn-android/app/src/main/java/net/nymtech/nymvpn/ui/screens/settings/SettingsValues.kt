@@ -1,5 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings
 
+import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
+
 data class SettingsValues(
 	val isMnemonicStored: Boolean = false,
 	val autoConnectEnabled: Boolean = false,
@@ -12,4 +14,5 @@ data class SettingsValues(
 	val appVersion: String = "",
 	val daemonVersion: String = "",
 	val isMixnetTuningEnabled: Boolean = false,
+	val subscription: SubscriptionUiState? = null,
 )

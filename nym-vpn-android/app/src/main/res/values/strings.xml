@@ -423,6 +423,18 @@
 	<string name="account_info_id_info">Use your account ID if you need to contact Nym customer support.  This is safe to share!</string>
 	<string name="account_info_device_title">Device ID</string>
 	<string name="account_info_device_info">Use this to link this device to your account on nym.com</string>
+	<string name="account_info_status_title">Account status</string>
+	<string name="account_info_bandwidth_title">Bandwidth remaining</string>
+	<string name="account_info_limit_text">Limit</string>
+	<string name="account_info_reset_text">Resets on</string>
+	<string name="account_info_contact_support_icon" translatable="false">⚡ </string>
+	<string name="account_info_contact_support_action">Contact our support</string>
+	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
+	<string name="account_info_valid_text">Plan valid until %s</string>
+	<string name="account_info_expires_text">Plan expires on %s</string>
+	<string name="account_info_renew_text">Renew now to stay protected</string>
+	<string name="account_info_auto_renew_text">*Auto-renews</string>
+	<string name="account_info_no_plan">No active plan</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Enable logging</string>
 	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
