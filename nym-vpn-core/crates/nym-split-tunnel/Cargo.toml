@@ -51,5 +51,10 @@ windows-sys = { workspace = true, features = [
     "Win32_System_ProcessStatus",
 ] }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+pidfd-util.workspace = true
+netlink-sys = { workspace = true, features = ["tokio_socket"] }
+bytes.workspace = true
+
 [lints]
 workspace = true

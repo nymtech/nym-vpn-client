@@ -6392,12 +6392,14 @@ name = "nym-split-tunnel"
 version = "1.28.0-beta"
 dependencies = [
  "bitflags 2.11.0",
+ "bytes",
  "either",
  "futures-util",
  "insta",
  "ipnetwork",
  "libc",
  "memoffset",
+ "netlink-sys",
  "nix 0.31.2",
  "nym-common",
  "nym-firewall-config",
@@ -6408,6 +6410,7 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-windows",
  "pcap",
+ "pidfd-util",
  "pnet_packet 0.35.0",
  "serde",
  "serde_json",
@@ -7725,6 +7728,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e57fef6bc5981e38c2ce2d63bfa546861309f875b8a75f092d1d54ae2d64f266"
 dependencies = [
  "siphasher",
+]
+
+[[package]]
+name = "pidfd-util"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a66784389d9c6308293bfe877356968afd267862473aae47a6ed3eedef95da6"
+dependencies = [
+ "async-io",
+ "libc",
+ "nix 0.30.1",
 ]
 
 [[package]]
