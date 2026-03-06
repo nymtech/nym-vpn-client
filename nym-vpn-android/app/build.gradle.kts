@@ -1,3 +1,7 @@
+import com.android.build.api.variant.BuildConfigField
+import com.android.build.api.variant.ResValue
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
 	alias(libs.plugins.compose.compiler)
 	alias(libs.plugins.androidApplication)
@@ -9,8 +13,34 @@ plugins {
 	alias(libs.plugins.grgit)
 }
 
+val languagesArray = languageList().joinToString(separator = ", ") { "\"$it\"" }
+val currentCommitHash: String = grgitService.service.get().grgit.head()?.id ?: "unknown"
+
 base {
 	archivesName.set("${Constants.APP_NAME}-${determineVersionName()}")
+}
+
+kotlin {
+	jvmToolchain(21)
+	sourceSets {
+		all {
+			languageSettings.optIn("kotlin.RequiresOptIn")
+			languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+		}
+	}
+	compilerOptions {
+		jvmTarget.set(JvmTarget.fromTarget(Constants.JVM_TARGET))
+	}
+}
+
+licensee {
+	Constants.allowedLicenses.forEach { allow(it) }
+	allowUrl(Constants.ANDROID_TERMS_URL)
+	allowUrl(Constants.XZING_LICENSE_URL)
+}
+
+gross {
+	enableAndroidAssetGeneration.set(true)
 }
 
 android {
@@ -39,14 +69,14 @@ android {
 			useSupportLibrary = true
 		}
 
-		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
-		buildConfigField("String", "COMMIT_HASH", "\"${grgitService.service.get().grgit.head().id}\"")
+		buildConfigField("String[]", "LANGUAGES", "new String[]{ $languagesArray }")
+		buildConfigField("String", "COMMIT_HASH", "\"$currentCommitHash\"")
 		buildConfigField("Boolean", "IS_PRERELEASE", "false")
 		proguardFile("fdroid-rules.pro")
 
 		if (isBundleBuild()) {
 			ndk {
-				abiFilters += "arm64-v8a"
+				abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
 			}
 		}
 	}
@@ -120,27 +150,6 @@ android {
 		targetCompatibility = Constants.JAVA_VERSION
 	}
 
-	kotlin {
-		jvmToolchain(17)
-		sourceSets {
-			all {
-				languageSettings.optIn("kotlin.RequiresOptIn")
-				languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
-			}
-		}
-		compilerOptions {
-			jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(Constants.JVM_TARGET))
-		}
-	}
-
-	licensee {
-		Constants.allowedLicenses.forEach { allow(it) }
-		allowUrl(Constants.ANDROID_TERMS_URL)
-		allowUrl(Constants.XZING_LICENSE_URL)
-	}
-
-	gross { enableAndroidAssetGeneration.set(true) }
-
 	buildFeatures {
 		compose = true
 		buildConfig = true
@@ -162,8 +171,8 @@ androidComponents {
 		val version = variant.outputs.first().versionName.getOrElse("")
 		val fullName = "${Constants.APP_NAME}-$flavor-$type-$version"
 
-		variant.buildConfigFields?.put("APP_NAME", com.android.build.api.variant.BuildConfigField("String", "\"$fullName\"", "App Name"))
-		variant.resValues.put(variant.makeResValueKey("string", "fullVersionName"), com.android.build.api.variant.ResValue(fullName))
+		variant.buildConfigFields?.put("APP_NAME", BuildConfigField("String", "\"$fullName\"", "App Name"))
+		variant.resValues.put(variant.makeResValueKey("string", "fullVersionName"), ResValue(fullName))
 	}
 }
 
