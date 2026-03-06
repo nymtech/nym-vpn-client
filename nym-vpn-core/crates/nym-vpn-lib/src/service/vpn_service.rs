@@ -516,19 +516,9 @@ impl NymVpnService {
             .nym_vpn_api_urls()
             .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
 
-        let mut other_urls = vec![];
-        if let Some(url) = statistics_api_url {
-            other_urls.push(url.clone());
-        }
-
-        let gateway_config = gateway_directory::Config::new(
-            nyxd_url,
-            nym_api_urls.clone(),
-            nym_vpn_api_urls,
-            other_urls,
-            None,
-        )
-        .map_err(Error::CreateGatewayClient)?;
+        let gateway_config =
+            gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)
+                .map_err(Error::CreateGatewayClient)?;
 
         let (network_tx, network_rx) = watch::channel(network_env.clone());
         let nym_config = NymConfig {

@@ -32,7 +32,6 @@ pub struct Config {
     nyxd_url: Url,
     nym_api_urls: Vec<ApiUrl>,
     nym_vpn_api_urls: Vec<ApiUrl>,
-    other_urls: Vec<Url>,
     min_gateway_performance: Option<GatewayMinPerformance>,
 }
 
@@ -41,7 +40,6 @@ impl Config {
         nyxd_url: Url,
         nym_api_urls: Vec<ApiUrl>,
         nym_vpn_api_urls: Vec<ApiUrl>,
-        other_urls: Vec<Url>,
         min_gateway_performance: Option<GatewayMinPerformance>,
     ) -> Result<Self> {
         if nym_api_urls.is_empty() {
@@ -60,7 +58,6 @@ impl Config {
             nyxd_url,
             nym_api_urls,
             nym_vpn_api_urls,
-            other_urls,
             min_gateway_performance,
         })
     }
@@ -117,7 +114,6 @@ pub struct ResolvedConfig {
     pub nyxd_socket_addrs: Vec<SocketAddr>,
     pub nym_api_resolver_overrides: ResolverOverrides,
     pub nym_vpn_api_resolver_overrides: ResolverOverrides,
-    pub other_overrides: ResolverOverrides,
 }
 
 impl ResolvedConfig {
@@ -131,18 +127,10 @@ impl ResolvedConfig {
         let nym_vpn_api_resolver_overrides =
             ResolverOverrides::from_api_urls(&config.nym_vpn_api_urls).await?;
 
-        let urls: Vec<nym_http_api_client::Url> = config
-            .other_urls
-            .iter()
-            .map(|url| url.clone().into())
-            .collect();
-        let other_overrides = ResolverOverrides::from_urls(&urls[..]).await?;
-
         Ok(ResolvedConfig {
             nyxd_url,
             nyxd_socket_addrs,
             nym_api_resolver_overrides,
-            other_overrides,
             nym_vpn_api_resolver_overrides,
         })
     }
@@ -626,7 +614,6 @@ mod test {
             nyxd_url: default_nyxd_url,
             nym_api_urls: default_api_urls,
             nym_vpn_api_urls: default_nym_vpn_api_urls,
-            other_urls: vec![],
             min_gateway_performance: None,
         }
     }

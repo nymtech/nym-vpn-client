@@ -118,7 +118,6 @@ impl GatewayDiagnostic {
             nyxd_url,
             nym_api_urls.clone(),
             nym_vpn_api_urls,
-            vec![],
             None,
         )?;
 
