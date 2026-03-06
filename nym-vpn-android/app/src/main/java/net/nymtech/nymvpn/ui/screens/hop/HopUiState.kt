@@ -6,7 +6,6 @@ import java.util.Locale
 
 data class HopUiState(
 	val error: Boolean = false,
-	val isQuicFeatureFlagEnabled: Boolean = false,
 	val query: String = "",
 	val items: List<ItemType> = emptyList(),
 )

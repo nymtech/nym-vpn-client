@@ -27,7 +27,7 @@ use std::{
     sync::Arc,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, Notify};
 use tokio_stream::StreamExt;
 use tracing::{debug, error, info, instrument, trace, warn};
 
@@ -50,6 +50,7 @@ enum ConnectionState {
 pub struct VpndClient {
     rpc_client: Arc<Mutex<ConnectionState>>,
     connect_fail_logged: Arc<Mutex<bool>>,
+    auth_retry_notify: Arc<Notify>,
     pkg_info: PackageInfo,
     user_agent: UserAgent,
 }
@@ -60,6 +61,7 @@ impl VpndClient {
         VpndClient {
             rpc_client: Arc::new(Mutex::new(ConnectionState::Trying)),
             connect_fail_logged: Arc::new(Mutex::new(false)),
+            auth_retry_notify: Arc::new(Notify::new()),
             pkg_info: pkg.clone(),
             user_agent: VpndClient::user_agent(pkg, None),
         }
@@ -128,6 +130,13 @@ impl VpndClient {
     pub async fn retry_daemon_authentication(&self) {
         let mut guard = self.rpc_client.lock().await;
         *guard = ConnectionState::Trying;
+        drop(guard);
+        self.auth_retry_notify.notify_one();
+    }
+
+    /// Wait until the frontend signals an authentication retry
+    pub async fn wait_for_auth_retry(&self) {
+        self.auth_retry_notify.notified().await;
     }
 
     async fn drop_rpc_client(&self) {
@@ -935,5 +944,22 @@ impl VpndClient {
             .await?;
 
         Ok(summary.map(Into::into))
+    }
+
+    /// Run network diagnostics
+    #[instrument(skip_all)]
+    pub async fn run_diagnostic(
+        &self,
+        params: lib::DiagnosticRunParams,
+    ) -> Result<lib::DiagnosticReport, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let report = vpnd
+            .run_diagnostic(params)
+            .or_else(async |e| self.handle_rpc_error("run_diagnostic", e).await)
+            .await?;
+
+        debug!("diagnostic report: {report:?}");
+        Ok(report)
     }
 }

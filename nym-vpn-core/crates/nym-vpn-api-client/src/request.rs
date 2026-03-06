@@ -4,11 +4,19 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AccountKind {
+    PrivySecp256k1,
+    UserGeneratedSecp256k1,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateAndroidAccountRequestBody {
     pub account_addr: String,
     pub pub_key: String,
     pub signature_base64: String,
     pub purchase_token: String,
+    pub kind: AccountKind,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -16,6 +24,7 @@ pub struct CreateAppleAccountRequestBody {
     pub account_addr: String,
     pub pub_key: String,
     pub signature_base64: String,
+    pub kind: AccountKind,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

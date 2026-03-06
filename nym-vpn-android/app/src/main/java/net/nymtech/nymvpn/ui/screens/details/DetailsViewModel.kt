@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
-import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.NymGateway
@@ -19,7 +18,6 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
 	private val vpnConfigRepository: VpnConfigRepository,
-	private val environmentManager: EnvironmentManager,
 ) : ViewModel() {
 
 	companion object {
@@ -31,10 +29,7 @@ class DetailsViewModel @Inject constructor(
 
 	fun filterGateways(id: String, gateways: List<NymGateway>) = viewModelScope.launch {
 		gateways.firstOrNull { gateway -> gateway.identity == id }?.let {
-			val isQuicFeatureFlagEnabled = environmentManager.isQuicEnabled()
-			_uiState.value = DetailsUiState.from(it).copy(
-				isQuicFeatureFlagEnabled = isQuicFeatureFlagEnabled,
-			)
+			_uiState.value = DetailsUiState.from(it)
 		}
 	}
 

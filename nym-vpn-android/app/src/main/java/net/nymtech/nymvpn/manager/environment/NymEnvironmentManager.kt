@@ -21,10 +21,6 @@ class NymEnvironmentManager @Inject constructor(
 		return getFeatureFlags()?.isDomainFrontingEnabled() ?: false
 	}
 
-	override suspend fun isQuicEnabled(): Boolean {
-		return getFeatureFlags()?.isQuicEnabled() ?: false
-	}
-
 	private suspend fun getFeatureFlags(): FeatureFlags? {
 		return try {
 			backendManager.getFeatureFlags()

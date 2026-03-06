@@ -124,7 +124,7 @@ export function TrayProvider({ children }: TrayProviderProps) {
   // Static tray menu items
   useEffect(() => {
     invoke<void>('update_tray_show_hide', {
-      show_hide: `${t('show-hide')}`,
+      showHide: `${t('show-hide')}`,
     });
     invoke<void>('update_tray_quit', {
       quit: `${t('quit')}`,

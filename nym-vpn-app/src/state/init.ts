@@ -10,7 +10,6 @@ import {
   AccountLinks,
   CodeDependency,
   FeatureFlags,
-  InitState,
   NetworkCompat,
   StateDispatch,
   TAccountMode,
@@ -38,10 +37,7 @@ const getTheme = async () => {
   return { winTheme, themeMode };
 };
 
-export async function initFirstBatch(
-  dispatch: StateDispatch,
-  initState: InitState,
-) {
+export async function initFirstBatch(dispatch: StateDispatch) {
   const initStateRq: TauriReq<typeof getInitialTunnelState> = {
     name: 'get_tunnel_state',
     request: () => getInitialTunnelState(),
@@ -209,7 +205,8 @@ export async function initFirstBatch(
     },
   };
 
-  let requests: TauriReq<never>[] = [
+  // fire all requests concurrently
+  await fireRequests([
     getVersionRq,
     getThemeRq,
     getRootFontSizeRq,
@@ -219,28 +216,16 @@ export async function initFirstBatch(
     getDesktopNotificationsRq,
     getNetworkStatsRq,
     getDomainFrontingRq,
-  ];
-
-  if (initState.vpnd !== 'down') {
-    requests = [
-      initStateRq,
-      getStoredAccountRq,
-      getAccountStateRq,
-      getAccountModeRq,
-      getAccountSummaryRq,
-      getFeatureFlagsRq,
-      ...requests,
-    ];
-  }
-
-  // fire all requests concurrently
-  await fireRequests(requests);
+    initStateRq,
+    getStoredAccountRq,
+    getAccountStateRq,
+    getAccountModeRq,
+    getAccountSummaryRq,
+    getFeatureFlagsRq,
+  ]);
 }
 
-export async function initSecondBatch(
-  dispatch: StateDispatch,
-  initState: InitState,
-) {
+export async function initSecondBatch(dispatch: StateDispatch) {
   const getAccountLinksRq: TauriReq<() => Promise<AccountLinks | undefined>> = {
     name: 'getAccountLinksRq',
     request: () =>
@@ -287,10 +272,10 @@ export async function initSecondBatch(
     },
   };
 
-  let requests: TauriReq<never>[] = [getAutostart, getDefaultDnsRq];
-  if (initState.vpnd !== 'down') {
-    requests = [getAccountLinksRq, getNetworkCompatRq, ...requests];
-  }
-
-  await fireRequests(requests);
+  await fireRequests([
+    getAutostart,
+    getDefaultDnsRq,
+    getAccountLinksRq,
+    getNetworkCompatRq,
+  ]);
 }

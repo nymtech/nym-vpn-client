@@ -274,6 +274,8 @@ pub struct NymVpnSubscription {
     pub valid_from_utc: String,
     pub status: NymVpnSubscriptionStatus,
     pub kind: NymVpnSubscriptionKind,
+    #[serde(default, rename = "isRecurring")]
+    pub is_recurring: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -291,6 +293,8 @@ pub enum NymVpnSubscriptionKind {
     OneYear,
     TwoYears,
     Freepass,
+    #[serde(untagged)]
+    Other(String),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

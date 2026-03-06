@@ -14,6 +14,7 @@ import glossary from '../en/glossary.json';
 import notifications from '../en/notifications.json';
 import login from '../en/login.json';
 import tray from '../en/tray.json';
+import systemAuthentication from '../en/system-authentication.json';
 
 export const en = {
   account,
@@ -32,4 +33,5 @@ export const en = {
   notifications,
   login,
   tray,
+  'system-authentication': systemAuthentication,
 } as const;

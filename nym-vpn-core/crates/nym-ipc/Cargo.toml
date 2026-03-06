@@ -18,9 +18,9 @@ hyper-util = { workspace = true, features = ["tokio"] }
 thiserror = { workspace = true, optional = true }
 tokio = { workspace = true, features = ["io-util"] }
 tokio-stream = { workspace = true, features = ["net"] }
-tokio-util = { workspace = true, optional = true }
+tokio-util = { workspace = true }
 tracing.workspace = true
-tonic = { workspace = true, optional = true }
+tonic = { workspace = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 nix = { workspace = true, optional = true }
@@ -55,8 +55,6 @@ daemon = [
     "nix",
     "nym-windows",
     "thiserror",
-    "tokio-util",
-    "tonic",
     "zbus",
     "zbus_polkit",
 ]

@@ -8,6 +8,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
 import {
   DialogProvider,
+  GatewaysProvider,
   InAppNotificationProvider,
   MainStateProvider,
   NodeListStateProvider,
@@ -21,7 +22,6 @@ import { kvGet } from './kvStore';
 import router from './router';
 import './i18n/config';
 import { RouteLoading, ThemeSetter } from './ui';
-import { GatewaysProvider } from './contexts/gateways';
 import { IntroAnim, IntroSplash } from './screens';
 import { InitState } from './types';
 

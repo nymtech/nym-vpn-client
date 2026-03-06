@@ -15,12 +15,14 @@ use crate::{
     db::Db,
     fs::{app::AppFs, config::AppConfig},
     vpnd::client::VpndClient,
+    vpnd::error::VpndError,
 };
 
 use anyhow::{Result, anyhow};
 use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
+use commands::diagnostic as cmd_diag;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
@@ -242,28 +244,40 @@ async fn main() -> Result<()> {
             let mut c_vpnd = vpnd.clone();
             tokio::spawn(async move {
                 info!("starting vpnd spy");
+
                 loop {
-                    if let Ok(info) = c_vpnd.vpnd_info().await {
-                        c_vpnd.update_vpnd_state(info, &handle).await.ok();
-                        // initialize vpn config and state
-                        c_vpnd.update_config(&handle).await.ok();
-                        c_vpnd.tunnel_state(&handle).await.ok();
-                        vpnd_check::sentry_check(sentry_enabled, &c_vpnd).await.ok();
-                        vpnd_check::netstats_check(&db, &c_vpnd).await.ok();
-                        info!("watching vpnd events");
-                        // start watching vpnd events, this is a blocking call
-                        // and will keep the task alive as long as the grpc connection
-                        // with vpnd is UP
-                        c_vpnd.watch_events(&handle).await.ok();
-                        // if the events stream cuts off, that means vpnd is down
-                        AppState::vpnd_down(&handle).await;
-                    } else {
-                        AppState::vpnd_down(&handle).await;
+                    match c_vpnd.vpnd_info().await {
+                        Ok(info) => {
+                            info!("vpnd info: {info:?}");
+                            c_vpnd.update_vpnd_state(info, &handle).await.ok();
+                            c_vpnd.update_config(&handle).await.ok();
+                            c_vpnd.tunnel_state(&handle).await.ok();
+
+                            vpnd_check::sentry_check(sentry_enabled, &c_vpnd).await.ok();
+                            vpnd_check::netstats_check(&db, &c_vpnd).await.ok();
+
+                            info!("watching vpnd events");
+                            // start watching vpnd events, this is a blocking call
+                            // and will keep the task alive as long as the grpc connection
+                            // with vpnd is UP
+                            c_vpnd.watch_events(&handle).await.ok();
+                            // if the events stream cuts off, that means vpnd is down
+                            AppState::vpnd_down(&handle).await;
+                        }
+                        Err(VpndError::AuthenticationRequired) => {
+                            info!("authentication denied, waiting for user to authenticate");
+                            AppState::vpnd_auth_denied(&handle).await;
+                            c_vpnd.wait_for_auth_retry().await;
+                            continue;
+                        }
+                        Err(_) => {
+                            info!("vpnd error, downing");
+                            AppState::vpnd_down(&handle).await;
+                        }
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
                 }
             });
-
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -331,6 +345,8 @@ async fn main() -> Result<()> {
             cmd_socks5::enable_socks5,
             cmd_socks5::disable_socks5,
             cmd_socks5::get_socks5_status,
+            cmd_diag::run_diagnostic,
+            cmd_diag::share_diagnostic,
             #[cfg(windows)]
             cmd_updater::fetch_update,
             #[cfg(windows)]

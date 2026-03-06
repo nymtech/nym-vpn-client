@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
@@ -50,6 +50,7 @@ function Account() {
 
   const [isAccountLinking, setIsAccountLinking] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
@@ -108,11 +109,16 @@ function Account() {
       });
       openUrl(linkUrl);
 
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutIdRef.current = setTimeout(
+          () => reject(new Error('Login timeout')),
+          300000,
+        );
+      });
+
       const deeplinkUrl = await Promise.race([
         startListening(),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Login timeout')), 300000),
-        ),
+        timeoutPromise,
       ]);
 
       await invoke('store_deeplink_account', {
@@ -137,6 +143,10 @@ function Account() {
         });
       }
     } finally {
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
       setIsAccountLinking(false);
     }
   };

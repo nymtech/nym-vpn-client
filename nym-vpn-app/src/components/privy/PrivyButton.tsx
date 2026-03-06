@@ -1,5 +1,5 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
@@ -20,6 +20,16 @@ function PrivyButton() {
   const dispatch = useMainDispatch() as StateDispatch;
 
   const [loading, setLoading] = useState(false);
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+    };
+  }, []);
 
   const refreshAccountMode = async () => {
     const accountMode = await invoke<TAccountMode>('get_account_mode');
@@ -36,11 +46,16 @@ function PrivyButton() {
     openUrl(loginUrl);
 
     try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutIdRef.current = setTimeout(
+          () => reject(new Error('Login timeout')),
+          300000,
+        );
+      });
+
       const deeplinkurl = await Promise.race([
         startListening(),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Login timeout')), 300000),
-        ),
+        timeoutPromise,
       ]);
 
       await invoke('store_deeplink_account', {
@@ -76,6 +91,10 @@ function PrivyButton() {
         });
       }
     } finally {
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
       setLoading(false);
     }
   };

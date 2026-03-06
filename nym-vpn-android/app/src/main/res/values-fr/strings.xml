@@ -269,7 +269,7 @@
 	<string name="onboarding_title_3">Vraiment sans logs. Pas de promesses vides.</string>
 	<string name="onboarding_title_4">Payez anonymement. Naviguez anonymement</string>
 	<string name="onboarding_description_base">Le VPN le plus privé au monde</string>
-	<string name="onboarding_description_1">Essai gratuit de 7 jours. Toutes les fonctionnalités, aucune pub.</string>
+	<string name="onboarding_description_1">Le VPN le plus privé au monde</string>
 	<string name="onboarding_description_2">Rapide : streaming 4K sans ralentissement\nAnonyme : impossible à tracer, même pour nous</string>
 	<string name="onboarding_description_3">Notre réseau décentralisé rend techniquement impossible l\'enregistrement de vos activités.</string>
 	<string name="onboarding_description_4">Carte, crypto, cash : aucun lien entre votre paiement et votre navigation. Garanti par cryptographie.</string>

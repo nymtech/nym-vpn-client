@@ -3,6 +3,7 @@
   "internal": "Internal error",
   "daemon": {
     "not-connected": "Can't connect to the daemon (vpnd). Relaunch the daemon or restart the app.",
+    "auth-denied": "Authentication required. Click the Authenticate button to authenticate the daemon.",
     "internal": "Daemon internal error",
     "invalid-network": "Invalid network"
   },

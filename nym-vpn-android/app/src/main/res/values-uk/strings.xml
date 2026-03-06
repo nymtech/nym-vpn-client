@@ -269,7 +269,7 @@
 	<string name="onboarding_title_3">Припиніть відстеження в Інтернеті</string>
 	<string name="onboarding_title_4">Анонімність від оплати до веб-сайту</string>
 	<string name="onboarding_description_base">Найприватніший VPN у світі</string>
-	<string name="onboarding_description_1">Найприватніший VPN у світі\nСпробуйте 7 днів безкоштовно:\nВсі функції включені, без реклами.</string>
+	<string name="onboarding_description_1">Найприватніший VPN у світі</string>
 	<string name="onboarding_description_2">Швидкий: понад 250 Мбіт/с з dVPN.
 Анонімний: 5-рівневий мікснет з генерацією шуму.</string>
 	<string name="onboarding_description_3">Децентралізована мережа Nym робить обіцянки «без збереження журналів» застарілими.</string>

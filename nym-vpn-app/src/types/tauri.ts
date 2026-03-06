@@ -94,6 +94,7 @@ export type ErrorKey =
   | 'internal'
   | 'vpnd-client'
   | 'not-connected-to-daemon'
+  | 'auth-denied'
   | 'entry-gw-down'
   | 'exit-gw-down-ipv4'
   | 'exit-gw-down-ipv6'
@@ -318,6 +319,12 @@ export type TAccountSummary = {
   'is-subscription-active': boolean;
 };
 
+export type TApiTimeSkew = {
+  localTime: string;
+  estimatedRemoteTime: string;
+  acceptablySynced: boolean;
+};
+
 export type TAuthMethod = {
   id: string;
   pubkey: string;
@@ -344,6 +351,60 @@ export type TBackendError = {
    * Extra data to be passed along to help specialize the problem
    */
   data: { [key in string]?: string } | null;
+};
+
+export type TCompleteDnsReport = {
+  system: TDiagnosticResult<Array<TDnsResolution>>;
+  byNameserver: Array<TDnsResolution>;
+};
+
+export type TDiagnosticGateway = {
+  identityKey: string;
+  name: string;
+  description: string | null;
+};
+
+export type TDiagnosticHealthResponse = {
+  status: string;
+  timestampUtc: string;
+};
+
+export type TDiagnosticReport = {
+  dns: TCompleteDnsReport | null;
+  http: TDiagnosticResult<THttpReport> | null;
+  gateway: TGatewayReport | null;
+};
+
+export type TDiagnosticResult<T> = {
+  ok: boolean;
+  value: T | null;
+  error: string | null;
+};
+
+export type TDiagnosticRunParams = {
+  gateway: string | null;
+  skipDns: boolean;
+  skipHttp: boolean;
+};
+
+export type TDnsResolution = {
+  nameservers: string;
+  hostname: string;
+  resolution: TDiagnosticResult<Array<string>>;
+  resolutionDurationMs: bigint;
+};
+
+export type TGatewayReport = {
+  gateway: TDiagnosticResult<TDiagnosticGateway | null>;
+  tcp: TDiagnosticResult<null> | null;
+  websocket: TDiagnosticResult<null> | null;
+  websocketRequest: TDiagnosticResult<string> | null;
+};
+
+export type THttpReport = {
+  remoteTime: TDiagnosticResult<TApiTimeSkew>;
+  healthResponse: TDiagnosticResult<TDiagnosticHealthResponse>;
+  nbNymnodes: TDiagnosticResult<number>;
 };
 
 export type TTunnelState =
@@ -445,7 +506,8 @@ export type VpndStatus =
         requirement: string;
       };
     }
-  | 'down';
+  | 'down'
+  | 'authDenied';
 
 export type WgNode = {
   endpoint: string;

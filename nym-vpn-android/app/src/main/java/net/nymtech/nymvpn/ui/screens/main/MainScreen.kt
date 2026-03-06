@@ -41,7 +41,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
@@ -139,7 +138,6 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	val connectionSeconds by viewModel.connectionSeconds.collectAsState()
-	val isQuicFeatureFlagEnabled by viewModel.isQuicFeatureFlagEnabled.collectAsStateWithLifecycle()
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
@@ -315,8 +313,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 				) {
 					GroupLabel(title = stringResource(R.string.connect_to))
 					val shouldShowQuic = run {
-						isQuicFeatureFlagEnabled &&
-							appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
+						appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
 							appUiState.settings.quicEnabled &&
 							appUiState.entryPointGateway?.isQuicSupported() ?: false
 					}

@@ -200,7 +200,7 @@ export type CodeDependency = {
   copyright?: string;
 };
 
-export type DaemonStatus = 'ok' | 'non-compat' | 'down';
+export type DaemonStatus = 'ok' | 'non-compat' | 'down' | 'auth-denied';
 
 export type ProgressMsg = 'canceling';
 

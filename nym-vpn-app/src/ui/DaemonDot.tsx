@@ -20,7 +20,7 @@ function DaemonDot({ status, ...rest }: DaemonDotProps) {
     }
   };
 
-  if (!devMode && status === 'ok') {
+  if ((!devMode && status === 'ok') || status === 'auth-denied') {
     return null;
   }
 
