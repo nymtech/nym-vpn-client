@@ -35,18 +35,8 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-          cache: false
-
-      - name: Cache Go modules
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION}}
+          cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3

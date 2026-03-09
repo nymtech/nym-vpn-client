@@ -129,8 +129,7 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-          cache-dependency-path: |
-            wireguard/libwg/go.sum
+          cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master

@@ -14,20 +14,28 @@ env:
 
 jobs:
   build-libwg:
-    if: github.actor != 'dependabot[bot]'
     runs-on: "custom-windows-11"
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
 
+      - name: Cache libwg
+        uses: actions/cache@v5
+        id: cache
+        with:
+          path: build/lib
+          key: ${{ runner.os }}-go${{ vars.REQUIRED_GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+
       - name: Install Go
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v6
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-          cache: false
+          cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Setup msys2
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: msys2/setup-msys2@v2
         id: msys2
         with:
@@ -36,16 +44,19 @@ jobs:
           install: mingw-w64-x86_64-clang
 
       - name: Install GNU make
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       - name: Install cargo-get
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-get
 
       - name: Build wireguard
+        if: steps.cache.outputs.cache-hit != 'true'
         env:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
         working-directory: nym-vpn-core

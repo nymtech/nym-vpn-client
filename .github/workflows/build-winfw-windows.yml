@@ -1,5 +1,10 @@
 name: build-winfw-windows
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-winfw-windows.yml"
+      - "nym-windows/**"
   workflow_dispatch:
   workflow_call:
 

@@ -86,18 +86,8 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: wireguard/libwg/go.mod
-          cache: false
-
-      - name: Restore Go modules cache
-        uses: actions/cache/restore@v5
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION}}
+          cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Build wireguard-go
         run: ./wireguard/build-wireguard-go.sh

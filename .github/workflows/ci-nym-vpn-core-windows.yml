@@ -46,12 +46,6 @@ jobs:
           targets: i686-pc-windows-msvc
           components: rustfmt, clippy
 
-      - name: Install Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-          cache: false
-
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:

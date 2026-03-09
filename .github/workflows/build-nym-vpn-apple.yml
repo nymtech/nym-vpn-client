@@ -145,7 +145,7 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-          cache: false
+          cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Get workspace version
         id: workspace-version
