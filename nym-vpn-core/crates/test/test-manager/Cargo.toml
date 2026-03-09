@@ -6,7 +6,7 @@ repository.workspace = true
 license.workspace = true
 edition.workspace = true
 rust-version.workspace = true
-version = "1.27.0-beta"
+version.workspace = true
 
 [lints]
 workspace = true
@@ -49,7 +49,7 @@ uuid = { workspace = true }
 
 test_macro = { path = "./test_macro" }
 test-rpc = { workspace = true }
-tokio-util = { workspace = true, features = ["codec"]}
+tokio-util = { workspace = true, features = ["codec"] }
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 
