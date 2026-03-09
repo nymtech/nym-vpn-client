@@ -25,7 +25,7 @@ jobs:
         id: cache
         with:
           path: build/lib
-          key: ${{ runner.os }}-go${{ vars.REQUIRED_GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: ${{ runner.os }}-ios-go${{ vars.REQUIRED_GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
