@@ -181,7 +181,7 @@ function Account() {
             trailingIcon: 'open_in_new',
             onClick: handleManageSubscription,
           },
-          ...(backendFlags.privy && accountSummary?.['is-linked']
+          ...(backendFlags.privy && !accountSummary?.['is-linked']
             ? [
                 {
                   title: t('account.account-on-nym'),
