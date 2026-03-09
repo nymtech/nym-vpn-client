@@ -10,18 +10,14 @@ public struct GenericBannerView: View {
                 titleSubtitleText
                 Spacer()
                 actionText
+                closeButton
             }
             .padding(16)
         }
         .frame(maxWidth: .infinity, maxHeight: 68)
         .background(NymColor.elevation)
         .cornerRadius(8)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .inset(by: 0.5)
-                .stroke(NymColor.error, lineWidth: 1)
-        )
-        .padding(24)
+        .padding(.horizontal, 16)
     }
 
     public init(config: GenericBannerViewConfig) {
@@ -31,30 +27,43 @@ public struct GenericBannerView: View {
 
 private extension GenericBannerView {
     var titleSubtitleText: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(config.title)
-                .textStyle(.Body.Large.regular)
+                .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.primary)
 
             Text(config.subtitle)
-                .textStyle(.Body.Small.regular)
+                .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
         }
     }
 
     var actionText: some View {
-        VStack(spacing: 0) {
-            Spacer()
-            Text(config.actionTitle)
-                .textStyle(.Body.Large.regular)
-                .foregroundStyle(NymColor.action)
-            Spacer()
-        }
-        .onTapGesture {
-            config.action()
-        }
-        .accessibilityAction {
-            config.action()
+        Text(config.actionTitle)
+            .textStyle(.Body.Medium.regular)
+            .foregroundStyle(NymColor.accent)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: 120)
+            .onTapGesture {
+                config.action()
+            }
+            .accessibilityAction {
+                config.action()
+            }
+    }
+
+    @ViewBuilder
+    var closeButton: some View {
+        if let closeAction = config.closeAction {
+            GenericImage(systemImageName: "xmark")
+                .foregroundStyle(NymColor.primary)
+                .frame(width: 12, height: 12)
+                .padding(8)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    closeAction()
+                }
         }
     }
 }

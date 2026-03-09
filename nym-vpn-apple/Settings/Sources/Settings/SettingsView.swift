@@ -27,6 +27,7 @@ private extension SettingsView {
             ScrollView {
                 VStack(spacing: 0) {
                     credentialOrAddCredentialView()
+                    renewButton()
 
                     Spacer()
                         .frame(height: 24)
@@ -53,6 +54,7 @@ private extension SettingsView {
         .onAppear {
             Task {
                 await credentialsManager.updateAccountSummary()
+                viewModel.reloadSections()
             }
         }
     }
@@ -80,6 +82,17 @@ private extension SettingsView {
             .onTapGesture {
                 viewModel.navigateToOnboardingOrCredential()
             }
+    }
+
+    @ViewBuilder
+    func renewButton() -> some View {
+        if viewModel.shouldShowRenewButton {
+            GenericButton(title: "settings.account.renewNow".localizedString)
+                .padding(.top, 24)
+                .onTapGesture {
+                    viewModel.navigateToPlanPurchase()
+                }
+        }
     }
 
     @ViewBuilder

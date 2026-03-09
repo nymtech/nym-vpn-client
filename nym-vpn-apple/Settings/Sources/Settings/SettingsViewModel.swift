@@ -4,12 +4,17 @@ import AppSettings
 import AppVersionProvider
 import ConfigurationManager
 import ConnectionManager
+import ConnectionTypes
 import CredentialsManager
 import ExternalLinkManager
 import FeatureFlagsManager
 import ImpactGenerator
+#if os(iOS)
+import PurchasesManager
+#endif
 import Routes
 import UIComponents
+import Theme
 
 @MainActor public class SettingsViewModel: SettingsFlowState {
     public typealias AppSettingsSection = SettingsSection<AppSettingsSectionKind>
@@ -20,6 +25,9 @@ import UIComponents
     private let externalLinkManager: ExternalLinkManager
     private let featureFlagsManager: FeatureFlagsManager
     private let impactGenerator: ImpactGenerator
+#if os(iOS)
+    private let purchasesManager: PurchasesManager
+#endif
 
     @ObservedObject private var credentialsManager: CredentialsManager
     private var cancellables = Set<AnyCancellable>()
@@ -30,6 +38,7 @@ import UIComponents
 #endif
     @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
+    @Published var shouldShowRenewButton = false
 
     var isValidCredentialImported: Bool {
         credentialsManager.isValidCredentialImported
@@ -48,7 +57,8 @@ import UIComponents
         credentialsManager: CredentialsManager,
         externalLinkManager: ExternalLinkManager,
         featureFlagsManager: FeatureFlagsManager,
-        impactGenerator: ImpactGenerator
+        impactGenerator: ImpactGenerator,
+        purchasesManager: PurchasesManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
@@ -57,6 +67,7 @@ import UIComponents
         self.externalLinkManager = externalLinkManager
         self.featureFlagsManager = featureFlagsManager
         self.impactGenerator = impactGenerator
+        self.purchasesManager = purchasesManager
         super.init(path: path)
         setup()
     }
@@ -117,6 +128,20 @@ import UIComponents
         guard configurationManager.isSantaClaus else { return }
         impactGenerator.impact()
         path.append(SettingLink.santasMenu)
+    }
+
+    func navigateToPlanPurchase() {
+        impactGenerator.softImpact()
+#if os(iOS)
+        path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+#elseif os(macOS)
+        try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
+#endif
+    }
+
+    func reloadSections() {
+        updateRenewButton()
+        configureSections()
     }
 }
 
@@ -235,13 +260,53 @@ private extension SettingsViewModel {
     }
 }
 
+// MARK: - Helpers -
+private extension SettingsViewModel {
+    func updateRenewButton() {
+        if let accountSummary = credentialsManager.accountSummary {
+            let autoRenew = isAutoRenewEnabled(accountSummary: accountSummary)
+            shouldShowRenewButton = !autoRenew && (accountSummary.isExpiringSoon || !accountSummary.isActive)
+        } else {
+            shouldShowRenewButton = false
+        }
+    }
+
+    func isAutoRenewEnabled(accountSummary: AccountSummary) -> Bool {
+#if os(iOS)
+        purchasesManager.isAutoRenewEnabled ?? accountSummary.isAutoRenewEnabled
+#elseif os(macOS)
+        accountSummary.isAutoRenewEnabled
+#endif
+    }
+}
+
 // MARK: - Sections -
 private extension SettingsViewModel {
     func accountSection() -> AppSettingsSection {
+        let subtitle: AttributedString
+        if let accountSummary = credentialsManager.accountSummary,
+           let planText = accountSummary.planValidUntilAttributedString {
+            if accountSummary.isActive,
+               isAutoRenewEnabled(accountSummary: accountSummary),
+               !accountSummary.isExpiringSoon,
+               !accountSummary.isExpiringWarning {
+                var second = AttributedString("* \("autoRenews".localizedString)")
+                second.foregroundColor = NymColor.gray1
+                subtitle = planText + AttributedString("\n") + second
+            } else {
+                subtitle = planText
+            }
+        } else {
+            var first = AttributedString("noActivePlan".localizedString)
+            first.foregroundColor = NymColor.error
+            subtitle = first
+        }
+
         var viewModels = [
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.account".localizedString,
+                attributtedSubtitle: subtitle,
                 systemImageName: "person.crop.circle",
                 action: { [weak self] in
                     Task { @MainActor in

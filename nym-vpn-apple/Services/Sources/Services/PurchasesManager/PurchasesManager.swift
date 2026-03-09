@@ -9,6 +9,7 @@ import AppSettings
 
     @Published public var products: [Product] = []
     @Published public var isEligibleForIntroOffer: [String] = []
+    @Published public var isAutoRenewEnabled = false
 
     public init() { setup() }
     deinit { updates?.cancel() }
@@ -49,17 +50,40 @@ import AppSettings
     public func restorePurchases() async throws {
         try await AppStore.sync()
     }
+
+    public func updateAutoRenewStatus() async {
+        var autoRenew = false
+        for product in products {
+            guard let subscription = product.subscription,
+                  let statuses = try? await subscription.status,
+                  let latestStatus = statuses.first
+            else {
+                continue
+            }
+
+            if case let .verified(renewalInfo) = latestStatus.renewalInfo {
+                autoRenew = renewalInfo.willAutoRenew
+                break
+            }
+        }
+        isAutoRenewEnabled = autoRenew
+    }
 }
 
 private extension PurchasesManager {
     func setup() {
         updates = observeTransactionUpdates()
-        Task { try? await loadProducts() }
+        Task {
+            try? await loadProducts()
+            await updateAutoRenewStatus()
+        }
     }
 
     func observeTransactionUpdates() -> Task<Void, Never> {
-        Task(priority: .background) {
-            for await _ in Transaction.updates {}
+        Task(priority: .background) { [weak self] in
+            for await _ in Transaction.updates {
+                await self?.updateAutoRenewStatus()
+            }
         }
     }
 

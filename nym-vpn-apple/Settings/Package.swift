@@ -20,6 +20,7 @@ let package = Package(
         .package(path: "../Routes"),
         .package(path: "../Services"),
         .package(path: "../ServicesIOS"),
+        .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
         .package(path: "../UIComponents"),
         .package(path: "../Theme"),
@@ -31,6 +32,7 @@ let package = Package(
             dependencies: [
                 .product(name: "AppSettings", package: "Services"),
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
+                .product(name: "AppDiscoveryService", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "BiometricAuthenticator", package: "Services"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConnectionManager", package: "Services"),

@@ -1,5 +1,7 @@
 import SwiftUI
-#if os(macOS)
+#if os(iOS)
+import PurchasesManager
+#elseif os(macOS)
 import GRPCManager
 #endif
 import Routes
@@ -7,7 +9,9 @@ import Settings
 import UIComponents
 
 struct HomeFlowCoordinator<Content: View>: View {
-#if os(macOS)
+#if os(iOS)
+    @EnvironmentObject private var purchasesManager: PurchasesManager
+#elseif os(macOS)
     @EnvironmentObject private var grpcManager: GRPCManager
 #endif
     @StateObject var state: HomeFlowState
@@ -62,7 +66,8 @@ private extension HomeFlowCoordinator {
                         credentialsManager: .shared,
                         externalLinkManager: .shared,
                         featureFlagsManager: .shared,
-                        impactGenerator: .shared
+                        impactGenerator: .shared,
+                        purchasesManager: purchasesManager
                     )
             )
 #elseif os(macOS)
