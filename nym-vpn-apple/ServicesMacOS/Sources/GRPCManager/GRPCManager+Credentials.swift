@@ -34,7 +34,9 @@ extension GRPCManager {
                 cannonicalAccountAddress: summary.canonicalAccountAddr,
                 accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
                 isLinked: summary.isLinked(),
-                isActive: summary.isSubscriptionActive()
+                isActive: summary.isSubscriptionActive(),
+                isAutoRenewEnabled: summary.isRecurring,
+                subscriptionKind: summary.subscriptionKind.map { VpnSubscriptionKind(from: $0) }
             )
         }.value
     }

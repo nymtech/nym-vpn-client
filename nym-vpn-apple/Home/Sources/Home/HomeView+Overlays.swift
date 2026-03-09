@@ -73,4 +73,17 @@ extension HomeView {
             PassphraseOverlay(path: $viewModel.path)
         }
     }
+
+    @ViewBuilder
+    func expiryBannerOverlay() -> some View {
+        if viewModel.isExpiryBannerDisplayed {
+            VStack {
+                GenericBannerView(config: viewModel.expiryBannerConfig)
+                    .padding(.top, viewModel.appSettings.isSmallScreen ? 40 : 56)
+                Spacer()
+            }
+            .transition(.move(edge: .top).combined(with: .opacity))
+            .animation(.easeInOut(duration: 0.3), value: viewModel.isExpiryBannerDisplayed)
+        }
+    }
 }

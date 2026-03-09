@@ -15,6 +15,7 @@ public struct NymColor {
     public static let info = Color(.info)
     public static let warning = Color(.warning)
     public static let error = Color(.error)
+    public static let orange = Color(red: 0.98, green: 0.43, blue: 0.31)
     public static let gray1 = Color(.gray1)
     public static let gray2 = Color(.gray2)
     public static let quic = Color(.QUIC)

@@ -215,12 +215,27 @@ import PathManager
             cannonicalAccountAddress: summary.canonicalAccountAddr,
             accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
             isLinked: summary.isLinked(),
-            isActive: summary.isSubscriptionActive()
+            isActive: summary.isSubscriptionActive(),
+            isAutoRenewEnabled: summary.isRecurring,
+            subscriptionKind: summary.subscriptionKind.map { VpnSubscriptionKind(from: $0) }
         )
 
 #elseif os(macOS)
         accountSummary = try? await grpcManager.accountSummary()
 #endif
+        resetExpiryDismissalsIfNeeded()
+    }
+
+    private func resetExpiryDismissalsIfNeeded() {
+        guard let accountSummary,
+              accountSummary.isActive,
+              !accountSummary.isExpiringSoon,
+              !accountSummary.isExpiringWarning
+        else {
+            return
+        }
+        appSettings.expiryWarningDismissedAt = 0
+        appSettings.expirySoonDismissedAt = 0
     }
 }
 

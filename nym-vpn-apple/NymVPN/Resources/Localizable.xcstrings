@@ -3135,6 +3135,17 @@
         }
       }
     },
+    "autoRenews" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-renews"
+          }
+        }
+      }
+    },
     "cancel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12670,6 +12681,17 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "为保障隐私，NymVPN 不允许入口与出口使用同一网关。请重新连接或选择不同位置。"
+          }
+        }
+      }
+    },
+    "errorReason.splitTunnel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Generic Split Tunnel error. Please try again."
           }
         }
       }
@@ -24314,6 +24336,17 @@
         }
       }
     },
+    "noActivePlan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No active plan"
+          }
+        }
+      }
+    },
     "noInternet" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26911,6 +26944,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "经期"
+          }
+        }
+      }
+    },
+    "planExpiresOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan expires on"
+          }
+        }
+      }
+    },
+    "planValidUntil" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan valid until"
           }
         }
       }
@@ -31377,6 +31432,50 @@
         }
       }
     },
+    "settings.account.bandwidthLimit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limit"
+          }
+        }
+      }
+    },
+    "settings.account.bandwidthRemaining" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bandwidth remaining"
+          }
+        }
+      }
+    },
+    "settings.account.contactSupport.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contact our support"
+          }
+        }
+      }
+    },
+    "settings.account.contactSupport.suffix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "team for extra bandwidth."
+          }
+        }
+      }
+    },
     "settings.account.deviceId" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31410,6 +31509,28 @@
         }
       }
     },
+    "settings.account.manageSubscription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage your subscription"
+          }
+        }
+      }
+    },
+    "settings.account.noActivePlan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No active plan"
+          }
+        }
+      }
+    },
     "settings.account.nymAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31439,6 +31560,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Link a social account for effortless login."
+          }
+        }
+      }
+    },
+    "settings.account.renewNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renew now to stay protected"
+          }
+        }
+      }
+    },
+    "settings.account.resetsOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resets on"
+          }
+        }
+      }
+    },
+    "settings.account.status" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account status"
           }
         }
       }
@@ -34871,39 +35025,6 @@
         }
       }
     },
-    "splitTunnel.open" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open"
-          }
-        }
-      }
-    },
-    "splitTunnel.protect" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protect"
-          }
-        }
-      }
-    },
-    "splitTunnel.systemSettings" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System Settings"
-          }
-        }
-      }
-    },
     "splitTunnel.info.direct" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34988,6 +35109,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Recommended setting for all apps."
+          }
+        }
+      }
+    },
+    "splitTunnel.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        }
+      }
+    },
+    "splitTunnel.protect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protect"
+          }
+        }
+      }
+    },
+    "splitTunnel.systemSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Settings"
           }
         }
       }

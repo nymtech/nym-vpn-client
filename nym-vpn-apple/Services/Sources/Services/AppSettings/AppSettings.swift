@@ -112,6 +112,12 @@ import CountriesManagerTypes
     @AppStorage(AppSettingKey.isDebugLogsOn.rawValue, store: UserDefaults(suiteName: Constants.groupID.rawValue))
     public var isDebugLogsOn = false
 
+    @AppStorage(AppSettingKey.expiryWarningDismissedAt.rawValue)
+    public var expiryWarningDismissedAt: Double = 0
+
+    @AppStorage(AppSettingKey.expiryWarningSoonDismissedAt.rawValue)
+    public var expirySoonDismissedAt: Double = 0
+
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher: Bool
     @Published public var isCredentialImportedPublisher: Bool
@@ -199,6 +205,8 @@ public enum AppSettingKey: String {
     case isMixnetTuningEnabled
     case isAdBlockerEnabled
     case isDebugLogsOn
+    case expiryWarningDismissedAt
+    case expiryWarningSoonDismissedAt
 }
 
 extension Array: @retroactive RawRepresentable where Element: Codable {
