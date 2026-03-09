@@ -6,6 +6,7 @@ repository.workspace = true
 license.workspace = true
 edition.workspace = true
 rust-version.workspace = true
+version = "1.27.0-beta"
 
 [lints]
 workspace = true
