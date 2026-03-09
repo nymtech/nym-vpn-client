@@ -61,6 +61,7 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-edit
+          cache-key: ${{ matrix.arch }}
 
       - name: Get workspace version
         id: workspace-version
@@ -72,6 +73,7 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-edit
+          cache-key: ${{ matrix.arch }}
 
       - name: Append timestamp if it's a dev version
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
