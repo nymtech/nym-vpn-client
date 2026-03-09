@@ -80,7 +80,6 @@ jobs:
       # GH needed for gh cli
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      PKG_VERSION: ${{ needs.build-linux.outputs.PKG_VERSION_X86_64 }} # unused?
       UPLOAD_DIR_LINUX_X86_64: linux_artifacts_x86_64
       UPLOAD_DIR_LINUX_AARCH64: linux_artifacts_aarch64
       UPLOAD_DIR_WINDOWS: ${{ needs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
