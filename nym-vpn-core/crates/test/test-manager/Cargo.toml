@@ -49,7 +49,7 @@ uuid = { workspace = true }
 
 test_macro = { path = "./test_macro" }
 test-rpc = { workspace = true }
-tokio-util = { workspace = true, features = ["codec"]}
+tokio-util = { workspace = true, features = ["codec"] }
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 
