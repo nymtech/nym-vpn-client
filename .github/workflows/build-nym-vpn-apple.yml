@@ -122,7 +122,7 @@ jobs:
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
-          targets: x86_64-apple-darwin aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim
+          targets: x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim
 
       - name: Install cargo-swift
         uses: baptiste0928/cargo-install@v3
