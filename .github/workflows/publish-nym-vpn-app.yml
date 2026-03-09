@@ -59,7 +59,7 @@ jobs:
     needs: build-linux
     with:
       build-profile: release
-      rust-version: ${{ needs.build-linux.outputs.RUST_VERSION_x86_64 }}
+      rust-version: ${{ vars.REQUIRED_RUSTC_VERSION }}
 
   publish:
     needs:
