@@ -9,6 +9,7 @@ mod shutdown_handler;
 #[cfg(windows)]
 mod windows_service;
 
+use anyhow::Context;
 use clap::Parser;
 use nym_vpn_network_config::NetworkCache;
 use tokio::{sync::broadcast, task::JoinHandle};
@@ -196,7 +197,8 @@ async fn spawn_vpn_service(
         tunnel_event_rx,
         command_shutdown_token.child_token(),
     )
-    .await?;
+    .await
+    .with_context(|| "failed to start command interface")?;
 
     let vpn_service_handle = NymVpnService::spawn(
         vpn_command_rx,
