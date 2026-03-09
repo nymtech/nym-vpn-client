@@ -59,7 +59,7 @@ jobs:
     needs: build-linux
     with:
       build-profile: release
-      rust-version: ${{ needs.build-linux.outputs.RUST_VERSION }}
+      rust-version: ${{ needs.build-linux.outputs.RUST_VERSION_x86_64 }}
 
   publish:
     needs:
@@ -80,8 +80,9 @@ jobs:
       # GH needed for gh cli
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      PKG_VERSION: ${{ needs.build-linux.outputs.PKG_VERSION }}
-      UPLOAD_DIR_UBUNTU_22: ${{ needs.build-linux.outputs.UPLOAD_DIR_LINUX }}
+      PKG_VERSION: ${{ needs.build-linux.outputs.PKG_VERSION_X86_64 }} # unused?
+      UPLOAD_DIR_LINUX_X86_64: ${{ needs.build-linux.outputs.UPLOAD_DIR_LINUX_X86_64 }}
+      UPLOAD_DIR_LINUX_AARCH64: ${{ needs.build-linux.outputs.UPLOAD_DIR_LINUX_AARCH64 }}
       UPLOAD_DIR_WINDOWS: ${{ needs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
       UPDATER_ENABLED: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
     permissions: write-all
@@ -143,15 +144,22 @@ jobs:
 
       - name: Generate checksums
         run: |
-          pushd ${{ env.UPLOAD_DIR_UBUNTU_22 }} || exit 1
-          for f in *; do sha256sum "$f" > "$f.sha256sum"; done
+          pushd ${{ env.UPLOAD_DIR_LINUX_X86_64 }} || exit 1
+            for f in *; do sha256sum "$f" > "$f.sha256sum"; done
           popd
+
+          pushd ${{ env.UPLOAD_DIR_LINUX_AARCH64 }} || exit 1
+            for f in *; do sha256sum "$f" > "$f.sha256sum"; done
+          popd
+
           pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
-          exe=(*setup.exe)
-          sha256sum "${exe[0]}" > "${exe[0]}.sha256sum";
+            exe=(*setup.exe)
+            sha256sum "${exe[0]}" > "${exe[0]}.sha256sum";
           popd
+
           echo 'SHA256SUMS<<EOF' >> $GITHUB_ENV
-          cat ${{ env.UPLOAD_DIR_UBUNTU_22 }}/*.sha256sum >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_LINUX_X86_64 }}/*.sha256sum >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_LINUX_AARCH64 }}/*.sha256sum >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
@@ -207,8 +215,9 @@ jobs:
           prerelease: ${{ env.RELEASE_TYPE != 'stable' || inputs.pre_release }}
           target_commitish: ${{ github.sha }}
           files: |
-            ${{ env.UPLOAD_DIR_UBUNTU_22}}/*
-            ${{ env.UPLOAD_DIR_WINDOWS}}/*
+            ${{ env.UPLOAD_DIR_LINUX_X86_64 }}/*
+            ${{ env.UPLOAD_DIR_LINUX_AARCH64 }}/*
+            ${{ env.UPLOAD_DIR_WINDOWS }}/*
 
   windows-updater:
     uses: ./.github/workflows/tauri-updater.yml
