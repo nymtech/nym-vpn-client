@@ -22,6 +22,7 @@ fi
 
 deb_file="$SRC_DEB"
 version="$PKGVER"
+arch=$(echo "$SRC_DEB" | awk -F. '{print $1}' | awk -F_ '{print $NF}')
 pkgname="nym-vpn-app"
 
 # Check if the file exists
@@ -53,7 +54,7 @@ cat "$control_file"
 
 # Repack the .deb package with the updated control file
 # replace ~ with - in the filename to avoid file renaming by GH
-dest="${pkgname}_${version//\~/-}_amd64.deb"
+dest="${pkgname}_${version//\~/-}_${arch}.deb"
 dpkg-deb -Zxz -b "$tmpdir" "$dest"
 
 # Clean up the temporary directory

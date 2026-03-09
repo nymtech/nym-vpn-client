@@ -25,19 +25,6 @@ on:
         required: true
       DESKTOP_JS_SENTRY_DSN:
         required: true
-    outputs:
-      UPLOAD_DIR_LINUX_AARCH64:
-        value: ${{ jobs.build-linux.outputs.UPLOAD_DIR_LINUX_aarch64 }}
-      PKG_VERSION_AARCH64:
-        value: ${{ jobs.build-linux.outputs.PKG_VERSION_aarch64 }}
-      RUST_VERSION_AARCH64:
-        value: ${{ jobs.build-linux.outputs.RUST_VERSION_aarch64 }}
-      UPLOAD_DIR_LINUX_X86_64:
-        value: ${{ jobs.build-linux.outputs.UPLOAD_DIR_LINUX_x86_64 }}
-      PKG_VERSION_X86_64:
-        value: ${{ jobs.build-linux.outputs.PKG_VERSION_x86_64 }}
-      RUST_VERSION_X86_64:
-        value: ${{ jobs.build-linux.outputs.RUST_VERSION_x86_64 }}
 env:
   CARGO_TERM_COLOR: always
 
@@ -48,22 +35,18 @@ jobs:
         include:
           - os: "ubuntu-22.04"
             arch: "x86_64"
-            image_arch: "amd64"
-            image_arch2: "x64"
+            deb_arch: "amd64"
+            app_image_arch: "amd64"
+            bin_arch: "x64"
           - os: "ubuntu-22.04-arm"
             arch: "aarch64"
-            image_arch: "arm64"
-            image_arch2: "arm64"
+            deb_arch: "arm64"
+            app_image_arch: "aarch64"
+            bin_arch: "arm64"
     runs-on: ${{ matrix.os }}
     env:
       UPDATER_BUNDLE_NAME: updater_linux_${{ matrix.arch }}.AppImage.tar.gz
-      UPLOAD_DIR_LINUX: linux_artifacts-${{ matrix.arch }}
-    outputs:
-      UPLOAD_DIR_LINUX_${{ matrix.arch }}: ${{ env.UPLOAD_DIR_LINUX }}
-      PKG_VERSION_${{ matrix.arch }}: ${{ steps.package-version.outputs.metadata }}
-      RUST_VERSION_${{ matrix.arch }}: ${{ steps.rust-version.outputs.rustc }}
-      DEB_PKG_${{ matrix.arch }}: ${{ steps.repack-deb.outputs.package }}
-      DEB_VERSION_${{ matrix.arch }}: ${{ steps.repack-deb.outputs.version }}
+      UPLOAD_DIR_LINUX: linux_artifacts_${{ matrix.arch }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
@@ -160,18 +143,18 @@ jobs:
       - name: Repack deb package
         id: repack-deb
         env:
-          SRC_DEB: nym-vpn-app/src-tauri/target/release/bundle/deb/NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.image_arch }}.deb
+          SRC_DEB: nym-vpn-app/src-tauri/target/release/bundle/deb/NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.deb_arch }}.deb
           PKGVER: ${{ steps.package-version.outputs.metadata }}
         run: |
           ./.pkg/repack_deb.sh
 
       - name: Move things around to prepare for upload
         env:
-          SRC_APPIMAGE: nym-vpn-app/src-tauri/target/release/bundle/appimage/NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.image_arch }}.AppImage
-          DST_APPIMAGE: NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.image_arch2 }}.AppImage
+          SRC_APPIMAGE: nym-vpn-app/src-tauri/target/release/bundle/appimage/NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.app_image_arch }}.AppImage
+          DST_APPIMAGE: NymVPN_${{ steps.package-version.outputs.metadata }}_${{ matrix.app_image_arch }}.AppImage
           SRC_DEB: ${{ steps.repack-deb.outputs.package }}
           SRC_BIN: nym-vpn-app/src-tauri/target/release/nym-vpn-app
-          DST_BIN: nym-vpn_${{ steps.package-version.outputs.metadata }}_linux_${{ matrix.image_arch2 }}
+          DST_BIN: nym-vpn_${{ steps.package-version.outputs.metadata }}_linux_${{ matrix.bin_arch }}
         run: |
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           echo "Copy AppImage"

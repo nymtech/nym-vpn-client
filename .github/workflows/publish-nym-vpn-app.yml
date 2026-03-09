@@ -81,8 +81,8 @@ jobs:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PKG_VERSION: ${{ needs.build-linux.outputs.PKG_VERSION_X86_64 }} # unused?
-      UPLOAD_DIR_LINUX_X86_64: ${{ needs.build-linux.outputs.UPLOAD_DIR_LINUX_X86_64 }}
-      UPLOAD_DIR_LINUX_AARCH64: ${{ needs.build-linux.outputs.UPLOAD_DIR_LINUX_AARCH64 }}
+      UPLOAD_DIR_LINUX_X86_64: linux_artifacts_x86_64
+      UPLOAD_DIR_LINUX_AARCH64: linux_artifacts_aarch64
       UPLOAD_DIR_WINDOWS: ${{ needs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
       UPDATER_ENABLED: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
     permissions: write-all
