@@ -8,7 +8,7 @@ use tokio_stream::Stream;
 use tonic::transport::server::Connected;
 
 #[allow(unused)]
-pub fn create_incoming(
+pub async fn create_incoming(
     socket_path: std::path::PathBuf,
     #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
     #[cfg(target_os = "macos")] signing_requirement: String,
@@ -18,7 +18,7 @@ pub fn create_incoming(
     {
         #[cfg(all(debug_assertions, not(feature = "xpc")))]
         {
-            crate::uds::incoming(socket_path, shutdown_token)
+            crate::uds::incoming(socket_path, shutdown_token).await
         }
         #[cfg(any(not(debug_assertions), feature = "xpc"))]
         {
@@ -27,7 +27,7 @@ pub fn create_incoming(
     }
     #[cfg(target_os = "linux")]
     {
-        crate::uds::incoming(socket_path, shutdown_token)
+        crate::uds::incoming(socket_path, shutdown_token).await
     }
 
     #[cfg(target_os = "windows")]
