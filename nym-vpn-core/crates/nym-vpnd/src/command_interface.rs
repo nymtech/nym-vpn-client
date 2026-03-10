@@ -1112,24 +1112,16 @@ pub async fn start_command_interface(
 
     let (vpn_command_tx, vpn_command_rx) = mpsc::unbounded_channel();
 
-    #[cfg(target_os = "linux")]
-    {
-        let socket_path = default_socket_path();
-        // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
-        remove_previous_socket_file(&socket_path).await;
-        tracing::info!("Starting socket listener on: {}", socket_path.display());
-    }
-
     // Wrap the unix socket or named pipe into a stream that can be used by tonic
     let incoming = nym_ipc::server::create_incoming(
-        default_socket_path(),
         #[cfg(target_os = "windows")]
         NYM_CERTIFICATE_SERIAL_NUMBER.to_string(),
         #[cfg(target_os = "macos")]
         SIGNING_REQUIREMENT.to_string(),
         #[cfg(unix)]
         shutdown_token.child_token(),
-    )?;
+    )
+    .await?;
 
     let server_handle = tokio::spawn(async move {
         let socket_listener_handle = tokio::spawn(async move {
@@ -1163,33 +1155,4 @@ pub async fn start_command_interface(
     });
 
     Ok((server_handle, vpn_command_rx))
-}
-
-#[cfg(target_os = "linux")]
-async fn remove_previous_socket_file(socket_path: &std::path::Path) {
-    match tokio::fs::remove_file(socket_path).await {
-        Ok(_) => tracing::info!(
-            "Removed previous command interface socket: {}",
-            socket_path.display()
-        ),
-        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
-        Err(err) => {
-            tracing::error!(
-                "Failed to remove previous command interface socket: {:?}",
-                err
-            );
-        }
-    }
-}
-
-fn default_socket_path() -> std::path::PathBuf {
-    #[cfg(unix)]
-    {
-        std::path::PathBuf::from("/var/run/nym-vpn.sock")
-    }
-
-    #[cfg(windows)]
-    {
-        std::path::PathBuf::from(r"\\.\pipe\nym-vpn")
-    }
 }

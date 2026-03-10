@@ -23,10 +23,14 @@ use nym_windows::security::{
 
 use crate::authentication;
 
+fn default_socket_path() -> OsString {
+    std::path::PathBuf::from(r"\\.\pipe\nym-vpn").into_os_string()
+}
+
 pub fn incoming(
-    pipe_name: OsString,
     nym_certificate_serial_number: String,
 ) -> io::Result<impl Stream<Item = io::Result<Connector<NamedPipeServer>>>> {
+    let pipe_name = default_socket_path();
     let trustee = Trustee::new(
         Sid::well_known(WellKnownSid::World)?,
         TrusteeType::WellKnownGroup,
