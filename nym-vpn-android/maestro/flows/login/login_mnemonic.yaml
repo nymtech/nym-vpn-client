@@ -28,8 +28,7 @@ appId: net.nymtech.nymvpn.mock.debug
     timeout: 20000
 
 # Tap the Settings gear icon (top right corner)
-- tapOn:
-    point: "93%,4%"
+- tapOn: "Settings"
 
 - extendedWaitUntil:
     visible:
@@ -90,15 +89,21 @@ appId: net.nymtech.nymvpn.mock.debug
     timeout: 15000
 
 # Tap the passphrase input area and enter dummy mnemonic
-- tapOn:
-    text: ".*passphrase.*"
+- tapOn: "24 word-passphrase"
 
 - inputText: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
 
-# Submit via keyboard Done action
-- pressKey: Enter
+- assertVisible: "Continue with social account"
 
-# Verify login succeeded - should see main screen
+- tapOn:
+    text: "Log in"
+    index: 1
+
+- assertVisible: "Choose your\ \nsubscription plan"
+- assertVisible: "Choose my NymVPN plan"
+
+- tapOn: "Back"
+
 - extendedWaitUntil:
     visible:
       text: "Disconnected"

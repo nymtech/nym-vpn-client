@@ -1,0 +1,64 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- clearState
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      text: "Disconnected"
+    timeout: 20000
+
+- tapOn: "Settings"
+
+- extendedWaitUntil:
+    visible:
+      text: "Settings"
+    timeout: 5000
+
+- tapOn:
+    text: "Account"
+
+- extendedWaitUntil:
+    visible:
+      text: "Account and devices"
+    timeout: 5000
+
+- scrollUntilVisible:
+    element:
+      text: "Log out"
+    direction: DOWN
+
+- tapOn:
+    text: "Log out"
+
+- extendedWaitUntil:
+    visible:
+      text: "Log out of this device?"
+    timeout: 5000
+
+- tapOn:
+    text: "Log out"
+
+- tapOn:
+    text: "Get started"
+
+- extendedWaitUntil:
+    visible:
+      text: "Welcome to NymVPN"
+    timeout: 15000
+
+- assertVisible: "Log in"
+- tapOn: "Create account"
+
+- assertVisible: "Create account"
+
+- assertVisible: "Create anonymous account"
+- assertVisible: "Continue with social account"
+
+- tapOn: "Log in"
+
+- assertVisible:
+    text: "Log in"
+    index: 0
+
+- tapOn: "Create account"

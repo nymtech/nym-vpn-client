@@ -3,3 +3,5 @@ tags:
   - ui-validation
 onFlowStart:
   - clearState
+flows:
+  - flows/**

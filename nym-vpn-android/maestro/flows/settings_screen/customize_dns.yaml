@@ -1,0 +1,41 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- clearState
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 15000
+
+- tapOn: "Settings"
+
+- tapOn:
+    text: "Customize DNS"
+    index: 1
+
+- extendedWaitUntil:
+    visible:
+      text: "DNS customization"
+    timeout: 5000
+
+- assertNotVisible: "9.9.9.9"
+- tapOn: "View default DNS"
+- assertVisible: "9.9.9.9"
+
+- tapOn:
+    text: "Enter DNS server"
+
+- inputText: "192.168.1.1"
+- tapOn: "Add"
+
+- scrollUntilVisible:
+    element:
+      text: "Learn more about DNS"
+    direction: DOWN
+
+- tapOn: "Save changes"
+
+- assertVisible: "192.168.1.1"
+
+- assertVisible: "Learn more about DNS"

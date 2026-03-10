@@ -10,14 +10,11 @@ appId: net.nymtech.nymvpn.mock.debug
 
 - extendedWaitUntil:
     visible:
-      text: "CONNECT TO"
+      text: "Connect"
     timeout: 15000
 
-- assertVisible:
-    text: "Entry location"
-
-- assertVisible:
-    text: "Exit location"
-
-- assertVisible:
-    text: "Random"
+- assertVisible: "Disconnected"
+- assertVisible: "SELECT MODE"
+- assertVisible: "CONNECT TO"
+- assertVisible: "Connect"
+- assertVisible: "Settings"

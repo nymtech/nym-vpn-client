@@ -1,0 +1,76 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- clearState
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 15000
+
+- tapOn:
+    text: "Random"
+    index: 0
+
+# Check Info Modal
+- tapOn: "Info"
+
+- assertVisible: "Details on server locations"
+- assertVisible: "Continue reading"
+- tapOn: "Okay"
+
+# Node Info screen
+
+- tapOn: "Search country"
+- inputText: "Entry-DE-01"
+
+- tapOn: "Info"
+
+- assertVisible: "Server details"
+- assertVisible: "Mock-Entry-DE-01"
+
+- assertVisible: "Exit IPv4"
+- assertVisible: "91.198.174.192"
+
+- assertVisible: "Exit IPv6"
+- assertVisible: "2a02:26f0::2"
+
+- assertVisible: "ASN"
+- assertVisible: "AS3320"
+
+- assertVisible: "ASN name"
+- assertVisible: "Deutsche Telekom AG"
+
+- scrollUntilVisible:
+    element:
+      text: "More details in the Nym Network Explorer"
+    direction: DOWN
+
+- assertVisible: "Advanced privacy"
+- assertVisible: "With mixnet (5-hop)"
+
+- assertVisible: "Streaming & content"
+- assertVisible: "Datacenter IP"
+
+- assertVisible: "Anti-censorship"
+- assertVisible: "Standard protocol"
+
+- assertVisible: "Overall performance"
+- assertVisible: "High"
+
+- assertVisible: "Server load"
+- assertVisible: "Medium"
+
+- assertVisible: "Uptime"
+- assertVisible: "9570%"
+
+- assertVisible: "5mZ8G2XrYF8nW7AqH2kP3DsV9uQ4JrL1tC6bN0eMfYw"
+
+- assertVisible: "Why is there missing or incorrect info"
+
+- tapOn: "Select server"
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 15000
