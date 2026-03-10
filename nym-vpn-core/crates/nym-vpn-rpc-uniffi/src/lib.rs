@@ -408,6 +408,20 @@ impl RpcClient {
         let value = self.inner.clone().need_full_disk_permissions().await?;
         Ok(value)
     }
+
+    pub async fn run_diagnostic(&self) -> Result<String> {
+        let params = nym_vpn_lib_types::DiagnosticRunParams {
+            gateway: None,
+            skip_dns: false,
+            skip_http: false,
+        };
+        let report = self.inner.clone().run_diagnostic(params).await?;
+        serde_json::to_string(&report).map_err(|e| {
+            RpcError::from(DaemonRpcError::InvalidResponse(
+                nym_vpn_proto::conversions::ConversionError::Generic(e.to_string()),
+            ))
+        })
+    }
 }
 
 #[derive(Debug)]

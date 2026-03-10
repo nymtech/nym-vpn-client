@@ -6865,6 +6865,7 @@ dependencies = [
  "futures",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
+ "serde_json",
  "tokio",
  "tokio-util",
  "tracing",
