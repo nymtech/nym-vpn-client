@@ -133,15 +133,17 @@ impl ConnectedTunnel {
         tunnel_constants: TunnelConstants,
         entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
+        let entry_mtu = self.entry_mtu();
+        let exit_mtu = self.exit_mtu();
         let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.effective_entry_gateway_data(),
-            self.entry_wg_keypair.private_key(),
+            self.entry_wg_keypair,
             AllowedIps::Specific(vec![
                 IpNetwork::from(self.connection_data.exit.endpoint.ip()),
                 IpNetwork::from(tunnel_constants.in_tunnel_bandwidth_metadata_endpoint.ip()),
             ]),
             options.dns.clone(),
-            self.entry_mtu(),
+            entry_mtu,
             #[cfg(target_os = "linux")]
             Some(tunnel_constants.fwmark),
         );
@@ -151,10 +153,10 @@ impl ConnectedTunnel {
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.exit,
-            self.exit_wg_keypair.private_key(),
+            self.exit_wg_keypair,
             AllowedIps::All,
             options.dns,
-            self.exit_mtu(),
+            exit_mtu,
             #[cfg(target_os = "linux")]
             None,
         );
@@ -257,15 +259,17 @@ impl ConnectedTunnel {
         tunnel_constants: TunnelConstants,
         entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
+        let entry_mtu = self.entry_mtu();
+        let exit_mtu = self.exit_mtu();
         let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.effective_entry_gateway_data(),
-            self.entry_wg_keypair.private_key(),
+            self.entry_wg_keypair,
             AllowedIps::Specific(vec![
                 IpNetwork::from(self.connection_data.exit.endpoint.ip()),
                 IpNetwork::from(tunnel_constants.in_tunnel_bandwidth_metadata_endpoint.ip()),
             ]),
             options.dns.clone(),
-            self.entry_mtu(),
+            entry_mtu,
             #[cfg(target_os = "linux")]
             Some(tunnel_constants.fwmark),
         );
@@ -276,10 +280,10 @@ impl ConnectedTunnel {
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.exit,
-            self.exit_wg_keypair.private_key(),
+            self.exit_wg_keypair,
             AllowedIps::All,
             options.dns,
-            self.exit_mtu(),
+            exit_mtu,
             #[cfg(target_os = "linux")]
             None,
         );
@@ -295,7 +299,7 @@ impl ConnectedTunnel {
         two_hop_config.entry.peer.resolve_in_place()?;
 
         let mut entry_tunnel =
-            netstack::Tunnel::start(two_hop_config.entry.clone().into_netstack_config())?;
+            netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())?;
 
         // Configure tunnel sockets to bypass the tunnel interface.
         #[cfg(target_os = "android")]
@@ -317,7 +321,10 @@ impl ConnectedTunnel {
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
-        two_hop_config.set_udp_proxy_listen_addr(exit_in_tunnel_udp_proxy.listen_addr());
+        // Inlining old `set_udp_proxy_listen_addr` call
+        // Need a double check from @AM
+        two_hop_config.forwarder.listen_endpoint = exit_in_tunnel_udp_proxy.listen_addr();
+        two_hop_config.exit.peer.endpoint = exit_in_tunnel_udp_proxy.listen_addr();
 
         let entry_magic_bandwidth_tcp_proxy = entry_tunnel.start_in_tunnel_tcp_connection_proxy(
             tunnel_constants.in_tunnel_bandwidth_metadata_endpoint,

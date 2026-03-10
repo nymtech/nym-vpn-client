@@ -470,6 +470,7 @@ fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
                 authenticator_address: aa,
                 nr_address: None,
                 bridge_params: None,
+                lp_information: None,
                 last_probe: None,
                 ips: Vec::new(),
                 host: None,
@@ -503,6 +504,7 @@ fn create_test_gateway(identity: &str, country: &str, score: ScoreValue) -> Gate
         authenticator_address: None,
         nr_address: None,
         bridge_params: None,
+        lp_information: None,
         last_probe: None,
         ips: Vec::new(),
         host: None,
@@ -566,6 +568,7 @@ fn create_response_nym_gateway(
             wss_port: Some(9001),
         },
         bridges: None,
+        lp_information: None,
         performance: Percent::zero(),
         performance_v2: Some(nym_vpn_api_client::response::DVpnGatewayPerformance {
             last_updated_utc: "2024-01-01T00:00:00Z".to_string(),

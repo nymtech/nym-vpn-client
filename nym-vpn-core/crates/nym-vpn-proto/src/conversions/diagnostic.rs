@@ -75,6 +75,10 @@ impl TryFrom<proto::DiagnosticRegisterParams> for nym_vpn_lib_types::DiagnosticR
                 .ok_or_else(|| ConversionError::generic("missing gateway id"))?,
             storage_path: value.storage_path.map(PathBuf::from),
             skip_wireguard: value.skip_wireguard,
+            registration_mode: nym_vpn_lib_types::RegistrationMode::from_cli_flags(
+                value.mixnet,
+                value.lp,
+            ),
         })
     }
 }
@@ -87,6 +91,14 @@ impl From<nym_vpn_lib_types::DiagnosticRegisterParams> for proto::DiagnosticRegi
                 .storage_path
                 .and_then(|p| p.to_str().map(str::to_string)),
             skip_wireguard: value.skip_wireguard,
+            mixnet: matches!(
+                value.registration_mode,
+                nym_vpn_lib_types::RegistrationMode::Mixnet
+            ),
+            lp: matches!(
+                value.registration_mode,
+                nym_vpn_lib_types::RegistrationMode::Lp
+            ),
         }
     }
 }

@@ -1,24 +1,65 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{net::SocketAddr, sync::Arc};
 
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{
     BlacklistedGateways, EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayFilter,
     GatewayFilters, GatewayList, GatewayType,
 };
+use nym_registration_client::RegistrationNymNode;
+use nym_registration_common::{NymNodeInformation, NymNodeLPInformation};
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
 use crate::{
     GatewayDirectoryError,
-    tunnel_state_machine::{TunnelSettings, TunnelType},
+    tunnel_state_machine::{TunnelSettings, TunnelType, tunnel},
 };
 
 #[derive(Clone)]
 pub struct GatewayWithKeys {
     gateway: Gateway,
     keys: Arc<KeyPair>,
+}
+
+impl TryFrom<GatewayWithKeys> for RegistrationNymNode {
+    type Error = tunnel::Error;
+    fn try_from(value: GatewayWithKeys) -> Result<Self, Self::Error> {
+        let ip_address = value
+            .gateway
+            .lookup_ip()
+            .ok_or(tunnel::Error::NoIpAddressAnnounced {
+                gateway_id: value.gateway.identity().to_base58_string(),
+            })?;
+
+        let lp_data = value.gateway.lp_information.and_then(|data| {
+            let kem_keys = data.kem_keys().ok()?;
+            let ciphersuite = nym_lp::Ciphersuite::from_node_version(
+                semver::Version::parse(value.gateway.version.as_ref()?).ok()?,
+            )?;
+
+            Some(NymNodeLPInformation {
+                address: SocketAddr::new(ip_address, data.control_port),
+                expected_kem_key_hashes: kem_keys,
+                x25519: data.x25519,
+                ciphersuite,
+                // \/ TODO: proper derivation from build version
+                lp_protocol_version: 1, // From @JS : for now just hardcode it to 1, we'll update it later (famous last words)
+            })
+        });
+        Ok(Self {
+            node: NymNodeInformation {
+                identity: value.gateway.identity,
+                ipr_address: value.gateway.ipr_address.map(Into::into),
+                authenticator_address: value.gateway.authenticator_address.map(Into::into),
+                ip_address,
+                version: value.gateway.version.clone().into(),
+                lp_data,
+            },
+            keys: value.keys.clone(),
+        })
+    }
 }
 
 impl std::fmt::Debug for GatewayWithKeys {
@@ -51,6 +92,14 @@ impl SelectedGateways {
 
     pub fn exit_keypair(&self) -> &Arc<KeyPair> {
         &self.exit.keys
+    }
+
+    pub fn entry(&self) -> &GatewayWithKeys {
+        &self.entry
+    }
+
+    pub fn exit(&self) -> &GatewayWithKeys {
+        &self.exit
     }
 }
 
