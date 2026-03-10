@@ -23,6 +23,8 @@ public struct SantasView: View {
                     environmentSection()
                     santasSpacer()
                     togglesSection()
+                    santasSpacer()
+                    logsSection()
                 }
                 Spacer()
             }
@@ -100,6 +102,18 @@ private extension SantasView {
             }
             .tint(NymColor.accent)
         }.padding()
+    }
+
+    func logsSection() -> some View {
+        VStack {
+            Text("Logs:")
+                .foregroundStyle(NymColor.accent)
+                .bold()
+                .padding(4)
+            Text("Logs size: \(viewModel.logFilesSize)")
+                .padding(4)
+        }
+        .padding(16)
     }
 }
 

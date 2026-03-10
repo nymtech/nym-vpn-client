@@ -3,6 +3,7 @@ import SwiftUI
 import AppSettings
 import AppVersionProvider
 import ConfigurationManager
+import NymLogger
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
@@ -77,6 +78,19 @@ import Theme
 
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
+    }
+
+    var logFilesSize: String {
+        let fm = FileManager.default
+        var totalSize: UInt64 = 0
+        for type in LogFileType.allCases {
+            guard let url = LogFileManager.logFileURL(logFileType: type),
+                  let attrs = try? fm.attributesOfItem(atPath: url.path),
+                  let size = attrs[.size] as? UInt64
+            else { continue }
+            totalSize += size
+        }
+        return ByteCountFormatter.string(fromByteCount: Int64(totalSize), countStyle: .file)
     }
 
 #if os(macOS)
