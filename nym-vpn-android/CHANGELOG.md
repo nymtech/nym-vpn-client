@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix issue with the Details button for exit server (https://github.com/nymtech/nym-vpn-client/pull/4805)
+- Fix issue with language list (https://github.com/nymtech/nym-vpn-client/pull/4846)
 
 ## [3.0.0]
 
