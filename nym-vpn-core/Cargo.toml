@@ -257,41 +257,41 @@ nym-windows = { path = "crates/nym-windows" }
 test-rpc = { path = "crates/test/test-rpc" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-lp = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
-nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "release/2026.5-raclette" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
+nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.5-raclette" }
 
 # For local development
 #[patch."https://github.com/nymtech/nym"]

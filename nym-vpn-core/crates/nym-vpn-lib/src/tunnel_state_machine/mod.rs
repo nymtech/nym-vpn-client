@@ -148,7 +148,7 @@ pub struct TunnelSettings {
     pub residential_exit: bool,
 
     /// Lewes Protocol enabled (for now it's wireguard only, but in the future it will be both. Remove that comment then)
-    pub enable_lewes_protocol: bool, // SW THIS SHOULD TRIGGER A RECONNECT
+    pub enable_lewes_protocol: bool,
 
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
