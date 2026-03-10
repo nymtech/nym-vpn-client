@@ -118,6 +118,7 @@ impl Tunnel {
     /// Start new WireGuard tunnel
     #[cfg(not(windows))]
     pub fn start(config: Config, tun_fd: OwnedFd) -> Result<Self> {
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
         let interface_mtu = config.interface.mtu;
         let settings = CString::new(config.into_uapi_config())
             .map_err(|_| Error::ConvertToCString("uapi config"))?;
