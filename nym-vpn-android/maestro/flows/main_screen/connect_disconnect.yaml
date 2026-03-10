@@ -13,6 +13,8 @@ appId: net.nymtech.nymvpn.mock.debug
       text: "Connect"
     timeout: 15000
 
+- tapOn: "Fast (WireGuard)"
+
 - tapOn:
     text: "Connect"
 
@@ -27,6 +29,24 @@ appId: net.nymtech.nymvpn.mock.debug
       visible: "For best connection"
     commands:
       - tapOn: "Skip"
+
+- extendedWaitUntil:
+    visible:
+      text: "Connected"
+    timeout: 20000
+
+- tapOn:
+    text: "Disconnect"
+
+- extendedWaitUntil:
+    visible:
+      text: "Disconnected"
+    timeout: 15000
+
+- tapOn: "Anonymous (mixnet)"
+
+- tapOn:
+    text: "Connect"
 
 - extendedWaitUntil:
     visible:

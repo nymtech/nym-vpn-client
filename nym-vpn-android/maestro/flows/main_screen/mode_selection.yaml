@@ -1,0 +1,33 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- launchApp
+
+- assertVisible: "SELECT MODE"
+
+- assertVisible:
+    text: "Fast (WireGuard)"
+
+- assertVisible:
+    text: "Anonymous (mixnet)"
+
+- tapOn:
+    text: "Anonymous (mixnet)"
+
+- tapOn:
+    text: "Fast (WireGuard)"
+
+- tapOn: "Info"
+
+
+# Mode selection info modal
+- assertVisible: "Mode selection"
+- assertVisible: "Fastest"
+- assertVisible: "Anonymous"
+- assertVisible: "Continue reading"
+- assertVisible: "Okay"
+
+- tapOn: "Okay"
+
+- assertNotVisible: "Mode selection"
+- assertNotVisible: "Continue reading"
+- assertNotVisible: "Okay"

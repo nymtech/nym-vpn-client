@@ -1,0 +1,34 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      text: "Connect"
+    timeout: 15000
+
+- tapOn: "Settings"
+
+- scrollUntilVisible:
+    element:
+      text: "Anti-censorship"
+      index: 1
+    direction: DOWN
+
+- tapOn: 
+    text: "Anti-censorship"
+    index: 1
+
+- assertVisible: "Enhanced connection (QUIC)"
+- assertVisible: "How QUIC improves connections"
+
+- assertVisible: "Minimal obfuscation (AmneziaWG)"
+- assertVisible: "How AmneziaWG prevents DPI"
+
+- scrollUntilVisible:
+    element:
+      text: "How the Stealth API connect mode works"
+    direction: DOWN
+
+- assertVisible: "Stealth API connect"
+- assertVisible: "How the Stealth API connect mode works"

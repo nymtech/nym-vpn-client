@@ -1,0 +1,61 @@
+appId: net.nymtech.nymvpn.mock.debug
+---
+- clearState
+- launchApp
+
+- assertVisible: "CONNECT TO"
+- assertVisible: "Entry location"
+- assertVisible: "Exit location"
+
+# Change entry location
+- tapOn:
+    text: "Random"
+    index: 0
+
+- assertVisible: "Entry location"
+
+- tapOn: 
+    text: "Expand"
+    index: 3
+
+- tapOn: "New York"
+
+- assertVisible: "United States, New York"
+- assertVisible: "Flag of us"
+
+- tapOn: "Random"
+
+- tapOn: "Germany"
+
+- assertVisible: "Germany"
+- assertVisible: "Flag of DE"
+
+- assertNotVisible: "Random"
+
+- tapOn:
+    text: "Connect"
+
+- runFlow:
+    when:
+      visible: "Connection request"
+    commands:
+      - tapOn: "OK"
+
+- runFlow:
+    when:
+      visible: "For best connection"
+    commands:
+      - tapOn: "Skip"
+
+- extendedWaitUntil:
+    visible:
+      text: "Connected"
+    timeout: 20000
+
+- tapOn:
+    text: "Disconnect"
+
+- extendedWaitUntil:
+    visible:
+      text: "Disconnected"
+    timeout: 15000
