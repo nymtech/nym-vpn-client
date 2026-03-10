@@ -191,6 +191,12 @@ impl GatewayDiagnostic {
             gateway_id_key.to_base58_string()
         ))?;
 
+        if !gateway_lp_data.verify(&gateway_id_key) {
+            return Err(anyhow::anyhow!(
+                "Node's lp data does not pass signature check : {gateway_id_key}"
+            ));
+        }
+
         let gateway_version = match gateway
             .version
             .as_ref()
@@ -204,12 +210,13 @@ impl GatewayDiagnostic {
         };
         let lp_ciphersuite = Ciphersuite::from_node_version(gateway_version.clone()).ok_or(anyhow::anyhow!("Node is announcing LP information, but its provided version doesn't support it : {gateway_version}"))?;
 
-        let gateway_lp_address = SocketAddr::new(gateway_ip, gateway_lp_data.control_port);
+        let gateway_lp_address = SocketAddr::new(gateway_ip, gateway_lp_data.content.control_port);
 
         tracing::debug!("Entry gateway LP address: {gateway_lp_address}");
 
-        let gateway_lp_peer = LpRemotePeer::new(gateway_lp_data.x25519).with_key_digests(
+        let gateway_lp_peer = LpRemotePeer::new(gateway_lp_data.content.x25519).with_key_digests(
             gateway_lp_data
+                .content
                 .kem_keys()
                 .map_err(|e| anyhow::anyhow!("Incorrect kem key digests : {e}"))?,
         );

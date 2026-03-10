@@ -33,16 +33,31 @@ impl TryFrom<GatewayWithKeys> for RegistrationNymNode {
                 gateway_id: value.gateway.identity().to_base58_string(),
             })?;
 
+        if let Some(data) = value.gateway.lp_information.as_ref()
+            && !data.verify(&value.gateway.identity)
+        {
+            tracing::warn!(
+                "Gateway {} has malformed LP information, something fishy is going on",
+                value.gateway.identity
+            );
+            // Signature check doesn't pass, something fishy is going on
+            return Err(tunnel::Error::SelectGateways(Box::new(
+                GatewayDirectoryError::MalformedGateway(
+                    nym_gateway_directory::Error::MalformedGateway,
+                ),
+            )));
+        }
+
         let lp_data = value.gateway.lp_information.and_then(|data| {
-            let kem_keys = data.kem_keys().ok()?;
+            let kem_keys = data.content.kem_keys().ok()?;
             let ciphersuite = nym_lp::Ciphersuite::from_node_version(
                 semver::Version::parse(value.gateway.version.as_ref()?).ok()?,
             )?;
 
             Some(NymNodeLPInformation {
-                address: SocketAddr::new(ip_address, data.control_port),
+                address: SocketAddr::new(ip_address, data.content.control_port),
                 expected_kem_key_hashes: kem_keys,
-                x25519: data.x25519,
+                x25519: data.content.x25519,
                 ciphersuite,
                 // \/ TODO: proper derivation from build version
                 lp_protocol_version: 1, // From @JS : for now just hardcode it to 1, we'll update it later (famous last words)

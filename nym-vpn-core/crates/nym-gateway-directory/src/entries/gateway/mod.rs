@@ -7,9 +7,7 @@ mod tests;
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
-use nym_validator_client::models::{
-    KeyRotationId, LewesProtocolDetailsDataV1, NymNodeDescriptionV2,
-};
+use nym_validator_client::models::{KeyRotationId, LewesProtocolDetailsV1, NymNodeDescriptionV2};
 use nym_vpn_api_client::{
     response::{BridgeInformation, BridgeParameters},
     types::Percent,
@@ -50,7 +48,7 @@ pub struct Gateway {
     #[builder(default)]
     pub bridge_params: Option<BridgeInformation>,
     #[builder(default)]
-    pub lp_information: Option<LewesProtocolDetailsDataV1>,
+    pub lp_information: Option<LewesProtocolDetailsV1>,
     #[builder(default)]
     pub last_probe: Option<Probe>,
     #[builder(default=vec![])]
@@ -110,11 +108,7 @@ impl Gateway {
             .as_ref()
             .map(|nr| nr.address.clone());
 
-        let lp_information = node_description
-            .description
-            .lewes_protocol
-            .clone()
-            .map(|info| info.content);
+        let lp_information = node_description.description.lewes_protocol.clone();
 
         let version = Some(node_description.version().to_string());
         let role = if node_description.description.declared_role.entry {
@@ -648,7 +642,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             authenticator_address,
             nr_address: None,
             bridge_params: gateway.bridges,
-            lp_information: gateway.lp_information.map(|info| info.content),
+            lp_information: gateway.lp_information,
             last_probe,
             ips: gateway.ip_addresses,
             host,
