@@ -34254,6 +34254,50 @@
         }
       }
     },
+    "settings.diagnosticTool" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostic tool"
+          }
+        }
+      }
+    },
+    "settings.diagnosticTool.run" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run diagnostics"
+          }
+        }
+      }
+    },
+    "settings.diagnosticTool.share" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share report"
+          }
+        }
+      }
+    },
+    "settings.diagnosticTool.report" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostic report"
+          }
+        }
+      }
+    },
     "settings.privacyAndData" : {
       "extractionState" : "manual",
       "localizations" : {

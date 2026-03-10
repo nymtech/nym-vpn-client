@@ -21,7 +21,7 @@ public struct SplitTunnelView: View {
     @EnvironmentObject private var externalLinkManager: ExternalLinkManager
     @Binding private var path: NavigationPath
     @State private var foundApps: [FoundApp]?
-    @State private var isFullDiskAccessEnabled = false
+    @State private var isFullDiskAccessEnabled = true
     @State private var isInfoModalDisplayed = false
 
     private var splitTunnelConfig: SplitTunnelConfig {
@@ -91,7 +91,7 @@ private extension SplitTunnelView {
                                     connectionManager.connectionConfig = config
                                 }
                             ),
-                        isDisabled: isFullDiskAccessEnabled
+                        isDisabled: !isFullDiskAccessEnabled
                     ),
                     title: "settings.splitTunnel".localizedString,
                     systemImageName: "arrow.trianglehead.branch",
@@ -99,6 +99,7 @@ private extension SplitTunnelView {
                     action: {}
                 )
         )
+        .id(isFullDiskAccessEnabled)
     }
 
     var changesText: some View {

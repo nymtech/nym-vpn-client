@@ -110,7 +110,7 @@ public struct GenericButton: View {
         HStack {
             if isLoading {
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: NymColor.black))
+                    .colorScheme(.light)
             } else {
                 if let systemImageName {
                     Image(systemName: systemImageName)
