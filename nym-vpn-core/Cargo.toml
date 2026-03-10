@@ -4,6 +4,7 @@ members = [
     "crates/nym-apple-network",
     "crates/nym-common",
     "crates/nym-connection-monitor",
+    "crates/nym-cgroup",
     "crates/nym-dbus",
     "crates/nym-diagnostic",
     "crates/nym-dns",
@@ -234,6 +235,7 @@ zbus_polkit = "5.0.0"
 zeroize = "1.8.2"
 
 nym-apple-network = { path = "crates/nym-apple-network" }
+nym-cgroup = { path = "crates/nym-cgroup" }
 nym-common = { path = "crates/nym-common" }
 nym-connection-monitor = { path = "crates/nym-connection-monitor" }
 nym-diagnostic = { path = "crates/nym-diagnostic" }

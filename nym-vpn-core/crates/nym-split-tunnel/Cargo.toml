@@ -52,9 +52,16 @@ windows-sys = { workspace = true, features = [
 ] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
+bytes.workspace = true
 pidfd-util.workspace = true
 netlink-sys = { workspace = true, features = ["tokio_socket"] }
-bytes.workspace = true
+mnl = { version = "0.3.1", features = ["mnl-1-0-4"] }
+# NOTE: the libnftnl version specified in `features`
+# MUST match the version that we link against
+nftnl = { version = "0.9.1", features = ["nftnl-1-2-0"] }
+nix = { workspace = true, features = ["fs", "mount", "process"] }
+nym-cgroup.workspace = true
+nym-dbus.workspace = true
 
 [lints]
 workspace = true
