@@ -3,15 +3,23 @@ package net.nymtech.nymvpn.util
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import net.nymtech.nymvpn.BuildConfig
+import java.text.Collator
+import java.util.Locale
 
 object LocaleUtil {
-	val supportedLocales: Array<String> = BuildConfig.LANGUAGES
 	const val OPTION_PHONE_LANGUAGE = "sys_def"
+
+	val supportedLocales: List<Locale> by lazy {
+		val collator = Collator.getInstance(Locale.getDefault())
+		BuildConfig.LANGUAGES
+			.map { it.replace("-r", "-").replace("_", "-") }
+			.map { Locale.forLanguageTag(it) }
+			.sortedWith(compareBy(collator) { it.getDisplayName(it) })
+	}
 
 	fun changeLocale(locale: String) {
 		if (locale == OPTION_PHONE_LANGUAGE) return resetToSystemLanguage()
-		val tag = locale.replace("r", "").replace("_", "-")
-		val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(tag)
+		val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(locale)
 		AppCompatDelegate.setApplicationLocales(appLocale)
 	}
 
