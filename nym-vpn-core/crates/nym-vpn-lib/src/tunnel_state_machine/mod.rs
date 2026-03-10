@@ -110,6 +110,10 @@ pub struct TunnelConstants {
     #[cfg(target_os = "linux")]
     /// Firewall mark used for bypassing the tunnel
     pub fwmark: u32,
+
+    /// Tunnel specific routing table, traffic not marked will be routed via this routing table.
+    #[cfg(target_os = "linux")]
+    table_id: u32,
 }
 
 impl Default for TunnelConstants {
@@ -122,6 +126,8 @@ impl Default for TunnelConstants {
             ),
             #[cfg(target_os = "linux")]
             fwmark: crate::TUNNEL_FWMARK,
+            #[cfg(target_os = "linux")]
+            table_id: crate::TUNNEL_TABLE_ID,
         }
     }
 }
@@ -827,6 +833,16 @@ impl TunnelStateMachine {
             initial_state: InitialFirewallState::None,
             #[cfg(target_os = "linux")]
             fwmark: tunnel_constants.fwmark,
+            #[cfg(target_os = "linux")]
+            table_id: tunnel_constants.table_id,
+            /// The cgroup2 used for split tunneling.
+            /// Traffic from processes in this cgroup2 should be allowed outside the tunnel.
+            #[cfg(target_os = "linux")]
+            excluded_cgroup2: split_tunneling_pid_manager.excluded_cgroup(),
+            /// The net_cls id of the v1 cgroup used for split tunneling.
+            /// This is used as a fallback to [`Self::excluded_cgroup2`] since old kernels don't support cgroups v2.
+            #[cfg(target_os = "linux")]
+            net_cls: split_tunneling_pid_manager.net_cls_classid(),
         })
         .map_err(Error::CreateFirewall)?;
 

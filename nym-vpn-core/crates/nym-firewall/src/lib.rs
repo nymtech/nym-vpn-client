@@ -395,11 +395,25 @@ pub struct FirewallArguments {
     pub initial_state: InitialFirewallState,
     /// This argument is required for the blocked state to configure the firewall correctly.
     pub allow_lan: bool,
-    /// Specifies the firewall mark used to identify traffic that is allowed to be excluded from
-    /// the tunnel and _leaked_ during blocked states.
+    /// Firewall mark is used to mark traffic which should be able to bypass the tunnel
     #[cfg(target_os = "linux")]
     pub fwmark: u32,
+    /// The table ID will be used for the routing table that will route all traffic through the
+    /// tunnel interface.
+    #[cfg(target_os = "linux")]
+    pub table_id: u32,
+    /// The cgroup2 used for split tunneling.
+    /// Traffic from processes in this cgroup2 should be allowed outside the tunnel.
+    #[cfg(target_os = "linux")]
+    pub excluded_cgroup2: Option<CGroup2>,
+    /// The net_cls id of the v1 cgroup used for split tunneling.
+    /// This is used as a fallback to [`Self::excluded_cgroup2`] since old kernels don't support cgroups v2.
+    #[cfg(target_os = "linux")]
+    pub net_cls: Option<u32>,
 }
+
+#[cfg(target_os = "linux")]
+pub struct LinuxFirewall;
 
 /// State to enter during firewall init.
 pub enum InitialFirewallState {
