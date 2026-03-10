@@ -91,14 +91,8 @@ impl From<nym_vpn_lib_types::DiagnosticRegisterParams> for proto::DiagnosticRegi
                 .storage_path
                 .and_then(|p| p.to_str().map(str::to_string)),
             skip_wireguard: value.skip_wireguard,
-            mixnet: matches!(
-                value.registration_mode,
-                nym_vpn_lib_types::RegistrationMode::Mixnet
-            ),
-            lp: matches!(
-                value.registration_mode,
-                nym_vpn_lib_types::RegistrationMode::Lp
-            ),
+            mixnet: value.registration_mode.is_mixnet(),
+            lp: value.registration_mode.is_lp(),
         }
     }
 }

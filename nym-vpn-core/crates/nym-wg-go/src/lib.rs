@@ -81,7 +81,10 @@ impl fmt::Debug for PeerConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("PeerConfig")
             .field("public_key", &self.public_key)
-            .field("preshared_key", &"(hidden)")
+            .field(
+                "preshared_key",
+                &self.preshared_key.as_ref().map(|_| "(hidden)"),
+            )
             .field("endpoint", &self.endpoint)
             .field("allowed_ips", &self.allowed_ips)
             .finish()
