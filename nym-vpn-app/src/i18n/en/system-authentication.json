@@ -5,7 +5,7 @@
   "authenticate-button": "Authenticate",
   "modal": {
     "title": "Authentication required",
-    "description": "You need to authenticate with your password to connect to the daemon.",
+    "description": "You need to authenticate with your password to secure your connection.",
     "authenticate-button": "Authenticate"
   }
 }
