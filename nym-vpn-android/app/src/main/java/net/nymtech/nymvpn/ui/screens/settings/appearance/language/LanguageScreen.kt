@@ -47,37 +47,29 @@ import net.nymtech.nymvpn.util.extensions.capitalize
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import java.text.Collator
 import java.util.Locale
 
 @Composable
 fun LanguageScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
-	val collator = Collator.getInstance(Locale.getDefault())
 	val context = LocalContext.current
+	val url = stringResource(R.string.settings_language_crowdin_link)
 
-	val locales = LocaleUtil.supportedLocales.map {
-		val tag = it.replace("r", "").replace("_", "-")
-		Locale.forLanguageTag(tag)
-	}
-
-	val sortedLocales =
-		remember(locales) {
-			locales.sortedWith(compareBy(collator) { it.getDisplayName(it) }).toList()
-		}
 	LanguageScreen(
-		locales = sortedLocales,
+		locales = LocaleUtil.supportedLocales,
 		currentLocale = appUiState.settings.locale,
 		onLocaleChange = {
 			appViewModel.onLocaleChange(it)
 		},
 		onHelpClick = {
-			context.openWebUrl(context.getString(R.string.settings_language_crowdin_link))
+			context.openWebUrl(url)
 		},
 	)
 }
 
 @Composable
 fun LanguageScreen(locales: List<Locale>, currentLocale: String?, onLocaleChange: (locale: String) -> Unit, onHelpClick: () -> Unit) {
+	val effectiveLocale = currentLocale?.takeIf { it.isNotBlank() } ?: LocaleUtil.OPTION_PHONE_LANGUAGE
+
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
@@ -172,14 +164,14 @@ fun LanguageScreen(locales: List<Locale>, currentLocale: String?, onLocaleChange
 						onLocaleChange(LocaleUtil.OPTION_PHONE_LANGUAGE)
 					},
 					trailing = {
-						if (currentLocale == LocaleUtil.OPTION_PHONE_LANGUAGE) {
+						if (effectiveLocale == LocaleUtil.OPTION_PHONE_LANGUAGE) {
 							SelectedLabel()
 						}
 					},
 					ripple = false,
 				)
 			}
-			items(locales, key = { it }) { locale ->
+			items(locales, key = { it.toLanguageTag() }) { locale ->
 				SelectionItemButton(
 					buttonText = locale.getDisplayLanguage(locale).capitalize(locale) +
 						if (locale.toLanguageTag().contains("-")) " (${locale.getDisplayCountry(locale).capitalize(locale)})" else "",
@@ -187,7 +179,7 @@ fun LanguageScreen(locales: List<Locale>, currentLocale: String?, onLocaleChange
 						onLocaleChange(locale.toLanguageTag())
 					},
 					trailing = {
-						if (locale.toLanguageTag() == currentLocale) {
+						if (locale.toLanguageTag() == effectiveLocale) {
 							SelectedLabel()
 						}
 					},
