@@ -35,7 +35,7 @@ struct NymVPNDaemonApp: App {
     private var openWindow
 
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
-    private var appearance: AppSetting.Appearance = .light
+    private var appearance: AppSetting.Appearance = .automatic
 
     @NSApplicationDelegateAdaptor(AppDelegate.self)
     private var appDelegate
@@ -104,7 +104,6 @@ struct NymVPNDaemonApp: App {
             .overlay {
                 quitModalOverlay()
             }
-            .preferredColorScheme(appearance.colorScheme)
             .environmentObject(appSettings)
             .environmentObject(configurationManager)
             .environmentObject(connectionManager)

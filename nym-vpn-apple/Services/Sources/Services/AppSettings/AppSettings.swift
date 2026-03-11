@@ -15,7 +15,15 @@ import CountriesManagerTypes
     }
 #else
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
-    public var currentAppearance: AppSetting.Appearance = .light
+    public var currentAppearance: AppSetting.Appearance = .automatic {
+        didSet {
+            let appearance = currentAppearance.nsAppearance
+            NSApp.appearance = appearance
+            for window in NSApp.windows {
+                window.appearance = appearance
+            }
+        }
+    }
 
     @AppStorage(AppSettingKey.appMode.rawValue)
     public var appMode: AppSetting.AppMode = .both
