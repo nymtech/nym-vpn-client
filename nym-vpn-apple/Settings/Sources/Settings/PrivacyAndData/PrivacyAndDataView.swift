@@ -28,6 +28,9 @@ public struct PrivacyAndDataView: View {
                 Spacer()
                     .frame(height: 24)
 #if os(macOS)
+                diagnosticToolSection()
+                Spacer()
+                    .frame(height: 24)
                 statisticsSection()
                 Spacer()
                     .frame(height: 24)
@@ -90,6 +93,22 @@ private extension PrivacyAndDataView {
             )
         )
     }
+
+#if os(macOS)
+    func diagnosticToolSection() -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.diagnosticTool".localizedString,
+                systemImageName: "waveform.path.ecg.rectangle",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {
+                    navigateToDiagnosticTool()
+                }
+            )
+        )
+    }
+#endif
 
     func statisticsSection() -> some View {
         SettingsListItem(
@@ -179,6 +198,13 @@ private extension PrivacyAndDataView {
         impactGenerator.softImpact()
         path.append(SettingLink.logs)
     }
+
+#if os(macOS)
+    func navigateToDiagnosticTool() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.diagnosticTool)
+    }
+#endif
 }
 
 #if os(macOS)

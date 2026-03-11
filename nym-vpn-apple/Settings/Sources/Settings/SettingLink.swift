@@ -25,6 +25,7 @@ public enum SettingLink: Hashable, Identifiable {
     case appMode
     case daemonEnable
     case splitTunnel
+    case diagnosticTool
 #endif
 
     public var id: String {

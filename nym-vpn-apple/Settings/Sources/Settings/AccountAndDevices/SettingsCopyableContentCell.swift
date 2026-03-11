@@ -9,8 +9,6 @@ public struct SettingsCopyableContentCell: View {
     private let imageSize: CGFloat
     private let onCopy: () -> Void
 
-    @State private var didCopy = false
-
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 16) {
@@ -33,19 +31,7 @@ public struct SettingsCopyableContentCell: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .layoutPriority(1)
 
-                GenericImage(imageName: didCopy ? "checkmarkSeeThrough" : "copy")
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("accessibility.doubleTap.copy".localizedString)
-                    .accessibilityAddTraits([.isButton])
-                    .animation(.easeInOut, value: didCopy)
-                    .foregroundStyle(NymColor.gray1)
-                    .frame(width: 20, height: 20)
-                    .onTapGesture {
-                        copyAction()
-                    }
-                    .accessibilityAction {
-                        copyAction()
-                    }
+                CopyButton(onCopy: onCopy)
             }
         }
         .frame(maxWidth: .infinity)
@@ -66,22 +52,5 @@ public struct SettingsCopyableContentCell: View {
         self.systemImageName = systemImageName
         self.imageSize = imageSize
         self.onCopy = onCopy
-    }
-}
-
-extension SettingsCopyableContentCell {
-    func copyAction() {
-        onCopy()
-        withAnimation(.easeInOut) {
-            didCopy = true
-        }
-
-        didCopy = true
-        Task {
-            try? await Task.sleep(for: .seconds(3))
-            withAnimation(.easeInOut) {
-                didCopy = false
-            }
-        }
     }
 }

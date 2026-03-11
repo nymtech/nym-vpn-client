@@ -90,6 +90,7 @@ let package = Package(
                 "AppSettings",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 "ConfigurationManager",
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
@@ -106,7 +107,8 @@ let package = Package(
             name: "DeeplinkManager",
             dependencies: [
                 "CredentialsManager",
-                .product(name: "Constants", package: "ServicesMutual")
+                .product(name: "Constants", package: "ServicesMutual"),
+                .product(name: "ConnectionTypes", package: "ServicesMutual")
             ],
             path: "Sources/Services/DeeplinkManager"
         ),
