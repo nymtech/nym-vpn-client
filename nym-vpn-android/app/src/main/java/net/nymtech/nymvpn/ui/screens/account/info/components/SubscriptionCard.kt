@@ -53,10 +53,8 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
 fun SubscriptionSection(subscriptionState: SubscriptionUiState?, bandwidthState: BandwidthUiState?, onSelectPlanClick: () -> Unit, onRenewClick: () -> Unit, onContactSupportClick: () -> Unit) {
-	if (subscriptionState == null || bandwidthState == null) return
-
 	Column(modifier = Modifier.fillMaxWidth()) {
-		if (subscriptionState.expiryState == ExpiryState.EXPIRED) {
+		if (subscriptionState == null || subscriptionState?.expiryState == ExpiryState.EXPIRED) {
 			MainStyledButton(
 				onClick = onSelectPlanClick,
 				content = {
@@ -74,14 +72,16 @@ fun SubscriptionSection(subscriptionState: SubscriptionUiState?, bandwidthState:
 			Spacer(modifier = Modifier.height(16.dp))
 			ExpiredCard()
 		} else {
-			SubscriptionCard(
-				subscription = subscriptionState,
-				bandwidth = bandwidthState,
-				onRenewClick = onRenewClick,
-			)
+			if (bandwidthState != null) {
+				SubscriptionCard(
+					subscription = subscriptionState,
+					bandwidth = bandwidthState,
+					onRenewClick = onRenewClick,
+				)
 
-			Spacer(modifier = Modifier.height(16.dp))
-			ContactSupportText(onClick = onContactSupportClick)
+				Spacer(modifier = Modifier.height(16.dp))
+				ContactSupportText(onClick = onContactSupportClick)
+			}
 		}
 	}
 }
