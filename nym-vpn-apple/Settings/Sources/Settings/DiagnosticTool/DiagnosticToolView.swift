@@ -107,7 +107,7 @@ private extension DiagnosticToolView {
             do {
                 let result = try await grpcManager.runDiagnostic()
                 await MainActor.run {
-                    reportText = result
+                    reportText = formatJSON(result)
                     isLoading = false
                 }
             } catch {
@@ -117,6 +117,19 @@ private extension DiagnosticToolView {
                 }
             }
         }
+    }
+
+    func formatJSON(_ jsonString: String?) -> String? {
+        guard
+            let jsonString,
+            let data = jsonString.data(using: .utf8),
+            let jsonObject = try? JSONSerialization.jsonObject(with: data),
+            let prettyData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys]),
+            let prettyString = String(data: prettyData, encoding: .utf8)
+        else {
+            return jsonString
+        }
+        return prettyString
     }
 
     func exportReport() {

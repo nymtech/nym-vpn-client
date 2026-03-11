@@ -1,6 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Parse flags
+RELEASE="true"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --debug)
+      RELEASE="false"
+      shift
+      ;;
+    *)
+      echo "[BuildCore] Unknown option: $1"
+      echo "Usage: $0 [--debug]"
+      exit 1
+      ;;
+  esac
+done
+
+if [[ "${RELEASE}" == "true" ]]; then
+  echo "[BuildCore] 🚀 Release build — requires code signing."
+  echo "[BuildCore] For a debug build, run: $0 --debug"
+else
+  echo "[BuildCore] 🛠  Debug build"
+fi
+
 # Resolve paths relative to this script
 SCRIPT_DIR="$(cd -- "$(dirname "$0")" && pwd)"
 APPLE_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
@@ -24,7 +47,7 @@ fi
 
 # 1) Build iOS
 cd "${CORE_ROOT}"
-make -f iOS.mk
+make -f iOS.mk RELEASE="${RELEASE}"
 
 # 2) Copy NymVPNLib (from nym-vpn-lib-uniffi) → apple repo root
 LIB_SRC="${CORE_ROOT}/crates/nym-vpn-lib-uniffi/NymVPNLib"
@@ -34,7 +57,7 @@ cp -R "${LIB_SRC}" "${LIB_DEST}"
 echo "[BuildCore] Copied NymVPNLib → ${LIB_DEST}"
 
 # 3) Build macOS (produces upload/mac/nym-vpnd if macOS.mk has vpnd targets)
-make -f macOS.mk libwg nym-setup nym-vpnd rpc-swift-package
+make -f macOS.mk libwg nym-setup nym-vpnd rpc-swift-package RELEASE="${RELEASE}"
 
 # 4) Copy NymVPNRpc (from nym-vpn-rpc-uniffi) → apple repo root
 RPC_SRC="${CORE_ROOT}/crates/nym-vpn-rpc-uniffi/NymVPNRpc"

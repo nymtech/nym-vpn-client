@@ -21,7 +21,5 @@ tokio-util.workspace = true
 tracing.workspace = true
 uniffi = { workspace = true, features = ["tokio"] }
 
-serde_json.workspace = true
-
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }
 nym-vpn-lib-types = { workspace = true, features = ["uniffi-bindings", "serde"] }
