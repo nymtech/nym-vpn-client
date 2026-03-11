@@ -787,6 +787,22 @@ impl RpcClient {
         DiagnosticReport::try_from(response).map_err(Error::InvalidResponse)
     }
 
+    /// Returns the diagnostic report as a raw JSON string, bypassing
+    /// deserialization into the `DiagnosticReport` type.
+    pub async fn run_diagnostic_raw(
+        &mut self,
+        params: nym_vpn_lib_types::DiagnosticRunParams,
+    ) -> Result<String> {
+        let request = proto::DiagnosticRunParams::from(params);
+        let response = self
+            .0
+            .run_diagnostic(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+        Ok(response.json)
+    }
+
     pub async fn register_diagnostic(
         &mut self,
         params: nym_vpn_lib_types::DiagnosticRegisterParams,
@@ -868,7 +884,7 @@ pub enum Error {
     #[error("Failed to serialize rpc request")]
     InvalidRequest(#[source] crate::conversions::ConversionError),
 
-    #[error("Failed to parse rpc response")]
+    #[error("Failed to parse rpc response: {0}")]
     InvalidResponse(#[source] crate::conversions::ConversionError),
 
     #[error("Authentication is required to access the daemon")]

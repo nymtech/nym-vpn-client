@@ -415,12 +415,7 @@ impl RpcClient {
             skip_dns: false,
             skip_http: false,
         };
-        let report = self.inner.clone().run_diagnostic(params).await?;
-        serde_json::to_string(&report).map_err(|e| {
-            RpcError::from(DaemonRpcError::InvalidResponse(
-                nym_vpn_proto::conversions::ConversionError::Generic(e.to_string()),
-            ))
-        })
+        Ok(self.inner.clone().run_diagnostic_raw(params).await?)
     }
 }
 
