@@ -11,12 +11,10 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 
 @Composable
 fun SubscriptionStatusText(subscription: SubscriptionUiState?, modifier: Modifier = Modifier) {
-	if (subscription == null) return
-
 	val color: Color
 	val text: String
 
-	when (subscription.expiryState) {
+	when (subscription?.expiryState) {
 		ExpiryState.NORMAL -> {
 			color = MaterialTheme.colorScheme.primary
 			text = stringResource(R.string.account_info_valid_text, subscription.validUntilDate)
@@ -33,6 +31,11 @@ fun SubscriptionStatusText(subscription: SubscriptionUiState?, modifier: Modifie
 		}
 
 		ExpiryState.EXPIRED -> {
+			color = CustomColors.error
+			text = stringResource(R.string.account_info_no_plan)
+		}
+
+		else -> {
 			color = CustomColors.error
 			text = stringResource(R.string.account_info_no_plan)
 		}
