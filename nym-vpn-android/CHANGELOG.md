@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0]
+
 ### Added
 - Add Subscription and Bandwidth information (https://github.com/nymtech/nym-vpn-client/pull/4817)
 
