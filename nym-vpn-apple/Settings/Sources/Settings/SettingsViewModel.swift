@@ -273,7 +273,7 @@ private extension SettingsViewModel {
 
     func isAutoRenewEnabled(accountSummary: AccountSummary) -> Bool {
 #if os(iOS)
-        purchasesManager.isAutoRenewEnabled ?? accountSummary.isAutoRenewEnabled
+        purchasesManager.isAutoRenewEnabled || accountSummary.isAutoRenewEnabled
 #elseif os(macOS)
         accountSummary.isAutoRenewEnabled
 #endif
