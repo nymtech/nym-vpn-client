@@ -3,22 +3,25 @@
 
 use std::{
     pin::Pin,
+    ptr::NonNull,
     sync::{Arc, atomic::AtomicBool},
 };
 
 use objc2::{
     AnyThread, DefinedClass as _, define_class, msg_send, rc::Retained, runtime::ProtocolObject,
 };
+use objc2_core_foundation::CFString;
 use objc2_foundation::{
     NSObject, NSObjectProtocol, NSString, NSXPCConnection, NSXPCInterface, NSXPCListener,
     NSXPCListenerDelegate,
 };
+use objc2_security::{SecCSFlags, SecCode, SecRequirement, errSecSuccess};
 use tokio::sync::mpsc;
 use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
 use crate::{
-    authentication::{self, Transport},
+    AuthenticationMaterial, authentication,
     xpc::{
         common::{
             ConnectionInterfaceObj, DAEMON_BUNDLE_IDENTIFIER, NSConnectionInterface, XpcConnection,
@@ -32,7 +35,7 @@ use crate::{
 struct ListenerDelegateIvars {
     connection_interface: Retained<NSXPCInterface>,
     conn_sender: mpsc::UnboundedSender<XpcConnection>,
-    signing_requirement: String,
+    signing_requirement: Option<String>,
 }
 
 define_class!(
@@ -76,10 +79,8 @@ define_class!(
             let xpc_conn = XpcConnection::new(proxy, data_rx.into(), xpc_conn_invalidated);
             let forwarded = self.ivars().conn_sender.send(xpc_conn);
 
-            if cfg!(feature = "authentication") {
-                new_connection.setCodeSigningRequirement(&NSString::from_str(
-                    &self.ivars().signing_requirement,
-                ));
+            if let Some(signing_requirement) = self.ivars().signing_requirement.as_ref() {
+                new_connection.setCodeSigningRequirement(&NSString::from_str(signing_requirement));
             }
 
             new_connection.resume();
@@ -98,7 +99,7 @@ impl ListenerDelegate {
     fn new(
         connection_interface: Retained<NSXPCInterface>,
         conn_sender: mpsc::UnboundedSender<XpcConnection>,
-        signing_requirement: String,
+        signing_requirement: Option<String>,
     ) -> Retained<Self> {
         let this = Self::alloc().set_ivars(ListenerDelegateIvars {
             connection_interface,
@@ -112,13 +113,13 @@ impl ListenerDelegate {
 enum Task {
     CreateListener {
         conn_sender: mpsc::UnboundedSender<XpcConnection>,
-        signing_requirement: String,
+        signing_requirement: Option<String>,
     },
 }
 
 async fn create_listener(
     conn_sender: mpsc::UnboundedSender<XpcConnection>,
-    signing_requirement: String,
+    signing_requirement: Option<String>,
     shutdown_token: CancellationToken,
 ) {
     let service_name = NSString::from_str(DAEMON_BUNDLE_IDENTIFIER);
@@ -144,6 +145,43 @@ async fn run_task(task: Task, shutdown_token: CancellationToken) {
     }
 }
 
+fn self_is_signed(signing_requirement: &str) -> bool {
+    let mut raw_sec_code: *mut SecCode = std::ptr::null_mut();
+    let status =
+        unsafe { SecCode::copy_self(SecCSFlags::DefaultFlags, NonNull::from(&mut raw_sec_code)) };
+    if status != errSecSuccess {
+        tracing::error!("Could not obtain self code");
+        return false;
+    }
+    let ret = unsafe { Retained::from_raw(raw_sec_code) };
+    let Some(sec_code) = ret else {
+        tracing::error!("SecCodeCopySelf returned null on success");
+        return false;
+    };
+
+    let mut raw_sec_req: *mut SecRequirement = std::ptr::null_mut();
+    let status = unsafe {
+        SecRequirement::create_with_string(
+            &CFString::from_str(signing_requirement),
+            SecCSFlags::DefaultFlags,
+            NonNull::from(&mut raw_sec_req),
+        )
+    };
+    if status != errSecSuccess {
+        tracing::error!("Could not create a string");
+        return false;
+    }
+    let ret = unsafe { Retained::from_raw(raw_sec_req) };
+    let Some(sec_req) = ret else {
+        tracing::error!("Creating a string returned null on success");
+        return false;
+    };
+
+    let status = unsafe { sec_code.check_validity(SecCSFlags::DefaultFlags, Some(&sec_req)) };
+    tracing::debug!("Daemon signature validation check: {status}");
+    status == errSecSuccess
+}
+
 pub(crate) struct XpcService {
     inner: UnboundedReceiverStream<XpcConnection>,
     // needed to keep the XPC listener object alive for the lifetime of this
@@ -152,11 +190,17 @@ pub(crate) struct XpcService {
 }
 
 impl XpcService {
-    pub(crate) fn spawn(
-        signing_requirement: String,
-        shutdown_token: CancellationToken,
-    ) -> std::io::Result<Self> {
-        let local_spawner = LocalSpawner::new(run_task, shutdown_token.child_token())?;
+    pub(crate) fn spawn(auth_material: AuthenticationMaterial) -> std::io::Result<Self> {
+        let local_spawner =
+            LocalSpawner::new(run_task, auth_material.shutdown_token.child_token())?;
+        let signing_requirement = if self_is_signed(&auth_material.signing_requirements.daemon_req)
+        {
+            tracing::debug!("Daemon will do code signing verification for clients");
+            Some(auth_material.signing_requirements.client_req)
+        } else {
+            tracing::debug!("Daemon will receive any XPC clients");
+            None
+        };
 
         let (conn_sender, conn_receiver) = mpsc::unbounded_channel();
         local_spawner.spawn(Task::CreateListener {
@@ -166,13 +210,13 @@ impl XpcService {
 
         Ok(XpcService {
             inner: UnboundedReceiverStream::new(conn_receiver),
-            _drop_guard: shutdown_token.drop_guard(),
+            _drop_guard: auth_material.shutdown_token.drop_guard(),
         })
     }
 }
 
 impl Stream for XpcService {
-    type Item = std::io::Result<Transport>;
+    type Item = std::io::Result<authentication::Transport>;
 
     fn poll_next(
         mut self: std::pin::Pin<&mut Self>,
@@ -185,9 +229,8 @@ impl Stream for XpcService {
 }
 
 pub fn incoming(
-    signing_requirement: String,
-    shutdown_token: CancellationToken,
-) -> std::io::Result<impl Stream<Item = std::io::Result<Transport>>> {
-    let xpc_service = XpcService::spawn(signing_requirement, shutdown_token)?;
+    auth_material: AuthenticationMaterial,
+) -> std::io::Result<impl Stream<Item = std::io::Result<authentication::Transport>>> {
+    let xpc_service = XpcService::spawn(auth_material)?;
     Ok(authentication::incoming(xpc_service))
 }
