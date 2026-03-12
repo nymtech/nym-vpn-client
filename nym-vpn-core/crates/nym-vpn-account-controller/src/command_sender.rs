@@ -13,7 +13,8 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, DeeplinkKind, RegisterAccountResponse, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, DeeplinkKind, RegisterAccountResponse,
+    VpnAccountSummary,
 };
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 use tokio::sync::mpsc::UnboundedSender;
@@ -228,6 +229,27 @@ impl AccountCommandSender {
         };
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetDeeplink(
+                tx, params,
+            )))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn get_autologin_deeplink(
+        &self,
+        kind: DeeplinkKind,
+        name: String,
+        base_url: Url,
+    ) -> Result<AutologinResponse, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        let params = CreateDeeplinkParams {
+            kind,
+            name,
+            base_url,
+        };
+        self.command_tx
+            .send(AccountCommand::Common(CommonCommand::GetAutologinDeeplink(
                 tx, params,
             )))
             .map_err(AccountCommandError::internal)?;

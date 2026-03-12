@@ -786,6 +786,28 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(url.to_string()))
     }
 
+    async fn get_autologin_deeplink(
+        &self,
+        request: tonic::Request<proto::GetDeeplinkParams>,
+    ) -> Result<tonic::Response<proto::AutologinResponse>> {
+        let req = request.into_inner();
+
+        let params: GetDeeplinkParams = req.try_into().map_err(|err| {
+            tonic::Status::invalid_argument(format!(
+                "Invalid get autologin deeplink request: {err}"
+            ))
+        })?;
+
+        let url = self
+            .send_and_wait(VpnServiceCommand::GetAutologinDeeplink, params)
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get autologin deeplink: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(url.into()))
+    }
+
     async fn deeplink_store_account(
         &self,
         request: tonic::Request<String>,

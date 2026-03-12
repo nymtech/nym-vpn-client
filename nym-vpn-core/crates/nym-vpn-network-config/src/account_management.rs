@@ -6,7 +6,8 @@ use std::fmt;
 use url::Url;
 
 use nym_vpn_api_client::response::{
-    AccountManagementPathsResponse, AccountManagementPrivyPathsResponse, AccountManagementResponse,
+    AccountManagementAutologinPathsResponse, AccountManagementPathsResponse,
+    AccountManagementPrivyPathsResponse, AccountManagementResponse,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -58,6 +59,24 @@ impl AccountManagement {
             .ok()
     }
 
+    pub fn autologin_mobile_url(&self, locale: &str) -> Option<Url> {
+        self.url
+            .join(&self.paths.autologin.mobile.replace("{locale}", locale))
+            .ok()
+    }
+
+    pub fn autologin_desktop_url(&self, locale: &str) -> Option<Url> {
+        self.url
+            .join(&self.paths.autologin.desktop.replace("{locale}", locale))
+            .ok()
+    }
+
+    pub fn autologin_web_url(&self, locale: &str) -> Option<Url> {
+        self.url
+            .join(&self.paths.autologin.web.replace("{locale}", locale))
+            .ok()
+    }
+
     pub fn try_into_parsed_links(
         self,
         locale: &str,
@@ -82,6 +101,17 @@ impl AccountManagement {
                     .privy_web_url(locale)
                     .ok_or(AccountLinksConversionError::ParsePrivyWebUrl)?,
             },
+            autologin: ParsedAccountAutologinLinks {
+                mobile: self
+                    .autologin_mobile_url(locale)
+                    .ok_or(AccountLinksConversionError::ParseAutologinMobileUrl)?,
+                desktop: self
+                    .autologin_desktop_url(locale)
+                    .ok_or(AccountLinksConversionError::ParseAutologinDesktopUrl)?,
+                web: self
+                    .autologin_web_url(locale)
+                    .ok_or(AccountLinksConversionError::ParseAutologinWebUrl)?,
+            },
         })
     }
 }
@@ -103,6 +133,15 @@ pub enum AccountLinksConversionError {
 
     #[error("Failed to parse privy web URL")]
     ParsePrivyWebUrl,
+
+    #[error("Failed to parse autologin mobile URL")]
+    ParseAutologinMobileUrl,
+
+    #[error("Failed to parse autologin desktop URL")]
+    ParseAutologinDesktopUrl,
+
+    #[error("Failed to parse autologin web URL")]
+    ParseAutologinWebUrl,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -111,6 +150,14 @@ pub(crate) struct AccountManagementPaths {
     pub(crate) sign_in: String,
     pub(crate) account: String,
     pub(crate) privy: AccountManagementPrivyPaths,
+    pub(crate) autologin: AccountManagementAutologinPaths,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct AccountManagementAutologinPaths {
+    pub mobile: String,
+    pub desktop: String,
+    pub web: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -126,10 +173,18 @@ pub struct ParsedAccountLinks {
     pub sign_in: Url,
     pub account: Option<Url>,
     pub privy: ParsedAccountPrivyLinks,
+    pub autologin: ParsedAccountAutologinLinks,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ParsedAccountPrivyLinks {
+    pub mobile: Url,
+    pub desktop: Url,
+    pub web: Url,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct ParsedAccountAutologinLinks {
     pub mobile: Url,
     pub desktop: Url,
     pub web: Url,
@@ -142,7 +197,13 @@ impl fmt::Display for ParsedAccountLinks {
         if let Some(account) = &self.account {
             write!(f, "\naccount: {account}")?;
         }
-
+        write!(f, "\nautologin: {mobile}", mobile = self.autologin.mobile)?;
+        write!(
+            f,
+            "\nautologin: {desktop}",
+            desktop = self.autologin.desktop
+        )?;
+        write!(f, "\nautologin: {web}", web = self.autologin.web)?;
         Ok(())
     }
 }
@@ -177,12 +238,23 @@ impl From<AccountManagementPathsResponse> for AccountManagementPaths {
             sign_in: response.sign_in,
             account: response.account,
             privy: response.privy.into(),
+            autologin: response.autologin.into(),
         }
     }
 }
 
 impl From<AccountManagementPrivyPathsResponse> for AccountManagementPrivyPaths {
     fn from(response: AccountManagementPrivyPathsResponse) -> Self {
+        Self {
+            mobile: response.mobile,
+            desktop: response.desktop,
+            web: response.web,
+        }
+    }
+}
+
+impl From<AccountManagementAutologinPathsResponse> for AccountManagementAutologinPaths {
+    fn from(response: AccountManagementAutologinPathsResponse) -> Self {
         Self {
             mobile: response.mobile,
             desktop: response.desktop,

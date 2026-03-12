@@ -963,6 +963,11 @@ message RegistrationReport {
   string json = 1;
 }
 
+message AutologinResponse {
+  string url = 1;
+  string pin_code = 2;
+}
+
 message GetDeeplinkParams {
   DeeplinkClient client = 1;
   string locale = 2;
@@ -1101,6 +1106,9 @@ service NymVpnService {
 
   // Get the deeplink URL
   rpc GetDeeplink(GetDeeplinkParams) returns (google.protobuf.StringValue) {}
+
+  // Get the deeplink autologin URL
+  rpc GetAutologinDeeplink(GetDeeplinkParams) returns (AutologinResponse) {}
 
   // Login using a deeplink callback URL
   rpc DeeplinkStoreAccount(google.protobuf.StringValue) returns (AccountCommandResponse) {}

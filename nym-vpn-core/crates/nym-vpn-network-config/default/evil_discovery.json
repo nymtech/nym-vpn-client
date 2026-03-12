@@ -7,27 +7,18 @@
     },
     {
       "url": "https://nym-frontdoor.vercel.app/evil/nym-api/",
-      "fronts": [
-        "vercel.app",
-        "vercel.com"
-      ]
+      "fronts": ["vercel.app", "vercel.com"]
     }
   ],
   "nym_vpn_api_url": "https://nym-vpn-api-git-deploy-evil-env-nyx-network-staging.vercel.app/api/",
   "nym_vpn_api_urls": [
     {
       "url": "https://nym-vpn-api-git-deploy-evil-env-nyx-network-staging.vercel.app/api/",
-      "fronts": [
-        "vercel.app",
-        "vercel.com"
-      ]
+      "fronts": ["vercel.app", "vercel.com"]
     },
     {
       "url": "https://nym-frontdoor.vercel.app/evil/nym-vpn-api/",
-      "fronts": [
-        "vercel.app",
-        "vercel.com"
-      ]
+      "fronts": ["vercel.app", "vercel.com"]
     }
   ],
   "account_management": {
@@ -35,7 +26,12 @@
     "paths": {
       "sign_up": "{locale}/account/create",
       "sign_in": "{locale}/account/login",
-      "account": "{locale}/account/{account_id}"
+      "account": "{locale}/account/{account_id}",
+      "autologin": {
+        "mobile": "{locale}/account/login/autologin/mobile",
+        "desktop": "{locale}/account/login/autologin/desktop",
+        "web": "{locale}/account/login/autologin/web"
+      }
     }
   },
   "system_messages": [

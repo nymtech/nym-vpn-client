@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib_types::{
-    AccountCommandError, AvailableTickets, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    NymVpnSubscriptionKind, StoredAccountMode, VpnAccountAuthMethod, VpnAccountStatus,
-    VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
+    AccountCommandError, AutologinResponse, AvailableTickets, DeeplinkClient, DeeplinkKind,
+    GetDeeplinkParams, NymVpnSubscriptionKind, StoredAccountMode, VpnAccountAuthMethod,
+    VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
 };
 
 use crate::{
@@ -446,6 +446,26 @@ impl TryFrom<proto::GetDeeplinkParams> for GetDeeplinkParams {
             locale: value.locale,
             kind: kind.into(),
             name: value.name,
+        })
+    }
+}
+
+impl From<AutologinResponse> for proto::AutologinResponse {
+    fn from(value: AutologinResponse) -> Self {
+        Self {
+            url: value.url,
+            pin_code: value.pin_code,
+        }
+    }
+}
+
+impl TryFrom<proto::AutologinResponse> for AutologinResponse {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::AutologinResponse) -> Result<Self, Self::Error> {
+        Ok(Self {
+            url: value.url,
+            pin_code: value.pin_code,
         })
     }
 }

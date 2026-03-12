@@ -92,6 +92,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                             CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(common_handler::handle_get_available_tickets(shared_state).await),
                             CommonCommand::GetAccountSummary(return_sender) => return_sender.send(common_handler::handle_get_account_summary(shared_state).await),
                             CommonCommand::GetDeeplink(return_sender, params) => return_sender.send(common_handler::handle_get_deeplink(shared_state, params).await),
+                            CommonCommand::GetAutologinDeeplink(return_sender, params) => return_sender.send(common_handler::handle_get_autologin_deeplink(shared_state, params).await),
                             CommonCommand::DeriveDeeplinkMnemonic(return_sender, deeplink_callback_url) => return_sender.send(common_handler::handle_derive_deeplink_mnemonic(shared_state, deeplink_callback_url).await),
                         }
                     },

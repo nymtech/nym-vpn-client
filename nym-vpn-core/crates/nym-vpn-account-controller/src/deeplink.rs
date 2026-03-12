@@ -4,9 +4,10 @@ use aes_gcm::{
 };
 use hkdf::Hkdf;
 use nym_crypto::asymmetric::x25519::{KeyPair, PublicKey};
-use nym_vpn_lib_types::DeeplinkKind;
+use nym_vpn_lib_types::{AutologinResponse, DeeplinkKind};
+use pbkdf2::pbkdf2_hmac;
 use rand::{RngCore, rngs::OsRng};
-use sha2::Sha256;
+use sha2::{Sha256, Sha512};
 use std::collections::HashMap;
 use tokio::time::{Duration, Instant};
 use url::Url;
@@ -56,6 +57,26 @@ impl Deeplink {
             .append_pair("pubkey", &pubkey)
             .append_pair("link_account", link_account);
         url
+    }
+
+    pub fn create_autologin_url(
+        &self,
+        base_url: &Url,
+        mnemonic: String,
+    ) -> Result<AutologinResponse, DeeplinkError> {
+        let pin_code = PinCode::new(6)?;
+
+        let encrypted_mnemonic = pin_code.encrypt(&mnemonic)?;
+
+        let mut url = base_url.clone();
+        url.path_segments_mut()
+            .expect("Cannot create autologin deeplink URL")
+            .push(&encrypted_mnemonic);
+
+        Ok(AutologinResponse {
+            url: url.to_string(),
+            pin_code: pin_code.code,
+        })
     }
 }
 
@@ -220,6 +241,74 @@ impl CipherPacket {
         hk.expand(info, &mut okm)
             .map_err(|_| DeeplinkError::InvalidPayload("failed to expand hkdf data".to_string()))?;
         Ok(okm)
+    }
+}
+
+struct PinCode {
+    code: String,
+}
+
+impl PinCode {
+    const SALT_LEN: usize = 16;
+    const IV_LEN: usize = 12;
+    const TAG_LEN: usize = 16;
+    const KEY_LEN: usize = 32;
+    const PBKDF2_ITERATIONS: u32 = 600_000;
+
+    fn new(length: usize) -> Result<Self, DeeplinkError> {
+        let mut random = vec![0u8; length];
+
+        OsRng.fill_bytes(&mut random);
+
+        let encoded = bs58::encode(random).into_string();
+
+        if encoded.len() < length {
+            return Err(DeeplinkError::InvalidPayload(
+                "pin code too short".to_string(),
+            ));
+        }
+
+        let mut pin = encoded[..length].to_string();
+
+        pin = pin.replace('1', "i").replace('0', "o").to_lowercase();
+
+        Ok(Self { code: pin })
+    }
+
+    fn encrypt(&self, message: &str) -> Result<String, DeeplinkError> {
+        let mut salt = [0u8; Self::SALT_LEN];
+        let mut iv = [0u8; Self::IV_LEN];
+
+        OsRng.fill_bytes(&mut salt);
+        OsRng.fill_bytes(&mut iv);
+
+        let key = self.get_key(&self.code, &salt);
+        let cipher = Aes256Gcm::new_from_slice(&key)
+            .map_err(|e| DeeplinkError::InvalidPayload(e.to_string()))?;
+        let nonce = Nonce::from_slice(&iv);
+
+        let encrypted = cipher
+            .encrypt(nonce, message.as_bytes())
+            .map_err(|e| DeeplinkError::InvalidPayload(e.to_string()))?;
+
+        let split_at = encrypted.len() - Self::TAG_LEN;
+        let cipher_text = &encrypted[..split_at];
+        let tag = &encrypted[split_at..];
+
+        let mut output =
+            Vec::with_capacity(Self::SALT_LEN + Self::IV_LEN + Self::TAG_LEN + cipher_text.len());
+        output.extend_from_slice(&salt);
+        output.extend_from_slice(&iv);
+        output.extend_from_slice(tag);
+        output.extend_from_slice(cipher_text);
+
+        Ok(bs58::encode(output).into_string())
+    }
+
+    fn get_key(&self, password: &str, salt: &[u8]) -> [u8; Self::KEY_LEN] {
+        let mut key = [0u8; Self::KEY_LEN];
+        pbkdf2_hmac::<Sha512>(password.as_bytes(), salt, Self::PBKDF2_ITERATIONS, &mut key);
+        key
     }
 }
 

@@ -11,7 +11,9 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
-use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnAccountSummary};
+use nym_vpn_lib_types::{
+    AccountCommandError, AutologinResponse, RegisterAccountResponse, VpnAccountSummary,
+};
 use nym_vpn_store::{account::StorableAccount, types::StoredAccountMode};
 use tokio::sync::oneshot;
 
@@ -96,6 +98,9 @@ impl AccountCommand {
                 }
                 CommonCommand::GetAccountSummary(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDeeplink(return_sender, _) => return_sender.send(Err(error)),
+                CommonCommand::GetAutologinDeeplink(return_sender, _) => {
+                    return_sender.send(Err(error))
+                }
                 CommonCommand::DeriveDeeplinkMnemonic(return_sender, _) => {
                     return_sender.send(Err(error))
                 }
@@ -154,6 +159,12 @@ pub enum CommonCommand {
     /// Return the deeplink URL for the specfied deeplink kind and name
     GetDeeplink(
         ReturnSender<String, AccountCommandError>,
+        CreateDeeplinkParams,
+    ),
+
+    /// Return the autologin deeplink URL for the specfied deeplink kind and name
+    GetAutologinDeeplink(
+        ReturnSender<AutologinResponse, AccountCommandError>,
         CreateDeeplinkParams,
     ),
 
