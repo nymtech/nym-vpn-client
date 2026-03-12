@@ -154,6 +154,30 @@ impl From<nym_vpn_lib_types::Lp> for proto::LpProbeResult {
     }
 }
 
+impl From<proto::Socks5ProbeResult> for nym_vpn_lib_types::Socks5 {
+    fn from(value: proto::Socks5ProbeResult) -> Self {
+        Self {
+            can_proxy_https: value.can_proxy_https,
+            score: value
+                .score
+                .and_then(|s| proto::Score::try_from(s).ok())
+                .map(nym_vpn_lib_types::Score::from),
+            errors: value.errors.map(|e| e.error),
+        }
+    }
+}
+
+impl From<proto::LpProbeResult> for nym_vpn_lib_types::Lp {
+    fn from(value: proto::LpProbeResult) -> Self {
+        Self {
+            can_connect: value.can_connect,
+            can_handshake: value.can_handshake,
+            can_register: value.can_register,
+            error: value.error,
+        }
+    }
+}
+
 impl TryFrom<proto::ProbeOutcome> for nym_vpn_lib_types::ProbeOutcome {
     type Error = ConversionError;
 
@@ -166,8 +190,8 @@ impl TryFrom<proto::ProbeOutcome> for nym_vpn_lib_types::ProbeOutcome {
         Ok(Self {
             as_entry,
             as_exit,
-            socks5: None, // socks5 data comes from vpn-api, not from proto
-            lp: None,     // LP data comes from vpn-api, not from proto
+            socks5: outcome.socks5.map(From::from),
+            lp: outcome.lp.map(From::from),
         })
     }
 }
