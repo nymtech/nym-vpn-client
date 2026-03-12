@@ -1,7 +1,7 @@
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
-import CountriesManagerTypes
+import ConnectionTypes
 import GatewayManager
 
 @MainActor public final class ConnectionStorage {

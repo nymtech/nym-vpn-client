@@ -1,6 +1,6 @@
 #if os(macOS)
 import Foundation
-import CountriesManagerTypes
+import ConnectionTypes
 
 extension GatewayManager {
     func setupDaemonObserver() {

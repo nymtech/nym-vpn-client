@@ -1,4 +1,4 @@
-import CountriesManagerTypes
+import ConnectionTypes
 
 extension GRPCManager {
     public func gateways(for type: NodeType) async throws -> [GatewayNode] {

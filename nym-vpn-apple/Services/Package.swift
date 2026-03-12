@@ -48,7 +48,7 @@ let package = Package(
             name: "AppSettings",
             dependencies: [
                 .product(name: "Constants", package: "ServicesMutual"),
-                .product(name: "CountriesManagerTypes", package: "ServicesMutual")
+                .product(name: "ConnectionTypes", package: "ServicesMutual")
             ],
             path: "Sources/Services/AppSettings"
         ),
@@ -76,7 +76,6 @@ let package = Package(
             dependencies: [
                 "CredentialsManager",
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
-                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 "GatewayManager",
                 "NotificationMessages",
                 "Tunnels",
@@ -140,7 +139,6 @@ let package = Package(
                 .product(name: "Constants", package: "ServicesMutual"),
                 "ConfigurationManager",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
-                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
@@ -165,8 +163,7 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "ConfigurationManager",
-                .product(name: "ConnectionTypes", package: "ServicesMutual"),
-                .product(name: "CountriesManagerTypes", package: "ServicesMutual")
+                .product(name: "ConnectionTypes", package: "ServicesMutual")
             ],
             path: "Sources/Services/Migrations"
         ),

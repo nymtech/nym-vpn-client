@@ -5,7 +5,7 @@ import ServiceManagement
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
-import CountriesManagerTypes
+import ConnectionTypes
 
 @MainActor public final class Migrations {
     private let appSettings: AppSettings

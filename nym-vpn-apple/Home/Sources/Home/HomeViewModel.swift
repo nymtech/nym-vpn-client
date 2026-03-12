@@ -4,7 +4,7 @@ import AppSettings
 import ConnectionManager
 import Constants
 import ConfigurationManager
-import CountriesManagerTypes
+import ConnectionTypes
 import CredentialsManager
 import ExternalLinkManager
 import GatewayManager

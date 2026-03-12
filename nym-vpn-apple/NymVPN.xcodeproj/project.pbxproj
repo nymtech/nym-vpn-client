@@ -12,8 +12,6 @@
 		58B5A2E42EB52A730079FE55 /* nym-setup in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = 58B5A2E22EB52A490079FE55 /* nym-setup */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */; };
 		D90E2A9F2D11CFA700EBEC69 /* ConnectionTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */; };
-		D9144C5B2CC1057A0021A617 /* CountriesManagerTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C5A2CC1057A0021A617 /* CountriesManagerTypes */; };
-		D9144C5D2CC1057F0021A617 /* CountriesManagerTypes in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C5C2CC1057F0021A617 /* CountriesManagerTypes */; };
 		D9144C632CC10AA20021A617 /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C622CC10AA20021A617 /* Migrations */; };
 		D916EE672C90F2A700FADEEF /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D916EE662C90F2A700FADEEF /* Migrations */; };
 		D9188A9E2CE12C5F0031E141 /* TunnelActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */; };
@@ -299,7 +297,6 @@
 				D92FBA2D2C6B6AB800D743DF /* ConfigurationManager in Frameworks */,
 				D9870CF32BE3A12800551A86 /* Home in Frameworks */,
 				D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */,
-				D9144C5B2CC1057A0021A617 /* CountriesManagerTypes in Frameworks */,
 				D9BA3B6F2D5BF65700A5B99A /* GatewayManager in Frameworks */,
 				D9E552B82CE9E909008C74F6 /* ErrorHandler in Frameworks */,
 				D9D483582BEBA72F0005A41C /* UIComponents in Frameworks */,
@@ -335,7 +332,6 @@
 				D9E6D8C92BF5FF5F009612CE /* TunnelStatus in Frameworks */,
 				D9BEF2E32BEB8D7E0036C566 /* Constants in Frameworks */,
 				D9C5EDE42DF0612700C0D991 /* PurchasesManager in Frameworks */,
-				D9144C5D2CC1057F0021A617 /* CountriesManagerTypes in Frameworks */,
 				D9ABF2842BF4989B009089FA /* Shell in Frameworks */,
 				D9BEF2E12BEB660D0036C566 /* GRPCManager in Frameworks */,
 				D9FB33DC2BECD473009C3419 /* SentryManager in Frameworks */,
@@ -578,7 +574,6 @@
 				D9B7BAFB2C4866AF005AF2D6 /* NymLogger */,
 				D92FBA2C2C6B6AB800D743DF /* ConfigurationManager */,
 				D953CFE92C8ED73C008A942B /* NotificationsManager */,
-				D9144C5A2CC1057A0021A617 /* CountriesManagerTypes */,
 				D9144C622CC10AA20021A617 /* Migrations */,
 				D96680D02CC4FC7200267FA1 /* Device */,
 				D9E552B72CE9E909008C74F6 /* ErrorHandler */,
@@ -630,7 +625,6 @@
 				D9B7BAF72C4866A0005AF2D6 /* NymLogger */,
 				D92FBA2A2C6B6AB300D743DF /* ConfigurationManager */,
 				D916EE662C90F2A700FADEEF /* Migrations */,
-				D9144C5C2CC1057F0021A617 /* CountriesManagerTypes */,
 				D96680D22CC4FC7800267FA1 /* Device */,
 				D9FA77C72CEBB32C003362D7 /* NotificationsManager */,
 				D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */,
@@ -1386,14 +1380,6 @@
 		D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ConnectionTypes;
-		};
-		D9144C5A2CC1057A0021A617 /* CountriesManagerTypes */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = CountriesManagerTypes;
-		};
-		D9144C5C2CC1057F0021A617 /* CountriesManagerTypes */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = CountriesManagerTypes;
 		};
 		D9144C622CC10AA20021A617 /* Migrations */ = {
 			isa = XCSwiftPackageProductDependency;

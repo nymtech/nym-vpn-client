@@ -1,7 +1,7 @@
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
-import CountriesManagerTypes
+import ConnectionTypes
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)

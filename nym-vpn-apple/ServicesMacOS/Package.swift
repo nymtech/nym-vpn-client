@@ -37,7 +37,6 @@ let package = Package(
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
-                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "DarwinNotificationCenter", package: "ServicesMutual"),
                 .product(name: "MessageModels", package: "ServicesMutual"),
                 .product(name: "NymVPNRpc", package: "NymVPNRpc"),

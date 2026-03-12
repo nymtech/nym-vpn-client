@@ -1,7 +1,7 @@
 import Foundation
 import AppSettings
 import Constants
-import CountriesManagerTypes
+import ConnectionTypes
 
 extension GatewayManager {
     func loadGatewayStore() {

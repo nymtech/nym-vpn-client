@@ -1,5 +1,5 @@
 import SwiftUI
-import CountriesManagerTypes
+import ConnectionTypes
 import Theme
 
 public struct GatewayCellButtonViewModel {

@@ -3,7 +3,7 @@ import AppSettings
 import Routes
 
 @Observable
-public class HomeFlowState: ObservableObject {
+public class HomeFlowState {
     var splashScreenDidDisplay = false
 
     var path = NavigationPath()

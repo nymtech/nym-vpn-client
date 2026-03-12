@@ -2,7 +2,7 @@ import SwiftUI
 import AppSettings
 import Constants
 import ConnectionManager
-import CountriesManagerTypes
+import ConnectionTypes
 import Device
 import ExternalLinkManager
 import FeatureFlagsManager

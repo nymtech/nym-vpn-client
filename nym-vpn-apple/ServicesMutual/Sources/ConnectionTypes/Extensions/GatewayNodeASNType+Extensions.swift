@@ -1,6 +1,8 @@
 #if os(iOS)
-import CountriesManagerTypes
 import NymVPNLib
+#elseif os(macOS)
+import NymVPNRpc
+#endif
 
 public extension GatewayNodeASNType {
     init(with type: AsnKind) {
@@ -12,4 +14,3 @@ public extension GatewayNodeASNType {
         }
     }
 }
-#endif

@@ -1,3 +1,9 @@
+#if os(iOS)
+import NymVPNLib
+#elseif os(macOS)
+import NymVPNRpc
+#endif
+
 public struct GatewayQuicClientOptions: Codable, Hashable {
     public var addresses: [String]
     public var host: String?
@@ -10,20 +16,8 @@ public struct GatewayQuicClientOptions: Codable, Hashable {
     }
 }
 
-#if os(iOS)
-import NymVPNLib
-
 public extension GatewayQuicClientOptions {
     init(with options: QuicClientOptions) {
         self.init(addresses: options.addresses, host: options.host, idPubkey: options.idPubkey)
     }
 }
-#elseif os(macOS)
-import NymVPNRpc
-
-public extension GatewayQuicClientOptions {
-    init(with options: QuicClientOptions) {
-        self.init(addresses: options.addresses, host: options.host, idPubkey: options.idPubkey)
-    }
-}
-#endif

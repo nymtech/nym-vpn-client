@@ -1,3 +1,11 @@
+import AppSettings
+import ConfigurationManager
+import ConnectionManager
+import CredentialsManager
+import ExternalLinkManager
+import FeatureFlagsManager
+import GatewayManager
+import ImpactGenerator
 import SwiftUI
 #if os(iOS)
 import PurchasesManager
@@ -9,12 +17,20 @@ import Settings
 import UIComponents
 
 struct HomeFlowCoordinator<Content: View>: View {
+    @EnvironmentObject private var appSettings: AppSettings
+    @EnvironmentObject private var configurationManager: ConfigurationManager
+    @EnvironmentObject private var connectionManager: ConnectionManager
+    @EnvironmentObject private var credentialsManager: CredentialsManager
+    @EnvironmentObject private var externalLinkManager: ExternalLinkManager
+    @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
+    @EnvironmentObject private var gatewayManager: GatewayManager
+    @EnvironmentObject private var impactGenerator: ImpactGenerator
 #if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
 #elseif os(macOS)
     @EnvironmentObject private var grpcManager: GRPCManager
 #endif
-    @StateObject var state: HomeFlowState
+    @State var state: HomeFlowState
 
     let content: () -> Content
 
@@ -37,10 +53,10 @@ private extension HomeFlowCoordinator {
                 viewModel: GatewaysViewModel(
                     type: .entry,
                     path: $state.path,
-                    appSettings: .shared,
-                    connectionManager: .shared,
-                    gatewayManager: .shared,
-                    featureFlagsManager: .shared
+                    appSettings: appSettings,
+                    connectionManager: connectionManager,
+                    gatewayManager: gatewayManager,
+                    featureFlagsManager: featureFlagsManager
                 )
             )
         case .exitGateways:
@@ -48,10 +64,10 @@ private extension HomeFlowCoordinator {
                 viewModel: GatewaysViewModel(
                     type: .exit,
                     path: $state.path,
-                    appSettings: .shared,
-                    connectionManager: .shared,
-                    gatewayManager: .shared,
-                    featureFlagsManager: .shared
+                    appSettings: appSettings,
+                    connectionManager: connectionManager,
+                    gatewayManager: gatewayManager,
+                    featureFlagsManager: featureFlagsManager
                 )
             )
         case .settings:
@@ -60,13 +76,13 @@ private extension HomeFlowCoordinator {
                 viewModel:
                     SettingsViewModel(
                         path: $state.path,
-                        appSettings: .shared,
-                        configurationManager: .shared,
-                        connectionManager: .shared,
-                        credentialsManager: .shared,
-                        externalLinkManager: .shared,
-                        featureFlagsManager: .shared,
-                        impactGenerator: .shared,
+                        appSettings: appSettings,
+                        configurationManager: configurationManager,
+                        connectionManager: connectionManager,
+                        credentialsManager: credentialsManager,
+                        externalLinkManager: externalLinkManager,
+                        featureFlagsManager: featureFlagsManager,
+                        impactGenerator: impactGenerator,
                         purchasesManager: purchasesManager
                     )
             )
@@ -76,18 +92,18 @@ private extension HomeFlowCoordinator {
                     SettingsViewModel(
                         isServing: $grpcManager.isServing,
                         path: $state.path,
-                        appSettings: .shared,
-                        configurationManager: .shared,
-                        connectionManager: .shared,
-                        credentialsManager: .shared,
-                        externalLinkManager: .shared,
-                        featureFlagsManager: .shared,
-                        impactGenerator: .shared
+                        appSettings: appSettings,
+                        configurationManager: configurationManager,
+                        connectionManager: connectionManager,
+                        credentialsManager: credentialsManager,
+                        externalLinkManager: externalLinkManager,
+                        featureFlagsManager: featureFlagsManager,
+                        impactGenerator: impactGenerator
                     )
             )
 #endif
         case let .gatewayDetails(gateway: gateway, hopType: hopType):
-            ServerDetailsView(path: $state.path, gateway: gateway, hopType: hopType, externalLinkManager: .shared)
+            ServerDetailsView(path: $state.path, gateway: gateway, hopType: hopType, externalLinkManager: externalLinkManager)
         case .launchView:
             LaunchView(splashScreenDidDisplay: $state.splashScreenDidDisplay, path: $state.path)
         case .onboarding:

@@ -1,9 +1,11 @@
 #if os(iOS)
-import CountriesManagerTypes
 import NymVPNLib
+#elseif os(macOS)
+import NymVPNRpc
+#endif
 
 extension GatewayNodeLocation {
-    init?(with location: Location?) {
+    public init?(with location: Location?) {
         guard let location else { return nil }
         self.init(
             twoLetterIsoCountryCode: location.twoLetterIsoCountryCode,
@@ -15,4 +17,3 @@ extension GatewayNodeLocation {
         )
     }
 }
-#endif

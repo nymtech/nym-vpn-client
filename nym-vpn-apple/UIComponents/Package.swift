@@ -31,7 +31,6 @@ let package = Package(
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "ConfigurationManager", package: "Services"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
-                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "FeatureFlagsManager", package: "Services"),
                 .product(name: "MessageModels", package: "ServicesMutual"),

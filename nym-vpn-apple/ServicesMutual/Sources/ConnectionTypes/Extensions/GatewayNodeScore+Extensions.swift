@@ -1,11 +1,12 @@
 #if os(iOS)
-import CountriesManagerTypes
 import NymVPNLib
+#elseif os(macOS)
+import NymVPNRpc
+#endif
 
 extension GatewayNodeScore {
-    init(with score: Score?) {
-        guard let score
-        else {
+    public init(with score: Score?) {
+        guard let score else {
             self = .noScore
             return
         }
@@ -21,4 +22,3 @@ extension GatewayNodeScore {
         }
     }
 }
-#endif

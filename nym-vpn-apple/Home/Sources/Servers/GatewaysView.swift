@@ -1,6 +1,6 @@
 import SwiftUI
 import Constants
-import CountriesManagerTypes
+import ConnectionTypes
 import ExternalLinkManager
 import Routes
 import Settings

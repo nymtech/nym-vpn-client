@@ -1,5 +1,5 @@
 import NymVPNRpc
-import CountriesManagerTypes
+import ConnectionTypes
 
 extension NodeType {
     func convertToGatewayType() -> GatewayType {

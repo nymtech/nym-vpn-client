@@ -1,10 +1,12 @@
-#if os(iOS)
 import Foundation
-import CountriesManagerTypes
+#if os(iOS)
 import NymVPNLib
+#elseif os(macOS)
+import NymVPNRpc
+#endif
 
 extension GatewayNodePerformance {
-    init(with performance: Performance?) {
+    public init(with performance: Performance?) {
         self.init(
             lastUpdated: ISO8601DateFormatter().date(from: performance?.lastUpdatedUtc ?? ""),
             score: GatewayNodeScore(with: performance?.score),
@@ -14,4 +16,3 @@ extension GatewayNodePerformance {
         )
     }
 }
-#endif

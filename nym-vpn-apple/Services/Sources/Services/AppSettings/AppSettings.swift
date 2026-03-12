@@ -1,6 +1,6 @@
 import SwiftUI
 import Constants
-import CountriesManagerTypes
+import ConnectionTypes
 
 @MainActor public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()

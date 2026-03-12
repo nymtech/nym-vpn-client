@@ -44,7 +44,7 @@ struct NymVPNApp: App {
     @ObservedObject private var purchasesManager = PurchasesManager()
     @State private var deeplinkManager = DeeplinkManager(credentialsManager: CredentialsManager.shared)
 
-    @ObservedObject private var homeViewModel = HomeViewModel(
+    @State private var homeViewModel = HomeViewModel(
         appSettings: .shared,
         connectionManager: .shared,
         configurationManager: .shared,

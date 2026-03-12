@@ -1,5 +1,5 @@
 import Foundation
-import CountriesManagerTypes
+import ConnectionTypes
 import UIComponents
 
 public enum HomeLink: Hashable, Identifiable, Codable {
