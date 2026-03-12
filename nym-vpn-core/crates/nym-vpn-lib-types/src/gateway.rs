@@ -909,6 +909,7 @@ impl From<nym_validator_client::models::NymNodeDescriptionV1> for Gateway {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_validator_client::models::NymNodeDescriptionV2> for Gateway {
     fn from(node_description: nym_validator_client::models::NymNodeDescriptionV2) -> Self {
         let build_version = Some(node_description.version().to_owned());
