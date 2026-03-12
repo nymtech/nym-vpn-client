@@ -417,7 +417,7 @@ impl ConnectedTunnel {
                             // For instance when device connects to IPv4-only server from IPv6-only network,
                             // it needs to use an IPv4-mapped address, which can be received by re-resolving
                             // the original peer IP.
-                            match entry_peer_update.resolved() {
+                            match entry_peer_update.clone().resolved() {
                                 Ok(resolved_peer) => {
 
                                     // Update wireguard-go configuration with re-resolved peer endpoints.

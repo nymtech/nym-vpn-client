@@ -11,6 +11,7 @@ use nix::{
     sys::socket::{SockaddrIn, SockaddrIn6, SockaddrLike},
 };
 
+use crate::wg_config::WgPeer;
 use nym_wg_go::PeerEndpointUpdate;
 
 #[derive(thiserror::Error, Debug)]
@@ -36,7 +37,22 @@ pub trait Dns64Resolution: Sized {
     fn resolve_in_place(&mut self) -> Result<()>;
 
     /// Returns a new peer with dns64 re-resolved peer endpoint.
-    fn resolved(&self) -> Result<Self>;
+    fn resolved(self) -> Result<Self>;
+}
+
+impl Dns64Resolution for WgPeer {
+    fn resolve_in_place(&mut self) -> Result<()> {
+        self.endpoint = reresolve_endpoint(self.endpoint)?;
+        Ok(())
+    }
+
+    fn resolved(self) -> Result<Self> {
+        Ok(WgPeer {
+            endpoint: reresolve_endpoint(self.endpoint)?,
+            preshared_key: self.preshared_key,
+            public_key: self.public_key,
+        })
+    }
 }
 
 impl Dns64Resolution for PeerEndpointUpdate {
@@ -45,7 +61,7 @@ impl Dns64Resolution for PeerEndpointUpdate {
         Ok(())
     }
 
-    fn resolved(&self) -> Result<Self> {
+    fn resolved(self) -> Result<Self> {
         Ok(PeerEndpointUpdate {
             endpoint: reresolve_endpoint(self.endpoint)?,
             public_key: self.public_key,
