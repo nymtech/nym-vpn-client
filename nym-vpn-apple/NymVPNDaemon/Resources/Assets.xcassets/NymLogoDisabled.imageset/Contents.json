@@ -1,19 +1,8 @@
 {
   "images" : [
     {
-      "filename" : "logoDisabled@1x.png",
-      "idiom" : "universal",
-      "scale" : "1x"
-    },
-    {
-      "filename" : "logoDisabled@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x"
-    },
-    {
-      "filename" : "logoDisabled@3x.png",
-      "idiom" : "universal",
-      "scale" : "3x"
+      "filename" : "NOnlyIcon4.svg",
+      "idiom" : "universal"
     }
   ],
   "info" : {
