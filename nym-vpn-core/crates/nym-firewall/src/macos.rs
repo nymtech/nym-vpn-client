@@ -253,6 +253,8 @@ impl Firewall {
     }
 
     pub fn reset_policy(&mut self) -> Result<()> {
+        self.last_policy = None;
+
         // Implemented this way to not early return on an error.
         // We always want all three methods to run, and then return
         // the first error it encountered, if any.
