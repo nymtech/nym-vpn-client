@@ -11,8 +11,9 @@ use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 use nym_vpn_lib_types::{
     AccountCommandResponse, ApiUrl, BridgeInformation, BridgeParameters, GatewayType,
-    ListGatewaysOptions, LogPath, NymNetworkDetails, NymVpnNetwork, Performance, QuicClientOptions,
-    StoreAccountRequest, SystemMessage, UserAgent, VpnServiceInfo,
+    LewesProtocolDetails, LewesProtocolDetailsData, ListGatewaysOptions, LogPath,
+    NymNetworkDetails, NymVpnNetwork, Performance, QuicClientOptions, StoreAccountRequest,
+    SystemMessage, UserAgent, VpnServiceInfo,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -110,16 +111,45 @@ impl From<nym_vpn_lib_types::ProbeOutcome> for proto::ProbeOutcome {
     fn from(outcome: nym_vpn_lib_types::ProbeOutcome) -> Self {
         let as_entry = Some(proto::AsEntry::from(outcome.as_entry));
         let as_exit = outcome.as_exit.map(proto::AsExit::from);
-        // TODO why is wg None and do we need to initialize those/
         let wg = None;
-        let socks5 = None;
-        let lp = None;
+        let socks5 = outcome.socks5.map(proto::Socks5ProbeResult::from);
+        let lp = outcome.lp.map(proto::LpProbeResult::from);
         proto::ProbeOutcome {
             as_entry,
             as_exit,
             wg,
             socks5,
             lp,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::Socks5> for proto::Socks5ProbeResult {
+    fn from(value: nym_vpn_lib_types::Socks5) -> Self {
+        Self {
+            can_proxy_https: value.can_proxy_https,
+            score: value
+                .score
+                .map(<proto::Score as From<nym_vpn_lib_types::Score>>::from)
+                .map(i32::from),
+            errors: value.errors.map(From::from),
+        }
+    }
+}
+
+impl From<Vec<String>> for proto::ErrorList {
+    fn from(error: Vec<String>) -> Self {
+        Self { error }
+    }
+}
+
+impl From<nym_vpn_lib_types::Lp> for proto::LpProbeResult {
+    fn from(value: nym_vpn_lib_types::Lp) -> Self {
+        Self {
+            can_connect: value.can_connect,
+            can_handshake: value.can_handshake,
+            can_register: value.can_register,
+            error: value.error,
         }
     }
 }
@@ -176,6 +206,61 @@ impl From<nym_vpn_lib_types::Probe> for proto::Probe {
     }
 }
 
+impl From<LewesProtocolDetails> for proto::LewesProtocolDetails {
+    fn from(value: LewesProtocolDetails) -> Self {
+        Self {
+            content: Some(proto::LewesProtocolDetailsData::from(value.content)),
+            signature: value.signature,
+        }
+    }
+}
+
+impl From<LewesProtocolDetailsData> for proto::LewesProtocolDetailsData {
+    fn from(value: LewesProtocolDetailsData) -> Self {
+        Self {
+            enabled: value.enabled,
+            control_port: value.control_port as u32,
+            data_port: value.data_port as u32,
+            x25519: value.x25519,
+            kem_keys: value
+                .kem_keys
+                .into_iter()
+                .map(|(k, v)| (k, proto::KemKeyDigests { digests: v }))
+                .collect(),
+        }
+    }
+}
+
+impl TryFrom<proto::LewesProtocolDetails> for LewesProtocolDetails {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::LewesProtocolDetails) -> Result<Self, Self::Error> {
+        let content = value
+            .content
+            .ok_or_else(|| ConversionError::generic("missing LewesProtocolDetails.content"))?;
+        Ok(Self {
+            content: LewesProtocolDetailsData::from(content),
+            signature: value.signature,
+        })
+    }
+}
+
+impl From<proto::LewesProtocolDetailsData> for LewesProtocolDetailsData {
+    fn from(value: proto::LewesProtocolDetailsData) -> Self {
+        Self {
+            enabled: value.enabled,
+            control_port: value.control_port as u16,
+            data_port: value.data_port as u16,
+            x25519: value.x25519,
+            kem_keys: value
+                .kem_keys
+                .into_iter()
+                .map(|(k, v)| (k, v.digests))
+                .collect(),
+        }
+    }
+}
+
 impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
     type Error = ConversionError;
 
@@ -211,6 +296,10 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             .bridge_params
             .map(BridgeInformation::try_from)
             .transpose()?;
+        let lp_details = gateway
+            .lp_details
+            .map(LewesProtocolDetails::try_from)
+            .transpose()?;
         Ok(Self {
             name: gateway.name,
             description: gateway.description,
@@ -223,6 +312,7 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             exit_ipv6s,
             build_version,
             bridge_params,
+            lewes_protocol_details: lp_details,
         })
     }
 }
@@ -247,6 +337,9 @@ impl From<nym_vpn_lib_types::Gateway> for proto::GatewayResponse {
             exit_ipv6s,
             build_version: gateway.build_version,
             bridge_params: gateway.bridge_params.map(proto::BridgeInformation::from),
+            lp_details: gateway
+                .lewes_protocol_details
+                .map(proto::LewesProtocolDetails::from),
         }
     }
 }
