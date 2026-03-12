@@ -92,7 +92,7 @@ impl fmt::Debug for PeerConfig {
 }
 
 /// Holds new endpoint for the peer matching by public key.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PeerEndpointUpdate {
     pub public_key: x25519::PublicKey,
     pub endpoint: SocketAddr,
