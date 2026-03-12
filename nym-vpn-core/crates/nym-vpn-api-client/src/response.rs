@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fmt,
     net::{IpAddr, SocketAddr},
 };
@@ -392,6 +392,22 @@ pub struct NymDirectoryGateway {
     // about the node in a user-friendly way
     pub performance_v2: Option<DVpnGatewayPerformance>,
     pub build_information: Option<BuildInformation>,
+    pub lewes_protocol_details: Option<LewesProtocolDetailsV1>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct LewesProtocolDetailsV1 {
+    pub content: LewesProtocolDetailsDataV1,
+    pub signature: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct LewesProtocolDetailsDataV1 {
+    pub enabled: bool,
+    pub control_port: u16,
+    pub data_port: u16,
+    pub x25519: String,
+    pub kem_keys: HashMap<String, HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

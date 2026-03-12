@@ -352,6 +352,24 @@ message GatewayResponse {
   repeated string exit_ipv4s = 7;
   repeated string exit_ipv6s = 8;
   optional string build_version = 9;
+  optional LewesProtocolDetails lp_details = 13;
+}
+
+message KemKeyDigests {
+  map<string, string> digests = 1;
+}
+
+message LewesProtocolDetailsData {
+  bool enabled = 1;
+  uint32 control_port = 2;
+  uint32 data_port = 3;
+  string x25519 = 4;
+  map<string, KemKeyDigests> kem_keys = 5;
+}
+
+message LewesProtocolDetails {
+  LewesProtocolDetailsData content = 1;
+  string signature = 2;
 }
 
 message BridgeInformation {
