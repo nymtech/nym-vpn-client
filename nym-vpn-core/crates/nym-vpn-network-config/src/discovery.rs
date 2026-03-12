@@ -185,7 +185,9 @@ mod tests {
     use super::*;
     use crate::{
         SystemMessage,
-        account_management::{AccountManagementPaths, AccountManagementPrivyPaths},
+        account_management::{
+            AccountManagementAutologinPaths, AccountManagementPaths, AccountManagementPrivyPaths,
+        },
         feature_flags::FlagValue,
         fetcher::Fetcher,
         system_messages::Properties,
@@ -254,6 +256,11 @@ mod tests {
                         "mobile": "{locale}/auth/privy",
                         "desktop": "{locale}/auth/privy",
                         "web": "{locale}/auth/privy"
+                    },
+                    "autologin": {
+                        "mobile": "{locale}/account/login/autologin/mobile",
+                        "desktop": "{locale}/account/login/autologin/desktop",
+                        "web": "{locale}/account/login/autologin/web"
                     }
                 }
             },
@@ -309,6 +316,11 @@ mod tests {
                         mobile: "{locale}/auth/privy".to_owned(),
                         desktop: "{locale}/auth/privy".to_owned(),
                         web: "{locale}/auth/privy".to_owned(),
+                    },
+                    autologin: AccountManagementAutologinPaths {
+                        mobile: "{locale}/account/login/autologin/mobile".to_owned(),
+                        desktop: "{locale}/account/login/autologin/desktop".to_owned(),
+                        web: "{locale}/account/login/autologin/web".to_owned(),
                     },
                 },
             }),
