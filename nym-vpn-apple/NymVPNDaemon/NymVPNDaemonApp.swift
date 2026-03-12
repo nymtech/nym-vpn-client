@@ -191,14 +191,18 @@ private extension NymVPNDaemonApp {
         menuBarImageName = status == .connected ? "NymLogo" : "NymLogoDisabled"
     }
 
+    var menuBarNSImage: NSImage {
+        let image = NSImage(named: menuBarImageName) ?? NSImage()
+        image.size = NSSize(width: 18, height: 18)
+        image.isTemplate = true
+        return image
+    }
+
     func menuBarExtraView() -> some Scene {
         MenuBarExtra(isInserted: $isMenuBarVisible) {
             menuBarItemContent()
         } label: {
-            Image(menuBarImageName)
-                .renderingMode(.template)
-                .frame(width: 32)
-                .foregroundStyle(.primary)
+            Image(nsImage: menuBarNSImage)
         }
         .menuBarExtraStyle(.menu)
         .onChange(of: connectionManager.currentTunnelStatus) { _, status in
