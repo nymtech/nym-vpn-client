@@ -290,7 +290,7 @@ impl ConnectedTunnel {
 
         // Save entry peer so that we can re-resolve it and update wg config on network changes.
         #[cfg(target_os = "ios")]
-        let orig_entry_peer = wg_entry_config.peer.clone();
+        let entry_peer_update = wg_entry_config.peer.as_peer_endpoint_update();
 
         let mut two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
 
@@ -417,12 +417,11 @@ impl ConnectedTunnel {
                             // For instance when device connects to IPv4-only server from IPv6-only network,
                             // it needs to use an IPv4-mapped address, which can be received by re-resolving
                             // the original peer IP.
-                            match orig_entry_peer.resolved() {
+                            match entry_peer_update.resolved() {
                                 Ok(resolved_peer) => {
-                                    let peer_update = resolved_peer.into_peer_endpoint_update();
 
                                     // Update wireguard-go configuration with re-resolved peer endpoints.
-                                    if let Err(e) = entry_tunnel.update_peers(&[peer_update]) {
+                                    if let Err(e) = entry_tunnel.update_peers(&[resolved_peer]) {
                                        tracing::error!("Failed to update peers on network change: {}", e);
                                     }
                                 }

@@ -87,7 +87,7 @@ pub struct WgPeer {
 
 impl WgPeer {
     #[cfg(target_os = "ios")]
-    pub fn into_peer_endpoint_update(self) -> PeerEndpointUpdate {
+    pub fn as_peer_endpoint_update(&self) -> PeerEndpointUpdate {
         PeerEndpointUpdate {
             public_key: self.public_key,
             endpoint: self.endpoint,

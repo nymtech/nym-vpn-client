@@ -11,7 +11,7 @@ use nix::{
     sys::socket::{SockaddrIn, SockaddrIn6, SockaddrLike},
 };
 
-use crate::wg_config::WgPeer;
+use nym_wg_go::PeerEndpointUpdate;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -39,14 +39,14 @@ pub trait Dns64Resolution: Sized {
     fn resolved(&self) -> Result<Self>;
 }
 
-impl Dns64Resolution for WgPeer {
+impl Dns64Resolution for PeerEndpointUpdate {
     fn resolve_in_place(&mut self) -> Result<()> {
         self.endpoint = reresolve_endpoint(self.endpoint)?;
         Ok(())
     }
 
     fn resolved(&self) -> Result<Self> {
-        Ok(WgPeer {
+        Ok(PeerEndpointUpdate {
             endpoint: reresolve_endpoint(self.endpoint)?,
             public_key: self.public_key,
         })
