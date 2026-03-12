@@ -9,12 +9,14 @@ import {
   GatewayType,
   GatewaysByCountry,
   NetworkCompat,
+  TAccountMode,
+  TAccountState,
   TTunnelState,
   UiTheme,
   UpdateMetadata,
   VpndStatus,
 } from '../types';
-import { TunnelStateEvent } from '../constants';
+import { AccountStateEvent, TunnelStateEvent } from '../constants';
 
 // mocked data
 import wgGwJson from './mocked/wg-gw.json';
@@ -39,14 +41,16 @@ const daemon: VpndStatus = {
     gitCommit: 'ffffff',
   },
 };
-const tunnelState: TTunnelState = 'disconnected';
+let tunnelState: TTunnelState = 'disconnected';
 // const tunnelState: TTunnelState = { connected: wgTunnel };
 // const tunnelState: TTunnelState = { connecting: null };
 // const tunnelState: TTunnelState = { disconnecting: null };
 // const tunnelState: TTunnelState = { offline: { reconnect: false } };
 // const tunnelState: TTunnelState = { offline: { reconnect: true } };
 // const tunnelState: TTunnelState = { error: { key: 'internal', data: 'Oupsy something went wrong' } };
-const isLoggedIn = true;
+let isLoggedIn = true;
+let accountState: TAccountState = isLoggedIn ? 'ready' : 'logged-out';
+let accountMode: TAccountMode = 'decentralised';
 let autostart = true;
 // note: compat check is skipped if DEV_MODE=true
 const networkCompat: NetworkCompat = {
@@ -68,12 +72,6 @@ export function mockTauriIPC() {
     platform: 'linux',
     family: 'unix',
   };
-  window.__TAURI_EVENT_PLUGIN_INTERNALS__ = {
-    unregisterListener: () => {
-      /**/
-    },
-  };
-
   mockIPC((async (cmd, args) => {
     console.debug(`IPC call mocked "${cmd}"`);
     console.debug(args);
@@ -83,19 +81,32 @@ export function mockTauriIPC() {
     }
 
     if (cmd === 'connect') {
-      await emit(TunnelStateEvent, { state: { connecting: null } });
+      tunnelState = {
+        connecting: {
+          tunnelType: 'wg',
+          progress: 'connecting-tunnel',
+          tunnel: null,
+          retryAttempt: 0,
+          entryGwId: null,
+          exitGwId: null,
+        },
+      };
+      await emit(TunnelStateEvent, { state: tunnelState, error: null });
       return new Promise<null>((resolve) =>
         setTimeout(async () => {
-          await emit(TunnelStateEvent, { state: { connected: wgTunnel } });
+          tunnelState = { connected: wgTunnel as never };
+          await emit(TunnelStateEvent, { state: tunnelState, error: null });
           resolve(null);
         }, 2000),
       );
     }
     if (cmd === 'disconnect') {
-      await emit(TunnelStateEvent, { state: { disconnecting: null } });
+      tunnelState = { disconnecting: null };
+      await emit(TunnelStateEvent, { state: tunnelState, error: null });
       return new Promise<null>((resolve) =>
         setTimeout(async () => {
-          await emit(TunnelStateEvent, { state: 'disconnected' });
+          tunnelState = 'disconnected';
+          await emit(TunnelStateEvent, { state: tunnelState, error: null });
           resolve(null);
         }, 1),
       );
@@ -182,6 +193,14 @@ export function mockTauriIPC() {
       return new Promise<boolean>((resolve) => resolve(isLoggedIn));
     }
 
+    if (cmd === 'get_account_state') {
+      return new Promise<TAccountState>((resolve) => resolve(accountState));
+    }
+
+    if (cmd === 'get_account_mode') {
+      return new Promise<TAccountMode>((resolve) => resolve(accountMode));
+    }
+
     if (cmd === 'get_account_id') {
       return new Promise<string>((resolve) =>
         resolve('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'),
@@ -194,12 +213,28 @@ export function mockTauriIPC() {
       );
     }
 
-    // if (cmd === 'add_account') {
-    //   return new Promise<boolean>((_, reject) => reject(new Error('nope')));
-    // }
+    if (cmd === 'add_account') {
+      const mnemonic = (args as ArgsObj<string> | undefined)?.mnemonic?.trim();
+      if (!mnemonic) {
+        return new Promise<number | null>((_, reject) =>
+          reject({
+            key: 'empty',
+            message: 'Mnemonic is required',
+            data: { reason: 'missing mnemonic' },
+          }),
+        );
+      }
+      isLoggedIn = true;
+      accountState = 'ready';
+      accountMode = 'decentralised';
+      await emit(AccountStateEvent, accountState);
+      return new Promise<number | null>((resolve) => resolve(null));
+    }
 
     if (cmd === 'forget_account') {
-      // return new Promise<void>((_, reject) => reject(new Error('oupsy')));
+      isLoggedIn = false;
+      accountState = 'logged-out';
+      await emit(AccountStateEvent, accountState);
       return new Promise<void>((resolve) => resolve());
     }
 
@@ -249,5 +284,5 @@ export function mockTauriIPC() {
     if (cmd === 'plugin:clipboard-manager|write_text') {
       console.log(`copied to clipboard: ${(args as ArgsObj<string>).text}`);
     }
-  }) as MockIpcFn);
+  }) as MockIpcFn, { shouldMockEvents: true });
 }
