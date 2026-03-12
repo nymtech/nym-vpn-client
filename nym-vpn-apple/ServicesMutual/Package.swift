@@ -14,7 +14,6 @@ let package = Package(
         .library(name: "AppVersionProvider", targets: ["AppVersionProvider"]),
         .library(name: "ConnectionTypes", targets: ["ConnectionTypes"]),
         .library(name: "Constants", targets: ["Constants"]),
-        .library(name: "CountriesManagerTypes", targets: ["CountriesManagerTypes"]),
         .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "ErrorReason", targets: ["ErrorReason"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
@@ -40,7 +39,6 @@ let package = Package(
             dependencies: [
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "NymVPNRpc", package: "NymVPNRpc", condition: .when(platforms: [.macOS])),
-                "CountriesManagerTypes",
                 "Theme"
             ],
             path: "Sources/ConnectionTypes"
@@ -51,14 +49,6 @@ let package = Package(
                 "Theme"
             ],
             path: "Sources/Constants"
-        ),
-        .target(
-            name: "CountriesManagerTypes",
-            dependencies: [
-                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
-                .product(name: "NymVPNRpc", package: "NymVPNRpc", condition: .when(platforms: [.macOS]))
-            ],
-            path: "Sources/CountriesManagerTypes"
         ),
         .target(
             name: "DarwinNotificationCenter",

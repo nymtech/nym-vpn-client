@@ -3,7 +3,7 @@ import Foundation
 import NetworkExtension
 import AppSettings
 import ConnectionTypes
-import CountriesManagerTypes
+import ConnectionTypes
 import CredentialsManager
 import TunnelMixnet
 import Tunnels

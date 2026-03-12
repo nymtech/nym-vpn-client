@@ -1,5 +1,4 @@
 import Foundation
-import CountriesManagerTypes
 import Theme
 
 public enum ExitRouter: Codable, Equatable {

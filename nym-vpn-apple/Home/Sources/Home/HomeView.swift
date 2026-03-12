@@ -6,10 +6,10 @@ import TunnelStatus
 import UIComponents
 
 public struct HomeView: View {
-    @StateObject var viewModel: HomeViewModel
+    @State var viewModel: HomeViewModel
 
     public init(viewModel: HomeViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        _viewModel = State(wrappedValue: viewModel)
     }
 
     public var body: some View {

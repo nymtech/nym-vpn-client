@@ -1,7 +1,7 @@
 import SwiftUI
 import ConnectionManager
 import ConnectionTypes
-import CountriesManagerTypes
+import ConnectionTypes
 import GatewayManager
 import ImpactGenerator
 import Theme

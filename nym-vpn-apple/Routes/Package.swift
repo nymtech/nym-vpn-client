@@ -23,7 +23,7 @@ let package = Package(
         .target(
             name: "Routes",
             dependencies: [
-                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "UIComponents", package: "UIComponents"),
             ],
             path: "Sources"

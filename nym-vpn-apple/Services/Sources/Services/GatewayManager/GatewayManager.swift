@@ -3,7 +3,7 @@ import Foundation
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
-import CountriesManagerTypes
+import ConnectionTypes
 import Logging
 #if os(iOS)
 import NymVPNLib

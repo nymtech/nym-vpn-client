@@ -52,7 +52,7 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var impactGenerator = ImpactGenerator.shared
     @State private var deeplinkManager = DeeplinkManager(credentialsManager: CredentialsManager.shared)
 
-    @StateObject private var homeViewModel = HomeViewModel(
+    @State private var homeViewModel = HomeViewModel(
         appSettings: .shared,
         connectionManager: .shared,
         configurationManager: .shared,

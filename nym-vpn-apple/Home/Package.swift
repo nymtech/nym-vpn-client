@@ -32,7 +32,7 @@ let package = Package(
             dependencies: [
                 .product(name: "UIComponents", package: "UIComponents"),
                 .product(name: "Settings", package: "Settings"),
-                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConfigurationManager", package: "Services"),
                 .product(name: "ConnectionManager", package: "Services"),

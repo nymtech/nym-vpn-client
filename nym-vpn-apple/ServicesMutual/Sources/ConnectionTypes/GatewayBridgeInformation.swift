@@ -1,3 +1,9 @@
+#if os(iOS)
+import NymVPNLib
+#elseif os(macOS)
+import NymVPNRpc
+#endif
+
 public struct GatewayBridgeInformation: Codable, Hashable {
     public var version: String
     public var transports: [GatewayBridgeParameters]
@@ -8,21 +14,9 @@ public struct GatewayBridgeInformation: Codable, Hashable {
     }
 }
 
-#if os(iOS)
-import NymVPNLib
-
 public extension GatewayBridgeInformation {
     init?(with info: BridgeInformation?) {
         guard let info else { return nil }
         self.init(version: info.version, transports: info.transports.map { GatewayBridgeParameters(with: $0) })
     }
 }
-#elseif os(macOS)
-import NymVPNRpc
-public extension GatewayBridgeInformation {
-    init?(with info: BridgeInformation?) {
-        guard let info else { return nil }
-        self.init(version: info.version, transports: info.transports.map { GatewayBridgeParameters(with: $0) })
-    }
-}
-#endif
