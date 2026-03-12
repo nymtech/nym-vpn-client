@@ -1,27 +1,74 @@
 import { test, expect } from '@playwright/test';
+import MainPage from '../pages/MainPage';
+import SettingsPage from '../pages/SettingsPage';
 
 test.describe('Settings', () => {
-  test('app renders and navigates to settings', async ({ page }) => {
-    await page.goto('/');
-    const root = page.locator('#root');
-    await expect(root).not.toBeEmpty({ timeout: 15_000 });
+  let mainPage: MainPage;
+  let settingsPage: SettingsPage;
 
-    const settingsBtn = page.getByRole('button', { name: /settings/i }).or(
-      page.locator('[data-testid="settings"]'),
-    );
-    if (await settingsBtn.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await settingsBtn.click();
-      await page.waitForTimeout(2000);
-    }
+  test.beforeEach(async ({ page }) => {
+    mainPage = new MainPage(page);
+    settingsPage = new SettingsPage(page);
+    await mainPage.goto();
+    await mainPage.waitForPageLoad();
+    await mainPage.clickSettingsButton();
   });
 
-  test('main screen has interactive elements', async ({ page }) => {
-    await page.goto('/');
-    const root = page.locator('#root');
-    await expect(root).not.toBeEmpty({ timeout: 15_000 });
+  test('renders settings screen correctly', async () => {
+    await expect(settingsPage.SELECTORS.title).toBeVisible();
+  });
 
-    const buttons = page.getByRole('button');
-    const count = await buttons.count();
-    expect(count).toBeGreaterThan(0);
+  test('closes settings screen correctly', async () => {
+    await expect(settingsPage.SELECTORS.title).toBeVisible();
+    await settingsPage.clickBackButton();
+    await mainPage.waitForPageLoad();
+    await expect(mainPage.SELECTORS.connectionStatusText).toBeVisible();
+    await expect(settingsPage.SELECTORS.title).not.toBeVisible();
+  });
+
+  test('renders all settings correctly', async () => {
+    await expect(settingsPage.SELECTORS.accountButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.supportFeedbackButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.killswitchButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.blockAdsButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.supportIPv6Button).toBeVisible();
+    await expect(settingsPage.SELECTORS.bypassLANButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.customizeDNSButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.antiCensorshipButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.appWalletProxyButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.launchOnStartupButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.appearanceButton).toBeVisible();
+    await expect(
+      settingsPage.SELECTORS.desktopNotificationsButton,
+    ).toBeVisible();
+    await expect(settingsPage.SELECTORS.logsButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.dataPrivacyButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.legalButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.quitButton).toBeVisible();
+    await expect(settingsPage.SELECTORS.clientVersionLabel).toBeVisible();
+    await expect(settingsPage.SELECTORS.clientVersionValue).toBeVisible();
+    await expect(settingsPage.SELECTORS.daemonVersionLabel).toBeVisible();
+    await expect(settingsPage.SELECTORS.daemonVersionValue).toBeVisible();
+    await expect(settingsPage.SELECTORS.networkNameLabel).toBeVisible();
+    await expect(settingsPage.SELECTORS.networkNameValue).toBeVisible();
+    await expect(settingsPage.SELECTORS.accountIdLabel).toBeVisible();
+    await expect(settingsPage.SELECTORS.accountIdValue).toBeVisible();
+    await expect(settingsPage.SELECTORS.deviceIdLabel).toBeVisible();
+    await expect(settingsPage.SELECTORS.deviceIdValue).toBeVisible();
+  });
+
+  test('renders anti censorship settings correctly', async () => {
+    await settingsPage.clickAntiCensorshipButton();
+
+    await expect(settingsPage.SELECTORS.enhancedConnectionText).toBeVisible();
+    await expect(settingsPage.SELECTORS.howQUICImprovesLink).toBeVisible();
+    await expect(settingsPage.SELECTORS.minimalObfuscationText).toBeVisible();
+    await expect(
+      settingsPage.SELECTORS.howAmneziaWGPreventsDPILink,
+    ).toBeVisible();
+    await expect(settingsPage.SELECTORS.stealAPIConnectText).toBeVisible();
+    await expect(
+      settingsPage.SELECTORS.howStealthAPIConnectWorksLink,
+    ).toBeVisible();
   });
 });
