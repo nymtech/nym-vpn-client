@@ -20,6 +20,7 @@ activityCompose = "1.12.4"
 composeBom = "2026.02.01"
 datastorePreferences = "1.2.0"
 relinker = "1.4.5"
+rustlsPlatformVerifier = "0.1.1"
 securityCrypto = "1.1.0"
 semver4j = "6.0.0"
 timber = "5.0.1"
@@ -76,6 +77,7 @@ lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "
 relinker = { module = "com.getkeepsafe.relinker:relinker", version.ref = "relinker" }
 
 #barcode
+rustls-platform-verifier = { module = "rustls:rustls-platform-verifier", version.ref = "rustlsPlatformVerifier" }
 semver4j = { module = "org.semver4j:semver4j", version.ref = "semver4j" }
 zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 

@@ -98,6 +98,8 @@ dependencies {
 		}
 	}
 
+	implementation(libs.rustls.platform.verifier)
+
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.junit)
 	androidTestImplementation(libs.androidx.espresso.core)
