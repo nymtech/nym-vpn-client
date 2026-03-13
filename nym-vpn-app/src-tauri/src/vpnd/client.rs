@@ -892,7 +892,6 @@ impl VpndClient {
         &self,
         locale: String,
         kind: lib::DeeplinkKind,
-        redirect_path: Option<String>,
     ) -> Result<Option<String>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
@@ -902,7 +901,6 @@ impl VpndClient {
                 locale,
                 kind,
                 name: "default".to_string(),
-                redirect_path,
             })
             .or_else(async |e| self.handle_rpc_error("get_deeplink", e).await)
             .await?;

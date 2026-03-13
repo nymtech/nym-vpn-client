@@ -62,9 +62,6 @@ pub enum Command {
         /// Deeplink name
         #[arg(long)]
         name: String,
-        /// Redirect path appended to the deeplink URL
-        #[arg(long)]
-        redirect_path: Option<String>,
     },
     /// Store deeplink account
     StoreDeeplink {
@@ -197,17 +194,12 @@ impl Command {
                 println!("{response:#?}");
                 Ok(())
             }
-            Command::GetDeeplink {
-                kind,
-                name,
-                redirect_path,
-            } => {
+            Command::GetDeeplink { kind, name } => {
                 let params = GetDeeplinkParams {
                     client: DeeplinkClient::Desktop,
                     locale: "en".to_string(),
                     kind,
                     name,
-                    redirect_path,
                 };
                 let url = rpc_client.get_deeplink(params).await?;
                 println!("Deeplink: {url}");

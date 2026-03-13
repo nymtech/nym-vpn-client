@@ -56,7 +56,6 @@ impl NymDeeplinks {
             kind: params.kind,
             name: params.name,
             base_url,
-            redirect_path: params.redirect_path,
         };
 
         // Create a new Deeplink for this request

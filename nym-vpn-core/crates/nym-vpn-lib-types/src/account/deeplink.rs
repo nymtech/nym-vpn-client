@@ -38,7 +38,6 @@ pub struct GetDeeplinkParams {
     pub locale: String,
     pub kind: DeeplinkKind,
     pub name: String,
-    pub redirect_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
