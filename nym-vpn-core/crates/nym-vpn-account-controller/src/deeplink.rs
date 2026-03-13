@@ -69,9 +69,8 @@ impl Deeplink {
         let encrypted_mnemonic = pin_code.encrypt(&mnemonic)?;
 
         let mut url = base_url.clone();
-        url.path_segments_mut()
-            .expect("Cannot create autologin deeplink URL")
-            .push(&encrypted_mnemonic);
+        url.query_pairs_mut()
+            .append_pair("encmn", &encrypted_mnemonic);
 
         Ok(AutologinResponse {
             url: url.to_string(),
