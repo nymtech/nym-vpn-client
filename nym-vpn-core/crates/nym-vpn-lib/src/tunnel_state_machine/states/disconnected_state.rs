@@ -34,10 +34,6 @@ impl DisconnectedState {
         // Drop tombstone to close tunnel devices.
         drop(tombstone);
 
-        // Reset resolver overrides and allow all networking since firewall is no longer active
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        shared_state.reset_resolver_overrides().await;
-
         // Clear addresses from the pre-resolve table in the (shared) DNS resolver.
         HickoryDnsResolver::shared().clear_preresolve();
 

@@ -8,7 +8,7 @@ use nym_client_core::{NymTopology, client::topology_control::nym_api_provider::C
 use nym_common::trace_err_chain;
 use nym_http_api_client::{Url, UserAgent};
 use nym_sdk::{NymApiTopologyProvider, TopologyProvider};
-use nym_vpn_api_client::{ResolverOverrides, error::VpnApiClientError, fronted_http_client};
+use nym_vpn_api_client::{error::VpnApiClientError, fronted_http_client};
 use tokio::{
     sync::{
         mpsc::{self, UnboundedReceiver, UnboundedSender},
@@ -40,19 +40,13 @@ impl VpnTopologyServiceHandle {
         }
     }
 
-    pub async fn update_config(
-        &self,
-        min_mixnode_performance: u8,
-        min_gateway_performance: u8,
-        resolver_overrides: Option<ResolverOverrides>,
-    ) {
+    pub async fn update_config(&self, min_mixnode_performance: u8, min_gateway_performance: u8) {
         let (completion_tx, completion_rx) = oneshot::channel();
         if self
             .tx
             .send(Command::UpdateConfig {
                 min_mixnode_performance,
                 min_gateway_performance,
-                resolver_overrides,
                 completion_tx,
             })
             .is_ok()
@@ -89,7 +83,6 @@ pub struct VpnTopologyService {
     latest_topology: Option<CachedTopology>,
     nym_api_urls: Vec<Url>,
     user_agent: UserAgent,
-    resolver_overrides: Option<ResolverOverrides>,
     config: Config,
     shutdown_token: CancellationToken,
 }
@@ -98,7 +91,6 @@ impl VpnTopologyService {
     pub fn spawn(
         nym_api_urls: Vec<Url>,
         user_agent: UserAgent,
-        resolver_overrides: Option<ResolverOverrides>,
         shutdown_token: CancellationToken,
     ) -> (VpnTopologyServiceHandle, JoinHandle<()>) {
         let (tx, rx) = mpsc::unbounded_channel();
@@ -108,7 +100,6 @@ impl VpnTopologyService {
             nym_api_urls,
             user_agent,
             latest_topology: None,
-            resolver_overrides,
             config,
             shutdown_token,
         };
@@ -129,12 +120,10 @@ impl VpnTopologyService {
                     Command::UpdateConfig {
                         min_mixnode_performance,
                         min_gateway_performance,
-                        resolver_overrides,
                         completion_tx,
                     } => {
                         self.config.min_mixnode_performance = min_mixnode_performance;
                         self.config.min_gateway_performance = min_gateway_performance;
-                        self.resolver_overrides = resolver_overrides;
                         completion_tx.send(()).ok();
                     }
                     Command::ClearCache { completion_tx } => {
@@ -201,7 +190,6 @@ impl VpnTopologyService {
             self.nym_api_urls.clone(),
             Some(self.user_agent.clone()),
             None,
-            self.resolver_overrides.as_ref(),
         )
         .map_err(VpnTopologyServiceError::CreateHttpClient)?;
 
@@ -240,7 +228,6 @@ enum Command {
     UpdateConfig {
         min_mixnode_performance: u8,
         min_gateway_performance: u8,
-        resolver_overrides: Option<ResolverOverrides>,
         completion_tx: Sender<()>,
     },
     ClearCache {

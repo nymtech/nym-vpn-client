@@ -12,8 +12,7 @@ pub async fn setup_environment(
 
     tracing::info!("Setting up environment for {network_name}");
 
-    let mut network_cache =
-        NetworkCache::new(cache_dir, network_name, Some(user_agent), None).await?;
+    let mut network_cache = NetworkCache::new(cache_dir, network_name, Some(user_agent)).await?;
 
     if let Ok(network) = network_cache.network() {
         network.export_to_env();

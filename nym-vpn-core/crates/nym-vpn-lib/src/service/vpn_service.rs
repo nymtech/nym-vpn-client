@@ -431,7 +431,6 @@ impl NymVpnService {
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             network_details,
             Some(parameters.user_agent.clone()),
-            None,
         )
         .await
         .map_err(Error::CreateApiClient)?;
@@ -536,7 +535,6 @@ impl NymVpnService {
         let (topology_service, topology_service_join_handle) = VpnTopologyService::spawn(
             urls.clone(),
             parameters.user_agent.clone(),
-            None,
             services_shutdown_token.child_token(),
         );
 

@@ -24,7 +24,7 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_gateway_directory::{
-    BlacklistedGateways, GatewayCacheHandle, GatewayClient, GatewayMinPerformance, ResolvedConfig,
+    BlacklistedGateways, GatewayCacheHandle, GatewayClient, GatewayMinPerformance,
 };
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -217,7 +217,6 @@ impl TunnelMonitorHandle {
 #[derive(Debug, Clone)]
 pub struct TunnelParameters {
     pub nym_config: NymConfig,
-    pub resolved_gateway_config: Option<ResolvedConfig>,
     pub tunnel_settings: TunnelSettings,
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
@@ -343,25 +342,9 @@ impl TunnelMonitor {
         }
 
         let user_agent = self.tunnel_parameters.user_agent.clone();
-        let resolver_overrides = self
-            .tunnel_parameters
-            .resolved_gateway_config
-            .as_ref()
-            .map(|v| &v.nym_api_resolver_overrides);
-
-        let vpn_resolver_overrides = self
-            .tunnel_parameters
-            .resolved_gateway_config
-            .as_ref()
-            .map(|v| &v.nym_vpn_api_resolver_overrides);
-
-        let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
-            gateway_config.clone(),
-            user_agent.clone(),
-            resolver_overrides,
-            vpn_resolver_overrides,
-        )
-        .map_err(Error::GatewayDirectoryClient)?;
+        let gateway_directory_client =
+            GatewayClient::new(gateway_config.clone(), user_agent.clone())
+                .map_err(Error::GatewayDirectoryClient)?;
 
         self.gateway_cache_handle
             .replace_gateway_client(gateway_directory_client)
@@ -443,10 +426,6 @@ impl TunnelMonitor {
                 mixnet_client_config
                     .min_gateway_performance
                     .unwrap_or(DEFAULT_MIN_GATEWAY_PERFORMANCE),
-                self.tunnel_parameters
-                    .resolved_gateway_config
-                    .as_ref()
-                    .map(|v| v.nym_api_resolver_overrides.clone()),
             )
             .await;
 

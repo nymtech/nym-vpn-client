@@ -13,7 +13,7 @@ use time::OffsetDateTime;
 use tokio::sync::RwLock;
 
 use crate::{
-    ResolverOverrides, api_urls_to_urls,
+    api_urls_to_urls,
     error::{Result, VpnApiClientError},
     fronted_http_client,
     request::{
@@ -45,30 +45,18 @@ pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(30);
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: Client,
-    urls: Vec<Url>,
-    user_agent: Option<UserAgent>,
     skew_manager: Arc<RwLock<SkewManager>>,
 }
 
 impl VpnApiClient {
-    pub fn new(
-        urls: Vec<Url>,
-        user_agent: Option<UserAgent>,
-        resolver_overrides: Option<&ResolverOverrides>,
-    ) -> Result<Self> {
-        let inner = fronted_http_client(
-            urls.clone(),
-            user_agent.clone(),
-            Some(NYM_VPN_API_TIMEOUT),
-            resolver_overrides,
-        )?;
+    pub fn new(urls: Vec<Url>, user_agent: Option<UserAgent>) -> Result<Self> {
+        let inner =
+            fronted_http_client(urls.clone(), user_agent.clone(), Some(NYM_VPN_API_TIMEOUT))?;
 
         let time_provider = VpnApiRemoteTimeProvider::new(inner.clone());
 
         Ok(Self {
             inner,
-            urls,
-            user_agent,
             skew_manager: Arc::new(RwLock::new(SkewManager::new(time_provider))),
         })
     }
@@ -77,7 +65,6 @@ impl VpnApiClient {
     pub async fn from_network(
         network: &nym_network_defaults::NymNetworkDetails,
         user_agent: Option<UserAgent>,
-        resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
         #[allow(deprecated)]
         let api_urls = network.nym_vpn_api_urls.as_ref().ok_or_else(|| {
@@ -89,35 +76,15 @@ impl VpnApiClient {
 
         let urls = api_urls_to_urls(api_urls)?;
 
-        let inner = fronted_http_client(
-            urls.clone(),
-            user_agent.clone(),
-            Some(NYM_VPN_API_TIMEOUT),
-            resolver_overrides,
-        )?;
+        let inner =
+            fronted_http_client(urls.clone(), user_agent.clone(), Some(NYM_VPN_API_TIMEOUT))?;
 
         let time_provider = VpnApiRemoteTimeProvider::new(inner.clone());
 
         Ok(Self {
             inner,
-            urls,
-            user_agent,
             skew_manager: Arc::new(RwLock::new(SkewManager::new(time_provider))),
         })
-    }
-
-    pub fn override_resolver(
-        &mut self,
-        resolver_overrides: Option<&ResolverOverrides>,
-    ) -> Result<()> {
-        self.inner = fronted_http_client(
-            self.urls.clone(),
-            self.user_agent.clone(),
-            Some(NYM_VPN_API_TIMEOUT),
-            resolver_overrides,
-        )?;
-
-        Ok(())
     }
 
     pub fn api_client(&self) -> &impl ApiClient {

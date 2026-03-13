@@ -42,7 +42,7 @@ pub use system_messages::{SystemMessage, SystemMessages};
 use nym_common::trace_err_chain;
 use nym_http_api_client::HttpClientError;
 use nym_sdk::{UserAgent, mixnet::Recipient};
-use nym_vpn_api_client::{ResolverOverrides, str_to_socket_addr};
+use nym_vpn_api_client::str_to_socket_addr;
 
 use crate::{
     discovery::DiscoveryFromNymWellknownDiscoveryError,
@@ -219,12 +219,6 @@ impl Network {
 
         unique.into_iter().collect()
     }
-
-    pub async fn resolver_overrides(&self) -> Result<ResolverOverrides> {
-        ResolverOverrides::from_api_urls(&self.nym_vpn_network.nym_vpn_api_urls)
-            .await
-            .map_err(Error::CreateResolverOverrides)
-    }
 }
 
 /// Supervisor type over persistent stores concerning network configuration, such as registered network environments, discovery, and network details.
@@ -242,7 +236,6 @@ impl NetworkCache {
         cache_dir: PathBuf,
         network_name: &str,
         user_agent: Option<UserAgent>,
-        resolver_overrides: Option<&ResolverOverrides>,
     ) -> Result<Self> {
         Self::clean_up_change_introduced_in_pr4226(&cache_dir).await;
 
@@ -261,11 +254,7 @@ impl NetworkCache {
                     }
                 })?;
 
-        let fetcher = Fetcher::new(
-            persistent_discovery.value().clone(),
-            user_agent,
-            resolver_overrides,
-        )?;
+        let fetcher = Fetcher::new(persistent_discovery.value().clone(), user_agent)?;
 
         Ok(Self {
             cache_dir,
@@ -274,13 +263,6 @@ impl NetworkCache {
             persistent_network_details,
             fetcher,
         })
-    }
-
-    pub fn set_resolver_overrides(
-        &mut self,
-        new_overrides: Option<ResolverOverrides>,
-    ) -> Result<bool> {
-        self.fetcher.set_resolver_overrides(new_overrides)
     }
 
     pub async fn fetch_if_stale(&mut self) -> Result<()> {
@@ -405,12 +387,6 @@ pub enum Error {
 
     #[error("network name mismatch between requested and fetched discovery")]
     NetworkNameMismatch { expected: String, actual: String },
-
-    #[error("failed to create resolver overrides")]
-    CreateResolverOverrides(#[source] nym_vpn_api_client::error::VpnApiClientError),
-
-    #[error("failed to set resolver overrides")]
-    SetResolverOverrides(#[source] nym_vpn_api_client::error::VpnApiClientError),
 
     #[error("failed to create vpn api client")]
     CreateVpnApiClient(#[source] nym_vpn_api_client::error::VpnApiClientError),
@@ -561,10 +537,9 @@ mod tests {
 
         let _ = tokio::fs::File::create(cache_dir.path().join("test.txt")).await;
 
-        let _network_cache =
-            NetworkCache::new(cache_dir.path().to_path_buf(), "mainnet", None, None)
-                .await
-                .unwrap();
+        let _network_cache = NetworkCache::new(cache_dir.path().to_path_buf(), "mainnet", None)
+            .await
+            .unwrap();
 
         // ensure network cache removed old directories
         for env in envs {
