@@ -30,6 +30,9 @@ pub enum GatewayDirectoryError {
     #[error("failed to lookup router address")]
     LookupRouterAddress(#[source] nym_gateway_directory::Error),
 
+    #[error("gateway information are malformed")]
+    MalformedGateway(#[source] nym_gateway_directory::Error),
+
     #[error("unable to use same entry and exit gateway: {identity}")]
     SameEntryAndExitGateway { identity: String },
 
