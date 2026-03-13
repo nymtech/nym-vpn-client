@@ -168,6 +168,21 @@ impl AppState {
             .update_tray_icon(TunnelState::Offline { reconnect: false })
             .await;
     }
+
+    #[instrument(skip_all)]
+    pub async fn vpnd_auth_denied(app: &AppHandle) {
+        let app_state = app.state::<SharedAppState>();
+        let mut state = app_state.lock().await;
+        if state.vpnd_status != VpndStatus::AuthDenied {
+            info!("vpnd AUTH DENIED");
+            state.vpnd_status = VpndStatus::AuthDenied;
+            app.emit_vpnd_status(state.vpnd_status.clone());
+        }
+        let tray_manager = app.state::<TrayManager>();
+        tray_manager
+            .update_tray_icon(TunnelState::Offline { reconnect: false })
+            .await;
+    }
 }
 
 impl NetworkCompat {

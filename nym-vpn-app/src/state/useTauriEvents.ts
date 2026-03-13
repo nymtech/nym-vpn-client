@@ -78,6 +78,7 @@ export function useTauriEvents(
 
   const registerTunnelStateListener = useCallback(() => {
     return listen<TunnelStatePayload>(TunnelStateEvent, (event) => {
+      console.log('tunnel state update', event);
       updateTunnel(event.payload.state, dispatch);
       if (event.payload.error) {
         console.log('tunnel error', event.payload.error);
@@ -121,18 +122,9 @@ export function useTauriEvents(
 
   const registerVpnConfigListener = useCallback(() => {
     return listen<VpndConfig>(VpnConfigEvent, ({ payload }) => {
-      console.log('tunnel config update');
       dispatch({
         type: 'update-tunnel-config',
         config: payload,
-      });
-      dispatch({
-        type: 'set-custom-dns-enabled',
-        enabled: payload.enableCustomDns,
-      });
-      dispatch({
-        type: 'set-custom-dns',
-        dns: payload.customDns ?? [],
       });
     });
   }, [dispatch]);

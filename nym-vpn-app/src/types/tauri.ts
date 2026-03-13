@@ -94,6 +94,7 @@ export type ErrorKey =
   | 'internal'
   | 'vpnd-client'
   | 'not-connected-to-daemon'
+  | 'auth-denied'
   | 'entry-gw-down'
   | 'exit-gw-down-ipv4'
   | 'exit-gw-down-ipv6'
@@ -514,7 +515,8 @@ export type VpndStatus =
         requirement: string;
       };
     }
-  | 'down';
+  | 'down'
+  | 'authDenied';
 
 export type WgNode = {
   endpoint: string;

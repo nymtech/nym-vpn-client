@@ -20,8 +20,15 @@ export type TrayProviderProps = {
 export function TrayProvider({ children }: TrayProviderProps) {
   const { t } = useTranslation('tray');
 
-  const { vpnMode, state, entryNode, exitNode, tunnel, connectingState } =
-    useMainState();
+  const {
+    vpnMode,
+    state,
+    entryNode,
+    exitNode,
+    tunnel,
+    connectingState,
+    daemonStatus,
+  } = useMainState();
   const { lookupGw } = useGateways();
   const { getCountryName } = useLang();
 
@@ -42,25 +49,30 @@ export function TrayProvider({ children }: TrayProviderProps) {
   // Connection State
   useEffect(() => {
     let stateValue = '';
-    switch (state) {
-      case 'connected':
-        stateValue = `${t('state.state')}: ${t('state.connected')}`;
-        break;
-      case 'disconnected':
-        stateValue = `${t('state.state')}: ${t('state.disconnected')}`;
-        break;
-      case 'connecting':
-        stateValue = `${t('state.state')}: ${t('state.connecting')}`;
-        break;
-      case 'disconnecting':
-        stateValue = `${t('state.state')}: ${t('state.disconnecting')}`;
-        break;
-      case 'error':
-        stateValue = `${t('state.state')}: ${t('state.error')}`;
-        break;
+
+    if (daemonStatus === 'auth-denied') {
+      stateValue = `${t('state.state')}: ${t('state.auth-denied')}`;
+    } else {
+      switch (state) {
+        case 'connected':
+          stateValue = `${t('state.state')}: ${t('state.connected')}`;
+          break;
+        case 'disconnected':
+          stateValue = `${t('state.state')}: ${t('state.disconnected')}`;
+          break;
+        case 'connecting':
+          stateValue = `${t('state.state')}: ${t('state.connecting')}`;
+          break;
+        case 'disconnecting':
+          stateValue = `${t('state.state')}: ${t('state.disconnecting')}`;
+          break;
+        case 'error':
+          stateValue = `${t('state.state')}: ${t('state.error')}`;
+          break;
+      }
     }
     invoke<void>('update_tray_state', { state: stateValue });
-  }, [state, t]);
+  }, [state, t, daemonStatus]);
 
   const entryGateway = useMemo(() => {
     if (entryNode === 'random') {

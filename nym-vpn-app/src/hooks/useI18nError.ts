@@ -33,6 +33,8 @@ function useI18nError() {
           return t('vpnd-client');
         case 'not-connected-to-daemon':
           return t('daemon.not-connected');
+        case 'auth-denied':
+          return t('daemon.auth-denied');
         case 'account-invalid-mnemonic':
         case 'account-invalid-secret':
           return t('account.invalid-recovery-phrase');

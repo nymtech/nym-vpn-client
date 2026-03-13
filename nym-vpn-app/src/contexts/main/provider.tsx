@@ -9,7 +9,7 @@ import { CCache } from '../../cache';
 import { MainDispatchContext, MainStateContext } from './context';
 import { initialState, reducer } from './reducer';
 
-let initialized = false;
+let batchesInitialized = false;
 let systemMessageInit = false;
 
 type Props = {
@@ -41,10 +41,6 @@ function MainStateProvider({ children, init }: Props) {
 
   // initialize app state
   useEffect(() => {
-    if (initialized) {
-      return;
-    }
-    initialized = true;
     daemonStatusUpdate(init.vpnd, dispatch, push);
     networkEnvChanged(init.vpnd).then(async (changed) => {
       if (changed) {
@@ -53,25 +49,48 @@ function MainStateProvider({ children, init }: Props) {
       }
     });
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (state.daemonStatus === 'down' || state.daemonStatus === 'auth-denied') {
+      console.log(
+        'daemonStatus is down or auth-denied, skipping initialization',
+      );
+      batchesInitialized = false;
+      return;
+    }
+    if (batchesInitialized) {
+      console.log('batches already initialized, skipping initialization');
+      return;
+    }
+    batchesInitialized = true;
+
     // this first batch is needed to ensure the app is fully initialized and ready
-    initFirstBatch(dispatch, init).then(() => {
+    initFirstBatch(dispatch).then(() => {
       console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
     });
 
     // this second batch is not needed for the app to be fully
     // functional, and continue loading in the background
-    initSecondBatch(dispatch, init).then(() => {
+    initSecondBatch(dispatch).then(() => {
       console.log('init of 2nd batch done');
     });
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [state.daemonStatus]);
 
   useEffect(() => {
+    if (state.daemonStatus === 'down' || state.daemonStatus === 'auth-denied') {
+      systemMessageInit = false;
+      return;
+    }
+
     if (
       systemMessageInit ||
       init.vpnd === 'down' ||
-      state.daemonStatus === 'down'
+      init.vpnd === 'authDenied'
     ) {
       return;
     }

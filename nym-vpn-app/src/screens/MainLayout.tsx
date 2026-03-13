@@ -7,6 +7,7 @@ import { EventNotification } from '../layers';
 import { routes } from '../router';
 import { DaemonDot, Notifications, TopBar } from '../ui';
 import InitialNavigation from './InitialNavigation';
+import { SystemAuthentication } from './SystemAuthentication';
 
 type MainLayoutProps = {
   noTopBar?: boolean;
@@ -46,7 +47,10 @@ function MainLayout({
         'dark:bg-ash dark:text-white',
       ])}
     >
+      {/* Responsible for navigating to onboarding for new users on app startup */}
       <InitialNavigation />
+      {/* Responsible for displaying the system authentication modal when the daemon is not authenticated */}
+      <SystemAuthentication />
       {!noNotifications && <Notifications />}
       {!noTopBar && <TopBar />}
       {!noDaemonDot && <DaemonDot status={daemonStatus} />}

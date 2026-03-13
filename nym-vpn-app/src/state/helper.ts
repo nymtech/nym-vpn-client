@@ -41,6 +41,7 @@ export function daemonStatusUpdate(
   dispatch: StateDispatch,
   push: (notification: Notification) => void,
 ) {
+  console.log('daemonStatusUpdate', status);
   dispatch({
     type: 'set-daemon-status',
     status: vpndStatusToState(status),
@@ -77,7 +78,7 @@ export function daemonStatusUpdate(
 }
 
 export async function networkEnvChanged(status: VpndStatus) {
-  if (status === 'down') {
+  if (status === 'down' || status === 'authDenied') {
     return false;
   }
   const prevEnv = await kvGet<NetworkEnv>('last-network-env');
@@ -106,6 +107,9 @@ function vpndStatusToState(status: VpndStatus): DaemonStatus {
   }
   if (isVpndNonCompat(status)) {
     return 'non-compat';
+  }
+  if (status === 'authDenied') {
+    return 'auth-denied';
   }
   return 'down';
 }

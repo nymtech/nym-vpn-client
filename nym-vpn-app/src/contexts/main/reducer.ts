@@ -183,9 +183,31 @@ export function reducer(state: AppState, action: StateAction): AppState {
           tunnelConnectedAt: null,
           tunnelError: null,
           connectingState: null,
+          accountSummary: null,
+          account: false,
+          accountMode: null,
           error: {
             key: 'not-connected-to-daemon',
             message: 'Not connected to the daemon',
+          },
+        };
+      }
+      if (action.status === 'auth-denied') {
+        return {
+          ...state,
+          daemonStatus: action.status,
+          state: 'unknown',
+          tunnel: null,
+          progressMessages: [],
+          tunnelConnectedAt: null,
+          tunnelError: null,
+          connectingState: null,
+          accountSummary: null,
+          account: false,
+          accountMode: null,
+          error: {
+            key: 'auth-denied',
+            message: 'Authentication required',
           },
         };
       }
@@ -204,6 +226,10 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ipv6Support: !action.config.disableIpv6,
         allowLan: action.config.allowLan,
         enableLewesProtocol: action.config.enableLewesProtocol,
+        customDnsEnabled: action.config.enableCustomDns,
+        customDns: action.config.customDns ?? [],
+        mixnetTrafficConfig: action.config.mixnetTraffic,
+        mixnetTrafficDefaults: action.config.mixnetTrafficDefaults,
         enableAdBlocking: action.config.enableAdBlocking,
       };
 

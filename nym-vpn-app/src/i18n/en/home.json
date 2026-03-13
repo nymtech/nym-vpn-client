@@ -64,5 +64,6 @@
     "bar-label": "Download progress"
   },
   "get-started": "Get started",
-  "choose-plan": "Choose plan"
+  "choose-plan": "Choose plan",
+  "authenticate": "Authenticate"
 }

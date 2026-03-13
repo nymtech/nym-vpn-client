@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - [Windows] Authentication layer for windows, still feature gated (https://github.com/nymtech/nym-vpn-client/pull/4618)
 - [macOS] Add support for per-app split-tunneling (https://github.com/nymtech/nym-vpn-client/pull/4694)
 - [macOS] XPC as transport layer between clients and daemon (https://github.com/nymtech/nym-vpn-client/pull/4695)
@@ -15,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [CLI] `nym-vpnc account obtain-ticketbooks` subcommand renamed (legacy alias `decentralised-obtain-ticketbooks` still works). `--source` (currently parsed but all sources route to smartcontract backend).
 - [macOS] Authentication layer for windows, feature gated (https://github.com/nymtech/nym-vpn-client/pull/4802)
 - Activate authentication layer on all desktop platforms (https://github.com/nymtech/nym-vpn-client/pull/4856)
-
 
 ### Fixed
 
