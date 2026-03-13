@@ -7,14 +7,14 @@ mod tests;
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
-use nym_validator_client::models::{KeyRotationId, NymNodeDescriptionV1};
+use nym_validator_client::models::{KeyRotationId, LewesProtocolDetailsV1, NymNodeDescriptionV2};
 use nym_vpn_api_client::{
     response::{BridgeInformation, BridgeParameters},
     types::Percent,
 };
 use rand::seq::IteratorRandom;
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     str::FromStr,
@@ -65,12 +65,12 @@ pub struct Gateway {
     #[builder(default)]
     pub version: Option<String>,
     #[builder(default)]
-    pub lewes_protocol_details: Option<LewesProtocolDetails>,
+    pub lewes_protocol_details: Option<LewesProtocolDetailsV1>,
 }
 
 impl Gateway {
     pub fn try_from_node_description(
-        node_description: NymNodeDescriptionV1,
+        node_description: NymNodeDescriptionV2,
         current_key_rotation: KeyRotationId,
     ) -> Result<Self> {
         let identity = node_description.description.host_information.keys.ed25519;
@@ -107,6 +107,9 @@ impl Gateway {
             .network_requester
             .as_ref()
             .map(|nr| nr.address.clone());
+
+        let lewes_protocol_details = node_description.description.lewes_protocol.clone();
+
         let version = Some(node_description.version().to_string());
         let role = if node_description.description.declared_role.entry {
             nym_validator_client::nym_nodes::NodeRole::EntryGateway
@@ -147,7 +150,7 @@ impl Gateway {
             mixnet_performance: None,
             performance: None,
             version,
-            lewes_protocol_details: None,
+            lewes_protocol_details,
         })
     }
 
@@ -446,42 +449,6 @@ pub struct WgProbeResults {
     pub ping_ips_performance: f32,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct LewesProtocolDetails {
-    pub content: LewesProtocolDetailsData,
-    pub signature: String,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct LewesProtocolDetailsData {
-    pub enabled: bool,
-    pub control_port: u16,
-    pub data_port: u16,
-    pub x25519: String,
-    pub kem_keys: HashMap<String, HashMap<String, String>>,
-}
-
-impl From<nym_vpn_api_client::response::LewesProtocolDetailsV1> for LewesProtocolDetails {
-    fn from(value: nym_vpn_api_client::response::LewesProtocolDetailsV1) -> Self {
-        Self {
-            content: value.content.into(),
-            signature: value.signature,
-        }
-    }
-}
-
-impl From<nym_vpn_api_client::response::LewesProtocolDetailsDataV1> for LewesProtocolDetailsData {
-    fn from(value: nym_vpn_api_client::response::LewesProtocolDetailsDataV1) -> Self {
-        Self {
-            enabled: value.enabled,
-            control_port: value.control_port,
-            data_port: value.data_port,
-            x25519: value.x25519,
-            kem_keys: value.kem_keys,
-        }
-    }
-}
-
 impl From<nym_vpn_api_client::response::AsnKind> for AsnKind {
     fn from(value: nym_vpn_api_client::response::AsnKind) -> Self {
         match value {
@@ -693,9 +660,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             mixnet_performance: Some(gateway.performance),
             performance,
             version: gateway.build_information.map(|info| info.build_version),
-            lewes_protocol_details: gateway
-                .lewes_protocol_details
-                .map(LewesProtocolDetails::from),
+            lewes_protocol_details: gateway.lewes_protocol_details,
         })
     }
 }
