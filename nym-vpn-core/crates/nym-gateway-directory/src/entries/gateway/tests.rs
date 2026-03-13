@@ -369,9 +369,6 @@ fn test_socks5_score_from_mixnet_score() {
                 .as_ref()
                 .unwrap()
                 .outcome
-                .as_exit
-                .as_ref()
-                .unwrap()
                 .socks5
                 .as_ref()
                 .unwrap()
@@ -484,6 +481,7 @@ fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
                     uptime_percentage_last_24_hours: 0.75,
                 }),
                 version: None,
+                lewes_protocol_details: None,
             }
         })
         .collect();
@@ -517,6 +515,7 @@ fn create_test_gateway(identity: &str, country: &str, score: ScoreValue) -> Gate
             uptime_percentage_last_24_hours: 0.99,
         }),
         version: None,
+        lewes_protocol_details: None,
     }
 }
 
@@ -555,6 +554,7 @@ fn create_response_nym_gateway(
                 }),
                 wg: None,
                 socks5: None,
+                lp: None,
             },
         }),
         ip_addresses: vec![],
@@ -575,5 +575,6 @@ fn create_response_nym_gateway(
             uptime_percentage_last_24_hours: 0.75,
         }),
         build_information: None,
+        lewes_protocol_details: None,
     }
 }

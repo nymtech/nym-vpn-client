@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
+    collections::HashMap,
     fmt,
     net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     str::FromStr,
@@ -525,6 +526,7 @@ pub struct Gateway {
     pub exit_ipv4s: Vec<Ipv4Addr>,
     pub exit_ipv6s: Vec<Ipv6Addr>,
     pub build_version: Option<String>,
+    pub lewes_protocol_details: Option<LewesProtocolDetails>,
 }
 
 #[derive(Debug, Clone)]
@@ -722,6 +724,8 @@ impl From<nym_gateway_directory::ScoreValue> for Score {
 pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
+    pub socks5: Option<Socks5>,
+    pub lp: Option<Lp>,
 }
 
 #[derive(Debug, Clone)]
@@ -755,6 +759,56 @@ pub struct Socks5 {
     pub errors: Option<Vec<String>>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct Lp {
+    pub can_connect: bool,
+    pub can_handshake: bool,
+    pub can_register: bool,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct LewesProtocolDetails {
+    pub content: LewesProtocolDetailsData,
+    pub signature: String,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct LewesProtocolDetailsData {
+    pub enabled: bool,
+    pub control_port: u16,
+    pub data_port: u16,
+    pub x25519: String,
+    pub kem_keys: HashMap<String, HashMap<String, String>>,
+}
+
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(
@@ -771,7 +825,6 @@ pub struct Exit {
     pub can_route_ip_external_v4: bool,
     pub can_route_ip_v6: bool,
     pub can_route_ip_external_v6: bool,
-    pub socks5: Option<Socks5>,
 }
 
 #[derive(Debug, Clone)]
@@ -850,6 +903,38 @@ impl From<nym_validator_client::models::NymNodeDescriptionV1> for Gateway {
             exit_ipv4s,
             exit_ipv6s,
             build_version,
+            // v1 has no lp details
+            lewes_protocol_details: None,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_validator_client::models::NymNodeDescriptionV2> for Gateway {
+    fn from(node_description: nym_validator_client::models::NymNodeDescriptionV2) -> Self {
+        let build_version = Some(node_description.version().to_owned());
+        let (exit_ipv4s, exit_ipv6s) = nym_gateway_directory::split_ips(
+            node_description.description.host_information.ip_address,
+        );
+        Self {
+            identity_key: node_description
+                .description
+                .host_information
+                .keys
+                .ed25519
+                .to_string(),
+            name: "".to_owned(),
+            description: None,
+            location: None,
+            last_probe: None,
+            mixnet_performance: None,
+            bridge_params: None,
+            performance: None,
+            exit_ipv4s,
+            exit_ipv6s,
+            build_version,
+            // TODO why are all other fields None? should this be initialized?
+            lewes_protocol_details: None,
         }
     }
 }
@@ -911,6 +996,41 @@ impl From<nym_gateway_directory::Socks5> for Socks5 {
 }
 
 #[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::Lp> for Lp {
+    fn from(lp: nym_gateway_directory::Lp) -> Self {
+        Self {
+            can_connect: lp.can_connect,
+            can_handshake: lp.can_handshake,
+            can_register: lp.can_register,
+            error: lp.error,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::LewesProtocolDetails> for LewesProtocolDetails {
+    fn from(value: nym_gateway_directory::LewesProtocolDetails) -> Self {
+        Self {
+            content: value.content.into(),
+            signature: value.signature,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::LewesProtocolDetailsData> for LewesProtocolDetailsData {
+    fn from(value: nym_gateway_directory::LewesProtocolDetailsData) -> Self {
+        Self {
+            enabled: value.enabled,
+            control_port: value.control_port,
+            data_port: value.data_port,
+            x25519: value.x25519,
+            kem_keys: value.kem_keys,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Exit> for Exit {
     fn from(exit: nym_gateway_directory::Exit) -> Self {
         Self {
@@ -919,7 +1039,6 @@ impl From<nym_gateway_directory::Exit> for Exit {
             can_route_ip_external_v4: exit.can_route_ip_external_v4,
             can_route_ip_v6: exit.can_route_ip_v6,
             can_route_ip_external_v6: exit.can_route_ip_external_v6,
-            socks5: exit.socks5.map(Socks5::from),
         }
     }
 }
@@ -930,6 +1049,8 @@ impl From<nym_gateway_directory::ProbeOutcome> for ProbeOutcome {
         Self {
             as_entry: Entry::from(outcome.as_entry),
             as_exit: outcome.as_exit.map(Exit::from),
+            socks5: outcome.socks5.map(Socks5::from),
+            lp: outcome.lp.map(Lp::from),
         }
     }
 }
@@ -961,6 +1082,9 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             exit_ipv4s,
             exit_ipv6s,
             build_version: gateway.version,
+            lewes_protocol_details: gateway
+                .lewes_protocol_details
+                .map(LewesProtocolDetails::from),
         }
     }
 }

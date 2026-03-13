@@ -75,7 +75,7 @@ pub struct LazySocks5 {
     tunnel_state_shared: Arc<RwLock<TunnelState>>,
     /// Cancellation token for shutdown
     cancel_token: CancellationToken,
-    /// Active connection counter   
+    /// Active connection counter
     active_connections: Arc<RwLock<u32>>,
     /// Last connection closed timestamp
     last_connection_closed: Arc<RwLock<Option<Instant>>>,
@@ -1185,43 +1185,31 @@ impl LazySocks5 {
         let mut medium_score_nodes = Vec::new();
         let mut excluded_by_score = 0;
 
-        for node in nymnodes {
-            // Check if node has Network Requester address first
-            let nr_address = match node.nr_address.as_ref() {
-                Some(addr) => addr,
-                None => continue, // No NR address, skip
-            };
-
-            // Skip if this is the VPN exit gateway
-            if let Some(vpn_exit) = vpn_exit_identity
-                && node.identity().to_string() == *vpn_exit
-            {
-                debug!(
-                    "Excluding VPN exit gateway {} from random Network Requester selection for privacy",
-                    vpn_exit
-                );
-                continue;
-            }
-
-            // Only consider exit-capable gateways (SOCKS5 Network Requesters must be exit gateways)
-            let as_exit = node
-                .last_probe
-                .as_ref()
-                .and_then(|probe| probe.outcome.as_exit.as_ref());
-
-            if as_exit.is_none() {
-                debug!(
-                    "Excluding gateway {} - not exit-capable (no as_exit probe data)",
-                    node.identity()
-                );
-                continue;
-            }
-
+        for (node, nr_address, socks5_score) in nymnodes
+            .into_iter()
+            .filter_map(|gw| {
+                // Check if node has Network Requester address first
+                // No NR address, skip
+                gw.nr_address.clone().map(|nr_address| (gw, nr_address))
+            })
+            .filter(|(gw, _)| {
+                // only consider gateways that are NOT the VPN exit gateway
+                // unwrap_or_default works because if there's no vpn exit
+                // identity, it resolves to empty string, which will be NOT EQUAL
+                // to any gateway ID, thus preserving those gateways IN the set
+                gw.identity().to_string() != vpn_exit_identity.cloned().unwrap_or_default()
+            })
+            .filter_map(|(gw, nr_address)| {
+                // Only consider exit-capable gateways (SOCKS5 Network Requesters must be exit gateways)
+                let score = gw
+                    .last_probe
+                    .as_ref()
+                    .and_then(|probe| probe.outcome.socks5.as_ref())
+                    .map(|socks5| socks5.score);
+                score.map(|socks5_score| (gw, nr_address, socks5_score))
+            })
+        {
             // Filter by SOCKS5 score: prefer High, fallback to Medium (exclude Low/Offline/None)
-            let socks5_score = as_exit
-                .and_then(|exit| exit.socks5.as_ref())
-                .and_then(|socks5| socks5.score.as_ref());
-
             match socks5_score {
                 Some(ScoreValue::High) => {
                     // High score - preferred

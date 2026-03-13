@@ -14,7 +14,7 @@ use nym_vpn_api_client::{
 };
 use rand::seq::IteratorRandom;
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     str::FromStr,
@@ -64,6 +64,8 @@ pub struct Gateway {
     pub performance: Option<Performance>,
     #[builder(default)]
     pub version: Option<String>,
+    #[builder(default)]
+    pub lewes_protocol_details: Option<LewesProtocolDetails>,
 }
 
 impl Gateway {
@@ -145,6 +147,7 @@ impl Gateway {
             mixnet_performance: None,
             performance: None,
             version,
+            lewes_protocol_details: None,
         })
     }
 
@@ -248,11 +251,11 @@ impl Gateway {
         self.last_probe
             .as_ref()
             .and_then(|probe| {
-                probe.outcome.as_exit.as_ref().and_then(|exit| {
-                    exit.socks5
-                        .as_ref()
-                        .and_then(|socks5| socks5.score.as_ref())
-                })
+                probe
+                    .outcome
+                    .socks5
+                    .as_ref()
+                    .and_then(|socks5| socks5.score.as_ref())
             })
             .is_some_and(|score| *score >= min_socks5_score)
     }
@@ -399,6 +402,8 @@ pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
     pub wg: Option<WgProbeResults>,
+    pub socks5: Option<Socks5>,
+    pub lp: Option<Lp>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -406,6 +411,14 @@ pub struct Socks5 {
     pub can_proxy_https: bool,
     pub score: Option<ScoreValue>,
     pub errors: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Lp {
+    pub can_connect: bool,
+    pub can_handshake: bool,
+    pub can_register: bool,
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -421,7 +434,6 @@ pub struct Exit {
     pub can_route_ip_external_v4: bool,
     pub can_route_ip_v6: bool,
     pub can_route_ip_external_v6: bool,
-    pub socks5: Option<Socks5>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -432,6 +444,42 @@ pub struct WgProbeResults {
     pub can_query_metadata_v4: bool,
     pub ping_hosts_performance: f32,
     pub ping_ips_performance: f32,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct LewesProtocolDetails {
+    pub content: LewesProtocolDetailsData,
+    pub signature: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct LewesProtocolDetailsData {
+    pub enabled: bool,
+    pub control_port: u16,
+    pub data_port: u16,
+    pub x25519: String,
+    pub kem_keys: HashMap<String, HashMap<String, String>>,
+}
+
+impl From<nym_vpn_api_client::response::LewesProtocolDetailsV1> for LewesProtocolDetails {
+    fn from(value: nym_vpn_api_client::response::LewesProtocolDetailsV1) -> Self {
+        Self {
+            content: value.content.into(),
+            signature: value.signature,
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::response::LewesProtocolDetailsDataV1> for LewesProtocolDetailsData {
+    fn from(value: nym_vpn_api_client::response::LewesProtocolDetailsDataV1) -> Self {
+        Self {
+            enabled: value.enabled,
+            control_port: value.control_port,
+            data_port: value.data_port,
+            x25519: value.x25519,
+            kem_keys: value.kem_keys,
+        }
+    }
 }
 
 impl From<nym_vpn_api_client::response::AsnKind> for AsnKind {
@@ -500,30 +548,33 @@ impl From<nym_vpn_api_client::response::Probe> for Probe {
 
 impl From<nym_vpn_api_client::response::ProbeOutcome> for ProbeOutcome {
     fn from(outcome: nym_vpn_api_client::response::ProbeOutcome) -> Self {
-        // Move socks5 from ProbeOutcome level to Exit level if as_exit exists
-        // The API response has socks5 at the outcome level, but we store it in Exit
-        let as_exit = outcome.as_exit.map(|mut exit| {
-            // If socks5 is at ProbeOutcome level but not in Exit, move it
-            if exit.socks5.is_none() {
-                exit.socks5 = outcome.socks5.clone();
-            }
-            Exit::from(exit)
-        });
-
         ProbeOutcome {
             as_entry: Entry::from(outcome.as_entry),
-            as_exit,
+            as_exit: outcome.as_exit.map(Exit::from),
             wg: outcome.wg.map(WgProbeResults::from),
+            socks5: outcome.socks5.map(From::from),
+            lp: outcome.lp.map(From::from),
         }
     }
 }
 
 impl From<nym_vpn_api_client::response::Socks5> for Socks5 {
     fn from(exit: nym_vpn_api_client::response::Socks5) -> Self {
-        Socks5 {
+        Self {
             can_proxy_https: exit.can_proxy_https,
             score: exit.score.map(ScoreValue::from),
             errors: exit.errors,
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::response::Lp> for Lp {
+    fn from(lp: nym_vpn_api_client::response::Lp) -> Self {
+        Self {
+            can_connect: lp.can_connect,
+            can_handshake: lp.can_handshake,
+            can_register: lp.can_register,
+            error: lp.error,
         }
     }
 }
@@ -545,7 +596,6 @@ impl From<nym_vpn_api_client::response::Exit> for Exit {
             can_route_ip_external_v4: exit.can_route_ip_external_v4,
             can_route_ip_v6: exit.can_route_ip_v6,
             can_route_ip_external_v6: exit.can_route_ip_external_v6,
-            socks5: exit.socks5.map(Socks5::from),
         }
     }
 }
@@ -621,10 +671,9 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
                 }
             };
 
-        if let Some(probe) = last_probe.as_mut()
-            && let Some(exit) = probe.outcome.as_exit.as_mut()
-        {
-            exit.socks5 = socks5_score_from_mixnet(exit.socks5.clone(), performance.as_ref());
+        if let Some(probe) = last_probe.as_mut() {
+            probe.outcome.socks5 =
+                socks5_score_from_mixnet(probe.outcome.socks5.clone(), performance.as_ref());
         }
 
         Ok(Gateway {
@@ -644,6 +693,9 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             mixnet_performance: Some(gateway.performance),
             performance,
             version: gateway.build_information.map(|info| info.build_version),
+            lewes_protocol_details: gateway
+                .lewes_protocol_details
+                .map(LewesProtocolDetails::from),
         })
     }
 }
