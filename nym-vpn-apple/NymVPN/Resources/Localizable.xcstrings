@@ -9027,6 +9027,17 @@
         }
       }
     },
+    "error.vpnPermissionDenied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN permission was not granted. Please allow the VPN configuration to connect."
+          }
+        }
+      }
+    },
     "error.unrecognized" : {
       "extractionState" : "manual",
       "localizations" : {
