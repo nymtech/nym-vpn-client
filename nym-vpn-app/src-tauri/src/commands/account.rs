@@ -151,11 +151,14 @@ pub async fn get_deep_link(
     vpnd: State<'_, VpndClient>,
     locale: String,
     kind: nym_vpn_lib_types::DeeplinkKind,
+    redirect_path: Option<String>,
 ) -> Result<Option<String>, BackendError> {
-    vpnd.get_deep_link(locale, kind).await.map_err(|e| {
-        error!("failed to get deep link: {e}");
-        e.into()
-    })
+    vpnd.get_deep_link(locale, kind, redirect_path)
+        .await
+        .map_err(|e| {
+            error!("failed to get deep link: {e}");
+            e.into()
+        })
 }
 
 #[instrument(skip_all)]

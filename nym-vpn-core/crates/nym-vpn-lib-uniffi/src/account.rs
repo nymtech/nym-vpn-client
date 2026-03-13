@@ -136,7 +136,7 @@ impl NymAccountController {
         };
 
         self.command_sender
-            .get_deeplink(params.kind, params.name, base_url)
+            .get_deeplink(params.kind, params.name, base_url, params.redirect_path)
             .await
             .map_err(VpnError::from)
     }

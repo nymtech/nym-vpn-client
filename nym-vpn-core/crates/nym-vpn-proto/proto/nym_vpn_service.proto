@@ -973,6 +973,7 @@ message GetDeeplinkParams {
   string locale = 2;
   DeeplinkKind kind = 3;
   string name = 4;
+  optional string redirect_path = 5;
 }
 
 enum DeeplinkClient {

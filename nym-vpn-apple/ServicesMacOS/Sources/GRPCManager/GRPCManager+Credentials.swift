@@ -56,7 +56,8 @@ extension GRPCManager {
                         client: .desktop,
                         locale: locale,
                         kind: isLink ? .privyLink : .privy,
-                        name: name
+                        name: name,
+                        redirectPath: nil
                     )
             )
         }.value

@@ -1844,7 +1844,7 @@ impl NymVpnService {
         };
 
         self.account_command_tx
-            .get_deeplink(params.kind, params.name, base_url)
+            .get_deeplink(params.kind, params.name, base_url, params.redirect_path)
             .await
     }
 
@@ -1879,7 +1879,7 @@ impl NymVpnService {
         };
 
         self.account_command_tx
-            .get_autologin_deeplink(params.kind, params.name, base_url)
+            .get_autologin_deeplink(params.kind, params.name, base_url, params.redirect_path)
             .await
     }
 

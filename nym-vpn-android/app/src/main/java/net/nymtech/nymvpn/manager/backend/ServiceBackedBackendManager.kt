@@ -207,6 +207,7 @@ class ServiceBackedBackendManager @Inject constructor(
 			locale = Locale.getDefault().language.lowercase(),
 			kind = kind,
 			name = "default",
+			redirectPath = null,
 		)
 		return serviceConnectionManager.withApi { it.getDeeplink(params = params) }
 	}

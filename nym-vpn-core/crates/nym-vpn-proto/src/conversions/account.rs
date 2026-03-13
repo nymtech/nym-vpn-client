@@ -427,6 +427,7 @@ impl From<GetDeeplinkParams> for proto::GetDeeplinkParams {
             locale: value.locale,
             kind: kind as i32,
             name: value.name,
+            redirect_path: value.redirect_path,
         }
     }
 }
@@ -446,6 +447,7 @@ impl TryFrom<proto::GetDeeplinkParams> for GetDeeplinkParams {
             locale: value.locale,
             kind: kind.into(),
             name: value.name,
+            redirect_path: value.redirect_path,
         })
     }
 }

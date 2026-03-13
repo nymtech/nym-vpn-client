@@ -220,12 +220,14 @@ impl AccountCommandSender {
         kind: DeeplinkKind,
         name: String,
         base_url: Url,
+        redirect_path: Option<String>,
     ) -> Result<String, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         let params = CreateDeeplinkParams {
             kind,
             name,
             base_url,
+            redirect_path,
         };
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetDeeplink(
@@ -241,12 +243,14 @@ impl AccountCommandSender {
         kind: DeeplinkKind,
         name: String,
         base_url: Url,
+        redirect_path: Option<String>,
     ) -> Result<AutologinResponse, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         let params = CreateDeeplinkParams {
             kind,
             name,
             base_url,
+            redirect_path,
         };
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetAutologinDeeplink(

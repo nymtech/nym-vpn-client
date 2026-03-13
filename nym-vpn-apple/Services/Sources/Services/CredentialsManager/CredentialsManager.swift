@@ -159,7 +159,8 @@ import PathManager
                 client: .mobile,
                 locale: locale,
                 kind: isLink ? .privyLink : .privy,
-                name: name
+                name: name,
+                redirectPath: nil
             )
         )
 #elseif os(macOS)
