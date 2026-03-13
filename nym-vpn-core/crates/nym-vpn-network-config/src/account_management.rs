@@ -41,6 +41,12 @@ impl AccountManagement {
             .ok()
     }
 
+    pub fn pricing_url(&self, locale: &str) -> Option<Url> {
+        self.url
+            .join(&self.paths.pricing.replace("{locale}", locale))
+            .ok()
+    }
+
     pub fn privy_mobile_url(&self, locale: &str) -> Option<Url> {
         self.url
             .join(&self.paths.privy.mobile.replace("{locale}", locale))
@@ -90,6 +96,9 @@ impl AccountManagement {
                 .sign_in_url(locale)
                 .ok_or(AccountLinksConversionError::ParseSigninUrl)?,
             account: account_id.and_then(|account_id| self.account_url(locale, account_id)),
+            pricing: self
+                .pricing_url(locale)
+                .ok_or(AccountLinksConversionError::ParsePricingUrl)?,
             privy: ParsedAccountPrivyLinks {
                 mobile: self
                     .privy_mobile_url(locale)
@@ -125,6 +134,9 @@ pub enum AccountLinksConversionError {
     #[error("Failed to parse sign up URL")]
     ParseSignupUrl,
 
+    #[error("Failed to parse pricing URL")]
+    ParsePricingUrl,
+
     #[error("Failed to parse privy mobile URL")]
     ParsePrivyMobileUrl,
 
@@ -149,6 +161,7 @@ pub(crate) struct AccountManagementPaths {
     pub(crate) sign_up: String,
     pub(crate) sign_in: String,
     pub(crate) account: String,
+    pub(crate) pricing: String,
     pub(crate) privy: AccountManagementPrivyPaths,
     pub(crate) autologin: AccountManagementAutologinPaths,
 }
@@ -172,6 +185,7 @@ pub struct ParsedAccountLinks {
     pub sign_up: Url,
     pub sign_in: Url,
     pub account: Option<Url>,
+    pub pricing: Url,
     pub privy: ParsedAccountPrivyLinks,
     pub autologin: ParsedAccountAutologinLinks,
 }
@@ -197,6 +211,7 @@ impl fmt::Display for ParsedAccountLinks {
         if let Some(account) = &self.account {
             write!(f, "\naccount: {account}")?;
         }
+        write!(f, "\npricing: {}", self.pricing)?;
         write!(f, "\nautologin: {mobile}", mobile = self.autologin.mobile)?;
         write!(
             f,
@@ -237,6 +252,7 @@ impl From<AccountManagementPathsResponse> for AccountManagementPaths {
             sign_up: response.sign_up,
             sign_in: response.sign_in,
             account: response.account,
+            pricing: response.pricing,
             privy: response.privy.into(),
             autologin: response.autologin.into(),
         }

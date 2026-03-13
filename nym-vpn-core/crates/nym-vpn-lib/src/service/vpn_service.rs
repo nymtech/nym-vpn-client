@@ -1821,27 +1821,24 @@ impl NymVpnService {
         &self,
         params: GetDeeplinkParams,
     ) -> Result<String, AccountCommandError> {
-        let base_url = match params.kind {
-            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
-                let Some(ref account_management) =
-                    self.network_tx.borrow().nym_vpn_network.account_management
-                else {
-                    return Err(AccountCommandError::DeeplinkError(
-                        "No account management data is available at this time".to_string(),
-                    ));
-                };
+        let account_management = self
+            .network_tx
+            .borrow()
+            .nym_vpn_network
+            .account_management
+            .clone()
+            .ok_or(AccountCommandError::DeeplinkError(
+                "No account management data is available at this time".to_string(),
+            ))?;
 
-                let opt_url = match params.client {
-                    DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
-                    DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
-                    DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
-                };
-
-                opt_url.ok_or(AccountCommandError::DeeplinkError(
-                    "The privy path could not be determined".to_string(),
-                ))?
-            }
-        };
+        let base_url = match params.client {
+            DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+            DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+            DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+        }
+        .ok_or(AccountCommandError::DeeplinkError(
+            "The privy path could not be determined".to_string(),
+        ))?;
 
         self.account_command_tx
             .get_deeplink(params.kind, params.name, base_url)
@@ -1852,34 +1849,45 @@ impl NymVpnService {
         &self,
         params: GetDeeplinkParams,
     ) -> Result<AutologinResponse, AccountCommandError> {
-        let base_url = match params.kind {
-            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
-                let Some(ref account_management) =
-                    self.network_tx.borrow().nym_vpn_network.account_management
-                else {
-                    return Err(AccountCommandError::DeeplinkError(
-                        "No account management data is available at this time".to_string(),
-                    ));
-                };
+        let account_management = self
+            .network_tx
+            .borrow()
+            .nym_vpn_network
+            .account_management
+            .clone()
+            .ok_or(AccountCommandError::DeeplinkError(
+                "No account management data is available at this time".to_string(),
+            ))?;
 
-                let opt_url = match params.client {
-                    DeeplinkClient::Mobile => {
-                        account_management.autologin_mobile_url(&params.locale)
-                    }
-                    DeeplinkClient::Desktop => {
-                        account_management.autologin_desktop_url(&params.locale)
-                    }
-                    DeeplinkClient::Web => account_management.autologin_web_url(&params.locale),
-                };
+        let opt_url = match params.client {
+            DeeplinkClient::Mobile => account_management.autologin_mobile_url(&params.locale),
+            DeeplinkClient::Desktop => account_management.autologin_desktop_url(&params.locale),
+            DeeplinkClient::Web => account_management.autologin_web_url(&params.locale),
+        };
 
-                opt_url.ok_or(AccountCommandError::DeeplinkError(
-                    "The autologin path could not be determined".to_string(),
-                ))?
+        let base_url = opt_url.ok_or(AccountCommandError::DeeplinkError(
+            "The autologin path could not be determined".to_string(),
+        ))?;
+
+        let redirect_path = match params.kind {
+            DeeplinkKind::AutologinView => {
+                let account_id = self
+                    .account_command_tx
+                    .get_canonical_account_id()
+                    .await?
+                    .ok_or(AccountCommandError::NoAccountStored)?;
+                account_management
+                    .account_url(&params.locale, &account_id)
+                    .map(|url| url.to_string())
             }
+            DeeplinkKind::AutologinRenew => account_management
+                .pricing_url(&params.locale)
+                .map(|url| url.to_string()),
+            _ => None,
         };
 
         self.account_command_tx
-            .get_autologin_deeplink(params.kind, params.name, base_url)
+            .get_autologin_deeplink(params.kind, params.name, base_url, redirect_path)
             .await
     }
 
@@ -1900,6 +1908,9 @@ impl NymVpnService {
         match deeplink_mnemonic.kind {
             DeeplinkKind::Privy => self.account_command_tx.store_account(privy_account).await,
             DeeplinkKind::PrivyLink => self.account_command_tx.link_account(privy_account).await,
+            _ => Err(AccountCommandError::DeeplinkError(
+                "Invalid deeplink kind".to_string(),
+            )),
         }
     }
 

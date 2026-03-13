@@ -69,6 +69,8 @@ pub enum DeeplinkClient {
 pub enum DeeplinkKind {
     Privy,
     PrivyLink,
+    AutologinRenew,
+    AutologinView,
 }
 
 impl FromStr for DeeplinkKind {
@@ -78,6 +80,12 @@ impl FromStr for DeeplinkKind {
         match s.to_lowercase().as_str() {
             "privy" => Ok(DeeplinkKind::Privy),
             "privy_link" | "privy-link" | "privylink" => Ok(DeeplinkKind::PrivyLink),
+            "autologin_renew" | "autologin-renew" | "autologinrenew" => {
+                Ok(DeeplinkKind::AutologinRenew)
+            }
+            "autologin_view" | "autologin-view" | "autologinview" => {
+                Ok(DeeplinkKind::AutologinView)
+            }
             _ => Err(format!("Unknown deeplink kind: {s}")),
         }
     }

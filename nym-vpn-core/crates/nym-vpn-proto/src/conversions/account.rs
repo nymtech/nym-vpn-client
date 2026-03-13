@@ -495,6 +495,8 @@ impl From<DeeplinkKind> for proto::DeeplinkKind {
         match value {
             DeeplinkKind::Privy => proto::DeeplinkKind::KindPrivy,
             DeeplinkKind::PrivyLink => proto::DeeplinkKind::KindPrivyLink,
+            DeeplinkKind::AutologinRenew => proto::DeeplinkKind::AutologinRenew,
+            DeeplinkKind::AutologinView => proto::DeeplinkKind::AutologinView,
         }
     }
 }
@@ -504,6 +506,8 @@ impl From<proto::DeeplinkKind> for DeeplinkKind {
         match value {
             proto::DeeplinkKind::KindPrivy => DeeplinkKind::Privy,
             proto::DeeplinkKind::KindPrivyLink => DeeplinkKind::PrivyLink,
+            proto::DeeplinkKind::AutologinRenew => DeeplinkKind::AutologinRenew,
+            proto::DeeplinkKind::AutologinView => DeeplinkKind::AutologinView,
         }
     }
 }

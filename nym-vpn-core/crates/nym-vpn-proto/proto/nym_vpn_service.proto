@@ -984,6 +984,8 @@ enum DeeplinkClient {
 enum DeeplinkKind {
   KIND_PRIVY = 0;
   KIND_PRIVY_LINK = 1;
+  AutologinRenew = 2;
+  AutologinView = 3;
 }
 
 service NymVpnService {

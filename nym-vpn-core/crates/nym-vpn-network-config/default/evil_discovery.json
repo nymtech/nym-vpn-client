@@ -27,6 +27,7 @@
       "sign_up": "{locale}/account/create",
       "sign_in": "{locale}/account/login",
       "account": "{locale}/account/{account_id}",
+      "pricing": "{locale}/pricing",
       "autologin": {
         "mobile": "{locale}/account/login/autologin/mobile",
         "desktop": "{locale}/account/login/autologin/desktop",
