@@ -78,7 +78,7 @@ impl Deeplink {
                 url.query_pairs_mut().append_pair("redirect", "account");
             }
             DeeplinkKind::AutologinRenew => {
-                url.query_pairs_mut().append_pair("redirect", "pricing");
+                url.query_pairs_mut().append_pair("redirect", "renew");
             }
             _ => (),
         }
