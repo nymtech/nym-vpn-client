@@ -12,7 +12,7 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, Nyx
 use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
-    AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
+    AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
     RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
     UserAgent, VpnAccountSummary,
 };
@@ -149,17 +149,21 @@ impl NymAccountController {
         };
 
         let base_url = match params.client {
-            DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
-            DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
-            DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+            DeeplinkClient::Mobile => account_management.autologin_mobile_url(&params.locale),
+            DeeplinkClient::Desktop => account_management.autologin_desktop_url(&params.locale),
+            DeeplinkClient::Web => account_management.autologin_web_url(&params.locale),
         }
         .ok_or(VpnError::DeeplinkError {
-            details: "The privy path could not be determined".to_owned(),
+            details: "The autologin path could not be determined".to_owned(),
         })?;
 
-        let redirect_path = match params.king {
+        let redirect_path = match params.kind {
             DeeplinkKind::AutologinView => {
-                let account_id = self.command_sender.get_canonical_account_id().await?;
+                let account_id = self
+                    .command_sender
+                    .get_canonical_account_id()
+                    .await?
+                    .ok_or(VpnError::NoAccountStored)?;
                 account_management
                     .account_url(&params.locale, &account_id)
                     .map(|url| url.to_string())
