@@ -8,10 +8,10 @@
 use std::{
     ffi::c_uint,
     io::Write,
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6},
 };
 
-use futures_util::{Stream, StreamExt};
+use futures_util::{Stream, StreamExt, future::BoxFuture};
 use libc::{AF_INET, AF_INET6};
 use nix::net::if_::if_nametoindex;
 use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
@@ -28,12 +28,13 @@ use pnet_packet::{
 };
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
-    sync::broadcast,
+    sync::{broadcast, mpsc, oneshot},
 };
 
 use super::{
     bindings::{PTH_FLAG_DIR_OUT, pktap_header},
     bpf,
+    conn_track::{self, TcpConnectionStates, TcpConnectionTrack},
     default::DefaultInterface,
 };
 
@@ -125,6 +126,8 @@ pub struct SplitTunnelHandle {
     /// Task that synchronizes the ST tunnel MTU with the VPN tunnel MTU
     mtu_listener: Option<tokio::task::JoinHandle<()>>,
     route_manager: RouteManagerHandle,
+    /// Channel used for sending RST to TCP connections
+    tcp_conn_reset_tx: mpsc::UnboundedSender<(Vec<TcpConnectionTrack>, oneshot::Sender<()>)>,
 }
 
 impl SplitTunnelHandle {
@@ -161,8 +164,26 @@ impl SplitTunnelHandle {
             default_interface,
             vpn_interface,
             self.route_manager,
+            egress_completion.tcp_conn_states,
             egress_completion.classify,
         )
+    }
+
+    pub async fn reset_tcp_connections(&mut self, connections: Vec<TcpConnectionTrack>) {
+        if connections.is_empty() {
+            return;
+        }
+
+        let (tx, rx) = oneshot::channel();
+
+        match self.tcp_conn_reset_tx.send((connections, tx)) {
+            Ok(()) => {
+                let _ = rx.await;
+            }
+            Err(_) => {
+                tracing::warn!("tcp_conn_reset_tx is closed");
+            }
+        }
     }
 
     async fn abort_mtu_listener(&mut self) {
@@ -184,6 +205,7 @@ pub async fn create_split_tunnel(
     default_interface: DefaultInterface,
     vpn_interface: Option<VpnInterface>,
     route_manager: RouteManagerHandle,
+    tcp_conn_states: TcpConnectionStates,
     classify: ClassifyFn,
 ) -> Result<SplitTunnelHandle, Error> {
     let tun_device = create_utun().await?;
@@ -192,6 +214,7 @@ pub async fn create_split_tunnel(
         default_interface,
         vpn_interface,
         route_manager,
+        tcp_conn_states,
         classify,
     )
 }
@@ -230,7 +253,7 @@ async fn add_ipv6_address(iface: &str, addr: Ipv6Addr) -> Result<(), Error> {
 
 type PktapStream = std::pin::Pin<Box<dyn Stream<Item = Result<PktapPacket, Error>> + Send>>;
 /// A function that is used to classify whether packets should be VPN-tunneled or excluded
-type ClassifyFn = Box<dyn Fn(&PktapPacket) -> RoutingDecision + Send>;
+type ClassifyFn = Box<dyn Fn(&PktapPacket) -> BoxFuture<RoutingDecision> + Send + Sync>;
 
 /// Monitor outgoing traffic on `st_tun_device` using a pktap. A routing decision is
 /// made for each packet using `classify`. Based on this, a packet is forced out on either
@@ -245,6 +268,7 @@ fn redirect_packets(
     default_interface: DefaultInterface,
     vpn_interface: Option<VpnInterface>,
     route_manager: RouteManagerHandle,
+    tcp_conn_states: TcpConnectionStates,
     classify: ClassifyFn,
 ) -> Result<SplitTunnelHandle, Error> {
     let st_tun_name = st_tun_device
@@ -258,7 +282,8 @@ fn redirect_packets(
         default_interface,
         vpn_interface,
         route_manager,
-        Box::new(classify),
+        tcp_conn_states,
+        classify,
     )
 }
 
@@ -276,6 +301,7 @@ fn redirect_packets_for_pktap_stream(
     default_interface: DefaultInterface,
     vpn_interface: Option<VpnInterface>,
     route_manager: RouteManagerHandle,
+    tcp_conn_states: TcpConnectionStates,
     classify: ClassifyFn,
 ) -> Result<SplitTunnelHandle, Error> {
     let mtu_listener = vpn_interface
@@ -304,6 +330,8 @@ fn redirect_packets_for_pktap_stream(
     let (abort_tx, abort_rx) = broadcast::channel(1);
     let abort_read_rx = abort_tx.subscribe();
 
+    let (tcp_conn_reset_tx, tcp_conn_reset_rx) = mpsc::unbounded_channel();
+
     let ingress_task: tokio::task::JoinHandle<tun::AsyncDevice> = tokio::spawn(run_ingress_task(
         st_tun_device,
         default_stream,
@@ -311,11 +339,13 @@ fn redirect_packets_for_pktap_stream(
         vpn_interface.clone(),
         abort_rx,
         abort_read_rx,
+        tcp_conn_reset_rx,
     ));
 
     let egress_abort_rx = abort_tx.subscribe();
     let egress_task = tokio::spawn(run_egress_task(
         pktap_stream,
+        tcp_conn_states.clone(),
         classify,
         default_interface,
         default_write,
@@ -330,6 +360,7 @@ fn redirect_packets_for_pktap_stream(
         egress_task,
         mtu_listener,
         route_manager,
+        tcp_conn_reset_tx,
     })
 }
 
@@ -424,6 +455,7 @@ async fn run_ingress_task(
     vpn_interface: Option<VpnInterface>,
     mut abort_rx: broadcast::Receiver<()>,
     mut abort_read_rx: broadcast::Receiver<()>,
+    mut tcp_conn_reset_rx: mpsc::UnboundedReceiver<(Vec<TcpConnectionTrack>, oneshot::Sender<()>)>,
 ) -> tun::AsyncDevice {
     let mut read_buffer = vec![0u8; read_buffer_size];
     tracing::trace!("Default BPF reader buffer size: {:?}", read_buffer.len());
@@ -469,6 +501,10 @@ async fn run_ingress_task(
                     handle_incoming_data(&mut tun_writer, payload, vpn_v4, vpn_v6).await;
                 }
             }
+            Some((conn_tracks, completion_tx)) = tcp_conn_reset_rx.recv() => {
+                send_tcp_reset(vpn_v4, vpn_v6, &conn_tracks, &mut tun_writer).await;
+                completion_tx.send(()).ok();
+            }
         }
     };
 
@@ -482,6 +518,7 @@ async fn run_ingress_task(
 /// Arguments to `run_egress_task` that are returned when the function succeeds
 struct EgressResult {
     pktap_stream: PktapStream,
+    tcp_conn_states: TcpConnectionStates,
     classify: ClassifyFn,
 }
 
@@ -489,6 +526,7 @@ struct EgressResult {
 /// based on the result of `classify`.
 async fn run_egress_task(
     mut pktap_stream: PktapStream,
+    mut tcp_conn_states: TcpConnectionStates,
     classify: ClassifyFn,
     default_interface: DefaultInterface,
     mut default_write: bpf::WriteHalf,
@@ -505,7 +543,7 @@ async fn run_egress_task(
         tokio::select! {
             biased; Ok(()) | Err(_) = abort_rx.recv() => {
                 tracing::debug!("stopping packet processing");
-                break Ok(EgressResult { pktap_stream, classify });
+                break Ok(EgressResult { pktap_stream, tcp_conn_states, classify });
             }
             packet = pktap_stream.next() => {
                 let mut packet = packet.ok_or_else(|| {
@@ -519,7 +557,9 @@ async fn run_egress_task(
                     _ => unreachable!("missing tun interface or addresses"),
                 };
 
-                classify_and_send(&classify, &mut packet, &default_interface, &mut default_write, vpn_device)
+                conn_track::track_connection_state(&mut tcp_conn_states, &packet).await;
+
+                classify_and_send(&classify, &mut packet, &default_interface, &mut default_write, vpn_device).await
             }
         }
     }
@@ -537,14 +577,14 @@ fn open_vpn_bpf(vpn_interface: &VpnInterface) -> Result<bpf::Bpf, Error> {
     Ok(vpn_dev)
 }
 
-fn classify_and_send(
+async fn classify_and_send(
     classify: &ClassifyFn,
     packet: &mut PktapPacket,
     default_interface: &DefaultInterface,
     default_write: &mut bpf::WriteHalf,
     vpn_interface: Option<(&VpnInterface, &mut bpf::Bpf)>,
 ) {
-    match classify(packet) {
+    match classify(packet).await {
         RoutingDecision::DefaultInterface => match packet.frame.get_ethertype() {
             EtherTypes::Ipv4 => {
                 let Some(ref addrs) = default_interface.v4_addrs else {
@@ -941,5 +981,49 @@ impl PacketCodec for PktapCodec {
             header: header.to_owned(),
             frame,
         })
+    }
+}
+
+async fn send_tcp_reset(
+    vpn_v4: Option<Ipv4Addr>,
+    vpn_v6: Option<Ipv6Addr>,
+    conn_tracks: &[TcpConnectionTrack],
+    tun_writer: &mut tokio::io::WriteHalf<tun::AsyncDevice>,
+) {
+    use super::tcp_rst::{
+        IPV4_PACKET_LEN, IPV6_PACKET_LEN, fill_tcp_rst_packet_v4, fill_tcp_rst_packet_v6,
+    };
+
+    for conn_track in conn_tracks {
+        match conn_track.ident.dst {
+            SocketAddr::V4(dst) => {
+                let Some(vpn_v4) = vpn_v4 else {
+                    continue;
+                };
+                let src = SocketAddrV4::new(vpn_v4, conn_track.ident.src.port());
+                let mut buf = [0u8; IPV4_PACKET_LEN];
+                fill_tcp_rst_packet_v4(&mut buf, dst, src, conn_track.meta.ack);
+
+                tracing::trace!("Send TCP RST {dst} -> {src}");
+
+                if let Err(err) = tun_writer.write(&buf).await {
+                    tracing::error!("Failed to write TCP RST: {err}");
+                }
+            }
+            SocketAddr::V6(dst) => {
+                let Some(vpn_v6) = vpn_v6 else {
+                    continue;
+                };
+                let src = SocketAddrV6::new(vpn_v6, conn_track.ident.src.port(), 0, 0);
+                let mut buf = [0u8; IPV6_PACKET_LEN];
+                fill_tcp_rst_packet_v6(&mut buf, dst, src, conn_track.meta.ack);
+
+                tracing::trace!("Send TCP RST {dst} -> {src}");
+
+                if let Err(err) = tun_writer.write(&buf).await {
+                    tracing::error!("Failed to write TCP RST: {err}");
+                }
+            }
+        }
     }
 }

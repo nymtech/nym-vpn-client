@@ -15,7 +15,7 @@ use std::{
     path::PathBuf,
     process::Stdio,
     str::FromStr,
-    sync::{Arc, LazyLock, Mutex},
+    sync::{Arc, LazyLock},
     time::Duration,
 };
 
@@ -26,7 +26,7 @@ use nym_platform_metadata::AppleVersion;
 use serde::{Deserialize, de::Error as _};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
-    sync::oneshot,
+    sync::{Mutex, oneshot},
 };
 
 use crate::SplitTunnelErrorCause;
@@ -194,7 +194,7 @@ async fn handle_eslogger_output(
                 }
             };
 
-            let mut inner = states.inner.lock().unwrap();
+            let mut inner = states.inner.lock().await;
             inner.handle_message(val);
         }
     });
@@ -324,10 +324,16 @@ impl ProcessStates {
         })
     }
 
-    pub fn exclude_paths(&self, paths: HashSet<PathBuf>) {
-        let mut inner = self.inner.lock().unwrap();
+    /// Exclude given paths to binaries from VPN tunnel.
+    ///
+    /// Returns a list of PIDs of affected processes for which the split-tunnel status will change.
+    /// All TCP connections created by these processes must be closed, for example by sending TCP/RST.
+    /// Otherwise such connections will eventually timeout.
+    pub async fn exclude_paths(&self, paths: HashSet<PathBuf>) -> Vec<pid_t> {
+        let mut inner = self.inner.lock().await;
+        let mut affected_pids = Vec::new();
 
-        for info in inner.processes.values_mut() {
+        for (pid, info) in inner.processes.iter_mut() {
             // Remove no-longer excluded paths from exclusion list
             let mut new_exclude_paths: HashSet<_> = info
                 .excluded_by_paths
@@ -340,14 +346,20 @@ impl ProcessStates {
                 new_exclude_paths.insert(info.exec_path.clone());
             }
 
+            if info.excluded_by_paths != new_exclude_paths {
+                affected_pids.push(*pid);
+            }
+
             info.excluded_by_paths = new_exclude_paths;
         }
 
         inner.exclude_paths = paths;
+
+        affected_pids
     }
 
-    pub fn get_process_status(&self, pid: pid_t) -> ExclusionStatus {
-        let inner = self.inner.lock().unwrap();
+    pub async fn get_process_status(&self, pid: pid_t) -> ExclusionStatus {
+        let inner = self.inner.lock().await;
         match inner.processes.get(&pid) {
             Some(val) if val.is_excluded() => ExclusionStatus::Excluded,
             Some(_) => ExclusionStatus::Included,
