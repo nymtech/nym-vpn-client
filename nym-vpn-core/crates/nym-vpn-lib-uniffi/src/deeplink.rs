@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use nym_vpn_account_controller::{CreateDeeplinkParams, DeeplinkMnemonic, Deeplinks};
-use nym_vpn_lib_types::{DeeplinkClient, DeeplinkKind, GetDeeplinkParams};
+use nym_vpn_lib_types::{AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams};
 
 use crate::{NymEnvironment, error::VpnError};
 
@@ -29,33 +29,29 @@ impl NymDeeplinks {
 
     /// Get a deeplink
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String, VpnError> {
-        let base_url = match params.kind {
-            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
-                let Some(ref account_management) =
-                    self.network_env.inner().nym_vpn_network.account_management
-                else {
-                    return Err(VpnError::DeeplinkError {
-                        details: "No account management data is available at this time".to_string(),
-                    });
-                };
-
-                let opt_url = match params.client {
-                    DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
-                    DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
-                    DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
-                };
-
-                opt_url.ok_or(VpnError::DeeplinkError {
-                    details: "The privy path could not be determined".to_string(),
-                })?
-            }
+        let Some(ref account_management) =
+            self.network_env.inner().nym_vpn_network.account_management
+        else {
+            return Err(VpnError::DeeplinkError {
+                details: "No account management data is available at this time".to_owned(),
+            });
         };
+
+        let base_url = match params.client {
+            DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+            DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+            DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+        }
+        .ok_or(VpnError::DeeplinkError {
+            details: "The privy path could not be determined".to_owned(),
+        })?;
 
         let mut deeplink_guard = self.deep_links.lock().await;
         let params = CreateDeeplinkParams {
             kind: params.kind,
             name: params.name,
             base_url,
+            redirect_path: None,
         };
 
         // Create a new Deeplink for this request
@@ -73,6 +69,55 @@ impl NymDeeplinks {
         deeplink_guard.remove_expired();
 
         Ok(url.to_string())
+    }
+
+    /// Get an autologin deeplink
+    pub async fn get_autologin_deeplink(&self, params: GetDeeplinkParams) -> Result<AutologinResponse, VpnError> {
+        let Some(ref account_management) =
+            self.network_env.inner().nym_vpn_network.account_management
+        else {
+            return Err(VpnError::DeeplinkError {
+                details: "No account management data is available at this time".to_owned(),
+            });
+        };
+
+        let base_url = match params.client {
+            DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+            DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+            DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+        }
+        .ok_or(VpnError::DeeplinkError {
+            details: "The privy path could not be determined".to_owned(),
+        })?;
+
+        let redirect_path = match params.kind {
+            DeeplinkKind::AutologinView => {
+                let account_id = self.account_command_tx.get_canonical_account_id().await?;
+                account_management.account_url(&params.locale, &account_id).map(|url| url.to_string())
+            }
+            DeeplinkKind::AutologinRenew => account_management.pricing_url(&params.locale).map(|url| url.to_string()),
+            _ => None,
+        };
+
+        let mut deeplink_guard = self.deep_links.lock().await;
+        let params = CreateDeeplinkParams {
+            kind: params.kind,
+            name: params.name,
+            base_url,
+            redirect_path,
+        };
+
+        let deeplink = deeplink_guard.create_deeplink(&params).map_err(|e| VpnError::DeeplinkError {
+            details: e.to_string(),
+        })?;
+
+        let autologin = deeplink.create_autologin_url(&base_url, mnemonic.to_string()).map_err(|e| VpnError::DeeplinkError {
+            details: e.to_string(),
+        })?;
+
+        deeplink_guard.remove_expired();
+
+        Ok(autologin)
     }
 
     /// Derive mnemonic from deeplink callback URL
