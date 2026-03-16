@@ -301,3 +301,20 @@ impl VPNConfig {
         })
     }
 }
+
+#[cfg(target_os = "android")]
+pub mod android_init {
+    use jni::JNIEnv;
+    use jni::objects::{JClass, JObject};
+
+    #[unsafe(no_mangle)]
+    #[allow(non_snake_case)]
+    pub extern "system" fn Java_net_nymtech_vpn_backend_controller_VpnCoreController_initPlatformVerifier(
+        mut env: JNIEnv,
+        _class: JClass,
+        context: JObject,
+    ) {
+        rustls_platform_verifier::android::init_hosted(&mut env, context)
+            .expect("Failed to initialize rustls-platform-verifier");
+    }
+}
