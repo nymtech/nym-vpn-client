@@ -406,6 +406,17 @@
 	<string name="account_info_id_info">در صورت نیاز به تماس با پشتیبانی Nym از شناسه حساب خود استفاده کنید. اشتراک‌گذاری آن امن است.</string>
 	<string name="account_info_device_title">شناسه دستگاه</string>
 	<string name="account_info_device_info">از این گزینه برای اتصال این دستگاه به حساب خود در nym.com استفاده کنید.</string>
+	<string name="account_info_status_title">Account status</string>
+	<string name="account_info_bandwidth_title">Bandwidth remaining</string>
+	<string name="account_info_limit_text">Limit</string>
+	<string name="account_info_reset_text">Resets on</string>
+	<string name="account_info_contact_support_action">Contact our support</string>
+	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
+	<string name="account_info_valid_text">Plan valid until %s</string>
+	<string name="account_info_expires_text">Plan expires on %s</string>
+	<string name="account_info_renew_text">Renew now to stay protected</string>
+	<string name="account_info_auto_renew_text">*Auto-renews</string>
+	<string name="account_info_no_plan">طرح فعال وجود ندارد</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">فعال‌سازی ثبت لاگ</string>
 	<string name="logs_enable_description">برای عیب‌یابی فعال کنید. برای حریم خصوصی غیرفعال کنید. لاگ‌ها روی دستگاه شما می‌مانند. Nym هرگز دسترسی ندارد.</string>

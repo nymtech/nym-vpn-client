@@ -217,8 +217,8 @@
 	<string name="settings_system_tray_description">বন্ধ করলেও অ্যাপ চালু রাখুন</string>
 	<string name="settings_reset_app_title">অ্যাপ ডেটা রিসেট করুন</string>
 	<string name="settings_system_status_title">সিস্টেম অবস্থা</string>
-	<string name="settings_mixnet_tuning_title">Mixnet tuning</string>
-	<string name="settings_mixnet_tuning_description">Customize traffic patterns of Anonymous mode</string>
+	<string name="settings_mixnet_tuning_title">Mixnet টিউনিং</string>
+	<string name="settings_mixnet_tuning_description">বেনামি মোডের ট্রাফিক প্যাটার্ন কাস্টমাইজ করুনআপনার <strong>mixnet</strong> ট্রাফিক প্যাটার্ন কাস্টমাইজ করুন।</string>
 	<string name="settings_quit_title">NymVPN থেকে বের হন</string>
 	<string name="settings_app_version_line">অ্যাপ সংস্করণ:</string>
 	<string name="settings_daemon_version_line">ডেমন সংস্করণ </string>
@@ -226,11 +226,11 @@
 	<string name="settings_language_help_description">আপনার ভাষায় অ্যাপটি আরও উন্নত করতে সাহায্য করুন.</string>
 	<string name="settings_event_lan_reconnecting">LAN সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
 	<!-- Shortcuts activity -->
-	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
-	<string name="shortcut_title">Confirm action</string>
-	<string name="shortcut_subtitle_stop">Unlock to disconnect VPN</string>
-	<string name="shortcut_subtitle_start_mixnet">Unlock to start Mixnet</string>
-	<string name="shortcut_subtitle_start_wg">Unlock to start Fast mode</string>
+	<string name="shortcuts_info_message">শর্টকাট ব্যবহার করতে স্ক্রিন লক প্রয়োজন।</string>
+	<string name="shortcut_title">পদক্ষেপ নিশ্চিত করুন</string>
+	<string name="shortcut_subtitle_stop">VPN সংযোগ বিচ্ছিন্ন করতে আনলক করুন</string>
+	<string name="shortcut_subtitle_start_mixnet">Mixnet চালু করতে আনলক করুন</string>
+	<string name="shortcut_subtitle_start_wg">দ্রুত মোড চালু করতে আনলক করুন</string>
 	<!-- Battery optimization -->
 	<string name="battery_opt_title">সেরা সংযোগের জন্য</string>
 	<string name="battery_opt_descr">আরও স্থিতিশীল VPN সংযোগের জন্য NymVPN-এর ব্যাটারি অপটিমাইজেশন বন্ধ করুন</string>
@@ -257,27 +257,29 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">চালিয়ে যান</string>
 	<string name="welcome_title">NymVPN উন্নত করতে আমাদের সাহায্য করুন</string>
-	<string name="welcome_description">Choose what anonymous data to share. All data is stripped of identifying information before being sent.</string>
-	<string name="welcome_error_reports_title">Share error reports</string>
-	<string name="welcome_error_reports_description_start">Helps us fix bugs faster, no personal data collected (via </string>
+	<string name="welcome_description">কোন বেনামি তথ্য শেয়ার করবেন তা বেছে নিন। পাঠানোর আগে সমস্ত তথ্য থেকে পরিচয় শনাক্তকারী তথ্য মুছে ফেলা হয়।</string>
+	<string name="welcome_error_reports_title">ত্রুটি প্রতিবেদন শেয়ার করুন</string>
+	<string name="welcome_error_reports_description_start">বাগ দ্রুত সমাধানে সহায়তা করে, কোনো ব্যক্তিগত তথ্য সংগ্রহ করা হয় না (</string>
 	<string name="welcome_error_reports_link_text">সেন্ট্রি</string>
 	<string name="welcome_error_reports_description_end">)</string>
-	<string name="welcome_usage_title">Share usage analytics</string>
-	<string name="welcome_usage_description">Helps us improve the Nym network. No logging or activity tracked.</string>
+	<string name="welcome_usage_title">ব্যবহার বিশ্লেষণ শেয়ার করুন</string>
+	<string name="welcome_usage_description">Nym নেটওয়ার্ক উন্নত করতে সহায়তা করে। কোনো লগ বা কার্যকলাপ নজরদারি করা হয় না।</string>
 	<!-- Onboarding screen -->
 	<string name="onboarding_title_2">প্রয়োজন হলে গতি। গুরুত্বপূর্ণ মুহূর্তে গোপনীয়তা।</string>
 	<string name="onboarding_title_3">অনলাইনে ট্র্যাক হওয়া বন্ধ করুন।</string>
-	<string name="onboarding_title_4">Anonymity from payment to web</string>
-	<string name="onboarding_description_base">The world’s most private VPN</string>
+	<string name="onboarding_title_4">পেমেন্ট থেকে শুরু করে ওয়েবে ব্রাউজিং পর্যন্ত সর্বত্র গোপনীয়তা।</string>
+	<string name="onboarding_description_base">বিশ্বের সবচেয়ে প্রাইভেট VPN</string>
 	<string name="onboarding_description_1">The world’s most private VPN</string>
-	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
-	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
+	<string name="onboarding_description_2">দ্রুত: dVPN-এর সাথে ২৫০+ Mbps.
+বেনামি: ৫-হপ নয়েজ জেনারেটিং Mixnet.</string>
+	<string name="onboarding_description_3">Nym-এর বিকেন্দ্রীভূত নেটওয়ার্ক “নো-লগ”
+প্রতিশ্রুতিকে পুরতান করে দিয়েছে।</string>
 	<string name="onboarding_description_4">কার্ড, ক্রিপ্টো বা নগদে পরিশোধ করুন — ইমেইল আবশ্যক নয়। জিরো-নলেজ প্রমাণ ক্রিপ্টোগ্রাফিকভাবে আপনার পেমেন্টকে অনলাইন কার্যকলাপ থেকে আলাদা রাখে।</string>
 	<string name="onboarding_create_account_button">অ্যাকাউন্ট তৈরি করুন</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">আপনার সুরক্ষা স্তর নির্বাচন করুন</string>
-	<string name="select_plan_line_0">7-day free trial</string>
-	<string name="select_plan_line_1">All features included</string>
+	<string name="select_plan_line_0">৭ দিনের বিনামূল্যে পরীক্ষামূলক ব্যবহার</string>
+	<string name="select_plan_line_1">সমস্ত সুবিধা সম্প্রদায়</string>
 	<string name="select_plan_line_2">কোনও বিজ্ঞাপন নেই</string>
 	<string name="select_plan_line_3">যেকোনো সময় বাতিল করুন</string>
 	<string name="select_plan_button">আমার NymVPN প্ল্যান নির্বাচন করুন</string>
@@ -357,8 +359,8 @@
 	<string name="account_generating_description_2">গোপন নেটওয়ার্ক ক্রেডেনশিয়াল তৈরি করা হচ্ছে</string>
 	<string name="account_generating_description_3">ক্রেডেনশিয়ালগুলোকে আপনার ডিভাইস কী দিয়ে এনক্রিপ্ট করা হচ্ছে — শুধুমাত্র আপনি এগুলো আনলক করতে পারবেন।</string>
 	<string name="account_generating_error">অ্যাকাউন্ট নিবন্ধন ব্যর্থ হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন</string>
-	<string name="account_generating_deeplink_title">Logging in...</string>
-	<string name="account_generating_deeplink_description">Please wait while we verify your account</string>
+	<string name="account_generating_deeplink_title">লগ ইন হচ্ছে...</string>
+	<string name="account_generating_deeplink_description">আপনার অ্যাকাউন্ট যাচাই করা হচ্ছে, দয়া করে অপেক্ষা করুন</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">আপনার পেমেন্ট নিরাপদে প্রক্রিয়াকরণ করা হচ্ছে...</string>
 	<string name="account_payment_verifying">আমরা আপনার সাবস্ক্রিপশন যাচাই করছি — কোনো ব্যক্তিগত তথ্য কখনোই আপনার পরিচয়ের সঙ্গে যুক্ত করা হয় না</string>
@@ -393,24 +395,35 @@
 	<string name="passphrase_info_belongs">কেবল আপনার স্ব-নিয়ন্ত্রণ (self-custody)</string>
 	<!-- Account screen -->
 	<string name="account_title">অ্যাকাউন্ট ও ডিভাইস</string>
-	<string name="account_info_manage_button">Manage your subscription</string>
-	<string name="account_info_account_button">Account on nym.com</string>
-	<string name="account_info_link_description">Link a social account for effortless login.</string>
-	<string name="account_info_link_warning">⚠️ Linking a social account with your Nym account reduces your anonymity. Changes take effect after logging out and logging back in with the chosen social. </string>
-	<string name="account_info_linked_info">⚡ This account is linked with a social login method via privy.  </string>
+	<string name="account_info_manage_button">আপনার সাবস্ক্রিপশন পরিচালনা করুন</string>
+	<string name="account_info_account_button">nym.com-এ অ্যাকাউন্ট</string>
+	<string name="account_info_link_description">তথ্য, গোপনীয়তা ও লগ</string>
+	<string name="account_info_link_warning">⚠️ সোশ্যাল অ্যাকাউন্ট লিন্ক করার ফলে আপনার Nym অ্যাকাউন্টের বেনামিতা হ্রাস পায়। বেছে নেওয়া সোশ্যাল থেকে লগ আউট ও লগ ইন করার পর পরিবর্তন কার্যকর হয়। </string>
+	<string name="account_info_linked_info">⚡ এই অ্যাকাউন্টটি privy মাধ্যমে একটি সোশ্যাল লগিন পদ্ধতির সাথে যুক্ত। </string>
 	<string name="account_info_id_title">অ্যাকাউন্ট আইডি</string>
-	<string name="account_info_id_info">Use your account ID if you need to contact Nym customer support.  This is safe to share!</string>
+	<string name="account_info_id_info">Nym গ্রাহক সহায়তার সাথে যোগাযোগ করতে আপনার অ্যাকাউন্ট ID ব্যবহার করুন। এটি শেয়ার করা নিরাপদ।</string>
 	<string name="account_info_device_title">ডিভাইস আইডি</string>
-	<string name="account_info_device_info">Use this to link this device to your account on nym.com</string>
+	<string name="account_info_device_info">ডিভাইসটি nym.com-এ আপনার অ্যাকাউন্টের সাথে লিংক করতে এটি ব্যবহার করুন।</string>
+	<string name="account_info_status_title">অ্যাকাউন্টের অবস্থা</string>
+	<string name="account_info_bandwidth_title">বাকি ব্যান্ডওয়িডথ</string>
+	<string name="account_info_limit_text">সীমা</string>
+	<string name="account_info_reset_text">রিসেট হবে</string>
+	<string name="account_info_contact_support_action">আমাদের সাপোর্ট দলের সাথে যোগাযোগ করুন</string>
+	<string name="account_info_contact_support_suffix">অতিরিক্ত ব্যান্ডওয়িডথের জন্য দল।</string>
+	<string name="account_info_valid_text">প্ল্যান সুবিধা প্রযোজ্য %s পর্যন্ত</string>
+	<string name="account_info_expires_text">প্ল্যান মেয়াদ শেষ হবে %s তারিখে</string>
+	<string name="account_info_renew_text">সুরক্ষিত থাকতে এখনই নবায়ন করুন</string>
+	<string name="account_info_auto_renew_text">*স্বয়ংক্রিয়ভাবে নবায়ন হয়</string>
+	<string name="account_info_no_plan">কোনো সক্রিয় প্ল্যান নেই</string>
 	<!-- Logs screen -->
-	<string name="logs_enable_title">Enable logging</string>
-	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>
-	<string name="logs_debug_enable_title">Enable verbose logging</string>
-	<string name="logs_debug_enable_description">Turn on for detailed DEBUG logs for self-debugging or support. Increases battery consumption. Log size may grow up to 10x.</string>
+	<string name="logs_enable_title">লগিং চালু করুন</string>
+	<string name="logs_enable_description">সমস্যা নির্ণয়ের জন্য চালু করুন। গোপনীয়তার জন্য বন্ধ করুন। লগ আপনার ডিভাইসে থাকে। Nym-এর কখনো অ্যাক্সেস নেই।</string>
+	<string name="logs_debug_enable_title">ভার্বোস লগিং সক্রিয় করুন</string>
+	<string name="logs_debug_enable_description">স্ব-ডিবাগিং বা সাপোর্টের জন্য বিস্তারিত DEBUG লগ সক্রিয় করুন। ব্যাটারি ব্যবহার বাড়ে। লগের আকার সর্বোচ্চ ১০ গুণ পর্যন্ত বাড়তে পারে।.</string>
 	<string name="logs_tab_app">অ্যাপসমূহ</string>
-	<string name="logs_tab_tunnel">Tunnel</string>
-	<string name="logs_tab_library">Library</string>
-	<string name="logs_empty_placeholder">No logs yet</string>
+	<string name="logs_tab_tunnel">টানেল</string>
+	<string name="logs_tab_library">লাইব্রেরি</string>
+	<string name="logs_empty_placeholder">এখনো কোনো লগ নেই</string>
 	<string name="logs_share">শেয়ার করুন</string>
 	<string name="logs_download">ডাউনলোড</string>
 	<string name="logs_delete">মুছে ফেলুন</string>
@@ -470,35 +483,45 @@
 	<string name="dns_event_saved">কাস্টম DNS সংরক্ষিত</string>
 	<string name="dns_event_reconnecting">কাস্টম DNS সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
 	<!-- Mixnet tuning screen -->
-	<string name="mixnet_tuning_description">Customize your mixnet traffic patterns</string>
-	<string name="mixnet_tuning_current_title">Expected performance of current settings:</string>
+	<string name="mixnet_tuning_description">আপনার mixnet ট্রাফিক প্যাটার্ন কাস্টমাইজ করুন</string>
+	<string name="mixnet_tuning_current_title">বর্তমান সেটিংসের প্রত্যাশিত পারফরম্যান্স:</string>
 	<string name="mixnet_tuning_current_speed">গতি</string>
-	<string name="mixnet_tuning_current_latency">Latency</string>
-	<string name="mixnet_tuning_internet_speed">Up to internet speed</string>
-	<string name="mixnet_tuning_current_description">Expected round-trip latency (RTT) on a standard network</string>
-	<string name="mixnet_tuning_traffic_title">Send traffic continuously</string>
-	<string name="mixnet_tuning_traffic_off_title">Background cover traffic rate</string>
-	<string name="mixnet_tuning_traffic_warning">⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.</string>
-	<string name="mixnet_tuning_traffic_on_description">Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.</string>
-	<string name="mixnet_tuning_traffic_off_description">We’ll still send cover traffic independently of your real traffic.  Choose how much cover you need. </string>
-	<string name="mixnet_tuning_traffic_min">Use less battery &amp; data</string>
-	<string name="mixnet_tuning_traffic_on_low">Low\n0.7 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_high">High\n2 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_balanced">Balanced\n1 Mbps</string>
-	<string name="mixnet_tuning_traffic_off_low">Base</string>
-	<string name="mixnet_tuning_traffic_off_high">High\n20x</string>
-	<string name="mixnet_tuning_traffic_off_balanced">Balanced\n5x</string>
-	<string name="mixnet_tuning_traffic_off_medium">Medium\n10x</string>
-	<string name="mixnet_tuning_delays_title">Mixing delays</string>
-	<string name="mixnet_tuning_delays_description">Adjust timing delays to change how well your packets are mixed.</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Timing protection is currently turned off. This could put your privacy at risk.</string>
-	<string name="mixnet_tuning_delays_min">Faster speed</string>
-	<string name="mixnet_tuning_delays_low">Low\n0m</string>
-	<string name="mixnet_tuning_delays_high">High\n200 ms</string>
-	<string name="mixnet_tuning_delays_default">Default\n15 ms</string>
-	<string name="mixnet_tuning_delays_current">Current\n%1$s</string>
-	<string name="mixnet_tuning_max">Max. anonymity</string>
-	<string name="mixnet_tuning_link_text">Learn more about mixnet parameters</string>
-	<string name="mixnet_tuning_save_button">Save custom settings</string>
-	<string name="mixnet_tuning_restore_button">Restore default settings</string>
+	<string name="mixnet_tuning_current_latency">ল্যাটেন্সি</string>
+	<string name="mixnet_tuning_internet_speed">ইন্টারনেট গতি পর্যন্ত</string>
+	<string name="mixnet_tuning_current_description">স্ট্যান্ডার্ড নেটওয়ার্কে প্রত্যাশিত রাউন্ড-ট্রিপ ল্যাটেন্সি (RTT)</string>
+	<string name="mixnet_tuning_traffic_title">নিরন্তর ট্রাফিক পাঠান</string>
+	<string name="mixnet_tuning_traffic_off_title">ব্যাকগ্রাউন্ড কভার ট্র্যাফিক রেট</string>
+	<string name="mixnet_tuning_traffic_warning">⚠️ সতত ট্রাফিক বন্ধ আছে। আপনার প্যাকেটগুলি যখন পাওয়া যাবে তখন পাঠানো হবে। এতে ট্রাফিক প্যাটার্ন প্রকাশ হতে পারে।</string>
+	<string name="mixnet_tuning_traffic_on_description">প্যাটার্ন একরূপ রাখতে সবসময় কভার ট্রাফিক পাঠানো হয়। আপনার প্যাকেট পাঠানোর হার ঠিক করুন।</string>
+	<string name="mixnet_tuning_traffic_off_description">আপনার আসল ট্রাফিকের সাথে স্বতন্ত্রভাবে কভার ট্রাফিক পাঠানো হবে। কতটুকু কভার চান তা বেছে নিন।</string>
+	<string name="mixnet_tuning_traffic_min">কম ব্যাটারি ও ডেটা ব্যবহার করুন</string>
+	<string name="mixnet_tuning_traffic_on_low">কম
+০.৭ Mbps</string>
+	<string name="mixnet_tuning_traffic_on_high">উচ্চ
+২ Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">মধ্যম
+১ Mbps</string>
+	<string name="mixnet_tuning_traffic_off_low">ভিত্তি</string>
+	<string name="mixnet_tuning_traffic_off_high">উচ্চ
+২০x</string>
+	<string name="mixnet_tuning_traffic_off_balanced">মধ্যম
+৫x</string>
+	<string name="mixnet_tuning_traffic_off_medium">মাঝারি
+১০x</string>
+	<string name="mixnet_tuning_delays_title">মিক্সিং বিলম্ব</string>
+	<string name="mixnet_tuning_delays_description">আপনার প্যাকেটগুলি কতটা ভালোভাবে মিশ্রিত হয় তা পরিবর্তন করতে টাইমিং বিলম্ব সামঞ্জস্য করুন।</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ টাইমিং সুরক্ষা বর্তমানে বন্ধ আছে। এতে আপনার গোপনীয়তা বিপদে পড়তে পারে।</string>
+	<string name="mixnet_tuning_delays_min">দ্রুততর গতি</string>
+	<string name="mixnet_tuning_delays_low">কম
+০m</string>
+	<string name="mixnet_tuning_delays_high">উচ্চ
+২০০ ms</string>
+	<string name="mixnet_tuning_delays_default">ডিফল্ট
+১৫ ms</string>
+	<string name="mixnet_tuning_delays_current">বর্তমান
+%1$s</string>
+	<string name="mixnet_tuning_max">সর্বোচ্চ পরিচয় গোপনীয়তা</string>
+	<string name="mixnet_tuning_link_text">ডিফল্ট সেটিংসে রিসেট করুনবর্তমান সেটিংসের ভিত্তিতে প্রত্যাশিত কার্যক্ষমতা</string>
+	<string name="mixnet_tuning_save_button">কাস্টম সেটিংস সারি করুন</string>
+	<string name="mixnet_tuning_restore_button">ডিফল্ট সেটিংস পুনরুদ্ধার করুন</string>
 </resources>

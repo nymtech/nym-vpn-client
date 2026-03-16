@@ -403,6 +403,17 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="account_info_id_info">Nym müşteri desteği ile iletişime geçmeniz gerekirse, hesap ID’nizi kullanın. Bu bilgiyi paylaşmak güvenlidir!</string>
 	<string name="account_info_device_title">Cihaz Kimliği</string>
 	<string name="account_info_device_info">Bu cihazı nym.com hesabınıza bağlamak için buradaki bağlantıyı kullanın</string>
+	<string name="account_info_status_title">Account status</string>
+	<string name="account_info_bandwidth_title">Bandwidth remaining</string>
+	<string name="account_info_limit_text">Limit</string>
+	<string name="account_info_reset_text">Resets on</string>
+	<string name="account_info_contact_support_action">Contact our support</string>
+	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
+	<string name="account_info_valid_text">Plan valid until %s</string>
+	<string name="account_info_expires_text">Plan expires on %s</string>
+	<string name="account_info_renew_text">Renew now to stay protected</string>
+	<string name="account_info_auto_renew_text">*Auto-renews</string>
+	<string name="account_info_no_plan">Aktif plan yok</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Kayıt tutmayı etkinleştir</string>
 	<string name="logs_enable_description">Sorun giderme gerektiğinde açın, gizlilik için kapatın. Kayıtlar sadece cihazınızda saklanır; Nym bunlara hiç erişemez.</string>

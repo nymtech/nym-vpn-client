@@ -1,6 +1,7 @@
-What's New:
-- Account Setup: Support for in-app account creation and registration.
-- Privy Integration: Link your accounts easily with new Privy support.
-- Mixnet Tuning: New UI to fine-tune your privacy and connection settings.
-- Stability Fixes: Resolved Always-On VPN issues after system restarts and fixed app crashes.
-- Better Connectivity: Improved VPN architecture for more reliable, dynamic reconnections and updated Account Info UI.
+নতুন কি আছে:
+- অ্যাকাউন্ট সেটআপ: অ্যাপের মধ্যে অ্যাকাউন্ট তৈরি ও নিবন্ধনের সুবিধা।
+- Privy ইন্টিগ্রেশন: নতুন Privy সাপোর্টের মাধ্যমে সহজেই আপনার অ্যাকাউন্টগুলি লিংক করুন।
+- Mixnet টিউনিং: আপনার গোপনীয়তা ও সংযোগ সেটিংস বারিক করতে নতুন UI।
+- স্থিতিশীলতা সমাধান: সিস্টেম পুনরারম্ভের পরে Always-On VPN সমস্যা সমাধান ও অ্যাপ ক্র্যাশ ঠিক করা হয়েছে।
+- বেতার সংযোগযোগ্যতা: আরো নির্ভরযোগ্য ডানামিক রিকনেকশন এবং আপডেটেড Account Info UI-এর জন্য উনন্ত VPN আর্কিটেকচার।
+

@@ -404,6 +404,17 @@
 	<string name="account_info_id_info">Use seu ID de conta se precisar entrar em contato com o suporte ao cliente Nym. Isto é seguro para compartilhar!</string>
 	<string name="account_info_device_title">ID do dispositivo</string>
 	<string name="account_info_device_info">Use isso para vincular este dispositivo à sua conta no nym.com</string>
+	<string name="account_info_status_title">Status da conta</string>
+	<string name="account_info_bandwidth_title">Banda restante</string>
+	<string name="account_info_limit_text">Limitar</string>
+	<string name="account_info_reset_text">Reinicia em</string>
+	<string name="account_info_contact_support_action">Entre em contato com nosso suporte</string>
+	<string name="account_info_contact_support_suffix">\u0020equipe para largura de banda extra.</string>
+	<string name="account_info_valid_text">Plano válido até %s</string>
+	<string name="account_info_expires_text">O plano expira em %s</string>
+	<string name="account_info_renew_text">Renove agora para ficar protegido</string>
+	<string name="account_info_auto_renew_text">*Renovação automática</string>
+	<string name="account_info_no_plan">Nenhum plano ativo</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Habilitar registro</string>
 	<string name="logs_enable_description">Ative para solucionar problemas. Desative a privacidade. Os logs permanecem no seu dispositivo. O nym nunca tem acesso.</string>

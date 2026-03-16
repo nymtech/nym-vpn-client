@@ -403,6 +403,17 @@
 	<string name="account_info_id_info">Nym ग्राहक सहायता से संपर्क करने के लिए अपने अकाउंट ID का उपयोग करें। इसे शेयर करना सुरक्षित है!</string>
 	<string name="account_info_device_title">डिवाइस ID</string>
 	<string name="account_info_device_info">इस डिवाइस को nym.com पर अपने अकाउंट से लिंक करने के लिए इसका उपयोग करें।</string>
+	<string name="account_info_status_title">अकाउंट स्थिति</string>
+	<string name="account_info_bandwidth_title">शेष बैंडविड्थ</string>
+	<string name="account_info_limit_text">सीमा</string>
+	<string name="account_info_reset_text">अगला रीसेट:</string>
+	<string name="account_info_contact_support_action">हमारि समर्थन टीम से संपर्क करें</string>
+	<string name="account_info_contact_support_suffix">\u0020अतिरिक्त बैंडविड्थ के लिए टीम।</string>
+	<string name="account_info_valid_text">यह प्लान %s तक वैध है</string>
+	<string name="account_info_expires_text">यह प्लान %s को समाप्त हो रहा है</string>
+	<string name="account_info_renew_text">सुरक्षित रहने के लिए अभी रिन्यू करें</string>
+	<string name="account_info_auto_renew_text">*ऑटो-रिन्यू</string>
+	<string name="account_info_no_plan">कोई सक्रिय प्लान नहीं</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">लॉगिंग एनेबल करें</string>
 	<string name="logs_enable_description">समस्या निवारण के लिए इसे चालू करें। प्राइवेसी के लिए इसे बंद करें। लॉग आपके डिवाइस पर ही रहेंगे। Nym को कभी भी इन तक ऐक्सेस नहीं होगा।</string>

@@ -404,6 +404,17 @@
 	<string name="account_info_id_info">استخدم معرف الحساب الخاص بك إذا كنت بحاجة إلى الاتصال بدعم عملاء Nym . وهذا أمر آمن لمشاركته!</string>
 	<string name="account_info_device_title">معرف الجهاز</string>
 	<string name="account_info_device_info">استخدم هذا لربط هذا الجهاز بحسابك على nym.com</string>
+	<string name="account_info_status_title">حالة الحساب</string>
+	<string name="account_info_bandwidth_title">العرض الترددي المتبقي</string>
+	<string name="account_info_limit_text">الحد</string>
+	<string name="account_info_reset_text">إعادة تعيين في</string>
+	<string name="account_info_contact_support_action">اتصل بالدعم</string>
+	<string name="account_info_contact_support_suffix">\u0020فريق لعرض النطاق الترددي الإضافي.</string>
+	<string name="account_info_valid_text">خطة صالحة حتى %s</string>
+	<string name="account_info_expires_text">الخطة تنتهي في %s</string>
+	<string name="account_info_renew_text">التجديد الآن للبقاء محمي</string>
+	<string name="account_info_auto_renew_text">* التجديدات التلقائية</string>
+	<string name="account_info_no_plan">لا توجد خطة نشطة</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">تمكين تسجيل الدخول</string>
 	<string name="logs_enable_description">تشغيل لاستكشاف الأخطاء وإصلاحها. تعطيل للخصوصية. السجلات تبقى على جهازك. لا يوجد أي شيء لديه حق الوصول أبدا.</string>
