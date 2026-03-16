@@ -321,8 +321,6 @@ impl ConnectedTunnel {
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
-        // Inlining old `set_udp_proxy_listen_addr` call
-        // Need a double check from @AM
         two_hop_config.forwarder.listen_endpoint = exit_in_tunnel_udp_proxy.listen_addr();
         two_hop_config.exit.peer.endpoint = exit_in_tunnel_udp_proxy.listen_addr();
 
