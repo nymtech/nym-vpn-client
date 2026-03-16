@@ -1,8 +1,8 @@
-What’s new
-- New logging controls: Enable Logs and Debug Verbose toggles
-- Added authentication check for shortcut actions
-- Updated logs export format (structured folders and grouped logs)
-- Improved NavBar action handling
-- Reduced unnecessary log noise
-- Fixed Auto Start handling
-- Minor UI improvements and fixes
+নতুন কী আছে
+- নতুন লগিং নিয়ন্ত্রণ: Logs এবং Debug Verbose টোগেল সক্রিয় করুন
+- শর্টকাট অ্যাকশনে অথেন্টিকেশন যাচাই যুক্ত করা হয়েছে
+- লগ রপ্তানি ফরম্যাট আপডেট (কাঠামোগত ফোল্ডার এবং গ্রুপেড লগ)
+- নেভিগেশন বার অ্যাকশন পরিচালনা উন্নত করা হয়েছে
+- অপ্রয়োজনীয় লগ ক্রট্যাশ হ্রাস করা হয়েছে
+- অটো স্টার্ট পরিচালনা সাড়ানো হয়েছে
+- সামান্য UI উন্নতি ও সমাধান

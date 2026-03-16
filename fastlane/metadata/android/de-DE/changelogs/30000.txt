@@ -1,0 +1,5 @@
+Was ist Neu:
+- Abo-Kontrollen, Kontoübersichten und soziale Verlinkungen wurden hinzugefügt.
+- Passwort-Eingaben maskiert und Anmeldefehler behoben.
+- Abmeldung aus den Einstellungen entfernt und Fehlerwarnungen auf dem Hauptbildschirm behoben.
+- Fehler beim Starten des Geräts (Bootempfänger) behoben.

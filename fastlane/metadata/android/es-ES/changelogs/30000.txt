@@ -1,0 +1,5 @@
+Novedades:
+- Comprobaciones de suscripción, resúmenes de cuentas y vinculación social.
+- Entradas de contraseña enmascaradas y errores de inicio de sesión resueltos.
+- Se ha eliminado la salida de la configuración y se han corregido las alertas de error de la pantalla principal.
+- Corregidos errores de inicio del dispositivo (receptor de arranque).

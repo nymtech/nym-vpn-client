@@ -1,0 +1,5 @@
+Novidades:
+- Adicionadas verificações de assinatura, resumos da conta e links sociais.
+- Entradas de senha mascaradas e erros de login resolvidos.
+- O logout foi removido das configurações e os alertas de erros de tela principal foram corrigidos.
+- Inicialização de dispositivo fixo (receptor de inicialização).

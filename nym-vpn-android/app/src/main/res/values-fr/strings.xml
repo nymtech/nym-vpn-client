@@ -402,6 +402,17 @@
 	<string name="account_info_id_info">Utilisez votre ID de compte si vous avez besoin de contacter l\'assistance clientèle de Nym. C\'est sécuritaire à partager!</string>
 	<string name="account_info_device_title">ID de l\'appareil</string>
 	<string name="account_info_device_info">Utilisez ceci pour lier cet appareil à votre compte sur nym.com</string>
+	<string name="account_info_status_title">État du compte</string>
+	<string name="account_info_bandwidth_title">Bande passante restante</string>
+	<string name="account_info_limit_text">Limite</string>
+	<string name="account_info_reset_text">Réinitialisation activée</string>
+	<string name="account_info_contact_support_action">Contactez notre support</string>
+	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
+	<string name="account_info_valid_text">Offre valable jusqu\'à %s</string>
+	<string name="account_info_expires_text">Le plan expire sur %s</string>
+	<string name="account_info_renew_text">Renouveler maintenant pour rester protégé</string>
+	<string name="account_info_auto_renew_text">*Renouvellement automatique</string>
+	<string name="account_info_no_plan">Aucun abonnement actif</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Activer les logs</string>
 	<string name="logs_enable_description">Activez pour le dépannage. Désactivez pour la confidentialité. Les journaux restent sur votre appareil. Nym n\'a jamais accès.</string>
