@@ -1,5 +1,4 @@
 name: ci-nym-vpn-android
-
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -16,6 +15,7 @@ on:
 jobs:
   check:
     runs-on: arc-linux-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -39,17 +39,38 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Cache NDK
+        uses: actions/cache@v4
+        id: cache-ndk
+        with:
+          path: /usr/local/lib/android/sdk/ndk/${{ vars.REQUIRED_NDK_VERSION }}
+          key: ndk-${{ vars.REQUIRED_NDK_VERSION }}
+          restore-keys: |
+            ndk-
+
       - name: Setup NDK
         uses: nttld/setup-ndk@v1
         id: setup-ndk
+        timeout-minutes: 10
         with:
           ndk-version: ${{ vars.REQUIRED_NDK_VERSION }}
           add-to-path: false
 
+      - name: Verify NDK Setup
+        run: |
+          echo "NDK Path: ${{ steps.setup-ndk.outputs.ndk-path }}"
+          if [ ! -d "${{ steps.setup-ndk.outputs.ndk-path }}" ]; then
+            echo "Error: NDK directory not found at ${{ steps.setup-ndk.outputs.ndk-path }}"
+            exit 1
+          fi
+          echo "NDK setup successful"
+
       - name: Run ktlint
+        timeout-minutes: 10
         run: ./gradlew ktlintCheck -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Run detekt
+        timeout-minutes: 10
         run: ./gradlew detekt --info -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
 
   build-nym-vpn-android:
