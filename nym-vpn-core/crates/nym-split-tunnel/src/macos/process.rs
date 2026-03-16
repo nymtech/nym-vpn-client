@@ -15,7 +15,7 @@ use std::{
     path::PathBuf,
     process::Stdio,
     str::FromStr,
-    sync::{Arc, LazyLock, Mutex},
+    sync::{Arc, LazyLock},
     time::Duration,
 };
 
@@ -26,7 +26,7 @@ use nym_platform_metadata::AppleVersion;
 use serde::{Deserialize, de::Error as _};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
-    sync::oneshot,
+    sync::{Mutex, oneshot},
 };
 
 use crate::SplitTunnelErrorCause;
@@ -194,7 +194,7 @@ async fn handle_eslogger_output(
                 }
             };
 
-            let mut inner = states.inner.lock().unwrap();
+            let mut inner = states.inner.lock().await;
             inner.handle_message(val);
         }
     });
@@ -324,8 +324,8 @@ impl ProcessStates {
         })
     }
 
-    pub fn exclude_paths(&self, paths: HashSet<PathBuf>) {
-        let mut inner = self.inner.lock().unwrap();
+    pub async fn exclude_paths(&self, paths: HashSet<PathBuf>) {
+        let mut inner = self.inner.lock().await;
 
         for info in inner.processes.values_mut() {
             // Remove no-longer excluded paths from exclusion list
@@ -346,8 +346,8 @@ impl ProcessStates {
         inner.exclude_paths = paths;
     }
 
-    pub fn get_process_status(&self, pid: pid_t) -> ExclusionStatus {
-        let inner = self.inner.lock().unwrap();
+    pub async fn get_process_status(&self, pid: pid_t) -> ExclusionStatus {
+        let inner = self.inner.lock().await;
         match inner.processes.get(&pid) {
             Some(val) if val.is_excluded() => ExclusionStatus::Excluded,
             Some(_) => ExclusionStatus::Included,
