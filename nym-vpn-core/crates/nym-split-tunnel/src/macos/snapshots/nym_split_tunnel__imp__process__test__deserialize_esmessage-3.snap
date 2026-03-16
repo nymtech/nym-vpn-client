@@ -22,6 +22,9 @@ expression: "(s, result)"
                 audit_token: ESAuditToken {
                     pid: 19745,
                 },
+                responsible_audit_token: ESAuditToken {
+                    pid: 19745,
+                },
                 executable: ESExecutable {
                     path: "/Applications/Mullvad VPN.app/Contents/MacOS/Mullvad VPN",
                 },
