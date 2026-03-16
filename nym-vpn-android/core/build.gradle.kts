@@ -98,6 +98,8 @@ dependencies {
 		}
 	}
 
+	implementation(fileTree("libs/rustls-maven/rustls/rustls-platform-verifier/0.1.1") { include("*.aar") })
+
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.junit)
 	androidTestImplementation(libs.androidx.espresso.core)

@@ -69,3 +69,5 @@ lint/tmp/
 .DS_Store
 *.so
 !libjnidispatch.so
+#include platform verifier .aar
+!core/libs/rustls-maven/**/*.aar
