@@ -57,9 +57,6 @@ licensee {
 	Constants.allowedLicenses.forEach { allow(it) }
 	allowUrl(Constants.ANDROID_TERMS_URL)
 	allowUrl(Constants.XZING_LICENSE_URL)
-	allowDependency("rustls", "rustls-platform-verifier", libs.versions.rustlsPlatformVerifier.get()) {
-		because("MIT/Apache-2.0 licensed local artifact without POM license metadata")
-	}
 }
 
 gross {
