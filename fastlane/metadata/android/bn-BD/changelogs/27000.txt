@@ -1,9 +1,11 @@
-What’s new
-- New onboarding flow for first-time users
-- Technical opt-in screen shown after login or purchase
-- Locale support for high/low copy on the Details screen
-Changes
-- Switched to passphrase-based authentication
-- Replaced “gateway” with “server” across the app
-- Improved connection reliability (smarter reconnect, LAN bypass, split tunneling, Custom DNS)
-- More consistent censorship-handling logic
+নতুন কী আছে
+প্রথমবারের ব্যবহারকারীদের জন্য একদম নতুন, সহজ অনবোর্ডিং ফ্লো।
+লগইন বা ক্রয় সম্পন্ন হওয়ার পর দেখানো টেকনিক্যাল অপ্ট‑ইন স্ক্রিন।
+ডিটেলস স্ক্রিনে লোকেল অনুযায়ী হাই/লো কপি সাপোর্ট যোগ করা হয়েছে।
+পরিবর্তনসমূহ
+অথেন্টিকেশন সিস্টেমে পরিবর্তন: এখন থেকে পাসফ্রেজ‑ভিত্তিক অথেন্টিকেশন ব্যবহার করা হচ্ছে।
+পুরো অ্যাপে “gateway” শব্দের পরিবর্তে “server” ব্যবহার করা হয়েছে, যাতে ব্যবহারকারীদের জন্য ভাষা আরও পরিষ্কার হয়।
+আরও নির্ভরযোগ্য সংযোগের জন্য উন্নত reconnect লজিক, LAN bypass, split tunneling এবং Custom DNS সাপোর্ট উন্নত করা হয়েছে।
+
+
+সেন্সরশিপ‑প্রবণ নেটওয়ার্কে কাজ করার জন্য আরও সঙ্গতিশীল censorship‑handling লজিক যুক্ত করা হয়েছে।

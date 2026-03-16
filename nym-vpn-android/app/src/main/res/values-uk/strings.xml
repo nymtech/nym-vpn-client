@@ -269,7 +269,7 @@
 	<string name="onboarding_title_3">Припиніть відстеження в Інтернеті</string>
 	<string name="onboarding_title_4">Анонімність від оплати до веб-сайту</string>
 	<string name="onboarding_description_base">Найприватніший VPN у світі</string>
-	<string name="onboarding_description_1">Найприватніший VPN у світі</string>
+	<string name="onboarding_description_1">Найприватніший VPN у світі\nСпробуйте безкоштовно протягом 7 днів:\nУсі функції включені, без реклами.</string>
 	<string name="onboarding_description_2">Швидкий: понад 250 Мбіт/с з dVPN.
 Анонімний: 5-рівневий мікснет з генерацією шуму.</string>
 	<string name="onboarding_description_3">Децентралізована мережа Nym робить обіцянки «без збереження журналів» застарілими.</string>
@@ -403,6 +403,17 @@
 	<string name="account_info_id_info">Використовуйте ідентифікатор свого облікового запису, якщо вам потрібно зв\'язатися зі службою підтримки клієнтів Nym.  Цю інформацію можна безпечно надавати!</string>
 	<string name="account_info_device_title">Ідентифікатор пристрою</string>
 	<string name="account_info_device_info">Використовуйте це, щоб пов\'язати цей пристрій зі своїм обліковим записом на nym.com</string>
+	<string name="account_info_status_title">Статус облікового запису</string>
+	<string name="account_info_bandwidth_title">Залишок пропускної здатності</string>
+	<string name="account_info_limit_text">Ліміт</string>
+	<string name="account_info_reset_text">Скидання налаштувань</string>
+	<string name="account_info_contact_support_action">Зв\'язатися з підтримкою</string>
+	<string name="account_info_contact_support_suffix">\u0020команда для додаткової пропускної здатності.</string>
+	<string name="account_info_valid_text">План дійсний до %s</string>
+	<string name="account_info_expires_text">Термін дії плану закінчується %s</string>
+	<string name="account_info_renew_text">Поновіть зараз, щоб залишатися захищеним</string>
+	<string name="account_info_auto_renew_text">*Автоматичне поновлення</string>
+	<string name="account_info_no_plan">Немає активного плану</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Увімкнути журнал</string>
 	<string name="logs_enable_description">Увімкніть для усунення несправностей. Вимкніть для збереження конфіденційності. Журнали залишаються на вашому пристрої. Nym ніколи не має до них доступу.</string>

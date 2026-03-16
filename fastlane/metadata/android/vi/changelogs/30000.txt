@@ -1,0 +1,5 @@
+Có gì mới:
+- Đã thêm chức năng kiểm tra đăng ký, tóm tắt tài khoản và liên kết mạng xã hội.
+- Che giấu mật khẩu khi nhập và khắc phục lỗi đăng nhập.
+- Đã xóa chức năng đăng xuất khỏi cài đặt và sửa lỗi cảnh báo trên màn hình chính.
+- Đã sửa các lỗi khởi động thiết bị (bộ thu khởi động).

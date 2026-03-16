@@ -1,0 +1,5 @@
+Nouveautés :
+- Ajout de vérifications d'abonnement, de résumés de compte et de liens sociaux.
+- Des entrées masquées de mot de passe et des erreurs de connexion résolues.
+- Suppression de la déconnexion des paramètres et des alertes d'erreurs de l'écran principal.
+- Correction des bogues de démarrage de l'appareil (récepteur de démarrage).

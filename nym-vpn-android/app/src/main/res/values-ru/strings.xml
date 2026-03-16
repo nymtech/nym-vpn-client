@@ -271,7 +271,7 @@
 	<string name="onboarding_title_3">Остановите слежку за вами в интернете</string>
 	<string name="onboarding_title_4">Анонимность от платежа до веб-сёрфинга</string>
 	<string name="onboarding_description_base">Самый приватный VPN в мире</string>
-	<string name="onboarding_description_1">Самый приватный VPN в мире</string>
+	<string name="onboarding_description_1">Самый приватный VPN в мире\n7 дней бесплатно:\nПолный доступ ко всем функциям и никакой рекламы.</string>
 	<string name="onboarding_description_2">Быстрый режим: 250+ Мбит/с с dVPN.\nАнонимный режим: 5-ступенчатый генерирующий шум микснет.</string>
 	<string name="onboarding_description_3">С децентрализованной сетью Nym гарантии «без сбора данных»\n теряют смысл.</string>
 	<string name="onboarding_description_4">Оплачивайте картой, криптовалютой или наличными — без указания электронной почты. Доказательства с нулевым разглашением криптографически отделяют ваш платёж от вашей онлайн-активности.</string>
@@ -404,6 +404,17 @@
 	<string name="account_info_id_info">Используйте свой идентификатор аккаунта, если вам необходимо связаться со службой поддержки Nym.  Им можно безопасно делиться!</string>
 	<string name="account_info_device_title">ID устройства</string>
 	<string name="account_info_device_info">Используйте эту ссылку для привязки устройства к вашему аккаунту на nym.com</string>
+	<string name="account_info_status_title">Статус аккаунта</string>
+	<string name="account_info_bandwidth_title">Остаток трафика</string>
+	<string name="account_info_limit_text">Лимит</string>
+	<string name="account_info_reset_text">Сброс на</string>
+	<string name="account_info_contact_support_action">Обратитесь в поддержку</string>
+	<string name="account_info_contact_support_suffix">\u0020за дополнительным трафиком.</string>
+	<string name="account_info_valid_text">План действует до %s</string>
+	<string name="account_info_expires_text">План истекает %s</string>
+	<string name="account_info_renew_text">Продлите сейчас, чтобы оставаться под защитой</string>
+	<string name="account_info_auto_renew_text">*Автопродление</string>
+	<string name="account_info_no_plan">Нет активного плана</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Включить ведение логов</string>
 	<string name="logs_enable_description">Включайте для диагностики. Отключайте для приватности. Логи остаются на вашем устройстве. У Nym никогда нет к ним доступа.</string>
