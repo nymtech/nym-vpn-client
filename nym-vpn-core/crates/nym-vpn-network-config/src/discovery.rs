@@ -252,7 +252,6 @@ mod tests {
                     "sign_up": "{locale}/account/create",
                     "sign_in": "{locale}/account/login",
                     "account": "{locale}/account/{account_id}",
-                    "pricing": "{locale}/pricing",
                     "privy": {
                         "mobile": "{locale}/auth/privy",
                         "desktop": "{locale}/auth/privy",
@@ -313,7 +312,6 @@ mod tests {
                     sign_up: "{locale}/account/create".to_owned(),
                     sign_in: "{locale}/account/login".to_owned(),
                     account: "{locale}/account/{account_id}".to_owned(),
-                    pricing: "{locale}/pricing".to_owned(),
                     privy: AccountManagementPrivyPaths {
                         mobile: "{locale}/auth/privy".to_owned(),
                         desktop: "{locale}/auth/privy".to_owned(),

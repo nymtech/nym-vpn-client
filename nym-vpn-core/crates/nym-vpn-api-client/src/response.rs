@@ -746,7 +746,6 @@ pub struct AccountManagementPathsResponse {
     pub sign_up: String,
     pub sign_in: String,
     pub account: String,
-    pub pricing: String,
     pub privy: AccountManagementPrivyPathsResponse,
     pub autologin: AccountManagementAutologinPathsResponse,
 }

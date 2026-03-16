@@ -1869,25 +1869,8 @@ impl NymVpnService {
             "The autologin path could not be determined".to_string(),
         ))?;
 
-        let redirect_path = match params.kind {
-            DeeplinkKind::AutologinView => {
-                let account_id = self
-                    .account_command_tx
-                    .get_canonical_account_id()
-                    .await?
-                    .ok_or(AccountCommandError::NoAccountStored)?;
-                account_management
-                    .account_url(&params.locale, &account_id)
-                    .map(|url| url.to_string())
-            }
-            DeeplinkKind::AutologinRenew => account_management
-                .pricing_url(&params.locale)
-                .map(|url| url.to_string()),
-            _ => None,
-        };
-
         self.account_command_tx
-            .get_autologin_deeplink(params.kind, params.name, base_url, redirect_path)
+            .get_autologin_deeplink(params.kind, params.name, base_url)
             .await
     }
 

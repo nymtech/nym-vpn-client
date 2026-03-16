@@ -31,7 +31,6 @@
       "sign_up": "{locale}/account/create",
       "sign_in": "{locale}/account/login",
       "account": "{locale}/account/{account_id}",
-      "pricing": "{locale}/pricing",
       "privy": {
         "mobile": "{locale}/account/login/privy/mobile",
         "desktop": "{locale}/account/login/privy/desktop",

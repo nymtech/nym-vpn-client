@@ -17,7 +17,6 @@ pub struct Deeplink {
     kind: DeeplinkKind,
     keypair: KeyPair,
     expiry_time: Instant,
-    redirect_path: Option<String>,
 }
 
 impl Deeplink {
@@ -37,7 +36,6 @@ impl Deeplink {
             kind,
             keypair,
             expiry_time,
-            redirect_path: params.redirect_path.clone(),
         }
     }
 
@@ -59,11 +57,6 @@ impl Deeplink {
             .append_pair("pubkey", &pubkey)
             .append_pair("link_account", link_account);
 
-        if let Some(redirect_path) = self.redirect_path.as_deref() {
-            url.query_pairs_mut()
-                .append_pair("redirect_path", redirect_path);
-        }
-
         url
     }
 
@@ -80,9 +73,14 @@ impl Deeplink {
         url.query_pairs_mut()
             .append_pair("encmn", &encrypted_mnemonic);
 
-        if let Some(redirect_path) = self.redirect_path.as_deref() {
-            url.query_pairs_mut()
-                .append_pair("redirect_path", redirect_path);
+        match self.kind {
+            DeeplinkKind::AutologinView => {
+                url.query_pairs_mut().append_pair("redirect", "account");
+            }
+            DeeplinkKind::AutologinRenew => {
+                url.query_pairs_mut().append_pair("redirect", "pricing");
+            }
+            _ => (),
         }
 
         Ok(AutologinResponse {
@@ -180,7 +178,6 @@ pub struct CreateDeeplinkParams {
     pub kind: DeeplinkKind,
     pub name: String,
     pub base_url: Url,
-    pub redirect_path: Option<String>,
 }
 
 #[derive(Debug)]
