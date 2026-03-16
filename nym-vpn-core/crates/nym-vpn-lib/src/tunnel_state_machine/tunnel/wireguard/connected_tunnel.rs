@@ -133,15 +133,17 @@ impl ConnectedTunnel {
         tunnel_constants: TunnelConstants,
         entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
+        let entry_mtu = self.entry_mtu();
+        let exit_mtu = self.exit_mtu();
         let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.effective_entry_gateway_data(),
-            self.entry_wg_keypair.private_key(),
+            self.entry_wg_keypair,
             AllowedIps::Specific(vec![
                 IpNetwork::from(self.connection_data.exit.endpoint.ip()),
                 IpNetwork::from(tunnel_constants.in_tunnel_bandwidth_metadata_endpoint.ip()),
             ]),
             options.dns.clone(),
-            self.entry_mtu(),
+            entry_mtu,
             #[cfg(target_os = "linux")]
             Some(tunnel_constants.fwmark),
         );
@@ -151,10 +153,10 @@ impl ConnectedTunnel {
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.exit,
-            self.exit_wg_keypair.private_key(),
+            self.exit_wg_keypair,
             AllowedIps::All,
             options.dns,
-            self.exit_mtu(),
+            exit_mtu,
             #[cfg(target_os = "linux")]
             None,
         );
@@ -257,15 +259,17 @@ impl ConnectedTunnel {
         tunnel_constants: TunnelConstants,
         entry_amnezia: bool,
     ) -> Result<TunnelHandle> {
+        let entry_mtu = self.entry_mtu();
+        let exit_mtu = self.exit_mtu();
         let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.effective_entry_gateway_data(),
-            self.entry_wg_keypair.private_key(),
+            self.entry_wg_keypair,
             AllowedIps::Specific(vec![
                 IpNetwork::from(self.connection_data.exit.endpoint.ip()),
                 IpNetwork::from(tunnel_constants.in_tunnel_bandwidth_metadata_endpoint.ip()),
             ]),
             options.dns.clone(),
-            self.entry_mtu(),
+            entry_mtu,
             #[cfg(target_os = "linux")]
             Some(tunnel_constants.fwmark),
         );
@@ -276,17 +280,17 @@ impl ConnectedTunnel {
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
             self.connection_data.exit,
-            self.exit_wg_keypair.private_key(),
+            self.exit_wg_keypair,
             AllowedIps::All,
             options.dns,
-            self.exit_mtu(),
+            exit_mtu,
             #[cfg(target_os = "linux")]
             None,
         );
 
         // Save entry peer so that we can re-resolve it and update wg config on network changes.
         #[cfg(target_os = "ios")]
-        let orig_entry_peer = wg_entry_config.peer.clone();
+        let entry_peer_update = wg_entry_config.peer.as_peer_endpoint_update();
 
         let mut two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
 
@@ -295,7 +299,7 @@ impl ConnectedTunnel {
         two_hop_config.entry.peer.resolve_in_place()?;
 
         let mut entry_tunnel =
-            netstack::Tunnel::start(two_hop_config.entry.clone().into_netstack_config())?;
+            netstack::Tunnel::start(two_hop_config.entry.into_netstack_config())?;
 
         // Configure tunnel sockets to bypass the tunnel interface.
         #[cfg(target_os = "android")]
@@ -317,7 +321,8 @@ impl ConnectedTunnel {
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
-        two_hop_config.set_udp_proxy_listen_addr(exit_in_tunnel_udp_proxy.listen_addr());
+        two_hop_config.forwarder.listen_endpoint = exit_in_tunnel_udp_proxy.listen_addr();
+        two_hop_config.exit.peer.endpoint = exit_in_tunnel_udp_proxy.listen_addr();
 
         let entry_magic_bandwidth_tcp_proxy = entry_tunnel.start_in_tunnel_tcp_connection_proxy(
             tunnel_constants.in_tunnel_bandwidth_metadata_endpoint,
@@ -410,12 +415,11 @@ impl ConnectedTunnel {
                             // For instance when device connects to IPv4-only server from IPv6-only network,
                             // it needs to use an IPv4-mapped address, which can be received by re-resolving
                             // the original peer IP.
-                            match orig_entry_peer.resolved() {
+                            match entry_peer_update.clone().resolved() {
                                 Ok(resolved_peer) => {
-                                    let peer_update = resolved_peer.into_peer_endpoint_update();
 
                                     // Update wireguard-go configuration with re-resolved peer endpoints.
-                                    if let Err(e) = entry_tunnel.update_peers(&[peer_update]) {
+                                    if let Err(e) = entry_tunnel.update_peers(&[resolved_peer]) {
                                        tracing::error!("Failed to update peers on network change: {}", e);
                                     }
                                 }

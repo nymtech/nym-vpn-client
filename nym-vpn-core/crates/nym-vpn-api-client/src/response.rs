@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     fmt,
     net::{IpAddr, SocketAddr},
 };
@@ -12,6 +12,7 @@ use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 pub use nym_credential_proxy_requests::api::v1::ticketbook::models::UpgradeModeAttestation;
+use nym_validator_client::models::LewesProtocolDetailsV1;
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, UtcDateTime, format_description::well_known::Iso8601};
 
@@ -393,21 +394,6 @@ pub struct NymDirectoryGateway {
     pub performance_v2: Option<DVpnGatewayPerformance>,
     pub build_information: Option<BuildInformation>,
     pub lewes_protocol_details: Option<LewesProtocolDetailsV1>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct LewesProtocolDetailsV1 {
-    pub content: LewesProtocolDetailsDataV1,
-    pub signature: String,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct LewesProtocolDetailsDataV1 {
-    pub enabled: bool,
-    pub control_port: u16,
-    pub data_port: u16,
-    pub x25519: String,
-    pub kem_keys: HashMap<String, HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

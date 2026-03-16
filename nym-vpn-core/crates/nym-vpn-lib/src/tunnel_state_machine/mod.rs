@@ -147,6 +147,9 @@ pub struct TunnelSettings {
     /// Select residential exit gateways only.
     pub residential_exit: bool,
 
+    /// Lewes Protocol enabled (for now it's wireguard only, but in the future it will be both. Remove that comment then)
+    pub enable_lewes_protocol: bool,
+
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
 
@@ -239,6 +242,9 @@ impl TunnelSettings {
                 diff.add(TunnelSettingsDiffFields::QUIC);
             }
         }
+        if self.enable_lewes_protocol != other.enable_lewes_protocol {
+            diff.add(TunnelSettingsDiffFields::EnableLewesProtocol);
+        }
         if self.gateway_performance_options != other.gateway_performance_options {
             diff.add(TunnelSettingsDiffFields::GatewayPerformanceOptions);
             // We care about just the mixnet performance setting changing.
@@ -278,6 +284,7 @@ pub enum TunnelSettingsDiffFields {
     MixnetTunnelOptions,
     WireguardTunnelOptions,
     QUIC,
+    EnableLewesProtocol,
     GatewayPerformanceOptions,
     MixnetPerformanceOptions,
     EntryPoint,
@@ -302,7 +309,10 @@ impl TunnelSettingsDiffFields {
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
             }
-            Self::WireguardTunnelOptions => tunnel_type == TunnelType::Wireguard,
+            // As LP is only Wg mode, only reconnect if two-hop mode. This will change in the future
+            Self::WireguardTunnelOptions | Self::EnableLewesProtocol => {
+                tunnel_type == TunnelType::Wireguard
+            }
         }
     }
 }

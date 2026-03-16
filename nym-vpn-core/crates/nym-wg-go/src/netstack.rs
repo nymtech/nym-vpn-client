@@ -8,21 +8,22 @@ use std::{
     fmt,
     net::{IpAddr, SocketAddr},
     str::FromStr,
+    sync::Arc,
 };
 
+use nym_crypto::asymmetric::x25519;
 #[cfg(windows)]
 use nym_windows::net::AddressFamily;
 
 use super::{
-    Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey, Result,
-    uapi::UapiConfigBuilder,
+    Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, Result, uapi::UapiConfigBuilder,
 };
 #[cfg(feature = "amnezia")]
 use crate::amnezia::AmneziaConfig;
 
 /// Netstack interface configuration.
 pub struct InterfaceConfig {
-    pub private_key: PrivateKey,
+    pub keypair: Arc<x25519::KeyPair>,
     pub local_addrs: Vec<IpAddr>,
     pub dns_addrs: Vec<IpAddr>,
     pub mtu: u16,
@@ -56,11 +57,11 @@ pub struct Config {
 }
 
 impl Config {
-    fn as_uapi_config(&self) -> Vec<u8> {
+    fn into_uapi_config(self) -> Vec<u8> {
         let mut config_builder = UapiConfigBuilder::new();
         config_builder.add(
             "private_key",
-            self.interface.private_key.to_bytes().as_ref(),
+            self.interface.keypair.private_key().to_bytes().as_ref(),
         );
 
         #[cfg(target_os = "linux")]
@@ -75,7 +76,7 @@ impl Config {
 
         if !self.peers.is_empty() {
             config_builder.add("replace_peers", "true");
-            for peer in self.peers.iter() {
+            for peer in self.peers.into_iter() {
                 peer.append_to(&mut config_builder);
             }
         }
@@ -92,18 +93,19 @@ pub struct Tunnel {
 
 impl Tunnel {
     pub fn start(config: Config) -> Result<Self> {
+        let interface_mtu = config.interface.mtu;
         let local_addrs = CString::new(to_comma_separated_addrs(&config.interface.local_addrs))
             .map_err(|_| Error::ConvertToCString("interface local addrs"))?;
         let dns_addrs = CString::new(to_comma_separated_addrs(&config.interface.dns_addrs))
             .map_err(|_| Error::ConvertToCString("interface dns addrs"))?;
-        let settings = CString::new(config.as_uapi_config())
+        let settings = CString::new(config.into_uapi_config())
             .map_err(|_| Error::ConvertToCString("uapi config"))?;
 
         let tunnel_handle = unsafe {
             wgNetTurnOn(
                 local_addrs.as_ptr(),
                 dns_addrs.as_ptr(),
-                i32::from(config.interface.mtu),
+                i32::from(interface_mtu),
                 settings.as_ptr(),
                 wg_netstack_logger_callback,
                 std::ptr::null_mut(),

@@ -20,9 +20,8 @@ pub use crate::{
         exit_point::ExitPoint,
         gateway::{
             Asn, AsnKind, Entry, Exit, Gateway, GatewayFilter, GatewayFilters, GatewayList,
-            GatewayType, LewesProtocolDetails, LewesProtocolDetailsData, Location,
-            LookupGatewayFilters, Lp, NymNode, NymNodeList, Performance, Probe, ProbeOutcome,
-            ScoreValue, Socks5,
+            GatewayType, Location, LookupGatewayFilters, Lp, NymNode, NymNodeList, Performance,
+            Probe, ProbeOutcome, ScoreValue, Socks5,
         },
         ipr_addresses::IpPacketRouterAddress,
     },

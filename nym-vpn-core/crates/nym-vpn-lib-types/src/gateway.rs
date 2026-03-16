@@ -933,8 +933,7 @@ impl From<nym_validator_client::models::NymNodeDescriptionV2> for Gateway {
             exit_ipv4s,
             exit_ipv6s,
             build_version,
-            // TODO why are all other fields None? should this be initialized?
-            lewes_protocol_details: None,
+            lewes_protocol_details: node_description.description.lewes_protocol.map(Into::into),
         }
     }
 }
@@ -1008,24 +1007,36 @@ impl From<nym_gateway_directory::Lp> for Lp {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_gateway_directory::LewesProtocolDetails> for LewesProtocolDetails {
-    fn from(value: nym_gateway_directory::LewesProtocolDetails) -> Self {
+impl From<nym_validator_client::models::LewesProtocolDetailsV1> for LewesProtocolDetails {
+    fn from(value: nym_validator_client::models::LewesProtocolDetailsV1) -> Self {
         Self {
             content: value.content.into(),
-            signature: value.signature,
+            signature: value.signature.to_base58_string(),
         }
     }
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_gateway_directory::LewesProtocolDetailsData> for LewesProtocolDetailsData {
-    fn from(value: nym_gateway_directory::LewesProtocolDetailsData) -> Self {
+impl From<nym_validator_client::models::LewesProtocolDetailsDataV1> for LewesProtocolDetailsData {
+    fn from(value: nym_validator_client::models::LewesProtocolDetailsDataV1) -> Self {
+        let kem_keys = value
+            .kem_keys
+            .into_iter()
+            .map(|(kem, digests)| {
+                let digests_str: HashMap<String, String> = digests
+                    .into_iter()
+                    .map(|(hash_fn, value)| (hash_fn.to_string(), value))
+                    .collect();
+
+                (kem.to_string(), digests_str)
+            })
+            .collect();
         Self {
             enabled: value.enabled,
             control_port: value.control_port,
             data_port: value.data_port,
-            x25519: value.x25519,
-            kem_keys: value.kem_keys,
+            x25519: x25519::PublicKey::from(value.x25519).to_base58_string(),
+            kem_keys,
         }
     }
 }
