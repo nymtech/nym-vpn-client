@@ -7024,7 +7024,6 @@ dependencies = [
  "thiserror 2.0.18",
  "tracing",
  "windows 0.62.2",
- "x25519-dalek",
  "zeroize",
 ]
 
