@@ -72,7 +72,10 @@ impl NymDeeplinks {
     }
 
     /// Get an autologin deeplink
-    pub async fn get_autologin_deeplink(&self, params: GetDeeplinkParams) -> Result<AutologinResponse, VpnError> {
+    pub async fn get_autologin_deeplink(
+        &self,
+        params: GetDeeplinkParams,
+    ) -> Result<AutologinResponse, VpnError> {
         let Some(ref account_management) =
             self.network_env.inner().nym_vpn_network.account_management
         else {
@@ -93,9 +96,13 @@ impl NymDeeplinks {
         let redirect_path = match params.kind {
             DeeplinkKind::AutologinView => {
                 let account_id = self.account_command_tx.get_canonical_account_id().await?;
-                account_management.account_url(&params.locale, &account_id).map(|url| url.to_string())
+                account_management
+                    .account_url(&params.locale, &account_id)
+                    .map(|url| url.to_string())
             }
-            DeeplinkKind::AutologinRenew => account_management.pricing_url(&params.locale).map(|url| url.to_string()),
+            DeeplinkKind::AutologinRenew => account_management
+                .pricing_url(&params.locale)
+                .map(|url| url.to_string()),
             _ => None,
         };
 
@@ -107,13 +114,18 @@ impl NymDeeplinks {
             redirect_path,
         };
 
-        let deeplink = deeplink_guard.create_deeplink(&params).map_err(|e| VpnError::DeeplinkError {
-            details: e.to_string(),
-        })?;
+        let deeplink =
+            deeplink_guard
+                .create_deeplink(&params)
+                .map_err(|e| VpnError::DeeplinkError {
+                    details: e.to_string(),
+                })?;
 
-        let autologin = deeplink.create_autologin_url(&base_url, mnemonic.to_string()).map_err(|e| VpnError::DeeplinkError {
-            details: e.to_string(),
-        })?;
+        let autologin = deeplink
+            .create_autologin_url(&base_url, mnemonic.to_string())
+            .map_err(|e| VpnError::DeeplinkError {
+                details: e.to_string(),
+            })?;
 
         deeplink_guard.remove_expired();
 
