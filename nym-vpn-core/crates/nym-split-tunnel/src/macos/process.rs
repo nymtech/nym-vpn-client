@@ -23,6 +23,7 @@ use either::Either;
 use libc::pid_t;
 use nym_macos::process::{list_pids, process_path};
 use nym_platform_metadata::AppleVersion;
+use nym_vpn_lib_types::{StExcludedProcess, StExcludedProcessList};
 use serde::{Deserialize, de::Error as _};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
@@ -362,6 +363,23 @@ impl ProcessStates {
         }
 
         inner.exclude_paths = paths;
+    }
+
+    pub async fn get_excluded_processes(&self) -> StExcludedProcessList {
+        let inner = self.inner.lock().await;
+
+        StExcludedProcessList {
+            processes: inner
+                .processes
+                .iter()
+                .filter(|(_, info)| info.is_excluded())
+                .map(|(pid, info)| StExcludedProcess {
+                    pid: *pid,
+                    exec_path: info.exec_path.clone(),
+                    responsible_exec_path: info.responsible_exec_path.clone(),
+                })
+                .collect(),
+        }
     }
 
     pub async fn get_process_status(&self, pid: pid_t) -> ExclusionStatus {

@@ -6,6 +6,7 @@ use std::{collections::HashSet, fmt, path::PathBuf, sync::Arc};
 
 use nym_common::trace_err_chain;
 use nym_routing::RouteManagerHandle;
+use nym_vpn_lib_types::StExcludedProcessList;
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinHandle,
@@ -123,6 +124,9 @@ enum Message {
     ResetTunnel {
         result_tx: oneshot::Sender<Result<(), Error>>,
     },
+    GetExcludedProcesses {
+        result_tx: oneshot::Sender<StExcludedProcessList>,
+    },
 }
 
 /// Handle for interacting with the split tunnel module
@@ -163,6 +167,12 @@ impl SplitTunnelHandle {
         let _ = self.tx.send(Message::ResetTunnel { result_tx });
         result_rx.await.map_err(|_| Error::unavailable())?
     }
+
+    pub async fn get_excluded_processes(&self) -> Result<StExcludedProcessList, Error> {
+        let (result_tx, result_rx) = oneshot::channel();
+        let _ = self.tx.send(Message::GetExcludedProcesses { result_tx });
+        result_rx.await.map_err(|_| Error::unavailable())
+    }
 }
 
 impl SplitTunnel {
@@ -171,7 +181,7 @@ impl SplitTunnel {
         route_manager: RouteManagerHandle,
         shutdown_token: CancellationToken,
         error_handler: F,
-    ) -> Result<(SplitTunnelHandle, JoinHandle<()>), Error>
+    ) -> (SplitTunnelHandle, JoinHandle<()>)
     where
         F: Fn(SplitTunnelErrorCause) + Send + 'static,
     {
@@ -185,7 +195,7 @@ impl SplitTunnel {
 
         let join_handle = tokio::spawn(split_tunnel.run());
 
-        Ok((SplitTunnelHandle { tx }, join_handle))
+        (SplitTunnelHandle { tx }, join_handle)
     }
 
     async fn run(mut self) {
@@ -260,6 +270,15 @@ impl SplitTunnel {
             }
             Message::ResetTunnel { result_tx } => {
                 let _ = result_tx.send(self.state.reset_tunnel().await);
+            }
+            Message::GetExcludedProcesses { result_tx } => {
+                let excluded_processes = if let Some(process_monitor) = self.state.process_monitor()
+                {
+                    process_monitor.states().get_excluded_processes().await
+                } else {
+                    StExcludedProcessList::default()
+                };
+                let _ = result_tx.send(excluded_processes);
             }
         }
     }
