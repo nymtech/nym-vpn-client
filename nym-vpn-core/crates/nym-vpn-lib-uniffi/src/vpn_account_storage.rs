@@ -140,6 +140,11 @@ impl NymVpnAccountStorage {
                     ))
                 }
             }
+            DeeplinkKind::AutologinRenew | DeeplinkKind::AutologinView => {
+                Err(VpnError::DeeplinkError {
+                    details: "Invalid deeplink kind".to_owned(),
+                })
+            }
         }
     }
 

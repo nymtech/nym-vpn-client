@@ -10,10 +10,10 @@ use tower::service_fn;
 #[cfg(target_os = "macos")]
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
-    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AvailableTickets,
-    DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway, GetDeeplinkParams,
-    HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters, NetworkCompatibility,
-    NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AutologinResponse,
+    AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway,
+    GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters,
+    NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
     StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
@@ -605,6 +605,23 @@ impl RpcClient {
             .map_err(Error::InvalidResponse)?;
 
         Ok(account_summary)
+    }
+
+    pub async fn get_autologin_deeplink(
+        &mut self,
+        params: GetDeeplinkParams,
+    ) -> Result<AutologinResponse> {
+        let request: proto::GetDeeplinkParams = params.into();
+        let response = self
+            .0
+            .get_autologin_deeplink(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        let deeplink = response.try_into().map_err(Error::InvalidResponse)?;
+
+        Ok(deeplink)
     }
 
     pub async fn get_deeplink(&mut self, params: GetDeeplinkParams) -> Result<String> {

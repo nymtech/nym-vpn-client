@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use nym_vpn_account_controller::{CreateDeeplinkParams, DeeplinkMnemonic, Deeplinks};
-use nym_vpn_lib_types::{DeeplinkClient, DeeplinkKind, GetDeeplinkParams};
+use nym_vpn_lib_types::{DeeplinkClient, GetDeeplinkParams};
 
 use crate::{NymEnvironment, error::VpnError};
 
@@ -29,27 +29,22 @@ impl NymDeeplinks {
 
     /// Get a deeplink
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String, VpnError> {
-        let base_url = match params.kind {
-            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
-                let Some(ref account_management) =
-                    self.network_env.inner().nym_vpn_network.account_management
-                else {
-                    return Err(VpnError::DeeplinkError {
-                        details: "No account management data is available at this time".to_string(),
-                    });
-                };
-
-                let opt_url = match params.client {
-                    DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
-                    DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
-                    DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
-                };
-
-                opt_url.ok_or(VpnError::DeeplinkError {
-                    details: "The privy path could not be determined".to_string(),
-                })?
-            }
+        let Some(ref account_management) =
+            self.network_env.inner().nym_vpn_network.account_management
+        else {
+            return Err(VpnError::DeeplinkError {
+                details: "No account management data is available at this time".to_owned(),
+            });
         };
+
+        let base_url = match params.client {
+            DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+            DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+            DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+        }
+        .ok_or(VpnError::DeeplinkError {
+            details: "The privy path could not be determined".to_owned(),
+        })?;
 
         let mut deeplink_guard = self.deep_links.lock().await;
         let params = CreateDeeplinkParams {

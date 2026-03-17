@@ -6,7 +6,7 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::VpnAccountMode,
 };
-use nym_vpn_lib_types::{AccountCommandError, DeeplinkKind, VpnAccountSummary};
+use nym_vpn_lib_types::{AccountCommandError, AutologinResponse, DeeplinkKind, VpnAccountSummary};
 
 use crate::{
     AvailableTicketbooks, SharedAccountState,
@@ -53,6 +53,9 @@ pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
         }
         CommonCommand::GetDeeplink(result_tx, params) => {
             result_tx.send(handle_get_deeplink(shared_state, params).await)
+        }
+        CommonCommand::GetAutologinDeeplink(result_tx, params) => {
+            result_tx.send(handle_get_autologin_deeplink(shared_state, params).await);
         }
         CommonCommand::DeriveDeeplinkMnemonic(result_tx, deeplink_callback_url) => result_tx
             .send(handle_derive_deeplink_mnemonic(shared_state, deeplink_callback_url).await),
@@ -234,6 +237,30 @@ pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(
     shared_state.deeplinks.remove_expired();
 
     Ok(url.to_string())
+}
+
+pub(crate) async fn handle_get_autologin_deeplink<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    params: CreateDeeplinkParams,
+) -> Result<AutologinResponse, AccountCommandError> {
+    let account = shared_state
+        .vpn_api_account
+        .as_ref()
+        .ok_or(AccountCommandError::NoAccountStored)?;
+    let mnemonic = account.get_mnemonic();
+
+    let deeplink = shared_state
+        .deeplinks
+        .create_deeplink(&params)
+        .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
+
+    let autologin = deeplink
+        .create_autologin_url(&params.base_url, mnemonic.to_string())
+        .map_err(|e| AccountCommandError::DeeplinkError(e.to_string()))?;
+
+    shared_state.deeplinks.remove_expired();
+
+    Ok(autologin)
 }
 
 pub(crate) async fn handle_derive_deeplink_mnemonic<C: ConnectivityMonitor>(

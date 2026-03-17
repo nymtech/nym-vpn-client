@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib_types::{
-    AccountCommandError, AvailableTickets, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    NymVpnSubscriptionKind, StoredAccountMode, VpnAccountAuthMethod, VpnAccountStatus,
-    VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
+    AccountCommandError, AutologinResponse, AvailableTickets, DeeplinkClient, DeeplinkKind,
+    GetDeeplinkParams, NymVpnSubscriptionKind, StoredAccountMode, VpnAccountAuthMethod,
+    VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
 };
 
 use crate::{
@@ -450,6 +450,26 @@ impl TryFrom<proto::GetDeeplinkParams> for GetDeeplinkParams {
     }
 }
 
+impl From<AutologinResponse> for proto::AutologinResponse {
+    fn from(value: AutologinResponse) -> Self {
+        Self {
+            url: value.url,
+            pin_code: value.pin_code,
+        }
+    }
+}
+
+impl TryFrom<proto::AutologinResponse> for AutologinResponse {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::AutologinResponse) -> Result<Self, Self::Error> {
+        Ok(Self {
+            url: value.url,
+            pin_code: value.pin_code,
+        })
+    }
+}
+
 impl From<DeeplinkClient> for proto::DeeplinkClient {
     fn from(value: DeeplinkClient) -> Self {
         match value {
@@ -475,6 +495,8 @@ impl From<DeeplinkKind> for proto::DeeplinkKind {
         match value {
             DeeplinkKind::Privy => proto::DeeplinkKind::KindPrivy,
             DeeplinkKind::PrivyLink => proto::DeeplinkKind::KindPrivyLink,
+            DeeplinkKind::AutologinRenew => proto::DeeplinkKind::AutologinRenew,
+            DeeplinkKind::AutologinView => proto::DeeplinkKind::AutologinView,
         }
     }
 }
@@ -484,6 +506,8 @@ impl From<proto::DeeplinkKind> for DeeplinkKind {
         match value {
             proto::DeeplinkKind::KindPrivy => DeeplinkKind::Privy,
             proto::DeeplinkKind::KindPrivyLink => DeeplinkKind::PrivyLink,
+            proto::DeeplinkKind::AutologinRenew => DeeplinkKind::AutologinRenew,
+            proto::DeeplinkKind::AutologinView => DeeplinkKind::AutologinView,
         }
     }
 }

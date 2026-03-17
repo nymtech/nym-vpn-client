@@ -12,7 +12,7 @@ use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver, Nyx
 use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
-    AccountControllerState, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
+    AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
     RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
     UserAgent, VpnAccountSummary,
 };
@@ -112,30 +112,52 @@ impl NymAccountController {
     }
 
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String, VpnError> {
-        let base_url = match params.kind {
-            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
-                let Some(ref account_management) =
-                    self.network_env.inner().nym_vpn_network.account_management
-                else {
-                    return Err(VpnError::DeeplinkError {
-                        details: "No account management data is available at this time".to_owned(),
-                    });
-                };
-
-                let opt_url = match params.client {
-                    DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
-                    DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
-                    DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
-                };
-
-                opt_url.ok_or(VpnError::DeeplinkError {
-                    details: "The privy path could not be determined".to_owned(),
-                })?
-            }
+        let Some(ref account_management) =
+            self.network_env.inner().nym_vpn_network.account_management
+        else {
+            return Err(VpnError::DeeplinkError {
+                details: "No account management data is available at this time".to_owned(),
+            });
         };
+
+        let base_url = match params.client {
+            DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+            DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+            DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+        }
+        .ok_or(VpnError::DeeplinkError {
+            details: "The privy path could not be determined".to_owned(),
+        })?;
 
         self.command_sender
             .get_deeplink(params.kind, params.name, base_url)
+            .await
+            .map_err(VpnError::from)
+    }
+
+    pub async fn get_autologin_deeplink(
+        &self,
+        params: GetDeeplinkParams,
+    ) -> Result<AutologinResponse, VpnError> {
+        let Some(ref account_management) =
+            self.network_env.inner().nym_vpn_network.account_management
+        else {
+            return Err(VpnError::DeeplinkError {
+                details: "No account management data is available at this time".to_owned(),
+            });
+        };
+
+        let base_url = match params.client {
+            DeeplinkClient::Mobile => account_management.autologin_mobile_url(&params.locale),
+            DeeplinkClient::Desktop => account_management.autologin_desktop_url(&params.locale),
+            DeeplinkClient::Web => account_management.autologin_web_url(&params.locale),
+        }
+        .ok_or(VpnError::DeeplinkError {
+            details: "The autologin path could not be determined".to_owned(),
+        })?;
+
+        self.command_sender
+            .get_autologin_deeplink(params.kind, params.name, base_url)
             .await
             .map_err(VpnError::from)
     }
@@ -162,6 +184,11 @@ impl NymAccountController {
                 .link_account(privy_account)
                 .await
                 .map_err(VpnError::from),
+            DeeplinkKind::AutologinRenew | DeeplinkKind::AutologinView => {
+                Err(VpnError::DeeplinkError {
+                    details: "Invalid deeplink kind".to_owned(),
+                })
+            }
         }
     }
 
