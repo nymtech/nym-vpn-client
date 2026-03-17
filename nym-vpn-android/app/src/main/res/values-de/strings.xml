@@ -271,7 +271,7 @@
 	<string name="onboarding_title_3">Nicht mehr online getrackt werden</string>
 	<string name="onboarding_title_4">Anonymität von der Zahlung bis zum Web</string>
 	<string name="onboarding_description_base">Das privateste VPN der Welt</string>
-	<string name="onboarding_description_1">Das privateste VPN der Welt</string>
+	<string name="onboarding_description_1">Das privateste VPN der Welt\n7 Tage lang kostenlos testen:\nAlle Funktionen inklusive, keine Werbung.</string>
 	<string name="onboarding_description_2">Schnell: 250+ Mbit/s mit dVPN.\nAnonym: 5-Hop-Rauschgenerierendes Mixnet.</string>
 	<string name="onboarding_description_3">Das dezentrale Netzwerk von Nym macht „No-Log“-\n Versprechen überflüssig.</string>
 	<string name="onboarding_description_4">Bezahle mit Karte, Kryptowährung oder Bargeld - keine E-Mail-Adresse nötig. Zero-Knowledge-Proofs sorgen dafür, dass deine Zahlungen nicht mit deinen Online-Aktivitäten in Verbindung gebracht werden können.</string>
@@ -404,6 +404,17 @@
 	<string name="account_info_id_info">Verwende deine Konto-ID, wenn du den Kundensupport von Nym kontaktieren musst. Diese Angabe kann bedenkenlos weitergegeben werden!</string>
 	<string name="account_info_device_title">Geräte-ID</string>
 	<string name="account_info_device_info">Verwende dies, um dieses Gerät mit deinem Konto auf nym.com zu verknüpfen</string>
+	<string name="account_info_status_title">Kontostatus</string>
+	<string name="account_info_bandwidth_title">Verbleibende Bandbreite</string>
+	<string name="account_info_limit_text">Limit</string>
+	<string name="account_info_reset_text">Setzt sich zurück am</string>
+	<string name="account_info_contact_support_action">Kontaktiere unseren Support</string>
+	<string name="account_info_contact_support_suffix">\u0020Team für zusätzliche Bandbreite.</string>
+	<string name="account_info_valid_text">Abo gültig bis %s</string>
+	<string name="account_info_expires_text">Abo läuft am %s ab</string>
+	<string name="account_info_renew_text">Jetzt erneuern, um geschützt zu bleiben</string>
+	<string name="account_info_auto_renew_text">*Auto-Erneuerung</string>
+	<string name="account_info_no_plan">Du hast kein aktives Abonnement</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Logging aktivieren</string>
 	<string name="logs_enable_description">Einschalten zur Fehlerbehebung. Deaktivieren für den Datenschutz. Die Logs bleiben auf deinem Gerät. Nym hat keinen Zugriff.</string>

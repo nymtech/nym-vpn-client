@@ -269,7 +269,7 @@
 	<string name="onboarding_title_3">Đừng để bị theo dõi trực tuyến</string>
 	<string name="onboarding_title_4">Ẩn danh từ khâu thanh toán đến trang web</string>
 	<string name="onboarding_description_base">VPN riêng tư nhất thế giới</string>
-	<string name="onboarding_description_1">VPN riêng tư nhất thế giới</string>
+	<string name="onboarding_description_1">VPN riêng tư nhất thế giới\nDùng thử miễn phí 7 ngày:\nBao gồm đầy đủ tính năng, không quảng cáo.</string>
 	<string name="onboarding_description_2">Chế độ nhanh: Hơn 250 Mbps với dVPN.\nChế độ ẩn danh: Mixnet Tạo Nhiễu 5 bước nhảy.</string>
 	<string name="onboarding_description_3">Mạng lưới phi tập trung của Nym khiến lời hứa \"không lưu nhật ký\"\n trở nên lỗi thời.</string>
 	<string name="onboarding_description_4">Thanh toán bằng thẻ, tiền điện tử hoặc tiền mặt—không cần email. Zero-knowledge proof khiến khoản thanh toán của bạn không bị liên kết với các hoạt động trực tuyến.</string>
@@ -402,6 +402,17 @@
 	<string name="account_info_id_info">Hãy sử dụng ID tài khoản của bạn nếu cần liên hệ với bộ phận hỗ trợ khách hàng của Nym. Thông tin này hoàn toàn an toàn để chia sẻ!</string>
 	<string name="account_info_device_title">ID thiết bị</string>
 	<string name="account_info_device_info">Sử dụng thông tin này để liên kết thiết bị này với tài khoản của bạn trên nym.com</string>
+	<string name="account_info_status_title">Trạng thái tài khoản</string>
+	<string name="account_info_bandwidth_title">Băng thông còn lại</string>
+	<string name="account_info_limit_text">Giới hạn</string>
+	<string name="account_info_reset_text">Đặt lại</string>
+	<string name="account_info_contact_support_action">Kết nối với bộ phận hỗ trợ</string>
+	<string name="account_info_contact_support_suffix">\u0020 để được cấp thêm băng thông.</string>
+	<string name="account_info_valid_text">Gói cước có hiệu lực đến %s</string>
+	<string name="account_info_expires_text">Gói cước hết hạn vào ngày %s</string>
+	<string name="account_info_renew_text">Gia hạn ngay để tiếp tục được bảo vệ</string>
+	<string name="account_info_auto_renew_text">*Tự động gia hạn</string>
+	<string name="account_info_no_plan">Không có gói dịch vụ khả dụng</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Cho phép ghi lại nhật ký</string>
 	<string name="logs_enable_description">Bật tính năng này để khắc phục sự cố. Tắt tính năng này để bảo mật thông tin cá nhân. Nhật ký sẽ được lưu trữ trên thiết bị của bạn. Nym không bao giờ có quyền truy cập.</string>

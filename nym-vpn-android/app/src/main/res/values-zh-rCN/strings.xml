@@ -402,6 +402,17 @@
 	<string name="account_info_id_info">如果您需要联系Nym支持，请使用您的帐户ID。分享账号ID是安全的！</string>
 	<string name="account_info_device_title">设备 ID</string>
 	<string name="account_info_device_info">使用它来将此设备链接到您在nym.com上的帐户</string>
+	<string name="account_info_status_title">账号状态</string>
+	<string name="account_info_bandwidth_title">剩余带宽</string>
+	<string name="account_info_limit_text">限制</string>
+	<string name="account_info_reset_text">下次带宽重置时间</string>
+	<string name="account_info_contact_support_action">联系</string>
+	<string name="account_info_contact_support_suffix">\u0020团队以获取额外的带宽。</string>
+	<string name="account_info_valid_text">订阅有效期至%s</string>
+	<string name="account_info_expires_text">订阅在%s过期</string>
+	<string name="account_info_renew_text">立即续订以继续获得保护</string>
+	<string name="account_info_auto_renew_text">*自动续订</string>
+	<string name="account_info_no_plan">没有可用的订阅</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">启用日志记录</string>
 	<string name="logs_enable_description">启用该功能以排查故障。出于隐私保护请禁用该功能。日志保存在您的设备上。Nym永远没有访问权限。</string>
