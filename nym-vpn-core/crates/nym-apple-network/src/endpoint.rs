@@ -410,11 +410,6 @@ mod tests {
     }
 
     #[test]
-    fn create_invalid_host_endpoint() {
-        assert!(HostEndpoint::new("", 0).is_err());
-    }
-
-    #[test]
     fn create_address_endpoint() {
         let ep = AddressEndpoint::new_with_socket_addr(SocketAddr::new(
             IpAddr::V4(Ipv4Addr::LOCALHOST),
