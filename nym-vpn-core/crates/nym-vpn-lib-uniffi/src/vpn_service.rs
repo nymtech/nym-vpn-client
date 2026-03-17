@@ -76,7 +76,6 @@ impl NymVpnService {
                     config.config_dir.clone(),
                     &environment.current().nym_network.network_name,
                     Some(config.user_agent.clone().into()),
-                    None,
                 )
                 .await
                 .map_err(VpnError::internal)?;

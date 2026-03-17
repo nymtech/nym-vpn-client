@@ -47,7 +47,6 @@ impl NymAccountController {
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             network_env.inner().nym_network_details(),
             Some(user_agent.into()),
-            None,
         )
         .await
         .map_err(|err| VpnError::InternalError {
