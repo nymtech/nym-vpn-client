@@ -73,16 +73,6 @@ impl Deeplink {
         url.query_pairs_mut()
             .append_pair("encmn", &encrypted_mnemonic);
 
-        // match self.kind {
-        //     DeeplinkKind::AutologinView => {
-        //         url.query_pairs_mut().append_pair("redirect", "account");
-        //     }
-        //     DeeplinkKind::AutologinRenew => {
-        //         url.query_pairs_mut().append_pair("redirect", "renew");
-        //     }
-        //     _ => (),
-        // }
-
         if let Some(redirect) = self.kind.redirect() {
             url.query_pairs_mut().append_pair("redirect", redirect);
         }
