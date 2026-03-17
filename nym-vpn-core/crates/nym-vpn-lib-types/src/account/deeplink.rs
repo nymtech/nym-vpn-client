@@ -90,3 +90,13 @@ impl FromStr for DeeplinkKind {
         }
     }
 }
+
+impl DeeplinkKind {
+    pub fn redirect(&self) -> Option<&str> {
+        match self {
+            DeeplinkKind::AutologinView => Some("account"),
+            DeeplinkKind::AutologinRenew => Some("renew"),
+            _ => None,
+        }
+    }
+}
