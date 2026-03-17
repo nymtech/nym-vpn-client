@@ -67,11 +67,11 @@ jobs:
 
       - name: Run ktlint
         timeout-minutes: 10
-        run: ./gradlew ktlintCheck -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew ktlintCheck
 
       - name: Run detekt
         timeout-minutes: 10
-        run: ./gradlew detekt --info -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew detekt --info
 
   build-nym-vpn-android:
     uses: ./.github/workflows/build-nym-vpn-android.yml
