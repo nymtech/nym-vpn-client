@@ -36,7 +36,6 @@ use std::{
     collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
-    sync::Weak,
 };
 
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
@@ -601,7 +600,7 @@ pub struct SharedState {
     filtering_resolver: resolver::ResolverHandle,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker: adblocker::AdBlockerTaskHandle,
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(windows, target_os = "macos"))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
@@ -750,23 +749,16 @@ pub struct TunnelStateMachine {
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_shutdown_token: CancellationToken,
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
-    split_tunnel_shutdown_token: CancellationToken,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     filtering_resolver_handle: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker_handle: JoinHandle<()>,
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
-    split_tunnel_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
 impl TunnelStateMachine {
     #[allow(clippy::too_many_arguments)]
     pub async fn spawn(
-        #[cfg_attr(not(target_os = "macos"), allow(unused))] command_sender: Weak<
-            mpsc::UnboundedSender<TunnelCommand>,
-        >,
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,
@@ -780,6 +772,7 @@ impl TunnelStateMachine {
         connectivity_handle: ConnectivityHandle,
         discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
         wg_keys_db: WireguardKeysDb,
+        #[cfg(any(windows, target_os = "macos"))] split_tunnel: nym_split_tunnel::SplitTunnelHandle,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -821,37 +814,6 @@ impl TunnelStateMachine {
         } else {
             tracing::error!("Failed to get DNS Filter from Ad-blocker");
         }
-
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
-        let split_tunnel_shutdown_token = CancellationToken::new();
-
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
-        let (split_tunnel, split_tunnel_handle) = nym_split_tunnel::SplitTunnel::spawn(
-            route_handler.inner_handle(),
-            split_tunnel_shutdown_token.child_token(),
-            move |st_error_cause| {
-                tracing::info!("Split tunnel error: {st_error_cause:?}");
-
-                let Some(command_sender) = command_sender.upgrade() else {
-                    return;
-                };
-
-                let error_state_reason = match st_error_cause {
-                    #[cfg(target_os = "macos")]
-                    nym_split_tunnel::SplitTunnelErrorCause::NeedFullDiskPermissions => {
-                        ErrorStateReason::NeedFullDiskPermissions
-                    }
-                    nym_split_tunnel::SplitTunnelErrorCause::Other => ErrorStateReason::SplitTunnel,
-                    nym_split_tunnel::SplitTunnelErrorCause::IsOffline => {
-                        tracing::warn!("ST should not report offline error!");
-                        ErrorStateReason::SplitTunnel
-                    }
-                };
-
-                let _ = command_sender.send(TunnelCommand::Block(error_state_reason));
-            },
-        )
-        .map_err(Error::StartSplitTunnelTask)?;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
@@ -929,10 +891,6 @@ impl TunnelStateMachine {
             dns_handler_task,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_shutdown_token,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
-            split_tunnel_shutdown_token,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
-            split_tunnel_handle,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             filtering_resolver_handle,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -972,14 +930,6 @@ impl TunnelStateMachine {
         }
 
         tracing::debug!("Tunnel state machine is exiting...");
-
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
-        {
-            self.split_tunnel_shutdown_token.cancel();
-            if let Err(e) = self.split_tunnel_handle.await {
-                tracing::error!("Failed to join on split tunnel task: {}", e)
-            }
-        }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {

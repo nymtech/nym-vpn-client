@@ -9,6 +9,8 @@ use tower::service_fn;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::StExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AutologinResponse,
     AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway,
@@ -867,6 +869,15 @@ impl RpcClient {
             .clear_split_tunnel_apps(())
             .await
             .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn get_split_tunnel_excluded_processes(&mut self) -> Result<StExcludedProcessList> {
+        self.0
+            .get_split_tunnel_excluded_processes(())
+            .await
+            .map(|v| StExcludedProcessList::from(v.into_inner()))
             .map_err(Error::Rpc)
     }
 

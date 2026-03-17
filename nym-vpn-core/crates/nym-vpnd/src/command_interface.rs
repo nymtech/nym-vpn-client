@@ -1112,6 +1112,23 @@ impl NymVpnService for CommandInterface {
         Err(tonic::Status::internal("Unsupported platform"))
     }
 
+    async fn get_split_tunnel_excluded_processes(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::StExcludedProcessList>> {
+        #[cfg(target_os = "macos")]
+        {
+            let res = self
+                .send_and_wait(VpnServiceCommand::GetSplitTunnelExcludedProcesses, ())
+                .await
+                .map(proto::StExcludedProcessList::from)?;
+            Ok(tonic::Response::new(res))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
     async fn need_full_disk_permissions(
         &self,
         _request: tonic::Request<()>,

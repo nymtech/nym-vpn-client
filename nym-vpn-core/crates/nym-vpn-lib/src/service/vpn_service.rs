@@ -29,8 +29,8 @@ use nym_vpn_account_controller::{
     AvailableTicketbooks, NyxdClient,
 };
 use nym_vpn_api_client::api_urls_to_urls;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use nym_vpn_lib_types::SplitApp;
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::StExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, AutologinResponse,
     DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
@@ -41,6 +41,8 @@ use nym_vpn_lib_types::{
     StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
 };
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use nym_vpn_lib_types::{ErrorStateReason, SplitApp};
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
 use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
@@ -211,6 +213,8 @@ pub enum VpnServiceCommand {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     ClearSplitTunnelApps(oneshot::Sender<()>, ()),
     #[cfg(target_os = "macos")]
+    GetSplitTunnelExcludedProcesses(oneshot::Sender<StExcludedProcessList>, ()),
+    #[cfg(target_os = "macos")]
     NeedFullDiskPermissions(oneshot::Sender<bool>, ()),
 }
 
@@ -336,6 +340,14 @@ pub struct NymVpnService {
 
     // Lazy SOCKS5 proxy service handle
     socks5_service: Socks5Service,
+
+    #[cfg(any(windows, target_os = "macos"))]
+    #[cfg_attr(windows, allow(unused))]
+    split_tunnel: nym_split_tunnel::SplitTunnelHandle,
+    #[cfg(any(windows, target_os = "macos"))]
+    split_tunnel_shutdown_token: CancellationToken,
+    #[cfg(any(windows, target_os = "macos"))]
+    split_tunnel_join_handle: JoinHandle<()>,
 }
 
 impl NymVpnService {
@@ -559,8 +571,38 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
+        #[cfg(any(windows, target_os = "macos"))]
+        let split_tunnel_shutdown_token = CancellationToken::new();
+        #[cfg(any(windows, target_os = "macos"))]
+        let st_command_sender = Arc::downgrade(&command_sender);
+        #[cfg(any(windows, target_os = "macos"))]
+        let (split_tunnel, split_tunnel_join_handle) = nym_split_tunnel::SplitTunnel::spawn(
+            route_handler.inner_handle(),
+            split_tunnel_shutdown_token.child_token(),
+            move |st_error_cause| {
+                tracing::info!("Split tunnel error: {st_error_cause:?}");
+
+                let Some(st_command_sender) = st_command_sender.upgrade() else {
+                    return;
+                };
+
+                let error_state_reason = match st_error_cause {
+                    #[cfg(target_os = "macos")]
+                    nym_split_tunnel::SplitTunnelErrorCause::NeedFullDiskPermissions => {
+                        ErrorStateReason::NeedFullDiskPermissions
+                    }
+                    nym_split_tunnel::SplitTunnelErrorCause::Other => ErrorStateReason::SplitTunnel,
+                    nym_split_tunnel::SplitTunnelErrorCause::IsOffline => {
+                        tracing::warn!("ST should not report offline error!");
+                        ErrorStateReason::SplitTunnel
+                    }
+                };
+
+                let _ = st_command_sender.send(TunnelCommand::Block(error_state_reason));
+            },
+        );
+
         let state_machine_handle = TunnelStateMachine::spawn(
-            Arc::downgrade(&command_sender),
             command_receiver,
             event_sender,
             nym_config,
@@ -574,6 +616,8 @@ impl NymVpnService {
             connectivity_handle,
             discovery_refresher_command_tx,
             wireguard_keys_db,
+            #[cfg(target_os = "macos")]
+            split_tunnel.clone(),
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -617,6 +661,12 @@ impl NymVpnService {
             statistics_event_sender,
             stats_control_commands_sender,
             socks5_service,
+            #[cfg(any(windows, target_os = "macos"))]
+            split_tunnel,
+            #[cfg(any(windows, target_os = "macos"))]
+            split_tunnel_join_handle,
+            #[cfg(any(windows, target_os = "macos"))]
+            split_tunnel_shutdown_token,
         })
     }
 
@@ -672,6 +722,15 @@ impl NymVpnService {
                         }
                     }
                 }
+            }
+        }
+
+        #[cfg(any(windows, target_os = "macos"))]
+        {
+            // Shutdown split-tunnel
+            self.split_tunnel_shutdown_token.cancel();
+            if let Err(e) = self.split_tunnel_join_handle.await {
+                tracing::error!("Failed to join on split tunnel handle: {e}");
             }
         }
 
@@ -1079,6 +1138,11 @@ impl NymVpnService {
             VpnServiceCommand::ClearSplitTunnelApps(tx, ()) => {
                 self.handle_clear_split_tunnel_apps().await;
                 let _ = tx.send(());
+            }
+            #[cfg(target_os = "macos")]
+            VpnServiceCommand::GetSplitTunnelExcludedProcesses(tx, ()) => {
+                let excluded_processes = self.handle_get_split_tunnel_excluded_processes().await;
+                let _ = tx.send(excluded_processes);
             }
             #[cfg(target_os = "macos")]
             VpnServiceCommand::NeedFullDiskPermissions(tx, ()) => {
@@ -2031,5 +2095,13 @@ impl NymVpnService {
     async fn handle_clear_split_tunnel_apps(&mut self) {
         self.config_manager.clear_split_tunnel_apps().await;
         self.update_tunnel_settings_with_throttle();
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn handle_get_split_tunnel_excluded_processes(&mut self) -> StExcludedProcessList {
+        self.split_tunnel
+            .get_excluded_processes()
+            .await
+            .unwrap_or_default()
     }
 }
