@@ -16,7 +16,6 @@ impl HttpDiagnostic {
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             network.nym_network_details(),
             Some(new_user_agent!()),
-            None,
         )
         .await?;
 

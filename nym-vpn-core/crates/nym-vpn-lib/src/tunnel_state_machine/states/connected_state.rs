@@ -120,10 +120,6 @@ impl ConnectedState {
             .await;
         }
 
-        // Reset DNS resolver overrides since connections can be established over the tunnel
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        _shared_state.reset_resolver_overrides().await;
-
         (
             Box::new(connected_state),
             PrivateTunnelState::Connected { connection_data },

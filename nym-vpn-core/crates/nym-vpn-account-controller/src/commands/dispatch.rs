@@ -7,7 +7,6 @@ use crate::{
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
-    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
@@ -91,9 +90,6 @@ impl AccountCommand {
                 CommonCommand::GetDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetActiveDevices(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(Err(error)),
-                CommonCommand::SetResolverOverrides(return_sender, _) => {
-                    return_sender.send(Err(error))
-                }
                 CommonCommand::GetAccountSummary(return_sender) => return_sender.send(Err(error)),
                 CommonCommand::GetDeeplink(return_sender, _) => return_sender.send(Err(error)),
                 CommonCommand::DeriveDeeplinkMnemonic(return_sender, _) => {
@@ -141,12 +137,6 @@ pub enum CommonCommand {
 
     /// Returns a list of tickets available in storage
     GetAvailableTickets(ReturnSender<AvailableTicketbooks, AccountCommandError>),
-
-    /// Override the VPN API client resolver to allow him to go through the firewall (with Domain Fronting)
-    SetResolverOverrides(
-        ReturnSender<(), AccountCommandError>,
-        Option<ResolverOverrides>,
-    ),
 
     /// Returns the VPN account summary if the account is logged-in
     GetAccountSummary(ReturnSender<Option<VpnAccountSummary>, AccountCommandError>),

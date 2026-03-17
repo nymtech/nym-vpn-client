@@ -364,7 +364,6 @@ impl NymVpnAccountStorage {
         let vpn_api_client = VpnApiClient::from_network(
             self.environment.inner().nym_network_details(),
             Some(user_agent),
-            None,
         )
         .await
         .map_err(VpnError::internal)?;

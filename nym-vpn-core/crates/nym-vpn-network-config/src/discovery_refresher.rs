@@ -11,7 +11,6 @@ use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityMonitor;
-use nym_vpn_api_client::ResolverOverrides;
 
 use crate::{Network, NetworkCache};
 
@@ -62,21 +61,6 @@ impl DiscoveryRefresher {
                                 self.paused = pause;
                             }
                         }
-                        DiscoveryRefresherCommand::UseResolverOverrides(resolver_overrides) => {
-                            let enabled = if resolver_overrides.is_some() {"enabled"} else {"disabled"};
-                            match self.network_cache.set_resolver_overrides(resolver_overrides) {
-                                Ok(is_changed) => {
-                                    if is_changed {
-                                        tracing::debug!("Discovery refresher using {enabled} resolver overrides");
-                                    } else {
-                                        tracing::debug!("Discovery refresher received identical resolver overrides; ignoring");
-                                    }
-                                }
-                                Err(err) => {
-                                    trace_err_chain!(err, "failed to apply new resolver overrides");
-                                }
-                            }
-                        }
                     }
                 }
                 Some(connectivity) = connectivity_monitor.next() => {
@@ -113,5 +97,4 @@ impl DiscoveryRefresher {
 #[derive(Debug)]
 pub enum DiscoveryRefresherCommand {
     Pause(bool),
-    UseResolverOverrides(Option<ResolverOverrides>),
 }

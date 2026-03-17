@@ -4,7 +4,7 @@
 use crate::common::{TestBench, account_summary::*, endpoints, mock_account, mock_account_id};
 
 use nym_vpn_account_controller::AvailableTicketbooks;
-use nym_vpn_api_client::{ResolverOverrides, response::NymVpnDeviceStatus};
+use nym_vpn_api_client::response::NymVpnDeviceStatus;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
 };
@@ -69,13 +69,6 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
 
     assert_eq!(
         test_bench.command_sender.reset_device_identity(None).await,
-        Ok(())
-    );
-    assert_eq!(
-        test_bench
-            .command_sender
-            .set_resolver_overrides(Some(ResolverOverrides::default()))
-            .await,
         Ok(())
     );
 
@@ -165,13 +158,6 @@ async fn offline_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench.command_sender.reset_device_identity(None).await,
         Err(AccountCommandError::Offline)
-    );
-    assert_eq!(
-        test_bench
-            .command_sender
-            .set_resolver_overrides(Some(ResolverOverrides::default()))
-            .await,
-        Ok(())
     );
 
     // Offline, no account stored
@@ -331,14 +317,6 @@ async fn ready_state_command() -> anyhow::Result<()> {
         .await;
 
     assert_eq!(
-        test_bench
-            .command_sender
-            .set_resolver_overrides(Some(ResolverOverrides::default()))
-            .await,
-        Ok(())
-    );
-
-    assert_eq!(
         test_bench.command_sender.create_account_command().await,
         Err(AccountCommandError::ExistingAccount)
     );
@@ -445,14 +423,6 @@ async fn error_state_command() -> anyhow::Result<()> {
             AccountControllerErrorStateReason::MaxDeviceReached,
         ))
         .await;
-
-    assert_eq!(
-        test_bench
-            .command_sender
-            .set_resolver_overrides(Some(ResolverOverrides::default()))
-            .await,
-        Ok(())
-    );
 
     assert_eq!(
         test_bench.command_sender.create_account_command().await,

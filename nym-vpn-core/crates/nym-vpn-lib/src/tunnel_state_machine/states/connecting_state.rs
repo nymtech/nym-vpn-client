@@ -284,7 +284,7 @@ impl ConnectingState {
         #[cfg(any(target_os = "android", target_os = "ios"))]
         {
             // Start tunnel monitor immediately since there is no configurable firewall on mobile
-            self.start_tunnel_monitor(None, shared_state).await
+            self.start_tunnel_monitor(shared_state).await
         }
     }
 
@@ -318,35 +318,10 @@ impl ConnectingState {
             );
         }
 
-        if resolved_gateway_config.has_resolver_overrides() {
-            let resolver_overrides = resolved_gateway_config
-                .nym_vpn_api_resolver_overrides
-                .clone();
-
-            // Set DNS resolver overrides to ensure that HTTP clients use IP addresses specified in firewall exceptions.
-            if !shared_state
-                .set_resolver_overrides(resolver_overrides)
-                .await
-            {
-                return NextTunnelState::NewState(
-                    ErrorState::enter(
-                        ErrorStateReason::Internal("Failed to set resolver overrides".to_owned()),
-                        shared_state,
-                    )
-                    .await,
-                );
-            }
-        } else {
-            tracing::warn!(
-                "There are no resolver overrides, which may result in the firewall blocking API requests"
-            );
-        }
-
         // Allow networking now when firewall and resolver overrides are configured.
         shared_state.allow_networking().await;
 
-        self.start_tunnel_monitor(Some(resolved_gateway_config), shared_state)
-            .await
+        self.start_tunnel_monitor(shared_state).await
     }
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -369,7 +344,6 @@ impl ConnectingState {
 
     async fn start_tunnel_monitor(
         mut self: Box<Self>,
-        resolved_gateway_config: Option<ResolvedConfig>,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
         let Some(tunnel_monitor_event_sender) = self.tunnel_monitor_event_sender.take() else {
@@ -386,7 +360,6 @@ impl ConnectingState {
 
         let tunnel_parameters = TunnelParameters {
             nym_config: shared_state.nym_config.clone(),
-            resolved_gateway_config,
             tunnel_settings: shared_state.tunnel_settings.clone(),
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),

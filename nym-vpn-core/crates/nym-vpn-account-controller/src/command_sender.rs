@@ -8,7 +8,6 @@ use crate::{
 };
 use nym_validator_client::nyxd::Coin;
 use nym_vpn_api_client::{
-    ResolverOverrides,
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
@@ -244,21 +243,6 @@ impl AccountCommandSender {
             .send(AccountCommand::Common(
                 CommonCommand::DeriveDeeplinkMnemonic(tx, deeplink_callback_url),
             ))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
-    }
-
-    #[instrument(skip(self))]
-    pub async fn set_resolver_overrides(
-        &self,
-        resolver_overrides: Option<ResolverOverrides>,
-    ) -> Result<(), AccountCommandError> {
-        let (tx, rx) = ReturnSender::new();
-        self.command_tx
-            .send(AccountCommand::Common(CommonCommand::SetResolverOverrides(
-                tx,
-                resolver_overrides,
-            )))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

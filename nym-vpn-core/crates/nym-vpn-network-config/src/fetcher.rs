@@ -6,7 +6,7 @@ use std::time::Duration;
 use nym_http_api_client::Client as HttpApiClient;
 use nym_sdk::{NymNetworkDetails, UserAgent};
 use nym_validator_client::nym_api::NymApiClientExt;
-use nym_vpn_api_client::{ResolverOverrides, VpnApiClient, api_urls_to_urls, fronted_http_client};
+use nym_vpn_api_client::{VpnApiClient, api_urls_to_urls, fronted_http_client};
 
 use crate::{Error, Result, discovery::Discovery, envs::RegisteredNetworks};
 
@@ -19,21 +19,15 @@ pub struct Fetcher {
     vpn_api_client: VpnApiClient,
     user_agent: Option<UserAgent>,
     discovery: Box<Discovery>,
-    resolver_overrides: Option<ResolverOverrides>,
 }
 
 impl Fetcher {
     /// Create an instance of `Fetcher` using HTTP API endpoints from the given discovery.
-    pub fn new(
-        discovery: Discovery,
-        user_agent: Option<UserAgent>,
-        resolver_overrides: Option<&ResolverOverrides>,
-    ) -> Result<Self> {
+    pub fn new(discovery: Discovery, user_agent: Option<UserAgent>) -> Result<Self> {
         Ok(Self {
             user_agent: user_agent.clone(),
-            resolver_overrides: resolver_overrides.cloned(),
-            api_client: build_api_client(&discovery, user_agent.clone(), resolver_overrides)?,
-            vpn_api_client: build_vpn_api_client(&discovery, user_agent, resolver_overrides)?,
+            api_client: build_api_client(&discovery, user_agent.clone())?,
+            vpn_api_client: build_vpn_api_client(&discovery, user_agent)?,
             discovery: Box::new(discovery),
         })
     }
@@ -45,43 +39,11 @@ impl Fetcher {
             return Ok(());
         }
 
-        self.api_client = build_api_client(
-            &new_discovery,
-            self.user_agent.clone(),
-            self.resolver_overrides.as_ref(),
-        )?;
-        self.vpn_api_client = build_vpn_api_client(
-            &new_discovery,
-            self.user_agent.clone(),
-            self.resolver_overrides.as_ref(),
-        )?;
+        self.api_client = build_api_client(&new_discovery, self.user_agent.clone())?;
+        self.vpn_api_client = build_vpn_api_client(&new_discovery, self.user_agent.clone())?;
         *self.discovery = new_discovery;
 
         Ok(())
-    }
-
-    /// Update resolver overrides used by the fetcher.
-    /// This causes recreation of the underlying HTTP API clients.
-    pub fn set_resolver_overrides(
-        &mut self,
-        new_overrides: Option<ResolverOverrides>,
-    ) -> Result<bool> {
-        if self.resolver_overrides == new_overrides {
-            return Ok(false);
-        }
-
-        self.api_client = build_api_client(
-            &self.discovery,
-            self.user_agent.clone(),
-            new_overrides.as_ref(),
-        )?;
-
-        self.vpn_api_client
-            .override_resolver(new_overrides.as_ref())
-            .map_err(Error::SetResolverOverrides)?;
-        self.resolver_overrides = new_overrides;
-
-        Ok(true)
     }
 
     /// Fetch registered networks from the API.
@@ -116,33 +78,22 @@ impl Fetcher {
     }
 }
 
-fn build_api_client(
-    discovery: &Discovery,
-    user_agent: Option<UserAgent>,
-    resolver_overrides: Option<&ResolverOverrides>,
-) -> Result<HttpApiClient> {
+fn build_api_client(discovery: &Discovery, user_agent: Option<UserAgent>) -> Result<HttpApiClient> {
     let api_urls =
         api_urls_to_urls(&discovery.nym_api_urls()).map_err(Error::CreateVpnApiClient)?;
 
-    fronted_http_client::fronted_http_client(
-        api_urls,
-        user_agent,
-        Some(NETWORK_TIMEOUT),
-        resolver_overrides,
-    )
-    .map_err(Error::CreateVpnApiClient)
+    fronted_http_client::fronted_http_client(api_urls, user_agent, Some(NETWORK_TIMEOUT))
+        .map_err(Error::CreateVpnApiClient)
 }
 
 fn build_vpn_api_client(
     discovery: &Discovery,
     user_agent: Option<UserAgent>,
-    resolver_overrides: Option<&ResolverOverrides>,
 ) -> Result<VpnApiClient> {
     let vpn_api_urls =
         api_urls_to_urls(&discovery.nym_vpn_api_urls()).map_err(Error::CreateVpnApiClient)?;
 
-    VpnApiClient::new(vpn_api_urls, user_agent, resolver_overrides)
-        .map_err(Error::CreateVpnApiClient)
+    VpnApiClient::new(vpn_api_urls, user_agent).map_err(Error::CreateVpnApiClient)
 }
 
 #[cfg(test)]
@@ -152,7 +103,7 @@ mod tests {
     #[tokio::test]
     async fn test_discovery_fetch() {
         let network_name = "mainnet";
-        let fetcher = Fetcher::new(Discovery::default_mainnet(), None, None).unwrap();
+        let fetcher = Fetcher::new(Discovery::default_mainnet(), None).unwrap();
         let discovery = fetcher.fetch_discovery(network_name).await.unwrap();
         assert_eq!(discovery.network_name, network_name);
     }
