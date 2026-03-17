@@ -33,7 +33,7 @@ pub(super) mod requesting_zknym_state;
 const MAX_SYNCING_ATTEMPTS: u32 = 10;
 const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
 
-// plateauing exponential backoff for retries [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0]
+// bounded exponential backoff for retries [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0]
 const RETRY_BACKOFF: Duration = Duration::from_millis(250);
 const MAX_BACKOFF_EXPONENT: u32 = 5;
 const BACKOFF_BASE: u32 = 2;
@@ -263,7 +263,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                             } else {
                                 let delay = RETRY_BACKOFF * BACKOFF_BASE.pow(min(self.attempts, MAX_BACKOFF_EXPONENT));
                                 tracing::debug!("Error trying to get account summary, retrying after {:?} : {}", delay, err.to_string());
-                                tokio::time::sleep(delay).await;
+                                let _ = shutdown_token.run_until_cancelled(tokio::time::sleep(delay)).await;
                                 NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
                             }
                         } else {
