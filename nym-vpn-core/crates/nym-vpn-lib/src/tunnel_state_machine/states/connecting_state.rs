@@ -284,7 +284,7 @@ impl ConnectingState {
         #[cfg(any(target_os = "android", target_os = "ios"))]
         {
             // Start tunnel monitor immediately since there is no configurable firewall on mobile
-            self.start_tunnel_monitor(None, shared_state).await
+            self.start_tunnel_monitor(shared_state).await
         }
     }
 
