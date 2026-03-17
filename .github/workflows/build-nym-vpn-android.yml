@@ -195,7 +195,7 @@ jobs:
       - name: Build Fdroid Release Apk
         if: ${{ inputs.build_type == 'release' && inputs.build_format == 'apk' }}
         timeout-minutes: 45
-        run: ./gradlew :app:assembleFdroidRelease --info -PbuildDeps=true -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew :app:assembleFdroidRelease --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
@@ -203,7 +203,7 @@ jobs:
       - name: Build Fdroid Release Bundle
         if: ${{ inputs.build_type == 'release' && inputs.build_format == 'aab' }}
         timeout-minutes: 45
-        run: ./gradlew :app:bundleFdroidRelease --info -PbuildDeps=true -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew :app:bundleFdroidRelease --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
@@ -211,7 +211,7 @@ jobs:
       - name: Build Fdroid Prerelease Apk
         if: ${{ inputs.build_type == 'prerelease' && inputs.build_format == 'apk' }}
         timeout-minutes: 45
-        run: ./gradlew :app:assembleFdroidPrerelease --info -PbuildDeps=true -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew :app:assembleFdroidPrerelease --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
@@ -219,7 +219,7 @@ jobs:
       - name: Build Fdroid Prerelease Bundle
         if: ${{ inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
         timeout-minutes: 45
-        run: ./gradlew :app:bundleFdroidPrerelease --info -PbuildDeps=true -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew :app:bundleFdroidPrerelease --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
@@ -227,7 +227,7 @@ jobs:
       - name: Build Fdroid Nightly Apk
         if: ${{ inputs.build_type == 'nightly' && inputs.build_format == 'apk' }}
         timeout-minutes: 45
-        run: ./gradlew :app:assembleFdroidNightly --info -PbuildDeps=true -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew :app:assembleFdroidNightly --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
@@ -235,7 +235,7 @@ jobs:
       - name: Build Fdroid Nightly Bundle
         if: ${{ inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
         timeout-minutes: 45
-        run: ./gradlew :app:bundleFdroidNightly --info -PbuildDeps=true -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew :app:bundleFdroidNightly --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
@@ -243,7 +243,7 @@ jobs:
       - name: Build Debug Apk
         if: ${{ inputs.build_type == 'debug' && inputs.build_format == 'apk' }}
         timeout-minutes: 45
-        run: ./gradlew :app:assembleFdroidDebug --stacktrace -PbuildDeps=true -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew :app:assembleFdroidDebug --stacktrace
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
@@ -251,7 +251,7 @@ jobs:
       - name: Build Debug Bundle
         if: ${{ inputs.build_type == 'debug' && inputs.build_format == 'aab' }}
         timeout-minutes: 45
-        run: ./gradlew :app:bundleFdroidDebug --stacktrace -PbuildDeps=true -Pandroid.ndkDirectory=${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew :app:bundleFdroidDebug --stacktrace
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"

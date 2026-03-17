@@ -61,7 +61,7 @@ fun Context.getFlagImageVectorByName(name: String): Int {
 	return if (resourceId == 0) {
 		Timber.e("Cannot find flag for countryIso: $name")
 		// use our unknown flag drawable
-		return resources.getIdentifier("flag_unknown", "drawable", packageName)
+		resources.getIdentifier("flag_unknown", "drawable", packageName)
 	} else {
 		resourceId
 	}

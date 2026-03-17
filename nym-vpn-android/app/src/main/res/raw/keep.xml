@@ -1,0 +1,3 @@
+<resources xmlns:tools="http://schemas.android.com/tools"
+	tools:keep="@drawable/flag_*"
+	tools:shrinkMode="strict" />
