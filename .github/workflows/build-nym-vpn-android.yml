@@ -106,7 +106,7 @@ jobs:
           java-version: "21"
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/heads/release/') }}
 
@@ -114,7 +114,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Cache NDK
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: cache-ndk
         with:
           path: /usr/local/lib/android/sdk/ndk/${{ vars.REQUIRED_NDK_VERSION }}
