@@ -23,6 +23,7 @@ use either::Either;
 use libc::pid_t;
 use nym_macos::process::{list_pids, process_path};
 use nym_platform_metadata::AppleVersion;
+use nym_vpn_lib_types::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};
 use serde::{Deserialize, de::Error as _};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
@@ -364,6 +365,24 @@ impl ProcessStates {
         inner.exclude_paths = paths;
     }
 
+    pub async fn get_excluded_processes(&self) -> SplitTunnelExcludedProcessList {
+        let inner = self.inner.lock().await;
+        let mut processes = inner
+            .processes
+            .iter()
+            .filter(|(_, info)| info.is_excluded())
+            .map(|(pid, info)| SplitTunnelExcludedProcess {
+                pid: *pid,
+                exec_path: info.exec_path.clone(),
+                responsible_exec_path: info.responsible_exec_path.clone(),
+            })
+            .collect::<Vec<_>>();
+        drop(inner);
+        processes.sort_by(sort_process_list);
+
+        SplitTunnelExcludedProcessList { processes }
+    }
+
     pub async fn get_process_status(&self, pid: pid_t) -> ExclusionStatus {
         let inner = self.inner.lock().await;
         match inner.processes.get(&pid) {
@@ -525,6 +544,25 @@ impl ProcessInfo {
     fn is_excluded(&self) -> bool {
         !self.excluded_by_paths.is_empty()
     }
+}
+
+/// Sort process list placing standalone processes at the top of the list followed by the corresponding direct or indirect child processes
+fn sort_process_list(
+    lhs: &SplitTunnelExcludedProcess,
+    rhs: &SplitTunnelExcludedProcess,
+) -> std::cmp::Ordering {
+    match (is_child_process(lhs), is_child_process(rhs)) {
+        (true, true) | (false, false) => lhs.exec_path.cmp(&rhs.exec_path),
+        (true, false) => std::cmp::Ordering::Less,
+        (false, true) => std::cmp::Ordering::Greater,
+    }
+}
+
+/// Returns true when executable and responsible paths differ which indicates that the process is either a direct child process or started
+/// by the system on behalf of other indirect parent process.
+#[inline]
+fn is_child_process(proc: &SplitTunnelExcludedProcess) -> bool {
+    proc.exec_path != proc.responsible_exec_path
 }
 
 /// `fork` event details

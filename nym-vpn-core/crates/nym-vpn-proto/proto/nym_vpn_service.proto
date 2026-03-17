@@ -908,21 +908,21 @@ enum VpnAccountStatus {
 }
 
 message NymVpnSubscriptionKind {
-    message OneMonth {}
-    message OneYear {}
-    message TwoYears {}
-    message Freepass {}
-    message Other {
-      string other = 1;
-    }
+  message OneMonth {}
+  message OneYear {}
+  message TwoYears {}
+  message Freepass {}
+  message Other {
+    string other = 1;
+  }
 
-    oneof kind {
-      OneMonth one_month = 1;
-      OneYear one_year = 2;
-      TwoYears two_years = 3;
-      Freepass free_pass = 4;
-      Other other = 5;
-    }
+  oneof kind {
+    OneMonth one_month = 1;
+    OneYear one_year = 2;
+    TwoYears two_years = 3;
+    Freepass free_pass = 4;
+    Other other = 5;
+  }
 }
 
 message DeleteLogFileResponse {
@@ -1025,6 +1025,16 @@ enum DeeplinkKind {
   AutologinRenew = 2;
   AutologinView = 3;
   CreateAccount = 4;
+}
+
+message SplitTunnelExcludedProcess {
+  int32 pid = 1;
+  string exec_path = 2;
+  string responsible_exec_path = 3;
+}
+
+message SplitTunnelExcludedProcessList {
+  repeated SplitTunnelExcludedProcess processes = 1;
 }
 
 service NymVpnService {
@@ -1202,6 +1212,7 @@ service NymVpnService {
   rpc AddSplitTunnelApp(SplitApp) returns (google.protobuf.Empty) {}
   rpc RemoveSplitTunnelApp(SplitApp) returns (google.protobuf.Empty) {}
   rpc ClearSplitTunnelApps(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc GetSplitTunnelExcludedProcesses(google.protobuf.Empty) returns (SplitTunnelExcludedProcessList) {}
 
   // Check whether the app needs TCC approval for split tunneling (macOS)
   rpc NeedFullDiskPermissions(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
