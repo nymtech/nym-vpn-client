@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { clsx } from 'clsx';
 import { Button } from '@headlessui/react';
 import { CardNewFooter, MsIcon, Spinner } from '../../../../ui';
@@ -14,7 +14,8 @@ export function RenewButton({
 }) {
   const { t } = useTranslation('account');
 
-  const { autologin, autologinLoading } = useAutologin();
+  const [autologinLoading, setAutologinLoading] = useState(false);
+  const { autologin } = useAutologin();
 
   const status = useMemo(
     () => getAccountStatus(accountSummary),
@@ -22,7 +23,12 @@ export function RenewButton({
   );
 
   const handleRenew = async () => {
-    await autologin('autologinRenew');
+    setAutologinLoading(true);
+    try {
+      await autologin('autologinRenew');
+    } finally {
+      setAutologinLoading(false);
+    }
   };
 
   const getStatusColor = () => {

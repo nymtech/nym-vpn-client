@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { openUrl } from '@tauri-apps/plugin-opener';
-import { Button, MsIcon, PageAnim } from '../../ui';
-import { NymVpnAccountLoginUrl } from '../../constants';
+import { useState } from 'react';
+import { Button, MsIcon, PageAnim, Spinner } from '../../ui';
 import { routes } from '../../router';
 import { CheckCircleIcon } from '../../assets';
+import { useAutologin } from '../../contexts/autologin/context';
 
 function Feature({ icon, title }: { icon: string; title: string }) {
   return (
@@ -18,10 +18,19 @@ function SelectPlan() {
   const navigate = useNavigate();
   const { t } = useTranslation('account');
 
-  const handleClick = () => {
-    openUrl(NymVpnAccountLoginUrl).finally(() => {
+  const [autologinLoading, setAutologinLoading] = useState(false);
+  const { autologin } = useAutologin();
+
+  const handleClick = async () => {
+    if (autologinLoading) return;
+
+    setAutologinLoading(true);
+    try {
+      await autologin('autologinRenew');
       navigate(routes.root);
-    });
+    } finally {
+      setAutologinLoading(false);
+    }
   };
 
   return (
@@ -45,7 +54,8 @@ function SelectPlan() {
       </div>
       <Button className="w-full" onClick={handleClick}>
         <span className="flex items-center gap-2">
-          {t('select-a-plan.button')} <MsIcon icon="open_in_new" />
+          {t('select-a-plan.button')}{' '}
+          {autologinLoading ? <Spinner /> : <MsIcon icon="open_in_new" />}
         </span>
       </Button>
     </PageAnim>

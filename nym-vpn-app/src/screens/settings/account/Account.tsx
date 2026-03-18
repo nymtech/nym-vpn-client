@@ -43,7 +43,8 @@ function Account() {
     backendFlags,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
-  const { autologin, autologinLoading } = useAutologin();
+  const [autologinLoading, setAutologinLoading] = useState(false);
+  const { autologin } = useAutologin();
   const needAPlan = account && accountState === 'no-subscription';
 
   const [isAccountLinking, setIsAccountLinking] = useState(false);
@@ -163,7 +164,12 @@ function Account() {
   };
 
   const handleManageSubscription = async () => {
-    await autologin('autologinView');
+    setAutologinLoading(true);
+    try {
+      await autologin('autologinView');
+    } finally {
+      setAutologinLoading(false);
+    }
   };
 
   return (

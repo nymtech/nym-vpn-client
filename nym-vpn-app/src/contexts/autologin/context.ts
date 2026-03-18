@@ -7,12 +7,10 @@ export type AutologinKind = Extract<
 >;
 
 export type AutologinContextType = {
-  autologinLoading: boolean;
   autologin: (kind: AutologinKind) => Promise<void>;
 };
 
 const initialState: AutologinContextType = {
-  autologinLoading: false,
   autologin: async () => Promise.resolve(),
 };
 
