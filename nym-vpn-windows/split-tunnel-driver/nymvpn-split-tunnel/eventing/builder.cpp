@@ -123,7 +123,7 @@ RAW_EVENT* BuildStartSplittingErrorEvent(HANDLE ProcessId, LOWER_UNICODE_STRING*
     void* buffer;
     size_t bufferSize;
 
-    auto status = BuildSplittingErrorEvent(ProcessId, ImageName, false, &buffer, &bufferSize);
+    auto status = BuildSplittingErrorEvent(ProcessId, ImageName, true, &buffer, &bufferSize);
 
     if (!status) {
         return NULL;
