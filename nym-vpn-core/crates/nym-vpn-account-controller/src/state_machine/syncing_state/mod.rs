@@ -101,7 +101,13 @@ impl SyncingState {
         // This handle does not need to be awaited since event channel and cancellation token are sufficient.
         let _syncing_state_handle =
             tokio::spawn(sync_cancel_token.child_token().run_until_cancelled_owned(
-                SyncingState::sync_account(event_tx, vpn_api_client, vpn_api_account, device),
+                SyncingState::sync_account(
+                    event_tx,
+                    vpn_api_client,
+                    vpn_api_account,
+                    device,
+                    attempts,
+                ),
             ));
 
         (
@@ -119,7 +125,12 @@ impl SyncingState {
         vpn_api_client: VpnApiClient,
         vpn_api_account: Arc<VpnAccount>,
         device: Device,
+        attempts: u32,
     ) {
+        if attempts > 0 {
+            tokio::time::sleep(Self::get_delay(attempts)).await;
+        }
+
         let final_event =
             Self::sync_account_inner(event_tx.clone(), vpn_api_client, vpn_api_account, device)
                 .await
@@ -234,6 +245,11 @@ impl SyncingState {
             .await?;
         Ok(()) // We can register a device, we have fair usage
     }
+
+    /// The attempt retries should  start with attempt 1
+    fn get_delay(attempts: u32) -> Duration {
+        RETRY_BACKOFF * BACKOFF_BASE.pow(min(attempts - 1, MAX_BACKOFF_EXPONENT))
+    }
 }
 
 #[async_trait::async_trait]
@@ -261,9 +277,12 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                                 tracing::debug!("Error trying to get account summary, exhausted retries : {}", err.to_string());
                                 NextAccountControllerState::NewState(ErrorState::enter(err.into()))
                             } else {
-                                let delay = RETRY_BACKOFF * BACKOFF_BASE.pow(min(self.attempts, MAX_BACKOFF_EXPONENT));
-                                tracing::debug!("Error trying to get account summary attempt {}, retrying after {:?} : {}", self.attempts, delay, err.to_string());
-                                let _ = shutdown_token.run_until_cancelled(tokio::time::sleep(delay)).await;
+                                tracing::debug!(
+                                    "Error trying to get account summary attempt {}, retrying after {:?} : {}",
+                                    self.attempts,
+                                    Self::get_delay(self.attempts+1),
+                                    err.to_string()
+                                );
                                 NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
                             }
                         } else {
