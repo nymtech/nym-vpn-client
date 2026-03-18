@@ -316,7 +316,18 @@ impl ProcessStates {
 
         for pid in processes {
             let path = process_path(pid).map_err(|error| Error::FindProcessPath(error, pid))?;
-            states.processes.insert(pid, ProcessInfo::included(path));
+
+            let responsible_pid = unsafe { responsibility_get_pid_responsible_for_pid(pid) };
+            let responsible_path = if responsible_pid >= 0 {
+                process_path(responsible_pid)
+                    .map_err(|error| Error::FindProcessPath(error, responsible_pid))?
+            } else {
+                path.clone() // fallback to itself
+            };
+
+            let info = ProcessInfo::included(path, responsible_path);
+
+            states.processes.insert(pid, info);
         }
 
         Ok(ProcessStates {
@@ -338,6 +349,13 @@ impl ProcessStates {
             // Check if own path is excluded
             if paths.contains(&info.exec_path) && !new_exclude_paths.contains(&info.exec_path) {
                 new_exclude_paths.insert(info.exec_path.clone());
+            }
+
+            // Check if path for responsible app is excluded
+            if paths.contains(&info.responsible_exec_path)
+                && !new_exclude_paths.contains(&info.responsible_exec_path)
+            {
+                new_exclude_paths.insert(info.responsible_exec_path.clone());
             }
 
             info.excluded_by_paths = new_exclude_paths;
@@ -363,16 +381,37 @@ impl InnerProcessStates {
             return;
         };
 
+        // Obtain path to the app responsible for launching this particular process which can be used to draw relationships between processes.
+        //
+        // The PID held in `responsible_audit_token` can point at:
+        //
+        // 1. Process running in different process group that triggered the launch of the app represented by `pid`
+        //    This is the case with XPC/WebKit, apps like DuckDuckGo that use system framework for sandboxed web browsing
+        // 2. Parent process
+        // 3. Point at itself (the value held in `pid`)
+        let Some(responsible_pid) = msg.process.responsible_audit_token.checked_pid() else {
+            tracing::trace!("eslogger returned bad responsible pid: {msg:?}");
+            return;
+        };
+
         match msg.event {
-            ESEvent::Fork(evt) => self.handle_fork(pid, msg.process.executable.path, evt),
-            ESEvent::Exec(evt) => self.handle_exec(pid, evt),
+            ESEvent::Fork(evt) => {
+                self.handle_fork(pid, responsible_pid, msg.process.executable.path, evt)
+            }
+            ESEvent::Exec(evt) => self.handle_exec(pid, responsible_pid, evt),
             ESEvent::Exit {} => self.handle_exit(pid),
         }
     }
 
     // For new processes, inherit all exclusion state from the parent, if there is one.
     // Otherwise, look up excluded paths
-    fn handle_fork(&mut self, parent_pid: pid_t, exec_path: PathBuf, msg: ESForkEvent) {
+    fn handle_fork(
+        &mut self,
+        parent_pid: pid_t,
+        responsible_pid: pid_t,
+        exec_path: PathBuf,
+        msg: ESForkEvent,
+    ) {
         let Some(pid) = msg.child.audit_token.checked_pid() else {
             tracing::trace!("eslogger returned bad pid: {msg:?}");
             return;
@@ -384,17 +423,29 @@ impl InnerProcessStates {
 
         // Inherit exclusion status from parent
         let base_info = match self.processes.get(&parent_pid) {
-            Some(parent_info) => parent_info.to_owned(),
+            Some(parent_info) => {
+                let mut cloned_info = parent_info.to_owned();
+                if let Some(resp_info) = self.processes.get(&responsible_pid) {
+                    cloned_info.responsible_exec_path = resp_info.exec_path.clone();
+                }
+                cloned_info
+            }
             None => {
                 tracing::error!("{pid}: Unknown parent pid {parent_pid}!");
-                ProcessInfo::included(exec_path)
+                let responsible_path = self
+                    .processes
+                    .get(&responsible_pid)
+                    .map(|resp_info| resp_info.exec_path.clone())
+                    .unwrap_or_else(|| exec_path.clone());
+
+                ProcessInfo::included(exec_path, responsible_path)
             }
         };
 
         // no exec yet; only pid and parent pid change
         if base_info.is_excluded() {
             tracing::trace!(
-                "{pid} excluded (inherited from {parent_pid}) (exclude paths: {:?}",
+                "{pid} excluded (inherited from {parent_pid}) (exclude paths: {:?})",
                 base_info.excluded_by_paths
             );
         }
@@ -402,11 +453,18 @@ impl InnerProcessStates {
         self.processes.insert(pid, base_info);
     }
 
-    fn handle_exec(&mut self, pid: pid_t, msg: ESExecEvent) {
+    fn handle_exec(&mut self, pid: pid_t, responsible_pid: pid_t, msg: ESExecEvent) {
+        // Get app responsible for executing `pid`
+        let responsible_exec_path = self
+            .processes
+            .get(&responsible_pid)
+            .map(|resp_info| resp_info.exec_path.clone());
+
         let Some(info) = self.processes.get_mut(&pid) else {
             tracing::error!("exec received for unknown pid {pid}");
             return;
         };
+
         if msg.target.executable.path_truncated {
             tracing::error!(
                 "Ignoring process {pid} with truncated path: {}",
@@ -416,16 +474,27 @@ impl InnerProcessStates {
         }
 
         info.exec_path = PathBuf::from(msg.target.executable.path);
+        info.responsible_exec_path =
+            responsible_exec_path.unwrap_or_else(|| info.exec_path.clone());
 
-        // If the path is already excluded, no need to add it again
-        if info.excluded_by_paths.contains(&info.exec_path) {
-            return;
-        }
-
-        // Exclude if path is excluded
-        if self.exclude_paths.contains(&info.exec_path) {
+        // Check if process is excluded directly by exec path
+        if !info.excluded_by_paths.contains(&info.exec_path)
+            && self.exclude_paths.contains(&info.exec_path)
+        {
             info.excluded_by_paths.insert(info.exec_path.clone());
             tracing::trace!("Excluding {pid} by path: {}", info.exec_path.display());
+        }
+
+        // Check if process is excluded indirectly by exec path of process responsible for spawning this process
+        if !info.excluded_by_paths.contains(&info.responsible_exec_path)
+            && self.exclude_paths.contains(&info.responsible_exec_path)
+        {
+            info.excluded_by_paths
+                .insert(info.responsible_exec_path.clone());
+            tracing::trace!(
+                "Excluding {pid} by responsible path: {}",
+                info.responsible_exec_path.display()
+            );
         }
     }
 
@@ -439,13 +508,16 @@ impl InnerProcessStates {
 #[derive(Debug, Clone)]
 struct ProcessInfo {
     exec_path: PathBuf,
+    // Path of executable responsible for launching this process
+    responsible_exec_path: PathBuf,
     excluded_by_paths: HashSet<PathBuf>,
 }
 
 impl ProcessInfo {
-    fn included(exec_path: PathBuf) -> Self {
+    fn included(exec_path: PathBuf, responsible_path: PathBuf) -> Self {
         ProcessInfo {
             exec_path,
+            responsible_exec_path: responsible_path,
             excluded_by_paths: HashSet::new(),
         }
     }
@@ -581,6 +653,7 @@ impl<'de> Deserialize<'de> for ESAuditToken {
 #[derive(Debug, Deserialize)]
 struct ESProcess {
     audit_token: ESAuditToken,
+    responsible_audit_token: ESAuditToken,
     executable: ESExecutable,
 }
 
@@ -779,4 +852,8 @@ mod test {
             "expected 'NeedFda::No' when nothing was ever printed to stdout or stderr"
         );
     }
+}
+
+unsafe extern "C" {
+    unsafe fn responsibility_get_pid_responsible_for_pid(pid: libc::pid_t) -> libc::pid_t;
 }

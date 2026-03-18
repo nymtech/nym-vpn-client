@@ -23,6 +23,9 @@ expression: "(s, result)"
                 audit_token: ESAuditToken {
                     pid: 97391,
                 },
+                responsible_audit_token: ESAuditToken {
+                    pid: 938,
+                },
                 executable: ESExecutable {
                     path: "/bin/nu",
                 },

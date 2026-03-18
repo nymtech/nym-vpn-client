@@ -257,7 +257,7 @@ impl PinCode {
     const IV_LEN: usize = 12;
     const TAG_LEN: usize = 16;
     const KEY_LEN: usize = 32;
-    const PBKDF2_ITERATIONS: u32 = 600_000;
+    const PBKDF2_ITERATIONS: u32 = 210_000;
 
     fn new(length: usize) -> Result<Self, DeeplinkError> {
         let mut random = vec![0u8; length];
