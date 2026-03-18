@@ -1030,7 +1030,7 @@ pub enum Error {
     #[error("failed to start ad blocker task")]
     StartAdBlockerTask(#[source] adblocker::AdBlockerError),
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     #[error("failed to start split tunnel task")]
     StartSplitTunnelTask(#[source] nym_split_tunnel::Error),
 
@@ -1131,7 +1131,7 @@ impl Error {
             Self::StartLocalDnsResolver(_) => None?,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             Self::StartAdBlockerTask(_) => None?,
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             Self::StartSplitTunnelTask(_) => None?,
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
