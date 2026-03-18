@@ -14,11 +14,11 @@ use tokio_util::sync::CancellationToken;
 #[cfg(target_os = "macos")]
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath, MixnetTrafficConfig,
-    NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks, PrivyDerivationMessage,
-    Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode, SystemMessage,
-    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    AccountCommandError, AccountControllerState, AutologinResponse, EntryPoint, ExitPoint,
+    FeatureFlags, Gateway, GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath,
+    MixnetTrafficConfig, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
+    PrivyDerivationMessage, Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode,
+    SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
@@ -281,6 +281,13 @@ impl RpcClient {
             .deeplink_store_account(deeplink_callback_url)
             .await?;
         Ok(())
+    }
+
+    pub async fn get_autologin_deeplink(
+        &self,
+        params: GetDeeplinkParams,
+    ) -> Result<AutologinResponse> {
+        Ok(self.inner.clone().get_autologin_deeplink(params).await?)
     }
 
     pub async fn reset_device_identity(&self, seed: Option<Vec<u8>>) -> Result<()> {
