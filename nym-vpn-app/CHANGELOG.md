@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - RPC client connection retries are triggered by UI
 
+### Added
+
+- Autologin user when navigating to web
+
 ## [1.25.0] - 2026-03-02
 
 ### Added
