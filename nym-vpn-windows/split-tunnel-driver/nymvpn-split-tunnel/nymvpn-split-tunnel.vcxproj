@@ -192,6 +192,7 @@
     <ClInclude Include="defs\queryprocess.h" />
     <ClInclude Include="defs\state.h" />
     <ClInclude Include="defs\types.h" />
+    <ClInclude Include="devicecontext.h" />
     <ClInclude Include="eventing\builder.h" />
     <ClInclude Include="eventing\context.h" />
     <ClInclude Include="eventing\eventing.h" />

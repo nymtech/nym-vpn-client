@@ -248,6 +248,9 @@
     <ClInclude Include="firewall\wfp.h">
       <Filter>Header Files\firewall</Filter>
     </ClInclude>
+    <ClInclude Include="devicecontext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc">
