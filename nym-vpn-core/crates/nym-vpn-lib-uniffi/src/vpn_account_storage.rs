@@ -6,6 +6,7 @@ use std::{path::PathBuf, sync::Arc};
 use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
+use nym_vpn_account_controller::{CreateDeeplinkParams, Deeplink};
 use nym_vpn_api_client::{
     VpnApiClient,
     response::NymVpnRegisterAccountResponse,
@@ -13,8 +14,8 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
-    DeeplinkKind, ParsedAccountLinks, RegisterAccountResponse, StoreAccountRequest,
-    VpnAccountSummary,
+    AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams, ParsedAccountLinks,
+    RegisterAccountResponse, StoreAccountRequest, VpnAccountSummary,
 };
 use nym_vpn_store::{
     account::AccountInformationStorage,
@@ -146,6 +147,43 @@ impl NymVpnAccountStorage {
                 })
             }
         }
+    }
+
+    // Get deeplink for autologin
+    pub async fn get_autologin_deeplink(
+        &self,
+        params: GetDeeplinkParams,
+    ) -> Result<AutologinResponse, VpnError> {
+        let Some(ref account_management) =
+            self.environment.inner().nym_vpn_network.account_management
+        else {
+            return Err(VpnError::DeeplinkError {
+                details: "No account management data is available at this time".to_owned(),
+            });
+        };
+
+        let base_url = match params.client {
+            DeeplinkClient::Mobile => account_management.autologin_mobile_url(&params.locale),
+            DeeplinkClient::Desktop => account_management.autologin_desktop_url(&params.locale),
+            DeeplinkClient::Web => account_management.autologin_web_url(&params.locale),
+        }
+        .ok_or(VpnError::DeeplinkError {
+            details: "The autologin path could not be determined".to_owned(),
+        })?;
+
+        let mnemonic = self.get_stored_mnemonic().await?;
+
+        let deeplink_params = CreateDeeplinkParams {
+            kind: params.kind,
+            name: params.name,
+            base_url: base_url.clone(),
+        };
+        let deeplink = Deeplink::new(&deeplink_params);
+        deeplink
+            .create_autologin_url(&base_url, mnemonic)
+            .map_err(|err| VpnError::DeeplinkError {
+                details: err.to_string(),
+            })
     }
 
     /// Generate the account mnemonic locally and store it.
