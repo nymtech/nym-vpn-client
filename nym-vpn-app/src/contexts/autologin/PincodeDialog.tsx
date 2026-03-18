@@ -6,10 +6,10 @@ import { Button, ButtonIcon, Dialog, MsIcon } from '../../ui';
 function PinCodeDigits({ code }: { code: string }) {
   const digits = code.split('');
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-1">
       {digits.map((digit, i) => (
         <div key={i} className="flex items-center gap-2 font-mono">
-          <span className="text-5xl font-bold text-black dark:text-white">
+          <span className="text-3xl font-bold text-black dark:text-white">
             {digit}
           </span>
           {i < digits.length - 1 && (
