@@ -19,9 +19,8 @@ mod default;
 mod process;
 mod tun;
 
-use crate::SplitTunnelErrorCause;
+use crate::{SplitTunnelErrorCause, VpnInterface};
 use process::{ExclusionStatus, ProcessStates};
-pub use tun::VpnInterface;
 use tun::{PktapPacket, RoutingDecision};
 
 /// Check whether the current process has full-disk access enabled.
