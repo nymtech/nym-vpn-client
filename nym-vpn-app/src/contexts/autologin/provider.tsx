@@ -29,16 +29,7 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
         setPinCode(response['pin-code']);
         setOpen(true);
 
-        // dev
-        openUrl(
-          response.url.replace(
-            'https://nymcom-git-deploy-sandbox-nyx-network-staging.vercel.app',
-            'http://localhost:3000',
-          ),
-        );
-
-        // prod
-        // openUrl(response.url);
+        openUrl(response.url);
       } catch (error) {
         console.error('Failed to get autologin deeplink', error);
         push({
