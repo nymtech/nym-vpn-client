@@ -259,12 +259,14 @@ impl TestBench {
         })
     }
 
-    /// Assert that we are in a given state within 60 seconds.
-    /// This is needed to avoid tokio::sleep and yield_now everywhere
-    /// If after the 60sec delay, the expected state is not reached, the `assert_eq` call will fail, with a normal failure
+    /// Assert that we are in a given state within 60 seconds. This is needed to avoid tokio::sleep
+    /// and yield_now everywhere.
     ///
-    /// The delay allows tests that require exhausting syncing state retries to
-    /// proceed through all delays to the expected error.
+    /// If after the 60sec delay, the expected state is not reached, the `assert_eq` call will fail,
+    /// with a normal failure
+    ///
+    /// The delay allows tests that require exhausting syncing state retries to proceed through all
+    /// delays to the expected error.
     pub async fn assert_state(&mut self, expected_state: AccountControllerState) {
         // Make sure we're not running right away
         tokio::task::yield_now().await;
