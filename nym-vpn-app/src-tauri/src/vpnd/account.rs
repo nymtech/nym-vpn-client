@@ -204,3 +204,20 @@ impl From<lib::NymVpnSubscriptionKind> for VpnSubscriptionKind {
         }
     }
 }
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TAutologinResponse")]
+#[serde(rename_all = "kebab-case")]
+pub struct AutologinResponse {
+    pub url: String,
+    pub pin_code: String,
+}
+
+impl From<lib::AutologinResponse> for AutologinResponse {
+    fn from(response: lib::AutologinResponse) -> Self {
+        AutologinResponse {
+            url: response.url,
+            pin_code: response.pin_code,
+        }
+    }
+}

@@ -16,5 +16,11 @@
     "resets-on": "Resets on",
     "renew-now": "Renew now to stay protected",
     "contact-support": "⚡️ <1>Contact our support</1> team for extra bandwidth."
+  },
+  "autologin": {
+    "title": "Pin code",
+    "description": "Enter this code in web",
+    "copy-code": "Copy Code",
+    "initialization-error": "Failed to initiate autologin"
   }
 }

@@ -2,9 +2,10 @@ use tauri::State;
 use tracing::{error, info, instrument, warn};
 
 use crate::state::SharedAppState;
-use crate::vpnd::account::StoredAccountMode;
 use crate::vpnd::account::{AccountState, AccountSummary};
+use crate::vpnd::account::{AutologinResponse, StoredAccountMode};
 use crate::vpnd::account_links::AccountLinks;
+use crate::vpnd::deeplink::DeeplinkKind;
 use crate::vpnd::tunnel::TunnelState;
 use crate::{error::BackendError, vpnd::client::VpndClient};
 
@@ -156,6 +157,21 @@ pub async fn get_deep_link(
         error!("failed to get deep link: {e}");
         e.into()
     })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_autologin_deeplink(
+    vpnd: State<'_, VpndClient>,
+    locale: String,
+    kind: DeeplinkKind,
+) -> Result<Option<AutologinResponse>, BackendError> {
+    vpnd.get_autologin_deeplink(locale, kind)
+        .await
+        .map_err(|e| {
+            error!("failed to get autologin deeplink: {e}");
+            e.into()
+        })
 }
 
 #[instrument(skip_all)]

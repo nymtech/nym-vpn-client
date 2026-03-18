@@ -1,7 +1,7 @@
 import { type } from '@tauri-apps/plugin-os';
 import clsx from 'clsx';
 
-function Spinner() {
+function Spinner({ className }: { className?: string }) {
   const os = type();
 
   return (
@@ -10,6 +10,7 @@ function Spinner() {
         'loader h-[22px] w-[22px]',
         os !== 'linux' && 'border-4',
         'border-baltic-sea dark:border-white border-b-transparent dark:border-b-transparent',
+        className,
       ])}
       data-testid="button-spinner"
     ></span>

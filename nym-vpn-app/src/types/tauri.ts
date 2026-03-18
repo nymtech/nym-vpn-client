@@ -79,6 +79,12 @@ export type DbKey =
   | 'cache-account-id'
   | 'cache-device-id';
 
+export type DeeplinkKind =
+  | 'privy'
+  | 'privyLink'
+  | 'autologinRenew'
+  | 'autologinView';
+
 export type DisplayServer = 'x11' | 'wayland' | { unknown: string | null };
 
 export type DownloadUpdateEvent =
@@ -334,6 +340,8 @@ export type TAuthMethod = {
   label: string;
   status: TVpnAccountStatus;
 };
+
+export type TAutologinResponse = { url: string; 'pin-code': string };
 
 /**
  * Generic error type made to be passed to the frontend and
