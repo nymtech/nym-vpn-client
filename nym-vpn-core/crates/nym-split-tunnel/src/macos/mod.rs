@@ -12,8 +12,6 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 
-use self::process::ExclusionStatus;
-
 #[expect(non_camel_case_types, clippy::allow_attributes)]
 mod bindings;
 mod bpf;
@@ -22,7 +20,7 @@ mod process;
 mod tun;
 
 use crate::SplitTunnelErrorCause;
-use process::ProcessStates;
+use process::{ExclusionStatus, ProcessStates};
 pub use tun::VpnInterface;
 use tun::{PktapPacket, RoutingDecision};
 
