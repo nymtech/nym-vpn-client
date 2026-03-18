@@ -14,13 +14,7 @@ public struct QuitAppModal: View {
     }
 
     public var body: some View {
-        ZStack {
-            Rectangle()
-                .foregroundColor(.black)
-                .opacity(0.3)
-                .background(Color.clear)
-                .contentShape(Rectangle())
-
+        ModalOverlayView(isDisplayed: $isDisplayed, dismissOnOverlayTap: false, horizontalPadding: 32, maxWidth: 450) {
             VStack {
                 Spacer()
                     .frame(height: 24)
@@ -35,12 +29,7 @@ public struct QuitAppModal: View {
                 Spacer()
                     .frame(height: 24)
             }
-            .frame(maxWidth: 450)
-            .background(NymColor.elevation)
-            .cornerRadius(16)
-            .padding(32)
         }
-        .edgesIgnoringSafeArea(.all)
     }
 }
 

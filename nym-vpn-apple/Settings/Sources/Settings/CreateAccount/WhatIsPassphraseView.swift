@@ -14,25 +14,14 @@ public struct WhatIsPassphraseView: View {
     }
 
     public var body: some View {
-        ZStack {
-            backgroundRectangle
-
-            HStack {
-                Spacer()
-                    .frame(width: appSettings.isSmallScreen ? 16 : 40)
-
-                content
-                    .padding(24)
-                    .background(NymColor.elevation)
-                    .cornerRadius(16)
-
-                Spacer()
-                    .frame(width: appSettings.isSmallScreen ? 16 : 40)
-            }
-            .frame(maxWidth: MagicNumbers.moreMaxWidth)
+        ModalOverlayView(
+            isDisplayed: $isDisplayed,
+            dismissOnOverlayTap: false,
+            horizontalPadding: appSettings.isSmallScreen ? 16 : 40
+        ) {
+            content
+                .padding(24)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .edgesIgnoringSafeArea(.all)
     }
 }
 
@@ -59,14 +48,6 @@ private extension WhatIsPassphraseView {
                 .frame(height: 24)
             doneButton
         }
-    }
-
-    var backgroundRectangle: some View {
-        Rectangle()
-            .foregroundColor(.black)
-            .opacity(0.3)
-            .background(Color.clear)
-            .contentShape(Rectangle())
     }
 
     var title: some View {

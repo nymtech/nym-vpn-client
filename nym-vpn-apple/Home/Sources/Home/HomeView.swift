@@ -106,10 +106,8 @@ private extension HomeView {
                 .foregroundColor(NymColor.gray1)
                 .frame(width: 14, height: 14)
                 .onTapGesture {
-                    withAnimation {
-                        viewModel.impactGenerator.softImpact()
-                        viewModel.isModeInfoOverlayDisplayed.toggle()
-                    }
+                    viewModel.impactGenerator.softImpact()
+                    viewModel.isModeInfoOverlayDisplayed = true
                 }
         }
         .padding(.horizontal, 16)

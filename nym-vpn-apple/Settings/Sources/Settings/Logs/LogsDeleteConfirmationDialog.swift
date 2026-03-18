@@ -10,42 +10,24 @@ struct LogsDeleteConfirmationDialog: View {
     }
 
     var body: some View {
-        ZStack {
-            Rectangle()
-                .foregroundColor(.black)
-                .opacity(0.3)
-                .background(Color.clear)
-                .contentShape(Rectangle())
+        ModalOverlayView(isDisplayed: $viewModel.isDisplayed, dismissOnOverlayTap: false) {
+            VStack {
+                icon()
+                title()
+                subtitle()
+                HStack {
+                    Spacer()
+                    yesButton()
 
-            HStack {
-                Spacer()
-                    .frame(width: 40)
+                    Spacer()
+                        .frame(width: 16)
 
-                VStack {
-                    icon()
-                    title()
-                    subtitle()
-                    HStack {
-                        Spacer()
-                        yesButton()
-
-                        Spacer()
-                            .frame(width: 16)
-
-                        noButton()
-                        Spacer()
-                    }
-                    .padding(24)
+                    noButton()
+                    Spacer()
                 }
-                .background(NymColor.elevation)
-                .cornerRadius(16)
-
-                Spacer()
-                    .frame(width: 40)
+                .padding(24)
             }
-            .padding(16)
         }
-        .edgesIgnoringSafeArea(.all)
     }
 }
 
