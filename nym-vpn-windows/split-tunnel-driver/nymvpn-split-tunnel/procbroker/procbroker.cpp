@@ -43,7 +43,8 @@ void TearDown(CONTEXT** Context) {
 
     LIST_ENTRY* record;
 
-    while ((record = RemoveHeadList(&context->Subscriptions)) != &context->Subscriptions) {
+    while (!IsListEmpty(&context->Subscriptions)) {
+        record = RemoveHeadList(&context->Subscriptions);
         ExFreePoolWithTag(record, ST_POOL_TAG);
     }
 
