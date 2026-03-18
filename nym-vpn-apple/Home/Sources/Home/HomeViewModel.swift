@@ -22,6 +22,7 @@ import ImpactGenerator
 import GRPCManager
 #endif
 
+@Observable
 @MainActor public class HomeViewModel: HomeFlowState {
     let title = "NymVPN".localizedString
     let connectToLocalizedTitle = "connectTo".localizedString
@@ -49,7 +50,7 @@ import GRPCManager
         connectionManager: .shared
     )
 
-    @ObservedObject var connectionManager: ConnectionManager
+    var connectionManager: ConnectionManager
     var cancellables = Set<AnyCancellable>()
     var tunnelStatusUpdateCancellable: AnyCancellable?
     var tunnelRetryAttemptCancellable: AnyCancellable?
@@ -58,26 +59,26 @@ import GRPCManager
     var lastError: Error?
 
 #if os(macOS)
-    @Published public var isServing = false
+    public var isServing = false
 #endif
 
-    @MainActor @Published var activeTunnel: Tunnel?
-    @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
+    var activeTunnel: Tunnel?
+    var statusButtonConfig = StatusButtonConfig.disconnected
 
     /// Use updateStatusInfoState(with:) to update the statusInfoState
-    @MainActor @Published var statusInfoState = StatusInfoState.initialising
+    var statusInfoState = StatusInfoState.initialising
 
     /// Info from connecting/connected data, current gatewayId, that tunnel is connecting/connected to
-    @MainActor @Published var connectionInfoData: ConnectionInfoData?
+    var connectionInfoData: ConnectionInfoData?
 
-    @MainActor @Published var connectButtonState = ConnectButtonState.connect
-    @MainActor @Published var isModeInfoOverlayDisplayed = false
-    @MainActor @Published var isOfflineOverlayDisplayed = false
-    @MainActor @Published var isUpdateAvailableOverlayDisplayed = false
-    @MainActor @Published var isExpiryBannerDisplayed = false
-    @MainActor @Published var isStatisticsOverlayDisplayed = false
-    @MainActor @Published var snackBarMessage: SnackBarMessage?
-    @MainActor @Published var isSnackBarDisplayed = false {
+    var connectButtonState = ConnectButtonState.connect
+    var isModeInfoOverlayDisplayed = false
+    var isOfflineOverlayDisplayed = false
+    var isUpdateAvailableOverlayDisplayed = false
+    var isExpiryBannerDisplayed = false
+    var isStatisticsOverlayDisplayed = false
+    var snackBarMessage: SnackBarMessage?
+    var isSnackBarDisplayed = false {
         didSet {
             Task {
                 try? await Task.sleep(for: .seconds(1))

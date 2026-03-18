@@ -13,8 +13,6 @@ extension HomeView {
                         isDisplayed: $viewModel.isModeInfoOverlayDisplayed
                     )
             )
-            .transition(.opacity)
-            .animation(.easeInOut, value: viewModel.isModeInfoOverlayDisplayed)
         }
     }
 
@@ -28,8 +26,6 @@ extension HomeView {
                     impactGenerator: .shared
                 )
             )
-            .transition(.opacity)
-            .animation(.easeInOut, value: viewModel.isOfflineOverlayDisplayed)
         }
     }
 
@@ -43,8 +39,6 @@ extension HomeView {
                     impactGenerator: .shared
                 )
             )
-            .transition(.opacity)
-            .animation(.easeInOut, value: viewModel.isUpdateAvailableOverlayDisplayed)
         }
     }
 
@@ -58,8 +52,6 @@ extension HomeView {
             StatisticsEnableOverlay(
                 isPresented: $viewModel.isStatisticsOverlayDisplayed
             )
-            .transition(.opacity)
-            .animation(.easeInOut, value: viewModel.isStatisticsOverlayDisplayed)
         }
 #endif
     }
@@ -83,7 +75,7 @@ extension HomeView {
                 Spacer()
             }
             .transition(.move(edge: .top).combined(with: .opacity))
-            .animation(.easeInOut(duration: 0.3), value: viewModel.isExpiryBannerDisplayed)
+            .animation(.easeInOut, value: viewModel.isExpiryBannerDisplayed)
         }
     }
 }

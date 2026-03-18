@@ -10,45 +10,22 @@ public struct ActionDialogView: View {
     }
 
     public var body: some View {
-        ZStack {
-            Rectangle()
-                .foregroundColor(.black)
-                .opacity(0.3)
-                .background(Color.clear)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation(.easeInOut) {
-                        viewModel.isDisplayed = false
-                    }
-                }
-
-            HStack {
+        ModalOverlayView(isDisplayed: $viewModel.isDisplayed) {
+            VStack {
+                icon()
                 Spacer()
-                    .frame(width: 40)
+                    .frame(height: 16)
+                title()
+                subtitle()
 
-                VStack {
-                    icon()
-                    Spacer()
-                        .frame(height: 16)
-                    title()
-                    subtitle()
-
-                    if viewModel.isLoading {
-                        loadingRow()
-                    } else {
-                        buttons()
-                            .padding(24)
-                    }
+                if viewModel.isLoading {
+                    loadingRow()
+                } else {
+                    buttons()
+                        .padding(24)
                 }
-                .background(NymColor.elevation)
-                .cornerRadius(16)
-
-                Spacer()
-                    .frame(width: 40)
             }
-            .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
-        .edgesIgnoringSafeArea(.all)
         .onAppear {
             if viewModel.isLoading {
                 isSpinning = true

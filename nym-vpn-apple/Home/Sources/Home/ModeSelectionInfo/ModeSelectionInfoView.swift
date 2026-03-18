@@ -20,9 +20,7 @@ struct ModeSelectionInfoView: View {
                 .background(Color.clear)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    withAnimation(.easeInOut) {
-                        viewModel.isDisplayed = false
-                    }
+                    viewModel.isDisplayed = false
                 }
 
             HStack {
@@ -167,9 +165,7 @@ private extension ModeSelectionInfoView {
         GenericButton(title: viewModel.okLocalizedString)
             .padding(EdgeInsets(top: 0, leading: 24, bottom: 24, trailing: 24))
             .onTapGesture {
-                withAnimation {
-                    viewModel.isDisplayed.toggle()
-                }
+                viewModel.isDisplayed = false
             }
     }
 }

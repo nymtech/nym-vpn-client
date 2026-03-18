@@ -7,35 +7,18 @@ struct SplitTunnelInfoModal: View {
     @Binding var isDisplayed: Bool
 
     var body: some View {
-        ZStack {
-            Rectangle()
-                .foregroundColor(.black)
-                .opacity(0.3)
-                .background(Color.clear)
-                .contentShape(Rectangle())
-
-            HStack {
+        ModalOverlayView(isDisplayed: $isDisplayed, dismissOnOverlayTap: false) {
+            VStack {
+                icon()
+                title()
+                directSection()
                 Spacer()
-                    .frame(width: 40)
-
-                VStack {
-                    icon()
-                    title()
-                    directSection()
-                    Spacer()
-                        .frame(height: 16)
-                    viaNymVPNSection()
-                    gotItButton()
-                }
-                .padding(.horizontal, 24)
-                .background(NymColor.elevation)
-                .cornerRadius(16)
-
-                Spacer()
-                    .frame(width: 40)
+                    .frame(height: 16)
+                viaNymVPNSection()
+                gotItButton()
             }
+            .padding(.horizontal, 24)
         }
-        .edgesIgnoringSafeArea(.all)
     }
 }
 
