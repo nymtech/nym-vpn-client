@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
 import {
+  AutologinProvider,
   DialogProvider,
   GatewaysProvider,
   InAppNotificationProvider,
@@ -78,9 +79,11 @@ function App({ init }: { init: InitState }) {
                     <ThemeSetter>
                       <DialogProvider>
                         <TopBarProvider>
-                          <Suspense fallback={<RouteLoading />}>
-                            <RouterProvider router={router} />
-                          </Suspense>
+                          <AutologinProvider>
+                            <Suspense fallback={<RouteLoading />}>
+                              <RouterProvider router={router} />
+                            </Suspense>
+                          </AutologinProvider>
                         </TopBarProvider>
                       </DialogProvider>
                     </ThemeSetter>

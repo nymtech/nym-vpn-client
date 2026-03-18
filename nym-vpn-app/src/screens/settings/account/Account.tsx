@@ -16,6 +16,7 @@ import {
 import SettingsGroup from '../SettingsGroup';
 import { CCache } from '../../../cache';
 import {
+  useAutologin,
   useInAppNotify,
   useMainDispatch,
   useMainState,
@@ -34,7 +35,6 @@ function Account() {
 
   const { logout, loading } = useLogout();
   const {
-    accountLinks,
     account,
     accountState,
     accountSyncing,
@@ -43,6 +43,7 @@ function Account() {
     backendFlags,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
+  const { autologin, autologinLoading } = useAutologin();
   const needAPlan = account && accountState === 'no-subscription';
 
   const [isAccountLinking, setIsAccountLinking] = useState(false);
@@ -161,12 +162,8 @@ function Account() {
     }
   };
 
-  const handleManageSubscription = () => {
-    if (accountLinks?.account) {
-      openUrl(accountLinks.account);
-    } else if (accountLinks?.signIn) {
-      openUrl(accountLinks.signIn);
-    }
+  const handleManageSubscription = async () => {
+    await autologin('autologinView');
   };
 
   return (
@@ -188,7 +185,8 @@ function Account() {
             title: t('account.manage-subscriptoin'),
             desc: <AccountDescription />,
             leadingIcon: 'event_repeat',
-            trailingIcon: 'open_in_new',
+            trailingIcon: autologinLoading ? undefined : 'open_in_new',
+            trailing: autologinLoading ? <Spinner /> : undefined,
             onClick: handleManageSubscription,
           },
           ...(backendFlags.privy && !accountSummary?.['is-linked']

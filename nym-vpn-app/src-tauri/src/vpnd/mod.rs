@@ -3,6 +3,7 @@ mod account_error;
 pub mod account_links;
 pub mod client;
 pub mod config;
+pub mod deeplink;
 pub mod diagnostic;
 pub mod error;
 pub mod events;

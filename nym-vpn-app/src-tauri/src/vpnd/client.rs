@@ -1,6 +1,7 @@
 pub use super::{
-    account::{AccountSummary, StoredAccountMode},
+    account::{AccountSummary, AutologinResponse, StoredAccountMode},
     account_links::AccountLinks,
+    deeplink::DeeplinkKind,
     error::VpndError,
     feature_flags::FeatureFlags,
     node::Node,
@@ -915,6 +916,27 @@ impl VpndClient {
             .await?;
 
         Ok(Some(deeplink))
+    }
+
+    #[instrument(skip_all)]
+    pub async fn get_autologin_deeplink(
+        &self,
+        locale: String,
+        kind: DeeplinkKind,
+    ) -> Result<Option<AutologinResponse>, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let result = vpnd
+            .get_autologin_deeplink(lib::GetDeeplinkParams {
+                client: lib::DeeplinkClient::Desktop,
+                locale,
+                kind: kind.into(),
+                name: "default".to_string(),
+            })
+            .or_else(async |e| self.handle_rpc_error("get_autologin_deeplink", e).await)
+            .await?;
+
+        Ok(Some(result.into()))
     }
 
     #[instrument(skip_all)]
