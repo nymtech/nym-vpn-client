@@ -14,6 +14,9 @@ expression: "(s, result)"
                 audit_token: ESAuditToken {
                     pid: 11221,
                 },
+                responsible_audit_token: ESAuditToken {
+                    pid: 532,
+                },
                 executable: ESExecutable {
                     path: "/usr/sbin/ipconfig",
                 },

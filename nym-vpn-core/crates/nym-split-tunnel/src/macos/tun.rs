@@ -11,7 +11,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
 };
 
-use futures_util::{Stream, StreamExt};
+use futures_util::{Stream, StreamExt, future::BoxFuture};
 use libc::{AF_INET, AF_INET6};
 use nix::net::if_::if_nametoindex;
 use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
@@ -230,7 +230,7 @@ async fn add_ipv6_address(iface: &str, addr: Ipv6Addr) -> Result<(), Error> {
 
 type PktapStream = std::pin::Pin<Box<dyn Stream<Item = Result<PktapPacket, Error>> + Send>>;
 /// A function that is used to classify whether packets should be VPN-tunneled or excluded
-type ClassifyFn = Box<dyn Fn(&PktapPacket) -> RoutingDecision + Send>;
+type ClassifyFn = Box<dyn Fn(&PktapPacket) -> BoxFuture<RoutingDecision> + Send + Sync>;
 
 /// Monitor outgoing traffic on `st_tun_device` using a pktap. A routing decision is
 /// made for each packet using `classify`. Based on this, a packet is forced out on either
@@ -258,7 +258,7 @@ fn redirect_packets(
         default_interface,
         vpn_interface,
         route_manager,
-        Box::new(classify),
+        classify,
     )
 }
 
@@ -519,7 +519,8 @@ async fn run_egress_task(
                     _ => unreachable!("missing tun interface or addresses"),
                 };
 
-                classify_and_send(&classify, &mut packet, &default_interface, &mut default_write, vpn_device)
+
+                classify_and_send(&classify, &mut packet, &default_interface, &mut default_write, vpn_device).await
             }
         }
     }
@@ -537,14 +538,14 @@ fn open_vpn_bpf(vpn_interface: &VpnInterface) -> Result<bpf::Bpf, Error> {
     Ok(vpn_dev)
 }
 
-fn classify_and_send(
+async fn classify_and_send(
     classify: &ClassifyFn,
     packet: &mut PktapPacket,
     default_interface: &DefaultInterface,
     default_write: &mut bpf::WriteHalf,
     vpn_interface: Option<(&VpnInterface, &mut bpf::Bpf)>,
 ) {
-    match classify(packet) {
+    match classify(packet).await {
         RoutingDecision::DefaultInterface => match packet.frame.get_ethertype() {
             EtherTypes::Ipv4 => {
                 let Some(ref addrs) = default_interface.v4_addrs else {

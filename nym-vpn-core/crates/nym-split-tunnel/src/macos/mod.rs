@@ -12,8 +12,6 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 
-use self::process::ExclusionStatus;
-
 #[expect(non_camel_case_types, clippy::allow_attributes)]
 mod bindings;
 mod bpf;
@@ -22,7 +20,9 @@ mod process;
 mod tun;
 
 use crate::SplitTunnelErrorCause;
+use process::{ExclusionStatus, ProcessStates};
 pub use tun::VpnInterface;
+use tun::{PktapPacket, RoutingDecision};
 
 /// Check whether the current process has full-disk access enabled.
 /// This is required by the process monitor.
@@ -397,7 +397,7 @@ impl State {
                 tracing::debug!("Initializing process monitor");
 
                 let process = process::ProcessMonitor::spawn().await?;
-                process.states().exclude_paths(paths);
+                process.states().exclude_paths(paths).await;
 
                 Ok(State::ProcessMonitorOnly {
                     route_manager,
@@ -412,7 +412,7 @@ impl State {
                 tracing::debug!("Initializing process monitor");
 
                 let process = process::ProcessMonitor::spawn().await?;
-                process.states().exclude_paths(paths);
+                process.states().exclude_paths(paths).await;
 
                 State::ProcessMonitorOnly {
                     route_manager,
@@ -451,7 +451,7 @@ impl State {
             | State::ProcessMonitorOnly {
                 ref mut process, ..
             } => {
-                process.states().exclude_paths(paths);
+                process.states().exclude_paths(paths).await;
                 Ok(self)
             }
             // If 'paths' is empty, transition out of the failed state
@@ -599,16 +599,7 @@ impl State {
                     default_interface,
                     Some(vpn_interface.clone()),
                     route_manager.clone(),
-                    Box::new(move |packet| {
-                        match states.get_process_status(packet.header.pth_pid) {
-                            ExclusionStatus::Excluded => tun::RoutingDecision::DefaultInterface,
-                            ExclusionStatus::Included => tun::RoutingDecision::VpnTunnel,
-                            ExclusionStatus::Unknown => {
-                                // TODO: Delay decision until next exec
-                                tun::RoutingDecision::Drop
-                            }
-                        }
-                    }),
+                    Box::new(move |packet| Box::pin(classify_packet(packet, states.clone()))),
                 )
                 .await;
 
@@ -677,6 +668,17 @@ impl State {
                 self.fail(Some(error.clone()));
                 Err(error)
             }
+        }
+    }
+}
+
+async fn classify_packet(packet: &PktapPacket, proc_states: ProcessStates) -> RoutingDecision {
+    match proc_states.get_process_status(packet.header.pth_pid).await {
+        ExclusionStatus::Excluded => RoutingDecision::DefaultInterface,
+        ExclusionStatus::Included => RoutingDecision::VpnTunnel,
+        ExclusionStatus::Unknown => {
+            // TODO: Delay decision until next exec
+            RoutingDecision::Drop
         }
     }
 }
