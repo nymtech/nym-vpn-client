@@ -19,12 +19,16 @@ use nym_platform_metadata::new_user_agent;
 use nym_vpn_lib::{
     UserAgent,
     config::GlobalConfig,
-    install_split_tunnel_driver_service,
     logging::LogFileRemoverHandle,
     service::{NymVpnService, NymVpnServiceParameters, ServiceConfigStorageType},
-    uninstall_split_tunnel_driver_service,
 };
+
+#[cfg(target_os = "windows")]
+use nym_vpn_lib::{install_split_tunnel_driver_service, uninstall_split_tunnel_driver_service};
+
 use nym_vpn_lib_types::LogPath;
+
+#[cfg(target_os = "windows")]
 use windows_service::{
     SERVICE_NAME,
     installation::{install_service, start_service, uninstall_service},
