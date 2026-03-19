@@ -39,10 +39,6 @@ class CreateAccountViewModel @Inject constructor(private val billingManager: Bil
 				Timber.tag(TAG).w(t, "SocialDeeplinkLoadFailed")
 			}
 
-			_uiState.value = _uiState.value.copy(
-				isPrivyEnabled = true,
-			)
-
 			val billingAllowed = BuildConfig.APPLICATION_ID == Constants.APP_ID
 			val billingAvailableNow = billingAllowed && billingManager.isAvailable()
 

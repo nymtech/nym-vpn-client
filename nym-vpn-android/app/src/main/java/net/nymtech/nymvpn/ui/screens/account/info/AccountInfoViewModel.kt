@@ -44,7 +44,6 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 			val deviceId = backendManager.getDeviceId() ?: ""
 			val displayAccountId = backendManager.getAccountId() ?: ""
 			val accountMode = backendManager.getAccountMode()
-			val isPrivyEnabled = backendManager.getFeatureFlags()?.isPrivyEnabled() ?: false
 
 			val links = backendManager.getAccountLinks()
 			var linkUrl = backendManager.getDeeplink(DeeplinkKind.PRIVY_LINK)
@@ -76,7 +75,6 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 					deviceId = deviceId,
 					accountLinkUrl = linkUrl,
 					manageUrl = manageUrl,
-					isPrivyEnabled = isPrivyEnabled,
 					subscription = subState,
 					bandwidth = bwState,
 				)

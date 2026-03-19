@@ -52,7 +52,6 @@ fun LoginInputSection(
 	onCreateAccountClick: () -> Unit,
 	onSocialClick: () -> Unit,
 	mnemonicError: MnemonicError?,
-	isPrivyEnabled: Boolean,
 	loading: Boolean,
 	mnemonic: String,
 	onMnemonicChange: (String) -> Unit,
@@ -141,23 +140,21 @@ fun LoginInputSection(
 
 		Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
 
-		if (isPrivyEnabled) {
-			OutlineStyledButton(
-				onClick = onSocialClick,
-				enabled = !loading,
-				content = {
-					Text(
-						text = stringResource(R.string.account_welcome_social_button),
-						style = CustomTypography.buttonMain,
-					)
-				},
-				borderColor = MaterialTheme.colorScheme.onBackground,
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(54.dp.scaledHeight()),
-			)
-			Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
-		}
+		OutlineStyledButton(
+			onClick = onSocialClick,
+			enabled = !loading,
+			content = {
+				Text(
+					text = stringResource(R.string.account_welcome_social_button),
+					style = CustomTypography.buttonMain,
+				)
+			},
+			borderColor = MaterialTheme.colorScheme.onBackground,
+			modifier = Modifier
+				.fillMaxWidth()
+				.height(54.dp.scaledHeight()),
+		)
+		Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
 
 		Row(
 			modifier = Modifier.fillMaxWidth(),
@@ -203,7 +200,6 @@ internal fun PreviewLoginInputSection_Default() {
 				onCreateAccountClick = {},
 				onSocialClick = {},
 				mnemonicError = MnemonicError.INVALID_RECOVERY_PHRASE,
-				isPrivyEnabled = true,
 				loading = false,
 				mnemonic = mnemonic,
 				onMnemonicChange = { mnemonic = it },
