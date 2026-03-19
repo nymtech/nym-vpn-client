@@ -572,11 +572,11 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
-        #[cfg(any(windows, target_os = "macos"))]
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let split_tunnel_shutdown_token = CancellationToken::new();
-        #[cfg(any(windows, target_os = "macos"))]
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let st_command_sender = Arc::downgrade(&command_sender);
-        #[cfg(any(windows, target_os = "macos"))]
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let (split_tunnel, split_tunnel_join_handle) = nym_split_tunnel::SplitTunnel::spawn(
             route_handler.inner_handle(),
             split_tunnel_shutdown_token.child_token(),
@@ -617,7 +617,7 @@ impl NymVpnService {
             connectivity_handle,
             discovery_refresher_command_tx,
             wireguard_keys_db,
-            #[cfg(any(windows, target_os = "macos"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             split_tunnel.clone(),
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
@@ -662,11 +662,11 @@ impl NymVpnService {
             statistics_event_sender,
             stats_control_commands_sender,
             socks5_service,
-            #[cfg(any(windows, target_os = "macos"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             split_tunnel,
-            #[cfg(any(windows, target_os = "macos"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             split_tunnel_join_handle,
-            #[cfg(any(windows, target_os = "macos"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             split_tunnel_shutdown_token,
         })
     }

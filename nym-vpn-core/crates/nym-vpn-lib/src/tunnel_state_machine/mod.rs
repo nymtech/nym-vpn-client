@@ -606,7 +606,7 @@ pub struct SharedState {
     filtering_resolver: resolver::ResolverHandle,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker: adblocker::AdBlockerTaskHandle,
-    #[cfg(any(windows, target_os = "macos"))]
+    #[cfg(any(windows, target_os = "linux", target_os = "macos"))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
@@ -659,11 +659,13 @@ impl SharedState {
     /// Set which applications matching the given paths should be excluded from the tunnel
     ///
     /// Return whether a split tunnel interface was added or removed
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     pub async fn set_exclude_paths(
         &mut self,
         paths: HashSet<PathBuf>,
     ) -> Result<bool, nym_split_tunnel::SplitTunnelErrorCause> {
+        #[cfg(target_os = "macos")]
+        let had_interface = self.split_tunnel.interface().await.is_some();
         tracing::info!("Updating ST exclude paths: {:?}", paths);
 
         #[cfg(target_os = "macos")]
@@ -694,6 +696,11 @@ impl SharedState {
         }
 
         #[cfg(target_os = "windows")]
+        {
+            Ok(false)
+        }
+
+        #[cfg(target_os = "linux")]
         {
             Ok(false)
         }
@@ -755,20 +762,10 @@ pub struct TunnelStateMachine {
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_shutdown_token: CancellationToken,
-<<<<<<< HEAD
-=======
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    split_tunnel_shutdown_token: CancellationToken,
->>>>>>> 37b4fbf51 (wip)
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     filtering_resolver_handle: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker_handle: JoinHandle<()>,
-<<<<<<< HEAD
-=======
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    split_tunnel_handle: JoinHandle<()>,
->>>>>>> 37b4fbf51 (wip)
     shutdown_token: CancellationToken,
 }
 
@@ -788,7 +785,8 @@ impl TunnelStateMachine {
         connectivity_handle: ConnectivityHandle,
         discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
         wg_keys_db: WireguardKeysDb,
-        #[cfg(any(windows, target_os = "macos"))] split_tunnel: nym_split_tunnel::SplitTunnelHandle,
+        #[cfg(any(windows, target_os = "macos", target_os = "linux"))]
+        split_tunnel: nym_split_tunnel::SplitTunnelHandle,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -874,7 +872,7 @@ impl TunnelStateMachine {
             filtering_resolver,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             adblocker,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             split_tunnel,
             nym_config,
             tunnel_settings,
@@ -913,13 +911,6 @@ impl TunnelStateMachine {
             dns_handler_task,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_shutdown_token,
-<<<<<<< HEAD
-=======
-            #[cfg(any(target_os = "linux", target_os = "macos"))]
-            split_tunnel_shutdown_token,
-            #[cfg(any(target_os = "linux", target_os = "macos"))]
-            split_tunnel_handle,
->>>>>>> 37b4fbf51 (wip)
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             filtering_resolver_handle,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
