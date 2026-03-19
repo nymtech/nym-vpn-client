@@ -181,7 +181,6 @@ private fun LoginScreen(
 					onCreateAccountClick = onCreateAccountClick,
 					onSocialClick = onSocialClick,
 					mnemonicError = uiState.mnemonicError,
-					isPrivyEnabled = uiState.isPrivyEnabled,
 					loading = uiState.isLoading,
 					mnemonic = uiState.mnemonic,
 					onMnemonicChange = onMnemonicChange,

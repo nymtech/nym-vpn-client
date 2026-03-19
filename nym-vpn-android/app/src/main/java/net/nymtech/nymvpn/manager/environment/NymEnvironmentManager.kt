@@ -7,8 +7,6 @@ import javax.inject.Inject
 
 class NymEnvironmentManager @Inject constructor(private val backendManager: BackendManager) : EnvironmentManager {
 
-	override suspend fun isPrivyEnabled(): Boolean = getFeatureFlags()?.isPrivyEnabled() ?: false
-
 	override suspend fun isMixnetTuningEnabled(): Boolean = getFeatureFlags()?.isMixnetTuningEnabled() ?: false
 
 	override suspend fun isDomainFrontingEnabled(): Boolean = getFeatureFlags()?.isDomainFrontingEnabled() ?: false

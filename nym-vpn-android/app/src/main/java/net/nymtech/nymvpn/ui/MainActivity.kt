@@ -406,21 +406,14 @@ class MainActivity : AppCompatActivity() {
 		val path = uri.path
 		if (host == "auth" && path?.startsWith("/privy/privateKey") == true) {
 			lifecycleScope.launch {
-				if (appViewModel.isPrivyEnabled()) {
-					val fullUrl = uri.toString()
-
-					val isLoggedIn = appViewModel.isUserLoggedIn()
-
-					if (!isLoggedIn) {
-						navControllerRef?.navigate(Route.Generating(mode = GeneratingMode.DeepLinkLogin.name))
-					}
-					val destination = appViewModel.handleDeepLinkAuth(fullUrl)
-
-					navControllerRef?.navigate(destination) {
-						popUpTo(Route.Splash) { inclusive = true }
-					}
-				} else {
-					Timber.d("DeepLink received but Privy feature is disabled. Ignoring.")
+				val fullUrl = uri.toString()
+				val isLoggedIn = appViewModel.isUserLoggedIn()
+				if (!isLoggedIn) {
+					navControllerRef?.navigate(Route.Generating(mode = GeneratingMode.DeepLinkLogin.name))
+				}
+				val destination = appViewModel.handleDeepLinkAuth(fullUrl)
+				navControllerRef?.navigate(destination) {
+					popUpTo(Route.Splash) { inclusive = true }
 				}
 			}
 		}

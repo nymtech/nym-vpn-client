@@ -231,16 +231,9 @@ constructor(
 		}
 	}
 
-	suspend fun isPrivyEnabled(): Boolean = backendManager.getFeatureFlags()?.isPrivyEnabled() ?: false
-
 	suspend fun isUserLoggedIn(): Boolean = backendManager.isMnemonicStored()
 
 	suspend fun handleDeepLinkAuth(url: String): Route = withContext(Dispatchers.IO) {
-		if (!isPrivyEnabled()) {
-			Timber.tag(TAG).w("DeepLink ignored: Privy feature is disabled")
-			return@withContext Route.Main(autoStart = false)
-		}
-
 		try {
 			Timber.tag(TAG).i("DeepLinkAuth started.")
 			backendManager.storeDeeplinkAccount(url)
