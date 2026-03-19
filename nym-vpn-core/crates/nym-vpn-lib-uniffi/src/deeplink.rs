@@ -37,14 +37,30 @@ impl NymDeeplinks {
             });
         };
 
-        let base_url = match params.client {
-            DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
-            DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
-            DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
-        }
-        .ok_or(VpnError::DeeplinkError {
-            details: "The privy path could not be determined".to_owned(),
-        })?;
+        let base_url = match params.kind {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
+                let url = match params.client {
+                    DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+                    DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+                    DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+                };
+                url.ok_or(VpnError::DeeplinkError {
+                    details: "The privy path could not be determined".to_owned(),
+                })?
+            }
+            DeeplinkKind::CreateAccount => {
+                account_management
+                    .pricing_url(&params.locale)
+                    .ok_or(VpnError::DeeplinkError {
+                        details: "The pricing path could not be determined".to_owned(),
+                    })?
+            }
+            _ => {
+                return Err(VpnError::DeeplinkError {
+                    details: "Invalid deeplink kind".to_owned(),
+                });
+            }
+        };
 
         let mut deeplink_guard = self.deep_links.lock().await;
         let params = CreateDeeplinkParams {
