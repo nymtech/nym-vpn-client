@@ -20,11 +20,10 @@ use nym_windows::{
     net::{AddressFamily, get_ip_address_for_interface},
     sync::Event,
 };
-use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     ffi::OsString,
-    fmt, io,
+    io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     os::windows::io::AsRawHandle,
     path::{Path, PathBuf},
@@ -812,140 +811,5 @@ pub enum Error {
 impl From<&Error> for SplitTunnelErrorCause {
     fn from(_value: &Error) -> Self {
         Self::Other
-    }
-}
-
-/// Reason for the tunnel state machine entering an [`ErrorState`].
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-#[serde(tag = "reason", content = "details")]
-pub enum ErrorStateCause {
-    /// Authentication with remote server failed.
-    AuthFailed(Option<String>),
-    /// Failed to configure IPv6 because it's disabled in the platform.
-    Ipv6Unavailable,
-    /// Failed to set system DNS server.
-    SetDnsError,
-    /// Android has rejected one or more DNS server addresses.
-    #[cfg(target_os = "android")]
-    InvalidDnsServers(Vec<IpAddr>),
-    /// Android has rejected due to invalid IPV6 config.
-    #[cfg(target_os = "android")]
-    InvalidIPv6Config {
-        addresses: Vec<IpAddr>,
-        routes: Vec<InetNetwork>,
-        dns_servers: Vec<IpAddr>,
-    },
-    /// Failed to create tunnel device.
-    #[cfg(target_os = "windows")]
-    CreateTunnelDevice { os_error: Option<i32> },
-    /// Failed to start connection to remote server.
-    StartTunnelError,
-    /// Tunnel parameter generation failure
-    //TunnelParameterError(ParameterGenerationError),
-    /// This device is offline, no tunnels can be established.
-    IsOffline,
-    #[cfg(target_os = "android")]
-    NotPrepared,
-    #[cfg(target_os = "android")]
-    OtherAlwaysOnApp { app_name: String },
-    #[cfg(target_os = "android")]
-    OtherLegacyAlwaysOnVpn,
-    /// Error reported by split tunnel module.
-    #[cfg(any(target_os = "windows", target_os = "macos", target_os = "android"))]
-    SplitTunnelError,
-    /// Missing permissions required by macOS split tunneling.
-    #[cfg(target_os = "macos")]
-    NeedFullDiskPermissions,
-}
-
-impl ErrorStateCause {
-    #[cfg(target_os = "macos")]
-    pub fn prevents_filtering_resolver(&self) -> bool {
-        matches!(self, Self::SetDnsError)
-    }
-}
-
-impl fmt::Display for ErrorStateCause {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use self::ErrorStateCause::*;
-        let description = match self {
-            AuthFailed(reason) => {
-                return write!(
-                    f,
-                    "Authentication with remote server failed: {}",
-                    match reason {
-                        Some(reason) => reason.as_str(),
-                        None => "No reason provided",
-                    }
-                );
-            }
-            Ipv6Unavailable => "Failed to configure IPv6 because it's disabled in the platform",
-
-            SetDnsError => "Failed to set system DNS server",
-            #[cfg(target_os = "android")]
-            InvalidDnsServers(addresses) => {
-                return write!(
-                    f,
-                    "Invalid DNS server addresses used in tunnel configuration: {}",
-                    addresses
-                        .iter()
-                        .map(IpAddr::to_string)
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                );
-            }
-            #[cfg(target_os = "android")]
-            InvalidIPv6Config {
-                addresses,
-                routes,
-                dns_servers,
-            } => {
-                return write!(
-                    f,
-                    "Invalid ipv6 tunnel configuration. addresses: {} routes: {} dns_servers: {}",
-                    addresses
-                        .iter()
-                        .map(IpAddr::to_string)
-                        .collect::<Vec<_>>()
-                        .join(", "),
-                    routes
-                        .iter()
-                        .map(InetNetwork::to_string)
-                        .collect::<Vec<_>>()
-                        .join(", "),
-                    dns_servers
-                        .iter()
-                        .map(IpAddr::to_string)
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                );
-            }
-            StartTunnelError => "Failed to start connection to remote server",
-            #[cfg(target_os = "windows")]
-            CreateTunnelDevice {
-                os_error: Some(error),
-            } => return write!(f, "Failed to create tunnel device: {error}"),
-            #[cfg(target_os = "windows")]
-            CreateTunnelDevice { os_error: None } => {
-                return write!(f, "Failed to create tunnel device");
-            }
-            // TunnelParameterError(err) => {
-            //     return write!(f, "Failure to generate tunnel parameters: {err}");
-            // }
-            IsOffline => "This device is offline, no tunnels can be established",
-            #[cfg(any(target_os = "windows", target_os = "macos", target_os = "android"))]
-            SplitTunnelError => "The split tunneling module reported an error",
-            #[cfg(target_os = "macos")]
-            NeedFullDiskPermissions => "Need full disk access to enable split tunneling",
-            #[cfg(target_os = "android")]
-            NotPrepared => "This device is not prepared",
-            #[cfg(target_os = "android")]
-            OtherAlwaysOnApp { app_name: _ } => "Another app is set as always on",
-            #[cfg(target_os = "android")]
-            OtherLegacyAlwaysOnVpn => "Another legacy vpn profile is set as always on",
-        };
-
-        write!(f, "{description}")
     }
 }

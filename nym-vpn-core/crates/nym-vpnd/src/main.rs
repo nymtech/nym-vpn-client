@@ -51,10 +51,10 @@ async fn main() -> anyhow::Result<()> {
         #[cfg(windows)]
         Command::UninstallService => {
             uninstall_split_tunnel_driver_service()
-                .context("Failed to uninstall split tunnel driver service")?;
-            uninstall_service()
-                .await
-                .context("Failed to uninstall Windows service")?;
+                .context("Failed to uninstall split tunnel driver service")
+                .or(uninstall_service()
+                    .await
+                    .context("Failed to uninstall Windows service"))?;
             Ok(())
         }
         #[cfg(windows)]
