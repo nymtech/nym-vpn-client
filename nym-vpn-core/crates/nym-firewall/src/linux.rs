@@ -21,10 +21,9 @@ use nix::net::if_::if_nametoindex;
 use super::{
     FirewallArguments, FirewallPolicy,
     net::{AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol, TunnelMetadata},
-    split_tunnel,
 };
 use nym_cgroup::v2::CGroup2;
-use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
+use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS, SPLIT_TUNNEL_MARK};
 
 use crate::{AllowedClients, DNS_TCP_PORTS, TunnelInterface};
 
@@ -446,7 +445,7 @@ impl<'a> PolicyBatch<'a> {
         // This is the only implementation detail of the split tunneling rule that differs between cgroup v1 and v2.
         add_selector_rules(&mut rule);
         // Loads `split_tunnel::MARK` into first nftnl register
-        rule.add_expr(&nft_expr!(immediate data split_tunnel::MARK));
+        rule.add_expr(&nft_expr!(immediate data SPLIT_TUNNEL_MARK));
         // Sets `split_tunnel::MARK` as connection tracker mark
         rule.add_expr(&nft_expr!(ct mark set));
         // Loads `fwmark` into first nftnl register
@@ -461,7 +460,7 @@ impl<'a> PolicyBatch<'a> {
         for chain in &[&self.in_chain, &self.out_chain, &self.forward_chain] {
             let mut rule = Rule::new(chain);
             rule.add_expr(&nft_expr!(ct mark));
-            rule.add_expr(&nft_expr!(cmp == split_tunnel::MARK));
+            rule.add_expr(&nft_expr!(cmp == SPLIT_TUNNEL_MARK));
             add_verdict(&mut rule, &Verdict::Accept);
             self.batch.add(&rule, nftnl::MsgType::Add);
         }
@@ -477,7 +476,7 @@ impl<'a> PolicyBatch<'a> {
                 )?;
             }
             block_tunnel_rule.add_expr(&nft_expr!(ct mark));
-            block_tunnel_rule.add_expr(&nft_expr!(cmp == split_tunnel::MARK));
+            block_tunnel_rule.add_expr(&nft_expr!(cmp == SPLIT_TUNNEL_MARK));
             add_verdict(&mut block_tunnel_rule, &Verdict::Drop);
             self.batch.add(&block_tunnel_rule, nftnl::MsgType::Add);
         }
@@ -492,7 +491,7 @@ impl<'a> PolicyBatch<'a> {
         rule.add_expr(&nft_expr!(cmp != iface_index));
 
         rule.add_expr(&nft_expr!(ct mark));
-        rule.add_expr(&nft_expr!(cmp == split_tunnel::MARK));
+        rule.add_expr(&nft_expr!(cmp == SPLIT_TUNNEL_MARK));
 
         rule.add_expr(&nft_expr!(masquerade));
         if *ADD_COUNTERS {
@@ -512,7 +511,7 @@ impl<'a> PolicyBatch<'a> {
                 )?;
             }
             prerouting_rule.add_expr(&nft_expr!(ct mark));
-            prerouting_rule.add_expr(&nft_expr!(cmp == split_tunnel::MARK));
+            prerouting_rule.add_expr(&nft_expr!(cmp == SPLIT_TUNNEL_MARK));
             prerouting_rule.add_expr(&nft_expr!(immediate data fwmark));
             prerouting_rule.add_expr(&nft_expr!(meta mark set));
             if *ADD_COUNTERS {
@@ -858,7 +857,7 @@ impl<'a> PolicyBatch<'a> {
         if endpoint.clients.allow_all() {
             let mut rule = Rule::new(&self.mangle_chain);
             check_endpoint(&mut rule, End::Dst, &endpoint.endpoint);
-            rule.add_expr(&nft_expr!(immediate data split_tunnel::MARK));
+            rule.add_expr(&nft_expr!(immediate data SPLIT_TUNNEL_MARK));
             rule.add_expr(&nft_expr!(ct mark set));
             rule.add_expr(&nft_expr!(immediate data fwmark));
             rule.add_expr(&nft_expr!(meta mark set));

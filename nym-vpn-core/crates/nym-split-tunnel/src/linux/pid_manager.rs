@@ -15,10 +15,6 @@ use nym_cgroup::{
 #[cfg(feature = "cgroup2")]
 use crate::firewall;
 
-/// Value used to mark packets and associated connections.
-/// This should be an arbitrary but unique integer.
-pub const MARK: u32 = 0xf42;
-
 /// Errors related to split tunneling.
 #[derive(thiserror::Error, Debug)]
 #[error("Error in split tunneling")]
