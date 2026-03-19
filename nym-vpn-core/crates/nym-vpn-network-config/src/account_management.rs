@@ -59,9 +59,9 @@ impl AccountManagement {
             .ok()
     }
 
-    pub fn create_account_url(&self, locale: &str) -> Option<Url> {
+    pub fn pricing_url(&self, locale: &str) -> Option<Url> {
         self.url
-            .join(&format!("{}/pricing", locale))
+            .join(&self.paths.pricing.replace("{locale}", locale))
             .ok()
     }
 
@@ -118,6 +118,9 @@ impl AccountManagement {
                     .autologin_web_url(locale)
                     .ok_or(AccountLinksConversionError::ParseAutologinWebUrl)?,
             },
+            pricing: self
+                .pricing_url(locale)
+                .ok_or(AccountLinksConversionError::ParsePricingUrl)?,
         })
     }
 }
@@ -148,6 +151,9 @@ pub enum AccountLinksConversionError {
 
     #[error("Failed to parse autologin web URL")]
     ParseAutologinWebUrl,
+
+    #[error("Failed to parse pricing URL")]
+    ParsePricingUrl,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -157,6 +163,7 @@ pub(crate) struct AccountManagementPaths {
     pub(crate) account: String,
     pub(crate) privy: AccountManagementPrivyPaths,
     pub(crate) autologin: AccountManagementAutologinPaths,
+    pub(crate) pricing: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -180,6 +187,7 @@ pub struct ParsedAccountLinks {
     pub account: Option<Url>,
     pub privy: ParsedAccountPrivyLinks,
     pub autologin: ParsedAccountAutologinLinks,
+    pub pricing: Url,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -210,6 +218,7 @@ impl fmt::Display for ParsedAccountLinks {
             desktop = self.autologin.desktop
         )?;
         write!(f, "\nautologin: {web}", web = self.autologin.web)?;
+        write!(f, "\npricing: {pricing}", pricing = self.pricing)?;
         Ok(())
     }
 }
@@ -245,6 +254,7 @@ impl From<AccountManagementPathsResponse> for AccountManagementPaths {
             account: response.account,
             privy: response.privy.into(),
             autologin: response.autologin.into(),
+            pricing: response.pricing,
         }
     }
 }

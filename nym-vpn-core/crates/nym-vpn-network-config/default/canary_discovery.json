@@ -36,7 +36,8 @@
         "mobile": "{locale}/account/login/autologin/mobile",
         "desktop": "{locale}/account/login/autologin/desktop",
         "web": "{locale}/account/login/autologin/web"
-      }
+      },
+      "pricing": "{locale}/pricing"
     }
   },
   "system_configuration": {
