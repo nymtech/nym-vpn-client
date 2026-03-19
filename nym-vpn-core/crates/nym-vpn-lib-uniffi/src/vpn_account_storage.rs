@@ -92,11 +92,10 @@ impl NymVpnAccountStorage {
                 Ok(())
             }
             DeeplinkKind::PrivyLink => {
-                let privy_vpn_account = VpnAccount::try_from(account).map_err(|err| {
-                    VpnError::InvalidMnemonic {
+                let privy_vpn_account =
+                    VpnAccount::try_from(account).map_err(|err| VpnError::InvalidMnemonic {
                         details: err.to_string(),
-                    }
-                })?;
+                    })?;
 
                 let vpn_api_client = self.create_vpn_api_client().await?;
 
