@@ -13,8 +13,8 @@ on:
 env:
   CARGO_TERM_COLOR: always
   LIBS_PATH: build/lib/x86_64-pc-windows-msvc
-  WINFW_PATH: build/winfw/x64-Release
-  STDRIVER_PATH: build/st-driver/x64-Release
+  WINFW_PATH: build/winfw/x64-Debug
+  STDRIVER_PATH: build/st-driver/x64-Debug
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
