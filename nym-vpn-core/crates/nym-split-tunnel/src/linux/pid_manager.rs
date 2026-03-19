@@ -17,7 +17,7 @@ use crate::firewall;
 
 /// Value used to mark packets and associated connections.
 /// This should be an arbitrary but unique integer.
-pub const MARK: u32 = 0xf41;
+pub const MARK: u32 = 0xf42;
 
 /// Errors related to split tunneling.
 #[derive(thiserror::Error, Debug)]

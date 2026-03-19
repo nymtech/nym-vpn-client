@@ -34,7 +34,6 @@ mod imp;
 mod imp;
 
 mod net;
-mod split_tunnel;
 pub use net::{
     AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol,
     TunnelInterface, TunnelMetadata,
