@@ -16,7 +16,10 @@ env:
 
 jobs:
   build-wireguard-go-windows:
-    uses: ./.github/workflows/build-wireguard-go-windows.yml ./.github/workflows/build-winfw-windows.yml
+    uses: ./.github/workflows/build-wireguard-go-windows.yml
+
+  build-winfw-windows:
+    uses: ./.github/workflows/build-winfw-windows.yml
 
   build:
     runs-on: custom-windows-11
