@@ -57,7 +57,6 @@ const featureFlags: FeatureFlags = {
   quic: true,
   domainFronting: true,
   zknymCredential: true,
-  privy: false,
   mixnetTuning: false,
 };
 
