@@ -2,18 +2,18 @@ import clsx from 'clsx';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { useCallback, useRef } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { NymSplash } from '../../assets';
 import { Button, ButtonText, Link, MsIcon, PageAnim } from '../../ui';
 import { useMainDispatch, useMainState } from '../../contexts';
-import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
+import { PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
 import { PrivyButton } from '../../components';
-import { invoke } from '@tauri-apps/api/core';
-import { TAccountMode } from '../../types/tauri';
-import { useRef } from 'react';
-import { useDeepLink } from '../../hooks/index';
-import { CCache } from '../../cache/index';
-import { StateDispatch } from '../../types/index';
+import { TAccountSummary } from '../../types/tauri';
+import { useDeepLink } from '../../hooks';
+import { CCache } from '../../cache';
+import { StateDispatch } from '../../types';
 
 function Login() {
   const { uiTheme } = useMainState();
@@ -23,8 +23,16 @@ function Login() {
   const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { startListening } = useDeepLink();
-
   const dispatch = useMainDispatch() as StateDispatch;
+
+  const refreshAccount = useCallback(async () => {
+    try {
+      const summary = await invoke<TAccountSummary>('get_account_summary');
+      dispatch({ type: 'set-account-summary', summary });
+    } catch (err) {
+      console.error('Failed to get account summary', err);
+    }
+  }, [dispatch]);
 
   const handleCreateAccount = async () => {
     const url = await invoke<string>('get_deep_link', {
@@ -32,24 +40,13 @@ function Login() {
       kind: 'CreateAccount',
     });
 
-    // openUrl(
-    //   url.replace(
-    //     'https://nymcom-git-deploy-sandbox-nyx-network-staging.vercel.app',
-    //     'http://localhost:3000',
-    //   ),
-    // );
-    openUrl(
-      url.replace(
-        'https://nymcom-git-deploy-sandbox-nyx-network-staging.vercel.app',
-        'https://nymcom-git-nym-788-deeplink-back-nyx-network-staging.vercel.app',
-      ),
-    );
+    openUrl(url);
 
     try {
       const timeoutPromise = new Promise<never>((_, reject) => {
         timeoutIdRef.current = setTimeout(
           () => reject(new Error('Login timeout')),
-          300000,
+          600000, // 10 minutes
         );
       });
 
@@ -63,12 +60,12 @@ function Login() {
       });
 
       dispatch({ type: 'set-account', stored: true });
-      // await refreshAccountMode();
+      await refreshAccount();
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
     } catch (error) {
-      console.error('Create account error: ', error);
+      console.error('[Signup] Create account error: ', error);
     } finally {
       if (timeoutIdRef.current !== null) {
         clearTimeout(timeoutIdRef.current);
