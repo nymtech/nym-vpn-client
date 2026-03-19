@@ -8,7 +8,7 @@ use nym_vpn_lib_types::{AutologinResponse, DeeplinkKind};
 use pbkdf2::pbkdf2_hmac;
 use rand::{RngCore, rngs::OsRng};
 use sha2::{Sha256, Sha512};
-use std::{collections::HashMap};
+use std::collections::HashMap;
 use tokio::time::{Duration, Instant};
 use url::Url;
 
@@ -103,8 +103,6 @@ impl Deeplinks {
         let now = Instant::now();
         self.0.retain(|_, deeplink| deeplink.expiry_time > now);
     }
-
-
 
     pub fn derive_mnemonic(&mut self, url_str: &str) -> Result<DeeplinkMnemonic, DeeplinkError> {
         let url =
