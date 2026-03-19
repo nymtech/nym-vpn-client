@@ -2,12 +2,11 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use anyhow::Context;
 use libc::pid_t;
 #[cfg(feature = "cgroup2")]
 use nftnl::{Batch, Chain, Hook, MsgType, Policy, ProtoFamily, Rule, Table, nft_expr};
 use nix::unistd::Pid;
-use talpid_cgroup::{
+use nym_cgroup::{
     SPLIT_TUNNEL_CGROUP_NAME,
     v1::{CGroup1, NET_CLS_CLASSID},
     v2::CGroup2,
@@ -24,10 +23,9 @@ pub const MARK: u32 = 0xf41;
 #[derive(thiserror::Error, Debug)]
 #[error("Error in split tunneling")]
 pub enum Error {
-    /// Errors related to split tunneling.
-    SplitTunnel(#[from] anyhow::Error),
+    SplitTunnelUnavalable,
     /// Errors related to cgroups.
-    CGroup(#[from] talpid_cgroup::Error),
+    CGroup(#[from] nym_cgroup::Error),
 }
 
 /// Manages PIDs in the linux cgroup used for vpn tunnel exclusion.
@@ -35,7 +33,7 @@ pub enum Error {
 /// It's recommended to read the kernel docs before delving into this module:
 /// <https://docs.kernel.org/admin-guide/cgroup-v2.html>
 pub struct PidManager {
-    inner: Result<Inner, Error>,
+    inner: Inner,
 }
 
 enum Inner {
@@ -57,14 +55,10 @@ struct InnerCGroup2 {
 }
 
 impl PidManager {
-    fn new() -> Self {
-        let inner = Self::new_inner();
-
-        if let Err(e) = &inner {
-            tracing::error!("Failed to initialize split-tunneling: {e:?}");
-        };
-
-        PidManager { inner }
+    pub fn new() -> Result<Self, Error> {
+        Ok(PidManager {
+            inner: Self::new_inner()?,
+        })
     }
 
     fn new_inner() -> Result<Inner, Error> {
@@ -127,36 +121,30 @@ impl PidManager {
     /// Add a PID to the cgroup2 to have it excluded from the tunnel.
     pub fn add(&self, pid: pid_t) -> Result<(), Error> {
         let pid = Pid::from_raw(pid);
-        self.inner()?.add(pid)
+        self.inner.add(pid)
     }
 
     /// Remove a PID from the cgroup2 to have it included in the tunnel.
     pub fn remove(&self, pid: pid_t) -> Result<(), Error> {
         let pid = Pid::from_raw(pid);
-        self.inner()?.remove(pid)
+        self.inner.remove(pid)
     }
 
     /// Return a list of all PIDs currently in the Cgroup excluded from the tunnel.
     pub fn list(&mut self) -> Result<Vec<pid_t>, Error> {
-        self.inner_mut()?.list()
+        self.inner.list()
     }
 
     /// Removes all PIDs from the Cgroup.
     pub fn clear(&mut self) -> Result<(), Error> {
-        self.inner_mut()?.clear()
-    }
-
-    /// Return whether it is supported/available
-    pub fn is_supported(&self) -> bool {
-        matches!(self.inner, Ok(..))
+        self.inner.clear()
     }
 
     /// Get a handle to the [CGroup2] used for split-tunneling.
     ///
     /// Returns an option if we prevously failed to set up the cgroup2, or if cloning it fails.
     pub fn excluded_cgroup(&self) -> Option<CGroup2> {
-        self.inner()
-            .ok()?
+        self.inner
             .excluded_cgroup()
             .inspect_err(|e| tracing::error!("Failed to clone file handle to cgroup2: {e}"))
             .ok()?
@@ -166,23 +154,7 @@ impl PidManager {
     ///
     /// This only exist if cgroup v1 is used for split tunneling.
     pub fn net_cls_classid(&self) -> Option<u32> {
-        self.inner().ok()?.net_cls_classid()
-    }
-
-    fn inner(&self) -> Result<&Inner, Error> {
-        self.inner
-            .as_ref()
-            .ok()
-            .context("Split-tunneling is not available")
-            .map_err(Into::into)
-    }
-
-    fn inner_mut(&mut self) -> Result<&mut Inner, Error> {
-        self.inner
-            .as_mut()
-            .ok()
-            .context("Split-tunneling is not available")
-            .map_err(Into::into)
+        self.inner.net_cls_classid()
     }
 }
 
@@ -292,10 +264,4 @@ fn assert_nft_supports_cgroup2(cgroup: &CGroup2) -> Result<(), Error> {
         .context("Failed to add nft cgroupv2 rule")?;
 
     Ok(())
-}
-
-impl Default for PidManager {
-    fn default() -> Self {
-        Self::new()
-    }
 }

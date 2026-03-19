@@ -23,6 +23,7 @@ use super::{
     net::{AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol, TunnelMetadata},
     split_tunnel,
 };
+use nym_cgroup::v2::CGroup2;
 use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
 
 use crate::{AllowedClients, DNS_TCP_PORTS, TunnelInterface};
@@ -118,11 +119,7 @@ pub struct Firewall {
 impl Firewall {
     /// Create a `Firewall` from a `FirewallArguments`.
     pub fn from_args(args: FirewallArguments) -> Result<Self> {
-        Firewall::new(
-            args.linux_ids.fwmark,
-            args.linux_ids.excluded_cgroup2,
-            args.linux_ids.net_cls,
-        )
+        Firewall::new(args.fwmark, args.excluded_cgroup2, args.net_cls)
     }
 
     /// Create a `Firewall`.
@@ -421,6 +418,7 @@ impl<'a> PolicyBatch<'a> {
         } = policy
         {
             for server in dns_config.tunnel_config() {
+                let tunnel = tunnel.exit_metadata();
                 let allow_rule = allow_tunnel_dns_rule(
                     &self.mangle_chain,
                     &tunnel.interface,
@@ -471,7 +469,13 @@ impl<'a> PolicyBatch<'a> {
         // Block remaining marked outgoing in-tunnel traffic
         if let FirewallPolicy::Connected { tunnel, .. } = policy {
             let mut block_tunnel_rule = Rule::new(&self.nat_chain);
-            check_iface(&mut block_tunnel_rule, Direction::Out, &tunnel.interface)?;
+            for tunnel_metadata in tunnel.inner_metadatas() {
+                check_iface(
+                    &mut block_tunnel_rule,
+                    Direction::Out,
+                    &tunnel_metadata.interface,
+                )?;
+            }
             block_tunnel_rule.add_expr(&nft_expr!(ct mark));
             block_tunnel_rule.add_expr(&nft_expr!(cmp == split_tunnel::MARK));
             add_verdict(&mut block_tunnel_rule, &Verdict::Drop);
@@ -482,8 +486,8 @@ impl<'a> PolicyBatch<'a> {
         // Don't masquerade packets on the loopback device.
         let mut rule = Rule::new(&self.nat_chain);
 
-        let iface_index = crate::linux::iface_index("lo")
-            .map_err(|e| Error::LookupIfaceIndexError("lo".to_string(), e))?;
+        let iface_index =
+            if_nametoindex("lo").map_err(|e| Error::LookupIfaceIndexError("lo".to_string(), e))?;
         rule.add_expr(&nft_expr!(meta oif));
         rule.add_expr(&nft_expr!(cmp != iface_index));
 
@@ -500,7 +504,13 @@ impl<'a> PolicyBatch<'a> {
         // for excluded processes
         if let FirewallPolicy::Connected { tunnel, .. } = policy {
             let mut prerouting_rule = Rule::new(&self.prerouting_chain);
-            check_not_iface(&mut prerouting_rule, Direction::In, &tunnel.interface)?;
+            for tunnel_metadata in tunnel.inner_metadatas() {
+                check_not_iface(
+                    &mut prerouting_rule,
+                    Direction::In,
+                    &tunnel_metadata.interface,
+                )?;
+            }
             prerouting_rule.add_expr(&nft_expr!(ct mark));
             prerouting_rule.add_expr(&nft_expr!(cmp == split_tunnel::MARK));
             prerouting_rule.add_expr(&nft_expr!(immediate data fwmark));

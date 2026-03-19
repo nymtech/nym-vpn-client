@@ -840,11 +840,11 @@ impl TunnelStateMachine {
             /// The cgroup2 used for split tunneling.
             /// Traffic from processes in this cgroup2 should be allowed outside the tunnel.
             #[cfg(target_os = "linux")]
-            excluded_cgroup2: split_tunneling_pid_manager.excluded_cgroup(),
+            excluded_cgroup2: split_tunnel.excluded_cgroup().await,
             /// The net_cls id of the v1 cgroup used for split tunneling.
             /// This is used as a fallback to [`Self::excluded_cgroup2`] since old kernels don't support cgroups v2.
             #[cfg(target_os = "linux")]
-            net_cls: split_tunneling_pid_manager.net_cls_classid(),
+            net_cls: split_tunnel.net_cls_classid().await,
         })
         .map_err(Error::CreateFirewall)?;
 

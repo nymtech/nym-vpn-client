@@ -12,6 +12,9 @@ license.workspace = true
 [lints]
 workspace = true
 
+[features]
+cgroup2 = ["nym-vpn-lib/cgroup2"]
+
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true

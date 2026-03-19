@@ -5427,6 +5427,7 @@ dependencies = [
  "mnl",
  "nftnl",
  "nix 0.31.2",
+ "nym-cgroup",
  "nym-common",
  "nym-dns",
  "nym-firewall-config",
