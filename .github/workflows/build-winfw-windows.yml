@@ -45,7 +45,8 @@ jobs:
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       - name: Build winfw
-        shell: pwsh
+        uses: humbletim/vsdevenv-shell@v2
+        shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-core
         run: make -f Windows.mk winfw CPU_ARCH=AMD64 RELEASE=1
 
