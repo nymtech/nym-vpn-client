@@ -5,6 +5,11 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 
+/// Value used to mark packets and associated connections.
+/// This should be an arbitrary but unique integer.
+#[cfg(target_os = "linux")]
+pub const SPLIT_TUNNEL_MARK: u32 = 0xf42;
+
 /// When "allow local network" is enabled the app will allow traffic to and from these networks.
 pub const ALLOWED_LAN_NETS: [IpNetwork; 6] = [
     v4(Ipv4Addr::new(10, 0, 0, 0), 8),
