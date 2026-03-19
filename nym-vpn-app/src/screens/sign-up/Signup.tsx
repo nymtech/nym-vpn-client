@@ -86,14 +86,7 @@ function Login() {
           <p className="mt-2 text-iron dark:text-bombay whitespace-pre-line">
             {t('signup.maximum-privacy.description')}
           </p>
-          <Button
-            // onClick={() => {
-            //   openUrl(NymVpnPricingUrl);
-            //   navigate(routes.login);
-            // }}
-            onClick={handleCreateAccount}
-            className="mt-4"
-          >
+          <Button onClick={handleCreateAccount} className="mt-4">
             <div className="flex items-center gap-2 whitespace-pre-wrap">
               {t('signup.create-account')} <MsIcon icon="open_in_new" />
             </div>
