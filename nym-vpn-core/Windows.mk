@@ -58,10 +58,10 @@ else
 endif
 
 ifeq ($(RELEASE),1)
-    WINFW_PROFILE := Release
+    MSVC_CONFIG := Release
     TARGET_DIR ?= $(CURDIR)/target/release
 else
-    WINFW_PROFILE := Debug
+    MSVC_CONFIG := Debug
     TARGET_DIR ?= $(CURDIR)/target/debug
 endif
 
@@ -71,12 +71,13 @@ WINFW_VERSION_HEADER_PATH = $(CURDIR)/../nym-vpn-windows/winfw/src/winfw/version
 LIBWG_BUILD_DIR := $(CURDIR)/../build/lib/$(RUST_TARGET)-pc-windows-msvc
 LIBWG_DLL := libwg.dll
 
-WINFW_DIST_DIR := $(CURDIR)/../build/winfw/$(WINFW_PLATFORM)-$(WINFW_PROFILE)
-WINFW_BUILD_DIR := $(CURDIR)/../nym-vpn-windows/winfw/bin/$(WINFW_PLATFORM)-$(WINFW_PROFILE)
+WINFW_DIST_DIR := $(CURDIR)/../build/winfw/$(WINFW_PLATFORM)-$(MSVC_CONFIG)
+WINFW_BUILD_DIR := $(CURDIR)/../nym-vpn-windows/winfw/bin/$(WINFW_PLATFORM)-$(MSVC_CONFIG)
 WINFW_DLL := winfw.dll
 WINFW_LIB := winfw.lib
 
-ST_DRIVER_DIST_DIR := $(CURDIR)/../nym-vpn-windows/split-tunnel-driver/bin/$(WINFW_PLATFORM)-$(WINFW_PROFILE)
+ST_DRIVER_DIST_DIR := $(CURDIR)/../build/st-driver/$(WINFW_PLATFORM)-$(MSVC_CONFIG)
+ST_DRIVER_BUILD_DIR := $(CURDIR)/../nym-vpn-windows/split-tunnel-driver/bin/$(WINFW_PLATFORM)-$(MSVC_CONFIG)
 ST_DRIVER_SYS := nymvpn-split-tunnel.sys
 ST_DRIVER_INF := nymvpn-split-tunnel.inf
 ST_DRIVER_CER := nymvpn-split-tunnel.cer
@@ -103,7 +104,7 @@ libwg: create_target_dir create_version_header
 
 winfw: create_target_dir create_version_header
 # Setup environment and build winfw
-	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/winfw/winfw.sln" /p:Configuration=$(WINFW_PROFILE) /p:Platform=$(WINFW_PLATFORM)
+	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/winfw/winfw.sln" /p:Configuration=$(MSVC_CONFIG) /p:Platform=$(WINFW_PLATFORM)
 
 # Copy winfw dll and lib to distribution directory where nym-vpn-core looks for import lib
 	New-Item -ItemType Directory -Force -Path "$(WINFW_DIST_DIR)"
@@ -134,14 +135,23 @@ wintun: create_target_dir
 
 st-driver: create_target_dir
 # Setup environment and build split tunnel driver
-	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/split-tunnel-driver/nymvpn-split-tunnel/nymvpn-split-tunnel.sln" /p:Configuration=$(WINFW_PROFILE) /p:Platform=$(WINFW_PLATFORM)
+	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/split-tunnel-driver/nymvpn-split-tunnel/nymvpn-split-tunnel.sln" /p:Configuration=$(MSVC_CONFIG) /p:Platform=$(WINFW_PLATFORM)
 
-# Copy driver files target directory
-	Copy-Item "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_SYS)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_SYS)" -Force
-	Copy-Item "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_INF)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_INF)" -Force
-	Copy-Item "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_CER)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_CER)" -Force
-	if (Test-Path "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_PDB)") { #\
-    	Copy-Item "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_PDB)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
+# Copy driver files to distribution directory
+	New-Item -ItemType Directory -Force -Path "$(ST_DRIVER_DIST_DIR)"
+	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_SYS)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_SYS)" -Force
+	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_INF)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_INF)" -Force
+	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_CER)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_CER)" -Force
+	if (Test-Path "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)") { #\
+    	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
+	}
+
+# Copy driver files to target directory
+	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_SYS)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_SYS)" -Force
+	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_INF)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_INF)" -Force
+	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_CER)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_CER)" -Force
+	if (Test-Path "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)") { #\
+    	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
 	}
 
 create_target_dir:
