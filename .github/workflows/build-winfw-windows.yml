@@ -50,7 +50,9 @@ jobs:
       - name: Build winfw
         shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-core
-        run: make -f Windows.mk winfw CPU_ARCH=AMD64 RELEASE=1 PWSH=1
+        run: |
+          make -f Windows.mk winfw CPU_ARCH=AMD64 RELEASE=0 PWSH=1
+          make -f Windows.mk winfw CPU_ARCH=AMD64 RELEASE=1 PWSH=1
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
