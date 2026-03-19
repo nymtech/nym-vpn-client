@@ -32,10 +32,16 @@ function Login() {
       kind: 'CreateAccount',
     });
 
+    // openUrl(
+    //   url.replace(
+    //     'https://nymcom-git-deploy-sandbox-nyx-network-staging.vercel.app',
+    //     'http://localhost:3000',
+    //   ),
+    // );
     openUrl(
       url.replace(
         'https://nymcom-git-deploy-sandbox-nyx-network-staging.vercel.app',
-        'http://localhost:3000',
+        'https://nymcom-git-nym-788-deeplink-back-nyx-network-staging.vercel.app',
       ),
     );
 
