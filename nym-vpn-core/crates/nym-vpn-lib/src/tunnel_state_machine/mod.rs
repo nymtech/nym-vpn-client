@@ -605,11 +605,7 @@ pub struct SharedState {
     filtering_resolver: resolver::ResolverHandle,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker: adblocker::AdBlockerTaskHandle,
-<<<<<<< HEAD
-    #[cfg(any(windows, target_os = "linux", target_os = "macos"))]
-=======
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
->>>>>>> 223b924f2 (More fixes for Linux)
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
@@ -854,7 +850,7 @@ impl TunnelStateMachine {
         })
         .map_err(Error::CreateFirewall)?;
 
-        #[cfg(any(target_os = "linux",target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         if let Err(err) = split_tunnel
             .set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths())
             .await
