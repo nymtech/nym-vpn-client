@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.1.0]
+## [3.1.1] - 19.03.2026
 
 ### Added
 - Add Subscription and Bandwidth information (https://github.com/nymtech/nym-vpn-client/pull/4817)
@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue with the Details button for exit server (https://github.com/nymtech/nym-vpn-client/pull/4805)
 - Fix issue with language list (https://github.com/nymtech/nym-vpn-client/pull/4846)
 
-## [3.0.0]
+## [3.0.0] - 03.03.2026
 
 ### Added
 - Add subscription checks after login (https://github.com/nymtech/nym-vpn-client/pull/4683)
