@@ -153,9 +153,6 @@ fun SettingsScreen(appUiState: AppUiState, showVpnSettings: Boolean = false, vie
 			onPrivacyClick = {
 				navController.navigate(Route.Privacy)
 			},
-			onLogsClick = {
-				navController.navigate(Route.Logs)
-			},
 			onNotificationsClick = {
 				context.launchNotificationSettings()
 			},
@@ -194,7 +191,7 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 			SupportSection(actions.onSupportClick)
 			VpnSettingsSection(values, actions)
 			AppearanceSection(values, actions)
-			LogsSection(onLogsClick = actions.onLogsClick, onPrivacyClick = actions.onPrivacyClick)
+			LogsSection(onPrivacyClick = actions.onPrivacyClick)
 			// ResetAppSection(actions.onResetClick)
 			LegalSection(actions.onLegalClick)
 			// SystemStatusSection(actions.onSystemStatusClick)

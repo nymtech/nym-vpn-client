@@ -257,7 +257,7 @@
 	<string name="battery_opt">Battery optimization</string>
 	<string name="battery_opt_settings_text">Battery optimization setting can be changed anytime in app settings.</string>
 	<!-- Data & Privacy screen -->
-	<string name="privacy_title">Data &amp; Privacy</string>
+	<string name="privacy_title">Data, privacy &amp; logs</string>
 	<string name="privacy_anonymous_stats_title">Anonymous network stats</string>
 	<string name="privacy_anonymous_stats_description">Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it\'s needed most. \n\nOnly network performance data is shared – never your browsing activity or personal data.</string>
 	<string name="privacy_anonymous_stats_link_text">Learn exactly what\'s shared</string>
@@ -274,6 +274,7 @@
 	<string name="notification_improve_title">Help improve \nyour connection speed</string>
 	<string name="notification_improve_button">Improve now</string>
 	<string name="notification_stats_enabled">Stats enabled! Your anonymous data helps optimize our network.</string>
+	<string name="privacy_diagnostic_tool">Diagnostic tool</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Continue</string>
 	<string name="welcome_title">Help us improve NymVPN</string>
@@ -536,5 +537,11 @@
 	<string name="mixnet_tuning_link" translatable="false">https://nym.com/features/mixnet-customization</string>
 	<string name="mixnet_tuning_save_button">Save custom settings</string>
 	<string name="mixnet_tuning_restore_button">Restore default settings</string>
-
+	<!-- Diagnostic screen -->
+	<string name="diagnostic_run_button">Run diagnostics</string>
+	<string name="diagnostic_share_button">Share report</string>
+	<string name="diagnostic_report_title">Diagnostic report</string>
+	<string name="diagnostic_copy_report">Copy report</string>
+	<string name="diagnostic_copied">Copied to clipboard</string>
+	<string name="diagnostic_error">Diagnostics failed</string>
 </resources>

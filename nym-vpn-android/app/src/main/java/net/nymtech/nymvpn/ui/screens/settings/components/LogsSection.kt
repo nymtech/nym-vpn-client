@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material3.Icon
@@ -21,34 +20,9 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LogsSection(onLogsClick: () -> Unit, onPrivacyClick: () -> Unit) {
+fun LogsSection(onPrivacyClick: () -> Unit) {
 	SettingsGroup(
 		items = listOf(
-			SelectionItem(
-				leading = {
-					Icon(
-						Icons.AutoMirrored.Default.Notes,
-						stringResource(R.string.local_logs),
-						modifier = Modifier.size(iconSize.scaledWidth()),
-						tint = MaterialTheme.colorScheme.outline,
-					)
-				},
-				trailing = {
-					Icon(
-						Icons.AutoMirrored.Outlined.ArrowRight,
-						stringResource(R.string.go),
-						modifier = Modifier.size(iconSize),
-						tint = MaterialTheme.colorScheme.onBackground,
-					)
-				},
-				title = {
-					Text(
-						stringResource(R.string.local_logs),
-						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-					)
-				},
-				onClick = onLogsClick,
-			),
 			SelectionItem(
 				leading = {
 					Icon(
@@ -82,6 +56,6 @@ fun LogsSection(onLogsClick: () -> Unit, onPrivacyClick: () -> Unit) {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewLogsSection() {
 	NymVPNTheme(Theme.default()) {
-		LogsSection({}, {})
+		LogsSection({})
 	}
 }

@@ -351,6 +351,16 @@ fun NavBar(
 				},
 			)
 
+			currentRoute.startsWith(Route.Diagnostic::class.qualifiedName!!) -> NavBarState(
+				title = { NavTitle(stringResource(R.string.privacy_diagnostic_tool)) },
+				show = true,
+				leading = {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
+						navController.safePopBackStack()
+					}
+				},
+			)
+
 			else -> NavBarState(show = false)
 		}
 	}
