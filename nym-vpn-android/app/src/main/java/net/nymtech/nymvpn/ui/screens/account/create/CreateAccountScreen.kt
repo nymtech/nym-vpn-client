@@ -65,7 +65,6 @@ fun CreateAccountScreen(appUiState: AppUiState, viewModel: CreateAccountViewMode
 
 	CreateAccountScreen(
 		loading = ui.isLoading,
-		isPrivyEnabled = ui.isPrivyEnabled,
 		onLogInClick = { navController.navigateAndForget(Route.Login) },
 		onCreateAccountClick = {
 			if (ui.isLoading) return@CreateAccountScreen
@@ -100,7 +99,7 @@ fun CreateAccountScreen(appUiState: AppUiState, viewModel: CreateAccountViewMode
 }
 
 @Composable
-fun CreateAccountScreen(loading: Boolean, isPrivyEnabled: Boolean, onLogInClick: () -> Unit, onCreateAccountClick: () -> Unit, onSocialClick: () -> Unit) {
+fun CreateAccountScreen(loading: Boolean, onLogInClick: () -> Unit, onCreateAccountClick: () -> Unit, onSocialClick: () -> Unit) {
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
@@ -155,34 +154,32 @@ fun CreateAccountScreen(loading: Boolean, isPrivyEnabled: Boolean, onLogInClick:
 						)
 					},
 				)
-				if (isPrivyEnabled) {
-					Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
-					HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
-					Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
-					CreateAccountBlock(
-						title = stringResource(R.string.account_welcome_social_title),
-						description = stringResource(R.string.account_welcome_social_description),
-						button = {
-							OutlineStyledButton(
-								onClick = onSocialClick,
-								content = {
-									if (loading) {
-										SpinningIcon(Icons.Outlined.Lock, "")
-									} else {
-										Text(
-											text = stringResource(R.string.account_welcome_social_button),
-											style = CustomTypography.buttonMain,
-										)
-									}
-								},
-								borderColor = MaterialTheme.colorScheme.onBackground,
-								modifier = Modifier
-									.fillMaxWidth()
-									.height(54.dp.scaledHeight()),
-							)
-						},
-					)
-				}
+				Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
+				HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
+				Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
+				CreateAccountBlock(
+					title = stringResource(R.string.account_welcome_social_title),
+					description = stringResource(R.string.account_welcome_social_description),
+					button = {
+						OutlineStyledButton(
+							onClick = onSocialClick,
+							content = {
+								if (loading) {
+									SpinningIcon(Icons.Outlined.Lock, "")
+								} else {
+									Text(
+										text = stringResource(R.string.account_welcome_social_button),
+										style = CustomTypography.buttonMain,
+									)
+								}
+							},
+							borderColor = MaterialTheme.colorScheme.onBackground,
+							modifier = Modifier
+								.fillMaxWidth()
+								.height(54.dp.scaledHeight()),
+						)
+					},
+				)
 				Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
 				HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
 				Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
@@ -228,7 +225,6 @@ internal fun PreviewCreateAccountScreen() {
 	NymVPNTheme(Theme.default()) {
 		CreateAccountScreen(
 			loading = false,
-			isPrivyEnabled = true,
 			onLogInClick = {},
 			onCreateAccountClick = {},
 			onSocialClick = {},

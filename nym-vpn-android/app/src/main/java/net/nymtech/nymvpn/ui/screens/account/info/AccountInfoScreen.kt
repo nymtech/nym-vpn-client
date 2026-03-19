@@ -88,7 +88,6 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 	)
 
 	AccountInfoScreenContent(
-		isPrivyEnabled = uiState.isPrivyEnabled,
 		accountId = uiState.accountId,
 		deviceId = uiState.deviceId,
 		showLinkAccount = uiState.showLinkAccount,
@@ -137,7 +136,6 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 
 @Composable
 fun AccountInfoScreenContent(
-	isPrivyEnabled: Boolean,
 	accountId: String,
 	deviceId: String,
 	showLinkAccount: Boolean,
@@ -181,7 +179,7 @@ fun AccountInfoScreenContent(
 		Spacer(Modifier.height(8.dp))
 		AccountActionCard(
 			title = stringResource(R.string.account_info_account_button),
-			subtitle = if (showLinkAccount && isPrivyEnabled) {
+			subtitle = if (showLinkAccount) {
 				{
 					Text(
 						text = stringResource(R.string.account_info_link_description),
@@ -195,13 +193,11 @@ fun AccountInfoScreenContent(
 			onClick = onLinkAccountClick,
 		)
 
-		if (isPrivyEnabled) {
-			Text(
-				text = stringResource(if (showLinkAccount) R.string.account_info_link_warning else R.string.account_info_linked_info),
-				style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-				modifier = Modifier.padding(vertical = 24.dp),
-			)
-		}
+		Text(
+			text = stringResource(if (showLinkAccount) R.string.account_info_link_warning else R.string.account_info_linked_info),
+			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+			modifier = Modifier.padding(vertical = 24.dp),
+		)
 
 		AccountInfoCard(
 			title = stringResource(R.string.account_info_id_title),
@@ -238,8 +234,7 @@ fun AccountInfoScreenContent(
 internal fun PreviewAccountInfoScreen() {
 	NymVPNTheme(Theme.default()) {
 		AccountInfoScreenContent(
-			isPrivyEnabled = false,
-			accountId = "2WigVJR14ZqfBnnqVyyPY3XPwqhkpb2W94igVJR1784Z3qfBnnqVyyP",
+			accountId = "AccountID",
 			deviceId = "DeviceID123",
 			showLinkAccount = true,
 			isMnemonicStored = true,
