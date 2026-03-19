@@ -19,6 +19,7 @@ env:
   CARGO_TERM_COLOR: always
   LIBS_PATH: build/lib/x86_64-pc-windows-msvc
   WINFW_PATH: build/winfw/x64-Release
+  STDRIVER_PATH: build/st-driver/x64-Release
   WINTUN_DIST_DIR: wintun-dist
   UPLOAD_DIR_WINDOWS: windows_artifacts
 
@@ -90,6 +91,12 @@ jobs:
           name: winfw
           path: ${{ env.WINFW_PATH }}
 
+      - name: Download st-driver artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: st-driver
+          path: ${{ env.STDRIVER_PATH }}
+
       - name: Download wintun
         shell: pwsh
         working-directory: nym-vpn-core
@@ -127,6 +134,9 @@ jobs:
           cp -vpr ${{ env.LIBS_PATH }}/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.WINFW_PATH }}/winfw.dll ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.WINTUN_DIST_DIR }}/wintun.dll ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.STDRIVER_PATH }}/nymvpn-split-tunnel.sys ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.STDRIVER_PATH }}/nymvpn-split-tunnel.inf ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.STDRIVER_PATH }}/nymvpn-split-tunnel.cer ${{ env.UPLOAD_DIR_WINDOWS }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
