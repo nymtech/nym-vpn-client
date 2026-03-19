@@ -8,8 +8,6 @@ use std::{
     sync::Arc,
 };
 
-#[cfg(target_os = "linux")]
-use futures::channel::oneshot::Cancellation;
 use futures::{FutureExt, StreamExt, future::Fuse};
 use nym_diagnostic::DiagnosticHandler;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};

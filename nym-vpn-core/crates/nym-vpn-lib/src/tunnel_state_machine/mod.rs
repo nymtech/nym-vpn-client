@@ -755,10 +755,20 @@ pub struct TunnelStateMachine {
     dns_handler_task: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     dns_handler_shutdown_token: CancellationToken,
+<<<<<<< HEAD
+=======
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    split_tunnel_shutdown_token: CancellationToken,
+>>>>>>> 37b4fbf51 (wip)
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     filtering_resolver_handle: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker_handle: JoinHandle<()>,
+<<<<<<< HEAD
+=======
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    split_tunnel_handle: JoinHandle<()>,
+>>>>>>> 37b4fbf51 (wip)
     shutdown_token: CancellationToken,
 }
 
@@ -837,14 +847,10 @@ impl TunnelStateMachine {
             fwmark: tunnel_constants.fwmark,
             #[cfg(target_os = "linux")]
             table_id: tunnel_constants.table_id,
-            /// The cgroup2 used for split tunneling.
-            /// Traffic from processes in this cgroup2 should be allowed outside the tunnel.
             #[cfg(target_os = "linux")]
-            excluded_cgroup2: split_tunnel.excluded_cgroup().await,
-            /// The net_cls id of the v1 cgroup used for split tunneling.
-            /// This is used as a fallback to [`Self::excluded_cgroup2`] since old kernels don't support cgroups v2.
+            excluded_cgroup2: split_tunnel.excluded_cgroup().await.ok().flatten(),
             #[cfg(target_os = "linux")]
-            net_cls: split_tunnel.net_cls_classid().await,
+            net_cls: split_tunnel.net_cls_classid().await.ok().flatten(),
         })
         .map_err(Error::CreateFirewall)?;
 
@@ -907,6 +913,13 @@ impl TunnelStateMachine {
             dns_handler_task,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             dns_handler_shutdown_token,
+<<<<<<< HEAD
+=======
+            #[cfg(any(target_os = "linux", target_os = "macos"))]
+            split_tunnel_shutdown_token,
+            #[cfg(any(target_os = "linux", target_os = "macos"))]
+            split_tunnel_handle,
+>>>>>>> 37b4fbf51 (wip)
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             filtering_resolver_handle,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
