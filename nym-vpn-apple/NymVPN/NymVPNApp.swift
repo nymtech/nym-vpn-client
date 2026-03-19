@@ -25,7 +25,14 @@ import NymVPNLib
 
 @main
 struct NymVPNApp: App {
-    private let logFileManager = LogFileManager(logFileType: .app)
+    private let logFileManager: LogFileManager = {
+        let manager = LogFileManager(logFileType: .app)
+        initLogger(logDir: LogFileManager.logsDirectory()?.path(), logLevel: .debug, sentryMonitoring: false)
+        LoggingSystem.bootstrap { label in
+            FileLogHandler(label: label, logFileManager: manager)
+        }
+        return manager
+    }()
 
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     private var appearance: AppSetting.Appearance = .automatic
@@ -100,11 +107,6 @@ struct NymVPNApp: App {
 
 private extension NymVPNApp {
     func setup() {
-        initLogger(logDir: nil, logLevel: .debug, sentryMonitoring: false)
-
-        LoggingSystem.bootstrap { label in
-            FileLogHandler(label: label, logFileManager: logFileManager)
-        }
         ThemeConfiguration.setup()
 
         Task {
