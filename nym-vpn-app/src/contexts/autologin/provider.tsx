@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { openUrl } from '@tauri-apps/plugin-opener';
 import { invoke } from '@tauri-apps/api/core';
 import { TAutologinResponse } from '../../types/tauri';
 import { useInAppNotify } from '../in-app-notification';
@@ -11,6 +10,7 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
   const { i18n, t } = useTranslation('account');
 
   const [pinCode, setPinCode] = useState('');
+  const [url, setUrl] = useState('');
   const [open, setOpen] = useState(false);
 
   const { push } = useInAppNotify();
@@ -27,9 +27,8 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
         );
 
         setPinCode(response['pin-code']);
+        setUrl(response.url);
         setOpen(true);
-
-        openUrl(response.url);
       } catch (error) {
         console.error('Failed to get autologin deeplink', error);
         push({
@@ -47,7 +46,7 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
   return (
     <AutologinContext.Provider value={ctx}>
       {children}
-      <PincodeDialog code={pinCode} open={open} setOpen={setOpen} />
+      <PincodeDialog code={pinCode} url={url} open={open} setOpen={setOpen} />
     </AutologinContext.Provider>
   );
 }
