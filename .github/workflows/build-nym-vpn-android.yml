@@ -1,5 +1,9 @@
 name: build-nym-vpn-android
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-nym-vpn-android.yml"
   workflow_dispatch:
     inputs:
       build_type:
@@ -106,7 +110,7 @@ jobs:
           java-version: "21"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/heads/release/') }}
 
