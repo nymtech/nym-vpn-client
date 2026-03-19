@@ -16,7 +16,7 @@ import { CCache } from '../../cache';
 import { StateDispatch } from '../../types';
 
 function Login() {
-  const { uiTheme } = useMainState();
+  const { uiTheme, welcomeChecked } = useMainState();
   const { t, i18n } = useTranslation('login');
   const navigate = useNavigate();
 
@@ -64,6 +64,12 @@ function Login() {
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
+
+      if (!welcomeChecked) {
+        navigate(routes.welcome);
+      } else {
+        navigate(routes.root);
+      }
     } catch (error) {
       console.error('[Signup] Create account error: ', error);
     } finally {
