@@ -104,7 +104,7 @@ pub struct SplitTunnel {
     pid_manager: Option<PidManager>,
     process_event_rx: mpsc::UnboundedReceiver<ProcessEvent>,
     process_monitor_handle: Option<JoinHandle<()>>,
-    excluded_paths: HashSet<PathBuf>,
+    exclude_paths: HashSet<PathBuf>,
     processes: HashMap<pid_t, ProcessInfo>,
     shutdown_token: CancellationToken,
 }
@@ -132,7 +132,7 @@ impl SplitTunnel {
             pid_manager,
             process_event_rx,
             process_monitor_handle,
-            excluded_paths: HashSet::new(),
+            exclude_paths: HashSet::new(),
             processes: HashMap::new(),
             shutdown_token,
         };
@@ -270,7 +270,7 @@ impl SplitTunnel {
 
         // Check if process is excluded directly by exec path
         if !info.excluded_by_paths.contains(&info.exec_path)
-            && self.excluded_paths.contains(&info.exec_path)
+            && self.exclude_paths.contains(&info.exec_path)
         {
             info.excluded_by_paths.insert(info.exec_path.clone());
             tracing::trace!("Excluding {pid} by path: {}", info.exec_path.display());
