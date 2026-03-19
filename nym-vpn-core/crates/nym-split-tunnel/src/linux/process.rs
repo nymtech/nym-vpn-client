@@ -123,7 +123,7 @@ impl ProcessMonitor {
     async fn handle_event(&mut self, msg: &nlcn_event_msg) -> Option<ProcessEvent> {
         match msg.payload.proc_ev.what {
             PROC_EVENT_NONE => {
-                tracing::info!("set mcast listen ok");
+                tracing::trace!("set mcast listen ok");
                 None
             }
             PROC_EVENT_FORK => {
