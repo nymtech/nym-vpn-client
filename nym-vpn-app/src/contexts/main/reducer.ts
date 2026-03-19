@@ -127,7 +127,6 @@ export const initialState: AppState = {
     quic: false,
     domainFronting: false,
     zknymCredential: false,
-    privy: false,
     mixnetTuning: false,
   },
   customDnsEnabled: false,
