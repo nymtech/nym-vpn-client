@@ -55,9 +55,12 @@ jobs:
         with:
           crate: cargo-get
 
-      - name: Build wireguard
+      - name: Setup VS dev shell
         if: steps.cache.outputs.cache-hit != 'true'
         uses: humbletim/vsdevenv-shell@v2
+
+      - name: Build wireguard
+        if: steps.cache.outputs.cache-hit != 'true'
         env:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
         shell: vsdevenv x64 pwsh {0}
