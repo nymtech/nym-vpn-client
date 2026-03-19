@@ -118,7 +118,6 @@ export type FeatureFlags = {
   quic: boolean;
   domainFronting: boolean;
   zknymCredential: boolean;
-  privy: boolean;
   mixnetTuning: boolean;
 };
 

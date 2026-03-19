@@ -40,7 +40,6 @@ function Account() {
     accountSyncing,
     daemonStatus,
     accountSummary,
-    backendFlags,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const needAPlan = account && accountState === 'no-subscription';
@@ -181,7 +180,7 @@ function Account() {
             trailingIcon: 'open_in_new',
             onClick: handleManageSubscription,
           },
-          ...(backendFlags.privy && !accountSummary?.['is-linked']
+          ...(!accountSummary?.['is-linked']
             ? [
                 {
                   title: t('account.account-on-nym'),
@@ -196,13 +195,11 @@ function Account() {
         ]}
       />
 
-      {backendFlags.privy && (
-        <p className="text-sm text-iron dark:text-bombay">
-          {accountSummary?.['is-linked']
-            ? t('account.account-linked')
-            : t('account.account-not-linked')}
-        </p>
-      )}
+      <p className="text-sm text-iron dark:text-bombay">
+        {accountSummary?.['is-linked']
+          ? t('account.account-linked')
+          : t('account.account-not-linked')}
+      </p>
 
       <CardNew>
         <CardNewHeader>
@@ -245,11 +242,9 @@ function Account() {
         </CardNewBody>
       </CardNew>
 
-      {backendFlags.privy && (
-        <p className="text-sm text-iron dark:text-bombay">
-          {t('account.device-id-description')}
-        </p>
-      )}
+      <p className="text-sm text-iron dark:text-bombay">
+        {t('account.device-id-description')}
+      </p>
 
       <div className="flex flex-col gap-2">
         <Button
