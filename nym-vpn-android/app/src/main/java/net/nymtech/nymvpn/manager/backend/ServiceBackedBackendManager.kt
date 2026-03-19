@@ -224,7 +224,7 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	override suspend fun getAccountSummary(): VpnAccountSummary? = serviceConnectionManager.withApi { it.getAccountSummary() }
 
-	override suspend fun runDiagnostic(): String = serviceConnectionManager.withApi { it.runDiagnostic() }
+	override suspend fun runDiagnostic(): String? = serviceConnectionManager.withApi { it.runDiagnostic() }
 
 	private fun notifyVpnPermissionRequired() {
 		val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground.value

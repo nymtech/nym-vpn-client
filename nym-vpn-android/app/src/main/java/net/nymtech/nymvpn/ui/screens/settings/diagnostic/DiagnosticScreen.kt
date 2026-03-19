@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
@@ -149,15 +150,18 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 						.fillMaxWidth()
 						.heightIn(min = 120.dp, max = 400.dp)
 						.clip(RoundedCornerShape(8.dp))
-						.background(MaterialTheme.colorScheme.surfaceVariant)
-						.padding(12.dp)
-						.horizontalScroll(rememberScrollState()),
+						.background(MaterialTheme.colorScheme.surface)
+						.verticalScroll(rememberScrollState())
+						.horizontalScroll(rememberScrollState())
+						.padding(12.dp),
 				) {
-					Text(
-						text = report,
-						style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
-					)
+					SelectionContainer {
+						Text(
+							text = report,
+							style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+							color = MaterialTheme.colorScheme.outline,
+						)
+					}
 				}
 			}
 		}

@@ -8,10 +8,11 @@ use nym_vpn_lib::service::{AccountLinksError, ListGatewaysError, VpnServiceComma
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, EntryPoint, ExitPoint, FeatureFlags, Gateway,
-    GetDeeplinkParams, ListGatewaysOptions, NetworkCompatibility, ParsedAccountLinks,
-    RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
-    SystemMessage, TargetState, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    AccountCommandError, AccountControllerState, DiagnosticRunParams, EntryPoint, ExitPoint,
+    FeatureFlags, Gateway, GetDeeplinkParams, ListGatewaysOptions, NetworkCompatibility,
+    ParsedAccountLinks, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
+    StoredAccountMode, SystemMessage, TargetState, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -303,5 +304,16 @@ impl NymVpnServiceCommandSender {
             )
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    pub async fn run_diagnostic(&self, params: DiagnosticRunParams) -> Result<String> {
+        Ok(serde_json::to_string_pretty(
+            &self
+                .send_and_wait(VpnServiceCommand::RunDiagnostic, params)
+                .await?,
+        )
+        .map_err(|_| {
+            NymVpnServiceCommandInnerError::Internal("Failed to serialize DiagnosticReport")
+        })?)
     }
 }

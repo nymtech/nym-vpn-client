@@ -41,5 +41,5 @@ interface BackendManager {
 	suspend fun storeDeeplinkAccount(url: String)
 	suspend fun getAccountMode(): StoredAccountMode?
 	suspend fun getAccountSummary(): VpnAccountSummary?
-	suspend fun runDiagnostic(): String
+	suspend fun runDiagnostic(): String?
 }

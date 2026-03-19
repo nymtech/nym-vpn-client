@@ -215,6 +215,7 @@ pub struct PingReport {
     pub delay_ms: DiagnosticResult<u128>,
 }
 
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[derive(Debug, Clone)]
 pub struct DiagnosticRunParams {
     pub gateway: Option<String>,
