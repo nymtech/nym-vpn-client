@@ -47,17 +47,21 @@ impl Deeplink {
     pub fn create_url(&self, base_url: &Url) -> Url {
         let deeplink_id = self.id.to_string();
         let pubkey = bs58::encode(self.keypair.public_key().to_bytes()).into_string();
-        let link_account = if self.kind == DeeplinkKind::PrivyLink {
-            "1"
-        } else {
-            "0"
-        };
         let mut url = base_url.clone();
-        url.query_pairs_mut()
-            .append_pair("deeplink_id", &deeplink_id)
-            .append_pair("pubkey", &pubkey)
-            .append_pair("link_account", link_account);
-
+        {
+            let mut pairs = url.query_pairs_mut();
+            pairs.append_pair("deeplink_id", &deeplink_id);
+            pairs.append_pair("pubkey", &pubkey);
+            match self.kind {
+                DeeplinkKind::Privy => {
+                    pairs.append_pair("link_account", "0");
+                }
+                DeeplinkKind::PrivyLink => {
+                    pairs.append_pair("link_account", "1");
+                }
+                _ => {}
+            }
+        }
         url
     }
 
