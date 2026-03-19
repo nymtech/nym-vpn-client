@@ -78,21 +78,21 @@ impl NymVpnAccountStorage {
     ) -> Result<(), VpnError> {
         let deeplink_mnemonic = deeplink_mnemonic.inner();
 
-        let privy_account = StorableAccount {
+        let account = StorableAccount {
             mnemonic: deeplink_mnemonic.mnemonic.clone(),
             mode: StoredAccountMode::Privy,
         };
 
         match deeplink_mnemonic.kind {
-            DeeplinkKind::Privy => {
+            DeeplinkKind::Privy | DeeplinkKind::CreateAccount => {
                 tracing::info!("Storing Privy account");
 
-                self.storage.store_account(privy_account).await?;
+                self.storage.store_account(account).await?;
                 self.storage.init_keys(None).await?;
                 Ok(())
             }
             DeeplinkKind::PrivyLink => {
-                let privy_vpn_account = VpnAccount::try_from(privy_account).map_err(|err| {
+                let privy_vpn_account = VpnAccount::try_from(account).map_err(|err| {
                     VpnError::InvalidMnemonic {
                         details: err.to_string(),
                     }

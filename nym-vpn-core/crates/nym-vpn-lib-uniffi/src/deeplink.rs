@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use nym_vpn_account_controller::{CreateDeeplinkParams, DeeplinkMnemonic, Deeplinks};
-use nym_vpn_lib_types::{DeeplinkClient, GetDeeplinkParams};
+use nym_vpn_lib_types::{DeeplinkClient, GetDeeplinkParams, DeeplinkKind};
 
 use crate::{NymEnvironment, error::VpnError};
 
