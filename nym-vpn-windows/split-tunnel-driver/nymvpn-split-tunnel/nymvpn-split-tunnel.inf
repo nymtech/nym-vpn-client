@@ -59,7 +59,7 @@ ServiceBinary  = %12%\nymvpn-split-tunnel.sys
 
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
-ManufacturerName="Mullvad AB"
+ManufacturerName="Nym Technologies SA"
 ClassName="Nym VPN Split Tunnel"
 DiskName = "Nym VPN Split Tunnel Installation Disk"
 nymvpn-split-tunnel.DeviceDesc = "Nym VPN Split Tunnel Device"

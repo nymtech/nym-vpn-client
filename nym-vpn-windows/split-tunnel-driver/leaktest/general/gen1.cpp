@@ -197,6 +197,6 @@ bool TestCaseGen1(const std::vector<std::wstring> &arguments)
 		}
 	}
 
-	return false;
+	return false; 	//NOSONAR
 }
 #pragma warning(pop)
