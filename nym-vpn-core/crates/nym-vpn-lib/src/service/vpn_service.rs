@@ -1829,23 +1829,16 @@ impl NymVpnService {
             ))?;
 
         let base_url = match params.kind {
-            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => match params.client {
-                DeeplinkClient::Mobile => account_management
-                    .privy_mobile_url(&params.locale)
-                    .ok_or(AccountCommandError::DeeplinkError(
-                        "The privy path could not be determined".to_string(),
-                    ))?,
-                DeeplinkClient::Desktop => account_management
-                    .privy_desktop_url(&params.locale)
-                    .ok_or(AccountCommandError::DeeplinkError(
-                        "The privy path could not be determined".to_string(),
-                    ))?,
-                DeeplinkClient::Web => account_management.privy_web_url(&params.locale).ok_or(
-                    AccountCommandError::DeeplinkError(
-                        "The privy path could not be determined".to_string(),
-                    ),
-                )?,
-            },
+            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => {
+                let url = match params.client {
+                    DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+                    DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+                    DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+                };
+                url.ok_or(AccountCommandError::DeeplinkError(
+                    "The privy path could not be determined".to_string(),
+                ))?
+            }
             DeeplinkKind::CreateAccount => account_management.pricing_url(&params.locale).ok_or(
                 AccountCommandError::DeeplinkError(
                     "The create account path could not be determined".to_string(),
