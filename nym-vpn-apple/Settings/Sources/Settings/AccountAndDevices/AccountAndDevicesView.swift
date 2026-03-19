@@ -12,19 +12,25 @@ import Theme
 
 @MainActor public struct AccountAndDevicesView: View {
     @EnvironmentObject private var appSettings: AppSettings
-    @EnvironmentObject private var configurationManager: ConfigurationManager
-    @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var credentialsManager: CredentialsManager
-    @EnvironmentObject private var impactGenerator: ImpactGenerator
-    @EnvironmentObject private var externalLinkManager: ExternalLinkManager
+    @EnvironmentObject var configurationManager: ConfigurationManager
+    @EnvironmentObject var connectionManager: ConnectionManager
+    @EnvironmentObject var credentialsManager: CredentialsManager
+    @EnvironmentObject var impactGenerator: ImpactGenerator
+    @EnvironmentObject var externalLinkManager: ExternalLinkManager
 
     @State private var isPresentedManageSubscription = false
-    @State private var isLogoutConfirmationDisplayed = false
-    @State private var isLogoutLoading = false
+    @State var isLogoutConfirmationDisplayed = false
+    @State var isLogoutLoading = false
+    @State var isPinCodeDisplayed = false
+    @State var isLinkAccountAvailable = false
+    @State var pinCode: String = ""
+    @State var isAutologinLoading = false
+    @State var isAutologinError = false
+    @State var autologinErrorMessage = ""
+    @State var autologinURL = ""
+    @State var autologinTask: Task<Void, Never>?
 
     @Binding private var path: NavigationPath
-
-    @State private var isLinkAccountAvailable = false
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -65,6 +71,15 @@ import Theme
 #if os(iOS)
         .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
 #endif
+        .overlay {
+            if isPinCodeDisplayed, !pinCode.isEmpty {
+                PinCodeView(
+                    isDisplayed: $isPinCodeDisplayed,
+                    pinCode: $pinCode,
+                    url: $autologinURL
+                )
+            }
+        }
         .background {
             NymColor.background
                 .ignoresSafeArea()
@@ -77,6 +92,29 @@ import Theme
                         configuration: logoutDialogConfiguration,
                         impactGenerator: .shared,
                         isLoading: $isLogoutLoading
+                    )
+                )
+            }
+        }
+        .overlay {
+            if isAutologinLoading {
+                ActionDialogView(
+                    viewModel: ActionDialogViewModel(
+                        isDisplayed: $isAutologinLoading,
+                        configuration: autologinLoadingConfiguration,
+                        impactGenerator: .shared,
+                        isLoading: .constant(true)
+                    )
+                )
+            }
+        }
+        .overlay {
+            if isAutologinError {
+                ActionDialogView(
+                    viewModel: ActionDialogViewModel(
+                        isDisplayed: $isAutologinError,
+                        configuration: autologinErrorConfiguration,
+                        impactGenerator: .shared
                     )
                 )
             }
@@ -97,7 +135,7 @@ import Theme
 }
 
 // MARK: - Views -
-private extension AccountAndDevicesView {
+extension AccountAndDevicesView {
     func navbar() -> some View {
         CustomNavBar(
             title: "settings.account".localizedString,
@@ -113,210 +151,6 @@ private extension AccountAndDevicesView {
                     navigateToPlanPurchase()
                 }
         }
-    }
-
-    @ViewBuilder
-    func accountStatusSection() -> some View {
-        if let accountSummary = credentialsManager.accountSummary {
-            VStack(spacing: 0) {
-                accountStatusHeader()
-                if let accountSummary = credentialsManager.accountSummary {
-                    accountStatusBandwidth(accountSummary: accountSummary)
-                    Divider()
-                        .frame(height: 1)
-                        .overlay(NymColor.background)
-                        .padding(.horizontal, 16)
-                    accountStatusResetDate(accountSummary: accountSummary)
-                    renewNowRow(accountSummary: accountSummary)
-                } else {
-                    Divider()
-                        .frame(height: 1)
-                        .overlay(NymColor.background)
-                    accountStatusInactive()
-                }
-            }
-            .background(NymColor.elevation)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-        }
-    }
-
-    func accountStatusInactive() -> some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .stroke(NymColor.gray1, lineWidth: 2)
-                    .frame(width: 64, height: 64)
-                GenericImage(systemImageName: "shield.slash")
-                    .frame(width: 24, height: 24)
-                    .foregroundStyle(NymColor.gray1)
-            }
-            Text("settings.account.noActivePlan".localizedString)
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Large.regular)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
-    }
-
-    func accountStatusHeader() -> some View {
-        VStack(spacing: 0) {
-            Spacer()
-                .frame(height: 16)
-            HStack(spacing: 8) {
-                GenericImage(systemImageName: "gauge.with.dots.needle.50percent")
-                    .frame(width: 20, height: 20)
-                    .foregroundStyle(NymColor.gray1)
-                Text("settings.account.status".localizedString)
-                    .foregroundStyle(NymColor.primary)
-                    .textStyle(.Body.Large.regular)
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            Spacer()
-                .frame(height: 16)
-        }
-    }
-
-    func accountStatusBandwidth(accountSummary: AccountSummary) -> some View {
-        VStack(spacing: 8) {
-            HStack {
-                Text("settings.account.bandwidthRemaining".localizedString)
-                    .foregroundStyle(NymColor.accent)
-                    .textStyle(.Body.Small.regular)
-                Spacer()
-                Text("settings.account.bandwidthLimit".localizedString)
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Small.regular)
-            }
-
-            bandwidthProgressBar(
-                used: accountSummary.trafficUsedGb,
-                limit: accountSummary.trafficLimitGb,
-                color: NymColor.accent
-            )
-
-            HStack {
-                Text(bandwidthRemainingText(used: accountSummary.trafficUsedGb, limit: accountSummary.trafficLimitGb))
-                    .foregroundStyle(NymColor.accent)
-                    .textStyle(.Body.Small.regular)
-                Spacer()
-                Text(bandwidthLimitText(limit: accountSummary.trafficLimitGb))
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Small.regular)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
-
-    func accountStatusResetDate(accountSummary: AccountSummary) -> some View {
-        HStack {
-            Text("settings.account.resetsOn".localizedString)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
-            Spacer()
-            Text(resetDateText(date: accountSummary.trafficResetDate))
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Medium.regular)
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 48)
-    }
-
-    @ViewBuilder
-    func renewNowRow(accountSummary: AccountSummary) -> some View {
-        if !accountSummary.isAutoRenewEnabled {
-            let color = accountSummary.statusColor
-            Button {
-                navigateToAccount()
-            } label: {
-                HStack(spacing: 8) {
-                    GenericImage(imageName: "bolt")
-                        .frame(width: 16, height: 16)
-                        .foregroundStyle(color)
-                    Text("settings.account.renewNow".localizedString)
-                        .foregroundStyle(color)
-                        .textStyle(.Body.Medium.regular)
-                    Spacer()
-                    GenericImage(imageName: "externalLink")
-                        .frame(width: 16, height: 16)
-                        .foregroundStyle(color)
-                }
-                .padding(.horizontal, 16)
-                .frame(height: 48)
-                .background(color.opacity(0.15))
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    func bandwidthProgressBar(used: Int?, limit: Int?, color: Color) -> some View {
-        GeometryReader { geometry in
-            let remaining = max(0, (limit ?? 0) - (used ?? 0))
-            let fraction = limit.map { $0 > 0 ? CGFloat(remaining) / CGFloat($0) : 0 } ?? 0
-
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(NymColor.gray2)
-                    .frame(height: 8)
-
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(color)
-                    .frame(width: geometry.size.width * fraction, height: 8)
-            }
-        }
-        .frame(height: 8)
-    }
-
-    func bandwidthRemainingText(used: Int?, limit: Int?) -> String {
-        let remaining = max(0, (limit ?? 0) - (used ?? 0))
-        return formatBandwidth(remaining)
-    }
-
-    func bandwidthLimitText(limit: Int?) -> String {
-        formatBandwidth(limit ?? 0)
-    }
-
-    func formatBandwidth(_ gb: Int) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        let formatted = formatter.string(from: NSNumber(value: gb)) ?? "\(gb)"
-        return "\(formatted) GB"
-    }
-
-    func resetDateText(date: Date?) -> String {
-        guard let date else { return "-" }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy.MM.dd"
-        return formatter.string(from: date)
-    }
-
-    func contactSupportText() -> some View {
-        HStack(spacing: 0) {
-            Text(contactSupportAttributedString())
-                .tint(NymColor.gray1)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
-            Spacer()
-        }
-        .environment(\.openURL, OpenURLAction { url in
-            if url.absoluteString == Constants.supportURL.rawValue {
-                try? externalLinkManager.openExternalURL(urlString: url.absoluteString)
-                return .handled
-            }
-            return .systemAction
-        })
-    }
-
-    func contactSupportAttributedString() -> AttributedString {
-        let bolt = AttributedString("⚡ ")
-        var link = AttributedString("settings.account.contactSupport.link".localizedString)
-        link.underlineStyle = .single
-        link.foregroundColor = NymColor.primary
-        link.link = URL(string: Constants.supportURL.rawValue)
-        let suffix = AttributedString(" \("settings.account.contactSupport.suffix".localizedString)")
-        return bolt + link + suffix
     }
 
     @ViewBuilder
@@ -454,10 +288,7 @@ private extension AccountAndDevicesView {
             )
         )
     }
-}
 
-// MARK: - Views -
-private extension AccountAndDevicesView {
     func cell(title: String, subtitle: String, systemImageName: String, imageSize: CGFloat) -> some View {
         SettingsCopyableContentCell(
             title: title,
@@ -475,36 +306,10 @@ private extension AccountAndDevicesView {
             }
         )
     }
-
-    var logoutDialogConfiguration: ActionDialogConfiguration {
-        ActionDialogConfiguration(
-            systemIconImageName: "rectangle.portrait.and.arrow.right",
-            titleLocalizedString: "settings.logoutTitle".localizedString,
-            subtitleLocalizedString: "settings.logoutSubtitle".localizedString,
-            yesLocalizedString: "settings.logout".localizedString,
-            noLocalizedString: "cancel".localizedString,
-            isYesDestructive: true,
-            yesAction: {
-                isLogoutLoading = true
-                Task {
-                    await logout()
-                    try? await Task.sleep(for: .seconds(0.3))
-                    Task { @MainActor in
-                        isLogoutConfirmationDisplayed = false
-                        isLogoutLoading = false
-                        navigateBack()
-                    }
-                }
-            },
-            loadingText: "settings.loggingOut".localizedString,
-            shouldCloseAfterYesAction: false,
-            verticalButtonsLayout: true
-        )
-    }
 }
 
 // MARK: - Helpers -
-private extension AccountAndDevicesView {
+extension AccountAndDevicesView {
     func updateIsAccountLinkAvailable() async {
         await credentialsManager.updateAccountSummary()
         guard let accountSummary = credentialsManager.accountSummary else { return }
@@ -513,14 +318,18 @@ private extension AccountAndDevicesView {
 }
 
 // MARK: - Actions -
-private extension AccountAndDevicesView {
+extension AccountAndDevicesView {
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
     }
 
     func navigateToAccount() {
         impactGenerator.softImpact()
-        try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
+        isAutologinLoading = true
+
+        autologinTask = Task {
+            await autologin(kind: .autologinView)
+        }
     }
 
     func navigateToPlanPurchase() {
@@ -528,8 +337,31 @@ private extension AccountAndDevicesView {
 #if os(iOS)
         path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
 #elseif os(macOS)
-        try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
+        isAutologinLoading = true
+
+        autologinTask = Task {
+            await autologin(kind: .autologinRenew)
+        }
 #endif
+    }
+
+    func autologin(kind: NymDeeplinkKind) async {
+        do {
+            guard let result = try await credentialsManager.autologin(kind: kind) else {
+                isAutologinLoading = false
+                return
+            }
+            isAutologinLoading = false
+            pinCode = result.pinCode
+            autologinURL = result.url
+            isPinCodeDisplayed = true
+        } catch is CancellationError {
+            isAutologinLoading = false
+        } catch {
+            isAutologinLoading = false
+            autologinErrorMessage = error.localizedDescription
+            isAutologinError = true
+        }
     }
 
     func linkAccount() async {

@@ -116,6 +116,9 @@ import PathManager
                 await MainActor.run {
                     self.currentEnv = env
                 }
+#if os(macOS)
+                try await grpcManager.switchEnvironment(to: env.rawValue)
+#endif
                 try await self.configure()
                 await MainActor.run {
                     self.environmentDidChange?()
