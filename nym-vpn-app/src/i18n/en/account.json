@@ -20,7 +20,7 @@
   "autologin": {
     "title": "Pin code",
     "description": "Enter this code in web",
-    "copy-code": "Copy Code",
+    "copy-code": "Copy code and open web",
     "initialization-error": "Failed to initiate autologin"
   }
 }

@@ -1,5 +1,6 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useClipboard } from '../../hooks';
 import { Button, ButtonIcon, Dialog, MsIcon } from '../../ui';
 
@@ -25,15 +26,22 @@ function PinCodeDigits({ code }: { code: string }) {
 
 export function PincodeDialog({
   code,
+  url,
   open,
   setOpen,
 }: {
   code: string;
+  url: string;
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
   const { t } = useTranslation('account');
   const { copy } = useClipboard();
+
+  const handleClick = () => {
+    copy(code);
+    openUrl(url);
+  };
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
@@ -65,7 +73,7 @@ export function PincodeDialog({
 
         <PinCodeDigits code={code} />
 
-        <Button className="w-full mt-3" onClick={() => copy(code)}>
+        <Button className="w-full mt-3" onClick={handleClick}>
           <div className="flex items-center justify-center gap-2">
             <MsIcon icon="content_copy" className="text-xl!" />
             <span>{t('autologin.copy-code')}</span>
