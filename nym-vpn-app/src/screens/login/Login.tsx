@@ -24,8 +24,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AddError | null>(null);
 
-  const { daemonStatus, state, welcomeChecked, uiTheme, backendFlags } =
-    useMainState();
+  const { daemonStatus, state, welcomeChecked, uiTheme } = useMainState();
 
   const navigate = useNavigate();
   const { t } = useTranslation('add-credential');
@@ -134,7 +133,7 @@ function Login() {
           >
             {t('login-button')}
           </Button>
-          {backendFlags.privy && <PrivyButton />}
+          <PrivyButton />
           <div
             className="text-sm flex flex-row justify-center items-center gap-2"
             data-testid="login-create-account-section"

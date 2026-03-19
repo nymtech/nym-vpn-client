@@ -40,7 +40,6 @@ function Account() {
     accountSyncing,
     daemonStatus,
     accountSummary,
-    backendFlags,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const [autologinLoading, setAutologinLoading] = useState(false);
@@ -195,7 +194,7 @@ function Account() {
             trailing: autologinLoading ? <Spinner /> : undefined,
             onClick: handleManageSubscription,
           },
-          ...(backendFlags.privy && !accountSummary?.['is-linked']
+          ...(!accountSummary?.['is-linked']
             ? [
                 {
                   title: t('account.account-on-nym'),
@@ -210,13 +209,11 @@ function Account() {
         ]}
       />
 
-      {backendFlags.privy && (
-        <p className="text-sm text-iron dark:text-bombay">
-          {accountSummary?.['is-linked']
-            ? t('account.account-linked')
-            : t('account.account-not-linked')}
-        </p>
-      )}
+      <p className="text-sm text-iron dark:text-bombay">
+        {accountSummary?.['is-linked']
+          ? t('account.account-linked')
+          : t('account.account-not-linked')}
+      </p>
 
       <CardNew>
         <CardNewHeader>
@@ -259,11 +256,9 @@ function Account() {
         </CardNewBody>
       </CardNew>
 
-      {backendFlags.privy && (
-        <p className="text-sm text-iron dark:text-bombay">
-          {t('account.device-id-description')}
-        </p>
-      )}
+      <p className="text-sm text-iron dark:text-bombay">
+        {t('account.device-id-description')}
+      </p>
 
       <div className="flex flex-col gap-2">
         <Button
