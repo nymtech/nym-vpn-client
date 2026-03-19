@@ -16,11 +16,13 @@ env:
 
 jobs:
   build-wireguard-go-windows:
-    uses: ./.github/workflows/build-wireguard-go-windows.yml
+    uses: ./.github/workflows/build-wireguard-go-windows.yml ./.github/workflows/build-winfw-windows.yml
 
   build:
     runs-on: custom-windows-11
-    needs: build-wireguard-go-windows
+    needs:
+      - build-wireguard-go-windows
+      - build-winfw-windows
 
     steps:
       - name: "Cleanup working directory"
@@ -90,14 +92,6 @@ jobs:
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib/x86_64-pc-windows-msvc
-
-      - name: Setup VS dev shell
-        uses: humbletim/vsdevenv-shell@v2
-
-      - name: Build Windows dependencies
-        shell: vsdevenv x64 pwsh {0}
-        working-directory: nym-vpn-core
-        run: make -f Windows.mk winfw CPU_ARCH=AMD64
 
       - name: rustfmt check
         working-directory: nym-vpn-core
