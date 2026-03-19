@@ -4940,7 +4940,7 @@ dependencies = [
 
 [[package]]
 name = "nym-cgroup"
-version = "1.28.0-beta"
+version = "1.29.0-beta"
 dependencies = [
  "anyhow",
  "log",
@@ -5446,7 +5446,7 @@ dependencies = [
  "nftnl",
  "nix 0.31.2",
  "nym-cgroup",
- "nym-common",
+ "nym-common 1.29.0-beta",
  "nym-dns",
  "nym-firewall-config",
  "nym-platform-metadata",
@@ -6440,7 +6440,7 @@ dependencies = [
  "nftnl",
  "nix 0.31.2",
  "nym-cgroup",
- "nym-common",
+ "nym-common 1.29.0-beta",
  "nym-dbus",
  "nym-firewall-config",
  "nym-ifconfig",
