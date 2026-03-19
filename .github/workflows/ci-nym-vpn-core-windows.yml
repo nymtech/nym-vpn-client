@@ -100,9 +100,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: winfw
-          path: |
-            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.dll
-            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.lib
+          path: build/lib/x86_64-pc-windows-msvc
 
       - name: rustfmt check
         working-directory: nym-vpn-core
