@@ -114,8 +114,8 @@ fn get_logical_drives() -> io::Result<u32> {
 
 /// Return whether any of the paths in `paths_guard` reside on any volume in `volumes` (a mask).
 fn matches_volume(volumes: u32, paths_guard: &MutexGuard<'_, Vec<OsString>>) -> bool {
-    for path in &**paths_guard {
-        let path = (path as &dyn AsRef<Path>).as_ref();
+    for path in paths_guard.iter() {
+        let path: &Path = path.as_ref();
         if let Some(path::Component::Prefix(prefix)) = path.components().next() {
             match prefix.kind() {
                 path::Prefix::VerbatimDisk(disk) | path::Prefix::Disk(disk) => {
