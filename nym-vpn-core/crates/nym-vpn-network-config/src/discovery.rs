@@ -261,7 +261,8 @@ mod tests {
                         "mobile": "{locale}/account/login/autologin/mobile",
                         "desktop": "{locale}/account/login/autologin/desktop",
                         "web": "{locale}/account/login/autologin/web"
-                    }
+                    },
+                    "pricing": "{locale}/pricing"
                 }
             },
             "feature_flags": {
@@ -322,6 +323,7 @@ mod tests {
                         desktop: "{locale}/account/login/autologin/desktop".to_owned(),
                         web: "{locale}/account/login/autologin/web".to_owned(),
                     },
+                    pricing: "{locale}/pricing".to_owned(),
                 },
             }),
             feature_flags: Some(FeatureFlags::from(HashMap::from([
