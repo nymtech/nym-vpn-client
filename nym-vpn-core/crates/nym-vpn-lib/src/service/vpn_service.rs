@@ -1828,14 +1828,43 @@ impl NymVpnService {
                 "No account management data is available at this time".to_string(),
             ))?;
 
-        let base_url = match params.client {
-            DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
-            DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
-            DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
-        }
-        .ok_or(AccountCommandError::DeeplinkError(
-            "The privy path could not be determined".to_string(),
-        ))?;
+        let base_url = match params.kind {
+            DeeplinkKind::Privy | DeeplinkKind::PrivyLink => match params.client {
+                DeeplinkClient::Mobile => account_management
+                    .privy_mobile_url(&params.locale)
+                    .ok_or(AccountCommandError::DeeplinkError(
+                        "The privy path could not be determined".to_string(),
+                    ))?,
+                DeeplinkClient::Desktop => account_management
+                    .privy_desktop_url(&params.locale)
+                    .ok_or(AccountCommandError::DeeplinkError(
+                        "The privy path could not be determined".to_string(),
+                    ))?,
+                DeeplinkClient::Web => account_management
+                    .privy_web_url(&params.locale)
+                    .ok_or(AccountCommandError::DeeplinkError(
+                        "The privy path could not be determined".to_string(),
+                    ))?,
+            },
+            DeeplinkKind::CreateAccount => account_management
+                .create_account_url(&params.locale)
+                .ok_or(AccountCommandError::DeeplinkError(
+                    "The create account path could not be determined".to_string(),
+                ))?,
+            _ => {
+                return Err(AccountCommandError::DeeplinkError(
+                    "Invalid deeplink kind".to_string(),
+                ))
+            }
+        };
+        // let base_url = match params.client {
+        //     DeeplinkClient::Mobile => account_management.privy_mobile_url(&params.locale),
+        //     DeeplinkClient::Desktop => account_management.privy_desktop_url(&params.locale),
+        //     DeeplinkClient::Web => account_management.privy_web_url(&params.locale),
+        // }
+        // .ok_or(AccountCommandError::DeeplinkError(
+        //     "The privy path could not be determined".to_string(),
+        // ))?;
 
         self.account_command_tx
             .get_deeplink(params.kind, params.name, base_url)
@@ -1886,7 +1915,7 @@ impl NymVpnService {
         };
 
         match deeplink_mnemonic.kind {
-            DeeplinkKind::Privy => self.account_command_tx.store_account(privy_account).await,
+            DeeplinkKind::Privy | DeeplinkKind::CreateAccount => self.account_command_tx.store_account(privy_account).await,
             DeeplinkKind::PrivyLink => self.account_command_tx.link_account(privy_account).await,
             _ => Err(AccountCommandError::DeeplinkError(
                 "Invalid deeplink kind".to_string(),

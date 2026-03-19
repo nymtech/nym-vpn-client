@@ -8,22 +8,24 @@ use tokio::sync::Mutex;
 use nym_vpn_account_controller::{CreateDeeplinkParams, DeeplinkMnemonic, Deeplinks};
 use nym_vpn_lib_types::{DeeplinkClient, GetDeeplinkParams};
 
-use crate::{NymEnvironment, error::VpnError};
+use crate::{NymEnvironment, account::NymAccountController, error::VpnError};
 
 /// Thread-safe deep link handler.
 #[derive(uniffi::Object)]
 pub struct NymDeeplinks {
     deep_links: Arc<Mutex<Deeplinks>>,
     network_env: Arc<NymEnvironment>,
+    account_controller: Arc<NymAccountController>,
 }
 
 #[uniffi::export(async_runtime = "tokio")]
 impl NymDeeplinks {
     #[uniffi::constructor]
-    pub fn new(network_env: Arc<NymEnvironment>) -> Self {
+    pub fn new(network_env: Arc<NymEnvironment>, account_controller: Arc<NymAccountController>) -> Self {
         Self {
             deep_links: Arc::new(Mutex::new(Deeplinks::default())),
             network_env,
+            account_controller,
         }
     }
 

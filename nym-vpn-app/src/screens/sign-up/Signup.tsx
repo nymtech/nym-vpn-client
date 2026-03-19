@@ -4,15 +4,72 @@ import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { NymSplash } from '../../assets';
 import { Button, ButtonText, Link, MsIcon, PageAnim } from '../../ui';
-import { useMainState } from '../../contexts';
+import { useMainDispatch, useMainState } from '../../contexts';
 import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
 import { PrivyButton } from '../../components';
+import { invoke } from '@tauri-apps/api/core';
+import { TAccountMode } from '../../types/tauri';
+import { useRef } from 'react';
+import { useDeepLink } from '../../hooks/index';
+import { CCache } from '../../cache/index';
+import { StateDispatch } from '../../types/index';
 
 function Login() {
   const { uiTheme } = useMainState();
-  const { t } = useTranslation('login');
+  const { t, i18n } = useTranslation('login');
   const navigate = useNavigate();
+
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { startListening } = useDeepLink();
+
+  const dispatch = useMainDispatch() as StateDispatch;
+
+  const handleCreateAccount = async () => {
+    const url = await invoke<string>('get_deep_link', {
+      locale: i18n.language,
+      kind: 'CreateAccount',
+    });
+
+    openUrl(
+      url.replace(
+        'https://nymcom-git-deploy-sandbox-nyx-network-staging.vercel.app',
+        'http://localhost:3000',
+      ),
+    );
+
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutIdRef.current = setTimeout(
+          () => reject(new Error('Login timeout')),
+          300000,
+        );
+      });
+
+      const deeplinkurl = await Promise.race([
+        startListening(),
+        timeoutPromise,
+      ]);
+
+      await invoke('store_deeplink_account', {
+        callbackUrl: deeplinkurl,
+      });
+
+      dispatch({ type: 'set-account', stored: true });
+      // await refreshAccountMode();
+      await CCache.del('cache-account-id');
+      await CCache.del('cache-device-id');
+      dispatch({ type: 'reset-error' });
+    } catch (error) {
+      console.error('Create account error: ', error);
+    } finally {
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+    }
+  };
 
   return (
     <PageAnim className="relative h-full flex flex-col justify-end items-center gap-6 select-none cursor-default">
@@ -27,10 +84,11 @@ function Login() {
             {t('signup.maximum-privacy.description')}
           </p>
           <Button
-            onClick={() => {
-              openUrl(NymVpnPricingUrl);
-              navigate(routes.login);
-            }}
+            // onClick={() => {
+            //   openUrl(NymVpnPricingUrl);
+            //   navigate(routes.login);
+            // }}
+            onClick={handleCreateAccount}
             className="mt-4"
           >
             <div className="flex items-center gap-2 whitespace-pre-wrap">

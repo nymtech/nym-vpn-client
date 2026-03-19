@@ -10,6 +10,7 @@ pub enum DeeplinkKind {
     PrivyLink,
     AutologinRenew,
     AutologinView,
+    CreateAccount,
 }
 
 impl From<lib::DeeplinkKind> for DeeplinkKind {
@@ -19,6 +20,7 @@ impl From<lib::DeeplinkKind> for DeeplinkKind {
             lib::DeeplinkKind::PrivyLink => DeeplinkKind::PrivyLink,
             lib::DeeplinkKind::AutologinRenew => DeeplinkKind::AutologinRenew,
             lib::DeeplinkKind::AutologinView => DeeplinkKind::AutologinView,
+            lib::DeeplinkKind::CreateAccount => DeeplinkKind::CreateAccount,
         }
     }
 }
@@ -30,6 +32,7 @@ impl From<DeeplinkKind> for lib::DeeplinkKind {
             DeeplinkKind::PrivyLink => lib::DeeplinkKind::PrivyLink,
             DeeplinkKind::AutologinRenew => lib::DeeplinkKind::AutologinRenew,
             DeeplinkKind::AutologinView => lib::DeeplinkKind::AutologinView,
+            DeeplinkKind::CreateAccount => lib::DeeplinkKind::CreateAccount,
         }
     }
 }

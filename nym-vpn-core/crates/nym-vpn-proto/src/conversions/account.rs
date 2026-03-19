@@ -497,6 +497,7 @@ impl From<DeeplinkKind> for proto::DeeplinkKind {
             DeeplinkKind::PrivyLink => proto::DeeplinkKind::KindPrivyLink,
             DeeplinkKind::AutologinRenew => proto::DeeplinkKind::AutologinRenew,
             DeeplinkKind::AutologinView => proto::DeeplinkKind::AutologinView,
+            DeeplinkKind::CreateAccount => proto::DeeplinkKind::CreateAccount,
         }
     }
 }
@@ -508,6 +509,7 @@ impl From<proto::DeeplinkKind> for DeeplinkKind {
             proto::DeeplinkKind::KindPrivyLink => DeeplinkKind::PrivyLink,
             proto::DeeplinkKind::AutologinRenew => DeeplinkKind::AutologinRenew,
             proto::DeeplinkKind::AutologinView => DeeplinkKind::AutologinView,
+            proto::DeeplinkKind::CreateAccount => DeeplinkKind::CreateAccount,
         }
     }
 }

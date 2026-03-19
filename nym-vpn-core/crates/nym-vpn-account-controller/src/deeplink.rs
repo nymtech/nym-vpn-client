@@ -8,9 +8,10 @@ use nym_vpn_lib_types::{AutologinResponse, DeeplinkKind};
 use pbkdf2::pbkdf2_hmac;
 use rand::{RngCore, rngs::OsRng};
 use sha2::{Sha256, Sha512};
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 use tokio::time::{Duration, Instant};
 use url::Url;
+use tracing::info;
 
 pub struct Deeplink {
     id: u64,
@@ -27,6 +28,10 @@ impl Deeplink {
         let id = rng.next_u64();
         let kind = params.kind;
         let keypair = KeyPair::new(&mut rng);
+
+        info!("Deeplink keypair public key: {}", bs58::encode(keypair.public_key().to_bytes()).into_string());
+        info!("Deeplink keypair private key: {}", bs58::encode(keypair.private_key().to_bytes()).into_string());
+        
         let expiry_time = Instant::now() + Duration::from_secs(Self::TTL_SECS);
 
         // Note: CreateDeeplinkParams.name is not used.
@@ -103,6 +108,8 @@ impl Deeplinks {
         self.0.retain(|_, deeplink| deeplink.expiry_time > now);
     }
 
+
+
     pub fn derive_mnemonic(&mut self, url_str: &str) -> Result<DeeplinkMnemonic, DeeplinkError> {
         let url =
             Url::parse(url_str).map_err(|_| DeeplinkError::InvalidUrl(url_str.to_string()))?;
@@ -151,6 +158,12 @@ impl Deeplinks {
 
         let decrypted_bytes = cipher_packet.decrypt(&deeplink.keypair, &sender_public_key)?;
 
+        // if let Ok(decrypted_str) = std::str::from_utf8(&decrypted_bytes) {
+        //     println!("decrypted_str: {}", decrypted_str);
+        // } else {
+        //     println!("Failed to cast decrypted_bytes to a valid UTF-8 string");
+        // }
+
         if decrypted_bytes.len() != 32 {
             return Err(DeeplinkError::InvalidPayload(
                 "invalid x25519 private key length".to_string(),
@@ -160,6 +173,66 @@ impl Deeplinks {
         let mnemonic = bip39::Mnemonic::from_entropy(&decrypted_bytes)
             .map_err(|_| DeeplinkError::InvalidPayload("failed to create mnemonic".to_string()))?;
 
+        Ok(DeeplinkMnemonic {
+            mnemonic,
+            kind: deeplink.kind,
+        })
+    }
+
+    pub fn decrypt_mnemonic(&mut self, url_str: &str) -> Result<DeeplinkMnemonic, DeeplinkError> {
+        let url =
+            Url::parse(url_str).map_err(|_| DeeplinkError::InvalidUrl(url_str.to_string()))?;
+
+        let url_params: HashMap<String, String> = url
+            .query_pairs()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect();
+
+        let Some(deeplink_id_str) = url_params.get("deeplink_id") else {
+            return Err(DeeplinkError::MissingDeeplinkId(url_str.to_string()));
+        };
+
+        let Ok(deeplink_id) = deeplink_id_str.parse::<u64>() else {
+            return Err(DeeplinkError::InvalidDeeplinkId(deeplink_id_str.clone()));
+        };
+
+        let Some(payload_b58) = url_params.get("payload") else {
+            return Err(DeeplinkError::MissingPayload(url_str.to_string()));
+        };
+
+        let Some(deeplink) = self.0.remove(&deeplink_id) else {
+            return Err(DeeplinkError::DeeplinkNotFound(deeplink_id));
+        };
+
+        if deeplink.is_expired() {
+            return Err(DeeplinkError::DeeplinkExpired(deeplink_id));
+        }
+
+        let payload_bytes = bs58::decode(payload_b58)
+            .into_vec()
+            .map_err(|_| DeeplinkError::InvalidPayload("base-58 encoding".to_string()))?;
+
+        if payload_bytes.len() < 60 {
+            return Err(DeeplinkError::InvalidPayload("too short".to_string()));
+        }
+
+        let sender_public_key_bytes = payload_bytes[0..32].try_into().map_err(|_| {
+            DeeplinkError::InvalidPayload("invalid sender public key length".to_string())
+        })?;
+
+        let sender_public_key = PublicKey::from_bytes(sender_public_key_bytes)
+            .map_err(|_| DeeplinkError::InvalidPayload("invalid sender public key".to_string()))?;
+
+        let cipher_packet = CipherPacket::from_bytes(&payload_bytes[32..])?;
+
+        let decrypted_bytes = cipher_packet.decrypt(&deeplink.keypair, &sender_public_key)?;
+
+        let tmp = String::from_utf8(decrypted_bytes)
+            .map_err(|_| DeeplinkError::InvalidPayload("failed to create mnemonic".to_string()))?;
+
+        let mnemonic = bip39::Mnemonic::from_str(&tmp)
+            .map_err(|_| DeeplinkError::InvalidPayload("failed to create mnemonic".to_string()))?;
+            
         Ok(DeeplinkMnemonic {
             mnemonic,
             kind: deeplink.kind,

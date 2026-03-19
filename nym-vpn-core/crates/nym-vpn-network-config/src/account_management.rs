@@ -59,6 +59,12 @@ impl AccountManagement {
             .ok()
     }
 
+    pub fn create_account_url(&self, locale: &str) -> Option<Url> {
+        self.url
+            .join(&format!("{}/pricing", locale))
+            .ok()
+    }
+
     pub fn autologin_mobile_url(&self, locale: &str) -> Option<Url> {
         self.url
             .join(&self.paths.autologin.mobile.replace("{locale}", locale))
