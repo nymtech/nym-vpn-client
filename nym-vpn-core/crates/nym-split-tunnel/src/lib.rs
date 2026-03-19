@@ -40,6 +40,7 @@ pub struct VpnInterface {
 #[derive(Debug, Copy, Clone)]
 pub enum SplitTunnelErrorCause {
     /// Device is offline, split tunneling cannot be used.
+    #[cfg(target_os = "macos")]
     IsOffline,
 
     #[cfg(target_os = "macos")]

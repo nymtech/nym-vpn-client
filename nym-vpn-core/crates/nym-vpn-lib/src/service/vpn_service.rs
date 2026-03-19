@@ -601,7 +601,8 @@ impl NymVpnService {
 
                 let _ = st_command_sender.send(TunnelCommand::Block(error_state_reason));
             },
-        );
+        )
+        .await;
 
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,

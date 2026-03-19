@@ -80,7 +80,7 @@ pub struct SplitTunnel {
 }
 
 impl SplitTunnel {
-    pub fn spawn<F>(
+    pub async fn spawn<F>(
         route_manager: RouteManagerHandle,
         shutdown_token: CancellationToken,
         error_handler: F,

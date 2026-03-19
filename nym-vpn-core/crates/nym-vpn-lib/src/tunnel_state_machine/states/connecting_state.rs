@@ -715,13 +715,14 @@ impl TunnelStateHandler for ConnectingState {
                                     }
                                     Err(st_error_cause) => {
                                         let after_disconnect = match st_error_cause {
+                                            nym_split_tunnel::SplitTunnelErrorCause::Other => {
+                                                PrivateActionAfterDisconnect::Error(ErrorStateReason::SplitTunnel)
+                                            }
                                             #[cfg(target_os = "macos")]
                                             nym_split_tunnel::SplitTunnelErrorCause::NeedFullDiskPermissions => {
                                                 PrivateActionAfterDisconnect::Error(ErrorStateReason::NeedFullDiskPermissions)
                                             }
-                                            nym_split_tunnel::SplitTunnelErrorCause::Other => {
-                                                PrivateActionAfterDisconnect::Error(ErrorStateReason::SplitTunnel)
-                                            }
+                                            #[cfg(target_os = "macos")]
                                             nym_split_tunnel::SplitTunnelErrorCause::IsOffline => {
                                                 PrivateActionAfterDisconnect::Offline {
                                                     reconnect: true,
