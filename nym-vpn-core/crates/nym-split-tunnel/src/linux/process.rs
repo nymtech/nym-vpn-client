@@ -1,8 +1,6 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod bindings;
-
 use bytes::Buf;
 use libc::{
     CN_IDX_PROC, CN_VAL_PROC, NETLINK_CONNECTOR, NLMSG_DONE, PROC_CN_MCAST_IGNORE,
@@ -15,7 +13,7 @@ use std::{collections::HashMap, os::fd::AsRawFd, path::PathBuf};
 use tokio::{fs::read_link, sync::mpsc::UnboundedSender, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use bindings::{
+use super::bindings::{
     nlcn_event_msg, nlcn_subscribe_msg, proc_event__bindgen_ty_1_exec_proc_event as ExecEvt,
     proc_event__bindgen_ty_1_exit_proc_event as ExitEvt,
     proc_event__bindgen_ty_1_fork_proc_event as ForkEvt,
@@ -223,7 +221,7 @@ async fn query_exec_path(event_type: &'static str, proc_pid: pid_t) -> Option<Pa
     }
 }
 
-async fn read_proc_exe(pid: pid_t) -> std::io::Result<PathBuf> {
+pub async fn read_proc_exe(pid: pid_t) -> std::io::Result<PathBuf> {
     read_link(format!("/proc/{pid}/exe")).await
 }
 

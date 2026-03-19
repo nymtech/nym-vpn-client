@@ -9,6 +9,12 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
+[lints]
+workspace = true
+
+[features]
+cgroup2 = []
+
 [dependencies]
 either = { workspace = true, features = ["serde"] }
 futures-util.workspace = true
@@ -62,6 +68,3 @@ nftnl = { version = "0.9.1", features = ["nftnl-1-2-0"] }
 nix = { workspace = true, features = ["fs", "mount", "process"] }
 nym-cgroup.workspace = true
 nym-dbus.workspace = true
-
-[lints]
-workspace = true

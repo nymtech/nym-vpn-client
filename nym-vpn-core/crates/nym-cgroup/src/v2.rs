@@ -12,7 +12,7 @@ use std::{
 use crate::Error;
 
 /// Path where we should look for the cgroup2 filesystem. Overrides [`CGROUP2_DEFAULT_MOUNT_PATH`].
-pub const CGROUP2_OVERRIDE_ENV_VAR: &str = "TALPID_CGROUP2_FS";
+pub const CGROUP2_OVERRIDE_ENV_VAR: &str = "NYM_CGROUP2_FS";
 
 /// The path where linux normally mounts the cgroup2 filesystem.
 pub const CGROUP2_DEFAULT_MOUNT_PATH: &str = "/sys/fs/cgroup";

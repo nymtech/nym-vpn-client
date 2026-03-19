@@ -10,6 +10,9 @@ use ipnetwork::Ipv6Network;
 #[cfg(not(target_os = "android"))]
 use nym_dns::ResolvedDnsConfig;
 
+#[cfg(target_os = "linux")]
+use nym_cgroup::v2::CGroup2;
+
 #[cfg(target_os = "macos")]
 #[path = "macos.rs"]
 mod imp;
@@ -428,16 +431,6 @@ impl Firewall {
     pub fn from_args(args: FirewallArguments) -> Result<Self, Error> {
         Ok(Firewall {
             inner: imp::Firewall::from_args(args)?,
-        })
-    }
-
-    /// Creates a new firewall instance.
-    pub fn new(#[cfg(target_os = "linux")] fwmark: u32) -> Result<Self, Error> {
-        Ok(Firewall {
-            inner: imp::Firewall::new(
-                #[cfg(target_os = "linux")]
-                fwmark,
-            )?,
         })
     }
 
