@@ -38,8 +38,8 @@ export function PincodeDialog({
   const { t } = useTranslation('account');
   const { copy } = useClipboard();
 
-  const handleClick = () => {
-    copy(code);
+  const handleClick = async () => {
+    await copy(code);
     openUrl(url);
   };
 
