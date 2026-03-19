@@ -703,6 +703,11 @@ Section Install
   File "..\..\..\..\wintun.dll"
   File "..\..\..\..\winfw.dll"
 
+  ; Copy split-tunnel driver artifacts
+  File "..\..\..\..\nymvpn-split-tunnel.sys"
+  File "..\..\..\..\nymvpn-split-tunnel.inf"
+  File "..\..\..\..\nymvpn-split-tunnel.cer"
+
   ; Install NymVPN service, abort early if something goes wrong
   vpnd-install:
     ExecWait '"$INSTDIR\nym-vpnd.exe" install-service' $3
@@ -835,6 +840,9 @@ Function Cleanup
   Delete "$INSTDIR\libwg.dll"
   Delete "$INSTDIR\wintun.dll"
   Delete "$INSTDIR\winfw.dll"
+  Delete "$INSTDIR\nymvpn-split-tunnel.sys"
+  Delete "$INSTDIR\nymvpn-split-tunnel.inf"
+  Delete "$INSTDIR\nymvpn-split-tunnel.cer"
 FunctionEnd
 
 Function un.onInit
@@ -871,6 +879,10 @@ Section Uninstall
   Delete "$INSTDIR\libwg.dll"
   Delete "$INSTDIR\wintun.dll"
   Delete "$INSTDIR\winfw.dll"
+
+  Delete "$INSTDIR\nymvpn-split-tunnel.sys"
+  Delete "$INSTDIR\nymvpn-split-tunnel.inf"
+  Delete "$INSTDIR\nymvpn-split-tunnel.cer"
 
   ; Delete the app directory and its content from disk
   ; Copy main executable
@@ -996,7 +1008,7 @@ SectionEnd
 Function RestorePreviousInstallLocation
   ReadRegStr $4 SHCTX "${MANUPRODUCTKEY}" ""
   StrCmp $4 "" +2 0
-    StrCpy $INSTDIR $4
+  StrCpy $INSTDIR $4
 FunctionEnd
 
 Function Skip

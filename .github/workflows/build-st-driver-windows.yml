@@ -1,4 +1,4 @@
-name: build-winfw-windows
+name: build-st-driver-windows
 on:
   pull_request:
     types: [opened, synchronize, reopened]
