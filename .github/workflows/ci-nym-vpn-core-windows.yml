@@ -60,8 +60,7 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key:
-            ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
@@ -69,8 +68,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: nym-vpn-core/target/
-          key:
-            ${{ runner.os }}-cargo-build-${{
+          key: ${{ runner.os }}-cargo-build-${{
             hashFiles('nym-vpn-core/Cargo.lock') }}-${{
             hashFiles('nym-vpn-core/**/*.rs') }}
           restore-keys: |
@@ -93,7 +91,11 @@ jobs:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib/x86_64-pc-windows-msvc
 
+      - name: Setup VS dev shell
+        uses: humbletim/vsdevenv-shell@v2
+
       - name: Build Windows dependencies
+        shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-core
         run: make -f Windows.mk winfw CPU_ARCH=AMD64
 
