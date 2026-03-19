@@ -45,11 +45,9 @@ public struct AccountWelcomeView: View {
                 separatorLine
                 Spacer()
                     .frame(height: 24)
-                if featureFlagsManager.isPrivyEnabled {
-                    privySection
-                    Spacer()
-                        .frame(height: 24)
-                }
+                privySection
+                Spacer()
+                    .frame(height: 24)
                 Spacer()
                 TermsAndConditionsView()
                 Spacer()
