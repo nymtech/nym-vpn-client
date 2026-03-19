@@ -100,7 +100,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: winfw
-          path: build/lib/x86_64-pc-windows-msvc
+          path: build/winfw/x64-Debug
 
       - name: rustfmt check
         working-directory: nym-vpn-core
