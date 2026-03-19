@@ -184,6 +184,28 @@ import PathManager
         didReceiveAccountLinkCallback = true
     }
 
+    public func autologin(kind: NymDeeplinkKind) async throws -> (url: String, pinCode: String)? {
+        let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
+        let name = "default"
+#if os(iOS)
+        guard let networkEnv = configurationManager.networkEnv else { return nil }
+        let result = try await NymVpnAccountStorage(
+            dataDir: PathManager.dataFolderURL().path(),
+            environment: networkEnv
+        ).getAutologinDeeplink(
+            params: .init(
+                client: .mobile,
+                locale: locale,
+                kind: kind.deeplinkKind,
+                name: "name"
+            )
+        )
+        return (url: result.url, pinCode: result.pinCode)
+#elseif os(macOS)
+        return try await grpcManager.autologin(locale: locale, name: name, deeplinkKind: kind)
+#endif
+    }
+
     /// Fetches account summary from API if current accountSummary.validUntilDate does not exist or is in past,
     /// stores value and returns true if validUntilDate is in the future
     /// - Returns: Bool

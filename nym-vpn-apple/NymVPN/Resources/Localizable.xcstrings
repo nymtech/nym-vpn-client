@@ -9038,17 +9038,6 @@
         }
       }
     },
-    "error.vpnPermissionDenied" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VPN permission was not granted. Please allow the VPN configuration to connect."
-          }
-        }
-      }
-    },
     "error.unrecognized" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9146,6 +9135,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "发现未识别错误"
+          }
+        }
+      }
+    },
+    "error.vpnPermissionDenied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN permission was not granted. Please allow the VPN configuration to connect."
           }
         }
       }
@@ -26959,28 +26959,6 @@
         }
       }
     },
-    "planExpiresOn" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan expires on"
-          }
-        }
-      }
-    },
-    "planValidUntil" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan valid until"
-          }
-        }
-      }
-    },
     "pinAuth.failure.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -27075,7 +27053,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copy Code"
+            "value" : "Copy Code and open web"
           }
         }
       }
@@ -27098,6 +27076,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pin code"
+          }
+        }
+      }
+    },
+    "planExpiresOn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan expires on"
+          }
+        }
+      }
+    },
+    "planValidUntil" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan valid until"
           }
         }
       }
@@ -31564,6 +31564,39 @@
         }
       }
     },
+    "settings.account.autologin.fetchingPinCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fetching pin code"
+          }
+        }
+      }
+    },
+    "settings.account.autologin.loading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading"
+          }
+        }
+      }
+    },
+    "settings.account.autologin.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        }
+      }
+    },
     "settings.account.bandwidthLimit" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32970,6 +33003,50 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "设备 ID: "
+          }
+        }
+      }
+    },
+    "settings.diagnosticTool" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostic tool"
+          }
+        }
+      }
+    },
+    "settings.diagnosticTool.report" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostic report"
+          }
+        }
+      }
+    },
+    "settings.diagnosticTool.run" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run diagnostics"
+          }
+        }
+      }
+    },
+    "settings.diagnosticTool.share" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share report"
           }
         }
       }
@@ -34382,50 +34459,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "口令"
-          }
-        }
-      }
-    },
-    "settings.diagnosticTool" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diagnostic tool"
-          }
-        }
-      }
-    },
-    "settings.diagnosticTool.run" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Run diagnostics"
-          }
-        }
-      }
-    },
-    "settings.diagnosticTool.share" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share report"
-          }
-        }
-      }
-    },
-    "settings.diagnosticTool.report" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diagnostic report"
           }
         }
       }

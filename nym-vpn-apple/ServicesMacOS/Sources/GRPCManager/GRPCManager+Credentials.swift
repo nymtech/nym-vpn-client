@@ -67,4 +67,24 @@ extension GRPCManager {
             try await self?.rpcClient?.deeplinkStoreAccount(deeplinkCallbackUrl: callbackURLString)
         }.value
     }
+
+    public func autologin(
+        locale: String,
+        name: String,
+        deeplinkKind: NymDeeplinkKind
+    ) async throws -> (url: String, pinCode: String)? {
+        try await Task.detached { [weak self] in
+            guard let result = try await self?.rpcClient?.getAutologinDeeplink(
+                params: GetDeeplinkParams(
+                    client: .desktop,
+                    locale: locale,
+                    kind: deeplinkKind.deeplinkKind,
+                    name: name
+                )
+            ) else {
+                return nil
+            }
+            return (url: result.url, pinCode: result.pinCode)
+        }.value
+    }
 }
