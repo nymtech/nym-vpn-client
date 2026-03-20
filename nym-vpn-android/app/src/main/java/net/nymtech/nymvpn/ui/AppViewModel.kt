@@ -148,6 +148,10 @@ constructor(
 		SnackbarController.showMessage(StringValue.StringResource(R.string.app_restart_required))
 	}
 
+	fun onLewesProtocol(enabled: Boolean) = viewModelScope.launch {
+		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetLewes(enabled))
+	}
+
 	private suspend fun checkSystemMessages() {
 		runCatching {
 			val messages = backendManager.getSystemMessages()
