@@ -101,6 +101,7 @@ class VpnCoreController(
 				userAgent = currentUserAgent,
 				useMainnetFallback = false,
 				mixnetParamConfig = null,
+				enableLewesProtocol = savedConfig.lewes,
 			)
 			applyCanonicalConfigToRustIfReady(force = false, canonical = savedConfig)
 		}.onFailure { Timber.tag(TAG).w(it, "ensureReadyForManagement failed") }
@@ -118,6 +119,7 @@ class VpnCoreController(
 				userAgent = ua,
 				useMainnetFallback = false,
 				mixnetParamConfig = req.mixnetParamConfig,
+				enableLewesProtocol = config.lewes,
 			)
 
 			applyCanonicalConfigToRustIfReady(force = true, canonical = config)
@@ -175,6 +177,7 @@ class VpnCoreController(
 				userAgent = ua,
 				useMainnetFallback = false,
 				mixnetParamConfig = null,
+				enableLewesProtocol = cfg.lewes,
 			)
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "CoreInitFailed")
@@ -304,6 +307,7 @@ class VpnCoreController(
 		userAgent: UserAgent,
 		useMainnetFallback: Boolean,
 		mixnetParamConfig: MixnetTrafficConfig?,
+		enableLewesProtocol: Boolean,
 	) {
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
@@ -340,7 +344,7 @@ class VpnCoreController(
 			exitRouter = ExitPoint.Random,
 			enableTwoHop = false,
 			enableBridges = false,
-			enableLewesProtocol = false,
+			enableLewesProtocol = enableLewesProtocol,
 			customDns = emptyList(),
 			residentialExit = false,
 			mixnetTraffic = mixnetParamConfig,
@@ -366,7 +370,7 @@ class VpnCoreController(
 
 		val tunSettingsChanged = force ||
 			prev?.bypassLan != cfg.bypassLan ||
-			prev?.restrictedApps != cfg.restrictedApps
+			prev.restrictedApps != cfg.restrictedApps
 
 		syncLocalFieldsFromConfig(cfg)
 

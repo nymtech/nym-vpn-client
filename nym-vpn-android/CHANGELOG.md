@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add Diagnostic tool (https://github.com/nymtech/nym-vpn-client/pull/4923)
+- Add Lewes Protocol do Developer screen (https://github.com/nymtech/nym-vpn-client/pull/4928)
+
+### Changed
+- Use isLikned() for Privy checks (https://github.com/nymtech/nym-vpn-client/pull/4924)
 
 ## [3.1.1] - 19.03.2026
 

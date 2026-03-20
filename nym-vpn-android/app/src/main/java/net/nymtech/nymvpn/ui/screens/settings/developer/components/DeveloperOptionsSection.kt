@@ -21,7 +21,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.screens.settings.components.SettingsGroup
 import net.nymtech.nymvpn.ui.screens.settings.developer.CredentialMode
@@ -33,11 +32,13 @@ import net.nymtech.vpn.backend.Tunnel
 @Composable
 fun DeveloperOptionsSection(
 	appUiState: AppUiState,
-	appViewModel: AppViewModel,
 	environmentExpanded: Boolean,
 	onEnvironmentExpandedChange: (Boolean) -> Unit,
 	credentialExpanded: Boolean,
 	onCredentialExpandedChange: (Boolean) -> Unit,
+	onLogout: suspend () -> Unit,
+	onEnvironmentChange: suspend (Tunnel.Environment) -> Unit,
+	onCredentialOverride: (Boolean?) -> Unit,
 ) {
 	val credentialMode by remember {
 		derivedStateOf {
@@ -83,8 +84,8 @@ fun DeveloperOptionsSection(
 									onClick = {
 										scope.launch {
 											if (appUiState.vpnConfig.network == item) return@launch
-											appViewModel.logout()
-											appViewModel.onEnvironmentChange(item)
+											onLogout()
+											onEnvironmentChange(item)
 											onEnvironmentExpandedChange(false)
 										}
 									},
@@ -132,9 +133,9 @@ fun DeveloperOptionsSection(
 									onClick = {
 										if (credentialMode == item) return@DropdownMenuItem
 										when (item) {
-											CredentialMode.DEFAULT -> appViewModel.onCredentialOverride(null)
-											CredentialMode.ON -> appViewModel.onCredentialOverride(true)
-											CredentialMode.OFF -> appViewModel.onCredentialOverride(false)
+											CredentialMode.DEFAULT -> onCredentialOverride(null)
+											CredentialMode.ON -> onCredentialOverride(true)
+											CredentialMode.OFF -> onCredentialOverride(false)
 										}
 										onCredentialExpandedChange(false)
 									},
