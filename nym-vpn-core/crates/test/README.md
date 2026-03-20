@@ -3,7 +3,7 @@
 Forked from [Mullvad VPN](https://github.com/mullvad/mullvadvpn-app) under
 GPL-3.0-only.
 
-## Overview
+## Architecture
 
 This framework runs end-to-end tests against `nym-vpnd` (the VPN daemon) inside
 a guest VM. A host-side orchestrator (**test-manager**) launches the VM, deploys
@@ -11,7 +11,7 @@ binaries, and drives tests over a virtual serial port. The serial port is used
 instead of the network because the VPN tunnel redirects traffic, making SSH
 unreliable during tests.
 
-### Nested VM architecture
+### Nested VMs
 
 Both CI and local runs use a **VM-inside-a-VM** layout:
 
@@ -64,9 +64,8 @@ frame-based multiplexing (`test-rpc/src/transport.rs`):
 2. **DaemonRpc channel** (`Frame::DaemonRpc`): gRPC forwarding to `nym-vpnd`
    inside the VM via Unix socket
 
-## How tests run
 
-### CI (`e2e-test.yml`)
+## CI (`e2e-test.yml`)
 
 The GitHub Actions workflow has two jobs:
 
@@ -82,27 +81,13 @@ The GitHub Actions workflow has two jobs:
 Workflow inputs allow filtering/skipping tests and delaying teardown for SSH
 debugging.
 
-### Local development (`test-manager/run_local.sh`)
-
-For developers who cannot run QEMU locally (e.g. macOS), `run_local.sh` mirrors
-the CI flow end-to-end
-
-### `test.sh`: the common entrypoint
-
-`test-manager/test.sh` is the script that actually invokes `test-manager`. It
-works in two modes:
-
-- **Local mode** (repo checkout exists): builds binaries in a container, then
-  runs `test-manager` via `cargo run`.
-- **CI/remote mode** (`TEST_DIST_DIR` is set): uses pre-built binaries from the
-  dist directory.
 
 ## Building
 
 ```bash
 # Full containerized build (recommended, produces Linux x86_64 binaries)
 # From the repo root:
-./nym-vpn-core/crates/test/test-manager/run_local.sh
+./nym-vpn-core/crates/test/test-manager/test_macos.sh
 
 ```
 
@@ -129,13 +114,3 @@ Macro attributes: `priority = <i32>` (lower runs first),
 `target_os = "linux"|"macos"|"windows"`.
 
 New test modules must be added to `test-manager/src/tests/mod.rs`.
-
-## Prerequisites
-
-### For local Exoscale runs (macOS or Linux without KVM)
-
-- Docker or Podman
-- Terraform / OpenTofu
-- Exoscale account with API credentials and a pre-provisioned data volume
-  containing the QCOW2 guest image
-  - used as a blank slate for each test, not modified during test runs
