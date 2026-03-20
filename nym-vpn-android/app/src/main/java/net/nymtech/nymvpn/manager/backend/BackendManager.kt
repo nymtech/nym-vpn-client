@@ -5,6 +5,7 @@ import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.AutologinResponse
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
@@ -38,6 +39,7 @@ interface BackendManager {
 	suspend fun getAccountId(): String?
 	suspend fun getFeatureFlags(): FeatureFlags?
 	suspend fun getDeeplink(kind: DeeplinkKind): String?
+	suspend fun getAutologinDeeplink(kind: DeeplinkKind): AutologinResponse?
 	suspend fun storeDeeplinkAccount(url: String)
 	suspend fun getAccountMode(): StoredAccountMode?
 	suspend fun getAccountSummary(): VpnAccountSummary?

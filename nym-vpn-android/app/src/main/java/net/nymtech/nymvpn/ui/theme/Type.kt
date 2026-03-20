@@ -91,6 +91,7 @@ object CustomTypography {
 		fontSize = 20.sp.scaled(),
 		lineHeight = 24.sp.scaled(),
 		fontWeight = FontWeight(500),
+		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 	)
 
 	val buttonMain = TextStyle(

@@ -8,11 +8,11 @@ use nym_vpn_lib::service::{AccountLinksError, ListGatewaysError, VpnServiceComma
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerState, DiagnosticRunParams, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, GetDeeplinkParams, ListGatewaysOptions, NetworkCompatibility,
-    ParsedAccountLinks, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TargetState, TunnelState, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    AccountCommandError, AccountControllerState, AutologinResponse, DiagnosticRunParams,
+    EntryPoint, ExitPoint, FeatureFlags, Gateway, GetDeeplinkParams, ListGatewaysOptions,
+    NetworkCompatibility, ParsedAccountLinks, RegisterAccountRequest, RegisterAccountResponse,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TunnelState,
+    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -302,6 +302,16 @@ impl NymVpnServiceCommandSender {
                 VpnServiceCommand::DeeplinkStoreAccount,
                 deeplink_callback_url,
             )
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
+    pub async fn get_autologin_deeplink(
+        &self,
+        params: GetDeeplinkParams,
+    ) -> Result<AutologinResponse> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::GetAutologinDeeplink, params)
             .await?
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }

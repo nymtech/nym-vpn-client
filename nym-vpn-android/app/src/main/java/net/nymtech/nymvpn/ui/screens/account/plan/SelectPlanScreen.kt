@@ -29,7 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -48,39 +46,53 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
+import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
+import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.account.plan.components.SubscriptionBottomSheet
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.extensions.openWebUrl
-import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
-	val context = LocalContext.current
-	val products by viewModel.subscriptions.collectAsState()
-	val signUpLink by viewModel.signUpLink.collectAsState()
+	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	var showSheet by remember { mutableStateOf(false) }
 	val navController = LocalNavController.current
 
+	when (val autologin = uiState.autologin) {
+		is AutologinState.Loading -> AutologinLoadingDialog(onCancel = viewModel::cancelAutologin)
+		is AutologinState.PinReady -> PinCodeDialog(
+			pinCode = autologin.pinCode,
+			url = autologin.url,
+			onDismiss = viewModel::dismissAutologin,
+		)
+		is AutologinState.Error -> {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.account_info_autologin_error))
+		}
+		AutologinState.Idle -> {}
+	}
+
 	SelectPlanScreen(
-		products = products,
+		products = uiState.subscriptions,
 		showSheet = showSheet,
 		onSelectPlanButtonClick = {
 			if (viewModel.isBillingAvailable()) {
 				viewModel.fetchSubscriptions()
 				showSheet = true
 			} else {
-				signUpLink?.let { context.openWebUrl(it) }
-				navController.replaceCurrentWith(Route.Login)
+				viewModel.fetchAutologin()
 			}
 		},
 		onDismissSheet = { showSheet = false },

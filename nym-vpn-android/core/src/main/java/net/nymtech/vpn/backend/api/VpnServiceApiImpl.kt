@@ -11,6 +11,7 @@ import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.AutologinResponse
 import nym_vpn_lib_types.DiagnosticRunParams
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
@@ -96,6 +97,7 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun getFeatureFlags(): FeatureFlags? = core.tryWithCoreSender { it.getFeatureFlags() }
 	override suspend fun getDeeplink(params: GetDeeplinkParams): String? = core.tryWithCoreSender { it.getDeeplink(params) }
+	override suspend fun getAutologinDeeplink(params: GetDeeplinkParams): AutologinResponse? = core.tryWithCoreSender { it.getAutologinDeeplink(params) }
 
 	override suspend fun storeDeeplinkAccount(url: String) {
 		core.requireCoreSender { it.deeplinkStoreAccount(url) }

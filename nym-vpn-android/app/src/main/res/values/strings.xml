@@ -182,7 +182,8 @@
 	<string name="skip">Skip</string>
 	<string name="get_started">Get started</string>
 	<string name="random_text">Random</string>
-	<!-- Dialogs & info messaged -->
+    <string name="title_retry">Retry</string>
+    <!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
 	<string name="streaming_server_banner_action">Check new\nexit servers</string>
@@ -436,6 +437,12 @@
 	<string name="account_info_renew_text">Renew now to stay protected</string>
 	<string name="account_info_auto_renew_text">*Auto-renews</string>
 	<string name="account_info_no_plan">No active plan</string>
+	<string name="account_info_autologin_fetching">Fetching access code…</string>
+	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>
+	<string name="pin_code_title">Pin code</string>
+	<string name="pin_code_subtitle">Enter this code on web</string>
+	<string name="pin_code_copy_and_open">Copy code and open web</string>
+	<string name="pin_code_copied">Copied!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Enable logging</string>
 	<string name="logs_enable_description">Turn on for troubleshooting. Disable for privacy. Logs stay on your device. Nym never has access.</string>

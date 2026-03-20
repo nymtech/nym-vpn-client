@@ -27,6 +27,7 @@ import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.AutologinResponse
 import nym_vpn_lib_types.DeeplinkClient
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.FeatureFlags
@@ -209,6 +210,16 @@ class ServiceBackedBackendManager @Inject constructor(
 			name = "default",
 		)
 		return serviceConnectionManager.withApi { it.getDeeplink(params = params) }
+	}
+
+	override suspend fun getAutologinDeeplink(kind: DeeplinkKind): AutologinResponse? {
+		val params = GetDeeplinkParams(
+			client = DeeplinkClient.MOBILE,
+			locale = Locale.getDefault().language.lowercase(),
+			kind = kind,
+			name = "default",
+		)
+		return serviceConnectionManager.withApi { it.getAutologinDeeplink(params = params) }
 	}
 
 	override suspend fun storeDeeplinkAccount(url: String) {

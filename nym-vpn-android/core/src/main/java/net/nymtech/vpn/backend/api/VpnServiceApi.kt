@@ -10,6 +10,7 @@ import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.AutologinResponse
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
@@ -61,6 +62,7 @@ interface VpnServiceApi {
 	suspend fun getAccountIdentity(): String?
 	suspend fun getFeatureFlags(): FeatureFlags?
 	suspend fun getDeeplink(params: GetDeeplinkParams): String?
+	suspend fun getAutologinDeeplink(params: GetDeeplinkParams): AutologinResponse?
 	suspend fun storeDeeplinkAccount(url: String)
 	suspend fun getAccountMode(): StoredAccountMode?
 	suspend fun getAccountSummary(): VpnAccountSummary?
