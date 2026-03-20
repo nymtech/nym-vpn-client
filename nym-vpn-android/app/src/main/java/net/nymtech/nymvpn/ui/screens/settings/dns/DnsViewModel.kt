@@ -26,7 +26,7 @@ class DnsViewModel @Inject constructor(private val backendManager: BackendManage
 	private val _customDns = MutableStateFlow<List<String>>(emptyList())
 	val customDns: StateFlow<List<String>> = _customDns
 
-	private val _backendUi = MutableStateFlow(DnsBackendUiState())
+	private val _backendUi = MutableStateFlow(DnsUiState())
 	val backendUi = _backendUi.asStateFlow()
 
 	private val _events = MutableSharedFlow<UiEvent>(
@@ -43,7 +43,7 @@ class DnsViewModel @Inject constructor(private val backendManager: BackendManage
 
 		viewModelScope.launch {
 			backendManager.stateFlow.collect { s ->
-				_backendUi.value = DnsBackendUiState(
+				_backendUi.value = DnsUiState(
 					tunnelState = s.tunnelState,
 					isRestarting = s.isRestarting,
 				)
@@ -71,8 +71,6 @@ class DnsViewModel @Inject constructor(private val backendManager: BackendManage
 			_events.tryEmit(UiEvent.ReconnectStarted)
 		}
 	}
-
-	data class DnsBackendUiState(val tunnelState: Tunnel.State = Tunnel.State.Down, val isRestarting: Boolean = false)
 
 	companion object {
 		val DEFAULT_DNS_SERVERS = listOf(

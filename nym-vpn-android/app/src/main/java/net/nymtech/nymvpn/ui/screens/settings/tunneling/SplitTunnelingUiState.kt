@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.tunneling
 
 import kotlinx.serialization.Serializable
+import net.nymtech.vpn.backend.Tunnel
 
 data class SplitTunnelingUiState(
 	val isLoading: Boolean = false,
@@ -25,3 +26,5 @@ enum class AppFilter {
 	Direct,
 	VpnPassThrough,
 }
+
+data class SplitTunnelingBackendUiState(val tunnelState: Tunnel.State = Tunnel.State.Down, val isRestarting: Boolean = false)

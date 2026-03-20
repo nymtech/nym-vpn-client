@@ -19,8 +19,6 @@ import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
-data class DiagnosticUiState(val isLoading: Boolean = false, val report: String? = null, val error: String? = null)
-
 @HiltViewModel
 class DiagnosticViewModel @Inject constructor(private val backendManager: BackendManager, @IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
 

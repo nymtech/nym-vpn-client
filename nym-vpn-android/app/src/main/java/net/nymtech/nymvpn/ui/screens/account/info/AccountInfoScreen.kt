@@ -38,9 +38,12 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountActionCard
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountInfoCard
 import net.nymtech.nymvpn.ui.screens.account.info.components.BandwidthUiState
+import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
+import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.account.info.components.SubscriptionSection
 import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
@@ -49,6 +52,8 @@ import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionStatusText
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.StringValue
+import nym_vpn_lib_types.DeeplinkKind
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -87,6 +92,19 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		},
 	)
 
+	when (val autologin = uiState.autologin) {
+		is AutologinState.Loading -> AutologinLoadingDialog(onCancel = viewModel::cancelAutologin)
+		is AutologinState.PinReady -> PinCodeDialog(
+			pinCode = autologin.pinCode,
+			url = autologin.url,
+			onDismiss = viewModel::dismissAutologin,
+		)
+		is AutologinState.Error -> {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.account_info_autologin_error))
+		}
+		AutologinState.Idle -> {}
+	}
+
 	AccountInfoScreenContent(
 		accountId = uiState.accountId,
 		deviceId = uiState.deviceId,
@@ -94,12 +112,8 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		isMnemonicStored = uiState.isMnemonicStored,
 		subscriptionState = uiState.subscription,
 		bandwidthState = uiState.bandwidth,
-		onManageClick = {
-			uiState.manageUrl?.let {
-				Timber.d("Manage url: $it")
-				context.openWebUrl(it)
-			}
-		},
+		onManageClick = { viewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW) },
+		onRenewClick = { viewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
 		onLinkAccountClick = {
 			uiState.accountLinkUrl?.let {
 				Timber.d("Link url: $it")
@@ -141,6 +155,7 @@ fun AccountInfoScreenContent(
 	showLinkAccount: Boolean,
 	isMnemonicStored: Boolean,
 	onManageClick: () -> Unit,
+	onRenewClick: () -> Unit,
 	onLinkAccountClick: () -> Unit,
 	onAccountIdClick: () -> Unit,
 	onDeviceIdClick: () -> Unit,
@@ -161,7 +176,7 @@ fun AccountInfoScreenContent(
 			subscriptionState = subscriptionState,
 			bandwidthState = bandwidthState,
 			onSelectPlanClick = onSelectPlanClick,
-			onRenewClick = onManageClick,
+			onRenewClick = onRenewClick,
 			onContactSupportClick = onContactSupportClick,
 		)
 
@@ -239,6 +254,7 @@ internal fun PreviewAccountInfoScreen() {
 			showLinkAccount = true,
 			isMnemonicStored = true,
 			onManageClick = {},
+			onRenewClick = {},
 			onLinkAccountClick = {},
 			onAccountIdClick = {},
 			onDeviceIdClick = {},
