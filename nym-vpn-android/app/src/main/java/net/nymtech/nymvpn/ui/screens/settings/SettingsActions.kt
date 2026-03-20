@@ -20,7 +20,6 @@ data class SettingsActions(
 	val onDnsClick: () -> Unit = {},
 	val onAppearanceClick: () -> Unit = {},
 	val onPrivacyClick: () -> Unit = {},
-	val onLogsClick: () -> Unit = {},
 	val onNotificationsClick: () -> Unit = {},
 	val onBatterySettingsClick: () -> Unit = {},
 	val onShortcutsEnable: (enabled: Boolean) -> Unit = {},

@@ -11,6 +11,7 @@ import net.nymtech.vpn.model.config.CoreVpnConfig
 import net.nymtech.vpn.model.connect.ConnectInitRequest
 import net.nymtech.vpn.model.connect.ConnectResult
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.DiagnosticRunParams
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
@@ -102,4 +103,8 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun getAccountMode(): StoredAccountMode? = core.tryWithCoreSender { it.getAccountMode() }
 	override suspend fun getAccountSummary(): VpnAccountSummary? = core.tryWithCoreSender { it.getAccountSummary() }
+	override suspend fun runDiagnostic(): String? = core.tryWithCoreSender {
+		val params = DiagnosticRunParams(null, skipDns = false, skipHttp = false)
+		it.runDiagnostic(params)
+	}
 }

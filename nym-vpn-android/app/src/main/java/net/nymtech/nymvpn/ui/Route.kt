@@ -93,4 +93,7 @@ sealed class Route {
 
 	@Serializable
 	data object MixnetTuning : Route()
+
+	@Serializable
+	data object Diagnostic : Route()
 }

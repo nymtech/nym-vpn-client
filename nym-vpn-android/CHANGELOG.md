@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add Diagnostic tool (https://github.com/nymtech/nym-vpn-client/pull/4923)
+
 ## [3.1.1] - 19.03.2026
 
 ### Added
