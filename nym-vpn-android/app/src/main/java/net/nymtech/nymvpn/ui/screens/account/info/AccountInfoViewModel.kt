@@ -40,6 +40,8 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 			val subState = accountSummary?.toSubscriptionUiState()
 			val bwState = accountSummary?.toBandwidthUiState()
 
+			val isAccountLinked = accountSummary?.isLinked() ?: false
+
 			val isStored = backendManager.isMnemonicStored()
 			val deviceId = backendManager.getDeviceId() ?: ""
 			val displayAccountId = backendManager.getAccountId() ?: ""
@@ -49,16 +51,7 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 			var linkUrl = backendManager.getDeeplink(DeeplinkKind.PRIVY_LINK)
 			val manageUrl = links?.account
 
-			val isLoggedWithPrivy = accountMode == StoredAccountMode.PRIVY
-
-			val isDifferentCanonical = accountSummary?.accountAddr != accountSummary?.canonicalAccountAddr
-			val hasLinkedAuthMethod = accountSummary?.authMethods?.any {
-				it.label == "Social login" || it.label == "PassPhrase"
-			} == true
-
-			val isAccountLinked = isLoggedWithPrivy || isDifferentCanonical || hasLinkedAuthMethod
-
-			if (isLoggedWithPrivy) {
+			if (accountMode == StoredAccountMode.PRIVY) {
 				try {
 					linkUrl = links?.account
 				} catch (e: Exception) {
