@@ -20,4 +20,5 @@ data class CoreVpnConfig(
 	val network: Tunnel.Environment = Tunnel.Environment.MAINNET,
 	val debugLog: Boolean = false,
 	val sentry: Boolean = false,
+	val lewes: Boolean = false,
 )

@@ -39,10 +39,10 @@ function usage() {
     echo "Usage: $0 [options] <command>"
     echo ""
     echo "Available commands:"
-    echo "  configure   - Configure a new VM"
+    echo "  configure   - Configure a new VM BEFORE running run-tests"
     echo "  list        - List existing configurations"
     echo "  run-tests   - Build dependencies and run tests"
-    echo "  run-vm      - Run a VM without tests for you to connect to"
+    echo "  run-vm      - Run a VM WITHOUT tests so you can inspect the VM tests will run in"
     echo ""
 }
 
@@ -91,14 +91,14 @@ function build_wireguard_deps() {
 }
 
 function help() {
-    cargo run -- config vm set --help
+    cargo run -p test-manager -- config vm set --help
 }
 
 function list() {
     if [ -n "${TEST_DIST_DIR:-}" ]; then
         "${TEST_DIST_DIR}/test-manager" config vm list
     else
-        cargo run -- config vm list
+        cargo run -p test-manager -- config vm list
     fi
 }
 
@@ -109,7 +109,7 @@ function configure() {
     else
         # Local mode: build wireguard deps first, then use cargo run
         build_wireguard_deps
-        local test_manager="cargo run --"
+        local test_manager="cargo run -p test-manager --"
     fi
 
     pushd "${TEST_FRAMEWORK_ROOT}"
@@ -134,7 +134,7 @@ function run_vm() {
     if [ -n "${TEST_DIST_DIR:-}" ]; then
         local test_manager="${TEST_DIST_DIR}/test-manager"
     else
-        local test_manager="cargo run --"
+        local test_manager="cargo run -p test-manager --"
     fi
 
     $test_manager run-vm ${NYM_TEST_VM_CONFIG} \

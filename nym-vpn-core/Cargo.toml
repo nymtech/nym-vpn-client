@@ -150,7 +150,7 @@ quinn = { version = "0.11", default-features = false, features = [
     "rustls",
     "runtime-tokio",
 ] }
-quinn-proto = { version = "0.11", default-features = false, features = [
+quinn-proto = { version = "0.11.14", default-features = false, features = [
     "rustls",
 ] }
 quote = "1.0"

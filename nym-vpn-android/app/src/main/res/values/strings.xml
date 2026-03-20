@@ -551,4 +551,6 @@
 	<string name="diagnostic_copy_report">Copy report</string>
 	<string name="diagnostic_copied">Copied to clipboard</string>
 	<string name="diagnostic_error">Diagnostics failed</string>
+	<!-- Developer screen -->
+	<string name="developer_lewes_title">Enable Lewes Protocol</string>
 </resources>
