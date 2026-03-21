@@ -175,16 +175,15 @@ uniffi::setup_scaffolding!();
 
 #[cfg(target_os = "android")]
 mod android_tls {
-    use std::sync::Arc;
-
-    use nym_http_api_client::ReqwestClientBuilder;
-    use nym_http_api_client::registry::ConfigRecord;
+    use nym_http_api_client::{ReqwestClientBuilder, registry::ConfigRecord};
     use rustls::{ClientConfig, RootCertStore};
+    use std::sync::Arc;
 
     fn configure_webpki_tls(builder: ReqwestClientBuilder) -> ReqwestClientBuilder {
         let root_store = RootCertStore {
             roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
         };
+
         let tls_config =
             ClientConfig::builder_with_provider(Arc::new(rustls::crypto::ring::default_provider()))
                 .with_safe_default_protocol_versions()
