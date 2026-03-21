@@ -6784,11 +6784,11 @@ name = "nym-vpn-lib-uniffi"
 version = "1.26.0"
 dependencies = [
  "async-trait",
+ "inventory",
  "ipnet",
  "ipnetwork",
  "iprange",
  "itertools 0.14.0",
- "jni",
  "log",
  "nym-common",
  "nym-firewall-config",
@@ -6805,7 +6805,7 @@ dependencies = [
  "nym-vpn-proto",
  "nym-vpn-store",
  "rand 0.8.5",
- "rustls-platform-verifier",
+ "rustls 0.23.36",
  "sentry",
  "thiserror 2.0.18",
  "time",
@@ -6815,6 +6815,7 @@ dependencies = [
  "tracing-android",
  "uniffi",
  "vergen-gitcl",
+ "webpki-roots 1.0.3",
 ]
 
 [[package]]

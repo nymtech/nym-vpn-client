@@ -40,13 +40,6 @@ class VpnCoreController(
 ) {
 	companion object {
 		private const val TAG = "core-vpn"
-
-		init {
-			System.loadLibrary("nym_vpn_lib")
-		}
-
-		@JvmStatic
-		private external fun initPlatformVerifier(context: android.content.Context)
 	}
 
 	private val configRepo: CoreVpnConfigRepository by lazy(LazyThreadSafetyMode.NONE) {
@@ -312,8 +305,6 @@ class VpnCoreController(
 			Timber.tag(TAG).w("Device locked (Direct Boot phase). Aborting initialization to prevent mainnet fallback.")
 			throw IllegalStateException("Device is locked. CE storage is inaccessible.")
 		}
-
-		initPlatformVerifier(service.applicationContext)
 
 		val storagePath = service.filesDir.absolutePath
 		val level = if (enableDebugLog) LogLevel.DEBUG else LogLevel.INFO
