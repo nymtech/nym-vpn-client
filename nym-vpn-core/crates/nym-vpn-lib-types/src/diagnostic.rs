@@ -198,11 +198,12 @@ pub struct GatewayDataReport {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_registration_common::WireguardConfiguration> for GatewayDataReport {
-    fn from(value: nym_registration_common::WireguardConfiguration) -> Self {
+impl From<&nym_registration_common::WireguardConfiguration> for GatewayDataReport {
+    fn from(value: &nym_registration_common::WireguardConfiguration) -> Self {
         Self {
             public_key: value.public_key.to_base58_string(),
             endpoint: value.endpoint,
+            // While this is technically copying a PSK, it's only for display and in the diagnostic which uses ephemeral stuff anyway
             psk: value
                 .psk
                 .map(|psk| psk.iter().map(|b| format!("{:02x}", b)).collect()),

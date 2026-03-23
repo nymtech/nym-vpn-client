@@ -107,7 +107,7 @@ impl MixnetClientRegistration {
         match Self::wireguard_registration(mixnet_client, &registration_config).await {
             Ok(response) => {
                 registration_report.mixnet_based_dvpn_registration =
-                    Some(DiagnosticResult::from_value(response.into()));
+                    Some(DiagnosticResult::from_value((&response).into()));
                 Some((response, registration_config.gateway_keypair))
             }
             Err(e) => {

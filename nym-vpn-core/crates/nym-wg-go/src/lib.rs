@@ -105,6 +105,7 @@ impl PeerEndpointUpdate {
     }
 }
 
+// SW move this into monorepo
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub struct PresharedKey([u8; 32]);
 

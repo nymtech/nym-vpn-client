@@ -509,12 +509,9 @@ impl TunnelMonitor {
             RegistrationResult::Wireguard(result) => {
                 TunnelConnectionData::Wireguard(WireguardConnectionData {
                     entry_bridge_addr: None, // not known yet
-                    entry: WireguardNode::from(result.entry_gateway_data),
-                    exit: WireguardNode::from(result.exit_gateway_data),
+                    entry: WireguardNode::from(&result.entry_gateway_data),
+                    exit: WireguardNode::from(&result.exit_gateway_data),
                 })
-            }
-            RegistrationResult::Lp(_) => {
-                return Err(Error::InvalidTunnelType);
             }
         };
         let connection_data = Box::new(EstablishConnectionData {
@@ -617,9 +614,6 @@ impl TunnelMonitor {
                     mixnet_client_token,
                     bridge_close_tx,
                 )
-            }
-            RegistrationResult::Lp(_) => {
-                return Err(Error::InvalidTunnelType);
             }
         };
 
@@ -991,23 +985,25 @@ impl TunnelMonitor {
             selected_gateways,
             entry_gateway_client,
             exit_gateway_client,
-            entry_gateway_data,
-            exit_gateway_data,
+            &entry_gateway_data,
+            &exit_gateway_data,
             entry_signal_rx,
             exit_signal_rx,
             gw_update_version,
             self.shutdown_token.child_token(),
         );
 
-        let authenticator_listener_handle = if bw.is_using_latest_client() {
-            // We don't need the mixnet client anymore
-            tracing::info!(
-                "Disconnecting mixnet client as we are using the latest bandwidth controller"
-            );
-            authenticator_listener_handle.stop().await;
-            None
-        } else {
-            Some(authenticator_listener_handle)
+        let authenticator_listener_handle = match authenticator_listener_handle {
+            Some(handle) if bw.is_using_latest_client() => {
+                // We don't need the mixnet client anymore
+                tracing::info!(
+                    "Disconnecting mixnet client as we are using the latest bandwidth controller"
+                );
+                handle.stop().await;
+                None
+            }
+            Some(handle) => Some(handle),
+            None => None,
         };
         let bandwidth_controller_handle = tokio::spawn(bw.run());
 
@@ -1127,8 +1123,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry),
-            exit: WireguardNode::from(conn_data.exit),
+            entry: WireguardNode::from(&conn_data.entry),
+            exit: WireguardNode::from(&conn_data.exit),
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
@@ -1354,8 +1350,8 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry_bridge_addr: conn_data.entry_bridge_addr.clone(),
-            entry: WireguardNode::from(conn_data.entry),
-            exit: WireguardNode::from(conn_data.exit),
+            entry: WireguardNode::from(&conn_data.entry),
+            exit: WireguardNode::from(&conn_data.exit),
         });
 
         let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();

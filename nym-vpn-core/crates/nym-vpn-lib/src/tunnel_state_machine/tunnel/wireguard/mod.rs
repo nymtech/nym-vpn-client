@@ -15,7 +15,7 @@ pub mod dns64;
 pub mod fd;
 pub mod two_hop_config;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ConnectionData {
     pub entry_bridge_addr: Option<BridgeAddress>,
     pub entry: WireguardConfiguration,
@@ -31,11 +31,22 @@ impl ConnectionData {
             .unwrap_or(self.entry.endpoint)
     }
 
-    /// Returns effective entry gateway data set to bridge listen endpoint when entry bridge address is available.
-    pub fn effective_entry_gateway_data(&self) -> WireguardConfiguration {
-        let mut wireguard_config = self.entry;
-        wireguard_config.endpoint = self.effective_entry_endpoint();
-        wireguard_config
+    // /// Returns effective entry gateway data set to bridge listen endpoint when entry bridge address is available.
+    // pub fn effective_entry_gateway_data(self) -> WireguardConfiguration {
+    //     let endpoint = self.effective_entry_endpoint();
+    //     let mut wireguard_config = self.entry;
+    //     wireguard_config.endpoint = endpoint;
+    //     wireguard_config
+    // }
+
+    /// Returns effective entry gateway data set to bridge listen endpoint when entry bridge address is available, along with exit data
+    pub fn into_effective_entry_and_exit_data(
+        self,
+    ) -> (WireguardConfiguration, WireguardConfiguration) {
+        let effective_entry_endpoint = self.effective_entry_endpoint();
+        let mut entry_wireguard_config = self.entry;
+        entry_wireguard_config.endpoint = effective_entry_endpoint;
+        (entry_wireguard_config, self.exit)
     }
 
     /// Returns effective *remote* entry endpoint set to bridge remote endpoint when entry bridge address is available. Otherwise, returns the wireguard entry endpoint.
