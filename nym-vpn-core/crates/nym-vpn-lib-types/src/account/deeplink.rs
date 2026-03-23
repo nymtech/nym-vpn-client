@@ -71,6 +71,7 @@ pub enum DeeplinkKind {
     PrivyLink,
     AutologinRenew,
     AutologinView,
+    CreateAccount,
 }
 
 impl FromStr for DeeplinkKind {
@@ -85,6 +86,9 @@ impl FromStr for DeeplinkKind {
             }
             "autologin_view" | "autologin-view" | "autologinview" => {
                 Ok(DeeplinkKind::AutologinView)
+            }
+            "create_account" | "create-account" | "createaccount" => {
+                Ok(DeeplinkKind::CreateAccount)
             }
             _ => Err(format!("Unknown deeplink kind: {s}")),
         }

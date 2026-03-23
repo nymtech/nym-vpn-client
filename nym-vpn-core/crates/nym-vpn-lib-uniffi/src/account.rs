@@ -174,7 +174,7 @@ impl NymAccountController {
         };
 
         match deeplink_mnemonic.kind {
-            DeeplinkKind::Privy => self
+            DeeplinkKind::Privy | DeeplinkKind::CreateAccount => self
                 .command_sender
                 .store_account(privy_account)
                 .await
