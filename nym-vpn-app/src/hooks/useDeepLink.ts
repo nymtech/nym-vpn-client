@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
-const PRIVY_DEEPLINK_URL = 'nymvpn://auth/privy/privateKey';
-
 const useDeepLink = () => {
   const unlistenRef = useRef<(() => void) | null>(null);
   const isCleanedUpRef = useRef(false);
@@ -26,12 +24,7 @@ const useDeepLink = () => {
     return new Promise<string>((resolve, reject) => {
       onOpenUrl((urls) => {
         if (isCleanedUpRef.current) return;
-        if (
-          !urls ||
-          urls.length === 0 ||
-          !urls[0].startsWith(PRIVY_DEEPLINK_URL)
-        )
-          return;
+        if (!urls || urls.length === 0) return;
         const url = urls[0];
 
         cleanup();
