@@ -31,14 +31,6 @@ impl ConnectionData {
             .unwrap_or(self.entry.endpoint)
     }
 
-    // /// Returns effective entry gateway data set to bridge listen endpoint when entry bridge address is available.
-    // pub fn effective_entry_gateway_data(self) -> WireguardConfiguration {
-    //     let endpoint = self.effective_entry_endpoint();
-    //     let mut wireguard_config = self.entry;
-    //     wireguard_config.endpoint = endpoint;
-    //     wireguard_config
-    // }
-
     /// Returns effective entry gateway data set to bridge listen endpoint when entry bridge address is available, along with exit data
     pub fn into_effective_entry_and_exit_data(
         self,
