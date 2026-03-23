@@ -704,9 +704,9 @@ Section Install
   File "..\..\..\..\winfw.dll"
 
   ; Copy split-tunnel driver artifacts
-  ;File "..\..\..\..\nymvpn-split-tunnel.sys"
-  ;File "..\..\..\..\nymvpn-split-tunnel.inf"
-  ;File "..\..\..\..\nymvpn-split-tunnel.cat"
+  File "..\..\..\..\nymvpn-split-tunnel.sys"
+  File "..\..\..\..\nymvpn-split-tunnel.inf"
+  File "..\..\..\..\nymvpn-split-tunnel.cat"
 
   ; Install NymVPN service, abort early if something goes wrong
   vpnd-install:
@@ -840,9 +840,9 @@ Function Cleanup
   Delete "$INSTDIR\libwg.dll"
   Delete "$INSTDIR\wintun.dll"
   Delete "$INSTDIR\winfw.dll"
-  ;Delete "$INSTDIR\nymvpn-split-tunnel.sys"
-  ;Delete "$INSTDIR\nymvpn-split-tunnel.inf"
-  ;Delete "$INSTDIR\nymvpn-split-tunnel.cat"
+  Delete "$INSTDIR\nymvpn-split-tunnel.sys"
+  Delete "$INSTDIR\nymvpn-split-tunnel.inf"
+  Delete "$INSTDIR\nymvpn-split-tunnel.cat"
 FunctionEnd
 
 Function un.onInit
@@ -880,9 +880,9 @@ Section Uninstall
   Delete "$INSTDIR\wintun.dll"
   Delete "$INSTDIR\winfw.dll"
 
-  ;Delete "$INSTDIR\nymvpn-split-tunnel.sys"
-  ;Delete "$INSTDIR\nymvpn-split-tunnel.inf"
-  ;Delete "$INSTDIR\nymvpn-split-tunnel.cat"
+  Delete "$INSTDIR\nymvpn-split-tunnel.sys"
+  Delete "$INSTDIR\nymvpn-split-tunnel.inf"
+  Delete "$INSTDIR\nymvpn-split-tunnel.cat"
 
   ; Delete the app directory and its content from disk
   ; Copy main executable
