@@ -192,6 +192,7 @@ impl RegistrationReport {
 pub struct GatewayDataReport {
     pub public_key: String,
     pub endpoint: SocketAddr,
+    pub psk: Option<String>,
     pub private_ipv4: Ipv4Addr,
     pub private_ipv6: Ipv6Addr,
 }
@@ -202,6 +203,9 @@ impl From<nym_registration_common::WireguardConfiguration> for GatewayDataReport
         Self {
             public_key: value.public_key.to_base58_string(),
             endpoint: value.endpoint,
+            psk: value
+                .psk
+                .map(|psk| psk.iter().map(|b| format!("{:02x}", b)).collect()),
             private_ipv4: value.private_ipv4,
             private_ipv6: value.private_ipv6,
         }
