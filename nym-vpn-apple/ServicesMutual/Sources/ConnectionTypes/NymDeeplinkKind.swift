@@ -9,20 +9,22 @@ public enum NymDeeplinkKind: Equatable, Hashable {
     case privyLink
     case autologinRenew
     case autologinView
+    case createAccount
 
     public var deeplinkKind: DeeplinkKind {
         switch self {
         case .privy:
-                .privy
+            .privy
         case .privyLink:
-                .privyLink
+            .privyLink
         case .autologinRenew:
-                .autologinRenew
+            .autologinRenew
         case .autologinView:
-                .autologinView
+            .autologinView
+        case .createAccount:
+            .createAccount
         }
     }
-
 
     public init(from deeplinkKind: DeeplinkKind) {
         switch deeplinkKind {
@@ -34,6 +36,8 @@ public enum NymDeeplinkKind: Equatable, Hashable {
             self = .autologinRenew
         case .autologinView:
             self = .autologinView
+        case .createAccount:
+            self = .createAccount
         }
     }
 }
