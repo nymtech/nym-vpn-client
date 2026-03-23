@@ -2,73 +2,53 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#![allow(clippy::undocumented_unsafe_blocks)] // Remove me if you dare
+
 use std::{
-    ffi::{CStr, c_char},
-    mem,
-    os::windows::io::AsRawHandle,
+    ffi::CStr,
+    io, mem,
+    os::windows::io::{AsRawHandle, FromRawHandle, OwnedHandle, RawHandle},
 };
 use tokio::net::windows::named_pipe::NamedPipeServer;
 use verifysign::CodeSignVerifier;
-use windows::Win32::{
-    Foundation::{CloseHandle, ERROR_NO_MORE_FILES, HANDLE},
+use windows_sys::Win32::{
+    Foundation::{ERROR_NO_MORE_FILES, INVALID_HANDLE_VALUE},
     System::{
         Diagnostics::ToolHelp::{
-            CREATE_TOOLHELP_SNAPSHOT_FLAGS, CreateToolhelp32Snapshot, MODULEENTRY32, Module32First,
-            Module32Next, PROCESSENTRY32W, Process32FirstW, Process32NextW,
+            CreateToolhelp32Snapshot, MODULEENTRY32, Module32First, Module32Next, PROCESSENTRY32W,
+            Process32FirstW, Process32NextW,
         },
         Pipes::GetNamedPipeClientProcessId,
     },
 };
 
-/// Errors returned by some functions in this module.
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    /// Error returned from `GetNamedPipeClientProcessIdFailed`
-    #[error("failed to get client PID")]
-    GetNamedPipeClientProcessId(#[source] windows::core::Error),
-
-    /// Could not get verification data for the given PID
-    #[error("failed to get the verifier for the client PID: {0:?}")]
-    PidVerifier(verifysign::Error),
-
-    /// Certificate signature verification failure
-    #[error("failed to verify the certificate signatures {0:?}")]
-    Verification(verifysign::Error),
-
-    /// No serial number found in signature
-    #[error("no serial number found in signature")]
-    NoSerialNumber,
-
-    /// Serial number mismatch
-    #[error("serial number of certificate signature is not from Nym")]
-    SerialNumberMismatch,
-}
-
 /// A snapshot of process modules, threads, and heaps
 pub struct ProcessSnapshot {
-    handle: HANDLE,
+    handle: OwnedHandle,
 }
 
 impl ProcessSnapshot {
     /// Create a new process snapshot using `CreateToolhelp32Snapshot`
-    pub fn new(
-        flags: CREATE_TOOLHELP_SNAPSHOT_FLAGS,
-        process_id: u32,
-    ) -> windows::core::Result<ProcessSnapshot> {
-        Ok(ProcessSnapshot {
-            handle: unsafe { CreateToolhelp32Snapshot(flags, process_id) }?,
-        })
-    }
+    pub fn new(flags: u32, process_id: u32) -> io::Result<ProcessSnapshot> {
+        // SAFETY: `CreateToolhelp32Snapshot` should handle invalid flags and process IDs
+        let snap = unsafe { CreateToolhelp32Snapshot(flags, process_id) };
 
-    /// Return the raw handle
-    pub fn as_raw(&self) -> HANDLE {
-        self.handle
+        if snap == INVALID_HANDLE_VALUE {
+            Err(io::Error::last_os_error())
+        } else {
+            Ok(ProcessSnapshot {
+                // SAFETY: `snap` is a valid handle since `CreateToolhelp32Snapshot` succeeded
+                handle: unsafe { OwnedHandle::from_raw_handle(snap) },
+            })
+        }
     }
 
     /// Return an iterator over the modules in the snapshot
     pub fn modules(&self) -> ProcessSnapshotModules<'_> {
-        let mut entry: MODULEENTRY32 = unsafe { mem::zeroed() };
-        entry.dwSize = mem::size_of::<MODULEENTRY32>() as u32;
+        let entry = MODULEENTRY32 {
+            dwSize: mem::size_of::<MODULEENTRY32>() as u32,
+            ..Default::default()
+        };
 
         ProcessSnapshotModules {
             snapshot: self,
@@ -79,8 +59,10 @@ impl ProcessSnapshot {
 
     /// Return an iterator over the processes in the snapshot
     pub fn processes(&self) -> ProcessSnapshotEntries<'_> {
-        let mut entry: PROCESSENTRY32W = unsafe { mem::zeroed() };
-        entry.dwSize = mem::size_of::<PROCESSENTRY32W>() as u32;
+        let entry = PROCESSENTRY32W {
+            dwSize: mem::size_of::<PROCESSENTRY32W>() as u32,
+            ..Default::default()
+        };
 
         ProcessSnapshotEntries {
             snapshot: self,
@@ -90,11 +72,9 @@ impl ProcessSnapshot {
     }
 }
 
-impl Drop for ProcessSnapshot {
-    fn drop(&mut self) {
-        if let Err(e) = unsafe { CloseHandle(self.handle) } {
-            tracing::error!("Failed to close process snapshot handle: {}", e);
-        }
+impl AsRawHandle for ProcessSnapshot {
+    fn as_raw_handle(&self) -> RawHandle {
+        self.handle.as_raw_handle()
     }
 }
 
@@ -116,28 +96,34 @@ pub struct ProcessSnapshotModules<'a> {
 }
 
 impl Iterator for ProcessSnapshotModules<'_> {
-    type Item = windows::core::Result<ModuleEntry>;
+    type Item = io::Result<ModuleEntry>;
 
-    fn next(&mut self) -> Option<windows::core::Result<ModuleEntry>> {
+    fn next(&mut self) -> Option<io::Result<ModuleEntry>> {
         if self.iter_started {
-            if let Err(last_error) =
-                unsafe { Module32Next(self.snapshot.as_raw(), &mut self.temp_entry) }
+            // SAFETY: `self.snapshot` is a valid pointer, and `temp_entry` is a valid `MODULEENTRY32`
+            if unsafe { Module32Next(self.snapshot.as_raw_handle(), &raw mut self.temp_entry) } == 0
             {
-                return if last_error.code() == ERROR_NO_MORE_FILES.to_hresult() {
+                let last_error = io::Error::last_os_error();
+
+                return if last_error.raw_os_error().unwrap() as u32 == ERROR_NO_MORE_FILES {
                     None
                 } else {
                     Some(Err(last_error))
                 };
             }
         } else {
-            if let Err(e) = unsafe { Module32First(self.snapshot.as_raw(), &mut self.temp_entry) } {
-                return Some(Err(e));
+            // SAFETY: `self.snapshot` is a valid pointer, and `temp_entry` is a valid `MODULEENTRY32`
+            if unsafe { Module32First(self.snapshot.as_raw_handle(), &raw mut self.temp_entry) }
+                == 0
+            {
+                return Some(Err(io::Error::last_os_error()));
             }
             self.iter_started = true;
         }
 
         let cstr_ref = &self.temp_entry.szModule[0];
-        let cstr = unsafe { CStr::from_ptr(cstr_ref as *const c_char) };
+        // SAFETY: `szModule` is a null-terminated C string
+        let cstr = unsafe { CStr::from_ptr(cstr_ref) };
         Some(Ok(ModuleEntry {
             name: cstr.to_string_lossy().into_owned(),
             base_address: self.temp_entry.modBaseAddr,
@@ -162,23 +148,28 @@ pub struct ProcessSnapshotEntries<'a> {
 }
 
 impl Iterator for ProcessSnapshotEntries<'_> {
-    type Item = windows::core::Result<ProcessEntry>;
+    type Item = io::Result<ProcessEntry>;
 
-    fn next(&mut self) -> Option<windows::core::Result<ProcessEntry>> {
+    fn next(&mut self) -> Option<io::Result<ProcessEntry>> {
         if self.iter_started {
-            if let Err(last_error) =
-                unsafe { Process32NextW(self.snapshot.as_raw(), &mut self.temp_entry) }
+            // SAFETY: `self.snapshot` is a valid pointer, and `temp_entry` is a valid `PROCESSENTRY32W`
+            if unsafe { Process32NextW(self.snapshot.as_raw_handle(), &raw mut self.temp_entry) }
+                == 0
             {
-                return if last_error.code() == ERROR_NO_MORE_FILES.to_hresult() {
+                let last_error = io::Error::last_os_error();
+
+                return if last_error.raw_os_error().unwrap() as u32 == ERROR_NO_MORE_FILES {
                     None
                 } else {
                     Some(Err(last_error))
                 };
             }
         } else {
-            if let Err(e) = unsafe { Process32FirstW(self.snapshot.as_raw(), &mut self.temp_entry) }
+            // SAFETY: `self.snapshot` is a valid pointer, and `temp_entry` is a valid `PROCESSENTRY32W`
+            if unsafe { Process32FirstW(self.snapshot.as_raw_handle(), &raw mut self.temp_entry) }
+                == 0
             {
-                return Some(Err(e));
+                return Some(Err(io::Error::last_os_error()));
             }
             self.iter_started = true;
         }
@@ -201,9 +192,12 @@ impl TryFrom<&NamedPipeServer> for ProcessCertVerifier {
 
     fn try_from(named_pipe_server: &NamedPipeServer) -> Result<Self, Self::Error> {
         let mut pid: u32 = 0;
-
-        unsafe { GetNamedPipeClientProcessId(HANDLE(named_pipe_server.as_raw_handle()), &mut pid) }
-            .map_err(Error::GetNamedPipeClientProcessId)?;
+        if unsafe { GetNamedPipeClientProcessId(named_pipe_server.as_raw_handle(), &mut pid) } == 0
+        {
+            return Err(Error::GetNamedPipeClientProcessId(
+                windows::core::Error::from_thread(),
+            ));
+        };
 
         Ok(Self { pid })
     }
@@ -257,4 +251,28 @@ mod tests {
             Error::Verification(verifysign::Error::Unsigned)
         ))
     }
+}
+
+/// Errors returned by some functions in this module.
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    /// Error returned from `GetNamedPipeClientProcessIdFailed`
+    #[error("failed to get client PID")]
+    GetNamedPipeClientProcessId(#[source] windows::core::Error),
+
+    /// Could not get verification data for the given PID
+    #[error("failed to get the verifier for the client PID: {0:?}")]
+    PidVerifier(verifysign::Error),
+
+    /// Certificate signature verification failure
+    #[error("failed to verify the certificate signatures {0:?}")]
+    Verification(verifysign::Error),
+
+    /// No serial number found in signature
+    #[error("no serial number found in signature")]
+    NoSerialNumber,
+
+    /// Serial number mismatch
+    #[error("serial number of certificate signature is not from Nym")]
+    SerialNumberMismatch,
 }

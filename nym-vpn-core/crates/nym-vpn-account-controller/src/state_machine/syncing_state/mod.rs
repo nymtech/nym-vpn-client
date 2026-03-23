@@ -1,9 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::cmp::min;
-use std::sync::Arc;
-use std::time::Duration;
+use std::{cmp::min, sync::Arc, time::Duration};
 
 use crate::{
     SharedAccountState,

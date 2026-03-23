@@ -55,12 +55,17 @@ jobs:
         with:
           crate: cargo-get
 
+      - name: Setup VS dev shell
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: humbletim/vsdevenv-shell@503210b7b39a7405e534ea93c36a733b93f01087
+
       - name: Build wireguard
         if: steps.cache.outputs.cache-hit != 'true'
         env:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+        shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-core
-        run: make -f Windows.mk libwg CPU_ARCH=AMD64
+        run: make -f Windows.mk libwg CPU_ARCH=AMD64 PWSH=1
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7

@@ -16,10 +16,7 @@ futures.workspace = true
 tokio = { workspace = true, features = ["net", "sync"] }
 tracing.workspace = true
 verifysign.workspace = true
-
-[target.'cfg(windows)'.dependencies.windows]
-workspace = true
-features = [
+windows = { workspace = true, features = [
     "Win32_Foundation",
     "Win32_Globalization",
     "Win32_Security",
@@ -31,14 +28,16 @@ features = [
     "Win32_System_SystemServices",
     "Win32_System_LibraryLoader",
     "Win32_System_Threading",
-    "Win32_System_Diagnostics_ToolHelp",
-    "Win32_System_IO",
-    "Win32_System_Pipes",
     "Win32_UI_WindowsAndMessaging",
     "Win32_Networking_WinSock",
     "Win32_NetworkManagement_IpHelper",
-    "Win32_NetworkManagement_Ndis",
-]
+    "Win32_NetworkManagement_Ndis"
+] }
+windows-sys = { workspace = true, features = [
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_IO",
+    "Win32_System_Pipes"
+] }
 
 [target.'cfg(windows)'.dev-dependencies]
 tempfile.workspace = true

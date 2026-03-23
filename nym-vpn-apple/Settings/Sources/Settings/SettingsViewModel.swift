@@ -139,6 +139,7 @@ import Theme
 #endif
     }
 
+    /// Use to reload sections and acc renewal info
     func reloadSections() {
         updateRenewButton()
         configureSections()
@@ -216,12 +217,12 @@ private extension SettingsViewModel {
     func setup() {
         setupAppSettingsObservers()
         setupCredentialManagerObservers()
-        configureSections()
+        reloadSections()
     }
 
     func setupAppSettingsObservers() {
         appSettings.$isCredentialImportedPublisher.sink { [weak self] _ in
-            self?.configureSections()
+            self?.reloadSections()
         }
         .store(in: &cancellables)
     }
@@ -237,6 +238,7 @@ private extension SettingsViewModel {
             .store(in: &cancellables)
     }
 
+    /// Configures sections, to reload all the content - use reloadSections
     func configureSections() {
         Task {
             var newSections = [AppSettingsSection]()

@@ -19,6 +19,7 @@ env:
   CARGO_TERM_COLOR: always
   LIBS_PATH: build/lib/x86_64-pc-windows-msvc
   WINFW_PATH: build/winfw/x64-Release
+  STDRIVER_PATH: build/st-driver/x64-Release
   WINTUN_DIST_DIR: wintun-dist
   UPLOAD_DIR_WINDOWS: windows_artifacts
 
@@ -29,9 +30,13 @@ jobs:
   build-winfw-windows:
     uses: ./.github/workflows/build-winfw-windows.yml
 
+  build-st-driver-windows:
+    uses: ./.github/workflows/build-st-driver-windows.yml
+
   build-windows:
     if: github.actor != 'dependabot[bot]'
-    needs: [build-wireguard-go-windows, build-winfw-windows]
+    needs:
+      [build-wireguard-go-windows, build-winfw-windows, build-st-driver-windows]
     runs-on: custom-windows-11
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
@@ -41,12 +46,15 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup MSBuild.exe
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57
 
       - name: Install GNU make
         run: |
           winget list GnuWin32.Make || winget install --disable-interactivity --accept-source-agreements --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
+      - name: Setup VS dev shell
+        uses: humbletim/vsdevenv-shell@503210b7b39a7405e534ea93c36a733b93f01087
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -86,8 +94,14 @@ jobs:
           name: winfw
           path: ${{ env.WINFW_PATH }}
 
+      - name: Download st-driver artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: st-driver
+          path: ${{ env.STDRIVER_PATH }}
+
       - name: Download wintun
-        shell: pwsh
+        shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-core
         run: |
           make -f Windows.mk wintun PWSH=1 CPU_ARCH=AMD64 TARGET_DIR="${{ github.workspace }}/${{ env.WINTUN_DIST_DIR }}"
@@ -123,6 +137,9 @@ jobs:
           cp -vpr ${{ env.LIBS_PATH }}/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.WINFW_PATH }}/winfw.dll ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.WINTUN_DIST_DIR }}/wintun.dll ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.STDRIVER_PATH }}/nymvpn-split-tunnel.sys ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.STDRIVER_PATH }}/nymvpn-split-tunnel.inf ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.STDRIVER_PATH }}/nymvpn-split-tunnel.cat ${{ env.UPLOAD_DIR_WINDOWS }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
