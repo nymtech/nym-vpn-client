@@ -10,7 +10,7 @@ extension GatewayManager {
             .sink { [weak self] isServing in
                 guard isServing else { return }
                 Task {
-                    await self?.fetchGateways()
+                    self?.updateGateways()
                 }
             }
             .store(in: &cancellables)

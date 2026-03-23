@@ -26,7 +26,7 @@ extension GatewayManager {
               let exitServersURL = Bundle.main.url(forResource: "gatewaysExit", withExtension: "json"),
               let vpnServersURL = Bundle.main.url(forResource: "gatewaysVpn", withExtension: "json")
         else {
-            updateError(with: GeneralNymError.noPrebundledCountries)
+            logger.error("\(GeneralNymError.noPrebundledCountries.localizedDescription)")
             return
         }
 
@@ -51,7 +51,7 @@ extension GatewayManager {
                 logger.info("exit: \(gatewayStore.exit.count)")
                 logger.info("vpn: \(gatewayStore.vpn.count)")
             } catch let error {
-                updateError(with: error)
+                logger.error("\(error.localizedDescription)")
                 return
             }
         }

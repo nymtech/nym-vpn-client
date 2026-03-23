@@ -207,15 +207,24 @@ import PathManager
     }
 
     /// Fetches account summary from API if current accountSummary.validUntilDate does not exist or is in past,
-    /// stores value and returns true if validUntilDate is in the future
-    /// - Returns: Bool
+    /// Returns true if the account subscription is active.
+    /// Uses `isActive` from AccountSummary (backend source of truth),
+    /// falling back to local date check if accountSummary is nil.
     public func isAccountValid() async -> Bool {
-        if isAccountSubscriptionDateValid() {
+        if isAccountActive() {
             return true
         } else {
             await updateAccountSummary()
-            return isAccountSubscriptionDateValid()
+            return isAccountActive()
         }
+    }
+
+    /// Checks `isActive` from backend, falls back to date check if summary is nil.
+    public func isAccountActive() -> Bool {
+        if let accountSummary {
+            return accountSummary.isActive
+        }
+        return isAccountSubscriptionDateValid()
     }
 
     public func updateAccountSummary() async {
