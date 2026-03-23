@@ -77,7 +77,7 @@ WINFW_DLL := winfw.dll
 WINFW_LIB := winfw.lib
 
 ST_DRIVER_DIST_DIR := $(CURDIR)/../build/st-driver/$(WINFW_PLATFORM)-$(MSVC_CONFIG)
-ST_DRIVER_BUILD_DIR := $(CURDIR)/../nym-vpn-windows/split-tunnel-driver/bin/$(WINFW_PLATFORM)-$(MSVC_CONFIG)
+ST_DRIVER_BUILD_DIR := $(CURDIR)/../nym-vpn-windows/split-tunnel-driver/bin/$(WINFW_PLATFORM)-$(MSVC_CONFIG)/nymvpn-split-tunnel
 ST_DRIVER_SYS := nymvpn-split-tunnel.sys
 ST_DRIVER_INF := nymvpn-split-tunnel.inf
 ST_DRIVER_CAT := nymvpn-split-tunnel.cat
