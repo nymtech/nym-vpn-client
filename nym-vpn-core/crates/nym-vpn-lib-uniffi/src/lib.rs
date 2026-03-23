@@ -173,35 +173,6 @@
 
 uniffi::setup_scaffolding!();
 
-#[cfg(target_os = "android")]
-mod android_tls {
-    use nym_http_api_client::{ReqwestClientBuilder, registry::ConfigRecord};
-    use rustls::{ClientConfig, RootCertStore};
-    use std::sync::Arc;
-
-    fn configure_webpki_tls(builder: ReqwestClientBuilder) -> ReqwestClientBuilder {
-        let root_store = RootCertStore {
-            roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
-        };
-
-        let tls_config =
-            ClientConfig::builder_with_provider(Arc::new(rustls::crypto::ring::default_provider()))
-                .with_safe_default_protocol_versions()
-                .expect("ring supports TLS 1.2 and 1.3")
-                .with_root_certificates(root_store)
-                .with_no_client_auth();
-
-        builder.use_preconfigured_tls(tls_config)
-    }
-
-    inventory::submit! {
-        ConfigRecord {
-            priority: -100,
-            apply: configure_webpki_tls,
-        }
-    }
-}
-
 pub(crate) mod error;
 
 #[cfg(target_os = "ios")]
@@ -328,5 +299,37 @@ impl VPNConfig {
             // Not available via vpn service on mobile platforms
             split_tunnel: SplitTunnelSettings::default(),
         })
+    }
+}
+
+#[cfg(target_os = "android")]
+mod android_tls {
+    use nym_http_api_client::{ReqwestClientBuilder, registry::ConfigRecord};
+    use rustls::{ClientConfig, RootCertStore};
+    use std::sync::Arc;
+
+    fn configure_webpki_tls(builder: ReqwestClientBuilder) -> ReqwestClientBuilder {
+        let root_store = RootCertStore {
+            roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
+        };
+
+        let crypto_provider = rustls::crypto::CryptoProvider::get_default()
+            .unwrap_or(&Arc::new(rustls::crypto::ring::default_provider()))
+            .clone();
+
+        let tls_config = ClientConfig::builder_with_provider(crypto_provider)
+            .with_safe_default_protocol_versions()
+            .expect("ring supports TLS 1.2 and 1.3")
+            .with_root_certificates(root_store)
+            .with_no_client_auth();
+
+        builder.tls_backend_preconfigured(tls_config)
+    }
+
+    inventory::submit! {
+        ConfigRecord {
+            priority: -100,
+            apply: configure_webpki_tls,
+        }
     }
 }
