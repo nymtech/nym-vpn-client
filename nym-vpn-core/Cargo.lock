@@ -4822,7 +4822,7 @@ dependencies = [
 
 [[package]]
 name = "nym-apple-network"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "block2",
  "dispatch2",
@@ -5060,7 +5060,7 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -5106,7 +5106,7 @@ dependencies = [
 
 [[package]]
 name = "nym-connection-monitor"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "async-trait",
  "futures",
@@ -5278,7 +5278,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "dbus",
  "libc",
@@ -5289,7 +5289,7 @@ dependencies = [
 
 [[package]]
 name = "nym-diagnostic"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5334,7 +5334,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dns"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "duct",
  "futures",
@@ -5409,7 +5409,7 @@ dependencies = [
 
 [[package]]
 name = "nym-firewall"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "ipnetwork",
  "libc",
@@ -5431,7 +5431,7 @@ dependencies = [
 
 [[package]]
 name = "nym-firewall-config"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "ipnetwork",
 ]
@@ -5477,7 +5477,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-directory"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "anyhow",
  "itertools 0.14.0",
@@ -5612,7 +5612,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ifconfig"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "bitflags 2.11.0",
  "futures",
@@ -5662,7 +5662,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -5754,7 +5754,7 @@ dependencies = [
 
 [[package]]
 name = "nym-macos"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "nix 0.31.2",
  "tokio",
@@ -5912,7 +5912,7 @@ dependencies = [
 
 [[package]]
 name = "nym-offline-monitor"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "async-trait",
  "debounced",
@@ -5978,7 +5978,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "nym-bin-common",
  "nym-dbus",
@@ -6036,7 +6036,7 @@ dependencies = [
 
 [[package]]
 name = "nym-routing"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "bitflags 2.11.0",
  "futures",
@@ -6146,7 +6146,7 @@ dependencies = [
 
 [[package]]
 name = "nym-setup"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "anyhow",
  "clap",
@@ -6389,7 +6389,7 @@ dependencies = [
 
 [[package]]
 name = "nym-split-tunnel"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "either",
  "futures-util",
@@ -6428,7 +6428,7 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "futures",
  "nym-bin-common",
@@ -6449,7 +6449,7 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics-api-client"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "nym-http-api-client",
  "nym-statistics-common",
@@ -6617,7 +6617,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-account-controller"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "aes-gcm",
  "anyhow",
@@ -6670,7 +6670,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-api-client"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "async-trait",
  "backon",
@@ -6707,7 +6707,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "adblock",
  "anyhow",
@@ -6813,7 +6813,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "bip39",
  "ipnetwork",
@@ -6841,7 +6841,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-uniffi"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "async-trait",
  "ipnet",
@@ -6880,7 +6880,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-network-config"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "itertools 0.14.0",
  "nym-common",
@@ -6904,7 +6904,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "hyper 1.8.1",
  "nym-ipc",
@@ -6923,7 +6923,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-rpc-uniffi"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "futures",
  "nym-vpn-lib-types",
@@ -6936,7 +6936,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-store"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6958,7 +6958,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "anyhow",
  "celes",
@@ -6974,7 +6974,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "anyhow",
  "clap",
@@ -7017,7 +7017,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-go"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "base64 0.22.1",
  "hex",
@@ -7033,7 +7033,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-metadata-client"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "nym-credentials-interface",
  "nym-gateway-directory",
@@ -7048,7 +7048,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "bitflags 2.11.0",
  "futures",
@@ -10356,7 +10356,7 @@ dependencies = [
 
 [[package]]
 name = "test-manager"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "anyhow",
  "async-tempfile",
@@ -10402,7 +10402,7 @@ dependencies = [
 
 [[package]]
 name = "test-rpc"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "async-trait",
  "bytes",
@@ -10427,7 +10427,7 @@ dependencies = [
 
 [[package]]
 name = "test-runner"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "bytes",
  "dirs",
@@ -10453,7 +10453,7 @@ dependencies = [
 
 [[package]]
 name = "test_macro"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -11405,7 +11405,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "1.27.0-beta"
+version = "1.28.0-beta"
 dependencies = [
  "uniffi",
 ]
