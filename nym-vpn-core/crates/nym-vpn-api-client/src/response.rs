@@ -759,6 +759,7 @@ pub struct AccountManagementPathsResponse {
     pub account: String,
     pub privy: AccountManagementPrivyPathsResponse,
     pub autologin: AccountManagementAutologinPathsResponse,
+    pub pricing: String,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
