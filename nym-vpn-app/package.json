@@ -70,7 +70,7 @@
     "@tauri-apps/cli": "=2.10.1",
     "@types/eslint__js": "^8.42.3",
     "@types/lodash-es": "^4.17.0",
-    "@types/node": "^24.10.0",
+    "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/react-router-dom": "^5.3.3",
