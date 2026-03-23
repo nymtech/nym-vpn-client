@@ -54,7 +54,6 @@ jobs:
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       - name: Setup VS dev shell
-        if: steps.cache.outputs.cache-hit != 'true'
         uses: humbletim/vsdevenv-shell@503210b7b39a7405e534ea93c36a733b93f01087
 
       - name: Install rust toolchain
