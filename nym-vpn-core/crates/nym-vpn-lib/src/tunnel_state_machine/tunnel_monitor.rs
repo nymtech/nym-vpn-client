@@ -509,8 +509,8 @@ impl TunnelMonitor {
             RegistrationResult::Wireguard(result) => {
                 TunnelConnectionData::Wireguard(WireguardConnectionData {
                     entry_bridge_addr: None, // not known yet
-                    entry: WireguardNode::from(&result.entry_gateway_data),
-                    exit: WireguardNode::from(&result.exit_gateway_data),
+                    entry: WireguardNode::from(result.entry_gateway_data()),
+                    exit: WireguardNode::from(result.exit_gateway_data()),
                 })
             }
         };
@@ -963,14 +963,31 @@ impl TunnelMonitor {
             }
         });
 
-        let WireguardRegistrationResult {
+        let (
             entry_gateway_client,
             exit_gateway_client,
             entry_gateway_data,
             exit_gateway_data,
             authenticator_listener_handle,
             bw_controller,
-        } = registration_result;
+        ) = match registration_result {
+            WireguardRegistrationResult::Legacy(res) => (
+                Some(res.entry_gateway_client),
+                Some(res.exit_gateway_client),
+                res.entry_gateway_data,
+                res.exit_gateway_data,
+                Some(res.authenticator_listener_handle),
+                res.bw_controller,
+            ),
+            WireguardRegistrationResult::LewesProtocol(res) => (
+                None,
+                None,
+                res.entry_gateway_data,
+                res.exit_gateway_data,
+                None,
+                res.bw_controller,
+            ),
+        };
 
         let gw_update_version = self
             .tunnel_parameters
