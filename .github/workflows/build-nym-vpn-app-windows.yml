@@ -190,28 +190,56 @@ jobs:
 
       - name: Use nym-vpn-core artifact url from inputs
         if: ${{ inputs.core_artifact_url }}
+        shell: pwsh
         run: |
-          echo "core_asset_url: ${{ inputs.core_artifact_url }}"
-          "core_asset_url=${{ inputs.core_artifact_url }}" >> $env:GITHUB_ENV
+          $inputUrl = '${{ inputs.core_artifact_url }}'
+          Write-Output "core_artifact_url input: $inputUrl"
+
+          if ($inputUrl -match '^https://github\.com/[^/]+/[^/]+/actions/runs/\d+/artifacts/(\d+)$') {
+            $artifactId = $matches[1]
+            $apiUrl = "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$artifactId/zip"
+            "core_asset_url=$apiUrl" >> $env:GITHUB_ENV
+            "core_asset_requires_auth=true" >> $env:GITHUB_ENV
+            Write-Output "Resolved Actions artifact API URL: $apiUrl"
+          }
+          else {
+            "core_asset_url=$inputUrl" >> $env:GITHUB_ENV
+            "core_asset_requires_auth=false" >> $env:GITHUB_ENV
+          }
 
       - name: Download nym-vpn-core artifact
+        shell: pwsh
         run: |
           $url = '${{ env.core_asset_url }}'
           $output = 'nym-vpn-core.zip'
-          Invoke-WebRequest -Uri $url -OutFile $output
+
+          if ('${{ env.core_asset_requires_auth }}' -eq 'true') {
+            $headers = @{
+              Authorization = 'Bearer ${{ secrets.GITHUB_TOKEN }}'
+              Accept = 'application/vnd.github+json'
+              'X-GitHub-Api-Version' = '2026-03-10'
+            }
+            Invoke-WebRequest -Uri $url -Headers $headers -OutFile $output
+          }
+          else {
+            Invoke-WebRequest -Uri $url -OutFile $output
+          }
 
       - name: Unzip nym-vpn-core artifact
+        shell: pwsh
         run: |
           $output = 'nym-vpn-core.zip'
           $destination = 'nym-vpn-core-bin'
           Expand-Archive -Path $output -DestinationPath $destination -Force
 
       - name: List files
+        shell: pwsh
         run: |
           $destination = 'nym-vpn-core-bin'
           Get-ChildItem -Path $destination -Recurse
 
       - name: Copy files
+        shell: pwsh
         run: |
           $destination = 'nym-vpn-core-bin'
           $subdirectory = Get-ChildItem -Path $destination | Where-Object { $_.PSIsContainer } | Select-Object -First 1
