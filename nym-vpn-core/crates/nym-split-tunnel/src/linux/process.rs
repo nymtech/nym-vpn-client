@@ -88,6 +88,8 @@ impl ProcessMonitor {
         let msg_len = std::mem::size_of::<nlcn_event_msg>();
         let mut buf = bytes::BytesMut::with_capacity(msg_len);
 
+        // todo: fetch initial list of processes
+
         loop {
             tokio::select! {
                 res = self.nl_sock.recv(&mut buf) => {
@@ -149,8 +151,9 @@ impl ProcessMonitor {
 
         self.proc_by_pid.insert(proc_pid, exe_path.clone());
 
-        Some(ProcessEvent::Exec {
-            pid: proc_pid,
+        Some(ProcessEvent::Fork {
+            parent_pid: event.parent_tgid,
+            child_pid: proc_pid,
             path: exe_path,
         })
     }
