@@ -6452,6 +6452,7 @@ dependencies = [
  "pcap",
  "pidfd-util",
  "pnet_packet 0.35.0",
+ "procfs",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
@@ -7778,7 +7779,7 @@ checksum = "5a66784389d9c6308293bfe877356968afd267862473aae47a6ed3eedef95da6"
 dependencies = [
  "async-io",
  "libc",
- "nix 0.30.1",
+ "nix 0.31.2",
 ]
 
 [[package]]
@@ -8122,6 +8123,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29492a7b48a00ab80202528e235d2f80a04ccff3747540b4ec6881f2f2bc42d1"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "procfs"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25485360a54d6861439d60facef26de713b1e126bf015ec8f98239467a2b82f7"
+dependencies = [
+ "bitflags 2.11.0",
+ "procfs-core",
+ "rustix",
+]
+
+[[package]]
+name = "procfs-core"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6401bf7b6af22f78b563665d15a22e9aef27775b79b149a66ca022468a4e405"
+dependencies = [
+ "bitflags 2.11.0",
+ "hex",
 ]
 
 [[package]]

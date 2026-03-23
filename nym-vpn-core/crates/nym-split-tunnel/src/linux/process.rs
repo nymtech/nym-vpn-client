@@ -19,6 +19,15 @@ use super::bindings::{
     proc_event__bindgen_ty_1_fork_proc_event as ForkEvt,
 };
 
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("IO error")]
+    Io(#[from] std::io::Error),
+
+    #[error("Proc error")]
+    Proc(#[from] procfs::ProcError),
+}
+
 #[derive(Debug, Clone)]
 pub enum ProcessEvent {
     Fork {
@@ -46,15 +55,50 @@ impl ProcessMonitor {
     pub async fn spawn(
         tx: UnboundedSender<ProcessEvent>,
         shutdown_token: CancellationToken,
-    ) -> std::io::Result<JoinHandle<()>> {
+    ) -> Result<JoinHandle<()>, Error> {
         let pid = unsafe { getpid() };
         let sockaddr = netlink_sys::SocketAddr::new(pid as u32, CN_IDX_PROC);
         let mut nl_sock = TokioSocket::new(NETLINK_CONNECTOR as _)?;
         nl_sock.socket_mut().bind(&sockaddr)?;
 
+        let proc_iter = procfs::process::all_processes()?.filter_map(|proc| {
+            match proc {
+                Ok(proc) => Some(proc),
+                Err(err) => {
+                    match err {
+                        procfs::ProcError::NotFound(_) => {
+                            // process vanished
+                            None
+                        }
+                        procfs::ProcError::Io(err, path) => {
+                            tracing::trace!("io error when listing process {path:?}: {err}");
+                            None
+                        }
+                        err => {
+                            tracing::error!("can't read process: {err}");
+                            None
+                        }
+                    }
+                }
+            }
+        });
+
+        let mut proc_by_pid = HashMap::new();
+
+        for proc in proc_iter {
+            match proc.exe() {
+                Ok(exec_path) => {
+                    proc_by_pid.insert(proc.pid(), exec_path);
+                }
+                Err(err) => {
+                    tracing::error!("failed to obtain exec path for {}: {}", proc.pid(), err);
+                }
+            }
+        }
+
         let proc_monitor = Self {
             nl_sock,
-            proc_by_pid: HashMap::new(),
+            proc_by_pid,
         };
         proc_monitor.subscribe(true).await?;
 
@@ -87,8 +131,6 @@ impl ProcessMonitor {
     async fn run(mut self, tx: UnboundedSender<ProcessEvent>, shutdown_token: CancellationToken) {
         let msg_len = std::mem::size_of::<nlcn_event_msg>();
         let mut buf = bytes::BytesMut::with_capacity(msg_len);
-
-        // todo: fetch initial list of processes
 
         loop {
             tokio::select! {

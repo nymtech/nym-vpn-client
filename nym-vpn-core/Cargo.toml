@@ -145,6 +145,7 @@ pbkdf2 = "0.12.2"
 pcap = "2.4.0"
 plist = "1.8.0"
 proc-macro2 = "1.0"
+procfs = { version = "0.18", default-features = false }
 prost = "0.14.3"
 prost-types = "0.14.3"
 pretty_assertions = "1.4.1"
