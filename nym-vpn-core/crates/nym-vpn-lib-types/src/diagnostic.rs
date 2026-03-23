@@ -204,9 +204,12 @@ impl From<&nym_registration_common::WireguardConfiguration> for GatewayDataRepor
             public_key: value.public_key.to_base58_string(),
             endpoint: value.endpoint,
             // While this is technically copying a PSK, it's only for display and in the diagnostic which uses ephemeral stuff anyway
-            psk: value
-                .psk
-                .map(|psk| psk.iter().map(|b| format!("{:02x}", b)).collect()),
+            psk: value.psk.as_ref().map(|psk| {
+                psk.as_bytes()
+                    .iter()
+                    .map(|b| format!("{:02x}", b))
+                    .collect()
+            }),
             private_ipv4: value.private_ipv4,
             private_ipv6: value.private_ipv6,
         }
