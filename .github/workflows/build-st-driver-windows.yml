@@ -54,6 +54,6 @@ jobs:
           path: |
             ${{ github.workspace }}/build/st-driver/x64-Release/nymvpn-split-tunnel.sys
             ${{ github.workspace }}/build/st-driver/x64-Release/nymvpn-split-tunnel.inf
-            ${{ github.workspace }}/build/st-driver/x64-Release/nymvpn-split-tunnel.cer
+            ${{ github.workspace }}/build/st-driver/x64-Release/nymvpn-split-tunnel.cat
           if-no-files-found: error
           retention-days: 1
