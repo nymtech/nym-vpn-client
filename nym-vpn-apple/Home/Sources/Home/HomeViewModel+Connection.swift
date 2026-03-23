@@ -31,14 +31,12 @@ public extension HomeViewModel {
                 navigateToOnboarding()
                 return
             }
-            guard await credentialsManager.isAccountValid()
-            else {
-                Task {
-                    await connectionManager.disconnectAndWaitForDisconnected()
-                    await credentialsManager.updateAccountSummary()
+            if await !credentialsManager.isAccountValid() {
+                await credentialsManager.updateAccountSummary()
+                if !credentialsManager.isAccountActive() {
                     navigateToPlanPurchase()
+                    return
                 }
-                return
             }
         }
 
