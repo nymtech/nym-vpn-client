@@ -255,7 +255,7 @@ public extension HomeViewModel {
 
         if accountSummary.isExpiringSoon {
             appSettings.expirySoonDismissedAt = now
-        }else if accountSummary.isExpiringWarning {
+        } else if accountSummary.isExpiringWarning {
             appSettings.expiryWarningDismissedAt = now
         }
         withAnimation { isExpiryBannerDisplayed = false }
@@ -267,7 +267,6 @@ private extension HomeViewModel {
     func setup() {
         setupTunnelManagerObservers()
         setupUpdateRequiredObserver()
-        setupGatewayManagerObserver()
         setupSystemMessageObservers()
         setupIsMnemonicImportedObserver()
         setupAccountSummaryObserver()
@@ -301,13 +300,6 @@ private extension HomeViewModel {
             }
             .store(in: &cancellables)
 #endif
-    }
-
-    func setupGatewayManagerObserver() {
-        gatewayManager.$lastError.sink { [weak self] error in
-            self?.lastError = error
-        }
-        .store(in: &cancellables)
     }
 
     func setupUpdateRequiredObserver() {

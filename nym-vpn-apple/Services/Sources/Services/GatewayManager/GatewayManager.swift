@@ -32,7 +32,6 @@ import GRPCManager
     @Published public var entryCountries: [NymCountry]
     @Published public var exitCountries: [NymCountry]
     @Published public var vpnCountries: [NymCountry]
-    @Published public var lastError: Error?
 
     public let countriesSupportingRegions = ["US"]
 
@@ -257,6 +256,22 @@ extension GatewayManager {
 
 // MARK: - Updating countries -
 extension GatewayManager {
+    func updateGateways() {
+        guard !isLoading, needsReload()
+        else {
+            if entry.isEmpty || exit.isEmpty || vpn.isEmpty {
+                loadGatewaysFromStore()
+            }
+            return
+        }
+        isLoading = true
+
+        Task { [weak self] in
+            guard let self else { return }
+            await self.fetchGateways()
+        }
+    }
+
     func fetchGateways() async {
         do {
             let result = try await worker.fetchGateways()
@@ -281,8 +296,7 @@ extension GatewayManager {
             updateCountriesFromGateways()
             isLoading = false
         } catch {
-            logger.error("Failed to fetch gateways: \(String(describing: error))")
-            updateError(with: error)
+            logger.error("Failed to fetch gateways: \(String(describing: error.localizedDescription))")
             isLoading = false
         }
     }
@@ -304,16 +318,6 @@ extension GatewayManager {
             }
         }
     }
-
-    private func localizeAndSortCountries(_ countries: [NymCountry]) -> [NymCountry] {
-        var localized = countries.compactMap { country -> NymCountry? in
-            guard var localizedCountry = localizedCountry(with: country.code) else { return nil }
-            localizedCountry.regions = country.regions
-            return localizedCountry
-        }
-        localized.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        return localized
-    }
 }
 
 // MARK: - Private helpers (MainActor)
@@ -326,22 +330,6 @@ private extension GatewayManager {
                 updateGateways()
                 try? await Task.sleep(for: .seconds(300))
             }
-        }
-    }
-
-    func updateGateways() {
-        guard !isLoading, needsReload()
-        else {
-            if entry.isEmpty || exit.isEmpty || vpn.isEmpty {
-                loadGatewaysFromStore()
-            }
-            return
-        }
-        isLoading = true
-
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            await self.fetchGateways()
         }
     }
 
@@ -368,10 +356,14 @@ private extension GatewayManager {
             }
         }
     }
-}
 
-extension GatewayManager {
-    func updateError(with error: Error) {
-        lastError = error
+    func localizeAndSortCountries(_ countries: [NymCountry]) -> [NymCountry] {
+        var localized = countries.compactMap { country -> NymCountry? in
+            guard var localizedCountry = localizedCountry(with: country.code) else { return nil }
+            localizedCountry.regions = country.regions
+            return localizedCountry
+        }
+        localized.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        return localized
     }
 }
