@@ -21,9 +21,9 @@ thiserror.workspace = true
 tracing.workspace = true
 hex.workspace = true
 base64.workspace = true
-zeroize.workspace = true
 rand.workspace = true
 nym-crypto.workspace = true
+nym-wireguard-types.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
