@@ -80,7 +80,7 @@ ST_DRIVER_DIST_DIR := $(CURDIR)/../build/st-driver/$(WINFW_PLATFORM)-$(MSVC_CONF
 ST_DRIVER_BUILD_DIR := $(CURDIR)/../nym-vpn-windows/split-tunnel-driver/bin/$(WINFW_PLATFORM)-$(MSVC_CONFIG)
 ST_DRIVER_SYS := nymvpn-split-tunnel.sys
 ST_DRIVER_INF := nymvpn-split-tunnel.inf
-ST_DRIVER_CER := nymvpn-split-tunnel.cer
+ST_DRIVER_CAT := nymvpn-split-tunnel.cat
 ST_DRIVER_PDB := nymvpn-split-tunnel.pdb
 
 # Ensure that msys2 inherits PATH from environment
@@ -141,7 +141,7 @@ st-driver: create_target_dir
 	New-Item -ItemType Directory -Force -Path "$(ST_DRIVER_DIST_DIR)"
 	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_SYS)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_SYS)" -Force
 	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_INF)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_INF)" -Force
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_CER)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_CER)" -Force
+	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_CAT)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_CAT)" -Force
 	if (Test-Path "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)") { #\
     	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
 	}
@@ -149,7 +149,7 @@ st-driver: create_target_dir
 # Copy driver files to target directory
 	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_SYS)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_SYS)" -Force
 	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_INF)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_INF)" -Force
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_CER)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_CER)" -Force
+	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_CAT)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_CAT)" -Force
 	if (Test-Path "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)") { #\
     	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
 	}
