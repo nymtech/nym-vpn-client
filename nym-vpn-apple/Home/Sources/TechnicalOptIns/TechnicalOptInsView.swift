@@ -19,6 +19,9 @@ public struct TechnicalOptInsView: View {
                 Spacer()
                 titleView()
                 subtitleView()
+#if os(iOS)
+                debugLogsToggle()
+#endif
                 sentryToggle()
 #if os(macOS)
                 statisticsToggle()
@@ -60,6 +63,10 @@ private extension TechnicalOptInsView {
         Spacer()
     }
 
+    func debugLogsToggle() -> some View {
+        SettingsListItem(viewModel: debugLogsViewModel())
+    }
+
     func sentryToggle() -> some View {
         SettingsListItem(viewModel: sentryViewModel())
     }
@@ -81,6 +88,18 @@ private extension TechnicalOptInsView {
 }
 
 private extension TechnicalOptInsView {
+    func debugLogsViewModel() -> SettingsListItemViewModel {
+        SettingsListItemViewModel(
+            accessory: .toggle(
+                isOn: $appSettings.isDebugLogsOn
+            ),
+            title: "settings.privacyAndData.enableDebugLogs".localizedString,
+            systemImageName: "ladybug",
+            position: SettingsListItemPosition(isFirst: true, isLast: true),
+            action: {}
+        )
+    }
+
     func sentryViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
             accessory: .toggle(
