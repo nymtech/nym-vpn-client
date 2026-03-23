@@ -51,7 +51,7 @@ impl WireguardDiagnostic {
         let wg_tunnel = Tunn::new(
             gateway_keypair.private_key().inner().clone(), // Yes this is cloning a private key. It is ephemeral and dropped at the end of the run anyway
             wireguard_config.public_key.inner(),
-            None,
+            wireguard_config.psk.map(Into::into),
             None,
             0,
             None,

@@ -192,16 +192,24 @@ impl RegistrationReport {
 pub struct GatewayDataReport {
     pub public_key: String,
     pub endpoint: SocketAddr,
+    pub psk: Option<String>,
     pub private_ipv4: Ipv4Addr,
     pub private_ipv6: Ipv6Addr,
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_registration_common::WireguardConfiguration> for GatewayDataReport {
-    fn from(value: nym_registration_common::WireguardConfiguration) -> Self {
+impl From<&nym_registration_common::WireguardConfiguration> for GatewayDataReport {
+    fn from(value: &nym_registration_common::WireguardConfiguration) -> Self {
         Self {
             public_key: value.public_key.to_base58_string(),
             endpoint: value.endpoint,
+            // While this is technically copying a PSK, it's only for display and in the diagnostic which uses ephemeral stuff anyway
+            psk: value.psk.as_ref().map(|psk| {
+                psk.as_bytes()
+                    .iter()
+                    .map(|b| format!("{:02x}", b))
+                    .collect()
+            }),
             private_ipv4: value.private_ipv4,
             private_ipv6: value.private_ipv6,
         }

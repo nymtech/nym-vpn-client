@@ -134,6 +134,10 @@ impl ConnectingState {
                     .as_ref()
                     .map(|v| v.entry_gateway().endpoints())
                     .unwrap_or_default(),
+                lp_entry_endpoints: selected_gateways
+                    .as_ref()
+                    .map(|v| v.entry_gateway().lp_endpoints())
+                    .unwrap_or_default(),
                 api_endpoints: Vec::new(),
                 // Allow default DNS servers since hickory does not rely on custom DNS
                 dns_servers: shared_state.tunnel_settings.default_dns_ips(),
@@ -478,6 +482,8 @@ impl ConnectingState {
             }
 
             self.firewall_policy_params.ws_entry_endpoints = gateways.entry_gateway().endpoints();
+            self.firewall_policy_params.lp_entry_endpoints =
+                gateways.entry_gateway().lp_endpoints();
             Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)
         };
         self.selected_gateways = Some(*gateways);
@@ -768,6 +774,9 @@ struct ConnectingPolicyParameters {
     /// Entry gateway websocket endpoints
     ws_entry_endpoints: Vec<SocketAddr>,
 
+    /// Entry gateway LP control endpoints
+    lp_entry_endpoints: Vec<SocketAddr>,
+
     /// API endpoints
     api_endpoints: Vec<SocketAddr>,
 
@@ -800,6 +809,22 @@ impl ConnectingPolicyParameters {
                 )
             })
             .collect::<Vec<_>>();
+
+        // Allow LP control endpoints for LP-based registration.
+        peer_endpoints.extend(
+            self.lp_entry_endpoints
+                .iter()
+                .filter(|addr| addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()))
+                .map(|addr| {
+                    AllowedEndpoint::new(
+                        Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
+                        #[cfg(any(target_os = "linux", target_os = "macos"))]
+                        AllowedClients::Root,
+                        #[cfg(target_os = "windows")]
+                        AllowedClients::current_exe(),
+                    )
+                }),
+        );
 
         // Allow WireGuard and entry endpoint
         if let Some(addr) = self.wg_entry_endpoint {

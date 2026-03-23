@@ -135,11 +135,13 @@ impl ConnectedTunnel {
     ) -> Result<TunnelHandle> {
         let entry_mtu = self.entry_mtu();
         let exit_mtu = self.exit_mtu();
+        let (wg_entry_data, wg_exit_data) =
+            self.connection_data.into_effective_entry_and_exit_data();
         let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
-            self.connection_data.effective_entry_gateway_data(),
+            wg_entry_data,
             self.entry_wg_keypair,
             AllowedIps::Specific(vec![
-                IpNetwork::from(self.connection_data.exit.endpoint.ip()),
+                IpNetwork::from(wg_exit_data.endpoint.ip()),
                 IpNetwork::from(tunnel_constants.in_tunnel_bandwidth_metadata_endpoint.ip()),
             ]),
             options.dns.clone(),
@@ -152,7 +154,7 @@ impl ConnectedTunnel {
         }
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
-            self.connection_data.exit,
+            wg_exit_data,
             self.exit_wg_keypair,
             AllowedIps::All,
             options.dns,
@@ -261,11 +263,13 @@ impl ConnectedTunnel {
     ) -> Result<TunnelHandle> {
         let entry_mtu = self.entry_mtu();
         let exit_mtu = self.exit_mtu();
+        let (wg_entry_data, wg_exit_data) =
+            self.connection_data.into_effective_entry_and_exit_data();
         let mut wg_entry_config = WgNodeConfig::with_wireguard_config(
-            self.connection_data.effective_entry_gateway_data(),
+            wg_entry_data,
             self.entry_wg_keypair,
             AllowedIps::Specific(vec![
-                IpNetwork::from(self.connection_data.exit.endpoint.ip()),
+                IpNetwork::from(wg_exit_data.endpoint.ip()),
                 IpNetwork::from(tunnel_constants.in_tunnel_bandwidth_metadata_endpoint.ip()),
             ]),
             options.dns.clone(),
@@ -279,7 +283,7 @@ impl ConnectedTunnel {
         }
 
         let wg_exit_config = WgNodeConfig::with_wireguard_config(
-            self.connection_data.exit,
+            wg_exit_data,
             self.exit_wg_keypair,
             AllowedIps::All,
             options.dns,

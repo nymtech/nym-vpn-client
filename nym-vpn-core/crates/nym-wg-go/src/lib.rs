@@ -11,8 +11,8 @@ use std::{fmt, net::SocketAddr};
 
 use ipnetwork::IpNetwork;
 use nym_crypto::asymmetric::x25519;
+use nym_wireguard_types::PresharedKey;
 use uapi::UapiConfigBuilder;
-use zeroize::{Zeroize, ZeroizeOnDrop};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -102,20 +102,5 @@ impl PeerEndpointUpdate {
     fn append_to(&self, config_builder: &mut UapiConfigBuilder) {
         config_builder.add("public_key", self.public_key.as_bytes().as_ref());
         config_builder.add("endpoint", self.endpoint.to_string().as_str());
-    }
-}
-
-#[derive(Zeroize, ZeroizeOnDrop)]
-pub struct PresharedKey([u8; 32]);
-
-impl PresharedKey {
-    pub fn as_bytes(&self) -> &[u8; 32] {
-        &self.0
-    }
-}
-
-impl From<[u8; 32]> for PresharedKey {
-    fn from(key: [u8; 32]) -> PresharedKey {
-        PresharedKey(key)
     }
 }
