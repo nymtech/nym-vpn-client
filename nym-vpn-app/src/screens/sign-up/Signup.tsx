@@ -2,17 +2,86 @@ import clsx from 'clsx';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { useCallback, useRef } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { NymSplash } from '../../assets';
 import { Button, ButtonText, Link, MsIcon, PageAnim } from '../../ui';
-import { useMainState } from '../../contexts';
-import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
+import { useMainDispatch, useMainState } from '../../contexts';
+import { PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
 import { PrivyButton } from '../../components';
+import { TAccountSummary } from '../../types/tauri';
+import { useDeepLink } from '../../hooks';
+import { CCache } from '../../cache';
+import { StateDispatch } from '../../types';
 
 function Login() {
-  const { uiTheme } = useMainState();
-  const { t } = useTranslation('login');
+  const { uiTheme, welcomeChecked } = useMainState();
+  const { t, i18n } = useTranslation('login');
   const navigate = useNavigate();
+
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { startListening } = useDeepLink();
+  const dispatch = useMainDispatch() as StateDispatch;
+
+  const refreshAccount = useCallback(async () => {
+    try {
+      const summary = await invoke<TAccountSummary>('get_account_summary');
+      dispatch({ type: 'set-account-summary', summary });
+    } catch (err) {
+      console.error('Failed to get account summary', err);
+    }
+  }, [dispatch]);
+
+  const handleCreateAccount = async () => {
+    const url = await invoke<string>('get_deep_link', {
+      locale: i18n.language,
+      kind: 'CreateAccount',
+    });
+
+    openUrl(url);
+
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutIdRef.current = setTimeout(
+          () => reject(new Error('Login timeout')),
+          600000, // 10 minutes
+        );
+      });
+
+      const deeplinkurl = await Promise.race([
+        startListening(),
+        timeoutPromise,
+      ]);
+
+      await invoke('store_deeplink_account', {
+        callbackUrl: deeplinkurl,
+      });
+
+      dispatch({ type: 'set-account', stored: true });
+      await refreshAccount();
+      await CCache.del('cache-account-id');
+      await CCache.del('cache-device-id');
+      dispatch({ type: 'reset-error' });
+
+      if (!welcomeChecked) {
+        navigate(routes.welcome);
+      } else {
+        navigate(routes.root);
+      }
+    } catch (error) {
+      console.error('[Signup] Create account error: ', error);
+      // if error, then most likely the deeplink call timed out.
+      // But the user might still finish the purchase on the website.
+      navigate(routes.login);
+    } finally {
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+    }
+  };
 
   return (
     <PageAnim className="relative h-full flex flex-col justify-end items-center gap-6 select-none cursor-default">
@@ -26,13 +95,7 @@ function Login() {
           <p className="mt-2 text-iron dark:text-bombay whitespace-pre-line">
             {t('signup.maximum-privacy.description')}
           </p>
-          <Button
-            onClick={() => {
-              openUrl(NymVpnPricingUrl);
-              navigate(routes.login);
-            }}
-            className="mt-4"
-          >
+          <Button onClick={handleCreateAccount} className="mt-4">
             <div className="flex items-center gap-2 whitespace-pre-wrap">
               {t('signup.create-account')} <MsIcon icon="open_in_new" />
             </div>

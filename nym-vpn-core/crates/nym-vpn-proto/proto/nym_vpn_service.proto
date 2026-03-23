@@ -1024,6 +1024,7 @@ enum DeeplinkKind {
   KIND_PRIVY_LINK = 1;
   AutologinRenew = 2;
   AutologinView = 3;
+  CreateAccount = 4;
 }
 
 service NymVpnService {
