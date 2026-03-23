@@ -2,7 +2,8 @@ import SwiftUI
 import Theme
 
 public struct StatusInfoView: View {
-    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.scenePhase)
+    private var scenePhase
     @Binding private var connectedDate: Date?
     @Binding private var infoState: StatusInfoState
 
@@ -33,7 +34,7 @@ private extension StatusInfoView {
         Text(infoState.localizedTitle)
             .foregroundStyle(infoState.textColor)
             .textStyle(.Body.Medium.regular)
-            .lineLimit(3, reservesSpace: true)
+            .lineLimit(3, reservesSpace: false)
             .multilineTextAlignment(.center)
     }
 
