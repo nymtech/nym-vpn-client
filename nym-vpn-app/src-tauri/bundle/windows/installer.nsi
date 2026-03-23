@@ -704,9 +704,9 @@ Section Install
   File "..\..\..\..\winfw.dll"
 
   ; Copy split-tunnel driver artifacts
-  File "..\..\..\..\nymvpn-split-tunnel.sys"
-  File "..\..\..\..\nymvpn-split-tunnel.inf"
-  File "..\..\..\..\nymvpn-split-tunnel.cat"
+  ;File "..\..\..\..\nymvpn-split-tunnel.sys"
+  ;File "..\..\..\..\nymvpn-split-tunnel.inf"
+  ;File "..\..\..\..\nymvpn-split-tunnel.cat"
 
   ; Install NymVPN service, abort early if something goes wrong
   vpnd-install:

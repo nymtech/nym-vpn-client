@@ -5,9 +5,6 @@ SSL_COM_CREDENTIAL_ID=$4
 SSL_COM_TOTP_SECRET=$5
 CODE_SIGNING_TOOL="/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/CodeSignTool.sh"
 
-# TEMP: Find the driver file
-find /c/actions-runner/_work/nym-vpn-client/nym-vpn-client -name \*.sys -print
-
 if ! $CODE_SIGNING_TOOL_PATH \
 sign \
 -username $SSL_COM_USERNAME \
