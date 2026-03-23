@@ -96,7 +96,7 @@ jobs:
 
       - name: Setup MSBuild.exe
         if: contains(matrix.os, 'windows')
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
 
       - name: fmt check
         working-directory: nym-vpn-app/src-tauri
