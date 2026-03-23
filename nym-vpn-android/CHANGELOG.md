@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Use isLinked() for Privy checks (https://github.com/nymtech/nym-vpn-client/pull/4924)
 
+## [3.1.2] - 21.03.2026
+
+### Changed
+- Use webkpi instead of ruslts-platform-verifier and android only
+
 ## [3.1.1] - 19.03.2026
 
 ### Added

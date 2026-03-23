@@ -303,18 +303,33 @@ impl VPNConfig {
 }
 
 #[cfg(target_os = "android")]
-pub mod android_init {
-    use jni::JNIEnv;
-    use jni::objects::{JClass, JObject};
+mod android_tls {
+    use nym_http_api_client::{ReqwestClientBuilder, registry::ConfigRecord};
+    use rustls::{ClientConfig, RootCertStore};
+    use std::sync::Arc;
 
-    #[unsafe(no_mangle)]
-    #[allow(non_snake_case)]
-    pub extern "system" fn Java_net_nymtech_vpn_backend_controller_VpnCoreController_initPlatformVerifier(
-        mut env: JNIEnv,
-        _class: JClass,
-        context: JObject,
-    ) {
-        rustls_platform_verifier::android::init_hosted(&mut env, context)
-            .expect("Failed to initialize rustls-platform-verifier");
+    fn configure_webpki_tls(builder: ReqwestClientBuilder) -> ReqwestClientBuilder {
+        let root_store = RootCertStore {
+            roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
+        };
+
+        let crypto_provider = rustls::crypto::CryptoProvider::get_default()
+            .unwrap_or(&Arc::new(rustls::crypto::ring::default_provider()))
+            .clone();
+
+        let tls_config = ClientConfig::builder_with_provider(crypto_provider)
+            .with_safe_default_protocol_versions()
+            .expect("ring supports TLS 1.2 and 1.3")
+            .with_root_certificates(root_store)
+            .with_no_client_auth();
+
+        builder.tls_backend_preconfigured(tls_config)
+    }
+
+    inventory::submit! {
+        ConfigRecord {
+            priority: -100,
+            apply: configure_webpki_tls,
+        }
     }
 }
