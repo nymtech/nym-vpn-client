@@ -48,14 +48,14 @@ extension GRPCManager {
         }.value
     }
 
-    public func privyLogin(locale: String, name: String, isLink: Bool) async throws -> String? {
+    public func privyLogin(locale: String, name: String, kind: NymDeeplinkKind) async throws -> String? {
         try await Task.detached { [weak self] in
             try await self?.rpcClient?.getDeeplink(
                 params:
                     GetDeeplinkParams(
                         client: .desktop,
                         locale: locale,
-                        kind: isLink ? .privyLink : .privy,
+                        kind: kind.deeplinkKind,
                         name: name
                     )
             )

@@ -366,7 +366,7 @@ extension AccountAndDevicesView {
 
     func linkAccount() async {
         impactGenerator.softImpact()
-        let link = try? await credentialsManager.privyLogin(isLink: true)
+        let link = try? await credentialsManager.privyLogin(kind: .privyLink)
         try? externalLinkManager.openExternalURL(urlString: link)
     }
 
