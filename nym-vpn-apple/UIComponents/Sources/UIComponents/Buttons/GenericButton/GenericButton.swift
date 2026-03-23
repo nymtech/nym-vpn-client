@@ -128,7 +128,7 @@ public struct GenericButton: View {
                     .minimumScaleFactor(0.8)
 
                 if isExternalLink {
-                    ExternalLinkImage(color: NymColor.black)
+                    ExternalLinkImage(color: titleColor ?? style.textTitleColor(isDisabled: isDisabled))
                 }
             }
         }
