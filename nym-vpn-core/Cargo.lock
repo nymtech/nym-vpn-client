@@ -6871,7 +6871,7 @@ dependencies = [
  "nym-vpn-proto",
  "nym-vpn-store",
  "rand 0.8.5",
- "rustls 0.23.36",
+ "rustls 0.23.37",
  "sentry",
  "serde_json",
  "thiserror 2.0.18",
@@ -6882,7 +6882,7 @@ dependencies = [
  "tracing-android",
  "uniffi",
  "vergen-gitcl",
- "webpki-roots 1.0.3",
+ "webpki-roots 1.0.6",
 ]
 
 [[package]]
