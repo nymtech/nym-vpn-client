@@ -146,7 +146,7 @@ import PathManager
         }.value
     }
 
-    public func privyLogin(isLink: Bool = false) async throws -> String? {
+    public func privyLogin(kind: NymDeeplinkKind) async throws -> String? {
         didReceiveAccountLinkCallback = false
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
         let name = "default"
@@ -158,16 +158,16 @@ import PathManager
             params: .init(
                 client: .mobile,
                 locale: locale,
-                kind: isLink ? .privyLink : .privy,
+                kind: kind.deeplinkKind,
                 name: name
             )
         )
 #elseif os(macOS)
-        return try await grpcManager.privyLogin(locale: locale, name: name, isLink: isLink)
+        return try await grpcManager.privyLogin(locale: locale, name: name, kind: kind)
 #endif
     }
 
-    public func privyLoginStore(callbackURLString: String) async throws {
+    public func storeDeeplink(callbackURLString: String) async throws {
 #if os(iOS)
         guard let deeplinks, let networkEnv = configurationManager.networkEnv else { return }
         let mnemonic = try await deeplinks.deriveMnemonic(deeplinkCallbackUrl: callbackURLString)

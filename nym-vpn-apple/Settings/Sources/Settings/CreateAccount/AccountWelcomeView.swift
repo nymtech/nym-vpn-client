@@ -29,6 +29,7 @@ public struct AccountWelcomeView: View {
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
     @State private var isLoggingInWithPrivy = false
+    @State private var isCreateAccount = false
     private var type: AccountWelcomeType
 
     public var body: some View {
@@ -65,8 +66,12 @@ public struct AccountWelcomeView: View {
             Button("ok".localizedString, role: .cancel) { }
         }
         .onReceive(appSettings.$isCredentialImportedPublisher.removeDuplicates()) { newValue in
-            guard newValue, isLoggingInWithPrivy else { return }
-            isLoggingInWithPrivy = false
+            guard newValue else { return }
+            if isLoggingInWithPrivy {
+                isLoggingInWithPrivy = false
+            } else if isCreateAccount {
+                isCreateAccount = false
+            }
             navigateHome()
         }
     }
@@ -153,11 +158,13 @@ private extension AccountWelcomeView {
                 navigateToLoginOrCreateAccount()
             }
 #elseif os(macOS)
-        GenericButton(title: createAccountButtonLocalizedTitle, isExternalLink: true)
+        GenericButton(title: createAccountButtonLocalizedTitle)
             .onTapGesture {
+                isCreateAccount = true
                 navigateToLoginOrCreateAccount()
             }
             .accessibilityAction {
+                isCreateAccount = true
                 navigateToLoginOrCreateAccount()
             }
 #endif
@@ -211,7 +218,8 @@ private extension AccountWelcomeView {
     var privyLoginButton: some View {
         GenericButton(
             title: privyLoginButtonTitle,
-            style: .primaryBorderOnly
+            style: .primaryBorderOnly,
+            isExternalLink: true
         )
         .onTapGesture {
             privyLogin()
@@ -251,19 +259,22 @@ private extension AccountWelcomeView {
     func navigateToLoginOrCreateAccount() {
         switch type {
         case .createAccount:
-            navigateToCreateAccount()
+            Task {
+                await navigateToCreateAccount()
+            }
         case .login:
             navigateToLogin()
         }
     }
 
-    func navigateToCreateAccount() {
+    func navigateToCreateAccount() async {
 #if os(iOS)
         ImpactGenerator.shared.impact()
         path.append(SettingLink.generatePassphrase(displayPurchaseView: false))
 #elseif os(macOS)
-        try? externalLinkManager.openExternalURL(urlString: Constants.pricingURL.rawValue)
-        navigateToLogin()
+        // TODO: new create account deeeeeplink
+        let createAccountLink = try? await credentialsManager.privyLogin(kind: .createAccount)
+        try? externalLinkManager.openExternalURL(urlString: createAccountLink)
 #endif
     }
 
@@ -277,7 +288,7 @@ private extension AccountWelcomeView {
         ImpactGenerator.shared.impact()
         Task {
             do {
-                let loginURL = try await credentialsManager.privyLogin()
+                let loginURL = try await credentialsManager.privyLogin(kind: .privy)
                 try externalLinkManager.openExternalURL(urlString: loginURL)
             } catch {
                 alertTitle = error.localizedDescription
