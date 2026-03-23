@@ -317,12 +317,11 @@ mod android_tls {
             .unwrap_or(&Arc::new(rustls::crypto::ring::default_provider()))
             .clone();
 
-        let tls_config =
-            ClientConfig::builder_with_provider(crypto_provider)
-                .with_safe_default_protocol_versions()
-                .expect("ring supports TLS 1.2 and 1.3")
-                .with_root_certificates(root_store)
-                .with_no_client_auth();
+        let tls_config = ClientConfig::builder_with_provider(crypto_provider)
+            .with_safe_default_protocol_versions()
+            .expect("ring supports TLS 1.2 and 1.3")
+            .with_root_certificates(root_store)
+            .with_no_client_auth();
 
         builder.tls_backend_preconfigured(tls_config)
     }
