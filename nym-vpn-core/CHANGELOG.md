@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- [Windows] App Split Tunnelling (https://github.com/nymtech/nym-vpn-client/pull/4908).
+
+
 ## [1.26.0] - 2026-03-17
 
 ### Added
@@ -40,7 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Changed VPN API HTTP timeout from 60s to 30s. (https://github.com/nymtech/nym-vpn-client/pull/4604)
-- 
+-
+
 ### Fixed
 
 - Fix discovery propagation bug (https://github.com/nymtech/nym-vpn-client/pull/4226)

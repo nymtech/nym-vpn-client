@@ -12,16 +12,25 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  LIBS_PATH: build/lib/x86_64-pc-windows-msvc
+  WINFW_PATH: build/winfw/x64-Debug
+  STDRIVER_PATH: build/st-driver/x64-Debug
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
   build-wireguard-go-windows:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
+  build-winfw-windows:
+    uses: ./.github/workflows/build-winfw-windows.yml
+
+  build-st-driver-windows:
+    uses: ./.github/workflows/build-st-driver-windows.yml
+
   build:
     runs-on: custom-windows-11
-    needs: build-wireguard-go-windows
-
+    needs:
+      [build-wireguard-go-windows, build-winfw-windows, build-st-driver-windows]
     steps:
       - name: "Cleanup working directory"
         shell: bash
@@ -60,8 +69,7 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key:
-            ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
@@ -69,8 +77,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: nym-vpn-core/target/
-          key:
-            ${{ runner.os }}-cargo-build-${{
+          key: ${{ runner.os }}-cargo-build-${{
             hashFiles('nym-vpn-core/Cargo.lock') }}-${{
             hashFiles('nym-vpn-core/**/*.rs') }}
           restore-keys: |
@@ -87,15 +94,23 @@ jobs:
         with:
           crate: cargo-get
 
-      - name: Download artifacts
+      - name: Download wireguard-go-windows artifacts
         uses: actions/download-artifact@v8
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
-          path: build/lib/x86_64-pc-windows-msvc
+          path: ${{ env.LIBS_PATH }}
 
-      - name: Build Windows dependencies
-        working-directory: nym-vpn-core
-        run: make -f Windows.mk winfw CPU_ARCH=AMD64
+      - name: Download winfw artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: winfw
+          path: ${{ env.WINFW_PATH }}
+
+      - name: Download st-driver artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: st-driver
+          path: ${{ env.STDRIVER_PATH }}
 
       - name: rustfmt check
         working-directory: nym-vpn-core

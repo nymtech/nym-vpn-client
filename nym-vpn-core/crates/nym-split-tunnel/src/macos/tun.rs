@@ -31,6 +31,8 @@ use tokio::{
     sync::broadcast,
 };
 
+use crate::VpnInterface;
+
 use super::{
     bindings::{PTH_FLAG_DIR_OUT, pktap_header},
     bpf,
@@ -99,17 +101,6 @@ pub enum RoutingDecision {
     VpnTunnel,
     /// Drop the packet
     Drop,
-}
-
-/// VPN tunnel interface details
-#[derive(Debug, Clone)]
-pub struct VpnInterface {
-    /// VPN tunnel interface name
-    pub name: String,
-    /// VPN tunnel IPv4 address
-    pub v4_address: Option<Ipv4Addr>,
-    /// VPN tunnel IPv6 address
-    pub v6_address: Option<Ipv6Addr>,
 }
 
 pub struct SplitTunnelHandle {

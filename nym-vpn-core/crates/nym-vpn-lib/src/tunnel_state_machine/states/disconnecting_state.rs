@@ -111,7 +111,7 @@ impl TunnelStateHandler for DisconnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        #[cfg(target_os = "macos")]
+                        #[cfg(any(target_os = "macos", target_os = "windows"))]
                         {
                             if shared_state.tunnel_settings.diff(&tunnel_settings).is_some_and(|diff| diff.split_tunnel_changed()) {
                                 let _ = shared_state.set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths()).await;
