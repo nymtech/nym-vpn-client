@@ -11,6 +11,7 @@ public enum ConnectButtonState {
     case noInternet
     case noInternetReconnect
     case noAccount
+    case noSubscription
 
     public init(tunnelStatus: TunnelStatus, isCredentialImported: Bool) {
         if isCredentialImported == false {
@@ -47,14 +48,14 @@ public enum ConnectButtonState {
             "stop".localizedString
         case .installingDaemon:
             "home.installDaemonButton".localizedString
-        case .noAccount:
+        case .noAccount, .noSubscription:
             "home.getStarted".localizedString
         }
     }
 
     var backgroundColor: Color {
         switch self {
-        case .connect, .noInternet, .noAccount:
+        case .connect, .noInternet, .noAccount, .noSubscription:
             NymColor.accent
         case .installingDaemon, .noInternetReconnect:
             NymColor.gray1
@@ -68,7 +69,7 @@ public enum ConnectButtonState {
 extension ConnectButtonState {
     public var menuBarItemIsAction: Bool {
         switch self {
-        case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet, .noAccount:
+        case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet, .noAccount, .noSubscription:
             true
         case .disconnecting, .installingDaemon:
             false

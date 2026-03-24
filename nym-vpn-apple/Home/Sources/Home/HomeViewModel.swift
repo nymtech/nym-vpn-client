@@ -320,6 +320,7 @@ private extension HomeViewModel {
             .sink { [weak self] _ in
                 MainActor.assumeIsolated {
                     self?.checkExpiryBanner()
+                    self?.updateConnectButtonStateForSubscription()
                 }
             }
             .store(in: &cancellables)

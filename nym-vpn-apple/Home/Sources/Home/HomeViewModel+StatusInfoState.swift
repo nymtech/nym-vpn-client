@@ -13,9 +13,19 @@ extension HomeViewModel {
             if connectButtonState == .noAccount {
                 connectButtonState = .connect
             }
+            updateConnectButtonStateForSubscription()
             return
         }
         connectButtonState = .noAccount
+    }
+
+    func updateConnectButtonStateForSubscription() {
+        guard appSettings.isCredentialImported else { return }
+        if !credentialsManager.isAccountActive() {
+            connectButtonState = .noSubscription
+        } else if connectButtonState == .noSubscription {
+            connectButtonState = .connect
+        }
     }
 
     @MainActor func resetLastError() {
