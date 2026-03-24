@@ -254,6 +254,12 @@ jobs:
           curl -L0 https://www.ssl.com/download/codesigntool-for-linux-and-macos/ -o codesigntool.zip
           unzip codesigntool.zip
 
+      - name: Ensure the EV CodeSignTool is not present when not signing
+        working-directory: nym-vpn-app/src-tauri
+        if: ${{ !inputs.sign }}
+        shell: bash
+        run: rm -f CodeSignTool.sh
+
       - name: Get EV certificate credential id
         working-directory: nym-vpn-app/src-tauri
         if: ${{ inputs.sign }}

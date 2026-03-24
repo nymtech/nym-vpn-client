@@ -7,7 +7,13 @@
 # This assumes the cwd is src-tauri/.
 #
 
-echo "Code signing in directory $(pwd). Arg: $1"
+code_sign_tool="./CodeSignTool.sh"
+
+# If CodeSignTool.sh then we aren't code-signing this build.
+if [[ ! -f "$code_sign_tool" ]]; then
+	echo "Not code signing $1"
+	exit 0
+fi
 
 function sign {
 	local exe="$1"
@@ -18,7 +24,7 @@ function sign {
 
 	echo "Code signing $exe"
 
-	if ! ./CodeSignTool.sh \
+	if ! "$code_sign_tool" \
 		sign \
 		-username "$SSL_COM_USERNAME" \
 		-password "$SSL_COM_PASSWORD" \
@@ -29,14 +35,13 @@ function sign {
 		-override; then
 			echo "Failed to sign $exe" >&2
 			exit 2
-		fi
 	fi
 }
 
 exe=$1
 
 # If the exe is NymVPN.exe then sign the daemon and split-tunnel driver first
-if [[ "$exe" == "*NymVPN.exe" ]]; then
+if [[ "$exe" == *NymVPN.exe ]]; then
 	sign "nym-vpnd.exe"
 	sign "nymvpn-split-tunnel.sys"
 fi
