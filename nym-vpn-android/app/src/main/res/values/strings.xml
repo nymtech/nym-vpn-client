@@ -434,7 +434,9 @@
 	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
 	<string name="account_info_valid_text">Plan valid until %s</string>
 	<string name="account_info_expires_text">Plan expires on %s</string>
+	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
 	<string name="account_info_renew_text">Renew now to stay protected</string>
+	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*Auto-renews</string>
 	<string name="account_info_no_plan">No active plan</string>
 	<string name="account_info_autologin_fetching">Fetching access code…</string>

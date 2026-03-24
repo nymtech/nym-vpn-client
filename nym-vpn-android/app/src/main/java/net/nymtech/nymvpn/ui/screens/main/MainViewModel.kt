@@ -37,6 +37,9 @@ constructor(
 	private val _connectionSeconds = MutableStateFlow<Long?>(null)
 	val connectionSeconds: StateFlow<Long?> = _connectionSeconds.asStateFlow()
 
+	private val _expiryBannerDismissed = MutableStateFlow(false)
+	val expiryBannerDismissed: StateFlow<Boolean> = _expiryBannerDismissed.asStateFlow()
+
 	val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground
 
 	private var timerJob: Job? = null
@@ -52,6 +55,10 @@ constructor(
 				}
 			}
 		}
+	}
+
+	fun dismissExpiryBanner() {
+		_expiryBannerDismissed.value = true
 	}
 
 	fun onTwoHopSelected() = viewModelScope.launch {

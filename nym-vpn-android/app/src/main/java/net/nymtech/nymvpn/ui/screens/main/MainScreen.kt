@@ -23,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -50,6 +51,14 @@ import net.nymtech.nymvpn.ui.common.BannerAction
 import net.nymtech.nymvpn.ui.common.BannerConfig
 import net.nymtech.nymvpn.ui.common.BannerIcon
 import net.nymtech.nymvpn.ui.common.InfoBanner
+import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
+import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
+import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
+import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
+import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.util.StringValue
+import nym_vpn_lib_types.DeeplinkKind
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.IconAction
@@ -80,7 +89,7 @@ import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 
 @Composable
-fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState = remember(appUiState.managerState, appUiState.networkStatus) {
 		with(appUiState) {
 			val baseState = when {
@@ -143,6 +152,8 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
 	var showBanner by remember { mutableStateOf(false) }
 	var showPerAppSecurityBanner by remember { mutableStateOf(false) }
+	val autologinState by appViewModel.autologinState.collectAsState()
+	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsState()
 
 	val connectionTime = remember(connectionSeconds) {
 		connectionSeconds?.convertSecondsToTimeString()
@@ -271,6 +282,19 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		}
 	}
 
+	when (val autologin = autologinState) {
+		is AutologinState.Loading -> AutologinLoadingDialog(onCancel = appViewModel::cancelAutologin)
+		is AutologinState.PinReady -> PinCodeDialog(
+			pinCode = autologin.pinCode,
+			url = autologin.url,
+			onDismiss = appViewModel::dismissAutologin,
+		)
+		is AutologinState.Error -> {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.account_info_autologin_error))
+		}
+		AutologinState.Idle -> {}
+	}
+
 	Box(
 		modifier = Modifier
 			.fillMaxSize()
@@ -360,6 +384,35 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					snackbar = snackbar,
 				)
 			}
+		}
+
+		val expiryState = appUiState.subscription?.expiryState
+		if (expiryState == ExpiryState.WARNING_YELLOW || expiryState == ExpiryState.WARNING_AMBER) {
+			val actionColor = if (expiryState == ExpiryState.WARNING_AMBER) {
+				CustomColors.warning
+			} else {
+				null
+			}
+			InfoBanner(
+				showBanner = !expiryBannerDismissed,
+				config = BannerConfig(
+					message = stringResource(R.string.banner_plan_expires_text, appUiState.subscription!!.validUntilDate),
+					action = BannerAction(
+						title = stringResource(R.string.banner_renew_text),
+						color = actionColor,
+						onClicked = {
+							viewModel.dismissExpiryBanner()
+							appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
+						},
+					),
+					icon = BannerIcon(
+						icon = Icons.Outlined.Close,
+						onClicked = { viewModel.dismissExpiryBanner() },
+					),
+					backgroundColor = MaterialTheme.colorScheme.surface,
+				),
+				modifier = Modifier.padding(16.dp),
+			)
 		}
 
 		InfoBanner(
