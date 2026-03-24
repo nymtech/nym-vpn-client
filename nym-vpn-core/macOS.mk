@@ -3,7 +3,7 @@ OS := Darwin
 include reproducible_builds.mk
 
 # Minimum deployment targets for macOS
-export MACOSX_DEPLOYMENT_TARGET = 10.13
+export MACOSX_DEPLOYMENT_TARGET = 10.14
 
 RELEASE ?= true
 RELEASE_FLAG :=
