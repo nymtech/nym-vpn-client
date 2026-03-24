@@ -71,7 +71,7 @@ impl LpClientRegistration {
         {
             Ok(response) => {
                 registration_report.lp_based_dvpn_registration =
-                    Some(DiagnosticResult::from_value(response.into()));
+                    Some(DiagnosticResult::from_value((&response).into()));
                 Some((response, registration_config.local_wg_keypair))
             }
             Err(e) => {

@@ -12,7 +12,8 @@ use nym_registration_common::WireguardConfiguration;
 use nym_sdk::mixnet::x25519;
 #[cfg(target_os = "ios")]
 use nym_wg_go::PeerEndpointUpdate;
-use nym_wg_go::{PeerConfig, PresharedKey, amnezia::AmneziaConfig, netstack, wireguard_go};
+use nym_wg_go::{PeerConfig, amnezia::AmneziaConfig, netstack, wireguard_go};
+use nym_wireguard_types::PresharedKey;
 
 #[derive(Debug)]
 pub struct WgNodeConfig {
@@ -197,7 +198,7 @@ impl WgNodeConfig {
             },
             peer: WgPeer {
                 public_key: wireguard_config.public_key,
-                preshared_key: wireguard_config.psk.map(Into::into),
+                preshared_key: wireguard_config.psk,
                 endpoint: wireguard_config.endpoint,
             },
             allowed_ips,
