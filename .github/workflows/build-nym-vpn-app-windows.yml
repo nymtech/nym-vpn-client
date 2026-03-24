@@ -147,10 +147,6 @@ jobs:
         with:
           subcommand: package.version --entry nym-vpn-app/src-tauri
 
-      - name: Install yq
-        run: |
-          winget list MikeFarah.yq || winget install --disable-interactivity --accept-source-agreements --id MikeFarah.yq
-
       - name: Get nym-vpn-core release tag
         if: inputs.core_release_tag
         run: |
@@ -266,33 +262,6 @@ jobs:
         run: |
           echo "SSL_COM_CREDENTIAL_ID=$(./CodeSignTool.sh get_credential_ids -username=${{ secrets.SSL_COM_USERNAME }} -password=${{ secrets.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //')" >> "$GITHUB_OUTPUT"
 
-      # Credential_id is obtained with ./CodeSignTool.sh get_credential_ids -username=${{ env.SSL_COM_USERNAME }} -password=${{ env.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //'
-      # Absolute path to CodeSignTool is required since the tauri signcommand does not execute in the same context as the shell: bash for the step
-      # -override required to override the existing file
-      - name: Add custom sign command to tauri.conf.json
-        working-directory: nym-vpn-app/src-tauri
-        if: ${{ inputs.sign }}
-        shell: bash
-        env:
-          SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
-          SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
-          SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
-        run: |
-          yq eval --inplace '.bundle.windows +=
-          {
-            "signCommand": {
-              "cmd": "C:\Program Files\Git\bin\bash.EXE",
-              "args": [
-                "/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/scripts/sign.sh",
-                "%1",
-                "${{ env.SSL_COM_USERNAME }}",
-                "${{ env.SSL_COM_PASSWORD }}",
-                "${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}",
-                "${{ env.SSL_COM_TOTP_SECRET }}"
-              ]
-            }
-          }' tauri.conf.json
-
       - name: Install Crowdin CLI
         run: |
           npm install -g @crowdin/cli
@@ -315,13 +284,12 @@ jobs:
         working-directory: nym-vpn-app/src-tauri
         shell: bash
         env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
+          SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
+          SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
+          SSL_COM_CREDENTIAL_ID: ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-Release"
-          CODE_SIGN_TOOL_PATH: ${{ inputs.sign && 'C:\\actions-runner\\_work\\nym-vpn-client\\nym-vpn-client\\nym-vpn-app\\src-tauri\\' }}
-          WINDOWS_CERTIFICATE: ${{ !inputs.sign && secrets.WINDOWS_SIGNING_PFX_BASE64 }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ !inputs.sign && secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
           DEV_MODE: ${{ inputs.dev_mode == true }}
           UPDATER_ENABLED: ${{ inputs.updater_bundle == true }}
           UPDATER_ENDPOINT: ${{ inputs.updater_channel == 'stable' && env.UPDATER_URL_STABLE || env.UPDATER_URL_DEV }}

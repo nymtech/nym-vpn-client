@@ -17,6 +17,12 @@
         "installerIcon": "icons/nsis_icon.ico",
         "headerImage": "icons/nsis_header.bmp",
         "sidebarImage": "icons/nsis_sidebar.bmp"
+      },
+      "signCommand": {
+        "cmd": "C:/Program Files/Git/bin/bash.EXE",
+        "args": [
+          "scripts/sign.sh"
+        ]
       }
     },
     "icon": [
@@ -28,7 +34,9 @@
     ],
     "linux": {
       "deb": {
-        "depends": ["nym-vpnd (>= 1.28.0~beta)"],
+        "depends": [
+          "nym-vpnd (>= 1.28.0~beta)"
+        ],
         "desktopTemplate": "./bundle/deb/main.desktop"
       }
     }
@@ -51,7 +59,9 @@
     },
     "deep-link": {
       "desktop": {
-        "schemes": ["nymvpn"]
+        "schemes": [
+          "nymvpn"
+        ]
       }
     }
   }

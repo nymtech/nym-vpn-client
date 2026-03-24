@@ -1,13 +1,8 @@
-NYM_VPN_EXE_PATH=$1
-SSL_COM_USERNAME=$2
-SSL_COM_PASSWORD=$3
-SSL_COM_CREDENTIAL_ID=$4
-SSL_COM_TOTP_SECRET=$5
-CODE_SIGNING_TOOL="/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/CodeSignTool.sh"
+# This assumes the cwd is src-tauri/.
 
 echo "Code signing in directory $(pwd)"
 
-for exe in nym-vpnd.exe nymvpn-split-tunnel.sys $NYM_VPN_EXE_PATH; do
+for exe in nym-vpnd.exe nymvpn-split-tunnel.sys target/release/NymVPN.exe; do
 	if [ ! -f "$exe" ]; then
 		echo "Cannot code sign $exe: file does not exist" >&2
 		exit 1
@@ -15,14 +10,14 @@ for exe in nym-vpnd.exe nymvpn-split-tunnel.sys $NYM_VPN_EXE_PATH; do
 
 	echo "Code signing $exe"
 
-	if ! $CODE_SIGNING_TOOL \
+	if ! ./CodeSignTool.sh \
 		sign \
-		-username $SSL_COM_USERNAME \
-		-password $SSL_COM_PASSWORD \
-		-credential_id $SSL_COM_CREDENTIAL_ID \
-		-totp_secret $SSL_COM_TOTP_SECRET \
+		-username "$SSL_COM_USERNAME" \
+		-password "$SSL_COM_PASSWORD" \
+		-credential_id "$SSL_COM_CREDENTIAL_ID" \
+		-totp_secret "$SSL_COM_TOTP_SECRET" \
 		-program_name "${exe%.*}" \
-		-input_file_path $exe \
+		-input_file_path "$exe" \
 		-override; then
 			echo "Failed to sign $exe" >&2
 			exit 2
