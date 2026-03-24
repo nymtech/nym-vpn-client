@@ -49,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
@@ -64,19 +65,21 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import nym_vpn_lib_types.DeeplinkKind
 
 @Composable
-fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
+fun SelectPlanScreen(appViewModel: AppViewModel, viewModel: SelectPlanViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
 	var showSheet by remember { mutableStateOf(false) }
 	val navController = LocalNavController.current
 
-	when (val autologin = uiState.autologin) {
-		is AutologinState.Loading -> AutologinLoadingDialog(onCancel = viewModel::cancelAutologin)
+	when (val autologin = autologinState) {
+		is AutologinState.Loading -> AutologinLoadingDialog(onCancel = appViewModel::cancelAutologin)
 		is AutologinState.PinReady -> PinCodeDialog(
 			pinCode = autologin.pinCode,
 			url = autologin.url,
-			onDismiss = viewModel::dismissAutologin,
+			onDismiss = appViewModel::dismissAutologin,
 		)
 		is AutologinState.Error -> {
 			SnackbarController.showMessage(StringValue.StringResource(R.string.account_info_autologin_error))
@@ -92,7 +95,7 @@ fun SelectPlanScreen(viewModel: SelectPlanViewModel = hiltViewModel()) {
 				viewModel.fetchSubscriptions()
 				showSheet = true
 			} else {
-				viewModel.fetchAutologin()
+				appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
 			}
 		},
 		onDismissSheet = { showSheet = false },
