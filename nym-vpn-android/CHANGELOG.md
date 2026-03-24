@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Lewes Protocol do Developer screen (https://github.com/nymtech/nym-vpn-client/pull/4928)
 - Add autologin UI and logic (https://github.com/nymtech/nym-vpn-client/pull/4929)
 - Add Random options to Entry/Exit locations list (https://github.com/nymtech/nym-vpn-client/pull/4963)
+- Add info banner for subscription state (https://github.com/nymtech/nym-vpn-client/pull/4962)
 
 ### Changed
 - Use isLinked() for Privy checks (https://github.com/nymtech/nym-vpn-client/pull/4924)
