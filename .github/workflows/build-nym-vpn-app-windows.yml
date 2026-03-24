@@ -281,7 +281,7 @@ jobs:
           yq eval --inplace '.bundle.windows +=
           {
             "signCommand": {
-              "cmd": "C:\Program Files\Git\bin\bash.EXE",
+              "cmd": "C:/Program Files/Git/bin/bash.EXE",
               "args": [
                 "/c/actions-runner/_work/nym-vpn-client/nym-vpn-client/nym-vpn-app/src-tauri/scripts/sign.sh",
                 "%1",
