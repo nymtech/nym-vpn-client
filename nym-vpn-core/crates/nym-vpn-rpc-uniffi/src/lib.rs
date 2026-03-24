@@ -11,6 +11,7 @@ use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
 use tokio_util::sync::CancellationToken;
 
+use nym_common::ErrorExt;
 #[cfg(target_os = "macos")]
 use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
@@ -460,6 +461,14 @@ impl RpcError {
         match &self.inner {
             InnerRpcError::AccountCommand(err) => Some(err.as_ref().clone()),
             _ => None,
+        }
+    }
+
+    /// Print the underlying error chain
+    pub fn display_chain(&self) -> String {
+        match &self.inner {
+            InnerRpcError::AccountCommand(err) => err.display_chain(),
+            InnerRpcError::RpcError(err) => err.display_chain(),
         }
     }
 }
