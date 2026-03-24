@@ -236,7 +236,7 @@ class MainActivity : AppCompatActivity() {
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Main>()
-									MainScreen(appState, args.autoStart)
+									MainScreen(appViewModel, appState, args.autoStart)
 								}
 
 								composable<Route.Permission> {
@@ -311,7 +311,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Developer> { DeveloperScreen(appState, appViewModel) }
 								composable<Route.LoginScanner> { ScannerScreen() }
 								composable<Route.Technical> { TechnicalOptScreen(appState) }
-								composable<Route.SelectPlan> { SelectPlanScreen() }
+								composable<Route.SelectPlan> { SelectPlanScreen(appViewModel) }
 								composable<Route.CreateAccount> { CreateAccountScreen(appState) }
 
 								composable<Route.Generating> {

@@ -1,78 +1,74 @@
-7 day free trial: All features, no ads, cancel anytime.
+7 day free trial: All features, no ads, cancel anytime. Plans starting at $2.39 / month.
 
-The only VPN that can't spy on you. Made in Switzerland. Built by privacy-advocates. The world’s first mixnet for online anonymity.
+The only VPN that can't spy on you. Made in Switzerland. Built by privacy-advocates. The world's first mixnet for online anonymity.
 
-- NO NAME SIGNUP: No email required. Zero-knowledge accounts. The most crypto accepted by any VPN. Cash payments accepted for full anonymity.
+- NO-NAME SIGNUP: No email required. Zero-knowledge accounts. The most crypto accepted by any VPN. Cash payments accepted for full anonymity.
 - DECENTRALIZED VPN technology
-- 65+ COUNTRIES with hundreds of independent servers
+- MOST CRYPTOCURRENCIES ACCEPTED of any VPN
+- 70+ COUNTRIES with hundreds of independent servers
 - UP TO 10 DEVICES with one anonymous code
 
-BROWSE WITHOUT A TRACE
+### BROWSE WITHOUT A TRACE
 
 Tired of wondering who's watching you? Corporations collecting your personal data? Not being able to access information because of where you are?
 
-While other VPNs promise not to keep logs, the NymVPN network is designed so centralized logs are not possible. No point on the decentralized network can connect your IP address with what you do online. Your privacy is guaranteed by default.
-When you connect with NymVPN, your online activity cannot be tied back to you by advertisers, network operators, or centralized infrastructure. You can browse, research, and communicate without creating a behavioral fingerprint that follows you across the internet.
+While other VPNs promise not to keep logs, with NymVPN there is no point on the decentralized network that can connect your IP address with what you do online. Your privacy is guaranteed by default. Your online activity cannot be tied back to you by advertisers, network operators, or centralized infrastructure. You can browse and communicate without leaving a data trail  across the internet.
 
-
-CHOOSE YOUR PRIVACY LEVEL
+### CHOOSE YOUR PRIVACY LEVEL
 
 Fast Mode
+
 - High-speed browsing and streaming
 - 2-hop decentralized VPN
-- Choose entry and exit servers in 65+ countries
-
+- AmneziaWG (WireGuard) protection
 
 Anonymous Mode
+
 - Maximum anonymity for messaging, email, and financial transactions
 - 5-hop Noise Generating Mixnet
-- Designed to resist advanced traffic analysis
+- Resists advanced traffic analysis
 
-ESSENTIAL FEATURES
+### ESSENTIAL FEATURES
 
-- High-speed connections with 65+ country selection
+- Entry & exit server selection
 - Multi-layer encryption
 - dVPN AmneziaWG (WireGuard) support
 - Kill switch prevents data leaks
 - Advanced anti-censorship technology
 - Split tunneling
 - Custom DNS
-- dApp & wallet mode for private & secure Ethereum crypto transactions 
 - Key rotation for cryptographic security
 - Completely ad-free experience
-- Fully open source 
+- 100% open source software
 
-WHY NYMVPN IS DIFFERENT
+### WHY NYMVPN IS DIFFERENT
 
-Most VPNs rely on centralized servers and ask you to trust their “no-logs” promises. NymVPN is built differently.
-- Decentralized VPN (dVPN) architecture: Traffic is routed through independently operated nodes. There is no single server that can see both who you are and what you do online.
+Most VPNs rely on centralized servers and ask you to trust their "no-logs" promises. NymVPN is built differently.
 
-- Metadata protection, not just encryption: NymVPN protects traffic patterns, timing, and routing information. Even encrypted data can leak metadata. Nym is designed to prevent that.
+- Decentralized VPN (dVPN) architecture: Traffic is routed through independently operated servers. No one can see both who you are and what you do online.
 
-- Noise Generating Mixnet technology: In Anonymous Mode, your traffic is mixed with cover traffic across multiple hops, making correlation and AI-driven traffic analysis extremely difficult.
+- Metadata protection: NymVPN protects traffic patterns, timing, and routing information. Even encrypted data can leak metadata. Nym prevents that.
 
-- Two privacy modes, one app: Fast Mode uses a high-performance 2-hop decentralized VPN.
- Anonymous Mode uses a 5-hop mixnet for maximum anonymity.
+- Two privacy modes, one app: The FAST  mode uses a high-performance 2-hop decentralized VPN. The ANONYMOUS  mode uses a 5-hop mixnet for maximum anonymity.
+
+- Noise Generating Mixnet technology: Your traffic is mixed with cover traffic, making correlation and AI-driven traffic analysis extremely difficult.
 
 - Zero-knowledge accounts by design: No email signup. No personal data. Accounts are unlinkable from usage. Supports crypto and cash payments for full anonymity.
 
 - Censorship-resistant networking: Built with AmneziaWG, QUIC, and stealth transport options to work in restrictive environments.
 
-- Open-source and independently audited: Fully open source, with multiple third-party security audits by Cure53, Cryspen, Oak Security, and JP Aumasson.
+- Open-source and independently audited.
+- Built by academic cryptographers
 
-- Built by academic cryptographers: Designed by researchers from KU Leuven and EPFL with 20+ peer-reviewed publications in privacy and cryptography.
+### NYMVPN IS PERFECT FOR:
 
-INDEPENDENTLY VERIFIED
-- Audited by Cure53, Cryspen, Oak Security, JP Aumasson
-- Featured in PCMag, TechRadar, Forbes, Bloomberg
-- Trusted by 10,000+ privacy-focused users
-
-NYMVPN IS PERFECT FOR:
-
-- Streaming and browsing without being tracked by advertisers
-- Secure public WiFi connections at cafes, airports, hotels
+- Streaming and browsing without being tracked
+- Secure public WiFi connections
 - Anyone in restrictive countries needing reliable access
 - People who want true anonymity, not just hidden IP addresses
 - Journalists and activists needing untraceable communication
+- Featured in PCMag, TechRadar, Forbes, Bloomberg, Tom's Guide
 
-Download now. Signup anonymously. Go dark with NymVPN. 
+Download now. Signup anonymously. Go dark with NymVPN.
+
+Terms of Use: https://nym.com/vpn-terms

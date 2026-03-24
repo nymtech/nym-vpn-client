@@ -17,6 +17,7 @@ import nym_vpn_lib_types.VpnAccountSummary
 interface BackendManager {
 
 	val stateFlow: StateFlow<TunnelManagerState>
+	val accountSummaryFlow: StateFlow<VpnAccountSummary?>
 
 	suspend fun stopTunnel()
 	suspend fun startTunnel()

@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
@@ -26,12 +28,15 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.backend.hasValidSubscription
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.nymvpn.util.extensions.toSubscriptionUiState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
 import javax.inject.Inject
@@ -64,26 +69,64 @@ constructor(
 
 	private val autoStartAttempted = AtomicBoolean(false)
 
+	private val _autologinState = MutableStateFlow<AutologinState>(AutologinState.Idle)
+	val autologinState: StateFlow<AutologinState> = _autologinState.asStateFlow()
+
+	private var autologinJob: Job? = null
+
 	val uiState =
 		combine(
-			settingsRepository.settingsFlow,
-			vpnConfigRepository.configFlow,
-			backendManager.stateFlow,
-			gatewayRepository.gatewayFlow,
-			networkService.networkStatus,
-		) { settings, config, manager, gateways, networkStatus ->
-			AppUiState(
-				settings = settings,
-				gateways = gateways,
-				vpnConfig = config,
-				managerState = manager,
-				networkStatus = networkStatus,
-			)
+			combine(
+				settingsRepository.settingsFlow,
+				vpnConfigRepository.configFlow,
+				backendManager.stateFlow,
+				gatewayRepository.gatewayFlow,
+				networkService.networkStatus,
+			) { settings, config, manager, gateways, networkStatus ->
+				AppUiState(
+					settings = settings,
+					gateways = gateways,
+					vpnConfig = config,
+					managerState = manager,
+					networkStatus = networkStatus,
+				)
+			},
+			backendManager.accountSummaryFlow,
+		) { base, accountSummary ->
+			base.copy(subscription = accountSummary?.toSubscriptionUiState())
 		}.stateIn(
 			viewModelScope,
 			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
 			AppUiState(),
 		)
+
+	fun fetchAutologin(kind: DeeplinkKind) {
+		autologinJob?.cancel()
+		autologinJob = viewModelScope.launch {
+			_autologinState.value = AutologinState.Loading
+			runCatching { backendManager.getAutologinDeeplink(kind) }
+				.onSuccess { response ->
+					if (response != null) {
+						_autologinState.value = AutologinState.PinReady(response.url, response.pinCode)
+					} else {
+						_autologinState.value = AutologinState.Error(kind)
+					}
+				}
+				.onFailure {
+					Timber.tag(TAG).e(it, "autologin failed")
+					_autologinState.value = AutologinState.Error(kind)
+				}
+		}
+	}
+
+	fun cancelAutologin() {
+		autologinJob?.cancel()
+		_autologinState.value = AutologinState.Idle
+	}
+
+	fun dismissAutologin() {
+		_autologinState.value = AutologinState.Idle
+	}
 
 	fun onConfigurationHandled() {
 		_configurationChange.value = false

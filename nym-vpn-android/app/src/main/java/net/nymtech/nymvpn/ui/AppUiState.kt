@@ -4,6 +4,7 @@ import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
+import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.util.Constants.countryCodesForRegionSupport
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import net.nymtech.vpn.backend.Tunnel
@@ -18,6 +19,7 @@ data class AppUiState(
 	val vpnConfig: CoreVpnConfig = CoreVpnConfig(),
 	val managerState: TunnelManagerState = TunnelManagerState(),
 	val networkStatus: NetworkStatus = NetworkStatus.Unknown,
+	val subscription: SubscriptionUiState? = null,
 ) {
 
 	private val effectiveEntryPoint: EntryPoint

@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -60,6 +61,9 @@ class ServiceBackedBackendManager @Inject constructor(
 	override val stateFlow: StateFlow<TunnelManagerState> =
 		_state.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.Eagerly, TunnelManagerState())
 
+	private val _accountSummaryFlow = MutableStateFlow<VpnAccountSummary?>(null)
+	override val accountSummaryFlow: StateFlow<VpnAccountSummary?> = _accountSummaryFlow.asStateFlow()
+
 	private val eventReducer = VpnEventReducer(
 		context = context,
 		state = _state,
@@ -88,6 +92,7 @@ class ServiceBackedBackendManager @Inject constructor(
 				.onFailure { Timber.tag(TAG).e(it, "vpnConfigRepository.refresh failed") }
 
 			refreshIdentityState()
+			refreshAccountSummary()
 
 			_state.update {
 				it.copy(
@@ -191,6 +196,17 @@ class ServiceBackedBackendManager @Inject constructor(
 	override suspend fun registerAccount(purchaseToken: String): String = serviceConnectionManager.withApi { it.registerAccount(purchaseToken) }
 	override suspend fun refreshAccount() {
 		serviceConnectionManager.withApi { it.refreshAccount() }
+		refreshAccountSummary()
+	}
+
+	private suspend fun refreshAccountSummary() {
+		val summary = runCatching {
+			serviceConnectionManager.withApi { it.getAccountSummary() }
+		}.getOrElse {
+			Timber.tag(TAG).w(it, "refreshAccountSummary failed")
+			return
+		}
+		_accountSummaryFlow.value = summary
 	}
 
 	override suspend fun getDaemonVersion(): String = serviceConnectionManager.withApi { it.getNetworkVersions()?.core ?: "" }
