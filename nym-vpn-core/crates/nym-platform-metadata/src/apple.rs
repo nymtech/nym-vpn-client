@@ -121,20 +121,20 @@ fn test_version_parsing() {
 #[test]
 fn test_version_order() {
     assert_eq!(
-        AppleVersion::from_str("13.0").unwrap(),
-        AppleVersion::from_str("13.0.0").unwrap()
+        AppleVersion::from_str("14.0").unwrap(),
+        AppleVersion::from_str("14.0.0").unwrap()
     );
 
     assert_eq!(
-        AppleVersion::from_str("13.0")
+        AppleVersion::from_str("14.0")
             .unwrap()
-            .partial_cmp(&AppleVersion::from_str("13.0.0").unwrap()),
+            .partial_cmp(&AppleVersion::from_str("14.0.0").unwrap()),
         Some(Ordering::Equal),
     );
 
     // test major version
-    assert!(AppleVersion::from_str("13.0").unwrap() < AppleVersion::from_str("14.2.1").unwrap());
-    assert!(AppleVersion::from_str("13.0").unwrap() > AppleVersion::from_str("12.1").unwrap());
+    assert!(AppleVersion::from_str("14.0").unwrap() < AppleVersion::from_str("15.2.1").unwrap());
+    assert!(AppleVersion::from_str("14.0").unwrap() > AppleVersion::from_str("12.1").unwrap());
 
     // test minor version
     assert!(AppleVersion::from_str("14.3").unwrap() > AppleVersion::from_str("14.2").unwrap());

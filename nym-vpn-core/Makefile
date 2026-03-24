@@ -6,7 +6,7 @@ include reproducible_builds.mk
 
 # Minimum deployment targets for macOS and iOS
 # These environment variables are used by clang
-export MACOSX_DEPLOYMENT_TARGET = 10.13
+export MACOSX_DEPLOYMENT_TARGET = 10.14
 export IPHONEOS_DEPLOYMENT_TARGET = 16.0
 
 .PHONY: all deb fmt help

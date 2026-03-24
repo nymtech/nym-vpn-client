@@ -35,7 +35,7 @@ const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(3);
 const EARLY_FAIL_TIMEOUT: Duration = Duration::from_millis(500);
 
 static MIN_OS_VERSION: LazyLock<AppleVersion> =
-    LazyLock::new(|| AppleVersion::from_str("13.0.0").unwrap());
+    LazyLock::new(|| AppleVersion::from_str("14.0.0").unwrap());
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -774,7 +774,7 @@ mod test {
         assert!(check_os_version_support_inner(AppleVersion::from_str("12.1").unwrap()).is_err());
 
         // test supported version
-        assert!(check_os_version_support_inner(AppleVersion::from_str("13.0").unwrap()).is_ok());
+        assert!(check_os_version_support_inner(AppleVersion::from_str("14.0").unwrap()).is_ok());
     }
 
     /// If the process prints 'ES_NEW_CLIENT_RESULT_ERR_NOT_PERMITTED' to stderr, full-disk access
