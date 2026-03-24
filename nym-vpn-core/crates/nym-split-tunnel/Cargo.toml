@@ -23,7 +23,7 @@ serde_json.workspace = true
 tun = { workspace = true, features = ["async"] }
 thiserror.workspace = true
 tracing.workspace = true
-tokio = { workspace = true, features = ["test-util"] }
+tokio = { workspace = true, features = ["test-util", "fs"] }
 tokio-util.workspace = true
 
 nym-platform-metadata.workspace = true
@@ -39,9 +39,7 @@ bitflags.workspace = true
 memoffset.workspace = true
 nym-windows.workspace = true
 windows-service.workspace = true
-windows = { workspace = true, features = [
-    "Win32_Foundation",
-] }
+windows = { workspace = true, features = ["Win32_Foundation"] }
 windows-sys = { workspace = true, features = [
     "Win32_Foundation",
     "Win32_Globalization",
