@@ -28815,6 +28815,17 @@
         }
       }
     },
+    "purchasePlan.chooseMyPlan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose my NymVPN plan"
+          }
+        }
+      }
+    },
     "purchasePlan.fullyProtected" : {
       "extractionState" : "manual",
       "localizations" : {
