@@ -20,7 +20,10 @@
       },
       "signCommand": {
         "cmd": "C:/Program Files/Git/bin/bash.EXE",
-        "args": ["scripts/sign.sh"]
+        "args": [
+          "scripts/sign.sh",
+          "%1"
+        ]
       }
     },
     "icon": [
