@@ -154,7 +154,7 @@ jobs:
           "core_release_tag=${{ inputs.core_release_tag }}" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core release tag (latest stable)
-        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.dev_mode }}
+        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.dev_mode && github.event_name != 'pull_request' }}
         run: |
           $release_tag = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases |
@@ -163,7 +163,7 @@ jobs:
           "core_release_tag=$release_tag" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core artifact url (latest dev)
-        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && inputs.dev_mode }}
+        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && (inputs.dev_mode || github.event_name == 'pull_request') }}
         id: get_dev_url
         run: |
           $latest = Invoke-WebRequest -Uri "${{ env.VPN_CORE_BUILDS_URL }}/develop" | Select-String -Pattern '<a href="(\d+)/"' -AllMatches | ForEach-Object {$_.Matches} | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Descending | Select-Object -First 1
