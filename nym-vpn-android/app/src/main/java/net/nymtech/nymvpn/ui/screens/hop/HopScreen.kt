@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.hop
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,9 +20,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -35,19 +38,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -59,10 +62,12 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.hop.components.CountryItem
 import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
+import net.nymtech.nymvpn.ui.screens.hop.components.QuicInfoMessage
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsTrailingContent
 import net.nymtech.nymvpn.ui.theme.CustomColors
-import net.nymtech.nymvpn.ui.theme.Typography
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.goFromRoot
@@ -72,6 +77,7 @@ import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AsnKind
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
@@ -81,10 +87,10 @@ import java.util.Locale
 fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEvent: NavBarEvent?, onNavBarEventConsume: () -> Unit, viewModel: HopViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
-	val context = androidx.compose.ui.platform.LocalContext.current
+	val context = LocalContext.current
+	val locationSupportLink = stringResource(R.string.location_support_link)
 
 	var refreshing by remember { mutableStateOf(false) }
-	val pullRefreshState = rememberPullToRefreshState()
 
 	var showLocationTooltip by remember { mutableStateOf(false) }
 	var showExitServerTooltip by remember { mutableStateOf(false) }
@@ -107,10 +113,9 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 		}
 	}
 
-	// Moved from NavBar → owned by this screen
 	ServerDetailsModalBody(
 		showLocationTooltip = showLocationTooltip,
-		onClick = { context.openWebUrl(context.getString(R.string.location_support_link)) },
+		onClick = { context.openWebUrl(locationSupportLink) },
 		onDismiss = { showLocationTooltip = false },
 	)
 
@@ -163,10 +168,49 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 		refreshing = false
 	}
 
-	PullToRefreshBox(
-		state = pullRefreshState,
+	HopScreenContent(
+		uiState = uiState,
+		selectedKey = selectedKey,
+		gatewayType = gatewayType,
+		canShowQuicLabel = canShowQuicLabel,
+		gatewayLocation = gatewayLocation,
+		initialGatewaysEmpty = initialGateways.isEmpty(),
 		isRefreshing = refreshing,
 		onRefresh = { refreshing = true },
+		onQueryChange = { viewModel.onQueryChange(it) },
+		onSelect = { id ->
+			viewModel.onSelected(id, gatewayLocation)
+			navController.safePopBackStack()
+		},
+		onNavigateToCensorship = { navController.navigate(Route.Censorship) },
+		onNavigateToServerDetails = { gateway ->
+			navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayLocation.name))
+		},
+	)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun HopScreenContent(
+	uiState: HopUiState,
+	selectedKey: String?,
+	gatewayType: GatewayType,
+	canShowQuicLabel: Boolean,
+	gatewayLocation: GatewayLocation,
+	initialGatewaysEmpty: Boolean,
+	isRefreshing: Boolean,
+	onRefresh: () -> Unit,
+	onQueryChange: (String) -> Unit,
+	onSelect: (String) -> Unit,
+	onNavigateToCensorship: () -> Unit,
+	onNavigateToServerDetails: (NymGateway) -> Unit,
+) {
+	val pullRefreshState = rememberPullToRefreshState()
+
+	PullToRefreshBox(
+		state = pullRefreshState,
+		isRefreshing = isRefreshing,
+		onRefresh = onRefresh,
 		modifier = Modifier.fillMaxSize(),
 	) {
 		LazyColumn(
@@ -185,13 +229,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 						.padding(top = 24.dp.scaledHeight()),
 				) {
 					if (canShowQuicLabel) {
-						QuicInfoMessage {
-							navController.navigate(Route.Censorship)
-						}
+						QuicInfoMessage(onNavigateToQuicSettings = onNavigateToCensorship)
 					}
 					CustomTextField(
 						value = uiState.query,
-						onValueChange = { viewModel.onQueryChange(it) },
+						onValueChange = onQueryChange,
 						modifier = Modifier
 							.fillMaxWidth()
 							.height(56.dp.scaledHeight())
@@ -206,7 +248,34 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 				}
 			}
 
-			if (uiState.items.isEmpty() && initialGateways.isEmpty()) {
+			item {
+				SurfaceSelectionGroupButton(
+					items = listOf(
+						SelectionItem(
+							onClick = { onSelect("Random") },
+							leading = {
+								Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+									Icon(
+										imageVector = Icons.Rounded.Shuffle,
+										contentDescription = null,
+										modifier = Modifier.size(iconSize),
+									)
+								}
+							},
+							title = { Text(stringResource(R.string.random_text), style = MaterialTheme.typography.bodyLarge) },
+							selected = selectedKey == null,
+						),
+					),
+					shape = RectangleShape,
+					background = MaterialTheme.colorScheme.surface,
+					anchorsPadding = 0.dp,
+					modifier = Modifier
+						.padding(top = 12.dp.scaledHeight())
+						.padding(vertical = 4.dp),
+				)
+			}
+
+			if (uiState.items.isEmpty() && initialGatewaysEmpty) {
 				item {
 					Box(
 						modifier = Modifier
@@ -299,16 +368,9 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 							gatewayType = gatewayType,
 							gatewayLocation = gatewayLocation,
 							selectedKey = selectedKey,
-							onSelectionChange = { id ->
-								viewModel.onSelected(id, gatewayLocation)
-								navController.safePopBackStack()
-							},
-							onGatewayDetails = { gateway ->
-								navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayLocation.name))
-							},
-							modifier = Modifier
-								.padding(top = if (uiState.items.indexOf(item) == 0) 24.dp.scaledHeight() else 0.dp)
-								.padding(vertical = 4.dp),
+							onSelectionChange = onSelect,
+							onGatewayDetails = onNavigateToServerDetails,
+							modifier = Modifier.padding(vertical = 4.dp),
 							isQuicSettingsEnabled = canShowQuicLabel,
 						)
 					}
@@ -321,10 +383,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 						SurfaceSelectionGroupButton(
 							items = listOf(
 								SelectionItem(
-									onClick = {
-										viewModel.onSelected(gateway.identity, gatewayLocation)
-										navController.safePopBackStack()
-									},
+									onClick = { onSelect(gateway.identity) },
 									leading = {
 										val (icon, description) = gateway.getScoreIcon(gatewayType)
 										Box(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -336,7 +395,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 											showStreamDisplay = showStreamDisplay,
 											showQuicLabel = canShowQuicLabel && gateway.isQuicSupported(),
 										) {
-											navController.goFromRoot(Route.ServerDetails(gateway.identity, gatewayLocation.name))
+											onNavigateToServerDetails(gateway)
 										}
 									},
 									title = {
@@ -362,7 +421,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 							background = MaterialTheme.colorScheme.background,
 							divider = false,
 							anchorsPadding = 0.dp,
-							modifier = Modifier.padding(top = if (uiState.items.indexOf(item) == 0) 24.dp.scaledHeight() else 0.dp),
+							modifier = Modifier,
 						)
 					}
 				}
@@ -371,29 +430,26 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 	}
 }
 
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview
 @Composable
-internal fun QuicInfoMessage(onNavigateToQuicSettings: () -> Unit) {
-	val annotatedText = buildAnnotatedString {
-		append(stringResource(R.string.quic_gateway_filter_info_msg))
-		append(" ")
-		withStyle(
-			style = SpanStyle(
-				color = MaterialTheme.colorScheme.onBackground,
-				textDecoration = TextDecoration.Underline,
-			),
-		) {
-			withLink(
-				LinkAnnotation.Clickable("quic", linkInteractionListener = { onNavigateToQuicSettings() }),
-			) { append(stringResource(R.string.here)) }
+internal fun HopScreenPreview() {
+	NymVPNTheme(Theme.default()) {
+		Surface {
+			HopScreenContent(
+				uiState = HopUiState(),
+				selectedKey = null,
+				gatewayType = GatewayType.WG,
+				canShowQuicLabel = false,
+				gatewayLocation = GatewayLocation.ENTRY,
+				initialGatewaysEmpty = true,
+				isRefreshing = false,
+				onRefresh = {},
+				onQueryChange = {},
+				onSelect = {},
+				onNavigateToCensorship = {},
+				onNavigateToServerDetails = {},
+			)
 		}
-		append(".")
 	}
-
-	Text(
-		text = annotatedText,
-		style = Typography.bodyMedium.copy(
-			color = MaterialTheme.colorScheme.outline,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-		),
-	)
 }
