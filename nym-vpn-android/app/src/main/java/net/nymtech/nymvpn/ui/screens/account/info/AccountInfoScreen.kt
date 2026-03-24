@@ -92,12 +92,14 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		},
 	)
 
-	when (val autologin = uiState.autologin) {
-		is AutologinState.Loading -> AutologinLoadingDialog(onCancel = viewModel::cancelAutologin)
+	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
+
+	when (val autologin = autologinState) {
+		is AutologinState.Loading -> AutologinLoadingDialog(onCancel = appViewModel::cancelAutologin)
 		is AutologinState.PinReady -> PinCodeDialog(
 			pinCode = autologin.pinCode,
 			url = autologin.url,
-			onDismiss = viewModel::dismissAutologin,
+			onDismiss = appViewModel::dismissAutologin,
 		)
 		is AutologinState.Error -> {
 			SnackbarController.showMessage(StringValue.StringResource(R.string.account_info_autologin_error))
@@ -110,10 +112,10 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		deviceId = uiState.deviceId,
 		showLinkAccount = uiState.showLinkAccount,
 		isMnemonicStored = uiState.isMnemonicStored,
-		subscriptionState = uiState.subscription,
+		subscriptionState = appUiState.subscription,
 		bandwidthState = uiState.bandwidth,
-		onManageClick = { viewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW) },
-		onRenewClick = { viewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
+		onManageClick = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW) },
+		onRenewClick = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
 		onLinkAccountClick = {
 			uiState.accountLinkUrl?.let {
 				Timber.d("Link url: $it")

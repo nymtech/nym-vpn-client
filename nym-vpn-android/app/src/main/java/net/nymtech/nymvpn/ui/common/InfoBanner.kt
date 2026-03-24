@@ -3,12 +3,13 @@ package net.nymtech.nymvpn.ui.common
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,48 +29,49 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 
 @Composable
 internal fun InfoBanner(showBanner: Boolean, config: BannerConfig, modifier: Modifier = Modifier) {
+	val background = config.backgroundColor ?: CustomColors.snackBarBackgroundColor
 	AnimatedVisibility(showBanner) {
 		Row(
 			modifier = modifier
 				.fillMaxWidth()
 				.clip(RoundedCornerShape(8.dp))
-				.background(CustomColors.snackBarBackgroundColor)
+				.background(background)
 				.padding(horizontal = 16.dp, vertical = 10.dp),
 			verticalAlignment = Alignment.CenterVertically,
 		) {
 			Text(
 				text = config.message,
-				modifier = Modifier
-					.weight(1f)
-					.padding(end = 8.dp),
 				color = CustomColors.snackbarTextColor,
 				style = MaterialTheme.typography.bodyMedium,
 			)
-			Row(
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.End,
-			) {
-				config.action?.let { action ->
-					TextButton(onClick = { action.onClicked() }, modifier = Modifier.padding(end = 12.dp)) {
-						Text(text = action.title, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
-					}
+			config.action?.let { action ->
+				TextButton(
+					onClick = { action.onClicked() },
+					modifier = Modifier.weight(1f),
+					contentPadding = PaddingValues(end = 10.dp),
+				) {
+					Text(
+						text = action.title,
+						style = MaterialTheme.typography.labelLarge,
+						color = action.color ?: Color.Unspecified,
+						modifier = Modifier.fillMaxWidth(),
+						textAlign = TextAlign.End,
+					)
 				}
-				config.icon?.let {
-					Box(
-						modifier = Modifier
-							.size(24.dp)
-							.clickable {
-								it.onClicked()
-							},
-						contentAlignment = Alignment.Center,
-					) {
-						Icon(
-							imageVector = it.icon,
-							contentDescription = stringResource(R.string.close),
-							modifier = Modifier.size(24.dp),
-							tint = Color.White,
-						)
-					}
+			}
+			config.icon?.let {
+				Box(
+					modifier = Modifier
+						.size(24.dp)
+						.clickable { it.onClicked() },
+					contentAlignment = Alignment.Center,
+				) {
+					Icon(
+						imageVector = it.icon,
+						contentDescription = stringResource(R.string.close),
+						modifier = Modifier.size(24.dp),
+						tint = MaterialTheme.colorScheme.onSurface,
+					)
 				}
 			}
 		}
@@ -77,10 +79,10 @@ internal fun InfoBanner(showBanner: Boolean, config: BannerConfig, modifier: Mod
 }
 
 @Immutable
-data class BannerConfig(val message: String, val action: BannerAction?, val icon: BannerIcon?)
+data class BannerConfig(val message: String, val action: BannerAction?, val icon: BannerIcon?, val backgroundColor: Color? = null)
 
 @Immutable
-data class BannerAction(val title: String, val onClicked: () -> Unit)
+data class BannerAction(val title: String, val color: Color? = null, val onClicked: () -> Unit)
 
 @Immutable
 data class BannerIcon(val icon: ImageVector, val onClicked: () -> Unit)
