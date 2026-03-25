@@ -1,15 +1,25 @@
 import NymVPNRpc
 import Combine
+import Logging
 
 final class RPCTunnelObserver: ObservableObject, TunnelEventObserver, @unchecked Sendable {
-    @Published var tunnelEvent: TunnelEvent?
-    @Published var didClose = false
+    public let stream: AsyncStream<TunnelEvent>
+    let cont: AsyncStream<TunnelEvent>.Continuation
+
+    init() {
+        let (stream, continuation) = AsyncStream<TunnelEvent>.makeStream()
+
+        self.stream = stream
+        self.cont = continuation
+    }
+
+    lazy var logger = Logger(label: "RPCTunnelObserver")
 
     func onTunnelEvent(event: TunnelEvent) {
-        tunnelEvent = event
+        cont.yield(event)
     }
 
     func onClose() {
-        didClose = true
+        cont.finish()
     }
 }
