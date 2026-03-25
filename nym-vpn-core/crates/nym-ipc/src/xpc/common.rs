@@ -1,10 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    pin::Pin,
-    sync::{Arc, atomic::AtomicBool},
-};
+use std::pin::Pin;
 
 use objc2::{
     AnyThread, DefinedClass as _, define_class, extern_protocol, msg_send,
@@ -17,7 +14,7 @@ use tokio::{
     sync::mpsc::UnboundedSender,
 };
 use tokio_stream::{Stream, wrappers::UnboundedReceiverStream};
-use tokio_util::sync::DropGuard;
+use tokio_util::sync::{CancellationToken, DropGuard};
 use tonic::transport::server::Connected;
 
 pub(crate) const DAEMON_BUNDLE_IDENTIFIER: &str = "net.nymtech.vpn.daemon";
@@ -87,7 +84,7 @@ pub struct XpcConnection {
     // as is the case for client connections, a shutdown token is needed to keep
     // alive the XPC connection objects
     drop_guard: Option<DropGuard>,
-    xpc_conn_invalidated: Arc<AtomicBool>,
+    shutdown_token: CancellationToken,
 
     data_stream_rx: UnboundedReceiverStream<Vec<u8>>,
     to_be_copied: Option<Vec<u8>>,
@@ -97,12 +94,12 @@ impl XpcConnection {
     pub(crate) fn new(
         proxy: Retained<ProtocolObject<dyn NSConnectionInterface + Send + Sync>>,
         data_stream_rx: UnboundedReceiverStream<Vec<u8>>,
-        xpc_conn_invalidated: Arc<AtomicBool>,
+        shutdown_token: CancellationToken,
     ) -> Self {
         XpcConnection {
             proxy: Some(proxy),
             drop_guard: None,
-            xpc_conn_invalidated,
+            shutdown_token,
             data_stream_rx,
             to_be_copied: None,
         }
@@ -130,10 +127,7 @@ impl XpcConnection {
     }
 
     fn underlaying_conn_invalidated(&mut self) -> bool {
-        if self
-            .xpc_conn_invalidated
-            .load(std::sync::atomic::Ordering::SeqCst)
-        {
+        if self.shutdown_token.is_cancelled() {
             // consume the proxy object interface, since there's no point in
             // making RPC calls on a non existing connection
             self.proxy.take();
@@ -234,11 +228,8 @@ mod tests {
                 ConnectionInterfaceObj::new(remote_tx),
             )
         };
-        let mut own_conn = XpcConnection::new(
-            remote_proxy,
-            own_rx.into(),
-            Arc::new(AtomicBool::new(false)),
-        );
+        let mut own_conn =
+            XpcConnection::new(remote_proxy, own_rx.into(), CancellationToken::new());
 
         let data = vec![42];
         own_conn.write_all(&data).await.unwrap();
@@ -255,11 +246,8 @@ mod tests {
                 ConnectionInterfaceObj::new(remote_tx),
             )
         };
-        let mut own_conn = XpcConnection::new(
-            remote_proxy,
-            own_rx.into(),
-            Arc::new(AtomicBool::new(false)),
-        );
+        let mut own_conn =
+            XpcConnection::new(remote_proxy, own_rx.into(), CancellationToken::new());
 
         let data = vec![1, 2, 3, 4, 5];
         own_tx.send(data.clone()).unwrap();
