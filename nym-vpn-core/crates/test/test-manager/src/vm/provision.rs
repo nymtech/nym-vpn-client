@@ -144,6 +144,20 @@ fn blocking_ssh(
     ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
         .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
 
+    // Transfer blocking scripts
+    if matches!(os_type, OsType::Linux | OsType::Macos) {
+        let blocking_scripts_dir =
+            Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../scripts/blocking"));
+        let scripts = ["ip_block.sh", "sni_block.sh", "delayed_ip_block.sh"];
+
+        for script in &scripts {
+            let source = blocking_scripts_dir.join(script);
+            log::debug!("Source: {}", source.display());
+            ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
+                .with_context(|| format!("Failed to send blocking script '{script}' to remote"))?;
+        }
+    }
+
     // Transfer setup script
     if matches!(os_type, OsType::Linux | OsType::Macos) {
         // TODO: Move this name to a constant somewhere?
