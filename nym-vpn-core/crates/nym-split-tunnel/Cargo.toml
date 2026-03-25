@@ -23,7 +23,7 @@ serde_json.workspace = true
 tun = { workspace = true, features = ["async"] }
 thiserror.workspace = true
 tracing.workspace = true
-tokio = { workspace = true, features = ["test-util"] }
+tokio = { workspace = true, features = ["test-util", "fs"] }
 tokio-util.workspace = true
 
 nym-platform-metadata.workspace = true
