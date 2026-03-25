@@ -20,6 +20,7 @@ use std::{
 };
 
 use either::Either;
+use futures_util::{StreamExt, stream};
 use libc::pid_t;
 use nym_macos::process::{list_pids, process_path};
 use nym_platform_metadata::AppleVersion;
@@ -337,6 +338,25 @@ impl ProcessStates {
 
     pub async fn exclude_paths(&self, paths: HashSet<PathBuf>) {
         let mut inner = self.inner.lock().await;
+
+        // Resolve symlinks and canonicalize paths to align user and system paths
+        let paths: HashSet<PathBuf> = stream::iter(paths)
+            .then(|path| async move {
+                tokio::fs::canonicalize(&path)
+                    .await
+                    .inspect_err(|err| {
+                        if err.kind() != std::io::ErrorKind::NotFound {
+                            tracing::warn!(
+                                "Failed to canonicalize path: {}. Error: {}",
+                                path.display(),
+                                err
+                            );
+                        }
+                    })
+                    .unwrap_or(path)
+            })
+            .collect()
+            .await;
 
         for info in inner.processes.values_mut() {
             // Remove no-longer excluded paths from exclusion list
