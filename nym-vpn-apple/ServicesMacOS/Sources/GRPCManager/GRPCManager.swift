@@ -11,6 +11,8 @@ import Constants
 import ConnectionTypes
 import TunnelStatus
 
+let RPC_RECONNECT_DELAY = Duration.seconds(5)
+
 @MainActor public final class GRPCManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var listenToEventsObserver: StreamObserver?
@@ -56,39 +58,27 @@ import TunnelStatus
 private extension GRPCManager {
     func configureRpcClient() async throws {
         do {
-            rpcClient = try await RpcClient()
+            let rpcClient = try await RpcClient()
+            self.rpcClient = rpcClient
+
             let newRpcObserver = RPCTunnelObserver()
-            listenToEventsObserver = try await rpcClient?.listenToEvents(observer: newRpcObserver)
+            listenToEventsObserver = try await rpcClient.listenToEvents(observer: newRpcObserver)
 
-            newRpcObserver.$didClose
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] value in
-                    guard value else { return }
-                    self?.logger.info("🛩️ rpc observer did close: \(value)")
-                    self?.isServing = false
-                    self?.tunnelStatus = .unknown
-                    self?.listenToEventsObserver = nil
-                    self?.stopInitialStatusPinger()
-                    self?.rpcClient = nil
-                    self?.setup()
+            Task { [weak self] in
+                for await event in newRpcObserver.stream {
+                    self?.didReceive(event: event)
                 }
-                .store(in: &cancellables)
 
-            newRpcObserver.$tunnelEvent
-                .removeDuplicates()
-                .sink { [weak self] value in
-                    guard let value else { return }
-                    self?.didReceive(event: value)
-                }
-                .store(in: &cancellables)
+                await self?.onDisconnect()
+            }
 
             stopInitialStatusPinger()
             startDaemonInitialStatusPingerIfNeeded()
         } catch {
-            try? await Task.sleep(for: .seconds(3))
+            let error = (error as? RpcError)?.displayChain() ?? error.localizedDescription
+            logger.error("Failed to connect RpcClient: \(error)")
+            try? await Task.sleep(for: RPC_RECONNECT_DELAY)
             setup()
-            logger.error("Failed to create RpcClient: \(error.localizedDescription)")
-            return
         }
     }
 
@@ -105,6 +95,19 @@ private extension GRPCManager {
         case .accountState:
             Task { @MainActor in }
         }
+    }
+
+    func onDisconnect() async {
+        logger.warning("🛩️ RPC connection closed")
+
+        isServing = false
+        tunnelStatus = .unknown
+        listenToEventsObserver = nil
+        stopInitialStatusPinger()
+        rpcClient = nil
+
+        try? await Task.sleep(for: RPC_RECONNECT_DELAY)
+        setup()
     }
 }
 
