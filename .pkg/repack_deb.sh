@@ -22,7 +22,7 @@ fi
 
 deb_file="$SRC_DEB"
 version="$PKGVER"
-arch=$(echo "$SRC_DEB" | awk -F. '{print $1}' | awk -F_ '{print $NF}')
+arch=$(basename -s '.deb' "$SRC_DEB" | sed 's/.*_//')
 pkgname="nym-vpn-app"
 
 # Check if the file exists
