@@ -1,11 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    pin::Pin,
-    ptr::NonNull,
-    sync::{Arc, atomic::AtomicBool},
-};
+use std::{pin::Pin, ptr::NonNull};
 
 use objc2::{
     AnyThread, DefinedClass as _, define_class, msg_send, rc::Retained, runtime::ProtocolObject,
@@ -62,10 +58,10 @@ define_class!(
             new_connection.setExportedInterface(Some(&self.ivars().connection_interface));
             new_connection.setRemoteObjectInterface(Some(&self.ivars().connection_interface));
 
-            let xpc_conn_invalidated = Arc::new(AtomicBool::new(false));
-            let xpc_conn_invalidated_cloned = xpc_conn_invalidated.clone();
+            let shutdown_token = CancellationToken::new();
+            let shutdown_token_cloned = shutdown_token.clone();
             let invalidation_handler = block2::RcBlock::new(move || {
-                xpc_conn_invalidated_cloned.store(true, std::sync::atomic::Ordering::SeqCst);
+                shutdown_token_cloned.cancel();
             });
             new_connection.setInvalidationHandler(Some(&invalidation_handler));
 
@@ -76,7 +72,7 @@ define_class!(
                 )
             };
 
-            let xpc_conn = XpcConnection::new(proxy, data_rx.into(), xpc_conn_invalidated);
+            let xpc_conn = XpcConnection::new(proxy, data_rx.into(), shutdown_token);
             let forwarded = self.ivars().conn_sender.send(xpc_conn);
 
             if let Some(signing_requirement) = self.ivars().signing_requirement.as_ref() {

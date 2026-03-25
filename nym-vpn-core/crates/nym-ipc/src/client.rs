@@ -17,10 +17,10 @@ async fn accepted<T: AsyncWrite + AsyncRead + Unpin>(mut conn: T) -> Result<Toki
     // connection is initiated, so best to do it on all platforms
     AuthenticaticationQuery::query(&mut conn).await;
     let auth_res = AuthenticaticationResult::recv(&mut conn).await;
-    if auth_res.accepted() {
-        Ok(TokioIo::new(conn))
-    } else {
-        Err(std::io::ErrorKind::PermissionDenied.into())
+    match auth_res {
+        AuthenticaticationResult::Accepted => Ok(TokioIo::new(conn)),
+        AuthenticaticationResult::Denied => Err(std::io::ErrorKind::PermissionDenied.into()),
+        AuthenticaticationResult::Closed => Err(std::io::ErrorKind::ConnectionRefused.into()),
     }
 }
 

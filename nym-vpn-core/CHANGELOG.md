@@ -5,15 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.27.0] - TBD
+
+- [macOS] XPC as transport layer between clients and daemon (https://github.com/nymtech/nym-vpn-client/pull/4695)
+- [macOS] Authentication layer for windows, feature gated (https://github.com/nymtech/nym-vpn-client/pull/4802)
+- Activate authentication layer on all desktop platforms (https://github.com/nymtech/nym-vpn-client/pull/4856)
+
+### Fixed
+
+- [macOS] XPC client stall when daemon is not running (https://github.com/nymtech/nym-vpn-client/pull/4973)
+
+
 ## [1.26.0] - 2026-03-17
 
 ### Added
 
-- [macOS] XPC as transport layer between clients and daemon (https://github.com/nymtech/nym-vpn-client/pull/4695)
 - [CLI] `nym-vpnc account set` now uses `--location blockchain`; aliases keep legacy `--mode decentralised` and `--mode decentralized` working.
 - [CLI] `nym-vpnc account obtain-ticketbooks` subcommand renamed (legacy alias `decentralised-obtain-ticketbooks` still works). `--source` (currently parsed but all sources route to smartcontract backend).
-- [macOS] Authentication layer for windows, feature gated (https://github.com/nymtech/nym-vpn-client/pull/4802)
-- Activate authentication layer on all desktop platforms (https://github.com/nymtech/nym-vpn-client/pull/4856)
 
 
 ## [1.25.0] - 2026-03-02
