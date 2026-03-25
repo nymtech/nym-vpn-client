@@ -16,11 +16,11 @@ pub async fn create_incoming(
 ) -> Result<impl Stream<Item = Result<impl AsyncRead + AsyncWrite + Connected + 'static>>> {
     #[cfg(target_os = "macos")]
     {
-        #[cfg(all(debug_assertions, not(feature = "xpc")))]
+        #[cfg(not(feature = "xpc"))]
         {
             crate::uds::incoming(socket_path, auth_material).await
         }
-        #[cfg(any(not(debug_assertions), feature = "xpc"))]
+        #[cfg(feature = "xpc")]
         {
             crate::xpc::incoming(auth_material)
         }

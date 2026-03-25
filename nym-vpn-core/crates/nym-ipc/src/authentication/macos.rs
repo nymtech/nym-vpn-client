@@ -3,16 +3,16 @@
 
 use tokio_stream::Stream;
 
-#[cfg(any(not(debug_assertions), feature = "xpc"))]
+#[cfg(feature = "xpc")]
 use crate::xpc::{common::XpcConnection, daemon::XpcService};
 use crate::{
     AuthenticationMaterial,
     authentication::{AuthenticationLayer, error::AuthenticationError},
 };
 
-#[cfg(any(not(debug_assertions), feature = "xpc"))]
+#[cfg(feature = "xpc")]
 pub type Transport = XpcConnection;
-#[cfg(all(debug_assertions, not(feature = "xpc")))]
+#[cfg(not(feature = "xpc"))]
 pub type Transport = tokio::net::UnixStream;
 
 #[derive(Clone)]
@@ -30,14 +30,14 @@ pub(crate) async fn is_authenticated(
     Ok(())
 }
 
-#[cfg(any(not(debug_assertions), feature = "xpc"))]
+#[cfg(feature = "xpc")]
 pub(crate) fn incoming(xpc_service: XpcService) -> impl Stream<Item = std::io::Result<Transport>> {
     // XPC has built in authentication mechanism
     let auth_layer = AuthenticationLayer::new(xpc_service, None);
     auth_layer.stream()
 }
 
-#[cfg(all(debug_assertions, not(feature = "xpc")))]
+#[cfg(not(feature = "xpc"))]
 pub(crate) fn incoming(
     uds: crate::uds::Uds,
     _auth_material: AuthenticationMaterial,
