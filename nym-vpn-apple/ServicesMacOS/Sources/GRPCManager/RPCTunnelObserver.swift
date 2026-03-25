@@ -1,6 +1,5 @@
 import NymVPNRpc
 import Combine
-import Logging
 
 final class RPCTunnelObserver: ObservableObject, TunnelEventObserver, @unchecked Sendable {
     public let stream: AsyncStream<TunnelEvent>
@@ -12,8 +11,6 @@ final class RPCTunnelObserver: ObservableObject, TunnelEventObserver, @unchecked
         self.stream = stream
         self.cont = continuation
     }
-
-    lazy var logger = Logger(label: "RPCTunnelObserver")
 
     func onTunnelEvent(event: TunnelEvent) {
         cont.yield(event)
