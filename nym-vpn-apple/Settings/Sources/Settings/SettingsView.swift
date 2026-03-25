@@ -87,7 +87,7 @@ private extension SettingsView {
     @ViewBuilder
     func renewButton() -> some View {
         if viewModel.shouldShowRenewButton {
-            GenericButton(title: "settings.account.renewNow".localizedString)
+            GenericButton(title: viewModel.renewButtonTitle)
                 .padding(.top, 24)
                 .onTapGesture {
                     viewModel.navigateToPlanPurchase()

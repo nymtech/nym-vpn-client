@@ -28,6 +28,13 @@ public struct GeneratePassphraseView: View {
     @State var isAlertDisplayed = false
     @State var isPurchasing = false
     @State var isPlanAlertDisplayed = false
+#if os(macOS)
+    @State var isPinCodeDisplayed = false
+    @State var pinCode: String = ""
+    @State var autologinURL = ""
+    @State var isAutologinError = false
+    @State var autologinErrorMessage = ""
+#endif
 
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var credentialsManager: CredentialsManager
@@ -78,6 +85,18 @@ public struct GeneratePassphraseView: View {
                 }
             }
         }
+#if os(macOS)
+        .overlay {
+            if isPinCodeDisplayed, !pinCode.isEmpty {
+                PinCodeView(
+                    isDisplayed: $isPinCodeDisplayed,
+                    pinCode: $pinCode,
+                    url: $autologinURL
+                )
+            }
+        }
+        .alert(autologinErrorMessage, isPresented: $isAutologinError) {}
+#endif
     }
 
     public init(path: Binding<NavigationPath>, displayPurchaseView: Bool = false) {
