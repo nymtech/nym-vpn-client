@@ -17,11 +17,8 @@ pub use authentication::AuthenticationMaterial;
 #[cfg(all(target_os = "macos", feature = "daemon"))]
 pub use authentication::SigningRequirements;
 
-#[cfg(any(
-    target_os = "linux",
-    all(target_os = "macos", debug_assertions, not(feature = "xpc"))
-))]
+#[cfg(any(target_os = "linux", all(target_os = "macos", not(feature = "xpc"))))]
 #[cfg(feature = "daemon")]
 mod uds;
-#[cfg(all(target_os = "macos", any(not(debug_assertions), feature = "xpc")))]
+#[cfg(all(target_os = "macos", feature = "xpc"))]
 mod xpc;
