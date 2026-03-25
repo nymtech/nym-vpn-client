@@ -52,8 +52,9 @@ impl AuthenticaticationQuery {
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(test, derive(strum::EnumIter))]
 pub enum AuthenticaticationResult {
-    Accepted = 0,
-    Denied = 1,
+    Closed = 0,
+    Accepted = 1,
+    Denied = 2,
 }
 
 impl From<AuthenticaticationResult> for u8 {
@@ -65,6 +66,8 @@ impl From<AuthenticaticationResult> for u8 {
 impl From<u8> for AuthenticaticationResult {
     fn from(value: u8) -> Self {
         if value == 0 {
+            AuthenticaticationResult::Closed
+        } else if value == 1 {
             AuthenticaticationResult::Accepted
         } else {
             AuthenticaticationResult::Denied
@@ -82,11 +85,7 @@ impl AuthenticaticationResult {
             .read_u8()
             .await
             .map(Into::into)
-            .unwrap_or(Self::Denied)
-    }
-
-    pub fn accepted(&self) -> bool {
-        matches!(self, Self::Accepted)
+            .unwrap_or(Self::Closed)
     }
 }
 
@@ -121,12 +120,12 @@ mod tests {
         }
 
         let zero = AuthenticaticationResult::from(0);
-        assert!(matches!(zero, AuthenticaticationResult::Accepted));
-        assert!(zero.accepted());
-        for idx in 1u8..255 {
+        assert!(matches!(zero, AuthenticaticationResult::Closed));
+        let one = AuthenticaticationResult::from(1);
+        assert!(matches!(one, AuthenticaticationResult::Accepted));
+        for idx in 2u8..255 {
             let other = AuthenticaticationResult::from(idx);
             assert!(matches!(other, AuthenticaticationResult::Denied));
-            assert!(!other.accepted());
         }
     }
 
@@ -148,10 +147,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn no_value_means_denied() {
+    async fn no_value_means_closed() {
         let (mut client, _) = tokio::io::duplex(64);
         let received = AuthenticaticationResult::recv(&mut client).await;
-        assert_eq!(received, AuthenticaticationResult::Denied);
+        assert_eq!(received, AuthenticaticationResult::Closed);
     }
 
     #[tokio::test]
