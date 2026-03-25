@@ -151,8 +151,10 @@ impl SplitTunnel {
                 initialized.set_exclude_paths(paths)
             }
             State::Failed => {
+                // If we return `Error::Unavailable` here, we will break the tunnel connect logic,
+                // so instead just pretend everything is OK.
                 tracing::debug!("Split tunnel disabled; ignoring excluded paths");
-                Err(Error::Unavailable)
+                Ok(())
             }
         }
     }
@@ -166,8 +168,10 @@ impl SplitTunnel {
                 initialized.set_tunnel(tunnel)
             }
             State::Failed => {
+                // If we return `Error::Unavailable` here, we will break the tunnel connect logic,
+                // so instead just pretend everything is OK.
                 tracing::debug!("Split tunnel disabled; ignoring set tunnel request");
-                Err(Error::Unavailable)
+                Ok(())
             }
         }
     }
@@ -180,8 +184,10 @@ impl SplitTunnel {
                 initialized.reset_tunnel()
             }
             State::Failed => {
+                // If we return `Error::Unavailable` here, we will break the tunnel connect logic,
+                // so instead just pretend everything is OK.
                 tracing::debug!("Split tunnel disabled; ignoring reset tunnel request");
-                Err(Error::Unavailable)
+                Ok(())
             }
         }
     }
