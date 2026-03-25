@@ -28,6 +28,7 @@ import PathManager
     var deeplinks: NymDeeplinks?
 #endif
     private var cancellables = Set<AnyCancellable>()
+    private var isUpdatingAccountSummary = false
 
     public static let shared = CredentialsManager()
 
@@ -228,6 +229,22 @@ import PathManager
     }
 
     public func updateAccountSummary() async {
+        guard !isUpdatingAccountSummary else { return }
+        isUpdatingAccountSummary = true
+        defer { isUpdatingAccountSummary = false }
+
+        let delays: [Duration] = [.zero, .seconds(1), .seconds(3), .seconds(9)]
+        for delay in delays {
+            if delay != .zero {
+                try? await Task.sleep(for: delay)
+            }
+            await fetchAccountSummary()
+            if accountSummary != nil { break }
+        }
+        resetExpiryDismissalsIfNeeded()
+    }
+
+    private func fetchAccountSummary() async {
 #if os(iOS)
         guard let summary = try? await NymVpnAccountStorage(
             dataDir: PathManager.dataFolderURL().path(),
@@ -250,11 +267,9 @@ import PathManager
             isAutoRenewEnabled: summary.isRecurring,
             subscriptionKind: summary.subscriptionKind.map { VpnSubscriptionKind(from: $0) }
         )
-
 #elseif os(macOS)
         accountSummary = try? await grpcManager.accountSummary()
 #endif
-        resetExpiryDismissalsIfNeeded()
     }
 
     private func resetExpiryDismissalsIfNeeded() {

@@ -64,6 +64,7 @@ private extension GRPCManager {
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] value in
                     guard value else { return }
+                    self?.logger.info("🛩️ rpc observer did close: \(value)")
                     self?.isServing = false
                     self?.tunnelStatus = .unknown
                     self?.listenToEventsObserver = nil
