@@ -10,6 +10,9 @@ function DialogProvider({ children }: DialogProviderProps) {
     'location-info': {
       open: false,
     },
+    'split-tunneling-info': {
+      open: false,
+    },
   });
 
   const isOpen = useCallback(

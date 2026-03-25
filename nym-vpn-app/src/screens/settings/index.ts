@@ -12,3 +12,4 @@ export * from './custom-dns';
 export * from './mixnet-tuning';
 export * from './account';
 export * from './diagnostic';
+export * from './split-tunneling';

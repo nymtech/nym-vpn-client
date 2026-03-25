@@ -62,6 +62,8 @@ function Home() {
     (accountState === 'no-subscription' ||
       accountState === 'bandwidth-exceeded');
 
+  console.log('account state', accountState);
+
   const entryGwId = tunnel?.entryGwId || connectingState?.entryGwId || null;
   const exitGwId = tunnel?.exitGwId || connectingState?.exitGwId || null;
 
@@ -284,6 +286,27 @@ function Home() {
               </div>
             </div>
           </div>
+          {/* <Button
+            outline
+            color="gray"
+            onClick={() => {
+              invoke('refresh_account_state').then(() => {
+                console.log('account state refreshed');
+              });
+            }}
+          >
+            refresh
+          </Button>
+          <Button
+            color="cornflower"
+            onClick={() =>
+              invoke('get_account_summary').then((summary) => {
+                console.log(summary);
+              })
+            }
+          >
+            Get new summary
+          </Button> */}
           <Button
             onClick={handleClick}
             color={getButtonColor()}

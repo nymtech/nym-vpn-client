@@ -48,7 +48,7 @@ function MainLayout({
       ])}
     >
       {/* Responsible for navigating to onboarding for new users on app startup */}
-      <InitialNavigation />
+      {/* <InitialNavigation /> */}
       {/* Responsible for displaying the system authentication modal when the daemon is not authenticated */}
       <SystemAuthentication />
       {!noNotifications && <Notifications />}

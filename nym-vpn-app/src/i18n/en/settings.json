@@ -303,5 +303,24 @@
     "run": "Run Diagnostic",
     "share": "Share report",
     "report-title": "Diagnostic report"
+  },
+  "split-tunneling": {
+    "title": "Split tunneling",
+    "enable": "Enable split tunneling",
+    "description": "Choose apps to exclude from NymVPN tunnel. Excluding an app will leave it unprotected.",
+    "apps": "Apps",
+    "info-dialog": {
+      "title": "Using split tunneling",
+      "description": "Split tunneling allows you to choose which apps use NymVPN.\n\nThis feature requires Full Disc Access, that you can enable in system settings.",
+      "direct": {
+        "label": "Direct",
+        "description": "Excludes the selected apps from the VPN tunnel, allowing direct internet connection."
+      },
+      "via-nym-vpn": {
+        "label": "Via NymVPN",
+        "description": "Recommended setting for all apps."
+      },
+      "got-it": "Got it!"
+    }
   }
 }
