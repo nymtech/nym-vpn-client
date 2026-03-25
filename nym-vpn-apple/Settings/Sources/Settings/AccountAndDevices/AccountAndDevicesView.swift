@@ -7,6 +7,7 @@ import ConfigurationManager
 import ConnectionManager
 import CredentialsManager
 import ExternalLinkManager
+import PurchasesManager
 import UIComponents
 import Theme
 
@@ -17,6 +18,9 @@ import Theme
     @EnvironmentObject var credentialsManager: CredentialsManager
     @EnvironmentObject var impactGenerator: ImpactGenerator
     @EnvironmentObject var externalLinkManager: ExternalLinkManager
+#if os(iOS)
+    @EnvironmentObject var purchasesManager: PurchasesManager
+#endif
 
     @State private var isPresentedManageSubscription = false
     @State var isLogoutConfirmationDisplayed = false
@@ -145,12 +149,21 @@ extension AccountAndDevicesView {
 
     @ViewBuilder
     func renewButton() -> some View {
-        if let accountSummary = credentialsManager.accountSummary, !accountSummary.isActive {
-            GenericButton(title: "settings.account.renewNow".localizedString)
+        if let accountSummary = credentialsManager.accountSummary,
+           accountSummary.shouldShowRenewButton(isAutoRenew: isAutoRenewEnabled(accountSummary: accountSummary)) {
+            GenericButton(title: accountSummary.renewButtonTitle)
                 .onTapGesture {
                     navigateToPlanPurchase()
                 }
         }
+    }
+
+    private func isAutoRenewEnabled(accountSummary: AccountSummary) -> Bool {
+#if os(iOS)
+        purchasesManager.isAutoRenewEnabled || accountSummary.isAutoRenewEnabled
+#elseif os(macOS)
+        accountSummary.isAutoRenewEnabled
+#endif
     }
 
     @ViewBuilder

@@ -74,7 +74,7 @@ public struct GatewaysView: View {
 private extension GatewaysView {
     func navbar() -> some View {
         CustomNavBar(
-            title: viewModel.type.selectHopLocalizedTitle,
+            title: viewModel.type.hopLocalizedTitle,
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateHome() }),
             rightButton: CustomNavBarButton(type: .info, action: { viewModel.displayInfoTooltip() })
         )

@@ -98,7 +98,7 @@ private extension GRPCManager {
     }
 
     func onDisconnect() async {
-        logger.warning("RPC connection closed")
+        logger.warning("🛩️ RPC connection closed")
 
         isServing = false
         tunnelStatus = .unknown
