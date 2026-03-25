@@ -305,6 +305,7 @@ async fn main() -> Result<()> {
             tunnel::set_mixnet_traffic_config,
             tunnel::calculate_traffic_latency,
             tunnel::get_mixnet_traffic_defaults,
+            tunnel::set_enable_split_tunnel,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_del,

@@ -1,5 +1,5 @@
 use nym_vpn_lib_types as lib;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::fmt::{Display, Formatter};
 use ts_rs::TS;
 
@@ -314,6 +314,39 @@ impl From<lib::EstablishConnectionState> for ConnectingProgress {
                 ConnectingProgress::RegisteringWithGateways
             }
             lib::EstablishConnectionState::ConnectingTunnel => ConnectingProgress::ConnectingTunnel,
+        }
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub struct SplitTunnelSettings {
+    pub enabled: bool,
+    pub apps: Vec<SplitApp>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub struct SplitApp {
+    pub path: String,
+}
+
+impl From<lib::SplitTunnelSettings> for SplitTunnelSettings {
+    fn from(settings: lib::SplitTunnelSettings) -> Self {
+        SplitTunnelSettings {
+            enabled: settings.enabled,
+            apps: settings.apps.into_iter().map(SplitApp::from).collect(),
+        }
+    }
+}
+
+impl From<lib::SplitApp> for SplitApp {
+    fn from(app: lib::SplitApp) -> Self {
+        SplitApp {
+            path: app.path,
         }
     }
 }

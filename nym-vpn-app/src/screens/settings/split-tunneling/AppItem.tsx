@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import MsIcon from '../../../ui/MsIcon';
+import { useMainState } from '../../../contexts/index';
 
 export type AppEntry = {
   id: string;
@@ -14,6 +15,9 @@ type Props = {
 };
 
 function AppItem({ app, onStateChange }: Props) {
+  const {
+    splitTunnel: { enabled },
+  } = useMainState();
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-charcoal">
       <div
@@ -32,9 +36,11 @@ function AppItem({ app, onStateChange }: Props) {
             app.state === 'excluded'
               ? 'bg-aphrodisiac/20 text-aphrodisiac'
               : 'text-iron dark:text-bombay',
+            !enabled && 'opacity-50 cursor-not-allowed',
           )}
           onClick={() => onStateChange(app.id, 'excluded')}
           aria-label={`Exclude ${app.name} from VPN`}
+          disabled={!enabled}
         >
           <MsIcon icon="block" className="text-base" />
         </button>
@@ -44,9 +50,11 @@ function AppItem({ app, onStateChange }: Props) {
             app.state === 'included'
               ? 'bg-malachite-moss/15 dark:bg-malachite/15 text-malachite-moss dark:text-malachite'
               : 'text-iron dark:text-bombay',
+            !enabled && 'opacity-50 cursor-not-allowed',
           )}
           onClick={() => onStateChange(app.id, 'included')}
           aria-label={`Include ${app.name} in VPN`}
+          disabled={!enabled}
         >
           <MsIcon icon="shield" className="text-base" />
         </button>

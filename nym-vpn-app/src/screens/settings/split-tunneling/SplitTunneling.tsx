@@ -1,10 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
+import { invoke } from '@tauri-apps/api/core';
 import PageAnim from '../../../ui/PageAnim';
 import SettingsMenuCard from '../../../ui/SettingsMenuCard';
 import Switch from '../../../ui/Switch';
-import { useDialog } from '../../../contexts';
+import { useDialog, useMainDispatch, useMainState } from '../../../contexts';
+import { StateDispatch } from '../../../types/index';
 import InfoDialog from './InfoDialog';
 import AppItem, { AppEntry } from './AppItem';
 
@@ -68,7 +70,11 @@ const MOCK_APPS: AppEntry[] = [
 function SplitTunneling() {
   const { t } = useTranslation('settings');
   const { isOpen, close } = useDialog();
-  const [enabled, setEnabled] = useState(false);
+  // const [enabled, setEnabled] = useState(false);
+  const {
+    splitTunnel: { enabled: splitTunnelEnabled, apps: splitTunnelApps },
+  } = useMainState();
+  const dispatch = useMainDispatch() as StateDispatch;
   const [apps, setApps] = useState<AppEntry[]>(MOCK_APPS);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -94,6 +100,12 @@ function SplitTunneling() {
     sectionRefs.current[letter]?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const handleEnableChange = () => {
+    const value = !splitTunnelEnabled;
+    dispatch({ type: 'set-enable-split-tunnel', enabled: value });
+    invoke('set_enable_split_tunnel', { enabled: value });
+  };
+
   return (
     <PageAnim className="flex flex-col mt-2 gap-4">
       <InfoDialog
@@ -105,8 +117,10 @@ function SplitTunneling() {
       <SettingsMenuCard
         title={t('split-tunneling.enable')}
         leadingIcon="call_split"
-        trailingComponent={<Switch checked={enabled} onChange={setEnabled} />}
-        onClick={() => setEnabled((v) => !v)}
+        trailingComponent={
+          <Switch checked={splitTunnelEnabled} onChange={handleEnableChange} />
+        }
+        onClick={handleEnableChange}
       />
 
       {/* Description */}

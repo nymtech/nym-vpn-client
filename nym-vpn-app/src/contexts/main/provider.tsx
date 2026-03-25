@@ -34,6 +34,7 @@ function MainStateProvider({ children, init }: Props) {
     enableLewesProtocol: init.enableLewesProtocol,
     mixnetTrafficConfig: init.mixnetTrafficConfig,
     mixnetTrafficDefaults: init.mixnetTrafficDefaults,
+    splitTunnel: init.splitTunnel,
   });
 
   const { push } = useInAppNotify();

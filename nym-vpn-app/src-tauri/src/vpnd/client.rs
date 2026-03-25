@@ -1001,4 +1001,14 @@ impl VpndClient {
         debug!("diagnostic report: {report:?}");
         Ok(report)
     }
+
+    /// Enable split tunneling
+    #[instrument(skip_all)]
+    pub async fn enable_split_tunnel(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_enable_split_tunnel(enabled)
+            .or_else(async |e| self.handle_rpc_error("enable_split_tunnel", e).await)
+            .await
+    }
 }

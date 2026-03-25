@@ -231,3 +231,11 @@ pub async fn calculate_traffic_latency(config: MixnetTrafficConfig) -> Result<f6
 pub async fn get_mixnet_traffic_defaults() -> Result<MixnetTrafficDefaults, BackendError> {
     Ok(MixnetTrafficDefaults::get())
 }
+
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_enable_split_tunnel(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
+    vpnd.enable_split_tunnel(enabled).await?;
+    Ok(())
+}
