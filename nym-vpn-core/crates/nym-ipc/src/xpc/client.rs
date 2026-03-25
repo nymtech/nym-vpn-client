@@ -55,8 +55,10 @@ async fn xpc_connect(
 
     let xpc_conn_invalidated = Arc::new(AtomicBool::new(false));
     let xpc_conn_invalidated_cloned = xpc_conn_invalidated.clone();
+    let shutdown_token_cloned = shutdown_token.clone();
     let invalidation_handler = block2::RcBlock::new(move || {
         xpc_conn_invalidated_cloned.store(true, std::sync::atomic::Ordering::SeqCst);
+        shutdown_token_cloned.cancel();
     });
     conn_obj.setInvalidationHandler(Some(&invalidation_handler));
 

@@ -54,6 +54,7 @@ impl AuthenticaticationQuery {
 pub enum AuthenticaticationResult {
     Accepted = 0,
     Denied = 1,
+    Closed = 3,
 }
 
 impl From<AuthenticaticationResult> for u8 {
@@ -82,11 +83,7 @@ impl AuthenticaticationResult {
             .read_u8()
             .await
             .map(Into::into)
-            .unwrap_or(Self::Denied)
-    }
-
-    pub fn accepted(&self) -> bool {
-        matches!(self, Self::Accepted)
+            .unwrap_or(Self::Closed)
     }
 }
 

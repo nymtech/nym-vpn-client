@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Authentication layer for windows, feature gated (https://github.com/nymtech/nym-vpn-client/pull/4802)
 - Activate authentication layer on all desktop platforms (https://github.com/nymtech/nym-vpn-client/pull/4856)
 
+### Fixed
+
+- [macOS] XPC client stall when daemon is not running (https://github.com/nymtech/nym-vpn-client/pull/4973)
 
 ## [1.25.0] - 2026-03-02
 
