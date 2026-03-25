@@ -21,7 +21,25 @@ extension GeneratePassphraseView {
     }
 
     func selectPlanAction() {
-        try? externalLinkManager.openExternalURL(urlString: Constants.pricingURL.rawValue)
+        isPurchasing = true
+        Task {
+            do {
+                guard let result = try await credentialsManager.autologin(kind: .autologinRenew) else {
+                    isPurchasing = false
+                    return
+                }
+                isPurchasing = false
+                pinCode = result.pinCode
+                autologinURL = result.url
+                isPinCodeDisplayed = true
+            } catch is CancellationError {
+                isPurchasing = false
+            } catch {
+                isPurchasing = false
+                autologinErrorMessage = error.localizedDescription
+                isAutologinError = true
+            }
+        }
     }
 }
 #endif

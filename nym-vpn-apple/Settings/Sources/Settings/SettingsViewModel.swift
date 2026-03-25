@@ -40,6 +40,10 @@ import Theme
     @Published var accountIdentifier: String?
     @Published var shouldShowRenewButton = false
 
+    var renewButtonTitle: String {
+        credentialsManager.accountSummary?.renewButtonTitle ?? "purchasePlan.chooseMyPlan".localizedString
+    }
+
     var isValidCredentialImported: Bool {
         credentialsManager.isValidCredentialImported
     }
@@ -266,8 +270,9 @@ private extension SettingsViewModel {
 private extension SettingsViewModel {
     func updateRenewButton() {
         if let accountSummary = credentialsManager.accountSummary {
-            let autoRenew = isAutoRenewEnabled(accountSummary: accountSummary)
-            shouldShowRenewButton = !autoRenew && (accountSummary.isExpiringSoon || !accountSummary.isActive)
+            shouldShowRenewButton = accountSummary.shouldShowRenewButton(
+                isAutoRenew: isAutoRenewEnabled(accountSummary: accountSummary)
+            )
         } else {
             shouldShowRenewButton = false
         }
