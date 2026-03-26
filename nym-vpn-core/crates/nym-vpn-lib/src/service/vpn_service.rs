@@ -33,7 +33,7 @@ use nym_vpn_api_client::api_urls_to_urls;
 use nym_vpn_lib_types::ErrorStateReason;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, AutologinResponse,
@@ -215,7 +215,7 @@ pub enum VpnServiceCommand {
     RemoveSplitTunnelApp(oneshot::Sender<()>, SplitApp),
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     ClearSplitTunnelApps(oneshot::Sender<()>, ()),
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     GetSplitTunnelExcludedProcesses(oneshot::Sender<SplitTunnelExcludedProcessList>, ()),
     #[cfg(target_os = "macos")]
     NeedFullDiskPermissions(oneshot::Sender<bool>, ()),
@@ -576,7 +576,7 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         let st_command_sender = Arc::downgrade(&command_sender);
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let (split_tunnel, split_tunnel_join_handle) = nym_split_tunnel::SplitTunnel::spawn(
@@ -1144,7 +1144,7 @@ impl NymVpnService {
                 self.handle_clear_split_tunnel_apps().await;
                 let _ = tx.send(());
             }
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "linux", target_os = "macos"))]
             VpnServiceCommand::GetSplitTunnelExcludedProcesses(tx, ()) => {
                 let excluded_processes = self.handle_get_split_tunnel_excluded_processes().await;
                 let _ = tx.send(excluded_processes);
@@ -2111,13 +2111,17 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     async fn handle_get_split_tunnel_excluded_processes(
         &mut self,
     ) -> SplitTunnelExcludedProcessList {
-        self.split_tunnel
-            .get_excluded_processes()
-            .await
-            .unwrap_or_default()
+        let result = self.split_tunnel.get_excluded_processes().await;
+
+        #[cfg(target_os = "linux")]
+        if let Err(err) = result.as_ref() {
+            trace_err_chain!(err, "failed to obtain ST excluded processes");
+        }
+
+        result.unwrap_or_default()
     }
 }

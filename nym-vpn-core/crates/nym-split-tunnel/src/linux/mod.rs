@@ -7,7 +7,7 @@
 //! <https://docs.kernel.org/admin-guide/cgroup-v2.html>
 
 pub mod pid_manager;
-pub mod process;
+pub mod process_event_stream;
 
 mod bindings;
 
@@ -19,6 +19,7 @@ use std::{
 
 use libc::pid_t;
 use nym_common::trace_err_chain;
+use nym_vpn_lib_types::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinHandle,
@@ -26,7 +27,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use pid_manager::PidManager;
-use process::{ProcessEvent, ProcessMonitor};
+use process_event_stream::{ProcessEvent, ProcessEventStream};
 
 use crate::SplitTunnelErrorCause;
 
@@ -40,6 +41,9 @@ pub enum Message {
     },
     GetNetClsClassId {
         result_tx: oneshot::Sender<Option<u32>>,
+    },
+    GetExcludedProcesses {
+        result_tx: oneshot::Sender<Result<SplitTunnelExcludedProcessList, Error>>,
     },
 }
 
@@ -97,13 +101,21 @@ impl SplitTunnelHandle {
 
         rx.await.map_err(|_| Error::unavailable())?
     }
+
+    pub async fn get_excluded_processes(&self) -> Result<SplitTunnelExcludedProcessList, Error> {
+        let (result_tx, result_rx) = oneshot::channel();
+        let _ = self
+            .message_tx
+            .send(Message::GetExcludedProcesses { result_tx });
+        result_rx.await.map_err(|_| Error::unavailable())?
+    }
 }
 
 pub struct SplitTunnel {
     message_rx: mpsc::UnboundedReceiver<Message>,
     pid_manager: Option<PidManager>,
     process_event_rx: mpsc::UnboundedReceiver<ProcessEvent>,
-    process_monitor_handle: Option<JoinHandle<()>>,
+    process_event_stream_handle: Option<JoinHandle<()>>,
     exclude_paths: HashSet<PathBuf>,
     processes: HashMap<pid_t, ProcessInfo>,
     shutdown_token: CancellationToken,
@@ -118,8 +130,8 @@ impl SplitTunnel {
             .inspect_err(|err| trace_err_chain!(err, "failed to initialize split tunnel"))
             .ok();
 
-        let process_monitor_handle = if pid_manager.is_some() {
-            ProcessMonitor::spawn(process_event_tx, shutdown_token.child_token())
+        let process_event_stream_handle = if pid_manager.is_some() {
+            ProcessEventStream::spawn(process_event_tx, shutdown_token.child_token())
                 .await
                 .inspect_err(|err| trace_err_chain!(err, "failed to initialize split tunnel"))
                 .ok()
@@ -127,16 +139,17 @@ impl SplitTunnel {
             None
         };
 
-        let st = Self {
+        let processes = process_list_snapshot().unwrap();
+        let split_tunnel = Self {
             message_rx,
             pid_manager,
             process_event_rx,
-            process_monitor_handle,
+            process_event_stream_handle,
             exclude_paths: HashSet::new(),
-            processes: HashMap::new(),
+            processes,
             shutdown_token,
         };
-        let join_handle = tokio::spawn(st.run());
+        let join_handle = tokio::spawn(split_tunnel.run());
 
         (SplitTunnelHandle { message_tx }, join_handle)
     }
@@ -155,6 +168,9 @@ impl SplitTunnel {
                         Message::SetExcludePaths { result_tx, paths } => {
                             result_tx.send(self.set_exclude_paths(paths).await).ok();
                         }
+                        Message::GetExcludedProcesses { result_tx } => {
+                            let _ = result_tx.send(self.get_excluded_processes());
+                        }
                     }
                 }
                 Some(event) = self.process_event_rx.recv() => {
@@ -166,10 +182,40 @@ impl SplitTunnel {
             }
         }
 
-        if let Some(process_monitor_handle) = self.process_monitor_handle.take()
+        if let Some(process_monitor_handle) = self.process_event_stream_handle.take()
             && let Err(err) = process_monitor_handle.await
         {
             tracing::error!("Failed to join on process monitor handle: {err}");
+        }
+    }
+
+    fn get_excluded_processes(&mut self) -> Result<SplitTunnelExcludedProcessList, Error> {
+        if let Some(pid_manager) = self.pid_manager.as_mut() {
+            let processes = pid_manager
+                .list()
+                .map_err(InnerError::ListPids)?
+                .into_iter()
+                .flat_map(|pid| {
+                    let info = self.processes.get(&pid).map(|info| {
+                        SplitTunnelExcludedProcess {
+                            pid,
+                            exec_path: info.exec_path.clone(),
+                            // todo: unused on Linux, dupe exec_path
+                            responsible_exec_path: info.exec_path.clone(),
+                        }
+                    });
+
+                    if info.is_none() {
+                        tracing::warn!("Pid {pid} is excluded but not found in process list");
+                    }
+
+                    info
+                })
+                .collect::<Vec<_>>();
+
+            Ok(SplitTunnelExcludedProcessList { processes })
+        } else {
+            Err(Error::unavailable())
         }
     }
 
@@ -217,25 +263,20 @@ impl SplitTunnel {
                 child_pid,
                 path,
             } => {
-                tracing::trace!("fork: {parent_pid} {child_pid} {}", path.display());
                 self.handle_fork(parent_pid, child_pid, path);
             }
             ProcessEvent::Exec { pid, path } => {
-                tracing::trace!("exec: {pid} {}", path.display());
                 self.handle_exec(pid, path);
             }
-            ProcessEvent::Exit {
-                pid,
-                parent_pid,
-                path,
-            } => {
-                tracing::trace!("exit: {pid} {parent_pid} {}", path.display());
-                self.handle_exit(pid, path);
+            ProcessEvent::Exit { pid, parent_pid } => {
+                self.handle_exit(pid, parent_pid);
             }
         }
     }
 
     fn handle_fork(&mut self, parent_pid: pid_t, pid: pid_t, path: PathBuf) {
+        tracing::trace!("fork: parent={parent_pid} pid={pid} {}", path.display());
+
         if self.processes.contains_key(&pid) {
             tracing::error!("Conflicting pid! State already contains {pid}");
         }
@@ -261,6 +302,8 @@ impl SplitTunnel {
     }
 
     fn handle_exec(&mut self, pid: pid_t, path: PathBuf) {
+        tracing::trace!("exec: {pid} {}", path.display());
+
         let Some(info) = self.processes.get_mut(&pid) else {
             tracing::error!("exec received for unknown pid {pid}");
             return;
@@ -277,8 +320,13 @@ impl SplitTunnel {
         }
     }
 
-    fn handle_exit(&mut self, pid: pid_t, _path: PathBuf) {
-        if self.processes.remove(&pid).is_none() {
+    fn handle_exit(&mut self, pid: pid_t, parent_pid: pid_t) {
+        let info = self.processes.remove(&pid);
+
+        let path = info.as_ref().map(|v| v.exec_path.display());
+        tracing::trace!("exit: pid={pid} parent={parent_pid} {path:?}");
+
+        if info.is_none() {
             tracing::error!("exit syscall for unknown pid {pid}");
         }
     }
@@ -299,7 +347,7 @@ impl Error {
 }
 
 impl From<&Error> for SplitTunnelErrorCause {
-    fn from(value: &Error) -> Self {
+    fn from(_value: &Error) -> Self {
         Self::Other
     }
 }
@@ -327,7 +375,55 @@ impl<T: Into<InnerError>> From<T> for Error {
 /// Errors caused by split tunneling
 #[derive(thiserror::Error, Debug)]
 enum InnerError {
+    #[error("failed to list pids in cgroup")]
+    ListPids(#[source] nym_cgroup::Error),
+
     /// Split tunnel is unavailable
     #[error("split tunnel is unavailable")]
     Unavailable,
+}
+
+fn process_list_snapshot() -> procfs::ProcResult<HashMap<pid_t, ProcessInfo>> {
+    let proc_iter = procfs::process::all_processes()?.filter_map(|proc| {
+        match proc {
+            Ok(proc) => Some(proc),
+            Err(err) => {
+                match err {
+                    procfs::ProcError::NotFound(_) => {
+                        // process vanished
+                        None
+                    }
+                    procfs::ProcError::Io(err, path) => {
+                        tracing::trace!("io error when listing process {path:?}: {err}");
+                        None
+                    }
+                    err => {
+                        tracing::error!("can't read process: {err}");
+                        None
+                    }
+                }
+            }
+        }
+    });
+
+    let mut proc_by_pid = HashMap::new();
+
+    for proc in proc_iter {
+        match proc.exe() {
+            Ok(exec_path) => {
+                proc_by_pid.insert(
+                    proc.pid(),
+                    ProcessInfo {
+                        exec_path,
+                        excluded_by_paths: HashSet::new(),
+                    },
+                );
+            }
+            Err(err) => {
+                tracing::error!("failed to obtain exec path for {}: {}", proc.pid(), err);
+            }
+        }
+    }
+
+    Ok(proc_by_pid)
 }

@@ -1,14 +1,11 @@
 #![cfg(target_os = "linux")]
 use anyhow::{Context as _, anyhow};
-use std::ffi::OsStr;
-use std::fs;
-use std::os::unix::ffi::OsStrExt;
-use std::path::PathBuf;
+use std::{ffi::OsStr, fs, os::unix::ffi::OsStrExt, path::PathBuf};
 
 pub mod v1;
 pub mod v2;
 
-pub const SPLIT_TUNNEL_CGROUP_NAME: &str = "mullvad-exclusions";
+pub const SPLIT_TUNNEL_CGROUP_NAME: &str = "nym-exclusions";
 
 /// The path where linux normally mounts the cgroup2 filesystem.
 pub const CGROUP2_DEFAULT_MOUNT_PATH: &str = "/sys/fs/cgroup";

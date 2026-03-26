@@ -15,14 +15,7 @@ use nym_cgroup::{
 #[cfg(feature = "cgroup2")]
 use crate::firewall;
 
-/// Errors related to split tunneling.
-#[derive(thiserror::Error, Debug)]
-#[error("Error in split tunneling")]
-pub enum Error {
-    SplitTunnelUnavalable,
-    /// Errors related to cgroups.
-    CGroup(#[from] nym_cgroup::Error),
-}
+pub type Error = nym_cgroup::Error;
 
 /// Manages PIDs in the linux cgroup used for vpn tunnel exclusion.
 ///

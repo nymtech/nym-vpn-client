@@ -9,7 +9,7 @@ use libc::{
 };
 use netlink_sys::{AsyncSocket, AsyncSocketExt, TokioSocket};
 use pidfd_util::{PidFd, PidFdExt};
-use std::{collections::HashMap, os::fd::AsRawFd, path::PathBuf};
+use std::{os::fd::AsRawFd, path::PathBuf};
 use tokio::{fs::read_link, sync::mpsc::UnboundedSender, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -42,16 +42,14 @@ pub enum ProcessEvent {
     Exit {
         pid: pid_t,
         parent_pid: pid_t,
-        path: PathBuf,
     },
 }
 
-pub struct ProcessMonitor {
+pub struct ProcessEventStream {
     nl_sock: TokioSocket,
-    proc_by_pid: HashMap<pid_t, PathBuf>,
 }
 
-impl ProcessMonitor {
+impl ProcessEventStream {
     pub async fn spawn(
         tx: UnboundedSender<ProcessEvent>,
         shutdown_token: CancellationToken,
@@ -61,45 +59,7 @@ impl ProcessMonitor {
         let mut nl_sock = TokioSocket::new(NETLINK_CONNECTOR as _)?;
         nl_sock.socket_mut().bind(&sockaddr)?;
 
-        let proc_iter = procfs::process::all_processes()?.filter_map(|proc| {
-            match proc {
-                Ok(proc) => Some(proc),
-                Err(err) => {
-                    match err {
-                        procfs::ProcError::NotFound(_) => {
-                            // process vanished
-                            None
-                        }
-                        procfs::ProcError::Io(err, path) => {
-                            tracing::trace!("io error when listing process {path:?}: {err}");
-                            None
-                        }
-                        err => {
-                            tracing::error!("can't read process: {err}");
-                            None
-                        }
-                    }
-                }
-            }
-        });
-
-        let mut proc_by_pid = HashMap::new();
-
-        for proc in proc_iter {
-            match proc.exe() {
-                Ok(exec_path) => {
-                    proc_by_pid.insert(proc.pid(), exec_path);
-                }
-                Err(err) => {
-                    tracing::error!("failed to obtain exec path for {}: {}", proc.pid(), err);
-                }
-            }
-        }
-
-        let proc_monitor = Self {
-            nl_sock,
-            proc_by_pid,
-        };
+        let proc_monitor = Self { nl_sock };
         proc_monitor.subscribe(true).await?;
 
         Ok(tokio::spawn(proc_monitor.run(tx, shutdown_token)))
@@ -191,8 +151,6 @@ impl ProcessMonitor {
         let proc_pid = event.child_tgid;
         let exe_path = query_exec_path(event_type, proc_pid).await?;
 
-        self.proc_by_pid.insert(proc_pid, exe_path.clone());
-
         Some(ProcessEvent::Fork {
             parent_pid: event.parent_tgid,
             child_pid: proc_pid,
@@ -205,8 +163,6 @@ impl ProcessMonitor {
         let proc_pid = event.process_tgid;
         let exe_path = query_exec_path(event_type, proc_pid).await?;
 
-        self.proc_by_pid.insert(proc_pid, exe_path.clone());
-
         Some(ProcessEvent::Exec {
             pid: proc_pid,
             path: exe_path,
@@ -214,13 +170,9 @@ impl ProcessMonitor {
     }
 
     fn handle_exit(&mut self, event: ExitEvt) -> Option<ProcessEvent> {
-        let pid: i32 = event.process_tgid;
-        let path = self.proc_by_pid.remove(&pid)?;
-
         Some(ProcessEvent::Exit {
-            pid,
+            pid: event.process_tgid,
             parent_pid: event.parent_tgid,
-            path,
         })
     }
 }
