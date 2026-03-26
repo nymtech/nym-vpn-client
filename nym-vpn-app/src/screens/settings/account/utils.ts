@@ -28,12 +28,14 @@ export const getAccountStateDescription = (
   accountSyncing: boolean,
   state?: AccountState | null,
 ) => {
-  if (!state) {
-    return null;
-  }
   if (accountSyncing) {
     return t('account.syncing');
   }
+
+  if (!state) {
+    return null;
+  }
+
   switch (state) {
     case 'no-subscription':
       return t('account.no-plan');
