@@ -110,13 +110,7 @@ pub struct SplitTunnel {
 }
 
 impl SplitTunnel {
-    pub async fn spawn<F>(
-        shutdown_token: CancellationToken,
-        _error_handler: F,
-    ) -> (SplitTunnelHandle, JoinHandle<()>)
-    where
-        F: Fn(SplitTunnelErrorCause) + Send + 'static,
-    {
+    pub async fn spawn(shutdown_token: CancellationToken) -> (SplitTunnelHandle, JoinHandle<()>) {
         let (message_tx, message_rx) = mpsc::unbounded_channel();
         let (process_event_tx, process_event_rx) = mpsc::unbounded_channel();
 

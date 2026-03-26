@@ -29,6 +29,10 @@ use nym_vpn_account_controller::{
     AvailableTicketbooks, NyxdClient,
 };
 use nym_vpn_api_client::api_urls_to_urls;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use nym_vpn_lib_types::ErrorStateReason;
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use nym_vpn_lib_types::SplitApp;
 #[cfg(target_os = "macos")]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
@@ -41,8 +45,6 @@ use nym_vpn_lib_types::{
     StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnAccountSummary,
     VpnServiceConfig, VpnServiceInfo,
 };
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use nym_vpn_lib_types::{ErrorStateReason, SplitApp};
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
 use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
@@ -205,13 +207,13 @@ pub enum VpnServiceCommand {
         oneshot::Sender<RegistrationReport>,
         DiagnosticRegisterParams,
     ),
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     SetEnableSplitTunnel(oneshot::Sender<()>, bool),
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     AddSplitTunnelApp(oneshot::Sender<()>, SplitApp),
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     RemoveSplitTunnelApp(oneshot::Sender<()>, SplitApp),
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     ClearSplitTunnelApps(oneshot::Sender<()>, ()),
     #[cfg(target_os = "macos")]
     GetSplitTunnelExcludedProcesses(oneshot::Sender<SplitTunnelExcludedProcessList>, ()),
@@ -342,12 +344,14 @@ pub struct NymVpnService {
     // Lazy SOCKS5 proxy service handle
     socks5_service: Socks5Service,
 
-    #[cfg(any(windows, target_os = "macos"))]
+    // Split-tunnel management handle
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[cfg_attr(windows, allow(unused))]
+    #[cfg_attr(target_os = "linux", allow(unused))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
-    #[cfg(any(windows, target_os = "macos"))]
-    split_tunnel_shutdown_token: CancellationToken,
-    #[cfg(any(windows, target_os = "macos"))]
+
+    // Split-tunnel join handle
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     split_tunnel_join_handle: JoinHandle<()>,
 }
 
@@ -573,13 +577,13 @@ impl NymVpnService {
         );
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        let split_tunnel_shutdown_token = CancellationToken::new();
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let st_command_sender = Arc::downgrade(&command_sender);
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let (split_tunnel, split_tunnel_join_handle) = nym_split_tunnel::SplitTunnel::spawn(
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             route_handler.inner_handle(),
-            split_tunnel_shutdown_token.child_token(),
+            services_shutdown_token.child_token(),
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             move |st_error_cause| {
                 tracing::info!("Split tunnel error: {st_error_cause:?}");
 
@@ -667,8 +671,6 @@ impl NymVpnService {
             split_tunnel,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             split_tunnel_join_handle,
-            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            split_tunnel_shutdown_token,
         })
     }
 
@@ -727,15 +729,6 @@ impl NymVpnService {
             }
         }
 
-        #[cfg(any(windows, target_os = "macos"))]
-        {
-            // Shutdown split-tunnel
-            self.split_tunnel_shutdown_token.cancel();
-            if let Err(e) = self.split_tunnel_join_handle.await {
-                tracing::error!("Failed to join on split tunnel handle: {e}");
-            }
-        }
-
         // Cancel all other services and wait for them to complete
         self.services_shutdown_token.cancel();
 
@@ -760,6 +753,13 @@ impl NymVpnService {
 
         if let Err(e) = self.topology_service_join_handle.await {
             tracing::error!("Failed to join on statistics controller handle: {e}");
+        }
+
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            if let Err(e) = self.split_tunnel_join_handle.await {
+                tracing::error!("Failed to join on split tunnel handle: {e}");
+            }
         }
 
         tracing::info!("Exiting vpn service run loop");
@@ -1124,22 +1124,22 @@ impl NymVpnService {
             VpnServiceCommand::RegisterDiagnostic(tx, params) => {
                 let _ = tx.send(Box::pin(self.handle_register_diagnostic(params)).await);
             }
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::SetEnableSplitTunnel(tx, enabled) => {
                 self.handle_set_enable_split_tunnel(enabled).await;
                 let _ = tx.send(());
             }
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::AddSplitTunnelApp(tx, app) => {
                 self.handle_add_split_tunnel_app(app).await;
                 let _ = tx.send(());
             }
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::RemoveSplitTunnelApp(tx, app) => {
                 self.handle_remove_split_tunnel_app(app).await;
                 let _ = tx.send(());
             }
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::ClearSplitTunnelApps(tx, ()) => {
                 self.handle_clear_split_tunnel_apps().await;
                 let _ = tx.send(());
@@ -2087,25 +2087,25 @@ impl NymVpnService {
         report
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn handle_set_enable_split_tunnel(&mut self, enabled: bool) {
         self.config_manager.set_enable_split_tunnel(enabled).await;
         self.update_tunnel_settings_with_throttle();
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn handle_add_split_tunnel_app(&mut self, app: SplitApp) {
         self.config_manager.add_split_tunnel_app(app).await;
         self.update_tunnel_settings_with_throttle();
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn handle_remove_split_tunnel_app(&mut self, app: SplitApp) {
         self.config_manager.remove_split_tunnel_app(app).await;
         self.update_tunnel_settings_with_throttle();
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn handle_clear_split_tunnel_apps(&mut self) {
         self.config_manager.clear_split_tunnel_apps().await;
         self.update_tunnel_settings_with_throttle();
