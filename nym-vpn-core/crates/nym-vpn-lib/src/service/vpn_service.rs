@@ -2009,7 +2009,7 @@ impl NymVpnService {
         report
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    // #[cfg(any(target_os = "macos", target_os = "windows"))]
     async fn handle_set_enable_split_tunnel(&mut self, enabled: bool) {
         self.config_manager.set_enable_split_tunnel(enabled).await;
         self.update_tunnel_settings_with_throttle();

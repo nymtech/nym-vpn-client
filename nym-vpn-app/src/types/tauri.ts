@@ -8,6 +8,14 @@ export type AccountLinks = {
 
 export type Address = { nymAddress: string; gatewayId: string };
 
+export type App = {
+  id: string;
+  name: string;
+  exec: string;
+  icon: string | null;
+  desktop_file: string;
+};
+
 export type Asn = { asn: string; name: string; type: AsnType };
 
 export type AsnType = 'other' | 'residential';

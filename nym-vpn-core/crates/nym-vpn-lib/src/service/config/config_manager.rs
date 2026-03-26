@@ -10,7 +10,7 @@ use std::{
 use nym_common::trace_err_chain;
 use nym_registration_client::MixnetClientConfig;
 use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+// #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
 use tokio::{fs, sync::broadcast};
 
@@ -242,7 +242,7 @@ impl VpnServiceConfigManager {
         }
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    // #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub async fn set_enable_split_tunnel(&mut self, enabled: bool) {
         if self.config.split_tunnel.enabled != enabled {
             self.config.split_tunnel.enabled = enabled;
@@ -250,13 +250,13 @@ impl VpnServiceConfigManager {
         }
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    // #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub async fn add_split_tunnel_app(&mut self, app: SplitApp) {
         self.config.split_tunnel.add_app(app);
         self.save_config_and_send_event().await;
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    // #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub async fn remove_split_tunnel_app(&mut self, app: SplitApp) {
         self.config.split_tunnel.remove_app(app);
         self.save_config_and_send_event().await;

@@ -2,10 +2,8 @@ use freedesktop_desktop_entry::DesktopEntry;
 use freedesktop_icons::lookup;
 use serde::Serialize;
 use std::path::PathBuf;
-use tracing::debug;
+use tracing::{debug, info};
 use ts_rs::TS;
-
-use std::fs;
 
 #[derive(Debug, Clone, Serialize, TS)]
 #[ts(export, export_to = "tauri.ts")]
@@ -34,11 +32,7 @@ pub fn get_desktop_apps() -> Vec<App> {
             let name = entry.name(locales)?.into_owned();
             let exec = entry.exec()?.to_string();
 
-            let icon = entry
-                .icon()
-                .and_then(|icon_name| resolve_icon(icon_name))
-                .and_then(|p: PathBuf| std::fs::canonicalize(&p).ok())
-                .map(|p| p.to_string_lossy().into_owned());
+            let icon = entry.icon().and_then(|icon_name| resolve_icon(icon_name));
 
             Some(App {
                 id: entry.appid.clone(),
@@ -56,12 +50,17 @@ pub fn get_desktop_apps() -> Vec<App> {
     apps
 }
 
-/// Resolve an icon name to a file path.
-/// If the name is already an absolute path, return it directly.
-fn resolve_icon(icon_name: &str) -> Option<PathBuf> {
-    if icon_name.starts_with('/') {
+/// Resolve an icon name to a canonical file path string.
+/// If the name is already an absolute path, use it when it exists.
+fn resolve_icon(icon_name: &str) -> Option<String> {
+    info!("resolving icon: {}", icon_name);
+    let path = if icon_name.starts_with('/') {
         let path = PathBuf::from(icon_name);
-        return path.exists().then_some(path);
-    }
-    lookup(icon_name).with_size(48).with_cache().find()
+        path.exists().then_some(path)?
+    } else {
+        lookup(icon_name).with_size(48).with_cache().find()?
+    };
+    std::fs::canonicalize(&path)
+        .ok()
+        .map(|p| p.to_string_lossy().into_owned())
 }

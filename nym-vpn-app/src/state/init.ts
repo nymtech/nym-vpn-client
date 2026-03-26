@@ -49,8 +49,12 @@ export async function initFirstBatch(dispatch: StateDispatch) {
   const getAccountStateRq: TauriReq<() => Promise<TAccountState | undefined>> =
     {
       name: 'getAccountStateRq',
-      request: () => invoke<TAccountState>('get_account_state'),
+      request: () => {
+        console.log('getting account state');
+        return invoke<TAccountState>('get_account_state');
+      },
       onFulfilled: (state) => {
+        console.log('initializing account state', state);
         if (state) {
           updateAccountState(state, dispatch);
         }

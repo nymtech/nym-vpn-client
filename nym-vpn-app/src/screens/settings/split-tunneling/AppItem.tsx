@@ -1,7 +1,7 @@
 import clsx from 'clsx';
-import MsIcon from '../../../ui/MsIcon';
-import { useMainState } from '../../../contexts/index';
 import { convertFileSrc } from '@tauri-apps/api/core';
+import MsIcon from '../../../ui/MsIcon';
+import { useSplitTunnel } from './utils';
 
 export type AppEntry = {
   id: string;
@@ -14,13 +14,15 @@ export type AppEntry = {
 
 type Props = {
   app: AppEntry;
-  onStateChange: (id: string, state: 'excluded' | 'included') => void;
+  onStateChange: (
+    app: AppEntry,
+    state: 'excluded' | 'included',
+  ) => Promise<void>;
 };
 
 function AppItem({ app, onStateChange }: Props) {
-  const {
-    splitTunnel: { enabled },
-  } = useMainState();
+  const { enabled } = useSplitTunnel();
+
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-charcoal">
       <div className="w-7 h-7 flex items-center justify-center">
@@ -28,7 +30,7 @@ function AppItem({ app, onStateChange }: Props) {
           <img
             src={convertFileSrc(app.icon)}
             alt={app.name}
-            className="w-4 h-4"
+            className="w-full h-full"
           />
         )}
         {!app.icon && (
@@ -49,7 +51,7 @@ function AppItem({ app, onStateChange }: Props) {
               : 'text-iron dark:text-bombay',
             !enabled && 'opacity-50 cursor-not-allowed',
           )}
-          onClick={() => onStateChange(app.id, 'excluded')}
+          onClick={() => onStateChange(app, 'excluded')}
           aria-label={`Exclude ${app.name} from VPN`}
           disabled={!enabled}
         >
@@ -63,7 +65,7 @@ function AppItem({ app, onStateChange }: Props) {
               : 'text-iron dark:text-bombay',
             !enabled && 'opacity-50 cursor-not-allowed',
           )}
-          onClick={() => onStateChange(app.id, 'included')}
+          onClick={() => onStateChange(app, 'included')}
           aria-label={`Include ${app.name} in VPN`}
           disabled={!enabled}
         >

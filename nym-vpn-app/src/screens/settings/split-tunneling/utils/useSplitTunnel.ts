@@ -1,39 +1,119 @@
 import { invoke } from '@tauri-apps/api/core';
-import { useMainDispatch, useMainState } from '../../../../contexts';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  useInAppNotify,
+  useMainDispatch,
+  useMainState,
+} from '../../../../contexts';
 import { StateDispatch } from '../../../../types';
-import { SplitApp } from '../../../../types/tauri';
+import { App, SplitApp } from '../../../../types/tauri';
+import { AppEntry } from '../AppItem';
 
 export const useSplitTunnel = () => {
   const {
-    splitTunnel: { enabled, apps },
+    splitTunnel: { enabled, apps: splitTunnelApps },
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
+  const { push } = useInAppNotify();
 
-  const setEnabled = (enabled: boolean) => {
-    dispatch({ type: 'set-enable-split-tunnel', enabled });
-    invoke('set_enable_split_tunnel', { enabled });
-  };
+  const [installedApps, setInstalledApps] = useState<App[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const add = (app: SplitApp) => {
-    if (!apps.some((existing) => existing.path === app.path)) {
-      dispatch({ type: 'set-split-tunnel-apps', apps: [...apps, app] });
-      invoke('add_app_to_split_tunnel', { app });
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+
+      try {
+        const appList = await invoke<App[]>('get_app_list');
+        console.log('appList', appList);
+
+        setInstalledApps(appList);
+      } catch (err: unknown) {
+        console.error('Failed to get app list', err);
+        push({
+          message: 'Failed to get app list',
+          close: true,
+          type: 'error',
+        });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const appList: AppEntry[] = useMemo(() => {
+    return installedApps.map((app) => ({
+      id: app.id,
+      name: app.name,
+      exec: app.exec,
+      icon: app.icon ?? null,
+      desktop_file: app.desktop_file,
+      state: splitTunnelApps.some(
+        (existing) => existing.path === app.desktop_file,
+      )
+        ? 'included'
+        : 'excluded',
+    }));
+  }, [splitTunnelApps, installedApps]);
+
+  console.log('appList', appList);
+
+  const setEnabled = async (enabled: boolean) => {
+    try {
+      await invoke('set_enable_split_tunnel', { enabled });
+      dispatch({ type: 'set-enable-split-tunnel', enabled });
+    } catch (error) {
+      console.error('Failed to set split tunneling enabled', error);
+      push({
+        message: 'Failed to set split tunneling enabled',
+        close: true,
+        type: 'error',
+      });
     }
   };
 
-  const remove = (app: SplitApp) => {
-    dispatch({
-      type: 'set-split-tunnel-apps',
-      apps: apps.filter((existing) => existing.path !== app.path),
-    });
-    invoke('remove_app_from_split_tunnel', { app });
+  const add = async (app: SplitApp) => {
+    if (!splitTunnelApps.some((existing) => existing.path === app.path)) {
+      try {
+        await invoke('add_app_to_split_tunnel', { app });
+        dispatch({
+          type: 'set-split-tunnel-apps',
+          apps: [...splitTunnelApps, app],
+        });
+      } catch (error) {
+        console.error('Failed to add app to split tunneling', error);
+        push({
+          message: 'Failed to add app to split tunneling',
+          close: true,
+          type: 'error',
+        });
+      }
+    }
+  };
+
+  const remove = async (app: SplitApp) => {
+    try {
+      await invoke('remove_app_from_split_tunnel', { app });
+      dispatch({
+        type: 'set-split-tunnel-apps',
+        apps: splitTunnelApps.filter((existing) => existing.path !== app.path),
+      });
+    } catch (error) {
+      console.error('Failed to remove app from split tunneling', error);
+      push({
+        message: 'Failed to remove app from split tunneling',
+        close: true,
+        type: 'error',
+      });
+    }
   };
 
   return {
-    apps,
+    apps: appList,
     enabled,
     setEnabled,
     add,
     remove,
+    loading,
   };
 };

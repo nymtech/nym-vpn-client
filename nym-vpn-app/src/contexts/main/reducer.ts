@@ -237,6 +237,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         mixnetTrafficConfig: action.config.mixnetTraffic,
         mixnetTrafficDefaults: action.config.mixnetTrafficDefaults,
         enableAdBlocking: action.config.enableAdBlocking,
+        splitTunnel: action.config.splitTunnel,
       };
 
     case 'set-daemon-info':
