@@ -456,7 +456,7 @@ impl ConnectedPolicyParameters {
             peer_endpoints,
             tunnel,
             allow_lan: self.allow_lan,
-            airporting: self.airporting.clone(),
+            airporting: self.airporting,
             dns_config: self.dns_config.clone(),
             #[cfg(target_os = "macos")]
             redirect_interface: self.redirect_interface.clone(),
