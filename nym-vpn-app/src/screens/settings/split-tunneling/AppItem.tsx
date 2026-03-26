@@ -1,11 +1,14 @@
 import clsx from 'clsx';
 import MsIcon from '../../../ui/MsIcon';
 import { useMainState } from '../../../contexts/index';
+import { convertFileSrc } from '@tauri-apps/api/core';
 
 export type AppEntry = {
   id: string;
   name: string;
-  iconColor: string;
+  exec: string;
+  icon: string | null;
+  desktop_file: string;
   state: 'excluded' | 'included';
 };
 
@@ -20,11 +23,19 @@ function AppItem({ app, onStateChange }: Props) {
   } = useMainState();
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-charcoal">
-      <div
-        className="w-7 h-7 rounded-md flex items-center justify-center text-white text-sm font-bold select-none"
-        style={{ backgroundColor: app.iconColor }}
-      >
-        {app.name[0].toUpperCase()}
+      <div className="w-7 h-7 flex items-center justify-center">
+        {app.icon && (
+          <img
+            src={convertFileSrc(app.icon)}
+            alt={app.name}
+            className="w-4 h-4"
+          />
+        )}
+        {!app.icon && (
+          <div className="h-full w-full rounded-md  bg-faded-lavender dark:bg-ash text-baltic-sea dark:text-white flex items-center justify-center text-sm leading-none">
+            {app.name[0].toUpperCase()}
+          </div>
+        )}
       </div>
       <span className="flex-1 text-sm text-baltic-sea dark:text-white truncate select-none">
         {app.name}

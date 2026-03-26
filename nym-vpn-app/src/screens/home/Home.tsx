@@ -308,6 +308,16 @@ function Home() {
             Get new summary
           </Button> */}
           <Button
+            color="cornflower"
+            onClick={() =>
+              invoke('get_app_list').then((apps) => {
+                console.log(apps);
+              })
+            }
+          >
+            Get app list
+          </Button>
+          <Button
             onClick={handleClick}
             color={getButtonColor()}
             disabled={getButtonDisabled()}

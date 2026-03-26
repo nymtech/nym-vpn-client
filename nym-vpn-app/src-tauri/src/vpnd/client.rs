@@ -13,7 +13,7 @@ use super::{
     config::{MixnetTrafficConfig, VpndConfig},
     events::MixnetEvent,
     gateway::{Gateway, GatewayType},
-    tunnel::TunnelState,
+    tunnel::{SplitApp, TunnelState},
 };
 
 use anyhow::Result;
@@ -1009,6 +1009,26 @@ impl VpndClient {
 
         vpnd.set_enable_split_tunnel(enabled)
             .or_else(async |e| self.handle_rpc_error("enable_split_tunnel", e).await)
+            .await
+    }
+
+    /// Add app to split tunneling
+    #[instrument(skip_all)]
+    pub async fn add_app_to_split_tunnel(&self, app: SplitApp) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.add_split_tunnel_app(app.into())
+            .or_else(async |e| self.handle_rpc_error("add_split_tunnel_app", e).await)
+            .await
+    }
+
+    /// Remove app from split tunneling
+    #[instrument(skip_all)]
+    pub async fn remove_app_from_split_tunnel(&self, app: SplitApp) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.remove_split_tunnel_app(app.into())
+            .or_else(async |e| self.handle_rpc_error("remove_split_tunnel_app", e).await)
             .await
     }
 }

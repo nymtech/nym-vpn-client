@@ -6,7 +6,7 @@ use crate::{
     vpnd::{
         client::{Node, VpndClient, VpndError},
         config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
-        tunnel::{ConnectingState, TunnelState},
+        tunnel::{ConnectingState, SplitApp, TunnelState},
     },
 };
 use std::net::IpAddr;
@@ -237,5 +237,26 @@ pub async fn get_mixnet_traffic_defaults() -> Result<MixnetTrafficDefaults, Back
 #[tauri::command]
 pub async fn set_enable_split_tunnel(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
     vpnd.enable_split_tunnel(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_app_list() -> Result<Vec<crate::fs::tunnel::App>, BackendError> {
+    let apps = crate::fs::tunnel::get_desktop_apps();
+    Ok(apps)
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn add_app_to_split_tunnel(vpnd: State<'_, VpndClient>, app: SplitApp) -> Result<(), BackendError> {
+    vpnd.add_app_to_split_tunnel(app).await?;
+    Ok(())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn remove_app_from_split_tunnel(vpnd: State<'_, VpndClient>, app: SplitApp) -> Result<(), BackendError> {
+    vpnd.remove_app_from_split_tunnel(app).await?;
     Ok(())
 }

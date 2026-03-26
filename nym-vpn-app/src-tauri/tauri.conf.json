@@ -40,7 +40,14 @@
   "app": {
     "withGlobalTauri": false,
     "security": {
-      "csp": null
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": ["$HOME/**/*", "/usr/share/**/*", "/snap/**/*"],
+          "requireLiteralLeadingDot": false
+        }
+      }
     }
   },
   "plugins": {

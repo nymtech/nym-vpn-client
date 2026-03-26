@@ -350,3 +350,11 @@ impl From<lib::SplitApp> for SplitApp {
         }
     }
 }
+
+impl From<SplitApp> for lib::SplitApp {
+    fn from(app: SplitApp) -> Self {
+        lib::SplitApp {
+            path: app.path,
+        }
+    }
+}

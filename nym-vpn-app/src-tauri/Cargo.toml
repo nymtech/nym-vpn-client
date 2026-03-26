@@ -16,7 +16,7 @@ build-info-build = "0.0.42"
 toml = "0.9.5"
 
 [dependencies]
-tauri = { version = "2.9.2", features = ["tray-icon", "image-png"] }
+tauri = { version = "2.9.2", features = ["protocol-asset", "tray-icon", "image-png"] }
 tokio = { version = "1.47.1", features = [
     "rt",
     "sync",
@@ -54,6 +54,8 @@ sysinfo = "0.37"
 tokio-stream = "0.1.17"
 zip = { version = "7.2", default-features = false, features = ["deflate"] }
 walkdir = "2.5"
+freedesktop-desktop-entry = "0.8"
+freedesktop-icons = "0.4"
 
 # nym deps
 nym-platform-metadata = { path = "../../nym-vpn-core/crates/nym-platform-metadata" }
