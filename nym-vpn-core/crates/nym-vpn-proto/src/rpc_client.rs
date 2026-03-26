@@ -154,6 +154,15 @@ impl RpcClient {
             .into_inner();
         Ok(())
     }
+    
+    pub async fn set_enable_airporting(&mut self, enable_airporting: bool) -> Result<()> {
+        self.0.set_enable_airporting(enable_airporting)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+
+    }
 
     pub async fn set_netstack(&mut self, netstack: bool) -> Result<()> {
         self.0

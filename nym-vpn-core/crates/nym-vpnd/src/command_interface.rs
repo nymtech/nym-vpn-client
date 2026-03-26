@@ -3,7 +3,7 @@
 
 use std::net::IpAddr;
 
-use futures::{StreamExt, stream::BoxStream};
+use futures::{stream::BoxStream, StreamExt};
 use nym_ipc::AuthenticationMaterial;
 use tokio::{
     sync::{
@@ -14,7 +14,7 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tonic::{Request, Response, Status, transport::Server};
+use tonic::{transport::Server, Request, Response, Status};
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
@@ -24,8 +24,8 @@ use nym_vpn_lib_types::{
 };
 
 use nym_vpn_proto::proto::{
-    self, MixnetTrafficConfig,
-    nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
+    self, nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
+    MixnetTrafficConfig,
 };
 
 use nym_vpn_lib::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
@@ -138,7 +138,7 @@ impl NymVpnService for CommandInterface {
         let _ = self
             .send_and_wait(VpnServiceCommand::SetDisableIPv6, disable_ipv6)
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set IPv6 config: {e}")))?;
+            .map_err(|e| tonic::Status::internal(format!("Failed to enable/disable IPv6: {e}")))?;
 
         Ok(tonic::Response::new(()))
     }
@@ -152,7 +152,9 @@ impl NymVpnService for CommandInterface {
         let _ = self
             .send_and_wait(VpnServiceCommand::SetEnableTwoHop, enable_two_hop)
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set two-hop config: {e}")))?;
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to enable/disable two-hop: {e}"))
+            })?;
 
         Ok(tonic::Response::new(()))
     }
@@ -166,7 +168,9 @@ impl NymVpnService for CommandInterface {
         let _ = self
             .send_and_wait(VpnServiceCommand::SetEnableBridges, enable_bridges)
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set enable bridges: {e}")))?;
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to enable/disable bridges: {e}"))
+            })?;
 
         Ok(tonic::Response::new(()))
     }
@@ -184,7 +188,7 @@ impl NymVpnService for CommandInterface {
             )
             .await
             .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set lewes-protocol config: {e}"))
+                tonic::Status::internal(format!("Failed to enable/disable lewes-protocol: {e}"))
             })?;
 
         Ok(tonic::Response::new(()))
@@ -200,7 +204,23 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::SetEnableAdBlocking, enable_ad_blocking)
             .await
             .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set ad-blocking config: {e}"))
+                tonic::Status::internal(format!("Failed to enable/disable ad-blocking: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_enable_airporting(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enable_airporting = request.into_inner();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetEnableAirporting, enable_airporting)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to enable/disable airporting: {e}"))
             })?;
 
         Ok(tonic::Response::new(()))
@@ -212,7 +232,9 @@ impl NymVpnService for CommandInterface {
         let _ = self
             .send_and_wait(VpnServiceCommand::SetNetstack, netstack)
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set netstack config: {e}")))?;
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to enable/disable netstack: {e}"))
+            })?;
 
         Ok(tonic::Response::new(()))
     }
@@ -223,7 +245,9 @@ impl NymVpnService for CommandInterface {
         let _ = self
             .send_and_wait(VpnServiceCommand::SetAllowLan, allow_lan)
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to set allow lan: {e}")))?;
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to enable/disable allow lan: {e}"))
+            })?;
 
         Ok(tonic::Response::new(()))
     }
@@ -254,7 +278,7 @@ impl NymVpnService for CommandInterface {
             .send_and_wait(VpnServiceCommand::SetEnableCustomDns, enable_custom_dns)
             .await
             .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set enable custom DNS: {e}"))
+                tonic::Status::internal(format!("Failed to enable/disable custom DNS: {e}"))
             })?;
 
         Ok(tonic::Response::new(()))
@@ -533,18 +557,6 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(is_stored))
     }
 
-    async fn get_account_mode(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetAccountModeResponse>> {
-        let mode = self
-            .send_and_wait(VpnServiceCommand::GetAccountMode, ())
-            .await?
-            .map(nym_vpn_lib_types::StoredAccountMode::from);
-
-        Ok(tonic::Response::new(mode.into()))
-    }
-
     async fn forget_account(
         &self,
         _request: tonic::Request<()>,
@@ -607,6 +619,18 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(proto::GetAccountIdentityResponse {
             account_identity,
         }))
+    }
+
+    async fn get_account_mode(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::GetAccountModeResponse>> {
+        let mode = self
+            .send_and_wait(VpnServiceCommand::GetAccountMode, ())
+            .await?
+            .map(nym_vpn_lib_types::StoredAccountMode::from);
+
+        Ok(tonic::Response::new(mode.into()))
     }
 
     async fn get_account_links(

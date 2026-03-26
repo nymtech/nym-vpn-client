@@ -6,7 +6,7 @@ mod commands;
 mod display_helpers;
 mod table_style;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use clap::{ArgAction, Parser};
 use tokio_stream::StreamExt;
 
@@ -86,6 +86,12 @@ pub enum Command {
         subcommand: commands::ad_block::Command,
     },
 
+    /// Airporting
+    Airporting {
+        #[command(subcommand)]
+        subcommand: commands::airporting::Command,
+    },
+
     /// DNS
     Dns {
         #[command(subcommand)]
@@ -158,6 +164,7 @@ impl Command {
             Command::Tunnel { subcommand } => subcommand.execute(rpc_client).await,
             Command::Lan { subcommand } => subcommand.execute(rpc_client).await,
             Command::AdBlock { subcommand } => subcommand.execute(rpc_client).await,
+            Command::Airporting { subcommand } => subcommand.execute(rpc_client).await,
             Command::Dns { subcommand } => subcommand.execute(rpc_client).await,
             Command::Network { subcommand } => subcommand.execute(rpc_client).await,
             Command::Account { subcommand } => subcommand.execute(rpc_client).await,

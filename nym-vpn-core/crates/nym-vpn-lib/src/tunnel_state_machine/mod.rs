@@ -30,14 +30,6 @@ use crate::{
     resolver::{self},
 };
 
-#[cfg(any(target_os = "ios", target_os = "android"))]
-use std::sync::Arc;
-use std::{
-    collections::HashSet,
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
-};
-
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_dns::ResolvedDnsConfig;
@@ -47,6 +39,13 @@ use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+use std::sync::Arc;
+use std::{
+    collections::HashSet,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+};
 use tokio::{
     sync::{mpsc, watch},
     task::JoinHandle,
@@ -67,8 +66,8 @@ use nym_vpn_lib_types::{
 };
 
 use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
+    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, GatewayDirectoryError,
+    UserAgent,
 };
 
 use tunnel::SelectedGateways;
@@ -140,6 +139,9 @@ pub struct TunnelSettings {
 
     /// Enable Ad blocking
     pub enable_ad_blocking: bool,
+
+    /// Enable Airporting
+    pub enable_airporting: bool,
 
     /// Select residential exit gateways only.
     pub residential_exit: bool,
@@ -224,6 +226,9 @@ impl TunnelSettings {
         if self.enable_ad_blocking != other.enable_ad_blocking {
             diff.add(TunnelSettingsDiffFields::EnableAdBlocking);
         }
+        if self.enable_airporting != other.enable_airporting {
+            diff.add(TunnelSettingsDiffFields::EnableAirporting)
+        }
         if self.residential_exit != other.residential_exit {
             diff.add(TunnelSettingsDiffFields::ResidentialExit);
         }
@@ -277,6 +282,7 @@ pub enum TunnelSettingsDiffFields {
     TunnelType,
     AllowLan,
     EnableAdBlocking,
+    EnableAirporting,
     ResidentialExit,
     MixnetTunnelOptions,
     WireguardTunnelOptions,
@@ -302,7 +308,10 @@ impl TunnelSettingsDiffFields {
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
             | Self::Dns => true,
-            Self::AllowLan | Self::EnableAdBlocking | Self::SplitTunnel => false,
+            Self::AllowLan
+            | Self::EnableAdBlocking
+            | Self::SplitTunnel
+            | Self::EnableAirporting => false,
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
             }
@@ -336,6 +345,10 @@ impl TunnelSettingsDiff {
 
     pub fn enable_ad_blocking_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::EnableAdBlocking)
+    }
+
+    pub fn enable_airporting_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::EnableAirporting)
     }
 
     pub fn entry_point_changed(&self) -> bool {

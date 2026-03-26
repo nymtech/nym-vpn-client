@@ -170,6 +170,13 @@ impl VpnServiceConfigManager {
             self.save_config_and_send_event().await;
         }
     }
+    
+    pub async fn set_enable_airporting(&mut self, enable_airporting: bool) {
+        if self.config.enable_airporting != enable_airporting {
+            self.config.enable_airporting = enable_airporting;
+            self.save_config_and_send_event().await;
+        }
+    }
 
     pub async fn set_residential_exit(&mut self, residential_only: bool) {
         if self.config.residential_exit != residential_only {
@@ -429,6 +436,7 @@ impl VpnServiceConfigManager {
             enable_ipv6: !self.config.disable_ipv6,
             allow_lan: self.config.allow_lan,
             enable_ad_blocking: self.config.enable_ad_blocking,
+            enable_airporting: self.config.enable_airporting,
             residential_exit: self.config.residential_exit,
             tunnel_type,
             enable_lewes_protocol: self.config.enable_lewes_protocol,

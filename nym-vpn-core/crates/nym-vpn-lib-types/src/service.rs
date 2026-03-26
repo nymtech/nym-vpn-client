@@ -4,7 +4,6 @@
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use std::{collections::HashSet, path::PathBuf};
 use std::{fmt, net::IpAddr, ops::RangeInclusive};
-
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -40,6 +39,7 @@ pub struct VpnServiceConfig {
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
     pub enable_ad_blocking: bool,
+    pub enable_airporting: bool,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -64,9 +64,11 @@ impl fmt::Display for VpnServiceConfig {
         )?;
         writeln!(
             f,
-            "enable_lewes_protocol: {}, enable_ad_blocking: {}, netstack: {}",
-            self.enable_lewes_protocol, self.enable_ad_blocking, self.netstack
+            "enable_lewes_protocol: {}, enable_ad_blocking: {}, enable_airporting: {},",
+            self.enable_lewes_protocol, self.enable_ad_blocking, self.enable_airporting
         )?;
+        
+        writeln!(f, "netstack: {}", self.netstack)?;
 
         writeln!(
             f,
@@ -107,6 +109,7 @@ impl Default for VpnServiceConfig {
             enable_bridges: false,
             enable_lewes_protocol: false,
             enable_ad_blocking: false,
+            enable_airporting: false,
             netstack: false,
             min_gateway_vpn_performance: None,
             residential_exit: false,

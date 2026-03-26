@@ -5,6 +5,7 @@ pub mod storage;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod adblocker;
+mod airporting;
 mod bandwidth_controller;
 pub mod cache_refresh;
 pub mod config;

@@ -1,14 +1,14 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-use std::net::Ipv6Addr;
-use std::{borrow::Cow, fmt, net::IpAddr};
-
+use ipnetwork::IpNetwork;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use ipnetwork::Ipv6Network;
 #[cfg(not(target_os = "android"))]
 use nym_dns::ResolvedDnsConfig;
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use std::net::Ipv6Addr;
+use std::{borrow::Cow, fmt, net::IpAddr};
 
 #[cfg(target_os = "macos")]
 #[path = "macos.rs"]
@@ -89,6 +89,8 @@ pub enum FirewallPolicy {
         tunnel: Option<TunnelInterface>,
         /// Flag setting if communication with LAN networks should be possible.
         allow_lan: bool,
+        /// Airporting IP addresses
+        airporting: Vec<IpNetwork>,
         /// Servers that are allowed to respond to DNS requests.
         #[cfg(not(target_os = "android"))]
         dns_config: ResolvedDnsConfig,
@@ -112,6 +114,8 @@ pub enum FirewallPolicy {
         tunnel: TunnelInterface,
         /// Flag setting if communication with LAN networks should be possible.
         allow_lan: bool,
+        /// Airporting IP addresses
+        airporting: Vec<IpNetwork>,
         /// Servers that are allowed to respond to DNS requests.
         #[cfg(not(target_os = "android"))]
         dns_config: ResolvedDnsConfig,
@@ -124,6 +128,8 @@ pub enum FirewallPolicy {
     Blocked {
         /// Flag setting if communication with LAN networks should be possible.
         allow_lan: bool,
+        /// Airporting IP addresses
+        airporting: Vec<IpNetwork>,
         /// Hosts that should be reachable while in the blocked state.
         allowed_endpoints: Vec<AllowedEndpoint>,
     },
@@ -228,6 +234,7 @@ impl fmt::Display for FirewallPolicy {
                 peer_endpoints,
                 tunnel,
                 allow_lan,
+                airporting,
                 #[cfg(not(target_os = "android"))]
                 dns_config,
                 allowed_endpoints,
@@ -244,21 +251,31 @@ impl fmt::Display for FirewallPolicy {
                 if let Some(tunnel) = tunnel {
                     write!(
                         f,
-                        "Connecting to {} over {}, allowed entry in-tunnel traffic: {}, allowed exit in-tunnel traffic: {}), {} LAN. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
+                        "Connecting to {} over {}, allowed entry in-tunnel traffic: {}, allowed exit in-tunnel traffic: {}), {} LAN. Airporting {}. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
                         display_peer_endpoints(peer_endpoints),
                         display_tunnel_interface(tunnel),
                         allowed_entry_tunnel_traffic,
                         allowed_exit_tunnel_traffic,
                         if *allow_lan { "Allowing" } else { "Blocking" },
+                        if !airporting.is_empty() {
+                            "Enabled"
+                        } else {
+                            "Disabled"
+                        },
                         display_allowed_endpoints(allowed_endpoints),
                         dns_str
                     )?;
                 } else {
                     write!(
                         f,
-                        "Connecting to {}, {} LAN, interface: none. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
+                        "Connecting to {}, {} LAN, Airporting {}. interface: none. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
                         display_peer_endpoints(peer_endpoints),
                         if *allow_lan { "Allowing" } else { "Blocking" },
+                        if !airporting.is_empty() {
+                            "Enabled"
+                        } else {
+                            "Disabled"
+                        },
                         display_allowed_endpoints(allowed_endpoints),
                         dns_str
                     )?;
@@ -273,6 +290,7 @@ impl fmt::Display for FirewallPolicy {
                 peer_endpoints,
                 tunnel,
                 allow_lan,
+                airporting,
                 #[cfg(not(target_os = "android"))]
                 dns_config,
                 #[cfg(target_os = "macos")]
@@ -285,10 +303,15 @@ impl fmt::Display for FirewallPolicy {
 
                 write!(
                     f,
-                    "Connected to {} over {}, {} LAN. Allowing non-tunnel DNS: {}",
+                    "Connected to {} over {}, {} LAN. Airporting {}. Allowing non-tunnel DNS: {}",
                     display_peer_endpoints(peer_endpoints),
                     display_tunnel_interface(tunnel),
                     if *allow_lan { "Allowing" } else { "Blocking" },
+                    if !airporting.is_empty() {
+                        "Enabled"
+                    } else {
+                        "Disabled"
+                    },
                     dns_str
                 )?;
 
@@ -299,11 +322,17 @@ impl fmt::Display for FirewallPolicy {
             }
             FirewallPolicy::Blocked {
                 allow_lan,
+                airporting,
                 allowed_endpoints,
             } => write!(
                 f,
-                "Blocked. {} LAN. Allowing endpoints: {}",
+                "Blocked. {} LAN. Airporting {}. Allowing endpoints: {}",
                 if *allow_lan { "Allowing" } else { "Blocking" },
+                if !airporting.is_empty() {
+                    "Enabled"
+                } else {
+                    "Disabled"
+                },
                 display_allowed_endpoints(allowed_endpoints),
             ),
         }
@@ -395,6 +424,8 @@ pub struct FirewallArguments {
     pub initial_state: InitialFirewallState,
     /// This argument is required for the blocked state to configure the firewall correctly.
     pub allow_lan: bool,
+    /// This argument is required for the blocked state to configure the firewall correctly.
+    pub airporting: Vec<IpNetwork>,
     /// Specifies the firewall mark used to identify traffic that is allowed to be excluded from
     /// the tunnel and _leaked_ during blocked states.
     #[cfg(target_os = "linux")]

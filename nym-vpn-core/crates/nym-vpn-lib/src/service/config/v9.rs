@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::service::{
-    ConfigSetupError,
     config::{
-        VpnServiceConfigExt,
         entry_exit::v2::{EntryPoint, ExitPoint},
         mixnet_traffic::v5::MixnetTrafficConfig,
         network_stats::v1::NetworkStatisticsConfig,
         split_tunnel_settings::v8::SplitTunnelSettings,
+        VpnServiceConfigExt,
     },
+    ConfigSetupError,
 };
 use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, str::FromStr};
@@ -24,6 +24,7 @@ pub struct VpnServiceConfig {
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
     pub enable_ad_blocking: bool,
+    pub enable_airporting: bool,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -35,8 +36,8 @@ pub struct VpnServiceConfig {
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
-    fn from(v8: VpnServiceConfig) -> Self {
-        VpnServiceConfigExt::V8(v8)
+    fn from(v9: VpnServiceConfig) -> Self {
+        VpnServiceConfigExt::V9(v9)
     }
 }
 
@@ -71,6 +72,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
+            enable_airporting: value.enable_airporting,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
@@ -79,7 +81,6 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             custom_dns,
             network_stats,
             split_tunnel,
-            ..Default::default()
         };
 
         Ok(config)

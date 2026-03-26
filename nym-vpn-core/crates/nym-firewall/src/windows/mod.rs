@@ -5,19 +5,19 @@
 #[macro_use]
 mod ffi;
 
-use crate::{AllowedClients, DNS_TCP_PORTS, Endpoint, TransportProtocol, TunnelInterface};
+use crate::{AllowedClients, Endpoint, TransportProtocol, TunnelInterface, DNS_TCP_PORTS};
 use nym_dns::ResolvedDnsConfig;
 
-use std::{ffi::CStr, net::IpAddr, ptr, sync::LazyLock};
-
+use ipnetwork::IpNetwork;
 use nym_common::trace_err_chain;
+use std::{ffi::CStr, net::IpAddr, ptr, sync::LazyLock};
 use widestring::WideCString;
-use windows::Win32::Globalization::{CP_ACP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS, MultiByteToWideChar};
+use windows::Win32::Globalization::{MultiByteToWideChar, CP_ACP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS};
 
 use self::winfw::*;
 use super::{
-    FirewallArguments, FirewallPolicy, InitialFirewallState,
-    net::{AllowedEndpoint, AllowedTunnelTraffic},
+    net::{AllowedEndpoint, AllowedTunnelTraffic}, FirewallArguments, FirewallPolicy,
+    InitialFirewallState,
 };
 use crate::FirewallPolicyError;
 
@@ -92,7 +92,7 @@ pub struct Firewall(());
 impl Firewall {
     pub fn from_args(args: FirewallArguments) -> Result<Self, Error> {
         if let InitialFirewallState::Blocked(allowed_endpoints) = args.initial_state {
-            Self::initialize_blocked(&allowed_endpoints, args.allow_lan)
+            Self::initialize_blocked(&allowed_endpoints, args.allow_lan, args.airporting)
         } else {
             Self::new()
         }
@@ -115,8 +115,9 @@ impl Firewall {
     fn initialize_blocked(
         allowed_endpoints: &[AllowedEndpoint],
         allow_lan: bool,
+        airporting: Vec<IpNetwork>,
     ) -> Result<Self, Error> {
-        let cfg = &WinFwSettings::new(allow_lan);
+        let cfg = WinFwSettings::new(allow_lan, airporting);
         let allowed_endpoint_containers = allowed_endpoints
             .iter()
             .cloned()
@@ -132,7 +133,7 @@ impl Firewall {
         unsafe {
             WinFw_InitializeBlocked(
                 WINFW_TIMEOUT_SECONDS,
-                cfg,
+                &cfg,
                 allowed_endpoints_refs.as_ptr() as _,
                 allowed_endpoints_refs.len(),
                 Some(log_sink),
@@ -161,12 +162,13 @@ impl Firewall {
                 peer_endpoints,
                 tunnel,
                 allow_lan,
+                airporting,
                 dns_config,
                 allowed_endpoints,
                 allowed_entry_tunnel_traffic,
                 allowed_exit_tunnel_traffic,
             } => {
-                let cfg = WinFwSettings::new(allow_lan);
+                let cfg = WinFwSettings::new(allow_lan, airporting);
 
                 self.set_connecting_state(
                     &peer_endpoints,
@@ -182,23 +184,25 @@ impl Firewall {
                 peer_endpoints,
                 tunnel,
                 allow_lan,
+                airporting,
                 dns_config,
             } => {
-                let cfg = &WinFwSettings::new(allow_lan);
-                self.set_connected_state(&peer_endpoints, cfg, &tunnel, &dns_config)
+                let cfg = WinFwSettings::new(allow_lan, airporting);
+                self.set_connected_state(&peer_endpoints, &cfg, &tunnel, &dns_config)
             }
             FirewallPolicy::Blocked {
                 allow_lan,
+                airporting,
                 allowed_endpoints,
             } => {
-                let cfg = &WinFwSettings::new(allow_lan);
+                let cfg = WinFwSettings::new(allow_lan, airporting);
 
                 let winfw_allowed_endpoint_containers = allowed_endpoints
                     .into_iter()
                     .map(AllowedEndpointBridge::from)
                     .collect::<Vec<_>>();
 
-                self.set_blocked_state(cfg, &winfw_allowed_endpoint_containers)
+                self.set_blocked_state(&cfg, &winfw_allowed_endpoint_containers)
             }
         };
 
@@ -563,8 +567,9 @@ fn with_wmi_if_enabled(f: impl FnOnce(&wmi::WMIConnection)) {
 
 #[allow(non_snake_case)]
 mod winfw {
-    use super::{AllowedEndpoint, AllowedTunnelTraffic, Error, WideCString, widestring_ip};
+    use super::{widestring_ip, AllowedEndpoint, AllowedTunnelTraffic, Error, WideCString};
     use crate::net::TransportProtocol;
+    use ipnetwork::IpNetwork;
     use std::{
         ffi::{c_char, c_void},
         ptr,
@@ -756,13 +761,15 @@ mod winfw {
     pub struct WinFwSettings {
         permitDhcp: bool,
         permitLan: bool,
+        airporting: Vec<IpNetwork>,
     }
 
     impl WinFwSettings {
-        pub fn new(permit_lan: bool) -> WinFwSettings {
+        pub fn new(permit_lan: bool, airporting: Vec<IpNetwork>) -> WinFwSettings {
             WinFwSettings {
                 permitDhcp: true,
                 permitLan: permit_lan,
+                airporting,
             }
         }
     }

@@ -15,13 +15,14 @@ mod v5;
 mod v6;
 mod v7;
 mod v8;
+mod v9;
 
 #[cfg(test)]
 mod tests;
 
 pub use config_manager::VpnServiceConfigManager;
 
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{
     fmt,
     path::{Path, PathBuf},
@@ -98,12 +99,13 @@ enum VpnServiceConfigVersion {
     V6,
     V7,
     V8,
+    V9,
 }
 
 impl VpnServiceConfigVersion {
     /// Returns the latest version of the config file.
     pub fn latest() -> Self {
-        VpnServiceConfigVersion::V8
+        VpnServiceConfigVersion::V9
     }
 }
 
@@ -118,6 +120,7 @@ impl fmt::Display for VpnServiceConfigVersion {
             VpnServiceConfigVersion::V6 => "v6",
             VpnServiceConfigVersion::V7 => "v7",
             VpnServiceConfigVersion::V8 => "v8",
+            VpnServiceConfigVersion::V9 => "v9",
         })
     }
 }
@@ -134,6 +137,7 @@ enum VpnServiceConfigExt {
     V6(v6::VpnServiceConfig),
     V7(v7::VpnServiceConfig),
     V8(v8::VpnServiceConfig),
+    V9(v9::VpnServiceConfig),
 }
 
 impl VpnServiceConfigExt {
@@ -147,6 +151,7 @@ impl VpnServiceConfigExt {
             VpnServiceConfigExt::V6(_) => VpnServiceConfigVersion::V6,
             VpnServiceConfigExt::V7(_) => VpnServiceConfigVersion::V7,
             VpnServiceConfigExt::V8(_) => VpnServiceConfigVersion::V8,
+            VpnServiceConfigExt::V9(_) => VpnServiceConfigVersion::V9,
         }
     }
 }
@@ -164,6 +169,7 @@ impl TryFrom<VpnServiceConfigExt> for nym_vpn_lib_types::VpnServiceConfig {
             VpnServiceConfigExt::V6(v6) => nym_vpn_lib_types::VpnServiceConfig::try_from(v6),
             VpnServiceConfigExt::V7(v7) => nym_vpn_lib_types::VpnServiceConfig::try_from(v7),
             VpnServiceConfigExt::V8(v8) => nym_vpn_lib_types::VpnServiceConfig::try_from(v8),
+            VpnServiceConfigExt::V9(v9) => nym_vpn_lib_types::VpnServiceConfig::try_from(v9),
         }
     }
 }
@@ -188,7 +194,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let split_tunnel = SplitTunnelSettings::from(&value.split_tunnel);
 
-        let v8 = v8::VpnServiceConfig {
+        let v9 = v9::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -197,6 +203,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
+            enable_airporting: value.enable_airporting,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
@@ -207,7 +214,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             split_tunnel,
         };
 
-        Ok(VpnServiceConfigExt::V8(v8))
+        Ok(VpnServiceConfigExt::V9(v9))
     }
 }
 
@@ -421,8 +428,8 @@ pub async fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(), 
 #[cfg(windows)]
 fn set_data_dir_permissions(data_dir: &Path) -> nym_windows::security::Result<()> {
     use nym_windows::security::{
-        AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights, SecurityInfo,
-        SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid, set_named_security_info,
+        set_named_security_info, AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights,
+        SecurityInfo, SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid,
     };
 
     let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;
