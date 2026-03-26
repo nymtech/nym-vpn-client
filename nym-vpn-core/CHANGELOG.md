@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [Windows] App Split Tunnelling (https://github.com/nymtech/nym-vpn-client/pull/4908).
+- CLI: add command to list processes excluded from VPN tunnel: `nym-vpnc split-tunnel excluded-processes`
 
 ## [1.27.0] - TBD
 

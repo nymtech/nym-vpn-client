@@ -32,6 +32,7 @@ nym-macos.workspace = true
 nym-firewall-config.workspace = true
 nym-common.workspace = true
 nym-ifconfig.workspace = true
+nym-vpn-lib-types.workspace = true
 
 # Windows-specific dependencies
 [target.'cfg(target_os = "windows")'.dependencies]

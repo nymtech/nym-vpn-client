@@ -12,8 +12,6 @@ use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcC
 use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
-#[cfg(target_os = "macos")]
-use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, EntryPoint, ExitPoint,
     FeatureFlags, Gateway, GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath,
@@ -21,6 +19,8 @@ use nym_vpn_lib_types::{
     PrivyDerivationMessage, Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode,
     SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::{SplitApp, SplitTunnelExcludedProcessList};
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
 
@@ -410,6 +410,16 @@ impl RpcClient {
     pub async fn clear_split_tunnel_apps(&self) -> Result<()> {
         self.inner.clone().clear_split_tunnel_apps().await?;
         Ok(())
+    }
+
+    pub async fn get_split_tunnel_excluded_processes(
+        &self,
+    ) -> Result<SplitTunnelExcludedProcessList> {
+        Ok(self
+            .inner
+            .clone()
+            .get_split_tunnel_excluded_processes()
+            .await?)
     }
 
     pub async fn need_full_disk_permissions(&self) -> Result<bool> {

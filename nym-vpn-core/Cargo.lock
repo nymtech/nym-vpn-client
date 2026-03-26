@@ -6405,6 +6405,7 @@ dependencies = [
  "nym-macos",
  "nym-platform-metadata",
  "nym-routing",
+ "nym-vpn-lib-types",
  "nym-windows",
  "pcap",
  "pnet_packet 0.35.0",
