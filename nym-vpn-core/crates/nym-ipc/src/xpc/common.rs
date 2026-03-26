@@ -113,16 +113,14 @@ impl XpcConnection {
     // Tries to fill the destination buffer and returns true if it got filled
     // and there is not more data to be copied, and false if there's still left
     // data to be copied
-    fn try_to_fill(&mut self, mut src: Vec<u8>, dst: &mut tokio::io::ReadBuf<'_>) -> bool {
+    fn try_to_fill(&mut self, mut src: Vec<u8>, dst: &mut tokio::io::ReadBuf<'_>) {
         if dst.remaining() >= src.len() {
             // we can consume the entire data
             dst.put_slice(&src);
-            false
         } else {
             // we have to store some of it for a later call
             self.to_be_copied = Some(src.split_off(dst.remaining()));
             dst.put_slice(&src);
-            true
         }
     }
 
@@ -147,9 +145,8 @@ impl AsyncRead for XpcConnection {
         // we check for invalidation, but we could still consume the buffered
         // data, so don't take any action on possible invalidation
         self.underlaying_conn_invalidated();
-        if let Some(to_be_copied) = self.to_be_copied.take()
-            && self.try_to_fill(to_be_copied, buf)
-        {
+        if let Some(to_be_copied) = self.to_be_copied.take() {
+            self.try_to_fill(to_be_copied, buf);
             return std::task::Poll::Ready(Ok(()));
         }
         match Pin::new(&mut self.data_stream_rx).poll_next(cx) {
