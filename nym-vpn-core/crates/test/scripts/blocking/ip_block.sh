@@ -1,23 +1,43 @@
 #!/usr/bin/env bash
 
 function block_addr_port_v4 {
-    printf "b %s %s\n" $1 $2
-    iptables -A OUTPUT -p tcp -d $1 --dport $2 -j DROP
+    local addr="$1"
+    local port="$2"
+    
+    printf "b %s %s\n" "$addr" "$port"
+    iptables -A OUTPUT -p tcp -d "$addr" --dport "$port" -j DROP
+    
+    return 0
 }
 
 function block_addr_port_v6 {
-    printf "b %s %s\n" $1 $2
-    ip6tables -A OUTPUT -p tcp -d $1 --dport $2 -j DROP
+    local addr="$1"
+    local port="$2"
+    
+    printf "b %s %s\n" "$addr" "$port"
+    ip6tables -A OUTPUT -p tcp -d "$addr" --dport "$port" -j DROP
+    
+    return 0
 }
 
 function unblock_addr_port_v4 {
-    printf "u %s %s\n" $1 $2
-    iptables -D OUTPUT -p tcp -d $1 --dport $2 -j DROP
+    local addr="$1"
+    local port="$2"
+    
+    printf "u %s %s\n" "$addr" "$port"
+    iptables -D OUTPUT -p tcp -d "$addr" --dport "$port" -j DROP
+    
+    return 0
 }
 
 function unblock_addr_port_v6 {
-    printf "u %s %s\n" $1 $2         
-    ip6tables -D OUTPUT -p tcp -d $1 --dport $2 -j DROP
+    local addr="$1"
+    local port="$2"
+    
+    printf "u %s %s\n" "$addr" "$port"
+    ip6tables -D OUTPUT -p tcp -d "$addr" --dport "$port" -j DROP
+    
+    return 0
 }
 
 function process_socket_addresses {
@@ -47,8 +67,11 @@ function process_socket_addresses {
             fi
         else
             printf "Invalid socket address format: %s (expected IPv4:port or [IPv6]:port)\n" "$socket_addr"
+            return 1
         fi
     done
+    
+    return 0
 }
 
 case $1 in

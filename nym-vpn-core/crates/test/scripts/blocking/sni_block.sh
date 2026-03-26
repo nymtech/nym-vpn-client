@@ -13,6 +13,8 @@ function block_sni {
         iptables -A OUTPUT -p tcp -m string --string "$domain" --algo kmp -j DROP
         ip6tables -A OUTPUT -p tcp -m string --string "$domain" --algo kmp -j DROP
     fi
+    
+    return 0
 }
 
 function unblock_sni {
@@ -28,6 +30,8 @@ function unblock_sni {
         iptables -D OUTPUT -p tcp -m string --string "$domain" --algo kmp -j DROP
         ip6tables -D OUTPUT -p tcp -m string --string "$domain" --algo kmp -j DROP
     fi
+    
+    return 0
 }
 
 function process_domain_addresses {
@@ -56,8 +60,11 @@ function process_domain_addresses {
             fi
         else
             printf "Invalid domain format: %s (expected domain.com or domain.com:port)\n" "$domain_addr"
+            return 1
         fi
     done
+    
+    return 0
 }
 
 case $1 in
