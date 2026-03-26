@@ -36,7 +36,7 @@ pub enum Command {
     ClearApps,
 
     /// List processes excluded from VPN tunnel
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     ExcludedProcesses,
 }
 
@@ -87,7 +87,7 @@ impl Command {
                 rpc_client.clear_split_tunnel_apps().await?;
                 Ok(())
             }
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "linux", target_os = "macos"))]
             Command::ExcludedProcesses => {
                 let proc_list = rpc_client.get_split_tunnel_excluded_processes().await?;
 

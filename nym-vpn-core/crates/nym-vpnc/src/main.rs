@@ -138,7 +138,7 @@ pub enum Command {
     },
 
     /// Split tunneling
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     SplitTunnel {
         #[command(subcommand)]
         subcommand: commands::split_tunnel::Command,
@@ -168,7 +168,7 @@ impl Command {
             Command::Diagnostic { subcommand } => {
                 commands::diagnostic::execute(subcommand, rpc_client).await
             }
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Command::SplitTunnel { subcommand } => subcommand.execute(rpc_client).await,
         }
     }
