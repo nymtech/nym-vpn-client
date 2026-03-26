@@ -7,9 +7,9 @@ use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AutologinResponse,
@@ -844,7 +844,7 @@ impl RpcClient {
         RegistrationReport::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     pub async fn set_enable_split_tunnel(&mut self, enable: bool) -> Result<()> {
         self.0
             .set_enable_split_tunnel(enable)
@@ -853,7 +853,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     pub async fn add_split_tunnel_app(&mut self, app: SplitApp) -> Result<()> {
         self.0
             .add_split_tunnel_app(proto::SplitApp::from(app))
@@ -862,7 +862,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     pub async fn remove_split_tunnel_app(&mut self, app: SplitApp) -> Result<()> {
         self.0
             .remove_split_tunnel_app(proto::SplitApp::from(app))
@@ -871,7 +871,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     pub async fn clear_split_tunnel_apps(&mut self) -> Result<()> {
         self.0
             .clear_split_tunnel_apps(())
@@ -880,7 +880,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     pub async fn get_split_tunnel_excluded_processes(
         &mut self,
     ) -> Result<SplitTunnelExcludedProcessList> {

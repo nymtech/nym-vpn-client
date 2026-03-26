@@ -420,7 +420,10 @@ fn process_list_snapshot() -> procfs::ProcResult<HashMap<pid_t, ProcessInfo>> {
                 );
             }
             Err(err) => {
-                tracing::error!("failed to obtain exec path for {}: {}", proc.pid(), err);
+                // It's possible that process no longer exists
+                if !matches!(err, procfs::ProcError::NotFound(_)) {
+                    tracing::error!("failed to obtain exec path for {}: {}", proc.pid(), err);
+                }
             }
         }
     }
