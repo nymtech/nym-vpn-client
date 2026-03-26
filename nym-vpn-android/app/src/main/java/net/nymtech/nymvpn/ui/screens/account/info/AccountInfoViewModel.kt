@@ -62,7 +62,7 @@ class AccountInfoViewModel @Inject constructor(private val backendManager: Backe
 				it.copy(
 					isLoading = false,
 					isMnemonicStored = isStored,
-					showLinkAccount = !isAccountLinked,
+					isLinked = isAccountLinked,
 					accountId = displayAccountId,
 					deviceId = deviceId,
 					accountLinkUrl = linkUrl,
