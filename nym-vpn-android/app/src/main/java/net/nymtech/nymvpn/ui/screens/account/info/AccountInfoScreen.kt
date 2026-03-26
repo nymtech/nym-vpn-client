@@ -110,7 +110,7 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 	AccountInfoScreenContent(
 		accountId = uiState.accountId,
 		deviceId = uiState.deviceId,
-		showLinkAccount = uiState.showLinkAccount,
+		isLinked = uiState.isLinked,
 		isMnemonicStored = uiState.isMnemonicStored,
 		subscriptionState = appUiState.subscription,
 		bandwidthState = uiState.bandwidth,
@@ -154,7 +154,7 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 fun AccountInfoScreenContent(
 	accountId: String,
 	deviceId: String,
-	showLinkAccount: Boolean,
+	isLinked: Boolean,
 	isMnemonicStored: Boolean,
 	onManageClick: () -> Unit,
 	onRenewClick: () -> Unit,
@@ -194,24 +194,23 @@ fun AccountInfoScreenContent(
 		)
 
 		Spacer(Modifier.height(8.dp))
-		AccountActionCard(
-			title = stringResource(R.string.account_info_account_button),
-			subtitle = if (showLinkAccount) {
-				{
+
+		if (!isLinked) {
+			AccountActionCard(
+				title = stringResource(R.string.account_info_account_button),
+				subtitle = {
 					Text(
 						text = stringResource(R.string.account_info_link_description),
 						style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
 					)
-				}
-			} else {
-				null
-			},
-			icon = Icons.Outlined.Person,
-			onClick = onLinkAccountClick,
-		)
+				},
+				icon = Icons.Outlined.Person,
+				onClick = onLinkAccountClick,
+			)
+		}
 
 		Text(
-			text = stringResource(if (showLinkAccount) R.string.account_info_link_warning else R.string.account_info_linked_info),
+			text = stringResource(if (!isLinked) R.string.account_info_link_warning else R.string.account_info_linked_info),
 			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 			modifier = Modifier.padding(vertical = 24.dp),
 		)
@@ -253,7 +252,7 @@ internal fun PreviewAccountInfoScreen() {
 		AccountInfoScreenContent(
 			accountId = "AccountID",
 			deviceId = "DeviceID123",
-			showLinkAccount = true,
+			isLinked = false,
 			isMnemonicStored = true,
 			onManageClick = {},
 			onRenewClick = {},

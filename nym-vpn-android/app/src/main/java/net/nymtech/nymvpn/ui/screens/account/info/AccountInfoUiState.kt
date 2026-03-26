@@ -13,7 +13,7 @@ sealed class AutologinState {
 data class AccountInfoUiState(
 	val isLoading: Boolean = true,
 	val isMnemonicStored: Boolean = false,
-	val showLinkAccount: Boolean = false,
+	val isLinked: Boolean = false,
 	val accountId: String = "",
 	val deviceId: String = "",
 	val accountLinkUrl: String? = null,
