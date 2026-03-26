@@ -19,13 +19,7 @@ public struct TechnicalOptInsView: View {
                 Spacer()
                 titleView()
                 subtitleView()
-#if os(iOS)
-                debugLogsToggle()
-#endif
-                sentryToggle()
-#if os(macOS)
-                statisticsToggle()
-#endif
+                settingsList()
                 Spacer()
                     .frame(height: 24)
                 continueButton()
@@ -63,16 +57,24 @@ private extension TechnicalOptInsView {
         Spacer()
     }
 
-    func debugLogsToggle() -> some View {
-        SettingsListItem(viewModel: debugLogsViewModel())
+    func settingsList() -> some View {
+        SettingsList(
+            viewModel: SettingsListViewModel(
+                sections: [SettingsSection(kind: TechnicalOptInsSectionKind.main, viewModels: items)]
+            )
+        )
     }
 
-    func sentryToggle() -> some View {
-        SettingsListItem(viewModel: sentryViewModel())
-    }
-
-    func statisticsToggle() -> some View {
-        SettingsListItem(viewModel: statisticsViewModel())
+    var items: [SettingsListItemViewModel] {
+        var result: [SettingsListItemViewModel] = []
+        #if os(iOS)
+        result.append(debugLogsViewModel())
+        #endif
+        result.append(sentryViewModel())
+        #if os(macOS)
+        result.append(statisticsViewModel())
+        #endif
+        return result
     }
 
     @ViewBuilder
@@ -95,7 +97,6 @@ private extension TechnicalOptInsView {
             ),
             title: "settings.privacyAndData.enableDebugLogs".localizedString,
             systemImageName: "ladybug",
-            position: SettingsListItemPosition(isFirst: true, isLast: true),
             action: {}
         )
     }
@@ -109,7 +110,6 @@ private extension TechnicalOptInsView {
             titleTextStyle: .Body.Medium.regular,
             attributtedSubtitle: sentryAttributtedString(),
             imageName: "errorReport",
-            position: .init(isFirst: true, isLast: false),
             action: {}
         )
     }
@@ -132,7 +132,6 @@ private extension TechnicalOptInsView {
             titleTextStyle: .Body.Medium.regular,
             subtitle: "welcome.analytics.subtitle".localizedString,
             imageName: "statistics",
-            position: .init(isFirst: false, isLast: true),
             action: {}
         )
     }
