@@ -33,24 +33,27 @@ impl RegistrationDiagnostic {
             wireguard_pings: None,
         };
 
-        // Registration over mixnet
-        let Some((registration_result, keypair)) =
-            MixnetClientRegistration::register_with_mixnet_client(
-                &mut registration_report,
-                network,
-                parameters,
-            )
-            .await
-        else {
-            return registration_report;
-        };
-
-        // Registration over LP, no need to keep the result, one is enough for wireguard test
-        let Some(_) =
-            LpClientRegistration::register_with_lp(&mut registration_report, network, parameters)
+        let registration_mode = &parameters.registration_mode;
+        let (registration_result, keypair) = if registration_mode.is_mixnet() {
+            let Some((registration_result, keypair)) =
+                MixnetClientRegistration::register_with_mixnet_client(
+                    &mut registration_report,
+                    network,
+                    parameters,
+                )
                 .await
-        else {
-            return registration_report;
+            else {
+                return registration_report;
+            };
+            (registration_result, keypair)
+        } else {
+            let Some((registration_result, keypair)) =
+                LpClientRegistration::register_with_lp(&mut registration_report, network, parameters)
+                    .await
+            else {
+                return registration_report;
+            };
+            (registration_result, keypair)
         };
 
         if !parameters.skip_wireguard {

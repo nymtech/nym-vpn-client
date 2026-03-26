@@ -247,8 +247,14 @@ pub enum RegistrationMode {
 }
 
 impl RegistrationMode {
-    pub fn from_cli_flags(_mixnet: bool, lp: bool) -> Self {
-        if lp { Self::Lp } else { Self::default() }
+    pub fn from_cli_flags(mixnet: bool, lp: bool) -> Self {
+        if lp {
+            Self::Lp
+        } else if mixnet {
+            Self::Mixnet
+        } else {
+            Self::default()
+        }
     }
 
     pub fn is_mixnet(&self) -> bool {
