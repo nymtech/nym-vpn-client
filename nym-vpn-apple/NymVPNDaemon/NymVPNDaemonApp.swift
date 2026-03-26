@@ -204,7 +204,7 @@ private extension NymVPNDaemonApp {
 
     var menuBarNSImage: NSImage {
         let image = NSImage(named: menuBarImageName) ?? NSImage()
-        image.size = NSSize(width: 22, height: 18)
+        image.size = NSSize(width: 25, height: 18)
         image.isTemplate = true
         return image
     }
