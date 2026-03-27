@@ -163,17 +163,16 @@ impl ProcessEventStream {
     }
 
     async fn handle_fork(&mut self, event: ForkEvt) -> Option<ProcessEvent> {
-        tracing::trace!(
-            "fork: parent_pid={} parent_tgid={} child_pid={} child_tgid={}",
-            event.parent_pid,
-            event.parent_tgid,
-            event.child_pid,
-            event.child_tgid
-        );
-
-        // Equivalent pid and tgid represent process main thread
         if event.child_pid == event.child_tgid {
-            let exe_path = query_exec_path("fork", event.child_pid).await?;
+            let exe_path = query_exec_path("fork", event.child_pid).await.unwrap_or_default();
+
+            tracing::trace!(
+                "fork: {} (parent: {}) exe={}",
+                event.child_pid,
+                event.parent_tgid,
+                exe_path.display()
+            );
+
             Some(ProcessEvent::Fork {
                 parent_pid: event.parent_tgid,
                 child_pid: event.child_pid,
@@ -185,39 +184,44 @@ impl ProcessEventStream {
     }
 
     async fn handle_exec(&mut self, event: ExecEvt) -> Option<ProcessEvent> {
-        tracing::trace!(
-            "exec: process_pid={} process_tgid={}",
-            event.process_pid,
-            event.process_tgid
-        );
-
-        // Equivalent pid and tgid represent process main thread
         if event.process_pid == event.process_tgid {
-            let exe_path = query_exec_path("exec", event.process_pid).await?;
+            let exe_path = query_exec_path("exec", event.process_pid).await.unwrap_or_default();
+            tracing::trace!(
+                "exec: {} {}",
+                event.process_pid,
+                exe_path.display()
+            );
+
             Some(ProcessEvent::Exec {
                 pid: event.process_pid,
                 path: exe_path,
             })
         } else {
+            // tracing::trace!(
+            //     "spawn thread: {} {}",
+            //     event.process_pid,
+            //     event.process_tgid
+            // );
             None
         }
     }
 
     fn handle_exit(&mut self, event: ExitEvt) -> Option<ProcessEvent> {
-        tracing::trace!(
-            "exit: process_pid={} process_tgid={} parent_pid={} parent_tgid={}",
-            event.process_pid,
-            event.process_tgid,
-            event.parent_pid,
-            event.parent_tgid
-        );
-
-        // Equivalent pid and tgid represent process main thread
+        // Ignore thread exits
         if event.process_pid == event.process_tgid {
+            tracing::trace!(
+                "exit: {}",
+                event.process_pid
+            );
             Some(ProcessEvent::Exit {
                 pid: event.process_pid,
             })
         } else {
+            // tracing::trace!(
+            //     "exit thread: {} (tgid: {})",
+            //     event.process_pid,
+            //     event.process_tgid,
+            // );
             None
         }
     }
@@ -235,11 +239,10 @@ async fn query_exec_path(event_type: &'static str, proc_pid: pid_t) -> Option<Pa
         .ok()?;
 
     // Obtain path to executable
-    let exe_path = read_proc_exe(proc_pid)
-        .await
+    let exe_path = procfs::process::Process::new(proc_pid).and_then(|proc| proc.exe())
         .inspect_err(|err| {
             // Ignore "no such file" errors, which could indicate that the process is short lived.
-            if err.raw_os_error() != Some(libc::ENOENT) {
+            if !matches!(err, procfs::ProcError::NotFound(_)) {
                 tracing::error!(?event_type, ?proc_pid, "failed to obtain proc exe: {err}")
             }
         })
@@ -262,10 +265,6 @@ async fn query_exec_path(event_type: &'static str, proc_pid: pid_t) -> Option<Pa
     } else {
         Some(exe_path)
     }
-}
-
-pub async fn read_proc_exe(pid: pid_t) -> std::io::Result<PathBuf> {
-    read_link(format!("/proc/{pid}/exe")).await
 }
 
 fn check_pidfd_exited(pid_fd: &PidFd) -> std::io::Result<bool> {
