@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
@@ -15,15 +15,9 @@ import {
 } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 import { CCache } from '../../../cache';
-import {
-  useAutologin,
-  useInAppNotify,
-  useMainDispatch,
-  useMainState,
-} from '../../../contexts';
+import { useAutologin, useInAppNotify, useMainState } from '../../../contexts';
 import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
-import { StateDispatch, TAccountSummary } from '../../../types';
 import { DeeplinkTimeout } from '../../../errors';
 import { AccountStatus } from './account-status';
 import { AccountDescription } from './AccountDescription';
@@ -42,7 +36,6 @@ function Account() {
     daemonStatus,
     accountSummary,
   } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
   const [autologinLoading, setAutologinLoading] = useState(false);
   const { autologin } = useAutologin();
   const needAPlan = account && accountState === 'no-subscription';
@@ -53,22 +46,6 @@ function Account() {
 
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
-
-  // const refreshAccount = useCallback(async () => {
-  //   try {
-  //     const summary = await invoke<TAccountSummary>('get_account_summary');
-  //     dispatch({ type: 'set-account-summary', summary });
-  //   } catch (err) {
-  //     console.error('Failed to get account summary', err);
-  //   }
-  // }, [dispatch]);
-
-  // // get fresh account data
-  // useEffect(() => {
-  //   if (accountSyncing) return;
-
-  //   refreshAccount();
-  // }, [accountSyncing, refreshAccount]);
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -125,7 +102,6 @@ function Account() {
       await invoke('store_deeplink_account', {
         callbackUrl: deeplinkUrl,
       });
-      // await refreshAccount();
     } catch (error) {
       console.error('Account login error: ', error);
       if (error instanceof DeeplinkTimeout) {

@@ -2,7 +2,6 @@ import clsx from 'clsx';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { NymSplash } from '../../assets';
 import { Button, ButtonText, Link, MsIcon, PageAnim } from '../../ui';
@@ -10,7 +9,6 @@ import { useMainDispatch, useMainState } from '../../contexts';
 import { PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
 import { PrivyButton } from '../../components';
-import { TAccountSummary } from '../../types/tauri';
 import { useDeepLink } from '../../hooks';
 import { CCache } from '../../cache';
 import { StateDispatch } from '../../types';
@@ -22,15 +20,6 @@ function Login() {
 
   const { startListening } = useDeepLink();
   const dispatch = useMainDispatch() as StateDispatch;
-
-  // const refreshAccount = useCallback(async () => {
-  //   try {
-  //     const summary = await invoke<TAccountSummary>('get_account_summary');
-  //     dispatch({ type: 'set-account-summary', summary });
-  //   } catch (err) {
-  //     console.error('Failed to get account summary', err);
-  //   }
-  // }, [dispatch]);
 
   const handleCreateAccount = async () => {
     const url = await invoke<string>('get_deep_link', {
@@ -48,7 +37,7 @@ function Login() {
       });
 
       dispatch({ type: 'set-account', stored: true });
-      // await refreshAccount();
+
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
