@@ -17,33 +17,37 @@ use tokio::{
     io::{AsyncReadExt, AsyncWriteExt, BufReader},
 };
 
-pub(crate) static SOURCES: &[Source] = &[Source {
-    file_name: "airporting.txt.gz",
-    builtin: include_bytes!("builtin/airporting.txt.gz"),
-    url: "disabled", // Updating is currently disabled.
-    meta_file_name: "airporting.txt.meta",
-    meta_builtin: include_str!("builtin/airporting.txt.meta"),
+static BASE_URL: Option<&'static str> = None;
+
+static SOURCES: &[Source] = &[Source {
+    country_code: "CN",
+    file_name: "airporting_cn.txt.gz",
+    builtin: include_bytes!("builtin/airporting_cn.txt.gz"),
+    meta_file_name: "airporting_cn.txt.meta",
+    meta_builtin: include_str!("builtin/airporting_cn.txt.meta"),
 }];
 
 /// Initialize the airporting lists using the ones built-into the binary
 /// and load them into a list of IP network addresses.
 pub(crate) async fn init_and_load_ip_networks(
     data_dir: PathBuf,
+    country_codes: &[&str],
     force: bool,
 ) -> Result<Vec<IpNetwork>> {
-    init_files(&data_dir, force).await?;
-    load_ip_networks(&data_dir).await
+    init_files(&data_dir, country_codes, force).await?;
+    load_ip_networks(&data_dir, country_codes).await
 }
 
 /// Update the airporting lists by downloading the latest versions,
 /// and load them into a list of network addresses.  If they were not updated when return `Ok(None)`.
 pub(crate) async fn update_and_load_ip_networks(
     data_dir: PathBuf,
+    country_codes: &[&str],
     user_agent: String,
 ) -> Result<Option<Vec<IpNetwork>>> {
-    let updated = update_files(&data_dir, &user_agent).await?;
+    let updated = update_files(&data_dir, country_codes, &user_agent).await?;
     if updated {
-        let ip_networks = load_ip_networks(&data_dir).await?;
+        let ip_networks = load_ip_networks(&data_dir, country_codes).await?;
         Ok(Some(ip_networks))
     } else {
         Ok(None)
@@ -51,7 +55,7 @@ pub(crate) async fn update_and_load_ip_networks(
 }
 
 /// Initialize the airporting lists using the ones built-into the binary.
-pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
+pub(crate) async fn init_files(data_dir: &Path, country_codes: &[&str], force: bool) -> Result<()> {
     let airporting_path = get_airporting_path(data_dir);
 
     fs::create_dir_all(&airporting_path)
@@ -62,6 +66,9 @@ pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
         })?;
 
     for source in SOURCES.iter() {
+        if !country_codes.contains(&source.country_code) {
+            continue;
+        }
         source.init(&airporting_path, force).await?;
     }
 
@@ -69,12 +76,19 @@ pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
 }
 
 /// Update the airporting lists by downloading the latest versions
-pub(crate) async fn update_files(data_dir: &Path, user_agent: &str) -> Result<bool> {
+pub(crate) async fn update_files(
+    data_dir: &Path,
+    country_codes: &[&str],
+    user_agent: &str,
+) -> Result<bool> {
     let airporting_path = get_airporting_path(data_dir);
     let mut updated = false;
     let http_client = reqwest::Client::new();
 
     for source in SOURCES.iter() {
+        if !country_codes.contains(&source.country_code) {
+            continue;
+        }
         if source
             .update_data_file(&airporting_path, &http_client, user_agent)
             .await?
@@ -86,26 +100,34 @@ pub(crate) async fn update_files(data_dir: &Path, user_agent: &str) -> Result<bo
     Ok(updated)
 }
 
-/// Load the airporting IP networks from all the files in the directory.
-pub(crate) async fn load_ip_networks(data_dir: &Path) -> Result<Vec<IpNetwork>> {
+/// Load the airporting IP networks from the data files.
+pub(crate) async fn load_ip_networks(
+    data_dir: &Path,
+    country_codes: &[&str],
+) -> Result<Vec<IpNetwork>> {
     let airporting_path = get_airporting_path(data_dir);
     let mut ip_networks = Vec::new();
 
     for source in SOURCES.iter() {
+        if !country_codes.contains(&source.country_code) {
+            continue;
+        }
+
         let meta_path = airporting_path.join(source.meta_file_name);
         let meta_data = SourceMetaData::from_file(&meta_path).await?;
         let data_path = airporting_path.join(source.file_name);
-        let address_list_txt = Source::load_data_file(&data_path, &meta_data).await?;
+        let ip_networks_txt = Source::load_data_file(&data_path, &meta_data).await?;
 
         ip_networks.reserve(meta_data.line_count);
 
-        for line in address_list_txt.lines() {
-            let ip_network =
-                line.parse::<IpNetwork>()
-                    .map_err(|error| AirportingError::ParseIpNetwork {
-                        file_path: data_path.clone(),
-                        error,
-                    })?;
+        for ip_network_txt in ip_networks_txt.lines() {
+            let ip_network = ip_network_txt.parse::<IpNetwork>().map_err(|error| {
+                AirportingError::ParseIpNetwork {
+                    ip_network: ip_network_txt.to_string(),
+                    file_path: data_path.clone(),
+                    error,
+                }
+            })?;
             ip_networks.push(ip_network);
         }
     }
@@ -114,13 +136,13 @@ pub(crate) async fn load_ip_networks(data_dir: &Path) -> Result<Vec<IpNetwork>> 
 }
 
 pub(crate) fn get_airporting_path(data_dir: &Path) -> PathBuf {
-    PathBuf::from(data_dir).join("ad-blocking")
+    PathBuf::from(data_dir).join("airporting")
 }
 
 pub(crate) struct Source {
+    pub country_code: &'static str,
     pub file_name: &'static str,
     pub builtin: &'static [u8],
-    pub url: &'static str,
     pub meta_file_name: &'static str,
     pub meta_builtin: &'static str,
 }
@@ -167,16 +189,46 @@ impl Source {
             tracing::warn!("Failed to clean up temporary airporting files: {error}; Ignoring.");
         }
 
-        // Is it disabled? (TODO: Remove this test)
-        if self.url == "disabled" {
-            tracing::debug!("Airporting file updating is currently disabled");
-            return Ok(false);
+        let Some(base_url) = BASE_URL else {
+            return Ok(false); // Updating is disabled.
+        };
+
+        // Download the meta file and check if the file has been updated
+        let meta_url = format!("{base_url}/{}", self.meta_file_name);
+        let request = http_client
+            .get(&meta_url)
+            .header(reqwest::header::USER_AGENT, user_agent)
+            .header(reqwest::header::ACCEPT, "text/plain; charset=utf-8,*/*")
+            .header(reqwest::header::ACCEPT_CHARSET, "utf-8");
+        let response = request
+            .send()
+            .await
+            .map_err(|error| AirportingError::FetchData {
+                url: meta_url.to_string(),
+                error,
+            })?;
+
+        // Read the rest of the response
+        let data_bytes = response
+            .bytes()
+            .await
+            .map_err(|error| AirportingError::FetchData {
+                url: meta_url.to_string(),
+                error,
+            })?;
+
+        let meta_data_path = airporting_path.join(self.meta_file_name);
+        let meta_data = SourceMetaData::from_slice(data_bytes.as_ref()).await?;
+        if let Ok(current_meta_data) = SourceMetaData::from_file(&meta_data_path).await
+            && current_meta_data.updated_utc >= meta_data.updated_utc
+        {
+            return Ok(false); // Up-to-date
         }
 
-        // Request a new version of the data file, as long as it's different to the current one
-        // Note: Accept-Encoding: gzip is required to get the etag back in the right format.
+        // If either failed to read the existing meta data file or it's out-of-date
+        let data_url = format!("{base_url}/{}", self.file_name);
         let request = http_client
-            .get(self.url)
+            .get(&data_url)
             .header(reqwest::header::USER_AGENT, user_agent)
             .header(reqwest::header::ACCEPT, "text/plain; charset=utf-8,*/*")
             .header(reqwest::header::ACCEPT_CHARSET, "utf-8")
@@ -185,26 +237,25 @@ impl Source {
             .send()
             .await
             .map_err(|error| AirportingError::FetchData {
-                url: self.url.to_string(),
+                url: data_url.to_string(),
                 error,
             })?;
-
-        tracing::trace!("Updating airporting data file {}", self.file_name);
 
         // Read the rest of the response
         let data_bytes = response
             .bytes()
             .await
             .map_err(|error| AirportingError::FetchData {
-                url: self.url.to_string(),
+                url: data_url.to_string(),
                 error,
             })?;
 
-        // Write the data to a temporary file in the ad-blocker directory
+        // Write the data to a temporary file in the airporting directory.
+        // We regenerate the meta data during when we save it.
         let temp_data_path = airporting_path.join(Self::TEMP_DATA_FILE_NAME);
         let temp_meta_data = Self::save_data_file(&temp_data_path, &data_bytes).await?;
 
-        // Write the new meta data to a temporary file in the ad-blocker directory
+        // Write the new meta data to a temporary file in the airporting directory
         let temp_meta_path = airporting_path.join(Self::TEMP_META_FILE_NAME);
         temp_meta_data.write_to_file(&temp_meta_path).await?;
 
@@ -227,14 +278,14 @@ impl Source {
                 error,
             })?;
 
-        tracing::debug!("Updated ad-blocker data file {}", self.file_name);
+        tracing::debug!("Updated airporting data file {}", self.file_name);
 
         Ok(true)
     }
 
     /// Clean-up any extraneous temporary files that may be left over from a failed update.
-    async fn cleanup_temp_files(ad_blocking_path: &Path) -> Result<()> {
-        let temp_data_path = ad_blocking_path.join(Self::TEMP_DATA_FILE_NAME);
+    async fn cleanup_temp_files(airporting_path: &Path) -> Result<()> {
+        let temp_data_path = airporting_path.join(Self::TEMP_DATA_FILE_NAME);
         if temp_data_path.exists() {
             fs::remove_file(&temp_data_path).await.map_err(|error| {
                 AirportingError::RemoveFile {
@@ -244,7 +295,7 @@ impl Source {
             })?;
         }
 
-        let temp_meta_path = ad_blocking_path.join(Self::TEMP_META_FILE_NAME);
+        let temp_meta_path = airporting_path.join(Self::TEMP_META_FILE_NAME);
         if temp_meta_path.exists() {
             fs::remove_file(&temp_meta_path).await.map_err(|error| {
                 AirportingError::RemoveFile {
@@ -324,10 +375,11 @@ impl Source {
         })
     }
 
-    /// Save the data file to disk (gzip) and update the meta data with the new uncompressed length and SHA256.
+    /// Compress the data file contents and save it to disk.
+    /// We regenerate and return the new meta data.
     async fn save_data_file(file_path: &Path, data: &[u8]) -> Result<SourceMetaData> {
         let length = data.len();
-        let line_count = data.iter().filter(|&&byte| byte == b'\n').count();
+        let line_count = data.iter().filter(|&&byte| byte == b'\n').count() + 1;
         let sha256 = hex::encode(Sha256::digest(data));
 
         let mut encoder = GzipEncoder::new(Vec::new());
@@ -361,28 +413,6 @@ impl Source {
             sha256,
             updated_utc: OffsetDateTime::now_utc(),
         })
-    }
-
-    fn get_response_header(
-        url: &str,
-        response: &reqwest::Response,
-        header: reqwest::header::HeaderName,
-    ) -> Result<String> {
-        let etag = response
-            .headers()
-            .get(&header)
-            .ok_or(AirportingError::MissingHeader {
-                header: header.clone(),
-                url: url.to_string(),
-            })?
-            .to_str()
-            .map_err(|error| AirportingError::InvalidHeader {
-                header: header.clone(),
-                url: url.to_string(),
-                error,
-            })?
-            .to_string();
-        Ok(etag)
     }
 }
 
