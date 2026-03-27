@@ -1,10 +1,14 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { Button, MsIcon, PageAnim, Spinner } from '../../ui';
 import { routes } from '../../router';
 import { CheckCircleIcon } from '../../assets';
 import { useAutologin } from '../../contexts/autologin/context';
+import { useDeepLink } from '../../hooks';
+import { DeeplinkTimeout } from '../../errors';
+import { useInAppNotify } from '../../contexts';
 
 function Feature({ icon, title }: { icon: string; title: string }) {
   return (
@@ -19,7 +23,9 @@ function SelectPlan() {
   const { t } = useTranslation('account');
 
   const [autologinLoading, setAutologinLoading] = useState(false);
-  const { autologin } = useAutologin();
+  const { autologin, closeDialog } = useAutologin();
+  const { startListening } = useDeepLink();
+  const { push } = useInAppNotify();
 
   const handleClick = async () => {
     if (autologinLoading) return;
@@ -27,7 +33,21 @@ function SelectPlan() {
     setAutologinLoading(true);
     try {
       await autologin('autologinRenew');
+
+      await startListening(600000);
+
+      await invoke<void>('handle_subscription_payment');
+      closeDialog();
       navigate(routes.root);
+    } catch (error: unknown) {
+      console.error('Select plan error: ', error);
+      if (error instanceof DeeplinkTimeout) {
+        push({
+          message: t('autologin.timeout', { ns: 'errors' }),
+          type: 'error',
+          duration: 3000,
+        });
+      }
     } finally {
       setAutologinLoading(false);
     }

@@ -126,8 +126,16 @@ function Account() {
 
   const handleManageSubscription = async () => {
     setAutologinLoading(true);
+
     try {
       await autologin('autologinView');
+
+      // don't block. User may or may not do changes on the website.
+      void (async () => {
+        await startListening(600000);
+
+        await invoke<void>('handle_subscription_payment');
+      })();
     } finally {
       setAutologinLoading(false);
     }
