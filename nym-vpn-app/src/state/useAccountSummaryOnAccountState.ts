@@ -14,17 +14,25 @@ const ACCOUNT_STATES_REFRESH_SUMMARY: ReadonlySet<AccountState> = new Set([
 
 export function useAccountSummaryOnAccountState(
   accountState: AccountState | null | undefined,
+  accountSyncing: boolean,
   initialized: boolean,
   dispatch: StateDispatch,
 ) {
   const prevRef = useRef<AccountState | null | undefined>(undefined);
+  const prevSyncingRef = useRef<boolean>(false);
 
   useEffect(() => {
     const prev = prevRef.current;
     prevRef.current = accountState;
 
-    if (!initialized) return;
-    if (prev === accountState) return;
+    const prevSyncing = prevSyncingRef.current;
+    prevSyncingRef.current = accountSyncing;
+
+    if (
+      !initialized ||
+      (prev === accountState && prevSyncing === accountSyncing)
+    )
+      return;
     if (!accountState || !ACCOUNT_STATES_REFRESH_SUMMARY.has(accountState))
       return;
 
@@ -45,5 +53,5 @@ export function useAccountSummaryOnAccountState(
     return () => {
       cancelled = true;
     };
-  }, [accountState, initialized, dispatch]);
+  }, [accountState, accountSyncing, initialized, dispatch]);
 }

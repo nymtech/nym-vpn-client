@@ -39,7 +39,12 @@ function MainStateProvider({ children, init }: Props) {
 
   const { push } = useInAppNotify();
   useTauriEvents(dispatch, push);
-  useAccountSummaryOnAccountState(state.accountState, state.initialized, dispatch);
+  useAccountSummaryOnAccountState(
+    state.accountState,
+    state.accountSyncing,
+    state.initialized,
+    dispatch,
+  );
 
   // initialize app state
   useEffect(() => {
