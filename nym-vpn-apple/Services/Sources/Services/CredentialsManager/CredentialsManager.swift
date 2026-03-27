@@ -233,7 +233,7 @@ import PathManager
         isUpdatingAccountSummary = true
         defer { isUpdatingAccountSummary = false }
 
-        let delays: [Duration] = [.zero, .seconds(1), .seconds(3), .seconds(9)]
+        let delays: [Duration] = [.zero, .seconds(2), .seconds(6), .seconds(8), .seconds(10)]
         for delay in delays {
             if delay != .zero {
                 try? await Task.sleep(for: delay)
