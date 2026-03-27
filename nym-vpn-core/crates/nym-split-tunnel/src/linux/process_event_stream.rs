@@ -3,7 +3,7 @@
 
 use libc::{
     CN_IDX_PROC, CN_VAL_PROC, NETLINK_CONNECTOR, NLMSG_DONE, PROC_CN_MCAST_IGNORE,
-    PROC_CN_MCAST_LISTEN, PROC_EVENT_EXEC, PROC_EVENT_EXIT, PROC_EVENT_COMM, PROC_EVENT_FORK, PROC_EVENT_NONE,
+    PROC_CN_MCAST_LISTEN, PROC_EVENT_EXEC, PROC_EVENT_EXIT, PROC_EVENT_FORK, PROC_EVENT_NONE,
     getpid, pid_t, proc_cn_mcast_op,
 };
 use netlink_sys::{AsyncSocket, AsyncSocketExt, TokioSocket};
@@ -126,6 +126,12 @@ impl ProcessEventStream {
     }
 
     async fn handle_event(&mut self, msg: &nlcn_event_msg) -> Option<ProcessEvent> {
+        // Ensure the message kind is correct
+        if msg.payload.cn_msg.id.idx != CN_IDX_PROC && msg.payload.cn_msg.id.val != CN_VAL_PROC {
+            tracing::warn!("idx,val is not CN_IDX_*");
+            return None;
+        }
+
         // Only process messages from kernel
         if msg.nl_hdr.nlmsg_pid != 0 {
             tracing::warn!(
@@ -152,12 +158,6 @@ impl ProcessEventStream {
                 let exit = unsafe { msg.payload.proc_ev.event_data.exit };
                 self.handle_exit(exit)
             }
-            PROC_EVENT_COMM => {
-                let comm = unsafe { msg.payload.proc_ev.event_data.comm };
-                let commstr = std::ffi::CStr::from_bytes_until_nul(&comm.comm).unwrap_or_default();
-                tracing::trace!("comm: process_pid={} process_tgid={} comm={}", comm.process_pid, comm.process_tgid, commstr.to_string_lossy());
-                None
-            }
             _ => None,
         }
     }
@@ -171,6 +171,7 @@ impl ProcessEventStream {
             event.child_tgid
         );
 
+        // Equivalent pid and tgid represent process main thread
         if event.child_pid == event.child_tgid {
             let exe_path = query_exec_path("fork", event.child_pid).await?;
             Some(ProcessEvent::Fork {
@@ -190,6 +191,7 @@ impl ProcessEventStream {
             event.process_tgid
         );
 
+        // Equivalent pid and tgid represent process main thread
         if event.process_pid == event.process_tgid {
             let exe_path = query_exec_path("exec", event.process_pid).await?;
             Some(ProcessEvent::Exec {
@@ -210,6 +212,7 @@ impl ProcessEventStream {
             event.parent_tgid
         );
 
+        // Equivalent pid and tgid represent process main thread
         if event.process_pid == event.process_tgid {
             Some(ProcessEvent::Exit {
                 pid: event.process_pid,
