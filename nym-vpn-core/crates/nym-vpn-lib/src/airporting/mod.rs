@@ -4,6 +4,7 @@
 use std::path::PathBuf;
 
 pub mod files;
+pub mod task;
 
 #[derive(thiserror::Error, Debug)]
 pub enum AirportingError {
@@ -55,6 +56,12 @@ pub enum AirportingError {
     #[error("failed to deserialize airporting meta file {file_path}")]
     DeserializeMetaFile {
         file_path: PathBuf,
+        #[source]
+        error: serde_json::Error,
+    },
+
+    #[error("failed to deserialize airporting meta data")]
+    DeserializeMetaData {
         #[source]
         error: serde_json::Error,
     },
@@ -126,8 +133,9 @@ pub enum AirportingError {
         error: adblock::request::RequestError,
     },
 
-    #[error("failed to parse IP network address from airporting data file {file_path}")]
+    #[error("failed to parse IP network '{ip_network}' from airporting data file {file_path}")]
     ParseIpNetwork {
+        ip_network: String,
         file_path: PathBuf,
         #[source]
         error: ipnetwork::IpNetworkError,

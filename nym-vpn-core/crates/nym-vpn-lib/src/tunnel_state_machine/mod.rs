@@ -839,6 +839,7 @@ impl TunnelStateMachine {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall = Firewall::from_args(FirewallArguments {
             allow_lan: tunnel_settings.allow_lan,
+            airporting: vec![],
             initial_state: InitialFirewallState::None,
             #[cfg(target_os = "linux")]
             fwmark: tunnel_constants.fwmark,

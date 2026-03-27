@@ -3,8 +3,8 @@
 
 use super::{AdBlockerError, Result};
 use adblock::{
-    FilterSet,
     lists::{FilterFormat, ParseOptions, RuleTypes},
+    FilterSet,
 };
 use async_compression::tokio::{bufread::GzipDecoder, write::GzipEncoder};
 use serde::{Deserialize, Serialize};
@@ -355,7 +355,8 @@ impl Source {
         })
     }
 
-    /// Save the data file to disk (gzip) and update the meta data with the new uncompressed length and SHA256.
+    /// Compress the data file contents and save it to disk.
+    /// We regenerate and return the new meta data.
     async fn save_data_file(file_path: &Path, data: &[u8], etag: &str) -> Result<SourceMetaData> {
         let byte_len = data.len();
         let sha256 = hex::encode(Sha256::digest(data));
