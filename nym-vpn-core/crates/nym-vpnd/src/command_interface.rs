@@ -771,6 +771,24 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn handle_subscription_payment(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::VpnAccountSummaryResponse>> {
+        let account_summary = self
+            .send_and_wait(VpnServiceCommand::HandleSubscriptionPayment, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to handle subscription payment: {err}"))
+            })?;
+
+        let response = proto::VpnAccountSummaryResponse {
+            account_summary: account_summary.map(proto::VpnAccountSummary::from),
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn get_deeplink(
         &self,
         request: tonic::Request<proto::GetDeeplinkParams>,
