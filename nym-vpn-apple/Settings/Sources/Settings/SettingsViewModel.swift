@@ -240,6 +240,15 @@ private extension SettingsViewModel {
                 }
             }
             .store(in: &cancellables)
+
+        credentialsManager.$accountSummary
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.reloadSections()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     /// Configures sections, to reload all the content - use reloadSections
@@ -291,22 +300,25 @@ private extension SettingsViewModel {
 private extension SettingsViewModel {
     func accountSection() -> AppSettingsSection {
         let subtitle: AttributedString
-        if let accountSummary = credentialsManager.accountSummary,
-           let planText = accountSummary.planValidUntilAttributedString {
-            if accountSummary.isActive,
-               isAutoRenewEnabled(accountSummary: accountSummary),
-               !accountSummary.isExpiringSoon,
-               !accountSummary.isExpiringWarning {
-                var second = AttributedString("* \("autoRenews".localizedString)")
-                second.foregroundColor = NymColor.gray1
-                subtitle = planText + AttributedString("\n") + second
+        if let accountSummary = credentialsManager.accountSummary {
+            if let planText = accountSummary.planValidUntilAttributedString {
+                if accountSummary.isActive,
+                   isAutoRenewEnabled(accountSummary: accountSummary),
+                   !accountSummary.isExpiringSoon,
+                   !accountSummary.isExpiringWarning {
+                    var second = AttributedString("* \("autoRenews".localizedString)")
+                    second.foregroundColor = NymColor.gray1
+                    subtitle = planText + AttributedString("\n") + second
+                } else {
+                    subtitle = planText
+                }
             } else {
-                subtitle = planText
+                var first = AttributedString("noActivePlan".localizedString)
+                first.foregroundColor = NymColor.error
+                subtitle = first
             }
         } else {
-            var first = AttributedString("noActivePlan".localizedString)
-            first.foregroundColor = NymColor.error
-            subtitle = first
+            subtitle = AttributedString("requestingZkNyms".localizedString)
         }
 
         var viewModels = [
