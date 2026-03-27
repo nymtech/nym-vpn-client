@@ -3,6 +3,7 @@ import React, { useEffect, useReducer } from 'react';
 import { InitState, SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { useTauriEvents } from '../../state/useTauriEvents';
+import { useAccountSummaryOnAccountState } from '../../state/useAccountSummaryOnAccountState';
 import { useInAppNotify } from '../in-app-notification';
 import { daemonStatusUpdate, networkEnvChanged } from '../../state/helper';
 import { CCache } from '../../cache';
@@ -38,6 +39,7 @@ function MainStateProvider({ children, init }: Props) {
 
   const { push } = useInAppNotify();
   useTauriEvents(dispatch, push);
+  useAccountSummaryOnAccountState(state.accountState, state.initialized, dispatch);
 
   // initialize app state
   useEffect(() => {

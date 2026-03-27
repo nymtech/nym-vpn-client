@@ -19,16 +19,16 @@ function AccountSettingRow() {
   const needAPlan = account && accountState === 'no-subscription';
 
   // get fresh account summary
-  useEffect(() => {
-    if (accountSyncing) return;
-    invoke<TAccountSummary>('get_account_summary')
-      .then((summary) => {
-        dispatch({ type: 'set-account-summary', summary });
-      })
-      .catch((err: unknown) => {
-        console.error('Failed to get account summary', err);
-      });
-  }, [accountSyncing, dispatch]);
+  // useEffect(() => {
+  //   if (accountSyncing) return;
+  //   invoke<TAccountSummary>('get_account_summary')
+  //     .then((summary) => {
+  //       dispatch({ type: 'set-account-summary', summary });
+  //     })
+  //     .catch((err: unknown) => {
+  //       console.error('Failed to get account summary', err);
+  //     });
+  // }, [accountSyncing, dispatch]);
 
   useEffect(() => {
     const checkAccount = async () => {

@@ -54,21 +54,21 @@ function Account() {
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
 
-  const refreshAccount = useCallback(async () => {
-    try {
-      const summary = await invoke<TAccountSummary>('get_account_summary');
-      dispatch({ type: 'set-account-summary', summary });
-    } catch (err) {
-      console.error('Failed to get account summary', err);
-    }
-  }, [dispatch]);
+  // const refreshAccount = useCallback(async () => {
+  //   try {
+  //     const summary = await invoke<TAccountSummary>('get_account_summary');
+  //     dispatch({ type: 'set-account-summary', summary });
+  //   } catch (err) {
+  //     console.error('Failed to get account summary', err);
+  //   }
+  // }, [dispatch]);
 
-  // get fresh account data
-  useEffect(() => {
-    if (accountSyncing) return;
+  // // get fresh account data
+  // useEffect(() => {
+  //   if (accountSyncing) return;
 
-    refreshAccount();
-  }, [accountSyncing, refreshAccount]);
+  //   refreshAccount();
+  // }, [accountSyncing, refreshAccount]);
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -135,7 +135,7 @@ function Account() {
       await invoke('store_deeplink_account', {
         callbackUrl: deeplinkUrl,
       });
-      await refreshAccount();
+      // await refreshAccount();
     } catch (error) {
       console.error('Account login error: ', error);
       if (error instanceof Error && error.message === 'Login timeout') {

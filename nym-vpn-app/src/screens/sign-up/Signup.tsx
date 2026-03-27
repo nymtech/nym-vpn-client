@@ -25,14 +25,14 @@ function Login() {
   const { startListening } = useDeepLink();
   const dispatch = useMainDispatch() as StateDispatch;
 
-  const refreshAccount = useCallback(async () => {
-    try {
-      const summary = await invoke<TAccountSummary>('get_account_summary');
-      dispatch({ type: 'set-account-summary', summary });
-    } catch (err) {
-      console.error('Failed to get account summary', err);
-    }
-  }, [dispatch]);
+  // const refreshAccount = useCallback(async () => {
+  //   try {
+  //     const summary = await invoke<TAccountSummary>('get_account_summary');
+  //     dispatch({ type: 'set-account-summary', summary });
+  //   } catch (err) {
+  //     console.error('Failed to get account summary', err);
+  //   }
+  // }, [dispatch]);
 
   const handleCreateAccount = async () => {
     const url = await invoke<string>('get_deep_link', {
@@ -60,7 +60,7 @@ function Login() {
       });
 
       dispatch({ type: 'set-account', stored: true });
-      await refreshAccount();
+      // await refreshAccount();
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
