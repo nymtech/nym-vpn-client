@@ -609,21 +609,12 @@ impl RpcClient {
         Ok(account_summary)
     }
 
-    pub async fn handle_subscription_payment(&mut self) -> Result<Option<VpnAccountSummary>> {
-        let response = self
-            .0
+    pub async fn handle_subscription_payment(&mut self) -> Result<()> {
+        self.0
             .handle_subscription_payment(())
             .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-
-        let account_summary = response
-            .account_summary
-            .map(VpnAccountSummary::try_from)
-            .transpose()
-            .map_err(Error::InvalidResponse)?;
-
-        Ok(account_summary)
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
     }
 
     pub async fn get_autologin_deeplink(
