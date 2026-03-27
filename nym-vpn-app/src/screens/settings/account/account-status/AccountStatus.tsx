@@ -18,7 +18,7 @@ export function AccountStatus() {
     [accountState],
   );
 
-  if (!accountState || accountState === 'error') {
+  if (!accountState || accountState === 'error' || accountState === 'offline') {
     return null;
   }
 
