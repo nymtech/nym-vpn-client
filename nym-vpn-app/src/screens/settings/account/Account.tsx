@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
@@ -24,6 +24,7 @@ import {
 import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
 import { StateDispatch, TAccountSummary } from '../../../types';
+import { DeeplinkTimeout } from '../../../errors';
 import { AccountStatus } from './account-status';
 import { AccountDescription } from './AccountDescription';
 
@@ -48,7 +49,6 @@ function Account() {
 
   const [isAccountLinking, setIsAccountLinking] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
-  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
 
   const { startListening } = useDeepLink();
@@ -120,17 +120,7 @@ function Account() {
       });
       openUrl(linkUrl);
 
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutIdRef.current = setTimeout(
-          () => reject(new Error('Login timeout')),
-          300000,
-        );
-      });
-
-      const deeplinkUrl = await Promise.race([
-        startListening(),
-        timeoutPromise,
-      ]);
+      const deeplinkUrl = await startListening(300000);
 
       await invoke('store_deeplink_account', {
         callbackUrl: deeplinkUrl,
@@ -138,7 +128,7 @@ function Account() {
       // await refreshAccount();
     } catch (error) {
       console.error('Account login error: ', error);
-      if (error instanceof Error && error.message === 'Login timeout') {
+      if (error instanceof DeeplinkTimeout) {
         push({
           message: t('account-linking-timeout', { ns: 'notifications' }),
           type: 'error',
@@ -154,10 +144,6 @@ function Account() {
         });
       }
     } finally {
-      if (timeoutIdRef.current !== null) {
-        clearTimeout(timeoutIdRef.current);
-        timeoutIdRef.current = null;
-      }
       setIsAccountLinking(false);
     }
   };

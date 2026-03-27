@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { TAutologinResponse } from '../../types/tauri';
 import { useInAppNotify } from '../in-app-notification';
 import { useDeepLink } from '../../hooks';
+import { DeeplinkTimeout } from '../../errors/DeeplinkTimeout';
 import { AutologinContext, AutologinKind } from './context';
 import { PincodeDialog } from './PincodeDialog';
 
@@ -16,7 +17,6 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
 
   const { push } = useInAppNotify();
   const { startListening } = useDeepLink();
-  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const autologin = useCallback(
     async (kind: AutologinKind) => {
@@ -33,14 +33,7 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
         setUrl(response.url);
         setOpen(true);
 
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutIdRef.current = setTimeout(
-            () => reject(new Error('Login timeout')),
-            300000,
-          );
-        });
-
-        await Promise.race([startListening(), timeoutPromise]);
+        await startListening(600000); // timeout after 10 minutes
 
         await invoke<void>('handle_subscription_payment');
 
@@ -48,11 +41,19 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
         setOpen(false);
       } catch (error) {
         console.error('Failed to get autologin deeplink', error);
-        push({
-          message: t('autologin.initialization-error'),
-          type: 'error',
-          duration: 3000,
-        });
+        if (error instanceof DeeplinkTimeout) {
+          push({
+            message: t('autologin.timeout', { ns: 'errors' }),
+            type: 'error',
+            duration: 3000,
+          });
+        } else {
+          push({
+            message: t('autologin.initialization-error', { ns: 'errors' }),
+            type: 'error',
+            duration: 3000,
+          });
+        }
       }
     },
     [i18n.language, startListening, push, t],

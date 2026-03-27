@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { NymSplash } from '../../assets';
 import { Button, ButtonText, Link, MsIcon, PageAnim } from '../../ui';
@@ -19,8 +19,6 @@ function Login() {
   const { uiTheme, welcomeChecked } = useMainState();
   const { t, i18n } = useTranslation('login');
   const navigate = useNavigate();
-
-  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { startListening } = useDeepLink();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -43,17 +41,7 @@ function Login() {
     openUrl(url);
 
     try {
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutIdRef.current = setTimeout(
-          () => reject(new Error('Login timeout')),
-          600000, // 10 minutes
-        );
-      });
-
-      const deeplinkurl = await Promise.race([
-        startListening(),
-        timeoutPromise,
-      ]);
+      const deeplinkurl = await startListening(600000);
 
       await invoke('store_deeplink_account', {
         callbackUrl: deeplinkurl,
@@ -75,11 +63,6 @@ function Login() {
       // if error, then most likely the deeplink call timed out.
       // But the user might still finish the purchase on the website.
       navigate(routes.login);
-    } finally {
-      if (timeoutIdRef.current !== null) {
-        clearTimeout(timeoutIdRef.current);
-        timeoutIdRef.current = null;
-      }
     }
   };
 
