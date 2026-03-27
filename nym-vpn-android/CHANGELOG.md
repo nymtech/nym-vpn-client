@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Use isLinked() for Privy checks (https://github.com/nymtech/nym-vpn-client/pull/4924)
+- Show Battery Opt dialog after first disconnect (https://github.com/nymtech/nym-vpn-client/pull/4989)
 
 ## [3.1.2] - 21.03.2026
 

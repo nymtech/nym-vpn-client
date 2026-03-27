@@ -419,6 +419,14 @@ class MainActivity : AppCompatActivity() {
 					popUpTo(Route.Splash) { inclusive = true }
 				}
 			}
+		} else if (host == "account" && path?.startsWith("/response") == true) {
+			lifecycleScope.launch {
+				val fullUrl = uri.toString()
+				val destination = appViewModel.handleDeepLinkAuth(fullUrl)
+				navControllerRef?.navigate(destination) {
+					popUpTo(Route.Splash) { inclusive = true }
+				}
+			}
 		}
 	}
 }
