@@ -239,12 +239,12 @@ impl SplitTunnel {
                     new_exclude_paths.insert(info.exec_path.clone());
 
                     if let Err(err) = pid_manager.add(*pid) {
-                        tracing::error!("Failed to add exclusion for {pid}: {err}");
+                        trace_err_chain!(err, "failed to add exclusion for {pid}");
                     }
                 }
                 (false, true) => {
                     if let Err(err) = pid_manager.remove(*pid) {
-                        tracing::error!("Failed to remove exclusion for {pid}: {err}");
+                        trace_err_chain!(err, "failed to remove exclusion for {pid}");
                     }
                 }
                 _ => {}
@@ -268,14 +268,14 @@ impl SplitTunnel {
             ProcessEvent::Exec { pid, path } => {
                 self.handle_exec(pid, path);
             }
-            ProcessEvent::Exit { pid, parent_pid } => {
-                self.handle_exit(pid, parent_pid);
+            ProcessEvent::Exit { pid } => {
+                self.handle_exit(pid);
             }
         }
     }
 
     fn handle_fork(&mut self, parent_pid: pid_t, pid: pid_t, path: PathBuf) {
-        tracing::trace!("fork: parent={parent_pid} pid={pid} {}", path.display());
+        // tracing::trace!("fork: parent={parent_pid} pid={pid} {}", path.display());
 
         if self.processes.contains_key(&pid) {
             tracing::error!("Conflicting pid! State already contains {pid}");
@@ -296,13 +296,20 @@ impl SplitTunnel {
                 "{pid} excluded (inherited from {parent_pid}) (exclude paths: {:?})",
                 base_info.excluded_by_paths
             );
+
+            // if let Some(pid_manager) = self.pid_manager.as_mut()
+            //     && let Err(err) = pid_manager.add(pid)
+            // {
+            //     trace_err_chain!(err, "failed to add exclusion for {pid}");
+            // }
         }
 
         self.processes.insert(pid, base_info);
+        tracing::trace!("insert info for {pid}");
     }
 
     fn handle_exec(&mut self, pid: pid_t, path: PathBuf) {
-        tracing::trace!("exec: {pid} {}", path.display());
+        // tracing::trace!("exec: {pid} {}", path.display());
 
         let Some(info) = self.processes.get_mut(&pid) else {
             tracing::error!("exec received for unknown pid {pid}");
@@ -318,13 +325,28 @@ impl SplitTunnel {
             info.excluded_by_paths.insert(info.exec_path.clone());
             tracing::trace!("Excluding {pid} by path: {}", info.exec_path.display());
         }
+
+        // if info.is_excluded() && let Some(pid_manager) = self.pid_manager.as_mut()
+        //     && let Err(err) = pid_manager.add(pid)
+        // {
+        //     trace_err_chain!(err, "failed to add exclusion for {pid}");
+        // }
+        tracing::trace!("update info for {pid}");
     }
 
-    fn handle_exit(&mut self, pid: pid_t, parent_pid: pid_t) {
+    fn handle_exit(&mut self, pid: pid_t) {
+        tracing::trace!("remove info for {pid}");
+
         let info = self.processes.remove(&pid);
 
-        let path = info.as_ref().map(|v| v.exec_path.display());
-        tracing::trace!("exit: pid={pid} parent={parent_pid} {path:?}");
+        // if info.is_some() && let Some(pid_manager) = self.pid_manager.as_mut()
+        //     && let Err(err) = pid_manager.remove(pid)
+        // {
+        //     trace_err_chain!(err, "failed to remove exclusion for {pid}");
+        // }
+
+        //let path = info.as_ref().map(|v| v.exec_path.display());
+        // tracing::trace!("exit: pid={pid} parent={parent_pid} {path:?}");
 
         if info.is_none() {
             tracing::error!("exit syscall for unknown pid {pid}");
