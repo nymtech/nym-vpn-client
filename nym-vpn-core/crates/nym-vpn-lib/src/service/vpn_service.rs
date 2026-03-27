@@ -66,6 +66,7 @@ use crate::{
     config::GlobalConfig,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     logging::LogFileRemoverHandle,
+    service::connection_middleware::ConnectionMiddleware,
     tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 
@@ -348,6 +349,8 @@ pub struct NymVpnService {
     split_tunnel_shutdown_token: CancellationToken,
     #[cfg(any(windows, target_os = "macos"))]
     split_tunnel_join_handle: JoinHandle<()>,
+
+    connection_middleware_handle: JoinHandle<()>,
 }
 
 impl NymVpnService {
@@ -602,6 +605,13 @@ impl NymVpnService {
             },
         );
 
+        let (connection_middleware, vpn_command_rx, tunnel_event_tx) = ConnectionMiddleware::new(
+            vpn_command_rx,
+            tunnel_event_tx,
+            services_shutdown_token.child_token(),
+        );
+        let connection_middleware_handle = tokio::spawn(connection_middleware.run());
+
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
             event_sender,
@@ -667,6 +677,7 @@ impl NymVpnService {
             split_tunnel_join_handle,
             #[cfg(any(windows, target_os = "macos"))]
             split_tunnel_shutdown_token,
+            connection_middleware_handle,
         })
     }
 
@@ -758,6 +769,10 @@ impl NymVpnService {
 
         if let Err(e) = self.topology_service_join_handle.await {
             tracing::error!("Failed to join on statistics controller handle: {e}");
+        }
+
+        if let Err(e) = self.connection_middleware_handle.await {
+            tracing::error!("Failed to join on connection middleware handle: {e}");
         }
 
         tracing::info!("Exiting vpn service run loop");

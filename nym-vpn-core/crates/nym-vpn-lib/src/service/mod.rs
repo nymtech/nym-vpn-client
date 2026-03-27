@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod config;
+mod connection_middleware;
 mod error;
 mod socks5;
 mod vpn_service;
