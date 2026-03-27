@@ -213,6 +213,15 @@ impl NymAccountController {
             .map_err(VpnError::from)
     }
 
+    /// Handle a subscription payment: checks that the user is logged in, refreshes the account
+    /// state.
+    pub async fn handle_subscription_payment(&self) -> Result<(), VpnError> {
+        self.command_sender
+            .handle_subscription_payment()
+            .await
+            .map_err(VpnError::from)
+    }
+
     /// Import the account mnemonic
     pub async fn login(&self, request: StoreAccountRequest) -> Result<(), VpnError> {
         let account =

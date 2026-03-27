@@ -1155,6 +1155,10 @@ service NymVpnService {
   // Get the account summary
   rpc GetAccountSummary(google.protobuf.Empty) returns (VpnAccountSummaryResponse) {}
 
+  // Handle a subscription payment: checks login, refreshes account state.
+  // Returns an error if no account is stored (user not logged in).
+  rpc HandleSubscriptionPayment(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
   // Get the deeplink URL
   rpc GetDeeplink(GetDeeplinkParams) returns (google.protobuf.StringValue) {}
 
