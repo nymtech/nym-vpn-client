@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { TAutologinResponse } from '../../types/tauri';
 import { useInAppNotify } from '../in-app-notification';
+import { useDeepLink } from '../../hooks';
 import { AutologinContext, AutologinKind } from './context';
 import { PincodeDialog } from './PincodeDialog';
 
@@ -14,6 +15,8 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
   const { push } = useInAppNotify();
+  const { startListening } = useDeepLink();
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const autologin = useCallback(
     async (kind: AutologinKind) => {
@@ -29,6 +32,20 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
         setPinCode(response['pin-code']);
         setUrl(response.url);
         setOpen(true);
+
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutIdRef.current = setTimeout(
+            () => reject(new Error('Login timeout')),
+            300000,
+          );
+        });
+
+        await Promise.race([startListening(), timeoutPromise]);
+
+        await invoke<void>('handle_subscription_payment');
+
+        // close the dialog
+        setOpen(false);
       } catch (error) {
         console.error('Failed to get autologin deeplink', error);
         push({
@@ -38,7 +55,7 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
         });
       }
     },
-    [i18n.language, t, push],
+    [i18n.language, startListening, push, t],
   );
 
   const ctx = useMemo(() => ({ autologin }), [autologin]);
