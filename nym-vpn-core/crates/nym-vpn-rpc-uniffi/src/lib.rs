@@ -272,6 +272,11 @@ impl RpcClient {
         Ok(summary)
     }
 
+    pub async fn handle_subscription_payment(&self) -> Result<()> {
+        self.inner.clone().handle_subscription_payment().await?;
+        Ok(())
+    }
+
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String> {
         Ok(self.inner.clone().get_deeplink(params).await?)
     }
