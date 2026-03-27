@@ -528,7 +528,7 @@ impl GatewayClient {
 // are updated to also include this field.
 fn append_performance(
     gateways: &mut [Gateway],
-    basic_gw: Vec<nym_validator_client::nym_nodes::SkimmedNode>,
+    basic_gw: Vec<nym_validator_client::nym_nodes::SkimmedNodeV1>,
 ) {
     debug!("Appending mixnet_performance to gateways");
     for gateway in gateways.iter_mut() {
