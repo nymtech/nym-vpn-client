@@ -289,6 +289,13 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
+    pub async fn handle_subscription_payment(&self) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::HandleSubscriptionPayment, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?;
+        Ok(())
+    }
+
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String> {
         Ok(self
             .send_and_wait(VpnServiceCommand::GetDeeplink, params)

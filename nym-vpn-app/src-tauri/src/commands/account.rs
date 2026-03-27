@@ -209,3 +209,12 @@ pub async fn get_account_summary(
         e.into()
     })
 }
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn handle_subscription_payment(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {
+    vpnd.handle_subscription_payment().await.map_err(|e| {
+        error!("failed to handle subscription payment: {e}");
+        e.into()
+    })
+}
