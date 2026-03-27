@@ -985,6 +985,17 @@ impl VpndClient {
         Ok(summary.map(Into::into))
     }
 
+    pub async fn handle_subscription_payment(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.handle_subscription_payment()
+            .or_else(async |e| {
+                self.handle_rpc_error("handle_subscription_payment", e)
+                    .await
+            })
+            .await
+    }
+
     /// Run network diagnostics
     #[instrument(skip_all)]
     pub async fn run_diagnostic(
