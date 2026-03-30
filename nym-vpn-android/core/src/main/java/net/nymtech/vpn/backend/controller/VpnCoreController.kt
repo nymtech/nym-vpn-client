@@ -23,6 +23,7 @@ import nym_vpn_lib.NymVpnService
 import nym_vpn_lib.NymVpnServiceCommandException
 import nym_vpn_lib.NymVpnServiceCommandSender
 import nym_vpn_lib.VpnConfig
+import nym_vpn_lib.FrontingMode
 import nym_vpn_lib.initLogger
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
@@ -335,6 +336,7 @@ class VpnCoreController(
 			exitRouter = ExitPoint.Random,
 			enableTwoHop = false,
 			enableBridges = false,
+			frontingMode = FrontingMode.OnRetry,
 			enableLewesProtocol = enableLewesProtocol,
 			customDns = emptyList(),
 			residentialExit = false,
