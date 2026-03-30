@@ -23,12 +23,12 @@ import nym_vpn_lib.NymVpnService
 import nym_vpn_lib.NymVpnServiceCommandException
 import nym_vpn_lib.NymVpnServiceCommandSender
 import nym_vpn_lib.VpnConfig
-import nym_vpn_lib.FrontingMode
 import nym_vpn_lib.initLogger
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewaySelectionAlgorithmConfig
+import nym_vpn_lib_types.FrontingMode
 import nym_vpn_lib_types.MixnetTrafficConfig
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.UserAgent
