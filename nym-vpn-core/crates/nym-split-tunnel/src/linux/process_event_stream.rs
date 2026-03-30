@@ -8,9 +8,8 @@ use std::{
 };
 
 use libc::{
-    CN_IDX_PROC, CN_VAL_PROC, NETLINK_CONNECTOR, NLMSG_DONE, PROC_CN_MCAST_IGNORE,
-    PROC_CN_MCAST_LISTEN, PROC_EVENT_EXEC, PROC_EVENT_EXIT, PROC_EVENT_FORK, PROC_EVENT_NONE,
-    getpid, pid_t, proc_cn_mcast_op,
+    CN_IDX_PROC, CN_VAL_PROC, NETLINK_CONNECTOR, NLMSG_DONE, PROC_CN_MCAST_LISTEN, PROC_EVENT_EXEC,
+    PROC_EVENT_EXIT, PROC_EVENT_FORK, PROC_EVENT_NONE, pid_t, proc_cn_mcast_op,
 };
 use netlink_sys::{AsyncSocket, AsyncSocketExt, TokioSocket};
 use pidfd_util::{PidFd, PidFdExt};
@@ -58,7 +57,7 @@ impl ProcessEventStream {
         tx: UnboundedSender<ProcessEvent>,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>, Error> {
-        let pid = unsafe { getpid() };
+        let pid = unsafe { libc::getpid() };
         let sockaddr = netlink_sys::SocketAddr::new(pid as u32, CN_IDX_PROC);
         let mut nl_sock = TokioSocket::new(NETLINK_CONNECTOR as _)?;
         nl_sock.socket_mut().bind(&sockaddr)?;
@@ -67,25 +66,21 @@ impl ProcessEventStream {
             nl_sock,
             threads: HashMap::new(),
         };
-        proc_monitor.subscribe(true).await?;
+        proc_monitor.subscribe().await?;
 
         Ok(tokio::spawn(proc_monitor.run(tx, shutdown_token)))
     }
 
-    async fn subscribe(&self, enable: bool) -> std::io::Result<()> {
+    async fn subscribe(&self) -> std::io::Result<()> {
         let mut msg: nlcn_subscribe_msg = unsafe { std::mem::zeroed() };
         msg.nl_hdr.nlmsg_len = std::mem::size_of_val(&msg) as u32;
-        msg.nl_hdr.nlmsg_pid = unsafe { getpid() as u32 };
+        msg.nl_hdr.nlmsg_pid = unsafe { libc::getpid() as u32 };
         msg.nl_hdr.nlmsg_type = NLMSG_DONE as u16;
 
         msg.payload.cn_msg.id.idx = CN_IDX_PROC;
         msg.payload.cn_msg.id.val = CN_VAL_PROC;
         msg.payload.cn_msg.len = std::mem::size_of::<proc_cn_mcast_op>() as u16;
-        msg.payload.cn_mcast = if enable {
-            PROC_CN_MCAST_LISTEN
-        } else {
-            PROC_CN_MCAST_IGNORE
-        };
+        msg.payload.cn_mcast = PROC_CN_MCAST_LISTEN;
 
         let bytes = unsafe {
             std::slice::from_raw_parts(&msg as *const _ as _, std::mem::size_of_val(&msg))
@@ -225,7 +220,7 @@ impl ProcessEventStream {
             return None;
         };
 
-        threads.retain(|v| *v != event.process_pid);
+        threads.remove(&event.process_pid);
 
         // Send exit events only when all threads exit
         if threads.is_empty() {
@@ -267,24 +262,26 @@ impl ProcessEventStream {
             let pid = proc.pid();
             match proc.tasks() {
                 Ok(mut task_iter) => {
-                    let threads = self.threads.entry(pid).or_default();
+                    let tids = task_iter
+                        .into_iter()
+                        .filter_map(|task_result| {
+                            match task_result {
+                                Ok(task) => Some(task.tid),
+                                Err(procfs::ProcError::NotFound(_)) => {
+                                    // task vanished
+                                    None
+                                }
+                                Err(err) => {
+                                    tracing::error!("Failed to list tasks for {pid}: {err}");
+                                    None
+                                }
+                            }
+                        })
+                        .collect::<HashSet<pid_t>>();
 
-                    while let Some(task_result) = task_iter.next() {
-                        match task_result {
-                            Ok(task) => {
-                                threads.insert(task.tid);
-                            }
-                            Err(procfs::ProcError::NotFound(_)) => {
-                                // process vanished
-                            }
-                            Err(err) => {
-                                tracing::error!("Failed to list tasks for {pid}: {err}");
-                            }
-                        }
-                    }
-
-                    if threads.is_empty() {
-                        self.threads.remove_entry(&pid);
+                    if !tids.is_empty() {
+                        let threads = self.threads.entry(pid).or_default();
+                        threads.extend(tids);
                     }
                 }
                 Err(procfs::ProcError::NotFound(_)) => {
