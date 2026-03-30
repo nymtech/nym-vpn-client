@@ -48,8 +48,9 @@ export const getAccountStateDescription = (
     case 'requesting-zk-nyms':
       return t('account.requesting-zknyms');
     case 'offline':
+      return t('account.offline', { ns: 'errors' });
     case 'error':
-      return t('account.error');
+      return t('account.internal', { ns: 'errors' });
     default:
       return null;
   }

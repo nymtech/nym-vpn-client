@@ -174,6 +174,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Option<VpnAccountSummary>, AccountCommandError>>,
         (),
     ),
+    HandleSubscriptionPayment(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetDeeplink(
         oneshot::Sender<Result<String, AccountCommandError>>,
         GetDeeplinkParams,
@@ -998,6 +999,9 @@ impl NymVpnService {
             VpnServiceCommand::GetAccountSummary(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_summary().await);
             }
+            VpnServiceCommand::HandleSubscriptionPayment(tx, ()) => {
+                let _ = tx.send(self.handle_subscription_payment().await);
+            }
             VpnServiceCommand::GetDeeplink(tx, params) => {
                 let _ = tx.send(self.handle_get_deeplink(params).await);
             }
@@ -1812,6 +1816,15 @@ impl NymVpnService {
         &self,
     ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
         self.account_command_tx.get_account_summary().await
+    }
+
+    async fn handle_subscription_payment(&self) -> Result<(), AccountCommandError> {
+        if !self.handle_is_account_stored().await {
+            return Err(AccountCommandError::NoAccountStored);
+        }
+        self.account_command_tx
+            .background_refresh_account_state()
+            .await
     }
 
     async fn handle_get_deeplink(

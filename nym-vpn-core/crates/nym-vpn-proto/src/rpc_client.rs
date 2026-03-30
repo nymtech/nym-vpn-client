@@ -607,6 +607,14 @@ impl RpcClient {
         Ok(account_summary)
     }
 
+    pub async fn handle_subscription_payment(&mut self) -> Result<()> {
+        self.0
+            .handle_subscription_payment(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
     pub async fn get_autologin_deeplink(
         &mut self,
         params: GetDeeplinkParams,

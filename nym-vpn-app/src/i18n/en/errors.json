@@ -44,7 +44,12 @@
     "existing-account": "Account already exists",
     "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
     "status-not-active": "Your account is inactive",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
+    "offline": "Device is offline"
+  },
+  "autologin": {
+    "timeout": "Autologin timeout",
+    "initialization-error": "Autologin initialization error"
   },
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",

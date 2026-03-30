@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect } from 'react';
-import { StateDispatch, TAccountSummary } from '../../../types';
+import { StateDispatch } from '../../../types';
 import { useMainDispatch, useMainState } from '../../../contexts';
 import { Button, MsIcon } from '../../../ui';
 import { routes } from '../../../router';
@@ -17,18 +17,6 @@ function AccountSettingRow() {
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
   const needAPlan = account && accountState === 'no-subscription';
-
-  // get fresh account summary
-  useEffect(() => {
-    if (accountSyncing) return;
-    invoke<TAccountSummary>('get_account_summary')
-      .then((summary) => {
-        dispatch({ type: 'set-account-summary', summary });
-      })
-      .catch((err: unknown) => {
-        console.error('Failed to get account summary', err);
-      });
-  }, [accountSyncing, dispatch]);
 
   useEffect(() => {
     const checkAccount = async () => {
