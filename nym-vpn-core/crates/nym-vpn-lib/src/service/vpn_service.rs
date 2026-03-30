@@ -1235,9 +1235,7 @@ impl NymVpnService {
     }
 
     async fn handle_set_fronting_mode(&mut self, fronting_mode: nym_vpn_lib_types::FrontingMode) {
-        self.config_manager
-            .set_fronting_mode(fronting_mode)
-            .await;
+        self.config_manager.set_fronting_mode(fronting_mode).await;
         self.update_tunnel_settings_with_throttle();
     }
 

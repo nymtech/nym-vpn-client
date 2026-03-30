@@ -400,7 +400,6 @@ impl ContinuousTrafficSendingRate {
     }
 }
 
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(
