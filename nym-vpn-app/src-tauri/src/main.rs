@@ -306,7 +306,7 @@ async fn main() -> Result<()> {
             tunnel::calculate_traffic_latency,
             tunnel::get_mixnet_traffic_defaults,
             tunnel::set_enable_split_tunnel,
-            tunnel::get_app_list,
+            // tunnel::get_app_list,
             tunnel::add_app_to_split_tunnel,
             tunnel::remove_app_from_split_tunnel,
             cmd_db::db_set,

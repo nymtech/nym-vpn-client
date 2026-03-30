@@ -240,12 +240,12 @@ pub async fn set_enable_split_tunnel(vpnd: State<'_, VpndClient>, enabled: bool)
     Ok(())
 }
 
-#[instrument(skip_all)]
-#[tauri::command]
-pub async fn get_app_list() -> Result<Vec<crate::fs::tunnel::App>, BackendError> {
-    let apps = crate::fs::tunnel::get_desktop_apps();
-    Ok(apps)
-}
+// #[instrument(skip_all)]
+// #[tauri::command]
+// pub async fn get_app_list() -> Result<Vec<crate::fs::tunnel::App>, BackendError> {
+//     let apps = crate::fs::tunnel::get_desktop_apps();
+//     Ok(apps)
+// }
 
 #[instrument(skip_all)]
 #[tauri::command]

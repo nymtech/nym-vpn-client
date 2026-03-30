@@ -54,8 +54,8 @@ sysinfo = "0.37"
 tokio-stream = "0.1.17"
 zip = { version = "7.2", default-features = false, features = ["deflate"] }
 walkdir = "2.5"
-freedesktop-desktop-entry = "0.8"
-freedesktop-icons = "0.4"
+# freedesktop-desktop-entry = "0.8"
+# freedesktop-icons = "0.4"
 
 # nym deps
 nym-platform-metadata = { path = "../../nym-vpn-core/crates/nym-platform-metadata" }
