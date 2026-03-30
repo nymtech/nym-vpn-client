@@ -13,7 +13,7 @@ use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AutologinResponse,
-    AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway,
+    AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
@@ -257,6 +257,29 @@ impl RpcClient {
             .map_err(Error::Rpc)?
             .into_inner();
         Ok(())
+    }
+
+
+    pub async fn set_fronting_mode(&mut self, fronting_mode: FrontingMode) -> Result<()> {
+        self.0
+            .set_fronting_mode(proto::FrontingModeRequest {
+                mode: proto::FrontingModes::from(fronting_mode).into(),
+            })
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn get_fronting_mode(&mut self) -> Result<FrontingMode> {
+        let response = self
+            .0
+            .get_fronting_mode(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(response.mode().into())
     }
 
     pub async fn get_system_messages(&mut self) -> Result<Vec<SystemMessage>> {

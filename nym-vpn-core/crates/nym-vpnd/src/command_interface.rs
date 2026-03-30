@@ -104,6 +104,19 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn get_fronting_mode(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::FrontingModeResponse>> {
+        let fronting_mode = self.send_and_wait(VpnServiceCommand::GetFrontingMode, ()).await?;
+
+        let response = proto::FrontingModeResponse {
+            mode: proto::FrontingModes::from(fronting_mode) as i32,
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn set_entry_point(
         &self,
         request: tonic::Request<proto::EntryNode>,
@@ -203,6 +216,26 @@ impl NymVpnService for CommandInterface {
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to set ad-blocking config: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_fronting_mode(
+        &self,
+        request: tonic::Request<proto::FrontingModeRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let fronting_mode_request = request.into_inner();
+        let fronting_mode = proto::FrontingModes::try_from(fronting_mode_request.mode)
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid fronting mode: {e}")))?;
+
+        let fronting_mode = fronting_mode.into();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetFrontingMode, fronting_mode)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set fronting mode config: {e}"))
             })?;
 
         Ok(tonic::Response::new(()))

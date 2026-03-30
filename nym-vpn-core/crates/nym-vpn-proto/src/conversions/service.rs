@@ -55,6 +55,9 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .ok_or(ConversionError::NoValueSet(
                 "VpnServiceConfig.gateway_selection_algorithm",
             ))??;
+        let fronting_mode = proto::FrontingModes::try_from(value.fronting_mode)
+                .map_err(|e| ConversionError::Decode("fronting_mode", e))?
+                .into();
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -65,6 +68,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
+            fronting_mode,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
             residential_exit: value.residential_exit,
@@ -102,6 +106,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
+            fronting_mode: proto::FrontingModes::from(value.fronting_mode).into(),
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
             residential_exit: value.residential_exit,
@@ -160,6 +165,26 @@ impl From<nym_vpn_lib_types::MixnetTrafficConfig> for proto::MixnetTrafficConfig
             disable_background_cover_traffic: value.disable_background_cover_traffic,
             min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u32),
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::FrontingMode> for proto::FrontingModes {
+    fn from(value: nym_vpn_lib_types::FrontingMode) -> Self {
+        match value {
+            nym_vpn_lib_types::FrontingMode::Off => proto::FrontingModes::Off,
+            nym_vpn_lib_types::FrontingMode::OnRetry => proto::FrontingModes::OnRetry,
+            nym_vpn_lib_types::FrontingMode::Always => proto::FrontingModes::Always,
+        }
+    }
+}
+
+impl Into<nym_vpn_lib_types::FrontingMode> for proto::FrontingModes {
+    fn into(self) -> nym_vpn_lib_types::FrontingMode {
+        match self {
+            proto::FrontingModes::Off => nym_vpn_lib_types::FrontingMode::Off,
+            proto::FrontingModes::OnRetry => nym_vpn_lib_types::FrontingMode::OnRetry,
+            proto::FrontingModes::Always => nym_vpn_lib_types::FrontingMode::Always,
         }
     }
 }

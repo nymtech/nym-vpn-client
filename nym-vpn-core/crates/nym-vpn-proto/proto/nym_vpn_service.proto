@@ -315,6 +315,7 @@ message VpnServiceConfig {
   SplitTunnelSettings split_tunnel = 28;
   AirportingSettings airporting = 29;
   GatewaySelectionAlgorithmConfig gateway_selection_algorithm = 30;
+  FrontingModes fronting_mode = 31;
 }
 
 message NetworkStatsConfig {
@@ -1027,6 +1028,20 @@ message NetworkStatisticsIdentity {
   string id = 2;
 }
 
+enum FrontingModes {
+  OFF = 0;
+  ON_RETRY = 1;
+  ALWAYS = 2;
+}
+
+message FrontingModeRequest {
+  FrontingModes mode = 1;
+}
+
+message FrontingModeResponse {
+  FrontingModes mode = 1;
+}
+
 message PrivyDerivationMessage {
   string message = 1;
 }
@@ -1098,6 +1113,9 @@ service NymVpnService {
   // Get the VPN service configuration
   rpc GetConfig(google.protobuf.Empty) returns (GetConfigResponse) {}
 
+  // Get the fronting mode configuration
+  rpc GetFrontingMode(google.protobuf.Empty) returns (FrontingModeResponse) {}
+
   // Set the VPN service configuration
   rpc SetEntryPoint(EntryNode) returns (google.protobuf.Empty) {}
   rpc SetExitPoint(ExitNode) returns (google.protobuf.Empty) {}
@@ -1117,6 +1135,7 @@ service NymVpnService {
   rpc SetAirportingExcludedCountries(StringList) returns (google.protobuf.Empty) {}
   rpc SetGatewaySelectionAlgorithm(GatewaySelectionAlgorithm) returns (google.protobuf.Empty) {}
   rpc SetEnableGeoLocation(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetFrontingMode(FrontingModeRequest) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork(google.protobuf.StringValue) returns (google.protobuf.Empty) {}

@@ -129,6 +129,14 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_fronting_mode(&self, fronting_mode: FrontingMode) -> Result<()> {
+        self.inner.clone().set_fronting_mode(fronting_mode).await
+    }
+
+    pub async fn get_fronting_mode(&self) -> Result<FrontingMode> {
+        self.inner.clone().get_fronting_mode().await?
+    }
+
     pub async fn get_system_messages(&self) -> Result<Vec<SystemMessage>> {
         let system_messages = self.inner.clone().get_system_messages().await?;
         Ok(system_messages.into_iter().collect())
