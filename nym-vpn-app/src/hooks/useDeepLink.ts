@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
+import { DeeplinkTimeout } from '../errors';
 
 const useDeepLink = () => {
   const unlistenRef = useRef<(() => void) | null>(null);
@@ -17,34 +18,59 @@ const useDeepLink = () => {
     return cleanup;
   }, [cleanup]);
 
-  const startListening = useCallback((): Promise<string> => {
-    isCleanedUpRef.current = false;
-    unlistenRef.current = null;
+  const startListening = useCallback(
+    (timeoutMs?: number): Promise<string> => {
+      isCleanedUpRef.current = false;
+      unlistenRef.current = null;
 
-    return new Promise<string>((resolve, reject) => {
-      onOpenUrl((urls) => {
-        if (isCleanedUpRef.current) return;
-        if (!urls || urls.length === 0) return;
-        const url = urls[0];
+      const basePromise = new Promise<string>((resolve, reject) => {
+        onOpenUrl((urls) => {
+          if (isCleanedUpRef.current) return;
+          if (!urls || urls.length === 0) return;
+          const url = urls[0];
 
-        cleanup();
-        resolve(url);
-      })
-        .then((unlistenFn) => {
-          if (isCleanedUpRef.current) {
-            unlistenFn();
-            return;
-          }
-          unlistenRef.current = unlistenFn;
+          cleanup();
+          resolve(url);
         })
-        .catch((error: unknown) => {
+          .then((unlistenFn) => {
+            if (isCleanedUpRef.current) {
+              unlistenFn();
+              return;
+            }
+            unlistenRef.current = unlistenFn;
+          })
+          .catch((error: unknown) => {
+            if (!isCleanedUpRef.current) {
+              cleanup();
+              reject(error instanceof Error ? error : new Error(String(error)));
+            }
+          });
+      });
+
+      if (timeoutMs === undefined) {
+        return basePromise;
+      }
+
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          cleanup();
           if (!isCleanedUpRef.current) {
-            cleanup();
-            reject(error instanceof Error ? error : new Error(String(error)));
+            isCleanedUpRef.current = true;
           }
-        });
-    });
-  }, [cleanup]);
+          reject(new DeeplinkTimeout());
+        }, timeoutMs);
+      });
+
+      return Promise.race([basePromise, timeoutPromise]).finally(() => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      });
+    },
+    [cleanup],
+  );
 
   return { startListening };
 };
