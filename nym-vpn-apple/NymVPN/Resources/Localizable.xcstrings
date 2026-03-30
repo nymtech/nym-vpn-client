@@ -24044,17 +24044,6 @@
         }
       }
     },
-    "requestingZkNyms" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Requesting ZkNyms..."
-          }
-        }
-      }
-    },
     "noActivePlan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -24062,6 +24051,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No active plan"
+          }
+        }
+      }
+    },
+    "subscriptionPayment.received" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment received\nRequesting ZkNyms..."
           }
         }
       }
@@ -26783,7 +26783,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pin code"
+            "value" : "Passcode"
           }
         }
       }
@@ -30060,6 +30060,17 @@
         }
       }
     },
+    "requestingZkNyms" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requesting ZkNyms..."
+          }
+        }
+      }
+    },
     "retry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31289,7 +31300,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fetching pin code"
+            "value" : "Fetching passcode"
           }
         }
       }

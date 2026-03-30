@@ -39,6 +39,9 @@ import Theme
     @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
     @Published var shouldShowRenewButton = false
+#if os(macOS)
+    var autologinState: AutologinState?
+#endif
 
     var renewButtonTitle: String {
         credentialsManager.accountSummary?.renewButtonTitle ?? "purchasePlan.chooseMyPlan".localizedString
@@ -139,7 +142,7 @@ import Theme
 #if os(iOS)
         path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
 #elseif os(macOS)
-        try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
+        autologinState?.start(kind: .autologinRenew, using: credentialsManager)
 #endif
     }
 

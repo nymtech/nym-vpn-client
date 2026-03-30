@@ -68,6 +68,12 @@ extension GRPCManager {
         }.value
     }
 
+    public func handleSubscriptionPayment() async throws {
+        try await Task.detached { [weak self] in
+            try await self?.rpcClient?.handleSubscriptionPayment()
+        }.value
+    }
+
     public func autologin(
         locale: String,
         name: String,

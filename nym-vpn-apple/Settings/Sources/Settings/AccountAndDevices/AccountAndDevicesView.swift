@@ -25,14 +25,8 @@ import Theme
     @State private var isPresentedManageSubscription = false
     @State var isLogoutConfirmationDisplayed = false
     @State var isLogoutLoading = false
-    @State var isPinCodeDisplayed = false
     @State var isLinkAccountAvailable = false
-    @State var pinCode: String = ""
-    @State var isAutologinLoading = false
-    @State var isAutologinError = false
-    @State var autologinErrorMessage = ""
-    @State var autologinURL = ""
-    @State var autologinTask: Task<Void, Never>?
+    @State var autologinState = AutologinState()
 
     @Binding private var path: NavigationPath
 
@@ -75,15 +69,7 @@ import Theme
 #if os(iOS)
         .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
 #endif
-        .overlay {
-            if isPinCodeDisplayed, !pinCode.isEmpty {
-                PinCodeView(
-                    isDisplayed: $isPinCodeDisplayed,
-                    pinCode: $pinCode,
-                    url: $autologinURL
-                )
-            }
-        }
+        .autologinOverlay(state: autologinState, onRetry: { navigateToAccount() })
         .background {
             NymColor.background
                 .ignoresSafeArea()
@@ -96,29 +82,6 @@ import Theme
                         configuration: logoutDialogConfiguration,
                         impactGenerator: .shared,
                         isLoading: $isLogoutLoading
-                    )
-                )
-            }
-        }
-        .overlay {
-            if isAutologinLoading {
-                ActionDialogView(
-                    viewModel: ActionDialogViewModel(
-                        isDisplayed: $isAutologinLoading,
-                        configuration: autologinLoadingConfiguration,
-                        impactGenerator: .shared,
-                        isLoading: .constant(true)
-                    )
-                )
-            }
-        }
-        .overlay {
-            if isAutologinError {
-                ActionDialogView(
-                    viewModel: ActionDialogViewModel(
-                        isDisplayed: $isAutologinError,
-                        configuration: autologinErrorConfiguration,
-                        impactGenerator: .shared
                     )
                 )
             }
@@ -338,11 +301,7 @@ extension AccountAndDevicesView {
 
     func navigateToAccount() {
         impactGenerator.softImpact()
-        isAutologinLoading = true
-
-        autologinTask = Task {
-            await autologin(kind: .autologinView)
-        }
+        autologinState.start(kind: .autologinView, using: credentialsManager)
     }
 
     func navigateToPlanPurchase() {
@@ -350,31 +309,8 @@ extension AccountAndDevicesView {
 #if os(iOS)
         path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
 #elseif os(macOS)
-        isAutologinLoading = true
-
-        autologinTask = Task {
-            await autologin(kind: .autologinRenew)
-        }
+        autologinState.start(kind: .autologinRenew, using: credentialsManager)
 #endif
-    }
-
-    func autologin(kind: NymDeeplinkKind) async {
-        do {
-            guard let result = try await credentialsManager.autologin(kind: kind) else {
-                isAutologinLoading = false
-                return
-            }
-            isAutologinLoading = false
-            pinCode = result.pinCode
-            autologinURL = result.url
-            isPinCodeDisplayed = true
-        } catch is CancellationError {
-            isAutologinLoading = false
-        } catch {
-            isAutologinLoading = false
-            autologinErrorMessage = error.localizedDescription
-            isAutologinError = true
-        }
     }
 
     func linkAccount() async {
