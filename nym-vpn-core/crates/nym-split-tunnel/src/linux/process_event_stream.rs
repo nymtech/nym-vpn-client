@@ -9,7 +9,7 @@ use libc::{
 use netlink_sys::{AsyncSocket, AsyncSocketExt, TokioSocket};
 use pidfd_util::{PidFd, PidFdExt};
 use std::{os::fd::AsRawFd, path::PathBuf};
-use tokio::{fs::read_link, sync::mpsc::UnboundedSender, task::JoinHandle};
+use tokio::{sync::mpsc::UnboundedSender, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use super::bindings::{
@@ -57,7 +57,9 @@ impl ProcessEventStream {
         let mut nl_sock = TokioSocket::new(NETLINK_CONNECTOR as _)?;
         nl_sock.socket_mut().bind(&sockaddr)?;
 
-        let proc_monitor = Self { nl_sock };
+        let proc_monitor = Self {
+            nl_sock,
+        };
         proc_monitor.subscribe(true).await?;
 
         Ok(tokio::spawn(proc_monitor.run(tx, shutdown_token)))
@@ -164,11 +166,13 @@ impl ProcessEventStream {
 
     async fn handle_fork(&mut self, event: ForkEvt) -> Option<ProcessEvent> {
         if event.child_pid == event.child_tgid {
-            let exe_path = query_exec_path("fork", event.child_pid).await.unwrap_or_default();
+            let exe_path = query_exec_path("fork", event.child_tgid)
+                .await
+                .unwrap_or_default();
 
             tracing::trace!(
                 "fork: {} (parent: {}) exe={}",
-                event.child_pid,
+                event.child_tgid,
                 event.parent_tgid,
                 exe_path.display()
             );
@@ -185,12 +189,10 @@ impl ProcessEventStream {
 
     async fn handle_exec(&mut self, event: ExecEvt) -> Option<ProcessEvent> {
         if event.process_pid == event.process_tgid {
-            let exe_path = query_exec_path("exec", event.process_pid).await.unwrap_or_default();
-            tracing::trace!(
-                "exec: {} {}",
-                event.process_pid,
-                exe_path.display()
-            );
+            let exe_path = query_exec_path("exec", event.process_pid)
+                .await
+                .unwrap_or_default();
+            tracing::trace!("exec: {} {}", event.process_pid, exe_path.display());
 
             Some(ProcessEvent::Exec {
                 pid: event.process_pid,
@@ -209,10 +211,7 @@ impl ProcessEventStream {
     fn handle_exit(&mut self, event: ExitEvt) -> Option<ProcessEvent> {
         // Ignore thread exits
         if event.process_pid == event.process_tgid {
-            tracing::trace!(
-                "exit: {}",
-                event.process_pid
-            );
+            tracing::trace!("exit: {}", event.process_pid);
             Some(ProcessEvent::Exit {
                 pid: event.process_pid,
             })
@@ -239,7 +238,8 @@ async fn query_exec_path(event_type: &'static str, proc_pid: pid_t) -> Option<Pa
         .ok()?;
 
     // Obtain path to executable
-    let exe_path = procfs::process::Process::new(proc_pid).and_then(|proc| proc.exe())
+    let exe_path = procfs::process::Process::new(proc_pid)
+        .and_then(|proc| proc.exe())
         .inspect_err(|err| {
             // Ignore "no such file" errors, which could indicate that the process is short lived.
             if !matches!(err, procfs::ProcError::NotFound(_)) {
