@@ -47,6 +47,10 @@
     "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
     "offline": "Device is offline"
   },
+  "autologin": {
+    "timeout": "Autologin timeout",
+    "initialization-error": "Autologin initialization error"
+  },
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",
     "exit": "Failed to fetch the available exit node countries",

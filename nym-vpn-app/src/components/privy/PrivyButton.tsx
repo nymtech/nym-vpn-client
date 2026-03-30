@@ -1,5 +1,5 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
@@ -9,6 +9,7 @@ import { useDeepLink } from '../../hooks';
 import { routes } from '../../router';
 import { CCache } from '../../cache';
 import { StateDispatch, TAccountMode } from '../../types';
+import { DeeplinkTimeout } from '../../errors';
 
 function PrivyButton() {
   const { t, i18n } = useTranslation('login');
@@ -20,16 +21,6 @@ function PrivyButton() {
   const dispatch = useMainDispatch() as StateDispatch;
 
   const [loading, setLoading] = useState(false);
-  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutIdRef.current !== null) {
-        clearTimeout(timeoutIdRef.current);
-        timeoutIdRef.current = null;
-      }
-    };
-  }, []);
 
   const refreshAccountMode = async () => {
     const accountMode = await invoke<TAccountMode>('get_account_mode');
@@ -46,17 +37,7 @@ function PrivyButton() {
     openUrl(loginUrl);
 
     try {
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutIdRef.current = setTimeout(
-          () => reject(new Error('Login timeout')),
-          300000,
-        );
-      });
-
-      const deeplinkurl = await Promise.race([
-        startListening(),
-        timeoutPromise,
-      ]);
+      const deeplinkurl = await startListening(300000);
 
       await invoke('store_deeplink_account', {
         callbackUrl: deeplinkurl,
@@ -75,7 +56,7 @@ function PrivyButton() {
       dispatch({ type: 'reset-error' });
     } catch (error) {
       console.error('Privy login error: ', error);
-      if (error instanceof Error && error.message === 'Login timeout') {
+      if (error instanceof DeeplinkTimeout) {
         push({
           message: t('privy.error.timeout'),
           type: 'error',
@@ -91,10 +72,6 @@ function PrivyButton() {
         });
       }
     } finally {
-      if (timeoutIdRef.current !== null) {
-        clearTimeout(timeoutIdRef.current);
-        timeoutIdRef.current = null;
-      }
       setLoading(false);
     }
   };
