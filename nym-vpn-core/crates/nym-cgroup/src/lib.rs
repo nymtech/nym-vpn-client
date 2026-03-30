@@ -18,6 +18,17 @@ pub const DEFAULT_NET_CLS_DIR: &str = "/sys/fs/cgroup/net_cls";
 #[error("CGroup error")]
 pub struct Error(#[from] anyhow::Error);
 
+impl Error {
+    pub fn io_error_kind(&self) -> Option<std::io::ErrorKind> {
+        for cause in self.0.chain() {
+            if let Some(io_error) = cause.downcast_ref::<std::io::Error>() {
+                return Some(io_error.kind());
+            }
+        }
+        None
+    }
+}
+
 /// Find the path of the cgroup v1 net_cls controller mount if it exists.
 ///
 /// Returns an error if `/proc/mounts` does not exist.

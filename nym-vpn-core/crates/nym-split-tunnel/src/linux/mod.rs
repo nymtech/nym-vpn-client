@@ -262,12 +262,12 @@ impl SplitTunnel {
             if !was_excluded && is_excluded {
                 tracing::trace!("Add to exclusions {}: {}", pid, info.exec_path.display());
                 if let Err(err) = pid_manager.add(*pid) {
-                    trace_err_chain!(err, "failed to add exclusion for {pid}");
+                    trace_err_chain!(err, "failed to add exclusion for {pid}: {:?}",err.io_error_kind());
                 }
             } else if was_excluded && !is_excluded {
                 tracing::trace!("Remove from exclusions {}: {}", pid, info.exec_path.display());
                 if let Err(err) = pid_manager.remove(*pid) {
-                    trace_err_chain!(err, "failed to remove exclusion for {pid}");
+                    trace_err_chain!(err, "failed to remove exclusion for {pid}: {:?}",err.io_error_kind());
                 }
             }
         }

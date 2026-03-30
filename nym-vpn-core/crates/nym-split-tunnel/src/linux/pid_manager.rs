@@ -226,7 +226,7 @@ impl Inner {
 // set up.
 #[cfg(feature = "cgroup2")]
 fn assert_nft_supports_cgroup2(cgroup: &CGroup2) -> Result<(), Error> {
-    let table_name = c"mullvad-test-cgroup2-capability";
+    let table_name = c"nym-test-cgroup2-capability";
 
     let mut batch = Batch::new();
     let table = Table::new(table_name, ProtoFamily::Inet);
