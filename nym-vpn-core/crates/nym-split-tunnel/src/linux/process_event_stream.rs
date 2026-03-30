@@ -1,6 +1,12 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::{
+    collections::{HashMap, HashSet},
+    os::fd::AsRawFd,
+    path::PathBuf,
+};
+
 use libc::{
     CN_IDX_PROC, CN_VAL_PROC, NETLINK_CONNECTOR, NLMSG_DONE, PROC_CN_MCAST_IGNORE,
     PROC_CN_MCAST_LISTEN, PROC_EVENT_EXEC, PROC_EVENT_EXIT, PROC_EVENT_FORK, PROC_EVENT_NONE,
@@ -8,7 +14,6 @@ use libc::{
 };
 use netlink_sys::{AsyncSocket, AsyncSocketExt, TokioSocket};
 use pidfd_util::{PidFd, PidFdExt};
-use std::{os::fd::AsRawFd, path::PathBuf};
 use tokio::{sync::mpsc::UnboundedSender, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -45,6 +50,7 @@ pub enum ProcessEvent {
 
 pub struct ProcessEventStream {
     nl_sock: TokioSocket,
+    threads: HashMap<pid_t, HashSet<pid_t>>,
 }
 
 impl ProcessEventStream {
@@ -59,6 +65,7 @@ impl ProcessEventStream {
 
         let proc_monitor = Self {
             nl_sock,
+            threads: HashMap::new(),
         };
         proc_monitor.subscribe(true).await?;
 
@@ -145,7 +152,10 @@ impl ProcessEventStream {
 
         match msg.payload.proc_ev.what {
             PROC_EVENT_NONE => {
-                tracing::trace!("set mcast listen ok");
+                tracing::trace!("Subscribed");
+                if let Err(err) = self.handle_subscribed() {
+                    tracing::error!("Failed to list pids: {err}");
+                }
                 None
             }
             PROC_EVENT_FORK => {
@@ -165,6 +175,10 @@ impl ProcessEventStream {
     }
 
     async fn handle_fork(&mut self, event: ForkEvt) -> Option<ProcessEvent> {
+        let threads = self.threads.entry(event.child_tgid).or_default();
+        threads.insert(event.child_pid);
+
+        // Main thread started
         if event.child_pid == event.child_tgid {
             let exe_path = query_exec_path("fork", event.child_tgid)
                 .await
@@ -183,11 +197,13 @@ impl ProcessEventStream {
                 path: exe_path,
             })
         } else {
+            // Subordinate thread spawned
             None
         }
     }
 
     async fn handle_exec(&mut self, event: ExecEvt) -> Option<ProcessEvent> {
+        // Both ids are always equal
         if event.process_pid == event.process_tgid {
             let exe_path = query_exec_path("exec", event.process_pid)
                 .await
@@ -199,30 +215,91 @@ impl ProcessEventStream {
                 path: exe_path,
             })
         } else {
-            // tracing::trace!(
-            //     "spawn thread: {} {}",
-            //     event.process_pid,
-            //     event.process_tgid
-            // );
             None
         }
     }
 
     fn handle_exit(&mut self, event: ExitEvt) -> Option<ProcessEvent> {
-        // Ignore thread exits
-        if event.process_pid == event.process_tgid {
-            tracing::trace!("exit: {}", event.process_pid);
+        let Some(threads) = self.threads.get_mut(&event.process_tgid) else {
+            tracing::warn!("Exit for pid {} with no known threads!", event.process_tgid);
+            return None;
+        };
+
+        threads.retain(|v| *v != event.process_pid);
+
+        // Send exit events only when all threads exit
+        if threads.is_empty() {
+            self.threads.remove(&event.process_tgid);
+
+            tracing::trace!("exit: {}", event.process_tgid);
             Some(ProcessEvent::Exit {
-                pid: event.process_pid,
+                pid: event.process_tgid,
             })
         } else {
-            // tracing::trace!(
-            //     "exit thread: {} (tgid: {})",
-            //     event.process_pid,
-            //     event.process_tgid,
-            // );
             None
         }
+    }
+
+    fn handle_subscribed(&mut self) -> Result<(), procfs::ProcError> {
+        let proc_iter = procfs::process::all_processes()?.filter_map(|proc| {
+            match proc {
+                Ok(proc) => Some(proc),
+                Err(err) => {
+                    match err {
+                        procfs::ProcError::NotFound(_) => {
+                            // process vanished
+                            None
+                        }
+                        procfs::ProcError::Io(err, path) => {
+                            tracing::trace!("io error when listing process {path:?}: {err}");
+                            None
+                        }
+                        err => {
+                            tracing::error!("can't read process: {err}");
+                            None
+                        }
+                    }
+                }
+            }
+        });
+
+        for proc in proc_iter {
+            let pid = proc.pid();
+            match proc.tasks() {
+                Ok(mut task_iter) => {
+                    let threads = self.threads.entry(pid).or_default();
+
+                    while let Some(task_result) = task_iter.next() {
+                        match task_result {
+                            Ok(task) => {
+                                threads.insert(task.tid);
+                            }
+                            Err(procfs::ProcError::NotFound(_)) => {
+                                // process vanished
+                            }
+                            Err(err) => {
+                                tracing::error!("Failed to list tasks for {pid}: {err}");
+                            }
+                        }
+                    }
+
+                    if threads.is_empty() {
+                        self.threads.remove_entry(&pid);
+                    }
+                }
+                Err(procfs::ProcError::NotFound(_)) => {
+                    // process vanished
+                }
+                Err(procfs::ProcError::Io(err, path)) => {
+                    tracing::trace!("io error when querying tasks {path:?}: {err}");
+                }
+                Err(err) => {
+                    tracing::error!("can't read process: {err}");
+                }
+            }
+        }
+
+        Ok(())
     }
 }
 
