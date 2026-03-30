@@ -4,37 +4,6 @@ import Theme
 
 // MARK: - Dialog Configurations -
 extension AccountAndDevicesView {
-    var autologinLoadingConfiguration: ActionDialogConfiguration {
-        ActionDialogConfiguration(
-            titleLocalizedString: "settings.account.autologin.fetchingPinCode".localizedString,
-            noLocalizedString: "cancel".localizedString,
-            noAction: {
-                autologinTask?.cancel()
-                autologinTask = nil
-                isAutologinLoading = false
-            },
-            loadingText: "settings.account.autologin.loading".localizedString,
-            shouldCloseAfterYesAction: false
-        )
-    }
-
-    var autologinErrorConfiguration: ActionDialogConfiguration {
-        ActionDialogConfiguration(
-            systemIconImageName: "exclamationmark.triangle",
-            systemIconImageColor: NymColor.error,
-            titleLocalizedString: "generalNymError.somethingWentWrong".localizedString,
-            subtitleLocalizedString: autologinErrorMessage,
-            yesLocalizedString: "settings.account.autologin.retry".localizedString,
-            noLocalizedString: "cancel".localizedString,
-            yesAction: {
-                isAutologinError = false
-                navigateToAccount()
-            },
-            shouldCloseAfterYesAction: false,
-            verticalButtonsLayout: true
-        )
-    }
-
     var logoutDialogConfiguration: ActionDialogConfiguration {
         ActionDialogConfiguration(
             systemIconImageName: "rectangle.portrait.and.arrow.right",
