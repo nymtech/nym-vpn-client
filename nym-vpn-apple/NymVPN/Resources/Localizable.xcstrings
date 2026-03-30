@@ -24044,17 +24044,6 @@
         }
       }
     },
-    "requestingZkNyms" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Requesting ZkNyms..."
-          }
-        }
-      }
-    },
     "noActivePlan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26783,7 +26772,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pin code"
+            "value" : "Passcode"
           }
         }
       }
@@ -30060,6 +30049,17 @@
         }
       }
     },
+    "requestingZkNyms" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requesting ZkNyms..."
+          }
+        }
+      }
+    },
     "retry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31289,7 +31289,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fetching pin code"
+            "value" : "Fetching passcode"
           }
         }
       }
@@ -34887,6 +34887,17 @@
         }
       }
     },
+    "splitTunnel.betaFeature" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta feature"
+          }
+        }
+      }
+    },
     "splitTunnel.apps" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -35979,6 +35990,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "订阅已到期"
+          }
+        }
+      }
+    },
+    "subscriptionPayment.received" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment received\nRequesting ZkNyms..."
           }
         }
       }

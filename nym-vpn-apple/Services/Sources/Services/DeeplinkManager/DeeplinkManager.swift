@@ -23,10 +23,17 @@ public final class DeeplinkManager {
                 try await credentialsManager.storeDeeplink(callbackURLString: url.absoluteString)
             }
         }
-        // Create Account response
+        // Account response
         if components.host == "account", components.path == "/response" {
+            let hasDeeplinkId = components.queryItems?.contains(where: { $0.name == "deeplink_id" }) == true
             Task {
-                try await credentialsManager.storeDeeplink(callbackURLString: url.absoluteString)
+                if hasDeeplinkId {
+                    // nymvpn://account/response?deeplink_id=...&payload=...
+                    try await credentialsManager.storeDeeplink(callbackURLString: url.absoluteString)
+                } else {
+                    // nymvpn://account/response (subscription payment)
+                    try await credentialsManager.handleSubscriptionPayment()
+                }
             }
         }
     }

@@ -35,6 +35,7 @@ import PathManager
     public var deviceIdentifier: String?
     @Published public var accountIdentifier: String?
     @Published public var didReceiveAccountLinkCallback = false
+    @Published public var didReceiveSubscriptionPayment = false
     @Published public var accountSummary: AccountSummary?
 
     public var isValidCredentialImported: Bool {
@@ -183,6 +184,15 @@ import PathManager
         checkCredentialImport()
 #endif
         didReceiveAccountLinkCallback = true
+    }
+
+    public func handleSubscriptionPayment() async throws {
+#if os(macOS)
+        didReceiveSubscriptionPayment = true
+        try await grpcManager.handleSubscriptionPayment()
+        try? await Task.sleep(for: .seconds(2))
+        await updateAccountSummary()
+#endif
     }
 
     public func autologin(kind: NymDeeplinkKind) async throws -> (url: String, pinCode: String)? {

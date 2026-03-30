@@ -266,6 +266,7 @@ private extension HomeViewModel {
         setupSystemMessageObservers()
         setupIsMnemonicImportedObserver()
         setupAccountSummaryObserver()
+        setupSubscriptionPaymentObserver()
 #if os(iOS)
         setupConnectionErrorObservers()
         setupNetworkMonitorObservers()
@@ -317,6 +318,25 @@ private extension HomeViewModel {
                 MainActor.assumeIsolated {
                     self?.checkExpiryBanner()
                     self?.updateConnectButtonStateForSubscription()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    func setupSubscriptionPaymentObserver() {
+        credentialsManager.$didReceiveSubscriptionPayment
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] didReceive in
+                guard didReceive else { return }
+                MainActor.assumeIsolated {
+                    self?.credentialsManager.didReceiveSubscriptionPayment = false
+                    self?.path = .init()
+                    self?.messagesManager.addAndProcess(
+                        SnackBarMessage(
+                            text: "subscriptionPayment.received".localizedString,
+                            style: .info
+                        )
+                    )
                 }
             }
             .store(in: &cancellables)
