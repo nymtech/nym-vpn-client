@@ -261,13 +261,21 @@ impl SplitTunnel {
 
             if !was_excluded && is_excluded {
                 tracing::trace!("Add to exclusions {}: {}", pid, info.exec_path.display());
-                if let Err(err) = pid_manager.add(*pid) {
-                    trace_err_chain!(err, "failed to add exclusion for {pid}: {:?}",err.io_error_kind());
+                if let Err(err) = pid_manager.add(*pid)
+                    && !err.is_no_process_err()
+                {
+                    trace_err_chain!(err, "failed to add exclusion for {pid}");
                 }
             } else if was_excluded && !is_excluded {
-                tracing::trace!("Remove from exclusions {}: {}", pid, info.exec_path.display());
-                if let Err(err) = pid_manager.remove(*pid) {
-                    trace_err_chain!(err, "failed to remove exclusion for {pid}: {:?}",err.io_error_kind());
+                tracing::trace!(
+                    "Remove from exclusions {}: {}",
+                    pid,
+                    info.exec_path.display()
+                );
+                if let Err(err) = pid_manager.remove(*pid)
+                    && !err.is_no_process_err()
+                {
+                    trace_err_chain!(err, "failed to remove exclusion for {pid}");
                 }
             }
         }
@@ -317,6 +325,7 @@ impl SplitTunnel {
 
             if let Some(pid_manager) = self.pid_manager.as_mut()
                 && let Err(err) = pid_manager.add(pid)
+                && !err.is_no_process_err()
             {
                 trace_err_chain!(err, "failed to add exclusion for {pid}");
             }
@@ -344,26 +353,15 @@ impl SplitTunnel {
         if info.is_excluded()
             && let Some(pid_manager) = self.pid_manager.as_mut()
             && let Err(err) = pid_manager.add(pid)
+            && !err.is_no_process_err()
         {
             trace_err_chain!(err, "failed to add exclusion for {pid}");
         }
     }
 
     fn handle_exit(&mut self, pid: pid_t) {
-        match self.processes.remove(&pid) {
-            Some(info) => {
-                // tracing::trace!("remove info for {pid}: {}", info.exec_path.display());
-                // PID is automatically removed from cgroup upon termination?
-                // if info.is_excluded()
-                //     && let Some(pid_manager) = self.pid_manager.as_mut()
-                //     && let Err(err) = pid_manager.remove(pid)
-                // {
-                //     trace_err_chain!(err, "failed to remove exclusion for {pid}");
-                // }
-            }
-            None => {
-                tracing::error!("exit syscall for unknown pid {pid}");
-            }
+        if self.processes.remove(&pid).is_none() {
+            tracing::error!("exit syscall for unknown pid {pid}");
         }
     }
 }

@@ -19,13 +19,14 @@ pub const DEFAULT_NET_CLS_DIR: &str = "/sys/fs/cgroup/net_cls";
 pub struct Error(#[from] anyhow::Error);
 
 impl Error {
-    pub fn io_error_kind(&self) -> Option<std::io::ErrorKind> {
+    /// Returns true if syscall resulted into no process found error
+    pub fn is_no_process_err(&self) -> bool {
         for cause in self.0.chain() {
-            if let Some(io_error) = cause.downcast_ref::<std::io::Error>() {
-                return Some(io_error.kind());
+            if let Some(err) = cause.downcast_ref::<nix::Error>() {
+                return *err == nix::Error::ESRCH;
             }
         }
-        None
+        false
     }
 }
 
