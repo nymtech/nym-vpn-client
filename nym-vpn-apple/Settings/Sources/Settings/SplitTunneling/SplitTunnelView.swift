@@ -104,7 +104,7 @@ private extension SplitTunnelView {
 
     var changesText: some View {
         HStack {
-            Text("\("splitTunel.apps.exclude".localizedString) \n\("splitTunnel.apps.unprotected".localizedString)")
+            Text("⚠️ \("splitTunnel.betaFeature".localizedString)\n\("splitTunel.apps.exclude".localizedString) \n\("splitTunnel.apps.unprotected".localizedString)")
                 .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
             Spacer()
