@@ -181,7 +181,7 @@ impl VpnServiceConfigManager {
                 nym_vpn_lib_types::FrontingMode::Always => FrontPolicy::Always,
             };
             Client::set_shared_front_policy(front_policy);
-            
+
             self.config.fronting_mode = fronting_mode;
             self.save_config_and_send_event().await;
         }

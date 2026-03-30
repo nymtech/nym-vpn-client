@@ -73,7 +73,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
-            fronting_mode: value.fronting_mode.into(),
+            fronting_mode: value.fronting_mode,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,

@@ -56,8 +56,8 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
                 "VpnServiceConfig.gateway_selection_algorithm",
             ))??;
         let fronting_mode = proto::FrontingModes::try_from(value.fronting_mode)
-                .map_err(|e| ConversionError::Decode("fronting_mode", e))?
-                .into();
+            .map_err(|e| ConversionError::Decode("fronting_mode", e))?
+            .into();
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -179,9 +179,9 @@ impl From<nym_vpn_lib_types::FrontingMode> for proto::FrontingModes {
     }
 }
 
-impl Into<nym_vpn_lib_types::FrontingMode> for proto::FrontingModes {
-    fn into(self) -> nym_vpn_lib_types::FrontingMode {
-        match self {
+impl From<proto::FrontingModes> for nym_vpn_lib_types::FrontingMode {
+    fn from(val: proto::FrontingModes) -> Self {
+        match val {
             proto::FrontingModes::Off => nym_vpn_lib_types::FrontingMode::Off,
             proto::FrontingModes::OnRetry => nym_vpn_lib_types::FrontingMode::OnRetry,
             proto::FrontingModes::Always => nym_vpn_lib_types::FrontingMode::Always,

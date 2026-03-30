@@ -108,7 +108,9 @@ impl NymVpnService for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::FrontingModeResponse>> {
-        let fronting_mode = self.send_and_wait(VpnServiceCommand::GetFrontingMode, ()).await?;
+        let fronting_mode = self
+            .send_and_wait(VpnServiceCommand::GetFrontingMode, ())
+            .await?;
 
         let response = proto::FrontingModeResponse {
             mode: proto::FrontingModes::from(fronting_mode) as i32,
