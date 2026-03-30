@@ -201,8 +201,8 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use tokio::runtime::Runtime;
 
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, MixnetTrafficConfig, NetworkStatisticsConfig, PrivyDerivationMessage,
-    SplitTunnelSettings, UserAgent, VpnServiceConfig,
+    EntryPoint, ExitPoint, FrontingMode, MixnetTrafficConfig, NetworkStatisticsConfig,
+    PrivyDerivationMessage, SplitTunnelSettings, UserAgent, VpnServiceConfig,
 };
 
 #[cfg(target_os = "android")]
@@ -254,6 +254,8 @@ pub struct VPNConfig {
     pub enable_lewes_protocol: bool,
     pub residential_exit: bool,
 
+    pub fronting_mode: FrontingMode,
+
     /// Custom DNS used when set.
     /// Leave empty to use default DNS servers.
     pub custom_dns: Vec<IpAddr>,
@@ -282,6 +284,8 @@ impl VPNConfig {
             enable_two_hop: self.enable_two_hop,
             enable_bridges: self.enable_bridges,
             enable_lewes_protocol: self.enable_lewes_protocol,
+
+            fronting_mode: self.fronting_mode,
 
             // Only currently supported on desktop platforms
             enable_ad_blocking: false,
