@@ -342,7 +342,7 @@ class VpnCoreController(
 			exitRouter = ExitPoint.Random,
 			enableTwoHop = false,
 			enableBridges = false,
-			frontingMode = FrontingMode.OnRetry,
+			frontingMode = FrontingMode.ON_RETRY,
 			enableLewesProtocol = enableLewesProtocol,
 			customDns = emptyList(),
 			residentialExit = false,
