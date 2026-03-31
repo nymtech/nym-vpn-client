@@ -1,7 +1,6 @@
 import clsx from 'clsx';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import MsIcon from '../../../ui/MsIcon';
-import { useSplitTunnel } from './utils';
 
 export type AppEntry = {
   id: string;
@@ -14,14 +13,14 @@ export type AppEntry = {
 
 type Props = {
   app: AppEntry;
+  enabled: boolean;
   onStateChange: (
     app: AppEntry,
     state: 'excluded' | 'included',
   ) => Promise<void>;
 };
 
-function AppItem({ app, onStateChange }: Props) {
-  const { enabled } = useSplitTunnel();
+function AppItem({ app, enabled, onStateChange }: Props) {
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-charcoal">

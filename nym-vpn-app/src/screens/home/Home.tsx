@@ -228,6 +228,8 @@ function Home() {
     }
   };
 
+  const [apps, setApps] = useState<any>([]);
+
   return (
     <>
       {updaterEnabled && <UpdateDialog />}
@@ -311,12 +313,20 @@ function Home() {
             color="cornflower"
             onClick={() =>
               invoke('get_app_list').then((apps) => {
+                setApps(apps);
                 console.log(apps);
               })
             }
           >
             Get app list
           </Button>
+          {apps.length && (
+            <div>
+              {apps.map((app: any) => (
+                <div key={app.id}>{app.name}</div>
+              ))}
+            </div>
+          )}
           <Button
             onClick={handleClick}
             color={getButtonColor()}

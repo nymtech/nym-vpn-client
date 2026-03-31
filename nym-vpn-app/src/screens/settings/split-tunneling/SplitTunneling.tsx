@@ -73,6 +73,7 @@ function SplitTunneling() {
 
   const { apps, enabled, loading, setEnabled, add, remove } = useSplitTunnel();
 
+
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const groupedApps = useMemo(() => {
@@ -159,7 +160,7 @@ function SplitTunneling() {
                     {/* Apps in this section */}
                     {groupedApps[letter].map((app, i) => (
                       <div key={app.id}>
-                        <AppItem app={app} onStateChange={handleStateChange} />
+                        <AppItem app={app} enabled={enabled} onStateChange={handleStateChange} />
                         {i < groupedApps[letter].length - 1 && (
                           <div className="mx-4 h-px bg-mercury/60 dark:bg-white/5" />
                         )}

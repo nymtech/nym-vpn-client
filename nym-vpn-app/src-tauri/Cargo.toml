@@ -54,6 +54,7 @@ sysinfo = "0.37"
 tokio-stream = "0.1.17"
 zip = { version = "7.2", default-features = false, features = ["deflate"] }
 walkdir = "2.5"
+image = { version = "0.25", default-features = false, features = ["png"] }
 # freedesktop-desktop-entry = "0.8"
 # freedesktop-icons = "0.4"
 
@@ -82,7 +83,14 @@ tauri-plugin-deep-link = "2"
 windows = { version = "0.61.3", features = [
     "Win32_System_Console",
     "Win32_Foundation",
+    "Win32_UI_Shell",
+    "Win32_UI_Shell_Common",
+    "Win32_System_Com",
+    "Win32_Storage_FileSystem",
+    "Win32_Graphics_Gdi",
+    "Win32_UI_WindowsAndMessaging",
 ] }
+winreg = "0.52"
 
 [profile.release]
 codegen-units = 1

@@ -49,6 +49,8 @@ mod env;
 mod error;
 mod events;
 mod fs;
+#[cfg(windows)]
+mod icon_extractor;
 mod log;
 mod sentry;
 mod startup_error;
@@ -306,7 +308,8 @@ async fn main() -> Result<()> {
             tunnel::calculate_traffic_latency,
             tunnel::get_mixnet_traffic_defaults,
             tunnel::set_enable_split_tunnel,
-            // tunnel::get_app_list,
+            #[cfg(windows)]
+            tunnel::get_app_list,
             tunnel::add_app_to_split_tunnel,
             tunnel::remove_app_from_split_tunnel,
             cmd_db::db_set,

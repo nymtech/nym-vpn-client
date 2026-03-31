@@ -232,31 +232,67 @@ pub async fn get_mixnet_traffic_defaults() -> Result<MixnetTrafficDefaults, Back
     Ok(MixnetTrafficDefaults::get())
 }
 
-
 #[instrument(skip(vpnd))]
 #[tauri::command]
-pub async fn set_enable_split_tunnel(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
+pub async fn set_enable_split_tunnel(
+    vpnd: State<'_, VpndClient>,
+    enabled: bool,
+) -> Result<(), BackendError> {
     vpnd.enable_split_tunnel(enabled).await?;
     Ok(())
 }
 
-// #[instrument(skip_all)]
-// #[tauri::command]
-// pub async fn get_app_list() -> Result<Vec<crate::fs::tunnel::App>, BackendError> {
-//     let apps = crate::fs::tunnel::get_desktop_apps();
-//     Ok(apps)
-// }
+#[cfg(windows)]
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_app_list(
+    app: tauri::AppHandle,
+) -> Result<Vec<crate::fs::apps_windows::WindowsApp>, BackendError> {
+    let cache_dir = app
+        .path()
+        .app_cache_dir()
+        .map_err(|e| BackendError::internal(&e.to_string(), None))?
+        .join("icons");
+
+    info!("icon cache dir: {}", cache_dir.display());
+
+    let apps = tokio::task::spawn_blocking(move || {
+        let mut apps = crate::fs::apps_windows::get_installed_apps();
+
+        for entry in &mut apps {
+            // Prefer the dedicated icon path; fall back to the executable itself.
+            let source = entry.icon.as_deref().or(entry.executable_path.as_deref());
+
+            if let Some(src) = source {
+                entry.icon = crate::icon_extractor::extract_icon_to_cache(src, &cache_dir)
+                    .map(|p| p.to_string_lossy().into_owned());
+            }
+        }
+
+        apps
+    })
+    .await
+    .map_err(|e| BackendError::internal(&e.to_string(), None))?;
+
+    Ok(apps)
+}
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn add_app_to_split_tunnel(vpnd: State<'_, VpndClient>, app: SplitApp) -> Result<(), BackendError> {
+pub async fn add_app_to_split_tunnel(
+    vpnd: State<'_, VpndClient>,
+    app: SplitApp,
+) -> Result<(), BackendError> {
     vpnd.add_app_to_split_tunnel(app).await?;
     Ok(())
 }
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn remove_app_from_split_tunnel(vpnd: State<'_, VpndClient>, app: SplitApp) -> Result<(), BackendError> {
+pub async fn remove_app_from_split_tunnel(
+    vpnd: State<'_, VpndClient>,
+    app: SplitApp,
+) -> Result<(), BackendError> {
     vpnd.remove_app_from_split_tunnel(app).await?;
     Ok(())
 }

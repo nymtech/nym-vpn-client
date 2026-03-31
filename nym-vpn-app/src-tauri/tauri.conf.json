@@ -44,7 +44,7 @@
       "assetProtocol": {
         "enable": true,
         "scope": {
-          "allow": ["$HOME/**/*", "/usr/share/**/*", "/snap/**/*"],
+          "allow": ["$APPCACHE/**"],
           "requireLiteralLeadingDot": false
         }
       }
