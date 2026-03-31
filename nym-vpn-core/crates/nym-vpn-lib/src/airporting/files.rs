@@ -23,7 +23,7 @@ static SOURCES: &[Source] = &[Source {
     file_name: "airporting_cn.txt.gz",
     builtin: include_bytes!("builtin/airporting_cn.txt.gz"),
     meta_file_name: "airporting_cn.txt.meta",
-    meta_builtin: include_str!("builtin/airporting_cn.txt.meta"),
+    meta_builtin: include_bytes!("builtin/airporting_cn.txt.meta"),
 }];
 
 /// Load the airporting IP networks from the data files.
@@ -34,7 +34,7 @@ pub(crate) async fn load_ip_networks(
     let airporting_path = get_airporting_path(data_dir);
     let mut ip_networks = Vec::new();
 
-    let load_from_files =
+    let load_from_file =
         async |meta_path: &Path, data_path: &Path| -> Result<(SourceMetaData, String)> {
             let meta_data = SourceMetaData::from_file(&meta_path).await?;
             let ip_networks_txt = Source::load_data_file(&data_path, &meta_data).await?;
@@ -48,21 +48,22 @@ pub(crate) async fn load_ip_networks(
 
         // Attempt to load the meta data and IP networks data from disk, but if that
         // fails then load the built-in data instead.
-
         let meta_path = airporting_path.join(source.meta_file_name);
         let data_path = airporting_path.join(source.file_name);
         let (meta_data, ip_networks_txt) =
-            match load_from_files(meta_path.as_path(), data_path.as_path()).await {
+            match load_from_file(meta_path.as_path(), data_path.as_path()).await {
                 Ok((meta_data, ip_networks_txt)) => (meta_data, ip_networks_txt),
                 Err(error) => {
-                    tracing::debug!("Failed to load airporting files from disk for country: {}: {error}", source.country_code);
+                    tracing::debug!(
+                        "Failed to load airporting files from disk for country: {}: {error}",
+                        source.country_code
+                    );
 
                     // The files are obviously broken, so remove them (they might not even exist)
                     let _ = fs::remove_file(&meta_path).await;
                     let _ = fs::remove_file(&data_path).await;
 
-                    let meta_data =
-                        SourceMetaData::from_slice(source.meta_builtin.as_bytes()).await?;
+                    let meta_data = SourceMetaData::from_slice(source.meta_builtin).await?;
                     let ip_networks_txt = Source::load_builtin(source.builtin, &meta_data).await?;
                     (meta_data, ip_networks_txt)
                 }
@@ -85,6 +86,62 @@ pub(crate) async fn load_ip_networks(
     Ok(ip_networks)
 }
 
+/// Update all the airporting files for the given countries.
+/// Returns `Ok(true)` if any file was updated, `Ok(false)` if everything was already up-to-date.
+pub(crate) async fn update_files(
+    data_dir: &Path,
+    country_codes: &[&str],
+    user_agent: &str,
+) -> Result<bool> {
+    let airporting_path = get_airporting_path(data_dir);
+    let http_client = reqwest::Client::new();
+
+    // Ensure the airporting directory exists
+    fs::create_dir_all(&airporting_path)
+        .await
+        .map_err(|error| AirportingError::CreateDirectory {
+            dir: airporting_path.clone(),
+            error,
+        })?;
+
+    let mut any_updated = false;
+
+    for source in SOURCES.iter() {
+        if !country_codes.contains(&source.country_code) {
+            continue;
+        }
+
+        match source
+            .update_data_file(&airporting_path, &http_client, user_agent)
+            .await
+        {
+            Ok(true) => {
+                tracing::debug!(
+                    "Updated airporting data files for country: {}",
+                    source.country_code
+                );
+                any_updated = true;
+            }
+            Ok(false) => {
+                tracing::debug!(
+                    "Airporting data files are already up-to-date for country: {}",
+                    source.country_code
+                );
+            }
+            Err(error) => {
+                // Log and continue — a failed update for one country should not
+                // prevent other countries from being updated.
+                tracing::warn!(
+                    "Failed to update airporting data files for country {}: {error}",
+                    source.country_code
+                );
+            }
+        }
+    }
+
+    Ok(any_updated)
+}
+
 pub(crate) fn get_airporting_path(data_dir: &Path) -> PathBuf {
     PathBuf::from(data_dir).join("airporting")
 }
@@ -94,7 +151,7 @@ pub(crate) struct Source {
     pub file_name: &'static str,
     pub builtin: &'static [u8],
     pub meta_file_name: &'static str,
-    pub meta_builtin: &'static str,
+    pub meta_builtin: &'static [u8],
 }
 
 impl Source {
@@ -169,13 +226,21 @@ impl Source {
 
         let meta_data_path = airporting_path.join(self.meta_file_name);
         let meta_data = SourceMetaData::from_slice(data_bytes.as_ref()).await?;
-        if let Ok(current_meta_data) = SourceMetaData::from_file(&meta_data_path).await
+
+        // Read the current meta data file from disk, and if that fails use the built-in meta data file.
+        let current_meta_data = match SourceMetaData::from_file(&meta_data_path).await {
+            Ok(meta) => Some(meta),
+            Err(_) => SourceMetaData::from_slice(self.meta_builtin).await.ok(),
+        };
+
+        // Are we arleady up-to-date?
+        if let Some(current_meta_data) = current_meta_data
             && current_meta_data.updated_utc >= meta_data.updated_utc
         {
-            return Ok(false); // Up-to-date
+            return Ok(false);
         }
 
-        // If either failed to read the existing meta data file or it's out-of-date
+        // Yes, let's use the updated data file from the website.
         let data_url = format!("{base_url}/{}", self.file_name);
         let request = http_client
             .get(&data_url)
@@ -201,7 +266,9 @@ impl Source {
             })?;
 
         // Write the data to a temporary file in the airporting directory.
-        // We regenerate the meta data during when we save it.
+        // 1. We regenerate the meta data when we save it.
+        // 2. We re-compress the data file when we save it.  This might be wasteful,
+        //    but it does ensure the data is valid.
         let temp_data_path = airporting_path.join(Self::TEMP_DATA_FILE_NAME);
         let temp_meta_data = Self::save_data_file(&temp_data_path, &data_bytes).await?;
 
