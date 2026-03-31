@@ -163,6 +163,7 @@
 	<string name="skip">Bỏ qua</string>
 	<string name="get_started">Bắt đầu</string>
 	<string name="random_text">Ngẫu nhiên</string>
+	<string name="title_retry">Thử lại</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Hiển thị trực tuyến</string>
 	<string name="streaming_server_banner_title">Mới: Khám phá các máy chủ-\nđược tối ưu hóa cho phát trực tuyến (▶️)</string>
@@ -237,7 +238,7 @@
 	<string name="battery_opt">Tối ưu hóa pin</string>
 	<string name="battery_opt_settings_text">Cài đặt tối ưu pin có thể được thay đổi bất cứ lúc nào trong phần cài đặt ứng dụng.</string>
 	<!-- Data & Privacy screen -->
-	<string name="privacy_title">Dữ liệu &amp; Quyền riêng tư</string>
+	<string name="privacy_title">Dữ liệu, quyền riêng tư &amp; ghi nhật ký</string>
 	<string name="privacy_anonymous_stats_title">Thống kê mạng ẩn danh</string>
 	<string name="privacy_anonymous_stats_description">Giúp chúng tôi xây dựng mạng nhanh hơn bằng cách chia sẻ dữ liệu hiệu suất ẩn danh từ khu vực của bạn. Chúng tôi sử dụng dữ liệu này để tối ưu tốc độ, giảm mất kết nối và điều hướng vùng phủ sóng máy chủ nơi cần thiết nhất. \n\nChỉ dữ liệu hiệu suất mạng được chia sẻ – không bao giờ hoạt động duyệt web hoặc dữ liệu cá nhân của bạn.</string>
 	<string name="privacy_anonymous_stats_link_text">Tìm hiểu chính xác những gì được chia sẻ</string>
@@ -254,6 +255,7 @@
 	<string name="notification_improve_title">Giúp cải thiện \n tốc độ kết nối của bạn</string>
 	<string name="notification_improve_button">Cải thiện ngay</string>
 	<string name="notification_stats_enabled">Đã bật thống kê! Dữ liệu ẩn danh của bạn giúp tối ưu hóa mạng của chúng tôi.</string>
+	<string name="privacy_diagnostic_tool">Công cụ chẩn đoán</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Tiếp tục</string>
 	<string name="welcome_title">Hãy giúp chúng tôi cải thiện NymVPN</string>
@@ -410,9 +412,17 @@
 	<string name="account_info_contact_support_suffix">\u0020 để được cấp thêm băng thông.</string>
 	<string name="account_info_valid_text">Gói cước có hiệu lực đến %s</string>
 	<string name="account_info_expires_text">Gói cước hết hạn vào ngày %s</string>
+	<string name="banner_plan_expires_text">Gói cước hết hạn vào ngày:\n%s</string>
 	<string name="account_info_renew_text">Gia hạn ngay để tiếp tục được bảo vệ</string>
+	<string name="banner_renew_text">Gia hạn ngay\nđể tiếp tục được bảo vệ</string>
 	<string name="account_info_auto_renew_text">*Tự động gia hạn</string>
 	<string name="account_info_no_plan">Không có gói dịch vụ khả dụng</string>
+	<string name="account_info_autologin_fetching">Đang lấy mã truy cập…</string>
+	<string name="account_info_autologin_error">Không thể lấy mã truy cập. Vui lòng thử lại.</string>
+	<string name="pin_code_title">Mã Pin</string>
+	<string name="pin_code_subtitle">Nhập mã này trên trang web</string>
+	<string name="pin_code_copy_and_open">Sao chép mã và mở trang web</string>
+	<string name="pin_code_copied">Đã sao chép!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Cho phép ghi lại nhật ký</string>
 	<string name="logs_enable_description">Bật tính năng này để khắc phục sự cố. Tắt tính năng này để bảo mật thông tin cá nhân. Nhật ký sẽ được lưu trữ trên thiết bị của bạn. Nym không bao giờ có quyền truy cập.</string>
@@ -512,4 +522,13 @@
 	<string name="mixnet_tuning_link_text">Tìm hiểu thêm về các thông số mixnet</string>
 	<string name="mixnet_tuning_save_button">Lưu cài đặt tùy chỉnh</string>
 	<string name="mixnet_tuning_restore_button">Khôi phục các cài đặt mặc định</string>
+	<!-- Diagnostic screen -->
+	<string name="diagnostic_run_button">Chạy chẩn đoán</string>
+	<string name="diagnostic_share_button">Chia sẻ báo cáo</string>
+	<string name="diagnostic_report_title">Báo cáo chẩn đoán</string>
+	<string name="diagnostic_copy_report">Sao chép báo cáo</string>
+	<string name="diagnostic_copied">Đã sao chép vào bộ nhớ tạm</string>
+	<string name="diagnostic_error">Chẩn đoán không thành công</string>
+	<!-- Developer screen -->
+	<string name="developer_lewes_title">Kích hoạt giao thức Lewes</string>
 </resources>

@@ -1,63 +1,74 @@
-7 Tage kostenlos testen: Alle Funktionen, keine Werbung, jederzeit kündbar.
+7 Tage kostenlos testen: Alle Funktionen, keine Werbung, jederzeit kündbar. Abos ab 2,39 $ pro Monat.
 
-Das einzige VPN, das Sie nicht ausspionieren kann. Entwickelt in der Schweiz. Gebaut von Datenschutzaktivisten. Das weltweit erste Mixnet für Online-Anonymität.
+Das einzige VPN, das dich nicht ausspionieren kann. Made in Switzerland. Von Datenschutzaktivisten entwickelt. Das weltweit erste Mixnet für Online-Anonymität.
 
-Registrierung ohne Namen: Keine E-Mail erforderlich. Zero-Knowledge-Konten. Mehr akzeptierte Kryptowährungen als jedes andere VPN. Barzahlung für vollständige Anonymität möglich.
+ANONYME ANMELDUNG: Keine E-Mail erforderlich. Zero-Knowledge-Konten. Kein VPN akzeptiert mehr Kryptowährungen. Barzahlung möglich, um deine Anonymität zu wahren.
+- DEZENTRALE VPN-Technologie
+- DIE MEISTEN AKZEPTIERTEN KRYPTOWÄHRUNGEN aller VPNs
+- 70+ LÄNDER mit hunderten unabhängigen Servern
+- BIS ZU 10 GERÄTE mit einem anonymen Code
 
-Dezentrale VPN-Technologie
+### SURFE OHNE SPUREN ZU HINTERLASSEN
 
-65+ Länder mit Hunderten unabhängiger Server
+Bist du es leid, dich zu fragen, wer dich beobachtet? Unternehmen sammeln deine persönlichen Daten? Du kannst aufgrund deines Standorts nicht auf Informationen zugreifen?
 
-Bis zu 10 Geräte mit einem anonymen Code
+Während andere VPNs versprechen, keine Logs zu führen, gibt es bei NymVPN keinen Punkt im dezentralen Netzwerk, der deine IP-Adresse mit deinen Online-Aktivitäten verknüpfen kann. Deine Privatsphäre ist standardmäßig garantiert. Deine Online-Aktivitäten können weder von Werbetreibenden noch von Netzbetreibern oder zentralisierten Infrastrukturen zu dir zurückverfolgt werden. Du kannst surfen und kommunizieren, ohne Datenspuren im gesamten Internet zu hinterlassen.
 
-SURFEN OHNE SPUREN
-
-Müde davon, sich zu fragen, wer Sie beobachtet? Unternehmen, die Ihre persönlichen Daten sammeln? Kein Zugriff auf Informationen wegen Ihres Standorts?
-
-Während andere VPNs versprechen, keine Logs zu speichern, ist das NymVPN-Netzwerk so konzipiert, dass zentrale Logs gar nicht möglich sind. Kein Punkt im dezentralen Netzwerk kann Ihre IP-Adresse mit Ihrem Online-Verhalten verknüpfen. Privatsphäre ist standardmäßig garantiert.
-
-Mit NymVPN kann Ihre Online-Aktivität weder von Werbetreibenden noch von Netzbetreibern oder zentraler Infrastruktur mit Ihnen in Verbindung gebracht werden. Recherchieren, kommunizieren und surfen Sie ohne verfolgbares Nutzungsprofil.
-
-WÄHLEN SIE IHR PRIVATSPHÄRE-LEVEL
+### WÄHLE DEIN PRIVACY-LEVEL
 
 Schneller Modus
 
-Hochgeschwindigkeits-Browsing und Streaming
-
-2-Hop dezentrales VPN
-
-Auswahl von Ein- und Ausgangsservern in 65+ Ländern
+- Highspeed-Surfen und Streaming
+- Dezentrales 2-Hop-VPN
+- AmneziaWG (WireGuard) Schutz
 
 Anonymer Modus
 
-Maximale Anonymität für Nachrichten, E-Mails und Finanztransaktionen
+- Maximale Anonymität für Messaging, E-Mail und Finanztransaktionen
+- Dezentrales 5-Hop Mixnet mit Noise-Generierung
+- Resistent gegen fortschrittliche Traffic-Analysen
 
-5-Hop Mixnet mit Rauschverkehr
+### ESSENZIELLE FEATURES
 
-Entwickelt gegen fortschrittliche Verkehrsanalysen
+- Auswahl von Eintritts- & Austrittsservern
+- Mehrschichtige Verschlüsselung
+- dVPN AmneziaWG (WireGuard) Unterstützung
+- Killswitch verhindert Datenlecks
+- Fortschrittliche Anti-Zensur-Technologie
+- Split-Tunneling
+- Benutzerdefinierte DNS
+- Schlüsselrotation für kryptografische Sicherheit
+- Völlig werbefreies Erlebnis
+- 100% Open Source Software
 
-ZENTRALE FUNKTIONEN
+### WARUM NYMVPN ANDERS IST
 
-Schnelle Verbindungen in über 65 Ländern
+Die meisten VPNs verlassen sich auf zentralisierte Server und verlangen von dir, dass du ihren „No-Logs“-Versprechen vertraust. NymVPN ist anders aufgebaut.
 
-Mehrschichtige Verschlüsselung
+- Dezentrale VPN-Architektur (dVPN): Der Datenverkehr wird über unabhängig betriebene Server geleitet. Niemand kann gleichzeitig sehen, wer du bist und was du online tust.
 
-dVPN AmneziaWG (WireGuard) Unterstützung
+Metadatenschutz: NymVPN schützt Traffic-Muster, Timing und Routing-Informationen. Selbst verschlüsselte Daten können Metadaten preisgeben. Nym verhindert das.
 
-Kill Switch verhindert Datenlecks
+- Zwei Privatsphäre-Modi, eine App: Der SCHNELL Modus nutzt ein leistungsstarkes, dezentrales 2-Hop-VPN. Der ANONYME Modus nutzt ein 5-Hop-Mixnet für maximale Anonymität.
 
-Fortschrittliche Anti-Zensur-Technologie
+- Noise-Generating-Mixnet-Technologie: Dein Datenverkehr wird mit Cover-Traffic gemischt, was Korrelationen und KI-gestützte Traffic-Analysen extrem erschwert.
 
-Split Tunneling
+- Zero-Knowledge-Konten by Design: Keine Registrierung per E-Mail. Keine persönlichen Daten. Konten können nicht mit der Nutzung verknüpft werden. Unterstützt Krypto- und Barzahlungen für volle Anonymität.
 
-Benutzerdefiniertes DNS
+- Zensurresistentes Networking: Entwickelt mit AmneziaWG, QUIC und Stealth-Transport-Optionen, um in restriktiven Umgebungen zu funktionieren.
 
-dApp- & Wallet-Modus für private Ethereum-Transaktionen
+- Open-Source und unabhängig geprüft.
+- Entwickelt von akademischen Kryptografen
 
-Kryptografische Schlüsselrotation
+### NYMVPN IST PERFEKT FÜR:
 
-Komplett werbefrei
+- Streaming und Surfen ohne Tracking
+- Sichere öffentliche WLAN-Verbindungen
+- Alle in restriktiven Ländern, der verlässlichen Zugriff benötigen
+- Menschen, die echte Anonymität wollen, nicht nur verborgene IP-Adressen
+- Journalisten und Aktivisten, die unauffindbare Kommunikation benötigen
+- Bekannt aus PCMag, TechRadar, Forbes, Bloomberg, Tom's Guide
 
-Vollständig Open Source
+Jetzt herunterladen. Melde dich anonym an. Werde unsichtbar mit NymVPN.
 
-Jetzt herunterladen. Anonym registrieren. Unsichtbar werden mit NymVPN.
+Nutzungsbedingungen: https://nym.com/vpn-terms

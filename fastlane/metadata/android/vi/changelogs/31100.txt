@@ -1,0 +1,5 @@
+Có gì mới:
+- Thông tin tài khoản: Đã thêm chi tiết về gói đăng ký và băng thông.
+- Cập nhật giao diện người dùng: Làm mới hình ảnh màn hình chào mừng.
+- Cải tiến kỹ thuật: Cập nhật phiên bản AGP và tối ưu hóa cài đặt QUIC.
+- Sửa lỗi: Sửa lỗi chi tiết máy chủ thoát và danh sách ngôn ngữ.
