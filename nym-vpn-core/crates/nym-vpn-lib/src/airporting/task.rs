@@ -3,59 +3,59 @@
 
 use super::{AirportingError, Result};
 use crate::airporting::files::{init_and_load_ip_networks, update_and_load_ip_networks};
+use ipnetwork::IpNetwork;
 use std::{
     path::{Path, PathBuf},
-    sync::Arc,
     time::Duration,
 };
 use tokio::{
-    sync::{mpsc, oneshot, Mutex},
+    sync::{mpsc, oneshot},
     time::{sleep, Instant},
 };
 use tokio_util::sync::CancellationToken;
 
 pub struct AirportingTask {
     data_dir: PathBuf,
-    rx: mpsc::UnboundedReceiver<AdBlockerTaskMessage>,
-    tx: mpsc::UnboundedSender<AdBlockerTaskMessage>,
-    adblocker: DnsFilter,
-    next_update_due: Instant,
+    country_codes: Vec<String>,
     user_agent: String,
     shutdown_token: CancellationToken,
+    rx: mpsc::UnboundedReceiver<AirportingTaskMessage>,
+    tx: mpsc::UnboundedSender<AirportingTaskMessage>,
+    ip_networks: Vec<IpNetwork>,
+    next_update_due: Instant,
 }
 
-impl AdBlockerTask {
+impl AirportingTask {
     const WAKE_UP_DEFAULT_DELAY: Duration = Duration::from_secs(60);
-    const INITIAL_ADBLOCK_UPDATE_DELAY: Duration = Duration::from_secs(2 * 60);
-    const ADBLOCK_UPDATE_DELAY: Duration = Duration::from_secs(60 * 60);
+    const INITIAL_AIRPORTING_UPDATE_DELAY: Duration = Duration::from_secs(2 * 60);
+    const AIRPORTING_UPDATE_DELAY: Duration = Duration::from_secs(60 * 60);
 
     pub async fn spawn(
         data_dir: &Path,
+        country_codes: &[&str],
         user_agent: String,
         shutdown_token: CancellationToken,
     ) -> Result<(AdBlockerTaskHandle, tokio::task::JoinHandle<()>)> {
         let (tx, rx) = mpsc::unbounded_channel();
-        let adblocker: DnsFilter = Arc::new(Mutex::new(Box::new(AdBlocker::default())));
 
         let task = Self {
             data_dir: data_dir.to_path_buf(),
-            rx,
-            tx: tx.clone(),
-            adblocker,
-            next_update_due: Instant::now() + Self::ADBLOCK_UPDATE_DELAY,
+            country_codes: country_codes.iter().map(|s| s.to_string()).collect(),
             user_agent,
             shutdown_token,
+            rx,
+            tx: tx.clone(),
+            next_update_due: Instant::now() + Self::AIRPORTING_UPDATE_DELAY,
         };
 
-        // Spawn onto the multi-thread runtime.
         let join_handle = tokio::spawn(task.run());
 
         Ok((AdBlockerTaskHandle::new(tx), join_handle))
     }
 
-    /// Runs the ad-blocker manager as an actor.
+    /// Runs the airporting manager as an actor.
     async fn run(mut self) {
-        tracing::debug!("Ad-blocker task started");
+        tracing::debug!("Airporting task started");
 
         let update_fuse = sleep(Self::WAKE_UP_DEFAULT_DELAY);
         tokio::pin!(update_fuse);
@@ -64,26 +64,22 @@ impl AdBlockerTask {
             tokio::select! {
                 msg = self.rx.recv() => {
                     match msg {
-                        Some(AdBlockerTaskMessage::Init { response_tx }) => {
+                        Some(AirportingTaskMessage::Init { response_tx }) => {
                             self.init(false, 0).await;
                             let _ = response_tx.send(());
                         }
                         #[cfg(test)]
-                        Some(AdBlockerTaskMessage::IsInitted { response_tx }) => {
+                        Some(AirportingTaskMessage::IsInitted { response_tx }) => {
                             let _ = response_tx.send(self.is_initted().await);
                         }
-                        Some(AdBlockerTaskMessage::Disable { response_tx }) => {
-                            self.handle_disable().await;
-                            let _ = response_tx.send(());
-                        }
-                        Some(AdBlockerTaskMessage::InitComplete { result, retry_count }) => {
+                        Some(AirportingTaskMessage::InitComplete { result, retry_count }) => {
                             self.handle_init_completed(result, retry_count).await;
                         }
-                        Some(AdBlockerTaskMessage::UpdateComplete { result }) => {
+                        Some(AirportingTaskMessage::UpdateComplete { result }) => {
                             self.handle_update_completed(result).await;
                         }
-                        Some(AdBlockerTaskMessage::GetDnsFilter { response_tx }) => {
-                            let _ = response_tx.send(self.adblocker.clone());
+                        Some(AirportingTaskMessage::GetIpNetworks { response_tx }) => {
+                            self.handle_get_ip_networks(result).await;
                         }
                         None => {
                             break;
@@ -108,7 +104,7 @@ impl AdBlockerTask {
 
             tracing::trace!(
                 // Delightful 😒
-                "Next Ad-blocker update due at {:?}",
+                "Next Airporting update due at {:?}",
                 time::OffsetDateTime::now_utc()
                     + time::Duration::try_from(
                         self.next_update_due
@@ -118,7 +114,7 @@ impl AdBlockerTask {
             );
         }
 
-        tracing::debug!("Ad-blocker task stopped");
+        tracing::debug!("Airporting task stopped");
     }
 
     async fn init(&self, force_init: bool, retry_count: usize) {
@@ -127,8 +123,8 @@ impl AdBlockerTask {
         let data_dir = self.data_dir.clone();
         let tx = self.tx.clone();
         tokio::spawn(async move {
-            let result = init_and_load_filter_set(data_dir.clone(), force_init).await;
-            let _ = tx.send(AdBlockerTaskMessage::InitComplete {
+            let result = init_and_load_ip_networks(data_dir.clone(), force_init).await;
+            let _ = tx.send(AirportingTaskMessage::InitComplete {
                 result,
                 retry_count,
             });
@@ -150,7 +146,7 @@ impl AdBlockerTask {
             let tx = self.tx.clone();
             tokio::spawn(async move {
                 let result = update_and_load_filter_set(data_dir, user_agent).await;
-                let _ = tx.send(AdBlockerTaskMessage::UpdateComplete { result });
+                let _ = tx.send(AirportingTaskMessage::UpdateComplete { result });
             });
         }
     }
@@ -160,7 +156,7 @@ impl AdBlockerTask {
             Ok(filter_set) => {
                 self.use_filter_set(filter_set).await;
                 tracing::debug!("Ad-blocker was initialized successfully");
-                self.next_update_due = Instant::now() + Self::INITIAL_ADBLOCK_UPDATE_DELAY;
+                self.next_update_due = Instant::now() + Self::INITIAL_AIRPORTING_UPDATE_DELAY;
             }
             Err(error) => {
                 tracing::error!("Failed to initialize or update ad-blocker: {error}");
@@ -195,7 +191,7 @@ impl AdBlockerTask {
             }
         }
 
-        self.next_update_due = Instant::now() + Self::ADBLOCK_UPDATE_DELAY;
+        self.next_update_due = Instant::now() + Self::AIRPORTING_UPDATE_DELAY;
     }
 
     async fn is_initted(&self) -> bool {
@@ -228,23 +224,20 @@ impl AdBlockerTask {
     }
 }
 
-enum AdBlockerTaskMessage {
-    /// Initialize Ad-blocker.
+enum AirportingTaskMessage {
+    /// Initialize Airporting.
     Init { response_tx: oneshot::Sender<()> },
 
-    /// Has the Ad-blocker been initialized yet?
+    /// Has the Airporting been initialized yet?
     #[cfg(test)]
     IsInitted { response_tx: oneshot::Sender<bool> },
 
-    /// Disable the ad-blocker, by removing the filter-set, allowing all domains to pass.
-    Disable { response_tx: oneshot::Sender<()> },
-
-    /// Get the DNS filter
-    GetDnsFilter {
-        response_tx: oneshot::Sender<DnsFilter>,
+    /// Get the list of airporting IP addresses
+    GetIpNetworks {
+        response_tx: oneshot::Sender<Vec<IpNetwork>>,
     },
 
-    /// Ad-blocker initialized in the background.
+    /// Airporting initialized in the background.
     InitComplete {
         result: Result<Box<FilterSet>>,
         retry_count: usize,
@@ -259,11 +252,11 @@ enum AdBlockerTaskMessage {
 /// A handle to control the Ad-blocker task.
 #[derive(Clone)]
 pub struct AdBlockerTaskHandle {
-    tx: mpsc::UnboundedSender<AdBlockerTaskMessage>,
+    tx: mpsc::UnboundedSender<AirportingTaskMessage>,
 }
 
 impl AdBlockerTaskHandle {
-    fn new(tx: mpsc::UnboundedSender<AdBlockerTaskMessage>) -> Self {
+    fn new(tx: mpsc::UnboundedSender<AirportingTaskMessage>) -> Self {
         Self { tx }
     }
 
@@ -272,7 +265,7 @@ impl AdBlockerTaskHandle {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
-            .send(AdBlockerTaskMessage::Init { response_tx })
+            .send(AirportingTaskMessage::Init { response_tx })
             .is_ok()
         {
             response_rx.await.ok();
@@ -285,7 +278,7 @@ impl AdBlockerTaskHandle {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
-            .send(AdBlockerTaskMessage::IsInitted { response_tx })
+            .send(AirportingTaskMessage::IsInitted { response_tx })
             .is_ok()
         {
             response_rx.await.ok().unwrap_or(false)
@@ -299,7 +292,7 @@ impl AdBlockerTaskHandle {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
-            .send(AdBlockerTaskMessage::Disable { response_tx })
+            .send(AirportingTaskMessage::Disable { response_tx })
             .is_ok()
         {
             response_rx.await.ok();
@@ -311,7 +304,7 @@ impl AdBlockerTaskHandle {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
-            .send(AdBlockerTaskMessage::GetDnsFilter { response_tx })
+            .send(AirportingTaskMessage::GetIpNetworks { response_tx })
             .is_ok()
         {
             response_rx.await.ok()
