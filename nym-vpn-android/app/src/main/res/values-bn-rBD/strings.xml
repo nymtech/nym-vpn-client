@@ -163,6 +163,7 @@
 	<string name="skip">বাদ দিন</string>
 	<string name="get_started">শুরু করুন</string>
 	<string name="random_text">এলোমেলো</string>
+	<string name="title_retry">পুনরায় চেষ্টা করুন</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display"></string>
 	<string name="streaming_server_banner_title"></string>
@@ -254,6 +255,7 @@
 	<string name="notification_improve_title">আপনার সংযোগ গতি উন্নত করতে সাহায্য করুন</string>
 	<string name="notification_improve_button">এখনই উন্নত করুন</string>
 	<string name="notification_stats_enabled">পরিসংখ্যান সক্রিয় হয়েছে। আপনার গোপন ডেটা আমাদের নেটওয়ার্ক অপ্টিমাইজ করতে সাহায্য করে।</string>
+	<string name="privacy_diagnostic_tool">ডায়াগনস্টিক টুল</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">চালিয়ে যান</string>
 	<string name="welcome_title">NymVPN উন্নত করতে আমাদের সাহায্য করুন</string>
@@ -412,9 +414,17 @@
 	<string name="account_info_contact_support_suffix">অতিরিক্ত ব্যান্ডওয়িডথের জন্য দল।</string>
 	<string name="account_info_valid_text">প্ল্যান সুবিধা প্রযোজ্য %s পর্যন্ত</string>
 	<string name="account_info_expires_text">প্ল্যান মেয়াদ শেষ হবে %s তারিখে</string>
+	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
 	<string name="account_info_renew_text">সুরক্ষিত থাকতে এখনই নবায়ন করুন</string>
+	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*স্বয়ংক্রিয়ভাবে নবায়ন হয়</string>
 	<string name="account_info_no_plan">কোনো সক্রিয় প্ল্যান নেই</string>
+	<string name="account_info_autologin_fetching">Fetching access code…</string>
+	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>
+	<string name="pin_code_title">Pin code</string>
+	<string name="pin_code_subtitle">Enter this code on web</string>
+	<string name="pin_code_copy_and_open">Copy code and open web</string>
+	<string name="pin_code_copied">Copied!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">লগিং চালু করুন</string>
 	<string name="logs_enable_description">সমস্যা নির্ণয়ের জন্য চালু করুন। গোপনীয়তার জন্য বন্ধ করুন। লগ আপনার ডিভাইসে থাকে। Nym-এর কখনো অ্যাক্সেস নেই।</string>
@@ -524,4 +534,13 @@
 	<string name="mixnet_tuning_link_text">ডিফল্ট সেটিংসে রিসেট করুনবর্তমান সেটিংসের ভিত্তিতে প্রত্যাশিত কার্যক্ষমতা</string>
 	<string name="mixnet_tuning_save_button">কাস্টম সেটিংস সারি করুন</string>
 	<string name="mixnet_tuning_restore_button">ডিফল্ট সেটিংস পুনরুদ্ধার করুন</string>
+	<!-- Diagnostic screen -->
+	<string name="diagnostic_run_button">Run diagnostics</string>
+	<string name="diagnostic_share_button">রিপোর্ট শেয়ার করুন</string>
+	<string name="diagnostic_report_title">ডায়াগনস্টিক রিপোর্ট</string>
+	<string name="diagnostic_copy_report">Copy report</string>
+	<string name="diagnostic_copied">ক্লিপবোর্ডে কপি করা হয়েছে</string>
+	<string name="diagnostic_error">Diagnostics failed</string>
+	<!-- Developer screen -->
+	<string name="developer_lewes_title">Enable Lewes Protocol</string>
 </resources>

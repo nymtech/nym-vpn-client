@@ -165,6 +165,7 @@
 	<string name="skip">Überspringen</string>
 	<string name="get_started">Los geht\'s</string>
 	<string name="random_text">Zufällig</string>
+	<string name="title_retry">Wiederholen</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream-Anzeige</string>
 	<string name="streaming_server_banner_title">Neu: Entdecke Streaming-\noptimierte Server (▶️)</string>
@@ -239,7 +240,7 @@
 	<string name="battery_opt">Akkunutzung</string>
 	<string name="battery_opt_settings_text">Die Einstellungen zur Optimierung der Akkunutzung können jederzeit in den App-Einstellungen geändert werden.</string>
 	<!-- Data & Privacy screen -->
-	<string name="privacy_title">Daten &amp; Privatsphäre</string>
+	<string name="privacy_title">Daten, Privatsphäre &amp; Logs</string>
 	<string name="privacy_anonymous_stats_title">Anonyme Netzwerkstatistiken</string>
 	<string name="privacy_anonymous_stats_description">Hilf uns, ein schnelleres Netzwerk aufzubauen, indem du anonyme Leistungsdaten aus deiner Region teilst. Wir nutzen diese, um die Geschwindigkeit zu optimieren, Verbindungsabbrüche zu verringern und die Serverabdeckung gezielt zu verbessern. \n\nEs werden nur Netzwerkleistungsdaten geteilt – niemals dein Surfverhalten oder persönliche Daten.</string>
 	<string name="privacy_anonymous_stats_link_text">Erfahre genau, was geteilt wird</string>
@@ -256,6 +257,7 @@
 	<string name="notification_improve_title">Hilf mit, die Verbindungsgeschwindigkeit \nzu verbessern</string>
 	<string name="notification_improve_button">Jetzt verbessern</string>
 	<string name="notification_stats_enabled">Netzwerkstatistiken aktiviert! Deine anonymen Daten helfen, unser Netzwerk zu optimieren.</string>
+	<string name="privacy_diagnostic_tool">Diagnosetool</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Fortfahren</string>
 	<string name="welcome_title">Hilf uns, NymVPN zu verbessern</string>
@@ -412,9 +414,17 @@
 	<string name="account_info_contact_support_suffix">\u0020Team für zusätzliche Bandbreite.</string>
 	<string name="account_info_valid_text">Abo gültig bis %s</string>
 	<string name="account_info_expires_text">Abo läuft am %s ab</string>
+	<string name="banner_plan_expires_text">Abo läuft ab am:\n%s</string>
 	<string name="account_info_renew_text">Jetzt erneuern, um geschützt zu bleiben</string>
+	<string name="banner_renew_text">Jetzt erneuern\num geschützt zu bleiben</string>
 	<string name="account_info_auto_renew_text">*Auto-Erneuerung</string>
 	<string name="account_info_no_plan">Du hast kein aktives Abonnement</string>
+	<string name="account_info_autologin_fetching">Zugriffscode abrufen…</string>
+	<string name="account_info_autologin_error">Der Zugangscode konnte nicht abgeholt werden. Bitte versuche es erneut.</string>
+	<string name="pin_code_title">Pin Code</string>
+	<string name="pin_code_subtitle">Gib diesen Code im Web ein</string>
+	<string name="pin_code_copy_and_open">Code kopieren und Web öffnen</string>
+	<string name="pin_code_copied">Kopiert!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Logging aktivieren</string>
 	<string name="logs_enable_description">Einschalten zur Fehlerbehebung. Deaktivieren für den Datenschutz. Die Logs bleiben auf deinem Gerät. Nym hat keinen Zugriff.</string>
@@ -514,4 +524,13 @@
 	<string name="mixnet_tuning_link_text">Erfahre mehr über die Mixnet-Parameter</string>
 	<string name="mixnet_tuning_save_button">Benutzerdefinierte Einstellungen speichern</string>
 	<string name="mixnet_tuning_restore_button">Standardeinstellungen wiederherstellen</string>
+	<!-- Diagnostic screen -->
+	<string name="diagnostic_run_button">Diagnose ausführen</string>
+	<string name="diagnostic_share_button">Bericht teilen</string>
+	<string name="diagnostic_report_title">Diagnosebericht</string>
+	<string name="diagnostic_copy_report">Bericht kopieren</string>
+	<string name="diagnostic_copied">In Zwischenablage kopiert</string>
+	<string name="diagnostic_error">Diagnose fehlgeschlagen</string>
+	<!-- Developer screen -->
+	<string name="developer_lewes_title">Lewes-Protokoll aktivieren</string>
 </resources>

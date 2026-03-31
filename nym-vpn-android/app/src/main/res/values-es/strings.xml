@@ -165,6 +165,7 @@
 	<string name="skip">Saltar</string>
 	<string name="get_started">Empezar</string>
 	<string name="random_text">Aleatorio</string>
+	<string name="title_retry">Reintentar</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Pantalla de flujo</string>
 	<string name="streaming_server_banner_title">Nuevo: Descubre streaming-\nservidores optimizados (▶️)</string>
@@ -256,6 +257,7 @@
 	<string name="notification_improve_title">Ayuda a mejorar \ntu velocidad de conexión</string>
 	<string name="notification_improve_button">Mejorar ahora</string>
 	<string name="notification_stats_enabled">¡Estadísticas habilitadas! Tus datos anónimos ayudan a optimizar nuestra red.</string>
+	<string name="privacy_diagnostic_tool">Herramienta de diagnóstico</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Continuar</string>
 	<string name="welcome_title">Ayúdanos a mejorar NymVPN</string>
@@ -412,9 +414,17 @@
 	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
 	<string name="account_info_valid_text">Plan válido hasta %s</string>
 	<string name="account_info_expires_text">El plan expira el %s</string>
+	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
 	<string name="account_info_renew_text">Renovar ahora para estar protegido</string>
+	<string name="banner_renew_text">Renovar ahora\npara estar protegido</string>
 	<string name="account_info_auto_renew_text">* Auto-renovación</string>
 	<string name="account_info_no_plan">Ningún plan activo</string>
+	<string name="account_info_autologin_fetching">Recuperando el código de acceso…</string>
+	<string name="account_info_autologin_error">No se pudo obtener el código de acceso. Vuelve a intentarlo.</string>
+	<string name="pin_code_title">Código pin</string>
+	<string name="pin_code_subtitle">Introduzca este código en la web</string>
+	<string name="pin_code_copy_and_open">Copiar código y abrir web</string>
+	<string name="pin_code_copied">¡Copiado!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Habilitar registro</string>
 	<string name="logs_enable_description">Activar para solucionar problemas. Desactivar por privacidad. Los registros permanecen en tu dispositivo. Nym nunca tiene acceso.</string>
@@ -514,4 +524,13 @@
 	<string name="mixnet_tuning_link_text">Aprende más sobre los parámetros de mixnet</string>
 	<string name="mixnet_tuning_save_button">Guardar ajustes personalizados</string>
 	<string name="mixnet_tuning_restore_button">Restaurar ajustes por defecto</string>
+	<!-- Diagnostic screen -->
+	<string name="diagnostic_run_button">Ejecutar diagnóstico</string>
+	<string name="diagnostic_share_button">Compartir informe</string>
+	<string name="diagnostic_report_title">Informe de diagnóstico</string>
+	<string name="diagnostic_copy_report">Copiar informe</string>
+	<string name="diagnostic_copied">Copiado al portapapeles</string>
+	<string name="diagnostic_error">Diagnóstico fallido</string>
+	<!-- Developer screen -->
+	<string name="developer_lewes_title">Habilitar Protocolo Lewes</string>
 </resources>

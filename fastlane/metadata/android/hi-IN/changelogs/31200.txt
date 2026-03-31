@@ -1,0 +1,5 @@
+क्या नया है:
+- Account Info: Added subscription and bandwidth details.
+- UI Updates: Refreshed welcome screen images.
+- Technical Improvements: Updated AGP version and streamlined QUIC settings.
+- Bug Fixes: Fixed the exit server details button and language list.

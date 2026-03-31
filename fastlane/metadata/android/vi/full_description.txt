@@ -1,43 +1,74 @@
-Dùng thử miễn phí 7 ngày: đầy đủ tính năng, không quảng cáo, hủy bất kỳ lúc nào.
+Dùng thử miễn phí 7 ngày: Đầy đủ tính năng, không quảng cáo, hủy bất cứ lúc nào. Gói dịch vụ chỉ từ 2,39$/tháng.
 
-VPN duy nhất không thể theo dõi bạn. Sản xuất tại Thụy Sĩ. Được xây dựng bởi những người bảo vệ quyền riêng tư. Mixnet đầu tiên trên thế giới cho ẩn danh trực tuyến.
+VPN duy nhất không thể theo dõi bạn. Đến từ Thụy Sĩ. Được xây dựng bởi những người ủng hộ quyền riêng tư. Mixnet đầu tiên trên thế giới dành cho ẩn danh trực tuyến.
 
-- Đăng ký không cần tên: Không yêu cầu email. Tài khoản zero-knowledge. Hỗ trợ nhiều loại tiền mã hóa hơn bất kỳ VPN nào khác. Chấp nhận thanh toán tiền mặt để ẩn danh hoàn toàn.
-- Công nghệ VPN phi tập trung
-- Hơn 65 quốc gia với hàng trăm máy chủ độc lập
-- Tối đa 10 thiết bị với một mã ẩn danh
+- ĐĂNG KÝ VÔ DANH: Không cần email. Tài khoản Zero-knowledge. Nhiều loại tiền điện tử được chấp nhận nhất so với bất kỳ VPN nào. Chấp nhận thanh toán bằng tiền mặt để đảm bảo tính bảo mật tuyệt đối.
+- Công nghệ VPN PHI TẬP TRUNG
+- VPN CHẤP NHẬN THANH TOÁN BẰNG NHIỀU LOẠI TIỀN ĐIỆN TỬ NHẤT
+- Hơn 70 QUỐC GIA với hàng trăm máy chủ độc lập
+- LÊN TỚI 10 THIẾT BỊ với một mã ẩn danh
 
-DUYỆT WEB KHÔNG ĐỂ LẠI DẤU VẾT
+### DUYỆT WEB MÀ KHÔNG ĐỂ LẠI DẤU VẾT
 
-Mệt mỏi vì phải tự hỏi ai đang theo dõi bạn? Doanh nghiệp thu thập dữ liệu cá nhân? Không thể truy cập thông tin do vị trí địa lý?
+Bạn đã chán ngấy việc lo lắng xem ai đang theo dõi mình? Các tập đoàn đang thu thập dữ liệu cá nhân của bạn? Bạn không thể truy cập thông tin vì vị trí địa lý của mình?
 
-Trong khi các VPN khác chỉ hứa không lưu log, mạng NymVPN được thiết kế để log tập trung là điều không thể. Không có điểm nào trong mạng phi tập trung có thể liên kết địa chỉ IP của bạn với hoạt động trực tuyến. Quyền riêng tư được bảo vệ theo mặc định.
+Trong khi các VPN khác hứa hẹn không lưu nhật ký hoạt động, với NymVPN, không có điểm nào trên mạng lưới phi tập trung có thể liên kết địa chỉ IP của bạn với những gì bạn làm trực tuyến. Quyền riêng tư của bạn được đảm bảo theo mặc định. Khi bạn kết nối với NymVPN, hoạt động trực tuyến của bạn không thể bị các nhà quảng cáo, nhà điều hành mạng hoặc cơ sở hạ tầng tập trung truy vết ngược lại. Bạn có thể duyệt web và giao tiếp mà không để lại dấu vết dữ liệu nào trên internet.
 
-Với NymVPN, hoạt động trực tuyến của bạn không thể bị liên kết với bạn bởi nhà quảng cáo, nhà mạng hay hạ tầng tập trung. Duyệt web, nghiên cứu và giao tiếp mà không tạo dấu vân tay hành vi.
+### CHỌN MỨC ĐỘ RIÊNG TƯ
 
-CHỌN MỨC ĐỘ RIÊNG TƯ
+Chế độ Nhanh
 
-Chế độ Nhanh
-- Duyệt web và xem trực tuyến tốc độ cao
-- VPN phi tập trung 2 bước
-- Chọn máy chủ vào và ra tại hơn 65 quốc gia
+- Duyệt web và phát trực tuyến tốc độ cao
+- VPN phi tập trung 2 bước nhảy
+- Bảo vệ bởi AmneziaWG (WireGuard)
 
-Chế độ Ẩn danh
-- Ẩn danh tối đa cho nhắn tin, email và giao dịch tài chính
-- Mixnet 5 bước với tạo nhiễu
-- Thiết kế để chống phân tích lưu lượng nâng cao
+Chế độ ẩn danh
 
-TÍNH NĂNG CHÍNH
-- Kết nối tốc độ cao tại hơn 65 quốc gia
-- Mã hóa nhiều lớp
+- Bảo mật tối đa cho tin nhắn, email và giao dịch tài chính
+- Mixnet Tạo Nhiễu 5 bước nhảy
+- Chống lại phân tích lưu lượng truy cập tiên tiến
+
+### CÁC TÍNH NĂNG CƠ BẢN
+
+- Lựa chọn máy chủ vào và thoát
+- Mã hóa đa lớp
 - Hỗ trợ dVPN AmneziaWG (WireGuard)
-- Kill switch ngăn rò rỉ dữ liệu
-- Công nghệ chống kiểm duyệt nâng cao
+- Kill switch ngăn chặn rò rỉ dữ liệu
+- Công nghệ chống kiểm duyệt tiên tiến
 - Split tunneling
-- DNS tùy chỉnh
-- Chế độ dApp & ví cho giao dịch Ethereum riêng tư
-- Xoay vòng khóa mật mã
-- Hoàn toàn không quảng cáo
-- Hoàn toàn mã nguồn mở
+- Tùy chỉnh DNS
+- Xoay vòng khóa để đảm bảo an toàn mật mã
+- Trải nghiệm hoàn toàn không quảng cáo.
+- Phần mềm mã nguồn mở 100%
 
-Tải xuống ngay. Đăng ký ẩn danh. Biến mất cùng NymVPN.
+### TẠI SAO NYMVPN KHÁC BIỆT
+
+Hầu hết các dịch vụ VPN đều dựa vào máy chủ tập trung và đòi hỏi bạn phải tin tưởng vào lời hứa "không lưu nhật ký" của họ. NymVPN được xây dựng theo cách khác biệt.
+
+- Kiến trúc VPN phi tập trung (dVPN): Lưu lượng truy cập được định tuyến thông qua các máy chủ hoạt động độc lập. Không ai có thể nhìn thấy cả danh tính và hoạt động trực tuyến của bạn.
+
+- Bảo vệ siêu dữ liệu: NymVPN bảo vệ các mẫu lưu lượng truy cập, thời gian và thông tin định tuyến. Ngay cả dữ liệu được mã hóa cũng có thể bị rò rỉ siêu dữ liệu. Nym ngăn chặn điều đó.
+
+- Hai chế độ bảo mật trong một ứng dụng: Chế độ NHANH sử dụng VPN phi tập trung 2 bước nhảy hiệu suất cao. Chế độ ẨN DANH sử dụng mixnet 5 bước nhảy để đảm bảo tính ẩn danh tối đa.
+
+- Công nghệ Mixnet tạo nhiễu: Lưu lượng truy cập của bạn được trộn lẫn với lưu lượng truy cập che phủ, khiến việc tương quan và phân tích lưu lượng truy cập dựa trên AI trở nên cực kỳ khó khăn.
+
+- Tài khoản zero-knowledge được thiết kế sẵn: Không cần đăng ký email. Không có dữ liệu cá nhân. Các tài khoản không thể liên kết với việc sử dụng. Hỗ trợ thanh toán bằng tiền điện tử và tiền mặt để đảm bảo tính ẩn danh tuyệt đối.
+
+- Mạng lưới chống kiểm duyệt: Được xây dựng với AmneziaWG, QUIC và các tùy chọn truyền tải ẩn danh để hoạt động trong môi trường bị hạn chế.
+
+Nguồn mở và được kiểm toán độc lập.
+- Được xây dựng bởi các nhà mật mã học hàn lâm
+
+### NYMVPN LÀ LỰA CHỌN HOÀN HẢO CHO:
+
+- Phát trực tuyến và duyệt web mà không bị theo dõi
+- Kết nối WiFi công cộng an toàn
+- Bất kỳ ai ở các quốc gia có chính sách hạn chế cần quyền truy cập ổn định
+- Những người muốn ẩn danh thực sự, không chỉ là ẩn địa chỉ IP
+- Các nhà báo và nhà hoạt động cần giao tiếp mà không thể bị theo dõi
+- Được giới thiệu trên PCMag, TechRadar, Forbes, Bloomberg, Tom's Guide
+
+Tải xuống ngay. Đăng ký ẩn danh. Ẩn danh toàn diện với NymVPN.
+
+Điều khoản sử dụng: https://nym.com/vpn-terms
