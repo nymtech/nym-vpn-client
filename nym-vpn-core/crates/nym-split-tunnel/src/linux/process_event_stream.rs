@@ -261,7 +261,7 @@ impl ProcessEventStream {
         for proc in proc_iter {
             let pid = proc.pid();
             match proc.tasks() {
-                Ok(mut task_iter) => {
+                Ok(task_iter) => {
                     let tids = task_iter
                         .into_iter()
                         .filter_map(|task_result| {
