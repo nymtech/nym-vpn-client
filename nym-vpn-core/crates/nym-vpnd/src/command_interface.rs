@@ -104,21 +104,6 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
-    async fn get_fronting_mode(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::FrontingModeResponse>> {
-        let fronting_mode = self
-            .send_and_wait(VpnServiceCommand::GetFrontingMode, ())
-            .await?;
-
-        let response = proto::FrontingModeResponse {
-            mode: proto::FrontingModes::from(fronting_mode) as i32,
-        };
-
-        Ok(tonic::Response::new(response))
-    }
-
     async fn set_entry_point(
         &self,
         request: tonic::Request<proto::EntryNode>,

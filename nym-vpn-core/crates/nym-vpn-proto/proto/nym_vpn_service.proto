@@ -1029,16 +1029,12 @@ message NetworkStatisticsIdentity {
 }
 
 enum FrontingModes {
-  OFF = 0;
-  ON_RETRY = 1;
-  ALWAYS = 2;
+  ON_RETRY = 0;
+  ALWAYS = 1;
+  OFF = 2;
 }
 
 message FrontingModeRequest {
-  FrontingModes mode = 1;
-}
-
-message FrontingModeResponse {
   FrontingModes mode = 1;
 }
 
@@ -1112,9 +1108,6 @@ service NymVpnService {
 
   // Get the VPN service configuration
   rpc GetConfig(google.protobuf.Empty) returns (GetConfigResponse) {}
-
-  // Get the fronting mode configuration
-  rpc GetFrontingMode(google.protobuf.Empty) returns (FrontingModeResponse) {}
 
   // Set the VPN service configuration
   rpc SetEntryPoint(EntryNode) returns (google.protobuf.Empty) {}

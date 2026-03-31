@@ -187,10 +187,6 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn get_fronting_mode(&self) -> nym_vpn_lib_types::FrontingMode {
-        self.config.fronting_mode
-    }
-
     pub async fn set_residential_exit(&mut self, residential_only: bool) {
         if self.config.residential_exit != residential_only {
             self.config.residential_exit = residential_only;

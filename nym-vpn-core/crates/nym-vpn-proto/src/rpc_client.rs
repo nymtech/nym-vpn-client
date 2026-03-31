@@ -270,17 +270,6 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn get_fronting_mode(&mut self) -> Result<FrontingMode> {
-        let response = self
-            .0
-            .get_fronting_mode(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-
-        Ok(response.mode().into())
-    }
-
     pub async fn get_system_messages(&mut self) -> Result<Vec<SystemMessage>> {
         let response = self
             .0
