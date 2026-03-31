@@ -7,7 +7,7 @@
 //! <https://docs.kernel.org/admin-guide/cgroup-v2.html>
 
 pub mod pid_manager;
-pub mod process_event_stream;
+pub mod process_monitor;
 
 mod bindings;
 
@@ -28,7 +28,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use pid_manager::PidManager;
-use process_event_stream::{ProcessEvent, ProcessEventStream};
+use process_monitor::{ProcessEvent, ProcessMonitor};
 
 use crate::SplitTunnelErrorCause;
 
@@ -50,14 +50,17 @@ pub enum Message {
 
 #[derive(Debug, Clone)]
 pub struct ProcessInfo {
-    pub exec_path: PathBuf,
-    pub excluded_by_paths: HashSet<PathBuf>,
+    exec_path: PathBuf,
+    // Paths of ancestor executables that led to spawn of this process
+    ancestor_exec_paths: HashSet<PathBuf>,
+    excluded_by_paths: HashSet<PathBuf>,
 }
 
 impl ProcessInfo {
     fn included(exec_path: PathBuf) -> Self {
         ProcessInfo {
             exec_path,
+            ancestor_exec_paths: HashSet::new(),
             excluded_by_paths: HashSet::new(),
         }
     }
@@ -132,7 +135,7 @@ impl SplitTunnel {
             .ok();
 
         let process_event_stream_handle = if pid_manager.is_some() {
-            ProcessEventStream::spawn(process_event_tx, shutdown_token.child_token())
+            ProcessMonitor::spawn(process_event_tx, shutdown_token.child_token())
                 .await
                 .inspect_err(|err| trace_err_chain!(err, "failed to initialize split tunnel"))
                 .ok()
@@ -255,6 +258,15 @@ impl SplitTunnel {
                 new_exclude_paths.insert(info.exec_path.clone());
             }
 
+            // Check if path for ancestor app is excluded
+            for ancestor_exec_path in info.ancestor_exec_paths.iter() {
+                if paths.contains(ancestor_exec_path)
+                    && !new_exclude_paths.contains(ancestor_exec_path)
+                {
+                    new_exclude_paths.insert(ancestor_exec_path.clone());
+                }
+            }
+
             let was_excluded = info.is_excluded();
             info.excluded_by_paths = new_exclude_paths;
             let is_excluded = info.is_excluded();
@@ -310,13 +322,21 @@ impl SplitTunnel {
 
         // Inherit exclusion status from parent
         let base_info = match self.processes.get(&parent_pid) {
-            Some(parent_info) => parent_info.to_owned(),
+            Some(parent_info) => {
+                let mut parent_info = parent_info.to_owned();
+                parent_info
+                    .ancestor_exec_paths
+                    .insert(parent_info.exec_path);
+                parent_info.exec_path = path;
+                parent_info
+            }
             None => {
                 tracing::error!("{pid}: Unknown parent pid {parent_pid}!");
                 ProcessInfo::included(path)
             }
         };
 
+        // no exec yet; only pid and parent pid change
         if base_info.is_excluded() {
             tracing::trace!(
                 "{pid} excluded (inherited from {parent_pid}) (exclude paths: {:?})",
@@ -348,6 +368,17 @@ impl SplitTunnel {
         {
             info.excluded_by_paths.insert(info.exec_path.clone());
             tracing::trace!("Excluding {pid} by path: {}", info.exec_path.display());
+        }
+
+        // Check if process is excluded indirectly by one of ascendants
+        for ancestor_exec_path in info.ancestor_exec_paths.iter() {
+            if self.exclude_paths.contains(ancestor_exec_path) {
+                tracing::trace!(
+                    "Excluding {pid} by ancestor path: {}",
+                    ancestor_exec_path.display()
+                );
+                info.excluded_by_paths.insert(ancestor_exec_path.clone());
+            }
         }
 
         if info.is_excluded()
@@ -432,7 +463,7 @@ fn process_list_snapshot() -> procfs::ProcResult<HashMap<pid_t, ProcessInfo>> {
                         None
                     }
                     err => {
-                        tracing::error!("can't read process: {err}");
+                        tracing::error!("Can't read process: {err}");
                         None
                     }
                 }
@@ -441,18 +472,81 @@ fn process_list_snapshot() -> procfs::ProcResult<HashMap<pid_t, ProcessInfo>> {
     });
 
     let mut proc_by_pid = HashMap::new();
+    let mut ppid_table = HashMap::new();
 
+    // Collect process info for all processes
     for proc in proc_iter {
+        // Build pid => ppid table
+        match proc.status() {
+            Ok(status) => {
+                ppid_table.insert(proc.pid(), status.ppid);
+            }
+            Err(procfs::ProcError::NotFound(_)) => {
+                // process vanished
+            }
+            Err(err) => {
+                tracing::error!("Can't obtain process status {}: {}", proc.pid(), err);
+            }
+        }
+
         proc_by_pid.insert(
             proc.pid(),
             ProcessInfo {
-                // Some system processes do not adverise their path
-                // i.e: /proc/2/exe (kthreadd)
+                // Some system processes do not adverise their path, ex: /proc/2/exe (kthreadd)
                 // todo: handle this in some way to prevent excluding all system processes using blank path.
                 exec_path: proc.exe().unwrap_or_default(),
+                ancestor_exec_paths: HashSet::new(),
                 excluded_by_paths: HashSet::new(),
             },
         );
+    }
+
+    // Populate process info with paths to ancestor executables
+    let all_pids = proc_by_pid.keys().copied().collect::<Vec<_>>();
+    for pid in all_pids {
+        // Build child-parent relationship chain
+        let mut pid_chain = Vec::new();
+        let mut cur_pid = Some(pid);
+        while let Some(pid) = cur_pid.take() {
+            pid_chain.push(pid);
+
+            // Locate parent pid
+            let Some(ppid) = ppid_table.get(&pid) else {
+                tracing::warn!("No parent pid found for {pid}");
+                continue;
+            };
+
+            // No parent process
+            if *ppid == 0 {
+                continue;
+            }
+
+            // Break circular references
+            if pid_chain.iter().any(|processed_pid| processed_pid == ppid) {
+                tracing::warn!("Parent pid {ppid} is already in the pid chain!");
+            } else {
+                cur_pid = Some(*ppid);
+            }
+        }
+
+        // Walk pid chain in reverse to collect paths to all parent executables into single set.
+        let mut parent_paths = HashSet::new();
+        for pid in pid_chain.iter().rev() {
+            let Some(info) = proc_by_pid.get_mut(pid) else {
+                tracing::warn!("No process info found for {pid}");
+                continue;
+            };
+
+            info.ancestor_exec_paths.extend(parent_paths.clone());
+            tracing::trace!(
+                "Found ancestors for {}: exec: {}, ancestor execs: {:?}",
+                pid,
+                info.exec_path.display(),
+                info.ancestor_exec_paths
+            );
+
+            parent_paths.insert(info.exec_path.clone());
+        }
     }
 
     Ok(proc_by_pid)

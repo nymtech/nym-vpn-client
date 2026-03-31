@@ -1,6 +1,8 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+//! Process monitor implemented using netlink process connector API.
+
 use std::{
     collections::{HashMap, HashSet},
     os::fd::AsRawFd,
@@ -47,12 +49,12 @@ pub enum ProcessEvent {
     },
 }
 
-pub struct ProcessEventStream {
+pub struct ProcessMonitor {
     nl_sock: TokioSocket,
     threads: HashMap<pid_t, HashSet<pid_t>>,
 }
 
-impl ProcessEventStream {
+impl ProcessMonitor {
     pub async fn spawn(
         tx: UnboundedSender<ProcessEvent>,
         shutdown_token: CancellationToken,

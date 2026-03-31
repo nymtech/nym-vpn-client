@@ -664,8 +664,6 @@ impl SharedState {
         &mut self,
         paths: HashSet<PathBuf>,
     ) -> Result<bool, nym_split_tunnel::SplitTunnelErrorCause> {
-        #[cfg(target_os = "macos")]
-        let had_interface = self.split_tunnel.interface().await.is_some();
         tracing::info!("Updating ST exclude paths: {:?}", paths);
 
         #[cfg(target_os = "macos")]
@@ -695,12 +693,7 @@ impl SharedState {
             Ok(had_interface != has_interface)
         }
 
-        #[cfg(target_os = "windows")]
-        {
-            Ok(false)
-        }
-
-        #[cfg(target_os = "linux")]
+        #[cfg(any(target_os = "linux", target_os = "windows"))]
         {
             Ok(false)
         }
