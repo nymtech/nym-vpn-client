@@ -6,12 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [1.27.0] - TBD
+## [1.27.0] - 2026-03-31
 
-- [macOS] XPC as transport layer between clients and daemon (https://github.com/nymtech/nym-vpn-client/pull/4695)
-- [macOS] Authentication layer for windows, feature gated (https://github.com/nymtech/nym-vpn-client/pull/4802)
-- Activate authentication layer on all desktop platforms (https://github.com/nymtech/nym-vpn-client/pull/4856)
-- [macOS] Disable XPC for release builds until bug is fixed (https://github.com/nymtech/nym-vpn-client/pull/4975)
+- [Windows, Linux] Authentication between client and daemon (https://github.com/nymtech/nym-vpn-client/pull/4856)
 
 ### Fixed
 
