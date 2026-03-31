@@ -1,0 +1,5 @@
+Novidades:
+- Informações da conta: Adicionada inscrição e detalhes de largura de banda.
+- Atualizações de IU: Imagens de tela de boas-vindas atualizadas.
+- Melhorias Técnicas: Versão AGP atualizada e configurações QUIC simplificadas.
+- Correções de bugs: Corrigido o botão de saída do servidor de detalhes e lista de idiomas.

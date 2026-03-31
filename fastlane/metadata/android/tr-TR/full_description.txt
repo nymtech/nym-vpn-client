@@ -1,43 +1,74 @@
-7 günlük ücretsiz deneme: Tüm özellikler, reklamsız, istediğiniz zaman iptal edin.
+7 günlük ücretsiz deneme: Tüm özellikler, reklamsız, istediğiniz zaman iptal edin. Plans starting at $2.39 / month.
 
-Sizi izleyemeyen tek VPN. İsviçre’de üretildi. Gizlilik savunucuları tarafından geliştirildi. Çevrimiçi anonimlik için dünyanın ilk Mixnet’i.
+Sizi gözetleyemeyen tek VPN. İsviçre’de geliştirildi. Gizlilik savunucuları tarafından geliştirildi. Çevrimiçi anonimlik için dünyanın ilk Mixnet’i.
 
-- İsimsiz kayıt: E-posta gerekmez. Zero-knowledge hesaplar. Herhangi bir VPN’den daha fazla kripto para kabul eder. Tam anonimlik için nakit ödeme desteği.
+- İsimsiz kayıt: E-posta gerekmez. Sıfır bilgiye dayalı hesaplar. Kripto para ödeme yelpazesi en geniş VPN hizmeti. Tam anonimlik için nakit ödemeler kabul edilir.
 - Merkeziyetsiz VPN teknolojisi
+- MOST CRYPTOCURRENCIES ACCEPTED of any VPN
 - Yüzlerce bağımsız sunucu ile 65+ ülke
 - Tek bir anonim kodla en fazla 10 cihaz
 
-İZ BIRAKMADAN GEZİNİN
+### BROWSE WITHOUT A TRACE
 
-Sizi kimin izlediğini merak etmekten yoruldunuz mu? Kişisel verilerinizi toplayan şirketler? Konumunuz nedeniyle bilgiye erişememek?
+Sizi kimin izlediğini merak etmekten yoruldunuz mu? Kişisel verilerinizi toplayan şirketler mi? Bulunduğunuz yer nedeniyle bilgilere erişememek mi?
 
-Diğer VPN’ler kayıt tutmadıklarını vaat ederken, NymVPN ağı merkezi kayıtların mümkün olmadığı şekilde tasarlanmıştır. Merkeziyetsiz ağın hiçbir noktası IP adresinizi çevrimiçi faaliyetlerinizle ilişkilendiremez. Gizlilik varsayılan olarak garanti edilir.
+Diğer VPN’ler kayıt tutmadıklarını vaat ederken, NymVPN ağı merkezi kayıtların mümkün olmadığı şekilde tasarlanmıştır. Gizliliğiniz varsayılan olarak korunur. NymVPN ile çevrimiçi etkinliğiniz reklamverenler, ağ operatörleri veya merkezi altyapılar tarafından size bağlanamaz. You can browse and communicate without leaving a data trail  across the internet.
 
-NymVPN ile çevrimiçi etkinliğiniz reklamverenler, ağ operatörleri veya merkezi altyapılar tarafından size bağlanamaz. İnternette davranışsal bir iz bırakmadan gezinin, araştırın ve iletişim kurun.
-
-GİZLİLİK SEVİYESİNİZİ SEÇİN
+### CHOOSE YOUR PRIVACY LEVEL
 
 Hızlı Mod
+
 - Yüksek hızlı gezinme ve yayın
 - 2 atlamalı merkeziyetsiz VPN
-- 65+ ülkede giriş ve çıkış sunucusu seçimi
+- Tamamen açık kaynak
 
-Anonim Mod
+Anonim mod
+
 - Mesajlaşma, e-posta ve finansal işlemler için maksimum anonimlik
 - Gürültü üreten 5 atlamalı Mixnet
 - Gelişmiş trafik analizine karşı tasarlandı
 
 TEMEL ÖZELLİKLER
-- 65+ ülkede yüksek hızlı bağlantılar
+
+- 65+ ülkede giriş ve çıkış sunucusu seçimi
 - Çok katmanlı şifreleme
 - dVPN AmneziaWG (WireGuard) desteği
 - Veri sızıntılarını önleyen kill switch
 - Gelişmiş sansür karşıtı teknoloji
-- Split tunneling
+- Bölünmüş tünelleme (Split tunneling)
 - Özel DNS
-- Özel Ethereum işlemleri için dApp ve cüzdan modu
 - Kriptografik anahtar rotasyonu
 - Tamamen reklamsız
-- Tamamen açık kaynak
+- 100% open source software
 
-Şimdi indirin. Anonim olarak kaydolun. NymVPN ile görünmez olun.
+### WHY NYMVPN IS DIFFERENT
+
+Most VPNs rely on centralized servers and ask you to trust their "no-logs" promises. NymVPN’in tasarımı tamamen farklıdır.
+
+- Decentralized VPN (dVPN) architecture: Traffic is routed through independently operated servers. No one can see both who you are and what you do online.
+
+- Metadata protection: NymVPN protects traffic patterns, timing, and routing information. Şifrelenmiş veriler bile meta veri sızdırabilir. Nym prevents that.
+
+- Two privacy modes, one app: The FAST  mode uses a high-performance 2-hop decentralized VPN. The ANONYMOUS  mode uses a 5-hop mixnet for maximum anonymity.
+
+- Noise Generating Mixnet technology: Your traffic is mixed with cover traffic, making correlation and AI-driven traffic analysis extremely difficult.
+
+- Sıfır bilgiye dayalı hesaplar: E-posta kaydı veya kişisel veri gerektirmez. Hesaplar kullanımınızla ilişkilendirilemez.  Tam anonimlik için kripto ve nakit ödemeleri destekler.
+
+- Sansüre dirençli ağ altyapısı: AmneziaWG, QUIC ve gizli taşıma seçenekleriyle kısıtlı ortamlarda çalışacak şekilde tasarlanmıştır.
+
+- Open-source and independently audited.
+- Built by academic cryptographers
+
+### NYMVPN IS PERFECT FOR:
+
+- Streaming and browsing without being tracked
+- Secure public WiFi connections
+- Anyone in restrictive countries needing reliable access
+- People who want true anonymity, not just hidden IP addresses
+- Journalists and activists needing untraceable communication
+- Featured in PCMag, TechRadar, Forbes, Bloomberg, Tom's Guide
+
+Şimdi indir. Anonim olarak kaydolun. NymVPN ile tamamen gizli kalın.
+
+Kullanım Şartları: https://nym.com/vpn-terms

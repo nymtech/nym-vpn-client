@@ -165,6 +165,7 @@
 	<string name="skip">بیخیال</string>
 	<string name="get_started">شروع کنید</string>
 	<string name="random_text">تصادفی</string>
+	<string name="title_retry">تلاش مجدد</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">نمایش جریان</string>
 	<string name="streaming_server_banner_title">جدید: سرورهای بهینه شده برای استریمینگ، بیشتر بدانید (▶️)</string>
@@ -257,6 +258,7 @@
 	<string name="notification_improve_title">به بهبود سرعت \nاتصال خود کمک کنید</string>
 	<string name="notification_improve_button">همین حالا بهبود دهید</string>
 	<string name="notification_stats_enabled">آمار فعال شد! داده‌های ناشناس شما به بهینه‌سازی عملکرد شبکه ما کمک می‌کند.</string>
+	<string name="privacy_diagnostic_tool">Diagnostic tool</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">ادامه</string>
 	<string name="welcome_title">به ما کمک کنید NymVPN را بهبود دهیم</string>
@@ -414,9 +416,17 @@
 	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
 	<string name="account_info_valid_text">Plan valid until %s</string>
 	<string name="account_info_expires_text">Plan expires on %s</string>
+	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
 	<string name="account_info_renew_text">Renew now to stay protected</string>
+	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*Auto-renews</string>
 	<string name="account_info_no_plan">طرح فعال وجود ندارد</string>
+	<string name="account_info_autologin_fetching">Fetching access code…</string>
+	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>
+	<string name="pin_code_title">Pin code</string>
+	<string name="pin_code_subtitle">Enter this code on web</string>
+	<string name="pin_code_copy_and_open">Copy code and open web</string>
+	<string name="pin_code_copied">Copied!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">فعال‌سازی ثبت لاگ</string>
 	<string name="logs_enable_description">برای عیب‌یابی فعال کنید. برای حریم خصوصی غیرفعال کنید. لاگ‌ها روی دستگاه شما می‌مانند. Nym هرگز دسترسی ندارد.</string>
@@ -516,4 +526,13 @@
 	<string name="mixnet_tuning_link_text">اطلاعات بیشتر درباره پارامترهای mixnet</string>
 	<string name="mixnet_tuning_save_button">ذخیره تنظیمات سفارشی</string>
 	<string name="mixnet_tuning_restore_button">بازگردانی تنظیمات پیش‌فرض</string>
+	<!-- Diagnostic screen -->
+	<string name="diagnostic_run_button">Run diagnostics</string>
+	<string name="diagnostic_share_button">Share report</string>
+	<string name="diagnostic_report_title">Diagnostic report</string>
+	<string name="diagnostic_copy_report">Copy report</string>
+	<string name="diagnostic_copied">کپی شده به کلیپ‌بورد</string>
+	<string name="diagnostic_error">Diagnostics failed</string>
+	<!-- Developer screen -->
+	<string name="developer_lewes_title">Enable Lewes Protocol</string>
 </resources>

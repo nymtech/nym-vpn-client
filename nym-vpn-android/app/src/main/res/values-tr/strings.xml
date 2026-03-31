@@ -163,6 +163,7 @@
 	<string name="skip">Atla</string>
 	<string name="get_started">Başlayın</string>
 	<string name="random_text">Rastgele</string>
+	<string name="title_retry">Yeniden Dene</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Akış ekranı</string>
 	<string name="streaming_server_banner_title">Yeni: Yayın\niçin optimize edilmiş sunucuları keşfedin</string>
@@ -254,6 +255,7 @@
 	<string name="notification_improve_title">Bağlantı hızınızı \ngeliştirmeye yardımcı olun.</string>
 	<string name="notification_improve_button">Şimdi geliştir</string>
 	<string name="notification_stats_enabled">İstatistikler etkinleştirildi! Anonim verileriniz ağımızı optimize etmemize yardımcı oluyor.</string>
+	<string name="privacy_diagnostic_tool">Tanılama aracı</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Devam et</string>
 	<string name="welcome_title">NymVPN\'i geliştirmemize yardımcı olun</string>
@@ -403,17 +405,25 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="account_info_id_info">Nym müşteri desteği ile iletişime geçmeniz gerekirse, hesap ID’nizi kullanın. Bu bilgiyi paylaşmak güvenlidir!</string>
 	<string name="account_info_device_title">Cihaz Kimliği</string>
 	<string name="account_info_device_info">Bu cihazı nym.com hesabınıza bağlamak için buradaki bağlantıyı kullanın</string>
-	<string name="account_info_status_title">Account status</string>
-	<string name="account_info_bandwidth_title">Bandwidth remaining</string>
+	<string name="account_info_status_title">Hesap durumu</string>
+	<string name="account_info_bandwidth_title">Kalan bant genişliği</string>
 	<string name="account_info_limit_text">Limit</string>
-	<string name="account_info_reset_text">Resets on</string>
-	<string name="account_info_contact_support_action">Contact our support</string>
-	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
-	<string name="account_info_valid_text">Plan valid until %s</string>
-	<string name="account_info_expires_text">Plan expires on %s</string>
-	<string name="account_info_renew_text">Renew now to stay protected</string>
-	<string name="account_info_auto_renew_text">*Auto-renews</string>
+	<string name="account_info_reset_text">Sıfırlanır</string>
+	<string name="account_info_contact_support_action">Destek ekibimizle iletişime geçin</string>
+	<string name="account_info_contact_support_suffix">\u0020ekstra bant genişliği için ekiple iletişime geçin.</string>
+	<string name="account_info_valid_text">Plan %s adresine kadar geçerlidir</string>
+	<string name="account_info_expires_text">Planın süresi %s adresinde sona ermektedir</string>
+	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
+	<string name="account_info_renew_text">Korunmak için şimdi yenileyin</string>
+	<string name="banner_renew_text">Renew now\nto stay protected</string>
+	<string name="account_info_auto_renew_text">*Otomatik yenilenir</string>
 	<string name="account_info_no_plan">Aktif plan yok</string>
+	<string name="account_info_autologin_fetching">Erişim kodu alınıyor…</string>
+	<string name="account_info_autologin_error">Erişim kodu alınamadı. Lütfen tekrar deneyin.</string>
+	<string name="pin_code_title">Pin kodu</string>
+	<string name="pin_code_subtitle">Bu kodu web sitesine girin</string>
+	<string name="pin_code_copy_and_open">Kodu kopyalayın ve web sitesini açın</string>
+	<string name="pin_code_copied">Kopyalandı!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Kayıt tutmayı etkinleştir</string>
 	<string name="logs_enable_description">Sorun giderme gerektiğinde açın, gizlilik için kapatın. Kayıtlar sadece cihazınızda saklanır; Nym bunlara hiç erişemez.</string>
@@ -513,4 +523,13 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="mixnet_tuning_link_text">Mixnet parametreleri hakkında daha fazla bilgi edinin</string>
 	<string name="mixnet_tuning_save_button">Özel ayarları kaydedin</string>
 	<string name="mixnet_tuning_restore_button">Varsayılan ayarları geri yükle</string>
+	<!-- Diagnostic screen -->
+	<string name="diagnostic_run_button">Tanılamayı başlat</string>
+	<string name="diagnostic_share_button">Raporu paylaş</string>
+	<string name="diagnostic_report_title">Tanılama raporu</string>
+	<string name="diagnostic_copy_report">Raporu kopyala</string>
+	<string name="diagnostic_copied">Panoya kopyalandı</string>
+	<string name="diagnostic_error">Tanılama başarısız oldu</string>
+	<!-- Developer screen -->
+	<string name="developer_lewes_title">Lewes Protokolünü Etkinleştirin</string>
 </resources>

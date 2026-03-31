@@ -165,6 +165,7 @@
 	<string name="skip">Пропустить</string>
 	<string name="get_started">Начало работы</string>
 	<string name="random_text">Случайный</string>
+	<string name="title_retry">Повторить</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Показ стриминга</string>
 	<string name="streaming_server_banner_title">Новинка: Откройте для себя серверы,\nоптимизированные для стриминга (▶️)</string>
@@ -239,7 +240,7 @@
 	<string name="battery_opt">Экономия заряда батареи</string>
 	<string name="battery_opt_settings_text">Настройки оптимизации батареи можно изменить в любое время в настройках приложения.</string>
 	<!-- Data & Privacy screen -->
-	<string name="privacy_title">Данные &amp; Конфиденциальность</string>
+	<string name="privacy_title">Данные, приватность &amp; логи</string>
 	<string name="privacy_anonymous_stats_title">Анонимная статистика сети</string>
 	<string name="privacy_anonymous_stats_description">Помогите нам построить более быструю сеть, поделившись анонимными данными производительности из вашего региона. Мы используем это для оптимизации скорости, уменьшения отключений и покрытия серверов там, где это больше всего нужно. \n\nПередаются только данные о производительности сети – никогда не просматривать вашу активность или личные данные.</string>
 	<string name="privacy_anonymous_stats_link_text">Узнайте точно, какие данные передаются</string>
@@ -256,6 +257,7 @@
 	<string name="notification_improve_title">Помочь улучшить \nвашу скорость подключения</string>
 	<string name="notification_improve_button">Улучшить сейчас</string>
 	<string name="notification_stats_enabled">Статистика включена! Ваши анонимные данные помогают оптимизировать нашу сеть.</string>
+	<string name="privacy_diagnostic_tool">Инструмент диагностики</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Продолжить</string>
 	<string name="welcome_title">Помогите нам улучшить NymVPN</string>
@@ -412,9 +414,17 @@
 	<string name="account_info_contact_support_suffix">\u0020за дополнительным трафиком.</string>
 	<string name="account_info_valid_text">План действует до %s</string>
 	<string name="account_info_expires_text">План истекает %s</string>
+	<string name="banner_plan_expires_text">Срок действия плана истекает:\n%s</string>
 	<string name="account_info_renew_text">Продлите сейчас, чтобы оставаться под защитой</string>
+	<string name="banner_renew_text">Продлите сейчас,\nчтобы оставаться под защитой</string>
 	<string name="account_info_auto_renew_text">*Автопродление</string>
 	<string name="account_info_no_plan">Нет активного плана</string>
+	<string name="account_info_autologin_fetching">Получение кода доступа…</string>
+	<string name="account_info_autologin_error">Не удалось получить код доступа. Пожалуйста, попробуйте еще раз.</string>
+	<string name="pin_code_title">PIN-код</string>
+	<string name="pin_code_subtitle">Введите этот код в браузере</string>
+	<string name="pin_code_copy_and_open">Скопируйте код и откройте сайт</string>
+	<string name="pin_code_copied">Скопировано!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Включить ведение логов</string>
 	<string name="logs_enable_description">Включайте для диагностики. Отключайте для приватности. Логи остаются на вашем устройстве. У Nym никогда нет к ним доступа.</string>
@@ -514,4 +524,13 @@
 	<string name="mixnet_tuning_link_text">Узнайте больше о параметрах микснета</string>
 	<string name="mixnet_tuning_save_button">Сохранить пользовательские настройки</string>
 	<string name="mixnet_tuning_restore_button">Восстановить настройки по умолчанию</string>
+	<!-- Diagnostic screen -->
+	<string name="diagnostic_run_button">Запустить диагностику</string>
+	<string name="diagnostic_share_button">Поделиться отчетом</string>
+	<string name="diagnostic_report_title">Диагностический отчет</string>
+	<string name="diagnostic_copy_report">Копировать отчет</string>
+	<string name="diagnostic_copied">Скопировано в буфер</string>
+	<string name="diagnostic_error">Сбой диагностики</string>
+	<!-- Developer screen -->
+	<string name="developer_lewes_title">Включить протокол Lewes</string>
 </resources>
