@@ -16,7 +16,7 @@ import urllib.request
 from contextlib import contextmanager
 from datetime import datetime, timezone
 
-IPINFO_TOKEN = "0cb655a56b9b47"
+IPINFO_TOKEN = "00000000000000"
 IPINFO_URL = f"https://ipinfo.io/data/ipinfo_lite.json.gz?token={IPINFO_TOKEN}"
 COUNTRY_CODES = {"CN"}
 

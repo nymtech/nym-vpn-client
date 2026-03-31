@@ -7,9 +7,8 @@ use ipnetwork::IpNetwork;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
-    future::Future,
+    io::Cursor,
     path::{Path, PathBuf},
-    pin::Pin,
 };
 use time::OffsetDateTime;
 use tokio::{
@@ -27,79 +26,6 @@ static SOURCES: &[Source] = &[Source {
     meta_builtin: include_str!("builtin/airporting_cn.txt.meta"),
 }];
 
-/// Initialize the airporting lists using the ones built-into the binary
-/// and load them into a list of IP network addresses.
-pub(crate) async fn init_and_load_ip_networks(
-    data_dir: PathBuf,
-    country_codes: &[&str],
-    force: bool,
-) -> Result<Vec<IpNetwork>> {
-    init_files(&data_dir, country_codes, force).await?;
-    load_ip_networks(&data_dir, country_codes).await
-}
-
-/// Update the airporting lists by downloading the latest versions,
-/// and load them into a list of network addresses.  If they were not updated when return `Ok(None)`.
-pub(crate) async fn update_and_load_ip_networks(
-    data_dir: PathBuf,
-    country_codes: &[&str],
-    user_agent: String,
-) -> Result<Option<Vec<IpNetwork>>> {
-    let updated = update_files(&data_dir, country_codes, &user_agent).await?;
-    if updated {
-        let ip_networks = load_ip_networks(&data_dir, country_codes).await?;
-        Ok(Some(ip_networks))
-    } else {
-        Ok(None)
-    }
-}
-
-/// Initialize the airporting lists using the ones built-into the binary.
-pub(crate) async fn init_files(data_dir: &Path, country_codes: &[&str], force: bool) -> Result<()> {
-    let airporting_path = get_airporting_path(data_dir);
-
-    fs::create_dir_all(&airporting_path)
-        .await
-        .map_err(|error| AirportingError::CreateDirectory {
-            dir: airporting_path.clone(),
-            error,
-        })?;
-
-    for source in SOURCES.iter() {
-        if !country_codes.contains(&source.country_code) {
-            continue;
-        }
-        source.init(&airporting_path, force).await?;
-    }
-
-    Ok(())
-}
-
-/// Update the airporting lists by downloading the latest versions
-pub(crate) async fn update_files(
-    data_dir: &Path,
-    country_codes: &[&str],
-    user_agent: &str,
-) -> Result<bool> {
-    let airporting_path = get_airporting_path(data_dir);
-    let mut updated = false;
-    let http_client = reqwest::Client::new();
-
-    for source in SOURCES.iter() {
-        if !country_codes.contains(&source.country_code) {
-            continue;
-        }
-        if source
-            .update_data_file(&airporting_path, &http_client, user_agent)
-            .await?
-        {
-            updated = true;
-        }
-    }
-
-    Ok(updated)
-}
-
 /// Load the airporting IP networks from the data files.
 pub(crate) async fn load_ip_networks(
     data_dir: &Path,
@@ -108,15 +34,39 @@ pub(crate) async fn load_ip_networks(
     let airporting_path = get_airporting_path(data_dir);
     let mut ip_networks = Vec::new();
 
+    let load_from_files =
+        async |meta_path: &Path, data_path: &Path| -> Result<(SourceMetaData, String)> {
+            let meta_data = SourceMetaData::from_file(&meta_path).await?;
+            let ip_networks_txt = Source::load_data_file(&data_path, &meta_data).await?;
+            Ok((meta_data, ip_networks_txt))
+        };
+
     for source in SOURCES.iter() {
         if !country_codes.contains(&source.country_code) {
             continue;
         }
 
+        // Attempt to load the meta data and IP networks data from disk, but if that
+        // fails then load the built-in data instead.
+
         let meta_path = airporting_path.join(source.meta_file_name);
-        let meta_data = SourceMetaData::from_file(&meta_path).await?;
         let data_path = airporting_path.join(source.file_name);
-        let ip_networks_txt = Source::load_data_file(&data_path, &meta_data).await?;
+        let (meta_data, ip_networks_txt) =
+            match load_from_files(meta_path.as_path(), data_path.as_path()).await {
+                Ok((meta_data, ip_networks_txt)) => (meta_data, ip_networks_txt),
+                Err(error) => {
+                    tracing::debug!("Failed to load airporting files from disk for country: {}: {error}", source.country_code);
+
+                    // The files are obviously broken, so remove them (they might not even exist)
+                    let _ = fs::remove_file(&meta_path).await;
+                    let _ = fs::remove_file(&data_path).await;
+
+                    let meta_data =
+                        SourceMetaData::from_slice(source.meta_builtin.as_bytes()).await?;
+                    let ip_networks_txt = Source::load_builtin(source.builtin, &meta_data).await?;
+                    (meta_data, ip_networks_txt)
+                }
+            };
 
         ip_networks.reserve(meta_data.line_count);
 
@@ -283,7 +233,7 @@ impl Source {
         Ok(true)
     }
 
-    /// Clean-up any extraneous temporary files that may be left over from a failed update.
+    /// Cleanup any extraneous temporary files that may be left over from a failed update.
     async fn cleanup_temp_files(airporting_path: &Path) -> Result<()> {
         let temp_data_path = airporting_path.join(Self::TEMP_DATA_FILE_NAME);
         if temp_data_path.exists() {
@@ -309,70 +259,78 @@ impl Source {
     }
 
     /// Load the data file from disk, gunzip it, and check the uncompressed length and SHA256.
-    // Note: Pinned box is necessary in order to avoid "large future size" warnings.
-    fn load_data_file<'a>(
-        file_path: &'a Path,
-        meta_data: &'a SourceMetaData,
-    ) -> Pin<Box<dyn Future<Output = Result<String>> + Send + 'a>> {
-        Box::pin(async move {
-            let file =
-                fs::File::open(file_path)
+    async fn load_data_file(file_path: &Path, meta_data: &SourceMetaData) -> Result<String> {
+        let file = fs::File::open(file_path)
+            .await
+            .map_err(|error| AirportingError::ReadFile {
+                file_path: file_path.to_path_buf(),
+                error,
+            })?;
+
+        let reader = BufReader::new(file);
+        Self::load(reader, meta_data, file_path).await
+    }
+
+    /// Load the data file from slice containing compressed data
+    async fn load_builtin(bytes: &[u8], meta_data: &SourceMetaData) -> Result<String> {
+        let reader = Cursor::new(bytes);
+        Self::load(reader, meta_data, Path::new("built-in")).await
+    }
+
+    async fn load<R>(reader: R, meta_data: &SourceMetaData, file_path: &Path) -> Result<String>
+    where
+        R: tokio::io::AsyncBufRead + Unpin,
+    {
+        let mut decoder = GzipDecoder::new(reader);
+        let mut hasher = Sha256::new();
+        let mut decompressed = Vec::with_capacity(meta_data.length);
+        let mut total_len: usize = 0;
+
+        let mut buf = vec![0; 4096];
+        loop {
+            let n =
+                decoder
+                    .read(&mut buf)
                     .await
-                    .map_err(|error| AirportingError::ReadFile {
+                    .map_err(|error| AirportingError::DecompressData {
                         file_path: file_path.to_path_buf(),
                         error,
                     })?;
 
-            let reader = BufReader::new(file);
-            let mut decoder = GzipDecoder::new(reader);
-            let mut hasher = Sha256::new();
-            let mut decompressed = Vec::with_capacity(meta_data.length);
-            let mut total_len: usize = 0;
-
-            let mut buf = [0u8; 32 * 1024];
-            loop {
-                let n = decoder.read(&mut buf).await.map_err(|error| {
-                    AirportingError::DecompressData {
-                        file_path: file_path.to_path_buf(),
-                        error,
-                    }
-                })?;
-
-                if n == 0 {
-                    break;
-                }
-
-                hasher.update(&buf[..n]);
-                decompressed.extend_from_slice(&buf[..n]);
-                total_len = total_len.saturating_add(n);
+            if n == 0 {
+                break;
             }
 
-            if total_len != meta_data.length {
-                return Err(AirportingError::InvalidDataFileLength {
-                    file_path: file_path.to_path_buf(),
-                    expected: meta_data.length,
-                    actual: total_len,
-                });
+            hasher.update(&buf[..n]);
+            decompressed.extend_from_slice(&buf[..n]);
+            total_len = total_len.saturating_add(n);
+        }
+
+        if total_len != meta_data.length {
+            return Err(AirportingError::InvalidDataFileLength {
+                file_path: file_path.to_path_buf(),
+                expected: meta_data.length,
+                actual: total_len,
+            });
+        }
+
+        let sha256 = hex::encode(hasher.finalize());
+        if sha256 != meta_data.sha256 {
+            return Err(AirportingError::InvalidDataFileHash {
+                file_path: file_path.to_path_buf(),
+                expected: meta_data.sha256.clone(),
+                actual: sha256,
+            });
+        }
+
+        let domain_list = String::from_utf8(decompressed).map_err(|error| {
+            AirportingError::InvalidDataFileEncoding {
+                file_path: file_path.to_path_buf(),
+                error,
             }
+        })?;
 
-            let sha256 = hex::encode(hasher.finalize());
-            if sha256 != meta_data.sha256 {
-                return Err(AirportingError::InvalidDataFileHash {
-                    file_path: file_path.to_path_buf(),
-                    expected: meta_data.sha256.clone(),
-                    actual: sha256,
-                });
-            }
-
-            let domain_list = String::from_utf8(decompressed).map_err(|error| {
-                AirportingError::InvalidDataFileEncoding {
-                    file_path: file_path.to_path_buf(),
-                    error,
-                }
-            })?;
-
-            Ok(domain_list)
-        })
+        Ok(domain_list)
     }
 
     /// Compress the data file contents and save it to disk.

@@ -9,11 +9,7 @@ use adblock::{
 use async_compression::tokio::{bufread::GzipDecoder, write::GzipEncoder};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::{
-    future::Future,
-    path::{Path, PathBuf},
-    pin::Pin,
-};
+use std::path::{Path, PathBuf};
 use time::OffsetDateTime;
 use tokio::{
     fs,
@@ -263,7 +259,7 @@ impl Source {
         Ok(true)
     }
 
-    /// Clean-up any extraneous temporary files that may be left over from a failed update.
+    /// Cleanup any extraneous temporary files that may be left over from a failed update.
     async fn cleanup_temp_files(ad_blocking_path: &Path) -> Result<()> {
         let temp_data_path = ad_blocking_path.join(Self::TEMP_DATA_FILE_NAME);
         if temp_data_path.exists() {
@@ -289,70 +285,65 @@ impl Source {
     }
 
     /// Load the data file from disk, gunzip it, and check the uncompressed length and SHA256.
-    // Note: Pinned box is necessary in order to avoid "large future size" warnings.
-    fn load_data_file<'a>(
-        file_path: &'a Path,
-        meta_data: &'a SourceMetaData,
-    ) -> Pin<Box<dyn Future<Output = Result<String>> + Send + 'a>> {
-        Box::pin(async move {
-            let file =
-                fs::File::open(file_path)
+    async fn load_data_file(file_path: &Path, meta_data: &SourceMetaData) -> Result<String> {
+        let file = fs::File::open(file_path)
+            .await
+            .map_err(|error| AdBlockerError::ReadFile {
+                file_path: file_path.to_path_buf(),
+                error,
+            })?;
+
+        let reader = BufReader::new(file);
+        let mut decoder = GzipDecoder::new(reader);
+        let mut hasher = Sha256::new();
+        let mut decompressed = Vec::with_capacity(meta_data.length);
+        let mut total_len: usize = 0;
+
+        let mut buf = vec![0; 4096];
+        loop {
+            let n =
+                decoder
+                    .read(&mut buf)
                     .await
-                    .map_err(|error| AdBlockerError::ReadFile {
+                    .map_err(|error| AdBlockerError::DecompressData {
                         file_path: file_path.to_path_buf(),
                         error,
                     })?;
 
-            let reader = BufReader::new(file);
-            let mut decoder = GzipDecoder::new(reader);
-            let mut hasher = Sha256::new();
-            let mut decompressed = Vec::with_capacity(meta_data.length);
-            let mut total_len: usize = 0;
-
-            let mut buf = [0u8; 32 * 1024];
-            loop {
-                let n = decoder.read(&mut buf).await.map_err(|error| {
-                    AdBlockerError::DecompressData {
-                        file_path: file_path.to_path_buf(),
-                        error,
-                    }
-                })?;
-
-                if n == 0 {
-                    break;
-                }
-
-                hasher.update(&buf[..n]);
-                decompressed.extend_from_slice(&buf[..n]);
-                total_len = total_len.saturating_add(n);
+            if n == 0 {
+                break;
             }
 
-            if total_len != meta_data.length {
-                return Err(AdBlockerError::InvalidDataFileLength {
-                    file_path: file_path.to_path_buf(),
-                    expected: meta_data.length,
-                    actual: total_len,
-                });
+            hasher.update(&buf[..n]);
+            decompressed.extend_from_slice(&buf[..n]);
+            total_len = total_len.saturating_add(n);
+        }
+
+        if total_len != meta_data.length {
+            return Err(AdBlockerError::InvalidDataFileLength {
+                file_path: file_path.to_path_buf(),
+                expected: meta_data.length,
+                actual: total_len,
+            });
+        }
+
+        let sha256 = hex::encode(hasher.finalize());
+        if sha256 != meta_data.sha256 {
+            return Err(AdBlockerError::InvalidDataFileHash {
+                file_path: file_path.to_path_buf(),
+                expected: meta_data.sha256.clone(),
+                actual: sha256,
+            });
+        }
+
+        let domain_list = String::from_utf8(decompressed).map_err(|error| {
+            AdBlockerError::InvalidDataFileEncoding {
+                file_path: file_path.to_path_buf(),
+                error,
             }
+        })?;
 
-            let sha256 = hex::encode(hasher.finalize());
-            if sha256 != meta_data.sha256 {
-                return Err(AdBlockerError::InvalidDataFileHash {
-                    file_path: file_path.to_path_buf(),
-                    expected: meta_data.sha256.clone(),
-                    actual: sha256,
-                });
-            }
-
-            let domain_list = String::from_utf8(decompressed).map_err(|error| {
-                AdBlockerError::InvalidDataFileEncoding {
-                    file_path: file_path.to_path_buf(),
-                    error,
-                }
-            })?;
-
-            Ok(domain_list)
-        })
+        Ok(domain_list)
     }
 
     /// Compress the data file contents and save it to disk.
