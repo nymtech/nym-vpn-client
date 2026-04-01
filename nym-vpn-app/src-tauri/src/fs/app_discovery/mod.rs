@@ -29,4 +29,9 @@ pub fn get_installed_apps(_app: tauri::AppHandle) -> Result<Vec<App>, BackendErr
     {
         linux_discovery::get_linux_apps()
     }
+
+    #[cfg(target_os = "macos")]
+    {
+        Ok(vec![])
+    }
 }
