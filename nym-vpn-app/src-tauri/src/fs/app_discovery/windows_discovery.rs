@@ -34,7 +34,6 @@ pub fn get_windows_apps(app: tauri::AppHandle) -> Result<Vec<App>, BackendError>
     Ok(result)
 }
 
-
 fn start_menu_dirs() -> Vec<PathBuf> {
     let mut dirs = vec![
         // All-users
