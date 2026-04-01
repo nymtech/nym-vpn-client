@@ -35,9 +35,12 @@ pub fn get_windows_apps(app: tauri::AppHandle) -> Result<Vec<App>, BackendError>
 }
 
 fn start_menu_dirs() -> Vec<PathBuf> {
+    let program_data =
+        std::env::var("ProgramData").unwrap_or_else(|_| r"C:\ProgramData".to_string());
+
     let mut dirs = vec![
         // All-users
-        PathBuf::from(r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs"),
+        PathBuf::from(program_data).join(r"Microsoft\Windows\Start Menu\Programs"),
     ];
     // Current user
     if let Some(data) = dirs::data_dir() {
