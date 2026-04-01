@@ -13,7 +13,7 @@ use super::{
     config::{MixnetTrafficConfig, VpndConfig},
     events::MixnetEvent,
     gateway::{Gateway, GatewayType},
-    tunnel::TunnelState,
+    tunnel::{SplitApp, TunnelState},
 };
 
 use anyhow::Result;
@@ -1011,5 +1011,68 @@ impl VpndClient {
 
         debug!("diagnostic report: {report:?}");
         Ok(report)
+    }
+
+    /// Enable split tunneling
+    #[instrument(skip_all)]
+    #[allow(unused_variables, unused_mut)]
+    pub async fn enable_split_tunnel(&self, _enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        {
+            Ok(())
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            vpnd.set_enable_split_tunnel(_enabled)
+                .or_else(async |e| {
+                    info!(error = %e, "vpnd.enable_split_tunnel() RPC failed");
+                    self.handle_rpc_error("enable_split_tunnel", e).await
+                })
+                .await
+        }
+    }
+
+    /// Add app to split tunneling
+    #[instrument(skip_all)]
+    #[allow(unused_variables, unused_mut)]
+    pub async fn add_app_to_split_tunnel(&self, app: SplitApp) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        {
+            let _ = vpnd;
+
+            Ok(())
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            vpnd.add_split_tunnel_app(app.into())
+                .or_else(async |e| self.handle_rpc_error("add_split_tunnel_app", e).await)
+                .await
+        }
+    }
+
+    /// Remove app from split tunneling
+    #[instrument(skip_all)]
+    #[allow(unused_variables, unused_mut)]
+    pub async fn remove_app_from_split_tunnel(&self, app: SplitApp) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        {
+            let _ = vpnd;
+            Ok(())
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            vpnd.remove_split_tunnel_app(app.into())
+                .or_else(async |e| self.handle_rpc_error("remove_split_tunnel_app", e).await)
+                .await
+        }
     }
 }

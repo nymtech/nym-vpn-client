@@ -29,6 +29,7 @@ import {
   SettingsRouteIndex,
   Signup,
   Socks5,
+  SplitTunneling,
   Support,
   Welcome,
 } from './screens';
@@ -52,6 +53,7 @@ export const routes = {
   dataPrivacy: '/settings/data-privacy',
   logs: '/settings/data-privacy/logs',
   diagnostic: '/settings/data-privacy/diagnostic',
+  splitTunneling: '/settings/split-tunneling',
   support: '/settings/support',
   legal: '/settings/legal',
   licensesRust: '/settings/legal/licenses-rust',
@@ -178,6 +180,11 @@ const router = createBrowserRouter([
           {
             path: routes.mixnetTuning,
             Component: MixnetTuning,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.splitTunneling,
+            Component: SplitTunneling,
             errorElement: <Error />,
           },
           {

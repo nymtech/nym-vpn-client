@@ -10,6 +10,7 @@ import {
   NetworkCompat,
   NetworkEnv,
   SelectedNode,
+  SplitTunnelSettings,
   TAccountMode,
   TAccountSummary,
   ThemeMode,
@@ -47,6 +48,7 @@ export type InitState = {
   enableLewesProtocol: boolean;
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
+  splitTunnel: SplitTunnelSettings;
 };
 
 export type AppState = {
@@ -107,4 +109,5 @@ export type AppState = {
   enableLewesProtocol: boolean;
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
+  splitTunnel: SplitTunnelSettings;
 };
