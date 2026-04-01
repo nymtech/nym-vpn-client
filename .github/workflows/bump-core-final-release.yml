@@ -1,0 +1,114 @@
+name: bump-core-final-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Release branch (e.g. release/2026.1-banana)"
+        type: string
+        required: true
+      dry_run:
+        description: "Test run that will only print git diff and all changes being made"
+        required: true
+        type: boolean
+        default: true
+
+env:
+  CARGO_TERM_COLOR: always
+  GIT_USER: NYM CI
+  GIT_EMAIL: ci@nymtech.net
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bump-final-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Validate input
+        run: |
+          if ! echo "${{ inputs.branch }}" | grep -P '^release/.+$'; then
+            echo "::error:: Branch must start with 'release/' (got: ${{ inputs.branch }})"
+            exit 1
+          fi
+
+      - name: Configure git
+        run: |
+          git config --global user.name "${{ env.GIT_USER }}"
+          git config --global user.email "${{ env.GIT_EMAIL }}"
+
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Compute final version
+        id: version
+        working-directory: nym-vpn-core
+        run: |
+          BETA_VERSION=$(cargo get workspace.package.version)
+          echo "::notice:: Current version: $BETA_VERSION"
+
+          if ! echo "$BETA_VERSION" | grep -q '\-beta$'; then
+            echo "::error:: Version '$BETA_VERSION' does not have a -beta suffix"
+            exit 1
+          fi
+
+          FINAL_VERSION="${BETA_VERSION%-beta}"
+          echo "::notice:: Final version: $FINAL_VERSION"
+          echo "final_version=$FINAL_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Update nym-vpn-core/Cargo.toml
+        working-directory: nym-vpn-core
+        run: |
+          cargo set-version "${{ steps.version.outputs.final_version }}"
+          # dry-run will update Cargo.lock with new workspace version, without any other changes
+          cargo update --dry-run
+
+      - name: Update nym-vpn-app/src-tauri/Cargo.toml
+        working-directory: nym-vpn-app/src-tauri
+        run: |
+          cargo set-version "${{ steps.version.outputs.final_version }}"
+          # dry-run will update Cargo.lock with new package version, without any other changes
+          cargo update --dry-run
+
+      - name: Update CHANGELOG.md
+        working-directory: nym-vpn-core
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          sed -i "s/\[${FINAL_VERSION}\] - TBD/[${FINAL_VERSION}] - ${TODAY}/" CHANGELOG.md
+          echo "::notice:: Updated CHANGELOG.md date to $TODAY"
+        env:
+          FINAL_VERSION: ${{ steps.version.outputs.final_version }}
+
+      - name: Create PR to finalize v${{ steps.version.outputs.final_version }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: "ci/bump-final-v${{ steps.version.outputs.final_version }}"
+        run: |
+          git diff
+          if [ '${{ inputs.dry_run }}' == 'true' ]; then
+            echo "::warning:: Dry run, skipping commit and PR creation"
+          else
+            git checkout -b "${{ env.BRANCH_NAME }}"
+            git commit -a -m "ci: bump release to v${{ steps.version.outputs.final_version }}"
+            git push origin "${{ env.BRANCH_NAME }}"
+            gh pr create \
+                --base "${{ inputs.branch }}" \
+                --title 'Bump release to `v${{ steps.version.outputs.final_version }}`' \
+                --body 'This PR strips the `-beta` suffix and finalizes `v${{ steps.version.outputs.final_version }}` for release.'
+          fi
