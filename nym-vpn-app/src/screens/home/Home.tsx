@@ -312,6 +312,26 @@ function Home() {
           <Button
             color="cornflower"
             onClick={() =>
+              invoke('get_app_list3').then((apps) => {
+                console.log("get_app_list3", apps);
+              })
+            }
+          >
+            Get app list3
+          </Button>
+          <Button
+            color="cornflower"
+            onClick={() =>
+              invoke('get_app_list2').then((apps) => {
+                console.log("get_app_list2", apps);
+              })
+            }
+          >
+            Get app list2
+          </Button>
+          <Button
+            color="cornflower"
+            onClick={() =>
               invoke('get_app_list').then((apps) => {
                 setApps(apps);
                 console.log(apps);

@@ -72,9 +72,13 @@ export const useSplitTunnel = () => {
   };
 
   const add = async (app: SplitApp) => {
+    console.log('add', app);
     if (!splitTunnelApps.some((existing) => existing.path === app.path)) {
       try {
-        await invoke('add_app_to_split_tunnel', { app: { path: app.path } });
+        // await invoke('add_app_to_split_tunnel', { app: { path: app.path } });
+        await invoke('add_app_to_split_tunnel', {
+          app: { path: app.path }
+        });
         dispatch({
           type: 'set-split-tunnel-apps',
           apps: [...splitTunnelApps, app],

@@ -283,6 +283,7 @@ pub async fn add_app_to_split_tunnel(
     vpnd: State<'_, VpndClient>,
     app: SplitApp,
 ) -> Result<(), BackendError> {
+    info!("[command] add_app_to_split_tunnel: {}", app.path);
     vpnd.add_app_to_split_tunnel(app).await?;
     Ok(())
 }

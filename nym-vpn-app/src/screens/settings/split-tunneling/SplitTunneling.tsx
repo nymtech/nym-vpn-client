@@ -136,7 +136,7 @@ function SplitTunneling() {
           {/* Apps section */}
           <div className="flex flex-col gap-2">
             <p className="text-base font-semibold text-baltic-sea dark:text-white select-none">
-              {t('split-tunneling.apps')}
+              {t('split-tunneling.apps')} ({apps.length})
             </p>
 
             {/* App list with alphabetical sidebar */}

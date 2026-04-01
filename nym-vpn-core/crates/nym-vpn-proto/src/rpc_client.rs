@@ -8,15 +8,14 @@ use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
 
 // #[cfg(any(target_os = "macos", target_os = "windows"))]
-use nym_vpn_lib_types::SplitApp;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AutologinResponse,
     AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, Gateway,
     GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, SplitApp,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TunnelEvent, TunnelState,
+    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
