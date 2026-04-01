@@ -28,7 +28,7 @@ function SplitTunneling() {
     return groups;
   }, [apps]);
 
-  const letters = useMemo(() => Object.keys(groupedApps).sort(), [groupedApps]);
+  const letters = useMemo(() => Object.keys(groupedApps).sort((a, b) => a.localeCompare(b)), [groupedApps]);
 
   const handleStateChange = async (app: AppEntry, state: AppEntry['state']) => {
     if (state === 'included') {
