@@ -62,8 +62,6 @@ function Home() {
     (accountState === 'no-subscription' ||
       accountState === 'bandwidth-exceeded');
 
-  console.log('account state', accountState);
-
   const entryGwId = tunnel?.entryGwId || connectingState?.entryGwId || null;
   const exitGwId = tunnel?.exitGwId || connectingState?.exitGwId || null;
 
@@ -228,8 +226,6 @@ function Home() {
     }
   };
 
-  const [apps, setApps] = useState<any>([]);
-
   return (
     <>
       {updaterEnabled && <UpdateDialog />}
@@ -288,65 +284,6 @@ function Home() {
               </div>
             </div>
           </div>
-          {/* <Button
-            outline
-            color="gray"
-            onClick={() => {
-              invoke('refresh_account_state').then(() => {
-                console.log('account state refreshed');
-              });
-            }}
-          >
-            refresh
-          </Button>
-          <Button
-            color="cornflower"
-            onClick={() =>
-              invoke('get_account_summary').then((summary) => {
-                console.log(summary);
-              })
-            }
-          >
-            Get new summary
-          </Button> */}
-          <Button
-            color="cornflower"
-            onClick={() =>
-              invoke('get_app_list3').then((apps) => {
-                console.log("get_app_list3", apps);
-              })
-            }
-          >
-            Get app list3
-          </Button>
-          <Button
-            color="cornflower"
-            onClick={() =>
-              invoke('get_app_list2').then((apps) => {
-                console.log("get_app_list2", apps);
-              })
-            }
-          >
-            Get app list2
-          </Button>
-          <Button
-            color="cornflower"
-            onClick={() =>
-              invoke('get_app_list').then((apps) => {
-                setApps(apps);
-                console.log(apps);
-              })
-            }
-          >
-            Get app list
-          </Button>
-          {apps.length && (
-            <div>
-              {apps.map((app: any) => (
-                <div key={app.id}>{app.name}</div>
-              ))}
-            </div>
-          )}
           <Button
             onClick={handleClick}
             color={getButtonColor()}

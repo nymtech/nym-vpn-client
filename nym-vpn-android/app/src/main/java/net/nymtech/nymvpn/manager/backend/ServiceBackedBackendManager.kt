@@ -148,7 +148,15 @@ class ServiceBackedBackendManager @Inject constructor(
 	}
 
 	override suspend fun requestReconnect() {
-		val res = serviceConnectionManager.withApi { it.reconnect() }
+		val res = serviceConnectionManager.withApi { api ->
+			runCatching {
+				val restrictedApps = getRestrictedAppsPackages()
+				api.applyUpdates(listOf(CoreVpnConfigUpdate.SetRestrictedApps(restrictedApps)))
+			}.onFailure { t ->
+				Timber.tag(TAG).w(t, "apply restricted apps failed on reconnect")
+			}
+			api.reconnect()
+		}
 		if (res !is ConnectResult.Ok) {
 			Timber.tag(TAG).w("ReconnectTunnel result=%s", res::class.java.simpleName)
 		}

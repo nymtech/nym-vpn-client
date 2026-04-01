@@ -171,7 +171,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		if (!isIgnoringBatteryOptimizations && !appUiState.settings.batteryDialogSkip) {
 			showBatteryDialog = true
 		} else {
-			viewModel.onConnect()
+			viewModel.onDisconnect()
 		}
 	}
 
@@ -197,7 +197,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			if (!accepted) {
 				navController.goFromRoot(Route.Permission(Permission.VPN))
 			} else {
-				checkBatteryOptimization()
+				viewModel.onConnect()
 			}
 		},
 	)
@@ -210,7 +210,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				viewModel.onBatteryOptSkipped()
 			}
 			snackbar.showMessage(context.getString(R.string.battery_opt_settings_text))
-			viewModel.onConnect()
+			viewModel.onDisconnect()
 		},
 	)
 
@@ -225,12 +225,12 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		if (intent != null) {
 			vpnActivityResultState.launch(intent)
 		} else {
-			checkBatteryOptimization()
+			viewModel.onConnect()
 		}
 	}
 
 	fun onDisconnectPressed() {
-		viewModel.onDisconnect()
+		checkBatteryOptimization()
 		checkStatsEnabled()
 	}
 
@@ -486,7 +486,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			showBatteryDialog = false
 			viewModel.onBatteryOptSkipped()
 			snackbar.showMessage(context.getString(R.string.battery_opt_settings_text))
-			viewModel.onConnect()
+			viewModel.onDisconnect()
 		},
 	)
 

@@ -1,10 +1,8 @@
-#![cfg(windows)]
-
-//! Extract the icon of a Windows executable and cache it as a PNG file.
-//!
-//! The public entry-point is [`extract_icon_to_cache`].  It is safe to call
-//! from multiple threads; each call is self-contained and the only shared
-//! state is the on-disk cache directory.
+// Extract the icon of a Windows executable and cache it as a PNG file.
+//
+// The public entry-point is [`extract_icon_to_cache`].  It is safe to call
+// from multiple threads; each call is self-contained and the only shared
+// state is the on-disk cache directory.
 
 use image::RgbaImage;
 use std::collections::hash_map::DefaultHasher;
@@ -24,7 +22,7 @@ use windows::core::PCWSTR;
 /// Width/height of the icon bitmap we request and write to PNG.
 const ICON_SIZE: u32 = 32;
 
-// ─── Public API ───────────────────────────────────────────────────────────────
+// Public API
 
 /// Extract the icon for `exe_path` and write it as a PNG into `cache_dir`.
 ///
@@ -59,7 +57,6 @@ pub fn extract_icon_to_cache(exe_path: &str, cache_dir: &Path) -> Option<PathBuf
     unsafe { extract_and_save(PCWSTR(wide.as_ptr()), &cache_path) }
 }
 
-// ─── Implementation ───────────────────────────────────────────────────────────
 
 /// Call `SHGetFileInfoW` to obtain an `HICON`, then render it to `output`.
 ///
@@ -90,7 +87,6 @@ unsafe fn extract_and_save(path: PCWSTR, output: &Path) -> Option<PathBuf> {
 
     let result = unsafe { render_icon_to_png(hicon, output) };
 
-    // Always free the icon handle regardless of whether rendering succeeded.
     let _ = unsafe { DestroyIcon(hicon) };
 
     result
@@ -101,7 +97,7 @@ unsafe fn extract_and_save(path: PCWSTR, output: &Path) -> Option<PathBuf> {
 /// # Safety
 /// `hicon` must be a valid icon handle obtained from the Shell API.
 unsafe fn render_icon_to_png(hicon: HICON, output: &Path) -> Option<PathBuf> {
-    // ── 1. Obtain the color and mask bitmaps for this icon ──────────────────
+    // Obtain the color and mask bitmaps for this icon
     let mut icon_info = unsafe { std::mem::zeroed::<ICONINFO>() };
     if unsafe { GetIconInfo(hicon, &mut icon_info) }.is_err() {
         warn!("GetIconInfo failed");
@@ -126,7 +122,7 @@ unsafe fn render_icon_to_png(hicon: HICON, output: &Path) -> Option<PathBuf> {
         return None;
     }
 
-    // ── 2. Query the actual bitmap dimensions ────────────────────────────────
+    // Query the actual bitmap dimensions
     let mut bm = unsafe { std::mem::zeroed::<BITMAP>() };
     let got = unsafe {
         GetObjectW(
@@ -143,7 +139,7 @@ unsafe fn render_icon_to_png(hicon: HICON, output: &Path) -> Option<PathBuf> {
         (ICON_SIZE, ICON_SIZE)
     };
 
-    // ── 3. Create a temporary DC and read pixels with GetDIBits ─────────────
+    // Create a temporary DC and read pixels with GetDIBits
     let hdc = unsafe { CreateCompatibleDC(None) };
     if hdc.is_invalid() {
         warn!("CreateCompatibleDC failed");
@@ -185,7 +181,7 @@ unsafe fn render_icon_to_png(hicon: HICON, output: &Path) -> Option<PathBuf> {
         )
     };
 
-    // ── 3. Restore and release GDI resources ────────────────────────────────
+    // Restore and release GDI resources
     unsafe {
         SelectObject(hdc, old_obj);
         let _ = DeleteDC(hdc);
@@ -198,12 +194,12 @@ unsafe fn render_icon_to_png(hicon: HICON, output: &Path) -> Option<PathBuf> {
         return None;
     }
 
-    // ── 4. BGRA → RGBA channel swap ─────────────────────────────────────────
+    // BGRA → RGBA channel swap
     for chunk in pixels.chunks_exact_mut(4) {
         chunk.swap(0, 2); // B ↔ R
     }
 
-    // ── 5. Encode to PNG and write ───────────────────────────────────────────
+    // Encode to PNG and write
     let img = RgbaImage::from_raw(width, height, pixels)?;
     if let Err(e) = img.save(output) {
         warn!("failed to save icon PNG to {}: {e}", output.display());

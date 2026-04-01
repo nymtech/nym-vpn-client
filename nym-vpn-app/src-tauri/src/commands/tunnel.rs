@@ -13,7 +13,6 @@ use std::net::IpAddr;
 use tauri::{Manager, State};
 use tracing::{debug, info, instrument, warn};
 
-// use crate::fs::app_discovery::{App, get_installed_apps};
 
 #[instrument(skip_all)]
 #[tauri::command]

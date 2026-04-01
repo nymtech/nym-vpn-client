@@ -28,12 +28,14 @@ import PathManager
     var deeplinks: NymDeeplinks?
 #endif
     private var cancellables = Set<AnyCancellable>()
+    private var isUpdatingAccountSummary = false
 
     public static let shared = CredentialsManager()
 
     public var deviceIdentifier: String?
     @Published public var accountIdentifier: String?
     @Published public var didReceiveAccountLinkCallback = false
+    @Published public var didReceiveSubscriptionPayment = false
     @Published public var accountSummary: AccountSummary?
 
     public var isValidCredentialImported: Bool {
@@ -184,6 +186,15 @@ import PathManager
         didReceiveAccountLinkCallback = true
     }
 
+    public func handleSubscriptionPayment() async throws {
+#if os(macOS)
+        didReceiveSubscriptionPayment = true
+        try await grpcManager.handleSubscriptionPayment()
+        try? await Task.sleep(for: .seconds(2))
+        await updateAccountSummary()
+#endif
+    }
+
     public func autologin(kind: NymDeeplinkKind) async throws -> (url: String, pinCode: String)? {
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
         let name = "default"
@@ -228,6 +239,22 @@ import PathManager
     }
 
     public func updateAccountSummary() async {
+        guard !isUpdatingAccountSummary else { return }
+        isUpdatingAccountSummary = true
+        defer { isUpdatingAccountSummary = false }
+
+        let delays: [Duration] = [.zero, .seconds(2), .seconds(6), .seconds(8), .seconds(10)]
+        for delay in delays {
+            if delay != .zero {
+                try? await Task.sleep(for: delay)
+            }
+            await fetchAccountSummary()
+            if accountSummary != nil { break }
+        }
+        resetExpiryDismissalsIfNeeded()
+    }
+
+    private func fetchAccountSummary() async {
 #if os(iOS)
         guard let summary = try? await NymVpnAccountStorage(
             dataDir: PathManager.dataFolderURL().path(),
@@ -250,11 +277,9 @@ import PathManager
             isAutoRenewEnabled: summary.isRecurring,
             subscriptionKind: summary.subscriptionKind.map { VpnSubscriptionKind(from: $0) }
         )
-
 #elseif os(macOS)
         accountSummary = try? await grpcManager.accountSummary()
 #endif
-        resetExpiryDismissalsIfNeeded()
     }
 
     private func resetExpiryDismissalsIfNeeded() {

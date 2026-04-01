@@ -3,11 +3,11 @@ name: build-nym-vpnc-macOS
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: "Branch to build from"
+      release:
+        description: "Release to GitHub"
         required: false
-        type: string
-        default: ""
+        type: boolean
+        default: false
   schedule:
     - cron: "0 2 * * *"
 
@@ -29,8 +29,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.branch || github.ref }}
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -182,11 +180,14 @@ jobs:
           INSTALLER_SIGNING_IDENTITY: "Developer ID Installer: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
         run: |
           set -euo pipefail
+          which xmlstarlet || brew install xmlstarlet
 
           VERSION="${{ steps.resolve-version.outputs.version }}"
           BINARY="nym-vpn-core/target/release/nym-vpnc"
           STAGING_DIR="$PWD/build/pkg"
           STAGING_BIN_DIR="$STAGING_DIR/payload"
+          NESTED_PKG="$STAGING_DIR/${PKG_IDENTIFIER}.pkg"
+          DIST_XML="$STAGING_DIR/Distribution"
           UNSIGNED_PKG="$STAGING_DIR/nym-vpnc-${VERSION}-unsigned.pkg"
           PKG_PATH="$STAGING_DIR/nym-vpnc-${VERSION}.pkg"
           KEYCHAIN_PATH="${{ steps.setup-keychain.outputs.keychain_path }}"
@@ -203,9 +204,32 @@ jobs:
             --identifier "$PKG_IDENTIFIER" \
             --version "$VERSION" \
             --install-location "$PKG_INSTALL_LOCATION" \
+            --min-os-version 14.0 \
             --compression latest \
-            "$UNSIGNED_PKG"
+            "$NESTED_PKG"
 
+          # Synthesize Distribution XML from the component package
+          productbuild --synthesize --package "$NESTED_PKG" "$DIST_XML"
+
+          # Restrict installation to system volume only
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' --type elem -n 'domains' \
+            --append '//installer-gui-script/domains' --type attr -n 'enable_anywhere' --value 'false' \
+            --append '//installer-gui-script/domains' --type attr -n 'enable_currentUserHome' --value 'false' \
+            --append '//installer-gui-script/domains' --type attr -n 'enable_localSystem' --value 'true' \
+            "$DIST_XML"
+
+          # Add title
+          xmlstarlet edit --inplace \
+            --subnode '//installer-gui-script' \
+            --type elem --name "title" --value "nym-vpnc" \
+            "$DIST_XML"
+
+          echo "Distribution XML:"
+          cat "$DIST_XML"
+
+          # Build the distribution package (unsigned)
+          productbuild --distribution "$DIST_XML" --package-path "$STAGING_DIR" "$UNSIGNED_PKG"
           echo "Unsigned PKG: $UNSIGNED_PKG"
 
           # Sign the package
@@ -298,7 +322,6 @@ jobs:
           retention-days: 7
 
       - name: Upload to www
-        if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: easingthemes/ssh-deploy@main
         with:
           REMOTE_PORT: 22
@@ -312,7 +335,7 @@ jobs:
           SOURCE: ${{ env.renamed_pkg_relative_path }}
 
       - name: Publish GitHub Release
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release == true }}
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -329,17 +352,8 @@ jobs:
             - Commit: ${{ github.sha }}
             - Built at: ${{ github.run_started_at }}
 
-      - name: Prepare nightly PKG asset
-        if: ${{ github.event_name == 'schedule' }}
-        run: |
-          set -euo pipefail
-          PKG="${{ env.renamed_pkg_relative_path }}"
-          NIGHTLY_PKG="build/pkg/nym-vpnc-nightly.pkg"
-          cp "$PKG" "$NIGHTLY_PKG"
-          echo "NIGHTLY_PKG_PATH=$NIGHTLY_PKG" >> "$GITHUB_ENV"
-
-      - name: Publish nightly GitHub Release
-        if: ${{ github.event_name == 'schedule' }}
+      - name: Publish GitHub Pre-release
+        if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch' && inputs.release != true) }}
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -348,16 +362,18 @@ jobs:
           name: "nym-vpnc macOS nightly"
           prerelease: true
           draft: false
-          files: ${{ env.NIGHTLY_PKG_PATH }}
+          files: ${{ env.renamed_pkg_relative_path }}
           body: |
-            Nightly macOS build of nym-vpnc.
+            macOS build of nym-vpnc.
             - Branch: ${{ github.ref_name }}
             - Commit: ${{ github.sha }}
             - Built at: ${{ github.run_started_at }}
 
-      - name: Cleanup Keychain
+      - name: Cleanup Keychain and keys
         if: always()
         run: |
           set -euo pipefail
           echo "Cleaning up Codemagic keychain..."
           keychain delete
+          echo "Removing ASC API key..."
+          rm -rf "$HOME/private_keys"

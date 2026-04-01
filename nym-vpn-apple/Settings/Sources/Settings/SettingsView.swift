@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import ConnectionTypes
 import CredentialsManager
 import Device
 import ConfigurationManager
@@ -9,6 +10,9 @@ import Theme
 public struct SettingsView: View {
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @StateObject private var viewModel: SettingsViewModel
+#if os(macOS)
+    @State private var autologinState = AutologinState()
+#endif
 
     public init(viewModel: SettingsViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -51,7 +55,16 @@ private extension SettingsView {
             NymColor.background
                 .ignoresSafeArea()
         }
+#if os(macOS)
+        .autologinOverlay(
+            state: autologinState,
+            onRetry: { autologinState.start(kind: .autologinRenew, using: credentialsManager) }
+        )
+#endif
         .onAppear {
+#if os(macOS)
+            viewModel.autologinState = autologinState
+#endif
             Task {
                 await credentialsManager.updateAccountSummary()
                 viewModel.reloadSections()
@@ -87,7 +100,7 @@ private extension SettingsView {
     @ViewBuilder
     func renewButton() -> some View {
         if viewModel.shouldShowRenewButton {
-            GenericButton(title: "settings.account.renewNow".localizedString)
+            GenericButton(title: viewModel.renewButtonTitle)
                 .padding(.top, 24)
                 .onTapGesture {
                     viewModel.navigateToPlanPurchase()

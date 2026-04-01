@@ -32,16 +32,23 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error('Failed to get autologin deeplink', error);
         push({
-          message: t('autologin.initialization-error'),
+          message: t('autologin.initialization-error', { ns: 'errors' }),
           type: 'error',
           duration: 3000,
         });
       }
     },
-    [i18n.language, t, push],
+    [i18n.language, push, t],
   );
 
-  const ctx = useMemo(() => ({ autologin }), [autologin]);
+  const closeDialog = useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  const ctx = useMemo(
+    () => ({ autologin, closeDialog }),
+    [autologin, closeDialog],
+  );
 
   return (
     <AutologinContext.Provider value={ctx}>

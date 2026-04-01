@@ -34,6 +34,10 @@ pub enum Command {
 
     /// Remove all applications from VPN tunnel exclusion
     ClearApps,
+
+    /// List processes excluded from VPN tunnel
+    #[cfg(target_os = "macos")]
+    ExcludedProcesses,
 }
 
 impl Command {
@@ -81,6 +85,31 @@ impl Command {
             }
             Command::ClearApps => {
                 rpc_client.clear_split_tunnel_apps().await?;
+                Ok(())
+            }
+            #[cfg(target_os = "macos")]
+            Command::ExcludedProcesses => {
+                let proc_list = rpc_client.get_split_tunnel_excluded_processes().await?;
+
+                if proc_list.processes.is_empty() {
+                    println!("No excluded processes");
+                } else {
+                    println!("Excluded processes: {}", proc_list.processes.len());
+                    println!();
+
+                    for proc in proc_list.processes {
+                        println!("- pid: {}", proc.pid);
+                        println!("  path: {}", proc.exec_path.display());
+                        if proc.exec_path != proc.responsible_exec_path {
+                            println!(
+                                "  responsible process: {}",
+                                proc.responsible_exec_path.display()
+                            );
+                        }
+                        println!();
+                    }
+                }
+
                 Ok(())
             }
         }

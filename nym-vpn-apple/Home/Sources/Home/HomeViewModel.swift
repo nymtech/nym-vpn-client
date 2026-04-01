@@ -220,12 +220,8 @@ public extension HomeViewModel {
     }
 
     @MainActor func navigateToPlanPurchase() {
-#if os(iOS)
         path.append(HomeLink.settings)
         path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
-#elseif os(macOS)
-        try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
-#endif
     }
 
 #if os(macOS)
@@ -270,6 +266,7 @@ private extension HomeViewModel {
         setupSystemMessageObservers()
         setupIsMnemonicImportedObserver()
         setupAccountSummaryObserver()
+        setupSubscriptionPaymentObserver()
 #if os(iOS)
         setupConnectionErrorObservers()
         setupNetworkMonitorObservers()
@@ -320,6 +317,26 @@ private extension HomeViewModel {
             .sink { [weak self] _ in
                 MainActor.assumeIsolated {
                     self?.checkExpiryBanner()
+                    self?.updateConnectButtonStateForSubscription()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    func setupSubscriptionPaymentObserver() {
+        credentialsManager.$didReceiveSubscriptionPayment
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] didReceive in
+                guard didReceive else { return }
+                MainActor.assumeIsolated {
+                    self?.credentialsManager.didReceiveSubscriptionPayment = false
+                    self?.path = .init()
+                    self?.messagesManager.addAndProcess(
+                        SnackBarMessage(
+                            text: "subscriptionPayment.received".localizedString,
+                            style: .info
+                        )
+                    )
                 }
             }
             .store(in: &cancellables)

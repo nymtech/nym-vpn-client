@@ -771,6 +771,19 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn handle_subscription_payment(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::HandleSubscriptionPayment, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to handle subscription payment: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn get_deeplink(
         &self,
         request: tonic::Request<proto::GetDeeplinkParams>,
@@ -1109,6 +1122,23 @@ impl NymVpnService for CommandInterface {
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn get_split_tunnel_excluded_processes(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::SplitTunnelExcludedProcessList>> {
+        #[cfg(target_os = "macos")]
+        {
+            let res = self
+                .send_and_wait(VpnServiceCommand::GetSplitTunnelExcludedProcesses, ())
+                .await
+                .map(proto::SplitTunnelExcludedProcessList::from)?;
+            Ok(tonic::Response::new(res))
+        }
+
+        #[cfg(not(target_os = "macos"))]
         Err(tonic::Status::internal("Unsupported platform"))
     }
 

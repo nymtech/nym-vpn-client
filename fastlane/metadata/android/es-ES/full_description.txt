@@ -1,63 +1,74 @@
-Prueba gratuita de 7 días: Todas las funciones, sin anuncios, cancela cuando quieras.
+Prueba gratuita de 7 días: Todas las funciones, sin anuncios, cancela cuando quieras. Planes a partir de $2,39 / mes.
 
-El único VPN que no puede espiarte. Fabricado en Suiza. Creado por defensores de la privacidad. El primer mixnet del mundo para el anonimato en línea.
+La única VPN que no puede espiarte. Hecho en Suiza. Construido por defensores de la privacidad. El primer mixnet del mundo para el anonimato en línea.
 
-Registro sin nombre: No se requiere correo electrónico. Cuentas de conocimiento cero. Acepta más criptomonedas que cualquier otro VPN. Pagos en efectivo para anonimato total.
-
+Registro sin nombre: No se requiere correo electrónico. Cuentas de conocimiento cero. El criptograma más aceptado por cualquier VPN. Pagos en efectivo aceptados por el anonimato completo.
 Tecnología VPN descentralizada
-
+- MÁS CRIPTOCURRENCIAS ACEPTADAS a cualquier VPN
 Más de 65 países con cientos de servidores independientes
-
 Hasta 10 dispositivos con un solo código anónimo
 
-NAVEGA SIN DEJAR RASTRO
+### BROWSE WITHOUT A TRACE
 
-¿Cansado de preguntarte quién te observa? ¿Empresas recopilando tus datos personales? ¿Acceso limitado por tu ubicación?
+¿Cansado de preguntarte quién te observa? ¿Las empresas que recogen sus datos personales? ¿No es capaz de acceder a la información debido a dónde está?
 
-Mientras otros VPN prometen no guardar registros, la red de NymVPN está diseñada para que los registros centralizados sean imposibles. Ningún punto de la red descentralizada puede vincular tu dirección IP con tu actividad en línea. La privacidad está garantizada por defecto.
-
-Con NymVPN, tu actividad en internet no puede vincularse contigo por anunciantes, operadores de red ni infraestructuras centralizadas. Navega, investiga y comunícate sin crear un perfil rastreable.
+Mientras otros VPN prometen no guardar registros, la red de NymVPN está diseñada para que los registros centralizados sean imposibles. Tu privacidad está garantizada por defecto. Con NymVPN, tu actividad en internet no puede vincularse contigo por anunciantes, operadores de red ni infraestructuras centralizadas. Puede navegar y comunicarse sin dejar un rastro de datos a través de Internet.
 
 ELIGE TU NIVEL DE PRIVACIDAD
 
 Modo rápido
 
 Navegación y streaming de alta velocidad
-
 VPN descentralizado de 2 saltos
-
-Selección de servidores en más de 65 países
+Cifrado multicapa
 
 Modo anónimo
 
 Máximo anonimato para mensajería, correo y transacciones financieras
-
 Mixnet de 5 saltos con generación de ruido
-
 Diseñado para resistir análisis avanzado de tráfico
 
-FUNCIONES ESENCIALES
+### FUNCIONES ESENCIALES
 
-Conexiones rápidas en más de 65 países
-
-Cifrado multicapa
-
+- Selección del servidor de entrada y salida
+- Cifrado multicapa
 Soporte dVPN AmneziaWG (WireGuard)
-
 Kill switch para evitar fugas de datos
-
 Tecnología avanzada contra la censura
-
 Split tunneling
-
 DNS personalizado
-
-Modo dApp y monedero para transacciones privadas en Ethereum
-
 Rotación de claves criptográficas
+- Experiencia completa sin anuncios
+- 100% software de código abierto
 
-Totalmente sin anuncios
+### POR QUÉ NYMVPN ES DIFERENTE
 
-Código completamente abierto
+La mayoría de las VPN confían en servidores centralizados y le piden que confíe en sus promesas de "no registros". NymVPN se construye de forma diferente.
 
-Descárgalo ahora. Regístrate de forma anónima. Desaparece con NymVPN.
+- Arquitectura de VPN descentralizada (dVPN): La ruta es a través de servidores gestionados de forma independiente. Nadie puede ver tanto quién eres como qué haces en línea.
+
+- Protección de metadatos: NymVPN protege los patrones de tráfico, el tiempo y la información de enrutamiento. Incluso los datos cifrados pueden filtrar metadatas. Nym lo impide.
+
+- Dos modos de privacidad, una aplicación: El modo FAST utiliza una VPN descentralizada de 2 saltos de alto rendimiento. El modo ANONYMOUS utiliza un mixnet de 5 saltos para el máximo anonimato.
+
+- El ruido que genera la tecnología Mixnet: Su tráfico se mezcla con el tráfico de cubiertas, lo que dificulta enormemente la correlación y el análisis de tráfico impulsado por la AI.
+
+- Cuentas de conocimiento cero por diseño: No hay registro de correo electrónico. No hay datos personales. Las cuentas son inconexas desde el uso. Soporta criptomonedas y pagos en efectivo para el anonimato completo.
+
+- Redes resistentes a censuras: Construidas con AmneziaWG, QUIC y opciones de transporte furtivo para trabajar en entornos restrictivos.
+
+- Abierto y auditado independientemente.
+- Construido por criptográficos académicos
+
+### NYMVPN ES PERFECTO de:
+
+- Transmitiendo y navegando sin ser rastreado
+- Conexiones Wi-Fi públicas seguras
+- Cualquiera en países restrictivos que necesite acceso fiable
+- Personas que quieren verdadero anonimato, no sólo direcciones IP ocultas
+- Revistas y activistas que necesitan comunicación imposible de rastrear
+- Destacado en PCMag, TechRadar, Forbes, Bloomberg, Guía de Tom
+
+Descárgalo ahora. Regístrate anónimamente. Oscurecer con NymVPN.
+
+Términos de uso: https://nym.com/vpn-terms

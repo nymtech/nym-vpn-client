@@ -6,7 +6,9 @@ use crate::diagnostic::registration::{
 use nym_bandwidth_controller::{BandwidthController, BandwidthTicketProvider};
 use nym_sdk::mixnet::StoragePaths;
 use nym_validator_client::nyxd::{Config as NyxdClientConfig, NyxdClient};
-use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
+use nym_vpn_lib_types::{
+    DiagnosticRegisterParams, DiagnosticResult, RegistrationMode, RegistrationReport,
+};
 use nym_vpn_network_config::Network;
 
 use std::path::PathBuf;
@@ -33,30 +35,33 @@ impl RegistrationDiagnostic {
             wireguard_pings: None,
         };
 
-        // Registration over mixnet
-        let Some((registration_result, keypair)) =
-            MixnetClientRegistration::register_with_mixnet_client(
-                &mut registration_report,
-                network,
-                parameters,
-            )
-            .await
-        else {
-            return registration_report;
-        };
-
-        // Registration over LP, no need to keep the result, one is enough for wireguard test
-        let Some(_) =
-            LpClientRegistration::register_with_lp(&mut registration_report, network, parameters)
+        let registration_result = match parameters.registration_mode {
+            RegistrationMode::Mixnet => {
+                MixnetClientRegistration::register_with_mixnet_client(
+                    &mut registration_report,
+                    network,
+                    parameters,
+                )
                 .await
-        else {
+            }
+            RegistrationMode::Lp => {
+                LpClientRegistration::register_with_lp(
+                    &mut registration_report,
+                    network,
+                    parameters,
+                )
+                .await
+            }
+        };
+        let Some((wireguard_configuration, keypair)) = registration_result else {
             return registration_report;
         };
 
         if !parameters.skip_wireguard {
             tracing::info!("Pinging over wireguard...");
             registration_report.wireguard_pings = Some(DiagnosticResult::from(
-                wireguard::WireguardDiagnostic::run_diagnostic(registration_result, keypair).await,
+                wireguard::WireguardDiagnostic::run_diagnostic(wireguard_configuration, keypair)
+                    .await,
             ));
         }
 

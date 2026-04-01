@@ -20,9 +20,11 @@ use std::{
 };
 
 use either::Either;
+use futures_util::{StreamExt, stream};
 use libc::pid_t;
 use nym_macos::process::{list_pids, process_path};
 use nym_platform_metadata::AppleVersion;
+use nym_vpn_lib_types::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};
 use serde::{Deserialize, de::Error as _};
 use tokio::{
     io::{AsyncBufReadExt, AsyncRead, BufReader},
@@ -35,7 +37,7 @@ const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(3);
 const EARLY_FAIL_TIMEOUT: Duration = Duration::from_millis(500);
 
 static MIN_OS_VERSION: LazyLock<AppleVersion> =
-    LazyLock::new(|| AppleVersion::from_str("13.0.0").unwrap());
+    LazyLock::new(|| AppleVersion::from_str("14.0.0").unwrap());
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -338,6 +340,25 @@ impl ProcessStates {
     pub async fn exclude_paths(&self, paths: HashSet<PathBuf>) {
         let mut inner = self.inner.lock().await;
 
+        // Resolve symlinks and canonicalize paths to align user and system paths
+        let paths: HashSet<PathBuf> = stream::iter(paths)
+            .then(|path| async move {
+                tokio::fs::canonicalize(&path)
+                    .await
+                    .inspect_err(|err| {
+                        if err.kind() != std::io::ErrorKind::NotFound {
+                            tracing::warn!(
+                                "Failed to canonicalize path: {}. Error: {}",
+                                path.display(),
+                                err
+                            );
+                        }
+                    })
+                    .unwrap_or(path)
+            })
+            .collect()
+            .await;
+
         for info in inner.processes.values_mut() {
             // Remove no-longer excluded paths from exclusion list
             let mut new_exclude_paths: HashSet<_> = info
@@ -362,6 +383,24 @@ impl ProcessStates {
         }
 
         inner.exclude_paths = paths;
+    }
+
+    pub async fn get_excluded_processes(&self) -> SplitTunnelExcludedProcessList {
+        let inner = self.inner.lock().await;
+        let mut processes = inner
+            .processes
+            .iter()
+            .filter(|(_, info)| info.is_excluded())
+            .map(|(pid, info)| SplitTunnelExcludedProcess {
+                pid: *pid,
+                exec_path: info.exec_path.clone(),
+                responsible_exec_path: info.responsible_exec_path.clone(),
+            })
+            .collect::<Vec<_>>();
+        drop(inner);
+        processes.sort_by(sort_process_list);
+
+        SplitTunnelExcludedProcessList { processes }
     }
 
     pub async fn get_process_status(&self, pid: pid_t) -> ExclusionStatus {
@@ -525,6 +564,25 @@ impl ProcessInfo {
     fn is_excluded(&self) -> bool {
         !self.excluded_by_paths.is_empty()
     }
+}
+
+/// Sort process list placing standalone processes at the top of the list followed by the corresponding direct or indirect child processes
+fn sort_process_list(
+    lhs: &SplitTunnelExcludedProcess,
+    rhs: &SplitTunnelExcludedProcess,
+) -> std::cmp::Ordering {
+    match (is_child_process(lhs), is_child_process(rhs)) {
+        (true, true) | (false, false) => lhs.exec_path.cmp(&rhs.exec_path),
+        (true, false) => std::cmp::Ordering::Less,
+        (false, true) => std::cmp::Ordering::Greater,
+    }
+}
+
+/// Returns true when executable and responsible paths differ which indicates that the process is either a direct child process or started
+/// by the system on behalf of other indirect parent process.
+#[inline]
+fn is_child_process(proc: &SplitTunnelExcludedProcess) -> bool {
+    proc.exec_path != proc.responsible_exec_path
 }
 
 /// `fork` event details
@@ -774,7 +832,7 @@ mod test {
         assert!(check_os_version_support_inner(AppleVersion::from_str("12.1").unwrap()).is_err());
 
         // test supported version
-        assert!(check_os_version_support_inner(AppleVersion::from_str("13.0").unwrap()).is_ok());
+        assert!(check_os_version_support_inner(AppleVersion::from_str("14.0").unwrap()).is_ok());
     }
 
     /// If the process prints 'ES_NEW_CLIENT_RESULT_ERR_NOT_PERMITTED' to stderr, full-disk access

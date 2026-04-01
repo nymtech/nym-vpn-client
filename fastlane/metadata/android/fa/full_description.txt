@@ -1,43 +1,74 @@
-۷ روز دوره آزمایشی رایگان: همه قابلیت‌ها، بدون تبلیغ، لغو در هر زمان.
+7 day free trial: All features, no ads, cancel anytime. Plans starting at $2.39 / month.
 
-تنها VPNی که نمی‌تواند شما را جاسوسی کند. ساخته‌شده در سوئیس. توسعه‌یافته توسط مدافعان حریم خصوصی. اولین Mixnet جهان برای ناشناس‌بودن آنلاین.
+تنها VPNی که نمی‌تواند از شما جاسوسی کند. ساخته‌شده در سوئیس. ساخته‌شده توسط مدافعان حریم خصوصی. The world's first mixnet for online anonymity.
 
-- ثبت‌نام بدون نام: بدون نیاز به ایمیل. حساب‌های Zero-Knowledge. بیشترین پشتیبانی از ارزهای دیجیتال در میان VPNها. پرداخت نقدی برای ناشناس‌ماندن کامل.
-- فناوری VPN غیرمتمرکز
-- بیش از ۶۵ کشور با صدها سرور مستقل
-- تا ۱۰ دستگاه با یک کد ناشناس
+- NO-NAME SIGNUP: No email required. حساب‌ کاربری‌های دانش صفر. بیشترین تعداد ارزهای دیجیتالِ پذیرفته‌شده برای پرداخت در میان تمام VPNها. برای ناشناسی کامل پرداخت نقدی پذیرفته می‌شود.
+- DECENTRALIZED VPN technology
+- MOST CRYPTOCURRENCIES ACCEPTED of any VPN
+- 70+ COUNTRIES with hundreds of independent servers
+- UP TO 10 DEVICES with one anonymous code
 
-مرور اینترنت بدون ردپا
+### BROWSE WITHOUT A TRACE
 
-خسته از این‌که چه کسی شما را زیر نظر دارد؟ شرکت‌هایی که داده‌های شخصی شما را جمع‌آوری می‌کنند؟ محدودیت دسترسی به اطلاعات به‌دلیل موقعیت جغرافیایی؟
+Tired of wondering who's watching you? شرکت‌ها در حال جمع‌آوری داده‌های شخصی شما هستند؟ به‌خاطر جایی که هستید به اطلاعات دسترسی ندارید؟
 
-در حالی که VPNهای دیگر وعده عدم ذخیره لاگ می‌دهند، شبکه NymVPN طوری طراحی شده که لاگ متمرکز اصولاً ممکن نیست. هیچ نقطه‌ای در شبکه غیرمتمرکز نمی‌تواند آدرس IP شما را به فعالیت آنلاین‌تان وصل کند. حریم خصوصی به‌صورت پیش‌فرض تضمین شده است.
+While other VPNs promise not to keep logs, with NymVPN there is no point on the decentralized network that can connect your IP address with what you do online. حریم خصوصی شما به‌صورت پیش‌فرض تضمین شده است. Your online activity cannot be tied back to you by advertisers, network operators, or centralized infrastructure. You can browse and communicate without leaving a data trail  across the internet.
 
-با NymVPN، فعالیت آنلاین شما توسط تبلیغ‌دهندگان، اپراتورهای شبکه یا زیرساخت‌های متمرکز قابل اتصال به هویت شما نیست. بدون ایجاد اثر انگشت رفتاری، مرور، تحقیق و ارتباط برقرار کنید.
+### CHOOSE YOUR PRIVACY LEVEL
 
-انتخاب سطح حریم خصوصی
+Fast Mode
 
-حالت سریع
-- مرور و استریم پرسرعت
-- VPN غیرمتمرکز دو مرحله‌ای
-- انتخاب سرورهای ورودی و خروجی در بیش از ۶۵ کشور
+- High-speed browsing and streaming
+- 2-hop decentralized VPN
+- AmneziaWG (WireGuard) protection
 
 حالت ناشناس
-- حداکثر ناشناسی برای پیام‌رسانی، ایمیل و تراکنش‌های مالی
-- Mixnet پنج مرحله‌ای با تولید نویز
-- مقاوم در برابر تحلیل پیشرفته ترافیک
 
-ویژگی‌های اصلی
-- اتصال پرسرعت در بیش از ۶۵ کشور
-- رمزنگاری چندلایه
-- پشتیبانی از dVPN AmneziaWG (WireGuard)
-- Kill Switch برای جلوگیری از نشت داده
-- فناوری پیشرفته ضد سانسور
-- Split tunneling
-- DNS سفارشی
-- حالت dApp و کیف پول برای تراکنش‌های خصوصی Ethereum
-- چرخش کلیدهای رمزنگاری
-- کاملاً بدون تبلیغ
-- کاملاً متن‌باز
+- Maximum anonymity for messaging, email, and financial transactions
+- 5-hop Noise Generating Mixnet
+- Resists advanced traffic analysis
 
-اکنون دانلود کنید. ناشناس ثبت‌نام کنید. با NymVPN ناپدید شوید.
+### ESSENTIAL FEATURES
+
+- Entry & exit server selection
+- Multi-layer encryption
+- dVPN AmneziaWG (WireGuard) support
+- Kill switch prevents data leaks
+- Advanced anti-censorship technology
+- تونلینگ تفکیکی
+- Custom DNS
+- Key rotation for cryptographic security
+- تجربه‌ای عاری از هرگونه تبلیغ
+- 100% open source software
+
+### WHY NYMVPN IS DIFFERENT
+
+Most VPNs rely on centralized servers and ask you to trust their "no-logs" promises. NymVPN به‌گونه‌ای متفاوت ساخته شده است.
+
+- Decentralized VPN (dVPN) architecture: Traffic is routed through independently operated servers. No one can see both who you are and what you do online.
+
+- Metadata protection: NymVPN protects traffic patterns, timing, and routing information. حتی داده‌های رمزگذاری‌شده هم می‌توانند متادیتا را افشا کنند. Nym prevents that.
+
+- Two privacy modes, one app: The FAST  mode uses a high-performance 2-hop decentralized VPN. The ANONYMOUS  mode uses a 5-hop mixnet for maximum anonymity.
+
+- Noise Generating Mixnet technology: Your traffic is mixed with cover traffic, making correlation and AI-driven traffic analysis extremely difficult.
+
+- حساب‌های دانش صفر از اساس: ثبت‌نام بدون ایمیل. بدون داده‌های شخصی. حساب‌ها به نحوه استفاده، قابل پیوند نیستند. برای ناشناسی کامل از پرداخت‌های ارز دیجیتال و نقدی پشتیبانی می‌کند.
+
+- شبکه‌سازی مقاوم در برابر سانسور: با AmneziaWG، QUIC، و گزینه‌های انتقال stealth ساخته شده است تا در محیط‌هایی با محدودیت شدید اینترنتی کار کند.
+
+- Open-source and independently audited.
+- Built by academic cryptographers
+
+### NYMVPN IS PERFECT FOR:
+
+- Streaming and browsing without being tracked
+- Secure public WiFi connections
+- Anyone in restrictive countries needing reliable access
+- People who want true anonymity, not just hidden IP addresses
+- Journalists and activists needing untraceable communication
+- Featured in PCMag, TechRadar, Forbes, Bloomberg, Tom's Guide
+
+همین حالا دانلود کنید. به‌صورت ناشناس ثبت‌نام کنید. با NymVPN نامرئی شوید.
+
+شرایط استفاده: https://nym.com/vpn-terms

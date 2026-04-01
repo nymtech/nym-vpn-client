@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
@@ -15,15 +15,10 @@ import {
 } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 import { CCache } from '../../../cache';
-import {
-  useAutologin,
-  useInAppNotify,
-  useMainDispatch,
-  useMainState,
-} from '../../../contexts';
+import { useAutologin, useInAppNotify, useMainState } from '../../../contexts';
 import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
-import { StateDispatch, TAccountSummary } from '../../../types';
+import { DeeplinkTimeout } from '../../../errors';
 import { AccountStatus } from './account-status';
 import { AccountDescription } from './AccountDescription';
 
@@ -41,34 +36,16 @@ function Account() {
     daemonStatus,
     accountSummary,
   } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
   const [autologinLoading, setAutologinLoading] = useState(false);
   const { autologin } = useAutologin();
   const needAPlan = account && accountState === 'no-subscription';
 
   const [isAccountLinking, setIsAccountLinking] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
-  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
 
   const { startListening } = useDeepLink();
   const { push } = useInAppNotify();
-
-  const refreshAccount = useCallback(async () => {
-    try {
-      const summary = await invoke<TAccountSummary>('get_account_summary');
-      dispatch({ type: 'set-account-summary', summary });
-    } catch (err) {
-      console.error('Failed to get account summary', err);
-    }
-  }, [dispatch]);
-
-  // get fresh account data
-  useEffect(() => {
-    if (accountSyncing) return;
-
-    refreshAccount();
-  }, [accountSyncing, refreshAccount]);
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -120,25 +97,14 @@ function Account() {
       });
       openUrl(linkUrl);
 
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutIdRef.current = setTimeout(
-          () => reject(new Error('Login timeout')),
-          300000,
-        );
-      });
-
-      const deeplinkUrl = await Promise.race([
-        startListening(),
-        timeoutPromise,
-      ]);
+      const deeplinkUrl = await startListening(300000);
 
       await invoke('store_deeplink_account', {
         callbackUrl: deeplinkUrl,
       });
-      await refreshAccount();
     } catch (error) {
       console.error('Account login error: ', error);
-      if (error instanceof Error && error.message === 'Login timeout') {
+      if (error instanceof DeeplinkTimeout) {
         push({
           message: t('account-linking-timeout', { ns: 'notifications' }),
           type: 'error',
@@ -154,18 +120,22 @@ function Account() {
         });
       }
     } finally {
-      if (timeoutIdRef.current !== null) {
-        clearTimeout(timeoutIdRef.current);
-        timeoutIdRef.current = null;
-      }
       setIsAccountLinking(false);
     }
   };
 
   const handleManageSubscription = async () => {
     setAutologinLoading(true);
+
     try {
       await autologin('autologinView');
+
+      // don't block. User may or may not do changes on the website.
+      void (async () => {
+        await startListening(600000);
+
+        await invoke<void>('handle_subscription_payment');
+      })();
     } finally {
       setAutologinLoading(false);
     }

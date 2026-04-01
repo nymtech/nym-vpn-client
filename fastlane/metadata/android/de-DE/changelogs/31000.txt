@@ -1,0 +1,5 @@
+Was ist Neu:
+Account-Infos: Details zu Abo und Bandbreite hinzugefügt.
+- UI Updates: Die Bilder auf dem Willkommensbildschirm wurden aktualisiert.
+- Technische Verbesserungen: Aktualisierte AGP-Version und optimierte QUIC-Einstellungen.
+- Fehlerbehebungen: Die Schaltfläche "Serverdetails verlassen" und die Sprachliste wurden korrigiert.

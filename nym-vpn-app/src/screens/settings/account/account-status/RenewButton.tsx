@@ -2,10 +2,13 @@ import { useTranslation } from 'react-i18next';
 import { useMemo, useState } from 'react';
 import { clsx } from 'clsx';
 import { Button } from '@headlessui/react';
+import { invoke } from '@tauri-apps/api/core';
 import { CardNewFooter, MsIcon, Spinner } from '../../../../ui';
 import { TAccountSummary } from '../../../../types';
 import { getAccountStatus } from '../utils';
-import { useAutologin } from '../../../../contexts';
+import { useAutologin, useInAppNotify } from '../../../../contexts';
+import { useDeepLink } from '../../../../hooks';
+import { DeeplinkTimeout } from '../../../../errors';
 
 export function RenewButton({
   accountSummary,
@@ -15,7 +18,9 @@ export function RenewButton({
   const { t } = useTranslation('account');
 
   const [autologinLoading, setAutologinLoading] = useState(false);
-  const { autologin } = useAutologin();
+  const { autologin, closeDialog } = useAutologin();
+  const { startListening } = useDeepLink();
+  const { push } = useInAppNotify();
 
   const status = useMemo(
     () => getAccountStatus(accountSummary),
@@ -26,6 +31,20 @@ export function RenewButton({
     setAutologinLoading(true);
     try {
       await autologin('autologinRenew');
+
+      await startListening(600000);
+
+      await invoke<void>('handle_subscription_payment');
+      closeDialog();
+    } catch (error: unknown) {
+      console.error('Renew button error: ', error);
+      if (error instanceof DeeplinkTimeout) {
+        push({
+          message: t('autologin.timeout', { ns: 'errors' }),
+          type: 'error',
+          duration: 3000,
+        });
+      }
     } finally {
       setAutologinLoading(false);
     }

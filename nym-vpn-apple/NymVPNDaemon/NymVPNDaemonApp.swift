@@ -68,7 +68,7 @@ struct NymVPNDaemonApp: App {
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
     @State private var splashScreenDidDisplay = false
-    @State private var menuBarImageName = "NymLogoDisabled"
+    @State private var menuBarImageName = "menubarDisconnected"
     @State private var menuBarConnectButtonState = ConnectButtonState.connect
     @State private var isMenuBarVisible: Bool
     @State private var isQuitModalDisplayed = false
@@ -188,12 +188,23 @@ private extension NymVPNDaemonApp {
     }
 
     func updateImageName(with status: TunnelStatus) {
-        menuBarImageName = status == .connected ? "NymLogo" : "NymLogoDisabled"
+        switch status {
+        case .connected:
+            menuBarImageName = "menubarConnected"
+        case .connecting, .reasserting, .restarting:
+            menuBarImageName = "menubarConnecting"
+        case .disconnected, .offline, .offlineReconnect, .unknown:
+            menuBarImageName = "menubarDisconnected"
+        case .disconnecting:
+            menuBarImageName = "menubarDisconnected"
+        case .error:
+            menuBarImageName = "menubarError"
+        }
     }
 
     var menuBarNSImage: NSImage {
         let image = NSImage(named: menuBarImageName) ?? NSImage()
-        image.size = NSSize(width: 18, height: 18)
+        image.size = NSSize(width: 25, height: 18)
         image.isTemplate = true
         return image
     }

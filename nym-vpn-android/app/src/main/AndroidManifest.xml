@@ -59,6 +59,8 @@
 				<data android:scheme="nymvpn" />
 				<data android:host="auth" />
 				<data android:pathPrefix="/privy/privateKey" />
+				<data android:host="account" />
+				<data android:pathPrefix="/response" />
 			</intent-filter>
 		</activity>
 
@@ -115,6 +117,7 @@
 				android:name="android.support.FILE_PROVIDER_PATHS"
 				android:resource="@xml/file_paths" />
 		</provider>
+
 		<meta-data
 			android:name="io.sentry.auto-init"
 			android:value="false" />

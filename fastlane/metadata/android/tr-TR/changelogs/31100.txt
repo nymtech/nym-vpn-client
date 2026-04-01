@@ -1,0 +1,5 @@
+Yenilikler:
+- Hesap Bilgileri: Abonelik ve bant genişliği detayları eklendi.
+- Arayüz Güncellemeleri: Karşılama ekranı görselleri yenilendi.
+- Teknik İyileştirmeler: AGP sürümü güncellendi ve QUIC ayarları sadeleştirildi.
+- Hata Düzeltmeleri: Çıkış sunucusu detay butonu ve dil listesi düzeltildi.

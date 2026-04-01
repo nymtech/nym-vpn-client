@@ -28,6 +28,9 @@ public struct GeneratePassphraseView: View {
     @State var isAlertDisplayed = false
     @State var isPurchasing = false
     @State var isPlanAlertDisplayed = false
+#if os(macOS)
+    @State var autologinState = AutologinState()
+#endif
 
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var credentialsManager: CredentialsManager
@@ -78,6 +81,9 @@ public struct GeneratePassphraseView: View {
                 }
             }
         }
+#if os(macOS)
+        .autologinOverlay(state: autologinState)
+#endif
     }
 
     public init(path: Binding<NavigationPath>, displayPurchaseView: Bool = false) {

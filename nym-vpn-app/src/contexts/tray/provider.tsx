@@ -50,9 +50,6 @@ export function TrayProvider({ children }: TrayProviderProps) {
   useEffect(() => {
     let stateValue = '';
 
-    console.log('daemonStatus', daemonStatus);
-    console.log('state', state);
-
     if (daemonStatus === 'auth-denied') {
       stateValue = `${t('state.state')}: ${t('state.auth-denied')}`;
     } else {
@@ -69,8 +66,10 @@ export function TrayProvider({ children }: TrayProviderProps) {
         case 'disconnecting':
           stateValue = `${t('state.state')}: ${t('state.disconnecting')}`;
           break;
-        case 'error':
         case 'offline':
+          stateValue = `${t('state.state')}: ${t('state.offline')}`;
+          break;
+        case 'error':
         case 'offline-auto-reconnect':
         case 'unknown':
           stateValue = `${t('state.state')}: ${t('state.error')}`;

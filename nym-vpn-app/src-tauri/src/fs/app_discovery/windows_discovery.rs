@@ -1,5 +1,3 @@
-#![cfg(windows)]
-
 use super::App;
 use crate::error::BackendError;
 use crate::icon_extractor::extract_icon_to_cache;
@@ -7,9 +5,8 @@ use std::collections::HashMap;
 use std::os::windows::ffi::OsStrExt as _;
 use std::path::{Path, PathBuf};
 use tauri::Manager;
-use tracing::{debug, info};
+use tracing::debug;
 
-// ─── Public entry point ───────────────────────────────────────────────────────
 
 pub fn get_windows_apps(app: tauri::AppHandle) -> Result<Vec<App>, BackendError> {
     let mut apps: HashMap<String, App> = HashMap::new();
@@ -26,7 +23,7 @@ pub fn get_windows_apps(app: tauri::AppHandle) -> Result<Vec<App>, BackendError>
         .map_err(|e| BackendError::internal(&e.to_string(), None))?
         .join("icons");
 
-    info!("icon cache dir: {}", cache_dir.display());
+    debug!("icon cache dir: {}", cache_dir.display());
 
     for entry in &mut result {
         if let Some(icon) = &entry.icon {
@@ -38,7 +35,7 @@ pub fn get_windows_apps(app: tauri::AppHandle) -> Result<Vec<App>, BackendError>
     Ok(result)
 }
 
-// ─── Start Menu shortcuts (.lnk) ─────────────────────────────────────────────
+// Start Menu shortcuts (.lnk)
 
 fn start_menu_dirs() -> Vec<PathBuf> {
     let mut dirs = vec![
@@ -107,7 +104,7 @@ fn parse_lnk(lnk_path: &Path) -> Option<App> {
     })
 }
 
-// ─── COM / IShellLink ─────────────────────────────────────────────────────────
+// COM / IShellLink
 
 /// Resolve the target `.exe` path of a `.lnk` file via the Windows Shell COM API.
 ///

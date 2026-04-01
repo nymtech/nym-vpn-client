@@ -272,7 +272,6 @@ private extension AccountWelcomeView {
         ImpactGenerator.shared.impact()
         path.append(SettingLink.generatePassphrase(displayPurchaseView: false))
 #elseif os(macOS)
-        // TODO: new create account deeeeeplink
         let createAccountLink = try? await credentialsManager.privyLogin(kind: .createAccount)
         try? externalLinkManager.openExternalURL(urlString: createAccountLink)
 #endif

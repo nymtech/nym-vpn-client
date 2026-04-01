@@ -1,5 +1,5 @@
 Yenilikler:
-- Added subscription checks, account summaries, and social linking.
-- Masked password inputs and resolved login errors.
-- Removed logout from settings and fixed main screen error alerts.
-- Fixed device startup (boot receiver) bugs.
+- Abonelik kontrolleri, hesap özetleri ve sosyal medya hesabı bağlama eklendi.
+- Şifre giriş alanları maskelendi ve giriş hataları giderildi.
+- Ayarlardan çıkış yapma seçeneği kaldırıldı ve ana ekran hata bildirimleri düzeltildi.
+- Cihaz başlangıcı (açılış alıcısı) ile ilgili hatalar düzeltildi.

@@ -28,12 +28,14 @@ export const getAccountStateDescription = (
   accountSyncing: boolean,
   state?: AccountState | null,
 ) => {
-  if (!state) {
-    return null;
-  }
   if (accountSyncing) {
     return t('account.syncing');
   }
+
+  if (!state) {
+    return null;
+  }
+
   switch (state) {
     case 'no-subscription':
       return t('account.no-plan');
@@ -46,8 +48,9 @@ export const getAccountStateDescription = (
     case 'requesting-zk-nyms':
       return t('account.requesting-zknyms');
     case 'offline':
+      return t('account.offline', { ns: 'errors' });
     case 'error':
-      return t('account.error');
+      return t('account.internal', { ns: 'errors' });
     default:
       return null;
   }

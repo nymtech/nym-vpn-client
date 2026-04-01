@@ -11,8 +11,7 @@ use futures::StreamExt;
 use nym_vpn_proto::rpc_client::{Error as DaemonRpcError, RpcClient as DaemonRpcClient};
 use tokio_util::sync::CancellationToken;
 
-#[cfg(target_os = "macos")]
-use nym_vpn_lib_types::SplitApp;
+use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, EntryPoint, ExitPoint,
     FeatureFlags, Gateway, GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath,
@@ -20,6 +19,8 @@ use nym_vpn_lib_types::{
     PrivyDerivationMessage, Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode,
     SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
+#[cfg(target_os = "macos")]
+use nym_vpn_lib_types::{SplitApp, SplitTunnelExcludedProcessList};
 
 uniffi::use_remote_type!(nym_vpn_lib_types::IpAddr);
 
@@ -271,6 +272,11 @@ impl RpcClient {
         Ok(summary)
     }
 
+    pub async fn handle_subscription_payment(&self) -> Result<()> {
+        self.inner.clone().handle_subscription_payment().await?;
+        Ok(())
+    }
+
     pub async fn get_deeplink(&self, params: GetDeeplinkParams) -> Result<String> {
         Ok(self.inner.clone().get_deeplink(params).await?)
     }
@@ -411,6 +417,16 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn get_split_tunnel_excluded_processes(
+        &self,
+    ) -> Result<SplitTunnelExcludedProcessList> {
+        Ok(self
+            .inner
+            .clone()
+            .get_split_tunnel_excluded_processes()
+            .await?)
+    }
+
     pub async fn need_full_disk_permissions(&self) -> Result<bool> {
         let value = self.inner.clone().need_full_disk_permissions().await?;
         Ok(value)
@@ -460,6 +476,14 @@ impl RpcError {
         match &self.inner {
             InnerRpcError::AccountCommand(err) => Some(err.as_ref().clone()),
             _ => None,
+        }
+    }
+
+    /// Print the underlying error chain
+    pub fn display_chain(&self) -> String {
+        match &self.inner {
+            InnerRpcError::AccountCommand(err) => err.display_chain(),
+            InnerRpcError::RpcError(err) => err.display_chain(),
         }
     }
 }

@@ -6,7 +6,7 @@ import { useMainState } from '../contexts';
 import { EventNotification } from '../layers';
 import { routes } from '../router';
 import { DaemonDot, Notifications, TopBar } from '../ui';
-// import InitialNavigation from './InitialNavigation';
+import InitialNavigation from './InitialNavigation';
 import { SystemAuthentication } from './SystemAuthentication';
 
 type MainLayoutProps = {
@@ -48,7 +48,7 @@ function MainLayout({
       ])}
     >
       {/* Responsible for navigating to onboarding for new users on app startup */}
-      {/* <InitialNavigation /> */}
+      <InitialNavigation />
       {/* Responsible for displaying the system authentication modal when the daemon is not authenticated */}
       <SystemAuthentication />
       {!noNotifications && <Notifications />}
@@ -62,7 +62,7 @@ function MainLayout({
             location.pathname === routes.entryNodeLocation ||
             location.pathname === routes.exitNodeLocation ||
             location.pathname === routes.nodeDetails) &&
-            'p-0!',
+          'p-0!',
         ])}
       >
         <div
