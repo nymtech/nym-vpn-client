@@ -129,8 +129,6 @@ pub(crate) async fn update_files(
                 );
             }
             Err(error) => {
-                // Log and continue — a failed update for one country should not
-                // prevent other countries from being updated.
                 tracing::warn!(
                     "Failed to update airporting data files for country {}: {error}",
                     source.country_code
@@ -157,32 +155,6 @@ pub(crate) struct Source {
 impl Source {
     const TEMP_DATA_FILE_NAME: &'static str = "temp_data";
     const TEMP_META_FILE_NAME: &'static str = "temp_meta";
-
-    async fn init(&self, airporting_path: &Path, force: bool) -> Result<()> {
-        let data_path = airporting_path.join(self.file_name);
-        if force || !data_path.exists() {
-            fs::write(&data_path, self.builtin).await.map_err(|error| {
-                AirportingError::WriteFile {
-                    file_path: data_path.clone(),
-                    error,
-                }
-            })?;
-            tracing::debug!("Initialized airporting data file {}", data_path.display());
-        }
-
-        let meta_path = airporting_path.join(self.meta_file_name);
-        if force || !meta_path.exists() {
-            fs::write(&meta_path, self.meta_builtin)
-                .await
-                .map_err(|error| AirportingError::WriteFile {
-                    file_path: meta_path.clone(),
-                    error,
-                })?;
-            tracing::debug!("Initialized airporting meta file {}", meta_path.display());
-        }
-
-        Ok(())
-    }
 
     /// Update the data file on disk from the source website.
     /// Returns: Ok(true) if the file was updated.

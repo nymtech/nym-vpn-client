@@ -4,7 +4,6 @@
 use std::path::PathBuf;
 
 pub mod files;
-pub mod task;
 
 #[derive(thiserror::Error, Debug)]
 pub enum AirportingError {
