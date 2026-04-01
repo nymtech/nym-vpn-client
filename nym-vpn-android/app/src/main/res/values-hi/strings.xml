@@ -163,6 +163,7 @@
 	<string name="skip">स्किप करें</string>
 	<string name="get_started">शुरू करें</string>
 	<string name="random_text">रैंडम</string>
+	<string name="title_retry">पुनः प्रयास करें</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">स्ट्रीम डिस्प्ले</string>
 	<string name="streaming_server_banner_title">नया: स्ट्रीमिंग-\nअनुकूलित सर्वर खोजें (▶️)</string>
@@ -254,6 +255,7 @@
 	<string name="notification_improve_title">अपने कनेक्शन की गति \nसुधारने में मदद करें</string>
 	<string name="notification_improve_button">अभी सुधारें</string>
 	<string name="notification_stats_enabled">स्टैट्स एनेबल कर दिए गए हैं ! आपका गुमनाम डेटा हमारे नेटवर्क को अनुकूलित करने में मदद करता है।</string>
+	<string name="privacy_diagnostic_tool">डायग्नोस्टिक टूल</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">जारी रखें</string>
 	<string name="welcome_title">NymVPN को बेहतर बनाने में हमारी मदद करें</string>
@@ -411,9 +413,17 @@
 	<string name="account_info_contact_support_suffix">\u0020अतिरिक्त बैंडविड्थ के लिए टीम।</string>
 	<string name="account_info_valid_text">यह प्लान %s तक वैध है</string>
 	<string name="account_info_expires_text">यह प्लान %s को समाप्त हो रहा है</string>
+	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
 	<string name="account_info_renew_text">सुरक्षित रहने के लिए अभी रिन्यू करें</string>
+	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*ऑटो-रिन्यू</string>
 	<string name="account_info_no_plan">कोई सक्रिय प्लान नहीं</string>
+	<string name="account_info_autologin_fetching">Fetching access code…</string>
+	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>
+	<string name="pin_code_title">Pin code</string>
+	<string name="pin_code_subtitle">Enter this code on web</string>
+	<string name="pin_code_copy_and_open">Copy code and open web</string>
+	<string name="pin_code_copied">Copied!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">लॉगिंग एनेबल करें</string>
 	<string name="logs_enable_description">समस्या निवारण के लिए इसे चालू करें। प्राइवेसी के लिए इसे बंद करें। लॉग आपके डिवाइस पर ही रहेंगे। Nym को कभी भी इन तक ऐक्सेस नहीं होगा।</string>
@@ -513,4 +523,13 @@
 	<string name="mixnet_tuning_link_text">मिक्सनेट पैरामीटर के बारे में और जानें</string>
 	<string name="mixnet_tuning_save_button">कस्टम सेटिंग्स सेव करें</string>
 	<string name="mixnet_tuning_restore_button">डिफाल्ट सेटिंग रिस्टोर करो</string>
+	<!-- Diagnostic screen -->
+	<string name="diagnostic_run_button">Run diagnostics</string>
+	<string name="diagnostic_share_button">रिपोर्ट शेयर करें</string>
+	<string name="diagnostic_report_title">डायग्नोस्टिक रिपोर्ट</string>
+	<string name="diagnostic_copy_report">Copy report</string>
+	<string name="diagnostic_copied">क्लिपबोर्ड में कॉपी किया गया</string>
+	<string name="diagnostic_error">Diagnostics failed</string>
+	<!-- Developer screen -->
+	<string name="developer_lewes_title">Enable Lewes Protocol</string>
 </resources>

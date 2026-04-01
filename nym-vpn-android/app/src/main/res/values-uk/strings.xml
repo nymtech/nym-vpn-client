@@ -163,6 +163,7 @@
 	<string name="skip">Пропустити</string>
 	<string name="get_started">Почати</string>
 	<string name="random_text">Випадковий</string>
+	<string name="title_retry">Повторити спробу</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Показ стріму</string>
 	<string name="streaming_server_banner_title">Нове: Відкрийте для себе сервери, оптимізовані для потокового передавання (▶️)</string>
@@ -237,7 +238,7 @@
 	<string name="battery_opt">Оптимізація батареї</string>
 	<string name="battery_opt_settings_text">Налаштування оптимізації батареї можна змінювати в будь-який час у налаштуваннях програми.</string>
 	<!-- Data & Privacy screen -->
-	<string name="privacy_title">Дані &amp; Конфіденційність</string>
+	<string name="privacy_title">Дані, конфіденційність &amp; та журнали</string>
 	<string name="privacy_anonymous_stats_title">Анонімна статистика мережі</string>
 	<string name="privacy_anonymous_stats_description">Допоможіть нам створити швидшу мережу, поділившись анонімними даними про продуктивність у вашому регіоні. Ми використовуємо ці дані для оптимізації швидкості, зменшення кількості розривів з\'єднання та спрямування покриття сервера туди, де це найбільш потрібно. \n\nМи ділимося лише даними про продуктивність мережі – ніколи вашою активністю в Інтернеті чи особистими даними.</string>
 	<string name="privacy_anonymous_stats_link_text">Дізнайтеся, що саме публікується</string>
@@ -254,6 +255,7 @@
 	<string name="notification_improve_title">Допоможіть покращити \nвашу швидкість з\'єднання</string>
 	<string name="notification_improve_button">Покращити зараз</string>
 	<string name="notification_stats_enabled">Статистика увімкнена! Ваші анонімні дані допомагають оптимізувати нашу мережу.</string>
+	<string name="privacy_diagnostic_tool">Діагностичний інструмент</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Продовжити</string>
 	<string name="welcome_title">Допоможіть нам покращити NymVPN</string>
@@ -411,9 +413,17 @@
 	<string name="account_info_contact_support_suffix">\u0020команда для додаткової пропускної здатності.</string>
 	<string name="account_info_valid_text">План дійсний до %s</string>
 	<string name="account_info_expires_text">Термін дії плану закінчується %s</string>
+	<string name="banner_plan_expires_text">Термін дії плану закінчується:\n%s</string>
 	<string name="account_info_renew_text">Поновіть зараз, щоб залишатися захищеним</string>
+	<string name="banner_renew_text">Поновіть зараз\nщоб залишатися захищеним</string>
 	<string name="account_info_auto_renew_text">*Автоматичне поновлення</string>
 	<string name="account_info_no_plan">Немає активного плану</string>
+	<string name="account_info_autologin_fetching">Отримання коду доступу…</string>
+	<string name="account_info_autologin_error">Не вдалося отримати код доступу. Спробуйте ще раз.</string>
+	<string name="pin_code_title">PIN-код</string>
+	<string name="pin_code_subtitle">Введіть цей код на веб-сайті</string>
+	<string name="pin_code_copy_and_open">Скопіюйте код і відкрийте веб-сторінку</string>
+	<string name="pin_code_copied">Скопійовано!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">Увімкнути журнал</string>
 	<string name="logs_enable_description">Увімкніть для усунення несправностей. Вимкніть для збереження конфіденційності. Журнали залишаються на вашому пристрої. Nym ніколи не має до них доступу.</string>
@@ -513,4 +523,13 @@
 	<string name="mixnet_tuning_link_text">Дізнайтеся більше про параметри мікснету</string>
 	<string name="mixnet_tuning_save_button">Зберегти власні налаштування</string>
 	<string name="mixnet_tuning_restore_button">Відновіть налаштування за замовчуванням</string>
+	<!-- Diagnostic screen -->
+	<string name="diagnostic_run_button">Запустити діагностику</string>
+	<string name="diagnostic_share_button">Поділитися звітом</string>
+	<string name="diagnostic_report_title">Діагностичний звіт</string>
+	<string name="diagnostic_copy_report">Скопіювати звіт</string>
+	<string name="diagnostic_copied">Скопійовано в буфер обміну</string>
+	<string name="diagnostic_error">Діагностика не вдалася</string>
+	<!-- Developer screen -->
+	<string name="developer_lewes_title">Увімкнути протокол Lewes</string>
 </resources>

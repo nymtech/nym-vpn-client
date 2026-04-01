@@ -7,15 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 31.03.2026
+
 ### Added
 - Add Diagnostic tool (https://github.com/nymtech/nym-vpn-client/pull/4923)
 - Add Lewes Protocol do Developer screen (https://github.com/nymtech/nym-vpn-client/pull/4928)
 - Add autologin UI and logic (https://github.com/nymtech/nym-vpn-client/pull/4929)
 - Add Random options to Entry/Exit locations list (https://github.com/nymtech/nym-vpn-client/pull/4963)
 - Add info banner for subscription state (https://github.com/nymtech/nym-vpn-client/pull/4962)
+- Add restricted apps update on reconnect (https://github.com/nymtech/nym-vpn-client/pull/5014)
 
 ### Changed
 - Use isLinked() for Privy checks (https://github.com/nymtech/nym-vpn-client/pull/4924)
+
+### Fixed
+- Fix Crowdin config (remove video.txt) (https://github.com/nymtech/nym-vpn-client/pull/5019)
 
 ## [3.1.2] - 21.03.2026
 

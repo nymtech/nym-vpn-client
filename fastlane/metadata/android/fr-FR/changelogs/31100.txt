@@ -1,0 +1,5 @@
+Nouveautés :
+- Infos sur le compte : ajout de détails d'abonnement et de bande passante.
+- Mises à jour de l'interface : Images d'écran d'accueil actualisées.
+- Améliorations techniques : Mise à jour de la version AGP et rationalisation des paramètres QUIC.
+- Corrections de bugs : Correction du bouton de détails du serveur de sortie et de la liste de langue.
