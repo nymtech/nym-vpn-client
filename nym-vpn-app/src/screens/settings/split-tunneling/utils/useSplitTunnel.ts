@@ -53,7 +53,6 @@ export const useSplitTunnel = () => {
     }));
   }, [splitTunnelApps, installedApps]);
 
-
   const setEnabled = async (enabled: boolean) => {
     try {
       await invoke('set_enable_split_tunnel', { enabled });
@@ -71,7 +70,9 @@ export const useSplitTunnel = () => {
   const add = async (app: AppEntry) => {
     if (app.state === 'included') return;
     try {
-      await invoke('add_app_to_split_tunnel', { app: { path: app.executable_path } });
+      await invoke('add_app_to_split_tunnel', {
+        app: { path: app.executable_path },
+      });
       dispatch({
         type: 'set-split-tunnel-apps',
         apps: [...splitTunnelApps, { path: app.executable_path }],
@@ -84,15 +85,19 @@ export const useSplitTunnel = () => {
         type: 'error',
       });
     }
-  }
+  };
 
   const remove = async (app: AppEntry) => {
     if (app.state === 'excluded') return;
     try {
-      await invoke('remove_app_from_split_tunnel', { app: { path: app.executable_path } });
+      await invoke('remove_app_from_split_tunnel', {
+        app: { path: app.executable_path },
+      });
       dispatch({
         type: 'set-split-tunnel-apps',
-        apps: splitTunnelApps.filter((existing) => existing.path !== app.executable_path),
+        apps: splitTunnelApps.filter(
+          (existing) => existing.path !== app.executable_path,
+        ),
       });
     } catch (error) {
       console.error('Failed to remove app from split tunneling', error);

@@ -3,10 +3,9 @@ import { convertFileSrc } from '@tauri-apps/api/core';
 import MsIcon from '../../../ui/MsIcon';
 import { App } from '../../../types';
 
-
 export type AppEntry = App & {
   state: 'excluded' | 'included';
-}
+};
 
 type AppItemProps = {
   app: AppEntry;
@@ -18,7 +17,6 @@ type AppItemProps = {
 };
 
 function AppItem({ app, enabled, onStateChange }: AppItemProps) {
-
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-charcoal">
       <div className="w-7 h-7 flex items-center justify-center">
