@@ -13,6 +13,8 @@ use std::net::IpAddr;
 use tauri::{Manager, State};
 use tracing::{debug, info, instrument, warn};
 
+// use crate::fs::app_discovery::{App, get_installed_apps};
+
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn get_tunnel_state(
@@ -242,39 +244,19 @@ pub async fn set_enable_split_tunnel(
     Ok(())
 }
 
-#[cfg(windows)]
+use crate::fs::app_discoveryold::{App, get_installed_apps};
+
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_app_list(
-    app: tauri::AppHandle,
-) -> Result<Vec<crate::fs::apps_windows::WindowsApp>, BackendError> {
-    let cache_dir = app
-        .path()
-        .app_cache_dir()
-        .map_err(|e| BackendError::internal(&e.to_string(), None))?
-        .join("icons");
-
-    info!("icon cache dir: {}", cache_dir.display());
-
+pub async fn get_app_list(app: tauri::AppHandle) -> Result<Vec<App>, BackendError> {
     let apps = tokio::task::spawn_blocking(move || {
-        let mut apps = crate::fs::apps_windows::get_installed_apps();
-
-        for entry in &mut apps {
-            // Prefer the dedicated icon path; fall back to the executable itself.
-            let source = entry.icon.as_deref().or(entry.executable_path.as_deref());
-
-            if let Some(src) = source {
-                entry.icon = crate::icon_extractor::extract_icon_to_cache(src, &cache_dir)
-                    .map(|p| p.to_string_lossy().into_owned());
-            }
-        }
-
+        let apps = get_installed_apps(app);
         apps
     })
     .await
     .map_err(|e| BackendError::internal(&e.to_string(), None))?;
 
-    Ok(apps)
+    apps
 }
 
 #[instrument(skip_all)]

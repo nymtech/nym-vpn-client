@@ -1,17 +1,14 @@
 import clsx from 'clsx';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import MsIcon from '../../../ui/MsIcon';
+import { App } from '../../../types';
 
-export type AppEntry = {
-  id: string;
-  name: string;
-  exec: string;
-  icon: string | null;
-  desktop_file: string;
+
+export type AppEntry = App & {
   state: 'excluded' | 'included';
-};
+}
 
-type Props = {
+type AppItemProps = {
   app: AppEntry;
   enabled: boolean;
   onStateChange: (
@@ -20,7 +17,7 @@ type Props = {
   ) => Promise<void>;
 };
 
-function AppItem({ app, enabled, onStateChange }: Props) {
+function AppItem({ app, enabled, onStateChange }: AppItemProps) {
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-charcoal">

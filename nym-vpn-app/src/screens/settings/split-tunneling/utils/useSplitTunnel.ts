@@ -6,7 +6,7 @@ import {
   useMainState,
 } from '../../../../contexts';
 import { StateDispatch } from '../../../../types';
-import { App, SplitApp } from '../../../../types/tauri';
+import { App } from '../../../../types/tauri';
 import { AppEntry } from '../AppItem';
 
 export const useSplitTunnel = () => {
@@ -25,8 +25,6 @@ export const useSplitTunnel = () => {
 
       try {
         const appList = await invoke<App[]>('get_app_list');
-        console.log('appList', appList);
-
         setInstalledApps(appList);
       } catch (err: unknown) {
         console.error('Failed to get app list', err);
@@ -39,17 +37,16 @@ export const useSplitTunnel = () => {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const appList: AppEntry[] = useMemo(() => {
-    return installedApps.map((app) => ({
-      id: app.id,
+    return installedApps.map<AppEntry>((app) => ({
       name: app.name,
-      exec: app.exec,
-      icon: app.icon ?? null,
-      desktop_file: app.desktop_file,
+      executable_path: app.executable_path,
+      icon: app.icon,
       state: splitTunnelApps.some(
-        (existing) => existing.path === app.desktop_file,
+        (existing) => existing.path === app.executable_path,
       )
         ? 'included'
         : 'excluded',
@@ -71,35 +68,31 @@ export const useSplitTunnel = () => {
     }
   };
 
-  const add = async (app: SplitApp) => {
-    console.log('add', app);
-    if (!splitTunnelApps.some((existing) => existing.path === app.path)) {
-      try {
-        // await invoke('add_app_to_split_tunnel', { app: { path: app.path } });
-        await invoke('add_app_to_split_tunnel', {
-          app: { path: app.path }
-        });
-        dispatch({
-          type: 'set-split-tunnel-apps',
-          apps: [...splitTunnelApps, app],
-        });
-      } catch (error) {
-        console.error('Failed to add app to split tunneling', error);
-        push({
-          message: 'Failed to add app to split tunneling',
-          close: true,
-          type: 'error',
-        });
-      }
-    }
-  };
-
-  const remove = async (app: SplitApp) => {
+  const add = async (app: AppEntry) => {
+    if (app.state === 'included') return;
     try {
-      await invoke('remove_app_from_split_tunnel', { app });
+      await invoke('add_app_to_split_tunnel', { app: { path: app.executable_path } });
       dispatch({
         type: 'set-split-tunnel-apps',
-        apps: splitTunnelApps.filter((existing) => existing.path !== app.path),
+        apps: [...splitTunnelApps, { path: app.executable_path }],
+      });
+    } catch (error) {
+      console.error('Failed to add app to split tunneling', error);
+      push({
+        message: 'Failed to add app to split tunneling',
+        close: true,
+        type: 'error',
+      });
+    }
+  }
+
+  const remove = async (app: AppEntry) => {
+    if (app.state === 'excluded') return;
+    try {
+      await invoke('remove_app_from_split_tunnel', { app: { path: app.executable_path } });
+      dispatch({
+        type: 'set-split-tunnel-apps',
+        apps: splitTunnelApps.filter((existing) => existing.path !== app.executable_path),
       });
     } catch (error) {
       console.error('Failed to remove app from split tunneling', error);

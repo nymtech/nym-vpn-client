@@ -10,62 +10,6 @@ import InfoDialog from './InfoDialog';
 import AppItem, { AppEntry } from './AppItem';
 import { useSplitTunnel } from './utils';
 
-// Icon background colors for app entries (derived from app name hash)
-// const ICON_COLORS = [
-//   '#e53935',
-//   '#e67c00',
-//   '#f9a825',
-//   '#43a047',
-//   '#00897b',
-//   '#1e88e5',
-//   '#6d4c41',
-//   '#8e24aa',
-//   '#546e7a',
-//   '#d81b60',
-// ];
-
-// function iconColorForName(name: string): string {
-//   let hash = 0;
-//   for (let i = 0; i < name.length; i++) {
-//     hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
-//   }
-//   return ICON_COLORS[hash % ICON_COLORS.length];
-// }
-
-// Mock app data – will be replaced with data from the backend
-// const MOCK_APPS: AppEntry[] = [
-//   'Adobe Acrobat',
-//   'AirWater',
-//   'Amazon',
-//   'Brave Browser',
-//   'Chrome',
-//   'Coinbase',
-//   'Discord',
-//   'Dropbox',
-//   'Firefox',
-//   'Finder',
-//   'Google Drive',
-//   'Gmail',
-//   'Notion',
-//   'Notes',
-//   'Safari',
-//   'Signal',
-//   'Slack',
-//   'Spotify',
-//   'Terminal',
-//   'Telegram',
-//   'Visual Studio Code',
-//   'VLC',
-//   'WhatsApp',
-//   'Xcode',
-//   'YouTube',
-//   'Zoom',
-// ].map((name) => ({
-//   id: name.toLowerCase().replace(/\s+/g, '-'),
-//   name,
-//   iconColor: iconColorForName(name),
-//   state: 'included' as const,
-// }));
 
 function SplitTunneling() {
   const { t } = useTranslation('settings');
@@ -89,11 +33,10 @@ function SplitTunneling() {
   const letters = useMemo(() => Object.keys(groupedApps).sort(), [groupedApps]);
 
   const handleStateChange = async (app: AppEntry, state: AppEntry['state']) => {
-    console.log('handleStateChange', app, state);
     if (state === 'included') {
-      await add({ path: app.desktop_file });
+      await add(app);
     } else {
-      await remove({ path: app.desktop_file });
+      await remove(app);
     }
   };
 
@@ -159,7 +102,7 @@ function SplitTunneling() {
 
                     {/* Apps in this section */}
                     {groupedApps[letter].map((app, i) => (
-                      <div key={app.id}>
+                      <div key={app.name}>
                         <AppItem app={app} enabled={enabled} onStateChange={handleStateChange} />
                         {i < groupedApps[letter].length - 1 && (
                           <div className="mx-4 h-px bg-mercury/60 dark:bg-white/5" />
