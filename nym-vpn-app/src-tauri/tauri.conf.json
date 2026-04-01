@@ -44,7 +44,17 @@
       "assetProtocol": {
         "enable": true,
         "scope": {
-          "allow": ["$APPCACHE/**"],
+          "allow": [
+            "$APPCACHE/**",
+            "$HOME/.local/share/icons/**/*",
+            "$HOME/.icons/**/*",
+            "$HOME/.local/share/flatpak/**/*",
+            "/var/lib/flatpak/exports/share/icons/**/*",
+            "/usr/share/icons/**/*",
+            "/usr/share/pixmaps/**/*",
+            "/tmp/**/*",
+            "/snap/**/*"
+          ],
           "requireLiteralLeadingDot": false
         }
       }

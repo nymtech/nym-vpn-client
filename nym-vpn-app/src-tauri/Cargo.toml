@@ -90,7 +90,7 @@ windows = { version = "0.61.3", features = [
 ] }
 winreg = "0.52"
 
-[target."cfg(linux)".dependencies]
+[target.'cfg(target_os = "linux")'.dependencies]
 freedesktop-desktop-entry = "0.8"
 freedesktop-icons = "0.4"
 

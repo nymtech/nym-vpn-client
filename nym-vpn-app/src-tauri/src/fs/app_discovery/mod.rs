@@ -5,6 +5,9 @@ use ts_rs::TS;
 #[cfg(windows)]
 mod windows_discovery;
 
+#[cfg(target_os = "linux")]
+mod linux_discovery;
+
 #[derive(Debug, Clone, Serialize, TS)]
 #[ts(export, export_to = "tauri.ts")]
 pub struct App {
@@ -16,15 +19,14 @@ pub struct App {
 }
 
 /// Return all installed applications on the current platform.
-pub fn get_installed_apps(app: tauri::AppHandle) -> Result<Vec<App>, BackendError> {
+pub fn get_installed_apps(_app: tauri::AppHandle) -> Result<Vec<App>, BackendError> {
     #[cfg(target_os = "windows")]
     {
-        windows_discovery::get_windows_apps(app)
+        windows_discovery::get_windows_apps(_app)
     }
 
     #[cfg(target_os = "linux")]
     {
-        let _ = app;
-        Ok(vec![])
+        linux_discovery::get_linux_apps()
     }
 }
