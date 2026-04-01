@@ -244,7 +244,7 @@ pub async fn set_enable_split_tunnel(
     Ok(())
 }
 
-use crate::fs::app_discoveryold::{App, get_installed_apps};
+use crate::fs::app_discovery::{App, get_installed_apps};
 
 #[instrument(skip_all)]
 #[tauri::command]
