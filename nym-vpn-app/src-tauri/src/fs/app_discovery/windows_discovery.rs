@@ -64,11 +64,10 @@ fn scan_lnk_dir(dir: &Path, apps: &mut HashMap<String, App>) {
             scan_lnk_dir(&path, apps);
         } else if path
             .extension()
-            .map_or(false, |e| e.eq_ignore_ascii_case("lnk"))
+            .is_some_and(|e| e.eq_ignore_ascii_case("lnk"))
+            && let Some(app) = parse_lnk(&path)
         {
-            if let Some(app) = parse_lnk(&path) {
-                apps.entry(app.name.clone()).or_insert(app);
-            }
+            apps.entry(app.name.clone()).or_insert(app);
         }
     }
 }
@@ -84,10 +83,7 @@ fn parse_lnk(lnk_path: &Path) -> Option<App> {
     let target = unsafe { com_resolve_lnk(lnk_path) }?;
 
     let p = PathBuf::from(&target);
-    if !p
-        .extension()
-        .map_or(false, |e| e.eq_ignore_ascii_case("exe"))
-    {
+    if !p.extension().is_some_and(|e| e.eq_ignore_ascii_case("exe")) {
         return None;
     }
     if !p.exists() {

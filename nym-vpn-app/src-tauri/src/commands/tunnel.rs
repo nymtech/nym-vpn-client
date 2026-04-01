@@ -247,14 +247,9 @@ use crate::fs::app_discovery::{App, get_installed_apps};
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn get_app_list(app: tauri::AppHandle) -> Result<Vec<App>, BackendError> {
-    let apps = tokio::task::spawn_blocking(move || {
-        let apps = get_installed_apps(app);
-        apps
-    })
-    .await
-    .map_err(|e| BackendError::internal(&e.to_string(), None))?;
-
-    apps
+    tokio::task::spawn_blocking(move || get_installed_apps(app))
+        .await
+        .map_err(|e| BackendError::internal(&e.to_string(), None))?
 }
 
 #[instrument(skip_all)]
