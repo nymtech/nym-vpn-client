@@ -57,7 +57,6 @@ pub fn extract_icon_to_cache(exe_path: &str, cache_dir: &Path) -> Option<PathBuf
     unsafe { extract_and_save(PCWSTR(wide.as_ptr()), &cache_path) }
 }
 
-
 /// Call `SHGetFileInfoW` to obtain an `HICON`, then render it to `output`.
 ///
 /// # Safety

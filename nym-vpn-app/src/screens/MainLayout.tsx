@@ -62,7 +62,7 @@ function MainLayout({
             location.pathname === routes.entryNodeLocation ||
             location.pathname === routes.exitNodeLocation ||
             location.pathname === routes.nodeDetails) &&
-          'p-0!',
+            'p-0!',
         ])}
       >
         <div

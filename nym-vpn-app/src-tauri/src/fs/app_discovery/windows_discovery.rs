@@ -7,7 +7,6 @@ use std::path::{Path, PathBuf};
 use tauri::Manager;
 use tracing::debug;
 
-
 pub fn get_windows_apps(app: tauri::AppHandle) -> Result<Vec<App>, BackendError> {
     let mut apps: HashMap<String, App> = HashMap::new();
 

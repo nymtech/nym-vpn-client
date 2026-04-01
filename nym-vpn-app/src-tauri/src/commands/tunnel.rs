@@ -13,7 +13,6 @@ use std::net::IpAddr;
 use tauri::{Manager, State};
 use tracing::{debug, info, instrument, warn};
 
-
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn get_tunnel_state(
