@@ -70,6 +70,11 @@ function Settings() {
       dispatch({ type: 'set-enable-lewes-protocol', enabled: switched });
     } catch (error) {
       console.error('[settings] lewes protocol error', error);
+      push({
+        message: t('lewes.errors.failed'),
+        close: true,
+        type: 'error',
+      });
     }
   };
 
