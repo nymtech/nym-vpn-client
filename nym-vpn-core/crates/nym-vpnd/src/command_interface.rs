@@ -1060,7 +1060,7 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(proto_report))
     }
 
-    async fn is_split_tunnel_available(
+    async fn is_split_tunnel_supported(
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<bool>> {
@@ -1068,7 +1068,7 @@ impl NymVpnService for CommandInterface {
         {
             let is_available = self
                 .send_and_wait(
-                    VpnServiceCommand::IsSplitTunnelAvailable,
+                    VpnServiceCommand::IsSplitTunnelSupported,
                     _request.into_inner(),
                 )
                 .await?;

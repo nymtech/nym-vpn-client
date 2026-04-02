@@ -35,6 +35,126 @@ use process_monitor::{ProcessEvent, ProcessMonitor};
 
 use crate::SplitTunnelErrorCause;
 
+pub struct SplitTunnel {
+    state: State,
+    error_handler: Box<dyn Fn(SplitTunnelErrorCause) + Send>,
+    message_rx: mpsc::UnboundedReceiver<Message>,
+    process_event_rx: mpsc::UnboundedReceiver<ProcessEvent>,
+    shutdown_token: CancellationToken,
+}
+
+impl SplitTunnel {
+    pub async fn spawn<F>(
+        shutdown_token: CancellationToken,
+        error_handler: F,
+    ) -> (SplitTunnelHandle, JoinHandle<()>)
+    where
+        F: Fn(SplitTunnelErrorCause) + Send + 'static,
+    {
+        let (message_tx, message_rx) = mpsc::unbounded_channel();
+        let (process_event_tx, process_event_rx) = mpsc::unbounded_channel();
+
+        let split_tunnel = Self {
+            state: Self::start_split_tunnel(process_event_tx, shutdown_token.child_token()).await,
+            error_handler: Box::new(error_handler),
+            message_rx,
+            process_event_rx,
+            shutdown_token,
+        };
+        let join_handle = tokio::spawn(split_tunnel.run());
+
+        (SplitTunnelHandle { message_tx }, join_handle)
+    }
+
+    async fn run(mut self) {
+        loop {
+            tokio::select! {
+                Some(msg) = self.message_rx.recv() => {
+                    match msg {
+                        Message::GetNetClsClassId { result_tx } =>{
+                            result_tx.send(self.state.net_cls_classid()).ok();
+                        }
+                        Message::GetExcludedCGroup { result_tx } => {
+                            result_tx.send(self.state.excluded_cgroup()).ok();
+                        }
+                        Message::SetExcludePaths { result_tx, paths } => {
+                            // todo: try exiting error state
+                            // preserve pid manager when entering error state to maintain the same cgroup/netcls
+                            // which are set in firewall too during service initialization
+                            result_tx.send(self.state.set_exclude_paths(paths).await).ok();
+                        }
+                        Message::GetExcludedProcesses { result_tx } => {
+                            result_tx.send(self.state.get_excluded_processes()).ok();
+                        }
+                        Message::IsSplitTunnelSupported { result_tx } => {
+                            result_tx.send(self.state.is_supported()).ok();
+                        }
+                    }
+                }
+                // Only query rx when ST is active since tx is dropped otherwise
+                event = self.process_event_rx.recv(), if self.state.is_active() => {
+                    match event {
+                        Some(event) => self.state.handle_event(event).await,
+                        None => {
+                            tracing::warn!("Process monitor exited unexpectedly!");
+
+                            let error = self.state.wait_for_shutdown().await
+                                .err()
+                                .unwrap_or(Error::from(InnerError::Internal("Process monitor closed event channel but exited without error")));
+                            trace_err_chain!(error, "Process monitor runtime error");
+
+                            let st_error_cause = SplitTunnelErrorCause::from(&error);
+                            self.state = State::Failed {
+                                error
+                            };
+                            // Report error to tunnel state machine
+                            (self.error_handler)(st_error_cause);
+                        }
+                    };
+                }
+                _  = self.shutdown_token.cancelled() => {
+                    self.state.wait_for_shutdown().await.ok();
+                    break;
+                }
+            }
+        }
+    }
+
+    async fn start_split_tunnel(
+        process_event_tx: UnboundedSender<ProcessEvent>,
+        shutdown_token: CancellationToken,
+    ) -> State {
+        Self::start_split_tunnel_inner(process_event_tx, shutdown_token.child_token())
+            .await
+            .inspect_err(|err| {
+                trace_err_chain!(err, "failed to initialize split tunnel");
+            })
+            .unwrap_or_else(|error| State::Failed { error })
+    }
+
+    async fn start_split_tunnel_inner(
+        process_event_tx: mpsc::UnboundedSender<ProcessEvent>,
+        shutdown_token: CancellationToken,
+    ) -> Result<State, Error> {
+        let pid_manager =
+            PidManager::new().map_err(|err| Error::from(InnerError::CreatePidManager(err)))?;
+
+        let process_monitor = ProcessMonitor::spawn(process_event_tx, shutdown_token)
+            .await
+            .map_err(InnerError::CreateProcessMonitor)?;
+
+        let processes = process_list_snapshot().map_err(InnerError::ProcessListSnapshot)?;
+
+        Ok(State::Active(ActiveState {
+            pid_manager,
+            process_monitor,
+            processes,
+            exclude_paths: HashSet::new(),
+        }))
+    }
+}
+
+
 pub enum Message {
     SetExcludePaths {
         result_tx: oneshot::Sender<Result<(), Error>>,
@@ -49,7 +169,7 @@ pub enum Message {
     GetExcludedProcesses {
         result_tx: oneshot::Sender<Result<SplitTunnelExcludedProcessList, Error>>,
     },
-    IsSplitTunnelAvailable {
+    IsSplitTunnelSupported {
         result_tx: oneshot::Sender<bool>,
     },
 }
@@ -117,146 +237,12 @@ impl SplitTunnelHandle {
         result_rx.await.map_err(|_| Error::unavailable())?
     }
 
-    pub async fn is_available(&self) -> bool {
+    pub async fn is_supported(&self) -> bool {
         let (result_tx, result_rx) = oneshot::channel();
         let _ = self
             .message_tx
-            .send(Message::IsSplitTunnelAvailable { result_tx });
+            .send(Message::IsSplitTunnelSupported { result_tx });
         result_rx.await.unwrap_or_default()
-    }
-}
-
-pub struct SplitTunnel {
-    state: State,
-    error_handler: Box<dyn Fn(SplitTunnelErrorCause) + Send>,
-    message_rx: mpsc::UnboundedReceiver<Message>,
-    process_event_rx: mpsc::UnboundedReceiver<ProcessEvent>,
-    shutdown_token: CancellationToken,
-}
-
-impl SplitTunnel {
-    pub async fn spawn<F>(
-        shutdown_token: CancellationToken,
-        error_handler: F,
-    ) -> (SplitTunnelHandle, JoinHandle<()>)
-    where
-        F: Fn(SplitTunnelErrorCause) + Send + 'static,
-    {
-        let (message_tx, message_rx) = mpsc::unbounded_channel();
-        let (process_event_tx, process_event_rx) = mpsc::unbounded_channel();
-
-        let split_tunnel = Self {
-            state: Self::start_split_tunnel(process_event_tx, shutdown_token.child_token()).await,
-            error_handler: Box::new(error_handler),
-            message_rx,
-            process_event_rx,
-            shutdown_token,
-        };
-        let join_handle = tokio::spawn(split_tunnel.run());
-
-        (SplitTunnelHandle { message_tx }, join_handle)
-    }
-
-    async fn run(mut self) {
-        loop {
-            tokio::select! {
-                Some(msg) = self.message_rx.recv() => {
-                    match msg {
-                        Message::GetNetClsClassId { result_tx } =>{
-                            result_tx.send(self.state.net_cls_classid()).ok();
-                        }
-                        Message::GetExcludedCGroup { result_tx } => {
-                            result_tx.send(self.state.excluded_cgroup()).ok();
-                        }
-                        Message::SetExcludePaths { result_tx, paths } => {
-                            result_tx.send(self.set_exclude_paths(paths).await).ok();
-                        }
-                        Message::GetExcludedProcesses { result_tx } => {
-                            result_tx.send(self.state.get_excluded_processes()).ok();
-                        }
-                        Message::IsSplitTunnelAvailable { result_tx } => {
-                            result_tx.send(self.state.is_active()).ok();
-                        }
-                    }
-                }
-                // Only query rx when ST is active since tx is dropped otherwise
-                event = self.process_event_rx.recv(), if self.state.is_active() => {
-                    match event {
-                        Some(event) => self.state.handle_event(event).await,
-                        None => {
-                            tracing::warn!("Process monitor exited unexpectedly!");
-
-                            let error = self.state.wait_for_shutdown().await
-                                .err()
-                                .unwrap_or(Error::from(InnerError::Internal("Process monitor closed event channel but exited without error")));
-                            trace_err_chain!(error, "Process monitor runtime error");
-
-                            let st_error_cause = SplitTunnelErrorCause::from(&error);
-                            self.state = State::Failed {
-                                error
-                            };
-                            // Report error to tunnel state machine
-                            (self.error_handler)(st_error_cause);
-                        }
-                    };
-                }
-                _  = self.shutdown_token.cancelled() => {
-                    self.state.wait_for_shutdown().await.ok();
-                    break;
-                }
-            }
-        }
-    }
-
-    async fn set_exclude_paths(&mut self, paths: HashSet<PathBuf>) -> Result<(), Error> {
-        match self.state {
-            State::Active(ref mut state) => state.set_exclude_paths(paths).await,
-            State::Failed { error: _ } => {
-                tracing::debug!("Transitioning out of split tunnel error state");
-
-                // Restart ST on attempt to refresh exclude paths
-                let (process_event_tx, process_event_rx) = mpsc::unbounded_channel();
-                self.process_event_rx = process_event_rx;
-
-                self.state =
-                    Self::start_split_tunnel(process_event_tx, self.shutdown_token.child_token())
-                        .await;
-                self.state.set_exclude_paths(paths).await
-            }
-        }
-    }
-
-    async fn start_split_tunnel(
-        process_event_tx: UnboundedSender<ProcessEvent>,
-        shutdown_token: CancellationToken,
-    ) -> State {
-        Self::start_split_tunnel_inner(process_event_tx, shutdown_token.child_token())
-            .await
-            .inspect_err(|err| {
-                trace_err_chain!(err, "failed to initialize split tunnel");
-            })
-            .unwrap_or_else(|error| State::Failed { error })
-    }
-
-    async fn start_split_tunnel_inner(
-        process_event_tx: mpsc::UnboundedSender<ProcessEvent>,
-        shutdown_token: CancellationToken,
-    ) -> Result<State, Error> {
-        let pid_manager =
-            PidManager::new().map_err(|err| Error::from(InnerError::CreatePidManager(err)))?;
-
-        let process_monitor = ProcessMonitor::spawn(process_event_tx, shutdown_token)
-            .await
-            .map_err(InnerError::CreateProcessMonitor)?;
-
-        let processes = process_list_snapshot().map_err(InnerError::ProcessListSnapshot)?;
-
-        Ok(State::Active(ActiveState {
-            pid_manager,
-            process_monitor,
-            processes,
-            exclude_paths: HashSet::new(),
-        }))
     }
 }
 
@@ -514,6 +500,17 @@ impl State {
 
     fn is_active(&self) -> bool {
         matches!(self, State::Active(..))
+    }
+
+    fn is_supported(&self) -> bool {
+        match self {
+            State::Active(_) => true,
+            State::Failed { error } => {
+                // this will mark ST unavailable even if error had happened at runtime
+                // todo: improve that once ST can exit error state
+                false
+            },
+        }
     }
 
     async fn set_exclude_paths(&mut self, paths: HashSet<PathBuf>) -> Result<(), Error> {

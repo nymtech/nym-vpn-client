@@ -208,7 +208,7 @@ pub enum VpnServiceCommand {
         DiagnosticRegisterParams,
     ),
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    IsSplitTunnelAvailable(oneshot::Sender<bool>, ()),
+    IsSplitTunnelSupported(oneshot::Sender<bool>, ()),
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     SetEnableSplitTunnel(oneshot::Sender<()>, bool),
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -1127,8 +1127,8 @@ impl NymVpnService {
                 let _ = tx.send(Box::pin(self.handle_register_diagnostic(params)).await);
             }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            VpnServiceCommand::IsSplitTunnelAvailable(tx, ()) => {
-                let is_available = self.handle_is_split_tunnel_available().await;
+            VpnServiceCommand::IsSplitTunnelSupported(tx, ()) => {
+                let is_available = self.handle_is_split_tunnel_supported().await;
                 let _ = tx.send(is_available);
             }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -2095,8 +2095,12 @@ impl NymVpnService {
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    async fn handle_is_split_tunnel_available(&mut self) -> bool {
-        self.split_tunnel.is_available().await
+    async fn handle_is_split_tunnel_supported(&mut self) -> bool {
+        #[cfg(target_os="linux")]
+        { self.split_tunnel.is_supported().await }
+
+        #[cfg(not(target_os="linux"))]
+        { true }
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

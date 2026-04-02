@@ -845,6 +845,15 @@ impl RpcClient {
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    pub async fn is_split_tunnel_supported(&mut self) -> Result<bool> {
+        self.0
+            .is_split_tunnel_supported(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     pub async fn set_enable_split_tunnel(&mut self, enable: bool) -> Result<()> {
         self.0
             .set_enable_split_tunnel(enable)

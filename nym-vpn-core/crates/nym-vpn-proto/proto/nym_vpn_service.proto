@@ -1212,7 +1212,7 @@ service NymVpnService {
   rpc RegisterDiagnostic(DiagnosticRegisterParams) returns (RegistrationReport) {}
 
   // Split-tunnel
-  rpc IsSplitTunnelAvailable(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  rpc IsSplitTunnelSupported(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
   rpc SetEnableSplitTunnel(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc AddSplitTunnelApp(SplitApp) returns (google.protobuf.Empty) {}
   rpc RemoveSplitTunnelApp(SplitApp) returns (google.protobuf.Empty) {}
