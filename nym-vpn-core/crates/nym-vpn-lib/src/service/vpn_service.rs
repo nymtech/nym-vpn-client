@@ -2096,11 +2096,15 @@ impl NymVpnService {
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn handle_is_split_tunnel_supported(&mut self) -> bool {
-        #[cfg(target_os="linux")]
-        { self.split_tunnel.is_supported().await }
+        #[cfg(target_os = "linux")]
+        {
+            self.split_tunnel.is_supported().await
+        }
 
-        #[cfg(not(target_os="linux"))]
-        { true }
+        #[cfg(not(target_os = "linux"))]
+        {
+            true
+        }
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
