@@ -24055,17 +24055,6 @@
         }
       }
     },
-    "subscriptionPayment.received" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Payment received\nRequesting ZkNyms..."
-          }
-        }
-      }
-    },
     "noInternet" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26539,6 +26528,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Back up your passphrase"
+          }
+        }
+      }
+    },
+    "passphraseOverlay.backup.line1" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back up your"
+          }
+        }
+      }
+    },
+    "passphraseOverlay.backup.line2" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "passphrase"
           }
         }
       }
@@ -31470,6 +31481,28 @@
         }
       }
     },
+    "settings.account.renewNow.line1" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renew now to"
+          }
+        }
+      }
+    },
+    "settings.account.renewNow.line2" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "stay protected"
+          }
+        }
+      }
+    },
     "settings.account.resetsOn" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34898,17 +34931,6 @@
         }
       }
     },
-    "splitTunnel.betaFeature" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beta feature"
-          }
-        }
-      }
-    },
     "splitTunnel.apps" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -34927,6 +34949,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Excluding an app will leave it unprotected."
+          }
+        }
+      }
+    },
+    "splitTunnel.betaFeature" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta feature"
           }
         }
       }

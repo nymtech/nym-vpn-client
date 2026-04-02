@@ -4,6 +4,7 @@ import AppSettings
 import ConnectionManager
 import Constants
 import ConfigurationManager
+import Device
 import ConnectionTypes
 import CredentialsManager
 import ExternalLinkManager
@@ -75,7 +76,6 @@ import GRPCManager
     var isModeInfoOverlayDisplayed = false
     var isOfflineOverlayDisplayed = false
     var isUpdateAvailableOverlayDisplayed = false
-    var isExpiryBannerDisplayed = false
     var isStatisticsOverlayDisplayed = false
     var snackBarMessage: SnackBarMessage?
     var isSnackBarDisplayed = false {
@@ -94,21 +94,6 @@ import GRPCManager
             titleLocalizedString: "home.modal.noInternetConnection.title".localizedString,
             subtitleLocalizedString: "home.modal.noInternetConnection.subtitle".localizedString,
             yesLocalizedString: "close".localizedString
-        )
-    }
-
-    var expiryBannerConfig: GenericBannerViewConfig {
-        let dateText = credentialsManager.accountSummary?.formattedValidUntilDate ?? "-"
-        return GenericBannerViewConfig(
-            title: "\("planExpiresOn".localizedString):",
-            subtitle: dateText,
-            actionTitle: "settings.account.renewNow".localizedString,
-            action: { [weak self] in
-                self?.navigateToPlanPurchase()
-            },
-            closeAction: { [weak self] in
-                self?.dismissExpiryBanner()
-            }
         )
     }
 
@@ -235,14 +220,27 @@ public extension HomeViewModel {
         guard let accountSummary = credentialsManager.accountSummary else { return }
         let now = Date()
 
+        var shouldShow = false
         if accountSummary.isExpiringSoon {
             let lastDismissed = Date(timeIntervalSince1970: appSettings.expirySoonDismissedAt)
             guard now.timeIntervalSince(lastDismissed) > 86400 else { return }
-            isExpiryBannerDisplayed = true
+            shouldShow = true
         } else if accountSummary.isExpiringWarning {
             guard appSettings.expiryWarningDismissedAt == 0 else { return }
-            isExpiryBannerDisplayed = true
+            shouldShow = true
         }
+
+        guard shouldShow else { return }
+        let dateText = accountSummary.formattedValidUntilDate ?? "-"
+        messagesManager.enqueueExpiryBanner(
+            subtitle: dateText,
+            ctaAction: { [weak self] in
+                self?.navigateToPlanPurchase()
+            },
+            closeAction: { [weak self] in
+                self?.dismissExpiryBanner()
+            }
+        )
     }
 
     func dismissExpiryBanner() {
@@ -254,7 +252,6 @@ public extension HomeViewModel {
         } else if accountSummary.isExpiringWarning {
             appSettings.expiryWarningDismissedAt = now
         }
-        withAnimation { isExpiryBannerDisplayed = false }
     }
 }
 
@@ -267,12 +264,24 @@ private extension HomeViewModel {
         setupIsMnemonicImportedObserver()
         setupAccountSummaryObserver()
         setupSubscriptionPaymentObserver()
+        configurePassphraseBanner()
 #if os(iOS)
         setupConnectionErrorObservers()
         setupNetworkMonitorObservers()
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
+
+    }
+
+    func configurePassphraseBanner() {
+        guard !Device.isMacOS else { return }
+        messagesManager.configurePassphraseBanner(
+            ctaAction: { [weak self] in
+                self?.path.append(HomeLink.settings)
+                self?.path.append(SettingLink.passphrase)
+            }
+        )
     }
 
     func setupTunnelManagerObservers() {

@@ -65,7 +65,9 @@ import ConnectionTypes
     public var accountToken: String?
 
     @AppStorage(AppSettingKey.passphraseStored.rawValue)
-    public var isPassphraseStored: Bool = false
+    public var isPassphraseStored: Bool = false {
+        didSet { isPassphraseStoredPublisher = isPassphraseStored }
+    }
 
     @AppStorage(AppSettingKey.ipv6TrafficIsEnabled.rawValue)
     public var isIPv6TrafficEnabled = true {
@@ -138,6 +140,7 @@ import ConnectionTypes
     @Published public var isLewesEnabledPublisher: Bool
     @Published public var isMixnetTuningEnabledPublisher: Bool
     @Published public var isAdBlockerEnabledPublisher: Bool
+    @Published public var isPassphraseStoredPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
     private init() {
@@ -152,6 +155,7 @@ import ConnectionTypes
         self.isLewesEnabledPublisher = false
         self.isMixnetTuningEnabledPublisher = false
         isAdBlockerEnabledPublisher = false
+        isPassphraseStoredPublisher = false
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
@@ -164,6 +168,7 @@ import ConnectionTypes
         self.isLewesEnabledPublisher = self.isLewesEnabled
         self.isMixnetTuningEnabledPublisher = self.isMixnetTuningEnabled
         self.isAdBlockerEnabledPublisher = self.isAdBlockerEnabled
+        self.isPassphraseStoredPublisher = self.isPassphraseStored
     }
 
     public func resetUserDefaults() {
