@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-export type DialogKey = 'location-info'; // | 'other-dialog-key' | 'and-so-on';
+export type DialogKey = 'location-info' | 'split-tunneling-info'; // | 'other-dialog-key' | 'and-so-on';
 
 export type DialogState = Record<DialogKey, { open: boolean }>;
 
@@ -12,7 +12,10 @@ export type DialogContext = {
 };
 
 const init: DialogContext = {
-  dialogs: { 'location-info': { open: false } },
+  dialogs: {
+    'location-info': { open: false },
+    'split-tunneling-info': { open: false },
+  },
   isOpen: () => false,
   show: () => {
     /* SCARECROW */

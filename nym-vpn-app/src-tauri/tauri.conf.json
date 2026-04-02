@@ -40,7 +40,24 @@
   "app": {
     "withGlobalTauri": false,
     "security": {
-      "csp": null
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": [
+            "$APPCACHE/**",
+            "$HOME/.local/share/icons/**/*",
+            "$HOME/.icons/**/*",
+            "$HOME/.local/share/flatpak/**/*",
+            "/var/lib/flatpak/exports/share/icons/**/*",
+            "/usr/share/icons/**/*",
+            "/usr/share/pixmaps/**/*",
+            "/tmp/**/*",
+            "/snap/**/*"
+          ],
+          "requireLiteralLeadingDot": false
+        }
+      }
     }
   },
   "plugins": {

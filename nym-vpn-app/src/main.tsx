@@ -64,6 +64,11 @@ const defaultMixnetTrafficDefaults = {
   allContinuousTraffic: [],
 };
 
+const defaultSplitTunnel = {
+  enabled: false,
+  apps: [],
+};
+
 if (!import.meta.env.DEV) {
   // In production env, disable right-click context menu
   document.oncontextmenu = (event) => {
@@ -138,6 +143,7 @@ dayjs.extend(localizedFormat);
     mixnetTrafficConfig: config?.mixnetTraffic || defaultMixnetTrafficConfig,
     mixnetTrafficDefaults:
       config?.mixnetTrafficDefaults || defaultMixnetTrafficDefaults,
+    splitTunnel: config?.splitTunnel || defaultSplitTunnel,
   };
   console.log('initial state:', initState);
 

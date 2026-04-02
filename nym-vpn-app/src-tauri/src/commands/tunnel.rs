@@ -6,7 +6,7 @@ use crate::{
     vpnd::{
         client::{Node, VpndClient, VpndError},
         config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
-        tunnel::{ConnectingState, TunnelState},
+        tunnel::{ConnectingState, SplitApp, TunnelState},
     },
 };
 use std::net::IpAddr;
@@ -230,4 +230,45 @@ pub async fn calculate_traffic_latency(config: MixnetTrafficConfig) -> Result<f6
 #[tauri::command]
 pub async fn get_mixnet_traffic_defaults() -> Result<MixnetTrafficDefaults, BackendError> {
     Ok(MixnetTrafficDefaults::get())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_enable_split_tunnel(
+    vpnd: State<'_, VpndClient>,
+    enabled: bool,
+) -> Result<(), BackendError> {
+    vpnd.enable_split_tunnel(enabled).await?;
+    Ok(())
+}
+
+use crate::fs::app_discovery::{App, get_installed_apps};
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_app_list(app: tauri::AppHandle) -> Result<Vec<App>, BackendError> {
+    tokio::task::spawn_blocking(move || get_installed_apps(app))
+        .await
+        .map_err(|e| BackendError::internal(&e.to_string(), None))?
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn add_app_to_split_tunnel(
+    vpnd: State<'_, VpndClient>,
+    app: SplitApp,
+) -> Result<(), BackendError> {
+    info!("[command] add_app_to_split_tunnel: {}", app.path);
+    vpnd.add_app_to_split_tunnel(app).await?;
+    Ok(())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn remove_app_from_split_tunnel(
+    vpnd: State<'_, VpndClient>,
+    app: SplitApp,
+) -> Result<(), BackendError> {
+    vpnd.remove_app_from_split_tunnel(app).await?;
+    Ok(())
 }

@@ -20,6 +20,7 @@ import {
   NodeHop,
   ProgressMsg,
   SelectedNode,
+  SplitApp,
   TAccountMode,
   TAccountSummary,
   ThemeMode,
@@ -87,7 +88,9 @@ export type StateAction =
   | { type: 'set-default-dns'; dns: string[] }
   | { type: 'set-enable-lewes-protocol'; enabled: boolean }
   | { type: 'set-mixnet-traffic-config'; config: MixnetTrafficConfig }
-  | { type: 'set-account-summary'; summary: TAccountSummary | null };
+  | { type: 'set-account-summary'; summary: TAccountSummary | null }
+  | { type: 'set-enable-split-tunnel'; enabled: boolean }
+  | { type: 'set-split-tunnel-apps'; apps: SplitApp[] };
 
 export const initialState: AppState = {
   initialized: false,
@@ -162,6 +165,10 @@ export const initialState: AppState = {
     allBackgroundTraffic: [],
     allContinuousTraffic: [],
   } as MixnetTrafficDefaults,
+  splitTunnel: {
+    enabled: false,
+    apps: [],
+  },
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -230,6 +237,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         mixnetTrafficConfig: action.config.mixnetTraffic,
         mixnetTrafficDefaults: action.config.mixnetTrafficDefaults,
         enableAdBlocking: action.config.enableAdBlocking,
+        splitTunnel: action.config.splitTunnel,
       };
 
     case 'set-daemon-info':
@@ -489,6 +497,22 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         accountSummary: action.summary,
+      };
+    case 'set-enable-split-tunnel':
+      return {
+        ...state,
+        splitTunnel: {
+          ...state.splitTunnel,
+          enabled: action.enabled,
+        },
+      };
+    case 'set-split-tunnel-apps':
+      return {
+        ...state,
+        splitTunnel: {
+          ...state.splitTunnel,
+          apps: action.apps,
+        },
       };
     case 'reset':
       return initialState;
