@@ -29,7 +29,7 @@ use nym_vpn_account_controller::{
     AvailableTicketbooks, NyxdClient,
 };
 use nym_vpn_api_client::api_urls_to_urls;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::ErrorStateReason;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
@@ -578,7 +578,7 @@ impl NymVpnService {
             services_shutdown_token.child_token(),
         );
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let st_command_sender = Arc::downgrade(&command_sender);
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let (split_tunnel, split_tunnel_join_handle) = nym_split_tunnel::SplitTunnel::spawn(
@@ -593,11 +593,12 @@ impl NymVpnService {
                 };
 
                 let error_state_reason = match st_error_cause {
+                    nym_split_tunnel::SplitTunnelErrorCause::Other => ErrorStateReason::SplitTunnel,
                     #[cfg(target_os = "macos")]
                     nym_split_tunnel::SplitTunnelErrorCause::NeedFullDiskPermissions => {
                         ErrorStateReason::NeedFullDiskPermissions
                     }
-                    nym_split_tunnel::SplitTunnelErrorCause::Other => ErrorStateReason::SplitTunnel,
+                    #[cfg(target_os = "macos")]
                     nym_split_tunnel::SplitTunnelErrorCause::IsOffline => {
                         tracing::warn!("ST should not report offline error!");
                         ErrorStateReason::SplitTunnel
