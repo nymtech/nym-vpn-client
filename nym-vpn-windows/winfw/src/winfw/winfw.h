@@ -19,6 +19,16 @@
 // Structures
 ///////////////////////////////////////////////////////////////////////////////
 
+typedef struct tag_WinFwIpNetwork
+{
+	// IPv4 or IPv6 address in string form, e.g. "10.0.0.0" or "fc00::"
+	const wchar_t* ip;
+
+	// Prefix length, e.g. 8 for "10.0.0.0/8"
+	uint8_t prefix;
+}
+WinFwIpNetwork;
+
 typedef struct tag_WinFwSettings
 {
 	// Permit outbound DHCP requests and inbound DHCP responses on all interfaces.
@@ -26,6 +36,10 @@ typedef struct tag_WinFwSettings
 
 	// Permit all traffic to and from private address ranges.
 	bool permitLan;
+
+	// IP networks that bypass the VPN tunnel (airporting).
+	size_t numAirportingNetworks;
+	const WinFwIpNetwork** airportingNetworks;
 }
 WinFwSettings;
 
@@ -70,6 +84,7 @@ typedef struct tag_WinFwAllowedTunnelTraffic
 	WinFwEndpoint *endpoint2;
 }
 WinFwAllowedTunnelTraffic;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Functions

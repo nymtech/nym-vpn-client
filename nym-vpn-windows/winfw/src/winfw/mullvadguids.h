@@ -36,6 +36,13 @@ public:
 	static const GUID &Provider();
 	static const GUID &SublayerBaseline();
 	static const GUID &SublayerDns();
+	static const GUID &SublayerAirporting();
+
+	static const size_t Num_Airport_PermitAirporting_Ipv4_Filters = 128;
+	static const GUID Filter_Airport_PermitAirporting_Ipv4[Num_Airport_PermitAirporting_Ipv4_Filters];
+
+	static const size_t Num_Airport_PermitAirporting_Ipv6_Filters = 128;
+	static const GUID Filter_Airport_PermitAirporting_Ipv6[Num_Airport_PermitAirporting_Ipv6_Filters];
 
 	//
 	// Filter identifiers

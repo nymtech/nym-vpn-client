@@ -64,6 +64,7 @@
     <ClCompile Include="rules\dns\permitloopback.cpp">
       <Filter>rules\dns</Filter>
     </ClCompile>
+    <ClCompile Include="rules\airport\permitairporting.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -139,6 +140,7 @@
       <Filter>rules\dns</Filter>
     </ClInclude>
     <ClInclude Include="version.h" />
+    <ClInclude Include="rules\airport\permitairporting.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="rules">

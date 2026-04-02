@@ -15,6 +15,7 @@ public:
 	static std::unique_ptr<wfp::ProviderBuilder> Provider();
 	static std::unique_ptr<wfp::SublayerBuilder> SublayerBaseline();
 	static std::unique_ptr<wfp::SublayerBuilder> SublayerDns();
+	static std::unique_ptr<wfp::SublayerBuilder> SublayerAirporting();
 
 	static std::unique_ptr<wfp::ProviderBuilder> ProviderPersistent();
 	static std::unique_ptr<wfp::SublayerBuilder> SublayerPersistent();

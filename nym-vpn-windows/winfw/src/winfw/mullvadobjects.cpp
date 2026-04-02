@@ -25,7 +25,7 @@ std::unique_ptr<wfp::SublayerBuilder> MullvadObjects::SublayerBaseline()
 		.description(L"Filters that enforce a good baseline")
 		.key(MullvadGuids::SublayerBaseline())
 		.provider(MullvadGuids::Provider())
-		.weight(MAXUINT16);
+		.weight(MAXUINT16 - 1);
 
 	return builder;
 }
@@ -40,7 +40,22 @@ std::unique_ptr<wfp::SublayerBuilder> MullvadObjects::SublayerDns()
 		.description(L"Filters that restrict DNS traffic")
 		.key(MullvadGuids::SublayerDns())
 		.provider(MullvadGuids::Provider())
-		.weight(MAXUINT16 - 1);
+		.weight(MAXUINT16 - 2);
+
+	return builder;
+}
+
+//static
+std::unique_ptr<wfp::SublayerBuilder> MullvadObjects::SublayerAirporting()
+{
+	auto builder = std::make_unique<wfp::SublayerBuilder>();
+
+	(*builder)
+		.name(L"Nym VPN airporting")
+		.description(L"Filters that permit traffic to airporting networks outside the VPN tunnel")
+		.key(MullvadGuids::SublayerAirporting())
+		.provider(MullvadGuids::Provider())
+		.weight(MAXUINT16);
 
 	return builder;
 }

@@ -20,6 +20,7 @@
 #include "rules/dns/permittunnel.h"
 #include "rules/dns/permitnontunnel.h"
 #include "rules/multi/permitvpnrelay.h"
+#include "rules/airport/permitairporting.h"
 #include <libwfp/transaction.h>
 #include <libwfp/filterengine.h>
 #include <libcommon/error.h>
@@ -157,6 +158,36 @@ void AppendNetBlockedRules(FwContext::Ruleset &ruleset)
 	ruleset.emplace_back(std::make_unique<baseline::PermitLoopback>());
 }
 
+void AppendAirportingRules
+(
+	FwContext::Ruleset &ruleset,
+	const WinFwSettings &settings
+)
+{
+	if (settings.airportingNetworks == nullptr || settings.numAirportingNetworks == 0)
+	{
+		return;
+	}
+
+	std::vector<wfp::IpNetwork> networks;
+	networks.reserve(settings.numAirportingNetworks);
+
+	for (size_t i = 0; i < settings.numAirportingNetworks; ++i)
+	{
+		if (settings.airportingNetworks[i] == nullptr)
+		{
+			continue;
+		}
+		const auto &net = *settings.airportingNetworks[i];
+		networks.emplace_back(wfp::IpAddress(net.ip), net.prefix);
+	}
+
+	if (!networks.empty())
+	{
+		ruleset.emplace_back(std::make_unique<airporting::PermitAirporting>(std::move(networks)));
+	}
+}
+
 } // anonymous namespace
 
 FwContext::FwContext
@@ -228,6 +259,7 @@ bool FwContext::applyPolicyConnecting
 	AppendNetBlockedRules(ruleset);
 	AppendSettingsRules(ruleset, settings);
 	AppendRelayRules(ruleset, relays);
+	AppendAirportingRules(ruleset, settings);
 
 	if (allowedEndpoints.has_value())
 	{
@@ -404,6 +436,7 @@ bool FwContext::applyPolicyConnected
 	AppendNetBlockedRules(ruleset);
 	AppendSettingsRules(ruleset, settings);
 	AppendRelayRules(ruleset, relays);
+	AppendAirportingRules(ruleset, settings);
 
 	if (exitTunnelIfaceAlias.has_value())
 	{
@@ -508,6 +541,7 @@ FwContext::Ruleset FwContext::composePolicyBlocked
 
 	AppendNetBlockedRules(ruleset);
 	AppendSettingsRules(ruleset, settings);
+	AppendAirportingRules(ruleset, settings);
 
 	if (allowedEndpoints.has_value())
 	{
@@ -558,7 +592,8 @@ bool FwContext::applyCommonBaseConfiguration(SessionController &controller, wfp:
 	//
 	return controller.addProvider(*MullvadObjects::Provider())
 		&& controller.addSublayer(*MullvadObjects::SublayerBaseline())
-		&& controller.addSublayer(*MullvadObjects::SublayerDns());
+		&& controller.addSublayer(*MullvadObjects::SublayerDns())
+		&& controller.addSublayer(*MullvadObjects::SublayerAirporting());
 }
 
 bool FwContext::applyRuleset(const Ruleset &ruleset)
