@@ -114,7 +114,7 @@ pub struct TunnelConstants {
 
     /// Tunnel specific routing table, traffic not marked will be routed via this routing table.
     #[cfg(target_os = "linux")]
-    table_id: u32,
+    pub table_id: u32,
 }
 
 impl Default for TunnelConstants {

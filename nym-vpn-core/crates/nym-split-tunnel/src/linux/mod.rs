@@ -504,8 +504,8 @@ impl State {
     fn is_supported(&self) -> bool {
         match self {
             State::Active(_) => true,
-            State::Failed { error } => {
-                // this will mark ST unavailable even if error had happened at runtime
+            State::Failed { error: _ } => {
+                // this will mark ST unavailable even if error happened at runtime
                 // todo: improve that once ST can exit error state
                 false
             }
