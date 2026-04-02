@@ -7,6 +7,7 @@ use std::{
     collections::{HashMap, HashSet},
     os::fd::AsRawFd,
     path::PathBuf,
+    sync::LazyLock,
 };
 
 use libc::{
@@ -24,6 +25,24 @@ use super::bindings::{
     proc_event__bindgen_ty_1_fork_proc_event as ForkEvt,
 };
 
+/// Check and cache whether kernel has proc events enabled
+static KERNEL_SUPPORTS_PROC_EVENTS: LazyLock<bool> =
+    LazyLock::new(|| match procfs::kernel_config() {
+        Ok(config) => {
+            let proc_events = config.get("CONFIG_PROC_EVENTS");
+            let is_enabled = proc_events == Some(&procfs::ConfigSetting::Yes);
+
+            tracing::info!("CONFIG_PROC_EVENTS is set to {proc_events:?}");
+            is_enabled
+        }
+        Err(err) => {
+            tracing::warn!(
+                "Failed to read kernel config. Consider split-tunnel unavailable: {err}"
+            );
+            false
+        }
+    });
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("IO error")]
@@ -31,6 +50,9 @@ pub enum Error {
 
     #[error("Proc error")]
     Proc(#[from] procfs::ProcError),
+
+    #[error("Proc events is not supported")]
+    Unsupported,
 }
 
 #[derive(Debug, Clone)]
@@ -59,6 +81,10 @@ impl ProcessMonitor {
         tx: UnboundedSender<ProcessEvent>,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<Result<(), Error>>, Error> {
+        if !*KERNEL_SUPPORTS_PROC_EVENTS {
+            return Err(Error::Unsupported);
+        }
+
         let pid = unsafe { libc::getpid() };
         let sockaddr = netlink_sys::SocketAddr::new(pid as u32, CN_IDX_PROC);
         let mut nl_sock = TokioSocket::new(NETLINK_CONNECTOR as _)?;
