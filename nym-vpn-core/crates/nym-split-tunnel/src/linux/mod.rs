@@ -154,7 +154,6 @@ impl SplitTunnel {
     }
 }
 
-
 pub enum Message {
     SetExcludePaths {
         result_tx: oneshot::Sender<Result<(), Error>>,
@@ -509,7 +508,7 @@ impl State {
                 // this will mark ST unavailable even if error had happened at runtime
                 // todo: improve that once ST can exit error state
                 false
-            },
+            }
         }
     }
 
