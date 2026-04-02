@@ -38,10 +38,10 @@ pub enum Message {
         paths: HashSet<PathBuf>,
     },
     GetExcludedCGroup {
-        result_tx: oneshot::Sender<Option<nym_cgroup::v2::CGroup2>>,
+        result_tx: oneshot::Sender<Result<Option<nym_cgroup::v2::CGroup2>, Error>>,
     },
     GetNetClsClassId {
-        result_tx: oneshot::Sender<Option<u32>>,
+        result_tx: oneshot::Sender<Result<Option<u32>, Error>>,
     },
     GetExcludedProcesses {
         result_tx: oneshot::Sender<Result<SplitTunnelExcludedProcessList, Error>>,
@@ -80,18 +80,16 @@ impl SplitTunnelHandle {
         let (tx, rx) = oneshot::channel();
         self.message_tx
             .send(Message::GetExcludedCGroup { result_tx: tx })
-            .map_err(|_| Error::unavailable())?;
-
-        rx.await.map_err(|_| Error::unavailable())
+            .ok();
+        rx.await.map_err(|_| Error::unavailable())?
     }
 
     pub async fn net_cls_classid(&self) -> Result<Option<u32>, Error> {
         let (tx, rx) = oneshot::channel();
         self.message_tx
             .send(Message::GetNetClsClassId { result_tx: tx })
-            .map_err(|_| Error::unavailable())?;
-
-        rx.await.map_err(|_| Error::unavailable())
+            .ok();
+        rx.await.map_err(|_| Error::unavailable())?
     }
 
     pub async fn set_exclude_paths(&self, paths: HashSet<PathBuf>) -> Result<(), Error> {
@@ -101,8 +99,7 @@ impl SplitTunnelHandle {
                 result_tx: tx,
                 paths,
             })
-            .map_err(|_| Error::unavailable())?;
-
+            .ok();
         rx.await.map_err(|_| Error::unavailable())?
     }
 
@@ -115,13 +112,31 @@ impl SplitTunnelHandle {
     }
 }
 
+enum State {
+    Active {
+        process_monitor: JoinHandle<()>,
+        pid_manager: PidManager,
+        exclude_paths: HashSet<PathBuf>,
+        processes: HashMap<pid_t, ProcessInfo>,
+    },
+    Failed {
+        error: Error,
+    },
+}
+
+impl State {
+    fn pid_manager(&mut self) -> Result<&PidManager, Error> {
+        match self {
+            Self::Active { pid_manager, .. } => Ok(pid_manager),
+            Self::Failed { .. } => Err(Error::unavailable()),
+        }
+    }
+}
+
 pub struct SplitTunnel {
+    state: State,
     message_rx: mpsc::UnboundedReceiver<Message>,
-    pid_manager: Option<PidManager>,
     process_event_rx: mpsc::UnboundedReceiver<ProcessEvent>,
-    process_event_stream_handle: Option<JoinHandle<()>>,
-    exclude_paths: HashSet<PathBuf>,
-    processes: HashMap<pid_t, ProcessInfo>,
     shutdown_token: CancellationToken,
 }
 
@@ -130,32 +145,43 @@ impl SplitTunnel {
         let (message_tx, message_rx) = mpsc::unbounded_channel();
         let (process_event_tx, process_event_rx) = mpsc::unbounded_channel();
 
-        let pid_manager = PidManager::new()
-            .inspect_err(|err| trace_err_chain!(err, "failed to initialize split tunnel"))
-            .ok();
+        let state = Self::init_split_tunnel(process_event_tx, shutdown_token.child_token())
+            .await
+            .inspect_err(|err| {
+                trace_err_chain!(err, "failed to initialize split tunnel");
+            })
+            .unwrap_or_else(|error| State::Failed { error });
 
-        let process_event_stream_handle = if pid_manager.is_some() {
-            ProcessMonitor::spawn(process_event_tx, shutdown_token.child_token())
-                .await
-                .inspect_err(|err| trace_err_chain!(err, "failed to initialize split tunnel"))
-                .ok()
-        } else {
-            None
-        };
-
-        let processes = process_list_snapshot().unwrap();
         let split_tunnel = Self {
+            state,
             message_rx,
-            pid_manager,
             process_event_rx,
-            process_event_stream_handle,
-            exclude_paths: HashSet::new(),
-            processes,
             shutdown_token,
         };
         let join_handle = tokio::spawn(split_tunnel.run());
 
         (SplitTunnelHandle { message_tx }, join_handle)
+    }
+
+    async fn init_split_tunnel(
+        process_event_tx: mpsc::UnboundedSender<ProcessEvent>,
+        shutdown_token: CancellationToken,
+    ) -> Result<State, Error> {
+        let pid_manager =
+            PidManager::new().map_err(|err| Error::from(InnerError::CreatePidManager(err)))?;
+
+        let process_monitor = ProcessMonitor::spawn(process_event_tx, shutdown_token)
+            .await
+            .map_err(InnerError::CreateProcessMonitor)?;
+
+        let processes = process_list_snapshot().map_err(InnerError::ProcessListSnapshot)?;
+
+        Ok(State::Active {
+            pid_manager,
+            process_monitor,
+            processes,
+            exclude_paths: HashSet::new(),
+        })
     }
 
     async fn run(mut self) {
@@ -164,10 +190,10 @@ impl SplitTunnel {
                 Some(msg) = self.message_rx.recv() => {
                     match msg {
                         Message::GetNetClsClassId { result_tx } =>{
-                            result_tx.send(self.pid_manager.as_ref().and_then(|pid_manager| pid_manager.net_cls_classid())).ok();
+                            result_tx.send(self.state.pid_manager().map(|pid_manager| pid_manager.net_cls_classid())).ok();
                         }
                         Message::GetExcludedCGroup { result_tx } => {
-                            result_tx.send(self.pid_manager.as_ref().and_then(|pid_manager| pid_manager.excluded_cgroup())).ok();
+                            result_tx.send(self.state.pid_manager().map(|pid_manager| pid_manager.excluded_cgroup())).ok();
                         }
                         Message::SetExcludePaths { result_tx, paths } => {
                             result_tx.send(self.set_exclude_paths(paths).await).ok();
@@ -186,45 +212,63 @@ impl SplitTunnel {
             }
         }
 
-        if let Some(process_monitor_handle) = self.process_event_stream_handle.take()
-            && let Err(err) = process_monitor_handle.await
-        {
-            tracing::error!("Failed to join on process monitor handle: {err}");
+        match self.state {
+            State::Active {
+                process_monitor, ..
+            } => {
+                if let Err(err) = process_monitor.await {
+                    tracing::error!("Failed to join on process monitor handle: {err}");
+                }
+            }
+            State::Failed { .. } => {}
         }
     }
 
     fn get_excluded_processes(&mut self) -> Result<SplitTunnelExcludedProcessList, Error> {
-        if let Some(pid_manager) = self.pid_manager.as_mut() {
-            let processes = pid_manager
-                .list()
-                .map_err(InnerError::ListPids)?
-                .into_iter()
-                .flat_map(|pid| {
-                    let info = self.processes.get(&pid).map(|info| {
-                        SplitTunnelExcludedProcess {
-                            pid,
-                            exec_path: info.exec_path.clone(),
-                            // todo: unused on Linux, dupe exec_path
-                            responsible_exec_path: info.exec_path.clone(),
-                        }
-                    });
+        let State::Active {
+            pid_manager,
+            processes,
+            ..
+        } = &mut self.state
+        else {
+            return Err(Error::unavailable());
+        };
 
-                    if info.is_none() {
-                        tracing::warn!("Pid {pid} is excluded but not found in process list");
+        let processes = pid_manager
+            .list()
+            .map_err(InnerError::ListPids)?
+            .into_iter()
+            .flat_map(|pid| {
+                let info = processes.get(&pid).map(|info| {
+                    SplitTunnelExcludedProcess {
+                        pid,
+                        exec_path: info.exec_path.clone(),
+                        // todo: unused on Linux, dupe exec_path
+                        responsible_exec_path: info.exec_path.clone(),
                     }
+                });
 
-                    info
-                })
-                .collect::<Vec<_>>();
+                if info.is_none() {
+                    tracing::warn!("Pid {pid} is excluded but not found in process list");
+                }
 
-            Ok(SplitTunnelExcludedProcessList { processes })
-        } else {
-            Err(Error::unavailable())
-        }
+                info
+            })
+            .collect::<Vec<_>>();
+
+        Ok(SplitTunnelExcludedProcessList { processes })
     }
 
     async fn set_exclude_paths(&mut self, paths: HashSet<PathBuf>) -> Result<(), Error> {
-        let pid_manager = self.pid_manager.as_ref().ok_or(Error::unavailable())?;
+        let State::Active {
+            pid_manager,
+            processes,
+            exclude_paths,
+            ..
+        } = &mut self.state
+        else {
+            return Err(Error::unavailable());
+        };
 
         // Resolve symlinks and canonicalize paths to align user and system paths
         let paths: HashSet<PathBuf> = stream::iter(paths)
@@ -245,7 +289,7 @@ impl SplitTunnel {
             .collect()
             .await;
 
-        for (pid, info) in self.processes.iter_mut() {
+        for (pid, info) in processes.iter_mut() {
             // Remove no-longer excluded paths from exclusion list
             let mut new_exclude_paths: HashSet<_> = info
                 .excluded_by_paths
@@ -292,7 +336,7 @@ impl SplitTunnel {
             }
         }
 
-        self.exclude_paths = paths;
+        *exclude_paths = paths;
 
         Ok(())
     }
@@ -316,12 +360,21 @@ impl SplitTunnel {
     }
 
     fn handle_fork(&mut self, parent_pid: pid_t, pid: pid_t, path: PathBuf) {
-        if self.processes.contains_key(&pid) {
+        let State::Active {
+            pid_manager,
+            processes,
+            ..
+        } = &mut self.state
+        else {
+            return;
+        };
+
+        if processes.contains_key(&pid) {
             tracing::error!("Conflicting pid! State already contains {pid}");
         }
 
         // Inherit exclusion status from parent
-        let base_info = match self.processes.get(&parent_pid) {
+        let base_info = match processes.get(&parent_pid) {
             Some(parent_info) => {
                 let mut parent_info = parent_info.to_owned();
                 parent_info
@@ -343,19 +396,28 @@ impl SplitTunnel {
                 base_info.excluded_by_paths
             );
 
-            if let Some(pid_manager) = self.pid_manager.as_mut()
-                && let Err(err) = pid_manager.add(pid)
+            if let Err(err) = pid_manager.add(pid)
                 && !err.is_no_process_err()
             {
                 trace_err_chain!(err, "failed to add exclusion for {pid}");
             }
         }
 
-        self.processes.insert(pid, base_info);
+        processes.insert(pid, base_info);
     }
 
     fn handle_exec(&mut self, pid: pid_t, path: PathBuf) {
-        let Some(info) = self.processes.get_mut(&pid) else {
+        let State::Active {
+            pid_manager,
+            processes,
+            exclude_paths,
+            ..
+        } = &mut self.state
+        else {
+            return;
+        };
+
+        let Some(info) = processes.get_mut(&pid) else {
             tracing::error!("exec received for unknown pid {pid}");
             return;
         };
@@ -364,7 +426,7 @@ impl SplitTunnel {
 
         // Check if process is excluded directly by exec path
         if !info.excluded_by_paths.contains(&info.exec_path)
-            && self.exclude_paths.contains(&info.exec_path)
+            && exclude_paths.contains(&info.exec_path)
         {
             info.excluded_by_paths.insert(info.exec_path.clone());
             tracing::trace!("Excluding {pid} by path: {}", info.exec_path.display());
@@ -372,7 +434,7 @@ impl SplitTunnel {
 
         // Check if process is excluded indirectly by one of ascendants
         for ancestor_exec_path in info.ancestor_exec_paths.iter() {
-            if self.exclude_paths.contains(ancestor_exec_path) {
+            if exclude_paths.contains(ancestor_exec_path) {
                 tracing::trace!(
                     "Excluding {pid} by ancestor path: {}",
                     ancestor_exec_path.display()
@@ -382,7 +444,6 @@ impl SplitTunnel {
         }
 
         if info.is_excluded()
-            && let Some(pid_manager) = self.pid_manager.as_mut()
             && let Err(err) = pid_manager.add(pid)
             && !err.is_no_process_err()
         {
@@ -391,7 +452,11 @@ impl SplitTunnel {
     }
 
     fn handle_exit(&mut self, pid: pid_t) {
-        if self.processes.remove(&pid).is_none() {
+        let State::Active { processes, .. } = &mut self.state else {
+            return;
+        };
+
+        if processes.remove(&pid).is_none() {
             tracing::error!("exit syscall for unknown pid {pid}");
         }
     }
@@ -440,10 +505,18 @@ impl<T: Into<InnerError>> From<T> for Error {
 /// Errors caused by split tunneling
 #[derive(thiserror::Error, Debug)]
 enum InnerError {
+    #[error("failed to create pid manager")]
+    CreatePidManager(#[source] nym_cgroup::Error),
+
+    #[error("failed to create process monitor")]
+    CreateProcessMonitor(#[source] process_monitor::Error),
+
+    #[error("failed to create initial process list snapshot")]
+    ProcessListSnapshot(#[source] procfs::ProcError),
+
     #[error("failed to list pids in cgroup")]
     ListPids(#[source] nym_cgroup::Error),
 
-    /// Split tunnel is unavailable
     #[error("split tunnel is unavailable")]
     Unavailable,
 }
