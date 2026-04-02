@@ -58,7 +58,7 @@ impl ProcessMonitor {
     pub async fn spawn(
         tx: UnboundedSender<ProcessEvent>,
         shutdown_token: CancellationToken,
-    ) -> Result<JoinHandle<()>, Error> {
+    ) -> Result<JoinHandle<Result<(), Error>>, Error> {
         let pid = unsafe { libc::getpid() };
         let sockaddr = netlink_sys::SocketAddr::new(pid as u32, CN_IDX_PROC);
         let mut nl_sock = TokioSocket::new(NETLINK_CONNECTOR as _)?;
@@ -92,12 +92,16 @@ impl ProcessMonitor {
         Ok(())
     }
 
-    async fn run(mut self, tx: UnboundedSender<ProcessEvent>, shutdown_token: CancellationToken) {
+    async fn run(
+        mut self,
+        tx: UnboundedSender<ProcessEvent>,
+        shutdown_token: CancellationToken,
+    ) -> Result<(), Error> {
         const MSG_LEN: usize = std::mem::size_of::<nlcn_event_msg>();
 
         let mut buf = bytes::BytesMut::with_capacity(MSG_LEN);
 
-        loop {
+        'event_loop: loop {
             tokio::select! {
                 res = self.nl_sock.recv(&mut buf) => {
                     match res {
@@ -109,7 +113,7 @@ impl ProcessMonitor {
 
                                 if let Some(evt) = self.handle_event(msg).await && tx.send(evt).is_err() {
                                     tracing::trace!("Exiting since event channel is closed.");
-                                    return;
+                                    break 'event_loop Ok(());
                                 }
                             }
                         }
@@ -117,15 +121,14 @@ impl ProcessMonitor {
                             if err.raw_os_error() == Some(libc::EINTR) {
                                 continue;
                             } else {
-                                tracing::error!("failed to read socket: {err}");
-                                // todo: report error
-                                return;
+                                tracing::error!("Exiting due to failure to read socket: {err}");
+                                break 'event_loop Err(Error::Io(err));
                             }
                         }
                     }
                 },
                 _ = shutdown_token.cancelled() => {
-                    break;
+                    break 'event_loop Ok(());
                 }
             }
         }

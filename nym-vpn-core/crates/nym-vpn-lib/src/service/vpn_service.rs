@@ -208,6 +208,8 @@ pub enum VpnServiceCommand {
         DiagnosticRegisterParams,
     ),
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    IsSplitTunnelAvailable(oneshot::Sender<bool>, ()),
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     SetEnableSplitTunnel(oneshot::Sender<()>, bool),
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     AddSplitTunnelApp(oneshot::Sender<()>, SplitApp),
@@ -583,7 +585,6 @@ impl NymVpnService {
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             route_handler.inner_handle(),
             services_shutdown_token.child_token(),
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
             move |st_error_cause| {
                 tracing::info!("Split tunnel error: {st_error_cause:?}");
 
@@ -1123,6 +1124,11 @@ impl NymVpnService {
             }
             VpnServiceCommand::RegisterDiagnostic(tx, params) => {
                 let _ = tx.send(Box::pin(self.handle_register_diagnostic(params)).await);
+            }
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            VpnServiceCommand::IsSplitTunnelAvailable(tx, ()) => {
+                let is_available = self.handle_is_split_tunnel_available().await;
+                let _ = tx.send(is_available);
             }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::SetEnableSplitTunnel(tx, enabled) => {
@@ -2085,6 +2091,11 @@ impl NymVpnService {
             Err(e) => tracing::error!("Error serializing report :{e}"),
         }
         report
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    async fn handle_is_split_tunnel_available(&mut self) -> bool {
+        self.split_tunnel.is_available().await
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

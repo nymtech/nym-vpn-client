@@ -1060,6 +1060,25 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(proto_report))
     }
 
+    async fn is_split_tunnel_available(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<bool>> {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            let is_available = self
+                .send_and_wait(
+                    VpnServiceCommand::IsSplitTunnelAvailable,
+                    _request.into_inner(),
+                )
+                .await?;
+            Ok(tonic::Response::new(is_available))
+        }
+
+        #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
     async fn set_enable_split_tunnel(
         &self,
         _request: tonic::Request<bool>,
