@@ -19,10 +19,6 @@ export function AccountDescription() {
   const { t } = useTranslation('settings');
   const { accountSyncing, accountState, accountSummary } = useMainState();
 
-  console.log("[AccountDescription] accountSummary", accountSummary);
-  console.log("[AccountDescription] accountState", accountState);
-  console.log("[AccountDescription] accountSyncing", accountSyncing);
-
   const accountStateDescription = getAccountStateDescription(
     t,
     accountSyncing,
