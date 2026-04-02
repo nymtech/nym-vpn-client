@@ -557,5 +557,5 @@
 	<string name="developer_lewes_title">Enable Lewes Protocol</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Protect yourself from scams</string>
-	<string name="support_protect_description">Only contact NymVPN support through the official channels listed below. We will never ask for your passphrase or contact you first via direct messages.\n\nReceived unexpected contact? It's likely a scam.</string>
+	<string name="support_protect_description">Only contact NymVPN support through the official channels listed below. We will never ask for your passphrase or contact you first via direct messages.\n\nReceived unexpected contact? It\'s likely a scam.</string>
 </resources>
