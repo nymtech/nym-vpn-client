@@ -19,10 +19,15 @@ export function AccountDescription() {
   const { t } = useTranslation('settings');
   const { accountSyncing, accountState, accountSummary } = useMainState();
 
+  console.log("[AccountDescription] accountSummary", accountSummary);
+  console.log("[AccountDescription] accountState", accountState);
+  console.log("[AccountDescription] accountSyncing", accountSyncing);
+
   const accountStateDescription = getAccountStateDescription(
     t,
     accountSyncing,
     accountState,
+    accountSummary,
   );
 
   const status = useMemo(
@@ -34,7 +39,7 @@ export function AccountDescription() {
     return (
       <span
         className={clsx(
-          getAccountDescriptionColor(accountSyncing, accountState),
+          getAccountDescriptionColor(accountSyncing, accountState, accountSummary),
         )}
       >
         {accountStateDescription}
@@ -42,7 +47,7 @@ export function AccountDescription() {
     );
   }
 
-  if (!accountSummary) {
+  if (!accountSummary?.['subscription-valid-until']) {
     return null;
   }
 
