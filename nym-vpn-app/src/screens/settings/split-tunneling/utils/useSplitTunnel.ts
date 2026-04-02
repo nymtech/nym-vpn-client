@@ -68,7 +68,6 @@ export const useSplitTunnel = () => {
   };
 
   const add = async (app: AppEntry) => {
-    console.log("[add] app", app);
     if (app.state === 'included') return;
     try {
       await invoke('add_app_to_split_tunnel', {
@@ -89,7 +88,6 @@ export const useSplitTunnel = () => {
   };
 
   const remove = async (app: AppEntry) => {
-    console.log("[remove] app", app);
     if (app.state === 'excluded') return;
     try {
       await invoke('remove_app_from_split_tunnel', {
