@@ -104,10 +104,7 @@ function SplitTunneling() {
                     {/* Apps in this section */}
                     {groupedApps[letter].map((app, i) => (
                       <div key={app.name}>
-                        <AppItem
-                          app={app}
-                          onStateChange={handleStateChange}
-                        />
+                        <AppItem app={app} onStateChange={handleStateChange} />
                         {i < groupedApps[letter].length - 1 && (
                           <div className="mx-4 h-px bg-mercury/60 dark:bg-white/5" />
                         )}

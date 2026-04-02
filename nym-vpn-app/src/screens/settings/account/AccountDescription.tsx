@@ -35,7 +35,11 @@ export function AccountDescription() {
     return (
       <span
         className={clsx(
-          getAccountDescriptionColor(accountSyncing, accountState, accountSummary),
+          getAccountDescriptionColor(
+            accountSyncing,
+            accountState,
+            accountSummary,
+          ),
         )}
       >
         {accountStateDescription}
