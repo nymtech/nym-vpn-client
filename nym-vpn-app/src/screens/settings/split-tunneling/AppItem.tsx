@@ -9,14 +9,13 @@ export type AppEntry = App & {
 
 type AppItemProps = {
   app: AppEntry;
-  enabled: boolean;
   onStateChange: (
     app: AppEntry,
     state: 'excluded' | 'included',
   ) => Promise<void>;
 };
 
-function AppItem({ app, enabled, onStateChange }: AppItemProps) {
+function AppItem({ app, onStateChange }: AppItemProps) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-charcoal">
       <div className="w-7 h-7 flex items-center justify-center">
@@ -40,28 +39,24 @@ function AppItem({ app, enabled, onStateChange }: AppItemProps) {
         <button
           className={clsx(
             'px-2  h-full w-full flex items-center justify-center cursor-default transition-noborder border-r border-r-iron dark:border-r-bombay rounded-l-lg',
-            app.state === 'excluded'
+            app.state === 'included'
               ? 'bg-aphrodisiac/20 text-aphrodisiac'
               : 'text-iron dark:text-bombay',
-            !enabled && 'opacity-50 cursor-not-allowed',
           )}
-          onClick={() => onStateChange(app, 'excluded')}
+          onClick={() => onStateChange(app, 'included')}
           aria-label={`Exclude ${app.name} from VPN`}
-          disabled={!enabled}
         >
           <MsIcon icon="block" className="text-base" />
         </button>
         <button
           className={clsx(
             'px-2  h-full w-full  flex items-center justify-center cursor-default transition-noborder rounded-r-lg',
-            app.state === 'included'
+            app.state === 'excluded'
               ? 'bg-malachite-moss/15 dark:bg-malachite/15 text-malachite-moss dark:text-malachite'
               : 'text-iron dark:text-bombay',
-            !enabled && 'opacity-50 cursor-not-allowed',
           )}
-          onClick={() => onStateChange(app, 'included')}
+          onClick={() => onStateChange(app, 'excluded')}
           aria-label={`Include ${app.name} in VPN`}
-          disabled={!enabled}
         >
           <MsIcon icon="shield" className="text-base" />
         </button>

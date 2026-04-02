@@ -106,7 +106,6 @@ function SplitTunneling() {
                       <div key={app.name}>
                         <AppItem
                           app={app}
-                          enabled={enabled}
                           onStateChange={handleStateChange}
                         />
                         {i < groupedApps[letter].length - 1 && (
