@@ -26,10 +26,10 @@ use crate::tunnel_provider::OSTunProvider;
 
 #[cfg(not(target_os = "ios"))]
 use crate::adblocker;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::resolver;
 #[cfg(target_os = "android")]
 use crate::dns_filter::DnsFilter;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::resolver;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;

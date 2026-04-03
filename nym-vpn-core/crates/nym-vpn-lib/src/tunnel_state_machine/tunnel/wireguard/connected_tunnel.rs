@@ -36,10 +36,10 @@ use tun::AsyncDevice;
 use crate::dns_filter::DnsFilter;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
-#[cfg(target_os = "android")]
-use crate::tunnel_state_machine::tunnel::wireguard::dns_filter_proxy::DnsFilterProxy;
 #[cfg(windows)]
 use crate::tunnel_state_machine::route_handler::RouteHandler;
+#[cfg(target_os = "android")]
+use crate::tunnel_state_machine::tunnel::wireguard::dns_filter_proxy::DnsFilterProxy;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution;
 #[cfg(unix)]
