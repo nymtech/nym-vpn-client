@@ -311,7 +311,7 @@
     "report-title": "Diagnostic report"
   },
   "split-tunneling": {
-    "title": "Split tunneling",
+    "title": "Split tunneling (beta)",
     "enable": "Enable split tunneling",
     "description": "Choose apps to exclude from NymVPN tunnel. Excluding an app will leave it unprotected.",
     "apps": "Apps",
