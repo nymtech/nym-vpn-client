@@ -2,6 +2,8 @@ use crate::error::BackendError;
 use serde::Serialize;
 use ts_rs::TS;
 
+mod utils;
+
 #[cfg(windows)]
 mod windows_discovery;
 
