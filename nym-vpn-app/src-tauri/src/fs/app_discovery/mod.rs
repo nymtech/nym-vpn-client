@@ -2,6 +2,7 @@ use crate::error::BackendError;
 use serde::Serialize;
 use ts_rs::TS;
 
+#[cfg(any(target_os = "windows", target_os = "linux"))]
 mod utils;
 
 #[cfg(windows)]
