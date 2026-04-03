@@ -161,6 +161,8 @@ tracing-oslog.workspace = true
 
 # Android-specific dependencies
 [target.'cfg(target_os = "android")'.dependencies]
+hickory-proto.workspace = true
+pnet_packet.workspace = true
 rand.workspace = true
 tracing-android.workspace = true
 

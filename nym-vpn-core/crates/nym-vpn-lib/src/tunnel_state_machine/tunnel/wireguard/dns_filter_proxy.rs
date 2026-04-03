@@ -17,9 +17,18 @@
 
 use std::os::fd::{AsFd, FromRawFd, IntoRawFd, OwnedFd};
 
+use hickory_proto::op::{Message, MessageType, ResponseCode};
 use nix::{
     fcntl::{FcntlArg, OFlag, fcntl},
     sys::socket::{AddressFamily, SockFlag, SockType, socketpair},
+};
+use pnet_packet::{
+    MutablePacket, Packet,
+    dns::DnsPacket,
+    ip::IpNextHeaderProtocols,
+    ipv4::{self, Ipv4Packet, MutableIpv4Packet},
+    ipv6::{Ipv6Packet, MutableIpv6Packet},
+    udp::{self, MutableUdpPacket, UdpPacket},
 };
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -166,10 +175,7 @@ async fn run_proxy(
 /// If `packet` is a DNS query for a blocked domain, return a pre-built NXDOMAIN response.
 /// Returns `None` if the packet should pass through.
 async fn maybe_nxdomain(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
-    if packet.is_empty() {
-        return None;
-    }
-    match packet[0] >> 4 {
+    match packet.first().map(|b| b >> 4)? {
         4 => maybe_nxdomain_v4(packet, dns_filter).await,
         6 => maybe_nxdomain_v6(packet, dns_filter).await,
         _ => None,
@@ -177,201 +183,120 @@ async fn maybe_nxdomain(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>
 }
 
 async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
-    if packet.len() < 20 {
-        return None;
+    let ip = Ipv4Packet::new(packet)?;
+
+    match ip.get_next_level_protocol() {
+        IpNextHeaderProtocols::Udp => {
+            let udp = UdpPacket::new(ip.payload())?;
+            if udp.get_destination() != DNS_PORT {
+                return None;
+            }
+            let domain = blocked_domain(udp.payload(), dns_filter).await?;
+            tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+            let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
+            Some(build_response_v4(&ip, &udp, nxdomain_dns))
+        }
+        _ => None,
     }
-    if packet[9] != 17 {
-        // Not UDP
-        return None;
-    }
-    let ihl = ((packet[0] & 0x0f) as usize) * 4;
-    if packet.len() < ihl + 8 {
-        return None;
-    }
-    let dst_port = u16::from_be_bytes([packet[ihl + 2], packet[ihl + 3]]);
-    if dst_port != DNS_PORT {
-        return None;
-    }
-    let dns_start = ihl + 8;
-    if packet.len() <= dns_start {
-        return None;
-    }
-    let domain = parse_qname(&packet[dns_start..])?;
-    if !is_blocked(&domain, dns_filter).await {
-        return None;
-    }
-    tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
-    Some(build_nxdomain_v4(packet, ihl))
 }
 
 async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
-    if packet.len() < 40 {
-        return None;
+    let ip = Ipv6Packet::new(packet)?;
+
+    match ip.get_next_header() {
+        IpNextHeaderProtocols::Udp => {
+            let udp = UdpPacket::new(ip.payload())?;
+            if udp.get_destination() != DNS_PORT {
+                return None;
+            }
+            let domain = blocked_domain(udp.payload(), dns_filter).await?;
+            tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+            let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
+            Some(build_response_v6(&ip, &udp, nxdomain_dns))
+        }
+        _ => None,
     }
-    if packet[6] != 17 {
-        // Not UDP (ignores extension headers)
-        return None;
-    }
-    let udp_start = 40usize;
-    if packet.len() < udp_start + 8 {
-        return None;
-    }
-    let dst_port = u16::from_be_bytes([packet[udp_start + 2], packet[udp_start + 3]]);
-    if dst_port != DNS_PORT {
-        return None;
-    }
-    let dns_start = udp_start + 8;
-    if packet.len() <= dns_start {
-        return None;
-    }
-    let domain = parse_qname(&packet[dns_start..])?;
-    if !is_blocked(&domain, dns_filter).await {
-        return None;
-    }
-    tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
-    Some(build_nxdomain_v6(packet, udp_start))
 }
 
-async fn is_blocked(domain: &str, dns_filter: &DnsFilter) -> bool {
+/// Returns the queried domain name if it should be blocked, `None` otherwise.
+async fn blocked_domain(dns_payload: &[u8], dns_filter: &DnsFilter) -> Option<String> {
+    let dns = DnsPacket::new(dns_payload)?;
+    if dns.get_is_response() != 0 {
+        return None;
+    }
+    let domain = dns
+        .get_queries()
+        .first()?
+        .get_qname_parsed()
+        .trim_end_matches('.')
+        .to_string();
+
     let guard = dns_filter.lock().await;
-    matches!(guard.should_block(domain), DnsFilterDecision::Block(_))
+    matches!(guard.should_block(&domain), DnsFilterDecision::Block(_)).then_some(domain)
 }
 
-/// Parse the first QNAME from a DNS wire-format payload.
-/// Returns `None` if the payload is not a valid DNS query or parsing fails.
-fn parse_qname(dns: &[u8]) -> Option<String> {
-    // DNS header is 12 bytes; QR bit must be 0 (query)
-    if dns.len() < 12 {
-        return None;
-    }
-    let flags = u16::from_be_bytes([dns[2], dns[3]]);
-    if flags & 0x8000 != 0 {
-        return None; // Response, not query
-    }
-    let qdcount = u16::from_be_bytes([dns[4], dns[5]]);
-    if qdcount == 0 {
-        return None;
-    }
-
-    let mut offset = 12usize;
-    let mut labels: Vec<&str> = Vec::new();
-
-    loop {
-        if offset >= dns.len() {
-            return None;
-        }
-        let len = dns[offset] as usize;
-        if len == 0 {
-            break;
-        }
-        // Compression pointer (top 2 bits = 11)
-        if len & 0xC0 == 0xC0 {
-            break;
-        }
-        offset += 1;
-        if offset + len > dns.len() {
-            return None;
-        }
-        labels.push(std::str::from_utf8(&dns[offset..offset + len]).ok()?);
-        offset += len;
-    }
-
-    if labels.is_empty() {
-        return None;
-    }
-    Some(labels.join("."))
+fn build_nxdomain_dns(query: &[u8]) -> Option<Vec<u8>> {
+    let mut msg = Message::from_vec(query).ok()?;
+    msg.set_message_type(MessageType::Response);
+    msg.set_response_code(ResponseCode::NXDomain);
+    msg.take_answers();
+    msg.take_name_servers();
+    msg.take_additionals();
+    msg.to_vec().ok()
 }
 
-/// Build an NXDOMAIN response for the given IPv4 DNS query packet.
-fn build_nxdomain_v4(original: &[u8], ihl: usize) -> Vec<u8> {
-    let dns_start = ihl + 8;
-    let nxdomain = nxdomain_dns(&original[dns_start..]);
+fn build_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
+    let ihl = orig_ip.get_header_length() as usize * 4;
+    let udp_len = (8 + dns.len()) as u16;
+    let total_len = ihl + 8 + dns.len();
+    let mut buf = vec![0u8; total_len];
 
-    let new_total = ihl + 8 + nxdomain.len();
-    let mut resp = vec![0u8; new_total];
+    buf[..ihl].copy_from_slice(&orig_ip.packet()[..ihl]);
 
-    // IP header: swap src/dst
-    resp[..ihl].copy_from_slice(&original[..ihl]);
-    resp[12..16].copy_from_slice(&original[16..20]); // dst → src
-    resp[16..20].copy_from_slice(&original[12..16]); // src → dst
-    let total_len = new_total as u16;
-    resp[2..4].copy_from_slice(&total_len.to_be_bytes());
-    resp[10] = 0;
-    resp[11] = 0;
-    let cksum = ipv4_checksum(&resp[..ihl]);
-    resp[10..12].copy_from_slice(&cksum.to_be_bytes());
+    let mut ip = MutableIpv4Packet::new(&mut buf).expect("buf is large enough");
+    ip.set_source(orig_ip.get_destination());
+    ip.set_destination(orig_ip.get_source());
+    ip.set_total_length(total_len as u16);
+    ip.set_checksum(0);
 
-    // UDP header: swap ports
-    resp[ihl..ihl + 2].copy_from_slice(&original[ihl + 2..ihl + 4]); // dst → src
-    resp[ihl + 2..ihl + 4].copy_from_slice(&original[ihl..ihl + 2]); // src → dst
-    let udp_len = (8 + nxdomain.len()) as u16;
-    resp[ihl + 4..ihl + 6].copy_from_slice(&udp_len.to_be_bytes());
-    resp[ihl + 6] = 0;
-    resp[ihl + 7] = 0;
+    {
+        let src = ip.get_source();
+        let dst = ip.get_destination();
+        let mut udp = MutableUdpPacket::new(ip.payload_mut()).expect("buf is large enough");
+        udp.set_source(orig_udp.get_destination());
+        udp.set_destination(orig_udp.get_source());
+        udp.set_length(udp_len);
+        udp.set_payload(&dns);
+        udp.set_checksum(udp::ipv4_checksum(&udp.to_immutable(), &src, &dst));
+    }
 
-    resp[ihl + 8..].copy_from_slice(&nxdomain);
-    resp
+    ip.set_checksum(ipv4::checksum(&ip.to_immutable()));
+
+    buf
 }
 
-/// Build an NXDOMAIN response for the given IPv6 DNS query packet.
-fn build_nxdomain_v6(original: &[u8], udp_start: usize) -> Vec<u8> {
-    let dns_start = udp_start + 8;
-    let nxdomain = nxdomain_dns(&original[dns_start..]);
+fn build_response_v6(orig_ip: &Ipv6Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
+    const IPV6_HEADER_LEN: usize = 40;
+    let udp_len = (8 + dns.len()) as u16;
+    let total_len = IPV6_HEADER_LEN + 8 + dns.len();
+    let mut buf = vec![0u8; total_len];
 
-    let udp_payload_len = 8 + nxdomain.len();
-    let new_total = 40 + udp_payload_len;
-    let mut resp = vec![0u8; new_total];
+    buf[..IPV6_HEADER_LEN].copy_from_slice(&orig_ip.packet()[..IPV6_HEADER_LEN]);
 
-    // IPv6 header: swap src/dst (bytes 8–23 ↔ 24–39)
-    resp[..40].copy_from_slice(&original[..40]);
-    resp[8..24].copy_from_slice(&original[24..40]);
-    resp[24..40].copy_from_slice(&original[8..24]);
-    let payload_len = udp_payload_len as u16;
-    resp[4..6].copy_from_slice(&payload_len.to_be_bytes());
+    let mut ip = MutableIpv6Packet::new(&mut buf).expect("buf is large enough");
+    ip.set_source(orig_ip.get_destination());
+    ip.set_destination(orig_ip.get_source());
+    ip.set_payload_length(udp_len);
 
-    // UDP header: swap ports
-    resp[40..42].copy_from_slice(&original[udp_start + 2..udp_start + 4]);
-    resp[42..44].copy_from_slice(&original[udp_start..udp_start + 2]);
-    resp[44..46].copy_from_slice(&(udp_payload_len as u16).to_be_bytes());
-    resp[46] = 0;
-    resp[47] = 0;
-
-    resp[48..].copy_from_slice(&nxdomain);
-    resp
-}
-
-/// Produce a minimal NXDOMAIN DNS response from a query payload (header + question section).
-fn nxdomain_dns(query: &[u8]) -> Vec<u8> {
-    if query.len() < 12 {
-        return query.to_vec();
+    {
+        let src = ip.get_source();
+        let dst = ip.get_destination();
+        let mut udp = MutableUdpPacket::new(ip.payload_mut()).expect("buf is large enough");
+        udp.set_source(orig_udp.get_destination());
+        udp.set_destination(orig_udp.get_source());
+        udp.set_length(udp_len);
+        udp.set_payload(&dns);
+        udp.set_checksum(udp::ipv6_checksum(&udp.to_immutable(), &src, &dst));
     }
-    let mut resp = query.to_vec();
-    // Set QR=1 (response), preserve OPCODE+RD, set RCODE=3 (NXDOMAIN)
-    resp[2] = query[2] | 0x80;
-    resp[3] = (query[3] & 0xF8) | 0x03; // RA=0, RCODE=NXDOMAIN
-    // Zero answer/authority/additional counts
-    resp[6] = 0;
-    resp[7] = 0;
-    resp[8] = 0;
-    resp[9] = 0;
-    resp[10] = 0;
-    resp[11] = 0;
-    resp
-}
-
-/// Compute the one's-complement checksum of an IPv4 header.
-fn ipv4_checksum(header: &[u8]) -> u16 {
-    let mut sum: u32 = 0;
-    let mut i = 0;
-    while i + 1 < header.len() {
-        sum += u16::from_be_bytes([header[i], header[i + 1]]) as u32;
-        i += 2;
-    }
-    if i < header.len() {
-        sum += (header[i] as u32) << 8;
-    }
-    while sum >> 16 != 0 {
-        sum = (sum & 0xFFFF) + (sum >> 16);
-    }
-    !(sum as u16)
+    buf
 }
