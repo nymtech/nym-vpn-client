@@ -14,8 +14,9 @@ export function AccountStatus() {
   const needsSubscription = useMemo(
     () =>
       accountState === 'no-subscription' ||
-      accountState === 'status-not-active',
-    [accountState],
+      accountState === 'status-not-active' ||
+      !accountSummary?.['is-subscription-active'],
+    [accountState, accountSummary],
   );
 
   if (!accountState || accountState === 'error' || accountState === 'offline') {

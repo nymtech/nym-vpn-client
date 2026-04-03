@@ -5,6 +5,7 @@ import { AccountState, TAccountSummary } from '../../../types';
 export const getAccountDescriptionColor = (
   accountSyncing: boolean,
   state?: AccountState | null,
+  accountSummary?: TAccountSummary | null,
 ) => {
   if (accountSyncing) {
     return 'text-iron dark:text-bombay';
@@ -20,6 +21,9 @@ export const getAccountDescriptionColor = (
   if (state === 'offline' || state === 'status-not-active') {
     return 'text-cheddar dark:text-king-nacho ';
   }
+  if (!accountSummary?.['is-subscription-active']) {
+    return 'text-aphrodisiac';
+  }
   return 'text-iron dark:text-bombay';
 };
 
@@ -27,6 +31,7 @@ export const getAccountStateDescription = (
   t: TFunction<'settings', undefined>,
   accountSyncing: boolean,
   state?: AccountState | null,
+  accountSummary?: TAccountSummary | null,
 ) => {
   if (accountSyncing) {
     return t('account.syncing');
@@ -51,9 +56,14 @@ export const getAccountStateDescription = (
       return t('account.offline', { ns: 'errors' });
     case 'error':
       return t('account.internal', { ns: 'errors' });
-    default:
-      return null;
   }
+
+  if (!accountSummary?.['is-subscription-active']) {
+    return t('account.no-plan');
+  }
+
+  // Global default
+  return null;
 };
 
 export const getAccountStatus = (accountSummary?: TAccountSummary | null) => {

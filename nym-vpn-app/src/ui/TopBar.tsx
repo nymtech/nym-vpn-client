@@ -165,6 +165,17 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/split-tunneling': {
+        title: t('split-tunneling.title', { ns: 'settings' }),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+        rightIcon: 'info',
+        handleRightNav: () => {
+          show('split-tunneling-info');
+        },
+      },
       '/settings/anti-censorship': {
         title: t('anti-censorship.title', { ns: 'settings' }),
         leftIcon: 'arrow_back',

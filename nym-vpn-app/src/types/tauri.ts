@@ -8,6 +8,18 @@ export type AccountLinks = {
 
 export type Address = { nymAddress: string; gatewayId: string };
 
+export type App = {
+  name: string;
+  /**
+   * Absolute path to the `.exe` file, when resolvable.
+   */
+  executable_path: string;
+  /**
+   * Absolute path to the icon file.
+   */
+  icon: string | null;
+};
+
 export type Asn = { asn: string; name: string; type: AsnType };
 
 export type AsnType = 'other' | 'residential';
@@ -83,7 +95,8 @@ export type DeeplinkKind =
   | 'privy'
   | 'privyLink'
   | 'autologinRenew'
-  | 'autologinView';
+  | 'autologinView'
+  | 'createAccount';
 
 export type DisplayServer = 'x11' | 'wayland' | { unknown: string | null };
 
@@ -281,6 +294,10 @@ export type Socks5Status = {
   errorMessage: string | null;
   activeConnections: number;
 };
+
+export type SplitApp = { path: string };
+
+export type SplitTunnelSettings = { enabled: boolean; apps: Array<SplitApp> };
 
 export type StartupError = {
   key: 'internal' | 'db-open' | 'db-locked';
@@ -504,6 +521,7 @@ export type VpndConfig = {
   enableLewesProtocol: boolean;
   mixnetTraffic: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
+  splitTunnel: SplitTunnelSettings;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

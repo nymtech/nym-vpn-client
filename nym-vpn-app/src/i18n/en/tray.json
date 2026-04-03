@@ -6,7 +6,8 @@
     "connecting": "Connecting",
     "disconnecting": "Disconnecting",
     "error": "Error",
-    "auth-denied": "Unauthenticated"
+    "auth-denied": "Unauthenticated",
+    "offline": "Offline"
   },
   "mode": {
     "mode": "Mode",

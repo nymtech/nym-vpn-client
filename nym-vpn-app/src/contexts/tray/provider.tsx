@@ -66,7 +66,12 @@ export function TrayProvider({ children }: TrayProviderProps) {
         case 'disconnecting':
           stateValue = `${t('state.state')}: ${t('state.disconnecting')}`;
           break;
+        case 'offline':
+          stateValue = `${t('state.state')}: ${t('state.offline')}`;
+          break;
         case 'error':
+        case 'offline-auto-reconnect':
+        case 'unknown':
           stateValue = `${t('state.state')}: ${t('state.error')}`;
           break;
       }

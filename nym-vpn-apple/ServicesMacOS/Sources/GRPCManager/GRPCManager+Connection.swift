@@ -70,6 +70,22 @@ extension GRPCManager {
             try await self?.rpcClient?.disconnectTunnel()
         }.value
     }
+
+    public func setEnableLewes(_ enabled: Bool) async throws {
+        try await rpcClient?.setEnableLewesProtocol(enableLewesProtocol: enabled)
+    }
+
+    public func setEnableAdBlocking(_ enabled: Bool) async throws {
+        try await rpcClient?.setEnableAdBlocking(enableAdBlocking: enabled)
+    }
+
+    public func setDisableIpv6(_ disabled: Bool) async throws {
+        try await rpcClient?.setDisableIpv6(disableIpv6: disabled)
+    }
+
+    public func setAllowLan(_ allowed: Bool) async throws {
+        try await rpcClient?.setAllowLan(allowLan: allowed)
+    }
 }
 
 private extension GRPCManager {

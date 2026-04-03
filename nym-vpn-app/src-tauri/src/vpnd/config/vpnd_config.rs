@@ -8,6 +8,8 @@ use crate::vpnd::node::Node;
 
 use super::mixnet_config::{MixnetTrafficConfig, MixnetTrafficDefaults};
 
+use crate::vpnd::tunnel::SplitTunnelSettings;
+
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export, export_to = "tauri.ts")]
@@ -27,6 +29,7 @@ pub struct VpndConfig {
     pub enable_lewes_protocol: bool,
     pub mixnet_traffic: MixnetTrafficConfig,
     pub mixnet_traffic_defaults: MixnetTrafficDefaults,
+    pub split_tunnel: SplitTunnelSettings,
 }
 
 impl VpndConfig {
@@ -53,6 +56,7 @@ impl VpndConfig {
             enable_lewes_protocol: config.enable_lewes_protocol,
             mixnet_traffic: config.mixnet_traffic.into(),
             mixnet_traffic_defaults: MixnetTrafficDefaults::get(),
+            split_tunnel: config.split_tunnel.into(),
         })
     }
 }

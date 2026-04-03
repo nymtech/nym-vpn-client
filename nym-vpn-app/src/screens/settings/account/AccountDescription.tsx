@@ -23,6 +23,7 @@ export function AccountDescription() {
     t,
     accountSyncing,
     accountState,
+    accountSummary,
   );
 
   const status = useMemo(
@@ -34,7 +35,11 @@ export function AccountDescription() {
     return (
       <span
         className={clsx(
-          getAccountDescriptionColor(accountSyncing, accountState),
+          getAccountDescriptionColor(
+            accountSyncing,
+            accountState,
+            accountSummary,
+          ),
         )}
       >
         {accountStateDescription}
@@ -42,7 +47,7 @@ export function AccountDescription() {
     );
   }
 
-  if (!accountSummary) {
+  if (!accountSummary?.['subscription-valid-until']) {
     return null;
   }
 

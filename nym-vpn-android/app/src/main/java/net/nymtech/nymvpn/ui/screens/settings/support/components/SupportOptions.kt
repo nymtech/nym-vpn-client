@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.settings.support.components
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowRight
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,10 +48,6 @@ fun SupportOptions() {
 				},
 				onClick = { context.openWebUrl(context.getString(R.string.faq_url)) },
 			),
-		),
-	)
-	SettingsGroup(
-		items = listOf(
 			SelectionItem(
 				leading = {
 					Icon(
@@ -101,10 +98,7 @@ fun SupportOptions() {
 				},
 				onClick = { context.openWebUrl(context.getString(R.string.github_issues_url)) },
 			),
-		),
-	)
-	SettingsGroup(
-		items = listOf(
+
 			SelectionItem(
 				leading = {
 					Icon(
@@ -128,10 +122,7 @@ fun SupportOptions() {
 				},
 				onClick = { context.openWebUrl(context.getString(R.string.telegram_url)) },
 			),
-		),
-	)
-	SettingsGroup(
-		items = listOf(
+
 			SelectionItem(
 				leading = {
 					Icon(
@@ -155,10 +146,7 @@ fun SupportOptions() {
 				},
 				onClick = { context.openWebUrl(context.getString(R.string.matrix_url)) },
 			),
-		),
-	)
-	SettingsGroup(
-		items = listOf(
+
 			SelectionItem(
 				leading = {
 					Icon(
@@ -178,6 +166,39 @@ fun SupportOptions() {
 					Text(
 						stringResource(R.string.join_discord),
 						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+					)
+				},
+				onClick = { context.openWebUrl(context.getString(R.string.discord_url)) },
+			),
+		),
+	)
+	SettingsGroup(
+		items = listOf(
+			SelectionItem(
+				leading = {
+					Icon(
+						Icons.Outlined.Language,
+						stringResource(R.string.settings_language_help_title),
+						modifier = Modifier.size(iconSize.scaledWidth()),
+					)
+				},
+				trailing = {
+					Icon(
+						Icons.AutoMirrored.Outlined.ArrowRight,
+						stringResource(R.string.go),
+						modifier = Modifier.size(iconSize),
+					)
+				},
+				title = {
+					Text(
+						stringResource(R.string.settings_language_help_title),
+						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+					)
+				},
+				description = {
+					Text(
+						stringResource(R.string.settings_language_help_description),
+						style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
 					)
 				},
 				onClick = { context.openWebUrl(context.getString(R.string.discord_url)) },

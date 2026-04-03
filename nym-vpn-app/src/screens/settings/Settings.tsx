@@ -16,6 +16,7 @@ function Settings() {
     desktopNotifications,
     ipv6Support,
     allowLan,
+    enableLewesProtocol,
     enableAdBlocking,
     backendFlags,
   } = useMainState();
@@ -56,6 +57,21 @@ function Settings() {
       console.error('[settings] allow lan error', error);
       push({
         message: t('allow-lan.errors.failed'),
+        close: true,
+        type: 'error',
+      });
+    }
+  };
+
+  const handleLewesProtocol = async () => {
+    const switched = !enableLewesProtocol;
+    try {
+      await invoke('set_enable_lewes_protocol', { enabled: switched });
+      dispatch({ type: 'set-enable-lewes-protocol', enabled: switched });
+    } catch (error) {
+      console.error('[settings] lewes protocol error', error);
+      push({
+        message: t('lewes.errors.failed'),
         close: true,
         type: 'error',
       });
@@ -122,6 +138,18 @@ function Settings() {
             trailing: <Switch checked={allowLan} onChange={handleAllowLan} />,
           },
           {
+            title: t('lewes.title'),
+            desc: t('lewes.desc'),
+            leadingIcon: 'matter',
+            onClick: handleLewesProtocol,
+            trailing: (
+              <Switch
+                checked={enableLewesProtocol}
+                onChange={handleLewesProtocol}
+              />
+            ),
+          },
+          {
             title: t('dns.title'),
             leadingIcon: 'dns',
             onClick: () => navigate(routes.dns),
@@ -132,6 +160,13 @@ function Settings() {
             desc: t('mixnet-tuning.desc'),
             leadingIcon: 'visibility_off',
             onClick: () => navigate(routes.mixnetTuning),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
+          {
+            title: t('split-tunneling.title'),
+            leadingIcon: 'call_split',
+            onClick: () =>
+              navigate(routes.splitTunneling, { state: { resetScroll: true } }),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
           {
