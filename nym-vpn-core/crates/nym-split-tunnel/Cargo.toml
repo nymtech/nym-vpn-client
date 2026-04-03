@@ -13,7 +13,7 @@ rust-version.workspace = true
 workspace = true
 
 [features]
-cgroup2 = []
+cgroup2 = ["dep:nym-firewall"]
 
 [dependencies]
 either = { workspace = true, features = ["serde"] }
@@ -69,3 +69,4 @@ nftnl = { version = "0.9.1", features = ["nftnl-1-2-0"] }
 nix = { workspace = true, features = ["fs", "mount", "process"] }
 nym-cgroup.workspace = true
 nym-dbus.workspace = true
+nym-firewall = { workspace = true, optional = true }

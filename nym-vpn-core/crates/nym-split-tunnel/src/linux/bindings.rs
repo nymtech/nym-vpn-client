@@ -4,6 +4,9 @@
 #![allow(dead_code)]
 #![allow(unsafe_op_in_unsafe_fn)]
 use libc::{nlmsghdr, proc_cn_event, proc_cn_mcast_op};
+pub type exec_proc_event = proc_event__bindgen_ty_1_exec_proc_event;
+pub type fork_proc_event = proc_event__bindgen_ty_1_fork_proc_event;
+pub type exit_proc_event = proc_event__bindgen_ty_1_exit_proc_event;
 
 #[repr(C)]
 #[derive(Default)]

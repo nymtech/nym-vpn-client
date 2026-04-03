@@ -6417,6 +6417,7 @@ dependencies = [
  "nym-cgroup",
  "nym-common",
  "nym-dbus",
+ "nym-firewall",
  "nym-firewall-config",
  "nym-ifconfig",
  "nym-macos",

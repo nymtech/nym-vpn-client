@@ -414,9 +414,6 @@ pub struct FirewallArguments {
     pub net_cls: Option<u32>,
 }
 
-#[cfg(target_os = "linux")]
-pub struct LinuxFirewall;
-
 /// State to enter during firewall init.
 pub enum InitialFirewallState {
     /// Do not set any policy.
@@ -445,6 +442,12 @@ impl Firewall {
     pub fn reset_policy(&mut self) -> Result<(), Error> {
         tracing::info!("Resetting firewall policy");
         self.inner.reset_policy()
+    }
+
+    // fixme: exposed as a poor man solution to support nym-split-tunnel
+    #[cfg(target_os = "linux")]
+    pub fn send_and_process(batch: &nftnl::FinalizedBatch) -> Result<(), Error> {
+        imp::Firewall::send_and_process(batch)
     }
 }
 

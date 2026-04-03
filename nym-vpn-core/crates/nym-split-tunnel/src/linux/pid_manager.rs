@@ -12,10 +12,25 @@ use nym_cgroup::{
     v2::CGroup2,
 };
 
-#[cfg(feature = "cgroup2")]
-use crate::firewall;
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[cfg(feature = "cgroup2")]
+    #[error("failed to add nft cgroupv2 rule")]
+    AddCGroup2Rule(#[source] nym_firewall::Error),
 
-pub type Error = nym_cgroup::Error;
+    #[error("cgroup error")]
+    CGroup(#[from] nym_cgroup::Error),
+}
+
+impl Error {
+    pub fn is_no_process_err(&self) -> bool {
+        match self {
+            Self::CGroup(err) => err.is_no_process_err(),
+            #[cfg(feature = "cgroup2")]
+           Self::AddCGroup2Rule(_) => false,
+        }
+    }
+}
 
 /// Manages PIDs in the linux cgroup used for vpn tunnel exclusion.
 ///
@@ -86,8 +101,7 @@ impl PidManager {
 
         let excluded_cgroup2 = root_cgroup2.create_or_open_child(SPLIT_TUNNEL_CGROUP_NAME)?;
 
-        assert_nft_supports_cgroup2(&excluded_cgroup2)
-            .context("cgroup2 not supported by nftables, are you running an old kernel?")?;
+        assert_nft_supports_cgroup2(&excluded_cgroup2)?;
 
         Ok(InnerCGroup2 {
             root_cgroup2,
@@ -249,8 +263,7 @@ fn assert_nft_supports_cgroup2(cgroup: &CGroup2) -> Result<(), Error> {
     batch.add(&table, MsgType::Del);
 
     let batch = batch.finalize();
-    firewall::linux::Firewall::send_and_process(&batch)
-        .context("Failed to add nft cgroupv2 rule")?;
+    nym_firewall::Firewall::send_and_process(&batch).map_err(Error::AddCGroup2Rule)?;
 
     Ok(())
 }
