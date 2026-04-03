@@ -12,7 +12,7 @@ impl From<proto::SplitTunnelExcludedProcess> for SplitTunnelExcludedProcess {
         Self {
             pid: value.pid,
             exec_path: PathBuf::from(value.exec_path),
-            responsible_exec_path: value.responsible_exec_path.map(PathBuf::from),
+            responsible_exec_path: PathBuf::from(value.responsible_exec_path),
             ancestor_exec_paths: value
                 .ancestor_exec_paths
                 .into_iter()
@@ -27,9 +27,7 @@ impl From<SplitTunnelExcludedProcess> for proto::SplitTunnelExcludedProcess {
         Self {
             pid: value.pid,
             exec_path: value.exec_path.display().to_string(),
-            responsible_exec_path: value
-                .responsible_exec_path
-                .map(|path| path.display().to_string()),
+            responsible_exec_path: value.responsible_exec_path.display().to_string(),
             ancestor_exec_paths: value
                 .ancestor_exec_paths
                 .into_iter()

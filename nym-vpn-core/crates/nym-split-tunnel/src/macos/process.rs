@@ -395,6 +395,7 @@ impl ProcessStates {
                 pid: *pid,
                 exec_path: info.exec_path.clone(),
                 responsible_exec_path: info.responsible_exec_path.clone(),
+                ancestor_exec_paths: vec![],
             })
             .collect::<Vec<_>>();
         drop(inner);
