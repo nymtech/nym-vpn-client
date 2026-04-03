@@ -31,7 +31,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use pid_manager::PidManager;
-use process_monitor::{ProcessEvent, ProcessMonitor};
+use process_monitor::{ProcessEvent, ProcessMonitor, ProcessSnapshot};
 
 use crate::SplitTunnelErrorCause;
 
@@ -94,27 +94,26 @@ impl SplitTunnel {
                 // Only query rx when ST is active since tx is dropped otherwise
                 event = self.process_event_rx.recv(), if self.state.is_active() => {
                     match event {
-                        Some(event) => self.state.handle_event(event).await,
+                        Some(event) => {
+                            self.state.handle_event(event);
+                        }
                         None => {
                             tracing::warn!("Process monitor exited unexpectedly!");
 
-                            let error = self.state.wait_for_shutdown().await
+                            let error = self.state.shutdown().await
                                 .err()
                                 .unwrap_or(Error::from(InnerError::Internal("Process monitor closed event channel but exited without error")));
                             trace_err_chain!(error, "Process monitor runtime error");
 
                             let st_error_cause = SplitTunnelErrorCause::from(&error);
-                            self.state = State::Failed {
-                                error
-                            };
+                            self.state = State::Failed { error };
 
-                            // Report runtime error to tunnel state machine
                             (self.error_handler)(st_error_cause);
                         }
                     };
                 }
                 _  = self.shutdown_token.cancelled() => {
-                    self.state.wait_for_shutdown().await.ok();
+                    self.state.shutdown().await.ok();
                     break;
                 }
             }
@@ -125,7 +124,7 @@ impl SplitTunnel {
         process_event_tx: UnboundedSender<ProcessEvent>,
         shutdown_token: CancellationToken,
     ) -> State {
-        Self::start_split_tunnel_inner(process_event_tx, shutdown_token.child_token())
+        Self::start_split_tunnel_inner(process_event_tx, shutdown_token)
             .await
             .inspect_err(|err| {
                 trace_err_chain!(err, "failed to initialize split tunnel");
@@ -137,19 +136,16 @@ impl SplitTunnel {
         process_event_tx: mpsc::UnboundedSender<ProcessEvent>,
         shutdown_token: CancellationToken,
     ) -> Result<State, Error> {
-        let pid_manager =
-            PidManager::new().map_err(|err| Error::from(InnerError::CreatePidManager(err)))?;
-
-        let process_monitor = ProcessMonitor::spawn(process_event_tx, shutdown_token)
+        let pid_manager = PidManager::new().map_err(InnerError::CreatePidManager)?;
+        let process_monitor = ProcessMonitor::spawn(process_event_tx, shutdown_token.child_token())
             .await
             .map_err(InnerError::CreateProcessMonitor)?;
 
-        let processes = process_list_snapshot().map_err(InnerError::ProcessListSnapshot)?;
-
         Ok(State::Active(ActiveState {
+            process_monitor_token: shutdown_token,
             pid_manager,
             process_monitor,
-            processes,
+            processes: HashMap::new(),
             exclude_paths: HashSet::new(),
         }))
     }
@@ -252,6 +248,7 @@ impl SplitTunnelHandle {
 }
 
 struct ActiveState {
+    process_monitor_token: CancellationToken,
     process_monitor: JoinHandle<Result<(), process_monitor::Error>>,
     pid_manager: PidManager,
     exclude_paths: HashSet<PathBuf>,
@@ -366,22 +363,8 @@ impl ActiveState {
         Ok(())
     }
 
-    async fn handle_process_event(&mut self, event: ProcessEvent) {
-        match event {
-            ProcessEvent::Fork {
-                parent_pid,
-                child_pid,
-                path,
-            } => {
-                self.handle_fork(parent_pid, child_pid, path);
-            }
-            ProcessEvent::Exec { pid, path } => {
-                self.handle_exec(pid, path);
-            }
-            ProcessEvent::Exit { pid } => {
-                self.handle_exit(pid);
-            }
-        }
+    fn handle_subscribed(&mut self, processes: Vec<ProcessSnapshot>) {
+        self.processes = process_list_snapshot(processes);
     }
 
     fn handle_fork(&mut self, parent_pid: pid_t, pid: pid_t, path: PathBuf) {
@@ -474,11 +457,26 @@ enum State {
 }
 
 impl State {
-    async fn handle_event(&mut self, event: ProcessEvent) {
+    fn handle_event(&mut self, event: ProcessEvent) {
         match self {
-            State::Active(state) => {
-                state.handle_process_event(event).await;
-            }
+            State::Active(state) => match event {
+                ProcessEvent::Subscribed { processes } => {
+                    state.handle_subscribed(processes);
+                }
+                ProcessEvent::Fork {
+                    parent_pid,
+                    child_pid,
+                    path,
+                } => {
+                    state.handle_fork(parent_pid, child_pid, path);
+                }
+                ProcessEvent::Exec { pid, path } => {
+                    state.handle_exec(pid, path);
+                }
+                ProcessEvent::Exit { pid } => {
+                    state.handle_exit(pid);
+                }
+            },
             State::Failed { error: _ } => {}
         }
     }
@@ -526,17 +524,21 @@ impl State {
         }
     }
 
-    async fn wait_for_shutdown(self) -> Result<(), Error> {
+    async fn shutdown(self) -> Result<(), Error> {
         match self {
-            State::Active(state) => match state.process_monitor.await {
-                Ok(inner) => {
-                    inner.map_err(|err| Error::from(InnerError::ProcessMonitorFailure(err)))
+            State::Active(state) => {
+                state.process_monitor_token.cancel();
+
+                match state.process_monitor.await {
+                    Ok(inner) => {
+                        inner.map_err(|err| Error::from(InnerError::ProcessMonitorFailure(err)))
+                    }
+                    Err(err) => {
+                        tracing::error!("Failed to join on process monitor handle: {err}");
+                        Err(Error::from(InnerError::Panic(err)))
+                    }
                 }
-                Err(err) => {
-                    tracing::error!("Failed to join on process monitor handle: {err}");
-                    Err(Error::from(InnerError::ProcessMonitorPanicked(err)))
-                }
-            },
+            }
             State::Failed { error: _ } => Ok(()),
         }
     }
@@ -591,9 +593,6 @@ enum InnerError {
     #[error("failed to create process monitor")]
     CreateProcessMonitor(#[source] process_monitor::Error),
 
-    #[error("failed to create initial process list snapshot")]
-    ProcessListSnapshot(#[source] procfs::ProcError),
-
     #[error("failed to list pids in cgroup")]
     ListPids(#[source] nym_cgroup::Error),
 
@@ -601,7 +600,7 @@ enum InnerError {
     ProcessMonitorFailure(#[source] process_monitor::Error),
 
     #[error("process monitor panic")]
-    ProcessMonitorPanicked(#[source] JoinError),
+    Panic(#[source] JoinError),
 
     #[error("internal error: {0}")]
     Internal(&'static str),
@@ -610,62 +609,18 @@ enum InnerError {
     Unavailable,
 }
 
-fn process_list_snapshot() -> procfs::ProcResult<HashMap<pid_t, ProcessInfo>> {
-    let proc_iter = procfs::process::all_processes()?.filter_map(|proc| {
-        match proc {
-            Ok(proc) => Some(proc),
-            Err(err) => {
-                match err {
-                    procfs::ProcError::NotFound(_) => {
-                        // process vanished
-                        None
-                    }
-                    procfs::ProcError::Io(err, path) => {
-                        tracing::trace!("io error when listing process {path:?}: {err}");
-                        None
-                    }
-                    err => {
-                        tracing::error!("Can't read process: {err}");
-                        None
-                    }
-                }
-            }
-        }
-    });
-
+fn process_list_snapshot(snapshots: Vec<ProcessSnapshot>) -> HashMap<pid_t, ProcessInfo> {
     let mut proc_by_pid = HashMap::new();
     let mut ppid_table = HashMap::new();
 
     // Collect process info for all processes
-    for proc in proc_iter {
+    for proc in snapshots {
         // Build pid => ppid table
-        match proc.status() {
-            Ok(status) => {
-                ppid_table.insert(proc.pid(), status.ppid);
-            }
-            Err(procfs::ProcError::NotFound(_)) => {
-                // process vanished
-                continue;
-            }
-            Err(err) => {
-                tracing::error!("Can't obtain process status {}: {}", proc.pid(), err);
-            }
-        }
-
-        // Some system processes do not adverise their executable path, ex: /proc/2/exe (kthreadd)
-        let exec_path = proc
-            .exe()
-            .inspect_err(|err| {
-                if !matches!(err, procfs::ProcError::NotFound(_)) {
-                    tracing::trace!("couldn't read exe() for pid {}: {}", proc.pid(), err);
-                }
-            })
-            .ok();
-
+        ppid_table.insert(proc.pid, proc.parent_pid);
         proc_by_pid.insert(
-            proc.pid(),
+            proc.pid,
             ProcessInfo {
-                exec_path,
+                exec_path: proc.path,
                 ancestor_exec_paths: HashSet::new(),
                 excluded_by_paths: HashSet::new(),
             },
@@ -722,5 +677,5 @@ fn process_list_snapshot() -> procfs::ProcResult<HashMap<pid_t, ProcessInfo>> {
         }
     }
 
-    Ok(proc_by_pid)
+    proc_by_pid
 }
