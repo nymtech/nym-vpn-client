@@ -24,6 +24,13 @@
       "failed": "Failed to enable LAN bypass"
     }
   },
+  "lewes": {
+    "title": "Lewes protocol",
+    "desc": "No post-quantum gateway preference",
+    "errors": {
+      "failed": "Failed to enable Lewes protocol"
+    }
+  },
   "notifications": {
     "title": "Desktop notifications"
   },
