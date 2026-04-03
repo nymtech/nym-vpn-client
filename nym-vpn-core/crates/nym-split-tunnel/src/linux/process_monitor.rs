@@ -20,9 +20,7 @@ use tokio::{sync::mpsc::UnboundedSender, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use super::bindings::{
-    nlcn_event_msg, nlcn_subscribe_msg, proc_event__bindgen_ty_1_exec_proc_event as ExecEvt,
-    proc_event__bindgen_ty_1_exit_proc_event as ExitEvt,
-    proc_event__bindgen_ty_1_fork_proc_event as ForkEvt,
+    exec_proc_event, exit_proc_event, fork_proc_event, nlcn_event_msg, nlcn_subscribe_msg,
 };
 
 /// Check and cache whether kernel has proc events enabled
@@ -217,7 +215,7 @@ impl ProcessMonitor {
         })
     }
 
-    async fn handle_fork(&mut self, event: ForkEvt) -> Option<ProcessEvent> {
+    async fn handle_fork(&mut self, event: fork_proc_event) -> Option<ProcessEvent> {
         // Track thread in task group
         let threads = self.threads.entry(event.child_tgid).or_default();
         threads.insert(event.child_pid);
@@ -244,7 +242,7 @@ impl ProcessMonitor {
         }
     }
 
-    async fn handle_exec(&mut self, event: ExecEvt) -> Option<ProcessEvent> {
+    async fn handle_exec(&mut self, event: exec_proc_event) -> Option<ProcessEvent> {
         if event.process_pid == event.process_tgid {
             let exe_path = query_exec_path("exec", event.process_pid).await;
             tracing::trace!("exec: {} exe={:?}", event.process_pid, exe_path);
@@ -259,7 +257,7 @@ impl ProcessMonitor {
         }
     }
 
-    fn handle_exit(&mut self, event: ExitEvt) -> Option<ProcessEvent> {
+    fn handle_exit(&mut self, event: exit_proc_event) -> Option<ProcessEvent> {
         let Some(threads) = self.threads.get_mut(&event.process_tgid) else {
             tracing::warn!("Exit for pid {} with no known threads!", event.process_tgid);
             return None;

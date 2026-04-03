@@ -10,7 +10,7 @@ use std::{
 };
 
 /// Path where cgroup1 will be mounted.
-pub const NET_CLS_DIR_OVERRIDE_ENV_VAR: &str = "TALPID_NET_CLS_MOUNT_DIR";
+pub const NET_CLS_DIR_OVERRIDE_ENV_VAR: &str = "NYM_NET_CLS_MOUNT_DIR";
 
 /// The path where linux normally mounts the net_cls cgroup v1 filesystem.
 pub const DEFAULT_NET_CLS_DIR: &str = "/sys/fs/cgroup/net_cls";

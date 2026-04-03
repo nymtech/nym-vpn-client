@@ -593,13 +593,13 @@ impl<T: Into<InnerError>> From<T> for Error {
 #[derive(thiserror::Error, Debug)]
 enum InnerError {
     #[error("failed to create pid manager")]
-    CreatePidManager(#[source] nym_cgroup::Error),
+    CreatePidManager(#[source] pid_manager::Error),
 
     #[error("failed to create process monitor")]
     CreateProcessMonitor(#[source] process_monitor::Error),
 
     #[error("failed to list pids in cgroup")]
-    ListPids(#[source] nym_cgroup::Error),
+    ListPids(#[source] pid_manager::Error),
 
     #[error("process monitor runtime error")]
     ProcessMonitorFailure(#[source] process_monitor::Error),
