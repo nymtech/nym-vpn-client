@@ -18,14 +18,12 @@ use std::{
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-use futures::{FutureExt, future::Fuse};
+use futures::{FutureExt, StreamExt, future::Fuse};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-use nym_gateway_directory::{
-    BlacklistedGateways, GatewayCacheHandle, GatewayClient, GatewayMinPerformance,
-};
+use nym_gateway_directory::{GatewayCacheHandle, GatewayClient, GatewayMinPerformance};
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -49,7 +47,6 @@ use nym_vpn_lib_types::{
     EstablishConnectionData, GatewayLightInfo, MixnetConnectionData, NymAddress,
     TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
 };
-use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use super::route_handler::{RouteHandler, RoutingConfig};
@@ -79,6 +76,7 @@ use crate::{
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
+            gateway_provider::GatewayProvider,
             mixnet,
             transports::{self, TransportError},
             wireguard::{
@@ -220,7 +218,6 @@ pub struct TunnelParameters {
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
     pub user_agent: UserAgent,
-    pub blacklisted_entry_gateways: BlacklistedGateways,
 }
 
 pub struct TunnelMonitor {
@@ -234,9 +231,8 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_controller_state: AccountStateReceiver,
     account_command_tx: AccountCommandSender,
-    gateway_cache_handle: GatewayCacheHandle,
+    gateway_provider: GatewayProvider<GatewayCacheHandle>,
     custom_topology_provider: VpnTopologyServiceHandle,
-    wg_keys_db: WireguardKeysDb,
     shutdown_token: CancellationToken,
 }
 
@@ -246,10 +242,9 @@ impl TunnelMonitor {
         tunnel_parameters: TunnelParameters,
         account_controller_state: AccountStateReceiver,
         account_command_tx: AccountCommandSender,
-        gateway_cache_handle: GatewayCacheHandle,
+        gateway_provider: GatewayProvider<GatewayCacheHandle>,
         custom_topology_provider: VpnTopologyServiceHandle,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
-        wg_keys_db: WireguardKeysDb,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -264,9 +259,8 @@ impl TunnelMonitor {
             tun_provider,
             account_controller_state,
             account_command_tx,
-            gateway_cache_handle,
+            gateway_provider,
             custom_topology_provider,
-            wg_keys_db,
             shutdown_token: shutdown_token.clone(),
         };
         let join_handle = tokio::spawn(tunnel_monitor.run());
@@ -345,10 +339,9 @@ impl TunnelMonitor {
             GatewayClient::new(gateway_config.clone(), user_agent.clone())
                 .map_err(Error::GatewayDirectoryClient)?;
 
-        self.gateway_cache_handle
+        self.gateway_provider
             .replace_gateway_client(gateway_directory_client)
-            .ok();
-        self.gateway_cache_handle.refresh_all().await.ok();
+            .await;
 
         let selected_gateways =
             if let Some(ref selected_gateways) = self.tunnel_parameters.selected_gateways {
@@ -356,14 +349,14 @@ impl TunnelMonitor {
             } else {
                 self.send_event(TunnelMonitorEvent::SelectingGateways);
 
-                let new_gateways = tunnel::select_gateways(
-                    self.gateway_cache_handle.clone(),
-                    &self.tunnel_parameters.blacklisted_entry_gateways,
-                    &self.tunnel_parameters.tunnel_settings,
-                    self.wg_keys_db.clone(),
-                    self.shutdown_token.child_token(),
-                )
-                .await?;
+                self.gateway_provider
+                    .set_tunnel_settings(self.tunnel_parameters.tunnel_settings.clone())
+                    .await?;
+                let new_gateways = self
+                    .gateway_provider
+                    .next()
+                    .await
+                    .ok_or(Error::GatewayProviderDown)??;
 
                 let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
                 self.send_event(TunnelMonitorEvent::SelectedGateways {

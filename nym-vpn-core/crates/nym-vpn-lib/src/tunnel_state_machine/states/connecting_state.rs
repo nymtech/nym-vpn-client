@@ -368,16 +368,14 @@ impl ConnectingState {
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
-            blacklisted_entry_gateways: shared_state.blacklisted_entry_gateways.clone(),
         };
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
             shared_state.account_controller_state.clone(),
             shared_state.account_command_tx.clone(),
-            shared_state.gateway_cache_handle.clone(),
+            shared_state.gateway_provider.clone(),
             shared_state.topology_service.clone(),
             tunnel_monitor_event_sender,
-            shared_state.wg_keys_db.clone(),
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             shared_state.route_handler.clone(),
             #[cfg(any(target_os = "ios", target_os = "android"))]
@@ -477,6 +475,44 @@ impl ConnectingState {
         gateways: Box<SelectedGateways>,
         _shared_state: &mut SharedState,
     ) -> Result<()> {
+        let entry_gateway = gateways.entry_gateway();
+        let exit_gateway = gateways.exit_gateway();
+        tracing::debug!(
+            "Using entry public key: {}",
+            gateways.entry_keypair().public_key()
+        );
+        tracing::debug!(
+            "Using exit public key: {}",
+            gateways.exit_keypair().public_key()
+        );
+
+        tracing::info!(
+            "Using entry gateway: {}, location: {}, performance: {}",
+            entry_gateway.identity(),
+            entry_gateway
+                .two_letter_iso_country_code()
+                .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
+            entry_gateway
+                .mixnet_performance
+                .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
+        );
+        tracing::info!(
+            "Using exit gateway: {}, location: {}, performance: {}",
+            exit_gateway.identity(),
+            exit_gateway
+                .two_letter_iso_country_code()
+                .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
+            exit_gateway
+                .mixnet_performance
+                .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
+        );
+        tracing::info!(
+            "Using exit router address {}",
+            exit_gateway
+                .ipr_address
+                .map_or_else(|| "none".to_string(), |ipr| ipr.to_string())
+        );
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let set_policy_result = {
             if _shared_state.tunnel_settings.bridges_enabled()
@@ -594,15 +630,7 @@ impl TunnelStateHandler for ConnectingState {
                     }
                     TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
                         // We have successfully connected, clear any blacklisted entry gateways
-                        match shared_state.blacklisted_entry_gateways.is_empty() {
-                            Ok(is_empty) => if !is_empty {
-                                tracing::info!("Clearing blacklisted entry gateways");
-                                if let Err(e) = shared_state.blacklisted_entry_gateways.clear() {
-                                    tracing::error!("Failed to clear blacklisted entry gateway list: {e}");
-                                }
-                            }
-                            Err(e) => tracing::error!("Failed to read blacklisted entry gateway list: {e}")
-                        }
+                        shared_state.gateway_provider.clear_blacklisted_entry_gateways();
 
                         NextTunnelState::NewState(ConnectedState::enter(
                             tunnel_interface,
@@ -639,11 +667,7 @@ impl TunnelStateHandler for ConnectingState {
                         // entry gateways for a while and force gateway re-selection.
                         if let Some(ref selected_gateways) = self.selected_gateways {
                             let entry_gateway_identifier = selected_gateways.entry_gateway().identity;
-                            if let Err(e) = shared_state.blacklisted_entry_gateways.add(entry_gateway_identifier) {
-                                tracing::error!("Failed to add gateway {} to blacklisted entry gateway list: {e}", entry_gateway_identifier);
-                            } else {
-                                tracing::warn!("Blacklisted entry gateway {} due to repeated connection failure", entry_gateway_identifier);
-                            }
+                            shared_state.gateway_provider.add_blacklisted_entry_gateway(entry_gateway_identifier);
                             self.selected_gateways = None;
                         }
                         NextTunnelState::SameState(self)
