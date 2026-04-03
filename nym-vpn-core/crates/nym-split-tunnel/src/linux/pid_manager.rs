@@ -27,7 +27,7 @@ impl Error {
         match self {
             Self::CGroup(err) => err.is_no_process_err(),
             #[cfg(feature = "cgroup2")]
-           Self::AddCGroup2Rule(_) => false,
+            Self::AddCGroup2Rule(_) => false,
         }
     }
 }
