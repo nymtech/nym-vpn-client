@@ -385,7 +385,6 @@ pub struct VpnAccountAuthMethod {
     pub kind: String,
     pub label: String,
     pub status: VpnAccountStatus,
-    pub is_canonical: bool,
 
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601"))]
@@ -461,7 +460,6 @@ impl TryFrom<nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse>
             label: value.label,
             status: value.status.into(),
             created,
-            is_canonical: value.is_canonical,
         })
     }
 }
