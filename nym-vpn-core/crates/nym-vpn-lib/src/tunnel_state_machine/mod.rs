@@ -1207,7 +1207,9 @@ impl tunnel::Error {
                 "Failed to dup tunnel fd".to_owned(),
             )),
             #[cfg(target_os = "android")]
-            Self::CreateDnsFilterProxy(_) => None,
+            Self::CreateDnsFilterProxy(e) => Some(ErrorStateReason::Internal(
+                format!("Failed to create DNS filter proxy: {e}")
+            )),
             Self::NoIpAddressAnnounced { .. }
             | Self::MixnetClient(_)
             | Self::BandwidthController(_)
