@@ -294,20 +294,9 @@ impl VpnAccountSummary {
     }
 
     pub fn is_linked(&self) -> bool {
-        let canonical_differs = self
-            .canonical_account_addr
-            .as_ref()
-            .map(|canonical| canonical != &self.account_addr)
-            .unwrap_or(false);
-
-        let has_social_or_passphrase = self
-            .auth_methods
+        self.auth_methods
             .iter()
-            .any(|method| method.label == "Social login" || method.label == "Passphrase");
-
-        let is_privy_mode = self.account_mode == Some(StoredAccountMode::Privy);
-
-        canonical_differs || has_social_or_passphrase || is_privy_mode
+            .any(|method| method.kind == "privy_secp256k1")
     }
 }
 
@@ -396,6 +385,7 @@ pub struct VpnAccountAuthMethod {
     pub kind: String,
     pub label: String,
     pub status: VpnAccountStatus,
+    pub is_canonical: bool,
 
     #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601"))]
@@ -471,6 +461,7 @@ impl TryFrom<nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse>
             label: value.label,
             status: value.status.into(),
             created,
+            is_canonical: value.is_canonical,
         })
     }
 }
