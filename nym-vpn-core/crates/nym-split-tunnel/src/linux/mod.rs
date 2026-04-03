@@ -173,7 +173,12 @@ pub enum Message {
 #[derive(Debug, Clone)]
 pub struct ProcessInfo {
     /// Executable path
-    /// Optional because system processes may not advertise their associated executable paths
+    ///
+    /// Optional for the following reasons:
+    ///
+    /// - System processes may not advertise their associated executable paths
+    /// - Application quit very quickly before process monitor was able to obtain the path
+    ///
     exec_path: Option<PathBuf>,
 
     /// Paths of ancestor executables that led to spawn of this process
@@ -184,9 +189,9 @@ pub struct ProcessInfo {
 }
 
 impl ProcessInfo {
-    fn included(exec_path: PathBuf) -> Self {
+    fn included(exec_path: Option<PathBuf>) -> Self {
         ProcessInfo {
-            exec_path: Some(exec_path),
+            exec_path,
             ancestor_exec_paths: HashSet::new(),
             excluded_by_paths: HashSet::new(),
         }
@@ -367,7 +372,7 @@ impl ActiveState {
         self.processes = process_list_snapshot(processes);
     }
 
-    fn handle_fork(&mut self, parent_pid: pid_t, pid: pid_t, path: PathBuf) {
+    fn handle_fork(&mut self, parent_pid: pid_t, pid: pid_t, path: Option<PathBuf>) {
         if self.processes.contains_key(&pid) {
             tracing::error!("Conflicting pid! State already contains {pid}");
         }
@@ -379,7 +384,7 @@ impl ActiveState {
                 if let Some(parent_exec_path) = parent_info.exec_path {
                     parent_info.ancestor_exec_paths.insert(parent_exec_path);
                 }
-                parent_info.exec_path = Some(path);
+                parent_info.exec_path = path;
                 parent_info
             }
             None => {
@@ -405,13 +410,13 @@ impl ActiveState {
         self.processes.insert(pid, base_info);
     }
 
-    fn handle_exec(&mut self, pid: pid_t, path: PathBuf) {
+    fn handle_exec(&mut self, pid: pid_t, path: Option<PathBuf>) {
         let Some(info) = self.processes.get_mut(&pid) else {
             tracing::error!("exec received for unknown pid {pid}");
             return;
         };
 
-        info.exec_path = Some(path);
+        info.exec_path = path;
 
         // Check if process is excluded directly by exec path
         if let Some(exec_path) = info.exec_path.as_ref()
