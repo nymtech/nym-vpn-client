@@ -74,25 +74,26 @@ impl DnsFilterProxy {
 
         // Wrap the filter end in tokio's UnixDatagram for async I/O.
         let filter_socket = unsafe {
-            let std_sock =
-                std::os::unix::net::UnixDatagram::from_raw_fd(sock_filter_fd);
+            let std_sock = std::os::unix::net::UnixDatagram::from_raw_fd(sock_filter_fd);
             UnixDatagram::from_std(std_sock)?
         };
 
-        let join_handle =
-            tokio::spawn(run_proxy(tun_device, filter_socket, dns_filter, shutdown_token));
+        let join_handle = tokio::spawn(run_proxy(
+            tun_device,
+            filter_socket,
+            dns_filter,
+            shutdown_token,
+        ));
 
         Ok(Self { wg_fd, join_handle })
     }
 }
 
 fn set_nonblock(fd: &impl AsFd) -> Result<(), std::io::Error> {
-    let flags = OFlag::from_bits_retain(
-        fcntl(fd, FcntlArg::F_GETFL).map_err(std::io::Error::from)?,
-    );
+    let flags =
+        OFlag::from_bits_retain(fcntl(fd, FcntlArg::F_GETFL).map_err(std::io::Error::from)?);
     if !flags.contains(OFlag::O_NONBLOCK) {
-        fcntl(fd, FcntlArg::F_SETFL(flags | OFlag::O_NONBLOCK))
-            .map_err(std::io::Error::from)?;
+        fcntl(fd, FcntlArg::F_SETFL(flags | OFlag::O_NONBLOCK)).map_err(std::io::Error::from)?;
     }
     Ok(())
 }
@@ -349,9 +350,12 @@ fn nxdomain_dns(query: &[u8]) -> Vec<u8> {
     resp[2] = query[2] | 0x80;
     resp[3] = (query[3] & 0xF8) | 0x03; // RA=0, RCODE=NXDOMAIN
     // Zero answer/authority/additional counts
-    resp[6] = 0; resp[7] = 0;
-    resp[8] = 0; resp[9] = 0;
-    resp[10] = 0; resp[11] = 0;
+    resp[6] = 0;
+    resp[7] = 0;
+    resp[8] = 0;
+    resp[9] = 0;
+    resp[10] = 0;
+    resp[11] = 0;
     resp
 }
 

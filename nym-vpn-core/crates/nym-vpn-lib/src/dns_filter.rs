@@ -3,10 +3,7 @@
 
 //! DNS filter types used by the ad-blocker on all platforms.
 
-use std::{
-    any::Any,
-    sync::Arc,
-};
+use std::{any::Any, sync::Arc};
 use tokio::sync::Mutex;
 
 /// How to handle a DNS-filtered blocking decision.
