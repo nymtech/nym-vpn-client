@@ -107,7 +107,8 @@ impl SplitTunnel {
                             self.state = State::Failed {
                                 error
                             };
-                            // Report error to tunnel state machine
+
+                            // Report runtime error to tunnel state machine
                             (self.error_handler)(st_error_cause);
                         }
                     };
@@ -175,9 +176,14 @@ pub enum Message {
 
 #[derive(Debug, Clone)]
 pub struct ProcessInfo {
+    /// Executable path
+    /// Optional because system processes may not advertise their associated executable paths
     exec_path: Option<PathBuf>,
-    // Paths of ancestor executables that led to spawn of this process
+
+    /// Paths of ancestor executables that led to spawn of this process
     ancestor_exec_paths: HashSet<PathBuf>,
+
+    /// Paths by which this process is excluded from split tunnel
     excluded_by_paths: HashSet<PathBuf>,
 }
 
@@ -273,9 +279,8 @@ impl ActiveState {
                     .get(&pid)
                     .map(|info| SplitTunnelExcludedProcess {
                         pid,
-                        // todo: maybe consider returning option?
                         exec_path: info.exec_path.clone().unwrap_or_default(),
-                        responsible_exec_path: None,
+                        responsible_exec_path: PathBuf::default(), // unused on Linux
                         ancestor_exec_paths: Vec::from_iter(info.ancestor_exec_paths.clone()),
                     });
 
@@ -640,24 +645,26 @@ fn process_list_snapshot() -> procfs::ProcResult<HashMap<pid_t, ProcessInfo>> {
             }
             Err(procfs::ProcError::NotFound(_)) => {
                 // process vanished
+                continue;
             }
             Err(err) => {
                 tracing::error!("Can't obtain process status {}: {}", proc.pid(), err);
             }
         }
 
+        // Some system processes do not adverise their executable path, ex: /proc/2/exe (kthreadd)
         let exec_path = proc
             .exe()
             .inspect_err(|err| {
-                tracing::trace!("couldn't read exe() for pid {}: {}", proc.pid(), err);
+                if !matches!(err, procfs::ProcError::NotFound(_)) {
+                    tracing::trace!("couldn't read exe() for pid {}: {}", proc.pid(), err);
+                }
             })
             .ok();
 
         proc_by_pid.insert(
             proc.pid(),
             ProcessInfo {
-                // Some system processes do not adverise their path, ex: /proc/2/exe (kthreadd)
-                // todo: handle this in some way to prevent excluding all system processes using blank path.
                 exec_path,
                 ancestor_exec_paths: HashSet::new(),
                 excluded_by_paths: HashSet::new(),
