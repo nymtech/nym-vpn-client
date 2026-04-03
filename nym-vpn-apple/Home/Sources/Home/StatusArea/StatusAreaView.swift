@@ -14,17 +14,6 @@ struct StatusAreaView: View {
 
     var body: some View {
         VStack {
-            // TODO: replace !Device.isMacOS with Device.isMacOS after passphrase is supported in macos
-            if !appSettings.isSmallScreen,
-               !Device.isMacOS,
-               tunnelStatus == .connected,
-               !appSettings.isPassphraseStored {
-                Spacer()
-                    .frame(height: 8)
-                PassphraseOverlay(path: $path)
-                Spacer()
-                    .frame(height: 8)
-            }
             NoiseConnectedAnimationView()
             Spacer()
                 .frame(height: 8)

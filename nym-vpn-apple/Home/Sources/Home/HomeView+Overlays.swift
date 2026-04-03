@@ -56,26 +56,4 @@ extension HomeView {
 #endif
     }
 
-    @ViewBuilder
-    func passphraseOverlay() -> some View {
-        if !Device.isMacOS,
-           viewModel.appSettings.isSmallScreen,
-           viewModel.connectionManager.currentTunnelStatus == .connected,
-           !viewModel.appSettings.isPassphraseStored {
-            PassphraseOverlay(path: $viewModel.path)
-        }
-    }
-
-    @ViewBuilder
-    func expiryBannerOverlay() -> some View {
-        if viewModel.isExpiryBannerDisplayed {
-            VStack {
-                GenericBannerView(config: viewModel.expiryBannerConfig)
-                    .padding(.top, viewModel.appSettings.isSmallScreen ? 40 : 56)
-                Spacer()
-            }
-            .transition(.move(edge: .top).combined(with: .opacity))
-            .animation(.easeInOut, value: viewModel.isExpiryBannerDisplayed)
-        }
-    }
 }
