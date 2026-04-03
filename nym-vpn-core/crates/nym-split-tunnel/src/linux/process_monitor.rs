@@ -64,21 +64,29 @@ pub struct ProcessSnapshot {
 
 #[derive(Debug)]
 pub enum ProcessEvent {
+    /// Event emitted when kernel acknowledged subscription for proc events
     Subscribed {
+        /// Snapshot of all processes on the system
         processes: Vec<ProcessSnapshot>,
     },
+
+    /// Event emitted on fork events
     Fork {
         parent_pid: pid_t,
         child_pid: pid_t,
-        path: PathBuf,
+        /// Path to executable if available
+        path: Option<PathBuf>,
     },
+
+    /// Event emitted on exec events
     Exec {
         pid: pid_t,
-        path: PathBuf,
+        /// Path to executable if available
+        path: Option<PathBuf>,
     },
-    Exit {
-        pid: pid_t,
-    },
+
+    /// Event emitted on exit events
+    Exit { pid: pid_t },
 }
 
 pub struct ProcessMonitor {
@@ -175,7 +183,7 @@ impl ProcessMonitor {
     async fn handle_event(&mut self, msg: &nlcn_event_msg) -> Result<Option<ProcessEvent>, Error> {
         // Ensure the message kind is correct
         if msg.payload.cn_msg.id.idx != CN_IDX_PROC && msg.payload.cn_msg.id.val != CN_VAL_PROC {
-            tracing::warn!("idx,val is not CN_IDX_*");
+            tracing::warn!("invalid cn_msg id");
             return Ok(None);
         }
 
@@ -210,20 +218,19 @@ impl ProcessMonitor {
     }
 
     async fn handle_fork(&mut self, event: ForkEvt) -> Option<ProcessEvent> {
+        // Track thread in task group
         let threads = self.threads.entry(event.child_tgid).or_default();
         threads.insert(event.child_pid);
 
         // Main thread started
         if event.child_pid == event.child_tgid {
-            let exe_path = query_exec_path("fork", event.child_tgid)
-                .await
-                .unwrap_or_default();
+            let exe_path = query_exec_path("fork", event.child_pid).await;
 
             tracing::trace!(
-                "fork: {} (parent: {}) exe={}",
-                event.child_tgid,
+                "fork: {} (parent: {}) exe={:?}",
+                event.child_pid,
                 event.parent_tgid,
-                exe_path.display()
+                exe_path
             );
 
             Some(ProcessEvent::Fork {
@@ -238,18 +245,16 @@ impl ProcessMonitor {
     }
 
     async fn handle_exec(&mut self, event: ExecEvt) -> Option<ProcessEvent> {
-        // Both ids are always equal
         if event.process_pid == event.process_tgid {
-            let exe_path = query_exec_path("exec", event.process_pid)
-                .await
-                .unwrap_or_default();
-            tracing::trace!("exec: {} {}", event.process_pid, exe_path.display());
+            let exe_path = query_exec_path("exec", event.process_pid).await;
+            tracing::trace!("exec: {} exe={:?}", event.process_pid, exe_path);
 
             Some(ProcessEvent::Exec {
                 pid: event.process_pid,
                 path: exe_path,
             })
         } else {
+            // This never happens
             None
         }
     }
@@ -260,9 +265,11 @@ impl ProcessMonitor {
             return None;
         };
 
+        // Do house keeping for exiting thread
         threads.remove(&event.process_pid);
 
-        // Send exit events only when all threads exit
+        // Send exit events only when all threads are gone
+        // Because main thread does not always quit last.
         if threads.is_empty() {
             self.threads.remove(&event.process_tgid);
 
@@ -298,7 +305,9 @@ impl ProcessMonitor {
             }
         });
 
-        let mut proc_snapshots = Vec::new();
+        tracing::info!("received proc list: {:?}", proc_iter.size_hint());
+
+        let mut processes = Vec::new();
 
         for proc in proc_iter {
             let pid = proc.pid();
@@ -324,7 +333,7 @@ impl ProcessMonitor {
                 })
                 .ok();
 
-            proc_snapshots.push(ProcessSnapshot {
+            processes.push(ProcessSnapshot {
                 pid,
                 parent_pid,
                 path,
@@ -366,14 +375,12 @@ impl ProcessMonitor {
             }
         }
 
-        Ok(Some(ProcessEvent::Subscribed {
-            processes: proc_snapshots,
-        }))
+        Ok(Some(ProcessEvent::Subscribed { processes }))
     }
 }
 
 async fn query_exec_path(event_type: &'static str, proc_pid: pid_t) -> Option<PathBuf> {
-    // Open pidfd to ensure that no pid recycling happened after obtaining path to executable
+    // Open pidfd to ensure that no pid recycling happens after obtaining path to executable
     let pid_fd = PidFd::from_pid(proc_pid)
         .inspect_err(|err| {
             // Do not print "process not found" errors. Assume that the process was very short lived and we can ignore it.
@@ -413,6 +420,7 @@ async fn query_exec_path(event_type: &'static str, proc_pid: pid_t) -> Option<Pa
     }
 }
 
+/// Poll pidfd without blocking and return true if the corresponding process is no longer running.
 fn check_pidfd_exited(pid_fd: &PidFd) -> std::io::Result<bool> {
     let mut pollfd = libc::pollfd {
         fd: pid_fd.as_raw_fd(),
