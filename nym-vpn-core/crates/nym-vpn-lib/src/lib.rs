@@ -8,6 +8,7 @@ mod adblocker;
 mod bandwidth_controller;
 pub mod cache_refresh;
 pub mod config;
+#[cfg(not(target_os = "ios"))]
 pub(crate) mod dns_filter;
 mod error;
 pub mod logging;
