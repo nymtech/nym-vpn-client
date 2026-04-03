@@ -99,7 +99,6 @@ private extension SettingsListItem {
     func iconImage() -> some View {
         if let imageName = viewModel.imageName {
             Image(imageName, bundle: .module)
-                .renderingMode(.template)
                 .foregroundStyle(NymColor.gray1)
                 .frame(width: 24, height: 24)
         } else if let systemImageName = viewModel.systemImageName {
