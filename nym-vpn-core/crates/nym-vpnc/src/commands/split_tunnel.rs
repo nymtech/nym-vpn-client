@@ -102,9 +102,7 @@ impl Command {
                         println!("  path: {}", proc.exec_path.display());
 
                         #[cfg(target_os = "macos")]
-                        if let (responsible_exec_path) = proc.responsible_exec_path
-                            && proc.exec_path != responsible_exec_path
-                        {
+                        if proc.exec_path != proc.responsible_exec_path {
                             println!(
                                 "  responsible process: {}",
                                 proc.responsible_exec_path.display()
