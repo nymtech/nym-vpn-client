@@ -418,10 +418,7 @@ impl SplitApp {
     pub fn new(path: String) -> Self {
         Self { path }
     }
-}
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-impl SplitApp {
     pub fn path_buf(&self) -> PathBuf {
         PathBuf::from(&self.path)
     }
