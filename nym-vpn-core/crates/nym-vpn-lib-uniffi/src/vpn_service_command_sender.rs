@@ -120,6 +120,11 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
+    pub async fn set_enable_ad_blocking(&self, enable_ad_blocking: bool) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetEnableAdBlocking, enable_ad_blocking)
+            .await
+    }
+
     pub async fn set_residential_exit(&self, residential_exit: bool) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetResidentialExit, residential_exit)
             .await

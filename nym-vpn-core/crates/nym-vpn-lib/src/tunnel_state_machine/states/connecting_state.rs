@@ -369,6 +369,13 @@ impl ConnectingState {
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
         };
+        #[cfg(target_os = "android")]
+        let dns_filter = if shared_state.tunnel_settings.enable_ad_blocking {
+            shared_state.get_dns_filter().await
+        } else {
+            None
+        };
+
         let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
             shared_state.account_controller_state.clone(),
@@ -380,6 +387,8 @@ impl ConnectingState {
             shared_state.route_handler.clone(),
             #[cfg(any(target_os = "ios", target_os = "android"))]
             shared_state.tun_provider.clone(),
+            #[cfg(target_os = "android")]
+            dns_filter,
         );
 
         self.tunnel_monitor_handle = Some(tunnel_monitor_handle);

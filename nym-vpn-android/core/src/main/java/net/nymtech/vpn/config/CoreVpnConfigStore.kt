@@ -39,6 +39,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		private val KEY_ENV_DEBUG = booleanPreferencesKey("ENV_DEBUG")
 		private val KEY_ENV_SENTRY = booleanPreferencesKey("ENV_SENTRY")
 		private val KEY_LEWES = booleanPreferencesKey("ENABLE_LEWES_PROTOCOL")
+		private val KEY_AD_BLOCKING = booleanPreferencesKey("AD_BLOCKING_ENABLED")
 
 		private const val SEP = "|"
 		private const val MAX_DNS = 5
@@ -82,6 +83,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		val debug = this[KEY_ENV_DEBUG] ?: true
 		val sentry = this[KEY_ENV_SENTRY] ?: false
 		val lewes = this[KEY_LEWES] ?: false
+		val adBlockingEnabled = this[KEY_AD_BLOCKING] ?: false
 
 		return CoreVpnConfig(
 			entryPoint = entry,
@@ -96,6 +98,7 @@ class CoreVpnConfigStore(private val context: Context) {
 			debugLog = debug,
 			sentry = sentry,
 			lewes = lewes,
+			adBlockingEnabled = adBlockingEnabled,
 		)
 	}
 
@@ -112,6 +115,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		this[KEY_ENV_DEBUG] = cfg.debugLog
 		this[KEY_ENV_SENTRY] = cfg.sentry
 		this[KEY_LEWES] = cfg.lewes
+		this[KEY_AD_BLOCKING] = cfg.adBlockingEnabled
 	}
 
 	private fun encodeList(list: List<String>): String = list.asSequence()

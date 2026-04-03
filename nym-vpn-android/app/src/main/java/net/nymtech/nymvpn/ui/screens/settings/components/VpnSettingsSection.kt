@@ -8,6 +8,7 @@ import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Lan
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Power
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
@@ -150,6 +151,31 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 						Text(
 							stringResource(if (values.isLewesEnabled) R.string.settings_lewes_on_description else R.string.settings_lewes_off_description),
 							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+						)
+					},
+				),
+			)
+
+			add(
+				SelectionItem(
+					leading = {
+						Icon(
+							Icons.Outlined.Block,
+							stringResource(R.string.settings_ad_blocking_title),
+							modifier = Modifier.size(iconSize.scaledWidth()),
+							tint = MaterialTheme.colorScheme.outline,
+						)
+					},
+					trailing = {
+						ScaledSwitch(
+							checked = values.adBlockingEnabled,
+							onClick = actions.onAdBlockingEnable,
+						)
+					},
+					title = {
+						Text(
+							stringResource(R.string.settings_ad_blocking_title),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 						)
 					},
 				),

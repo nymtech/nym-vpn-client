@@ -253,6 +253,7 @@ pub struct VPNConfig {
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
     pub residential_exit: bool,
+    pub enable_ad_blocking: bool,
 
     /// Custom DNS used when set.
     /// Leave empty to use default DNS servers.
@@ -283,8 +284,7 @@ impl VPNConfig {
             enable_bridges: self.enable_bridges,
             enable_lewes_protocol: self.enable_lewes_protocol,
 
-            // Only currently supported on desktop platforms
-            enable_ad_blocking: false,
+            enable_ad_blocking: self.enable_ad_blocking,
 
             // Always true on mobile platforms
             netstack: true,

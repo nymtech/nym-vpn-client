@@ -21,4 +21,5 @@ data class CoreVpnConfig(
 	val debugLog: Boolean = false,
 	val sentry: Boolean = false,
 	val lewes: Boolean = false,
+	val adBlockingEnabled: Boolean = false,
 )
