@@ -1,7 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::{collections::HashSet, path::PathBuf};
 use std::{fmt, net::IpAddr, ops::RangeInclusive};
 
