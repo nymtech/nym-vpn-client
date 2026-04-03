@@ -55,8 +55,18 @@ pub enum Error {
     Unsupported,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
+pub struct ProcessSnapshot {
+    pub pid: pid_t,
+    pub parent_pid: pid_t,
+    pub path: Option<PathBuf>,
+}
+
+#[derive(Debug)]
 pub enum ProcessEvent {
+    Subscribed {
+        processes: Vec<ProcessSnapshot>,
+    },
     Fork {
         parent_pid: pid_t,
         child_pid: pid_t,
@@ -127,7 +137,7 @@ impl ProcessMonitor {
 
         let mut buf = bytes::BytesMut::with_capacity(MSG_LEN);
 
-        'event_loop: loop {
+        loop {
             tokio::select! {
                 res = self.nl_sock.recv(&mut buf) => {
                     match res {
@@ -137,9 +147,9 @@ impl ProcessMonitor {
                                 let msg = msg_buf.as_ptr() as *const nlcn_event_msg;
                                 let msg = unsafe { &*msg };
 
-                                if let Some(evt) = self.handle_event(msg).await && tx.send(evt).is_err() {
+                                if let Some(evt) = self.handle_event(msg).await? && tx.send(evt).is_err() {
                                     tracing::trace!("Exiting since event channel is closed.");
-                                    break 'event_loop Ok(());
+                                    return Ok(());
                                 }
                             }
                         }
@@ -148,23 +158,25 @@ impl ProcessMonitor {
                                 continue;
                             } else {
                                 tracing::error!("Exiting due to failure to read socket: {err}");
-                                break 'event_loop Err(Error::Io(err));
+                                return Err(Error::Io(err));
                             }
                         }
                     }
                 },
                 _ = shutdown_token.cancelled() => {
-                    break 'event_loop Ok(());
+                    break;
                 }
             }
         }
+
+        Ok(())
     }
 
-    async fn handle_event(&mut self, msg: &nlcn_event_msg) -> Option<ProcessEvent> {
+    async fn handle_event(&mut self, msg: &nlcn_event_msg) -> Result<Option<ProcessEvent>, Error> {
         // Ensure the message kind is correct
         if msg.payload.cn_msg.id.idx != CN_IDX_PROC && msg.payload.cn_msg.id.val != CN_VAL_PROC {
             tracing::warn!("idx,val is not CN_IDX_*");
-            return None;
+            return Ok(None);
         }
 
         // Only process messages from kernel
@@ -173,16 +185,13 @@ impl ProcessMonitor {
                 "Ignore message from non-kernel process: {}",
                 msg.nl_hdr.nlmsg_pid
             );
-            return None;
+            return Ok(None);
         }
 
-        match msg.payload.proc_ev.what {
+        Ok(match msg.payload.proc_ev.what {
             PROC_EVENT_NONE => {
                 tracing::trace!("Subscribed");
-                if let Err(err) = self.handle_subscribed() {
-                    tracing::error!("Failed to list pids: {err}");
-                }
-                None
+                self.handle_subscribed()?
             }
             PROC_EVENT_FORK => {
                 let fork = unsafe { msg.payload.proc_ev.event_data.fork };
@@ -197,7 +206,7 @@ impl ProcessMonitor {
                 self.handle_exit(exit)
             }
             _ => None,
-        }
+        })
     }
 
     async fn handle_fork(&mut self, event: ForkEvt) -> Option<ProcessEvent> {
@@ -266,7 +275,7 @@ impl ProcessMonitor {
         }
     }
 
-    fn handle_subscribed(&mut self) -> Result<(), procfs::ProcError> {
+    fn handle_subscribed(&mut self) -> Result<Option<ProcessEvent>, Error> {
         let proc_iter = procfs::process::all_processes()?.filter_map(|proc| {
             match proc {
                 Ok(proc) => Some(proc),
@@ -289,8 +298,38 @@ impl ProcessMonitor {
             }
         });
 
+        let mut proc_snapshots = Vec::new();
+
         for proc in proc_iter {
             let pid = proc.pid();
+            let parent_pid = match proc.status() {
+                Ok(status) => status.ppid,
+                Err(procfs::ProcError::NotFound(_)) => {
+                    // process vanished
+                    continue;
+                }
+                Err(err) => {
+                    tracing::error!("Can't obtain process status {pid}: {err}");
+                    return Err(Error::Proc(err));
+                }
+            };
+
+            // Some system processes do not adverise their executable path, ex: /proc/2/exe (kthreadd)
+            let path = proc
+                .exe()
+                .inspect_err(|err| {
+                    if !matches!(err, procfs::ProcError::NotFound(_)) {
+                        tracing::trace!("couldn't read exe() for pid {}: {}", proc.pid(), err);
+                    }
+                })
+                .ok();
+
+            proc_snapshots.push(ProcessSnapshot {
+                pid,
+                parent_pid,
+                path,
+            });
+
             match proc.tasks() {
                 Ok(task_iter) => {
                     let tids = task_iter
@@ -327,7 +366,9 @@ impl ProcessMonitor {
             }
         }
 
-        Ok(())
+        Ok(Some(ProcessEvent::Subscribed {
+            processes: proc_snapshots,
+        }))
     }
 }
 
