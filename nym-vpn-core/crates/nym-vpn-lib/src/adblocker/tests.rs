@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{files::*, task::AdBlockerTask};
-use crate::resolver::DnsFilterDecision;
+use crate::dns_filter::DnsFilterDecision;
 use std::{path::Path, time::Duration};
 use tempfile::TempDir;
 use tokio::time::{Instant, sleep};

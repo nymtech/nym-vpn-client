@@ -18,4 +18,5 @@ sealed class CoreVpnConfigUpdate {
 	data class SetDebugLog(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetSentry(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetLewes(val value: Boolean) : CoreVpnConfigUpdate()
+	data class SetAdBlockingEnabled(val value: Boolean) : CoreVpnConfigUpdate()
 }

@@ -48,7 +48,6 @@ use hickory_server::{
 };
 use rand::Rng;
 use std::{
-    any::Any,
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     str::FromStr,
@@ -70,41 +69,9 @@ pub(crate) trait LoopbackAlias: Send {
 
 pub(crate) type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
 
-/// How to handle a DNS-filtered blocking decisions.
-#[allow(dead_code)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DnsFilterStrategy {
-    EmptyRecord, // Return an empty record.
-    Localhost,   // Return localhost
-}
-
-/// DNS filter decision
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DnsFilterDecision {
-    Pass,
-    Block(DnsFilterStrategy),
-}
-
-/// DNS filter trait.
-pub trait DnsFilterT: Send + Sync + 'static {
-    fn should_block(&self, domain: &str) -> DnsFilterDecision;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
-}
-
-/// DNS filter type
-pub type DnsFilter = Arc<Mutex<Box<dyn DnsFilterT + Send + Sync>>>;
-
-/// Null DNS Filter (always passes).
-pub struct NullDnsFilter;
-
-impl DnsFilterT for NullDnsFilter {
-    fn should_block(&self, _domain: &str) -> DnsFilterDecision {
-        DnsFilterDecision::Pass
-    }
-    fn as_any_mut(&mut self) -> &mut dyn Any {
-        self
-    }
-}
+pub use crate::dns_filter::{
+    DnsFilter, DnsFilterDecision, DnsFilterStrategy, DnsFilterT, NullDnsFilter,
+};
 
 /// If a local DNS resolver should be used.
 ///

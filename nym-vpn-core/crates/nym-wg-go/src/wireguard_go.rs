@@ -142,6 +142,33 @@ impl Tunnel {
         }
     }
 
+    /// Start a new WireGuard tunnel backed by a raw proxy socket fd (Android only).
+    ///
+    /// Unlike [`start`], this calls `wgTurnOnWithProxyFd` which wraps the fd as a "dumb" I/O
+    /// device without calling `TUNGETIFF`, making it safe to use with a Unix socket fd.
+    #[cfg(target_os = "android")]
+    pub fn start_with_proxy_fd(config: Config, proxy_fd: OwnedFd) -> Result<Self> {
+        let mtu = config.interface.mtu;
+        let settings = CString::new(config.into_uapi_config())
+            .map_err(|_| Error::ConvertToCString("uapi config"))?;
+
+        let tunnel_handle = unsafe {
+            wgTurnOnWithProxyFd(
+                settings.as_ptr(),
+                proxy_fd.into_raw_fd(),
+                i32::from(mtu),
+                wg_logger_callback,
+                std::ptr::null_mut(),
+            )
+        };
+
+        if tunnel_handle >= 0 {
+            Ok(Self { tunnel_handle })
+        } else {
+            Err(Error::StartTunnel(tunnel_handle))
+        }
+    }
+
     #[cfg(windows)]
     /// Start new WireGuard tunnel
     pub fn start(
@@ -265,6 +292,17 @@ impl Drop for Tunnel {
 }
 
 unsafe extern "C" {
+    /// Start a WireGuard tunnel using a raw proxy socket fd (Android only).
+    /// Wraps the fd without calling TUNGETIFF so it works with Unix socket fds.
+    #[cfg(target_os = "android")]
+    unsafe fn wgTurnOnWithProxyFd(
+        settings: *const c_char,
+        fd: RawFd,
+        mtu: i32,
+        logging_callback: LoggingCallback,
+        logging_context: *mut c_void,
+    ) -> i32;
+
     /// Start the tunnel.
     #[cfg(not(windows))]
     unsafe fn wgTurnOn(

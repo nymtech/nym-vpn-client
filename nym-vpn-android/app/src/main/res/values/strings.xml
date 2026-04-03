@@ -246,6 +246,7 @@
 	<string name="settings_language_help_title">Help with translation</string>
 	<string name="settings_language_help_description">Make the app better in your language.</string>
 	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings…</string>
+	<string name="settings_ad_blocking_title">Ad blocking</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
 	<string name="shortcut_title">Confirm action</string>

@@ -3,11 +3,12 @@
 
 pub mod storage;
 
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(not(target_os = "ios"))]
 mod adblocker;
 mod bandwidth_controller;
 pub mod cache_refresh;
 pub mod config;
+pub(crate) mod dns_filter;
 mod error;
 pub mod logging;
 mod mixnet;

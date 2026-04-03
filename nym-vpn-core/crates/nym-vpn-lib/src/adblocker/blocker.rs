@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{AdBlockerError, Result};
-use crate::resolver::{DnsFilterDecision, DnsFilterStrategy, DnsFilterT};
+use crate::dns_filter::{DnsFilterDecision, DnsFilterStrategy, DnsFilterT};
 use adblock::{Engine, FilterSet, request::Request};
 use std::any::Any;
 
