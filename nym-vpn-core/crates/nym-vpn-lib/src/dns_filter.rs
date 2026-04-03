@@ -33,7 +33,6 @@ pub type DnsFilter = Arc<Mutex<Box<dyn DnsFilterT + Send + Sync>>>;
 /// Null DNS Filter (always passes).
 pub struct NullDnsFilter;
 
-
 impl DnsFilterT for NullDnsFilter {
     fn should_block(&self, _domain: &str) -> DnsFilterDecision {
         DnsFilterDecision::Pass
