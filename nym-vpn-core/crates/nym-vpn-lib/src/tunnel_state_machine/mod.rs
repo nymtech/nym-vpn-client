@@ -795,25 +795,7 @@ impl TunnelStateMachine {
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let Some(data_path) = nym_config.data_path.as_ref() else {
-            tracing::error!("Ad-blocking cannot be enabled without a data path configured");
-            return Err(Error::StartAdBlockerTask(
-                adblocker::AdBlockerError::DataPathUnavailable,
-            ));
-        };
-
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let (adblocker, adblocker_handle) = adblocker::AdBlockerTask::spawn(
-            data_path,
-            user_agent.to_string(),
-            dns_handler_shutdown_token.child_token(),
-        )
-        .await
-        .map_err(Error::StartAdBlockerTask)?;
-
-        // Android, spawn the ad-blocker task using the shutdown_token.
-        #[cfg(target_os = "android")]
+        #[cfg(not(target_os = "ios"))]
         let (adblocker, adblocker_handle) = {
             let Some(data_path) = nym_config.data_path.as_ref() else {
                 tracing::error!("Ad-blocking cannot be enabled without a data path configured");
@@ -821,13 +803,15 @@ impl TunnelStateMachine {
                     adblocker::AdBlockerError::DataPathUnavailable,
                 ));
             };
-            adblocker::AdBlockerTask::spawn(
-                data_path,
-                user_agent.to_string(),
-                shutdown_token.child_token(),
-            )
-            .await
-            .map_err(Error::StartAdBlockerTask)?
+
+            #[cfg(not(target_os = "android"))]
+            let token = dns_handler_shutdown_token.child_token();
+            #[cfg(target_os = "android")]
+            let token = shutdown_token.child_token();
+
+            adblocker::AdBlockerTask::spawn(data_path, user_agent.to_string(), token)
+                .await
+                .map_err(Error::StartAdBlockerTask)?
         };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
