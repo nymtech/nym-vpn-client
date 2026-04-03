@@ -175,7 +175,7 @@ pub enum Message {
 
 #[derive(Debug, Clone)]
 pub struct ProcessInfo {
-    exec_path: PathBuf,
+    exec_path: Option<PathBuf>,
     // Paths of ancestor executables that led to spawn of this process
     ancestor_exec_paths: HashSet<PathBuf>,
     excluded_by_paths: HashSet<PathBuf>,
@@ -184,7 +184,7 @@ pub struct ProcessInfo {
 impl ProcessInfo {
     fn included(exec_path: PathBuf) -> Self {
         ProcessInfo {
-            exec_path,
+            exec_path: Some(exec_path),
             ancestor_exec_paths: HashSet::new(),
             excluded_by_paths: HashSet::new(),
         }
@@ -268,14 +268,16 @@ impl ActiveState {
             .map_err(InnerError::ListPids)?
             .into_iter()
             .flat_map(|pid| {
-                let info = self.processes.get(&pid).map(|info| {
-                    SplitTunnelExcludedProcess {
+                let info = self
+                    .processes
+                    .get(&pid)
+                    .map(|info| SplitTunnelExcludedProcess {
                         pid,
-                        exec_path: info.exec_path.clone(),
-                        // todo: unused on Linux, dupe exec_path
-                        responsible_exec_path: info.exec_path.clone(),
-                    }
-                });
+                        // todo: maybe consider returning option?
+                        exec_path: info.exec_path.clone().unwrap_or_default(),
+                        responsible_exec_path: None,
+                        ancestor_exec_paths: Vec::from_iter(info.ancestor_exec_paths.clone()),
+                    });
 
                 if info.is_none() {
                     tracing::warn!("Pid {pid} is excluded but not found in process list");
@@ -317,8 +319,11 @@ impl ActiveState {
                 .collect();
 
             // Check if own path is excluded
-            if paths.contains(&info.exec_path) && !new_exclude_paths.contains(&info.exec_path) {
-                new_exclude_paths.insert(info.exec_path.clone());
+            if let Some(exec_path) = info.exec_path.as_ref()
+                && paths.contains(exec_path)
+                && !new_exclude_paths.contains(exec_path)
+            {
+                new_exclude_paths.insert(exec_path.clone());
             }
 
             // Check if path for ancestor app is excluded
@@ -335,18 +340,14 @@ impl ActiveState {
             let is_excluded = info.is_excluded();
 
             if !was_excluded && is_excluded {
-                tracing::trace!("Add to exclusions {}: {}", pid, info.exec_path.display());
+                tracing::trace!("Add to exclusions {}: {:?}", pid, info.exec_path);
                 if let Err(err) = self.pid_manager.add(*pid)
                     && !err.is_no_process_err()
                 {
                     trace_err_chain!(err, "failed to add exclusion for {pid}");
                 }
             } else if was_excluded && !is_excluded {
-                tracing::trace!(
-                    "Remove from exclusions {}: {}",
-                    pid,
-                    info.exec_path.display()
-                );
+                tracing::trace!("Remove from exclusions {}: {:?}", pid, info.exec_path);
                 if let Err(err) = self.pid_manager.remove(*pid)
                     && !err.is_no_process_err()
                 {
@@ -387,10 +388,10 @@ impl ActiveState {
         let base_info = match self.processes.get(&parent_pid) {
             Some(parent_info) => {
                 let mut parent_info = parent_info.to_owned();
-                parent_info
-                    .ancestor_exec_paths
-                    .insert(parent_info.exec_path);
-                parent_info.exec_path = path;
+                if let Some(parent_exec_path) = parent_info.exec_path {
+                    parent_info.ancestor_exec_paths.insert(parent_exec_path);
+                }
+                parent_info.exec_path = Some(path);
                 parent_info
             }
             None => {
@@ -422,14 +423,15 @@ impl ActiveState {
             return;
         };
 
-        info.exec_path = path;
+        info.exec_path = Some(path);
 
         // Check if process is excluded directly by exec path
-        if !info.excluded_by_paths.contains(&info.exec_path)
-            && self.exclude_paths.contains(&info.exec_path)
+        if let Some(exec_path) = info.exec_path.as_ref()
+            && !info.excluded_by_paths.contains(exec_path)
+            && self.exclude_paths.contains(exec_path)
         {
-            info.excluded_by_paths.insert(info.exec_path.clone());
-            tracing::trace!("Excluding {pid} by path: {}", info.exec_path.display());
+            info.excluded_by_paths.insert(exec_path.clone());
+            tracing::trace!("Excluding {pid} by path: {:?}", info.exec_path);
         }
 
         // Check if process is excluded indirectly by one of ascendants
@@ -644,12 +646,19 @@ fn process_list_snapshot() -> procfs::ProcResult<HashMap<pid_t, ProcessInfo>> {
             }
         }
 
+        let exec_path = proc
+            .exe()
+            .inspect_err(|err| {
+                tracing::trace!("couldn't read exe() for pid {}: {}", proc.pid(), err);
+            })
+            .ok();
+
         proc_by_pid.insert(
             proc.pid(),
             ProcessInfo {
                 // Some system processes do not adverise their path, ex: /proc/2/exe (kthreadd)
                 // todo: handle this in some way to prevent excluding all system processes using blank path.
-                exec_path: proc.exe().unwrap_or_default(),
+                exec_path,
                 ancestor_exec_paths: HashSet::new(),
                 excluded_by_paths: HashSet::new(),
             },
@@ -694,13 +703,15 @@ fn process_list_snapshot() -> procfs::ProcResult<HashMap<pid_t, ProcessInfo>> {
 
             info.ancestor_exec_paths.extend(parent_paths.clone());
             tracing::trace!(
-                "Found ancestors for {}: exec: {}, ancestor execs: {:?}",
+                "Found ancestors for {}: exec: {:?}, ancestor execs: {:?}",
                 pid,
-                info.exec_path.display(),
+                info.exec_path,
                 info.ancestor_exec_paths
             );
 
-            parent_paths.insert(info.exec_path.clone());
+            if let Some(exec_path) = info.exec_path.clone() {
+                parent_paths.insert(exec_path);
+            }
         }
     }
 

@@ -100,13 +100,29 @@ impl Command {
                     for proc in proc_list.processes {
                         println!("- pid: {}", proc.pid);
                         println!("  path: {}", proc.exec_path.display());
-                        if proc.exec_path != proc.responsible_exec_path {
+
+                        #[cfg(target_os = "macos")]
+                        if let (responsible_exec_path) = proc.responsible_exec_path
+                            && proc.exec_path != responsible_exec_path
+                        {
                             println!(
                                 "  responsible process: {}",
                                 proc.responsible_exec_path.display()
                             );
+                            println!();
                         }
-                        println!();
+
+                        #[cfg(target_os = "linux")]
+                        {
+                            if !proc.ancestor_exec_paths.is_empty() {
+                                println!("  ancestor processes:");
+                                for ancestor_exec_path in proc.ancestor_exec_paths {
+                                    println!("    - {}", ancestor_exec_path.display());
+                                }
+
+                                println!();
+                            }
+                        }
                     }
                 }
 

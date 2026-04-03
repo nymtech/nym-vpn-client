@@ -21,7 +21,10 @@ use ts_rs::TS;
 pub struct SplitTunnelExcludedProcess {
     pub pid: i32, // libc::pid_t
     pub exec_path: PathBuf,
-    pub responsible_exec_path: PathBuf,
+    // Executable responsible for launching binary at `exec_path` (macOS only)
+    pub responsible_exec_path: Option<PathBuf>,
+    // Parent executables that led to launch of binary at `exec_path` (Linux only)
+    pub ancestor_exec_paths: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, Default)]
