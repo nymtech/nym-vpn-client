@@ -232,6 +232,9 @@ private extension ConnectionManager {
             .removeDuplicates()
             .sink { [weak self] newValue in
                 self?.connectionConfig.disableIpv6 = !newValue
+#if os(macOS)
+                Task { try? await self?.grpcManager.setDisableIpv6(!newValue) }
+#endif
             }
             .store(in: &cancellables)
 
@@ -239,6 +242,9 @@ private extension ConnectionManager {
             .removeDuplicates()
             .sink { [weak self] newValue in
                 self?.connectionConfig.allowLan = newValue
+#if os(macOS)
+                Task { try? await self?.grpcManager.setAllowLan(newValue) }
+#endif
             }
             .store(in: &cancellables)
 
@@ -246,6 +252,9 @@ private extension ConnectionManager {
             .removeDuplicates()
             .sink { [weak self] newValue in
                 self?.connectionConfig.enableAdBlocking = newValue
+#if os(macOS)
+                Task { try? await self?.grpcManager.setEnableAdBlocking(newValue) }
+#endif
             }
             .store(in: &cancellables)
     }

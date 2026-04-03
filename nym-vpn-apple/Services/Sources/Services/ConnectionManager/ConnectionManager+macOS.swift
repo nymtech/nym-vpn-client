@@ -80,8 +80,9 @@ extension ConnectionManager {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newValue in
                 self?.connectionConfig.enableLewes = newValue
-                guard let self, currentTunnelStatus == .connected, appSettings.shouldReconnect else { return }
-                updateConnectionConfig(forceReconnect: appSettings.shouldReconnect)
+                Task {
+                    try? await self?.grpcManager.setEnableLewes(newValue)
+                }
             }
             .store(in: &cancellables)
     }
