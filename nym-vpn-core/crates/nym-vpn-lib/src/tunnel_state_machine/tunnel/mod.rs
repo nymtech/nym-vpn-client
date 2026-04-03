@@ -2,43 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod any_tunnel_handle;
-mod gateway_selector;
+pub mod gateway_provider;
 pub mod mixnet;
 mod tombstone;
 pub mod transports;
 pub mod wireguard;
 
-pub use gateway_selector::SelectedGateways;
-use nym_gateway_directory::{BlacklistedGateways, GatewayCacheHandle};
-use nym_vpn_store::keys::wireguard::WireguardKeysDb;
-use tokio_util::sync::CancellationToken;
+pub use gateway_provider::SelectedGateways;
 
 #[cfg(windows)]
 use super::route_handler;
-use crate::{GatewayDirectoryError, MixnetError, tunnel_state_machine::TunnelSettings};
+use crate::{GatewayDirectoryError, MixnetError};
 pub use any_tunnel_handle::AnyTunnelHandle;
 pub use tombstone::Tombstone;
-
-pub async fn select_gateways(
-    gateway_cache_handle: GatewayCacheHandle,
-    blacklisted_entry_gateways: &BlacklistedGateways,
-    tunnel_settings: &TunnelSettings,
-    wg_keys_db: WireguardKeysDb,
-    cancel_token: CancellationToken,
-) -> Result<SelectedGateways> {
-    let select_gateways_fut = gateway_selector::select_gateways(
-        gateway_cache_handle,
-        blacklisted_entry_gateways,
-        tunnel_settings,
-        wg_keys_db,
-    );
-
-    cancel_token
-        .run_until_cancelled(select_gateways_fut)
-        .await
-        .ok_or(Error::Cancelled)?
-        .map_err(|err| Error::SelectGateways(Box::new(err)))
-}
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {

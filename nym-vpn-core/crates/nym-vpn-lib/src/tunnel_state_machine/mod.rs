@@ -57,9 +57,7 @@ use tokio_util::sync::CancellationToken;
 use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
-use nym_gateway_directory::{
-    BlacklistedGateways, Config as GatewayDirectoryConfig, GatewayCacheHandle,
-};
+use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
@@ -69,6 +67,7 @@ use nym_vpn_lib_types::{
 use crate::{
     GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
     mixnet::VpnTopologyServiceHandle,
+    tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
 
 use tunnel::SelectedGateways;
@@ -613,12 +612,10 @@ pub struct SharedState {
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
     statistics_event_sender: StatisticsSender,
-    gateway_cache_handle: GatewayCacheHandle,
+    gateway_provider: GatewayProvider<GatewayCacheHandle>,
     topology_service: VpnTopologyServiceHandle,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
-    wg_keys_db: WireguardKeysDb,
     user_agent: UserAgent,
-    blacklisted_entry_gateways: BlacklistedGateways,
 }
 
 impl SharedState {
@@ -753,6 +750,7 @@ pub struct TunnelStateMachine {
     filtering_resolver_handle: JoinHandle<()>,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker_handle: JoinHandle<()>,
+    gateway_provider_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
@@ -840,6 +838,9 @@ impl TunnelStateMachine {
             nym_common::trace_err_chain!(err, "failed to set initial split tunnel paths");
         }
 
+        let (gateway_provider, gateway_provider_handle) =
+            GatewayProvider::new(gateway_cache_handle, wg_keys_db, shutdown_token.clone());
+
         let mut shared_state = SharedState {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             route_handler,
@@ -863,12 +864,10 @@ impl TunnelStateMachine {
             account_command_tx,
             account_controller_state,
             statistics_event_sender,
-            gateway_cache_handle,
+            gateway_provider,
             topology_service,
             discovery_refresher_command_tx,
-            wg_keys_db,
             user_agent,
-            blacklisted_entry_gateways: BlacklistedGateways::new(),
         };
 
         let (current_state_handler, _) = if shared_state
@@ -895,6 +894,7 @@ impl TunnelStateMachine {
             filtering_resolver_handle,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             adblocker_handle,
+            gateway_provider_handle,
             shutdown_token,
         };
 
@@ -947,6 +947,9 @@ impl TunnelStateMachine {
             if let Err(e) = self.adblocker_handle.await {
                 tracing::error!("Failed to join on ad-blocker task: {}", e)
             }
+        }
+        if let Err(e) = self.gateway_provider_handle.await {
+            tracing::error!("Failed to join on gateway provider task: {}", e)
         }
     }
 }
@@ -1053,6 +1056,9 @@ pub enum Error {
     // Temporary until we support `RegistrationResult::Lp()`
     #[error("invalid tunnel type")]
     InvalidTunnelType,
+
+    #[error("gateway provider shut down")]
+    GatewayProviderDown,
 }
 
 impl Error {
@@ -1100,6 +1106,7 @@ impl Error {
             Self::CreateTcpProbe(e) => ErrorStateReason::Internal(e.to_string()),
             Self::ProbeRequiresIPv4Addr => ErrorStateReason::Internal(self.to_string()),
             Self::InvalidTunnelType => ErrorStateReason::Internal(self.to_string()),
+            Self::GatewayProviderDown => ErrorStateReason::Internal(self.to_string()),
         })
     }
 }
