@@ -54,11 +54,11 @@ jobs:
           $lines = @(
             '.OPTION EXPLICIT',
             '.Set CabinetNameTemplate=nymvpn-split-tunnel.cab',
-            '.Set DiskDirectoryTemplate=.',
+            '.Set DiskDirectoryTemplate=driver',
             '.Set CompressionType=MSZIP',
-            '"st-driver\nymvpn-split-tunnel.sys"',
-            '"st-driver\nymvpn-split-tunnel.cat"',
-            '"st-driver\nymvpn-split-tunnel.inf"'
+            '"st-driver\nymvpn-split-tunnel.sys" "nymvpn-split-tunnel.sys"',
+            '"st-driver\nymvpn-split-tunnel.cat" "nymvpn-split-tunnel.cat"',
+            '"st-driver\nymvpn-split-tunnel.inf" "nymvpn-split-tunnel.inf"'
           )
           $lines | Set-Content -Path nymvpn-split-tunnel.ddf
           makecab /F nymvpn-split-tunnel.ddf
