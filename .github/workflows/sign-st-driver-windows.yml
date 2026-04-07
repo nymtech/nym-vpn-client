@@ -13,6 +13,9 @@ on:
       UPLOAD_DIR_WINDOWS:
         value: ${{ jobs.sign-cab.outputs.UPLOAD_DIR_WINDOWS }}
 
+permissions:
+  contents: read
+
 env:
   UPLOAD_DIR_WINDOWS: signed-st-driver
 
