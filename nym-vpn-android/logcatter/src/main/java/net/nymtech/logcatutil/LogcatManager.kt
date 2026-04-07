@@ -12,6 +12,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -36,6 +37,7 @@ class LogcatManager(pid: Int, logDir: String, maxFileSize: Long, maxFolderSize: 
 
 	private var logJob: Job? = null
 	private var isStarted = false
+	private var fallbackTree: TimberFileTree? = null
 
 	private val tunnelTags = setOf("core-backend", "core-vpn")
 	private fun isLibrary(tag: String): Boolean = tag.contains("libnymvpn", ignoreCase = true)
@@ -93,15 +95,32 @@ class LogcatManager(pid: Int, logDir: String, maxFileSize: Long, maxFolderSize: 
 					Timber.tag(TAG).e(t, "LogcatCollectFailed")
 				}
 			}
+
+			if (isActive && logcatReader.logcatBlocked) {
+				activateTimberFallback()
+			}
 		}
 
 		isStarted = true
+	}
+
+	private fun activateTimberFallback() {
+		if (fallbackTree != null) return
+		Timber.tag(TAG).w("TimberFallbackActivated")
+		val tree = TimberFileTree(fileManager, logScope)
+		fallbackTree = tree
+		Timber.plant(tree)
 	}
 
 	override fun stop() {
 		if (!isStarted) return
 
 		Timber.tag(TAG).i("LogcatStop")
+
+		fallbackTree?.let {
+			Timber.uproot(it)
+			fallbackTree = null
+		}
 
 		runCatching { logJob?.cancel() }
 			.onFailure { Timber.tag(TAG).w(it, "LogcatJobCancelFailed") }

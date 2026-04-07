@@ -87,6 +87,7 @@ fun SettingsScreen(appUiState: AppUiState, showVpnSettings: Boolean = false, vie
 			daemonVersion = uiState.daemonVersion,
 			isMixnetTuningEnabled = uiState.isMixnetTuningEnabled,
 			subscription = appUiState.subscription,
+			isLewesEnabled = appUiState.vpnConfig.lewes,
 		),
 		SettingsActions(
 			onGetStartedClick = {
@@ -161,6 +162,9 @@ fun SettingsScreen(appUiState: AppUiState, showVpnSettings: Boolean = false, vie
 			},
 			onMixnetTuningClick = {
 				navController.navigate(Route.MixnetTuning)
+			},
+			onLewesEnable = {
+				viewModel.onLewesProtocolSelected(it)
 			},
 		),
 	)

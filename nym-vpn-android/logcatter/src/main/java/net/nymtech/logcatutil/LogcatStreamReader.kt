@@ -30,6 +30,9 @@ class LogcatStreamReader(private val pid: Int, private val fileManager: LogFileM
 	var fallbackToTimber: Boolean = false
 		private set
 
+	var logcatBlocked: Boolean = false
+		private set
+
 	private val ioDispatcher = Dispatchers.IO
 
 	private val tunnelTags = setOf("core-backend", "core-vpn")
@@ -86,16 +89,19 @@ class LogcatStreamReader(private val pid: Int, private val fileManager: LogFileM
 	}
 
 	fun readLogs(): Flow<LogMessage> = flow {
+		logcatBlocked = false
 		val oldPolicy = StrictMode.allowThreadDiskWrites()
 		try {
 			runCatching { clearLogs() }
 				.onFailure { Timber.tag(TAG).w(it, "LogcatClearFailed") }
 			var pending: LogMessage? = null
+			var linesRead = 0
 			try {
 				process = Runtime.getRuntime().exec(buildCommand())
 				reader = BufferedReader(InputStreamReader(process!!.inputStream), bufferSize)
 
 				reader!!.lineSequence().forEach { raw ->
+					linesRead++
 					val line = raw.trimEnd()
 					if (line.isBlank()) return@forEach
 					val parsed = LogMessage.tryFromThreadtime(line)
@@ -119,7 +125,12 @@ class LogcatStreamReader(private val pid: Int, private val fileManager: LogFileM
 				}
 
 				flushPending(pending) { emit(it) }
-				Timber.tag(TAG).d("LogcatStreamEnded")
+				if (linesRead == 0) {
+					logcatBlocked = true
+					Timber.tag(TAG).w("LogcatBlockedFallbackToTimber")
+				} else {
+					Timber.tag(TAG).d("LogcatStreamEnded")
+				}
 			} catch (e: IOException) {
 				Timber.tag(TAG).w(e, "LogcatStreamFailedFallbackToTimber")
 				fallbackToTimber = true
