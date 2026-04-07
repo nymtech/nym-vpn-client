@@ -85,8 +85,6 @@ function MainStateProvider({ children, init }: Props) {
     initSecondBatch(dispatch).then(() => {
       console.log('init of 2nd batch done');
     });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.daemonStatus]);
 
   useEffect(() => {
