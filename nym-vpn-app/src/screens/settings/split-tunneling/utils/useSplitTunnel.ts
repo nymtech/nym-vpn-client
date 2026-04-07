@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   useInAppNotify,
   useMainDispatch,
@@ -10,6 +11,7 @@ import { App } from '../../../../types/tauri';
 import { AppEntry } from '../AppItem';
 
 export const useSplitTunnel = () => {
+  const { t } = useTranslation('settings');
   const {
     splitTunnel: { enabled, apps: splitTunnelApps },
   } = useMainState();
@@ -18,18 +20,27 @@ export const useSplitTunnel = () => {
 
   const [installedApps, setInstalledApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
 
       try {
+        const isSupported = await invoke<boolean>('is_split_tunnel_supported');
+        setIsSupported(isSupported);
+
+        if (!isSupported) {
+          setLoading(false);
+          return;
+        }
+
         const appList = await invoke<App[]>('get_app_list');
         setInstalledApps(appList);
       } catch (err: unknown) {
         console.error('Failed to get app list', err);
         push({
-          message: 'Failed to get app list',
+          message: t('split-tunnel.failed-to-get-app-list', { ns: 'errors' }),
           close: true,
           type: 'error',
         });
@@ -116,5 +127,6 @@ export const useSplitTunnel = () => {
     add,
     remove,
     loading,
+    isSupported,
   };
 };

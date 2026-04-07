@@ -22,7 +22,8 @@ pub fn get_linux_apps() -> Result<Vec<App>, BackendError> {
                 return None;
             }
 
-            let exec = entry.exec()?.to_string();
+            let exec = entry.parse_exec().ok()?.into_iter().next()?;
+
             let icon = entry.icon().and_then(resolve_icon);
             Some(App {
                 name,
