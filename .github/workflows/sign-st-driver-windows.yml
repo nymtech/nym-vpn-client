@@ -1,0 +1,112 @@
+name: sign-st-driver-windows
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      SSL_COM_USERNAME:
+        required: true
+      SSL_COM_PASSWORD:
+        required: true
+      SSL_COM_TOTP_SECRET:
+        required: true
+    outputs:
+      UPLOAD_DIR_WINDOWS:
+        value: ${{ jobs.sign-cab.outputs.UPLOAD_DIR_WINDOWS }}
+
+env:
+  UPLOAD_DIR_WINDOWS: signed-st-driver
+
+jobs:
+  build-driver:
+    uses: ./.github/workflows/build-st-driver-windows.yml
+
+  sign-cab:
+    needs: build-driver
+    runs-on: custom-windows-11
+    outputs:
+      UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
+
+    steps:
+      - name: Cleanup working directory
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Download driver artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: st-driver
+          path: st-driver
+
+      - name: List downloaded files
+        shell: bash
+        run: ls -la st-driver/
+
+      - name: Build CAB file
+        shell: pwsh
+        run: |
+          $lines = @(
+            '.OPTION EXPLICIT',
+            '.Set CabinetNameTemplate=nymvpn-split-tunnel.cab',
+            '.Set DiskDirectoryTemplate=.',
+            '.Set CompressionType=MSZIP',
+            '"st-driver\nymvpn-split-tunnel.sys"',
+            '"st-driver\nymvpn-split-tunnel.cat"',
+            '"st-driver\nymvpn-split-tunnel.inf"'
+          )
+          $lines | Set-Content -Path nymvpn-split-tunnel.ddf
+          makecab /F nymvpn-split-tunnel.ddf
+
+      - name: Download EV CodeSignTool from ssl.com
+        shell: bash
+        run: |
+          curl -L0 https://www.ssl.com/download/codesigntool-for-linux-and-macos/ -o codesigntool.zip
+          unzip codesigntool.zip
+
+      - name: Get EV certificate credential id
+        id: get_credential_ids
+        shell: bash
+        run: |
+          echo "SSL_COM_CREDENTIAL_ID=$(./CodeSignTool.sh get_credential_ids -username=${{ secrets.SSL_COM_USERNAME }} -password=${{ secrets.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //')" >> "$GITHUB_OUTPUT"
+
+      - name: Sign CAB file
+        shell: bash
+        env:
+          SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
+          SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
+          SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
+          SSL_COM_CREDENTIAL_ID: ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}
+        run: |
+          mkdir -p signed
+          ./CodeSignTool.sh sign \
+            -username="$SSL_COM_USERNAME" \
+            -password="$SSL_COM_PASSWORD" \
+            -totp_secret="$SSL_COM_TOTP_SECRET" \
+            -credential_id="$SSL_COM_CREDENTIAL_ID" \
+            -input_file_path=nymvpn-split-tunnel.cab \
+            -output_dir_path=signed
+
+      - name: Move things around to prepare for upload
+        shell: bash
+        run: |
+          rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
+          mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vp signed/nymvpn-split-tunnel.cab ${{ env.UPLOAD_DIR_WINDOWS }}/
+
+      - name: Upload artifact
+        id: upload_artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.UPLOAD_DIR_WINDOWS }}
+          path: ${{ env.UPLOAD_DIR_WINDOWS }}
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Print download link
+        shell: bash
+        run: |
+          echo "Signed CAB artifact ready for submission to Microsoft."
+          echo "Download from: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
