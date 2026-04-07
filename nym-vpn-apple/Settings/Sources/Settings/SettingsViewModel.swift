@@ -442,7 +442,7 @@ private extension SettingsViewModel {
                 ),
                 title: "settings.ipv6.title".localizedString,
                 subtitle: "settings.ipv6.subtitle".localizedString,
-                systemImageName: "powerplug.portrait",
+                imageName: "powerplug.portrait",
                 action: {}
             )
         )
@@ -480,7 +480,7 @@ private extension SettingsViewModel {
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.splitTunnel".localizedString,
-                systemImageName: "arrow.trianglehead.branch",
+                imageName: "arrow.trianglehead.branch",
                 action: { [weak self] in
                     self?.navigateToSplitTunneling()
                 }
