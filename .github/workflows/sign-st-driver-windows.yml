@@ -54,11 +54,12 @@ jobs:
           $lines = @(
             '.OPTION EXPLICIT',
             '.Set CabinetNameTemplate=nymvpn-split-tunnel.cab',
-            '.Set DiskDirectoryTemplate=.',
+            '.Set DiskDirectory1=.',
             '.Set CompressionType=MSZIP',
-            '"st-driver\nymvpn-split-tunnel.sys"',
-            '"st-driver\nymvpn-split-tunnel.cat"',
-            '"st-driver\nymvpn-split-tunnel.inf"'
+            '.Set DestinationDir=driver',
+            '"st-driver\nymvpn-split-tunnel.sys" "nymvpn-split-tunnel.sys"',
+            '"st-driver\nymvpn-split-tunnel.cat" "nymvpn-split-tunnel.cat"',
+            '"st-driver\nymvpn-split-tunnel.inf" "nymvpn-split-tunnel.inf"'
           )
           $lines | Set-Content -Path nymvpn-split-tunnel.ddf
           makecab /F nymvpn-split-tunnel.ddf
@@ -89,7 +90,7 @@ jobs:
             -password="$SSL_COM_PASSWORD" \
             -totp_secret="$SSL_COM_TOTP_SECRET" \
             -credential_id="$SSL_COM_CREDENTIAL_ID" \
-            -input_file_path=nymvpn-split-tunnel.cab \
+            -input_file_path="nymvpn-split-tunnel.cab" \
             -output_dir_path=signed
 
       - name: Move things around to prepare for upload
