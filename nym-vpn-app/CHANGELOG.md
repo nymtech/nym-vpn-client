@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [1.28.0] - 2026-04-07
+
 ### Added
 
 - Lewes protocol settings toggle
