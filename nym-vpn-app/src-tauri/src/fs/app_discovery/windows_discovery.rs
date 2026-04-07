@@ -1,6 +1,8 @@
 use super::App;
+use super::utils::is_excluded;
 use crate::error::BackendError;
 use crate::icon_extractor::extract_icon_to_cache;
+use itertools::Itertools;
 use std::collections::HashMap;
 use std::os::windows::ffi::OsStrExt as _;
 use std::path::{Path, PathBuf};
@@ -12,8 +14,11 @@ pub fn get_windows_apps(app: tauri::AppHandle) -> Result<Vec<App>, BackendError>
 
     scan_start_menu(&mut apps);
 
-    let mut result: Vec<App> = apps.into_values().collect();
-    result.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    let mut result: Vec<App> = apps
+        .into_values()
+        .filter(|app| !is_excluded(&app.name))
+        .sorted_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
+        .collect();
     debug!("discovered {} Windows apps", result.len());
 
     let cache_dir = app

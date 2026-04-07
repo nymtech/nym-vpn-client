@@ -294,20 +294,9 @@ impl VpnAccountSummary {
     }
 
     pub fn is_linked(&self) -> bool {
-        let canonical_differs = self
-            .canonical_account_addr
-            .as_ref()
-            .map(|canonical| canonical != &self.account_addr)
-            .unwrap_or(false);
-
-        let has_social_or_passphrase = self
-            .auth_methods
+        self.auth_methods
             .iter()
-            .any(|method| method.label == "Social login" || method.label == "Passphrase");
-
-        let is_privy_mode = self.account_mode == Some(StoredAccountMode::Privy);
-
-        canonical_differs || has_social_or_passphrase || is_privy_mode
+            .any(|method| method.kind == "privy_secp256k1")
     }
 }
 

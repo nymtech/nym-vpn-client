@@ -52,12 +52,6 @@ private extension HomeView {
         .overlay {
             statisticsEnableOverlay()
         }
-        .overlay {
-            passphraseOverlay()
-        }
-        .overlay {
-            expiryBannerOverlay()
-        }
         .snackbar(
             isDisplayed: $viewModel.isSnackBarDisplayed,
             message: viewModel.messagesManager.currentMessage

@@ -442,7 +442,7 @@ private extension SettingsViewModel {
                 ),
                 title: "settings.ipv6.title".localizedString,
                 subtitle: "settings.ipv6.subtitle".localizedString,
-                systemImageName: "powerplug.portrait",
+                imageName: "powerplug.portrait",
                 action: {}
             )
         )
@@ -461,12 +461,26 @@ private extension SettingsViewModel {
                 action: {}
             )
         )
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .toggle(
+                    isOn: Binding(
+                        get: { [weak appSettings] in appSettings?.isLewesEnabled ?? false },
+                        set: { [weak appSettings] in appSettings?.isLewesEnabled = $0 }
+                    )
+                ),
+                title: "settings.lewes.title".localizedString,
+                subtitle: "settings.lewes.subtitle".localizedString,
+                imageName: "quantum",
+                action: {}
+            )
+        )
 #if os(macOS)
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
                 title: "settings.splitTunnel".localizedString,
-                systemImageName: "arrow.trianglehead.branch",
+                imageName: "arrow.trianglehead.branch",
                 action: { [weak self] in
                     self?.navigateToSplitTunneling()
                 }

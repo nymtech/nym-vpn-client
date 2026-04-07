@@ -24,6 +24,13 @@
       "failed": "Failed to enable LAN bypass"
     }
   },
+  "lewes": {
+    "title": "Lewes protocol",
+    "desc": "No post-quantum gateway preference",
+    "errors": {
+      "failed": "Failed to enable Lewes protocol"
+    }
+  },
   "notifications": {
     "title": "Desktop notifications"
   },
@@ -304,7 +311,7 @@
     "report-title": "Diagnostic report"
   },
   "split-tunneling": {
-    "title": "Split tunneling",
+    "title": "Split tunneling (beta)",
     "enable": "Enable split tunneling",
     "description": "Choose apps to exclude from NymVPN tunnel. Excluding an app will leave it unprotected.",
     "apps": "Apps",

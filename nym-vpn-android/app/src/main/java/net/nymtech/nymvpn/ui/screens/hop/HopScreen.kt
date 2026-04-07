@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
@@ -206,6 +207,27 @@ internal fun HopScreenContent(
 	onNavigateToServerDetails: (NymGateway) -> Unit,
 ) {
 	val pullRefreshState = rememberPullToRefreshState()
+	val listState = rememberLazyListState()
+	var hasScrolled by remember { mutableStateOf(false) }
+
+	LaunchedEffect(uiState.items) {
+		if (hasScrolled || selectedKey == null || uiState.items.isEmpty()) return@LaunchedEffect
+		val index = uiState.items.indexOfFirst { item ->
+			when (item) {
+				is ItemType.CountryItem -> {
+					val countryCode = item.locale.country.lowercase()
+					countryCode == selectedKey ||
+						item.gateways.any { it.identity == selectedKey } ||
+						item.regions?.any { it.region.equals(selectedKey, true) } == true
+				}
+				is ItemType.GatewayItem -> item.gateway.identity == selectedKey
+			}
+		}
+		if (index >= 0) {
+			listState.animateScrollToItem(index + 2)
+			hasScrolled = true
+		}
+	}
 
 	PullToRefreshBox(
 		state = pullRefreshState,
@@ -214,6 +236,7 @@ internal fun HopScreenContent(
 		modifier = Modifier.fillMaxSize(),
 	) {
 		LazyColumn(
+			state = listState,
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.Top,
 			modifier = Modifier

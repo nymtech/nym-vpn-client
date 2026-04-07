@@ -16,6 +16,7 @@ function Settings() {
     desktopNotifications,
     ipv6Support,
     allowLan,
+    enableLewesProtocol,
     enableAdBlocking,
     backendFlags,
   } = useMainState();
@@ -56,6 +57,21 @@ function Settings() {
       console.error('[settings] allow lan error', error);
       push({
         message: t('allow-lan.errors.failed'),
+        close: true,
+        type: 'error',
+      });
+    }
+  };
+
+  const handleLewesProtocol = async () => {
+    const switched = !enableLewesProtocol;
+    try {
+      await invoke('set_enable_lewes_protocol', { enabled: switched });
+      dispatch({ type: 'set-enable-lewes-protocol', enabled: switched });
+    } catch (error) {
+      console.error('[settings] lewes protocol error', error);
+      push({
+        message: t('lewes.errors.failed'),
         close: true,
         type: 'error',
       });
@@ -120,6 +136,18 @@ function Settings() {
             leadingIcon: 'lan',
             onClick: handleAllowLan,
             trailing: <Switch checked={allowLan} onChange={handleAllowLan} />,
+          },
+          {
+            title: t('lewes.title'),
+            desc: t('lewes.desc'),
+            leadingIcon: 'matter',
+            onClick: handleLewesProtocol,
+            trailing: (
+              <Switch
+                checked={enableLewesProtocol}
+                onChange={handleLewesProtocol}
+              />
+            ),
           },
           {
             title: t('dns.title'),
