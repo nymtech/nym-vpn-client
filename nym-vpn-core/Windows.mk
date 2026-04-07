@@ -103,6 +103,11 @@ libwg: create_target_dir create_version_header
 	Copy-Item "$(LIBWG_BUILD_DIR)/$(LIBWG_DLL)" -Destination "$(TARGET_DIR)/$(LIBWG_DLL)" -Force
 
 winfw: create_target_dir create_version_header
+# Ensure the old binaries are removed to avoid build issues
+	if (Test-Path "$(CURDIR)/../nym-vpn-windows/winfw/bin") { #\
+		Remove-Item "$(CURDIR)/../nym-vpn-windows/winfw/bin" -Recurse -Force ; #\
+	}
+
 # Setup environment and build winfw
 	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/winfw/winfw.sln" /p:Configuration=$(MSVC_CONFIG) /p:Platform=$(WINFW_PLATFORM)
 
