@@ -531,5 +531,4 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="diagnostic_copied">Panoya kopyalandı</string>
 	<string name="diagnostic_error">Tanılama başarısız oldu</string>
 	<!-- Developer screen -->
-	<string name="developer_lewes_title">Lewes Protokolünü Etkinleştirin</string>
 </resources>

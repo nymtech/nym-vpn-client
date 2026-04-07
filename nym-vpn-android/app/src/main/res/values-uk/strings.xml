@@ -531,5 +531,4 @@
 	<string name="diagnostic_copied">Скопійовано в буфер обміну</string>
 	<string name="diagnostic_error">Діагностика не вдалася</string>
 	<!-- Developer screen -->
-	<string name="developer_lewes_title">Увімкнути протокол Lewes</string>
 </resources>
