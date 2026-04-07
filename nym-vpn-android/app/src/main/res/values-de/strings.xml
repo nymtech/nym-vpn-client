@@ -532,5 +532,4 @@
 	<string name="diagnostic_copied">In Zwischenablage kopiert</string>
 	<string name="diagnostic_error">Diagnose fehlgeschlagen</string>
 	<!-- Developer screen -->
-	<string name="developer_lewes_title">Lewes-Protokoll aktivieren</string>
 </resources>
