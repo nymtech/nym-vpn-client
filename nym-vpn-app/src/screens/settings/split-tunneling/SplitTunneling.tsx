@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
+import { AnimatePresence, motion } from 'motion/react';
 import PageAnim from '../../../ui/PageAnim';
 import SettingsMenuCard from '../../../ui/SettingsMenuCard';
 import Switch from '../../../ui/Switch';
@@ -85,60 +86,70 @@ function SplitTunneling() {
       </p>
 
       {/* Apps section */}
-      <div className="flex flex-col gap-2">
-        <p className="text-base font-semibold text-baltic-sea dark:text-white select-none">
-          {t('split-tunneling.apps')} ({apps.length})
-        </p>
+      <AnimatePresence initial={false}>
+        {enabled && (
+          <motion.div
+            key="apps-section"
+            className="flex flex-col gap-2 overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+          >
+            <p>
+              {t('split-tunneling.apps')} ({apps.length})
+            </p>
+            {/* App list with alphabetical sidebar */}
+            <div className="flex items-stretch gap-0">
+              {/* App list */}
+              <div className="flex-1 min-w-0 rounded-lg overflow-hidden">
+                {letters.map((letter) => (
+                  <div
+                    key={letter}
+                    ref={(el) => {
+                      sectionRefs.current[letter] = el;
+                    }}
+                  >
+                    {/* Section divider */}
+                    <div className="px-4 py-1 bg-mercury/40 dark:bg-mine-shaft/60">
+                      <span className="text-xs text-iron dark:text-bombay select-none">
+                        {letter}
+                      </span>
+                    </div>
 
-        {/* App list with alphabetical sidebar */}
-        <div className="flex items-stretch gap-0">
-          {/* App list */}
-          <div className="flex-1 min-w-0 rounded-lg overflow-hidden">
-            {letters.map((letter) => (
-              <div
-                key={letter}
-                ref={(el) => {
-                  sectionRefs.current[letter] = el;
-                }}
-              >
-                {/* Section divider */}
-                <div className="px-4 py-1 bg-mercury/40 dark:bg-mine-shaft/60">
-                  <span className="text-xs text-iron dark:text-bombay select-none">
-                    {letter}
-                  </span>
-                </div>
-
-                {/* Apps in this section */}
-                {groupedApps[letter].map((app, i) => (
-                  <div key={app.name}>
-                    <AppItem app={app} onStateChange={handleStateChange} />
-                    {i < groupedApps[letter].length - 1 && (
-                      <div className="mx-4 h-px bg-mercury/60 dark:bg-white/5" />
-                    )}
+                    {/* Apps in this section */}
+                    {groupedApps[letter].map((app, i) => (
+                      <div key={app.name}>
+                        <AppItem app={app} onStateChange={handleStateChange} />
+                        {i < groupedApps[letter].length - 1 && (
+                          <div className="mx-4 h-px bg-mercury/60 dark:bg-white/5" />
+                        )}
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
 
-          {/* Alphabetical sidebar */}
-          <div className="sticky top-0 gap-1.5 self-start flex flex-col items-center justify-between w-5 ml-3.5">
-            {letters.map((letter) => (
-              <button
-                key={letter}
-                className={clsx(
-                  'text-xs h-4 w-full text-center cursor-default select-none',
-                  'text-iron dark:text-bombay hover:text-baltic-sea dark:hover:text-white',
-                  'transition-noborder',
-                )}
-                onClick={() => scrollToSection(letter)}
-              >
-                {letter}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+              {/* Alphabetical sidebar */}
+              <div className="sticky top-0 gap-1.5 self-start flex flex-col items-center justify-between w-5 ml-3.5">
+                {letters.map((letter) => (
+                  <button
+                    key={letter}
+                    className={clsx(
+                      'text-xs h-4 w-full text-center cursor-default select-none',
+                      'text-iron dark:text-bombay hover:text-baltic-sea dark:hover:text-white',
+                      'transition-noborder',
+                    )}
+                    onClick={() => scrollToSection(letter)}
+                  >
+                    {letter}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
