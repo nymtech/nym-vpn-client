@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { type } from '@tauri-apps/plugin-os';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { routes } from '../../router';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
@@ -10,7 +11,6 @@ import { MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import { AccountSettingRow } from './account';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
-import { type } from '@tauri-apps/plugin-os';
 
 function Settings() {
   const {
@@ -167,18 +167,18 @@ function Settings() {
           },
           ...(os === 'windows'
             ? [
-                {
-                  title: t('split-tunneling.title'),
-                  leadingIcon: 'call_split',
-                  onClick: () =>
-                    navigate(routes.splitTunneling, {
-                      state: { resetScroll: true },
-                    }),
-                  trailing: (
-                    <MsIcon icon="arrow_right" className="dark:text-white" />
-                  ),
-                },
-              ]
+              {
+                title: t('split-tunneling.title'),
+                leadingIcon: 'call_split',
+                onClick: () =>
+                  navigate(routes.splitTunneling, {
+                    state: { resetScroll: true },
+                  }),
+                trailing: (
+                  <MsIcon icon="arrow_right" className="dark:text-white" />
+                ),
+              },
+            ]
             : []),
           {
             title: t('anti-censorship.title', { ns: 'settings' }),

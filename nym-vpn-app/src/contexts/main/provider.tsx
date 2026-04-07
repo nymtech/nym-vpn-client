@@ -86,7 +86,6 @@ function MainStateProvider({ children, init }: Props) {
       console.log('init of 2nd batch done');
     });
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.daemonStatus]);
 
   useEffect(() => {
@@ -117,7 +116,7 @@ function MainStateProvider({ children, init }: Props) {
             type: 'warn',
           });
         }
-      } catch {}
+      } catch { }
     };
     querySystemMessages();
   }, [init.vpnd, push, state.daemonStatus]);
