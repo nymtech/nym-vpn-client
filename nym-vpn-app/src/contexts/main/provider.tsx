@@ -85,7 +85,6 @@ function MainStateProvider({ children, init }: Props) {
     initSecondBatch(dispatch).then(() => {
       console.log('init of 2nd batch done');
     });
-
   }, [state.daemonStatus]);
 
   useEffect(() => {
@@ -116,7 +115,7 @@ function MainStateProvider({ children, init }: Props) {
             type: 'warn',
           });
         }
-      } catch { }
+      } catch {}
     };
     querySystemMessages();
   }, [init.vpnd, push, state.daemonStatus]);

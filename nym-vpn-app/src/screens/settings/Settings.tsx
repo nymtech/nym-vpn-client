@@ -167,18 +167,18 @@ function Settings() {
           },
           ...(os === 'windows'
             ? [
-              {
-                title: t('split-tunneling.title'),
-                leadingIcon: 'call_split',
-                onClick: () =>
-                  navigate(routes.splitTunneling, {
-                    state: { resetScroll: true },
-                  }),
-                trailing: (
-                  <MsIcon icon="arrow_right" className="dark:text-white" />
-                ),
-              },
-            ]
+                {
+                  title: t('split-tunneling.title'),
+                  leadingIcon: 'call_split',
+                  onClick: () =>
+                    navigate(routes.splitTunneling, {
+                      state: { resetScroll: true },
+                    }),
+                  trailing: (
+                    <MsIcon icon="arrow_right" className="dark:text-white" />
+                  ),
+                },
+              ]
             : []),
           {
             title: t('anti-censorship.title', { ns: 'settings' }),
