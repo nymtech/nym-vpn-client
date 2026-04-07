@@ -142,7 +142,9 @@ function Settings() {
           },
           {
             title: t('lewes.title'),
-            desc: enableLewesProtocol ? t('lewes.desc.on') : t('lewes.desc.off'),
+            desc: enableLewesProtocol
+              ? t('lewes.desc.on')
+              : t('lewes.desc.off'),
             leadingIcon: 'matter',
             onClick: handleLewesProtocol,
             trailing: (
@@ -167,18 +169,18 @@ function Settings() {
           },
           ...(os === 'windows'
             ? [
-              {
-                title: t('split-tunneling.title'),
-                leadingIcon: 'call_split',
-                onClick: () =>
-                  navigate(routes.splitTunneling, {
-                    state: { resetScroll: true },
-                  }),
-                trailing: (
-                  <MsIcon icon="arrow_right" className="dark:text-white" />
-                ),
-              },
-            ]
+                {
+                  title: t('split-tunneling.title'),
+                  leadingIcon: 'call_split',
+                  onClick: () =>
+                    navigate(routes.splitTunneling, {
+                      state: { resetScroll: true },
+                    }),
+                  trailing: (
+                    <MsIcon icon="arrow_right" className="dark:text-white" />
+                  ),
+                },
+              ]
             : []),
           {
             title: t('anti-censorship.title', { ns: 'settings' }),
