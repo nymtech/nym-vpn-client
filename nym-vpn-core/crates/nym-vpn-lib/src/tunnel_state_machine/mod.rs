@@ -606,7 +606,7 @@ pub struct SharedState {
     filtering_resolver: resolver::ResolverHandle,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker: adblocker::AdBlockerTaskHandle,
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
@@ -659,7 +659,7 @@ impl SharedState {
     /// Set which applications matching the given paths should be excluded from the tunnel
     ///
     /// Return whether a split tunnel interface was added or removed
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub async fn set_exclude_paths(
         &mut self,
         paths: HashSet<PathBuf>,
@@ -738,6 +738,17 @@ impl SharedState {
     }
 }
 
+#[cfg(target_os = "linux")]
+pub struct LinuxSplitTunnelConfiguration {
+    /// The cgroup2 used for split tunneling.
+    /// Traffic from processes in this cgroup2 should be allowed outside the tunnel.
+    pub excluded_cgroup2: Option<nym_cgroup::v2::CGroup2>,
+
+    /// The net_cls id of the v1 cgroup used for split tunneling.
+    /// This is used as a fallback to [`Self::excluded_cgroup2`] since old kernels don't support cgroups v2.
+    pub net_cls: Option<u32>,
+}
+
 #[derive(Debug, Clone)]
 pub struct NymConfig {
     pub config_path: Option<PathBuf>,
@@ -778,8 +789,9 @@ impl TunnelStateMachine {
         connectivity_handle: ConnectivityHandle,
         discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
         wg_keys_db: WireguardKeysDb,
-        #[cfg(any(windows, target_os = "macos", target_os = "linux"))]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         split_tunnel: nym_split_tunnel::SplitTunnelHandle,
+        #[cfg(target_os = "linux")] split_tunnel_config: LinuxSplitTunnelConfiguration,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -839,13 +851,13 @@ impl TunnelStateMachine {
             #[cfg(target_os = "linux")]
             table_id: tunnel_constants.table_id,
             #[cfg(target_os = "linux")]
-            excluded_cgroup2: split_tunnel.excluded_cgroup().await.ok().flatten(),
+            excluded_cgroup2: split_tunnel_config.excluded_cgroup2,
             #[cfg(target_os = "linux")]
-            net_cls: split_tunnel.net_cls_classid().await.ok().flatten(),
+            net_cls: split_tunnel_config.net_cls,
         })
         .map_err(Error::CreateFirewall)?;
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         if let Err(err) = split_tunnel
             .set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths())
             .await
@@ -865,7 +877,7 @@ impl TunnelStateMachine {
             filtering_resolver,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             adblocker,
-            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             split_tunnel,
             nym_config,
             tunnel_settings,

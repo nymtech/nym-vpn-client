@@ -678,7 +678,7 @@ impl TunnelStateHandler for ConnectingState {
                             new_firewall_policy.allow_lan = shared_state.tunnel_settings.allow_lan;
                         }
 
-                        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                        #[cfg(any(target_os = "macos", target_os = "windows"))]
                         {
                             if diff.split_tunnel_changed() {
                                 match shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths()).await {

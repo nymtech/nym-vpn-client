@@ -151,6 +151,7 @@ winreg.workspace = true
 hickory-server = { workspace = true, features = ["resolver"] }
 nym-routing.workspace = true
 nym-dns.workspace = true
+nym-cgroup.workspace = true
 nym-firewall.workspace = true
 nym-firewall-config.workspace = true
 

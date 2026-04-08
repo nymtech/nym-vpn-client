@@ -1031,7 +1031,6 @@ message SplitTunnelExcludedProcess {
   int32 pid = 1;
   string exec_path = 2;
   string responsible_exec_path = 3;
-  repeated string ancestor_exec_paths = 4;
 }
 
 message SplitTunnelExcludedProcessList {
@@ -1212,14 +1211,24 @@ service NymVpnService {
   rpc RunDiagnostic(DiagnosticRunParams) returns (DiagnosticReport) {}
   rpc RegisterDiagnostic(DiagnosticRegisterParams) returns (RegistrationReport) {}
 
-  // Split-tunnel
+  // Split-tunnel (all platforms)
   rpc IsSplitTunnelSupported(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+
+  // Split-tunnel (Linux, macOS)
+  rpc GetSplitTunnelExcludedProcesses(google.protobuf.Empty) returns (SplitTunnelExcludedProcessList) {}
+
+  // Split-tunnel (Windows, macOS)
   rpc SetEnableSplitTunnel(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc AddSplitTunnelApp(SplitApp) returns (google.protobuf.Empty) {}
   rpc RemoveSplitTunnelApp(SplitApp) returns (google.protobuf.Empty) {}
   rpc ClearSplitTunnelApps(google.protobuf.Empty) returns (google.protobuf.Empty) {}
-  rpc GetSplitTunnelExcludedProcesses(google.protobuf.Empty) returns (SplitTunnelExcludedProcessList) {}
 
+  // Split-tunnel (Linux)
+  rpc AddSplitTunnelProcess(google.protobuf.Int32Value) returns (google.protobuf.Empty) {}
+  rpc RemoveSplitTunnelProcess(google.protobuf.Int32Value) returns (google.protobuf.Empty) {}
+  rpc ClearSplitTunnelProcesses(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // Split-tunnel (macOS only)
   // Check whether the app needs TCC approval for split tunneling (macOS)
   rpc NeedFullDiskPermissions(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 }
