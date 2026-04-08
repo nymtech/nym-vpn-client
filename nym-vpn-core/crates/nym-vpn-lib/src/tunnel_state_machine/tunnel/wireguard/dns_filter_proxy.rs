@@ -46,6 +46,15 @@ const MAX_PACKET_SIZE: usize = 65536;
 /// UDP port used by DNS.
 const DNS_PORT: u16 = 53;
 
+/// IPv4 version nibble.
+const IP_VERSION_4: u8 = 4;
+
+/// IPv6 version nibble.
+const IP_VERSION_6: u8 = 6;
+
+/// IPv6 header length in bytes.
+const IPV6_HEADER_LEN: usize = 40;
+
 /// A proxy that sits between the Android tun device and wireguard-go, intercepting DNS packets.
 pub struct DnsFilterProxy {
     /// File descriptor to hand to wireguard-go as its "tun device".
@@ -176,8 +185,8 @@ async fn run_proxy(
 /// Returns `None` if the packet should pass through.
 async fn maybe_nxdomain(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
     match packet.first().map(|b| b >> 4)? {
-        4 => maybe_nxdomain_v4(packet, dns_filter).await,
-        6 => maybe_nxdomain_v6(packet, dns_filter).await,
+        IP_VERSION_4 => maybe_nxdomain_v4(packet, dns_filter).await,
+        IP_VERSION_6 => maybe_nxdomain_v6(packet, dns_filter).await,
         _ => None,
     }
 }
@@ -276,7 +285,6 @@ fn build_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -
 }
 
 fn build_response_v6(orig_ip: &Ipv6Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
-    const IPV6_HEADER_LEN: usize = 40;
     let udp_len = (UdpPacket::minimum_packet_size() + dns.len()) as u16;
     let total_len = IPV6_HEADER_LEN + UdpPacket::minimum_packet_size() + dns.len();
     let mut buf = vec![0u8; total_len];
