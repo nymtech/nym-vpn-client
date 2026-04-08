@@ -187,7 +187,10 @@ async fn maybe_nxdomain(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>
     match packet.first().map(|b| b >> 4)? {
         IP_VERSION_4 => maybe_nxdomain_v4(packet, dns_filter).await,
         IP_VERSION_6 => maybe_nxdomain_v6(packet, dns_filter).await,
-        _ => None,
+        version => {
+            tracing::debug!("DNS filter proxy: unknown IP version {version}, passing through");
+            None
+        }
     }
 }
 
@@ -245,13 +248,25 @@ async fn blocked_domain(dns_payload: &[u8], dns_filter: &DnsFilter) -> Option<St
 }
 
 fn build_nxdomain_dns(query: &[u8]) -> Option<Vec<u8>> {
-    let mut msg = Message::from_vec(query).ok()?;
+    let mut msg = match Message::from_vec(query) {
+        Ok(msg) => msg,
+        Err(e) => {
+            tracing::debug!("DNS filter proxy: failed to parse DNS message: {e}");
+            return None;
+        }
+    };
     msg.set_message_type(MessageType::Response);
     msg.set_response_code(ResponseCode::NXDomain);
     msg.take_answers();
     msg.take_name_servers();
     msg.take_additionals();
-    msg.to_vec().ok()
+    match msg.to_vec() {
+        Ok(bytes) => Some(bytes),
+        Err(e) => {
+            tracing::debug!("DNS filter proxy: failed to serialize NXDOMAIN response: {e}");
+            None
+        }
+    }
 }
 
 fn build_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
