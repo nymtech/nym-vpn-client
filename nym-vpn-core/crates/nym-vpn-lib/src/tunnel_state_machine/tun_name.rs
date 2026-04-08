@@ -43,7 +43,9 @@ pub fn get_tun_name(fd: &BorrowedFd) -> Result<String> {
         .map_err(GetTunNameError::Syscall)?;
 
     // SAFETY: reinterpreting [i8; N] as [u8; N] is safe — same size/alignment, no invalid values.
-    let ifr_name_bytes: &[u8] = unsafe { std::slice::from_raw_parts(ifr.ifr_name.as_ptr() as *const u8, ifr.ifr_name.len()) };
+    let ifr_name_bytes: &[u8] = unsafe {
+        std::slice::from_raw_parts(ifr.ifr_name.as_ptr() as *const u8, ifr.ifr_name.len())
+    };
     CStr::from_bytes_until_nul(ifr_name_bytes)
         .map_err(GetTunNameError::CopyInterfaceName)?
         .to_str()
