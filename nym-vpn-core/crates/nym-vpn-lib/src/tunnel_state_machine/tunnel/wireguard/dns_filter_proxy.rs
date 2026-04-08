@@ -247,8 +247,8 @@ fn build_nxdomain_dns(query: &[u8]) -> Option<Vec<u8>> {
 
 fn build_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
     let ihl = orig_ip.get_header_length() as usize * 4;
-    let udp_len = (8 + dns.len()) as u16;
-    let total_len = ihl + 8 + dns.len();
+    let udp_len = (UdpPacket::minimum_packet_size() + dns.len()) as u16;
+    let total_len = ihl + UdpPacket::minimum_packet_size() + dns.len();
     let mut buf = vec![0u8; total_len];
 
     buf[..ihl].copy_from_slice(&orig_ip.packet()[..ihl]);
@@ -277,8 +277,8 @@ fn build_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -
 
 fn build_response_v6(orig_ip: &Ipv6Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
     const IPV6_HEADER_LEN: usize = 40;
-    let udp_len = (8 + dns.len()) as u16;
-    let total_len = IPV6_HEADER_LEN + 8 + dns.len();
+    let udp_len = (UdpPacket::minimum_packet_size() + dns.len()) as u16;
+    let total_len = IPV6_HEADER_LEN + UdpPacket::minimum_packet_size() + dns.len();
     let mut buf = vec![0u8; total_len];
 
     buf[..IPV6_HEADER_LEN].copy_from_slice(&orig_ip.packet()[..IPV6_HEADER_LEN]);
