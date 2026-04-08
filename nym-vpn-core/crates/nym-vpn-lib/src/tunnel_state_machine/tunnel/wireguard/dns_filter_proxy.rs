@@ -246,15 +246,14 @@ async fn blocked_domain(dns_payload: &[u8], dns_filter: &DnsFilter) -> Option<St
     if dns.get_is_response() != 0 {
         return None;
     }
-    let domain = dns
-        .get_queries()
-        .first()?
-        .get_qname_parsed()
-        .trim_end_matches('.')
-        .to_string();
-
     let guard = dns_filter.lock().await;
-    matches!(guard.should_block(&domain), DnsFilterDecision::Block(_)).then_some(domain)
+    dns.get_queries().iter().find_map(|query| {
+        let domain = query
+            .get_qname_parsed()
+            .trim_end_matches('.')
+            .to_string();
+        matches!(guard.should_block(&domain), DnsFilterDecision::Block(_)).then_some(domain)
+    })
 }
 
 fn build_nxdomain_dns(query: &[u8]) -> Option<Vec<u8>> {
