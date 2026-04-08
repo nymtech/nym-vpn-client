@@ -492,15 +492,12 @@ impl ConnectedTunnel {
                 }
             }
 
-            #[allow(unused_mut)]
-            let mut tun_devices = vec![
-                #[cfg(all(not(windows), not(target_os = "android")))]
-                tombstone_exit_tun,
-            ];
+            #[cfg(all(not(windows), not(target_os = "android")))]
+            let tun_devices = vec![tombstone_exit_tun];
             #[cfg(target_os = "android")]
-            if let Some(tun) = android_tombstone_tun {
-                tun_devices.push(tun);
-            }
+            let tun_devices: Vec<_> = android_tombstone_tun.into_iter().collect();
+            #[cfg(windows)]
+            let tun_devices = vec![];
 
             Tombstone {
                 tun_devices,
