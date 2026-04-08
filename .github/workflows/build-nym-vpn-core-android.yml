@@ -37,7 +37,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
-          targets: aarch64-linux-android
+          targets: aarch64-linux-android,x86_64-linux-android
 
       - name: Setup NDK
         uses: nttld/setup-ndk@v1
@@ -76,11 +76,17 @@ jobs:
       - name: Append timestamp if it's a dev version
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
 
-      - name: Download wireguard-go artifacts
+      - name: Download wireguard-go artifacts (aarch64)
         uses: actions/download-artifact@v8
         with:
           name: wireguard-go_aarch64-linux-android
           path: build/lib/aarch64-linux-android
+
+      - name: Download wireguard-go artifacts (x86_64)
+        uses: actions/download-artifact@v8
+        with:
+          name: wireguard-go_x86_64-linux-android
+          path: build/lib/x86_64-linux-android
 
       - name: Build nym-vpn-core for android
         working-directory: nym-vpn-core
@@ -96,12 +102,14 @@ jobs:
           echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
 
       - name: Move things around to prepare for upload
-        env:
-          BUILD_DIR: nym-vpn-android/core/src/main/jniLibs/arm64-v8a
         run: |
           mkdir ${{ env.UPLOAD_DIR_ANDROID }}
-          cp ${{ env.BUILD_DIR }}/libnym_vpn_lib.so ${{ env.UPLOAD_DIR_ANDROID }}
-          cp ${{ env.BUILD_DIR }}/libnym_vpn_lib_types.so ${{ env.UPLOAD_DIR_ANDROID }}
+          mkdir ${{ env.UPLOAD_DIR_ANDROID }}/arm64-v8a
+          mkdir ${{ env.UPLOAD_DIR_ANDROID }}/x86_64
+          cp nym-vpn-android/core/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so ${{ env.UPLOAD_DIR_ANDROID }}/arm64-v8a/
+          cp nym-vpn-android/core/src/main/jniLibs/arm64-v8a/libnym_vpn_lib_types.so ${{ env.UPLOAD_DIR_ANDROID }}/arm64-v8a/
+          cp nym-vpn-android/core/src/main/jniLibs/x86_64/libnym_vpn_lib.so ${{ env.UPLOAD_DIR_ANDROID }}/x86_64/
+          cp nym-vpn-android/core/src/main/jniLibs/x86_64/libnym_vpn_lib_types.so ${{ env.UPLOAD_DIR_ANDROID }}/x86_64/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
