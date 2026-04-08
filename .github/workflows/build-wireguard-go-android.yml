@@ -54,6 +54,8 @@ jobs:
 
       - name: Build wireguard
         if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          ARCHITECTURES: aarch64 x86_64
         run: ./wireguard/build-wireguard-go.sh --android
 
       - name: Upload aarch64 artifacts
