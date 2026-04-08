@@ -337,7 +337,6 @@ impl ConnectedTunnel {
         )?;
 
         let shutdown_token = CancellationToken::new();
-        let child_shutdown_token = shutdown_token.child_token();
 
         #[cfg(target_os = "android")]
         let (wg_exit_fd, proxy_join_handle, android_tombstone_tun) =
@@ -345,7 +344,7 @@ impl ConnectedTunnel {
                 let proxy = DnsFilterProxy::start(
                     options.exit_tun,
                     dns_filter,
-                    child_shutdown_token.child_token(),
+                    shutdown_token.child_token(),
                 )
                 .map_err(Error::CreateDnsFilterProxy)?;
                 (proxy.wg_fd, Some(proxy.join_handle), None)
@@ -394,6 +393,7 @@ impl ConnectedTunnel {
         #[cfg(windows)]
         let wintun_exit_interface = exit_tunnel.wintun_interface().clone();
 
+        let child_shutdown_token = shutdown_token.child_token();
         let event_handler_task = tokio::spawn(async move {
             #[cfg(windows)]
             {
