@@ -530,5 +530,4 @@
 	<string name="diagnostic_copied">Đã sao chép vào bộ nhớ tạm</string>
 	<string name="diagnostic_error">Chẩn đoán không thành công</string>
 	<!-- Developer screen -->
-	<string name="developer_lewes_title">Kích hoạt giao thức Lewes</string>
 </resources>

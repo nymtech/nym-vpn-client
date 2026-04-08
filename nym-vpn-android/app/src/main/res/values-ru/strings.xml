@@ -532,5 +532,4 @@
 	<string name="diagnostic_copied">Скопировано в буфер</string>
 	<string name="diagnostic_error">Сбой диагностики</string>
 	<!-- Developer screen -->
-	<string name="developer_lewes_title">Включить протокол Lewes</string>
 </resources>

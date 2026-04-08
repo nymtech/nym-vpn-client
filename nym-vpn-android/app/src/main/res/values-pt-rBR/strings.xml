@@ -532,5 +532,4 @@
 	<string name="diagnostic_copied">Copiado para área de transferência</string>
 	<string name="diagnostic_error">Diagnóstico falhou</string>
 	<!-- Developer screen -->
-	<string name="developer_lewes_title">Habilitar Protocolo de Lewes</string>
 </resources>
