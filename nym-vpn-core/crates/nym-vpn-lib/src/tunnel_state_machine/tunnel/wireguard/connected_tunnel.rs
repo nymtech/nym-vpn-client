@@ -374,8 +374,7 @@ impl ConnectedTunnel {
         let mut exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, wg_exit_fd)?;
 
         #[cfg(windows)]
-        #[allow(unused_mut)]
-        let mut exit_tunnel = wireguard_go::Tunnel::start(
+        let exit_tunnel = wireguard_go::Tunnel::start(
             exit_wg_config,
             &options.exit_tun_name,
             &options.exit_tun_guid,
