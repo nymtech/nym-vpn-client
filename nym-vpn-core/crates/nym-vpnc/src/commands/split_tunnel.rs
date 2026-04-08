@@ -42,6 +42,8 @@ pub enum Command {
     ClearApps,
 
     /// Add process to exclusions
+    ///
+    /// Consider using `nym-exclude` cli tool instead to launch applications outside of tunnel.
     #[cfg(target_os = "linux")]
     AddProcess { pid: i32 },
 
