@@ -124,7 +124,7 @@ async fn run_proxy(
             // Outbound: tun → (inspect) → wireguard
             result = tun_device.read(&mut tun_buf) => {
                 match result {
-                    Ok(0) => continue,
+                    Ok(0) => break,
                     Ok(n) => {
                         let packet = &tun_buf[..n];
                         match maybe_nxdomain(packet, &dns_filter).await {
