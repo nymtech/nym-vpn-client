@@ -12,6 +12,7 @@ data class SettingsValues(
 	val appShortcutsEnabled: Boolean = false,
 	val appDeviceStartupEnabled: Boolean = false,
 	val appSystemTrayEnabled: Boolean = false,
+	val isLewesEnabled: Boolean = false,
 	val appVersion: String = "",
 	val daemonVersion: String = "",
 	val isMixnetTuningEnabled: Boolean = false,

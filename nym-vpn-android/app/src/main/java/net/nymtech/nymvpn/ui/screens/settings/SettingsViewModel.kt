@@ -70,6 +70,15 @@ class SettingsViewModel @Inject constructor(
 		}
 	}
 
+	fun onLewesProtocolSelected(selected: Boolean) = viewModelScope.launch {
+		runCatching {
+			notifyReconnectIfConnected()
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetLewes(selected))
+		}.onFailure {
+			Timber.e(it, "Failed to update Lewes setting")
+		}
+	}
+
 	private fun notifyReconnectIfConnected() {
 		val state = backendManager.getState()
 		val isConnected = state == Tunnel.State.Up || state == Tunnel.State.EstablishingConnection

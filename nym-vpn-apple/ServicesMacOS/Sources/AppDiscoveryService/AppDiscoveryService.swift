@@ -36,7 +36,7 @@ private extension AppDiscoveryService {
         var apps = [FoundApp]()
 
         for case let appURL as URL in enumerator {
-            guard appURL.pathExtension == "app" else { continue }
+            guard appURL.pathExtension == "app" && appURL.lastPathComponent != "NymVPN.app" else { continue }
             apps.append(makeFoundApp(from: appURL))
         }
 

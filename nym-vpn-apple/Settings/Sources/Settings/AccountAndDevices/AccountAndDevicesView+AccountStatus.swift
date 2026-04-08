@@ -175,7 +175,9 @@ extension AccountAndDevicesView {
     func resetDateText(date: Date?) -> String {
         guard let date else { return "-" }
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy.MM.dd"
+        formatter.locale = .autoupdatingCurrent
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
         return formatter.string(from: date)
     }
 }

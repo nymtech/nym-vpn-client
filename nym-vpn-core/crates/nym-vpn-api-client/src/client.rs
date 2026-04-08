@@ -705,7 +705,7 @@ impl VpnApiClient {
         let request = LinkAccountRequestBody {
             pubkey,
             signature,
-            kind: "user_generated_secp256k1".to_string(),
+            kind: "privy_secp256k1".to_string(),
             label: label.to_string(),
         };
 

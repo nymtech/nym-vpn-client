@@ -1,4 +1,5 @@
 use super::App;
+use super::utils::is_excluded;
 use crate::error::BackendError;
 use freedesktop_desktop_entry::{DesktopEntry, desktop_entries, get_languages_from_env};
 use freedesktop_icons::lookup;
@@ -16,6 +17,11 @@ pub fn get_linux_apps() -> Result<Vec<App>, BackendError> {
                 return None;
             }
             let name = entry.name(&locales)?.into_owned();
+
+            if is_excluded(&name) {
+                return None;
+            }
+
             let exec = entry.exec()?.to_string();
             let icon = entry.icon().and_then(resolve_icon);
             Some(App {
