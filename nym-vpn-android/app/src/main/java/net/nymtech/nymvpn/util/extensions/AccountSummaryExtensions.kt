@@ -54,7 +54,7 @@ private fun calculateExpiryState(isRecurring: Boolean, isActive: Boolean, planTy
 }
 
 fun VpnAccountSummary.toSubscriptionUiState(): SubscriptionUiState {
-	val expiryFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
+	val expiryFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 	val expiryDateStr = this.subscriptionValidUntil?.toZonedDateTime()?.format(expiryFormatter) ?: "Unknown"
 
 	val expiryState = calculateExpiryState(
@@ -80,7 +80,7 @@ fun VpnAccountSummary.toBandwidthUiState(): BandwidthUiState {
 		0f
 	}
 
-	val resetFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd")
+	val resetFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 	val resetDateStr = this.trafficResetTime?.toZonedDateTime()?.format(resetFormatter) ?: "Unknown"
 
 	return BandwidthUiState(
