@@ -32,7 +32,7 @@ class LoginViewModel @Inject constructor(private val settingsRepository: Setting
 
 	companion object {
 		private const val TAG = "ui-login-vm"
-		private const val ACCOUNT_READY_TIMEOUT_MS = 20_000L
+		private const val ACCOUNT_READY_TIMEOUT_MS = 90_000L
 	}
 
 	private val _uiState = MutableStateFlow(LoginUiState())

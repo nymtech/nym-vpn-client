@@ -348,12 +348,23 @@ impl RequestingZkNymsState {
             }
             AccountCommand::RefreshAccountState(return_sender) => {
                 return_sender.send(Ok(()));
-                return if shared_state.firewall_active {
-                    NextAccountControllerState::SameState(self)
-                } else {
+                if shared_state.firewall_active {
+                    return NextAccountControllerState::SameState(self);
+                }
+                // If tickets are already sufficient (written by the in-progress fetch),
+                // skip the full SyncingState round-trip and go directly to ReadyState.
+                // This makes foreground-resume refreshes instant once tickets are available.
+                if let Ok(true) = shared_state
+                    .credential_storage
+                    .is_all_ticket_types_above_minimal_threshold()
+                    .await
+                {
+                    info!("RefreshAccountState: tickets already sufficient, transitioning to ReadyState");
                     self.zk_nym_fetching_handle.abort();
-                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
-                };
+                    return NextAccountControllerState::NewState(ReadyState::enter());
+                }
+                self.zk_nym_fetching_handle.abort();
+                return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
             }
             AccountCommand::VpnApiFirewallDown(return_sender) => {
                 // as a side note, firewall handling could use some improvements as well,
