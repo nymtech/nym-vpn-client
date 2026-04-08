@@ -34,6 +34,16 @@ function sign {
 	fi
 }
 
-sign "$1"
+exe=$1
+
+# If we are signing the Tauri app, then also sign the daemon.
+if [[ "$exe" == *NymVPN.exe ]]; then
+	# shellcheck disable=SC2043
+	for additonal in "nym-vpnd.exe"; do
+		sign "$additonal"
+	done
+fi
+
+sign "$exe"
 
 exit 0
