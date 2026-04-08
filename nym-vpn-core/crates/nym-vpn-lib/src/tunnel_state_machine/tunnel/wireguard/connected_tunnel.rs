@@ -339,19 +339,17 @@ impl ConnectedTunnel {
         let shutdown_token = CancellationToken::new();
 
         #[cfg(target_os = "android")]
-        let (wg_exit_fd, proxy_join_handle, android_tombstone_tun) =
-            if let Some(dns_filter) = options.dns_filter {
-                let proxy = DnsFilterProxy::start(
-                    options.exit_tun,
-                    dns_filter,
-                    shutdown_token.child_token(),
-                )
-                .map_err(Error::CreateDnsFilterProxy)?;
-                (proxy.wg_fd, Some(proxy.join_handle), None)
-            } else {
-                let fd = options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?;
-                (fd, None, Some(options.exit_tun))
-            };
+        let (wg_exit_fd, proxy_join_handle, android_tombstone_tun) = if let Some(dns_filter) =
+            options.dns_filter
+        {
+            let proxy =
+                DnsFilterProxy::start(options.exit_tun, dns_filter, shutdown_token.child_token())
+                    .map_err(Error::CreateDnsFilterProxy)?;
+            (proxy.wg_fd, Some(proxy.join_handle), None)
+        } else {
+            let fd = options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?;
+            (fd, None, Some(options.exit_tun))
+        };
 
         #[cfg(all(unix, not(target_os = "android")))]
         let (wg_exit_fd, tombstone_exit_tun) = (

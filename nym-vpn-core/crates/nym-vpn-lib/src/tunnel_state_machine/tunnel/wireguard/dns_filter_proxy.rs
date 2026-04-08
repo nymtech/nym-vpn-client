@@ -248,10 +248,7 @@ async fn blocked_domain(dns_payload: &[u8], dns_filter: &DnsFilter) -> Option<St
     }
     let guard = dns_filter.lock().await;
     dns.get_queries().iter().find_map(|query| {
-        let domain = query
-            .get_qname_parsed()
-            .trim_end_matches('.')
-            .to_string();
+        let domain = query.get_qname_parsed().trim_end_matches('.').to_string();
         matches!(guard.should_block(&domain), DnsFilterDecision::Block(_)).then_some(domain)
     })
 }
