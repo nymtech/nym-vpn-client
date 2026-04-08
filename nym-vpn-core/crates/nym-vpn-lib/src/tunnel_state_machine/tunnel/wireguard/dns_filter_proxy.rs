@@ -195,7 +195,9 @@ async fn maybe_nxdomain(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>
 }
 
 async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
-    let ip = Ipv4Packet::new(packet)?;
+    let ip = Ipv4Packet::new(packet).inspect_none(|| {
+        tracing::debug!("DNS filter proxy: failed to parse IPv4 packet");
+    })?;
 
     match ip.get_next_level_protocol() {
         IpNextHeaderProtocols::Udp => {
@@ -213,7 +215,9 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
 }
 
 async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
-    let ip = Ipv6Packet::new(packet)?;
+    let ip = Ipv6Packet::new(packet).inspect_none(|| {
+        tracing::debug!("DNS filter proxy: failed to parse IPv6 packet");
+    })?;
 
     match ip.get_next_header() {
         IpNextHeaderProtocols::Udp => {
