@@ -201,7 +201,7 @@ impl TunnelStateHandler for ErrorState {
                         };
                         shared_state.tunnel_settings = tunnel_settings;
 
-                        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                        #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if diff.split_tunnel_changed() {
                             let _ = shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths()).await;
                         }

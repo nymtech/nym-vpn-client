@@ -8,6 +8,7 @@ members = [
     "crates/nym-dbus",
     "crates/nym-diagnostic",
     "crates/nym-dns",
+    "crates/nym-exclude",
     "crates/nym-firewall",
     "crates/nym-firewall-config",
     "crates/nym-gateway-directory",
@@ -43,9 +44,10 @@ members = [
 
 default-members = [
     "crates/nym-diagnostic",
+    "crates/nym-exclude",
+    "crates/nym-setup",
     "crates/nym-vpnc",
     "crates/nym-vpnd",
-    "crates/nym-setup",
     "crates/uniffi-bindgen",
 ]
 
