@@ -343,6 +343,7 @@ export type TAccountSummary = {
   'is-subscription-active': boolean;
   'subscription-kind': TVpnSubscriptionKind | null;
   'is-recurring': boolean;
+  'subscription-status': TSubscriptionStatus | null;
 };
 
 export type TApiTimeSkew = {
@@ -434,6 +435,8 @@ export type THttpReport = {
   healthResponse: TDiagnosticResult<TDiagnosticHealthResponse>;
   nbNymnodes: TDiagnosticResult<number>;
 };
+
+export type TSubscriptionStatus = 'pending' | 'active';
 
 export type TTunnelState =
   | 'disconnected'

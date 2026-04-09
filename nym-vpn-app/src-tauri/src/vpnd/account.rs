@@ -98,6 +98,23 @@ impl From<lib::StoredAccountMode> for StoredAccountMode {
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TSubscriptionStatus")]
+#[serde(rename_all = "kebab-case")]
+pub enum SubscriptionStatus {
+    Pending,
+    Active,
+}
+
+impl From<lib::NymVpnSubscriptionStatus> for SubscriptionStatus {
+    fn from(status: lib::NymVpnSubscriptionStatus) -> Self {
+        match status {
+            lib::NymVpnSubscriptionStatus::Pending => SubscriptionStatus::Pending,
+            lib::NymVpnSubscriptionStatus::Active => SubscriptionStatus::Active,
+        }
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TAccountSummary")]
 #[serde(rename_all = "kebab-case")]
 pub struct AccountSummary {
@@ -113,6 +130,7 @@ pub struct AccountSummary {
     pub is_subscription_active: bool,
     pub subscription_kind: Option<VpnSubscriptionKind>,
     pub is_recurring: bool,
+    pub subscription_status: Option<SubscriptionStatus>,
 }
 
 impl From<lib::VpnAccountSummary> for AccountSummary {
@@ -140,6 +158,7 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
             is_subscription_active,
             subscription_kind: summary.subscription_kind.map(VpnSubscriptionKind::from),
             is_recurring: summary.is_recurring,
+            subscription_status: summary.subscription_status.map(SubscriptionStatus::from),
         }
     }
 }
