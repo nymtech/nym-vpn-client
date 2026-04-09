@@ -254,8 +254,9 @@ private extension ErrorReason {
             "errorReason.bandwidthExceeded".localizedString
         case .inactiveSubscription:
             "errorReason.subscriptionExpired".localizedString
+        // TODO: add dedicated localization key for pending subscription
         case .pendingSubscription:
-            "errorReason.pendingSubscription".localizedString
+            "errorReason.subscriptionExpired".localizedString
         case .registrationInProgress:
             "errorReason.registrattionInProgress".localizedString
         case let .internalError(message):
