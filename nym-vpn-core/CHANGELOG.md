@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Windows] App Split Tunnelling (https://github.com/nymtech/nym-vpn-client/pull/4908).
 - CLI: add command to list processes excluded from VPN tunnel: `nym-vpnc split-tunnel excluded-processes`
 
+### Changed
+
+- Stream SelectedGateways via buffered selection (https://github.com/nymtech/nym-vpn-client/pull/5037)
+
 ### Fixed
 
 - [macOS] Fix bug in XPC buffering between XPC and gRPC layers (https://github.com/nymtech/nym-vpn-client/pull/4985)
