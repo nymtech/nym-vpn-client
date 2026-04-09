@@ -102,7 +102,7 @@ fn run() -> Result<Infallible, Error> {
 
 #[cfg(feature = "cgroup2")]
 fn exclude(pid: Pid) -> Result<(), Error> {
-    let result = talpid_cgroup::v2::CGroup2::open_root()
+    let result = nym_cgroup::v2::CGroup2::open_root()
         .and_then(|root_cgroup2| root_cgroup2.create_or_open_child(SPLIT_TUNNEL_CGROUP_NAME))
         .and_then(|exclusion_cgroup2| exclusion_cgroup2.add_pid(pid));
 
