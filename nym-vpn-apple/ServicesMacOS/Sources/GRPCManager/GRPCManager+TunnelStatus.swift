@@ -129,6 +129,8 @@ extension GRPCManager {
             ErrorReason.ipv6Unavailable
         case .inactiveSubscription:
             ErrorReason.inactiveSubscription
+        case .pendingSubscription:
+            ErrorReason.pendingSubscription
         case .tunDevice:
             ErrorReason.tunDevice
         case .tunnelProvider:
@@ -187,6 +189,8 @@ extension ErrorReason {
             self = .bandwidthExceeded
         case .inactiveSubscription:
             self = .inactiveSubscription
+        case .pendingSubscription:
+            self = .pendingSubscription
         case .inactiveAccount:
             self = .inactiveAccount
         case .maxDevicesReached:
