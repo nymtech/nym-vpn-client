@@ -896,8 +896,8 @@ message NymVpnSubscription {
   string created_on_utc = 1;
   string last_updated_utc = 2;
   string id = 3;
-  string valid_until_utc = 4;
-  string valid_from_utc = 5;
+  int64 valid_until_utc = 4;
+  int64 valid_from_utc = 5;
   string status = 6;
   NymVpnSubscriptionKind kind = 7;
   bool is_recurring = 8;

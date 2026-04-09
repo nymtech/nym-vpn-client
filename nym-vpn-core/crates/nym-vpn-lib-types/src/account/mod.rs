@@ -281,12 +281,10 @@ impl VpnAccountSummary {
     pub fn is_subscription_active(&self) -> bool {
         if let Some(subscription) = &self.subscription {
             match subscription.status {
-                NymVpnSubscriptionStatus::Active => OffsetDateTime::parse(
-                    subscription.subscription.valid_until_utc.as_str(),
-                    &time::format_description::well_known::Rfc3339,
-                )
-                .map(|t| t > OffsetDateTime::now_utc())
-                .unwrap_or(false),
+                NymVpnSubscriptionStatus::Active => {
+                    subscription.subscription.valid_until_utc
+                        > OffsetDateTime::now_utc().unix_timestamp()
+                }
                 _ => false,
             }
         } else {
@@ -454,8 +452,8 @@ pub struct NymVpnSubscription {
     pub created_on_utc: String,
     pub last_updated_utc: String,
     pub id: String,
-    pub valid_until_utc: String,
-    pub valid_from_utc: String,
+    pub valid_until_utc: i64,
+    pub valid_from_utc: i64,
     pub status: String,
     pub kind: NymVpnSubscriptionKind,
     pub is_recurring: bool,
@@ -464,12 +462,23 @@ pub struct NymVpnSubscription {
 #[cfg(feature = "nym-type-conversions")]
 impl From<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscription {
     fn from(value: &nym_vpn_api_client::response::NymVpnSubscription) -> Self {
+        let valid_until_utc = {
+            let s = value.valid_until_utc.replace(' ', "T");
+            OffsetDateTime::parse(&s, &time::format_description::well_known::Rfc3339)
+                .map(|t| t.unix_timestamp())
+                .unwrap_or(0)
+        };
         Self {
             created_on_utc: value.created_on_utc.clone(),
             last_updated_utc: value.last_updated_utc.clone(),
             id: value.id.clone(),
-            valid_until_utc: value.valid_until_utc.clone(),
-            valid_from_utc: value.valid_from_utc.clone(),
+            valid_until_utc,
+            valid_from_utc: {
+                let s = value.valid_from_utc.replace(' ', "T");
+                OffsetDateTime::parse(&s, &time::format_description::well_known::Rfc3339)
+                    .map(|t| t.unix_timestamp())
+                    .unwrap_or(0)
+            },
             status: format!("{:?}", value.status).to_lowercase(),
             kind: value.kind.clone().into(),
             is_recurring: value.is_recurring,

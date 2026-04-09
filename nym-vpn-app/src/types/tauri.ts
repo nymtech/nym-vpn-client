@@ -437,8 +437,8 @@ export type TNymVpnSubscription = {
   'created-on-utc': string;
   'last-updated-utc': string;
   id: string;
-  'valid-until-utc': string;
-  'valid-from-utc': string;
+  'valid-until-utc': bigint;
+  'valid-from-utc': bigint;
   status: string;
   kind: TVpnSubscriptionKind;
   'is-recurring': boolean;

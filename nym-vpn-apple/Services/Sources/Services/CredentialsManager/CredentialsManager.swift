@@ -264,8 +264,9 @@ import PathManager
             return
         }
 
+        let innerSub = summary.subscription?.subscription
         accountSummary = AccountSummary(
-            validUntilTimeInterval: summary.subscriptionValidUntil,
+            validUntilTimeInterval: innerSub?.validUntilUtc,
             trafficUsedGb: summary.trafficUsedGb,
             trafficLimitGb: summary.trafficLimitGb,
             trafficResetTimeInterval: summary.trafficResetTime,
@@ -274,8 +275,8 @@ import PathManager
             accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
             isLinked: summary.isLinked(),
             isActive: summary.isSubscriptionActive(),
-            isAutoRenewEnabled: summary.isRecurring,
-            subscriptionKind: summary.subscriptionKind.map { VpnSubscriptionKind(from: $0) }
+            isAutoRenewEnabled: innerSub?.isRecurring ?? false,
+            subscriptionKind: innerSub.map { VpnSubscriptionKind(from: $0.kind) }
         )
 #elseif os(macOS)
         accountSummary = try? await grpcManager.accountSummary()

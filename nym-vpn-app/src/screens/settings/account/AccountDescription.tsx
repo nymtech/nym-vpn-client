@@ -47,7 +47,7 @@ export function AccountDescription() {
     );
   }
 
-  if (!accountSummary?.['subscription-valid-until']) {
+  if (!accountSummary?.subscription?.subscription?.['valid-until-utc']) {
     return null;
   }
 
@@ -56,11 +56,15 @@ export function AccountDescription() {
       <p className={statusColors[status]}>
         {t('account.planValidUntil', {
           date: dayjs
-            .unix(Number(accountSummary?.['subscription-valid-until']))
+            .unix(
+              Number(
+                accountSummary?.subscription?.subscription?.['valid-until-utc'],
+              ),
+            )
             .format('MMMM D, YYYY'),
         })}
       </p>
-      {accountSummary?.['is-recurring'] && (
+      {accountSummary?.subscription?.subscription?.['is-recurring'] && (
         <p className="text-iron dark:text-bombay">
           *{t('account.auto-renews')}
         </p>

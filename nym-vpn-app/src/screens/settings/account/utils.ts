@@ -67,18 +67,16 @@ export const getAccountStateDescription = (
 };
 
 export const getAccountStatus = (accountSummary?: TAccountSummary | null) => {
-  if (!accountSummary || accountSummary?.['is-recurring']) {
+  const subscription = accountSummary?.subscription?.subscription;
+  if (!accountSummary || subscription?.['is-recurring']) {
     return 'green';
   }
 
   const diff = dayjs
-    .unix(Number(accountSummary?.['subscription-valid-until']))
+    .unix(Number(subscription?.['valid-until-utc']))
     .diff(dayjs(), 'day');
 
-  if (
-    accountSummary?.['subscription-kind'] === 'freepass' ||
-    accountSummary?.['subscription-kind'] === 'one-month'
-  ) {
+  if (subscription?.kind === 'freepass' || subscription?.kind === 'one-month') {
     if (diff < 3) return 'amber'; // 2 days left
     if (diff < 8) return 'yellow'; // 7 days left
     return 'green';

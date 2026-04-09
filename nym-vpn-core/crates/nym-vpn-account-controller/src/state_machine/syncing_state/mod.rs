@@ -38,7 +38,7 @@ const BACKOFF_BASE: u32 = 2;
 
 enum SyncEvent {
     /// Account summary is received
-    AccountSummary(VpnAccountSummary),
+    AccountSummary(Box<VpnAccountSummary>),
 
     /// Failure to complete synchronization
     Failure(SyncError),
@@ -187,7 +187,9 @@ impl SyncingState {
             Some(nym_vpn_store::types::StoredAccountMode::from(vpn_api_account.mode()).into());
 
         // Propagate account summary even if sync eventually fails.
-        let _ = event_tx.send(SyncEvent::AccountSummary(vpn_account_summary.clone()));
+        let _ = event_tx.send(SyncEvent::AccountSummary(Box::new(
+            vpn_account_summary.clone(),
+        )));
 
         // Checking that the account is active
         if !summary.account_active() {
@@ -269,7 +271,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
             Some(sync_event) = self.event_rx.recv() => {
                 match sync_event {
                     SyncEvent::AccountSummary(vpn_account_summary) => {
-                        shared_state.vpn_account_summary = Some(vpn_account_summary);
+                        shared_state.vpn_account_summary = Some(*vpn_account_summary);
                         NextAccountControllerState::SameState(self)
                     }
                     SyncEvent::Failure(err) => {
