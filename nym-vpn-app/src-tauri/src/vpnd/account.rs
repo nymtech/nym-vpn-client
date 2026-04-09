@@ -30,6 +30,7 @@ impl AccountState {
     pub fn from_lib(state: lib::AccountControllerState) -> AccountState {
         match state {
             lib::AccountControllerState::LoggedOut => AccountState::LoggedOut,
+            lib::AccountControllerState::PendingSubscription => AccountState::PendingSubscription,
             lib::AccountControllerState::Syncing => AccountState::Syncing,
             lib::AccountControllerState::ReadyToConnect => AccountState::Ready,
             lib::AccountControllerState::Decentralised => AccountState::Decentralised,
@@ -45,9 +46,6 @@ impl AccountState {
                 } => AccountState::StatusNotActive,
                 lib::AccountControllerErrorStateReason::InactiveSubscription => {
                     AccountState::NoSubscription
-                }
-                lib::AccountControllerErrorStateReason::PendingSubscription => {
-                    AccountState::PendingSubscription
                 }
                 lib::AccountControllerErrorStateReason::MaxDeviceReached => {
                     AccountState::MaxDeviceReached

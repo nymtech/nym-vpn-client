@@ -128,7 +128,6 @@ export type ErrorKey =
   | 'bandwidth-exceeded'
   | 'account-status-not-active'
   | 'no-subscription'
-  | 'pending-subscription'
   | 'max-device-reached'
   | 'device-time-desync'
   | 'get-mixnet-entry-countries-query'
